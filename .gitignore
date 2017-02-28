@@ -16,6 +16,9 @@
 [Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/
+[Ee]ngine/
+[Aa]stsBridge/
+[Ll]og/
 x64/
 x86/
 bld/
