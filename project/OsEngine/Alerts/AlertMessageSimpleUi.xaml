@@ -1,0 +1,9 @@
+﻿<Window x:Class="OsEngine.Alerts.AlertMessageSimpleUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Внимание!" Height="133" Width="328" ResizeMode="NoResize" Style="{StaticResource WindowStyleNoResize}" WindowStartupLocation="CenterScreen" Topmost="True" Icon="/OsEngine;component/Images/OsLogo.ico">
+    <Grid>
+        <TextBlock  Name="TextBoxMessage" Margin="10" TextWrapping="Wrap" Text="TextBlock" Foreground="White"/>
+
+    </Grid>
+</Window>

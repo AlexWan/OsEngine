@@ -1,0 +1,27 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OsEngine", "OsEngine", "{813FA674-29CB-43F9-8B99-EB1FABEE928B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OsEngine", "OsEngine\OsEngine.csproj", "{D5B52FC8-875D-4CBF-886B-B71F8D556341}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D5B52FC8-875D-4CBF-886B-B71F8D556341}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5B52FC8-875D-4CBF-886B-B71F8D556341}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5B52FC8-875D-4CBF-886B-B71F8D556341}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5B52FC8-875D-4CBF-886B-B71F8D556341}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D5B52FC8-875D-4CBF-886B-B71F8D556341} = {813FA674-29CB-43F9-8B99-EB1FABEE928B}
+	EndGlobalSection
+EndGlobal

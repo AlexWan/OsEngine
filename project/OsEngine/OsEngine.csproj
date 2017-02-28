@@ -1,0 +1,1050 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{D5B52FC8-875D-4CBF-886B-B71F8D556341}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>OsEngine</RootNamespace>
+    <AssemblyName>OsEngine</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <ExpressionBlendVersion>12.0.41002.1</ExpressionBlendVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Images\OsLogo.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="cgate_net, Version=3.14.1.16922, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Moscow Exchange\SpectraCGate\bin\cgate_net.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.Office.Interop.Excel, Version=12.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="qC, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\qC.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Windows.Forms.DataVisualization" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsFormsIntegration" />
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Compile Include="Alerts\AlertMessageManager.cs" />
+    <Compile Include="Alerts\AlertMessageFullUi.xaml.cs">
+      <DependentUpon>AlertMessageFullUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Alerts\AlertToChart.cs" />
+    <Compile Include="Alerts\AlertToChartCreateUi.xaml.cs">
+      <DependentUpon>AlertToChartCreateUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Alerts\AlertMaster.cs" />
+    <Compile Include="Alerts\AlertSignal.cs" />
+    <Compile Include="Alerts\IIAlert.cs" />
+    <Compile Include="Alerts\AlertMessageSimpleUi.xaml.cs">
+      <DependentUpon>AlertMessageSimpleUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Alerts\AlertToPrice.cs" />
+    <Compile Include="Alerts\AlertToPriceCreateUi.xaml.cs">
+      <DependentUpon>AlertToPriceCreateUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Elements\IChartElement.cs" />
+    <Compile Include="Charts\CandleChart\Elements\PointElement.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\AccumulationDistribution.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\AccumulationDistributionUi.xaml.cs">
+      <DependentUpon>AccumulationDistributionUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\AdaptiveLookBack.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\AdaptiveLookBackUi.xaml.cs">
+      <DependentUpon>AdaptiveLookBackUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\Adx.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\AdxUi.xaml.cs">
+      <DependentUpon>AdxUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\Alligator.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\AlligatorUi.xaml.cs">
+      <DependentUpon>AlligatorUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\Atr.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\AtrUi.xaml.cs">
+      <DependentUpon>AtrUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\AwesomeOscillator.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\AwesomeOscillatorUi.xaml.cs">
+      <DependentUpon>AwesomeOscillatorUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Elements\LineElement.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\Aс.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\AсUi.xaml.cs">
+      <DependentUpon>AсUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\BearsPower.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\BearsPowerUi.xaml.cs">
+      <DependentUpon>BearsPowerUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\BfMfi.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\BfMfiUi.xaml.cs">
+      <DependentUpon>BfMfiUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\BullsPower.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\BullsPowerUi.xaml.cs">
+      <DependentUpon>BullsPowerUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\CCI.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\CCIUi.xaml.cs">
+      <DependentUpon>CCIUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\Cmo.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\CmoUi.xaml.cs">
+      <DependentUpon>CmoUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\EfficiencyRatio.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\EfficiencyRatioUi.xaml.cs">
+      <DependentUpon>EfficiencyRatioUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\EnvelopsUi.xaml.cs">
+      <DependentUpon>EnvelopsUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\Envelops.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\ForceIndex.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\ForceIndexUi.xaml.cs">
+      <DependentUpon>ForceIndexUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\Ishimoku.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\IshimokuUi.xaml.cs">
+      <DependentUpon>IshimokuUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\IvashovRange.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\IvashovRangeUi.xaml.cs">
+      <DependentUpon>IvashovRangeUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\Line.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\MacdHistogram.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\MacdHistogramUi.xaml.cs">
+      <DependentUpon>MacdHistogramUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\MacdLine.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\MacdLineUi.xaml.cs">
+      <DependentUpon>MacdLineUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\Momentum.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\MomentumUi.xaml.cs">
+      <DependentUpon>MomentumUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\MoneyFlowIndex.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\MoneyFlowIndexUi.xaml.cs">
+      <DependentUpon>MoneyFlowIndexUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\OnBalanceVolume.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\OnBalanceVolumeUi.xaml.cs">
+      <DependentUpon>OnBalanceVolumeUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\ParabolicSAR.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\ParabolicSARUi.xaml.cs">
+      <DependentUpon>ParabolicSARUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\PriceChannel.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\PriceChannelUi.xaml.cs">
+      <DependentUpon>PriceChannelUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\PriceOscillator.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\PriceOscillatorUi.xaml.cs">
+      <DependentUpon>PriceOscillatorUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\Roc.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\RocUi.xaml.cs">
+      <DependentUpon>RocUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\Rvi.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\RviUi.xaml.cs">
+      <DependentUpon>RviUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\StandardDeviation.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\StandardDeviationUi.xaml.cs">
+      <DependentUpon>StandardDeviationUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\StochasticOscillator.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\StochasticOscillatorUi.xaml.cs">
+      <DependentUpon>StochasticOscillatorUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\TradeThread.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\Trix.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\TrixUi.xaml.cs">
+      <DependentUpon>TrixUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\VerticalHorizontalFilter.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\VerticalHorizontalFilterUi.xaml.cs">
+      <DependentUpon>VerticalHorizontalFilterUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\Volume.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\VolumeOscillator.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\VolumeOscillatorUi.xaml.cs">
+      <DependentUpon>VolumeOscillatorUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\VolumeUi.xaml.cs">
+      <DependentUpon>VolumeUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\WilliamsRange.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\WilliamsRangeUi.xaml.cs">
+      <DependentUpon>WilliamsRangeUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\ColorKeeper\ChartMasterColorKeeperUi.xaml.cs">
+      <DependentUpon>ChartMasterColorKeeperUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\ChartPainter.cs" />
+    <Compile Include="Charts\ColorKeeper\ChartMasterColorKeeper.cs" />
+    <Compile Include="Charts\ChartMaster.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\IndicarotCreateUi.xaml.cs">
+      <DependentUpon>IndicarotCreateUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Entity\CumulativeDeltaTimeFrameUi.xaml.cs">
+      <DependentUpon>CumulativeDeltaTimeFrameUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Entity\SecurityLevelOne.cs" />
+    <Compile Include="Entity\TimeFrameBuilder.cs" />
+    <Compile Include="Journal\JournalUi.xaml.cs">
+      <DependentUpon>JournalUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Logging\LogErrorUi.xaml.cs">
+      <DependentUpon>LogErrorUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Market\Servers\AstsBridge\AstsBridgeWrapper.cs" />
+    <Compile Include="Market\Servers\AstsBridge\AstsBridgeServer.cs" />
+    <Compile Include="Market\Servers\AstsBridge\AstsServerUi.xaml.cs">
+      <DependentUpon>AstsServerUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Market\Servers\Entity\BidAskSender.cs" />
+    <Compile Include="Market\Servers\Entity\MyTradeSender.cs" />
+    <Compile Include="Market\Servers\Entity\OrderSender.cs" />
+    <Compile Include="Market\Servers\Entity\PositionOnBoardSander.cs" />
+    <Compile Include="Market\Servers\Finam\FinamServer.cs" />
+    <Compile Include="Market\Servers\Finam\FinamServerUi.xaml.cs">
+      <DependentUpon>FinamServerUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Market\Servers\InteractivBrokers\IbClient.cs" />
+    <Compile Include="Market\Servers\InteractivBrokers\IbContractStorageUi.xaml.cs">
+      <DependentUpon>IbContractStorageUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Market\Servers\InteractivBrokers\InteractivBrokersServer.cs" />
+    <Compile Include="Market\Servers\InteractivBrokers\InteractivBrokersUi.xaml.cs">
+      <DependentUpon>InteractivBrokersUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Market\Servers\IServer.cs" />
+    <Compile Include="Market\Servers\Plaza\Internal\PlazaController.cs" />
+    <Compile Include="Market\Servers\Plaza\Internal\PlazaMarketDepthCreator.cs" />
+    <Compile Include="Market\Servers\Plaza\PlazaServer.cs" />
+    <Compile Include="Market\Servers\Plaza\PlazaServerUi.xaml.cs">
+      <DependentUpon>PlazaServerUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Market\Servers\ServerTickStorage.cs" />
+    <Compile Include="Market\Servers\Tester\TesterServer.cs" />
+    <Compile Include="Market\Servers\Tester\TesterServerUi.xaml.cs">
+      <DependentUpon>TesterServerUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Market\Servers\Quik\QuikDde.cs" />
+    <Compile Include="Market\Connector.cs" />
+    <Compile Include="Market\ConnectorUi.xaml.cs">
+      <DependentUpon>ConnectorUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Market\Servers\Quik\QuikServer.cs" />
+    <Compile Include="Market\Servers\Quik\QuikServerUi.xaml.cs">
+      <DependentUpon>QuikServerUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Market\Servers\Quik\Trans2Quik.cs" />
+    <Compile Include="Market\OrderExecutionEmulator.cs" />
+    <Compile Include="Market\Servers\ServerMaster.cs" />
+    <Compile Include="Market\Servers\ServerMasterUi.xaml.cs">
+      <DependentUpon>ServerMasterUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Market\Servers\SmartCom\SmartComServer.cs" />
+    <Compile Include="Market\Servers\SmartCom\SmartComServerUi.xaml.cs">
+      <DependentUpon>SmartComServerUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Entity\CandleManager.cs" />
+    <Compile Include="Entity\Candles.cs" />
+    <Compile Include="Entity\CandleSeries.cs" />
+    <Compile Include="Entity\Position.cs" />
+    <Compile Include="Entity\PositionOpenerToStop.cs" />
+    <Compile Include="Entity\MarketDepth.cs" />
+    <Compile Include="Entity\MyTrade.cs" />
+    <Compile Include="Entity\Order.cs" />
+    <Compile Include="Entity\SecuritiesUi.xaml.cs">
+      <DependentUpon>SecuritiesUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Entity\SecurityUi.xaml.cs">
+      <DependentUpon>SecurityUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Entity\Portfolio.cs" />
+    <Compile Include="Entity\PositionOnBoard.cs" />
+    <Compile Include="Entity\Security.cs" />
+    <Compile Include="Entity\Trade.cs" />
+    <Compile Include="Entity\NumberGen.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\Bollinger.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\BollingerUi.xaml.cs">
+      <DependentUpon>BollingerUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\Fractail.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\FractalUi.xaml.cs">
+      <DependentUpon>FractalUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\IIndicatorCandle.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\MovingAverage.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\MovingAverageUi.xaml.cs">
+      <DependentUpon>MovingAverageUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\Rsi.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\RsiUi.xaml.cs">
+      <DependentUpon>RsiUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Entity\PositionUi.xaml.cs">
+      <DependentUpon>PositionUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Journal\Internal\DealStaticticGenerator.cs" />
+    <Compile Include="OsTrader\GlobalPosition.cs" />
+    <Compile Include="Journal\Journal.cs" />
+    <Compile Include="Logging\MessageSender.cs" />
+    <Compile Include="Logging\MessageSenderUi.xaml.cs">
+      <DependentUpon>MessageSenderUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Logging\ServerMail.cs" />
+    <Compile Include="Logging\ServerMailUi.xaml.cs">
+      <DependentUpon>ServerMailUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Logging\ServerSms.cs" />
+    <Compile Include="Logging\ServerSmsUi.xaml.cs">
+      <DependentUpon>ServerSmsUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Logging\Log.cs" />
+    <Compile Include="OsConverter\OsConverterMaster.cs" />
+    <Compile Include="OsConverter\OsConverterUi.xaml.cs">
+      <DependentUpon>OsConverterUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsData\NewSecurityUi.xaml.cs">
+      <DependentUpon>NewSecurityUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsData\OsDataMaster.cs" />
+    <Compile Include="OsData\OsDataSet.cs" />
+    <Compile Include="OsData\OsDataSetUi.xaml.cs">
+      <DependentUpon>OsDataSetUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsData\OsDataUi.xaml.cs">
+      <DependentUpon>OsDataUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\BBPowerTradeUi.xaml.cs">
+      <DependentUpon>BBPowerTradeUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\BollingerOutburstUi.xaml.cs">
+      <DependentUpon>BollingerOutburstUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\BollingerStrategyUi.xaml.cs">
+      <DependentUpon>BollingerStrategyUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\BollingerTradeUi.xaml.cs">
+      <DependentUpon>BollingerTradeUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\CCITradeUi.xaml.cs">
+      <DependentUpon>CCITradeUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\MacdTradeUi.xaml.cs">
+      <DependentUpon>MacdTradeUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\MacdTrailUi.xaml.cs">
+      <DependentUpon>MacdTrailUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\MomentumMacdUi.xaml.cs">
+      <DependentUpon>MomentumMacdUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\OneLegArbitrationUi.xaml.cs">
+      <DependentUpon>OneLegArbitrationUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\PairRsiTradeUi.xaml.cs">
+      <DependentUpon>PairRsiTradeUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\ParabolicSarTradeUi.xaml.cs">
+      <DependentUpon>ParabolicSarTradeUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\PinBarTradeUi.xaml.cs">
+      <DependentUpon>PinBarTradeUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\PriceChannelBreakUi.xaml.cs">
+      <DependentUpon>PriceChannelBreakUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\PriceChannelTradeUi.xaml.cs">
+      <DependentUpon>PriceChannelTradeUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\PriceChannelVolatilityUi.xaml.cs">
+      <DependentUpon>PriceChannelVolatilityUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\RobotUi.xaml.cs">
+      <DependentUpon>RobotUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\RsiContrtrendUi.xaml.cs">
+      <DependentUpon>RsiContrtrendUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\RsiTradeUi.xaml.cs">
+      <DependentUpon>RsiTradeUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\RviTradeUi.xaml.cs">
+      <DependentUpon>RviTradeUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\SmaStochasticUi.xaml.cs">
+      <DependentUpon>SmaStochasticUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\StochasticTradeUi.xaml.cs">
+      <DependentUpon>StochasticTradeUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\ThreeSoldierUi.xaml.cs">
+      <DependentUpon>ThreeSoldierUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\TrixTradeUi.xaml.cs">
+      <DependentUpon>TrixTradeUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\TwoLegArbitrationUi.xaml.cs">
+      <DependentUpon>TwoLegArbitrationUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\WilliamsRangeTradeUi.xaml.cs">
+      <DependentUpon>WilliamsRangeTradeUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\Tab\Internal\BotTabCandleSpreadUi.xaml.cs">
+      <DependentUpon>BotTabCandleSpreadUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\RiskManager\RiskManagerUi.xaml.cs">
+      <DependentUpon>RiskManagerUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Journal\Internal\PositionController.cs" />
+    <Compile Include="OsTrader\Panels\BotPanel.cs" />
+    <Compile Include="OsTrader\Panels\PanelsGui\SampleFilipLevelUi.xaml.cs">
+      <DependentUpon>SampleFilipLevelUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\SampleLevermorUi.xaml.cs">
+      <DependentUpon>SampleLevermorUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\SamplePairTraderSimpleUi.xaml.cs">
+      <DependentUpon>SamplePairTraderSimpleUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\SamplePairTraderSpreadSmaUi.xaml.cs">
+      <DependentUpon>SamplePairTraderSpreadSmaUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\MyWilliamsUi.xaml.cs">
+      <DependentUpon>MyWilliamsUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\Tab\BotTabIndex.cs" />
+    <Compile Include="OsTrader\Panels\Tab\IIBotTab.cs" />
+    <Compile Include="OsTrader\Panels\Tab\Internal\AcebergMaker.cs" />
+    <Compile Include="OsTrader\Panels\Tab\Internal\PositionCloseUi.xaml.cs">
+      <DependentUpon>PositionCloseUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\Tab\Internal\PositionModificateUi.xaml.cs">
+      <DependentUpon>PositionModificateUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\Tab\Internal\PositionCreator.cs" />
+    <Compile Include="OsTrader\RiskManager\RiskManager.cs" />
+    <Compile Include="OsTrader\Panels\Tab\Internal\PositionOpenUi.xaml.cs">
+      <DependentUpon>PositionOpenUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\Tab\Internal\PositionStopUi.xaml.cs">
+      <DependentUpon>PositionStopUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Gui\RobotUi.xaml.cs">
+      <DependentUpon>RobotUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\Tab\BotTabSimple.cs" />
+    <Compile Include="OsTrader\OsTraderMaster.cs" />
+    <Compile Include="OsTrader\Panels\Tab\Internal\BotManualControl.cs" />
+    <Compile Include="OsTrader\Panels\PanelCreateUi.xaml.cs">
+      <DependentUpon>PanelCreateUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\Tab\Internal\BotManualControlUi.xaml.cs">
+      <DependentUpon>BotManualControlUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelCreator.cs" />
+    <Compile Include="OsTrader\Gui\TesterUi.xaml.cs">
+      <DependentUpon>TesterUi.xaml</DependentUpon>
+    </Compile>
+    <Page Include="Alerts\AlertMessageFullUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Alerts\AlertToChartCreateUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Alerts\AlertMessageSimpleUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Alerts\AlertToPriceCreateUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\AccumulationDistributionUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\AdaptiveLookBackUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\AdxUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\AlligatorUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\AtrUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\AwesomeOscillatorUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\AсUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\BearsPowerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\BfMfiUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\BullsPowerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\CCIUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\CmoUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\EfficiencyRatioUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\EnvelopsUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\ForceIndexUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\IshimokuUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\IvashovRangeUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\MacdHistogramUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\MacdLineUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\MomentumUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\MoneyFlowIndexUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\OnBalanceVolumeUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\ParabolicSARUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\PriceChannelUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\PriceOscillatorUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\RocUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\RviUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\StandardDeviationUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\StochasticOscillatorUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\TrixUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\VerticalHorizontalFilterUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\VolumeOscillatorUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\VolumeUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\WilliamsRangeUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\ColorKeeper\ChartMasterColorKeeperUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\IndicarotCreateUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Entity\CumulativeDeltaTimeFrameUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Journal\JournalUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Logging\LogErrorUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\AstsBridge\AstsServerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\Finam\FinamServerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\InteractivBrokers\IbContractStorageUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\InteractivBrokers\InteractivBrokersUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\Plaza\PlazaServerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\ConnectorUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\Tester\TesterServerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\Quik\QuikServerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\ServerMasterUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\BollingerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\FractalUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\MovingAverageUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\RsiUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\SmartCom\SmartComServerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Entity\SecuritiesUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Entity\SecurityUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Entity\PositionUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Page Include="Logging\MessageSenderUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Logging\ServerMailUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Logging\ServerSmsUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsConverter\OsConverterUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsData\NewSecurityUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsData\OsDataSetUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsData\OsDataUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\BBPowerTradeUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\BollingerOutburstUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\BollingerStrategyUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\BollingerTradeUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\CCITradeUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\MacdTradeUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\MacdTrailUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\MomentumMacdUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\OneLegArbitrationUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\PairRsiTradeUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\ParabolicSarTradeUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\PinBarTradeUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\PriceChannelBreakUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\PriceChannelTradeUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\PriceChannelVolatilityUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\RobotUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\RsiContrtrendUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\RsiTradeUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\RviTradeUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\SmaStochasticUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\StochasticTradeUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\ThreeSoldierUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\TrixTradeUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\TwoLegArbitrationUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\WilliamsRangeTradeUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\Tab\Internal\BotTabCandleSpreadUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\RiskManager\RiskManagerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\SampleFilipLevelUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\SampleLevermorUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\SamplePairTraderSimpleUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\SamplePairTraderSpreadSmaUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\MyWilliamsUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\Tab\Internal\PositionCloseUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\Tab\Internal\PositionModificateUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\Tab\Internal\PositionOpenUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\Tab\Internal\PositionStopUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Gui\RobotUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelCreateUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\Tab\Internal\BotManualControlUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Gui\TesterUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <AppDesigner Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\OsLogo.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="SmartCOM3Lib">
+      <Guid>{8252879C-6E32-4322-A38D-8EBA54E52595}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>True</Isolated>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.5">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.5 %28x86 и x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>Клиентский профиль .NET Framework 3.5 с пакетом обновления 1 %28SP1%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\wolf01.wav" />
+    <None Include="Resources\Duck.wav" />
+    <None Include="Resources\Bird.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\pickDown.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\pickDownSmall.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\pickUp.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\pickUpSmall.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

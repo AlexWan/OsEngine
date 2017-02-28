@@ -1,0 +1,22 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:system="clr-namespace:System;assembly=mscorlib" x:Class="OsEngine.Logging.ServerMailDeliveryUi"
+        Title="Рассылка почтовых сообщений" Height="254" Width="323" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico" Topmost="True">
+    <Grid>
+        <Button x:Name="ButtonAccept" Content="Применить" Margin="0,0,5,10" Click="buttonAccept_Click" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="101"/>
+        <Rectangle Margin="5,5,5,37"/>
+        <TextBox x:Name="TextBoxMyAdress" Height="23" Margin="105,18,19,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
+        <TextBox x:Name="TextBoxPassword" Height="23" Margin="105,46,19,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
+        <TextBox x:Name="TextBoxAdress" Margin="105,105,19,44" TextWrapping="Wrap" VerticalScrollBarVisibility="Visible"/>
+        <Label Content="Моя почта" HorizontalAlignment="Left" Margin="19,21,0,0" VerticalAlignment="Top" Width="81" />
+        <Label Content="Пароль" HorizontalAlignment="Left" Margin="19,49,0,0" VerticalAlignment="Top" Width="67" />
+        <Label Content="Адресаты" HorizontalAlignment="Left" Margin="19,114,0,0" VerticalAlignment="Top" Width="81" />
+        <Label Content="Почтовик" HorizontalAlignment="Left" Margin="19,82,0,0" VerticalAlignment="Top" Width="67" />
+        <ComboBox x:Name="ComboBoxMyMaster" Margin="105,74,19,0" VerticalAlignment="Top">
+            <system:String>Яндекс</system:String>
+            <system:String>Гугл</system:String>
+        </ComboBox>
+
+    </Grid>
+</Window>

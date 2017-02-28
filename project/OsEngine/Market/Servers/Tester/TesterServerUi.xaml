@@ -1,0 +1,62 @@
+﻿<Window x:Class="OsEngine.Market.Servers.Tester.TesterServerUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+       Title="Эмулятор биржи" Height="522" Width="1241" MinWidth="570" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Topmost="True" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="337*"/>
+            <ColumnDefinition Width="317*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="75"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Rectangle Margin="5"  Grid.Row="1" Grid.ColumnSpan="2"/>
+        <Button Grid.Row="0" Grid.Column="0" Name="ButtonSinhronazer" Content="Дополнительно" HorizontalAlignment="Left" Margin="5,5,0,0" VerticalAlignment="Top" Width="129" Click="ButtonSinhronazer_Click"/>
+        <Button Grid.Row="0" x:Name="ButtonFast" Content="&gt;&gt;&gt;&gt;&gt;" Margin="162,49,194,0" VerticalAlignment="Top" RenderTransformOrigin="0.333,1.5" Click="buttonFast_Click" IsEnabled="True" Grid.ColumnSpan="2"
+                Grid.Column="0" />
+        <Button Grid.Row="0" x:Name="ButtonNextCandle" Content="+ 1" Margin="0,49,5,0" VerticalAlignment="Top" IsEnabled="True" Click="buttonNextCandle_Click" HorizontalAlignment="Right" Width="90" Grid.Column="1"/>
+        <Button Grid.Row="0" x:Name="ButtonPausePlay" Content="| |" Margin="0,49,100,0" VerticalAlignment="Top" IsEnabled="True" Click="buttonPausePlay_Click" HorizontalAlignment="Right" Width="89" Grid.Column="1"/>
+        <Button Grid.Row="0" Grid.Column="0" x:Name="ButtonStartTest" Content="Начать тест" HorizontalAlignment="Left" Margin="5,49,0,0" VerticalAlignment="Top" Width="152" RenderTransformOrigin="0.333,1.5" IsEnabled="True" Click="buttonStartTest_Click"/>
+        <ProgressBar Name="ProgressBar" Height="9" Margin="5,35,5,0" VerticalAlignment="Top" Grid.Row="0"
+                     Grid.ColumnSpan="2" Grid.Column="0" />
+        <Label Content="Статус сервера: " HorizontalAlignment="Left" Margin="21,5,0,0" VerticalAlignment="Top" Grid.Row="0" Grid.Column="1" FontFamily="Calibri" Width="103" />
+        <Label x:Name="LabelStatus" Content="Disconnect" HorizontalAlignment="Left" Margin="164,5,0,0" VerticalAlignment="Top" Grid.Row="0" Grid.Column="1" Width="71"/>
+        <Slider x:Name="SliderFrom" Margin="180,10,20,0" VerticalAlignment="Top" Height="22" Grid.Row="1" Grid.Column="1"/>
+        <Slider x:Name="SliderTo" Margin="180,34,19,0" VerticalAlignment="Top" Height="22" Grid.Row="1" Grid.Column="1" RenderTransformOrigin="0.5,0.5">
+            <Slider.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform ScaleX="-1"/>
+                    <SkewTransform/>
+                    <RotateTransform/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </Slider.RenderTransform>
+        </Slider>
+        <TextBox x:Name="TextBoxFrom" HorizontalAlignment="Left"  Margin="32,7,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="148" Grid.Row="1" Grid.Column="1"/>
+        <TextBox x:Name="TextBoxTo" HorizontalAlignment="Left" Margin="32,35,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="148" Grid.Row="1" Grid.Column="1"/>
+        <Label Name="LabelFrom"  Content="От" HorizontalAlignment="Left" Margin="0,7,0,0" VerticalAlignment="Top" Grid.Row="1" Grid.Column="1" FontFamily="Calibri" Width="23"/>
+        <Label Name="LabelTo"  Content="До" HorizontalAlignment="Left" Margin="0,35,0,0" VerticalAlignment="Top" Grid.Row="1" Grid.Column="1" FontFamily="Calibri" Width="24"/>
+        <Label Content="Проскальзывание в шагах " Margin="0,59,110,0" VerticalAlignment="Top" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Right" Width="165" />
+        <TextBox Name="TextBoxCommis" Grid.Column="1" Margin="0,59,20,0" Grid.Row="1" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Right" Width="85"/>
+        <Grid Margin="10,0,0,5" Grid.Row="1" Grid.Column="0" >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="27*" MinHeight="30"/>
+                <RowDefinition Height="40*"/>
+            </Grid.RowDefinitions>
+            <WindowsFormsHost x:Name="HostSecurities" Margin="0,73,0,0" Grid.Row="1"/>
+            <WindowsFormsHost Grid.Row="0" x:Name="Host" Margin="0,10,0,0" />
+            <ComboBox Name="ComboBoxSets" HorizontalAlignment="Left" Margin="345,10,0,0" VerticalAlignment="Top" Width="155" Grid.Row="1"/>
+            <Label  Content="Cеты" HorizontalAlignment="Left" Margin="303,10,0,0" VerticalAlignment="Top" Grid.Row="1" />
+            <ComboBox x:Name="ComboBoxDataType" HorizontalAlignment="Left" Margin="101,40,0,0" VerticalAlignment="Top" Width="197" Grid.Row="1"/>
+            <Label  Content="Транслируем" HorizontalAlignment="Left" Margin="10,40,0,0" VerticalAlignment="Top" Grid.Row="1"/>
+            <Button Name="ButtonSetDataFromPath" Content="Указать в папке" Margin="505,10,10,0" Grid.Row="1" VerticalAlignment="Top" Click="ButtonSetDataFromPath_Click"/>
+            <TextBox Name="TextBoxDataPath" Margin="303,40,10,0" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Top"/>
+            <ComboBox x:Name="ComboBoxDataSourseType" HorizontalAlignment="Left" Margin="101,10,0,0" VerticalAlignment="Top" Width="197" Grid.Row="1"/>
+            <Label  Content="Источник" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Grid.Row="1"  />
+        </Grid>
+        <WindowsFormsHost Name="HostPortfolio" Grid.Column="1" Margin="5,89,10,5" Grid.Row="1"/>
+        <Label Content="Начальный депозит " Margin="0,59,458,0" VerticalAlignment="Top" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Right" Width="129"/>
+        <TextBox x:Name="TextBoxStartDepozit" Grid.Column="1" Margin="0,59,312,0" Grid.Row="1" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Right" Width="141"/>
+    </Grid>
+</Window>

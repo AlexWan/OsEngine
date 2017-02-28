@@ -1,0 +1,15 @@
+﻿<Window x:Class="OsEngine.Charts.CandleChart.Indicators.AdxUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+       Title="ADX" Height="190" Width="322" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico" Topmost="True">
+    <Grid>
+        <Rectangle Margin="5,5,5,37"/>
+        <Button x:Name ="ButtonAccept"  Content="Принять" Margin="0,0,10,10" Click="ButtonAccept_Click" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="119"/>
+        <TextBox x:Name ="TextBoxLenght" Height="22"  Margin="154,24,23,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <Label Content="Длинна" HorizontalAlignment="Left" Margin="89,29,0,0" VerticalAlignment="Top"/>
+        <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовывать" Margin="154,78,37,0" VerticalAlignment="Top" />
+        <Button x:Name="ButtonColorAdx" Content="Цвет" HorizontalAlignment="Left" Margin="22,51,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorAdx_Click"  />
+        <WindowsFormsHost x:Name="HostColorBase" Height="22" Margin="154,51,23,0" VerticalAlignment="Top"/>
+
+    </Grid>
+</Window>

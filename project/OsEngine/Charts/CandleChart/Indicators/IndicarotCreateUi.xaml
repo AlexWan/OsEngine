@@ -1,0 +1,13 @@
+﻿<Window x:Class="OsEngine.Charts.CandleChart.Indicators.IndicarotCreateUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Добавить индикатор" Height="360" Width="408" ResizeMode="NoResize" Style="{StaticResource WindowStyleNoResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico" Topmost="True">
+    <Grid>
+        <Rectangle Margin="5,5,5,37">
+        </Rectangle>
+        <TextBlock x:Name="TextBlockDescription" Margin="195,10,10,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="135" Foreground="#FF7212"/>
+        <WindowsFormsHost Name ="HostNames"  HorizontalAlignment="Left" Margin="10,10,0,50" Width="180"/>
+        <WindowsFormsHost Name="HostArea" Margin="195,150,10,50"/>
+        <Button x:Name ="ButtonAccept" Content="Принять" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="150" Click="ButtonAccept_Click" />
+    </Grid>
+</Window>

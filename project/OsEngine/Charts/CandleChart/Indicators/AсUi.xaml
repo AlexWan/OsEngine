@@ -1,0 +1,18 @@
+﻿<Window x:Class="OsEngine.Charts.CandleChart.Indicators.AсUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="AC" Height="257" Width="310" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico" Topmost="True">
+    <Grid>
+        <Rectangle Margin="5,5,5,37"/>
+        <Button x:Name ="ButtonAccept"  Content="Принять" HorizontalAlignment="Right" Margin="5,5,5,10" VerticalAlignment="Bottom" Width="100" Click="ButtonAccept_Click"/>
+        <TextBox x:Name ="TextBoxLenght" Margin="154,20,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <Label Content="Длинная" HorizontalAlignment='Left' Margin="23,20,0,0" VerticalAlignment="Top"/>
+        <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовывать" HorizontalAlignment="Left" Margin="154,147,0,0" VerticalAlignment="Top"/>
+        <Button x:Name="ButtonColorUp" Content="Цвет вверх" HorizontalAlignment="Left" Margin="21,80,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"  />
+        <WindowsFormsHost x:Name="HostColorUp" Height="25" Margin="154,80,20,0" VerticalAlignment="Top"/>
+        <TextBox x:Name ="TextBoxLenghtAverage" Margin="154,50,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <Label Content="Короткая" HorizontalAlignment="Left" Margin="21,50,0,0" VerticalAlignment="Top" />
+        <Button x:Name="ButtonColorDown" Content="Цвет вниз" HorizontalAlignment="Left" Margin="21,110,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorDown_Click" />
+        <WindowsFormsHost x:Name="HostColorDown" Height="25" Margin="154,110,20,0" VerticalAlignment="Top"/>
+    </Grid>
+</Window>
