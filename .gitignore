@@ -23,11 +23,11 @@ bld/
 [Ll]og/
 
 
-# блокируем логи и временные файлы в Debug директории
-# саму Debug удалять нельзя ибо в ней куча библиотек и проч...
+# Block Logs and Temp files in Debug directory
 [Ee]ngine/
 [Aa]stsBridge/
 Plaza/Log/
+Data/
 
 # Visual Studio 2015 cache/options directory
 .vs/
