@@ -16,14 +16,18 @@
 [Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/
-[Ee]ngine/
-[Aa]stsBridge/
-[Ll]og/
 x64/
 x86/
 bld/
 [Oo]bj/
 [Ll]og/
+
+
+# блокируем логи и временные файлы в Debug директории
+# саму Debug удалять нельзя ибо в ней куча библиотек и проч...
+[Ee]ngine/
+[Aa]stsBridge/
+Plaza/Log/
 
 # Visual Studio 2015 cache/options directory
 .vs/
