@@ -276,7 +276,6 @@
       <DependentUpon>AstsServerUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Market\Servers\Entity\BidAskSender.cs" />
-    <Compile Include="Market\Servers\Entity\MyTradeSender.cs" />
     <Compile Include="Market\Servers\Entity\OrderSender.cs" />
     <Compile Include="Market\Servers\Entity\PositionOnBoardSander.cs" />
     <Compile Include="Market\Servers\Finam\FinamServer.cs" />

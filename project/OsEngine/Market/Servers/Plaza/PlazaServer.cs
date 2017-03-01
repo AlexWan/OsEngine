@@ -771,7 +771,7 @@ namespace OsEngine.Market.Servers.Plaza
         /// <summary>
         /// новая моя сделка в системе
         /// </summary>
-        void _plazaController_UpdateMyTrade(MyTrade myTrade,int loop)
+        void _plazaController_UpdateMyTrade(MyTrade myTrade)
         {
             lock (_lockUpdateMyTrade)
             {
@@ -783,40 +783,6 @@ namespace OsEngine.Market.Servers.Plaza
 
                 if (security == null)
                 {
-                    return;
-                }
-
-                if (_ordersNumbers == null || _ordersNumbers.Find(orderNum => orderNum == myTrade.NumberOrderParent) == null)
-                { // если ордер этой заявки ещё не пришёл   
-                    // отправляем мою сделку погулять на 2 секунды
-                    if (loop == 20)
-                    {
-                        return;
-                    }
-
-                    if (ServerStatus == ServerConnectStatus.Disconnect ||
-                        ServerTime == DateTime.MinValue ||
-                        myTrade.Time.AddSeconds(60) < ServerTime)
-                    {
-                        return;
-                    }
-
-                    MyTradeSender tradeSender = new MyTradeSender();
-                    tradeSender.Trade = myTrade;
-                    tradeSender.Loop = loop + 1;
-                    tradeSender.UpdeteTradeEvent += _plazaController_UpdateMyTrade;
-
-                    Thread worker = new Thread(tradeSender.Sand);
-                    worker.IsBackground = true;
-                    worker.CurrentCulture = new CultureInfo("ru-RU");
-                    worker.Start();
-
-                    return;
-                }
-
-                if (_myTrades != null &&
-                    _myTrades.Find(trade => trade.NumberTrade == myTrade.NumberTrade) != null)
-                {// попытка повторной отправки трейда
                     return;
                 }
 
@@ -921,6 +887,21 @@ namespace OsEngine.Market.Servers.Plaza
                     }
 
                     order.SecurityNameCode = security.Name;
+                }
+
+                if (_myTrades != null &&
+                    _myTrades.Count != 0)
+                {
+                    List<MyTrade> myTrade =
+                        _myTrades.FindAll(trade => trade.NumberOrderParent == order.NumberMarket);
+
+                    for (int tradeNum = 0; tradeNum < myTrade.Count; tradeNum++)
+                    {
+                        if (NewMyTradeEvent != null)
+                        {
+                            NewMyTradeEvent(myTrade[tradeNum]);
+                        }
+                    }
                 }
 
                 if (_ordersNumbers == null)

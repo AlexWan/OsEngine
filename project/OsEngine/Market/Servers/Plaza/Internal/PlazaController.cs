@@ -1,6 +1,5 @@
 ﻿/*
- * Если вы не покупали лицензии, то Ваши права на использования кода ограничены не коммерческим использованием и 
- * регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -1588,7 +1587,7 @@ Connection conn, Listener listener, Message msg)
 
                                     if (NewMyTradeEvent != null)
                                     {
-                                        NewMyTradeEvent(trade, 1);
+                                        NewMyTradeEvent(trade);
                                     }
                                 }
                                 catch (Exception error)
@@ -1709,7 +1708,7 @@ Connection conn, Listener listener, Message msg)
         /// <summary>
         /// вызывается когда из системы приходит новая моя сделка
         /// </summary>
-        public event Action<MyTrade, int> NewMyTradeEvent;
+        public event Action<MyTrade> NewMyTradeEvent;
 
         /// <summary>
         /// вызывается когда из системы приходит новый мой ордер
