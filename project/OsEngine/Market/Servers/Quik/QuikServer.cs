@@ -656,29 +656,19 @@ namespace OsEngine.Market.Servers.Quik
         /// <summary>
         /// входящие бумаги из ДДЕ сервера
         /// </summary>
-        void _serverDde_UpdateSecurity(List<Security> securities,decimal bestBid, decimal bestAsk)
+        void _serverDde_UpdateSecurity(Security security, decimal bestBid, decimal bestAsk)
         {
             bool newSecurity = false;
 
             if (_securities == null)
             {
-                _securities = securities;
-                newSecurity = true;
+                _securities = new List<Security>();
             }
-            else
+
+            if (_securities.Find(s => s.Name == security.Name) == null)
             {
-
-                for (int i = 0; i < securities.Count; i++)
-                {
-                    Security sec = _securities.Find(security1 => security1.NameFull == securities[i].NameFull);
-
-                    if (sec == null)
-                    {
-                        _securities.Add(securities[i]);
-                        newSecurity = true;
-                    }
-                    
-                }
+                _securities.Add(security);
+                newSecurity = true;
             }
 
             if (SecuritiesChangeEvent != null && newSecurity)
@@ -688,10 +678,7 @@ namespace OsEngine.Market.Servers.Quik
 
             if (NewBidAscIncomeEvent != null)
             {
-                for (int i = 0; i < securities.Count; i++)
-                {
-                    NewBidAscIncomeEvent(bestBid, bestAsk, securities[i]);
-                }
+                NewBidAscIncomeEvent(bestBid, bestAsk, security);
             }
         }
 

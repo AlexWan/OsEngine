@@ -250,40 +250,14 @@ namespace OsEngine.Market.Servers.Quik
                     securities[i].PriceLimitHigh = 0;
                     securities[i].PriceLimitLow = 0;
 
-                    /*if (!string.IsNullOrEmpty(table[i, 12].ToString()))
+                    if (UpdateSecurity != null)
                     {
-                        securities[i].PriceLimitHigh = Convert.ToDecimal(table[i, 12]);
+                        UpdateSecurity(securities[i], bestBid, bestAsk);
                     }
-                    else
-                    {
-                        securities[i].PriceLimitHigh = 0;
-                    }
-                    if (!string.IsNullOrEmpty(table[i, 13].ToString()))
-                    {
-                        securities[i].PriceLimitLow = Convert.ToDecimal(table[i, 13]);
-                    }
-                    else
-                    {
-                        securities[i].PriceLimitLow = 0;
-                    }*/
                 }
-
-                if (securities.Length == 0)
-                {
-                    return;
-                }
-
-            List<Security> newSecurities = new List<Security>(securities);
-
-
-
-            if (UpdateSecurity != null)
-            {
-                UpdateSecurity(newSecurities, bestBid, bestAsk);
-            }
         }
 
-        public event Action<List<Security>,decimal,decimal> UpdateSecurity;
+        public event Action<Security,decimal,decimal> UpdateSecurity;
 
         public event Action<DateTime> UpdateTimeSecurity;
 
