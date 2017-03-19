@@ -2527,7 +2527,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 {
                     continue;
                 }
-
+                trade.MicroSeconds = table.Rows[i].GetAsInt("MICROSECONDS");
                 trade.Volume = table.Rows[i].GetAsInt("QUANTITY");
                 trade.Price = table.Rows[i].GetAsDecimal("PRICE", mySecurity.Decimals);
 
