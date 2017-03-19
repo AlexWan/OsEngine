@@ -1500,7 +1500,7 @@ namespace OsEngine.Market.Servers.Tester
                     trade2.SetMarketDepthFromString(lastString2);
                     security[security.Count - 1].TimeEnd = trade2.Time;
                 }
-                catch (Exception error)
+                catch
                 {
                     security.Remove(security[security.Count - 1]);
                 }
