@@ -132,6 +132,17 @@ namespace OsEngine.Market
                 _mySeries.Stop();
             }
 
+            if (_myServer != null)
+            {
+                _myServer.NewBidAscIncomeEvent -= ConnectorBotNewBidAscIncomeEvent;
+                _myServer.NewMyTradeEvent -= ConnectorBot_NewMyTradeEvent;
+                _myServer.NewOrderIncomeEvent -= ConnectorBot_NewOrderIncomeEvent;
+                _myServer.NewMarketDepthEvent -= ConnectorBot_NewMarketDepthEvent;
+                _myServer.NewTradeEvent -= ConnectorBot_NewTradeEvent;
+                _myServer.TimeServerChangeEvent -= myServer_TimeServerChangeEvent;
+                _myServer.NeadToReconnectEvent -= _myServer_NeadToReconnectEvent;
+            }
+
             if (_subscrabler != null)
             {
                 try

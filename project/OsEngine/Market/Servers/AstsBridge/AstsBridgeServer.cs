@@ -1170,7 +1170,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
             _tradesTableToSend.Enqueue(newTrades);
 
-            for (int i = newTrades.Count; i < newTrades.Count;i++)
+            for (int i = 0; i < newTrades.Count;i++)
             {
                 AddTrade(newTrades[i]);
             }

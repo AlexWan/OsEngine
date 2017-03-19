@@ -371,6 +371,13 @@ namespace OsEngine.Market.Servers.Quik
 
                 if (data == null)
                 {
+                    PortfolioReturner r = new PortfolioReturner();
+                    r.Long = id;
+                    r.Objects = table;
+                    r.PortfolioUpdate += PortfolioSpotUpdated;
+                    Thread worker = new Thread(r.Start);
+                    worker.IsBackground = true;
+                    worker.Start();
                     return;
                 }
 
@@ -544,7 +551,7 @@ namespace OsEngine.Market.Servers.Quik
 
                 if (_portfolios != null)
                 {
-                    myPortfolio = _portfolios.Find(portfolio => portfolio.Number == position.PortfolioName);
+                    myPortfolio = _portfolios.Find(portfolio => portfolio.Number.Split('@')[0] == position.PortfolioName);
                 }
                 if (myPortfolio == null)
                 {
@@ -694,6 +701,28 @@ namespace OsEngine.Market.Servers.Quik
     {
         Connected,
         Disconnected
+    }
+
+    /// <summary>
+    /// штука отправляющая таблицу портфеля на второй круг
+    /// </summary>
+    public class PortfolioReturner
+    {
+        public long Long;
+
+        public object[,] Objects;
+
+        public void Start()
+        {
+            Thread.Sleep(3000);
+
+            if (PortfolioUpdate != null)
+            {
+                PortfolioUpdate(Long, Objects);
+            }
+        }
+
+        public event Action<long, object[,]> PortfolioUpdate;
     }
 
 }

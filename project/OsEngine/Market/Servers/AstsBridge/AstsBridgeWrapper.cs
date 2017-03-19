@@ -864,25 +864,6 @@ namespace OsEngine.Market.Servers.AstsBridge
             _tableOrder.Securities = _tableSecurity.MySecurities;
             _tableMyTrade.Securities = _tableSecurity.MySecurities;
             _tableTrade.Securities = _tableSecurity.MySecurities;
-           /* for (int i = 0; i < _tableSecurity.MySecuritiesCodeToGetLimits.Count; i++)
-            {
-
-                string message = _tableSecurity.MySecuritiesCodeToGetLimits[i]+"             ";
-
-                result = MteOpenTableFirstTime(_procNum, "PRICEMOVELIMIT", message, true, out ptrOnTable);
-
-                if (result >= 0)
-                {
-                    int sdvig;
-                    ReadTable(ptrOnTable, out ptrOnTable, 0, out sdvig, "PRICEMOVELIMIT");
-                }
-                else
-                {
-                    string res = Marshal.PtrToStringAnsi(IntPtr.Add(new IntPtr(ptrOnTable), 0), 400);
-                    SendErrorFromAsts(result);
-                    //break;
-                }
-            }*/
 
 // денежные лимиты по бумагам
 
@@ -938,7 +919,23 @@ namespace OsEngine.Market.Servers.AstsBridge
             else
             {
                 SendErrorFromAsts(result);
-            }      
+            }
+
+// из этой таблицы качаем максимальное и минимально знаечение для бумаг на сегодня
+
+            result = MteOpenTableFirstTime(_procNum, "ASSETS", "", true, out ptrOnTable);
+
+            if (result >= 0)
+            {
+                int sdvig;
+                ReadTable(ptrOnTable, out ptrOnTable, 0, out sdvig, "ASSETS");
+            }
+            else
+            {
+                string res = Marshal.PtrToStringAnsi(IntPtr.Add(new IntPtr(ptrOnTable), 0), 400);
+                SendErrorFromAsts(result);
+                //break;
+            }
         }
 
         /// <summary>
@@ -1115,7 +1112,7 @@ namespace OsEngine.Market.Servers.AstsBridge
             {
               _tableSecurity.LoadTable(table);
             }
-            else if (table.Name == "PRICEMOVELIMIT")
+            else if (table.Name == "ASSETS")
             {
                 _tableSecurity.LoadLimits(table);
             }
@@ -1892,6 +1889,41 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// взять поле по название и конвертировать его в строку
+        /// </summary>
+        /// <param name="fieldName">название поля которое нам нужно</param>
+        /// <returns>возвращаемое значение. Если 0, то у нас может быть ошибка</returns>
+        public decimal GetAsDecimal(string fieldName)
+        {
+            if (Fields == null)
+            {
+                return 0;
+            }
+
+            UniversalField field = Fields.Find(universalField => universalField.Name == fieldName);
+
+            if (field == null ||
+                string.IsNullOrWhiteSpace(field.Value))
+            {
+                return 0;
+            }
+
+            decimal result;
+
+            try
+            {
+                field.Value = field.Value.Replace(".", ",");
+                result = Convert.ToDecimal(field.Value);
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// взять поле по название и конвертировать его в DateTime
         /// </summary>
         /// <param name="fieldDate">название поля в котором храниться дата</param>
@@ -2496,7 +2528,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                     continue;
                 }
 
-                trade.Volume = table.Rows[i].GetAsInt("VALUE");
+                trade.Volume = table.Rows[i].GetAsInt("QUANTITY");
                 trade.Price = table.Rows[i].GetAsDecimal("PRICE", mySecurity.Decimals);
 
                 string buyS = table.Rows[i].GetAsString("BUYSELL");
@@ -3049,39 +3081,38 @@ namespace OsEngine.Market.Servers.AstsBridge
         public void LoadLimits(UniversalTable table)
         {
             if (MySecurities == null ||
-                MySecurities.Count == 0)
+                           MySecurities.Count == 0)
             {
                 return;
             }
             for (int i = 0; i < table.Rows.Count; i++)
             {
-                string secName = table.Rows[i].GetAsString("SECCODE");
+                string secName = table.Rows[i].GetAsString("ASSET");
                 if (string.IsNullOrWhiteSpace(secName))
                 {
                     continue;
                 }
 
-                Security mySecurity = MySecurities.Find(s => s.NameId == secName);
+                Security mySecurity = MySecurities.Find(s => s.Name == secName.Replace(" ", ""));
 
                 if (mySecurity == null)
                 {
                     continue;
                 }
 
-                decimal upLimit = table.Rows[i].GetAsDecimal("UPPERLIMIT", mySecurity.Decimals);
+                decimal upLimit = table.Rows[i].GetAsDecimal("RTH_RUB");
 
                 if (upLimit != 0)
                 {
                     mySecurity.PriceLimitHigh = upLimit;
                 }
-                decimal downLimit = table.Rows[i].GetAsDecimal("LOWERLIMIT", mySecurity.Decimals);
+                decimal downLimit = table.Rows[i].GetAsDecimal("RTL_RUB");
 
                 if (upLimit != 0)
                 {
                     mySecurity.PriceLimitLow = downLimit;
                 }
             }
-
         }
 
         /// <summary>
