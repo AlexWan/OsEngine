@@ -512,7 +512,15 @@ namespace OsEngine.Journal.Internal
             {
                 return loss;
             }
-            return loss / GetLossDial(deals);
+
+            int lossDeals = GetLossDial(deals);
+
+            if (lossDeals == 0)
+            {
+                return 0;
+            }
+
+            return loss / lossDeals;
         }
 
         /// <summary>

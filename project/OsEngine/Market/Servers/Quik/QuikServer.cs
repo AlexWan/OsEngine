@@ -343,7 +343,7 @@ namespace OsEngine.Market.Servers.Quik
         /// <summary>
         /// выключить
         /// </summary>
-        public void StopServer()  
+        public void StopServer()
         {
             SendLogMessage("Запущена процедура оключения от Квик", LogMessageType.System);
 
