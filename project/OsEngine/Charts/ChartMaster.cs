@@ -927,8 +927,6 @@ namespace OsEngine.Charts
                     return;
                 }
 
-                bool neadToReload = _myCandles == null || _lastCount != candles.Count;
-
                 bool canReload = true;
 
                 if (_reloadState == ChartReloadState.OneSecond 
@@ -951,7 +949,7 @@ namespace OsEngine.Charts
 
                 if (_chartCandle != null)
                 {
-                    if (canReload && (_isPaint || neadToReload))
+                    if (canReload)
                     {
                         _chartCandle.PaintCandles(candles);
                         _chartCandle.PaintPositions(_myPosition);
@@ -964,13 +962,13 @@ namespace OsEngine.Charts
                         {
                             _indicatorsCandles[i].Process(candles);
 
-                            if (canReload && (_isPaint || neadToReload))
+                            if (canReload)
                             {
                                 _chartCandle.PaintIndicator(_indicatorsCandles[i]);
                             }
                         }
                     }
-                    if (canReload && (_isPaint || neadToReload))
+                    if (canReload)
                     {
                         _chartCandle.ClearAlerts(_alertArray);
 
