@@ -994,17 +994,6 @@
     <Resource Include="Images\OsLogo.ico" />
   </ItemGroup>
   <ItemGroup>
-    <COMReference Include="SmartCOM3Lib">
-      <Guid>{8252879C-6E32-4322-A38D-8EBA54E52595}</Guid>
-      <VersionMajor>1</VersionMajor>
-      <VersionMinor>0</VersionMinor>
-      <Lcid>0</Lcid>
-      <WrapperTool>tlbimp</WrapperTool>
-      <Isolated>True</Isolated>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
-    </COMReference>
-  </ItemGroup>
-  <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5">
       <Visible>False</Visible>
       <ProductName>Microsoft .NET Framework 4.5 %28x86 и x64%29</ProductName>
@@ -1037,6 +1026,17 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\pickUpSmall.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="SmartCOM3Lib">
+      <Guid>{8252879C-6E32-4322-A38D-8EBA54E52595}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </COMReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

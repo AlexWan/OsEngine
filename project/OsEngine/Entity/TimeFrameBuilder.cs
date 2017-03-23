@@ -23,6 +23,7 @@ namespace OsEngine.Entity
             TimeFrame = TimeFrame.Min1;
             TradeCount = 100;
             Load();
+            _canSave = true;
         }
 
         public TimeFrameBuilder()
@@ -30,6 +31,7 @@ namespace OsEngine.Entity
             DeltaPeriods = new CumulativeDeltaPeriods();
             TimeFrame = TimeFrame.Min1;
             _candleCreateType = CandleSeriesCreateDataType.Tick;
+            _canSave = true;
         }
 
         /// <summary>
@@ -39,6 +41,7 @@ namespace OsEngine.Entity
         {
             if (!File.Exists(@"Engine\" + _name + @"TimeFrameBuilder.txt"))
             {
+                TimeFrame = TimeFrame.Min1;
                 return;
             }
             try
@@ -92,6 +95,10 @@ namespace OsEngine.Entity
         /// </summary>
         public void Save()
         {
+            if (_canSave == false)
+            {
+                return;
+            }
             try
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + _name + @"TimeFrameBuilder.txt", false))
@@ -114,6 +121,11 @@ namespace OsEngine.Entity
                  // ignore
             }
         }
+
+        /// <summary>
+        /// можно ли сохранять данные
+        /// </summary>
+        private bool _canSave;
 
         /// <summary>
         /// удалить настройки объекта
