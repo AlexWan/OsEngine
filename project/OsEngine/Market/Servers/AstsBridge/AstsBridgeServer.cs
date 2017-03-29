@@ -114,6 +114,25 @@ namespace OsEngine.Market.Servers.AstsBridge
         public string UserPassword;
 
         /// <summary>
+        /// код клиента
+        /// </summary>
+        public string ClientCode
+        {
+            get { return _clientCode; }
+            set
+            {
+                _clientCode = value;
+
+                if (AstsServer != null)
+                {
+                    AstsServer.ClientCode = value;
+                }
+            }
+        }
+
+        private string _clientCode;
+
+        /// <summary>
         /// расположение бота
         /// </summary>
         public AstsDislocation Dislocation;
@@ -180,6 +199,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                     Enum.TryParse(reader.ReadLine(), out Dislocation);
                     _countDaysTickNeadToSave = Convert.ToInt32(reader.ReadLine());
                     _neadToSaveTicks = Convert.ToBoolean(reader.ReadLine());
+                    _clientCode = reader.ReadLine();
                     reader.Close();
                 }
             }
@@ -206,6 +226,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                     writer.WriteLine(Dislocation);
                     writer.WriteLine(CountDaysTickNeadToSave);
                     writer.WriteLine(NeadToSaveTicks);
+                    writer.WriteLine(_clientCode);
                     writer.Close();
                 }
             }
@@ -443,6 +464,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 AstsServer.OrderFailedEvent += OrderFailedEvent;
                 AstsServer.LogMessageEvent += SendLogMessage;
                 AstsServer.SecurityMoexUpdateEvent +=LevelOneUpdateEvent;
+                AstsServer.ClientCode = ClientCode;
             }
         }
 

@@ -161,6 +161,11 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// код клиента
+        /// </summary>
+        public string ClientCode;
+
+        /// <summary>
         /// класс обработки данных из таблицы моих сделок
         /// </summary>
         private MyTradeTableConverter _tableMyTrade;
@@ -1450,6 +1455,8 @@ namespace OsEngine.Market.Servers.AstsBridge
                 {
                     string refB = "";
 
+                    refB += "@" + order.NumberUser.ToString();
+                    
                     for (int i = 0; field.Lenght > refB.Length; i++)
                     {
                         refB = refB.Insert(0, " ");
@@ -1459,7 +1466,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 }
                 else if (field.Name == "EXTREF")
                 {
-                    string code = order.NumberUser.ToString();
+                    string code = "";
 
                     for (int i = 0; field.Lenght > code.Length; i++)
                     {
@@ -1470,7 +1477,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 }
                 else if (field.Name == "CLIENTCODE")
                 {
-                    string code = order.PortfolioNumber.Split('@')[1];
+                    string code = ClientCode;
 
                     for (int i = 0; field.Lenght > code.Length; i++)
                     {
@@ -1669,8 +1676,6 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         public event Action<List<Trade>> NewTradesEvent;
 
-
-
         /// <summary>
         /// обновился стакан
         /// </summary>
@@ -1782,7 +1787,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         /// <param name="fieldName">название поля которое нам нужно</param>
         /// <returns>возвращаемое значение. Если 0, то вероятна ошибка</returns>
-        public int GetAsInt(string fieldName)
+        public int GetAsInt32(string fieldName)
         {
             if (Fields == null)
             {
@@ -1801,6 +1806,39 @@ namespace OsEngine.Market.Servers.AstsBridge
             try
             {
                result  = Convert.ToInt32(field.Value);
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// взять поле по название и конвертировать его в int
+        /// </summary>
+        /// <param name="fieldName">название поля которое нам нужно</param>
+        /// <returns>возвращаемое значение. Если 0, то вероятна ошибка</returns>
+        public long GetAsInt64(string fieldName)
+        {
+            if (Fields == null)
+            {
+                return 0;
+            }
+
+            UniversalField field = Fields.Find(universalField => universalField.Name == fieldName);
+
+            if (field == null)
+            {
+                return 0;
+            }
+
+            long result;
+
+            try
+            {
+                result = Convert.ToInt64(field.Value);
             }
             catch (Exception)
             {
@@ -2326,7 +2364,7 @@ namespace OsEngine.Market.Servers.AstsBridge
             {
                 Order order = new Order();
 
-                order.NumberMarket = table.Rows[i].GetAsInt("ORDERNO").ToString();
+                order.NumberMarket = table.Rows[i].GetAsInt64("ORDERNO").ToString();
 
                 DateTime time = table.Rows[i].GetAsDateTime("SETTLEDATE", "ORDERTIME");
 
@@ -2345,10 +2383,25 @@ namespace OsEngine.Market.Servers.AstsBridge
                     continue;
                 }
 
-                order.Volume = table.Rows[i].GetAsInt("QUANTITY");
+                order.Volume = table.Rows[i].GetAsInt32("QUANTITY");
                 order.Price = table.Rows[i].GetAsDecimal("PRICE", mySecurity.Decimals);
                 order.ServerType = ServerType.AstsBridge;
-                order.NumberUser = table.Rows[i].GetAsInt("EXTREF"); 
+
+
+                string[] refB = table.Rows[i].GetAsString("BROKERREF").Split('@');
+
+                if (refB.Length == 1)
+                {
+                    return;
+                }
+                try
+                {
+                    order.NumberUser = Convert.ToInt32(refB[refB.Length - 1]);
+                }
+                catch (Exception)
+                {
+                    throw new Exception(refB[refB.Length - 1]);
+                }
 
                 string buyS = table.Rows[i].GetAsString("BUYSELL");
 
@@ -2428,7 +2481,7 @@ namespace OsEngine.Market.Servers.AstsBridge
             {
                 MyTrade trade = new MyTrade();
 
-                trade.NumberTrade = table.Rows[i].GetAsInt("TRADENO").ToString();
+                trade.NumberTrade = table.Rows[i].GetAsInt64("TRADENO").ToString();
 
                 DateTime time = table.Rows[i].GetAsDateTime("SETTLEDATE", "TRADETIME");
 
@@ -2447,11 +2500,11 @@ namespace OsEngine.Market.Servers.AstsBridge
                     continue;
                 }
 
-                trade.Volume = table.Rows[i].GetAsInt("QUANTITY");
+                trade.Volume = table.Rows[i].GetAsInt32("QUANTITY");
 
 
                 trade.Price = table.Rows[i].GetAsDecimal("PRICE",mySecurity.Decimals);
-                trade.NumberOrderParent = table.Rows[i].GetAsInt("ORDERNO").ToString();
+                trade.NumberOrderParent = table.Rows[i].GetAsInt64("ORDERNO").ToString();
 
                 string buyS = table.Rows[i].GetAsString("BUYSELL");
 
@@ -2509,7 +2562,7 @@ namespace OsEngine.Market.Servers.AstsBridge
             {
                 Trade trade = new Trade();
 
-                trade.Id = table.Rows[i].GetAsInt("TRADENO").ToString();
+                trade.Id = table.Rows[i].GetAsInt32("TRADENO").ToString();
 
                 DateTime time = table.Rows[i].GetAsDateTime("SETTLEDATE", "TRADETIME");
 
@@ -2527,8 +2580,8 @@ namespace OsEngine.Market.Servers.AstsBridge
                 {
                     continue;
                 }
-                trade.MicroSeconds = table.Rows[i].GetAsInt("MICROSECONDS");
-                trade.Volume = table.Rows[i].GetAsInt("QUANTITY");
+                trade.MicroSeconds = table.Rows[i].GetAsInt32("MICROSECONDS");
+                trade.Volume = table.Rows[i].GetAsInt32("QUANTITY");
                 trade.Price = table.Rows[i].GetAsDecimal("PRICE", mySecurity.Decimals);
 
                 string buyS = table.Rows[i].GetAsString("BUYSELL");
@@ -2925,7 +2978,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                         
                     }
 
-                    mySecurity.Decimals = table.Rows[i].GetAsInt("DECIMALS");
+                    mySecurity.Decimals = table.Rows[i].GetAsInt32("DECIMALS");
 
                     string secName = table.Rows[i].GetAsString("ASSET");
                     if (!string.IsNullOrWhiteSpace(secName))
@@ -2935,7 +2988,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                     if (!string.IsNullOrWhiteSpace(codeName))
                         mySecurity.NameId = codeName.Replace(" ", "");
 
-                    int lots = table.Rows[i].GetAsInt("LOTSIZE");
+                    int lots = table.Rows[i].GetAsInt32("LOTSIZE");
                     if (lots != 0)
                         mySecurity.Lot = lots;
 
@@ -2991,13 +3044,13 @@ namespace OsEngine.Market.Servers.AstsBridge
                     continue;
                 }
 
-                int biddepth = table.Rows[i].GetAsInt("BIDDEPTH"); //  BIDDEPTH Лотов на покупку по лучшей
+                int biddepth = table.Rows[i].GetAsInt32("BIDDEPTH"); //  BIDDEPTH Лотов на покупку по лучшей
                 if (biddepth != 0)
                 {
                     mySecurityMoex.Biddepth = biddepth;
                 }
 
-                int biddeptht = table.Rows[i].GetAsInt("BIDDEPTHT"); // BIDDEPTHT	Совокупный спрос
+                int biddeptht = table.Rows[i].GetAsInt32("BIDDEPTHT"); // BIDDEPTHT	Совокупный спрос
                 if (biddeptht != 0)
                 {
                     mySecurityMoex.Biddeptht = biddeptht;
@@ -3009,12 +3062,12 @@ namespace OsEngine.Market.Servers.AstsBridge
                     mySecurityMoex.Numbids = numbids;
                 }*/
 
-                int offerdepth = table.Rows[i].GetAsInt("OFFERDEPTH"); //	OFFERDEPTH Лотов на продажу по лучшей
+                int offerdepth = table.Rows[i].GetAsInt32("OFFERDEPTH"); //	OFFERDEPTH Лотов на продажу по лучшей
                 if (offerdepth != 0)
                 {
                     mySecurityMoex.Offerdepth = offerdepth;
                 }
-                int offerdeptht = table.Rows[i].GetAsInt("OFFERDEPTHT"); // OFFERDEPTHT	Совокупное предложение
+                int offerdeptht = table.Rows[i].GetAsInt32("OFFERDEPTHT"); // OFFERDEPTHT	Совокупное предложение
                 if (offerdeptht != 0)
                 {
                     mySecurityMoex.Offerdeptht = offerdeptht;
@@ -3031,7 +3084,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 {
                     mySecurityMoex.Change = change;
                 }
-                int qty = table.Rows[i].GetAsInt("QTY"); // QTY	Лотов в последней
+                int qty = table.Rows[i].GetAsInt32("QTY"); // QTY	Лотов в последней
                 if (qty != 0)
                 {
                     mySecurityMoex.Qty = qty;
@@ -3061,7 +3114,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                     mySecurityMoex.Lowoffer = lowoffer;
                 }
 
-                int numtrades = table.Rows[i].GetAsInt("NUMTRADES");// NUMTRADES	Сделок за сегодня
+                int numtrades = table.Rows[i].GetAsInt32("NUMTRADES");// NUMTRADES	Сделок за сегодня
                 if (numtrades != 0)
                 {
                     mySecurityMoex.Numtrades = numtrades;
@@ -3277,7 +3330,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 
                 if(buySell == "B")
                 {
-                    level.Ask = table.Rows[i].GetAsInt("QUANTITY");
+                    level.Ask = table.Rows[i].GetAsInt32("QUANTITY");
                     bool insert = false;
                     for (int i2 = 0; i2 < myDepth.Asks.Count; i2++)
                     {
@@ -3295,7 +3348,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 }
                 else if(buySell == "S")
                 {
-                    level.Bid = table.Rows[i].GetAsInt("QUANTITY");
+                    level.Bid = table.Rows[i].GetAsInt32("QUANTITY");
                     bool insert = false;
                     for (int i2 = 0; i2 < myDepth.Bids.Count; i2++)
                     {

@@ -70,7 +70,10 @@ namespace OsEngine.Charts
 
                         string[] indicator = readerStr.Split('@');
 
-
+                        if (indicator[0] == "Pivot")
+                        {
+                            CreateIndicator(new Pivot(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                        }
                         if (indicator[0] == "VolumeOscillator")
                         {
                             CreateIndicator(new VolumeOscillator(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
@@ -271,12 +274,13 @@ namespace OsEngine.Charts
                 }
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @".txt", false))
                 {
-                    writer.Write(_reloadState);
+                    writer.WriteLine(_reloadState);
 
                     if (_indicatorsCandles != null)
                     {
                         for (int i = 0; i < _indicatorsCandles.Count; i++)
                         {
+                            string s = _indicatorsCandles[i].GetType().Name;
                             writer.WriteLine(_indicatorsCandles[i].GetType().Name + "@" +
                                              _indicatorsCandles[i].Name + "@" + _indicatorsCandles[i].NameArea +
                                              "@" + _indicatorsCandles[i].CanDelete);
@@ -929,19 +933,21 @@ namespace OsEngine.Charts
 
                 bool canReload = true;
 
-                if (_reloadState == ChartReloadState.OneSecond 
+                if (!ServerMaster.IsTester &&
+                    _reloadState == ChartReloadState.OneSecond 
                     && _lastCandleIncome.AddSeconds(1) > DateTime.Now)
                 {
                     canReload = false;
                 }
 
-                if (_reloadState == ChartReloadState.FiveSecond 
+                if (!ServerMaster.IsTester && 
+                    _reloadState == ChartReloadState.FiveSecond 
                     && _lastCandleIncome.AddSeconds(5) > DateTime.Now)
                 {
                     canReload = false;
                 }
 
-                _lastCandleIncome = DateTime.Now;
+                
                 _lastCount = candles.Count;
                 _lastPrice = candles[candles.Count - 1].Close;
 
@@ -951,6 +957,7 @@ namespace OsEngine.Charts
                 {
                     if (canReload)
                     {
+                        _lastCandleIncome = DateTime.Now;
                         _chartCandle.PaintCandles(candles);
                         _chartCandle.PaintPositions(_myPosition);
                         

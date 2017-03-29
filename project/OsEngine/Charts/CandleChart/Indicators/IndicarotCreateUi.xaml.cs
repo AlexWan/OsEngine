@@ -85,6 +85,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _gridViewIndicators.Rows.Add("Parabolic SAR");
             _gridViewIndicators.Rows.Add("Price Channel");
             _gridViewIndicators.Rows.Add("Price Oscillator");
+            _gridViewIndicators.Rows.Add("Pivot");
             _gridViewIndicators.Rows.Add("StochasticOscillator");
             _gridViewIndicators.Rows.Add("RSI");
             _gridViewIndicators.Rows.Add("ROC");
@@ -315,6 +316,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
             if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "TradeThread")
             {
                 TextBlockDescription.Text = "TradeThread. Объемно-тиковый осциллятор потока контрактов. ";
+            }
+            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Pivot")
+            {
+                TextBlockDescription.Text = "Pivot Camarilla. Индикатор рассчитывающий уровни поддержки и сопротивления. ";
             }
             
             
@@ -936,6 +941,21 @@ namespace OsEngine.Charts.CandleChart.Indicators
                     }
                 }
                 IndicatorCandle = new TradeThread(_chartMaster.Name + name, true);
+                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+            }
+            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Pivot")
+            {
+                string name = "";
+
+                for (int i = 0; i < 30; i++)
+                {
+                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Pivot" + i) == false)
+                    {
+                        name = "Pivot" + i;
+                        break;
+                    }
+                }
+                IndicatorCandle = new Pivot(_chartMaster.Name + name, true);
                 _chartMaster.CreateIndicator(IndicatorCandle, areaName);
             }
            

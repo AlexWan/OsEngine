@@ -39,6 +39,8 @@ namespace OsEngine.Market.Servers.AstsBridge
 
             CheckBoxNeadToSaveTrade.IsChecked = server.NeadToSaveTicks;
             TextBoxCountDaysSave.Text = server.CountDaysTickNeadToSave.ToString();
+
+            TextBoxClientCode.Text = server.ClientCode;
         }
 
         void _server_ConnectStatusChangeEvent(string state)
@@ -59,6 +61,7 @@ namespace OsEngine.Market.Servers.AstsBridge
             _server.UserPassword = TextBoxUserPassword.Password;
             _server.ServerName = TextBoxServerName.Text;
             _server.ServiseName = TextBoxServiceName.Text;
+            _server.ClientCode = TextBoxClientCode.Text;
 
             Enum.TryParse(ComboBoxDislocation.SelectedItem.ToString(), out _server.Dislocation);
 

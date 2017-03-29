@@ -205,6 +205,10 @@
     <Compile Include="Charts\CandleChart\Indicators\ParabolicSARUi.xaml.cs">
       <DependentUpon>ParabolicSARUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\Pivot.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\PivotUi.xaml.cs">
+      <DependentUpon>PivotUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Charts\CandleChart\Indicators\PriceChannel.cs" />
     <Compile Include="Charts\CandleChart\Indicators\PriceChannelUi.xaml.cs">
       <DependentUpon>PriceChannelUi.xaml</DependentUpon>
@@ -627,6 +631,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Charts\CandleChart\Indicators\ParabolicSARUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\PivotUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

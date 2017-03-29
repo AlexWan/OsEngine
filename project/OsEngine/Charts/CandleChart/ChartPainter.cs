@@ -926,7 +926,9 @@ namespace OsEngine.Charts.CandleChart
             }
 
             RePaintRightLebels();
+         
             ResizeYAxisOnArea("Prime");
+ 
         }
 
         /// <summary>
@@ -2718,6 +2720,7 @@ namespace OsEngine.Charts.CandleChart
                         }
                     }
                 }
+                _chart.Refresh();
             }
             catch (Exception error)
             {
