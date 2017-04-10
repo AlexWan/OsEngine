@@ -654,22 +654,46 @@ namespace OsEngine.Journal
             List<string> positionsLongState = PositionStaticticGenerator.GetStatisticNew(positionsLong, neadShowTickState);
             List<string> positionsShortState = PositionStaticticGenerator.GetStatisticNew(positionsShort, neadShowTickState);
 
-            if (positionsAllState == null || positionsLongState == null || positionsShortState == null)
+            if (positionsAllState == null)
             {
                 for (int i = 0; i < 27; i++)
                 {
                     _gridStatistics.Rows[i].Cells[1].Value = "";
+                }
+            }
+            if (positionsLongState == null)
+            {
+                for (int i = 0; i < 27; i++)
+                {
                     _gridStatistics.Rows[i].Cells[2].Value = "";
+                }
+            }
+            if (positionsShortState == null)
+            {
+                for (int i = 0; i < 27; i++)
+                {
                     _gridStatistics.Rows[i].Cells[3].Value = "";
                 }
             }
-            else
+            if (positionsLongState != null)
+            {
+                for (int i = 0; i < 27; i++)
+                {
+                    _gridStatistics.Rows[i].Cells[2].Value = positionsLongState[i].ToString();
+                }
+            }
+            if (positionsShortState != null)
+            {
+                for (int i = 0; i < 27; i++)
+                {
+                    _gridStatistics.Rows[i].Cells[3].Value = positionsShortState[i].ToString();
+                }
+            }
+            if (positionsAllState != null)
             {
                 for (int i = 0; i < 27; i++)
                 {
                     _gridStatistics.Rows[i].Cells[1].Value = positionsAllState[i].ToString();
-                    _gridStatistics.Rows[i].Cells[2].Value = positionsLongState[i].ToString();
-                    _gridStatistics.Rows[i].Cells[3].Value = positionsShortState[i].ToString();
                 }
             }
         }

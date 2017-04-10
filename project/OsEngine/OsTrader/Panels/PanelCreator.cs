@@ -1775,7 +1775,10 @@ namespace OsEngine.OsTrader.Panels
                     Slipage = Convert.ToDecimal(reader.ReadLine());
                     VolumeFix1 = Convert.ToInt32(reader.ReadLine());
                     VolumeFix2 = Convert.ToInt32(reader.ReadLine());
-                    KofAtr = Convert.ToDecimal(reader.ReadLine());
+                    LengthAtr = Convert.ToInt32(reader.ReadLine());
+                    KofAtr= Convert.ToDecimal(reader.ReadLine());
+                    LengthUp = Convert.ToInt32(reader.ReadLine());
+                    LengthDown = Convert.ToInt32(reader.ReadLine());
 
                     reader.Close();
                 }

@@ -555,14 +555,6 @@ namespace OsEngine.Market.Servers.Quik
                 }
                 if (myPortfolio == null)
                 {
-                    PositionOnBoardSander sender = new PositionOnBoardSander();
-                    sender.PositionOnBoard = position;
-                    sender.TimeSendPortfolio += UpDatePosition;
-
-                    Thread worker = new Thread(sender.Go);
-                    worker.IsBackground = true;
-                    worker.CurrentCulture = new CultureInfo("ru-RU");
-                    worker.Start();
                     return;
                 }
 

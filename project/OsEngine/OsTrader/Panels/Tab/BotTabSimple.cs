@@ -2914,7 +2914,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         }
                         if (_stopsOpener.Count != 0)
                         {
-                            _stopsOpener.Remove(_stopsOpener[i]);
+                            _stopsOpener.RemoveAt(i);
                         }
                         i--;
                     }

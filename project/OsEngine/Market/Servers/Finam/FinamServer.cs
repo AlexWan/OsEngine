@@ -9,12 +9,17 @@ using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using System.Threading;
 using System.Windows;
+using Microsoft.Office.Interop.Excel;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using OsEngine.Market.Servers.SmartCom;
+using Action = System.Action;
 
 namespace OsEngine.Market.Servers.Finam
 {
@@ -298,13 +303,33 @@ namespace OsEngine.Market.Servers.Finam
             Thread.Sleep(10000);
         }
 
+        public static string GetPage(string uri)
+        {
+            if (ServicePointManager.SecurityProtocol != SecurityProtocolType.Tls12)
+            {
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            }
+
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
+
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+
+            string resultPage = "";
+
+            using (StreamReader sr = new StreamReader(response.GetResponseStream(), Encoding.Default, true))
+            {
+                resultPage = sr.ReadToEnd();
+                sr.Close();
+            }
+            return resultPage;
+        }
+
         /// <summary>
         /// включает загрузку инструментов и портфелей
         /// </summary>
         private void GetSecurities()
         {
-            var wb = new System.Net.WebClient();
-            var response = wb.DownloadString("http://www.finam.ru/cache/icharts/icharts.js");
+            var response = GetPage("https://www.finam.ru/cache/icharts/icharts.js");
 
             string[] arraySets = response.Split('=');
             string[] arrayIds = arraySets[1].Split('[')[1].Split(']')[0].Split(',');
