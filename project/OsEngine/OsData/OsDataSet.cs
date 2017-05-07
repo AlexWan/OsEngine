@@ -1007,7 +1007,7 @@ namespace OsEngine.OsData
 
                 writer.WriteLine(trades[i].GetSaveString());
             }
-
+            writer.Close();
         }
 
         /// <summary>

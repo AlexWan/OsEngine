@@ -9,16 +9,12 @@ using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Windows;
-using Microsoft.Office.Interop.Excel;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
-using OsEngine.Market.Servers.SmartCom;
 using Action = System.Action;
 
 namespace OsEngine.Market.Servers.Finam

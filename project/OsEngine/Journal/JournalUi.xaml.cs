@@ -18,7 +18,6 @@ using Color = System.Drawing.Color;
 using Rectangle = System.Drawing.Rectangle;
 using System.Windows.Forms.DataVisualization.Charting;
 using System.Xml.Schema;
-using Microsoft.Office.Interop.Excel;
 using OsEngine.Market.Servers;
 using Chart = System.Windows.Forms.DataVisualization.Charting.Chart;
 using ChartArea = System.Windows.Forms.DataVisualization.Charting.ChartArea;
@@ -1910,7 +1909,7 @@ namespace OsEngine.Journal
 
             try
             {
-                MenuItem[] items = new MenuItem[4];
+                MenuItem[] items = new MenuItem[3];
 
                 items[0] = new MenuItem { Text = @"Детализация" };
                 items[0].Click += CloseDealMoreInfo_Click;
@@ -1920,9 +1919,6 @@ namespace OsEngine.Journal
 
                 items[2] = new MenuItem { Text = @"Очистить всё" };
                 items[2].Click += CloseDealClearAll_Click;
-
-                items[3] = new MenuItem { Text = @"Вывод в Excel" };
-                items[3].Click += CloseDealExcel_Click;
 
                 ContextMenu menu = new ContextMenu(items);
 
@@ -1997,88 +1993,6 @@ namespace OsEngine.Journal
                 DeletePosition(numbers[i]);
             }
             RePaint();
-        }
-
-        /// <summary>
-        /// очистить закрытые позиции
-        /// </summary>
-        void CloseDealExcel_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                if (_closePositionGrid.Rows.Count == 0)
-                {
-                    MessageBox.Show("Нет сделок для сохранения");
-                    return;
-                }
-
-                OpenFileDialog dialog = new OpenFileDialog();
-
-                dialog.DefaultExt = "xls";
-                dialog.Filter = @"Только Excel |*.xls;*.xlsx;";
-                dialog.Multiselect = false;
-                dialog.InitialDirectory = Environment.CurrentDirectory;
-
-                if (dialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
-                {
-                    return;
-                }
-
-                Microsoft.Office.Interop.Excel.Application exApp = new Microsoft.Office.Interop.Excel.Application();
-                exApp.Visible = true;
-                exApp.Application.Workbooks.Add();
-                Worksheet workSheet = (Worksheet)exApp.ActiveSheet;
-                workSheet.Cells[1, 1] = "Номер";
-                workSheet.Cells[1, 2] = "Время отк.";
-                workSheet.Cells[1, 3] = "Время зак.";
-                workSheet.Cells[1, 4] = "Бот";
-                workSheet.Cells[1, 5] = "Инструмент";
-                workSheet.Cells[1, 6] = "Напр.";
-                workSheet.Cells[1, 7] = "Cостояние";
-                workSheet.Cells[1, 8] = "Объём";
-                workSheet.Cells[1, 9] = "Текущий";
-                workSheet.Cells[1, 10] = "Ожидает";
-                workSheet.Cells[1, 11] = "Цена входа";
-                workSheet.Cells[1, 12] = "Цена выхода";
-                workSheet.Cells[1, 13] = "Прибыль";
-                workSheet.Cells[1, 14] = "СтопАктивация";
-                workSheet.Cells[1, 15] = "СтопЦена";
-                workSheet.Cells[1, 16] = "ПрофитАктивация";
-                workSheet.Cells[1, 17] = "ПрофитЦена";
-
-
-                int rowExcel = 2;
-
-                for (int i = 0; i < _closePositionGrid.Rows.Count; i++)
-                {
-                    workSheet.Cells[rowExcel, "A"] = _closePositionGrid.Rows[i].Cells[0].Value;
-                    workSheet.Cells[rowExcel, "B"] = _closePositionGrid.Rows[i].Cells[1].Value;
-                    workSheet.Cells[rowExcel, "C"] = _closePositionGrid.Rows[i].Cells[2].Value;
-
-                    workSheet.Cells[rowExcel, "D"] = _closePositionGrid.Rows[i].Cells[3].Value;
-                    workSheet.Cells[rowExcel, "E"] = _closePositionGrid.Rows[i].Cells[4].Value;
-                    workSheet.Cells[rowExcel, "F"] = _closePositionGrid.Rows[i].Cells[5].Value;
-                    workSheet.Cells[rowExcel, "G"] = _closePositionGrid.Rows[i].Cells[6].Value;
-                    workSheet.Cells[rowExcel, "H"] = _closePositionGrid.Rows[i].Cells[7].Value;
-                    workSheet.Cells[rowExcel, "I"] = _closePositionGrid.Rows[i].Cells[8].Value;
-                    workSheet.Cells[rowExcel, "J"] = _closePositionGrid.Rows[i].Cells[9].Value;
-                    workSheet.Cells[rowExcel, "K"] = _closePositionGrid.Rows[i].Cells[10].Value;
-                    workSheet.Cells[rowExcel, "L"] = _closePositionGrid.Rows[i].Cells[11].Value;
-                    workSheet.Cells[rowExcel, "M"] = _closePositionGrid.Rows[i].Cells[12].Value;
-                    workSheet.Cells[rowExcel, "N"] = _closePositionGrid.Rows[i].Cells[13].Value;
-                    workSheet.Cells[rowExcel, "O"] = _closePositionGrid.Rows[i].Cells[14].Value;
-                    workSheet.Cells[rowExcel, "P"] = _closePositionGrid.Rows[i].Cells[15].Value;
-                    workSheet.Cells[rowExcel, "Q"] = _closePositionGrid.Rows[i].Cells[16].Value;
-
-                    ++rowExcel;
-                }
-
-                exApp.Quit();
-            }
-            catch (Exception)
-            {
-                // ignore
-            }
         }
 
         /// <summary>
