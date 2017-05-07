@@ -31,7 +31,7 @@ namespace OsEngine.Market.Servers.Finam
         /// </summary>
         public FinamServer()
         {
-            ServerAdress = "78.41.196.47";
+            ServerAdress = "export.finam.ru";
             ServerStatus = ServerConnectStatus.Disconnect;
             ServerType = ServerType.Finam;
 
