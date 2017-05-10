@@ -1248,7 +1248,14 @@ namespace OsEngine.Market.Servers.SmartCom
            candle.High = Convert.ToDecimal(high);
            candle.Low = Convert.ToDecimal(low);
            candle.Close = Convert.ToDecimal(close);
-           candle.TimeStart = datetime;
+
+           if (interval == StBarInterval.StBarInterval_1Min) candle.TimeStart = datetime.AddMinutes(-1.0);
+           else if (interval == StBarInterval.StBarInterval_5Min) candle.TimeStart = datetime.AddMinutes(-5.0);
+           else if (interval == StBarInterval.StBarInterval_10Min) candle.TimeStart = datetime.AddMinutes(-10.0);
+           else if (interval == StBarInterval.StBarInterval_15Min) candle.TimeStart = datetime.AddMinutes(-15.0);
+           else if (interval == StBarInterval.StBarInterval_30Min) candle.TimeStart = datetime.AddMinutes(-30.0);
+           else if (interval == StBarInterval.StBarInterval_60Min) candle.TimeStart = datetime.AddMinutes(-60.0);
+           else candle.TimeStart = datetime;
 
            if (_candles == null || row == 0)
            {

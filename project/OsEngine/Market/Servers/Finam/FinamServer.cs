@@ -1025,6 +1025,7 @@ namespace OsEngine.Market.Servers.Finam
                     finamDataSeries.IsTick = true;
                     finamDataSeries.TradesUpdateEvent += finamDataSeries_TradesUpdateEvent;
                     finamDataSeries.NeadToUpdeate = neadToUpdete;
+                    finamDataSeries.LogMessageEvent += SendLogMessage;
 
                     if (_finamDataSeries == null)
                     {
@@ -1191,8 +1192,6 @@ namespace OsEngine.Market.Servers.Finam
         {
             get { return _allTrades; }
         }
-
-        
 
         /// <summary>
         /// взять тики по инструменту
@@ -1440,12 +1439,16 @@ namespace OsEngine.Market.Servers.Finam
                     return;
                 }
 
-                if (Series == null)
+                if (IsTick == false)
                 {
-                    return;               
+                    if (Series == null)
+                    {
+                        return;
+                    }
+
+                    Series.IsStarted = true;
                 }
 
-                Series.IsStarted = true;
                 LoadedOnce = true;
 
                 if (IsTick == false)
@@ -1459,9 +1462,6 @@ namespace OsEngine.Market.Servers.Finam
                         TimeFrame == TimeFrame.Sec5)
                     {
                         List<Trade> trades = GetTrades();
-
-                       /* GC.Collect();
-                        GC.WaitForPendingFinalizers();*/
 
                         if (trades != null && trades.Count != 0)
                         {
@@ -1648,7 +1648,7 @@ namespace OsEngine.Market.Servers.Finam
                     return null;
                 }
 
-                string name = SecurityFinam.Code.Replace("\'", "");
+                string name = Security.NameFull;
 
                 for (int i = 0; i < tradesInStr.Length; i++)
                 {

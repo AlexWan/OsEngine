@@ -1643,11 +1643,24 @@ namespace OsEngine.Market.Servers.AstsBridge
             _ordersToExecute.Enqueue(order);
         }
 
+
+        private List<Order> _canselledOrders; 
         /// <summary>
         /// отменить ордер
         /// </summary>
         public void CanselOrder(Order order)
         {
+            if (_canselledOrders == null)
+            {
+                _canselledOrders = new List<Order>();
+            }
+
+            if (_canselledOrders.Find(o => o.NumberUser == order.NumberUser) != null)
+            {
+                return;
+            }
+
+            _canselledOrders.Add(order);
             _ordersToCansel.Enqueue(order);
         }
 
