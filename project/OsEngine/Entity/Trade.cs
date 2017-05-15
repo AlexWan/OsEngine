@@ -90,6 +90,8 @@ namespace OsEngine.Entity
             //20150401,100000,86160.000000000,2
             // либо 20150401,100000,86160.000000000,2, Buy/Sell
 
+            _saveString = In;
+
             string[] sIn = In.Split(',');
 
             int year = Convert.ToInt32(sIn[0].Substring(0, 4));
@@ -109,19 +111,6 @@ namespace OsEngine.Entity
             if (sIn.Length > 4)
             {
                 Enum.TryParse(sIn[4], true, out Side);
-            }
-            else if (sIn.Length == 4)
-            {
-                Random rand = new Random();
-                decimal ran = rand.Next(0, 11);
-                if (ran > 5)
-                {
-                    Side = Side.Buy;
-                }
-                else
-                {
-                    Side = Side.Sell;
-                }
             }
 
             if (sIn.Length > 5)

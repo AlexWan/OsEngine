@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Forms.Integration;
 using System.Windows.Shapes;
 using OsEngine.Charts;
@@ -925,16 +926,44 @@ namespace OsEngine.OsData
             {
                 for (int i = 0; i < SecuritiesNames.Count; i++)
                 {
-                    List<Trade> trades = _myServer.GetAllTradesToSecurity(_myServer.GetSecurityForName(SecuritiesNames[i]));
-
-                    if (trades == null ||
-                        trades.Count == 0)
+                    if (_myServer.ServerType != ServerType.Finam)
                     {
-                        continue;
-                    }
+                        List<Trade> trades = _myServer.GetAllTradesToSecurity(_myServer.GetSecurityForName(SecuritiesNames[i]));
 
-                    SaveThisTick(trades,
-                        pathToSet + SecuritiesNames[i].Replace("/", "") + "\\" + "Tick", SecuritiesNames[i]);
+                        if (trades == null ||
+                            trades.Count == 0)
+                        {
+                            continue;
+                        }
+
+                        string path = pathToSet + SecuritiesNames[i].Replace("/", "") ;
+
+                        for (int i2 = 0; i2 < trades.Count; i2++)
+                        {
+
+                            SaveThisTick(trades[i2],
+                                path, SecuritiesNames[i], null, path + "\\" + "Tick");
+                        }
+                    }
+                    else
+                    { // Финам
+                        List<string> trades = ((FinamServer)_myServer).GetAllFilesWhithTradeToSecurity(SecuritiesNames[i]);
+
+                         SaveThisTickFromFiles(trades,
+                            pathToSet + SecuritiesNames[i].Replace("/", "") + "\\" + "Tick" + "\\", SecuritiesNames[i]);
+
+                    }
+                }
+            }
+
+            // стаканы
+
+            if (TfMarketDepthIsOn)
+            {
+                for (int i = 0; i < SecuritiesNames.Count; i++)
+                {
+                    SaveThisMarketDepth(
+                        pathToSet + SecuritiesNames[i].Replace("/", "") + "\\" + "MarketDepth", SecuritiesNames[i]);
                 }
             }
 
@@ -948,67 +977,79 @@ namespace OsEngine.OsData
 
                 _lastUpdateTradesInServerTime = DateTime.Now;
 
+                if (!Directory.Exists("Data\\QuikServerTrades"))
+                {
+                    Directory.CreateDirectory("Data\\QuikServerTrades");
+                }
+                if (!Directory.Exists("Data\\SmartComServerTrades"))
+                {
+                    Directory.CreateDirectory("Data\\SmartComServerTrades");
+                }
+                if (!Directory.Exists("Data\\InteractivBrokersServerTrades"))
+                {
+                    Directory.CreateDirectory("Data\\InteractivBrokersServerTrades");
+                }
+                if (!Directory.Exists("Data\\AstsBridgeServerTrades"))
+                {
+                    Directory.CreateDirectory("Data\\AstsBridgeServerTrades");
+                }
+                if (!Directory.Exists("Data\\PlazaServerTrades"))
+                {
+                    Directory.CreateDirectory("Data\\PlazaServerTrades");
+                }
+
+
+
                 for (int i = 0; i < SecuritiesNames.Count; i++)
                 {
-                    List<Trade> trades = _myServer.GetAllTradesToSecurity(_myServer.GetSecurityForName(SecuritiesNames[i]));
-
-                    if (trades == null ||
-                        trades.Count == 0)
+                    if (
+                        !File.Exists(pathToSet + SecuritiesNames[i].Replace("/", "") + "\\" + "Tick" + "\\" +
+                                     SecuritiesNames[i].Replace("/", "") + ".txt"))
                     {
                         continue;
                     }
 
-                    SaveTradesInServersAreas(trades, ServerType.Quik);
-                    SaveTradesInServersAreas(trades, ServerType.SmartCom);
-                    SaveTradesInServersAreas(trades, ServerType.Plaza);
-                }
-            }
-            // стаканы
+                    Security sec = _myServer.GetSecurityForName(SecuritiesNames[i]);
 
-            if (TfMarketDepthIsOn)
-            {
-                for (int i = 0; i < SecuritiesNames.Count; i++)
-                {
-                    SaveThisMarketDepth(
-                        pathToSet + SecuritiesNames[i].Replace("/", "") + "\\" + "MarketDepth", SecuritiesNames[i]);
+                    string nameSecurityToSave = sec.NameFull.Replace("'", "");
+
+                    if (File.Exists(pathToSet + SecuritiesNames[i] + "\\" + "Tick" + "\\" +
+                                    nameSecurityToSave + ".txt")
+                                    &&
+                         File.Exists("Data\\QuikServerTrades\\" + nameSecurityToSave + ".txt"))
+                    {
+                        FileInfo info = new FileInfo(pathToSet + SecuritiesNames[i].Replace("/", "") + "\\" + "Tick" + "\\" + nameSecurityToSave + ".txt");
+
+                        FileInfo info2 = new FileInfo("Data\\QuikServerTrades\\" + nameSecurityToSave + ".txt");
+
+                        if (info.Length == info2.Length)
+                        {
+                            continue;
+                        }
+                    }
+
+                    File.Delete("Data\\QuikServerTrades\\" + nameSecurityToSave + ".txt");
+                    File.Delete("Data\\SmartComServerTrades\\" + nameSecurityToSave + ".txt");
+                    File.Delete("Data\\InteractivBrokersServerTrades\\" + nameSecurityToSave + ".txt");
+                    File.Delete("Data\\AstsBridgeServerTrades\\" + nameSecurityToSave + ".txt");
+                    File.Delete("Data\\PlazaServerTrades\\" + nameSecurityToSave + ".txt");
+
+                    File.Copy(pathToSet + SecuritiesNames[i].Replace("/", "") + "\\" + "Tick" + "\\" + SecuritiesNames[i].Replace("/", "") + ".txt",
+                        "Data\\QuikServerTrades\\" + nameSecurityToSave + ".txt");
+                    File.Copy(pathToSet + SecuritiesNames[i].Replace("/", "") + "\\" + "Tick" + "\\" + SecuritiesNames[i].Replace("/", "") + ".txt",
+                        "Data\\SmartComServerTrades\\" + nameSecurityToSave + ".txt");
+                    File.Copy(pathToSet + SecuritiesNames[i].Replace("/", "") + "\\" + "Tick" + "\\" + SecuritiesNames[i].Replace("/", "") + ".txt",
+                        "Data\\InteractivBrokersServerTrades\\" + nameSecurityToSave + ".txt");
+                    File.Copy(pathToSet + SecuritiesNames[i].Replace("/", "") + "\\" + "Tick" + "\\" + SecuritiesNames[i].Replace("/", "") + ".txt",
+                        "Data\\AstsBridgeServerTrades\\" + nameSecurityToSave + ".txt");
+                    File.Copy(pathToSet + SecuritiesNames[i].Replace("/", "") + "\\" + "Tick" + "\\" + SecuritiesNames[i].Replace("/", "") + ".txt",
+                        "Data\\PlazaServerTrades\\" + nameSecurityToSave + ".txt");
                 }
             }
         }
 
         private DateTime _lastUpdateTradesInServerTime;
 
-        private void SaveTradesInServersAreas(List<Trade> trades, ServerType server)
-        {
-            if (trades == null ||
-                trades.Count == 0)
-            {
-                return;
-            }
-
-
-           string pathName = @"Data" + @"\" + server + @"ServerTrades";
-
-            if (!Directory.Exists(pathName))
-            {
-                Directory.CreateDirectory(pathName);
-            }
-
-            int dayOfYear = trades[0].Time.DayOfYear;
-            StreamWriter writer = new StreamWriter(pathName + @"\" + trades[0].SecurityNameCode.Replace("\'","") + "@" + Convert.ToInt32((trades[0].Time - DateTime.MinValue).TotalDays) + ".txt", false);
-
-            for (int i = 0; i < trades.Count; i++)
-            {
-                if (dayOfYear != trades[i].Time.DayOfYear)
-                {
-                    dayOfYear = trades[i].Time.DayOfYear;
-                    writer.Close();
-                    writer = new StreamWriter(pathName + @"\" + trades[0].SecurityNameCode.Replace("\'", "") + "@" + Convert.ToInt32((trades[i].Time - DateTime.MinValue).TotalDays) + ".txt", false);
-                }
-
-                writer.WriteLine(trades[i].GetSaveString());
-            }
-            writer.Close();
-        }
 
         /// <summary>
         /// взять актуальное время из файла
@@ -1073,6 +1114,7 @@ namespace OsEngine.OsData
                 {
                     using (StreamReader reader = new StreamReader(files[0]))
                     {
+                        Trade trade = new Trade();
                         string str = "";
                         while (!reader.EndOfStream)
                         {
@@ -1082,8 +1124,6 @@ namespace OsEngine.OsData
                         }
                         if (str != "")
                         {
-
-                            Trade trade = new Trade();
                             trade.SetTradeFromString(str);
 
                             return trade.Time;
@@ -1241,14 +1281,14 @@ namespace OsEngine.OsData
         /// <summary>
         /// сохранить серию тиков
         /// </summary>
-        /// <param name="trades">тики</param>
-        /// <param name="path">путь</param>
+        /// <param name="tradeLast">тики</param>
+        /// <param name="pathToFolder">путь</param>
         /// <param name="securityName">имя бумаги</param>
-        private void SaveThisTick(List<Trade> trades, string path, string securityName)
+        private void SaveThisTick(Trade tradeLast, string pathToFolder, string securityName, StreamWriter writer, string pathToFile)
         {
-            if (!Directory.Exists(path))
+            if (!Directory.Exists(pathToFolder))
             {
-                Directory.CreateDirectory(path);
+                Directory.CreateDirectory(pathToFolder);
             }
 
             if (_tradeSaveInfo == null)
@@ -1269,10 +1309,16 @@ namespace OsEngine.OsData
 
                 _tradeSaveInfo.Add(tradeSaveInfo);
 
-                string[] files = Directory.GetFiles(path);
+                string[] files = Directory.GetFiles(pathToFolder);
 
-                if (files.Length != 0)
+                if (files.Length != 0 )
                 {
+                    if (writer != null)
+                    {
+                        writer.Close();
+                        writer = null;
+                    }
+
                     try
                     {
                         using (StreamReader reader = new StreamReader(files[0]))
@@ -1289,6 +1335,7 @@ namespace OsEngine.OsData
                                 Trade trade = new Trade();
                                 trade.SetTradeFromString(str);
                                 tradeSaveInfo.LastSaveObjectTime = trade.Time;
+                                tradeSaveInfo.LastTradeId = trade.Id;
                             }
 
                         }
@@ -1307,32 +1354,34 @@ namespace OsEngine.OsData
 
             int firstCandle = 0;
 
-            if (tradeSaveInfo.LastSaveObjectTime ==
-                trades[trades.Count - 1].Time)
+            if (tradeSaveInfo.LastSaveObjectTime >
+                tradeLast.Time ||
+                (tradeLast.Id != null && tradeLast.Id == tradeSaveInfo.LastTradeId)
+                )
             {
                 // если у нас старые тики совпадают с новыми.
                 return;
             }
 
-            for (int i = trades.Count - 1; i > -1; i--)
-            {
-                if (trades[i].Time <= tradeSaveInfo.LastSaveObjectTime)
-                {
-                    firstCandle = i + 1;
-                    break;
-                }
-            }
 
-            tradeSaveInfo.LastSaveObjectTime = trades[trades.Count - 1].Time;
+            tradeSaveInfo.LastSaveObjectTime = tradeLast.Time;
+            tradeSaveInfo.LastTradeId = tradeLast.Id;
             // записываем
 
             try
             {
-                using (StreamWriter writer = new StreamWriter(path + "\\" + securityName.Replace("/", "") + ".txt", true))
+                if (writer != null)
                 {
-                    for (int i = firstCandle; i < trades.Count; i++)
+                    writer.WriteLine(tradeLast.GetSaveString());
+                }
+                else
+                {
+                    using (
+                   StreamWriter writer2 =
+                new StreamWriter(pathToFolder + "\\" + securityName.Replace("/", "") + ".txt", true))
                     {
-                        writer.WriteLine(trades[i].GetSaveString());
+                        writer2.WriteLine(tradeLast.GetSaveString());
+
                     }
                 }
             }
@@ -1344,6 +1393,65 @@ namespace OsEngine.OsData
                 }
             }
         }
+
+        private void SaveThisTickFromFiles(List<string> files, string path, string securityName)
+        {
+            Trade newTrade = new Trade();
+
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+
+            for (int i = 0; files != null && i < files.Count; i++)
+            {
+                if (files[i] == null)
+                {
+                    continue;
+                }
+
+                if (_savedTradeFiles.Find(str => str == files[i]) != null &&
+                    files.Count - 1 != i)
+                {
+                    // уже сохранили этот файл
+                    continue;
+                }
+
+                if (_savedTradeFiles.Find(str => str == files[i]) == null)
+                {
+                    _savedTradeFiles.Add(files[i]);
+                }
+
+                StreamReader reader = new StreamReader(files[i]);
+
+                if ((!reader.EndOfStream))
+                {
+                    newTrade.SetTradeFromString(reader.ReadLine());
+                    SaveThisTick(newTrade,
+                        path, securityName, null, path + securityName.Replace("/", "") + ".txt");
+                }
+
+                using ( StreamWriter writer =
+                        new StreamWriter(path + securityName.Replace("/", "") + ".txt", true))
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        newTrade.SetTradeFromString(reader.ReadLine());
+
+                        if (newTrade.Time.Hour < 10)
+                        {
+                            continue;
+                        }
+
+                        SaveThisTick(newTrade,
+                            path, securityName, writer, path + securityName.Replace("/", "") + ".txt");
+                    }
+                }
+                reader.Close();
+            }
+        }
+
+        private List<string> _savedTradeFiles = new List<string>(); 
 
         // стаканы
 
@@ -1589,7 +1697,7 @@ namespace OsEngine.OsData
                 ReBuildComboBox();
 
                 _isSelected = true;
-
+                
                 Paint();
             }
             catch (Exception error)
@@ -1784,8 +1892,17 @@ namespace OsEngine.OsData
                 {
                     return;
                 }
-
-                _chartMaster.SetCandles(series.Candles);
+                if (_selectedTf != TimeFrame.Tick &&
+                    _selectedTf != TimeFrame.Sec1 &&
+                    _selectedTf != TimeFrame.Sec2 &&
+                    _selectedTf != TimeFrame.Sec5 &&
+                    _selectedTf != TimeFrame.Sec10 &&
+                    _selectedTf != TimeFrame.Sec15 &&
+                    _selectedTf != TimeFrame.Sec30)
+                {
+                    _chartMaster.SetCandles(series.Candles);
+                }
+                
             }
             catch (Exception error)
             {
@@ -1919,6 +2036,16 @@ namespace OsEngine.OsData
         /// последнее время сохранения
         /// </summary>
         public DateTime LastSaveObjectTime;
+
+        /// <summary>
+        /// последний Id трейда который мы сохранили
+        /// </summary>
+        public string LastTradeId;
+
+        /// <summary>
+        /// последнее сохранённый индекс
+        /// </summary>
+        public int LastSaveIndex;
     }
 
     /// <summary>

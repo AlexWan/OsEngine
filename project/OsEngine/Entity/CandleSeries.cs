@@ -321,8 +321,13 @@ namespace OsEngine.Entity
                 }
                 UpDateCandle(trades[i].Time, trades[i].Price, trades[i].Volume, true, trades[i].Side);
 
+                if (ServerMaster.IsOsData)
+                {
+                    continue;
+                }
+
                 if (CandlesAll[CandlesAll.Count - 1].Trades == null)
-                {CandlesAll[CandlesAll.Count - 1].Trades = new List<Trade>();}
+                { CandlesAll[CandlesAll.Count - 1].Trades = new List<Trade>(); }
 
                 CandlesAll[CandlesAll.Count - 1].Trades.Add(trades[i]);
             }
