@@ -432,6 +432,9 @@
     <Compile Include="OsTrader\Panels\PanelsGui\PinBarTradeUi.xaml.cs">
       <DependentUpon>PinBarTradeUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\PivotPointsRobotUi.xaml.cs">
+      <DependentUpon>PivotPointsRobotUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="OsTrader\Panels\PanelsGui\PriceChannelBreakUi.xaml.cs">
       <DependentUpon>PriceChannelBreakUi.xaml</DependentUpon>
     </Compile>
@@ -862,6 +865,10 @@
     <Page Include="OsTrader\Panels\PanelsGui\PinBarTradeUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\PivotPointsRobotUi.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="OsTrader\Panels\PanelsGui\PriceChannelBreakUi.xaml">
       <SubType>Designer</SubType>
