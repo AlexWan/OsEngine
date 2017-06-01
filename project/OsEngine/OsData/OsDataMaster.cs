@@ -185,7 +185,7 @@ namespace OsEngine.OsData
         private DataGridView _gridSources;
 
         /// <summary>
-        /// сохдать таблицу источников
+        /// создать таблицу источников
         /// </summary>
         private void CreateSourceGrid()
         {
@@ -276,7 +276,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// событие измениня статуса сервера
+        /// событие изменения статуса сервера
         /// </summary>
         /// <param name="newState"></param>
         void ServerStatusChangeEvent(string newState)
@@ -314,7 +314,7 @@ namespace OsEngine.OsData
 
             DataGridViewColumn colum0 = new DataGridViewColumn();
             colum0.CellTemplate = cell0;
-            colum0.HeaderText = @"Назавние";
+            colum0.HeaderText = @"Название";
             colum0.ReadOnly = true;
             colum0.Width = 100;
             newGrid.Columns.Add(colum0);
