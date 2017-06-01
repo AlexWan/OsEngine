@@ -312,8 +312,6 @@ namespace OsEngine.Market.Servers.Finam
         /// </summary>
         private void CheckServer()
         {
- 
-
             String pageContent = GetPage("http://" + ServerAdress);
 
             if (pageContent.Length == 0)
