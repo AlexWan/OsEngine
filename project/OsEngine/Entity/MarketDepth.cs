@@ -30,6 +30,38 @@ namespace OsEngine.Entity
         public List<MarketDepthLevel> Asks;
 
         /// <summary>
+        /// суммарный объём в покупках
+        /// </summary>
+        public int AskSummVolume
+        {
+            get
+            {
+                int vol = 0;
+                for (int i = 0; Asks != null && i < Asks.Count; i++)
+                {
+                    vol += Convert.ToInt32(Asks[i].Ask);
+                }
+                return vol;
+            }
+        }
+
+        /// <summary>
+        /// суммарный объём в продажах
+        /// </summary>
+        public int BidSummVolume
+        {
+            get
+            {
+                int vol = 0;
+                for (int i = 0; Bids != null && i < Bids.Count; i++)
+                {
+                    vol += Convert.ToInt32(Bids[i].Bid);
+                }
+                return vol;
+            }
+        }
+
+        /// <summary>
         /// бумага, которой принадлежит стакан
         /// </summary>
         public string SecurityNameCode;

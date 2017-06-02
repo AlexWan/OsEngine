@@ -63,9 +63,6 @@
       <HintPath>C:\Moscow Exchange\SpectraCGate\bin\cgate_net.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Microsoft.Office.Interop.Excel, Version=12.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c">
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </Reference>
     <Reference Include="qC, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\Debug\qC.dll</HintPath>
@@ -204,6 +201,14 @@
     <Compile Include="Charts\CandleChart\Indicators\ParabolicSAR.cs" />
     <Compile Include="Charts\CandleChart\Indicators\ParabolicSARUi.xaml.cs">
       <DependentUpon>ParabolicSARUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\Pivot.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\PivotPoints.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\PivotPointsUi.xaml.cs">
+      <DependentUpon>PivotPointsUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\PivotUi.xaml.cs">
+      <DependentUpon>PivotUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Charts\CandleChart\Indicators\PriceChannel.cs" />
     <Compile Include="Charts\CandleChart\Indicators\PriceChannelUi.xaml.cs">
@@ -427,6 +432,9 @@
     <Compile Include="OsTrader\Panels\PanelsGui\PinBarTradeUi.xaml.cs">
       <DependentUpon>PinBarTradeUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\PivotPointsRobotUi.xaml.cs">
+      <DependentUpon>PivotPointsRobotUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="OsTrader\Panels\PanelsGui\PriceChannelBreakUi.xaml.cs">
       <DependentUpon>PriceChannelBreakUi.xaml</DependentUpon>
     </Compile>
@@ -627,6 +635,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Charts\CandleChart\Indicators\ParabolicSARUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\PivotPointsUi.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\PivotUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -850,6 +866,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\PivotPointsRobotUi.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="OsTrader\Panels\PanelsGui\PriceChannelBreakUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -994,17 +1014,6 @@
     <Resource Include="Images\OsLogo.ico" />
   </ItemGroup>
   <ItemGroup>
-    <COMReference Include="SmartCOM3Lib">
-      <Guid>{8252879C-6E32-4322-A38D-8EBA54E52595}</Guid>
-      <VersionMajor>1</VersionMajor>
-      <VersionMinor>0</VersionMinor>
-      <Lcid>0</Lcid>
-      <WrapperTool>tlbimp</WrapperTool>
-      <Isolated>True</Isolated>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
-    </COMReference>
-  </ItemGroup>
-  <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5">
       <Visible>False</Visible>
       <ProductName>Microsoft .NET Framework 4.5 %28x86 и x64%29</ProductName>
@@ -1037,6 +1046,17 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\pickUpSmall.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="SmartCOM3Lib">
+      <Guid>{8252879C-6E32-4322-A38D-8EBA54E52595}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </COMReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

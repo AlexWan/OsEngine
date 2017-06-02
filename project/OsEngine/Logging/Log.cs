@@ -197,6 +197,8 @@ namespace OsEngine.Logging
         /// </summary>
         private List<LogMessage> _messageses;
 
+        private int _lastAreaCount = 0;
+
         /// <summary>
         /// метод в котором работает поток который сохранит
         /// лог когда приложение начнёт закрыаться
@@ -210,31 +212,42 @@ namespace OsEngine.Logging
 
             while (true)
             {
-                if (MainWindow.ProccesIsWorked == false)
+                Thread.Sleep(1000);
+                if (MainWindow.ProccesIsWorked == true)
                 {
                     try
                     {
+                        if (_messageses == null ||
+                            _lastAreaCount == _messageses.Count)
+                        {
+                            continue;
+                        }
 
-                    string date = DateTime.Now.Year + "_" + DateTime.Now.Month + "_" + DateTime.Now.Day;
-                    using (StreamWriter writer = new StreamWriter(@"Engine\Log\" + _uniqName + @"Log_" + date + ".txt", false))
+                        string date = DateTime.Now.Year + "_" + DateTime.Now.Month + "_" + DateTime.Now.Day;
+
+
+
+                        using (
+                            StreamWriter writer = new StreamWriter(
+                                @"Engine\Log\" + _uniqName + @"Log_" + date + ".txt", true))
                         {
                             string str = "";
-                            for (int i = 0; _messageses != null && i < _messageses.Count; i++)
+                            for (int i = _lastAreaCount; _messageses != null && i < _messageses.Count; i++)
                             {
                                 str += _messageses[i].GetString() + "\r\n";
                             }
                             writer.Write(str);
                         }
+                        _lastAreaCount = _messageses.Count;
                     }
                     catch (Exception)
                     {
                         // ignore
                     }
-                    return;
                 }
                 else
                 {
-                    Thread.Sleep(1000);
+                    return;
                 }
             }
         }

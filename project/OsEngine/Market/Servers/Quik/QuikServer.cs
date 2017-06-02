@@ -280,11 +280,24 @@ namespace OsEngine.Market.Servers.Quik
                     Trans2Quik.SET_TRANSACTIONS_REPLY_CALLBACK(TransactionReplyCallback, out error, msg,
                          msg.Capacity);
 
-                    Trans2Quik.SUBSCRIBE_ORDERS("", "");
-                    Trans2Quik.START_ORDERS((PfnOrderStatusCallback));
+                    result = Trans2Quik.SUBSCRIBE_ORDERS("", "");
+                    while(result != Trans2Quik.QuikResult.SUCCESS)
+                    {
+                        Thread.Sleep(5000);
+                        result = Trans2Quik.SUBSCRIBE_ORDERS("", "");
+                        SendLogMessage("Повторно пытаемся включить поток сделок" + msg, LogMessageType.Error);
+                    }
 
-                    Trans2Quik.SUBSCRIBE_TRADES("", "");
-                    Trans2Quik.START_TRADES(PfnTradeStatusCallback);
+                    result = Trans2Quik.START_ORDERS((PfnOrderStatusCallback));
+                    while (result != Trans2Quik.QuikResult.SUCCESS)
+                    {
+                        Thread.Sleep(5000);
+                        result = Trans2Quik.START_ORDERS((PfnOrderStatusCallback));
+                        SendLogMessage("Повторно пытаемся включить поток сделок" + msg, LogMessageType.Error);
+                    }
+
+                    result = Trans2Quik.SUBSCRIBE_TRADES("", "");
+                    result = Trans2Quik.START_TRADES(PfnTradeStatusCallback);
 
                     Trans2Quik.GetTradeAccount(0);
                 }
@@ -330,7 +343,7 @@ namespace OsEngine.Market.Servers.Quik
         /// <summary>
         /// выключить
         /// </summary>
-        public void StopServer()  
+        public void StopServer()
         {
             SendLogMessage("Запущена процедура оключения от Квик", LogMessageType.System);
 
@@ -656,29 +669,19 @@ namespace OsEngine.Market.Servers.Quik
         /// <summary>
         /// входящие бумаги из ДДЕ сервера
         /// </summary>
-        void _serverDde_UpdateSecurity(List<Security> securities,decimal bestBid, decimal bestAsk)
+        void _serverDde_UpdateSecurity(Security security, decimal bestBid, decimal bestAsk)
         {
             bool newSecurity = false;
 
             if (_securities == null)
             {
-                _securities = securities;
-                newSecurity = true;
+                _securities = new List<Security>();
             }
-            else
+
+            if (_securities.Find(s => s.Name == security.Name) == null)
             {
-
-                for (int i = 0; i < securities.Count; i++)
-                {
-                    Security sec = _securities.Find(security1 => security1.NameFull == securities[i].NameFull);
-
-                    if (sec == null)
-                    {
-                        _securities.Add(securities[i]);
-                        newSecurity = true;
-                    }
-                    
-                }
+                _securities.Add(security);
+                newSecurity = true;
             }
 
             if (SecuritiesChangeEvent != null && newSecurity)
@@ -688,10 +691,7 @@ namespace OsEngine.Market.Servers.Quik
 
             if (NewBidAscIncomeEvent != null)
             {
-                for (int i = 0; i < securities.Count; i++)
-                {
-                    NewBidAscIncomeEvent(bestBid, bestAsk, securities[i]);
-                }
+                NewBidAscIncomeEvent(bestBid, bestAsk, security);
             }
         }
 
@@ -1132,16 +1132,6 @@ namespace OsEngine.Market.Servers.Quik
                     Order order;
                     if (_ordersToExecute.TryDequeue(out order))
                     {
-                        if (ServerStatus == ServerConnectStatus.Disconnect)
-                        {
-                            order.State = OrderStateType.Fail;
-                            if (NewOrderIncomeEvent != null)
-                            {
-                                NewOrderIncomeEvent(order);
-                            }
-                            SendLogMessage("Ошибка. Попытка выставить ордер при закрытом соединении", LogMessageType.Error);
-                            continue;
-                        }
                         string command = ConvertToSimpleQuikOrder(order);
 
                         int error;
@@ -1155,6 +1145,18 @@ namespace OsEngine.Market.Servers.Quik
                         order.TimeCreate = ServerTime;
 
                         Trans2Quik.QuikResult result = Trans2Quik.SEND_ASYNC_TRANSACTION(command, out error, msg, msg.Capacity);
+
+                        if (msg.ToString() != "")
+                        {
+                            Order newOrder = new Order();
+                            newOrder.NumberUser = order.NumberUser;
+                            newOrder.State = OrderStateType.Fail;
+                            if (NewOrderIncomeEvent != null)
+                            {
+                                NewOrderIncomeEvent(newOrder);
+                            }
+                            continue;
+                        }
 
                         SendLogMessage(result.ToString(), LogMessageType.System);
                     }
@@ -1460,7 +1462,11 @@ namespace OsEngine.Market.Servers.Quik
                 }
                 else
                 {
-                    SendLogMessage(transId + " Заявка прошла " + transactionReplyMessage, LogMessageType.System);
+
+                    if (NewOrderIncomeEvent != null)
+                    {
+                        NewOrderIncomeEvent(order);
+                    }
                 }
             }
             catch (Exception erorr)

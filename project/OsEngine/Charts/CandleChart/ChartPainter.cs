@@ -926,7 +926,9 @@ namespace OsEngine.Charts.CandleChart
             }
 
             RePaintRightLebels();
+         
             ResizeYAxisOnArea("Prime");
+ 
         }
 
         /// <summary>
@@ -2718,6 +2720,7 @@ namespace OsEngine.Charts.CandleChart
                         }
                     }
                 }
+                _chart.Refresh();
             }
             catch (Exception error)
             {
@@ -2846,83 +2849,91 @@ namespace OsEngine.Charts.CandleChart
 
         void _chart_Click(object sender, EventArgs e)
         {
-            if (_chart.Cursor == Cursors.SizeAll)
+            try
             {
-                return;
-            }
-            if (_myCandles == null ||
-                _myCandles.Count == 0)
-            {
-                return;
-            }
-
-            RePaintCursor();
-
-            int index = (int)_chart.ChartAreas[0].CursorX.Position;
-
-            if (index < 0 || index >= _myCandles.Count)
-            {
-                return;
-            }
-            
-            List<Series> series = new List<Series>();
-
-            for (int i = 0; i < _chart.Series.Count; i++)
-            {
-                if (_chart.Series[i].Points.Count == _myCandles.Count)
+                if (_chart.Cursor == Cursors.SizeAll)
                 {
-                    series.Add(_chart.Series[i]);
+                    return;
                 }
-            }
-
-
-            if (_labelSeries == null)
-            {
-                _labelSeries  = new List<Series>();
-            }
-
-            for (int i = 0; i < series.Count; i++)
-            {
-                Series labelSeries = _labelSeries.Find(ser => ser.Name == series[i].Name + "label");
-
-                if (labelSeries == null)
+                if (_myCandles == null ||
+                    _myCandles.Count == 0)
                 {
-                    labelSeries = new Series(series[i].Name + "label");
-                    _labelSeries.Add(labelSeries);
-                    labelSeries.ChartArea = series[i].ChartArea;
-                    labelSeries.MarkerStyle = MarkerStyle.Diamond;
-                    labelSeries.MarkerSize = 10;
-                    labelSeries.ChartType = SeriesChartType.Point;
-                    labelSeries.XAxisType = AxisType.Primary;
-                    labelSeries.YAxisType = AxisType.Secondary;
-                    
-                    _chart.Series.Add(labelSeries);
-                  
+                    return;
                 }
 
-                labelSeries.Color = series[i].Points[index].Color;
+                RePaintCursor();
 
-                if (labelSeries.Points.Count == 0)
+                int index = (int)_chart.ChartAreas[0].CursorX.Position;
+
+                if (index < 0 || index >= _myCandles.Count)
                 {
-                    labelSeries.Points.Add(new DataPoint(0, 30 - i));
+                    return;
                 }
 
-                labelSeries.Points[0].Color = series[i].Points[index].Color;
-                labelSeries.Points[0].LabelForeColor = series[i].Points[index].Color;
-                labelSeries.Points[0].LabelAngle = 0;
+                List<Series> series = new List<Series>();
+
+                for (int i = 0; i < _chart.Series.Count; i++)
+                {
+                    if (_chart.Series[i].Points.Count == _myCandles.Count)
+                    {
+                        series.Add(_chart.Series[i]);
+                    }
+                }
 
 
-                if (series[i].Name == "SeriesCandle")
+                if (_labelSeries == null)
                 {
-                    labelSeries.Points[0].Label = _myCandles[index].GetBeautifulString();
+                    _labelSeries = new List<Series>();
                 }
-                else
+
+                for (int i = 0; i < series.Count; i++)
                 {
-                    labelSeries.Points[0].Label = series[i].Points[index].YValues[0].ToString();
+                    Series labelSeries = _labelSeries.Find(ser => ser.Name == series[i].Name + "label");
+
+                    if (labelSeries == null)
+                    {
+                        labelSeries = new Series(series[i].Name + "label");
+                        _labelSeries.Add(labelSeries);
+                        labelSeries.ChartArea = series[i].ChartArea;
+                        labelSeries.MarkerStyle = MarkerStyle.Diamond;
+                        labelSeries.MarkerSize = 10;
+                        labelSeries.ChartType = SeriesChartType.Point;
+                        labelSeries.XAxisType = AxisType.Primary;
+                        labelSeries.YAxisType = AxisType.Secondary;
+
+                        _chart.Series.Add(labelSeries);
+
+                    }
+
+                    labelSeries.Color = series[i].Points[index].Color;
+
+                    if (labelSeries.Points.Count == 0)
+                    {
+                        labelSeries.Points.Add(new DataPoint(0, 30 - i));
+                    }
+
+                    labelSeries.Points[0].Color = series[i].Points[index].Color;
+                    labelSeries.Points[0].LabelForeColor = series[i].Points[index].Color;
+                    labelSeries.Points[0].LabelAngle = 0;
+
+
+                    if (series[i].Name == "SeriesCandle")
+                    {
+                        labelSeries.Points[0].Label = _myCandles[index].GetBeautifulString();
+                    }
+                    else
+                    {
+                        labelSeries.Points[0].Label = series[i].Points[index].YValues[0].ToString();
+                    }
                 }
+
+                ResizeSeriesLabels();
             }
-
-            ResizeSeriesLabels();
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(),LogMessageType.Error);
+            }
+           
         }
 
         private List<Series> _labelSeries; 

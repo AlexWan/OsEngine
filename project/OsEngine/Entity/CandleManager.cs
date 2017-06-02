@@ -36,6 +36,7 @@ namespace OsEngine.Entity
             Thread worker = new Thread(CandleStarter);
             worker.CurrentCulture = new CultureInfo("ru-RU");
             worker.IsBackground = true;
+            worker.Name = "CandleStarter";
             worker.Start();
 
             TypeTesterData = TesterDataType.Unknown;
@@ -179,7 +180,8 @@ namespace OsEngine.Entity
             {
                 while (true)
                 {
-                    Thread.Sleep(1000);
+
+                    Thread.Sleep(50);
 
                     if (_candleSeriesNeadToStart.Count != 0)
                     {

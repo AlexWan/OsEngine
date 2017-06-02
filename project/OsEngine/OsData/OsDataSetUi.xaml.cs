@@ -251,6 +251,9 @@ namespace OsEngine.OsData
         /// </summary>
         private void SaveSettings()
         {
+            TextBoxFolderName.Text = TextBoxFolderName.Text.Replace("_", "");
+            TextBoxFolderName.Text = TextBoxFolderName.Text.Replace("Set", "");
+
             _set.SetName = "Set_" + TextBoxFolderName.Text;
 
             DataSetState regime;

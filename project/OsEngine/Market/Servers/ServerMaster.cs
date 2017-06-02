@@ -40,6 +40,11 @@ namespace OsEngine.Market.Servers
         public static bool IsTester;
 
         /// <summary>
+        /// является ли текущее подключение вызванным из OsData
+        /// </summary>
+        public static bool IsOsData;
+
+        /// <summary>
         /// отключить все сервера
         /// </summary>
         public static void AbortAll()

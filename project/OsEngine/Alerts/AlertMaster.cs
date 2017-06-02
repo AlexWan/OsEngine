@@ -30,7 +30,6 @@ namespace OsEngine.Alerts
         /// <param name="name">имя владельца хранилища алертов</param>
         /// <param name="connector">коннектор</param>
         /// <param name="chartMaster">чарт</param>
-        /// <param name="alertDataGrid">хост для прорисовки таблицы с алертами</param>
         public AlertMaster(string name, Connector connector, ChartMaster chartMaster) 
         {
             _name = name;

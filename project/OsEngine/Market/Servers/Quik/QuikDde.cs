@@ -250,40 +250,14 @@ namespace OsEngine.Market.Servers.Quik
                     securities[i].PriceLimitHigh = 0;
                     securities[i].PriceLimitLow = 0;
 
-                    /*if (!string.IsNullOrEmpty(table[i, 12].ToString()))
+                    if (UpdateSecurity != null)
                     {
-                        securities[i].PriceLimitHigh = Convert.ToDecimal(table[i, 12]);
+                        UpdateSecurity(securities[i], bestBid, bestAsk);
                     }
-                    else
-                    {
-                        securities[i].PriceLimitHigh = 0;
-                    }
-                    if (!string.IsNullOrEmpty(table[i, 13].ToString()))
-                    {
-                        securities[i].PriceLimitLow = Convert.ToDecimal(table[i, 13]);
-                    }
-                    else
-                    {
-                        securities[i].PriceLimitLow = 0;
-                    }*/
                 }
-
-                if (securities.Length == 0)
-                {
-                    return;
-                }
-
-            List<Security> newSecurities = new List<Security>(securities);
-
-
-
-            if (UpdateSecurity != null)
-            {
-                UpdateSecurity(newSecurities, bestBid, bestAsk);
-            }
         }
 
-        public event Action<List<Security>,decimal,decimal> UpdateSecurity;
+        public event Action<Security,decimal,decimal> UpdateSecurity;
 
         public event Action<DateTime> UpdateTimeSecurity;
 
@@ -397,6 +371,13 @@ namespace OsEngine.Market.Servers.Quik
 
                 if (data == null)
                 {
+                    PortfolioReturner r = new PortfolioReturner();
+                    r.Long = id;
+                    r.Objects = table;
+                    r.PortfolioUpdate += PortfolioSpotUpdated;
+                    Thread worker = new Thread(r.Start);
+                    worker.IsBackground = true;
+                    worker.Start();
                     return;
                 }
 
@@ -570,18 +551,10 @@ namespace OsEngine.Market.Servers.Quik
 
                 if (_portfolios != null)
                 {
-                    myPortfolio = _portfolios.Find(portfolio => portfolio.Number == position.PortfolioName);
+                    myPortfolio = _portfolios.Find(portfolio => portfolio.Number.Split('@')[0] == position.PortfolioName);
                 }
                 if (myPortfolio == null)
                 {
-                    PositionOnBoardSander sender = new PositionOnBoardSander();
-                    sender.PositionOnBoard = position;
-                    sender.TimeSendPortfolio += UpDatePosition;
-
-                    Thread worker = new Thread(sender.Go);
-                    worker.IsBackground = true;
-                    worker.CurrentCulture = new CultureInfo("ru-RU");
-                    worker.Start();
                     return;
                 }
 
@@ -720,6 +693,28 @@ namespace OsEngine.Market.Servers.Quik
     {
         Connected,
         Disconnected
+    }
+
+    /// <summary>
+    /// штука отправляющая таблицу портфеля на второй круг
+    /// </summary>
+    public class PortfolioReturner
+    {
+        public long Long;
+
+        public object[,] Objects;
+
+        public void Start()
+        {
+            Thread.Sleep(3000);
+
+            if (PortfolioUpdate != null)
+            {
+                PortfolioUpdate(Long, Objects);
+            }
+        }
+
+        public event Action<long, object[,]> PortfolioUpdate;
     }
 
 }

@@ -12,6 +12,7 @@ using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.OsTrader.Panels.PanelsGui;
 using OsEngine.OsTrader.Panels.Tab;
+using ru.micexrts.cgate;
 using MessageBox = System.Windows.MessageBox;
 
 namespace OsEngine.OsTrader.Panels
@@ -47,7 +48,7 @@ namespace OsEngine.OsTrader.Panels
             result.Add("MomentumMACD");
             result.Add("PinBarTrade");
             result.Add("PairRsiTrade");
-
+            result.Add("PivotPointsRobot");
             result.Add("TwoLegArbitration");
             result.Add("OneLegArbitration");
             result.Add("ThreeSoldier");
@@ -70,9 +71,12 @@ namespace OsEngine.OsTrader.Panels
         {
 
             BotPanel bot = null;
-// примеры и бесплатные боты
+            // примеры и бесплатные боты
 
-
+            if (nameClass == "PivotPointsRobot")
+            {
+                bot = new PivotPointsRobot(name);
+            }
             if (nameClass == "Engine")
             {
                 bot = new StrategyEngineCandle(name);
@@ -1775,7 +1779,10 @@ namespace OsEngine.OsTrader.Panels
                     Slipage = Convert.ToDecimal(reader.ReadLine());
                     VolumeFix1 = Convert.ToInt32(reader.ReadLine());
                     VolumeFix2 = Convert.ToInt32(reader.ReadLine());
-                    KofAtr = Convert.ToDecimal(reader.ReadLine());
+                    LengthAtr = Convert.ToInt32(reader.ReadLine());
+                    KofAtr= Convert.ToDecimal(reader.ReadLine());
+                    LengthUp = Convert.ToInt32(reader.ReadLine());
+                    LengthDown = Convert.ToInt32(reader.ReadLine());
 
                     reader.Close();
                 }
@@ -8545,8 +8552,252 @@ namespace OsEngine.OsTrader.Panels
         }
     }
 
+    /// <summary>
+    /// торговля на основе индикатора Pivot Points
+    /// </summary>
+    public class PivotPointsRobot : BotPanel
+    {
+        /// <summary>
+        /// конструктор
+        /// </summary>
+        /// <param name="name"></param>
+        public PivotPointsRobot(string name) : base(name)
+        {
+            TabCreate(BotTabType.Simple);
+            _tab = TabsSimple[0];
+
+            _pivot = new PivotPoints(name + "Prime", false);
+            _pivot = (PivotPoints)_tab.CreateCandleIndicator(_pivot, "Prime");
+
+            _pivot.Save();
+
+            //_tab.CandleFinishedEvent += TradeLogic;
+            _tab.CandleFinishedEvent += TradeLogic;
+            Slipage = 0;
+            VolumeFix = 1;
+            Stop = 0.5m;
+            Load();
+
+            DeleteEvent += Strategy_DeleteEvent;
+        }
+
+        /// <summary>
+        /// взять уникальное имя
+        /// </summary>
+        public override string GetNameStrategyType()
+        {
+            return "PivotPointsRobot";
+        }
+        /// <summary>
+        /// показать окно настроек
+        /// </summary>
+        public override void ShowIndividualSettingsDialog()
+        {
+            //MessageBox.Show("Пусто");
+            PivotPointsRobotUi ui = new PivotPointsRobotUi(this);
+            ui.ShowDialog();
+        }
+
+        /// <summary>
+        /// вкладка с первым инструметом
+        /// </summary>
+        private BotTabSimple _tab;
+
+        /// <summary>
+        /// индикатор PivotPoints
+        /// </summary>
+        private PivotPoints _pivot;
+
+        //публичные настройки
+
+        /// <summary>
+        /// размер стопа в %
+        /// </summary>
+        public decimal Stop;
+
+        /// <summary>
+        ///  проскальзывание
+        /// </summary>
+        public decimal Slipage;
+
+        /// <summary>
+        /// фиксированный объем для входа
+        /// </summary>
+        public int VolumeFix;
+
+        /// <summary>
+        /// режим работы
+        /// </summary>
+        public BotTradeRegime Regime;
+
+        /// <summary>
+        /// сохранить настройки
+        /// </summary>
+        public void Save()
+        {
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt", false)
+                    )
+                {
+                    writer.WriteLine(Slipage);
+                    writer.WriteLine(VolumeFix);
+                    writer.WriteLine(Regime);
+                    writer.WriteLine(Stop);
+
+                    writer.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // отправить в лог
+            }
+        }
+
+        /// <summary>
+        /// загрузить настройки
+        /// </summary>
+        private void Load()
+        {
+            if (!File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
+            {
+                return;
+            }
+            try
+            {
+                using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
+                {
+                    Slipage = Convert.ToDecimal(reader.ReadLine());
+                    VolumeFix = Convert.ToInt32(reader.ReadLine());
+                    Enum.TryParse(reader.ReadLine(), true, out Regime);
+                    Stop = Convert.ToDecimal(reader.ReadLine());
+
+                    reader.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // отправить в лог
+            }
+        }
+
+
+
+        /// <summary>
+        /// удаление файла с сохранением
+        /// </summary>
+        void Strategy_DeleteEvent()
+        {
+            if (File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
+            {
+                File.Delete(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt");
+            }
+        }
+
+        // переменные, нужные для торговли
+        private decimal _lastPriceO;
+        private decimal _lastPriceC;
+        private decimal _pivotR1;
+        private decimal _pivotR3;
+        private decimal _pivotS1;
+        private decimal _pivotS3;
+
+        // логика
+        
+        /// <summary>
+        /// Метод-обработчик события завершения свечи
+        /// </summary>
+        /// <param name="candles"></param>
+        private void TradeLogic(List<Candle> candles)
+        {
+            if (Regime == BotTradeRegime.Off)
+            {
+                return;
+            }
+
+            _lastPriceO = candles[candles.Count - 1].Open;
+            _lastPriceC = candles[candles.Count - 1].Close;
+            _pivotR1 = _pivot.ValuesR1[_pivot.ValuesR1.Count - 1];
+            
+            _pivotS1 = _pivot.ValuesS1[_pivot.ValuesS1.Count - 1];
+            
+
+            List<Position> openPositions = _tab.PositionsOpenAll;
+
+            if (openPositions != null && openPositions.Count != 0)
+            {
+                for (int i = 0; i < openPositions.Count; i++)
+                {
+                    LogicClosePosition(candles, openPositions[i]);
+                }
+            }
+
+            if (Regime == BotTradeRegime.OnlyClosePosition)
+            {
+                return;
+            }
+
+            if (openPositions == null || openPositions.Count == 0)
+            {
+                LogicOpenPosition(candles, openPositions);
+            }
+
+        }
+
+        /// <summary>
+        /// логика открытия позиции
+        /// </summary>
+        /// <param name="candles"></param>
+        /// <param name="openPositions"></param>
+        private void LogicOpenPosition(List<Candle> candles, List<Position> openPositions)
+        {
+            if (_lastPriceC > _pivotR1 && _lastPriceO < _pivotR1 && Regime != BotTradeRegime.OnlyShort)
+            {
+                _tab.BuyAtLimit(VolumeFix, _lastPriceC + Slipage);
+                _pivotR3 = _pivot.ValuesR3[_pivot.ValuesR3.Count - 1];
+            }
+
+            if (_lastPriceC < _pivotS1 && _lastPriceO > _pivotS1 && Regime != BotTradeRegime.OnlyLong)
+            {
+                _tab.SellAtLimit(VolumeFix, _lastPriceC - Slipage);
+                _pivotS3 = _pivot.ValuesS3[_pivot.ValuesS3.Count - 1];
+            }
+        }
+
+        /// <summary>
+        /// логика закрытия позиции
+        /// </summary>
+        /// <param name="candles"></param>
+        /// <param name="openPosition"></param>
+        private void LogicClosePosition(List<Candle> candles, Position openPosition)
+        {
+            if (openPosition.Direction == Side.Buy)
+            {
+                if (_lastPriceC > _pivotR3)
+                {
+                    _tab.CloseAtLimit(openPosition, _lastPriceC - Slipage, openPosition.OpenVolume);
+                }
+                if (_lastPriceC < openPosition.EntryPrice - openPosition.EntryPrice / 100m * Stop)
+                {
+                    _tab.CloseAtMarket(openPosition, openPosition.OpenVolume);
+                }
+            }
+
+            if (openPosition.Direction == Side.Sell)
+            {
+                if (_lastPriceC < _pivotS3)
+                {
+                    _tab.CloseAtLimit(openPosition, _lastPriceC + Slipage, openPosition.OpenVolume);
+                }
+                if (_lastPriceC > openPosition.EntryPrice + openPosition.EntryPrice / 100m * Stop)
+                {
+                    _tab.CloseAtMarket(openPosition, openPosition.OpenVolume);
+                }
+            }
+        }
+    }
     #endregion
-    
+
     /// <summary>
     /// режим работы робота
     /// </summary>

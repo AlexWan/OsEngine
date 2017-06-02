@@ -35,6 +35,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 _maShort = new MovingAverage(uniqName + "ma1", false) { Lenght = 12, TypeCalculationAverage = MovingAverageTypeCalculation.Exponential };
                 _maLong = new MovingAverage(uniqName + "ma2", false) { Lenght = 26, TypeCalculationAverage = MovingAverageTypeCalculation.Exponential };
                 _maSignal = new MovingAverage(uniqName + "maSignal", false) { Lenght = 9, TypeCalculationAverage = MovingAverageTypeCalculation.Simple };
+                _maShort.Save();
+                _maLong.Save();
+                _maSignal.Save();
             } 
             else
             {

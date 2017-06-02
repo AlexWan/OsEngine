@@ -13,7 +13,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
     /// Логика взаимодействия для ACUi.xaml
     /// </summary>
     public partial class AсUi
-    { /// <summary>
+    { 
+        
+        /// <summary>
         /// индикатор
         /// </summary>
         private Ac _ac;

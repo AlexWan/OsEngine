@@ -42,7 +42,7 @@ namespace OsEngine.Market.Servers.Tester
 
             if (_activSet != null)
             {
-                _neadToReloadSecurities = true;
+                _needToReloadSecurities = true;
             }
 
             if (_worker == null)
@@ -430,7 +430,7 @@ namespace OsEngine.Market.Servers.Tester
 
             // обновляем
             
-            _neadToReloadSecurities = true;
+            _needToReloadSecurities = true;
 
             if (NeadToReconnectEvent != null)
             {
@@ -625,7 +625,7 @@ namespace OsEngine.Market.Servers.Tester
         /// <summary>
         /// пора ли перезагружать бумаги в директории
         /// </summary>
-        private bool _neadToReloadSecurities;
+        private bool _needToReloadSecurities;
 
         /// <summary>
         /// режим тестирования
@@ -655,9 +655,9 @@ namespace OsEngine.Market.Servers.Tester
                         }
                     }
 
-                    if (_neadToReloadSecurities)
+                    if (_needToReloadSecurities)
                     {
-                        _neadToReloadSecurities = false;
+                        _needToReloadSecurities = false;
                         _testerRegime = TesterRegime.Pause;
                         LoadSecurities();
                     }
@@ -1009,6 +1009,7 @@ namespace OsEngine.Market.Servers.Tester
                     {
                         lastString = reader.ReadLine();
                     }
+                    
 
                     Candle candle3 = new Candle();
                     candle3.SetCandleFromString(lastString);
@@ -1500,7 +1501,7 @@ namespace OsEngine.Market.Servers.Tester
                     trade2.SetMarketDepthFromString(lastString2);
                     security[security.Count - 1].TimeEnd = trade2.Time;
                 }
-                catch (Exception)
+                catch
                 {
                     security.Remove(security[security.Count - 1]);
                 }

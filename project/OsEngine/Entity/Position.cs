@@ -115,7 +115,7 @@ namespace OsEngine.Entity
                     return false;
                 }
 
-                if (OpenOrders.Find(order => order.State == OrderStateType.Activ) != null)
+                if (OpenOrders.Find(order => order.State == OrderStateType.Activ || order.State == OrderStateType.Pending || order.State == OrderStateType.None) != null)
                 {
                     return true;
                 }
@@ -136,7 +136,7 @@ namespace OsEngine.Entity
                     return false;
                 }
 
-                if (CloseOrders.Find(order => order.State == OrderStateType.Activ) != null)
+                if (CloseOrders.Find(order => order.State == OrderStateType.Activ || order.State == OrderStateType.Pending || order.State == OrderStateType.None) != null)
                 {
                     return true;
                 }

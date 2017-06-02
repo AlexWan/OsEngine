@@ -94,6 +94,7 @@ namespace OsEngine.OsTrader
             _log = new Log("Prime");
             _log.StartPaint(hostLogPrime);
             _log.Listen(this);
+            _hostLogPrime = hostLogPrime;
 
             Load();
             _tabBotNames.SelectionChanged += _tabBotControl_SelectionChanged;
@@ -101,6 +102,7 @@ namespace OsEngine.OsTrader
             _globalController.StartPaint();
         }
 
+        private WindowsFormsHost _hostLogPrime;
         private WindowsFormsHost _hostChart;
         private WindowsFormsHost _hostGlass;
         private WindowsFormsHost _hostOpenDeals;
@@ -275,6 +277,8 @@ namespace OsEngine.OsTrader
                 _activPanel = newActivBot;
 
                 _activPanel.StartPaint(_hostChart,_hostGlass,_hostOpenDeals,_hostCloseDeals,_hostboxLog,_rectangleAroundChart,_hostAlerts,_tabBotTab,_textBoxLimitPrice);
+
+
 
                 _tabBotNames.SelectionChanged -= _tabBotControl_SelectionChanged;
 
@@ -662,7 +666,7 @@ namespace OsEngine.OsTrader
 
                     _fastRegimeOn = false;
                     ServerMaster.StartPaint();
-                    _log.StartPaint(_hostboxLog);
+                    _log.StartPaint(_hostLogPrime);
 
                 }
             }

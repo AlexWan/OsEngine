@@ -1673,7 +1673,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (position.Direction == Side.Buy)
                 {
-                    price = price - Securiti.PriceStep * 20;
+                    price = _connector.BestAsk - Securiti.PriceStep * 20;
                 }
                 else
                 {
@@ -2914,7 +2914,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         }
                         if (_stopsOpener.Count != 0)
                         {
-                            _stopsOpener.Remove(_stopsOpener[i]);
+                            _stopsOpener.RemoveAt(i);
                         }
                         i--;
                     }
