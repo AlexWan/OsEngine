@@ -117,15 +117,12 @@ namespace OsEngine
                 Hide();
                 TesterUi candleOneUi = new TesterUi();
                 candleOneUi.ShowDialog();
-                Close();
-                ProccesIsWorked = false;
-                Thread.Sleep(10000);
+                Show();
             }
             catch (Exception error)
             {
                 MessageBox.Show(error.ToString());
             }
-            Process.GetCurrentProcess().Kill();
         }
 
         private void ButtonRobotCandleOne_Click(object sender, RoutedEventArgs e)
@@ -135,15 +132,13 @@ namespace OsEngine
                 Hide();
                 RobotUi candleOneUi = new RobotUi();
                 candleOneUi.ShowDialog();
-                Close();
-                ProccesIsWorked = false;
-                Thread.Sleep(10000);
+                Show();
+
             }
             catch (Exception error)
             {
                 MessageBox.Show(error.ToString());
             }
-            Process.GetCurrentProcess().Kill();
         }
 
         private void ButtonData_Click(object sender, RoutedEventArgs e)
@@ -153,15 +148,12 @@ namespace OsEngine
                 Hide();
                 OsDataUi ui = new OsDataUi();
                 ui.ShowDialog();
-                Close();
-                ProccesIsWorked = false;
-                Thread.Sleep(10000);
+                Show();
             }
             catch (Exception error)
             {
                 MessageBox.Show(error.ToString());
             }
-            Process.GetCurrentProcess().Kill();
         }
 
         /// <summary>
@@ -176,15 +168,12 @@ namespace OsEngine
                 Hide();
                 OsConverterUi ui = new OsConverterUi();
                 ui.ShowDialog();
-                Close();
-                ProccesIsWorked = false;
-                Thread.Sleep(10000);
+                Show();
             }
             catch (Exception error)
             {
                 MessageBox.Show(error.ToString());
             }
-            Process.GetCurrentProcess().Kill();
         }
     }
 }
