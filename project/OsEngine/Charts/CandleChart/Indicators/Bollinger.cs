@@ -124,7 +124,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         { get; set; }
 
         /// <summary>
-        /// длинна расчёта индикатора
+        /// длина расчёта индикатора
         /// </summary>
         public int Lenght
         { get; set; }
@@ -351,7 +351,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
-        /// взять значение индикаторм по индексу
+        /// взять значение индикатора по индексу
         /// </summary>
         private decimal[] GetValueSimple(List<Candle> candles, int index)
         {
