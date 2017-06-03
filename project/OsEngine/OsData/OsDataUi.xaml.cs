@@ -16,7 +16,6 @@ namespace OsEngine.OsData
             InitializeComponent();
             ServerMaster.IsOsData = true;
             new OsDataMaster(ChartHostPanel, HostLog, HostSource, HostSet, ComboBoxSecurity,ComboBoxTimeFrame,RectChart);
-            LabelOsa.Content = "V_" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
         }
 
     }

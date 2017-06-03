@@ -24,11 +24,15 @@ namespace OsEngine
     {
         public MainWindow() // конструктор окна
         {
+            
             Process ps = Process.GetCurrentProcess();
             ps.PriorityClass = ProcessPriorityClass.RealTime;
 
             Thread.CurrentThread.CurrentCulture = new CultureInfo("ru-RU");
             InitializeComponent();
+            LabelOsa.Content = "V_" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+
+
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             
             try
@@ -51,7 +55,7 @@ namespace OsEngine
                 Close();
             }
 
-            // передаём в менеджер сообщений объект центарльного потока
+            // передаём в менеджер сообщений объект центрального потока
             AlertMessageManager.TextBoxFromStaThread = new TextBox();
 
             ProccesIsWorked = true;
@@ -110,70 +114,15 @@ namespace OsEngine
             MessageBox.Show(message);
         }
 
-        private void ButtonTesterCandleOne_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                Hide();
-                TesterUi candleOneUi = new TesterUi();
-                candleOneUi.ShowDialog();
-                Show();
-            }
-            catch (Exception error)
-            {
-                MessageBox.Show(error.ToString());
-            }
-        }
 
-        private void ButtonRobotCandleOne_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                Hide();
-                RobotUi candleOneUi = new RobotUi();
-                candleOneUi.ShowDialog();
-                Show();
 
-            }
-            catch (Exception error)
-            {
-                MessageBox.Show(error.ToString());
-            }
-        }
 
-        private void ButtonData_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                Hide();
-                OsDataUi ui = new OsDataUi();
-                ui.ShowDialog();
-                Show();
-            }
-            catch (Exception error)
-            {
-                MessageBox.Show(error.ToString());
-            }
-        }
 
         /// <summary>
         /// работает ли приложение или закрывается
         /// </summary>
         public static bool ProccesIsWorked;
 
-        private void ButtonConverter_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                Hide();
-                OsConverterUi ui = new OsConverterUi();
-                ui.ShowDialog();
-                Show();
-            }
-            catch (Exception error)
-            {
-                MessageBox.Show(error.ToString());
-            }
-        }
+
     }
 }

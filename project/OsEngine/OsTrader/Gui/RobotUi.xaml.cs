@@ -20,15 +20,14 @@ namespace OsEngine.OsTrader.Gui
             InitializeComponent();
             _strategyKeeper = new OsTraderMaster( ChartHostPanel, HostGlass, HostOpenPosition, HostClosePosition, HostAllPosition,
                                          HostBotLog, HostBotLogPrime, RectChart, HostAllert, TabControlBotsName,TabControlBotTab,TextBoxPrice);
-            Closing += RobotUi_Closing;
+            //Closing += RobotUi_Closing;
             ServerMaster.IsTester = false;
             ServerMaster.SetHostTable(HostPositionOnBoard, HostOrdersOnBoard);
 
-            LocationChanged += RobotUi_LocationChanged;
+            //LocationChanged += RobotUi_LocationChanged;
 
             CheckBoxPaintOnOff.IsChecked = true;
             CheckBoxPaintOnOff.Click += CheckBoxPaintOnOff_Click;
-            LabelOsa.Content = "V_" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
 
             TabControlBotsName.SizeChanged += TabControlBotsName_SizeChanged;
         }
@@ -61,11 +60,7 @@ namespace OsEngine.OsTrader.Gui
             }
         }
 
-        private void RobotUi_LocationChanged(object sender, EventArgs e)
-        {
-            WindowCoordinate.X = Convert.ToDecimal(Left);
-            WindowCoordinate.Y = Convert.ToDecimal(Top);
-        }
+
 
         void RobotUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
