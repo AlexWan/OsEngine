@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Media;
 using System.Threading;
@@ -23,6 +22,52 @@ namespace OsEngine.Logging
     /// </summary>
     public class Log
     {
+
+// статическая часть с работой потока сохраняющего логи
+
+        /// <summary>
+        /// поток 
+        /// </summary>
+        public static Thread Watcher;
+
+        /// <summary>
+        /// логи которые нужно обслуживать
+        /// </summary>
+        public static List<Log> LogsToCheck = new List<Log>();
+
+        /// <summary>
+        /// активировать поток для сохранения
+        /// </summary>
+        public static void Activate()
+        {
+            Watcher = new Thread(WatcherHome);
+            Watcher.IsBackground = true;
+            Watcher.Start();
+        }
+
+        /// <summary>
+        /// место работы потока который сохраняет логи
+        /// </summary>
+        public static void WatcherHome()
+        {
+            while (true)
+            {
+                Thread.Sleep(2000);
+
+                for (int i = 0; i < LogsToCheck.Count; i++)
+                {
+                    LogsToCheck[i].CheckLog();
+                }
+
+                if (MainWindow.ProccesIsWorked)
+                {
+                    return;
+                }
+            }
+        }
+
+// объект лога
+
         /// <summary>
         /// конструктор
         /// </summary>
@@ -31,10 +76,12 @@ namespace OsEngine.Logging
         {
             _uniqName = uniqName;
 
-            Thread saver = new Thread(SaverArea);
-            saver.IsBackground = true;
-            saver.CurrentCulture = new CultureInfo("RU-ru");
-            saver.Start();
+            if (Watcher == null)
+            {
+                Activate();
+            }
+
+            LogsToCheck.Add(this);
 
             _grid = new DataGridView();
 
@@ -197,59 +244,48 @@ namespace OsEngine.Logging
         /// </summary>
         private List<LogMessage> _messageses;
 
-        private int _lastAreaCount = 0;
+        private int _lastAreaCount;
 
         /// <summary>
         /// метод в котором работает поток который сохранит
         /// лог когда приложение начнёт закрыаться
         /// </summary>
-        public void SaverArea()
+        public void CheckLog()
         {
             if (!Directory.Exists(@"Engine\Log\"))
             {
                 Directory.CreateDirectory(@"Engine\Log\");
             }
 
-            while (true)
+
+            try
             {
-                Thread.Sleep(1000);
-                if (MainWindow.ProccesIsWorked == true)
-                {
-                    try
-                    {
-                        if (_messageses == null ||
-                            _lastAreaCount == _messageses.Count)
-                        {
-                            continue;
-                        }
-
-                        string date = DateTime.Now.Year + "_" + DateTime.Now.Month + "_" + DateTime.Now.Day;
-
-
-
-                        using (
-                            StreamWriter writer = new StreamWriter(
-                                @"Engine\Log\" + _uniqName + @"Log_" + date + ".txt", true))
-                        {
-                            string str = "";
-                            for (int i = _lastAreaCount; _messageses != null && i < _messageses.Count; i++)
-                            {
-                                str += _messageses[i].GetString() + "\r\n";
-                            }
-                            writer.Write(str);
-                        }
-                        _lastAreaCount = _messageses.Count;
-                    }
-                    catch (Exception)
-                    {
-                        // ignore
-                    }
-                }
-                else
+                if (_messageses == null ||
+                    _lastAreaCount == _messageses.Count)
                 {
                     return;
                 }
+
+                string date = DateTime.Now.Year + "_" + DateTime.Now.Month + "_" + DateTime.Now.Day;
+
+                using (
+                    StreamWriter writer = new StreamWriter(
+                        @"Engine\Log\" + _uniqName + @"Log_" + date + ".txt", true))
+                {
+                    string str = "";
+                    for (int i = _lastAreaCount; _messageses != null && i < _messageses.Count; i++)
+                    {
+                        str += _messageses[i].GetString() + "\r\n";
+                    }
+                    writer.Write(str);
+                }
+                _lastAreaCount = _messageses.Count;
             }
+            catch (Exception)
+            {
+                // ignore
+            }
+
         }
 
 // рассылка

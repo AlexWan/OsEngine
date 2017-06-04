@@ -19,7 +19,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
     /// </summary>
     public class BotManualControl
     {
-        // статическая часть с работой потока проверяющего не нужно ли чего отзывать
+// статическая часть с работой потока проверяющего не нужно ли чего отзывать
+
         /// <summary>
         /// поток отзывающий ордера
         /// </summary>
@@ -47,17 +48,22 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         {
             while (true)
             {
-                Thread.Sleep(3000);
+                Thread.Sleep(2000);
 
                 for (int i = 0; i < TabsToCheck.Count; i++)
                 {
                     TabsToCheck[i].CheckPositions(DateTime.Now);
                 }
-                System.Media.SystemSounds.Beep.Play();
+
+                if (MainWindow.ProccesIsWorked)
+                {
+                    return;
+                }
             }
         }
 
-// сервис
+// объект 
+
         private string _name;
 
         public BotManualControl(string name,BotTabSimple botTab)
@@ -88,8 +94,6 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             SetbackToCloseIsOn = false;
 
             SetbackToClosePosition = 10;
-
-            
 
             // грузим настройки из файла
 
