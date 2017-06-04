@@ -70,6 +70,10 @@ namespace OsEngine.Charts
 
                         string[] indicator = readerStr.Split('@');
 
+                        if (indicator[0] == "KalmanFilter")
+                        {
+                            CreateIndicator(new KalmanFilter(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                        }
                         if (indicator[0] == "PivotPoints")
                         {
                             CreateIndicator(new PivotPoints(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);

@@ -77,6 +77,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _gridViewIndicators.Rows.Add("OnBalanceVolume");
             _gridViewIndicators.Rows.Add("Ichimoku");
             _gridViewIndicators.Rows.Add("IvashovRange");
+            _gridViewIndicators.Rows.Add("KalmanFilter");
             _gridViewIndicators.Rows.Add("Moving Average");
             _gridViewIndicators.Rows.Add("MACD Histogram");
             _gridViewIndicators.Rows.Add("MACD Line");
@@ -144,6 +145,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// </summary>
         void gridViewIndicators_SelectionChanged(object sender, EventArgs e)
         {
+
+            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "KalmanFilter")
+            {
+                TextBlockDescription.Text = " Эффективный рекурсивный фильтр, оценивающий вектор состояния динамической системы, используя ряд неполных и зашумленных измерений. Фильтр Калмана широко используется в инженерных и эконометрических приложениях";
+            }
             if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Moving Average")
             {
                 TextBlockDescription.Text = "Moving Average(Скользящая средняя) - линия, представляющая собой усреднённое значение цен закрытия свечек, за определённый период";
@@ -354,6 +360,24 @@ namespace OsEngine.Charts.CandleChart.Indicators
             if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Trades")
             {
                 _chartMaster.CreateTickChart();
+            }
+
+
+
+            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "KalmanFilter")
+            {
+                string name = "";
+
+                for (int i = 0; i < 30; i ++)
+                {
+                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "KalmanFilter" + i) == false)
+                    {
+                        name = "KalmanFilter" + i;
+                        break;
+                    }
+                }
+                IndicatorCandle = new KalmanFilter(_chartMaster.Name + name, true);
+                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
             }
 
             if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Moving Average")
