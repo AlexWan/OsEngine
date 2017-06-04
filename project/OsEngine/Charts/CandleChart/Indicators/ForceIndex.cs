@@ -47,6 +47,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
         public ForceIndex(bool canDelete)
         {
+            Name = Guid.NewGuid().ToString();
+
             TypeIndicator = IndicatorOneCandleChartType.Line;
             TypeCalculationAverage = MovingAverageTypeCalculation.Exponential;
             TypePoint = PriceTypePoints.Close;

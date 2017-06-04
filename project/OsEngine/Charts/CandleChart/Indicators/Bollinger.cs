@@ -41,8 +41,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
         public Bollinger(bool canDelete)
         {
-            Name = "";
-
+            Name = Guid.NewGuid().ToString();
             TypeIndicator = IndicatorOneCandleChartType.Line;
             ColorUp = Color.DodgerBlue;
             ColorDown = Color.DarkRed;
@@ -124,7 +123,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         { get; set; }
 
         /// <summary>
-        /// длинна расчёта индикатора
+        /// длина расчёта индикатора
         /// </summary>
         public int Lenght
         { get; set; }
@@ -351,7 +350,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
-        /// взять значение индикаторм по индексу
+        /// взять значение индикатора по индексу
         /// </summary>
         private decimal[] GetValueSimple(List<Candle> candles, int index)
         {

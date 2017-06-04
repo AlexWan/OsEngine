@@ -38,6 +38,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
         public Ac(bool canDelete)
         {
+            Name = Guid.NewGuid().ToString();
+
             LenghtLong = 34;
             LenghtShort = 5;
             TypeIndicator = IndicatorOneCandleChartType.Column;

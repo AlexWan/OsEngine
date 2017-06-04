@@ -40,7 +40,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
         public Fractal(bool canDelete) 
         {
-            Name = "";
+            Name = Guid.NewGuid().ToString();
 
             TypeIndicator = IndicatorOneCandleChartType.Point;
             ColorUp = Color.DodgerBlue;

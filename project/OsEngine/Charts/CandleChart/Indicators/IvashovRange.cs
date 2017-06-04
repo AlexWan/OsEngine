@@ -36,6 +36,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
         public IvashovRange(bool canDelete)
         {
+            Name = Guid.NewGuid().ToString();
+
             LenghtMa = 100;
             LenghtAverage = 100;
             TypeIndicator = IndicatorOneCandleChartType.Line;

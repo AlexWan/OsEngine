@@ -45,6 +45,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
         public BearsPower(bool canDelete)
         {
+            Name = Guid.NewGuid().ToString();
+
             TypeIndicator = IndicatorOneCandleChartType.Column;
             TypeCalculationAverage = MovingAverageTypeCalculation.Exponential;
             Period = 13;

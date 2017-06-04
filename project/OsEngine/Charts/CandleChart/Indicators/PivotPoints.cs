@@ -43,6 +43,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <param name="canDelete"></param>
         public PivotPoints(bool canDelete)
         {
+            Name = Guid.NewGuid().ToString();
+
             TypeIndicator = IndicatorOneCandleChartType.Line;
 
             ColorP = Color.LawnGreen;
