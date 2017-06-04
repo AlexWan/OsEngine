@@ -242,6 +242,15 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     Candles = val.ValueCandles;
 
+                    for (int i = 1; i < Candles.Count; i++)
+                    {
+                        if (Candles[i].TimeStart == Candles[i - 1].TimeStart)
+                        {
+                            Candles.RemoveAt(i);
+                            i--;
+                        }
+                    }
+
                     _chartMaster.SetCandles(Candles);
 
                     if (SpreadChangeEvent != null)
