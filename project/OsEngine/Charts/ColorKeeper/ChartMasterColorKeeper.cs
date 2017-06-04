@@ -28,6 +28,8 @@ namespace OsEngine.Charts.ColorKeeper
         public ChartMasterColorKeeper(string name) 
         {
             _name = name;
+            _pointType = PointType.Circle;
+            _pointSize = 6;
             Load();
         }
 
@@ -57,6 +59,9 @@ namespace OsEngine.Charts.ColorKeeper
                         ColorBackChart = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
                         ColorBackCursor = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
                         ColorText = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
+                        Enum.TryParse(reader.ReadLine(), true, out _pointType);
+                        _pointSize = Convert.ToInt32(reader.ReadLine());
+                        
                     }
                 }
                 else
@@ -98,6 +103,9 @@ namespace OsEngine.Charts.ColorKeeper
                     writer.WriteLine(ColorBackChart.ToArgb());
                     writer.WriteLine(ColorBackCursor.ToArgb());
                     writer.WriteLine(ColorText.ToArgb());
+
+                    writer.WriteLine(_pointType);
+                    writer.WriteLine(_pointSize);
                 }
 
                 if (NeedToRePaintFormEvent != null)
@@ -215,6 +223,41 @@ namespace OsEngine.Charts.ColorKeeper
 
         public Color ColorText;
 
+ // спецификация прорисовки позиций на графике
+
+        /// <summary>
+        /// размер для точки обозначающей позицию
+        /// </summary>
+        public int PointsSize
+        {
+            get { return _pointSize; }
+            set
+            {
+                if (_pointSize <= 0 || _pointSize > 40)
+                {
+                    return;
+                }
+                _pointSize = value;
+                Save();
+            }
+        }
+        private int _pointSize;
+
+        /// <summary>
+        /// тип точки
+        /// </summary>
+        public PointType PointType
+        {
+            get { return _pointType; }
+            set
+            {
+                _pointType = value;
+                Save();
+            }
+        }
+
+        private PointType _pointType;
+
         /// <summary>
         /// событие изменения цвета в хранилище
         /// </summary>
@@ -240,5 +283,26 @@ namespace OsEngine.Charts.ColorKeeper
         /// </summary>
         public event Action<string,LogMessageType> LogMessageEvent;
 
+    }
+
+    /// <summary>
+    /// тип прорисовки позиций на графике
+    /// </summary>
+    public enum PointType
+    {
+        /// <summary>
+        /// круг
+        /// </summary>
+        Circle,
+
+        /// <summary>
+        /// треугольник
+        /// </summary>
+        TriAngle,
+
+        /// <summary>
+        /// ромб
+        /// </summary>
+        Romb
     }
 }

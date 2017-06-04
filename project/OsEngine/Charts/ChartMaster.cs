@@ -13,6 +13,7 @@ using OsEngine.Alerts;
 using OsEngine.Charts.CandleChart;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Charts.CandleChart.Elements;
+using OsEngine.Charts.ColorKeeper;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
@@ -409,21 +410,32 @@ namespace OsEngine.Charts
                     menuDelete[menuDelete.Count - 1].Click += DeleteContextMenu_Click;
                 }
 
-
-
-
                 List<MenuItem> items;
 
                 items = new List<MenuItem>();
+                items.Add(new MenuItem("Отрисовка чарта", 
+                    new MenuItem[] 
+                {new MenuItem("Цветовая схема", new MenuItem[]{new MenuItem("Тёмная"),new MenuItem("Светлая")}),
+                new MenuItem("Фигура сделки", new MenuItem[]{new MenuItem("Ромб"),new MenuItem("Кружок"),new MenuItem("Треугольник(тормозит при дебаггинге)")}),
+                new MenuItem("Размер фигуры", new MenuItem[]{new MenuItem("6"),new MenuItem("10"),new MenuItem("14")}),
+                new MenuItem("Частота обновления", new MenuItem[]{new MenuItem("Максимально часто"),new MenuItem("Раз в секунду(оптимально)"),new MenuItem("Раз в пять секунд")})}
+                
+                ));
 
-                items.Add(new MenuItem("Цвет чарта", new MenuItem[] {new MenuItem("Тёмный"), new MenuItem("Светлый")}));
-                items[items.Count - 1].MenuItems[0].Click += ChartBlackColor_Click;
-                items[items.Count - 1].MenuItems[1].Click += ChartWhiteColor_Click;
+                items[items.Count - 1].MenuItems[0].MenuItems[0].Click += ChartBlackColor_Click;
+                items[items.Count - 1].MenuItems[0].MenuItems[1].Click += ChartWhiteColor_Click;
 
-                items.Add(new MenuItem("Частота обновления", new MenuItem[] { new MenuItem("Максимально часто"), new MenuItem("Раз в секунду(оптимально)"), new MenuItem("Раз в пять секунд")}));
-                items[items.Count - 1].MenuItems[0].Click += ChartReloadMaxFast_Click;
-                items[items.Count - 1].MenuItems[1].Click += ChartReloadOneSecond_Click;
-                items[items.Count - 1].MenuItems[2].Click += ChartReloadFiveSeconds_Click;
+                items[items.Count - 1].MenuItems[1].MenuItems[0].Click += ChartRombToPosition_Click;
+                items[items.Count - 1].MenuItems[1].MenuItems[1].Click += ChartCircleToPosition_Click;
+                items[items.Count - 1].MenuItems[1].MenuItems[2].Click += ChartTriangleToPosition_Click;
+
+                items[items.Count - 1].MenuItems[2].MenuItems[0].Click += ChartMinPointSize_Click;
+                items[items.Count - 1].MenuItems[2].MenuItems[1].Click += ChartMiddlePointSize_Click;
+                items[items.Count - 1].MenuItems[2].MenuItems[2].Click += ChartMaxPointSize_Click;
+
+                items[items.Count - 1].MenuItems[3].MenuItems[0].Click += ChartReloadMaxFast_Click;
+                items[items.Count - 1].MenuItems[3].MenuItems[1].Click += ChartReloadOneSecond_Click;
+                items[items.Count - 1].MenuItems[3].MenuItems[2].Click += ChartReloadFiveSeconds_Click;
 
                 items.Add(new MenuItem("Скрыть области"));
                 items[items.Count - 1].Click += ChartHideIndicators_Click;
@@ -443,12 +455,59 @@ namespace OsEngine.Charts
                 ContextMenu menu = new ContextMenu(items.ToArray());
 
                 _chartCandle.GetChart().ContextMenu = menu;
-                // menu.Show(_chartCandle.GetChart(), ((MouseEventArgs)e).Location);
             }
             catch (Exception error)
             {
                 SendErrorMessage(error);
             }
+        }
+
+        /// <summary>
+        /// пользователь выбрал в контекстном меню: размер для точки отображающей позиции на графике: минимальный
+        /// </summary>
+        private void ChartMinPointSize_Click(object sender, EventArgs e)
+        {
+            _chartCandle.SetPointSize(6);
+        }
+
+        /// <summary>
+        /// пользователь выбрал в контекстном меню: размер для точки отображающей позиции на графике: средний
+        /// </summary>
+        private void ChartMiddlePointSize_Click(object sender, EventArgs e)
+        {
+            _chartCandle.SetPointSize(10);
+        }
+
+        /// <summary>
+        /// пользователь выбрал в контекстном меню: размер для точки отображающей позиции на графике: максимальный
+        /// </summary>
+        private void ChartMaxPointSize_Click(object sender, EventArgs e)
+        {
+            _chartCandle.SetPointSize(14);
+        }
+
+        /// <summary>
+        /// пользователь выбрал в контекстном меню: ромб для прорисовки сделок на чарте
+        /// </summary>
+        private void ChartRombToPosition_Click(object sender, EventArgs e)
+        {
+            _chartCandle.SetPointType(PointType.Romb);
+        }
+
+        /// <summary>
+        /// пользователь выбрал в контекстном меню: кружок для прорисовки сделок на чарте
+        /// </summary>
+        private void ChartCircleToPosition_Click(object sender, EventArgs e)
+        {
+            _chartCandle.SetPointType(PointType.Circle);
+        }
+
+        /// <summary>
+        /// пользователь выбрал в контекстном меню: треугольник для прорисовки сделок на чарте
+        /// </summary>
+        private void ChartTriangleToPosition_Click(object sender, EventArgs e)
+        {
+            _chartCandle.SetPointType(PointType.TriAngle);
         }
 
         /// <summary>
