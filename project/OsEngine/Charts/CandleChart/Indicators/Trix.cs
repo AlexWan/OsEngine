@@ -51,6 +51,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
         public Trix(bool canDelete)
         {
+            Name = Guid.NewGuid().ToString();
+
             TypeIndicator = IndicatorOneCandleChartType.Line;
             TypePoint = PriceTypePoints.Close;
             TypeCalculationAverage = MovingAverageTypeCalculation.Exponential;

@@ -78,6 +78,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
         public MacdHistogram(bool canDelete)
         {
+            Name = Guid.NewGuid().ToString();
+
             TypeIndicator = IndicatorOneCandleChartType.Column;
             ColorUp = Color.DodgerBlue;
             ColorDown = Color.DarkRed;

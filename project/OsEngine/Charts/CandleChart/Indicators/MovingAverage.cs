@@ -115,7 +115,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
         public MovingAverage(bool canDelete)
         {
-            Name = "";
+            Name = Guid.NewGuid().ToString();
             KaufmanFastEma = 2;
             KaufmanSlowEma = 30;
             TypeCalculationAverage = MovingAverageTypeCalculation.Simple;

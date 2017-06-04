@@ -38,6 +38,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
         public AdaptiveLookBack(bool canDelete)
         {
+            Name = Guid.NewGuid().ToString();
+
             Lenght = 5;
             TypeIndicator = IndicatorOneCandleChartType.Line;
             ColorBase = Color.DodgerBlue;

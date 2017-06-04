@@ -40,6 +40,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
         public EfficiencyRatio(bool canDelete)
         {
+            Name = Guid.NewGuid().ToString();
+
             Lenght = 14;
             TypeIndicator = IndicatorOneCandleChartType.Line;
             TypeCalculationAverage = MovingAverageTypeCalculation.Simple;

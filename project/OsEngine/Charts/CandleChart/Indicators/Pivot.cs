@@ -45,6 +45,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
         public Pivot(bool canDelete)
         {
+            Name = Guid.NewGuid().ToString();
+
             TypeIndicator = IndicatorOneCandleChartType.Line;
 
             ColorP = Color.LawnGreen;

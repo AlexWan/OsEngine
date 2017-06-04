@@ -39,7 +39,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
         public VolumeOscillator(bool canDelete)
         {
-            Name = "";
+            Name = Guid.NewGuid().ToString();
             TypeIndicator = IndicatorOneCandleChartType.Line;
             ColorBase = Color.DeepSkyBlue;
             Lenght1 = 20;

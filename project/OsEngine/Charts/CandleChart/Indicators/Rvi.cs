@@ -43,6 +43,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
         public Rvi(bool canDelete)
         {
+            Name = Guid.NewGuid().ToString();
+
             TypeIndicator = IndicatorOneCandleChartType.Line;
             Period = 4;
             ColorUp = Color.DarkRed;

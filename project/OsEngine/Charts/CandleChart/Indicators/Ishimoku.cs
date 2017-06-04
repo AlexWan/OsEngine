@@ -49,6 +49,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
         public Ichimoku(bool canDelete)
         {
+            Name = Guid.NewGuid().ToString();
+
             TypeIndicator = IndicatorOneCandleChartType.Line;
 
             LenghtFirst = 9;
