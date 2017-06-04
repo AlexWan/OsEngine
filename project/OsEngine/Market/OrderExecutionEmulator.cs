@@ -82,7 +82,7 @@ namespace OsEngine.Market
                 }
                 else if (order.Side == Side.Sell )
                 {
-                    decimal price = order.Price;
+                    decimal price = _bestBuy;
                     
                     ExecuteSimple(order, price);
                     ordersOnBoard.Remove(order);
