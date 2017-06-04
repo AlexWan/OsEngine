@@ -956,19 +956,19 @@ namespace OsEngine.Market.Servers.Finam
             MarketDepth depth = new MarketDepth();
             depth.SecurityNameCode = series.Security.Name;
             MarketDepthLevel ask = new MarketDepthLevel();
-            ask.Ask = 10;
+            ask.Bid = 10;
             ask.Price = candles[candles.Count - 1].Close;
 
-            depth.Asks = new List<MarketDepthLevel>();
-            depth.Asks.Add(ask);
+            depth.Bids = new List<MarketDepthLevel>();
+            depth.Bids.Add(ask);
 
 
             MarketDepthLevel bid = new MarketDepthLevel();
-            bid.Bid = 10;
+            bid.Ask = 10;
             bid.Price = candles[candles.Count - 1].Close;
 
-            depth.Bids = new List<MarketDepthLevel>();
-            depth.Bids.Add(bid);
+            depth.Asks = new List<MarketDepthLevel>();
+            depth.Asks.Add(bid);
 
             _marketDepthsToSend.Enqueue(depth);
 

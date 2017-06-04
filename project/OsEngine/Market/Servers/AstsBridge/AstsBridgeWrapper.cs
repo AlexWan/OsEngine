@@ -145,8 +145,8 @@ namespace OsEngine.Market.Servers.AstsBridge
             CallingConvention = CallingConvention.StdCall)]
         private static extern int MteExecTrans(
             [param: MarshalAs(UnmanagedType.I4)] Int32 procNum,
-            [param: MarshalAs(UnmanagedType.LPStr)] string transName,
-            [param: MarshalAs(UnmanagedType.LPStr)] string transParams,
+            StringBuilder transName,
+            StringBuilder transParams,
             StringBuilder errorString);
 
 // ЧАСТЬ ВТОРАЯ. Реализация Апи 
@@ -731,7 +731,16 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// <returns>строка скачанная из памяти</returns>
         private unsafe string GetStringWhenWeKnownLength(int* ptr, out int* newPtr, int sdvig, out int newSdvig, int length)
         {
-            string result = Marshal.PtrToStringAnsi(IntPtr.Add(new IntPtr(ptr), sdvig), length);
+            string result;
+
+            if (sdvig == 0)
+            {
+                result = Marshal.PtrToStringAnsi(new IntPtr(ptr), length);
+            }
+            else
+            {
+                result = Marshal.PtrToStringAnsi(IntPtr.Add(new IntPtr(ptr), sdvig), length);
+            }
 
             while (length % 4 != 0)
             {
@@ -1166,9 +1175,13 @@ namespace OsEngine.Market.Servers.AstsBridge
                         continue;
                     }
 
-                    string str = GetStringToExecuteOrder(myOrder);
+                    StringBuilder str = GetStringToExecuteOrder(myOrder);
                     StringBuilder builder = new StringBuilder(256);
-                    int result = MteExecTrans(_procNum, "ORDER", str, builder);
+
+                    StringBuilder trans = new StringBuilder();
+                    trans.Append("ORDER");
+
+                    int result = MteExecTrans(_procNum, trans, str, builder);
 
                     if (result != 0)
                     {
@@ -1200,7 +1213,8 @@ namespace OsEngine.Market.Servers.AstsBridge
 
                     //AstsTransaction transactioin = _transactionStruct.Find(t => t.Name == "WD_ORDER_BY_NUMBER");
 
-                    string str = myOrder.NumberMarket;
+                    StringBuilder str = new StringBuilder();
+                    str.Append(myOrder.NumberMarket);
 
                     for (int i2 = 0; str.Length < 12; i2++)
                     {
@@ -1208,7 +1222,11 @@ namespace OsEngine.Market.Servers.AstsBridge
                     }
 
                     StringBuilder builder = new StringBuilder();
-                    int result = MteExecTrans(_procNum, "WD_ORDER_BY_NUMBER", str, builder);
+
+                    StringBuilder trans = new StringBuilder();
+                    trans.Append("WD_ORDER_BY_NUMBER");
+
+                    int result = MteExecTrans(_procNum, trans, str, builder);
 
                     if (result != 0)
                     {
@@ -1257,7 +1275,6 @@ namespace OsEngine.Market.Servers.AstsBridge
             }
 
 // блок обновления таблиц
-            //return;
 
             if (_marketDepthTable.Descriptors.Count == 0)
             {
@@ -1275,11 +1292,11 @@ namespace OsEngine.Market.Servers.AstsBridge
 
             MteAddTableInQueueOnRefresh(_procNum, _tableTrade.Descriptor, _tableTrade.TableUniqNum);
 
-            MteAddTableInQueueOnRefresh(_procNum, _tableSecurity.Descriptor, _tableSecurity.TableUniqNum);
+            //MteAddTableInQueueOnRefresh(_procNum, _tableSecurity.Descriptor, _tableSecurity.TableUniqNum);
 
-            MteAddTableInQueueOnRefresh(_procNum, _tablePortfolios.DescriptorPosition, _tablePortfolios.TablePortfolioLimitsUniq);
+            //MteAddTableInQueueOnRefresh(_procNum, _tablePortfolios.DescriptorPosition, _tablePortfolios.TablePortfolioLimitsUniq);
 
-            MteAddTableInQueueOnRefresh(_procNum, _tablePortfolios.DescriptorLimits, _tablePortfolios.TablePortfolioPositionOnBoardUniq);
+            //MteAddTableInQueueOnRefresh(_procNum, _tablePortfolios.DescriptorLimits, _tablePortfolios.TablePortfolioPositionOnBoardUniq);
 
             int* ptrRef;
             int sdvig = 0;
@@ -1318,7 +1335,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         /// <param name="order">входящий ордер</param>
         /// <returns>строка для исполнения </returns>
-        private string GetStringToExecuteOrder(Order order)
+        private StringBuilder GetStringToExecuteOrder(Order order)
         {
             /*   Char
              * Дополняется справа пробелами до длины, указанной в описании поля. Например, 
@@ -1343,12 +1360,12 @@ namespace OsEngine.Market.Servers.AstsBridge
             if (mySecurity == null)
             {
                 SendLogMessage("Не найдена бумага для ордера. Ордер не выставлен.", LogMessageType.Error);
-                return "";
+                return null;
             }
 
             AstsTransaction transactioin = _transactionStruct.Find(t => t.Name == "ORDER");
 
-            string result = "";
+            StringBuilder result = new StringBuilder();
 
             for (int indexField = 0; indexField < transactioin.Fields.Count; indexField++)
             {
@@ -1362,31 +1379,32 @@ namespace OsEngine.Market.Servers.AstsBridge
                     {
                         acc += " ";
                     }
-                    result += acc;
+                    result.Append(acc);
                 }
                 else if (field.Name == "BUYSELL")
-                {
+                { // 12 ячейка
+
                     if (order.Side == Side.Buy)
                     {
-                        result += "B";
+                        result.Append("B");
                     }
                     else if (order.Side == Side.Sell)
                     {
-                        result += "S";
+                        result.Append("S");
                     }
                 }
                 else if (field.Name == "MKTLIMIT")
                 {
-                    result += "L";
+                    result.Append("L");
                 }
                 else if (field.Name == "SPLITFLAG")
                 {
-                    result += "S";
+                    result.Append("S");
                 }
                 else if (field.Name == "IMMCANCEL")
                 {
-                   // AstsEnumType type = _typesStruct.Find(t => t.Name == "TImmCancel");
-                    result += " ";
+                    // AstsEnumType type = _typesStruct.Find(t => t.Name == "TImmCancel");
+                    result.Append(" ");
                 }
                 else if (field.Name == "SECBOARD")
                 {
@@ -1396,25 +1414,34 @@ namespace OsEngine.Market.Servers.AstsBridge
                     {
                         name += " ";
                     }
-                    result += name;
+                    result.Append(name);
                 }
                 else if (field.Name == "SECCODE")
                 {
                     string name = mySecurity.Name;
 
-                    for (int i = 0; field.Lenght > name.Length; i++)
+                    if (field.Lenght > name.Length)
                     {
-                        name += " ";
+                        name += new string(' ', field.Lenght - name.Length);
                     }
-                    result += name;
+                    result.Append(name);
                 }
                 else if (field.Name == "PRICE")
-                {
-                    string price = order.Price.ToString(new CultureInfo("RU-ru")).Replace(",", "");
+                { // первая ячейка 35
+
+                    string price;
                     int countDecimals = 0;
-                    if (order.Price.ToString(new CultureInfo("RU-ru")).Split(',').Length > 1)
+
+                    price = order.Price.ToString().Replace(",", ".");
+
+                    if (price.Split('.').Length > 1)
                     {
-                        countDecimals = order.Price.ToString(new CultureInfo("RU-ru")).Split(',')[1].Length;
+                        countDecimals = price.Split('.')[1].Length;
+                        price = price.Replace(".", "");
+                    }
+                    else
+                    {
+                        price = price.ToString();
                     }
 
                     for (int i = 0; i < mySecurity.Decimals - countDecimals; i++)
@@ -1422,106 +1449,107 @@ namespace OsEngine.Market.Servers.AstsBridge
                         price += "0";
                     }
 
-                    for (int i = 0; 9 > price.Length; i++)
+                    if (9 > price.Length)
                     {
-                        price = price.Insert(0, "0");
+                        price = price.Insert(0, new string('0', 9 - price.Length));
                     }
 
-                    result += price;
+                    result.Append(price);
+                    // последня ячейка 43
                 }
                 else if (field.Name == "QUANTITY")
                 {
+                    // первая ячейка 44
                     string volume = order.Volume.ToString();
 
-                    for (int i = 0; field.Lenght > volume.Length; i++)
+                    if (field.Lenght > volume.Length)
                     {
-                        volume = volume.Insert(0, "0");
+                        volume = volume.Insert(0, new string('0', field.Lenght - volume.Length));
                     }
 
-                    result += volume;
+                    result.Append(volume);
+                    // первая ячейка 53
                 }
                 else if (field.Name == "HIDDEN")
                 {
-                    string hide = 0.ToString();
+                    string hide = "0";
 
-                    for (int i = 0; field.Lenght > hide.Length; i++)
+                    if (field.Lenght > hide.Length)
                     {
-                        hide = hide.Insert(0, "0");
+                        hide = hide.Insert(0, new string('0', field.Lenght - hide.Length));
                     }
 
-                    result += hide;
+                    result.Append(hide);
                 }
                 else if (field.Name == "BROKERREF")
-                {
-                    string refB = "";
+                {// первая ячейка 64
+                    string refB = "@" + order.NumberUser.ToString();
 
-                    refB += "@" + order.NumberUser.ToString();
-                    
-                    for (int i = 0; field.Lenght > refB.Length; i++)
+                    if (field.Lenght > refB.Length)
                     {
-                        refB = refB.Insert(0, " ");
+                        refB = refB.Insert(0, new string(' ', field.Lenght - refB.Length));
                     }
 
-                    result += refB;
+                    result.Append(refB);
+                    // последняя 83
                 }
                 else if (field.Name == "EXTREF")
                 {
                     string code = "";
 
-                    for (int i = 0; field.Lenght > code.Length; i++)
+                    if (field.Lenght > code.Length)
                     {
-                        code += " ";
+                        code += new string(' ', field.Lenght - code.Length);
                     }
 
-                    result += code;
+                    result.Append(code);
                 }
                 else if (field.Name == "CLIENTCODE")
                 {
                     string code = ClientCode;
 
-                    for (int i = 0; field.Lenght > code.Length; i++)
+                    if (field.Lenght > code.Length)
                     {
-                        code += " ";
+                        code += new string(' ', field.Lenght - code.Length);
                     }
 
-                    result += code;
+                    result.Append(code);
                 }
                 else if (field.Name == "PRICEYIELDENTERTYPE")
                 {
-                    AstsEnumType type = _typesStruct.Find(t => t.Name == "TPriceEntryType");
-                    
+                    //AstsEnumType type = _typesStruct.Find(t => t.Name == "TPriceEntryType");
+
                     string code = "P";
 
-                    result += code;
+                    result.Append(code);
                 }
                 else if (field.Name == "MMORDER")
                 {
-                    AstsEnumType type = _typesStruct.Find(t => t.Name == "TMMOrder");
+                    //AstsEnumType type = _typesStruct.Find(t => t.Name == "TMMOrder");
 
                     string code = " ";
 
-                    result += code;
+                    result.Append(code);
                 }
                 else if (field.Name == "ACTIVATIONTYPE")
                 {
-                    AstsEnumType type = _typesStruct.Find(t => t.Name == "TOrderActivationType");
+                    // AstsEnumType type = _typesStruct.Find(t => t.Name == "TOrderActivationType");
 
                     string code = " ";
 
-                    result += code;
+                    result.Append(code);
                 }
                 else
                 {
                     string code = "";
 
-                    for (int i = 0; field.Lenght > code.Length; i++)
+                    if (field.Lenght > code.Length)
                     {
-                        code += " ";
+                        code += new string(' ', field.Lenght - code.Length);
                     }
 
-                    result += code;
+                    result.Append(code);
                 }
-
             }
 
             return result;
@@ -3343,29 +3371,11 @@ namespace OsEngine.Market.Servers.AstsBridge
                 
                 if(buySell == "B")
                 {
-                    level.Ask = table.Rows[i].GetAsInt32("QUANTITY");
-                    bool insert = false;
-                    for (int i2 = 0; i2 < myDepth.Asks.Count; i2++)
-                    {
-                        if (myDepth.Asks[i2].Price < level.Price)
-                        {
-                            myDepth.Asks.Insert(i2, level);
-                            insert = true;
-                            break;
-                        }
-                    }
-                    if (insert == false)
-                    {
-                        myDepth.Asks.Add(level);
-                    }
-                }
-                else if(buySell == "S")
-                {
                     level.Bid = table.Rows[i].GetAsInt32("QUANTITY");
                     bool insert = false;
                     for (int i2 = 0; i2 < myDepth.Bids.Count; i2++)
                     {
-                        if (myDepth.Bids[i2].Price > level.Price)
+                        if (myDepth.Bids[i2].Price < level.Price)
                         {
                             myDepth.Bids.Insert(i2, level);
                             insert = true;
@@ -3375,6 +3385,24 @@ namespace OsEngine.Market.Servers.AstsBridge
                     if (insert == false)
                     {
                         myDepth.Bids.Add(level);
+                    }
+                }
+                else if(buySell == "S")
+                {
+                    level.Ask = table.Rows[i].GetAsInt32("QUANTITY");
+                    bool insert = false;
+                    for (int i2 = 0; i2 < myDepth.Asks.Count; i2++)
+                    {
+                        if (myDepth.Asks[i2].Price > level.Price)
+                        {
+                            myDepth.Asks.Insert(i2, level);
+                            insert = true;
+                            break;
+                        }
+                    }
+                    if (insert == false)
+                    {
+                        myDepth.Asks.Add(level);
                     }
                 }
             }

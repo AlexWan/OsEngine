@@ -1407,11 +1407,11 @@ namespace OsEngine.Market.Servers.Tester
                         MarketDepth tradeN = new MarketDepth();
                         tradeN.SetMarketDepthFromString(reader.ReadLine());
 
-                        decimal open = (decimal)Convert.ToDouble(tradeN.Asks[0].Price);
+                        decimal open = (decimal)Convert.ToDouble(tradeN.Bids[0].Price);
 
                         if (open == 0)
                         {
-                            open = (decimal)Convert.ToDouble(tradeN.Bids[0].Price);
+                            open = (decimal)Convert.ToDouble(tradeN.Asks[0].Price);
                         }
 
                         if (open.ToString(culture).Split(',').Length > 1)
@@ -1865,9 +1865,9 @@ namespace OsEngine.Market.Servers.Tester
             {
                 return false;
             }
-            decimal minPrice = lastMarketDepth.Bids[0].Price;
-            decimal maxPrice = lastMarketDepth.Asks[0].Price;
-            decimal openPrice = lastMarketDepth.Bids[0].Price;
+            decimal minPrice = lastMarketDepth.Asks[0].Price;
+            decimal maxPrice = lastMarketDepth.Bids[0].Price;
+            decimal openPrice = lastMarketDepth.Asks[0].Price;
 
             DateTime time = lastMarketDepth.Time;
 

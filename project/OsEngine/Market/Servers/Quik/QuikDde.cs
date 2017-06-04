@@ -589,18 +589,18 @@ namespace OsEngine.Market.Servers.Quik
                 if (ToDecimal(table[i, 0]) == 0)
                 {
                     asks.Add(new MarketDepthLevel() {
-                        Ask = ToDecimal(table[i, 2]),
+                        Bid = ToDecimal(table[i, 2]),
                         Price = ToDecimal(table[i, 1]),
-                        Bid = 0
+                        Ask = 0
                     });
                 }
                 else
                 {
                     bids.Add(new MarketDepthLevel()
                     {
-                        Ask = 0,
+                        Bid = 0,
                         Price = ToDecimal(table[i, 1]),
-                        Bid = ToDecimal(table[i, 0])
+                        Ask = ToDecimal(table[i, 0])
                     }); 
                 }
             }
@@ -627,8 +627,8 @@ namespace OsEngine.Market.Servers.Quik
             }
 
             MarketDepth glass = new MarketDepth();
-            glass.Asks = asks;
-            glass.Bids = bids;
+            glass.Bids = asks;
+            glass.Asks = bids;
             glass.SecurityNameCode = nameSecurity;
 
             if (UpdateGlass != null)

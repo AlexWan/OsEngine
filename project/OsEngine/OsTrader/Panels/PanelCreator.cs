@@ -4427,13 +4427,13 @@ namespace OsEngine.OsTrader.Panels
                 if (positions1 != null && positions1.Count != 0)
                 {
                     Position pos1 = positions1[0];
-                    _tab1.CloseAtLimit(pos1, _tab1.PriceBestAsk - Slipage1, pos1.OpenVolume);
+                    _tab1.CloseAtLimit(pos1, _tab1.PriceBestBid - Slipage1, pos1.OpenVolume);
                 }
 
                 if (positions2 != null && positions2.Count != 0)
                 {
                     Position pos2 = positions2[0];
-                    _tab2.CloseAtLimit(pos2, _tab2.PriceBestBid + Slipage1, pos2.OpenVolume);
+                    _tab2.CloseAtLimit(pos2, _tab2.PriceBestAsk + Slipage1, pos2.OpenVolume);
                 }
             }
 
@@ -4447,13 +4447,13 @@ namespace OsEngine.OsTrader.Panels
                 if (positions1 != null && positions1.Count != 0)
                 {
                     Position pos1 = positions1[0];
-                    _tab1.CloseAtLimit(pos1, _tab1.PriceBestBid + Slipage1, pos1.OpenVolume);
+                    _tab1.CloseAtLimit(pos1, _tab1.PriceBestAsk + Slipage1, pos1.OpenVolume);
                 }
 
                 if (positions2 != null && positions2.Count != 0)
                 {
                     Position pos2 = positions2[0];
-                    _tab2.CloseAtLimit(pos2, _tab2.PriceBestAsk - Slipage1, pos2.OpenVolume);
+                    _tab2.CloseAtLimit(pos2, _tab2.PriceBestBid - Slipage1, pos2.OpenVolume);
                 }
             }
         }

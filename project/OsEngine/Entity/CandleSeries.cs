@@ -1001,13 +1001,6 @@ namespace OsEngine.Entity
             }
 
 
-            if (marketDepth.Asks == null ||
-                marketDepth.Asks.Count == 0 ||
-                marketDepth.Asks[0].Price == 0)
-            {
-                return;
-            }
-
             if (marketDepth.Bids == null ||
                 marketDepth.Bids.Count == 0 ||
                 marketDepth.Bids[0].Price == 0)
@@ -1015,7 +1008,14 @@ namespace OsEngine.Entity
                 return;
             }
 
-            decimal price = marketDepth.Asks[0].Price + (marketDepth.Bids[0].Price - marketDepth.Asks[0].Price)/2;
+            if (marketDepth.Asks == null ||
+                marketDepth.Asks.Count == 0 ||
+                marketDepth.Asks[0].Price == 0)
+            {
+                return;
+            }
+
+            decimal price = marketDepth.Bids[0].Price + (marketDepth.Asks[0].Price - marketDepth.Bids[0].Price)/2;
 
             UpDateCandle(marketDepth.Time, price, 1, true, Side.UnKnown);
         }

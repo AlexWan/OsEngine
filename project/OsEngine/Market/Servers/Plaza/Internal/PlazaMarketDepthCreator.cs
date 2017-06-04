@@ -68,30 +68,30 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                     return;
                 }
 
-                if (myDepth.Asks != null && myDepth.Asks.Count != 0)
+                if (myDepth.Bids != null && myDepth.Bids.Count != 0)
                 {
-                    List<MarketDepthLevel> ask = myDepth.Asks.ToList();
+                    List<MarketDepthLevel> ask = myDepth.Bids.ToList();
 
                     for (int i = 0; i < ask.Count; i++)
                     {
                         if (ask[i].Price == info.Price)
                         {
                             ask.Remove(ask[i]);
-                            myDepth.Asks = ask;
+                            myDepth.Bids = ask;
                         }
                     }
                 }
 
-                if (myDepth.Bids != null && myDepth.Bids.Count == 0)
+                if (myDepth.Asks != null && myDepth.Asks.Count == 0)
                 {
-                    List<MarketDepthLevel> bid = myDepth.Bids.ToList();
+                    List<MarketDepthLevel> bid = myDepth.Asks.ToList();
 
                     for (int i = 0; i < bid.Count; i++)
                     {
                         if (bid[i].Price == info.Price)
                         {
                             bid.Remove(bid[i]);
-                            myDepth.Bids = bid;
+                            myDepth.Asks = bid;
                         }
                     }
                 }
@@ -163,11 +163,11 @@ namespace OsEngine.Market.Servers.Plaza.Internal
 
             if (direction == 1)
             {
-                depthLevel.Ask = replmsg["volume"].asInt();
+                depthLevel.Bid = replmsg["volume"].asInt();
             }
             else
             {
-                depthLevel.Bid = replmsg["volume"].asInt();
+                depthLevel.Ask = replmsg["volume"].asInt();
             }
 
             depthLevel.Price = Convert.ToDecimal(replmsg["price"].asDecimal());
@@ -190,16 +190,16 @@ namespace OsEngine.Market.Servers.Plaza.Internal
 
             List<MarketDepthLevel> asks = null;
 
-            if (myDepth.Asks != null)
+            if (myDepth.Bids != null)
             {
-                asks = myDepth.Asks.ToList();
+                asks = myDepth.Bids.ToList();
             }
 
             List<MarketDepthLevel> bids = null;
 
-            if (myDepth.Bids != null)
+            if (myDepth.Asks != null)
             {
-                bids = myDepth.Bids.ToList();
+                bids = myDepth.Asks.ToList();
             }
 
             if (direction == 1)
@@ -265,11 +265,11 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                             bids.Remove(bids[0]);
                         }
 
-                        myDepth.Bids = bids;
+                        myDepth.Asks = bids;
                     }
                 }
 
-                myDepth.Asks = asks;
+                myDepth.Bids = asks;
             }
 
             if (direction == 2)
@@ -330,11 +330,11 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                             asks.Remove(asks[0]);
                         }
 
-                        myDepth.Asks = asks;
+                        myDepth.Bids = asks;
                     }
                 }
 
-                myDepth.Bids = bids;
+                myDepth.Asks = bids;
             }
 
 
@@ -385,9 +385,9 @@ namespace OsEngine.Market.Servers.Plaza.Internal
 
             List<MarketDepthLevel> asks = null;
 
-            if (myDepth.Asks != null)
+            if (myDepth.Bids != null)
             {
-                asks = myDepth.Asks.ToList();
+                asks = myDepth.Bids.ToList();
             }
 
             if (direction == 1)
@@ -411,7 +411,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                     }
                 }
 
-                myDepth.Asks = asks;
+                myDepth.Bids = asks;
             }
 
             if (direction == 2)
@@ -419,9 +419,9 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                 // уровни продажи
                 List<MarketDepthLevel> bids = null;
 
-                if (myDepth.Bids != null)
+                if (myDepth.Asks != null)
                 {
-                    bids = myDepth.Bids.ToList();
+                    bids = myDepth.Asks.ToList();
                 }
 
                 if (bids == null || bids.Count == 0)
@@ -441,7 +441,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                     }
                 }
 
-                myDepth.Bids = bids;
+                myDepth.Asks = bids;
             }
 
 

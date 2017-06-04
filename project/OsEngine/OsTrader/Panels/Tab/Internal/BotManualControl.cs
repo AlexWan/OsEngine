@@ -344,7 +344,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                             {
                                 decimal maxSpread = _botTab.Securiti.PriceStep * SetbackToOpenPosition;
 
-                                if (Math.Abs(_botTab.PriceBestAsk - openOrder.Price) > maxSpread)
+                                if (Math.Abs(_botTab.PriceBestBid - openOrder.Price) > maxSpread)
                                 {
                                     SendOrderToClose(openOrder, openDeals[i]);
                                 }
@@ -355,7 +355,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                             {
                                 decimal maxSpread = _botTab.Securiti.PriceStep * SetbackToOpenPosition;
 
-                                if (Math.Abs(_botTab.PriceBestBid - openOrder.Price) > maxSpread)
+                                if (Math.Abs(_botTab.PriceBestAsk - openOrder.Price) > maxSpread)
                                 {
                                     SendOrderToClose(openOrder, openDeals[i]);
                                 }
@@ -391,7 +391,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                                 decimal priceRedLine = closeOrder.Price -
                                                        _botTab.Securiti.PriceStep * SetbackToClosePosition;
 
-                                if (_botTab.PriceBestAsk <= priceRedLine)
+                                if (_botTab.PriceBestBid <= priceRedLine)
                                 {
                                     SendOrderToClose(closeOrder, openDeals[i]);
                                 }
@@ -403,7 +403,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                                 decimal priceRedLine = closeOrder.Price +
                                                        _botTab.Securiti.PriceStep * SetbackToClosePosition;
 
-                                if (_botTab.PriceBestBid >= priceRedLine)
+                                if (_botTab.PriceBestAsk >= priceRedLine)
                                 {
                                     SendOrderToClose(closeOrder, openDeals[i]);
                                 }

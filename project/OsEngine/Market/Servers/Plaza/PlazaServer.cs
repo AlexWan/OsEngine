@@ -611,12 +611,12 @@ namespace OsEngine.Market.Servers.Plaza
 
             if (NewBidAscIncomeEvent != null)
             {
-                if (depth.Bids == null || depth.Bids.Count == 0 ||
-                    depth.Asks == null || depth.Asks.Count == 0)
+                if (depth.Asks == null || depth.Asks.Count == 0 ||
+                    depth.Bids == null || depth.Bids.Count == 0)
                 {
                     return;
                 }
-                NewBidAscIncomeEvent(depth.Bids[0].Price, depth.Asks[0].Price, GetSecurityForName(depth.SecurityNameCode));
+                NewBidAscIncomeEvent(depth.Asks[0].Price, depth.Bids[0].Price, GetSecurityForName(depth.SecurityNameCode));
             }
         }
 

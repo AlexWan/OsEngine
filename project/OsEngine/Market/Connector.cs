@@ -518,7 +518,6 @@ namespace OsEngine.Market
             }
         }
 
-
         void _myServer_NeadToReconnectEvent()
         {
             Reconnect();
@@ -633,13 +632,13 @@ namespace OsEngine.Market
                     return;
                 }
 
-                _bestBid = bestBid;
+                _bestAsk = bestBid;
 
-                _bestAsk = bestAsk;
+                _bestBid = bestAsk;
 
                 if (EmulatorIsOn || ServerType == ServerType.Finam)
                 {
-                    _emulator.ProcessBidAsc(_bestBid, _bestAsk, MarketTime);
+                    _emulator.ProcessBidAsc(_bestAsk, _bestBid, MarketTime);
                 }
 
                 if (BestBidAskChangeEvent != null)
@@ -671,18 +670,18 @@ namespace OsEngine.Market
                     GlassChangeEvent(glass);
                 }
 
-                if (glass.Asks.Count == 0 ||
-                    glass.Bids.Count == 0)
+                if (glass.Bids.Count == 0 ||
+                    glass.Asks.Count == 0)
                 {
                     return;
                 }
 
-                _bestAsk = glass.Asks[0].Price;
                 _bestBid = glass.Bids[0].Price;
+                _bestAsk = glass.Asks[0].Price;
 
                 if (EmulatorIsOn)
                 {
-                    _emulator.ProcessBidAsc(_bestBid, _bestAsk, MarketTime);
+                    _emulator.ProcessBidAsc(_bestAsk, _bestBid, MarketTime);
                 }
 
                 PaintMarketDepth(glass);
@@ -741,12 +740,12 @@ namespace OsEngine.Market
         /// <summary>
         /// лучшая цена покупателя
         /// </summary>
-        private decimal _bestAsk;
+        private decimal _bestBid;
 
         /// <summary>
         ///  лучшая цена продавца
         /// </summary>
-        private decimal _bestBid;
+        private decimal _bestAsk;
 
 // внешний интерфейс доступа к данным
 
@@ -806,24 +805,24 @@ namespace OsEngine.Market
         }
 
         /// <summary>
-        /// взять лучшую цену продажи инструмента этого коннектора
-        /// </summary>
-        public decimal BestBid
-        {
-            get
-            {
-                return _bestBid;
-            }
-        }
-
-        /// <summary>
-        /// взять лучшую цену покупки инструмента этого коннектора
+        /// взять лучшую цену продавца в стакане
         /// </summary>
         public decimal BestAsk
         {
             get
             {
                 return _bestAsk;
+            }
+        }
+
+        /// <summary>
+        /// взять лучшую цену покупателя в стакане
+        /// </summary>
+        public decimal BestBid
+        {
+            get
+            {
+                return _bestBid;
             }
         }
 
@@ -1176,7 +1175,7 @@ namespace OsEngine.Market
                 _hostGlass = glass;
 
                 _isPaint = true;
-                PaintBidAsk(_bestBid, _bestAsk);
+                PaintBidAsk(_bestAsk, _bestBid);
                 _hostGlass.Child = _glassBox;
                 _hostGlass.Child.Refresh();
 
@@ -1295,8 +1294,8 @@ namespace OsEngine.Market
 
                 _lastGlassUpdete = DateTime.Now;
 
-                if (depth.Asks[0].Ask == 0 ||
-                    depth.Bids[0].Bid == 0)
+                if (depth.Bids[0].Bid == 0 ||
+                    depth.Asks[0].Ask == 0)
                 {
                     return;
                 }
@@ -1307,17 +1306,17 @@ namespace OsEngine.Market
 
                 decimal allAsk = 0;
 
-                for (int i = 0; depth.Asks != null && i < 25; i++)
+                for (int i = 0; depth.Bids != null && i < 25; i++)
                 {
-                    if (i < depth.Asks.Count)
+                    if (i < depth.Bids.Count)
                     {
-                        _glassBox.Rows[25 + i].Cells[2].Value = depth.Asks[i].Price;
-                        _glassBox.Rows[25 + i].Cells[3].Value = depth.Asks[i].Ask;
-                        if (depth.Asks[i].Ask > maxVol)
+                        _glassBox.Rows[25 + i].Cells[2].Value = depth.Bids[i].Price;
+                        _glassBox.Rows[25 + i].Cells[3].Value = depth.Bids[i].Bid;
+                        if (depth.Bids[i].Bid > maxVol)
                         {
-                            maxVol = depth.Asks[i].Ask;
+                            maxVol = depth.Bids[i].Bid;
                         }
-                        allAsk += depth.Asks[i].Ask;
+                        allAsk += depth.Bids[i].Bid;
                     }
                     else if (_glassBox.Rows[25 + i].Cells[2].Value != null)
                     {
@@ -1329,19 +1328,19 @@ namespace OsEngine.Market
                 }
 
 
-                for (int i = 0; depth.Bids != null && i < 25; i++)
+                for (int i = 0; depth.Asks != null && i < 25; i++)
                 {
-                    if (i < depth.Bids.Count)
+                    if (i < depth.Asks.Count)
                     {
-                        _glassBox.Rows[24 - i].Cells[2].Value = depth.Bids[i].Price;
-                        _glassBox.Rows[24 - i].Cells[3].Value = depth.Bids[i].Bid;
+                        _glassBox.Rows[24 - i].Cells[2].Value = depth.Asks[i].Price;
+                        _glassBox.Rows[24 - i].Cells[3].Value = depth.Asks[i].Ask;
 
-                        if (depth.Bids[i].Bid > maxVol)
+                        if (depth.Asks[i].Ask > maxVol)
                         {
-                            maxVol = depth.Bids[i].Bid;
+                            maxVol = depth.Asks[i].Ask;
                         }
 
-                        allBid += depth.Bids[i].Bid;
+                        allBid += depth.Asks[i].Ask;
                     }
                     else if (_glassBox.Rows[24 - i].Cells[2].Value != null)
                     {
@@ -1354,9 +1353,9 @@ namespace OsEngine.Market
                 }
 
                 // объём в палках для аска
-                for (int i = 0; depth.Asks != null && i < 25 && i < depth.Asks.Count; i++)
+                for (int i = 0; depth.Bids != null && i < 25 && i < depth.Bids.Count; i++)
                 {
-                    int percentFromMax = Convert.ToInt32(depth.Asks[i].Ask / maxVol * 50);
+                    int percentFromMax = Convert.ToInt32(depth.Bids[i].Bid / maxVol * 50);
 
                     if (percentFromMax == 0)
                     {
@@ -1374,9 +1373,9 @@ namespace OsEngine.Market
                 }
 
                 // объём в палках для бида
-                for (int i = 0; depth.Bids != null && i < 25 && i < depth.Bids.Count; i++)
+                for (int i = 0; depth.Asks != null && i < 25 && i < depth.Asks.Count; i++)
                 {
-                    int percentFromMax = Convert.ToInt32(depth.Bids[i].Bid / maxVol * 50);
+                    int percentFromMax = Convert.ToInt32(depth.Asks[i].Ask / maxVol * 50);
 
                     if (percentFromMax == 0)
                     {
@@ -1406,9 +1405,9 @@ namespace OsEngine.Market
 
                 // объём комулятивный для аска
                 decimal summ = 0;
-                for (int i = 0; depth.Asks != null && i < 25 && i < depth.Asks.Count; i++)
+                for (int i = 0; depth.Bids != null && i < 25 && i < depth.Bids.Count; i++)
                 {
-                    summ += depth.Asks[i].Ask;
+                    summ += depth.Bids[i].Bid;
 
                     int percentFromMax = Convert.ToInt32(summ / maxSeries * 50);
 
@@ -1429,9 +1428,9 @@ namespace OsEngine.Market
 
                 // объём комулятивный для бида
                 summ = 0;
-                for (int i = 0; depth.Bids != null && i < 25 && i < depth.Bids.Count; i++)
+                for (int i = 0; depth.Asks != null && i < 25 && i < depth.Asks.Count; i++)
                 {
-                    summ += depth.Bids[i].Bid;
+                    summ += depth.Asks[i].Ask;
 
                     int percentFromMax = Convert.ToInt32(summ / maxSeries * 50);
 

@@ -326,7 +326,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
             while (true)
             {
-                Thread.Sleep(1000);
+                Thread.Sleep(3);
                 lock (_serverLocker)
                 {
                     try
@@ -638,7 +638,7 @@ namespace OsEngine.Market.Servers.AstsBridge
             {
                 try
                 {
-                    if (_ordersToSend != null && _ordersToSend.Count != 0)
+                    if (!_ordersToSend.IsEmpty)
                     {
                         Order order;
                         if (_ordersToSend.TryDequeue(out order))
@@ -649,8 +649,8 @@ namespace OsEngine.Market.Servers.AstsBridge
                             }
                         }
                     }
-                    else if (_myTradesToSend != null && _myTradesToSend.Count != 0 &&
-                             (_ordersToSend == null || _ordersToSend.Count == 0))
+                    else if (!_myTradesToSend.IsEmpty &&
+                             _ordersToSend.IsEmpty)
                     {
                         MyTrade myTrade;
 
@@ -662,7 +662,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                             }
                         }
                     }
-                    else if (_tradesToSend != null && _tradesToSend.Count != 0)
+                    else if (!_tradesToSend.IsEmpty)
                     {
                         List<Trade> trades;
 
@@ -675,7 +675,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                         }
                     }
 
-                    else if (_portfolioToSend != null && _portfolioToSend.Count != 0)
+                    else if (!_portfolioToSend.IsEmpty)
                     {
                         List<Portfolio> portfolio;
 
@@ -688,7 +688,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                         }
                     }
 
-                    else if (_securitiesToSend != null && _securitiesToSend.Count != 0)
+                    else if (!_securitiesToSend.IsEmpty)
                     {
                         List<Security> security;
 
@@ -700,7 +700,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                             }
                         }
                     }
-                    else if (_newServerTime != null && _newServerTime.Count != 0)
+                    else if (!_newServerTime.IsEmpty)
                     {
                         DateTime time;
 
@@ -713,7 +713,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                         }
                     }
 
-                    else if (_candleSeriesToSend != null && _candleSeriesToSend.Count != 0)
+                    else if (!_candleSeriesToSend.IsEmpty)
                     {
                         CandleSeries series;
 
@@ -726,7 +726,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                         }
                     }
 
-                    else if (_marketDepthsToSend != null && _marketDepthsToSend.Count != 0)
+                    else if (!_marketDepthsToSend.IsEmpty)
                     {
                         MarketDepth depth;
 
@@ -738,7 +738,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                             }
                         }
                     }
-                    else if (_bidAskToSend != null && _bidAskToSend.Count != 0)
+                    else if (!_bidAskToSend.IsEmpty)
                     {
                         BidAskSender bidAsk;
 
@@ -750,7 +750,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                             }
                         }
                     }
-                    else if (_tradesTableToSend != null && _tradesTableToSend.Count != 0)
+                    else if (!_tradesTableToSend.IsEmpty)
                     {
                         List<Trade> trades;
 
@@ -762,7 +762,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                             }
                         }
                     }
-                    else if (_levelOneToSend != null && _levelOneToSend.Count != 0)
+                    else if (!_levelOneToSend.IsEmpty)
                     {
                         SecurityLevelOne levelOne;
 
@@ -1128,8 +1128,8 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         private void UpdateBidAsk(MarketDepth myDepth)
         {
-            if (myDepth.Bids.Count == 0 ||
-                myDepth.Asks.Count == 0)
+            if (myDepth.Asks.Count == 0 ||
+                myDepth.Bids.Count == 0)
             {
                 return;
             }
@@ -1138,8 +1138,8 @@ namespace OsEngine.Market.Servers.AstsBridge
 
             _bidAskToSend.Enqueue(new BidAskSender
             {
-                Bid = myDepth.Bids[0].Price,
-                Ask = myDepth.Asks[0].Price,
+                Bid = myDepth.Asks[0].Price,
+                Ask = myDepth.Bids[0].Price,
                 Security = GetSecurityForName(myDepth.SecurityNameCode)
             });
         }
