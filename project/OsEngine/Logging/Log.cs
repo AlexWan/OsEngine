@@ -59,7 +59,7 @@ namespace OsEngine.Logging
                     LogsToCheck[i].CheckLog();
                 }
 
-                if (MainWindow.ProccesIsWorked)
+                if (!MainWindow.ProccesIsWorked)
                 {
                     return;
                 }

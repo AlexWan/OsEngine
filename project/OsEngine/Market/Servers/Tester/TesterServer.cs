@@ -1655,7 +1655,7 @@ namespace OsEngine.Market.Servers.Tester
                 Order order = OrdersActiv[i];
                 // проверяем наличие инструмента на рынке
                 SecurityTester security =
-                    SecuritiesTester.Find(
+                    _candleSeriesTesterActivate.Find(
                         tester =>
                             tester.Security.Name == order.SecurityNameCode &&
                             (tester.LastCandle != null || tester.LastTradeSeries != null ||
@@ -1808,14 +1808,8 @@ namespace OsEngine.Market.Servers.Tester
                    // &&!firstTime
                     )
                 {// исполняем
-                    if (firstTime)
-                    {
-                        ExecuteOnBoardOrder(order, lastTrade,ServerTime);
-                    }
-                    else
-                    {
-                        ExecuteOnBoardOrder(order, order.Price, ServerTime);
-                    }
+
+                    ExecuteOnBoardOrder(order, lastTrade, ServerTime);
 
                     OrdersActiv.Remove(order);
                     return true;
@@ -1829,14 +1823,7 @@ namespace OsEngine.Market.Servers.Tester
                     )
                 {// исполняем
 
-                    if (firstTime)
-                    {
-                        ExecuteOnBoardOrder(order, lastTrade, ServerTime);
-                    }
-                    else
-                    {
-                        ExecuteOnBoardOrder(order, order.Price, ServerTime);
-                    }
+                    ExecuteOnBoardOrder(order, lastTrade, ServerTime);
 
                     OrdersActiv.Remove(order);
                     return true;

@@ -55,7 +55,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                     TabsToCheck[i].CheckPositions(DateTime.Now);
                 }
 
-                if (MainWindow.ProccesIsWorked)
+                if (!MainWindow.ProccesIsWorked)
                 {
                     return;
                 }
