@@ -26,8 +26,6 @@ namespace OsEngine.OsTrader.Gui
             _strategyKeeper = new OsTraderMaster(
             ChartHostPanel, HostGlass, HostOpenPosition, HostClosePosition, HostAllPosition,
             HostBotLog, HostBotLogPrime, RectChart, HostAllert, TabControlBotsName, TabControlBotTab, TextBoxPrice);
-            LocationChanged += TesterUi_LocationChanged;
-            LabelOsa.Content = "V_" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
 
             TabControlBotsName.SizeChanged += TabControlBotsName_SizeChanged;
         }
@@ -47,11 +45,7 @@ namespace OsEngine.OsTrader.Gui
             GreedChartPanel.Margin = new Thickness(5, up, 315, 10);
         }
 
-        private void TesterUi_LocationChanged(object sender, EventArgs e)
-        {
-            WindowCoordinate.X = Convert.ToDecimal(Left);
-            WindowCoordinate.Y = Convert.ToDecimal(Top);
-        }
+
 
         private OsTraderMaster _strategyKeeper;
 

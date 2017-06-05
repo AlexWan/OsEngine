@@ -2408,7 +2408,7 @@ namespace OsEngine.Market.Servers.Tester
                 }
                 else if (TypeTesterData == TesterDataType.Candle)
                 {
-                    TimeSpan time = GetTimeFremeInSpan(timeFrameBuilder.TimeFrame);
+                    TimeSpan time = GetTimeFrameInSpan(timeFrameBuilder.TimeFrame);
                     if (_candleSeriesTesterActivate.Find(tester => tester.Security.Name == namePaper &&
                                                                    tester.DataType == SecurityTesterDataType.Candle &&
                                                                    tester.TimeFrameSpan == time) == null)
@@ -2436,7 +2436,7 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        private TimeSpan GetTimeFremeInSpan(TimeFrame frame)
+        private TimeSpan GetTimeFrameInSpan(TimeFrame frame)
         {
             TimeSpan result = new TimeSpan(0,0,1,0);
 
@@ -3136,7 +3136,7 @@ namespace OsEngine.Market.Servers.Tester
 
         public TimeFrame TimeFrame;
 
-// управление выгрузгой данных
+// управление выгрузкой данных
 
         /// <summary>
         /// активирована ли серия для выгрузки
