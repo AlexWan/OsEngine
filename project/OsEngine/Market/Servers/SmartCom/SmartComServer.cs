@@ -33,6 +33,15 @@ namespace OsEngine.Market.Servers.SmartCom
 
            Load();
 
+           _ordersToSend = new ConcurrentQueue<Order>();
+           _tradesToSend = new ConcurrentQueue<List<Trade>>();
+           _portfolioToSend = new ConcurrentQueue<List<Portfolio>>();
+           _securitiesToSend = new ConcurrentQueue<List<Security>>();
+           _myTradesToSend = new ConcurrentQueue<MyTrade>();
+           _newServerTime = new ConcurrentQueue<DateTime>();
+           _candleSeriesToSend = new ConcurrentQueue<CandleSeries>();
+           _marketDepthsToSend = new ConcurrentQueue<MarketDepth>();
+           _bidAskToSend = new ConcurrentQueue<BidAskSender>();
            _ordersToExecute = new ConcurrentQueue<Order>();
            _ordersToCansel = new ConcurrentQueue<Order>();
 
@@ -55,16 +64,6 @@ namespace OsEngine.Market.Servers.SmartCom
            threadDataSender.CurrentCulture = new CultureInfo("ru-RU");
            threadDataSender.IsBackground = true;
            threadDataSender.Start();
-
-           _ordersToSend = new ConcurrentQueue<Order>();
-           _tradesToSend = new ConcurrentQueue<List<Trade>>();
-           _portfolioToSend = new ConcurrentQueue<List<Portfolio>>();
-           _securitiesToSend = new ConcurrentQueue<List<Security>>();
-           _myTradesToSend = new ConcurrentQueue<MyTrade>();
-           _newServerTime = new ConcurrentQueue<DateTime>();
-           _candleSeriesToSend = new ConcurrentQueue<CandleSeries>();
-           _marketDepthsToSend = new ConcurrentQueue<MarketDepth>();
-           _bidAskToSend = new ConcurrentQueue<BidAskSender>();
        }
 
        /// <summary>
