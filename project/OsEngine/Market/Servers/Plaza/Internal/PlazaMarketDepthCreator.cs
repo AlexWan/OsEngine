@@ -188,93 +188,23 @@ namespace OsEngine.Market.Servers.Plaza.Internal
 
             // добавляем строку в наш стакан
 
-            List<MarketDepthLevel> asks = null;
+            List<MarketDepthLevel> bids = null;
 
             if (myDepth.Bids != null)
             {
-                asks = myDepth.Bids.ToList();
+                bids = myDepth.Bids.ToList();
             }
 
-            List<MarketDepthLevel> bids = null;
+            List<MarketDepthLevel> asks = null;
 
             if (myDepth.Asks != null)
             {
-                bids = myDepth.Asks.ToList();
+                asks = myDepth.Asks.ToList();
             }
 
             if (direction == 1)
             {
                 // уровни покупок
-                if (asks == null || asks.Count == 0)
-                {
-                    asks = new List<MarketDepthLevel>();
-                    asks.Add(depthLevel);
-                }
-                else
-                {
-                    bool isInArray = false;
-                    for (int i = 0; i < asks.Count; i++)
-                    {
-                        // обрабатываем ситуацию когда такой уровень уже есть
-                        if (asks[i].Price == depthLevel.Price)
-                        {
-                            asks[i] = depthLevel;
-                            isInArray = true;
-                            break;
-                        }
-                    }
-
-                    if (isInArray == false)
-                    {
-                        // обрабатываем ситуацию когда такого уровня нет
-                        List<MarketDepthLevel> asksNew = new List<MarketDepthLevel>();
-                        bool isIn = false;
-
-                        for (int i = 0, i2 = 0; i2 < asks.Count + 1; i2++)
-                        {
-                            if (i == asks.Count && isIn == false ||
-                                (isIn == false &&
-                                 depthLevel.Price > asks[i].Price))
-                            {
-                                isIn = true;
-                                asksNew.Add(depthLevel);
-                            }
-                            else
-                            {
-                                asksNew.Add(asks[i]);
-                                i++;
-                            }
-                        }
-
-
-                        while (asksNew.Count > 20)
-                        {
-                            asksNew.Remove(asksNew[asksNew.Count - 1]);
-                        }
-
-                        asks = asksNew;
-
-                    }
-
-                    if (bids != null && bids.Count != 0 &&
-                        bids[0].Price <= asks[0].Price)
-                    {
-                        while (bids.Count != 0 &&
-                               bids[0].Price <= asks[0].Price)
-                        {
-                            bids.Remove(bids[0]);
-                        }
-
-                        myDepth.Asks = bids;
-                    }
-                }
-
-                myDepth.Bids = asks;
-            }
-
-            if (direction == 2)
-            {
-                // уровни продажи
                 if (bids == null || bids.Count == 0)
                 {
                     bids = new List<MarketDepthLevel>();
@@ -293,23 +223,93 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                             break;
                         }
                     }
+
+                    if (isInArray == false)
+                    {
+                        // обрабатываем ситуацию когда такого уровня нет
+                        List<MarketDepthLevel> asksNew = new List<MarketDepthLevel>();
+                        bool isIn = false;
+
+                        for (int i = 0, i2 = 0; i2 < bids.Count + 1; i2++)
+                        {
+                            if (i == bids.Count && isIn == false ||
+                                (isIn == false &&
+                                 depthLevel.Price > bids[i].Price))
+                            {
+                                isIn = true;
+                                asksNew.Add(depthLevel);
+                            }
+                            else
+                            {
+                                asksNew.Add(bids[i]);
+                                i++;
+                            }
+                        }
+
+
+                        while (asksNew.Count > 20)
+                        {
+                            asksNew.Remove(asksNew[asksNew.Count - 1]);
+                        }
+
+                        bids = asksNew;
+
+                    }
+
+                    if (asks != null && asks.Count != 0 &&
+                        asks[0].Price <= bids[0].Price)
+                    {
+                        while (asks.Count != 0 &&
+                               asks[0].Price <= bids[0].Price)
+                        {
+                            asks.Remove(asks[0]);
+                        }
+
+                        myDepth.Asks = asks;
+                    }
+                }
+
+                myDepth.Bids = bids;
+            }
+
+            if (direction == 2)
+            {
+                // уровни продажи
+                if (asks == null || asks.Count == 0)
+                {
+                    asks = new List<MarketDepthLevel>();
+                    asks.Add(depthLevel);
+                }
+                else
+                {
+                    bool isInArray = false;
+                    for (int i = 0; i < asks.Count; i++)
+                    {
+                        // обрабатываем ситуацию когда такой уровень уже есть
+                        if (asks[i].Price == depthLevel.Price)
+                        {
+                            asks[i] = depthLevel;
+                            isInArray = true;
+                            break;
+                        }
+                    }
                     if (isInArray == false)
                     {
                         // обрабатываем ситуацию когда такого уровня нет
                         List<MarketDepthLevel> bidsNew = new List<MarketDepthLevel>();
                         bool isIn = false;
-                        for (int i = 0, i2 = 0; i2 < bids.Count + 1; i2++)
+                        for (int i = 0, i2 = 0; i2 < asks.Count + 1; i2++)
                         {
-                            if (i == bids.Count && isIn == false ||
+                            if (i == asks.Count && isIn == false ||
                                 (isIn == false &&
-                                 depthLevel.Price < bids[i].Price))
+                                 depthLevel.Price < asks[i].Price))
                             {
                                 isIn = true;
                                 bidsNew.Add(depthLevel);
                             }
                             else
                             {
-                                bidsNew.Add(bids[i]);
+                                bidsNew.Add(asks[i]);
                                 i++;
                             }
                         }
@@ -319,22 +319,22 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                             bidsNew.Remove(bidsNew[bidsNew.Count - 1]);
                         }
 
-                        bids = bidsNew;
+                        asks = bidsNew;
                     }
 
-                    if (asks != null && asks.Count != 0 &&
-                        bids[0].Price <= asks[0].Price)
+                    if (bids != null && bids.Count != 0 &&
+                        asks[0].Price <= bids[0].Price)
                     {
-                        while (asks.Count != 0 && bids[0].Price <= asks[0].Price)
+                        while (bids.Count != 0 && asks[0].Price <= bids[0].Price)
                         {
-                            asks.Remove(asks[0]);
+                            bids.Remove(bids[0]);
                         }
 
-                        myDepth.Bids = asks;
+                        myDepth.Bids = bids;
                     }
                 }
 
-                myDepth.Asks = bids;
+                myDepth.Asks = asks;
             }
 
 
