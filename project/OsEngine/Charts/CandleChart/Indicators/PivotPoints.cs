@@ -38,7 +38,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
             Load();
         }
         /// <summary>
-        ///  конструктор без параметра, индикатор не сохраняется
+        /// конструктор без параметра, индикатор не сохраняется
+        /// используется ТОЛЬКО для создания составных индикаторов
+        /// не используйте его из слоя создания роботов!
         /// </summary>
         /// <param name="canDelete"></param>
         public PivotPoints(bool canDelete)

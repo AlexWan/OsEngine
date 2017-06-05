@@ -34,6 +34,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
         /// <summary>
         /// индикатор без параметнов. Не будет сохраняться
+        /// используется ТОЛЬКО для создания составных индикаторов
+        /// не используйте его из слоя создания роботов!
         /// </summary>
         /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
         public Adx(bool canDelete)

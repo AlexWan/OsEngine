@@ -1920,8 +1920,8 @@ namespace OsEngine.Journal
                 items[2] = new MenuItem { Text = @"Очистить всё" };
                 items[2].Click += CloseDealClearAll_Click;
 
-                items[2] = new MenuItem { Text = @"Сохранить в файл" };
-                items[2].Click += CloseDealSaveInFile_Click;
+                items[3] = new MenuItem { Text = @"Сохранить в файл" };
+                items[3].Click += CloseDealSaveInFile_Click;
 
                 ContextMenu menu = new ContextMenu(items);
 
@@ -1968,7 +1968,7 @@ namespace OsEngine.Journal
                 workSheet.Append("СтопАктивация,");
                 workSheet.Append("СтопЦена,");
                 workSheet.Append("ПрофитАктивация,");
-                workSheet.Append("ПрофитЦена\n\r");
+                workSheet.Append("ПрофитЦена\r\n");
 
                 for (int i = 0; i < _closePositionGrid.Rows.Count; i++)
                 {
@@ -1989,7 +1989,7 @@ namespace OsEngine.Journal
                     workSheet.Append(_closePositionGrid.Rows[i].Cells[13].Value + ",");
                     workSheet.Append(_closePositionGrid.Rows[i].Cells[14].Value + ",");
                     workSheet.Append(_closePositionGrid.Rows[i].Cells[15].Value + ",");
-                    workSheet.Append(_closePositionGrid.Rows[i].Cells[16].Value + ",\n\r");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[16].Value + ",\r\n");
                 }
 
                 StreamWriter writer = new StreamWriter(myDialog.FileName);
