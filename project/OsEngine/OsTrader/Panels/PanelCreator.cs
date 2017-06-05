@@ -64,29 +64,29 @@ namespace OsEngine.OsTrader.Panels
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            _bol_10 = new Bollinger(false);
+            _bol_10 = new Bollinger("bol1",false);
             _bol_10.Lenght = 10;
             _bol_10.Deviation = 5;
             _bol_10 = (Bollinger)_tab.CreateCandleIndicator(_bol_10, "prime");
             _bol_10.Save();
 
 
-            _bol_9 = new Bollinger(false);
-            _bol_9.Lenght = 10;
-            _bol_9.Deviation = 5;
+            _bol_9 = new Bollinger("bol2", false);
+            _bol_9.Lenght = 9;
+            _bol_9.Deviation = 2;
             _bol_9 = (Bollinger)_tab.CreateCandleIndicator(_bol_9, "prime");
             _bol_9.Save();
 
 
-            _ema9 = new MovingAverage(false);
+            _ema9 = new MovingAverage("ema1", false);
             _ema9.Lenght = 9;
 
             _ema9 = (MovingAverage)_tab.CreateCandleIndicator(_ema9, "Prime");
             _ema9.Save();
 
-            _atr_77 = new Atr(false);
+            _atr_77 = new Atr("atr1", false);
             _atr_77.Lenght = 77;
-            _atr_77 = (Atr)_tab.CreateCandleIndicator(_atr_77, "Prime");
+            _atr_77 = (Atr)_tab.CreateCandleIndicator(_atr_77, "atrField");
             _atr_77.Save();
 
 
@@ -109,14 +109,14 @@ namespace OsEngine.OsTrader.Panels
             _lastEma_9 = _ema9.Values[_ema9.Values.Count - 1];
             _lastAtr = _atr_77.Values[_atr_77.Values.Count - 1];
 
-            if (_bol_10.ValuesUp.Count < _bol_10.Lenght + 5)
+            if (_atr_77.Values.Count < _atr_77.Lenght + 5)
             {
                 return;
             }
 
             if (_tab.PositionsOpenAll != null && _tab.PositionsOpenAll.Count != 0)
             {
-                if ((_tab.PositionsLast.EntryPrice - _lastPrice) * 100 < 1345 || (_lastPrice - _tab.PositionsLast.EntryPrice) * 100 < 1651)
+                if ((_tab.PositionsLast.EntryPrice - _lastPrice) * 100 > 134 || (_lastPrice - _tab.PositionsLast.EntryPrice) * 100 > 165)
                 {
                     _tab.CloseAllAtMarket();
                 }
