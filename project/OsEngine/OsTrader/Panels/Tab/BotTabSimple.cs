@@ -3383,16 +3383,6 @@ namespace OsEngine.OsTrader.Panels.Tab
 // исходящие события. Обработчики для стратегии
 
         /// <summary>
-        /// изменилась таблица всех сделок
-        /// </summary>
-        public event Action<List<Trade>> AllTradesTableChangeEvent;
-
-        /// <summary>
-        /// Level 1 по бумаге изменился
-        /// </summary>
-        public event Action<SecurityLevelOne> SecurityLevelOneChange;
-
-        /// <summary>
         /// утренняя сессия стартовала. Пошли первые тики
         /// </summary>
         public event Action<Trade> FirstTickToDayEvent;
