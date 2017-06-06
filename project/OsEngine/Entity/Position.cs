@@ -816,6 +816,39 @@ namespace OsEngine.Entity
             }
         }
 
+        /// <summary>
+        /// время открытия позиции. Время когда на бирже прошла первая сделка по нашей позиции
+        /// если сделка ещё не открыта, вернёт время создания позиции
+        /// </summary>
+        public DateTime TimeOpen
+        {
+            get
+            {
+                if (OpenOrders == null || OpenOrders.Count == 0)
+                {
+                    return TimeCreate;
+                }
+
+                DateTime timeOpen = DateTime.MaxValue;
+
+                for (int i = 0; i < OpenOrders.Count; i++)
+                {
+                    if (OpenOrders[i].TradesIsComing &&
+                        OpenOrders[i].TimeExecuteFirstTrade < timeOpen)
+                    {
+                        timeOpen = OpenOrders[i].TimeExecuteFirstTrade;
+                    }
+                }
+
+                if (timeOpen == DateTime.MaxValue)
+                {
+                    return TimeCreate;
+                }
+
+                return TimeCreate;
+            }
+        }
+
 // профит для портфеля
 
         /// <summary>

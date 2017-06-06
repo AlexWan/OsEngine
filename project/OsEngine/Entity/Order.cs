@@ -131,6 +131,9 @@ namespace OsEngine.Entity
         /// </summary>
         public DateTime TimeCreate;
 
+        /// <summary>
+        /// скорость выставления заявки
+        /// </summary>
         public TimeSpan TimeRoundTrip
         {
             get
@@ -142,6 +145,24 @@ namespace OsEngine.Entity
                 }
 
                 return (TimeCallBack - TimeCreate);
+            }
+        }
+
+        /// <summary>
+        /// время когда по ордеру прошла первая сделка
+        /// если сделок по ордеру ещё нет, вернёт время создания ордера
+        /// </summary>
+        public DateTime TimeExecuteFirstTrade
+        {
+            get
+            {
+                if (MyTrades == null ||
+                    MyTrades.Count == 0)
+                {
+                    return TimeCreate;
+                }
+
+                return MyTrades[0].Time;
             }
         }
 
