@@ -280,8 +280,9 @@ namespace OsEngine.Market.Servers.Quik
                     trades[i] = new Trade();
                     trades[i].Id = table[i, 0].ToString();
 
-                    string[] date = table[i, 1].ToString().Split('.');
-                    string[] time = table[i, 2].ToString().Split(':');
+                    string[] date = DateTime.Parse(table[i, 1].ToString()).ToString("dd.MM.yyyy").Split('.');
+                    string[] time = DateTime.Parse(table[i, 2].ToString()).ToString("HH:mm:ss").Split(':');
+
                     trades[i].Time = new DateTime(Convert.ToInt32(date[2]),
                         Convert.ToInt32(date[1]), Convert.ToInt32(date[0]),
                         Convert.ToInt32(time[0]), Convert.ToInt32(time[1]),
