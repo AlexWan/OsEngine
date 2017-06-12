@@ -407,14 +407,23 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public bool CheckTradeClosedThisBar()
         {
-
             List<Position> allClosedPositions = PositionsCloseAll;
-            Candle lastCandle = CandlesAll[CandlesAll.Count - 1];
 
             if (allClosedPositions == null)
             {
                 return false;
             }
+
+            int totalClosedPositions = allClosedPositions.Count;
+
+            if (totalClosedPositions >= 20)
+            {
+                allClosedPositions = allClosedPositions.GetRange(totalClosedPositions - 20, 20);
+            }
+
+            Candle lastCandle = CandlesAll[CandlesAll.Count - 1];
+
+
 
             foreach (Position position in allClosedPositions)
             {
