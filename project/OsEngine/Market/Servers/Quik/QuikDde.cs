@@ -280,8 +280,9 @@ namespace OsEngine.Market.Servers.Quik
                     trades[i] = new Trade();
                     trades[i].Id = table[i, 0].ToString();
 
-                    string[] date = table[i, 1].ToString().Split('.');
-                    string[] time = table[i, 2].ToString().Split(':');
+                    string[] date = DateTime.Parse(table[i, 1].ToString()).ToString("dd.MM.yyyy").Split('.');
+                    string[] time = DateTime.Parse(table[i, 2].ToString()).ToString("HH:mm:ss").Split(':');
+
                     trades[i].Time = new DateTime(Convert.ToInt32(date[2]),
                         Convert.ToInt32(date[1]), Convert.ToInt32(date[0]),
                         Convert.ToInt32(time[0]), Convert.ToInt32(time[1]),
@@ -589,18 +590,18 @@ namespace OsEngine.Market.Servers.Quik
                 if (ToDecimal(table[i, 0]) == 0)
                 {
                     asks.Add(new MarketDepthLevel() {
-                        Ask = ToDecimal(table[i, 2]),
+                        Bid = ToDecimal(table[i, 2]),
                         Price = ToDecimal(table[i, 1]),
-                        Bid = 0
+                        Ask = 0
                     });
                 }
                 else
                 {
                     bids.Add(new MarketDepthLevel()
                     {
-                        Ask = 0,
+                        Bid = 0,
                         Price = ToDecimal(table[i, 1]),
-                        Bid = ToDecimal(table[i, 0])
+                        Ask = ToDecimal(table[i, 0])
                     }); 
                 }
             }
@@ -627,8 +628,8 @@ namespace OsEngine.Market.Servers.Quik
             }
 
             MarketDepth glass = new MarketDepth();
-            glass.Asks = asks;
-            glass.Bids = bids;
+            glass.Bids = asks;
+            glass.Asks = bids;
             glass.SecurityNameCode = nameSecurity;
 
             if (UpdateGlass != null)

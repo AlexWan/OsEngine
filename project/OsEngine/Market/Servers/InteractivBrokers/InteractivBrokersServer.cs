@@ -642,7 +642,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             {
                try
                 {
-                    if (_ordersToSend != null && _ordersToSend.Count != 0)
+                    if (!_ordersToSend.IsEmpty)
                     {
                         Order order;
                         if (_ordersToSend.TryDequeue(out order))
@@ -653,8 +653,8 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                             }
                         }
                     }
-                    else if (_myTradesToSend != null && _myTradesToSend.Count != 0 &&
-                             (_ordersToSend == null || _ordersToSend.Count == 0))
+                    else if (!_myTradesToSend.IsEmpty &&
+                             (_ordersToSend.IsEmpty))
                     {
                         MyTrade myTrade;
 
@@ -666,7 +666,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                             }
                         }
                     }
-                    else if (_tradesToSend != null && _tradesToSend.Count != 0)
+                    else if (!_tradesToSend.IsEmpty)
                     {
                         List<Trade> trades;
 
@@ -679,7 +679,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                         }
                     }
 
-                    else if (_portfolioToSend != null && _portfolioToSend.Count != 0)
+                    else if (!_portfolioToSend.IsEmpty)
                     {
                         List<Portfolio> portfolio;
 
@@ -692,7 +692,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                         }
                     }
 
-                    else if (_securitiesToSend != null && _securitiesToSend.Count != 0)
+                    else if (!_securitiesToSend.IsEmpty)
                     {
                         List<Security> security;
 
@@ -704,7 +704,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                             }
                         }
                     }
-                    else if (_newServerTime != null && _newServerTime.Count != 0)
+                    else if (!_newServerTime.IsEmpty)
                     {
                         DateTime time;
 
@@ -714,7 +714,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                         }
                     }
 
-                    else if (_candleSeriesToSend != null && _candleSeriesToSend.Count != 0)
+                    else if (!_candleSeriesToSend.IsEmpty)
                     {
                         CandleSeries series;
 
@@ -727,7 +727,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                         }
                     }
 
-                    else if (_marketDepthsToSend != null && _marketDepthsToSend.Count != 0)
+                    else if (!_marketDepthsToSend.IsEmpty)
                     {
                         MarketDepth depth;
 
@@ -1294,6 +1294,11 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                     return;
                 }
 
+                if (position > 10)
+                {
+                    return;
+                }
+
                 string name = myContract.Symbol + "_" + myContract.SecType + "_" + myContract.Exchange;
 
                 Security mySecurity = Securities.Find(security => security.Name == name);
@@ -1328,10 +1333,10 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                     sideLine = Side.Sell;
                 }
 
+                List<MarketDepthLevel> bids  = myDepth.Bids;
                 List<MarketDepthLevel> asks = myDepth.Asks;
-                List<MarketDepthLevel> bids = myDepth.Bids;
 
-                if (asks == null)
+                if (asks == null || asks.Count == 0)
                 {
                     asks = new List<MarketDepthLevel>();
                     bids = new List<MarketDepthLevel>();
@@ -1341,8 +1346,8 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                         asks.Add(new MarketDepthLevel());
                         bids.Add(new MarketDepthLevel());
                     }
-                    myDepth.Asks = asks;
                     myDepth.Bids = bids;
+                    myDepth.Asks = asks;
                 }
 
                 if (operation == 2)
@@ -1351,17 +1356,17 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                     if (sideLine == Side.Buy)
                     {
                         // asks.RemoveAt(position);
-                        MarketDepthLevel level = asks[position];
-                        level.Bid = 0;
+                        MarketDepthLevel level = bids[position];
                         level.Ask = 0;
+                        level.Bid = 0;
                         level.Price = 0;
                     }
                     else if (sideLine == Side.Sell)
                     {
                         //bids.RemoveAt(position);
-                        MarketDepthLevel level = bids[position];
-                        level.Bid = 0;
+                        MarketDepthLevel level = asks[position];
                         level.Ask = 0;
+                        level.Bid = 0;
                         level.Price = 0;
                     }
                 }
@@ -1396,22 +1401,22 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 { // нужно обновить
                     if (sideLine == Side.Buy)
                     {
-                        MarketDepthLevel level = asks[position];
-                        level.Bid = 0;
-                        level.Ask = Convert.ToDecimal(size);
-                        level.Price = price;
-                    }
-                    else if (sideLine == Side.Sell)
-                    {
                         MarketDepthLevel level = bids[position];
                         level.Bid = Convert.ToDecimal(size);
                         level.Ask = 0;
                         level.Price = price;
                     }
+                    else if (sideLine == Side.Sell)
+                    {
+                        MarketDepthLevel level = asks[position];
+                        level.Bid = 0;
+                        level.Ask = Convert.ToDecimal(size);
+                        level.Price = price;
+                    }
                 }
 
-                if (myDepth.Asks[0].Price != 0 &&
-                    myDepth.Bids[0].Price != 0)
+                if (myDepth.Bids[0].Price != 0 &&
+                    myDepth.Asks[0].Price != 0)
                 {
                     _marketDepthsToSend.Enqueue(myDepth);
                 }

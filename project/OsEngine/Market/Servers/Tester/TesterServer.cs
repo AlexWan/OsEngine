@@ -42,7 +42,7 @@ namespace OsEngine.Market.Servers.Tester
 
             if (_activSet != null)
             {
-                _neadToReloadSecurities = true;
+                _needToReloadSecurities = true;
             }
 
             if (_worker == null)
@@ -430,7 +430,7 @@ namespace OsEngine.Market.Servers.Tester
 
             // обновляем
             
-            _neadToReloadSecurities = true;
+            _needToReloadSecurities = true;
 
             if (NeadToReconnectEvent != null)
             {
@@ -625,7 +625,7 @@ namespace OsEngine.Market.Servers.Tester
         /// <summary>
         /// пора ли перезагружать бумаги в директории
         /// </summary>
-        private bool _neadToReloadSecurities;
+        private bool _needToReloadSecurities;
 
         /// <summary>
         /// режим тестирования
@@ -655,9 +655,9 @@ namespace OsEngine.Market.Servers.Tester
                         }
                     }
 
-                    if (_neadToReloadSecurities)
+                    if (_needToReloadSecurities)
                     {
-                        _neadToReloadSecurities = false;
+                        _needToReloadSecurities = false;
                         _testerRegime = TesterRegime.Pause;
                         LoadSecurities();
                     }
@@ -1009,6 +1009,7 @@ namespace OsEngine.Market.Servers.Tester
                     {
                         lastString = reader.ReadLine();
                     }
+                    
 
                     Candle candle3 = new Candle();
                     candle3.SetCandleFromString(lastString);
@@ -1406,11 +1407,11 @@ namespace OsEngine.Market.Servers.Tester
                         MarketDepth tradeN = new MarketDepth();
                         tradeN.SetMarketDepthFromString(reader.ReadLine());
 
-                        decimal open = (decimal)Convert.ToDouble(tradeN.Asks[0].Price);
+                        decimal open = (decimal)Convert.ToDouble(tradeN.Bids[0].Price);
 
                         if (open == 0)
                         {
-                            open = (decimal)Convert.ToDouble(tradeN.Bids[0].Price);
+                            open = (decimal)Convert.ToDouble(tradeN.Asks[0].Price);
                         }
 
                         if (open.ToString(culture).Split(',').Length > 1)
@@ -1654,7 +1655,7 @@ namespace OsEngine.Market.Servers.Tester
                 Order order = OrdersActiv[i];
                 // проверяем наличие инструмента на рынке
                 SecurityTester security =
-                    SecuritiesTester.Find(
+                    _candleSeriesTesterActivate.Find(
                         tester =>
                             tester.Security.Name == order.SecurityNameCode &&
                             (tester.LastCandle != null || tester.LastTradeSeries != null ||
@@ -1807,14 +1808,8 @@ namespace OsEngine.Market.Servers.Tester
                    // &&!firstTime
                     )
                 {// исполняем
-                    if (firstTime)
-                    {
-                        ExecuteOnBoardOrder(order, lastTrade,ServerTime);
-                    }
-                    else
-                    {
-                        ExecuteOnBoardOrder(order, order.Price, ServerTime);
-                    }
+
+                    ExecuteOnBoardOrder(order, lastTrade, ServerTime);
 
                     OrdersActiv.Remove(order);
                     return true;
@@ -1828,14 +1823,7 @@ namespace OsEngine.Market.Servers.Tester
                     )
                 {// исполняем
 
-                    if (firstTime)
-                    {
-                        ExecuteOnBoardOrder(order, lastTrade, ServerTime);
-                    }
-                    else
-                    {
-                        ExecuteOnBoardOrder(order, order.Price, ServerTime);
-                    }
+                    ExecuteOnBoardOrder(order, lastTrade, ServerTime);
 
                     OrdersActiv.Remove(order);
                     return true;
@@ -1864,9 +1852,9 @@ namespace OsEngine.Market.Servers.Tester
             {
                 return false;
             }
-            decimal minPrice = lastMarketDepth.Bids[0].Price;
-            decimal maxPrice = lastMarketDepth.Asks[0].Price;
-            decimal openPrice = lastMarketDepth.Bids[0].Price;
+            decimal minPrice = lastMarketDepth.Asks[0].Price;
+            decimal maxPrice = lastMarketDepth.Bids[0].Price;
+            decimal openPrice = lastMarketDepth.Asks[0].Price;
 
             DateTime time = lastMarketDepth.Time;
 

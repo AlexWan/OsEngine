@@ -224,7 +224,7 @@ namespace OsEngine.Market.Servers.Finam
                         _serverConnectStatus == ServerConnectStatus.Disconnect)
                     {
                         SendLogMessage("Запущена процедура активации подключения", LogMessageType.System);
-                        CheckPing();
+                        CheckServer();
                         continue;
                     }
                     if (_serverConnectStatus == ServerConnectStatus.Disconnect)
@@ -298,6 +298,24 @@ namespace OsEngine.Market.Servers.Finam
             if (pingReply == null || pingReply.Status != IPStatus.Success ||
                 pingReply.RoundtripTime > 1000)
             { // если что-то не так - выходим
+                SendLogMessage("Ошибка доступа к серверу: ping is " + pingReply.Status + ". Не верный адрес или отсутствует интернет соединение", LogMessageType.Error);
+                return;
+            }
+
+            ServerStatus = ServerConnectStatus.Connect;
+
+            Thread.Sleep(10000);
+        }
+
+        /// <summary>
+        /// проверка доступности страницы сервера
+        /// </summary>
+        private void CheckServer()
+        {
+            String pageContent = GetPage("http://" + ServerAdress);
+
+            if (pageContent.Length == 0)
+            { // если нет контента - выходим
                 SendLogMessage("Ошибка доступа к серверу. Не верный адрес или отсутствует интернет соединение", LogMessageType.Error);
                 return;
             }
@@ -938,19 +956,19 @@ namespace OsEngine.Market.Servers.Finam
             MarketDepth depth = new MarketDepth();
             depth.SecurityNameCode = series.Security.Name;
             MarketDepthLevel ask = new MarketDepthLevel();
-            ask.Ask = 10;
+            ask.Bid = 10;
             ask.Price = candles[candles.Count - 1].Close;
 
-            depth.Asks = new List<MarketDepthLevel>();
-            depth.Asks.Add(ask);
+            depth.Bids = new List<MarketDepthLevel>();
+            depth.Bids.Add(ask);
 
 
             MarketDepthLevel bid = new MarketDepthLevel();
-            bid.Bid = 10;
+            bid.Ask = 10;
             bid.Price = candles[candles.Count - 1].Close;
 
-            depth.Bids = new List<MarketDepthLevel>();
-            depth.Bids.Add(bid);
+            depth.Asks = new List<MarketDepthLevel>();
+            depth.Asks.Add(bid);
 
             _marketDepthsToSend.Enqueue(depth);
 

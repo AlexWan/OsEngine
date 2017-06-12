@@ -857,6 +857,11 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                         TcpReadInt();
                         TcpReadInt();
                     }
+                    else if (typeMessage == 64)
+                    {
+                        TcpReadInt();
+                        TcpReadString();
+                    }
                     else
                     {
                         SendLogMessage("Неучтённое сообщение. Всё пропало! Номер: " + typeMessage, LogMessageType.Error);

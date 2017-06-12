@@ -46,7 +46,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
-        /// конструктор с уникальным именем. Индикатор будет сохраняться
+        /// конструктор с уникальным именем. Индикатор не будет сохраняться
+        /// используется ТОЛЬКО для создания составных индикаторов
+        /// не используйте его из слоя создания роботов!
         /// </summary>
         /// <param name="uniqName">уникальное имя</param>
         /// <param name="movingShort">короткий мувинг</param>
@@ -74,10 +76,14 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
         /// <summary>
         /// конструктор без параметров. Индикатор не будет сохраняться
+        /// используется ТОЛЬКО для создания составных индикаторов
+        /// не используйте его из слоя создания роботов!
         /// </summary>
         /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
         public MacdHistogram(bool canDelete)
         {
+            Name = Guid.NewGuid().ToString();
+
             TypeIndicator = IndicatorOneCandleChartType.Column;
             ColorUp = Color.DodgerBlue;
             ColorDown = Color.DarkRed;

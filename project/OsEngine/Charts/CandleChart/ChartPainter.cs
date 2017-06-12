@@ -254,6 +254,16 @@ namespace OsEngine.Charts.CandleChart
             _colorKeeper.SetBlackScheme();
         }
 
+        public void SetPointSize(int pointSize)
+        {
+            _colorKeeper.PointsSize = pointSize;
+        }
+
+        public void SetPointType(PointType type)
+        {
+            _colorKeeper.PointType = type;
+        }
+
         /// <summary>
         /// установить белую схему для чарта
         /// </summary>
@@ -1191,17 +1201,27 @@ namespace OsEngine.Charts.CandleChart
                 // формируем точки покупок и продаж
 
                 buySellSeries = new Series("Deal_" + "BuySell");
-                buySellSeries.ChartType = SeriesChartType.Point;
+                
                 buySellSeries.YAxisType = AxisType.Secondary;
                 buySellSeries.ChartArea = "Prime";
                 buySellSeries.YValuesPerPoint = 1;
-                
-                double openViewSize = _myCandles.Count;
+                buySellSeries.MarkerSize = _colorKeeper.PointsSize;
+                buySellSeries.ChartType = SeriesChartType.Point;
 
-                if (_chart.ChartAreas[0].AxisX.ScaleView.IsZoomed)
+                if (_colorKeeper.PointType == PointType.Circle)
                 {
-                    openViewSize = _chart.ChartAreas[0].AxisX.ScaleView.Size;
+                    buySellSeries.MarkerStyle = MarkerStyle.Circle;
                 }
+                else if (_colorKeeper.PointType == PointType.Romb)
+                {
+                    buySellSeries.MarkerStyle = MarkerStyle.Diamond;
+                }
+                else if (_colorKeeper.PointType == PointType.TriAngle)
+                {
+                    buySellSeries.MarkerStyle = MarkerStyle.Triangle;
+                }
+                
+
                 
                 for (int i = 0; i < deals.Count; i++)
                 { // проходим ордера на ОТКРЫТИЕ
@@ -1226,6 +1246,43 @@ namespace OsEngine.Charts.CandleChart
 
                                 buySellSeries.Points.AddXY(xIndexPoint, openOrder.PriceReal);
 
+                                if (_colorKeeper.PointType == PointType.TriAngle)
+                                {
+                                    // прорисовываем картинки
+                                    double openViewSize = _myCandles.Count;
+
+                                    if (_chart.ChartAreas[0].AxisX.ScaleView.IsZoomed)
+                                    {
+                                        openViewSize = _chart.ChartAreas[0].AxisX.ScaleView.Size;
+                                    }
+                                    if (openOrder.Side == Side.Buy)
+                                    {
+                                        if (openViewSize < 500)
+                                        {
+                                            buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage =
+                                                @"Images\pickUp.png";
+                                        }
+                                        else
+                                        {
+                                            buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage =
+                                                @"Images\pickUpSmall.png";
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (openViewSize < 500)
+                                        {
+                                            buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage =
+                                                @"Images\pickDown.png";
+                                        }
+                                        else
+                                        {
+                                            buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage =
+                                                @"Images\pickDownSmall.png";
+                                        }
+                                    }
+                                }
+
                                 if (openOrder.Side == Side.Buy)
                                 {
                                     buySellSeries.Points[buySellSeries.Points.Count - 1].Color = Color.ForestGreen;
@@ -1233,22 +1290,9 @@ namespace OsEngine.Charts.CandleChart
                                 else
                                 {
                                     buySellSeries.Points[buySellSeries.Points.Count - 1].Color = Color.Red;
+
                                 }
-                                /*
-                                if (openOrder.Side == Side.Buy)
-                                {
-                                    if (openViewSize < 500)
-                                    {  buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage = @"Images\pickUp.png"; }
-                                    else
-                                    { buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage = @"Images\pickUpSmall.png"; }
-                                }
-                                else
-                                {
-                                    if (openViewSize < 500)
-                                    { buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage = @"Images\pickDown.png"; }
-                                    else
-                                    { buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage = @"Images\pickDownSmall.png"; }
-                                }*/
+
                             }
                         }
                     }
@@ -1286,21 +1330,42 @@ namespace OsEngine.Charts.CandleChart
                                 {
                                     buySellSeries.Points[buySellSeries.Points.Count - 1].Color = Color.Red;
                                 }
-                                /*
-                                if (closeOrder.Side == Side.Buy)
+                                if (_colorKeeper.PointType == PointType.TriAngle)
                                 {
-                                    if (openViewSize < 500)
-                                    { buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage = @"Images\pickUp.png"; }
+                                    // прорисовываем картинки
+                                    double openViewSize = _myCandles.Count;
+
+                                    if (_chart.ChartAreas[0].AxisX.ScaleView.IsZoomed)
+                                    {
+                                        openViewSize = _chart.ChartAreas[0].AxisX.ScaleView.Size;
+                                    }
+                                    if (closeOrder.Side == Side.Buy)
+                                    {
+                                        if (openViewSize < 500)
+                                        {
+                                            buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage =
+                                                @"Images\pickUp.png";
+                                        }
+                                        else
+                                        {
+                                            buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage =
+                                                @"Images\pickUpSmall.png";
+                                        }
+                                    }
                                     else
-                                    { buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage = @"Images\pickUpSmall.png"; }
+                                    {
+                                        if (openViewSize < 500)
+                                        {
+                                            buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage =
+                                                @"Images\pickDown.png";
+                                        }
+                                        else
+                                        {
+                                            buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage =
+                                                @"Images\pickDownSmall.png";
+                                        }
+                                    }
                                 }
-                                else
-                                {
-                                    if (openViewSize < 500)
-                                    { buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage = @"Images\pickDown.png"; }
-                                    else
-                                    { buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage = @"Images\pickDownSmall.png"; }
-                                }*/
                             }
                         }
                     }

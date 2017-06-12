@@ -10,6 +10,7 @@ using OsEngine.Charts.CandleChart.Elements;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Logging;
+using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels.PanelsGui;
 using OsEngine.OsTrader.Panels.Tab;
 using ru.micexrts.cgate;
@@ -2480,6 +2481,12 @@ namespace OsEngine.OsTrader.Panels
                 return;
             }
 
+            if (!ServerMaster.IsTester
+                && DateTime.Now.Hour < 10)
+            {
+                return;
+            }
+
             if (_alligator.ValuesUp == null ||
                 _alligator.Values == null ||
                 _alligator.ValuesDown == null ||
@@ -2612,6 +2619,11 @@ namespace OsEngine.OsTrader.Panels
         /// </summary>
         private void LogicClosePosition(Position position, List<Candle> candles)
         {
+            if (position.State != PositionStateType.Open)
+            {
+                return;
+            }
+
             if (position.Direction == Side.Buy)
             {
                 if (_lastPrice < _lastMiddleAlligator)
@@ -2840,6 +2852,12 @@ namespace OsEngine.OsTrader.Panels
                 return;
             }
 
+            if (!ServerMaster.IsTester 
+                && DateTime.Now.Hour < 10)
+            {
+                return;
+            }
+
             if (_smaTrenda.Lenght > candles.Count||
                 _channel.LenghtUpLine > candles.Count ||
                 _channel.LenghtDownLine > candles.Count)
@@ -2890,7 +2908,7 @@ namespace OsEngine.OsTrader.Panels
             decimal maxToCandleSeries = _channel.ValuesUp[_channel.ValuesUp.Count - 1];
             decimal minToCandleSeries = _channel.ValuesDown[_channel.ValuesDown.Count - 1];
 
-            List<Position> positions = _tab.PositionOpenLong;
+            List<Position> positions = _tab.PositionsOpenAll;
 
             if (lastPrice >= lastMa && Regime != BotTradeRegime.OnlyShort)
             {
@@ -2909,7 +2927,10 @@ namespace OsEngine.OsTrader.Panels
                     decimal lastIntro = positions[positions.Count - 1].EntryPrice;
                     if (lastIntro + lastIntro * (PersentDopSell / 100) < lastPrice)
                     {
-                        //BuyAtLimit(0, Volume, lastPrice + Slipage);
+                        if (positions != null && positions.Count >= MaximumPosition)
+                        {
+                            return;
+                        }
                         _tab.BuyAtLimit(GetVolume(lastPrice), lastPrice + Slipage);
                     }
                 }
@@ -2944,6 +2965,10 @@ namespace OsEngine.OsTrader.Panels
                 }
                 else
                 { // если ничего не открыто - ставим линии на пробой
+                    if (positions != null && positions.Count >= MaximumPosition)
+                    {
+                        return;
+                    }
                     //SellAtStop(0, Volume, minToCandleSeries - Slipage, minToCandleSeries,candles[candles.Count - 1].Close);
                     _tab.SellAtStop(GetVolume(lastPrice), minToCandleSeries - Slipage, minToCandleSeries, StopActivateType.LowerOrEqyal);
                 }
@@ -2962,7 +2987,17 @@ namespace OsEngine.OsTrader.Panels
 
             for (int i = 0; i < positions.Count; i++)
             {
-                decimal lastIntro = positions[positions.Count - 1].EntryPrice;
+                if (positions[i].State != PositionStateType.Open)
+                {
+                    continue;
+                }
+                decimal lastIntro = positions[i].EntryPrice;
+
+                if (positions[i].State == PositionStateType.Closing)
+                {
+                    continue;
+                }
+
                 if (positions[i].Direction == Side.Buy)
                 {
                     _tab.CloseAtStop(positions[i], lastIntro - lastIntro * (LongStop / 100), lastIntro - lastIntro * (LongStop / 100) - Slipage);
@@ -3185,8 +3220,15 @@ namespace OsEngine.OsTrader.Panels
         /// </summary>
         private void Bot_CandleFinishedEvent(List<Candle> candles)
         {
+
             // берём значения из инидикаторов.
             if (Regime == BotTradeRegime.Off)
+            {
+                return;
+            }
+
+            if (!ServerMaster.IsTester
+                && DateTime.Now.Hour < 10)
             {
                 return;
             }
@@ -3241,7 +3283,6 @@ namespace OsEngine.OsTrader.Panels
                 return;
             }
 
-
             decimal close = candles[candles.Count - 1].Close;
 
             if (close > bollingerUpLast
@@ -3262,6 +3303,10 @@ namespace OsEngine.OsTrader.Panels
         /// </summary>
         private void LogicClosePosition(Position position, List<Candle> candles)
         {
+            if (position.State == PositionStateType.Closing)
+            {
+                return;
+            }
             decimal moving = _moving.Values[_moving.Values.Count - 1];
 
             decimal lastClose = candles[candles.Count - 1].Close;
@@ -4354,6 +4399,11 @@ namespace OsEngine.OsTrader.Panels
                 return;
             }
 
+            if (!ServerMaster.IsTester && DateTime.Now.Hour < 10)
+            {
+                return;
+            }
+
             List<Position> positions = _tab1.PositionsOpenAll;
 
             if (positions != null && positions.Count != 0)
@@ -4427,13 +4477,13 @@ namespace OsEngine.OsTrader.Panels
                 if (positions1 != null && positions1.Count != 0)
                 {
                     Position pos1 = positions1[0];
-                    _tab1.CloseAtLimit(pos1, _tab1.PriceBestAsk - Slipage1, pos1.OpenVolume);
+                    _tab1.CloseAtLimit(pos1, _tab1.PriceBestBid - Slipage1, pos1.OpenVolume);
                 }
 
                 if (positions2 != null && positions2.Count != 0)
                 {
                     Position pos2 = positions2[0];
-                    _tab2.CloseAtLimit(pos2, _tab2.PriceBestBid + Slipage1, pos2.OpenVolume);
+                    _tab2.CloseAtLimit(pos2, _tab2.PriceBestAsk + Slipage1, pos2.OpenVolume);
                 }
             }
 
@@ -4447,13 +4497,13 @@ namespace OsEngine.OsTrader.Panels
                 if (positions1 != null && positions1.Count != 0)
                 {
                     Position pos1 = positions1[0];
-                    _tab1.CloseAtLimit(pos1, _tab1.PriceBestBid + Slipage1, pos1.OpenVolume);
+                    _tab1.CloseAtLimit(pos1, _tab1.PriceBestAsk + Slipage1, pos1.OpenVolume);
                 }
 
                 if (positions2 != null && positions2.Count != 0)
                 {
                     Position pos2 = positions2[0];
-                    _tab2.CloseAtLimit(pos2, _tab2.PriceBestAsk - Slipage1, pos2.OpenVolume);
+                    _tab2.CloseAtLimit(pos2, _tab2.PriceBestBid - Slipage1, pos2.OpenVolume);
                 }
             }
         }
@@ -4712,6 +4762,11 @@ namespace OsEngine.OsTrader.Panels
         /// </summary>
         private void LogicClosePosition(List<Candle> candles, Position position)
         {
+
+            if (position.State == PositionStateType.Closing)
+            {
+                return;
+            }
             if (position.Direction == Side.Buy)
             {
                 if (_secondLastRsi >= Upline.Value && _firstLastRsi <= Upline.Value)
@@ -5053,8 +5108,6 @@ namespace OsEngine.OsTrader.Panels
             DeleteEvent += Strategy_DeleteEvent;
         }
 
-
-
         /// <summary>
         /// взять уникальное имя
         /// </summary>
@@ -5165,7 +5218,6 @@ namespace OsEngine.OsTrader.Panels
         private decimal _bolLastUp;
         private decimal _bolLastDown;
 
-
         // логика
 
         /// <summary>
@@ -5234,6 +5286,11 @@ namespace OsEngine.OsTrader.Panels
         /// </summary>
         private void LogicClosePosition(List<Candle> candles, Position position)
         {
+            if (position.State == PositionStateType.Closing)
+            {
+                return;
+            }
+
             if (position.Direction == Side.Buy)
             {
                 if (_lastPrice < _bolLastDown)
@@ -5475,6 +5532,10 @@ namespace OsEngine.OsTrader.Panels
         /// </summary>
         private void LogicClosePosition(List<Candle> candles, Position position)
         {
+            if (position.State == PositionStateType.Closing)
+            {
+                return;
+            }
             if (position.Direction == Side.Buy)
             {
                 if (_lastTrix < -Step)

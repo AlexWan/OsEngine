@@ -370,11 +370,30 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (CloseOrders != null && CloseOrders.Count != 0)
+                if (_closeOrders == null ||
+                    _closeOrders.Count == 0)
                 {
-                    return CloseOrders[CloseOrders.Count - 1].PriceReal;
+                    return 0;
                 }
-                return 0;
+
+                decimal price = 0;
+                int volume = 0;
+                for (int i = 0; i < _closeOrders.Count; i++)
+                {
+                    int volumeEx = _closeOrders[i].VolumeExecute;
+                    if (volumeEx != 0)
+                    {
+                        volume += _closeOrders[i].VolumeExecute;
+                        price += _closeOrders[i].VolumeExecute*_closeOrders[i].PriceReal;
+                    }
+
+                }
+                if (volume == 0)
+                {
+                    return 0;
+                }
+
+                return price/volume;
             }
         }
 
@@ -793,6 +812,39 @@ namespace OsEngine.Entity
                 {
                     return CloseOrders[CloseOrders.Count - 1].TimeCallBack;
                 }
+                return TimeCreate;
+            }
+        }
+
+        /// <summary>
+        /// время открытия позиции. Время когда на бирже прошла первая сделка по нашей позиции
+        /// если сделка ещё не открыта, вернёт время создания позиции
+        /// </summary>
+        public DateTime TimeOpen
+        {
+            get
+            {
+                if (OpenOrders == null || OpenOrders.Count == 0)
+                {
+                    return TimeCreate;
+                }
+
+                DateTime timeOpen = DateTime.MaxValue;
+
+                for (int i = 0; i < OpenOrders.Count; i++)
+                {
+                    if (OpenOrders[i].TradesIsComing &&
+                        OpenOrders[i].TimeExecuteFirstTrade < timeOpen)
+                    {
+                        timeOpen = OpenOrders[i].TimeExecuteFirstTrade;
+                    }
+                }
+
+                if (timeOpen == DateTime.MaxValue)
+                {
+                    return TimeCreate;
+                }
+
                 return TimeCreate;
             }
         }

@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Threading;
-using System.Windows;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
@@ -34,6 +33,15 @@ namespace OsEngine.Market.Servers.SmartCom
 
            Load();
 
+           _ordersToSend = new ConcurrentQueue<Order>();
+           _tradesToSend = new ConcurrentQueue<List<Trade>>();
+           _portfolioToSend = new ConcurrentQueue<List<Portfolio>>();
+           _securitiesToSend = new ConcurrentQueue<List<Security>>();
+           _myTradesToSend = new ConcurrentQueue<MyTrade>();
+           _newServerTime = new ConcurrentQueue<DateTime>();
+           _candleSeriesToSend = new ConcurrentQueue<CandleSeries>();
+           _marketDepthsToSend = new ConcurrentQueue<MarketDepth>();
+           _bidAskToSend = new ConcurrentQueue<BidAskSender>();
            _ordersToExecute = new ConcurrentQueue<Order>();
            _ordersToCansel = new ConcurrentQueue<Order>();
 
@@ -56,16 +64,6 @@ namespace OsEngine.Market.Servers.SmartCom
            threadDataSender.CurrentCulture = new CultureInfo("ru-RU");
            threadDataSender.IsBackground = true;
            threadDataSender.Start();
-
-           _ordersToSend = new ConcurrentQueue<Order>();
-           _tradesToSend = new ConcurrentQueue<List<Trade>>();
-           _portfolioToSend = new ConcurrentQueue<List<Portfolio>>();
-           _securitiesToSend = new ConcurrentQueue<List<Security>>();
-           _myTradesToSend = new ConcurrentQueue<MyTrade>();
-           _newServerTime = new ConcurrentQueue<DateTime>();
-           _candleSeriesToSend = new ConcurrentQueue<CandleSeries>();
-           _marketDepthsToSend = new ConcurrentQueue<MarketDepth>();
-           _bidAskToSend = new ConcurrentQueue<BidAskSender>();
        }
 
        /// <summary>
@@ -543,7 +541,7 @@ namespace OsEngine.Market.Servers.SmartCom
            {
                try
                {
-                   if (_ordersToSend != null && _ordersToSend.Count != 0)
+                   if (!_ordersToSend.IsEmpty)
                    {
                        Order order;
                        if (_ordersToSend.TryDequeue(out order))
@@ -554,8 +552,8 @@ namespace OsEngine.Market.Servers.SmartCom
                            }
                        }
                    }
-                   else if (_myTradesToSend != null && _myTradesToSend.Count != 0 &&
-                  (_ordersToSend == null || _ordersToSend.Count == 0))
+                   else if (!_myTradesToSend.IsEmpty &&
+                  (_ordersToSend.IsEmpty))
                    {
                        MyTrade myTrade;
 
@@ -567,7 +565,7 @@ namespace OsEngine.Market.Servers.SmartCom
                            }
                        }
                    }
-                   else if (_tradesToSend != null && _tradesToSend.Count != 0)
+                   else if (!_tradesToSend.IsEmpty)
                    {
                        List<Trade> trades;
 
@@ -580,7 +578,7 @@ namespace OsEngine.Market.Servers.SmartCom
                        }
                    }
 
-                   else if (_portfolioToSend != null && _portfolioToSend.Count != 0)
+                   else if (!_portfolioToSend.IsEmpty)
                    {
                        List<Portfolio> portfolio;
 
@@ -593,7 +591,7 @@ namespace OsEngine.Market.Servers.SmartCom
                        }
                    }
 
-                   else if (_securitiesToSend != null && _securitiesToSend.Count != 0)
+                   else if (!_securitiesToSend.IsEmpty)
                    {
                        List<Security> security;
 
@@ -605,7 +603,7 @@ namespace OsEngine.Market.Servers.SmartCom
                            }
                        }
                    }
-                   else if (_newServerTime != null && _newServerTime.Count != 0)
+                   else if (!_newServerTime.IsEmpty)
                    {
                       DateTime time;
 
@@ -618,7 +616,7 @@ namespace OsEngine.Market.Servers.SmartCom
                       }
                    }
 
-                   else if (_candleSeriesToSend != null && _candleSeriesToSend.Count != 0)
+                   else if (!_candleSeriesToSend.IsEmpty)
                    {
                        CandleSeries series;
 
@@ -631,7 +629,7 @@ namespace OsEngine.Market.Servers.SmartCom
                        }
                    }
 
-                   else if (_marketDepthsToSend != null && _marketDepthsToSend.Count != 0)
+                   else if (!_marketDepthsToSend.IsEmpty)
                    {
                        MarketDepth depth;
 
@@ -644,7 +642,7 @@ namespace OsEngine.Market.Servers.SmartCom
                        }
                    }
 
-                   else if (_bidAskToSend != null && _bidAskToSend.Count != 0)
+                   else if (!_bidAskToSend.IsEmpty)
                    {
                        BidAskSender bidAsk;
 
@@ -1278,13 +1276,13 @@ namespace OsEngine.Market.Servers.SmartCom
        void SmartServer_UpdateBidAsk(string symbol, int row, int nrows, double bid, double bidsize, double ask, double asksize)
        {
            MarketDepthLevel askOs = new MarketDepthLevel();
-           askOs.Ask = Convert.ToDecimal(bidsize);
-           askOs.Bid = 0;
+           askOs.Bid = Convert.ToDecimal(bidsize);
+           askOs.Ask = 0;
            askOs.Price = Convert.ToDecimal(bid);
 
            MarketDepthLevel bidOs = new MarketDepthLevel();
-           bidOs.Bid = Convert.ToDecimal(asksize);
-           bidOs.Ask = 0;
+           bidOs.Ask = Convert.ToDecimal(asksize);
+           bidOs.Bid = 0;
            bidOs.Price = Convert.ToDecimal(ask);
 
            if (_depths == null)
@@ -1303,8 +1301,8 @@ namespace OsEngine.Market.Servers.SmartCom
 
            myDepth.Time = DateTime.Now;
 
-           List<MarketDepthLevel> asks = myDepth.Asks;
-           List<MarketDepthLevel> bids = myDepth.Bids;
+           List<MarketDepthLevel> asks = myDepth.Bids;
+           List<MarketDepthLevel> bids = myDepth.Asks;
 
            if (asks == null || asks.Count != nrows)
            {
@@ -1315,8 +1313,8 @@ namespace OsEngine.Market.Servers.SmartCom
                    asks.Add(new MarketDepthLevel());
                    bids.Add(new MarketDepthLevel());
                }
-               myDepth.Asks = asks;
-               myDepth.Bids = bids;
+               myDepth.Bids = asks;
+               myDepth.Asks = bids;
            }
 
            asks[row] = askOs;

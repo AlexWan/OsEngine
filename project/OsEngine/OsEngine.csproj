@@ -177,6 +177,10 @@
     <Compile Include="Charts\CandleChart\Indicators\IvashovRangeUi.xaml.cs">
       <DependentUpon>IvashovRangeUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\KalmanFilter.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\KalmanFilterUi.xaml.cs">
+      <DependentUpon>KalmanFilterUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Charts\CandleChart\Indicators\Line.cs" />
     <Compile Include="Charts\CandleChart\Indicators\MacdHistogram.cs" />
     <Compile Include="Charts\CandleChart\Indicators\MacdHistogramUi.xaml.cs">
@@ -611,6 +615,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Charts\CandleChart\Indicators\IvashovRangeUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\KalmanFilterUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

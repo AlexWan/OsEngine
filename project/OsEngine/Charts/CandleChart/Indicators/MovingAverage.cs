@@ -111,11 +111,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
         /// <summary>
         /// конструктор без параметров. Индикатор не будет сохраняться
+        /// используется ТОЛЬКО для создания составных индикаторов
+        /// не используйте его из слоя создания роботов!
         /// </summary>
         /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
         public MovingAverage(bool canDelete)
         {
-            Name = "";
+            Name = Guid.NewGuid().ToString();
             KaufmanFastEma = 2;
             KaufmanSlowEma = 30;
             TypeCalculationAverage = MovingAverageTypeCalculation.Simple;

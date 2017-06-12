@@ -6,7 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -17,13 +19,11 @@ using OsEngine.Logging;
 using Color = System.Drawing.Color;
 using Rectangle = System.Drawing.Rectangle;
 using System.Windows.Forms.DataVisualization.Charting;
-using System.Xml.Schema;
 using OsEngine.Market.Servers;
 using Chart = System.Windows.Forms.DataVisualization.Charting.Chart;
 using ChartArea = System.Windows.Forms.DataVisualization.Charting.ChartArea;
 using ContextMenu = System.Windows.Forms.ContextMenu;
 using MenuItem = System.Windows.Forms.MenuItem;
-using MessageBox = System.Windows.MessageBox;
 using Series = System.Windows.Forms.DataVisualization.Charting.Series;
 
 namespace OsEngine.Journal
@@ -1909,7 +1909,7 @@ namespace OsEngine.Journal
 
             try
             {
-                MenuItem[] items = new MenuItem[3];
+                MenuItem[] items = new MenuItem[4];
 
                 items[0] = new MenuItem { Text = @"Детализация" };
                 items[0].Click += CloseDealMoreInfo_Click;
@@ -1920,6 +1920,9 @@ namespace OsEngine.Journal
                 items[2] = new MenuItem { Text = @"Очистить всё" };
                 items[2].Click += CloseDealClearAll_Click;
 
+                items[3] = new MenuItem { Text = @"Сохранить в файл" };
+                items[3].Click += CloseDealSaveInFile_Click;
+
                 ContextMenu menu = new ContextMenu(items);
 
                 _closePositionGrid.ContextMenu = menu;
@@ -1929,6 +1932,76 @@ namespace OsEngine.Journal
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+
+        /// <summary>
+        /// сохранить в файл информацию о закрытых сделках
+        /// </summary>
+        void CloseDealSaveInFile_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                OpenFileDialog myDialog = new OpenFileDialog();
+                myDialog.ShowDialog();
+
+                if (string.IsNullOrEmpty(myDialog.FileName))
+                {
+                    System.Windows.Forms.MessageBox.Show(@"Необходимо выбрать файл для сохранения!");
+                    return;
+                }
+
+                StringBuilder workSheet = new StringBuilder();
+                workSheet.Append("Номер,");
+                workSheet.Append("Время отк.,");
+                workSheet.Append("Время зак.,");
+                workSheet.Append("Бот,");
+                workSheet.Append("Инструмент,");
+                workSheet.Append("Напр.,");
+                workSheet.Append("Cостояние,");
+                workSheet.Append("Объём,");
+                workSheet.Append("Текущий,");
+                workSheet.Append("Ожидает,");
+                workSheet.Append("Цена входа,");
+                workSheet.Append("Цена выхода,");
+                workSheet.Append("Прибыль,");
+                workSheet.Append("СтопАктивация,");
+                workSheet.Append("СтопЦена,");
+                workSheet.Append("ПрофитАктивация,");
+                workSheet.Append("ПрофитЦена\r\n");
+
+                for (int i = 0; i < _closePositionGrid.Rows.Count; i++)
+                {
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[0].Value + ",");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[1].Value + ",");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[2].Value + ",");
+
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[3].Value + ",");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[4].Value + ",");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[5].Value + ",");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[6].Value + ",");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[7].Value + ",");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[8].Value + ",");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[9].Value + ",");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[10].Value + ",");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[11].Value + ",");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[12].Value + ",");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[13].Value + ",");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[14].Value + ",");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[15].Value + ",");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[16].Value + ",\r\n");
+                }
+
+                StreamWriter writer = new StreamWriter(myDialog.FileName);
+                writer.Write(workSheet);
+                writer.Close();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+            }
+           
+
         }
 
         /// <summary>

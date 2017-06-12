@@ -81,7 +81,7 @@ namespace OsEngine.Market
 
                 CreateTimeFrameBox();
 
-                BoxTimeFrame.ToolTip = "ТФ Delta не имеет чёткого критерия закрытия и закрывает свечи по изменению дельты (разницы между объёмом текущих покупок и продаж прошедших с утра) на N(настраивается отдельно) пунктов";
+                BoxTimeFrame.ToolTip = "ТФ Delta не имеет чёткого критерия закрытия и закрывает свечи по изменению дельты \n(разницы между объёмом текущих покупок и продаж прошедших с утра) на N(настраивается отдельно) пунктов";
                 
                 
 
@@ -310,7 +310,7 @@ namespace OsEngine.Market
         private ServerType _selectedType;
 
         /// <summary>
-        /// пользователь изменил тип серевера для подключения
+        /// пользователь изменил тип сервера для подключения
         /// </summary>
         void ComboBoxTypeServer_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
