@@ -32,7 +32,7 @@ namespace OsEngine.Journal.Internal
         public static Thread Watcher;
 
         /// <summary>
-        /// логи которые нужно обслуживать
+        /// контроллеры позиций которые нужно обслуживать
         /// </summary>
         public static List<PositionController> ControllersToCheck = new List<PositionController>();
 
@@ -48,7 +48,7 @@ namespace OsEngine.Journal.Internal
         }
 
         /// <summary>
-        /// место работы потока который сохраняет логи
+        /// место работы потока
         /// </summary>
         public static void WatcherHome()
         {
