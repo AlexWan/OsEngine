@@ -5,6 +5,7 @@
 using System;
 using System.Windows;
 using OsEngine.Charts.CandleChart;
+using OsEngine.Entity;
 using OsEngine.Market.Servers;
 
 namespace OsEngine.OsTrader.Gui
@@ -30,6 +31,21 @@ namespace OsEngine.OsTrader.Gui
             LabelOsa.Content = "V_" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
 
             TabControlBotsName.SizeChanged += TabControlBotsName_SizeChanged;
+
+            Closing += TesterUi_Closing;
+        }
+
+        void TesterUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            AcceptDialogUi ui = new AcceptDialogUi("Вы собираетесь закрыть программу. Вы уверены?");
+            ui.ShowDialog();
+
+            if (ui.UserAcceptActioin == false)
+            {
+                e.Cancel = true;
+                return;
+            }
+
         }
 
         /// <summary>

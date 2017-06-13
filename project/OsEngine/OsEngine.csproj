@@ -268,6 +268,9 @@
     <Compile Include="Charts\CandleChart\Indicators\IndicarotCreateUi.xaml.cs">
       <DependentUpon>IndicarotCreateUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Entity\AcceptDialogUi.xaml.cs">
+      <DependentUpon>AcceptDialogUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Entity\CumulativeDeltaTimeFrameUi.xaml.cs">
       <DependentUpon>CumulativeDeltaTimeFrameUi.xaml</DependentUpon>
     </Compile>
@@ -703,6 +706,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Charts\CandleChart\Indicators\IndicarotCreateUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Entity\AcceptDialogUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

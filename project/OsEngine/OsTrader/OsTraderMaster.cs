@@ -691,6 +691,14 @@ namespace OsEngine.OsTrader
                     return;
                 }
 
+                AcceptDialogUi ui = new AcceptDialogUi("Вы собираетесь удалить робота. Вы уверены?");
+                ui.ShowDialog();
+
+                if (ui.UserAcceptActioin == false)
+                {
+                    return;
+                }
+
                 // 1 отменяем прорисовку текущего бота
                 _activPanel.StopPaint();
 

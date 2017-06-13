@@ -1,0 +1,11 @@
+﻿<Window x:Class="OsEngine.Entity.AcceptDialogUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+       Title="Окно подтверждения" Height="205" Width="434" Topmost="True" Style="{StaticResource WindowStyleNoResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+    <Grid>
+        <Rectangle Margin="5"/>
+        <Label Name="LabelText" Content="Label" Margin="19,27,15,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="16" Height="65"/>
+        <Button Name="ButtonAccept" Content="Подтвердить" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="132" Click="ButtonAccept_Click" />
+        <Button Name="ButtonCancel" Content="Ещё подумать" HorizontalAlignment="Right" Margin="0,0,176,10" VerticalAlignment="Bottom" Width="132" Click="ButtonCancel_Click" />
+    </Grid>
+</Window>
