@@ -4,10 +4,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Threading;
 using OsEngine.Logging;
+using OsEngine.Market.Servers;
 
 namespace OsEngine.OsTrader.RiskManager
 {
@@ -16,19 +16,69 @@ namespace OsEngine.OsTrader.RiskManager
     /// </summary>
     public class RiskManager
     {
+        // статическая часть с работой потока сохраняющего позиции
+
+        /// <summary>
+        /// поток 
+        /// </summary>
+        public static Thread Watcher;
+
+        /// <summary>
+        /// логи которые нужно обслуживать
+        /// </summary>
+        public static List<RiskManager> RiskManagersToCheck = new List<RiskManager>();
+
+        /// <summary>
+        /// активировать поток для сохранения
+        /// </summary>
+        public static void Activate()
+        {
+            Watcher = new Thread(WatcherHome);
+            Watcher.Name = "RiskManagerThread";
+            Watcher.IsBackground = true;
+            Watcher.Start();
+        }
+
+        /// <summary>
+        /// место работы потока который сохраняет логи
+        /// </summary>
+        public static void WatcherHome()
+        {
+            if (ServerMaster.IsTester ||
+                ServerMaster.IsOsData)
+            {
+                return;
+            }
+
+            while (true)
+            {
+                Thread.Sleep(2000);
+
+                for (int i = 0; i < RiskManagersToCheck.Count; i++)
+                {
+                    RiskManagersToCheck[i].CheckJournals();
+                }
+
+                if (!MainWindow.ProccesIsWorked)
+                {
+                    return;
+                }
+            }
+        }
+
+// сервис
+
         public RiskManager(string nameBot)
         {
             _name = nameBot + "RiskManager";
             MaxDrowDownToDayPersent = 1;
             Load();
 
-            if (nameBot != "testBot")
+            if (Watcher == null)
             {
-                _watcher = new Thread(WatcherHome);
-                _watcher.CurrentCulture = new CultureInfo("ru-RU");
-                _watcher.IsBackground = true;
-                _watcher.Start();
+                Activate();
             }
+            RiskManagersToCheck.Add(this);
         }
 
         /// <summary>
@@ -185,7 +235,7 @@ namespace OsEngine.OsTrader.RiskManager
         /// <summary>
         /// метод, в котором живёт поток, отвечающий за слежение за убытками
         /// </summary>
-        private void WatcherHome()
+        private void CheckJournals()
         {
             while (true)
             {

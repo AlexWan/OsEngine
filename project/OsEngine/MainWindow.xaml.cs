@@ -119,7 +119,7 @@ namespace OsEngine
                 candleOneUi.ShowDialog();
                 Close();
                 ProccesIsWorked = false;
-                Thread.Sleep(10000);
+                Thread.Sleep(5000);
             }
             catch (Exception error)
             {
@@ -137,7 +137,7 @@ namespace OsEngine
                 candleOneUi.ShowDialog();
                 Close();
                 ProccesIsWorked = false;
-                Thread.Sleep(10000);
+                Thread.Sleep(5000);
             }
             catch (Exception error)
             {
@@ -155,7 +155,7 @@ namespace OsEngine
                 ui.ShowDialog();
                 Close();
                 ProccesIsWorked = false;
-                Thread.Sleep(10000);
+                Thread.Sleep(5000);
             }
             catch (Exception error)
             {

@@ -47,6 +47,7 @@ namespace OsEngine.Market
             {
                 _subscrabler = new Thread(Subscrable);
                 _subscrabler.CurrentCulture = new CultureInfo("ru-RU");
+                _subscrabler.Name = "ConnectorSubscrableThread_" + UniqName; 
                 _subscrabler.IsBackground = true;
                 _subscrabler.Start();
             }
@@ -396,6 +397,7 @@ namespace OsEngine.Market
                     _subscrabler = new Thread(Subscrable);
                     _subscrabler.CurrentCulture = new CultureInfo("ru-RU");
                     _subscrabler.IsBackground = true;
+                    _subscrabler.Name = "ConnectorSubscrableThread_" + UniqName; 
                     _subscrabler.Start();
 
                     if (NewCandlesChangeEvent != null)

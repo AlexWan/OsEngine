@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text;
 
 namespace OsEngine.Entity
 {
@@ -664,58 +665,58 @@ namespace OsEngine.Entity
         /// <summary>
         /// взять строку для сохранения
         /// </summary>
-        public string GetStringForSave()
+        public StringBuilder GetStringForSave()
         {
-            string result = "";
+            StringBuilder result = new StringBuilder();
 
-            result += Direction + "#";
+            result.Append(Direction + "#");
 
-            result += State + "#";
+            result.Append(State + "#");
 
-            result += NameBot + "#";
+            result.Append( NameBot + "#");
 
-            result += ProfitOperationPersent.ToString(new CultureInfo("ru-RU")) + "#";
+            result.Append(ProfitOperationPersent.ToString(new CultureInfo("ru-RU")) + "#");
 
-            result += ProfitOperationPunkt.ToString(new CultureInfo("ru-RU")) + "#";
+            result.Append(ProfitOperationPunkt.ToString(new CultureInfo("ru-RU")) + "#");
 
             if (OpenOrders == null)
             {
-                result += "null" + "#";
+                result.Append("null" + "#");
             }
             else
             {
                 for(int i = 0;i < OpenOrders.Count;i++)
                 {
-                    result += OpenOrders[i].GetStringForSave() + "^";
+                    result.Append(OpenOrders[i].GetStringForSave() + "^");
                 }
-                result += "#";
+                result.Append("#");
             }
 
-            result += Number + "#";
+            result.Append(Number + "#");
 
-            result += Comment + "#";
+            result.Append(Comment + "#");
 
-            result += StopOrderIsActiv + "#";
-            result += StopOrderPrice + "#";
-            result += StopOrderRedLine + "#";
+            result.Append(StopOrderIsActiv + "#");
+            result.Append(StopOrderPrice + "#");
+            result.Append(StopOrderRedLine + "#");
 
-            result += ProfitOrderIsActiv + "#";
-            result += ProfitOrderPrice + "#";
+            result.Append(ProfitOrderIsActiv + "#");
+            result.Append(ProfitOrderPrice + "#");
 
-            result += Lots + "#";
-            result += PriceStepCost + "#";
-            result += PriceStep + "#";
-            result += PortfolioValueOnOpenPosition + "#";
+            result.Append(Lots + "#");
+            result.Append(PriceStepCost + "#");
+            result.Append(PriceStep + "#");
+            result.Append(PortfolioValueOnOpenPosition + "#");
 
-            result += ProfitOrderRedLine + "#";
-            result += SignalTypeOpen + "#";
-            result += SignalTypeClose;
+            result.Append(ProfitOrderRedLine + "#");
+            result.Append(SignalTypeOpen + "#");
+            result.Append(SignalTypeClose);
 
             if (CloseOrders != null)
             {
                 for (int i = 0; i < CloseOrders.Count; i++)
                 {
-                    result += "#" + CloseOrders[i].GetStringForSave();
+                    result.Append("#" + CloseOrders[i].GetStringForSave());
                 }
             }
 

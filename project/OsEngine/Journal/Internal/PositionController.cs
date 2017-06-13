@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
@@ -23,6 +24,56 @@ namespace OsEngine.Journal.Internal
     /// </summary>
     public class PositionController
     {
+        // статическая часть с работой потока сохраняющего позиции
+
+        /// <summary>
+        /// поток 
+        /// </summary>
+        public static Thread Watcher;
+
+        /// <summary>
+        /// логи которые нужно обслуживать
+        /// </summary>
+        public static List<PositionController> ControllersToCheck = new List<PositionController>();
+
+        /// <summary>
+        /// активировать поток для сохранения
+        /// </summary>
+        public static void Activate()
+        {
+            Watcher = new Thread(WatcherHome);
+            Watcher.Name = "PositionControllerThread";
+            Watcher.IsBackground = true;
+            Watcher.Start();
+        }
+
+        /// <summary>
+        /// место работы потока который сохраняет логи
+        /// </summary>
+        public static void WatcherHome()
+        {
+            if (ServerMaster.IsTester||
+                ServerMaster.IsOsData)
+            {
+                return;
+            }
+
+            while (true)
+            {
+                Thread.Sleep(1000);
+
+                for (int i = 0; i < ControllersToCheck.Count; i++)
+                {
+                    ControllersToCheck[i].SavePositions();
+                }
+
+                if (!MainWindow.ProccesIsWorked)
+                {
+                    return;
+                }
+            }
+        }
+
         // сервис
         public PositionController(string name)
         {
@@ -37,9 +88,12 @@ namespace OsEngine.Journal.Internal
 
             _name = name;
 
-            Thread worker = new Thread(SaverThreadArea);
-            worker.IsBackground = true;
-            worker.Start();
+            if (Watcher == null)
+            {
+                Activate();
+            }
+
+            ControllersToCheck.Add(this);
 
             CreateTable();
 
@@ -160,91 +214,39 @@ namespace OsEngine.Journal.Internal
             }
         }
 
-        public void Save()
-        {
-            if (_name == "testBot" ||
-                _name == "testBotTick" ||
-                _name == "testBotCandle" ||
-                _typeWork == ConnectorWorkType.Tester)
-            {
-                return;
-            }
-
-            _neadToSave = true;
-            _controlSaveTime = DateTime.Now.AddMinutes(1);
-        }
-
         /// <summary>
         /// нужно ли сохранить данные
         /// </summary>
         private bool _neadToSave;
 
-        /// <summary>
-        /// время последнего сохранения
-        /// </summary>
-        private DateTime _lastSaveTime = DateTime.MinValue;
-
-        /// <summary>
-        /// время последнего сохранения
-        /// </summary>
-        private DateTime _controlSaveTime = DateTime.MinValue;
-
-        private void SaverThreadArea()
+        private void SavePositions()
         {
-            while (true)
+            if (!_neadToSave)
             {
-                Thread.Sleep(1000);
+                return;
+            }
 
-                if (!_neadToSave && _controlSaveTime == DateTime.MinValue)
-                {
-                    continue;
-                }
-                if (!_neadToSave && _controlSaveTime > DateTime.Now)
-                {
-                    continue;
-                }
-                if (!_neadToSave && _controlSaveTime <= DateTime.Now)
-                {
-                    _controlSaveTime = DateTime.MinValue;
-                }
-                if (_lastSaveTime != DateTime.MinValue &&
-                    _lastSaveTime.AddSeconds(20) > DateTime.Now && MainWindow.ProccesIsWorked)
-                {
-                    Thread.Sleep(1000);
-                    continue;
-                }
+            _neadToSave = false;
 
-                _lastSaveTime = DateTime.Now;
-                _neadToSave = false;
-
-                if (MainWindow.ProccesIsWorked == false)
-                { // если приложение закрывается
-                    return;
-                }
-
-                try
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + _name + @"DealController.txt", false))
                 {
-                    using (StreamWriter writer = new StreamWriter(@"Engine\" + _name + @"DealController.txt", false))
+                    List<Position> deals = _deals;
+
+                    StringBuilder result = new StringBuilder();
+
+                    for (int i = 0; deals != null && i < deals.Count; i++)
                     {
-                        List<Position> deals = _deals;
-                        string result = "";
-                        for (int i = 0; deals != null && i < deals.Count; i++)
-                        {
-                            result += deals[i].GetStringForSave() + "\r\n";
-                        }
-
-                        writer.Write(result);
+                        result.Append(deals[i].GetStringForSave() + "\r\n");
                     }
-                }
-                catch (Exception error)
-                {
-                    SendNewLogMessage(error.ToString(), LogMessageType.Error);
-                }
 
-                if (!MainWindow.ProccesIsWorked)
-                { // если у нас сохранение перед закрытием
-                    return;
+                    writer.Write(result);
                 }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -287,11 +289,6 @@ namespace OsEngine.Journal.Internal
                 _deals.Add(newPosition);
             }
 
-            if (_typeWork == ConnectorWorkType.Real)
-            {
-                Save();
-            }
-
             PaintPosition(newPosition);
             _lastPositionChange = true;
             _openPositionChanged = true;
@@ -304,6 +301,8 @@ namespace OsEngine.Journal.Internal
             {
                 _openShortChanged = true;
             }
+
+            _neadToSave = true;
         }
 
         /// <summary>
@@ -316,11 +315,6 @@ namespace OsEngine.Journal.Internal
                 return;
             }
 
-            if (_deals.Remove(position))
-            {
-                Save();
-            }
-
             _openPositionChanged = true;
             _openLongChanged = true;
             _openShortChanged = true;
@@ -329,6 +323,8 @@ namespace OsEngine.Journal.Internal
             _closeLongChanged = true;
 
             PaintPosition(position);
+
+            _neadToSave = true;
         }
 
         /// <summary>
@@ -379,11 +375,6 @@ namespace OsEngine.Journal.Internal
 
                     _deals[i].SetOrder(updateOrder);
 
-                    if (_typeWork == ConnectorWorkType.Real)
-                    {
-                        Save();
-                    }
-
                     if (positionState != _deals[i].State)
                     {
                         _openPositionChanged = true;
@@ -404,6 +395,7 @@ namespace OsEngine.Journal.Internal
                     return;
                 }
             }
+            _neadToSave = true;
         }
 
         /// <summary>
@@ -452,11 +444,6 @@ namespace OsEngine.Journal.Internal
 
                     _deals[i].SetTrade(trade);
 
-                    if (_typeWork == ConnectorWorkType.Real)
-                    {
-                        Save();
-                    }
-
                     if (positionState != _deals[i].State)
                     {
                         _openPositionChanged = true;
@@ -475,6 +462,7 @@ namespace OsEngine.Journal.Internal
                     PaintPosition(_deals[i]);
                 }
             }
+            _neadToSave = true;
         }
 
         /// <summary>

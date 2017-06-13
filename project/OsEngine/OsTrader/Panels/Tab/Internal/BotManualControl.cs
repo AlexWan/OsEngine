@@ -37,6 +37,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         public static void Activate()
         {
             Watcher = new Thread(WatcherHome);
+            Watcher.Name = "BotManualControlThread";
             Watcher.IsBackground = true;
             Watcher.Start();
         }
@@ -46,6 +47,12 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// </summary>
         public static void WatcherHome()
         {
+            if (ServerMaster.IsTester ||
+                ServerMaster.IsOsData)
+            {
+                return;
+            }
+
             while (true)
             {
                 Thread.Sleep(2000);

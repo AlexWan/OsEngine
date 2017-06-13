@@ -26,6 +26,11 @@ namespace OsEngine.Entity
                     _neadToSave = false;
                     Save();
                 }
+
+                if (!MainWindow.ProccesIsWorked)
+                {
+                    return;
+                }
             }
         }
 
@@ -52,6 +57,7 @@ namespace OsEngine.Entity
                 Load();
 
                 Thread saver = new Thread(SaverSpace);
+                saver.Name = "NumberGeneratorThread";
                 saver.IsBackground = true;
                 saver.Start();
             }
@@ -74,6 +80,7 @@ namespace OsEngine.Entity
 
                 Thread saver = new Thread(SaverSpace);
                 saver.IsBackground = true;
+                saver.Name = "NumberGeneratorThread";
                 saver.Start();
             }
 

@@ -280,6 +280,7 @@ namespace OsEngine.Market.Servers
 
             Thread starterThread = new Thread(ThreadStarterWorkArea);
             starterThread.IsBackground = true;
+            starterThread.Name = "SeverMasterAutoStartThread";
             starterThread.Start();
         }
 
@@ -372,7 +373,12 @@ namespace OsEngine.Market.Servers
             }
             while (true)
             {
-                Thread.Sleep(5000);
+                Thread.Sleep(2000);
+
+                if (!MainWindow.ProccesIsWorked)
+                {
+                    return;
+                }
 
                 if (NeadToConnectAuto == false)
                 {

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text;
 using OsEngine.Market.Servers;
 
 namespace OsEngine.Entity
@@ -285,47 +286,47 @@ namespace OsEngine.Entity
         /// <summary>
         /// взять строку для сохранения
         /// </summary>
-        public string GetStringForSave()
+        public StringBuilder GetStringForSave()
         {
-            string result = "";
+            StringBuilder result = new StringBuilder();
 
-            result += NumberUser + "@";
+            result.Append(NumberUser + "@");
 
-            result += ServerType + "@";
+            result.Append( ServerType + "@");
 
-            result += NumberMarket.ToString(new CultureInfo("ru-RU")) + "@";
-            result += Side + "@";
-            result += Price.ToString(new CultureInfo("ru-RU")) + "@";
-            result += PriceReal.ToString(new CultureInfo("ru-RU")) + "@";
-            result += Volume.ToString(new CultureInfo("ru-RU")) + "@";
-            result += VolumeExecute.ToString(new CultureInfo("ru-RU")) + "@";
-            result += State + "@";
-            result += TypeOrder + "@";
-            result += TimeCallBack.ToString(new CultureInfo("ru-RU")) + "@";
+            result.Append(NumberMarket.ToString(new CultureInfo("ru-RU")) + "@");
+            result.Append(Side + "@");
+            result.Append(Price.ToString(new CultureInfo("ru-RU")) + "@");
+            result.Append(PriceReal.ToString(new CultureInfo("ru-RU")) + "@");
+            result.Append(Volume.ToString(new CultureInfo("ru-RU")) + "@");
+            result.Append(VolumeExecute.ToString(new CultureInfo("ru-RU")) + "@");
+            result.Append(State + "@");
+            result.Append(TypeOrder + "@");
+            result.Append(TimeCallBack.ToString(new CultureInfo("ru-RU")) + "@");
 
-            result += SecurityNameCode + "@";
-            result += PortfolioNumber.Replace('@', '%') +"@";
+            result.Append(SecurityNameCode + "@");
+            result.Append(PortfolioNumber.Replace('@', '%') +"@");
 
-            result += TimeCreate.ToString(new CultureInfo("ru-RU")) + "@";
-            result += TimeCancel.ToString(new CultureInfo("ru-RU")) + "@";
-            result += TimeCallBack.ToString(new CultureInfo("ru-RU")) + "@";
-            result += LifeTime + "@";
+            result.Append(TimeCreate.ToString(new CultureInfo("ru-RU")) + "@");
+            result.Append(TimeCancel.ToString(new CultureInfo("ru-RU")) + "@");
+            result.Append(TimeCallBack.ToString(new CultureInfo("ru-RU")) + "@");
+            result.Append(LifeTime + "@");
         // сделки, которыми открывался ордер и рассчёт цены исполнения ордера
 
             if (_trades == null)
             {
-                result += "null";
+                result.Append("null");
             }
             else
             {
                 for (int i = 0; i < _trades.Count; i++)
                 {
-                    result += _trades[i].GetStringFofSave() + "*";
+                    result.Append(_trades[i].GetStringFofSave() + "*");
                 }
             }
-            result += "@";
+            result.Append("@");
 
-            result += Comment;
+            result.Append(Comment);
 
             return result;
         }

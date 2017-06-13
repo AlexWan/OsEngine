@@ -41,6 +41,7 @@ namespace OsEngine.Logging
         public static void Activate()
         {
             Watcher = new Thread(WatcherHome);
+            Watcher.Name = "LogSaveThread";
             Watcher.IsBackground = true;
             Watcher.Start();
         }

@@ -19,6 +19,8 @@ namespace OsEngine.OsTrader
     public class GlobalPosition
     {
 
+// сервис
+
         /// <summary>
         /// конструктор
         /// </summary>
@@ -31,6 +33,14 @@ namespace OsEngine.OsTrader
 
             _host.Child = _grid;
             _host.Child.Show();
+
+            if (Watcher == null)
+            {
+                Watcher = new Thread(WatcherHome);
+                Watcher.IsBackground = true;
+                Watcher.Name = "GlobalPositionThread";
+                Watcher.Start();
+            }
         }
 
         /// <summary>
@@ -57,13 +67,6 @@ namespace OsEngine.OsTrader
                     {
                         journal_PositionChangeEvent(openPositions[i]);
                     }
-                }
-
-                if (!ServerMaster.IsTester)
-                {
-                    Thread worker = new Thread(ThreadWatcher);
-                    worker.IsBackground = true;
-                    worker.Start();
                 }
             }
             catch (Exception error)
@@ -452,22 +455,34 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
-        /// поток следящий за правильностью информации в таблице
+        /// поток 
         /// </summary>
-        private void ThreadWatcher()
+        private Thread Watcher;
+
+        /// <summary>
+        /// место работы потока который сохраняет логи
+        /// </summary>
+        private void WatcherHome()
         {
-            if (ServerMaster.IsTester)
+            if (ServerMaster.IsTester ||
+                ServerMaster.IsOsData)
             {
                 return;
             }
+
             while (true)
             {
-                Thread.Sleep(5000);
+                Thread.Sleep(2000);
+
                 CheckPosition();
+
+                if (!MainWindow.ProccesIsWorked)
+                {
+                    return;
+                }
             }
         }
 
-        private object _locker = new object();
 
         /// <summary>
         /// проверить позиции на правильность прорисовки
@@ -482,52 +497,52 @@ namespace OsEngine.OsTrader
             }
             try
             {
-                lock (_locker)
+
+                List<Position> openPositions = new List<Position>();
+
+                for (int i = 0; _journals != null && i < _journals.Count; i++)
                 {
-                    List<Position> openPositions = new List<Position>();
-
-                    for (int i = 0; _journals != null && i < _journals.Count; i++)
+                    if (_journals[i].OpenPositions != null && _journals[i].OpenPositions.Count != 0)
                     {
-                        if (_journals[i].OpenPositions != null && _journals[i].OpenPositions.Count != 0)
-                        {
-                            openPositions.AddRange(_journals[i].OpenPositions);
-                        }
-                    }
-
-                    for (int i1 = 0; i1 < openPositions.Count; i1++)
-                    {
-                        Position position = openPositions[i1];
-                        DataGridViewRow row = GetRow(position);
-                        bool isIn = false;
-                        for (int i = 0; i < _grid.Rows.Count; i++)
-                        {
-                            if (_grid.Rows[i].Cells[0].Value != null && (int)_grid.Rows[i].Cells[0].Value == position.Number)
-                            {
-                                _grid.Rows.Remove(_grid.Rows[i]);
-                                DataGridViewRow row1 = GetRow(position);
-                                if (row1 != null)
-                                {
-                                    _grid.Rows.Add(row1);
-                                }
-                                isIn = true;
-                                break;
-                            }
-                        }
-
-                        if (isIn == false && row != null)
-                        {
-                            _grid.Rows.Add(row);
-                        }
-                    }
-
-                    for (int i = 0; i < _grid.Rows.Count; i++)
-                    {
-                        if (openPositions.Find(pos => pos.Number == (int)_grid.Rows[i].Cells[0].Value) == null)
-                        {
-                            _grid.Rows.Remove(_grid.Rows[i]);
-                        }
+                        openPositions.AddRange(_journals[i].OpenPositions);
                     }
                 }
+
+                for (int i1 = 0; i1 < openPositions.Count; i1++)
+                {
+                    Position position = openPositions[i1];
+                    DataGridViewRow row = GetRow(position);
+                    bool isIn = false;
+                    for (int i = 0; i < _grid.Rows.Count; i++)
+                    {
+                        if (_grid.Rows[i].Cells[0].Value != null &&
+                            (int) _grid.Rows[i].Cells[0].Value == position.Number)
+                        {
+                            _grid.Rows.Remove(_grid.Rows[i]);
+                            DataGridViewRow row1 = GetRow(position);
+                            if (row1 != null)
+                            {
+                                _grid.Rows.Add(row1);
+                            }
+                            isIn = true;
+                            break;
+                        }
+                    }
+
+                    if (isIn == false && row != null)
+                    {
+                        _grid.Rows.Add(row);
+                    }
+                }
+
+                for (int i = 0; i < _grid.Rows.Count; i++)
+                {
+                    if (openPositions.Find(pos => pos.Number == (int) _grid.Rows[i].Cells[0].Value) == null)
+                    {
+                        _grid.Rows.Remove(_grid.Rows[i]);
+                    }
+                }
+
             }
             catch (Exception error)
             {
