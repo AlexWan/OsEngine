@@ -1515,7 +1515,7 @@ namespace OsEngine.Market.Servers.Quik
                     order.Side = Side.Sell;
                 }
 
-                if (nStatus == 1 || nStatus == 0)
+                if (nStatus == 1)
                 {
                     order.State = OrderStateType.Activ;
                 }
