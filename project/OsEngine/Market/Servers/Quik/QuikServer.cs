@@ -714,9 +714,7 @@ namespace OsEngine.Market.Servers.Quik
             ui.ShowDialog();
         }
 
-
 // Заказ инструмента на скачивание
-
 
         private object _lockerStartThisSecurity = new object();
 
@@ -872,6 +870,15 @@ namespace OsEngine.Market.Servers.Quik
                             {
                                 break;
                             }
+
+                            Trade lastTrade = _allTrades[i][_allTrades[i].Count - 1];
+
+                            if (lastTrade.Time.Hour == 23 && trade.Time.Hour == 23 &&
+                                lastTrade.Time.Day != trade.Time.Day)
+                            { // иногда из квик приходит трейд в конце сессии с другой датой
+                                break;
+                            }
+
                             _allTrades[i].Add(trade);
                             break;
                         }
