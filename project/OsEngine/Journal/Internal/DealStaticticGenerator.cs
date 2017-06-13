@@ -641,7 +641,7 @@ namespace OsEngine.Journal.Internal
                 }
             }
 
-            if (commonLossPunkt != 0 && commonProfitPunkt != 0) profitFactor = Math.Abs(commonLossPunkt / commonProfitPunkt);
+            if (commonLossPunkt != 0 && commonProfitPunkt != 0) profitFactor = Math.Abs(commonProfitPunkt / commonLossPunkt);
 
             return profitFactor;
         }
