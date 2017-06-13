@@ -73,7 +73,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             Connector connector = new Connector(TabName + Tabs.Count);
             Tabs.Add(connector);
             Tabs[Tabs.Count - 1].NewCandlesChangeEvent += BotTabIndex_NewCandlesChangeEvent;
-            Tabs[Tabs.Count - 1].LastCandlesChangeEvent += BotTabIndex_NewCandlesChangeEvent;
             connector.ShowDialog();
             Save();
 
@@ -89,7 +88,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
             Tabs[index].NewCandlesChangeEvent -= BotTabIndex_NewCandlesChangeEvent;
-            Tabs[index].LastCandlesChangeEvent -= BotTabIndex_NewCandlesChangeEvent;
             Tabs[index].Delete();
             Tabs.RemoveAt(index);
 
@@ -175,7 +173,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         Tabs.Add(new Connector(save2[i]));
                         Tabs[Tabs.Count - 1].NewCandlesChangeEvent += BotTabIndex_NewCandlesChangeEvent;
-                        Tabs[Tabs.Count - 1].LastCandlesChangeEvent += BotTabIndex_NewCandlesChangeEvent;
                     }
                     UserFormula = reader.ReadLine();
 
@@ -242,13 +239,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     Candles = val.ValueCandles;
 
-                    for (int i = 1; i < Candles.Count; i++)
+                    if (Candles[Candles.Count - 1].TimeStart == Candles[Candles.Count - 2].TimeStart)
                     {
-                        if (Candles[i].TimeStart == Candles[i - 1].TimeStart)
-                        {
-                            Candles.RemoveAt(i);
-                            i--;
-                        }
+                        Candles.RemoveAt(Candles.Count - 1);
                     }
 
                     _chartMaster.SetCandles(Candles);
@@ -769,12 +762,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                     if (candlesOne[i1].TimeStart <= exitCandles[exitCandles.Count - 1].TimeStart &&
                         indexStartFirst == 0)
                     {
-                        indexStartFirst = i1;
+                        indexStartFirst = i1+1;
                     }
                     if (candlesTwo[i2].TimeStart <= exitCandles[exitCandles.Count - 1].TimeStart &&
                         indexStartSecond == 0)
                     {
-                        indexStartSecond = i2;
+                        indexStartSecond = i2+1;
                     }
                     if (indexStartSecond != 0 &&
                         indexStartFirst != 0)
@@ -890,7 +883,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     if (candlesOne[i1].TimeStart <= exitCandles[exitCandles.Count - 1].TimeStart &&
                         indexStartFirst == 0)
                     {
-                        indexStartFirst = i1;
+                        indexStartFirst = i1+1;
                         break;
                     }
                 }
@@ -985,7 +978,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     if (candlesTwo[i2].TimeStart <= exitCandles[exitCandles.Count - 1].TimeStart &&
                         indexStartSecond == 0)
                     {
-                        indexStartSecond = i2;
+                        indexStartSecond = i2+1;
                         break;
                     }
                 }
