@@ -1675,13 +1675,6 @@ namespace OsEngine.Market.Servers.SmartCom
                    order.TypeOrder = OrderPriceType.Market;
                }
 
-               if (_ordersRegistred == null)
-               {
-                   _ordersRegistred = new List<Order>();
-               }
-
-               _ordersRegistred.Add(order);
-
                _ordersToSend.Enqueue(order);
 
                if (_myTrades != null &&
@@ -1702,8 +1695,6 @@ namespace OsEngine.Market.Servers.SmartCom
                SendLogMessage(error.ToString(), LogMessageType.Error);
            }
        }
-
-       private List<Order> _ordersRegistred; 
 
        /// <summary>
        /// во время выставления ордера произошла ошибка
