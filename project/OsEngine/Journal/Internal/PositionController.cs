@@ -579,6 +579,10 @@ namespace OsEngine.Journal.Internal
                     }
                 }
 
+                if (_openPositions == null)
+                {
+                    return _emptyList;
+                }
                 return _openPositions;
             }
         }
@@ -612,6 +616,11 @@ namespace OsEngine.Journal.Internal
                     {
                         _openLongPosition = null;
                     }
+                }
+
+                if (_openLongPosition == null)
+                {
+                    return _emptyList;
                 }
                 return _openLongPosition;
             }
@@ -647,6 +656,10 @@ namespace OsEngine.Journal.Internal
                         _openShortPositions = null;
                     }
                 }
+                if (_openShortPositions == null)
+                {
+                    return _emptyList;
+                }
                 return _openShortPositions;
             }
         }
@@ -677,6 +690,10 @@ namespace OsEngine.Journal.Internal
                     {
                         _closePositions = null;
                     }
+                }
+                if (_closePositions == null)
+                {
+                    return _emptyList;
                 }
                 return _closePositions;
             }
@@ -709,6 +726,10 @@ namespace OsEngine.Journal.Internal
                     {
                         _closeLongPositions = null;
                     }
+                }
+                if (_closeLongPositions == null)
+                {
+                    return _emptyList;
                 }
                 return _closeLongPositions;
             }
@@ -744,6 +765,10 @@ namespace OsEngine.Journal.Internal
                         _closeShortPositions = null;
                     }
                 }
+                if (_closeShortPositions == null)
+                {
+                    return _emptyList;
+                }
                 return _closeShortPositions;
             }
         }
@@ -757,6 +782,10 @@ namespace OsEngine.Journal.Internal
         {
             get
             {
+                if (_deals == null)
+                {
+                    return _emptyList;
+                }
                 return _deals;
             }
         }
