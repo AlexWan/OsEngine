@@ -1082,7 +1082,8 @@ namespace OsEngine.Market.Servers
 
                 for (int i = 0; i < _orders.Count; i++)
                 {
-                    if (_orders[i].State == OrderStateType.Activ)
+                    if (_orders[i].State == OrderStateType.Activ &&
+                        !string.IsNullOrEmpty(_orders[i].PortfolioNumber))
                     {
                         IServer server = _servers.Find(server1 => server1.ServerType == _orders[i].ServerType);
                         if (server != null)
@@ -1119,7 +1120,8 @@ namespace OsEngine.Market.Servers
 
                 Order order = _orders[(_orders.Count - 1 - _gridOrders.CurrentCell.RowIndex)];
 
-                if (order.State == OrderStateType.Activ)
+                if (order.State == OrderStateType.Activ &&
+                        !string.IsNullOrEmpty(order.PortfolioNumber))
                 {
                     IServer server = _servers.Find(server1 => server1.ServerType == order.ServerType);
                     if (server != null)
