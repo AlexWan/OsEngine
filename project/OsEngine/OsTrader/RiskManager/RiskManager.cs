@@ -16,7 +16,7 @@ namespace OsEngine.OsTrader.RiskManager
     /// </summary>
     public class RiskManager
     {
-        // статическая часть с работой потока сохраняющего позиции
+        // статическая часть с работой потока
 
         /// <summary>
         /// поток 
@@ -24,12 +24,12 @@ namespace OsEngine.OsTrader.RiskManager
         public static Thread Watcher;
 
         /// <summary>
-        /// логи которые нужно обслуживать
+        /// риск менеджеры которые нужно обслуживать
         /// </summary>
         public static List<RiskManager> RiskManagersToCheck = new List<RiskManager>();
 
         /// <summary>
-        /// активировать поток для сохранения
+        /// активировать поток
         /// </summary>
         public static void Activate()
         {
@@ -40,7 +40,7 @@ namespace OsEngine.OsTrader.RiskManager
         }
 
         /// <summary>
-        /// место работы потока который сохраняет логи
+        /// место работы потока
         /// </summary>
         public static void WatcherHome()
         {
