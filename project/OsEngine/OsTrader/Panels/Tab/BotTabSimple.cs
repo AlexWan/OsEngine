@@ -2858,7 +2858,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         private void CheckSurplusPositions()
         {
             if (_lastClosingSurplusTime != DateTime.MinValue &&
-                _lastClosingSurplusTime.AddSeconds(5) > DateTime.Now)
+                _lastClosingSurplusTime.AddSeconds(10) > DateTime.Now)
             {
                 return;
             }
@@ -2870,7 +2870,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
-            List<Position> positions = PositionsAll.FindAll(position => position.State == PositionStateType.ClosingSurplus);
+            List<Position> positions = PositionsAll.FindAll(position => position.State == PositionStateType.ClosingSurplus ||
+                position.OpenVolume < 0);
 
             if ( positions.Count == 0)
             {

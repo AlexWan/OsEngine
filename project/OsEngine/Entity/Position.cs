@@ -137,7 +137,7 @@ namespace OsEngine.Entity
                     return false;
                 }
 
-                if (CloseOrders.Find(order => order.State == OrderStateType.Activ || order.State == OrderStateType.Pending || order.State == OrderStateType.None) != null)
+                if (CloseOrders.Find(order => order.State == OrderStateType.Activ || order.State == OrderStateType.Pending) != null)
                 {
                     return true;
                 }
