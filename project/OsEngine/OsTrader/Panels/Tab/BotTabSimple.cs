@@ -401,6 +401,40 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+
+        /// <summary>
+        /// проверить были ли закрытые позиции на текущем баре
+        /// </summary>
+        public bool CheckTradeClosedThisBar()
+        {
+            List<Position> allClosedPositions = PositionsCloseAll;
+
+            if (allClosedPositions == null)
+            {
+                return false;
+            }
+
+            int totalClosedPositions = allClosedPositions.Count;
+
+            if (totalClosedPositions >= 20)
+            {
+                allClosedPositions = allClosedPositions.GetRange(totalClosedPositions - 20, 20);
+            }
+
+            Candle lastCandle = CandlesAll[CandlesAll.Count - 1];
+
+
+
+            foreach (Position position in allClosedPositions)
+            {
+                if (position.TimeClose >= lastCandle.TimeStart)
+                {
+                    return (true);
+                }
+            }
+            return (false);
+        }
+
         /// <summary>
         /// все свечи инструмента. И формируемые и завершённые
         /// </summary>
