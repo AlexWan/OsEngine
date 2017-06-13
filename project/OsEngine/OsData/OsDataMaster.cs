@@ -9,6 +9,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
+using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using MessageBox = System.Windows.Forms.MessageBox;
@@ -445,6 +446,14 @@ namespace OsEngine.OsData
         {
             if (_gridset.CurrentCell == null || 
                 _gridset.CurrentCell.RowIndex <= -1)
+            {
+                return;
+            }
+
+            AcceptDialogUi ui = new AcceptDialogUi("Вы собираетесь удалить сет. Он будет удалён безвозвратно! Вы уверены?");
+            ui.ShowDialog();
+
+            if (ui.UserAcceptActioin == false)
             {
                 return;
             }

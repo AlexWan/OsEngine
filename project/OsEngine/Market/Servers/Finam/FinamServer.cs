@@ -1706,7 +1706,7 @@ namespace OsEngine.Market.Servers.Finam
             url += "mstimever=" + "1" + "&";
             url += "sep=" + "1" + "&";
             url += "sep2=" + "1" + "&";
-            url += "datf=" + "9" + "&";
+            url += "datf=" + "12" + "&";
             url += "at=" + "0" ;
 
 // если мы уже эту серию трейдов качали, пробуем достать её из общего хранилища
@@ -1751,9 +1751,40 @@ namespace OsEngine.Market.Servers.Finam
                 return null;
             }
 
-            return fileName;
+            StringBuilder list = new StringBuilder();
 
- 
+            StreamReader reader = new StreamReader(fileName);
+
+            while (!reader.EndOfStream)
+            {
+                string[] s = reader.ReadLine().Split(',');
+
+                StringBuilder builder = new StringBuilder();
+
+                builder.Append(s[0] + ",");
+                builder.Append(s[1] + ",");
+                builder.Append(s[2] + ",");
+                builder.Append(s[3] + ",");
+
+                if(s[5] == "S")
+                {
+                    builder.Append("Sell" );
+                }
+                else
+                {
+                    builder.Append("Buy" );
+                }
+          
+                list.Append(builder + "\r\n");
+            }
+
+            reader.Close();
+
+            StreamWriter writer = new StreamWriter(fileName);
+            writer.Write(list);
+            writer.Close();
+            
+            return fileName;
         }
 
         void wb_DownloadFileCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
