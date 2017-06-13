@@ -164,26 +164,26 @@ namespace OsEngine.OsData
         {
             SetName = nameUniq;
             _regime = DataSetState.Off;
-            Tf1SecondIsOn = true;
-            Tf2SecondIsOn = true;
-            Tf5SecondIsOn = true;
-            Tf10SecondIsOn = true;
-            Tf15SecondIsOn = true;
-            Tf20SecondIsOn = true;
-            Tf30SecondIsOn = true;
-            Tf1MinuteIsOn = true;
-            Tf2MinuteIsOn = true;
+            Tf1SecondIsOn = false;
+            Tf2SecondIsOn = false;
+            Tf5SecondIsOn = false;
+            Tf10SecondIsOn = false;
+            Tf15SecondIsOn = false;
+            Tf20SecondIsOn = false;
+            Tf30SecondIsOn = false;
+            Tf1MinuteIsOn = false;
+            Tf2MinuteIsOn = false;
             Tf5MinuteIsOn = true;
-            Tf10MinuteIsOn = true;
-            Tf15MinuteIsOn = true;
+            Tf10MinuteIsOn = false;
+            Tf15MinuteIsOn = false;
             Tf30MinuteIsOn = true;
-            Tf1HourIsOn = true;
-            Tf2HourIsOn = true;
-            TfTickIsOn = true;
-            TfMarketDepthIsOn = true;
+            Tf1HourIsOn = false;
+            Tf2HourIsOn = false;
+            TfTickIsOn = false;
+            TfMarketDepthIsOn = false;
             Source = ServerType.Unknown;
             SecuritiesNames = new List<string>();
-            TimeStart = DateTime.Now;
+            TimeStart = DateTime.Now.AddDays(-5);
             TimeEnd = DateTime.Now.AddDays(5);
             MarketDepthDepth = 5;
 
@@ -352,11 +352,12 @@ namespace OsEngine.OsData
         /// <summary>
         /// показать окно настроек
         /// </summary>
-        public void ShowDialog()
+        public bool ShowDialog()
         {
             OsDataSetUi ui = new OsDataSetUi(this);
             ui.ShowDialog();
             ReBuildComboBox();
+            return ui.IsSaved;
         }
 
         /// <summary>

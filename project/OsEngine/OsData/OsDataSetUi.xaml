@@ -1,7 +1,7 @@
 ﻿<Window x:Class="OsEngine.OsData.OsDataSetUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Сет данных" Height="394" Width="563" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Topmost="True">
+        Title="Сет данных" Height="427.859" Width="563" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Topmost="True">
     <Grid>
         <Rectangle Margin="5,5,5,0" Height="234" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBoxFolderName" HorizontalAlignment="Left" Height="23" Margin="138,18,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="133"/>
@@ -51,5 +51,6 @@
         <Label Content="глубина" HorizontalAlignment="Left" Margin="216,212,0,0" VerticalAlignment="Top" />
         <CheckBox x:Name="CheckBoxNeadToUpDate" Content="Авто обновление" HorizontalAlignment="Right" Margin="0,299,134,0" VerticalAlignment="Top" />
         <CheckBox x:Name="CheckBoxNeadToLoadDataInServers" Content="Добавить данные к торговым серверам" HorizontalAlignment="Left" Margin="305,278,0,0" VerticalAlignment="Top" />
+        <Button Name="ButtonAccept" Content="Принять" HorizontalAlignment="Right" Margin="0,0,10,24" VerticalAlignment="Bottom" Width="191" Click="ButtonAccept_Click"/>
     </Grid>
 </Window>

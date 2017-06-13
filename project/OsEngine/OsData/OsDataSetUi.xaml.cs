@@ -22,6 +22,11 @@ namespace OsEngine.OsData
         private OsDataSet _set;
 
         /// <summary>
+        /// сохранён ли сет
+        /// </summary>
+        public bool IsSaved;
+
+        /// <summary>
         /// конструктор
         /// </summary>
         /// <param name="set">сет которым надо управлять</param>
@@ -40,8 +45,6 @@ namespace OsEngine.OsData
             }
 
             TextBoxFolderName.Text = set.SetName.Split('_')[1];
-
-            Closed += OsDataSetUi_Closed;
 
             ComboBoxRegime.Items.Add(DataSetState.Off);
             ComboBoxRegime.Items.Add(DataSetState.On);
@@ -109,6 +112,7 @@ namespace OsEngine.OsData
         /// </summary>
         void ComboBoxSource_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
+            SaveSettings();
             CheckButtons();
         }
 
@@ -117,7 +121,6 @@ namespace OsEngine.OsData
         /// </summary>
         void ComboBoxRegime_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
-            SaveSettings();
             CheckButtons();
         }
 
@@ -239,14 +242,6 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// окно закрывается
-        /// </summary>
-        void OsDataSetUi_Closed(object sender, EventArgs e)
-        {
-            SaveSettings();
-        }
-
-        /// <summary>
         /// сохранить настройки
         /// </summary>
         private void SaveSettings()
@@ -357,7 +352,6 @@ namespace OsEngine.OsData
         /// </summary>
         private void ButtonAddSecurity_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            SaveSettings();
             _set.AddNewSecurity();
             ReloadSecuritiesOnTable();
         }
@@ -367,13 +361,26 @@ namespace OsEngine.OsData
         /// </summary>
         private void ButtonDelSecurity_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            SaveSettings();
             if (_grid.CurrentCell == null)
             {
                 return;
             }
             _set.DeleteSecurity(_grid.Rows.Count -1 -_grid.CurrentCell.RowIndex);
             ReloadSecuritiesOnTable();
+        }
+
+        private void ButtonAccept_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            if (TextBoxFolderName.Text == "")
+            {
+                MessageBox.Show(@"Сохранение прервано. Сету необходимо задать имя");
+                return;
+            }
+
+            SaveSettings();
+
+            IsSaved = true;
+            Close();
         }
     }
 }

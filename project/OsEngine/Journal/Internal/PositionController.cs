@@ -511,6 +511,11 @@ namespace OsEngine.Journal.Internal
             }
         }
 
+        /// <summary>
+        /// пустой лист который мы возвращаем вместо null при запросе массивов
+        /// </summary>
+        private List<Position> _emptyList = new List<Position>(); 
+
         // последняя позиция
 
         /// <summary>

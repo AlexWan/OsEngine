@@ -728,6 +728,10 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         private void LoadSecurities()
         {
+            if(!Directory.Exists(_activSet))
+            {
+                return;
+            }
             if (_sourceDataType == TesterSourceDataType.Set && !string.IsNullOrWhiteSpace(_activSet))
             { // сеты данных Геркулеса
                 string[] directories = Directory.GetDirectories(_activSet);
@@ -768,13 +772,18 @@ namespace OsEngine.Market.Servers.Tester
         /// <param name="path">путь к папке с инструментом</param>
         private void LoadSeciruty(string path)
         {
+            string[] directories = Directory.GetDirectories(path);
+
+            if (directories.Length == 0)
+            {
+                return;
+            }
+
             TimeMax = DateTime.MinValue;
             TimeEnd = DateTime.MaxValue;
             TimeMin = DateTime.MaxValue;
             TimeStart = DateTime.MinValue;
             TimeNow = DateTime.MinValue;
-
-            string[] directories = Directory.GetDirectories(path);
 
             for (int i = 0; i < directories.Length; i++)
             {

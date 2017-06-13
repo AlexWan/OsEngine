@@ -430,7 +430,8 @@ namespace OsEngine.OsData
         /// </summary>
         void RedactSet_Click(object sender, EventArgs e)
         {
-            if (_gridset.CurrentCell.RowIndex <= -1)
+            if (_gridset.CurrentCell == null ||
+                _gridset.CurrentCell.RowIndex <= -1)
             {
                 return;
             }
@@ -442,7 +443,8 @@ namespace OsEngine.OsData
         /// </summary>
         void DeleteSet_Click(object sender, EventArgs e)
         {
-            if (_gridset.CurrentCell.RowIndex <= -1)
+            if (_gridset.CurrentCell == null || 
+                _gridset.CurrentCell.RowIndex <= -1)
             {
                 return;
             }
@@ -505,7 +507,13 @@ namespace OsEngine.OsData
             }
             OsDataSet set = new OsDataSet("Set_",_comboBoxSecurity,_comboBoxTimeFrame);
             set.NewLogMessageEvent += SendNewLogMessage;
-            set.ShowDialog();
+
+            if (!set.ShowDialog())
+            { // пользователь не нажал на кнопку принять в форме
+                set.Regime = DataSetState.Off;
+                set.Delete();
+                return;
+            }
 
             if (set.SetName == "Set_")
             {
@@ -518,6 +526,8 @@ namespace OsEngine.OsData
             if (_sets.Find(dataSet => dataSet.SetName == set.SetName) != null)
             {
                 MessageBox.Show(@"Создание сета прервано. Сет с таким именем уже существует!");
+                set.Regime = DataSetState.Off;
+                set.Delete();
                 return;
             }
 
@@ -562,8 +572,10 @@ namespace OsEngine.OsData
                 return;
             }
 
-            _sets[num].ShowDialog();
-            _sets[num].Save();
+            if (_sets[num].ShowDialog())
+            {
+                _sets[num].Save();
+            }
         }
     }
 }
