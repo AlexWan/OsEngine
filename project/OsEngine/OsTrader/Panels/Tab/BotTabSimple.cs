@@ -2662,6 +2662,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
+                if (!ServerMaster.IsTester &&
+                    (ServerStatus != ServerConnectStatus.Connect ||
+                    Securiti == null ||
+                    Portfolio == null))
+                {
+                    return;
+                }
 
                 if (position.StopOrderIsActiv)
                 {
@@ -2682,16 +2689,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                         position.ProfitOrderIsActiv = false;
                         CloseDeal(position, OrderPriceType.Limit, position.StopOrderPrice, _manualControl.SecondToClose, true);
                     }
-
-                    /* if (position.State == PositionStateType.Done)
-                     {
-                         decimal f = position.OpenOrders[0].PriceReal - position.CloseOrders[position.CloseOrders.Count-1].PriceReal;
-                         if (f > 1 &&
-                             f < 1)
-                         {
-
-                         }
-                     }*/
                 }
 
                 if (position.ProfitOrderIsActiv)
@@ -2870,6 +2867,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
+            if (ServerStatus != ServerConnectStatus.Connect ||
+                Securiti == null ||
+                Portfolio == null)
+            {
+                return;
+            }
+
             List<Position> positions = PositionsAll.FindAll(position => position.State == PositionStateType.ClosingSurplus ||
                 position.OpenVolume < 0);
 
@@ -2927,24 +2931,36 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void CheckStopOpener(decimal price)
         {
+            if (!ServerMaster.IsTester &&
+                (ServerStatus != ServerConnectStatus.Connect ||
+                Securiti == null ||
+                Portfolio == null))
+            {
+                return;
+            }
+
             try
             {
-                for (int i = 0;i >-1 && _stopsOpener != null && _stopsOpener.Count != 0 && i < _stopsOpener.Count; i++)
+                for (int i = 0;
+                    i > -1 && _stopsOpener != null && _stopsOpener.Count != 0 && i < _stopsOpener.Count;
+                    i++)
                 {
                     if ((_stopsOpener[i].ActivateType == StopActivateType.HigherOrEqual &&
-                        price >= _stopsOpener[i].PriceRedLine) // пробили вниз
+                         price >= _stopsOpener[i].PriceRedLine) // пробили вниз
                         ||
                         (_stopsOpener[i].ActivateType == StopActivateType.LowerOrEqyal &&
-                        price <= _stopsOpener[i].PriceRedLine)) // пробили вверх
+                         price <= _stopsOpener[i].PriceRedLine)) // пробили вверх
                     {
                         if (_stopsOpener[i].Side == Side.Buy)
                         {
-                            LongCreate(_stopsOpener[i].PriceOrder, _stopsOpener[i].Volume, OrderPriceType.Limit, _manualControl.SecondToOpen, true);
+                            LongCreate(_stopsOpener[i].PriceOrder, _stopsOpener[i].Volume, OrderPriceType.Limit,
+                                _manualControl.SecondToOpen, true);
                             //BuyAtLimit(_stopsOpener[i].Volume, _stopsOpener[i].PriceOrder);
                         }
                         else if (_stopsOpener[i].Side == Side.Sell)
                         {
-                            ShortCreate(_stopsOpener[i].PriceOrder, _stopsOpener[i].Volume, OrderPriceType.Limit, _manualControl.SecondToOpen, true);
+                            ShortCreate(_stopsOpener[i].PriceOrder, _stopsOpener[i].Volume, OrderPriceType.Limit,
+                                _manualControl.SecondToOpen, true);
                             //SellAtLimit(_stopsOpener[i].Volume, _stopsOpener[i].PriceOrder);
                         }
                         if (_stopsOpener.Count != 0)
