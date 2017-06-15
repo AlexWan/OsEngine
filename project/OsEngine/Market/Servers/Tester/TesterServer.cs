@@ -276,6 +276,10 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         public void TestingFast()
         {
+            if (_dataIsActive == false)
+            {
+                return;
+            }
             if (TestingFastEvent != null)
             {
                 TestingFastEvent();
