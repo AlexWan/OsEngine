@@ -271,6 +271,7 @@
     <Compile Include="Entity\AcceptDialogUi.xaml.cs">
       <DependentUpon>AcceptDialogUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Entity\CandleConverter.cs" />
     <Compile Include="Entity\CumulativeDeltaTimeFrameUi.xaml.cs">
       <DependentUpon>CumulativeDeltaTimeFrameUi.xaml</DependentUpon>
     </Compile>
@@ -334,7 +335,7 @@
       <DependentUpon>SmartComServerUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Entity\CandleManager.cs" />
-    <Compile Include="Entity\Candles.cs" />
+    <Compile Include="Entity\Candle.cs" />
     <Compile Include="Entity\CandleSeries.cs" />
     <Compile Include="Entity\Position.cs" />
     <Compile Include="Entity\PositionOpenerToStop.cs" />
@@ -414,6 +415,9 @@
     </Compile>
     <Compile Include="OsTrader\Panels\PanelsGui\BollingerTradeUi.xaml.cs">
       <DependentUpon>BollingerTradeUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\PanelsGui\BotWhithTwoTimeFrameUi.xaml.cs">
+      <DependentUpon>BotWhithTwoTimeFrameUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="OsTrader\Panels\PanelsGui\CCITradeUi.xaml.cs">
       <DependentUpon>CCITradeUi.xaml</DependentUpon>
@@ -846,6 +850,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="OsTrader\Panels\PanelsGui\BollingerTradeUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\PanelsGui\BotWhithTwoTimeFrameUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

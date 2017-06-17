@@ -26,7 +26,7 @@ namespace OsEngine.OsTrader.Panels
             List<string> result = new List<string>();
 
             // публичные примеры
-
+            result.Add("TwoTimeFrameBot");
             result.Add("Engine");
             result.Add("Bollinger");
             result.Add("Williams Band");
@@ -74,6 +74,10 @@ namespace OsEngine.OsTrader.Panels
             BotPanel bot = null;
             // примеры и бесплатные боты
 
+            if (nameClass == "TwoTimeFrameBot")
+            {
+                bot = new BotWhithTwoTimeFrame(name);
+            }
             if (nameClass == "PivotPointsRobot")
             {
                 bot = new PivotPointsRobot(name);
@@ -348,7 +352,87 @@ namespace OsEngine.OsTrader.Panels
     /// <summary>
     /// Двуногий арбитраж. Торговля двумя инструменетами конттренд при уходе индекса в зону перекупленности/перепроданности по RSI
     /// </summary>
-    
+
+    public class BotWhithTwoTimeFrame : BotPanel
+    {
+        public BotWhithTwoTimeFrame(string name) : base(name)
+        {
+            TabCreate(BotTabType.Simple);
+            TabsSimple[0].CandleFinishedEvent += BotWhithTwoTimeFrame_CandleFinishedEvent;
+            TabsSimple[0].PositionOpeningSuccesEvent += BotWhithTwoTimeFrame_PositionOpeningSuccesEvent;
+
+            Moving = new MovingAverage("moving",false);
+            Moving.Lenght = 25;
+            Moving.TypeCalculationAverage = MovingAverageTypeCalculation.Exponential;
+        }
+
+        void BotWhithTwoTimeFrame_PositionOpeningSuccesEvent(Position position)
+        {
+
+            TabsSimple[0].CloseAtStop(position, position.EntryPrice - 20*TabsSimple[0].Securiti.PriceStep,
+                position.EntryPrice - 20*TabsSimple[0].Securiti.PriceStep);
+
+            TabsSimple[0].CloseAtProfit(position, position.EntryPrice + 20 * TabsSimple[0].Securiti.PriceStep,
+                position.EntryPrice + 20 * TabsSimple[0].Securiti.PriceStep);
+
+        }
+
+        /// <summary>
+        /// машка, которая рассчитывается по дополнительному ТаймФрейму
+        /// </summary>
+        public MovingAverage Moving;
+
+        public List<Candle> MergeCandles;
+
+        void BotWhithTwoTimeFrame_CandleFinishedEvent(List<Candle> candles)
+        {
+            // логика такая.
+            // на базовом ТФ последняя свеча растущая
+            // на сжатом ТФ закрытие свечи выше чем машка
+            // выход по стопу и профиту
+
+            if (candles.Count < 5)
+            {
+                CandleConverter.Clear();
+                return;
+            }
+
+            List<Position> positions = TabsSimple[0].PositionsOpenAll;
+
+            MergeCandles = CandleConverter.Merge(candles, 5);
+            Moving.Process(MergeCandles); // прогружаем индикатор вручную, схлопнутыми свечками
+
+            if (positions == null ||
+                positions.Count == 0)
+            {
+
+                if (MergeCandles.Count < Moving.Lenght)
+                {
+                    return;
+                }
+
+                if (candles[candles.Count - 1].IsUp &&
+                    MergeCandles[MergeCandles.Count - 1].Close >
+                    Moving.Values[Moving.Values.Count - 1])
+                {
+                    TabsSimple[0].BuyAtLimit(1, candles[candles.Count - 1].Close);
+                }
+            }
+        }
+
+        public override string GetNameStrategyType()
+        {
+
+            return "TwoTimeFrameBot";
+        }
+
+        public override void ShowIndividualSettingsDialog()
+        {
+            BotWhithTwoTimeFrameUi ui = new BotWhithTwoTimeFrameUi(this);
+            ui.ShowDialog();
+        }
+    }
+
     public class TwoLegArbitration : BotPanel
 
     {

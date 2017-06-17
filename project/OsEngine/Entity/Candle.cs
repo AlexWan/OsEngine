@@ -51,7 +51,37 @@ namespace OsEngine.Entity
         /// <summary>
         /// трейды составляющие эту свечу
         /// </summary>
-        public List<Trade> Trades; 
+        public List<Trade> Trades;
+
+        /// <summary>
+        /// растущая ли эта свеча
+        /// </summary>
+        public bool IsUp
+        {
+            get
+            {
+                if (Close > Open)
+                {
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// падающая ли эта свеча
+        /// </summary>
+        public bool IsDown
+        {
+            get
+            {
+                if (Close < Open)
+                {
+                    return true;
+                }
+                return false;
+            }
+        }
 
         /// <summary>
         /// загрузить состояние свечи из строки

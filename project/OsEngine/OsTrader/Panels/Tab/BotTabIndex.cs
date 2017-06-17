@@ -34,7 +34,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             TabName = name;
             Tabs = new List<Connector>();
-            _valuesToFormula = new List<ValueForm>();
+            _valuesToFormula = new List<ValueSave>();
             _chartMaster = new ChartMaster(TabName);
 
             Load();
@@ -233,7 +233,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             if (_valuesToFormula != null && !string.IsNullOrWhiteSpace(nameArray))
             {
-                ValueForm val = _valuesToFormula.Find(v => v.Name == nameArray);
+                ValueSave val = _valuesToFormula.Find(v => v.Name == nameArray);
 
                 if (val != null)
                 {
@@ -281,7 +281,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _userFormula = value;
                 Save();
 
-                _valuesToFormula = new List<ValueForm>();
+                _valuesToFormula = new List<ValueSave>();
                 Candles = new List<Candle>();
                 _chartMaster.Clear();
 
@@ -291,7 +291,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (_valuesToFormula != null && !string.IsNullOrWhiteSpace(nameArray))
                 {
-                    ValueForm val = _valuesToFormula.Find(v => v.Name == nameArray);
+                    ValueSave val = _valuesToFormula.Find(v => v.Name == nameArray);
 
                     if (val != null)
                     {
@@ -317,7 +317,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// массив объектов для хранения промежуточных массивов свечей
         /// </summary>
-        private List<ValueForm> _valuesToFormula;
+        private List<ValueSave> _valuesToFormula;
 
         /// <summary>
         /// проверить формулу на ошибки и привести к виду программы
@@ -673,7 +673,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             if (candlesOne == null)
             {
-                ValueForm value = _valuesToFormula.Find(v => v.Name == valOne);
+                ValueSave value = _valuesToFormula.Find(v => v.Name == valOne);
                 if (value == null)
                 {
                     return "";
@@ -698,7 +698,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             if (candlesTwo == null)
             {
-                ValueForm value = _valuesToFormula.Find(v => v.Name == valTwo);
+                ValueSave value = _valuesToFormula.Find(v => v.Name == valTwo);
                 if (value == null)
                 {
                     return "";
@@ -727,11 +727,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 znak = "devide";
             }
 
-            ValueForm exitVal = _valuesToFormula.Find(val => val.Name == "B" + valOne + znak + valTwo);
+            ValueSave exitVal = _valuesToFormula.Find(val => val.Name == "B" + valOne + znak + valTwo);
 
             if (exitVal == null)
             {
-                exitVal = new ValueForm();
+                exitVal = new ValueSave();
                 exitVal.Name = "B" +  valOne + znak + valTwo;
                 exitVal.ValueCandles = new List<Candle>();
                 _valuesToFormula.Add(exitVal);
@@ -817,7 +817,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             if (candlesOne == null)
             {
-                ValueForm value = _valuesToFormula.Find(v => v.Name == valOne);
+                ValueSave value = _valuesToFormula.Find(v => v.Name == valOne);
                 if (value == null)
                 {
                     return "";
@@ -851,11 +851,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 znak = "devide";
             }
 
-            ValueForm exitVal = _valuesToFormula.Find(val => val.Name == "B" + valOne + znak + valTwo);
+            ValueSave exitVal = _valuesToFormula.Find(val => val.Name == "B" + valOne + znak + valTwo);
 
             if (exitVal == null)
             {
-                exitVal = new ValueForm();
+                exitVal = new ValueSave();
                 exitVal.Name = "B" + valOne + znak + valTwo;
                 exitVal.ValueCandles = new List<Candle>();
                 _valuesToFormula.Add(exitVal);
@@ -918,7 +918,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             if (candlesTwo == null)
             {
-                ValueForm value = _valuesToFormula.Find(v => v.Name == valTwo);
+                ValueSave value = _valuesToFormula.Find(v => v.Name == valTwo);
                 if (value == null)
                 {
                     return "";
@@ -947,11 +947,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 znak = "devide";
             }
 
-            ValueForm exitVal = _valuesToFormula.Find(val => val.Name == "B" + valOne + znak + valTwo);
+            ValueSave exitVal = _valuesToFormula.Find(val => val.Name == "B" + valOne + znak + valTwo);
 
             if (exitVal == null)
             {
-                exitVal = new ValueForm();
+                exitVal = new ValueSave();
                 exitVal.Name = "B" +  valOne + znak + valTwo;
                 exitVal.ValueCandles = new List<Candle>();
                 _valuesToFormula.Add(exitVal);
@@ -1159,7 +1159,7 @@ namespace OsEngine.OsTrader.Panels.Tab
     /// <summary>
     /// объект для хранения промежуточных данных по индексу
     /// </summary>
-    public class ValueForm
+    public class ValueSave
     {
         /// <summary>
         /// имя
