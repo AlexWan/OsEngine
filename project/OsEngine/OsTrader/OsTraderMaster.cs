@@ -96,6 +96,8 @@ namespace OsEngine.OsTrader
             _log.Listen(this);
             _hostLogPrime = hostLogPrime;
 
+            SendNewLogMessage("Запуск OsTraderMaster. Включение программы.",LogMessageType.User);
+
             Load();
             _tabBotNames.SelectionChanged += _tabBotControl_SelectionChanged;
             ReloadRiskJournals();
