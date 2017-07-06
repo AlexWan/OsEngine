@@ -699,10 +699,12 @@ namespace OsEngine.Market
         /// </summary>
         void ConnectorBot_NewTradeEvent(List<Trade> tradesList)
         {
-
             try
             {
-                if (tradesList == null || tradesList.Count == 0 || tradesList[tradesList.Count - 1] == null ||
+                if (NamePaper == null ||
+                    tradesList == null || 
+                    tradesList.Count == 0 || 
+                    tradesList[tradesList.Count - 1] == null ||
                     tradesList[tradesList.Count - 1].SecurityNameCode != NamePaper)
                 {
                     return;

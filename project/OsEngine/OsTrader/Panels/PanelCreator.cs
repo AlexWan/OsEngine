@@ -6694,8 +6694,6 @@ namespace OsEngine.OsTrader.Panels
             DeleteEvent += Strategy_DeleteEvent;
         }
 
-
-
         /// <summary>
         /// взять уникальное имя
         /// </summary>

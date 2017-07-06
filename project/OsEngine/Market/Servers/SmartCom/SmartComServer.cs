@@ -1619,7 +1619,7 @@ namespace OsEngine.Market.Servers.SmartCom
                order.Volume = Convert.ToInt32(amount);
                order.VolumeExecute = Convert.ToInt32(amount) - Convert.ToInt32(filled);
                order.NumberUser = cookie;
-               order.NumberMarket = orderno;
+               //order.NumberMarket = orderno;
                order.PortfolioNumber = portfolio;
 
                if (state == StOrder_State.StOrder_State_Open ||

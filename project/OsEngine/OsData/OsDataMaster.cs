@@ -450,7 +450,7 @@ namespace OsEngine.OsData
                 return;
             }
 
-            AcceptDialogUi ui = new AcceptDialogUi("Вы собираетесь удалить сет. Он будет удалён безвозвратно! Вы уверены?");
+            AcceptDialogUi ui = new AcceptDialogUi("Вы собираетесь удалить сет. Вы уверены?");
             ui.ShowDialog();
 
             if (ui.UserAcceptActioin == false)
