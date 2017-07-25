@@ -33,7 +33,7 @@
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -1071,8 +1071,8 @@
     <Resource Include="Images\pickUpSmall.png" />
   </ItemGroup>
   <ItemGroup>
-    <COMReference Include="SmartCOM3Lib">
-      <Guid>{8252879C-6E32-4322-A38D-8EBA54E52595}</Guid>
+    <COMReference Include="SmartCOM4Lib">
+      <Guid>{D12929CB-4569-46B7-99CE-FFF546E41866}</Guid>
       <VersionMajor>1</VersionMajor>
       <VersionMinor>0</VersionMinor>
       <Lcid>0</Lcid>

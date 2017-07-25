@@ -11,7 +11,7 @@ using System.Threading;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
-using SmartCOM3Lib;
+using SmartCOM4Lib;
 
 namespace OsEngine.Market.Servers.SmartCom
 {
@@ -427,7 +427,6 @@ namespace OsEngine.Market.Servers.SmartCom
                for (int i = 0; i < _portfolios.Count; i++)
                {
                    SmartServer.ListenPortfolio(_portfolios[i].Number);
-                   SmartServer.GetMyOrders(1, _portfolios[i].Number); 
                }
            }
        }
@@ -679,6 +678,11 @@ namespace OsEngine.Market.Servers.SmartCom
 
            private set
            {
+               if(value < _serverTime)
+               {
+                   return;
+               }
+
                DateTime lastTime = _serverTime;
                _serverTime = value;
 
@@ -810,7 +814,7 @@ namespace OsEngine.Market.Servers.SmartCom
         /// <param name="comission">сумма комиссии</param>
         /// <param name="saldo">сальдо, т.е. итоговая прибыль сегодня</param>
         private void SmartServer_SetPortfolio(string portfolio, double cash, double leverage, double comission,
-            double saldo)
+            double saldo, double liquidationValue, double initialMargin, double totalAssets)
         {
             lock (_lockerSetPortfolio)
             {
@@ -1061,6 +1065,11 @@ namespace OsEngine.Market.Servers.SmartCom
            try
            {
                if (_lastStartServerTime.AddSeconds(15) > DateTime.Now)
+               {
+                   return null;
+               }
+
+               if (_startListeningPortfolios == false)
                {
                    return null;
                }
@@ -1480,7 +1489,7 @@ namespace OsEngine.Market.Servers.SmartCom
        /// входящие из системы мои сделки
        /// </summary>
        private void SmartServer_AddTrade(string portfolio, string symbol, string orderid, double price, double amount,
-           DateTime datetime, string tradeno)
+           DateTime datetime, string tradeno, double value, double accruedint)
        {
            try
            {
@@ -1563,7 +1572,11 @@ namespace OsEngine.Market.Servers.SmartCom
                        {
                            lock (_smartComServerLocker)
                            {
-                               SmartServer.CancelOrder(order.PortfolioNumber, order.SecurityNameCode, order.NumberMarket);
+                               Order realOrder = _ordersWhithId.Find(o => o.NumberUser == order.NumberUser);
+                               if (realOrder != null)
+                               {
+                                   SmartServer.CancelOrder(order.PortfolioNumber, order.SecurityNameCode, realOrder.Comment);
+                               }
                            }
                        }
                    }
@@ -1602,25 +1615,32 @@ namespace OsEngine.Market.Servers.SmartCom
            _ordersToCansel.Enqueue(order);
        }
 
+       private List<Order> _ordersWhithId = new List<Order>(); 
+
        /// <summary>
        /// входящий из системы ордер
        /// </summary>
        void SmartServer_UpdateOrder(string portfolio, string symbol, StOrder_State state, StOrder_Action action, StOrder_Type type,
            StOrder_Validity validity, double price, double amount, double stop, double filled, DateTime datetime,
-           string orderid, string orderno, int statusMask, int cookie)
+           string orderid, string orderno, int statusMask, int cookie, string description)
        {
            try
            {
                Order order = new Order();
                order.NumberUser = cookie;
-               order.NumberMarket = orderid;
+               order.NumberMarket = orderno;
                order.SecurityNameCode = symbol;
                order.Price = Convert.ToDecimal(price);
                order.Volume = Convert.ToInt32(amount);
                order.VolumeExecute = Convert.ToInt32(amount) - Convert.ToInt32(filled);
                order.NumberUser = cookie;
-               //order.NumberMarket = orderno;
+               order.Comment = orderid;
                order.PortfolioNumber = portfolio;
+
+               if (_ordersWhithId.Find(o => o.Comment == order.Comment) == null)
+               {
+                   _ordersWhithId.Add(order);
+               }
 
                if (state == StOrder_State.StOrder_State_Open ||
                    state == StOrder_State.StOrder_State_Submited)
@@ -1804,11 +1824,11 @@ namespace OsEngine.Market.Servers.SmartCom
             Thread.Sleep(5000);
             if (PortfolioEvent != null)
             {
-                PortfolioEvent(Portfolio,Cash,Leverage,Comission,Saldo);
+                PortfolioEvent(Portfolio,Cash,Leverage,Comission,Saldo,0,0,0);
             }
         }
 
-        public event Action<string,double,double,double,double> PortfolioEvent;
+        public event Action<string,double,double,double,double,double,double,double> PortfolioEvent;
     }
 
 }

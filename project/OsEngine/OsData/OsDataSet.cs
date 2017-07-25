@@ -1427,7 +1427,15 @@ namespace OsEngine.OsData
 
                 if ((!reader.EndOfStream))
                 {
-                    newTrade.SetTradeFromString(reader.ReadLine());
+                    try
+                    {
+                        newTrade.SetTradeFromString(reader.ReadLine());
+                    }
+                    catch (Exception)
+                    {
+                        continue;
+                    }
+                    
                     SaveThisTick(newTrade,
                         path, securityName, null, path + securityName.Replace("/", "") + ".txt");
                 }
