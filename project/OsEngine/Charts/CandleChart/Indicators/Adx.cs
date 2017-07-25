@@ -106,6 +106,22 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public List<decimal> Values 
         { get; set; }
 
+        public List<decimal> ValuesDiPlus
+        {
+            get
+            {
+                return new List<decimal>(_sDIjPlus);
+            }
+        }
+
+        public List<decimal> ValuesDiMinus
+        {
+            get
+            {
+                return new List<decimal>(_sDIjMinus);
+            }
+        }
+
         /// <summary>
         /// уникальное имя индикатора
         /// </summary>
@@ -327,19 +343,20 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// </summary>
         private List<decimal> _trueRange;
 
-        private List<decimal> _trueRangeAverage; 
+        private List<decimal> _trueRangeAverage;
 
         /// <summary>
         /// движение, через истинный диапазон за свечку
         /// </summary>
         private List<decimal> _sDIjPlus;
+        
 
         /// <summary>
         /// движение через истинный диапазон за свечку
         /// </summary>
         private List<decimal> _sDIjMinus;
 
-// 2 часть. Рассчёт АДХ наконецто...
+        // 2 часть. Рассчёт АДХ наконецто...
 
         private List<decimal> _dX;
 
