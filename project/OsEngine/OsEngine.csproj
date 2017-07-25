@@ -58,9 +58,9 @@
     <ApplicationIcon>Images\OsLogo.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="cgate_net, Version=3.14.1.16922, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="cgate_net64, Version=5.2.1.21764, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Moscow Exchange\SpectraCGate\bin\cgate_net.dll</HintPath>
+      <HintPath>bin\Debug\cgate_net64.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="qC, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
