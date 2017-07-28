@@ -1,0 +1,137 @@
+25.07.2017 13:30:23_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 13:57:43_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 13:58:54_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 14:00:47_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 14:01:57_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 14:02:56_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 14:05:30_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 14:06:03_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 14:11:31_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 14:12:07_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 14:12:07_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 14:12:29_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 14:12:31_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 14:15:17_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 14:16:27_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 14:17:00_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 14:20:03_System_Не возможно открыть сделку! Нет портфеля или бумаги!
+25.07.2017 14:20:07_System_Не возможно открыть сделку! Нет портфеля или бумаги!
+25.07.2017 14:20:38_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 15:24:35_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 15:24:35_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 15:25:46_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 15:30:49_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 15:31:45_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 15:31:55_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 15:32:25_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 15:34:36_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 15:43:15_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 16:05:16_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 16:05:20_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 16:08:51_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 16:14:32_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 705
+25.07.2017 18:09:57_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades)
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList)
+25.07.2017 18:30:36_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 18:48:13_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 19:18:14_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 19:19:34_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 19:44:17_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 20:26:54_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 21:06:51_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 21:22:14_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+25.07.2017 21:42:20_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 435606802
+25.07.2017 21:42:21_System_Робот RiU7tab0 Сделка не открылась номер 1408
+25.07.2017 21:42:28_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 435607015
+25.07.2017 21:42:29_System_Робот RiU7tab0 Сделка не открылась номер 1409
+25.07.2017 21:42:38_Trade_Робот RiU7tab0 Открытие сделки номер 1410. Инструмент: RIU7Объём: 1
+25.07.2017 21:43:17_Trade_Робот RiU7tab0 Открытие сделки номер 1411. Инструмент: RIU7Объём: 1
+25.07.2017 21:43:53_User_Робот RiU7tab0 Пользователь заказал закрытие всех сделок
+25.07.2017 21:43:54_Trade_Робот RiU7tab0 Закрытие сделки номер 1410. Инструмент: RIU7Закрытый объём: 1
+25.07.2017 21:43:54_Trade_Робот RiU7tab0 Закрытие сделки номер 1411. Инструмент: RIU7Закрытый объём: 1
+25.07.2017 21:56:31_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 435627546
+25.07.2017 21:56:36_System_Робот RiU7tab0 Сделка не открылась номер 1434
+25.07.2017 21:56:48_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 435628644
+25.07.2017 21:56:48_System_Робот RiU7tab0 Сделка не открылась номер 1435
+25.07.2017 21:56:54_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 435628860
+25.07.2017 21:56:54_System_Робот RiU7tab0 Сделка не открылась номер 1436
+25.07.2017 21:57:35_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 435629206
+25.07.2017 21:57:44_System_Робот RiU7tab0 Сделка не открылась номер 1437
+25.07.2017 22:10:22_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 435649691
+25.07.2017 22:10:23_System_Робот RiU7tab0 Сделка не открылась номер 1456

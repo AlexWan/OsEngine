@@ -1,0 +1,67 @@
+26.07.2017 12:53:57_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 436243208
+26.07.2017 12:53:58_System_Робот RiU7tab0 Сделка не открылась номер 1508
+26.07.2017 12:54:07_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 436243859
+26.07.2017 12:54:08_System_Робот RiU7tab0 Сделка не открылась номер 1509
+26.07.2017 12:54:17_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 436244587
+26.07.2017 12:54:18_System_Робот RiU7tab0 Сделка не открылась номер 1510
+26.07.2017 13:47:22_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 436458857
+26.07.2017 14:00:19_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 436503368
+26.07.2017 14:08:37_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 436515958
+26.07.2017 14:10:07_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 436521323
+26.07.2017 14:21:11_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 436559947
+26.07.2017 14:31:21_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+26.07.2017 14:32:21_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 436597446
+26.07.2017 14:33:13_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 436604892
+26.07.2017 14:34:15_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 436606500
+26.07.2017 14:35:56_Trade_Робот RiU7tab0 Открытие сделки номер 1670. Инструмент: RIU7Объём: 1
+26.07.2017 14:36:02_Trade_Робот RiU7tab0 Открытие сделки номер 1671. Инструмент: RIU7Объём: 1
+26.07.2017 14:36:07_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 436614593
+26.07.2017 14:36:15_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 436615068
+26.07.2017 14:48:17_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 436663421
+26.07.2017 13:49:51_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 436665851
+26.07.2017 13:50:01_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 436666195
+26.07.2017 13:56:53_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 436690367
+26.07.2017 13:56:59_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 436690716
+26.07.2017 13:57:01_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 436690952
+26.07.2017 13:57:03_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 436691109
+26.07.2017 13:57:03_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 436691223
+26.07.2017 13:57:07_Trade_Робот RiU7tab0 Отозвали ордер по времени, номер 436691363
+26.07.2017 14:27:46_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+26.07.2017 14:33:52_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+26.07.2017 15:14:44_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+26.07.2017 15:16:55_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+26.07.2017 15:31:32_Trade_Робот RiU7tab0 Открытие сделки номер 1715. Инструмент: RIU7Объём: 1
+26.07.2017 15:31:32_Trade_Робот RiU7tab0 Открытие сделки номер 1716. Инструмент: RIU7Объём: 1
+26.07.2017 15:31:51_Trade_Робот RiU7tab0 Открытие сделки номер 1717. Инструмент: RIU7Объём: 1
+26.07.2017 15:31:54_Trade_Робот RiU7tab0 Открытие сделки номер 1718. Инструмент: RIU7Объём: 1
+26.07.2017 15:31:55_Trade_Робот RiU7tab0 Открытие сделки номер 1719. Инструмент: RIU7Объём: 1
+26.07.2017 15:31:55_Trade_Робот RiU7tab0 Открытие сделки номер 1720. Инструмент: RIU7Объём: 1
+26.07.2017 15:31:55_Trade_Робот RiU7tab0 Открытие сделки номер 1721. Инструмент: RIU7Объём: 1
+26.07.2017 15:31:55_Trade_Робот RiU7tab0 Открытие сделки номер 1722. Инструмент: RIU7Объём: 1
+26.07.2017 15:31:55_Trade_Робот RiU7tab0 Открытие сделки номер 1723. Инструмент: RIU7Объём: 1
+26.07.2017 15:31:55_Trade_Робот RiU7tab0 Открытие сделки номер 1724. Инструмент: RIU7Объём: 1
+26.07.2017 15:31:56_Trade_Робот RiU7tab0 Открытие сделки номер 1725. Инструмент: RIU7Объём: 1
+26.07.2017 15:31:56_Trade_Робот RiU7tab0 Открытие сделки номер 1726. Инструмент: RIU7Объём: 1
+26.07.2017 15:31:56_Trade_Робот RiU7tab0 Открытие сделки номер 1727. Инструмент: RIU7Объём: 1
+26.07.2017 15:31:56_Trade_Робот RiU7tab0 Открытие сделки номер 1728. Инструмент: RIU7Объём: 1
+26.07.2017 15:31:57_Trade_Робот RiU7tab0 Открытие сделки номер 1729. Инструмент: RIU7Объём: 1
+26.07.2017 15:31:58_Trade_Робот RiU7tab0 Открытие сделки номер 1730. Инструмент: RIU7Объём: 1
+26.07.2017 16:23:01_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+26.07.2017 17:40:04_Trade_Робот RiU7tab0 Открытие сделки номер 1786. Инструмент: RIU7Объём: 1
+26.07.2017 17:40:05_Trade_Робот RiU7tab0 Открытие сделки номер 1787. Инструмент: RIU7Объём: 1
+26.07.2017 17:40:06_Trade_Робот RiU7tab0 Открытие сделки номер 1788. Инструмент: RIU7Объём: 1
+26.07.2017 17:40:19_Trade_Робот RiU7tab0 Открытие сделки номер 1791. Инструмент: RIU7Объём: 1
+26.07.2017 17:40:19_Trade_Робот RiU7tab0 Открытие сделки номер 1792. Инструмент: RIU7Объём: 1
+26.07.2017 17:40:20_Trade_Робот RiU7tab0 Открытие сделки номер 1793. Инструмент: RIU7Объём: 1

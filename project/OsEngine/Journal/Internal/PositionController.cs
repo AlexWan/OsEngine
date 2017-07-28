@@ -315,8 +315,6 @@ namespace OsEngine.Journal.Internal
                 return;
             }
 
-            _deals.Remove(position);
-
             _openPositionChanged = true;
             _openLongChanged = true;
             _openShortChanged = true;

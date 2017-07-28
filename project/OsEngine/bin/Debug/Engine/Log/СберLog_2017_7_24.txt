@@ -1,0 +1,7 @@
+24.07.2017 18:00:55_User_Робот Сберtab0 Пользователь заказал закрытие всех сделок
+24.07.2017 20:32:57_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+24.07.2017 21:56:01_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713

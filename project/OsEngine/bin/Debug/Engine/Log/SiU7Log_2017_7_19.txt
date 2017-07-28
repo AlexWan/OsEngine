@@ -1,0 +1,50 @@
+19.07.2017 13:29:08_Error_System.ArgumentOutOfRangeException: Индекс за пределами диапазона. Индекс должен быть положительным числом, а его размер не должен превышать размер коллекции.
+Имя параметра: index
+   в System.ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument argument, ExceptionResource resource)
+   в System.Collections.Generic.List`1.get_Item(Int32 index)
+   в OsEngine.Market.Connector.ConnectorBot_NewMarketDepthEvent(MarketDepth glass) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 682
+19.07.2017 15:05:52_Error_System.ArgumentOutOfRangeException: Индекс за пределами диапазона. Индекс должен быть положительным числом, а его размер не должен превышать размер коллекции.
+Имя параметра: index
+   в System.ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument argument, ExceptionResource resource)
+   в System.Collections.Generic.List`1.get_Item(Int32 index)
+   в OsEngine.Market.Connector.PaintMarketDepth(MarketDepth depth) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 1317
+19.07.2017 15:08:09_Error_System.ArgumentOutOfRangeException: Индекс за пределами диапазона. Индекс должен быть положительным числом, а его размер не должен превышать размер коллекции.
+Имя параметра: index
+   в System.ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument argument, ExceptionResource resource)
+   в System.Collections.Generic.List`1.get_Item(Int32 index)
+   в OsEngine.Market.Connector.PaintMarketDepth(MarketDepth depth) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 1316
+19.07.2017 17:41:15_Error_System.ArgumentOutOfRangeException: Индекс за пределами диапазона. Индекс должен быть положительным числом, а его размер не должен превышать размер коллекции.
+Имя параметра: index
+   в System.ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument argument, ExceptionResource resource)
+   в System.Collections.Generic.List`1.get_Item(Int32 index)
+   в OsEngine.Market.Connector.ConnectorBot_NewMarketDepthEvent(MarketDepth glass) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 682
+19.07.2017 18:00:55_Error_System.ArgumentOutOfRangeException: Индекс за пределами диапазона. Индекс должен быть положительным числом, а его размер не должен превышать размер коллекции.
+Имя параметра: index
+   в System.ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument argument, ExceptionResource resource)
+   в System.Collections.Generic.List`1.get_Item(Int32 index)
+   в OsEngine.Market.Connector.ConnectorBot_NewMarketDepthEvent(MarketDepth glass) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 682
+19.07.2017 18:23:49_Error_System.ArgumentOutOfRangeException: Индекс за пределами диапазона. Индекс должен быть положительным числом, а его размер не должен превышать размер коллекции.
+Имя параметра: index
+   в System.ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument argument, ExceptionResource resource)
+   в System.Collections.Generic.List`1.get_Item(Int32 index)
+   в OsEngine.Market.Connector.PaintMarketDepth(MarketDepth depth) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 1338
+19.07.2017 18:26:21_Error_System.ArgumentOutOfRangeException: Индекс за пределами диапазона. Индекс должен быть положительным числом, а его размер не должен превышать размер коллекции.
+Имя параметра: index
+   в System.ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument argument, ExceptionResource resource)
+   в System.Collections.Generic.List`1.get_Item(Int32 index)
+   в OsEngine.Market.Connector.PaintMarketDepth(MarketDepth depth) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 1340
+19.07.2017 18:43:25_Error_System.ArgumentOutOfRangeException: Индекс за пределами диапазона. Индекс должен быть положительным числом, а его размер не должен превышать размер коллекции.
+Имя параметра: index
+   в System.ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument argument, ExceptionResource resource)
+   в System.Collections.Generic.List`1.get_Item(Int32 index)
+   в OsEngine.Market.Connector.PaintMarketDepth(MarketDepth depth) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 1317
+19.07.2017 19:11:29_Error_System.ArgumentOutOfRangeException: Индекс за пределами диапазона. Индекс должен быть положительным числом, а его размер не должен превышать размер коллекции.
+Имя параметра: index
+   в System.ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument argument, ExceptionResource resource)
+   в System.Collections.Generic.List`1.get_Item(Int32 index)
+   в OsEngine.Market.Connector.PaintMarketDepth(MarketDepth depth) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 1338
+19.07.2017 21:39:54_Error_System.ArgumentOutOfRangeException: Индекс за пределами диапазона. Индекс должен быть положительным числом, а его размер не должен превышать размер коллекции.
+Имя параметра: index
+   в System.ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument argument, ExceptionResource resource)
+   в System.Collections.Generic.List`1.get_Item(Int32 index)
+   в OsEngine.Market.Connector.PaintMarketDepth(MarketDepth depth) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 1435

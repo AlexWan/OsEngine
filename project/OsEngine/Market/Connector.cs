@@ -699,12 +699,10 @@ namespace OsEngine.Market
         /// </summary>
         void ConnectorBot_NewTradeEvent(List<Trade> tradesList)
         {
+
             try
             {
-                if (NamePaper == null ||
-                    tradesList == null || 
-                    tradesList.Count == 0 || 
-                    tradesList[tradesList.Count - 1] == null ||
+                if (tradesList == null || tradesList.Count == 0 || tradesList[tradesList.Count - 1] == null ||
                     tradesList[tradesList.Count - 1].SecurityNameCode != NamePaper)
                 {
                     return;
@@ -1452,7 +1450,7 @@ namespace OsEngine.Market
                     _glassBox.Rows[24 - i].Cells[0].Value = builder;
 
                 }
-                // _glassBox.Refresh();
+                _glassBox.Refresh();
             }
             catch (Exception error)
             {

@@ -58,14 +58,18 @@
     <ApplicationIcon>Images\OsLogo.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="cgate_net64, Version=5.2.1.21764, Culture=neutral, processorArchitecture=AMD64">
+    <Reference Include="cgate_net, Version=3.14.1.16922, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\cgate_net64.dll</HintPath>
+      <HintPath>C:\Moscow Exchange\SpectraCGate\bin\cgate_net.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="qC, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\Debug\qC.dll</HintPath>
+    </Reference>
+    <Reference Include="QUIKSharp, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\QuikSharp-master (2)\QuikSharp-master\bin\net45\QUIKSharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -309,6 +313,10 @@
     <Compile Include="Market\Servers\Plaza\PlazaServer.cs" />
     <Compile Include="Market\Servers\Plaza\PlazaServerUi.xaml.cs">
       <DependentUpon>PlazaServerUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Market\Servers\QuikLua\QuikLuaServer.cs" />
+    <Compile Include="Market\Servers\QuikLua\QuikLuaServerUi.xaml.cs">
+      <DependentUpon>QuikLuaServerUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Market\Servers\ServerTickStorage.cs" />
     <Compile Include="Market\Servers\Tester\TesterServer.cs" />
@@ -753,6 +761,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Market\Servers\QuikLua\QuikLuaServerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Market\Servers\Tester\TesterServerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -1024,6 +1036,13 @@
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="lua\dkjson.lua" />
+    <None Include="lua\qscallbacks.lua" />
+    <None Include="lua\qsfunctions.lua" />
+    <None Include="lua\qsutils.lua" />
+    <None Include="lua\QuikSharp.lua" />
+    <None Include="lua\socket.lua" />
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -1071,8 +1090,8 @@
     <Resource Include="Images\pickUpSmall.png" />
   </ItemGroup>
   <ItemGroup>
-    <COMReference Include="SmartCOM4Lib">
-      <Guid>{D12929CB-4569-46B7-99CE-FFF546E41866}</Guid>
+    <COMReference Include="SmartCOM3Lib">
+      <Guid>{8252879C-6E32-4322-A38D-8EBA54E52595}</Guid>
       <VersionMajor>1</VersionMajor>
       <VersionMinor>0</VersionMinor>
       <Lcid>0</Lcid>
@@ -1080,6 +1099,12 @@
       <Isolated>False</Isolated>
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </COMReference>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Content Include="lua\clibs\cjson.dll" />
+    <Content Include="lua\clibs\lua51.dll" />
+    <Content Include="lua\clibs\socket\core.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

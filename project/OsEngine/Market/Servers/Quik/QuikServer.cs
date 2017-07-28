@@ -298,7 +298,7 @@ namespace OsEngine.Market.Servers.Quik
 
                     result = Trans2Quik.SUBSCRIBE_TRADES("", "");
                     result = Trans2Quik.START_TRADES(PfnTradeStatusCallback);
-
+                       
                     Trans2Quik.GetTradeAccount(0);
                 }
 
@@ -1014,15 +1014,15 @@ namespace OsEngine.Market.Servers.Quik
 
 // новая моя сделка
 
-        private void PfnTradeStatusCallback(int nMode, ulong nNumber, ulong nOrderNumber, string classCode,
-        string secCode, double dPrice, long nQty, double dValue, int nIsSell, IntPtr pTradeDescriptor)
+        private void PfnTradeStatusCallback(int nMode, double dNumber, double dOrderNumber, string classCode,
+        string secCode, double dPrice, int nQty, double dValue, int nIsSell, int nTradeDescriptor)
         {
             try
             {
 
                 MyTrade trade = new MyTrade();
-                trade.NumberTrade = nNumber.ToString();
-                trade.NumberOrderParent = nOrderNumber.ToString();
+                trade.NumberTrade = dNumber.ToString();
+                trade.NumberOrderParent = dOrderNumber.ToString();
                 trade.Price = (decimal)dPrice;
                 trade.SecurityNameCode = secCode;
 
@@ -1035,7 +1035,7 @@ namespace OsEngine.Market.Servers.Quik
                     trade.Time = DateTime.Now;
                 }
 
-                trade.Volume = Convert.ToInt32(nQty);
+                trade.Volume = nQty;
 
                 if (_myTrades == null)
                 {
@@ -1441,29 +1441,26 @@ namespace OsEngine.Market.Servers.Quik
         /// <summary>
         /// входящие ордера по протоколам Trance2Quik
         /// </summary>
-        private void TransactionReplyCallback(int nTransactionResult, int transactionExtendedErrorCode,
-           int transactionReplyCode, uint dwTransId, ulong dOrderNum, string transactionReplyMessage, IntPtr pTransReplyDescriptor)
+        private void TransactionReplyCallback(Trans2Quik.QuikResult transactionResult, int transactionExtendedErrorCode,
+           int transactionReplyCode, int transId, double orderNum, string transactionReplyMessage)
         {
             try
             {
-                Order order = GetOrderFromUserId(dwTransId.ToString());
+                Order order = GetOrderFromUserId(transId.ToString());
 
                 if (order == null)
                 {
                     order = new Order();
-                    order.NumberUser = Convert.ToInt32(dwTransId);
+                    order.NumberUser = transId;
                 }
 
-                if (dOrderNum != 0)
-                {
-                    order.NumberMarket = dOrderNum.ToString(new CultureInfo("ru-RU"));
-                }
+                order.NumberMarket = orderNum.ToString(new CultureInfo("ru-RU"));
 
-                if (transactionReplyCode == 6)
+                if (transactionReplyCode == 6 || transactionResult == Trans2Quik.QuikResult.FAILED && transactionReplyCode == 3)
                 {
                     order.State = OrderStateType.Fail;
 
-                    SendLogMessage(dwTransId + " Ошибка выставления заявки " + transactionReplyMessage, LogMessageType.System);
+                    SendLogMessage(transId + " Ошибка выставления заявки " + transactionReplyMessage, LogMessageType.System);
 
                     if (NewOrderIncomeEvent != null)
                     {
@@ -1472,11 +1469,7 @@ namespace OsEngine.Market.Servers.Quik
                 }
                 else
                 {
-                    if (order.NumberMarket == "0" || dOrderNum == 0)
-                    {
-                        return;
-                    }
-                    order.State = OrderStateType.Activ;
+
                     if (NewOrderIncomeEvent != null)
                     {
                         NewOrderIncomeEvent(order);
@@ -1490,15 +1483,11 @@ namespace OsEngine.Market.Servers.Quik
         }
 
         // из трансТуКвик пришло оповещение об ордере
-        private void PfnOrderStatusCallback(int nMode, int dwTransId, ulong nOrderNum, string classCode, string secCode,
-            double dPrice, long l, double dValue, int nIsSell, int nStatus, IntPtr pOrderDescriptor)
+        private void PfnOrderStatusCallback(int nMode, int dwTransId, double dNumber, string classCode, string secCode,
+            double dPrice, int nBalance, double dValue, int nIsSell, int nStatus, int nOrderDescriptor)
         {
             try
             {
-                if (dwTransId == 0)
-                {
-                    return;
-                }
                 Order order = new Order();
 
                 order.SecurityNameCode = secCode;
@@ -1506,7 +1495,7 @@ namespace OsEngine.Market.Servers.Quik
                 order.Price = (decimal)dPrice;
                 order.Volume = (int)dValue;
                 order.NumberUser = dwTransId;
-                order.NumberMarket = nOrderNum.ToString();
+                order.NumberMarket = dNumber.ToString();
 
                 if (ServerTime != DateTime.MinValue)
                 {

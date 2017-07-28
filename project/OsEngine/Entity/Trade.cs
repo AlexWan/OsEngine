@@ -56,6 +56,7 @@ namespace OsEngine.Entity
         /// </summary>
         public string Id;
 
+        private string _saveString;
         /// <summary>
         /// взять строку для сохранения
         /// </summary>
@@ -64,6 +65,11 @@ namespace OsEngine.Entity
         {
             //20150401,100000,86160.000000000,2
             // либо 20150401,100000,86160.000000000,2, Buy/Sell
+            if (!string.IsNullOrWhiteSpace(_saveString))
+            {
+                return _saveString;
+            }
+
             string result = "";
             result += Time.ToString("yyyyMMdd,HHmmss") + ",";
             result += Price.ToString(new CultureInfo("en-US")) + ",";
@@ -71,7 +77,8 @@ namespace OsEngine.Entity
             result += Side + ",";
             result += MicroSeconds;
 
-            return result;
+            _saveString = result;
+            return _saveString;
         }
 
         /// <summary>
@@ -82,6 +89,8 @@ namespace OsEngine.Entity
         {
             //20150401,100000,86160.000000000,2
             // либо 20150401,100000,86160.000000000,2, Buy/Sell
+
+            _saveString = In;
 
             string[] sIn = In.Split(',');
 

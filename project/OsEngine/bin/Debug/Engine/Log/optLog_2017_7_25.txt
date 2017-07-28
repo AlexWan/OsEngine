@@ -1,0 +1,7 @@
+25.07.2017 14:10:31_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 705
+25.07.2017 16:28:54_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 705
+25.07.2017 21:24:59_Trade_Робот opttab0 Открытие сделки номер 1376. Инструмент: VTBRОбъём: 32
+25.07.2017 23:08:41_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 705

@@ -1,0 +1,77 @@
+19.07.2017 11:34:23_Error_System.ArgumentOutOfRangeException: Индекс за пределами диапазона. Индекс должен быть положительным числом, а его размер не должен превышать размер коллекции.
+Имя параметра: index
+   в System.ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument argument, ExceptionResource resource)
+   в System.Collections.Generic.List`1.get_Item(Int32 index)
+   в OsEngine.Charts.CandleChart.ChartPainter.ResizeXAxis() в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Charts\CandleChart\ChartPainter.cs:строка 4665
+   в OsEngine.Charts.CandleChart.ChartPainter._chart_AxisViewChanged(Object sender, ViewEventArgs e) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Charts\CandleChart\ChartPainter.cs:строка 4247
+19.07.2017 11:51:20_Error_System.ArgumentOutOfRangeException: Индекс за пределами диапазона. Индекс должен быть положительным числом, а его размер не должен превышать размер коллекции.
+Имя параметра: index
+   в System.ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument argument, ExceptionResource resource)
+   в System.Collections.Generic.List`1.get_Item(Int32 index)
+   в OsEngine.Market.Connector.PaintMarketDepth(MarketDepth depth) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 1338
+19.07.2017 11:54:36_Error_System.ArgumentOutOfRangeException: Индекс за пределами диапазона. Индекс должен быть положительным числом, а его размер не должен превышать размер коллекции.
+Имя параметра: index
+   в System.ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument argument, ExceptionResource resource)
+   в System.Collections.Generic.List`1.get_Item(Int32 index)
+   в OsEngine.Market.Connector.PaintMarketDepth(MarketDepth depth) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 1317
+19.07.2017 12:13:59_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 705
+19.07.2017 12:14:04_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 705
+19.07.2017 12:14:37_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 705
+19.07.2017 12:14:52_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 705
+19.07.2017 12:14:54_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 705
+19.07.2017 12:14:54_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 705
+19.07.2017 12:14:55_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 705
+19.07.2017 12:15:05_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 705
+19.07.2017 12:15:08_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 705
+19.07.2017 12:15:13_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 705
+19.07.2017 12:18:27_Error_System.ArgumentOutOfRangeException: Индекс за пределами диапазона. Индекс должен быть положительным числом, а его размер не должен превышать размер коллекции.
+Имя параметра: index
+   в System.ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument argument, ExceptionResource resource)
+   в System.Collections.Generic.List`1.get_Item(Int32 index)
+   в OsEngine.Market.Connector.PaintMarketDepth(MarketDepth depth) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 1340
+19.07.2017 12:21:00_Error_System.ArgumentOutOfRangeException: Индекс за пределами диапазона. Индекс должен быть положительным числом, а его размер не должен превышать размер коллекции.
+Имя параметра: index
+   в System.ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument argument, ExceptionResource resource)
+   в System.Collections.Generic.List`1.get_Item(Int32 index)
+   в OsEngine.Market.Connector.PaintMarketDepth(MarketDepth depth) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 1317
+19.07.2017 12:41:45_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 705
+19.07.2017 13:23:14_Error_System.ArgumentOutOfRangeException: Индекс за пределами диапазона. Индекс должен быть положительным числом, а его размер не должен превышать размер коллекции.
+Имя параметра: index
+   в System.ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument argument, ExceptionResource resource)
+   в System.Collections.Generic.List`1.get_Item(Int32 index)
+   в OsEngine.Market.Connector.PaintMarketDepth(MarketDepth depth) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 1316
+19.07.2017 14:51:22_Error_System.ArgumentOutOfRangeException: Индекс за пределами диапазона. Индекс должен быть положительным числом, а его размер не должен превышать размер коллекции.
+Имя параметра: index
+   в System.ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument argument, ExceptionResource resource)
+   в System.Collections.Generic.List`1.get_Item(Int32 index)
+   в OsEngine.Market.Connector.PaintMarketDepth(MarketDepth depth) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 1317
+19.07.2017 14:51:29_Error_System.ArgumentOutOfRangeException: Индекс за пределами диапазона. Индекс должен быть положительным числом, а его размер не должен превышать размер коллекции.
+Имя параметра: index
+   в System.ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument argument, ExceptionResource resource)
+   в System.Collections.Generic.List`1.get_Item(Int32 index)
+   в OsEngine.Market.Connector.PaintMarketDepth(MarketDepth depth) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 1316
+19.07.2017 17:08:20_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 705
+19.07.2017 17:09:03_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 705
+19.07.2017 17:25:31_Error_System.ArgumentOutOfRangeException: Индекс за пределами диапазона. Индекс должен быть положительным числом, а его размер не должен превышать размер коллекции.
+Имя параметра: index
+   в System.ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument argument, ExceptionResource resource)
+   в System.Collections.Generic.List`1.get_Item(Int32 index)
+   в OsEngine.Market.Connector.PaintMarketDepth(MarketDepth depth) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 1316
+19.07.2017 17:52:49_Error_System.ArgumentOutOfRangeException: Индекс за пределами диапазона. Индекс должен быть положительным числом, а его размер не должен превышать размер коллекции.
+Имя параметра: index
+   в System.ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument argument, ExceptionResource resource)
+   в System.Collections.Generic.List`1.get_Item(Int32 index)
+   в OsEngine.Market.Connector.PaintMarketDepth(MarketDepth depth) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 1315

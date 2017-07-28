@@ -1,0 +1,5 @@
+C:\Quik-Zerich
+OSA_DDE
+1
+2
+False

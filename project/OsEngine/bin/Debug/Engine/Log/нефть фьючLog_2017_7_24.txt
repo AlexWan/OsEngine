@@ -1,0 +1,3 @@
+24.07.2017 17:47:43_Error_System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в OsEngine.Market.Servers.QuikLua.QuikLuaServer.StartThisSecurity(String namePaper, TimeFrameBuilder timeFrameBuilder) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Servers\QuikLua\QuikLuaServer.cs:строка 1116
+   в OsEngine.Market.Connector.Subscrable() в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 503

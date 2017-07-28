@@ -1,0 +1,7 @@
+RiU7@Engine
+Сбербанк АО@Engine
+газпром акция@Engine
+Сишка@Engine
+PivotSIU7@PivotPointsRobot
+ВильямсSiU7@Williams Band
+BolSIU7@Bollinger

@@ -1,0 +1,503 @@
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\bin\Debug\OsEngine.exe.config
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\bin\Debug\OsEngine.exe
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\bin\Debug\OsEngine.pdb
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\bin\Debug\QuikSharp.pdb
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\bin\Debug\Interop.SmartCOM3Lib.dll
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Interop.SmartCOM3Lib.dll
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsEngine.csproj.ResolveComReference.cache
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Alerts\AlertMessageFullUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Alerts\AlertToChartCreateUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Alerts\AlertMessageSimpleUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Alerts\AlertToPriceCreateUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\AccumulationDistributionUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\AdaptiveLookBackUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\AdxUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\AlligatorUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\AtrUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\AwesomeOscillatorUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\AсUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\BearsPowerUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\BfMfiUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\BullsPowerUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\CCIUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\CmoUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\EfficiencyRatioUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\EnvelopsUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\ForceIndexUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\IshimokuUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\IvashovRangeUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\KalmanFilterUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\MacdHistogramUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\MacdLineUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\MomentumUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\MoneyFlowIndexUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\OnBalanceVolumeUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\ParabolicSARUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\PivotPointsUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\PivotUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\PriceChannelUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\PriceOscillatorUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\RocUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\RviUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\StandardDeviationUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\StochasticOscillatorUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\TrixUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\VerticalHorizontalFilterUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\VolumeOscillatorUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\VolumeUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\WilliamsRangeUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\ColorKeeper\ChartMasterColorKeeperUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\IndicarotCreateUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Entity\AcceptDialogUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Entity\CumulativeDeltaTimeFrameUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Journal\JournalUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Logging\LogErrorUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Market\Servers\AstsBridge\AstsServerUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Market\Servers\Finam\FinamServerUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Market\Servers\InteractivBrokers\IbContractStorageUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Market\Servers\InteractivBrokers\InteractivBrokersUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Market\Servers\Plaza\PlazaServerUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Market\ConnectorUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Market\Servers\QuikLua\QuikLuaServerUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Market\Servers\Tester\TesterServerUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Market\Servers\Quik\QuikServerUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Market\Servers\ServerMasterUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\BollingerUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\FractalUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\MovingAverageUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\RsiUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Market\Servers\SmartCom\SmartComServerUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Entity\SecuritiesUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Entity\SecurityUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Entity\PositionUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\MainWindow.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Logging\MessageSenderUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Logging\ServerMailUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Logging\ServerSmsUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsConverter\OsConverterUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsData\NewSecurityUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsData\OsDataSetUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsData\OsDataUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\BBPowerTradeUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\BollingerOutburstUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\BollingerStrategyUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\BollingerTradeUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\BotWhithTwoTimeFrameUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\CCITradeUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\MacdTradeUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\MacdTrailUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\MomentumMacdUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\OneLegArbitrationUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\PairRsiTradeUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\ParabolicSarTradeUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\PinBarTradeUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\PivotPointsRobotUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\PriceChannelBreakUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\PriceChannelTradeUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\PriceChannelVolatilityUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\RobotUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\RsiContrtrendUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\RsiTradeUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\RviTradeUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\SmaStochasticUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\StochasticTradeUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\ThreeSoldierUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\TrixTradeUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\TwoLegArbitrationUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\WilliamsRangeTradeUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\Tab\Internal\BotTabCandleSpreadUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\RiskManager\RiskManagerUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\SampleFilipLevelUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\SampleLevermorUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\SamplePairTraderSimpleUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\SamplePairTraderSpreadSmaUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\MyWilliamsUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\Tab\Internal\PositionCloseUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\Tab\Internal\PositionModificateUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\Tab\Internal\PositionOpenUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\Tab\Internal\PositionStopUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Gui\RobotUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelCreateUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\Tab\Internal\BotManualControlUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Gui\TesterUi.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\App.baml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Alerts\AlertMessageFullUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Alerts\AlertToChartCreateUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Alerts\AlertMessageSimpleUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Alerts\AlertToPriceCreateUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\AccumulationDistributionUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\AdaptiveLookBackUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\AdxUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\AlligatorUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\AtrUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\AwesomeOscillatorUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\AсUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\BearsPowerUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\BfMfiUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\BullsPowerUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\CCIUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\CmoUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\EfficiencyRatioUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\EnvelopsUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\ForceIndexUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\IshimokuUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\IvashovRangeUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\KalmanFilterUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\MacdHistogramUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\MacdLineUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\MomentumUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\MoneyFlowIndexUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\OnBalanceVolumeUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\ParabolicSARUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\PivotPointsUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\PivotUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\PriceChannelUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\PriceOscillatorUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\RocUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\RviUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\StandardDeviationUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\StochasticOscillatorUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\TrixUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\VerticalHorizontalFilterUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\VolumeOscillatorUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\VolumeUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\WilliamsRangeUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\ColorKeeper\ChartMasterColorKeeperUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\IndicarotCreateUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Entity\AcceptDialogUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Entity\CumulativeDeltaTimeFrameUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Journal\JournalUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Logging\LogErrorUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Market\Servers\AstsBridge\AstsServerUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Market\Servers\Finam\FinamServerUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Market\Servers\InteractivBrokers\IbContractStorageUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Market\Servers\InteractivBrokers\InteractivBrokersUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Market\Servers\Plaza\PlazaServerUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Market\ConnectorUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Market\Servers\QuikLua\QuikLuaServerUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Market\Servers\Tester\TesterServerUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Market\Servers\Quik\QuikServerUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Market\Servers\ServerMasterUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\BollingerUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\FractalUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\MovingAverageUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\RsiUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Market\Servers\SmartCom\SmartComServerUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Entity\SecuritiesUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Entity\SecurityUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Entity\PositionUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\MainWindow.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Logging\MessageSenderUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Logging\ServerMailUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\Logging\ServerSmsUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsConverter\OsConverterUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsData\NewSecurityUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsData\OsDataSetUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsData\OsDataUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\BBPowerTradeUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\BollingerOutburstUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\BollingerStrategyUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\BollingerTradeUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\BotWhithTwoTimeFrameUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\CCITradeUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\MacdTradeUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\MacdTrailUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\MomentumMacdUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\OneLegArbitrationUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\PairRsiTradeUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\ParabolicSarTradeUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\PinBarTradeUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\PivotPointsRobotUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\PriceChannelBreakUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\PriceChannelTradeUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\PriceChannelVolatilityUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\RobotUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\RsiContrtrendUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\RsiTradeUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\RviTradeUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\SmaStochasticUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\StochasticTradeUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\ThreeSoldierUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\TrixTradeUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\TwoLegArbitrationUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\WilliamsRangeTradeUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\Tab\Internal\BotTabCandleSpreadUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\RiskManager\RiskManagerUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\SampleFilipLevelUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\SampleLevermorUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\SamplePairTraderSimpleUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\SamplePairTraderSpreadSmaUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\MyWilliamsUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\Tab\Internal\PositionCloseUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\Tab\Internal\PositionModificateUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\Tab\Internal\PositionOpenUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\Tab\Internal\PositionStopUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Gui\RobotUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\PanelCreateUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Panels\Tab\Internal\BotManualControlUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsTrader\Gui\TesterUi.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\App.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsEngine_Content.g.cs
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsEngine_MarkupCompile.cache
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsEngine.g.resources
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsEngine.Properties.Resources.resources
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsEngine.csproj.GenerateResource.Cache
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsEngine.exe
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsEngine.pdb
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\bin\Debug\QuikSharp.xml
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\obj\Debug\OsEngine.csprojResolveAssemblyReference.cache
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\bin\Debug\Newtonsoft.Json.dll
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\bin\Debug\System.Buffers.dll
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\bin\Debug\QuikSharp.dll.config
+C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\bin\Debug\QUIKSharp.dll
+D:\Projekts\OsEngine\project\OsEngine\bin\Debug\OsEngine.exe.config
+D:\Projekts\OsEngine\project\OsEngine\bin\Debug\OsEngine.exe
+D:\Projekts\OsEngine\project\OsEngine\bin\Debug\OsEngine.pdb
+D:\Projekts\OsEngine\project\OsEngine\bin\Debug\Newtonsoft.Json.dll
+D:\Projekts\OsEngine\project\OsEngine\bin\Debug\System.Buffers.dll
+D:\Projekts\OsEngine\project\OsEngine\bin\Debug\QUIKSharp.pdb
+D:\Projekts\OsEngine\project\OsEngine\bin\Debug\QUIKSharp.xml
+D:\Projekts\OsEngine\project\OsEngine\bin\Debug\QUIKSharp.dll.config
+D:\Projekts\OsEngine\project\OsEngine\bin\Debug\Interop.SmartCOM3Lib.dll
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsEngine.csprojResolveAssemblyReference.cache
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Interop.SmartCOM3Lib.dll
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsEngine.csproj.ResolveComReference.cache
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Alerts\AlertMessageFullUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Alerts\AlertToChartCreateUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Alerts\AlertMessageSimpleUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Alerts\AlertToPriceCreateUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\AccumulationDistributionUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\AdaptiveLookBackUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\AdxUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\AlligatorUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\AtrUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\AwesomeOscillatorUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\AсUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\BearsPowerUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\BfMfiUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\BullsPowerUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\CCIUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\CmoUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\EfficiencyRatioUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\EnvelopsUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\ForceIndexUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\IshimokuUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\IvashovRangeUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\KalmanFilterUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\MacdHistogramUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\MacdLineUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\MomentumUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\MoneyFlowIndexUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\OnBalanceVolumeUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\ParabolicSARUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\PivotPointsUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\PivotUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\PriceChannelUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\PriceOscillatorUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\RocUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\RviUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\StandardDeviationUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\StochasticOscillatorUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\TrixUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\VerticalHorizontalFilterUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\VolumeOscillatorUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\VolumeUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\WilliamsRangeUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\ColorKeeper\ChartMasterColorKeeperUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\IndicarotCreateUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Entity\AcceptDialogUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Entity\CumulativeDeltaTimeFrameUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Journal\JournalUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Logging\LogErrorUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Market\Servers\AstsBridge\AstsServerUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Market\Servers\Finam\FinamServerUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Market\Servers\InteractivBrokers\IbContractStorageUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Market\Servers\InteractivBrokers\InteractivBrokersUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Market\Servers\Plaza\PlazaServerUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Market\ConnectorUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Market\Servers\QuikLua\QuikLuaServerUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Market\Servers\Tester\TesterServerUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Market\Servers\Quik\QuikServerUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Market\Servers\ServerMasterUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\BollingerUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\FractalUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\MovingAverageUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\RsiUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Market\Servers\SmartCom\SmartComServerUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Entity\SecuritiesUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Entity\SecurityUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Entity\PositionUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\MainWindow.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Logging\MessageSenderUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Logging\ServerMailUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Logging\ServerSmsUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsConverter\OsConverterUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsData\NewSecurityUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsData\OsDataSetUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsData\OsDataUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\BBPowerTradeUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\BollingerOutburstUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\BollingerStrategyUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\BollingerTradeUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\BotWhithTwoTimeFrameUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\CCITradeUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\MacdTradeUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\MacdTrailUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\MomentumMacdUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\OneLegArbitrationUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\PairRsiTradeUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\ParabolicSarTradeUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\PinBarTradeUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\PivotPointsRobotUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\PriceChannelBreakUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\PriceChannelTradeUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\PriceChannelVolatilityUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\RobotUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\RsiContrtrendUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\RsiTradeUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\RviTradeUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\SmaStochasticUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\StochasticTradeUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\ThreeSoldierUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\TrixTradeUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\TwoLegArbitrationUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\WilliamsRangeTradeUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\Tab\Internal\BotTabCandleSpreadUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\RiskManager\RiskManagerUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\SampleFilipLevelUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\SampleLevermorUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\SamplePairTraderSimpleUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\SamplePairTraderSpreadSmaUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\MyWilliamsUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\Tab\Internal\PositionCloseUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\Tab\Internal\PositionModificateUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\Tab\Internal\PositionOpenUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\Tab\Internal\PositionStopUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Gui\RobotUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelCreateUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\Tab\Internal\BotManualControlUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Gui\TesterUi.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\App.baml
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Alerts\AlertMessageFullUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Alerts\AlertToChartCreateUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Alerts\AlertMessageSimpleUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Alerts\AlertToPriceCreateUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\AccumulationDistributionUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\AdaptiveLookBackUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\AdxUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\AlligatorUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\AtrUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\AwesomeOscillatorUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\AсUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\BearsPowerUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\BfMfiUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\BullsPowerUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\CCIUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\CmoUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\EfficiencyRatioUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\EnvelopsUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\ForceIndexUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\IshimokuUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\IvashovRangeUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\KalmanFilterUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\MacdHistogramUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\MacdLineUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\MomentumUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\MoneyFlowIndexUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\OnBalanceVolumeUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\ParabolicSARUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\PivotPointsUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\PivotUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\PriceChannelUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\PriceOscillatorUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\RocUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\RviUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\StandardDeviationUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\StochasticOscillatorUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\TrixUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\VerticalHorizontalFilterUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\VolumeOscillatorUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\VolumeUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\WilliamsRangeUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\ColorKeeper\ChartMasterColorKeeperUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\IndicarotCreateUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Entity\AcceptDialogUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Entity\CumulativeDeltaTimeFrameUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Journal\JournalUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Logging\LogErrorUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Market\Servers\AstsBridge\AstsServerUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Market\Servers\Finam\FinamServerUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Market\Servers\InteractivBrokers\IbContractStorageUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Market\Servers\InteractivBrokers\InteractivBrokersUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Market\Servers\Plaza\PlazaServerUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Market\ConnectorUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Market\Servers\QuikLua\QuikLuaServerUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Market\Servers\Tester\TesterServerUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Market\Servers\Quik\QuikServerUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Market\Servers\ServerMasterUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\BollingerUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\FractalUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\MovingAverageUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Charts\CandleChart\Indicators\RsiUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Market\Servers\SmartCom\SmartComServerUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Entity\SecuritiesUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Entity\SecurityUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Entity\PositionUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\MainWindow.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Logging\MessageSenderUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Logging\ServerMailUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\Logging\ServerSmsUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsConverter\OsConverterUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsData\NewSecurityUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsData\OsDataSetUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsData\OsDataUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\BBPowerTradeUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\BollingerOutburstUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\BollingerStrategyUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\BollingerTradeUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\BotWhithTwoTimeFrameUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\CCITradeUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\MacdTradeUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\MacdTrailUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\MomentumMacdUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\OneLegArbitrationUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\PairRsiTradeUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\ParabolicSarTradeUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\PinBarTradeUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\PivotPointsRobotUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\PriceChannelBreakUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\PriceChannelTradeUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\PriceChannelVolatilityUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\RobotUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\RsiContrtrendUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\RsiTradeUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\RviTradeUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\SmaStochasticUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\StochasticTradeUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\ThreeSoldierUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\TrixTradeUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\TwoLegArbitrationUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\WilliamsRangeTradeUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\Tab\Internal\BotTabCandleSpreadUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\RiskManager\RiskManagerUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\SampleFilipLevelUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\SampleLevermorUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\SamplePairTraderSimpleUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\SamplePairTraderSpreadSmaUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelsGui\MyWilliamsUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\Tab\Internal\PositionCloseUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\Tab\Internal\PositionModificateUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\Tab\Internal\PositionOpenUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\Tab\Internal\PositionStopUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Gui\RobotUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\PanelCreateUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Panels\Tab\Internal\BotManualControlUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsTrader\Gui\TesterUi.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\App.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsEngine_Content.g.cs
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsEngine_MarkupCompile.cache
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsEngine.g.resources
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsEngine.Properties.Resources.resources
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsEngine.csproj.GenerateResource.Cache
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsEngine.exe
+D:\Projekts\OsEngine\project\OsEngine\obj\Debug\OsEngine.pdb

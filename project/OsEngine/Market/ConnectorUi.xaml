@@ -5,7 +5,7 @@
     <Grid>
         <Rectangle Margin="5,5,5,40" />
         <Label Content="Инструмент" HorizontalAlignment="Left" Margin="24,49,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="ComboBoxSecurities" Margin="189,49,24,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name="ComboBoxSecurities" Margin="189,49,24,0" VerticalAlignment="Top" SelectionChanged="ComboBoxSecurities_SelectionChanged_1"/>
         <Label Content="Отображаемые классы" HorizontalAlignment="Left" Margin="24,76,0,0" VerticalAlignment="Top"/>
         <ComboBox x:Name="ComboBoxClass" Margin="189,76,24,0" VerticalAlignment="Top"/>
         <Label Content="ТаймФрейм" HorizontalAlignment="Left" Margin="24,130,0,0" VerticalAlignment="Top" Width="78"/>

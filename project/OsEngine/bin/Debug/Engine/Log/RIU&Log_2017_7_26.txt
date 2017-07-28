@@ -1,0 +1,173 @@
+26.07.2017 12:48:36_System_Робот RIU&tab0 Сделка не открылась номер 1498
+26.07.2017 12:48:36_System_Робот RIU&tab0 Сделка не открылась номер 1499
+26.07.2017 12:49:58_System_Робот RIU&tab0 Сделка не открылась номер 1500
+26.07.2017 12:49:58_System_Робот RIU&tab0 Сделка не открылась номер 1501
+26.07.2017 12:51:53_Trade_Робот RIU&tab0 Открытие сделки номер 1504. Инструмент: SBERОбъём: 1
+26.07.2017 12:53:17_System_Робот RIU&tab0 Сделка не открылась номер 1502
+26.07.2017 12:53:39_System_Робот RIU&tab0 Сделка не открылась номер 1503
+26.07.2017 12:53:39_System_Робот RIU&tab0 Сделка не открылась номер 1505
+26.07.2017 12:53:39_System_Робот RIU&tab0 Сделка не открылась номер 1506
+26.07.2017 12:53:39_System_Робот RIU&tab0 Сделка не открылась номер 1507
+26.07.2017 12:57:30_Trade_Робот RIU&tab0 Открытие сделки номер 1513. Инструмент: SBERОбъём: 1
+26.07.2017 12:57:31_Trade_Робот RIU&tab0 Открытие сделки номер 1514. Инструмент: SBERОбъём: 1
+26.07.2017 12:57:32_Trade_Робот RIU&tab0 Открытие сделки номер 1515. Инструмент: SBERОбъём: 1
+26.07.2017 12:57:32_Trade_Робот RIU&tab0 Открытие сделки номер 1516. Инструмент: SBERОбъём: 1
+26.07.2017 12:57:32_Trade_Робот RIU&tab0 Открытие сделки номер 1517. Инструмент: SBERОбъём: 1
+26.07.2017 12:57:32_Trade_Робот RIU&tab0 Открытие сделки номер 1518. Инструмент: SBERОбъём: 1
+26.07.2017 12:57:32_Trade_Робот RIU&tab0 Открытие сделки номер 1519. Инструмент: SBERОбъём: 1
+26.07.2017 12:57:33_Trade_Робот RIU&tab0 Открытие сделки номер 1520. Инструмент: SBERОбъём: 1
+26.07.2017 12:57:39_Trade_Робот RIU&tab0 Открытие сделки номер 1521. Инструмент: SBERОбъём: 40
+26.07.2017 12:57:44_Trade_Робот RIU&tab0 Открытие сделки номер 1522. Инструмент: SBERОбъём: 79
+26.07.2017 12:57:45_Trade_Робот RIU&tab0 Открытие сделки номер 1523. Инструмент: SBERОбъём: 100
+26.07.2017 12:57:46_Trade_Робот RIU&tab0 Открытие сделки номер 1524. Инструмент: SBERОбъём: 100
+26.07.2017 12:57:48_Trade_Робот RIU&tab0 Открытие сделки номер 1525. Инструмент: SBERОбъём: 49
+26.07.2017 12:57:49_Trade_Робот RIU&tab0 Открытие сделки номер 1526. Инструмент: SBERОбъём: 45
+26.07.2017 12:57:49_Trade_Робот RIU&tab0 Открытие сделки номер 1512. Инструмент: SBERОбъём: 1
+26.07.2017 12:57:53_Trade_Робот RIU&tab0 Открытие сделки номер 1527. Инструмент: SBERОбъём: 35
+26.07.2017 12:57:55_Trade_Робот RIU&tab0 Открытие сделки номер 1528. Инструмент: SBERОбъём: 37
+26.07.2017 12:57:55_Trade_Робот RIU&tab0 Открытие сделки номер 1529. Инструмент: SBERОбъём: 20
+26.07.2017 12:57:55_Trade_Робот RIU&tab0 Открытие сделки номер 1530. Инструмент: SBERОбъём: 34
+26.07.2017 12:57:55_Trade_Робот RIU&tab0 Открытие сделки номер 1531. Инструмент: SBERОбъём: 100
+26.07.2017 12:57:55_Trade_Робот RIU&tab0 Открытие сделки номер 1532. Инструмент: SBERОбъём: 100
+26.07.2017 12:58:04_Trade_Робот RIU&tab0 Открытие сделки номер 1533. Инструмент: SBERОбъём: 2
+26.07.2017 12:58:05_Trade_Робот RIU&tab0 Открытие сделки номер 1534. Инструмент: SBERОбъём: 1
+26.07.2017 12:58:05_Trade_Робот RIU&tab0 Открытие сделки номер 1511. Инструмент: SBERОбъём: 1
+26.07.2017 12:58:12_Trade_Робот RIU&tab0 Открытие сделки номер 1535. Инструмент: SBERОбъём: 2
+26.07.2017 12:58:12_Trade_Робот RIU&tab0 Открытие сделки номер 1536. Инструмент: SBERОбъём: 1
+26.07.2017 12:58:13_Trade_Робот RIU&tab0 Открытие сделки номер 1537. Инструмент: SBERОбъём: 40
+26.07.2017 12:58:14_Trade_Робот RIU&tab0 Открытие сделки номер 1538. Инструмент: SBERОбъём: 56
+26.07.2017 12:58:15_Trade_Робот RIU&tab0 Открытие сделки номер 1541. Инструмент: SBERОбъём: 91
+26.07.2017 12:58:15_Trade_Робот RIU&tab0 Открытие сделки номер 1542. Инструмент: SBERОбъём: 21
+26.07.2017 12:58:17_Trade_Робот RIU&tab0 Открытие сделки номер 1543. Инструмент: SBERОбъём: 100
+26.07.2017 12:58:17_Trade_Робот RIU&tab0 Открытие сделки номер 1544. Инструмент: SBERОбъём: 4
+26.07.2017 12:58:17_Trade_Робот RIU&tab0 Открытие сделки номер 1545. Инструмент: SBERОбъём: 2
+26.07.2017 12:58:23_Trade_Робот RIU&tab0 Открытие сделки номер 1539. Инструмент: SBERОбъём: 100
+26.07.2017 12:58:23_Trade_Робот RIU&tab0 Открытие сделки номер 1540. Инструмент: SBERОбъём: 2
+26.07.2017 12:58:23_Trade_Робот RIU&tab0 Открытие сделки номер 1559. Инструмент: SBERОбъём: 98
+26.07.2017 12:58:39_Trade_Робот RIU&tab0 Открытие сделки номер 1560. Инструмент: SBERОбъём: 32
+26.07.2017 12:58:47_Trade_Робот RIU&tab0 Открытие сделки номер 1561. Инструмент: SBERОбъём: 6
+26.07.2017 12:58:58_Trade_Робот RIU&tab0 Открытие сделки номер 1562. Инструмент: SBERОбъём: 133
+26.07.2017 12:59:19_Trade_Робот RIU&tab0 Открытие сделки номер 1563. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:21_Trade_Робот RIU&tab0 Открытие сделки номер 1564. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:26_Trade_Робот RIU&tab0 Открытие сделки номер 1565. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:26_Trade_Робот RIU&tab0 Открытие сделки номер 1566. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:35_Trade_Робот RIU&tab0 Открытие сделки номер 1567. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:38_Trade_Робот RIU&tab0 Открытие сделки номер 1568. Инструмент: SBERОбъём: 1
+26.07.2017 12:59:38_Trade_Робот RIU&tab0 Открытие сделки номер 1569. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:39_Trade_Робот RIU&tab0 Открытие сделки номер 1570. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:39_Trade_Робот RIU&tab0 Открытие сделки номер 1571. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:39_Trade_Робот RIU&tab0 Открытие сделки номер 1572. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:39_Trade_Робот RIU&tab0 Открытие сделки номер 1573. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:39_Trade_Робот RIU&tab0 Открытие сделки номер 1574. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:40_Trade_Робот RIU&tab0 Открытие сделки номер 1576. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:40_Trade_Робот RIU&tab0 Открытие сделки номер 1577. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:40_Trade_Робот RIU&tab0 Открытие сделки номер 1575. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:43_Trade_Робот RIU&tab0 Открытие сделки номер 1578. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:44_Trade_Робот RIU&tab0 Открытие сделки номер 1579. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:44_Trade_Робот RIU&tab0 Открытие сделки номер 1580. Инструмент: SBERОбъём: 1
+26.07.2017 12:59:44_Trade_Робот RIU&tab0 Открытие сделки номер 1581. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:44_Trade_Робот RIU&tab0 Открытие сделки номер 1582. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:44_Trade_Робот RIU&tab0 Открытие сделки номер 1583. Инструмент: SBERОбъём: 3
+26.07.2017 12:59:44_Trade_Робот RIU&tab0 Открытие сделки номер 1584. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:45_Trade_Робот RIU&tab0 Открытие сделки номер 1585. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:45_Trade_Робот RIU&tab0 Открытие сделки номер 1586. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:49_Trade_Робот RIU&tab0 Открытие сделки номер 1587. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:50_Trade_Робот RIU&tab0 Открытие сделки номер 1589. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:50_Trade_Робот RIU&tab0 Открытие сделки номер 1591. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:50_Trade_Робот RIU&tab0 Открытие сделки номер 1590. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:50_Trade_Робот RIU&tab0 Открытие сделки номер 1588. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:51_Trade_Робот RIU&tab0 Открытие сделки номер 1592. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:51_Trade_Робот RIU&tab0 Открытие сделки номер 1593. Инструмент: SBERОбъём: 8
+26.07.2017 12:59:53_Trade_Робот RIU&tab0 Открытие сделки номер 1594. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:53_Trade_Робот RIU&tab0 Открытие сделки номер 1595. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:54_Trade_Робот RIU&tab0 Открытие сделки номер 1596. Инструмент: SBERОбъём: 10
+26.07.2017 12:59:54_Trade_Робот RIU&tab0 Открытие сделки номер 1597. Инструмент: SBERОбъём: 10
+26.07.2017 13:01:44_System_Робот RIU&tab0 Сделка не открылась номер 1598
+26.07.2017 13:01:44_System_Робот RIU&tab0 Сделка не открылась номер 1599
+26.07.2017 13:04:16_System_Робот RIU&tab0 Сделка не открылась номер 1601
+26.07.2017 13:11:48_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades)
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList)
+26.07.2017 13:15:32_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades)
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList)
+26.07.2017 13:15:36_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades)
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList)
+26.07.2017 13:17:52_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades)
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList)
+26.07.2017 13:18:19_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades)
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList)
+26.07.2017 13:26:29_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades)
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList)
+26.07.2017 13:26:38_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades)
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList)
+26.07.2017 13:29:20_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades)
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList)
+26.07.2017 13:37:49_Trade_Робот RIU&tab0 Открытие сделки номер 1633. Инструмент: SBERОбъём: 3
+26.07.2017 13:37:52_Trade_Робот RIU&tab0 Открытие сделки номер 1634. Инструмент: SBERОбъём: 3
+26.07.2017 13:43:23_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades)
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList)
+26.07.2017 13:43:49_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades)
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList)
+26.07.2017 13:49:54_Trade_Робот RIU&tab0 Открытие сделки номер 1639. Инструмент: SBERОбъём: 1
+26.07.2017 14:26:39_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._journal_DealChangeEvent(Position position) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3104
+26.07.2017 14:38:31_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+26.07.2017 14:40:47_Trade_Робот RIU&tab0 Открытие сделки номер 1675. Инструмент: SBERОбъём: 1
+26.07.2017 14:41:03_Trade_Робот RIU&tab0 Открытие сделки номер 1677. Инструмент: SBERОбъём: 1
+26.07.2017 13:49:47_Trade_Робот RIU&tab0 Открытие сделки номер 1678. Инструмент: SBERОбъём: 1
+26.07.2017 13:57:01_System_Робот RIU&tab0 Сделка не открылась номер 1668
+26.07.2017 13:57:03_System_Робот RIU&tab0 Сделка не открылась номер 1669
+26.07.2017 14:04:39_Trade_Робот RIU&tab0 Открытие сделки номер 1690. Инструмент: SBERОбъём: 1
+26.07.2017 14:08:37_System_Робот RIU&tab0 Сделка не открылась номер 1647
+26.07.2017 14:24:30_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+26.07.2017 14:28:24_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+26.07.2017 14:36:19_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+26.07.2017 15:03:54_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+26.07.2017 15:13:43_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+26.07.2017 15:14:24_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+26.07.2017 15:17:57_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 705
+26.07.2017 15:29:55_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+26.07.2017 15:30:16_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+26.07.2017 15:33:55_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+26.07.2017 15:34:46_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+26.07.2017 15:34:51_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+26.07.2017 15:40:09_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713
+26.07.2017 16:21:44_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
+   в OsEngine.OsTrader.Panels.Tab.BotTabSimple._connector_TickChangeEvent(List`1 trades) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\OsTrader\Panels\Tab\BotTabSimple.cs:строка 3336
+   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 713

@@ -1,0 +1,24 @@
+20.07.2017 18:21:29_Error_System.ArgumentOutOfRangeException: Индекс за пределами диапазона. Индекс должен быть положительным числом, а его размер не должен превышать размер коллекции.
+Имя параметра: index
+   в System.Windows.Forms.Control.MarshaledInvoke(Control caller, Delegate method, Object[] args, Boolean synchronous)
+   в System.Windows.Forms.Control.Invoke(Delegate method, Object[] args)
+   в OsEngine.Market.Connector.PaintMarketDepth(MarketDepth depth) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 1288
+   в OsEngine.Market.Connector.ConnectorBot_NewMarketDepthEvent(MarketDepth glass) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 689
+20.07.2017 18:22:04_Error_System.ArgumentOutOfRangeException: Индекс за пределами диапазона. Индекс должен быть положительным числом, а его размер не должен превышать размер коллекции.
+Имя параметра: index
+   в System.Windows.Forms.Control.MarshaledInvoke(Control caller, Delegate method, Object[] args, Boolean synchronous)
+   в System.Windows.Forms.Control.Invoke(Delegate method, Object[] args)
+   в OsEngine.Market.Connector.PaintMarketDepth(MarketDepth depth) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 1288
+   в OsEngine.Market.Connector.ConnectorBot_NewMarketDepthEvent(MarketDepth glass) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 689
+20.07.2017 18:40:44_Error_System.ArgumentOutOfRangeException: Индекс за пределами диапазона. Индекс должен быть положительным числом, а его размер не должен превышать размер коллекции.
+Имя параметра: index
+   в System.Windows.Forms.Control.MarshaledInvoke(Control caller, Delegate method, Object[] args, Boolean synchronous)
+   в System.Windows.Forms.Control.Invoke(Delegate method, Object[] args)
+   в OsEngine.Market.Connector.PaintMarketDepth(MarketDepth depth) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 1288
+   в OsEngine.Market.Connector.ConnectorBot_NewMarketDepthEvent(MarketDepth glass) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 689
+20.07.2017 18:42:00_Error_System.ArgumentOutOfRangeException: Индекс за пределами диапазона. Индекс должен быть положительным числом, а его размер не должен превышать размер коллекции.
+Имя параметра: index
+   в System.Windows.Forms.Control.MarshaledInvoke(Control caller, Delegate method, Object[] args, Boolean synchronous)
+   в System.Windows.Forms.Control.Invoke(Delegate method, Object[] args)
+   в OsEngine.Market.Connector.PaintMarketDepth(MarketDepth depth) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 1288
+   в OsEngine.Market.Connector.ConnectorBot_NewMarketDepthEvent(MarketDepth glass) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 689
