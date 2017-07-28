@@ -3,7 +3,6 @@
 */
 
 using OsEngine.OsTrader.Panels.Tab;
-using System.Collections.Generic;
 
 namespace OsEngine.Entity
 {
@@ -54,15 +53,23 @@ namespace OsEngine.Entity
         /// <summary>
         /// Время жизни ордера в барах
         /// </summary>
-        public int ExpiresBars { get => _expiresBars; set => _expiresBars = value; }
-
+        public int ExpiresBars
+        {
+            get { return _expiresBars; }
+            set { _expiresBars = value; }
+        }
 
 
         /// <summary>
         /// Номер бара при котором был создан ордер
         /// </summary>
         private int _orderCreateBarNumber;
-        public int OrderCreateBarNumber { get => _orderCreateBarNumber; set => _orderCreateBarNumber = value; }
+
+        public int OrderCreateBarNumber
+        {
+            get { return _orderCreateBarNumber; }
+            set { _orderCreateBarNumber = value; }
+        }
 
 
     }

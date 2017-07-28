@@ -3351,7 +3351,6 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="trades">тики</param>
         private void _connector_TickChangeEvent(List<Trade> trades)
         {
-
             if (trades == null || 
                 trades.Count == 0)
             {
@@ -3391,7 +3390,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
 
-            for (int i2 = _lastTickIndex; i2 < trades.Count; i2++)
+            for (int i2 = _lastTickIndex; i2 < trades.Count && trades[i2] != null; i2++)
             {
                 if (trades[i2] == null)
                 {
