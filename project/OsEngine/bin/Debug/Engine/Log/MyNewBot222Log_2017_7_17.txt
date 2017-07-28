@@ -1,4 +1,0 @@
-17.07.2017 12:05:25_Error_System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
-   в System.Threading.Thread.SleepInternal(Int32 millisecondsTimeout)
-   в System.Threading.Thread.Sleep(Int32 millisecondsTimeout)
-   в OsEngine.Market.Connector.Subscrable() в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 434

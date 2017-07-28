@@ -1,2 +1,0 @@
-27.07.2017 17:05:38_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
-   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList)

@@ -1,3 +1,0 @@
-OneSecond
-Bollinger@BolSIU7Bollinger@Prime@False
-MovingAverage@BolSIU7Moving@Prime@False

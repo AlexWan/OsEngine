@@ -1,4 +1,0 @@
-SPBFUT00104
-False
-RIU7
-QuikLua

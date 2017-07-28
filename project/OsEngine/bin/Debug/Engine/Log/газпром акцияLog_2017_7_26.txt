@@ -1,4 +1,0 @@
-26.07.2017 14:06:45_Trade_Робот газпром акцияtab0 Отозвали ордер по времени, номер 3262740846
-26.07.2017 14:06:47_Trade_Робот газпром акцияtab0 Отозвали ордер по времени, номер 3262740885
-26.07.2017 15:17:58_Error_System.NullReferenceException: Ссылка на объект не указывает на экземпляр объекта.
-   в OsEngine.Market.Connector.ConnectorBot_NewTradeEvent(List`1 tradesList) в C:\Users\Андрей\Desktop\osengine-v-1-0-0\OsEngine v 1.0.0\project\OsEngine\Market\Connector.cs:строка 705

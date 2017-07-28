@@ -1,8 +1,0 @@
-Color [LawnGreen]
-Color [DarkRed]
-Color [DarkRed]
-Color [DarkRed]
-Color [DodgerBlue]
-Color [DodgerBlue]
-Color [DodgerBlue]
-True
