@@ -9,6 +9,7 @@ using System.Threading;
 using System.Windows;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
+using OsEngine.Market.Servers.QuikLua;
 using OsEngine.Market.Servers.SmartCom;
 using OsEngine.Market.Servers.Tester;
 
@@ -242,6 +243,29 @@ namespace OsEngine.Entity
                         else if (serverType == ServerType.Tester ||
                                  serverType == ServerType.InteractivBrokers)
                         {
+                            series.IsStarted = true;
+                        }
+
+                        else if (serverType == ServerType.QuikLua)
+                        {
+                            QuikLuaServer luaServ = (QuikLuaServer)_server;
+                            if (series.TimeFrameSpan.TotalMinutes < 1)
+                            {
+                                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
+
+                                series.PreLoad(allTrades);
+                            }
+                            else
+                            {
+                                List<Candle> candles = luaServ.GetQuikLuaCandleHistory(series.Security.Name,
+                                    series.TimeFrameSpan);
+                                if (candles != null)
+                                {
+                                    //candles.Reverse();
+                                    series.CandlesAll = candles;
+                                }
+                            }
+                            series.UpdateAllCandles();
                             series.IsStarted = true;
                         }
                     }
