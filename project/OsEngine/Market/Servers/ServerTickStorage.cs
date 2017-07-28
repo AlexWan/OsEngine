@@ -179,12 +179,14 @@ namespace OsEngine.Market.Servers
                             StreamWriter writer =
                                 new StreamWriter(_pathName + @"\" + allTrades[i1][0].SecurityNameCode + ".txt", true);
 
+                            StringBuilder saveStr = new StringBuilder();
 
                             for (int i = tradeInfo.LastSaveIndex; i < allTrades[i1].Count - 1; i++)
                             {
-                                writer.WriteLine(allTrades[i1][i].GetSaveString());
+                                saveStr.Append(allTrades[i1][i].GetSaveString() + "\r\n");
                             }
                             tradeInfo.LastSaveIndex = allTrades[i1].Count - 1;
+                            writer.Write(saveStr);
                             writer.Close();
                         }
                     }

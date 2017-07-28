@@ -445,11 +445,6 @@ namespace OsEngine.Market
         {
             try
             {
-                if (!ComboBoxClass.Dispatcher.CheckAccess())
-                {
-                    ComboBoxClass.Dispatcher.Invoke(LoadClassOnBox);
-                    return;
-                }
                 List<IServer> serversAll = ServerMaster.GetServers();
 
                 IServer server = serversAll.Find(server1 => server1.ServerType == _selectedType);
@@ -465,6 +460,13 @@ namespace OsEngine.Market
                 }
 
                 var securities = server.Securities;
+
+
+                if (!ComboBoxClass.CheckAccess())
+                {
+                    ComboBoxClass.Dispatcher.Invoke(LoadClassOnBox);
+                    return;
+                }
 
                 ComboBoxClass.Items.Clear();
 
@@ -491,7 +493,6 @@ namespace OsEngine.Market
                         if (item == clas)
                         {
                             isInArray = true;
-                            break;
                         }
                     }
 
@@ -504,7 +505,7 @@ namespace OsEngine.Market
                 {
                     ComboBoxClass.SelectedItem = _connectorBot.Security.NameClass;
                 }
-
+                
             }
             catch (Exception error)
             {
@@ -630,5 +631,9 @@ namespace OsEngine.Market
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
+        private void ComboBoxSecurities_SelectionChanged_1(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+
+        }
     }
 }

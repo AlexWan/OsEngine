@@ -32,7 +32,7 @@ namespace OsEngine.Market.Servers.Quik
 
         // RESULT TRANS2QUIK_SUCCESS, TRANS2QUIK_QUIK_TERMINAL_NOT_FOUND, TRANS2QUIK_DLL_VERSION_NOT_SUPPORTED,
         // TRANS2QUIK_ALREADY_CONNECTED_TO_QUIK, TRANS2QUIK_FAILED
-        [DllImport("TRANS2QUIK.DLL", EntryPoint = "TRANS2QUIK_CONNECT", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("TRANS2QUIK.DLL", EntryPoint = "_TRANS2QUIK_CONNECT@16", CallingConvention = CallingConvention.StdCall)]
         public static extern QuikResult CONNECT(
             [MarshalAs(UnmanagedType.LPStr)] string lpstConnectionParamsString,
             out int pnExtendedErrorCode,
@@ -40,57 +40,57 @@ namespace OsEngine.Market.Servers.Quik
             int dwErrorMessageSize);
 
         // RESULT TRANS2QUIK_SUCCESS, TRANS2QUIK_FAILED, TRANS2QUIK_DLL_NOT_CONNECTED
-        [DllImport("TRANS2QUIK.DLL", EntryPoint = "TRANS2QUIK_DISCONNECT", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("TRANS2QUIK.DLL", EntryPoint = "_TRANS2QUIK_DISCONNECT@12", CallingConvention = CallingConvention.StdCall)]
         public static extern QuikResult DISCONNECT(
             out int pnExtendedErrorCode,
             [MarshalAs(UnmanagedType.LPStr)] StringBuilder lpstrErrorMessage,
             int dwErrorMessageSize);
 
         // RESULT TRANS2QUIK_DLL_CONNECTED, TRANS2QUIK_DLL_NOT_CONNECTED
-        [DllImport("TRANS2QUIK.DLL", EntryPoint = "TRANS2QUIK_IS_DLL_CONNECTED", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("TRANS2QUIK.DLL", EntryPoint = "_TRANS2QUIK_IS_DLL_CONNECTED@12", CallingConvention = CallingConvention.StdCall)]
         public static extern QuikResult IS_DLL_CONNECTED(
             out int pnExtendedErrorCode,
             [MarshalAs(UnmanagedType.LPStr)] StringBuilder lpstrErrorMessage,
             int dwErrorMessageSize);
 
         // RESULT TRANS2QUIK_QUIK_CONNECTED, TRANS2QUIK_QUIK_NOT_CONNECTED, TRANS2QUIK_DLL_NOT_CONNECTED
-        [DllImport("TRANS2QUIK.DLL", EntryPoint = "TRANS2QUIK_IS_QUIK_CONNECTED", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("TRANS2QUIK.DLL", EntryPoint = "_TRANS2QUIK_IS_QUIK_CONNECTED@12", CallingConvention = CallingConvention.StdCall)]
         public static extern QuikResult IS_QUIK_CONNECTED(
             out int pnExtendedErrorCode,
             [MarshalAs(UnmanagedType.LPStr)] StringBuilder lpstrErrorMessage,
             int dwErrorMessageSize);
 
         // RESULT TRANS2QUIK_SUCCESS, TRANS2QUIK_WRONG_SYNTAX, TRANS2QUIK_DLL_NOT_CONNECTED, TRANS2QUIK_QUIK_NOT_CONNECTED, TRANS2QUIK_FAILED
-        [DllImport("TRANS2QUIK.DLL", EntryPoint = "TRANS2QUIK_SEND_ASYNC_TRANSACTION", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("TRANS2QUIK.DLL", EntryPoint = "_TRANS2QUIK_SEND_ASYNC_TRANSACTION@16", CallingConvention = CallingConvention.StdCall)]
         public static extern QuikResult SEND_ASYNC_TRANSACTION(
             [MarshalAs(UnmanagedType.LPStr)] string lpstTransactionString,
             out int pnExtendedErrorCode,
             [MarshalAs(UnmanagedType.LPStr)] StringBuilder lpstErrorMessage,
             int dwErrorMessageSize);
 
-        [DllImport("TRANS2QUIK.DLL", EntryPoint = "TRANS2QUIK_SUBSCRIBE_ORDERS", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("TRANS2QUIK.DLL", EntryPoint = "_TRANS2QUIK_SUBSCRIBE_ORDERS@8", CallingConvention = CallingConvention.StdCall)]
         public static extern QuikResult SUBSCRIBE_ORDERS(
             String classCode,
             String secCodes);
 
-        [DllImport("TRANS2QUIK.DLL", EntryPoint = "TRANS2QUIK_UNSUBSCRIBE_ORDERS", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("TRANS2QUIK.DLL", EntryPoint = "_TRANS2QUIK_UNSUBSCRIBE_ORDERS@0", CallingConvention = CallingConvention.StdCall)]
         public static extern QuikResult UNSUBSCRIBE_ORDERS();
 
-        [DllImport("TRANS2QUIK.DLL", EntryPoint = "TRANS2QUIK_SUBSCRIBE_TRADES", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("TRANS2QUIK.DLL", EntryPoint = "_TRANS2QUIK_SUBSCRIBE_TRADES@8", CallingConvention = CallingConvention.StdCall)]
         public static extern QuikResult SUBSCRIBE_TRADES(
             String classCode,
             String secCodes);
 
-        [DllImport("TRANS2QUIK.DLL", EntryPoint = "TRANS2QUIK_UNSUBSCRIBE_TRADES", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("TRANS2QUIK.DLL", EntryPoint = "_TRANS2QUIK_UNSUBSCRIBE_TRADES@0", CallingConvention = CallingConvention.StdCall)]
         public static extern QuikResult UNSUBSCRIBE_TRADES();
 
-        [DllImport("TRANS2QUIK.DLL", EntryPoint = "TRANS2QUIK_TRADE_ACCOUNT", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("TRANS2QUIK.DLL", EntryPoint = "_TRANS2QUIK_TRADE_ACCOUNT@4", CallingConvention = CallingConvention.StdCall)]
         public static extern IntPtr TRADE_ACCOUNT(int nTradeDescriptor);
 
-        [DllImport("TRANS2QUIK.DLL", EntryPoint = "TRANS2QUIK_TRADE_DATE", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("TRANS2QUIK.DLL", EntryPoint = "_TRANS2QUIK_TRADE_DATE@4", CallingConvention = CallingConvention.StdCall)]
         public static extern int TRADE_DATE(int nTradeDescriptor);
 
-        [DllImport("TRANS2QUIK.DLL", EntryPoint = "TRANS2QUIK_TRADE_TIME", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("TRANS2QUIK.DLL", EntryPoint = "_TRANS2QUIK_TRADE_TIME@4", CallingConvention = CallingConvention.StdCall)]
         public static extern int TRADE_TIME(int nTradeDescriptor);
 
         public static string GetTradeAccount(Int32 descriptor)
@@ -103,7 +103,7 @@ namespace OsEngine.Market.Servers.Quik
             int nExtendedErrorCode,
             IntPtr lpcstrInfoMessage);
 
-        [DllImport("TRANS2QUIK.DLL", EntryPoint = "TRANS2QUIK_SET_CONNECTION_STATUS_CALLBACK", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("TRANS2QUIK.DLL", EntryPoint = "_TRANS2QUIK_SET_CONNECTION_STATUS_CALLBACK@16", CallingConvention = CallingConvention.StdCall)]
         private static extern QuikResult SET_CONNECTION_STATUS_CALLBACK_UNMGR(
             CONNECTION_STATUS_CALLBACK_UNMGR pfConnectionStatusCallback,
             out int pnExtendedErrorCode,
@@ -122,24 +122,22 @@ namespace OsEngine.Market.Servers.Quik
             int dwErrorMessageSize)
         {
             connection_status_callback = pfConnectionStatusCallback;
-            return SET_CONNECTION_STATUS_CALLBACK_UNMGR(
-               connection_status_callback_unmgr,
-               out pnExtendedErrorCode,
-               lpstrErrorMessage,
-               lpstrErrorMessage.Capacity);
+          return SET_CONNECTION_STATUS_CALLBACK_UNMGR(
+             connection_status_callback_unmgr,
+             out pnExtendedErrorCode,
+             lpstrErrorMessage,
+             lpstrErrorMessage.Capacity);
         }
 
         private delegate void TRANSACTION_REPLY_CALLBACK_UNMGR(
-            Int32 nTransactionResult,
-            Int32 nTransactionExtendedErrorCode,
-            Int32 nTransactionReplyCode,
-            UInt32 dwTransId,
-            UInt64 dOrderNum,
-            [MarshalAs(UnmanagedType.LPStr)] string TransactionReplyMessage,
-            IntPtr pTransReplyDescriptor);
+            QuikResult nTransactionResult,
+            int nTransactionExtendedErrorCode,
+            int nTransactionReplyCode,
+            int dwTransId,
+            double dOrderNum,
+            IntPtr lpcstrTransactionReplyMessage);
 
-
-        [DllImport("TRANS2QUIK.DLL", EntryPoint = "TRANS2QUIK_SET_TRANSACTIONS_REPLY_CALLBACK", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("TRANS2QUIK.DLL", EntryPoint = "_TRANS2QUIK_SET_TRANSACTIONS_REPLY_CALLBACK@16", CallingConvention = CallingConvention.StdCall)]
         private static extern QuikResult SET_TRANSACTIONS_REPLY_CALLBACK_UNMGR(
             TRANSACTION_REPLY_CALLBACK_UNMGR pfTransactionReplyCallback,
             out int pnExtendedErrorCode,
@@ -147,13 +145,12 @@ namespace OsEngine.Market.Servers.Quik
             int dwErrorMessageSize);
 
         public delegate void TRANSACTION_REPLY_CALLBACK(
-            Int32 nTransactionResult,
-            Int32 nTransactionExtendedErrorCode,
-            Int32 nTransactionReplyCode,
-            UInt32 dwTransId,
-            UInt64 dOrderNum,
-            [MarshalAs(UnmanagedType.LPStr)] string TransactionReplyMessage,
-            IntPtr pTransReplyDescriptor);
+            QuikResult nTransactionResult,
+            int nTransactionExtendedErrorCode,
+            int nTransactionReplyCode,
+            int dwTransId,
+            double dOrderNum,
+            string lpcstrTransactionReplyMessage);
 
         public static QuikResult SET_TRANSACTIONS_REPLY_CALLBACK(
             TRANSACTION_REPLY_CALLBACK pfTransactionReplyCallback,
@@ -172,7 +169,7 @@ namespace OsEngine.Market.Servers.Quik
         private delegate void ORDER_STATUS_CALLBACK_UNMGR(
             int nMode,
             int dwTransID,
-            ulong @ulong,
+            double dNumber,
             IntPtr ClassCode,
             IntPtr SecCode,
             double dPrice,
@@ -180,24 +177,24 @@ namespace OsEngine.Market.Servers.Quik
             double dValue,
             int nIsSell,
             int nStatus,
-            IntPtr intPtr);
+            int nOrderDescriptor);
 
-        [DllImport("TRANS2QUIK.DLL", EntryPoint = "TRANS2QUIK_START_ORDERS", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("TRANS2QUIK.DLL", EntryPoint = "_TRANS2QUIK_START_ORDERS@4", CallingConvention = CallingConvention.StdCall)]
         private static extern QuikResult START_ORDERS_UNMGR(
             ORDER_STATUS_CALLBACK_UNMGR pfnOrderStatusCallback);
 
         public delegate void ORDER_STATUS_CALLBACK(
-                Int32 nMode,
-                Int32 dwTransID,
-                UInt64 nOrderNum,
-                [MarshalAs(UnmanagedType.LPStr)]string ClassCode,
-                [MarshalAs(UnmanagedType.LPStr)]string SecCode,
-                double dPrice,
-                Int64 nBalance,
-                Double dValue,
-                Int32 nIsSell,
-                Int32 nStatus,
-                IntPtr pOrderDescriptor);
+            int nMode,
+            int dwTransID,
+            double dNumber,
+            string ClassCode,
+            string SecCode,
+            double dPrice,
+            int nBalance,
+            double dValue,
+            int nIsSell,
+            int nStatus,
+            int nOrderDescriptor);
 
         public static QuikResult START_ORDERS(
             ORDER_STATUS_CALLBACK pfnOrderStatusCallback)
@@ -207,33 +204,32 @@ namespace OsEngine.Market.Servers.Quik
         }
 
         private delegate void TRADE_STATUS_CALLBACK_UNMGR(
-                Int32 nMode,
-                ulong dNumber,
-                UInt64 nOrderNum,
-                [MarshalAs(UnmanagedType.LPStr)]string ClassCode,
-                [MarshalAs(UnmanagedType.LPStr)]string SecCode,
-                double dPrice,
-                Int64 nBalance,
-                Double dValue,
-                Int32 nIsSell,
-                IntPtr nTradeDescriptor);
+            int nMode,
+            double dNumber,
+            double dOrderNumber,
+            IntPtr ClassCode,
+            IntPtr SecCode,
+            double dPrice,
+            int nQty,
+            double dValue,
+            int nIsSell,
+            int nTradeDescriptor);
 
-        [DllImport("TRANS2QUIK.DLL", EntryPoint = "TRANS2QUIK_START_TRADES", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("TRANS2QUIK.DLL", EntryPoint = "_TRANS2QUIK_START_TRADES@4", CallingConvention = CallingConvention.StdCall)]
         private static extern QuikResult START_TRADES_UNMGR(
             TRADE_STATUS_CALLBACK_UNMGR pfnTradeStatusCallback);
 
         public delegate void TRADE_STATUS_CALLBACK(
-                Int32 nMode,
-                UInt64 nNumber,
-                UInt64 nOrderNumber,
-                [MarshalAs(UnmanagedType.LPStr)]string ClassCode,
-                [MarshalAs(UnmanagedType.LPStr)]string SecCode,
-                Double dPrice,
-                Int64 nQty,
-                Double dValue,
-                Int32 nIsSell,
-                IntPtr pTradeDescriptor);
-
+            int nMode,
+            double dNumber,
+            double dOrderNumber,
+            string ClassCode,
+            string SecCode,
+            double dPrice,
+            int nQty,
+            double dValue,
+            int nIsSell,
+            int nTradeDescriptor);
 
         public static QuikResult START_TRADES(
             TRADE_STATUS_CALLBACK pfnTradeStatusCallback)
@@ -243,8 +239,8 @@ namespace OsEngine.Market.Servers.Quik
         }
 
         private static void connection_status_callback_impl(
-            QuikResult nConnectionEvent,
-            int nExtendedErrorCode,
+            QuikResult nConnectionEvent, 
+            int nExtendedErrorCode, 
             IntPtr lpcstrInfoMessage)
         {
             if (connection_status_callback != null)
@@ -257,13 +253,12 @@ namespace OsEngine.Market.Servers.Quik
         }
 
         private static void transaction_reply_callback_impl(
-            int nTransactionResult,
+            QuikResult nTransactionResult,
             int nTransactionExtendedErrorCode,
             int nTransactionReplyCode,
-            uint dwTransId,
-            ulong dOrderNum,
-            string transactionReplyMessage,
-            IntPtr pTransReplyDescriptor)
+            int dwTransId,
+            double dOrderNum,
+            IntPtr lpcstrTransactionReplyMessage)
         {
             if (transaction_reply_callback != null)
             {
@@ -273,15 +268,14 @@ namespace OsEngine.Market.Servers.Quik
                     nTransactionReplyCode,
                     dwTransId,
                     dOrderNum,
-                    transactionReplyMessage,
-                    pTransReplyDescriptor);
+                    Marshal.PtrToStringAnsi(lpcstrTransactionReplyMessage));
             }
         }
 
         private static void order_status_callback_impl(
             int nMode,
             int dwTransID,
-            ulong d,
+            double dNumber,
             IntPtr ClassCode,
             IntPtr SecCode,
             double dPrice,
@@ -289,14 +283,14 @@ namespace OsEngine.Market.Servers.Quik
             double dValue,
             int nIsSell,
             int nStatus,
-            IntPtr i)
+            int nOrderDescriptor)
         {
             if (order_status_callback != null)
             {
                 order_status_callback(
                     nMode,
                     dwTransID,
-                    d,
+                    dNumber,
                     Marshal.PtrToStringAnsi(ClassCode),
                     Marshal.PtrToStringAnsi(SecCode),
                     dPrice,
@@ -304,21 +298,21 @@ namespace OsEngine.Market.Servers.Quik
                     dValue,
                     nIsSell,
                     nStatus,
-                    i);
+                    nOrderDescriptor);
             }
         }
 
         private static void trade_status_callback_impl(
             int nMode,
-            ulong dNumber,
-            ulong dOrderNumber,
-            string classCode,
-            string secCode,
+            double dNumber,
+            double dOrderNumber,
+            IntPtr ClassCode,
+            IntPtr SecCode,
             double dPrice,
-            long nQty,
+            int nQty,
             double dValue,
             int nIsSell,
-            IntPtr nTradeDescriptor)
+            int nTradeDescriptor)
         {
             if (trade_status_callback != null)
             {
@@ -326,8 +320,8 @@ namespace OsEngine.Market.Servers.Quik
                     nMode,
                     dNumber,
                     dOrderNumber,
-                    classCode,
-                    secCode,
+                    Marshal.PtrToStringAnsi(ClassCode),
+                    Marshal.PtrToStringAnsi(SecCode),
                     dPrice,
                     nQty,
                     dValue,

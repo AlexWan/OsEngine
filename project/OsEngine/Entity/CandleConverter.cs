@@ -69,11 +69,6 @@ namespace OsEngine.Entity
                     if (mergeCandles[mergeCandles.Count - 1].TimeStart == candles[i].TimeStart)
                     {
                         firstIndex = i+countMerge;
-
-                        if (candles[i].TimeStart.Hour == 10 && candles[i].TimeStart.Minute == 1)
-                        {
-                            firstIndex -= 1;
-                        }
                         break;
                     }
                 }
@@ -109,12 +104,6 @@ namespace OsEngine.Entity
                 if (countReal == 0)
                 {
                     break;
-                }
-
-                if (candles[i].TimeStart.Hour == 10 && candles[i].TimeStart.Minute == 1 &&
-                    countReal == countMerge)
-                {
-                    countReal -= 1;
                 }
 
                 mergeCandles.Add(Concate(candles, i, countReal));

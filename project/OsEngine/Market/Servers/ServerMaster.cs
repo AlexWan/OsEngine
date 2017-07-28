@@ -15,6 +15,7 @@ using OsEngine.Market.Servers.Finam;
 using OsEngine.Market.Servers.InteractivBrokers;
 using OsEngine.Market.Servers.Plaza;
 using OsEngine.Market.Servers.Quik;
+using OsEngine.Market.Servers.QuikLua;
 using OsEngine.Market.Servers.SmartCom;
 using OsEngine.Market.Servers.Tester;
 using MessageBox = System.Windows.MessageBox;
@@ -91,6 +92,24 @@ namespace OsEngine.Market.Servers
                 if (_servers == null)
                 {
                     _servers = new List<IServer>();
+                }
+
+                if (type == ServerType.QuikLua)
+                {
+                    if (_servers.Find(server => server.ServerType == ServerType.QuikLua) != null)
+                    {
+                        return;
+                    }
+                    QuikLuaServer serv = new QuikLuaServer(neadLoadTicks);
+                    _servers.Add(serv);
+                    serv.PortfoliosChangeEvent += _server_PortfoliosChangeEvent;
+                    serv.NewOrderIncomeEvent += _server_NewOrderIncomeEvent;
+                    serv.NewMyTradeEvent += serv_NewMyTradeEvent;
+
+                    if (ServerCreateEvent != null)
+                    {
+                        ServerCreateEvent();
+                    }
                 }
 
                 if (type == ServerType.Quik)
@@ -472,7 +491,8 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// включена ли прорисовка
         /// </summary>
-        private static bool _isPainting = true;
+        private static bool 
+            _isPainting = true;
 
         /// <summary>
         /// добавить элементы, на котором будут прорисовываться портфели и ордера
@@ -1172,6 +1192,11 @@ namespace OsEngine.Market.Servers
     /// </summary>
     public enum ServerType
     {
+        /// <summary>
+        /// квик луа
+        /// </summary>
+        QuikLua,
+
         /// <summary>
         /// Квик
         /// </summary>

@@ -9,6 +9,7 @@ using System.Threading;
 using System.Windows;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
+using OsEngine.Market.Servers.QuikLua;
 using OsEngine.Market.Servers.SmartCom;
 using OsEngine.Market.Servers.Tester;
 
@@ -100,7 +101,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// из сервера пришол новый стакан
+        /// из сервера пришел новый стакан
         /// </summary>
         /// <param name="marketDepth"></param>
         void _server_NewMarketDepthEvent(MarketDepth marketDepth)
@@ -244,6 +245,29 @@ namespace OsEngine.Entity
                         {
                             series.IsStarted = true;
                         }
+                        else if (serverType == ServerType.QuikLua)
+                        {
+                            QuikLuaServer luaServ = (QuikLuaServer) _server;
+                            if (series.TimeFrameSpan.TotalMinutes < 1)
+                            {
+                                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
+
+                                series.PreLoad(allTrades);
+                            }
+                            else
+                            {
+                                List<Candle> candles = luaServ.GetQuikLuaCandleHistory(series.Security.Name,
+                                    series.TimeFrameSpan);
+                                if (candles != null)
+                                {
+                                    //candles.Reverse();
+                                    series.CandlesAll = candles;
+                                }
+                            }
+                            series.UpdateAllCandles();
+                            series.IsStarted = true;
+                        }
+                        
                     }
                 }
             }

@@ -11,18 +11,6 @@ namespace OsEngine.Entity
     /// </summary>
     public class PositionOpenerToStop
     {
-        public PositionOpenerToStop()
-        {
-            ExpiresBars = 0;
-        }
-
-        public PositionOpenerToStop(int thisBarNumber, int expiresBars)
-        {
-            OrderCreateBarNumber = thisBarNumber;
-            ExpiresBars = expiresBars;
-        }
-
-
         /// <summary>
         /// цена выставляемого ордера
         /// </summary>
@@ -47,30 +35,6 @@ namespace OsEngine.Entity
         /// сторона открываемой позиции
         /// </summary>
         public Side Side;
-
-        private int _expiresBars;
-
-        /// <summary>
-        /// Время жизни ордера в барах
-        /// </summary>
-        public int ExpiresBars
-        {
-            get { return _expiresBars; }
-            set { _expiresBars = value; }
-        }
-
-
-        /// <summary>
-        /// Номер бара при котором был создан ордер
-        /// </summary>
-        private int _orderCreateBarNumber;
-
-        public int OrderCreateBarNumber
-        {
-            get { return _orderCreateBarNumber; }
-            set { _orderCreateBarNumber = value; }
-        }
-
 
     }
 }

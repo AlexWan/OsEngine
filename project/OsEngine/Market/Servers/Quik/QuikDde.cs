@@ -333,7 +333,8 @@ namespace OsEngine.Market.Servers.Quik
 
         public event Action<List<Trade>> UpdateTrade;
 
-  // 3) порфели и спот и деривативы
+  // 3) портфели и спот и деривативы
+
         private void PortfolioSpotUpdated(long id, object[,] table)
         {
              int countElem = table.GetLength(0);
