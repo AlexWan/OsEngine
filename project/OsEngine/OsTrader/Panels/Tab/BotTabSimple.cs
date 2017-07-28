@@ -360,6 +360,16 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// все ожидающие цены ордера бота
+        /// </summary>
+        public List<PositionOpenerToStop> PositionOpenerToStopsAll
+        {
+            get { return _stopsOpener; }
+        }
+
+
+
+        /// <summary>
         /// все закрытые, с ошибками позиции принадлежащие боту
         /// </summary>
         public List<Position> PositionsCloseAll
@@ -1056,18 +1066,20 @@ namespace OsEngine.OsTrader.Panels.Tab
             return position;
         }
 
+
         /// <summary>
-        /// купить по пересечению цены. Действует одну свечку
+        /// купить по пересечению цены
         /// </summary>
         /// <param name="volume">объём</param>
         /// <param name="priceLimit">цена ордера</param>
         /// <param name="priceRedLine">цена линии, после достижения которой будет выставлен ордер на покупку</param>
         /// <param name="activateType">тип активации ордера</param>
-        public void BuyAtStop(int volume, decimal priceLimit, decimal priceRedLine, StopActivateType activateType)
+        /// /// <param name="expiresBars">время жизни ордера в барах</param>
+        public void BuyAtStop(int volume, decimal priceLimit, decimal priceRedLine, StopActivateType activateType, int expiresBars)
         {
             try
             {
-                PositionOpenerToStop positionOpener = new PositionOpenerToStop();
+                PositionOpenerToStop positionOpener = new PositionOpenerToStop(CandlesFinishedOnly.Count-1, expiresBars);
                 positionOpener.Volume = volume;
                 positionOpener.PriceOrder = priceLimit;
                 positionOpener.PriceRedLine = priceRedLine;
@@ -1080,6 +1092,20 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 SetNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+
+        }
+
+
+            /// <summary>
+            /// купить по пересечению цены. Действует одну свечку
+            /// </summary>
+            /// <param name="volume">объём</param>
+            /// <param name="priceLimit">цена ордера</param>
+            /// <param name="priceRedLine">цена линии, после достижения которой будет выставлен ордер на покупку</param>
+            /// <param name="activateType">тип активации ордера</param>
+            public void BuyAtStop(int volume, decimal priceLimit, decimal priceRedLine, StopActivateType activateType)
+        {
+            BuyAtStop(volume, priceLimit, priceRedLine, activateType, 1);
         }
 
         /// <summary>
@@ -1462,17 +1488,17 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// продать по пересечению цены. Действует одну свечку
+        /// продать по пересечению цены
         /// </summary>
         /// <param name="volume">объём</param>
         /// <param name="priceLimit">цена ордера</param>
         /// <param name="priceRedLine">цена линии, после достижения которой будет выставлен ордер на продажу</param>
         /// <param name="activateType">тип активации ордера</param>
-        public void SellAtStop(int volume, decimal priceLimit, decimal priceRedLine, StopActivateType activateType)
+        public void SellAtStop(int volume, decimal priceLimit, decimal priceRedLine, StopActivateType activateType, int expiresBars)
         {
             try
             {
-                PositionOpenerToStop positionOpener = new PositionOpenerToStop();
+                PositionOpenerToStop positionOpener = new PositionOpenerToStop(CandlesFinishedOnly.Count-1, expiresBars);
                 positionOpener.Volume = volume;
                 positionOpener.PriceOrder = priceLimit;
                 positionOpener.PriceRedLine = priceRedLine;
@@ -1485,6 +1511,18 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 SetNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        /// <summary>
+        /// продать по пересечению цены. Действует одну свечку
+        /// </summary>
+        /// <param name="volume">объём</param>
+        /// <param name="priceLimit">цена ордера</param>
+        /// <param name="priceRedLine">цена линии, после достижения которой будет выставлен ордер на продажу</param>
+        /// <param name="activateType">тип активации ордера</param>
+        public void SellAtStop(int volume, decimal priceLimit, decimal priceRedLine, StopActivateType activateType)
+        {
+            SellAtStop(volume, priceLimit, priceRedLine, activateType, 1);
         }
 
         /// <summary>
@@ -2108,7 +2146,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// продать. Создать позицию шорт
+        /// Купить. Создать позицию лонг
         /// </summary>
         /// <param name="price">цена заявки</param>
         /// <param name="volume">объём</param>
@@ -2165,7 +2203,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// модифицировать позицию ордером шорт
+        /// модифицировать позицию ордером лонг
         /// </summary>
         /// <param name="position">позиция</param>
         /// <param name="price">цена заявки</param>
@@ -2955,19 +2993,34 @@ namespace OsEngine.OsTrader.Panels.Tab
                         {
                             LongCreate(_stopsOpener[i].PriceOrder, _stopsOpener[i].Volume, OrderPriceType.Limit,
                                 _manualControl.SecondToOpen, true);
+                            _stopsOpener.RemoveAt(i);
+                            continue;
                             //BuyAtLimit(_stopsOpener[i].Volume, _stopsOpener[i].PriceOrder);
                         }
                         else if (_stopsOpener[i].Side == Side.Sell)
                         {
                             ShortCreate(_stopsOpener[i].PriceOrder, _stopsOpener[i].Volume, OrderPriceType.Limit,
                                 _manualControl.SecondToOpen, true);
+                            _stopsOpener.RemoveAt(i);
+                            continue;
                             //SellAtLimit(_stopsOpener[i].Volume, _stopsOpener[i].PriceOrder);
                         }
-                        if (_stopsOpener.Count != 0)
+                        i--;
+                    }
+                    if (_stopsOpener.Count != 0)
+                    {
+                        if (_stopsOpener[i].ExpiresBars > 0)
+                        {
+                            int passedBars = CandlesFinishedOnly.Count - _stopsOpener[i].OrderCreateBarNumber;
+                            if (passedBars >= _stopsOpener[i].ExpiresBars)
+                            {
+                                _stopsOpener.RemoveAt(i);
+                            }
+                        }
+                        else
                         {
                             _stopsOpener.RemoveAt(i);
                         }
-                        i--;
                     }
                 }
             }
@@ -3170,7 +3223,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 if (_stopsOpener != null &&
                     _stopsOpener.Count != 0)
                 {
-                    _stopsOpener.Clear();
+                    //_stopsOpener.Clear();
                 }
 
                 _chartMaster.SetCandles(candles);
