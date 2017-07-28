@@ -67,6 +67,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\Debug\qC.dll</HintPath>
     </Reference>
+    <Reference Include="QuikSharp, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\QuikSharp.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -309,6 +313,10 @@
     <Compile Include="Market\Servers\Plaza\PlazaServer.cs" />
     <Compile Include="Market\Servers\Plaza\PlazaServerUi.xaml.cs">
       <DependentUpon>PlazaServerUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Market\Servers\QuikLua\QuikLuaServer.cs" />
+    <Compile Include="Market\Servers\QuikLua\QuikLuaServerUi.xaml.cs">
+      <DependentUpon>QuikLuaServerUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Market\Servers\ServerTickStorage.cs" />
     <Compile Include="Market\Servers\Tester\TesterServer.cs" />
@@ -750,6 +758,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Market\ConnectorUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\QuikLua\QuikLuaServerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

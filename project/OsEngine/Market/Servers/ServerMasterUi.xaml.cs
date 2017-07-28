@@ -137,6 +137,7 @@ namespace OsEngine.Market.Servers
             bool ibIsOn = false;
             bool finamIsOn = false;
             bool astsIsOn = false;
+            bool quikLuaIsOn = false;
 
             for (int i = 0; i < _gridSources.Rows.Count; i++)
             {
@@ -145,6 +146,11 @@ namespace OsEngine.Market.Servers
                 ServerType type;
 
                 Enum.TryParse(row1.Cells[0].Value.ToString(), out type);
+
+                if (type == ServerType.QuikLua)
+                {
+                    quikLuaIsOn = true;
+                }
 
                 if (type == ServerType.Quik)
                 {
@@ -172,6 +178,15 @@ namespace OsEngine.Market.Servers
                 }
             }
 
+            if (quikLuaIsOn == false)
+            {
+                DataGridViewRow row1 = new DataGridViewRow();
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[0].Value = ServerType.QuikLua;
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[1].Value = "Disconnect";
+                _gridSources.Rows.Add(row1);
+            }
             if (quikIsOn == false)
             {
                 DataGridViewRow row1 = new DataGridViewRow();
