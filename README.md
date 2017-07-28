@@ -26,11 +26,12 @@
 
 *Пять подключений на сегодня*
 
-1) Квик
-2) СмартКом
-3) Плаза 2
-4) Interactiv Brokers
-5) ASTS Bridge, он же Micex TEAP
+1) Квик DDE
+2) Квик ЛУА. Шлём лучи поддержки: https://github.com/finsight/QUIKSharp, которые принимали участие в создании подключения своим кодом.
+3) СмартКом
+4) Плаза 2
+5) Interactiv Brokers
+6) ASTS Bridge, он же Micex TEAP
 
 *В комплекте с OsEngine идёт более 30ти встроенных роботов*
 

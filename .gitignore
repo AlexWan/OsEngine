@@ -28,6 +28,7 @@ bld/
 [Aa]stsBridge/
 Plaza/Log/
 Data/
+lua/logs/
 
 # Visual Studio 2015 cache/options directory
 .vs/
