@@ -710,11 +710,9 @@ namespace OsEngine.Market.Servers.QuikLua
 
             private set
             {
-                DateTime lastTime = _serverTime;
-                _serverTime = value;
-
-                if (_serverTime != lastTime)
+                if (value > _serverTime)
                 {
+                    _serverTime = value;
                     _newServerTime.Enqueue(_serverTime);
                 }
             }
@@ -1091,8 +1089,6 @@ namespace OsEngine.Market.Servers.QuikLua
             SecuritiesUi ui = new SecuritiesUi(this);
             ui.ShowDialog();
         }
-
-
 
 // Подпись на данные
 
@@ -1578,6 +1574,11 @@ namespace OsEngine.Market.Servers.QuikLua
             {
                 try
                 {
+                    if (_lastStartServerTime.AddSeconds(15) > DateTime.Now)
+                    {
+                        return;
+                    }
+
                     MyTrade trade = new MyTrade();
                     trade.NumberTrade = qTrade.TradeNum.ToString();
                     trade.SecurityNameCode = qTrade.SecCode;
@@ -1701,6 +1702,8 @@ namespace OsEngine.Market.Servers.QuikLua
         /// </summary>
         private ConcurrentQueue<Order> _ordersToCansel;
 
+        private List<Order> _ordersAllReadyCanseled = new List<Order>(); 
+
         /// <summary>
         /// блокиратор доступа к ордерам
         /// </summary>
@@ -1715,6 +1718,11 @@ namespace OsEngine.Market.Servers.QuikLua
             {
                 try
                 {
+                    if (_lastStartServerTime.AddSeconds(15) > DateTime.Now)
+                    {
+                        return;
+                    }
+
                     if (qOrder.TransID == 0)
                     {
                         return;
@@ -1755,6 +1763,11 @@ namespace OsEngine.Market.Servers.QuikLua
                     {
                         order.State = OrderStateType.Patrial;
                         order.VolumeExecute = qOrder.Quantity - qOrder.Balance;
+                    }
+
+                    if (_ordersAllReadyCanseled.Find(o => o.NumberUser == qOrder.TransID) != null)
+                    {
+                        order.State = OrderStateType.Cancel;
                     }
 
                     if (qOrder.Operation == Operation.Buy)
@@ -1803,6 +1816,7 @@ namespace OsEngine.Market.Servers.QuikLua
         /// <param name="order">ордер</param>
         public void CanselOrder(Order order)
         {
+            _ordersAllReadyCanseled.Add(order);
             _ordersToCansel.Enqueue(order);
         }
 

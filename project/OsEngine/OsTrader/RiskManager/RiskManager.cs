@@ -228,11 +228,6 @@ namespace OsEngine.OsTrader.RiskManager
         }
 
         /// <summary>
-        /// поток, осуществляющий слежение за убытками
-        /// </summary>
-        private readonly Thread _watcher;
-
-        /// <summary>
         /// метод, в котором живёт поток, отвечающий за слежение за убытками
         /// </summary>
         private void CheckJournals()

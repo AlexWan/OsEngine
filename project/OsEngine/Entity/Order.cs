@@ -18,7 +18,7 @@ namespace OsEngine.Entity
         public Order()
         {
             State = OrderStateType.None;
-            TimeCreate = DateTime.Now;
+            TimeCreate = DateTime.MinValue;
             TimeCallBack = DateTime.MinValue;
             TimeCancel = DateTime.MinValue;
             NumberMarket = "";

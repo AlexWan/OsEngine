@@ -1353,8 +1353,6 @@ namespace OsEngine.OsData
                 }
             }
 
-            int firstCandle = 0;
-
             if (tradeSaveInfo.LastSaveObjectTime >
                 tradeLast.Time ||
                 (tradeLast.Id != null && tradeLast.Id == tradeSaveInfo.LastTradeId)

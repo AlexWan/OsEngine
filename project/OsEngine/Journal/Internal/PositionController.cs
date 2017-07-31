@@ -394,7 +394,7 @@ namespace OsEngine.Journal.Internal
                     }
 
                     PaintPosition(_deals[i]);
-                    return;
+                    break;
                 }
             }
             _neadToSave = true;

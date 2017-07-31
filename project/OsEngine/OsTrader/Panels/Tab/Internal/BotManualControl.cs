@@ -19,7 +19,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
     /// </summary>
     public class BotManualControl
     {
-// статическая часть с работой потока проверяющего не нужно ли чего отзывать
+        // статическая часть с работой потока проверяющего не нужно ли чего отзывать
 
         /// <summary>
         /// поток отзывающий ордера
@@ -59,7 +59,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
                 for (int i = 0; i < TabsToCheck.Count; i++)
                 {
-                    TabsToCheck[i].CheckPositions(DateTime.Now);
+                    TabsToCheck[i].CheckPositions();
                 }
 
                 if (!MainWindow.ProccesIsWorked)
@@ -69,11 +69,11 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
         }
 
-// объект 
+        // объект 
 
         private string _name;
 
-        public BotManualControl(string name,BotTabSimple botTab)
+        public BotManualControl(string name, BotTabSimple botTab)
         {
             _name = name;
 
@@ -92,7 +92,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             SecondToOpen = new TimeSpan(0, 0, 0, 50);
 
             SecondToCloseIsOn = true;
-            SecondToClose = new TimeSpan(0,0,0,50);
+            SecondToClose = new TimeSpan(0, 0, 0, 50);
 
             SetbackToOpenIsOn = false;
 
@@ -171,7 +171,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// <summary>
         /// сохранить
         /// </summary>
-        public void Save() 
+        public void Save()
         {
             try
             {
@@ -210,7 +210,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// <summary>
         /// удалить
         /// </summary>
-        public void Delete() 
+        public void Delete()
         {
             try
             {
@@ -221,7 +221,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
             catch (Exception)
             {
-               // ignore
+                // ignore
             }
         }
 
@@ -234,7 +234,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             ui.ShowDialog();
         }
 
-// стоп
+        // стоп
         /// <summary>
         /// включен ли стоп
         /// </summary>
@@ -250,7 +250,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// </summary>
         public int StopSlipage;
 
-// профит
+        // профит
 
         /// <summary>
         /// вклюичен ли профит
@@ -267,7 +267,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// </summary>
         public int ProfitSlipage;
 
-// время на вход / выход
+        // время на вход / выход
 
         /// <summary>
         /// включен ли отзыв заявки на открытие по времени
@@ -289,7 +289,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// </summary>
         public TimeSpan SecondToClose;
 
-// реакция на отмену заявки на закрытие
+        // реакция на отмену заявки на закрытие
 
         /// <summary>
         /// включено ли повторное выставление заявки на закрытие, если первая была отозвана 
@@ -306,7 +306,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// </summary>
         public int DoubleExitSlipage;
 
-// отход от цены для отмены заявки 
+        // отход от цены для отмены заявки 
 
         /// <summary>
         /// включен ли отзыв ордеров на открытие по откату цены
@@ -328,7 +328,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// </summary>
         public int SetbackToClosePosition;
 
-// отзыв ордеров
+        // отзыв ордеров
 
         /// <summary>
         /// время создания объекта
@@ -340,13 +340,20 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// </summary>
         private BotTabSimple _botTab;
 
+        public DateTime ServerTime = DateTime.MinValue;
+
         /// <summary>
         /// метод, в котором работает поток следящий за исполнением заявок
         /// </summary>
-        private void CheckPositions(DateTime time)
+        private void CheckPositions()
         {
 
             if (MainWindow.ProccesIsWorked == false)
+            {
+                return;
+            }
+
+            if (ServerTime == DateTime.MinValue)
             {
                 return;
             }
@@ -374,14 +381,14 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                         {
                             continue;
                         }
-                        if (_timeStart.AddSeconds(10) > time)
+                        if (_timeStart.AddSeconds(10) > ServerTime)
                         {
                             openOrder.State = OrderStateType.Done;
                             continue;
                         }
 
                         if (SecondToOpenIsOn &&
-                            openOrder.TimeCreate.Add(openOrder.LifeTime) < time)
+                            openOrder.TimeCreate.Add(openOrder.LifeTime) < ServerTime)
                         {
                             SendOrderToClose(openOrder, openDeals[i]);
                         }
@@ -389,7 +396,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                         if (SetbackToOpenIsOn &&
                             openOrder.Side == Side.Buy)
                         {
-                            decimal maxSpread = _botTab.Securiti.PriceStep*SetbackToOpenPosition;
+                            decimal maxSpread = _botTab.Securiti.PriceStep * SetbackToOpenPosition;
 
                             if (Math.Abs(_botTab.PriceBestBid - openOrder.Price) > maxSpread)
                             {
@@ -400,7 +407,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                         if (SetbackToOpenIsOn &&
                             openOrder.Side == Side.Sell)
                         {
-                            decimal maxSpread = _botTab.Securiti.PriceStep*SetbackToOpenPosition;
+                            decimal maxSpread = _botTab.Securiti.PriceStep * SetbackToOpenPosition;
 
                             if (Math.Abs(_botTab.PriceBestAsk - openOrder.Price) > maxSpread)
                             {
@@ -420,14 +427,14 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                         {
                             continue;
                         }
-                        if (_timeStart.AddSeconds(10) > time)
+                        if (_timeStart.AddSeconds(10) > ServerTime)
                         {
                             closeOrder.State = OrderStateType.Done;
                             continue;
                         }
 
                         if (SecondToCloseIsOn &&
-                            closeOrder.TimeCreate.Add(closeOrder.LifeTime) < time)
+                            closeOrder.TimeCreate.Add(closeOrder.LifeTime) < ServerTime)
                         {
                             SendOrderToClose(closeOrder, openDeals[i]);
                         }
@@ -436,7 +443,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                             closeOrder.Side == Side.Buy)
                         {
                             decimal priceRedLine = closeOrder.Price -
-                                                   _botTab.Securiti.PriceStep*SetbackToClosePosition;
+                                                   _botTab.Securiti.PriceStep * SetbackToClosePosition;
 
                             if (_botTab.PriceBestBid <= priceRedLine)
                             {
@@ -448,7 +455,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                             closeOrder.Side == Side.Sell)
                         {
                             decimal priceRedLine = closeOrder.Price +
-                                                   _botTab.Securiti.PriceStep*SetbackToClosePosition;
+                                                   _botTab.Securiti.PriceStep * SetbackToClosePosition;
 
                             if (_botTab.PriceBestAsk >= priceRedLine)
                             {
@@ -542,7 +549,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// </summary>
         public event Action<Order, Position> DontOpenOrderDetectedEvent;
 
-// сообщения в лог 
+        // сообщения в лог 
 
         /// <summary>
         /// выслать новое сообщение на верх

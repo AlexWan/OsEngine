@@ -367,8 +367,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             get { return _stopsOpener; }
         }
 
-
-
         /// <summary>
         /// все закрытые, с ошибками позиции принадлежащие боту
         /// </summary>
@@ -1066,7 +1064,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             return position;
         }
 
-
         /// <summary>
         /// купить по пересечению цены
         /// </summary>
@@ -1095,15 +1092,14 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         }
 
-
-            /// <summary>
+        /// <summary>
             /// купить по пересечению цены. Действует одну свечку
             /// </summary>
             /// <param name="volume">объём</param>
             /// <param name="priceLimit">цена ордера</param>
             /// <param name="priceRedLine">цена линии, после достижения которой будет выставлен ордер на покупку</param>
             /// <param name="activateType">тип активации ордера</param>
-            public void BuyAtStop(int volume, decimal priceLimit, decimal priceRedLine, StopActivateType activateType)
+        public void BuyAtStop(int volume, decimal priceLimit, decimal priceRedLine, StopActivateType activateType)
         {
             BuyAtStop(volume, priceLimit, priceRedLine, activateType, 1);
         }
@@ -3443,6 +3439,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="time">новое время</param>
         void StrategOneSecurity_TimeServerChangeEvent(DateTime time)
         {
+            _manualControl.ServerTime = time;
             if (ServerTimeChangeEvent != null)
             {
                 ServerTimeChangeEvent(time);

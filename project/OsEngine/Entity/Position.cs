@@ -403,17 +403,17 @@ namespace OsEngine.Entity
         /// </summary>
         public void SetOrder(Order newOrder)
         {
-
             Order openOrder = null;
-
             if (_openOrders != null)
             {
                 for (int i = 0; i < _openOrders.Count; i++)
                 {
                     if (_openOrders[i].NumberUser == newOrder.NumberUser)
                     {
-                        if (_openOrders[i].State == OrderStateType.Fail && newOrder.State == OrderStateType.Fail ||
-                            _openOrders[i].State == OrderStateType.Cancel && newOrder.State == OrderStateType.Cancel)
+                        if ((State == PositionStateType.Done || State == PositionStateType.OpeningFail) 
+                            &&
+                            ((_openOrders[i].State == OrderStateType.Fail && newOrder.State == OrderStateType.Fail) ||
+                            (_openOrders[i].State == OrderStateType.Cancel && newOrder.State == OrderStateType.Cancel)))
                         {
                             return;
                         }

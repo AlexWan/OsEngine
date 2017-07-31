@@ -28,7 +28,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// <param name="paramsString">строка с параметрами</param>
         /// <param name="errorString">переменная в которую будет записан код ошибки если что-то пойдёт не так</param>
         /// <returns>Дескриптор соединения или код ошибки(отрицательное значение) если что-то пошло не так</returns>
-        [DllImport("mtesrl.dll", EntryPoint = "MTEConnect", 
+        [DllImport("mtesrl64.dll", EntryPoint = "MTEConnect", 
             CallingConvention = CallingConvention.StdCall)]
         private static extern int MteConnect(
              StringBuilder paramsString,
@@ -39,7 +39,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         /// <param name="procNum">номер коннекта</param>
         /// <returns>Статус: 0 - включен и работает. Остальное код ошибки</returns>
-        [DllImport("mtesrl.dll", EntryPoint = "MTEConnectionStatus", 
+        [DllImport("mtesrl64.dll", EntryPoint = "MTEConnectionStatus", 
             CallingConvention = CallingConvention.StdCall)]
         private static extern int MTEConnectionStatus(
             [param: MarshalAs(UnmanagedType.I4)] Int32 procNum);
@@ -48,7 +48,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// Отключиться от AstsBrige
         /// </summary>
         /// <returns>результат выполнения. 0 - ОК. Остальное код ошибки</returns>
-        [DllImport("mtesrl.dll", EntryPoint = "MTEDisconnect", 
+        [DllImport("mtesrl64.dll", EntryPoint = "MTEDisconnect", 
             CallingConvention = CallingConvention.StdCall)]
         private static extern int MteDisconnect(
             [param: MarshalAs(UnmanagedType.I4)] Int32 procNum);
@@ -57,7 +57,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// Запросить спецификацию ошибки
         /// </summary>
         /// <returns>результат выполнения. 0 - ОК. Остальное код ошибки</returns>
-        [DllImport("mtesrl.dll", EntryPoint = "MTEErrorMsg", 
+        [DllImport("mtesrl64.dll", EntryPoint = "MTEErrorMsg", 
             CallingConvention = CallingConvention.StdCall)]
         private static extern IntPtr MteErrorMsg(
             [param: MarshalAs(UnmanagedType.I4)] Int32 procNum);
@@ -71,7 +71,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// <param name="loadAllTable">нужно ли подгружать полную таблицу</param>
         /// <param name="msg">переменная в которую будет записан результат запроса</param>
         /// <returns>если >= 0, то это дескриптор таблицы, нужный для запроса её обновления. Если меньше 0, то код ошибки</returns>
-        [DllImport("mtesrl.dll", EntryPoint = "MTEOpenTable",
+        [DllImport("mtesrl64.dll", EntryPoint = "MTEOpenTable",
             CallingConvention = CallingConvention.StdCall)]
         private static unsafe extern int MteOpenTableFirstTime(
             [param: MarshalAs(UnmanagedType.I4)] Int32 procNum,
@@ -87,7 +87,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// <param name="version">номер запрашиваемых структур</param>
         /// <param name="msg">переменная в которую будет записан результат запроса</param>
         /// <returns>если меньше 0, то код ошибки</returns>
-        [DllImport("mtesrl.dll", EntryPoint = "MTEStructureEx", 
+        [DllImport("mtesrl64.dll", EntryPoint = "MTEStructureEx", 
             CallingConvention = CallingConvention.StdCall)]
         private static unsafe extern int MteStructureEx(
             [param: MarshalAs(UnmanagedType.I4)] Int32 procNum,
@@ -102,7 +102,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// <param name="userId">поле для ввода идентификатра таблицы(придумывается пользователем) 
         /// которая потом передатся в память в начале этой таблицы</param>
         /// <returns>0 - всё ок. Всё остальное код ошибки</returns>
-        [DllImport("mtesrl.dll", EntryPoint = "MTEAddTable", 
+        [DllImport("mtesrl64.dll", EntryPoint = "MTEAddTable", 
             CallingConvention = CallingConvention.StdCall)]
         private static extern int MteAddTableInQueueOnRefresh(
             [param: MarshalAs(UnmanagedType.I4)] Int32 procNum,
@@ -115,7 +115,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// <param name="procNum">дескриптор соединения выданный MteConnect</param>
         /// <param name="msg">результат запросов</param>
         /// <returns>0 - всё ок. Всё остальное код ошибки. если пришла ошибка, то msg содержит её спецификацию</returns>
-        [DllImport("mtesrl.dll", EntryPoint = "MTERefresh", 
+        [DllImport("mtesrl64.dll", EntryPoint = "MTERefresh", 
             CallingConvention = CallingConvention.StdCall)]
         private static unsafe extern int MteRefresh(
             [param: MarshalAs(UnmanagedType.I4)] Int32 procNum,
@@ -127,7 +127,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// <param name="procNum">дескриптор соединения выданный MteConnect</param>
         /// <param name="tabNum">дескриптор таблицы</param>
         /// <returns>0 - всё ок. Всё остальное код ошибки</returns>
-        [DllImport("mtesrl.dll", EntryPoint = "MTECloseTable", 
+        [DllImport("mtesrl64.dll", EntryPoint = "MTECloseTable", 
             CallingConvention = CallingConvention.StdCall)]
         private static extern int MteCloseTable(
             [param: MarshalAs(UnmanagedType.I4)] Int32 procNum,
@@ -141,7 +141,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// <param name="transParams">параметры транзакции</param>
         /// <param name="errorString">результат</param>
         /// <returns>0 - всё ок. Всё остальное код ошибки</returns>
-        [DllImport("mtesrl.dll", EntryPoint = "MTEExecTrans",
+        [DllImport("mtesrl64.dll", EntryPoint = "MTEExecTrans",
             CallingConvention = CallingConvention.StdCall)]
         private static extern int MteExecTrans(
             [param: MarshalAs(UnmanagedType.I4)] Int32 procNum,

@@ -2831,6 +2831,9 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         public void ExecuteOrder(Order order)
         {
+
+            order.TimeCreate = ServerTime;
+
             if (OrdersActiv.Count != 0)
             {
                 for (int i = 0; i < OrdersActiv.Count; i++)

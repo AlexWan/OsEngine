@@ -1934,7 +1934,6 @@ namespace OsEngine.Journal
             }
         }
 
-
         /// <summary>
         /// сохранить в файл информацию о закрытых сделках
         /// </summary>
@@ -1942,7 +1941,8 @@ namespace OsEngine.Journal
         {
             try
             {
-                OpenFileDialog myDialog = new OpenFileDialog();
+               SaveFileDialog myDialog = new SaveFileDialog();
+                myDialog.Filter = "*.txt|";
                 myDialog.ShowDialog();
 
                 if (string.IsNullOrEmpty(myDialog.FileName))
@@ -1992,7 +1992,13 @@ namespace OsEngine.Journal
                     workSheet.Append(_closePositionGrid.Rows[i].Cells[16].Value + ",\r\n");
                 }
 
-                StreamWriter writer = new StreamWriter(myDialog.FileName);
+                string fileName = myDialog.FileName;
+                if (fileName.Split('.').Length == 1)
+                {
+                    fileName = fileName + ".txt";
+                }
+
+                StreamWriter writer = new StreamWriter(fileName);
                 writer.Write(workSheet);
                 writer.Close();
             }

@@ -1077,8 +1077,6 @@ namespace OsEngine.Charts
 
 // управление
 
-        private bool _isPaint;
-
         /// <summary>
         /// начать прорисовывать данный чарт на окне
         /// </summary>
@@ -1088,8 +1086,6 @@ namespace OsEngine.Charts
             {
                 _chartCandle.StartPaint(host, rectangle);
                 _chartCandle.PaintPositions(_myPosition);
-
-                _isPaint = true;
 
                 _chartCandle.PaintCandles(_myCandles);
 
@@ -1126,7 +1122,6 @@ namespace OsEngine.Charts
         public void StopPaint()
         {
             _chartCandle.StopPaint();
-            _isPaint = false;
         }
 
         /// <summary>
