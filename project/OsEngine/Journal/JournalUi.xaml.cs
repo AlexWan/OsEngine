@@ -1952,44 +1952,44 @@ namespace OsEngine.Journal
                 }
 
                 StringBuilder workSheet = new StringBuilder();
-                workSheet.Append("Номер,");
-                workSheet.Append("Время отк.,");
-                workSheet.Append("Время зак.,");
-                workSheet.Append("Бот,");
-                workSheet.Append("Инструмент,");
-                workSheet.Append("Напр.,");
-                workSheet.Append("Cостояние,");
-                workSheet.Append("Объём,");
-                workSheet.Append("Текущий,");
-                workSheet.Append("Ожидает,");
-                workSheet.Append("Цена входа,");
-                workSheet.Append("Цена выхода,");
-                workSheet.Append("Прибыль,");
-                workSheet.Append("СтопАктивация,");
-                workSheet.Append("СтопЦена,");
-                workSheet.Append("ПрофитАктивация,");
+                workSheet.Append("Номер;");
+                workSheet.Append("Время отк.;");
+                workSheet.Append("Время зак.;");
+                workSheet.Append("Бот;");
+                workSheet.Append("Инструмент;");
+                workSheet.Append("Напр.;");
+                workSheet.Append("Cостояние;");
+                workSheet.Append("Объём;");
+                workSheet.Append("Текущий;");
+                workSheet.Append("Ожидает;");
+                workSheet.Append("Цена входа;");
+                workSheet.Append("Цена выхода;");
+                workSheet.Append("Прибыль;");
+                workSheet.Append("СтопАктивация;");
+                workSheet.Append("СтопЦена;");
+                workSheet.Append("ПрофитАктивация;");
                 workSheet.Append("ПрофитЦена\r\n");
 
                 for (int i = 0; i < _closePositionGrid.Rows.Count; i++)
                 {
-                    workSheet.Append(_closePositionGrid.Rows[i].Cells[0].Value + ",");
-                    workSheet.Append(_closePositionGrid.Rows[i].Cells[1].Value + ",");
-                    workSheet.Append(_closePositionGrid.Rows[i].Cells[2].Value + ",");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[0].Value + ";");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[1].Value + ";");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[2].Value + ";");
 
-                    workSheet.Append(_closePositionGrid.Rows[i].Cells[3].Value + ",");
-                    workSheet.Append(_closePositionGrid.Rows[i].Cells[4].Value + ",");
-                    workSheet.Append(_closePositionGrid.Rows[i].Cells[5].Value + ",");
-                    workSheet.Append(_closePositionGrid.Rows[i].Cells[6].Value + ",");
-                    workSheet.Append(_closePositionGrid.Rows[i].Cells[7].Value + ",");
-                    workSheet.Append(_closePositionGrid.Rows[i].Cells[8].Value + ",");
-                    workSheet.Append(_closePositionGrid.Rows[i].Cells[9].Value + ",");
-                    workSheet.Append(_closePositionGrid.Rows[i].Cells[10].Value + ",");
-                    workSheet.Append(_closePositionGrid.Rows[i].Cells[11].Value + ",");
-                    workSheet.Append(_closePositionGrid.Rows[i].Cells[12].Value + ",");
-                    workSheet.Append(_closePositionGrid.Rows[i].Cells[13].Value + ",");
-                    workSheet.Append(_closePositionGrid.Rows[i].Cells[14].Value + ",");
-                    workSheet.Append(_closePositionGrid.Rows[i].Cells[15].Value + ",");
-                    workSheet.Append(_closePositionGrid.Rows[i].Cells[16].Value + ",\r\n");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[3].Value + ";");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[4].Value + ";");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[5].Value + ";");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[6].Value + ";");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[7].Value + ";");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[8].Value + ";");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[9].Value + ";");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[10].Value + ";");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[11].Value + ";");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[12].Value + ";");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[13].Value + ";");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[14].Value + ";");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[15].Value + ";");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[16].Value + "\r\n");
                 }
 
                 string fileName = myDialog.FileName;
