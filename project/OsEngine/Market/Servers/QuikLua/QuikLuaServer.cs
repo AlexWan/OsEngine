@@ -793,18 +793,29 @@ namespace OsEngine.Market.Servers.QuikLua
                         {
                             var qPortfolio = QuikLua.Trading.GetPortfolioInfo(accaunts[i].Firmid, clientCode).Result;
 
-                            var begin = qPortfolio.InAssets.Replace('.', separator);
-                            myPortfolio.ValueBegin = Convert.ToDecimal(begin.Remove(begin.Length - 4));
+                            if (qPortfolio != null && qPortfolio.InAssets != null)
+                            {
+                                var begin = qPortfolio.InAssets.Replace('.', separator);
+                                myPortfolio.ValueBegin = Convert.ToDecimal(begin.Remove(begin.Length - 4));
+                            }
 
-                            var current = qPortfolio.Assets.Replace('.', separator);
-                            myPortfolio.ValueCurrent = Convert.ToDecimal(current.Remove(current.Length - 4));
+                            if (qPortfolio != null && qPortfolio.Assets != null)
+                            {
+                                var current = qPortfolio.Assets.Replace('.', separator);
+                                myPortfolio.ValueCurrent = Convert.ToDecimal(current.Remove(current.Length - 4));
+                            }
 
-                            var blocked = qPortfolio.TotalLockedMoney.Replace('.', separator);
-                            myPortfolio.ValueBlocked = Convert.ToDecimal(blocked.Remove(blocked.Length - 4));
+                            if (qPortfolio != null && qPortfolio.TotalLockedMoney != null)
+                            {
+                                var blocked = qPortfolio.TotalLockedMoney.Replace('.', separator);
+                                myPortfolio.ValueBlocked = Convert.ToDecimal(blocked.Remove(blocked.Length - 4));
+                            }
 
-                            var profit = qPortfolio.ProfitLoss.Replace('.', separator);
-                            myPortfolio.Profit = Convert.ToDecimal(profit.Remove(profit.Length - 4));
-
+                            if (qPortfolio != null && qPortfolio.ProfitLoss != null)
+                            {
+                                var profit = qPortfolio.ProfitLoss.Replace('.', separator);
+                                myPortfolio.Profit = Convert.ToDecimal(profit.Remove(profit.Length - 4));
+                            }
                         }
                         else
                         {
