@@ -830,13 +830,15 @@ namespace OsEngine.Journal.Internal
                 colum0.HeaderText = @"Номер";
                 colum0.ReadOnly = true;
                 colum0.Width = 50;
+                colum0.ToolTipText = @"Номер позиции";
                 newGrid.Columns.Add(colum0);
 
                 DataGridViewColumn colum01 = new DataGridViewColumn();
                 colum01.CellTemplate = cell0;
-                colum01.HeaderText = @"Время";
+                colum01.HeaderText = @"Время открытия";
                 colum01.ReadOnly = true;
-                colum01.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                colum01.AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
+                colum01.ToolTipText = @"Время совершения первой сделки по позиции";
                 newGrid.Columns.Add(colum01);
 
                 DataGridViewColumn colu = new DataGridViewColumn();
@@ -865,7 +867,7 @@ namespace OsEngine.Journal.Internal
 
                 DataGridViewColumn colum3 = new DataGridViewColumn();
                 colum3.CellTemplate = cell0;
-                colum3.HeaderText = @"Cостояние";
+                colum3.HeaderText = @"Статус";
                 colum3.ReadOnly = true;
                 colum3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
@@ -884,7 +886,6 @@ namespace OsEngine.Journal.Internal
                 colum45.HeaderText = @"Текущий";
                 colum45.ReadOnly = true;
                 colum45.Width = 60;
-
                 newGrid.Columns.Add(colum45);
 
                 DataGridViewColumn colum5 = new DataGridViewColumn();
@@ -897,16 +898,18 @@ namespace OsEngine.Journal.Internal
 
                 DataGridViewColumn colum6 = new DataGridViewColumn();
                 colum6.CellTemplate = cell0;
-                colum6.HeaderText = @"Цена входа";
+                colum6.HeaderText = @"Вход";
                 colum6.ReadOnly = true;
+                colum6.ToolTipText = @"Средняя цена входа";
                 colum6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
                 newGrid.Columns.Add(colum6);
 
                 DataGridViewColumn colum61 = new DataGridViewColumn();
                 colum61.CellTemplate = cell0;
-                colum61.HeaderText = @"Цена выхода";
+                colum61.HeaderText = @"Выход";
                 colum61.ReadOnly = true;
+                colum61.ToolTipText = @"Средняя цена выхода";
                 colum61.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
                 newGrid.Columns.Add(colum61);
@@ -915,6 +918,7 @@ namespace OsEngine.Journal.Internal
                 colum8.CellTemplate = cell0;
                 colum8.HeaderText = @"Прибыль";
                 colum8.ReadOnly = true;
+                colum8.ToolTipText = @"Прибыль в пунктах";
                 colum8.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
                 newGrid.Columns.Add(colum8);
@@ -1120,7 +1124,7 @@ namespace OsEngine.Journal.Internal
                 nRow.Cells[0].Value = position.Number;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[1].Value = position.TimeCreate;
+                nRow.Cells[1].Value = position.TimeOpen;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[2].Value = position.NameBot;
@@ -1150,6 +1154,7 @@ namespace OsEngine.Journal.Internal
                 nRow.Cells[10].Value = position.ClosePrice;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
+                
                 nRow.Cells[11].Value = position.ProfitPortfolioPunkt;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());

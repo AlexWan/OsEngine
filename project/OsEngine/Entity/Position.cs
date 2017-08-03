@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 
 namespace OsEngine.Entity
@@ -199,12 +200,12 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// номер сделки
+        /// номер позиции
         /// </summary>
         public int Number;
 
         /// <summary>
-        /// Бумага по которой открыта позиция
+        /// Код инструмента по которому открыта позиция
         /// </summary>
         public string SecurityName
         {
@@ -217,6 +218,8 @@ namespace OsEngine.Entity
                 return "";
             }
         }
+        
+       
 
         /// <summary>
         /// имя бота, которому принадлежит сделка
@@ -353,7 +356,6 @@ namespace OsEngine.Entity
                         volume += _openOrders[i].VolumeExecute;
                         price += _openOrders[i].VolumeExecute * _openOrders[i].PriceReal;
                     }
-                    
                 }
                 if (volume == 0)
                 {
