@@ -409,7 +409,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-
         /// <summary>
         /// проверить были ли закрытые позиции на текущем баре
         /// </summary>
@@ -1076,7 +1075,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                PositionOpenerToStop positionOpener = new PositionOpenerToStop(CandlesFinishedOnly.Count-1, expiresBars);
+                PositionOpenerToStop positionOpener = new PositionOpenerToStop(CandlesFinishedOnly.Count, expiresBars);
                 positionOpener.Volume = volume;
                 positionOpener.PriceOrder = priceLimit;
                 positionOpener.PriceRedLine = priceRedLine;
@@ -1494,7 +1493,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                PositionOpenerToStop positionOpener = new PositionOpenerToStop(CandlesFinishedOnly.Count-1, expiresBars);
+                PositionOpenerToStop positionOpener = new PositionOpenerToStop(CandlesFinishedOnly.Count, expiresBars);
                 positionOpener.Volume = volume;
                 positionOpener.PriceOrder = priceLimit;
                 positionOpener.PriceRedLine = priceRedLine;
@@ -2979,30 +2978,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                     i > -1 && _stopsOpener != null && _stopsOpener.Count != 0 && i < _stopsOpener.Count;
                     i++)
                 {
-                    if ((_stopsOpener[i].ActivateType == StopActivateType.HigherOrEqual &&
-                         price >= _stopsOpener[i].PriceRedLine) // пробили вниз
-                        ||
-                        (_stopsOpener[i].ActivateType == StopActivateType.LowerOrEqyal &&
-                         price <= _stopsOpener[i].PriceRedLine)) // пробили вверх
-                    {
-                        if (_stopsOpener[i].Side == Side.Buy)
-                        {
-                            LongCreate(_stopsOpener[i].PriceOrder, _stopsOpener[i].Volume, OrderPriceType.Limit,
-                                _manualControl.SecondToOpen, true);
-                            _stopsOpener.RemoveAt(i);
-                            continue;
-                            //BuyAtLimit(_stopsOpener[i].Volume, _stopsOpener[i].PriceOrder);
-                        }
-                        else if (_stopsOpener[i].Side == Side.Sell)
-                        {
-                            ShortCreate(_stopsOpener[i].PriceOrder, _stopsOpener[i].Volume, OrderPriceType.Limit,
-                                _manualControl.SecondToOpen, true);
-                            _stopsOpener.RemoveAt(i);
-                            continue;
-                            //SellAtLimit(_stopsOpener[i].Volume, _stopsOpener[i].PriceOrder);
-                        }
-                        i--;
-                    }
                     if (_stopsOpener.Count != 0)
                     {
                         if (_stopsOpener[i].ExpiresBars > 0)
@@ -3011,12 +2986,45 @@ namespace OsEngine.OsTrader.Panels.Tab
                             if (passedBars >= _stopsOpener[i].ExpiresBars)
                             {
                                 _stopsOpener.RemoveAt(i);
+                                i--;
+                                continue;
                             }
                         }
                         else
                         {
                             _stopsOpener.RemoveAt(i);
+                            i--;
+                            continue;
                         }
+                    }
+
+                    if ((_stopsOpener[i].ActivateType == StopActivateType.HigherOrEqual &&
+                         price >= _stopsOpener[i].PriceRedLine) // пробили вниз
+                        ||
+                        (_stopsOpener[i].ActivateType == StopActivateType.LowerOrEqyal &&
+                         price <= _stopsOpener[i].PriceRedLine)) // пробили вверх
+                    {
+                        if (_stopsOpener[i].Side == Side.Buy)
+                        {
+                            PositionOpenerToStop opener = _stopsOpener[i];
+                            LongCreate(_stopsOpener[i].PriceOrder, _stopsOpener[i].Volume, OrderPriceType.Limit,
+                                _manualControl.SecondToOpen, true);
+                            _stopsOpener.Remove(opener);
+                            i--;
+                            continue;
+                            //BuyAtLimit(_stopsOpener[i].Volume, _stopsOpener[i].PriceOrder);
+                        }
+                        else if (_stopsOpener[i].Side == Side.Sell)
+                        {
+                            PositionOpenerToStop opener = _stopsOpener[i];
+                            ShortCreate(_stopsOpener[i].PriceOrder, _stopsOpener[i].Volume, OrderPriceType.Limit,
+                                _manualControl.SecondToOpen, true);
+                            _stopsOpener.Remove(opener);
+                            i--;
+                            continue;
+                            //SellAtLimit(_stopsOpener[i].Volume, _stopsOpener[i].PriceOrder);
+                        }
+                        i--;
                     }
                 }
             }
