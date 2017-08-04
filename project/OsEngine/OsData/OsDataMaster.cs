@@ -52,7 +52,6 @@ namespace OsEngine.OsData
 
             CreateSetGrid();
             RePaintSetGrid();
-
             try
             {
                 ServerMaster.CreateServer(ServerType.Finam, false);
@@ -81,7 +80,26 @@ namespace OsEngine.OsData
 
             CreateSourceGrid();
             RePaintSourceGrid();
-            ChangeActivSet(0);
+        }
+
+        public void StopPaint()
+        {
+			_isPaintEnabled = false;
+            if (_selectSet != null)
+            {
+                _selectSet.StopPaint();
+            }
+            
+        }
+
+        public void StartPaint()
+        {
+			_isPaintEnabled = true;
+            if (_selectSet != null)
+            {
+                _selectSet.StartPaint(_hostChart, _rectangle);
+            }
+            
         }
 
         void OsDataMaster_LogMessageEvent(string message, LogMessageType type)
@@ -366,6 +384,8 @@ namespace OsEngine.OsData
 
                 _gridset.Rows.Add(nRow);
             }
+            _gridset[1, 0].Selected = true; // Выбрать невидимую строку, чтобы убрать выделение по умолчанию с грида.
+            _gridset.ClearSelection();
         }
 
         /// <summary>
@@ -377,8 +397,10 @@ namespace OsEngine.OsData
             {
                 return;
             }
-            RedactThisSet(_gridset.CurrentCell.RowIndex);
+            int _rowIndex = _gridset.CurrentCell.RowIndex;
+            RedactThisSet(_rowIndex);
             RePaintSetGrid();
+            _gridset.Rows[_rowIndex].Selected = true; // Вернуть фокус на строку, которую редактировал.
         }
 
         /// <summary>
@@ -470,6 +492,11 @@ namespace OsEngine.OsData
         private OsDataSet _selectSet;
 
         /// <summary>
+        /// Включена ли прорисовка графика
+        /// </summary>
+        private bool _isPaintEnabled;
+
+        /// <summary>
         /// сменить активный сет
         /// </summary>
         /// <param name="index">индекс нового</param>
@@ -487,7 +514,6 @@ namespace OsEngine.OsData
             }
 
             OsDataSet currentSet = _sets[index];
-
             if (currentSet == _selectSet)
             {
                 return;
@@ -498,9 +524,13 @@ namespace OsEngine.OsData
             {
                 _selectSet.StopPaint();
             }
+           
 
             _selectSet = currentSet;
-            currentSet.StartPaint(_hostChart,_rectangle);
+            if (_isPaintEnabled)
+            {
+                currentSet.StartPaint(_hostChart, _rectangle);
+            }
         }
 
 // управление        
