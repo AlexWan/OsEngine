@@ -19,8 +19,7 @@ namespace OsEngine.OsData
             InitializeComponent();
             ServerMaster.IsOsData = true;
             _osDataMaster = new OsDataMaster(ChartHostPanel, HostLog, HostSource, HostSet, ComboBoxSecurity,ComboBoxTimeFrame,RectChart);
-            CheckBoxPaintOnOff.IsChecked = true;
-            _osDataMaster.StartPaint();
+            CheckBoxPaintOnOff.IsChecked = _osDataMaster.IsPaintEnabled;
             CheckBoxPaintOnOff.Click += CheckBoxPaintOnOff_Click;
             LabelOsa.Content = "V_" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
             Closing += OsDataUi_Closing;
@@ -32,10 +31,12 @@ namespace OsEngine.OsData
                 CheckBoxPaintOnOff.IsChecked.Value)
             {
                 _osDataMaster.StartPaint();
+                _osDataMaster.SaveSettings();
             }
             else
             {
                 _osDataMaster.StopPaint();
+                _osDataMaster.SaveSettings();
             }
         }
 

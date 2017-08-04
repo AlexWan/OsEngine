@@ -49,6 +49,7 @@ namespace OsEngine.OsData
             _log.Listen(this);
 
             Load();
+            LoadSettings();
 
             CreateSetGrid();
             RePaintSetGrid();
@@ -278,7 +279,8 @@ namespace OsEngine.OsData
 
                 _gridSources.Rows.Add(row1);
             }
-
+            _gridSources[1, 0].Selected = true; // Выбрать невидимую строку, чтобы убрать выделение по умолчанию с грида.
+            _gridSources.ClearSelection();
 
         }
 
@@ -494,7 +496,11 @@ namespace OsEngine.OsData
         /// <summary>
         /// Включена ли прорисовка графика
         /// </summary>
-        private bool _isPaintEnabled;
+        private bool _isPaintEnabled = true;
+        public bool IsPaintEnabled
+        {
+            get { return _isPaintEnabled; }
+        }
 
         /// <summary>
         /// сменить активный сет
@@ -614,6 +620,53 @@ namespace OsEngine.OsData
             if (_sets[num].ShowDialog())
             {
                 _sets[num].Save();
+            }
+        }
+        /// <summary>
+        /// сохранить настройки
+        /// </summary>
+        public void SaveSettings()
+        {
+            try
+            {
+                if (!Directory.Exists("Data\\"))
+                {
+                    Directory.CreateDirectory("Data\\");
+                }
+                using (StreamWriter writer = new StreamWriter("Data\\Settings.txt", false))
+                {
+                    writer.WriteLine(_isPaintEnabled);
+                    writer.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+
+        /// <summary>
+        /// загрузить настройки
+        /// </summary>
+        private void LoadSettings()
+        {
+            if (!File.Exists("Data\\Settings.txt"))
+            {
+                return;
+            }
+
+            try
+            {
+                using (StreamReader reader = new StreamReader("Data\\Settings.txt"))
+                {
+                    _isPaintEnabled = Convert.ToBoolean(reader.ReadLine());
+
+                    reader.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
             }
         }
     }
