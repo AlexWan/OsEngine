@@ -186,9 +186,9 @@ namespace OsEngine.Charts.CandleChart
                 {
                     if (_chart.Series[i].Points.Count != 0)
                     {
-                        _chart.Series[i].Points.Clear();
+                        _chart.Series[i].Points.Dispose();
                     }
-                    
+ 
                 }
 
                 ClearZoom();
@@ -807,7 +807,8 @@ namespace OsEngine.Charts.CandleChart
                     }
 
                     ReloadAreaSizes();
-                    PaintAllCandles(history);
+                    //PaintAllCandles(history);
+                    PaintVisibleCandles(history);
                     PaintPositions(_myDeals);
                     ResizeSeriesLabels();
 
@@ -986,7 +987,53 @@ namespace OsEngine.Charts.CandleChart
             ReloadAreaSizes();
         }
 
-// тики
+        /// <summary>
+        /// прорисовать видимые свечки
+        /// </summary>
+        /// <param name="history">свечи</param>
+        private void PaintVisibleCandles(List<Candle> history)
+        {
+            Series candleSeries = new Series("SeriesCandle");
+            candleSeries.ChartType = SeriesChartType.Candlestick;
+            candleSeries.YAxisType = AxisType.Secondary;
+            candleSeries.ChartArea = "Prime";
+            candleSeries.ShadowOffset = 2;
+            candleSeries.YValuesPerPoint = 4;
+
+
+            for (int i = 0; i < history.Count; i++)
+            {
+                candleSeries.Points.AddXY(i, history[i].Low, history[i].High, history[i].Open, history[i].Close);
+
+                if (history[i].Close > history[i].Open)
+                {
+                    candleSeries.Points[candleSeries.Points.Count - 1].Color = _colorKeeper.ColorUpBodyCandle;
+                    candleSeries.Points[candleSeries.Points.Count - 1].BorderColor = _colorKeeper.ColorUpBorderCandle;
+                }
+                else
+                {
+                    candleSeries.Points[candleSeries.Points.Count - 1].Color = _colorKeeper.ColorDownBorderCandle;
+                    candleSeries.Points[candleSeries.Points.Count - 1].BorderColor = _colorKeeper.ColorDownBorderCandle;
+                    candleSeries.Points[candleSeries.Points.Count - 1].BackSecondaryColor = _colorKeeper.ColorDownBodyCandle;
+                }
+
+                // candleSeries.Points[candleSeries.Points.Count - 1].AxisLabel = history[i].TimeStart.ToString(new CultureInfo("ru-RU"));
+            }
+
+            RePaintRightLebels();
+
+            if (FundSeriesByNameSafe("Cursor") != null)
+            {
+                ReMoveSeriesSafe(FundSeriesByNameSafe("Cursor"));
+            }
+
+            PaintSeriesSafe(candleSeries);
+            ResizeYAxisOnArea("Prime");
+
+            ReloadAreaSizes();
+        }
+
+        // тики
 
         /// <summary>
         /// создать область для тиковых данных
