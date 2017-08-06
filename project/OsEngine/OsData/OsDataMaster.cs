@@ -49,10 +49,10 @@ namespace OsEngine.OsData
             _log.Listen(this);
 
             Load();
+            LoadSettings();
 
             CreateSetGrid();
             RePaintSetGrid();
-
             try
             {
                 ServerMaster.CreateServer(ServerType.Finam, false);
@@ -81,7 +81,26 @@ namespace OsEngine.OsData
 
             CreateSourceGrid();
             RePaintSourceGrid();
-            ChangeActivSet(0);
+        }
+
+        public void StopPaint()
+        {
+			_isPaintEnabled = false;
+            if (_selectSet != null)
+            {
+                _selectSet.StopPaint();
+            }
+            
+        }
+
+        public void StartPaint()
+        {
+			_isPaintEnabled = true;
+            if (_selectSet != null)
+            {
+                _selectSet.StartPaint(_hostChart, _rectangle);
+            }
+            
         }
 
         void OsDataMaster_LogMessageEvent(string message, LogMessageType type)
@@ -260,7 +279,8 @@ namespace OsEngine.OsData
 
                 _gridSources.Rows.Add(row1);
             }
-
+            _gridSources[1, 0].Selected = true; // Выбрать невидимую строку, чтобы убрать выделение по умолчанию с грида.
+            _gridSources.ClearSelection();
 
         }
 
@@ -366,6 +386,8 @@ namespace OsEngine.OsData
 
                 _gridset.Rows.Add(nRow);
             }
+            _gridset[1, 0].Selected = true; // Выбрать невидимую строку, чтобы убрать выделение по умолчанию с грида.
+            _gridset.ClearSelection();
         }
 
         /// <summary>
@@ -377,8 +399,10 @@ namespace OsEngine.OsData
             {
                 return;
             }
-            RedactThisSet(_gridset.CurrentCell.RowIndex);
+            int _rowIndex = _gridset.CurrentCell.RowIndex;
+            RedactThisSet(_rowIndex);
             RePaintSetGrid();
+            _gridset.Rows[_rowIndex].Selected = true; // Вернуть фокус на строку, которую редактировал.
         }
 
         /// <summary>
@@ -470,6 +494,15 @@ namespace OsEngine.OsData
         private OsDataSet _selectSet;
 
         /// <summary>
+        /// Включена ли прорисовка графика
+        /// </summary>
+        private bool _isPaintEnabled = true;
+        public bool IsPaintEnabled
+        {
+            get { return _isPaintEnabled; }
+        }
+
+        /// <summary>
         /// сменить активный сет
         /// </summary>
         /// <param name="index">индекс нового</param>
@@ -487,7 +520,6 @@ namespace OsEngine.OsData
             }
 
             OsDataSet currentSet = _sets[index];
-
             if (currentSet == _selectSet)
             {
                 return;
@@ -498,9 +530,13 @@ namespace OsEngine.OsData
             {
                 _selectSet.StopPaint();
             }
+           
 
             _selectSet = currentSet;
-            currentSet.StartPaint(_hostChart,_rectangle);
+            if (_isPaintEnabled)
+            {
+                currentSet.StartPaint(_hostChart, _rectangle);
+            }
         }
 
 // управление        
@@ -584,6 +620,53 @@ namespace OsEngine.OsData
             if (_sets[num].ShowDialog())
             {
                 _sets[num].Save();
+            }
+        }
+        /// <summary>
+        /// сохранить настройки
+        /// </summary>
+        public void SaveSettings()
+        {
+            try
+            {
+                if (!Directory.Exists("Data\\"))
+                {
+                    Directory.CreateDirectory("Data\\");
+                }
+                using (StreamWriter writer = new StreamWriter("Data\\Settings.txt", false))
+                {
+                    writer.WriteLine(_isPaintEnabled);
+                    writer.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+
+        /// <summary>
+        /// загрузить настройки
+        /// </summary>
+        private void LoadSettings()
+        {
+            if (!File.Exists("Data\\Settings.txt"))
+            {
+                return;
+            }
+
+            try
+            {
+                using (StreamReader reader = new StreamReader("Data\\Settings.txt"))
+                {
+                    _isPaintEnabled = Convert.ToBoolean(reader.ReadLine());
+
+                    reader.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
             }
         }
     }

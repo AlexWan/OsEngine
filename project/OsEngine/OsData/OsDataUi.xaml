@@ -12,8 +12,9 @@
             <Rectangle/>
             <Label Content="Источники" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="ExtraBlack" Margin="10,0,0,0" FontSize="18" Height="31" />
             <WindowsFormsHost Name="HostSource" Height="155" Margin="5,31,5,0" VerticalAlignment="Top"/>
+            <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовка графика" HorizontalAlignment="Left" Margin="10,218,0,0" VerticalAlignment="Top"/>
             <Label Content="Сеты" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="ExtraBlack" Margin="10,188,0,0" FontSize="18" />
-            <WindowsFormsHost Name="HostSet" FontWeight="Bold" HorizontalAlignment="Right" Margin="0,220,7,5" Width="293"/>
+            <WindowsFormsHost Name="HostSet" FontWeight="Bold" HorizontalAlignment="Right" Margin="0,246,7,5" Width="293"/>
 
         </Grid>
         <Grid Grid.Row="0" x:Name="GreedChartPanel" Margin="5,5,315,19">
