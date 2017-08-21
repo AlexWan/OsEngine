@@ -397,8 +397,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <returns>название массива в котором лежит финальное значение</returns>
         public string Calculate(string formula)
         {
-           // try
-            //{
+            try
+            {
                 if (string.IsNullOrWhiteSpace(formula))
                 {
                     return "";
@@ -602,11 +602,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 // подсчёт 
 
                 return Concate(valueOne, valueTwo, znak);
-          //  }
-          //  catch (Exception error)
-         //   {
-           //     SendNewLogMessage(error.ToString(),LogMessageType.Error);
-         //   }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
 
             return "";
         }

@@ -152,7 +152,7 @@ namespace OsEngine.Market.Servers
                     quikLuaIsOn = true;
                 }
 
-                if (type == ServerType.Quik)
+                if (type == ServerType.QuikDde)
                 {
                     quikIsOn = true;
                 }
@@ -191,7 +191,7 @@ namespace OsEngine.Market.Servers
             {
                 DataGridViewRow row1 = new DataGridViewRow();
                 row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.Quik;
+                row1.Cells[0].Value = ServerType.QuikDde;
                 row1.Cells.Add(new DataGridViewTextBoxCell());
                 row1.Cells[1].Value = "Disconnect";
                 _gridSources.Rows.Add(row1);

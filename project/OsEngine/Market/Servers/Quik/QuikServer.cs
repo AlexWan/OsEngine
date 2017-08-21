@@ -62,7 +62,7 @@ namespace OsEngine.Market.Servers.Quik
 
             _logMaster = new Log("QuikServer");
             _logMaster.Listen(this);
-            ServerType = ServerType.Quik;
+            ServerType = ServerType.QuikDde;
 
             Thread statusWatcher = new Thread(StatusWatcherArea);
             statusWatcher.IsBackground = true;
@@ -1502,7 +1502,7 @@ namespace OsEngine.Market.Servers.Quik
                 Order order = new Order();
 
                 order.SecurityNameCode = secCode;
-                order.ServerType = ServerType.Quik;
+                order.ServerType = ServerType.QuikDde;
                 order.Price = (decimal)dPrice;
                 order.Volume = (int)dValue;
                 order.NumberUser = dwTransId;

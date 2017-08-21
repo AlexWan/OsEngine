@@ -119,9 +119,9 @@ namespace OsEngine.Market.Servers
                     }
                 }
 
-                if (type == ServerType.Quik)
+                if (type == ServerType.QuikDde)
                 {
-                    if (_servers.Find(server => server.ServerType == ServerType.Quik) != null)
+                    if (_servers.Find(server => server.ServerType == ServerType.QuikDde) != null)
                     {
                         return;
                     }
@@ -1228,7 +1228,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// Квик
         /// </summary>
-        Quik,
+        QuikDde,
 
         /// <summary>
         /// Смарт-Ком

@@ -56,10 +56,10 @@ namespace OsEngine.OsData
             try
             {
                 ServerMaster.CreateServer(ServerType.Finam, false);
-                ServerMaster.CreateServer(ServerType.Quik,false);
+                ServerMaster.CreateServer(ServerType.QuikDde,false);
+                ServerMaster.CreateServer(ServerType.QuikLua, false);
                 ServerMaster.CreateServer(ServerType.Plaza, false);
                 ServerMaster.CreateServer(ServerType.InteractivBrokers, false);
-               
 
                 List<IServer> servers = ServerMaster.GetServers();
 

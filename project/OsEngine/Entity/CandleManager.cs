@@ -201,7 +201,7 @@ namespace OsEngine.Entity
                         }
 
                         else if (serverType == ServerType.Plaza ||
-                                 serverType == ServerType.Quik ||
+                                 serverType == ServerType.QuikDde ||
                                  serverType == ServerType.AstsBridge ||
                                  (serverType == ServerType.InteractivBrokers
                                   && (series.CandlesAll == null || series.CandlesAll.Count == 0)))
