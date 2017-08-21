@@ -280,6 +280,7 @@
       <DependentUpon>CumulativeDeltaTimeFrameUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Entity\SecurityLevelOne.cs" />
+    <Compile Include="Entity\StrategyParameter.cs" />
     <Compile Include="Entity\TimeFrameBuilder.cs" />
     <Compile Include="Journal\JournalUi.xaml.cs">
       <DependentUpon>JournalUi.xaml</DependentUpon>
@@ -308,6 +309,11 @@
       <DependentUpon>InteractivBrokersUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Market\Servers\IServer.cs" />
+    <Compile Include="Market\Servers\Optimizer\OptimizerServer.cs" />
+    <Compile Include="Market\Servers\Optimizer\OptimizerDataStorage.cs" />
+    <Compile Include="Market\Servers\Optimizer\OptimizerDataStorageUi.xaml.cs">
+      <DependentUpon>OptimizerDataStorageUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Market\Servers\Plaza\Internal\PlazaController.cs" />
     <Compile Include="Market\Servers\Plaza\Internal\PlazaMarketDepthCreator.cs" />
     <Compile Include="Market\Servers\Plaza\PlazaServer.cs" />
@@ -382,6 +388,14 @@
       <DependentUpon>PositionUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Journal\Internal\DealStaticticGenerator.cs" />
+    <Compile Include="OsOptimizer\OptimizerExecutor.cs" />
+    <Compile Include="OsOptimizer\OptimizerMaster.cs" />
+    <Compile Include="OsOptimizer\OptimizerUi.xaml.cs">
+      <DependentUpon>OptimizerUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsOptimizer\TabIndexOptimizerUi.xaml.cs">
+      <DependentUpon>TabIndexOptimizerUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="OsTrader\GlobalPosition.cs" />
     <Compile Include="Journal\Journal.cs" />
     <Compile Include="Logging\MessageSender.cs" />
@@ -472,9 +486,6 @@
     <Compile Include="OsTrader\Panels\PanelsGui\RsiTradeUi.xaml.cs">
       <DependentUpon>RsiTradeUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="OsTrader\Panels\PanelsGui\RviTradeUi.xaml.cs">
-      <DependentUpon>RviTradeUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="OsTrader\Panels\PanelsGui\SmaStochasticUi.xaml.cs">
       <DependentUpon>SmaStochasticUi.xaml</DependentUpon>
     </Compile>
@@ -487,14 +498,14 @@
     <Compile Include="OsTrader\Panels\PanelsGui\TrixTradeUi.xaml.cs">
       <DependentUpon>TrixTradeUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="OsTrader\Panels\PanelsGui\TwoLegArbitrationUi.xaml.cs">
-      <DependentUpon>TwoLegArbitrationUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="OsTrader\Panels\PanelsGui\WilliamsRangeTradeUi.xaml.cs">
       <DependentUpon>WilliamsRangeTradeUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="OsTrader\Panels\Tab\Internal\BotTabCandleSpreadUi.xaml.cs">
       <DependentUpon>BotTabCandleSpreadUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Entity\StrategyParemetrsUi.xaml.cs">
+      <DependentUpon>StrategyParemetrsUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="OsTrader\RiskManager\RiskManagerUi.xaml.cs">
       <DependentUpon>RiskManagerUi.xaml</DependentUpon>
@@ -504,17 +515,11 @@
     <Compile Include="OsTrader\Panels\PanelsGui\SampleFilipLevelUi.xaml.cs">
       <DependentUpon>SampleFilipLevelUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="OsTrader\Panels\PanelsGui\SampleLevermorUi.xaml.cs">
-      <DependentUpon>SampleLevermorUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="OsTrader\Panels\PanelsGui\SamplePairTraderSimpleUi.xaml.cs">
       <DependentUpon>SamplePairTraderSimpleUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="OsTrader\Panels\PanelsGui\SamplePairTraderSpreadSmaUi.xaml.cs">
       <DependentUpon>SamplePairTraderSpreadSmaUi.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="OsTrader\Panels\PanelsGui\MyWilliamsUi.xaml.cs">
-      <DependentUpon>MyWilliamsUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="OsTrader\Panels\Tab\BotTabIndex.cs" />
     <Compile Include="OsTrader\Panels\Tab\IIBotTab.cs" />
@@ -753,6 +758,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Market\Servers\Optimizer\OptimizerDataStorageUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Market\Servers\Plaza\PlazaServerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -833,6 +842,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="OsOptimizer\OptimizerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="OsConverter\OsConverterUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -846,6 +859,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="OsData\OsDataUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsOptimizer\TabIndexOptimizerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -929,10 +946,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="OsTrader\Panels\PanelsGui\RviTradeUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="OsTrader\Panels\PanelsGui\SmaStochasticUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -949,15 +962,15 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="OsTrader\Panels\PanelsGui\TwoLegArbitrationUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="OsTrader\Panels\PanelsGui\WilliamsRangeTradeUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="OsTrader\Panels\Tab\Internal\BotTabCandleSpreadUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Entity\StrategyParemetrsUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -969,19 +982,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="OsTrader\Panels\PanelsGui\SampleLevermorUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="OsTrader\Panels\PanelsGui\SamplePairTraderSimpleUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="OsTrader\Panels\PanelsGui\SamplePairTraderSpreadSmaUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="OsTrader\Panels\PanelsGui\MyWilliamsUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

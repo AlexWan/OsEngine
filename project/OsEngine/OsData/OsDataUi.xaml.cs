@@ -3,7 +3,6 @@
 */
 
 using OsEngine.Entity;
-using OsEngine.Market.Servers;
 using System.Windows;
 
 namespace OsEngine.OsData
@@ -17,7 +16,6 @@ namespace OsEngine.OsData
         public OsDataUi()
         {
             InitializeComponent();
-            ServerMaster.IsOsData = true;
             _osDataMaster = new OsDataMaster(ChartHostPanel, HostLog, HostSource, HostSet, ComboBoxSecurity,ComboBoxTimeFrame,RectChart);
             CheckBoxPaintOnOff.IsChecked = _osDataMaster.IsPaintEnabled;
             CheckBoxPaintOnOff.Click += CheckBoxPaintOnOff_Click;

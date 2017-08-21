@@ -58,7 +58,6 @@ namespace OsEngine.OsData
                 ServerMaster.CreateServer(ServerType.Finam, false);
                 ServerMaster.CreateServer(ServerType.Quik,false);
                 ServerMaster.CreateServer(ServerType.Plaza, false);
-                ServerMaster.CreateServer(ServerType.SmartCom, false);
                 ServerMaster.CreateServer(ServerType.InteractivBrokers, false);
                
 
@@ -358,36 +357,46 @@ namespace OsEngine.OsData
         /// </summary>
         private void RePaintSetGrid()
         {
-            if (_gridset.InvokeRequired)
+            try
             {
-                _gridset.Invoke(new Action(RePaintSetGrid));
-                return;
-            }
-            _gridset.Rows.Clear();
-
-            for (int i = 0;_sets != null && i < _sets.Count; i++)
-            {
-                DataGridViewRow nRow = new DataGridViewRow();
-
-                nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[0].Value = _sets[i].SetName;
-
-                nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[1].Value = _sets[i].Regime;
-
-                if (_sets[i].Regime == DataSetState.On)
+                if (_gridset.InvokeRequired)
                 {
-                    DataGridViewCellStyle style = new DataGridViewCellStyle();
-                    style.BackColor = Color.DarkSeaGreen;
-                    style.SelectionBackColor = Color.SeaGreen;
-                    nRow.Cells[1].Style = style;
-                    nRow.Cells[0].Style = style;
+                    _gridset.Invoke(new Action(RePaintSetGrid));
+                    return;
                 }
+                _gridset.Rows.Clear();
 
-                _gridset.Rows.Add(nRow);
+                for (int i = 0; _sets != null && i < _sets.Count; i++)
+                {
+                    DataGridViewRow nRow = new DataGridViewRow();
+
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[0].Value = _sets[i].SetName;
+
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[1].Value = _sets[i].Regime;
+
+                    if (_sets[i].Regime == DataSetState.On)
+                    {
+                        DataGridViewCellStyle style = new DataGridViewCellStyle();
+                        style.BackColor = Color.DarkSeaGreen;
+                        style.SelectionBackColor = Color.SeaGreen;
+                        nRow.Cells[1].Style = style;
+                        nRow.Cells[0].Style = style;
+                    }
+
+                    _gridset.Rows.Add(nRow);
+                }
+                if (_gridset.Rows.Count != 0)
+                {
+                    _gridset[0, 0].Selected = true; // Выбрать невидимую строку, чтобы убрать выделение по умолчанию с грида.
+                    _gridset.ClearSelection();
+                }
             }
-            _gridset[1, 0].Selected = true; // Выбрать невидимую строку, чтобы убрать выделение по умолчанию с грида.
-            _gridset.ClearSelection();
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         /// <summary>

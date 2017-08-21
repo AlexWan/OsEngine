@@ -59,7 +59,21 @@ namespace OsEngine.Journal
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-           
+        }
+
+        /// <summary>
+        /// очистить журнал от сделок
+        /// </summary>
+        public void Clear()
+        {
+            try
+            {
+                _positionController.Clear();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
 // доступ к сделкам

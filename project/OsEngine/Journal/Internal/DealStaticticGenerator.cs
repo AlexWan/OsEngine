@@ -108,7 +108,7 @@ namespace OsEngine.Journal.Internal
         /// <summary>
         /// взять профит в пунктах к депозиту
         /// </summary>
-        private static decimal GetAllProfitInPunkt(Position[] deals)
+        public static decimal GetAllProfitInPunkt(Position[] deals)
         {
             decimal profit = 0;
 
@@ -123,7 +123,7 @@ namespace OsEngine.Journal.Internal
         /// <summary>
         /// взять профит в процентах к депозиту
         /// </summary>
-        private static decimal GetAllProfitPersent(Position[] deals) 
+        public static decimal GetAllProfitPersent(Position[] deals) 
         {
             if (deals == null || deals.Length == 0)
             {
@@ -154,7 +154,7 @@ namespace OsEngine.Journal.Internal
         /// <summary>
         /// взять средний профит со сделки в процентах
         /// </summary>
-        private static decimal GetMidleProfitInPersent(Position[] deals) 
+        public static decimal GetMidleProfitInPersent(Position[] deals) 
         {
             if (deals.Length == 0)
             {
@@ -173,7 +173,7 @@ namespace OsEngine.Journal.Internal
         /// <summary>
         /// взять средний профит со сделки в пунктах
         /// </summary>
-        private static decimal GetMidleProfitInPunkt(Position[] deals)
+        public static decimal GetMidleProfitInPunkt(Position[] deals)
         {
             if(deals.Length == 0)
             {
@@ -555,7 +555,7 @@ namespace OsEngine.Journal.Internal
         /// <summary>
         /// взять максимальную просадку
         /// </summary>
-        private static decimal GetMaxDownPersent(Position[] deals) 
+        public static decimal GetMaxDownPersent(Position[] deals) 
         {
             decimal maxDown = decimal.MaxValue;
 
@@ -623,7 +623,7 @@ namespace OsEngine.Journal.Internal
         /// <summary>
         /// взять Profit Factor
         /// </summary>
-        private static decimal GetProfitFactor(Position[] deals)
+        public static decimal GetProfitFactor(Position[] deals)
         {
             decimal commonProfitPunkt = 0m;
             decimal commonLossPunkt = 0m;

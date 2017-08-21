@@ -316,9 +316,9 @@ namespace OsEngine.Charts
         {
             try
             {
-                while (_indicatorsCandles != null)
+                for (int i = 0; _indicatorsCandles != null && i < _indicatorsCandles.Count; i++)
                 {
-                    DeleteIndicator(_indicatorsCandles[0]);
+                    _indicatorsCandles[i].Delete();
                 }
 
                 if (File.Exists(@"Engine\" + Name + @".txt"))
@@ -1014,6 +1014,10 @@ namespace OsEngine.Charts
                     canReload = false;
                 }
 
+                if (ServerMaster.IsOsOptimizer)
+                {
+                    canReload = false;
+                }
                 
                 _lastCount = candles.Count;
                 _lastPrice = candles[candles.Count - 1].Close;
@@ -1070,6 +1074,10 @@ namespace OsEngine.Charts
         /// <param name="position">сделка</param>
         public void SetPosition(List<Position> position)
         {
+            if (ServerMaster.IsOsOptimizer)
+            {
+               return;
+            }
             _myPosition = position;
             _chartCandle.PaintPositions(position);
         }

@@ -201,7 +201,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public Color ColorBase { get; set; }
 
         /// <summary>
-        /// длинна верхней линии
+        /// длинна скоростной линии
         /// </summary>
         public int LenghtUp;
 
@@ -211,7 +211,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public int LenghtBase;
 
         /// <summary>
-        /// длинна нижней линии
+        /// длинна медленной линии
         /// </summary>
         public int LenghtDown;
 
@@ -351,12 +351,24 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             if (ui.IsChange && _myCandles != null)
             {
-                ProcessAll(_myCandles);
+                Reload();
+            }
+        }
 
-                if (NeadToReloadEvent != null)
-                {
-                    NeadToReloadEvent(this);
-                }
+        /// <summary>
+        /// перезагрузить индикатор
+        /// </summary>
+        public void Reload()
+        {
+            if (_myCandles == null)
+            {
+                return;
+            }
+            ProcessAll(_myCandles);
+
+            if (NeadToReloadEvent != null)
+            {
+                NeadToReloadEvent(this);
             }
         }
 

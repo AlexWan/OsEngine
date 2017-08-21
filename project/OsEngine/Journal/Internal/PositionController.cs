@@ -41,6 +41,12 @@ namespace OsEngine.Journal.Internal
         /// </summary>
         public static void Activate()
         {
+            if (ServerMaster.IsTester ||
+                ServerMaster.IsOsData ||
+                ServerMaster.IsOsOptimizer)
+            {
+                return;
+            }
             Watcher = new Thread(WatcherHome);
             Watcher.Name = "PositionControllerThread";
             Watcher.IsBackground = true;
@@ -52,11 +58,6 @@ namespace OsEngine.Journal.Internal
         /// </summary>
         public static void WatcherHome()
         {
-            if (ServerMaster.IsTester||
-                ServerMaster.IsOsData)
-            {
-                return;
-            }
 
             while (true)
             {
@@ -187,6 +188,25 @@ namespace OsEngine.Journal.Internal
         {
             try
             {
+                _neadToSave = false;
+                if (File.Exists(@"Engine\" + _name + @"DealController.txt"))
+                {
+                    File.Delete(@"Engine\" + _name + @"DealController.txt");
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// очистить от сделок
+        /// </summary>
+        public void Clear()
+        {
+            try
+            {
                 List<Position> deals = _deals;
 
                 _deals = null;
@@ -194,11 +214,6 @@ namespace OsEngine.Journal.Internal
                 for (int i = 0; deals != null && i < deals.Count; i++)
                 {
                     PaintPosition(deals[i]);
-                }
-
-                if (File.Exists(@"Engine\" + _name + @"DealController.txt"))
-                {
-                    File.Delete(@"Engine\" + _name + @"DealController.txt");
                 }
 
                 _openPositionChanged = true;
@@ -1033,6 +1048,12 @@ namespace OsEngine.Journal.Internal
         {
             try
             {
+                if(ServerMaster.IsOsOptimizer)
+                {
+                    return;
+                }
+
+
                 if (_gridOpenDeal.InvokeRequired)
                 {
                     _gridOpenDeal.Invoke(new Action<Position>(PaintPosition), position);

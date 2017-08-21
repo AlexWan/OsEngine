@@ -28,15 +28,24 @@ namespace OsEngine.OsTrader.RiskManager
         /// </summary>
         public static List<RiskManager> RiskManagersToCheck = new List<RiskManager>();
 
+        private static object _activatorLocker = new object();
+
         /// <summary>
         /// активировать поток
         /// </summary>
         public static void Activate()
         {
-            Watcher = new Thread(WatcherHome);
-            Watcher.Name = "RiskManagerThread";
-            Watcher.IsBackground = true;
-            Watcher.Start();
+            lock (_activatorLocker)
+            {
+                if (Watcher != null)
+                {
+                    return;
+                }
+                Watcher = new Thread(WatcherHome);
+                Watcher.Name = "RiskManagerThread";
+                Watcher.IsBackground = true;
+                Watcher.Start();
+            }
         }
 
         /// <summary>
@@ -45,7 +54,8 @@ namespace OsEngine.OsTrader.RiskManager
         public static void WatcherHome()
         {
             if (ServerMaster.IsTester ||
-                ServerMaster.IsOsData)
+                ServerMaster.IsOsData ||
+                ServerMaster.IsOsOptimizer)
             {
                 return;
             }

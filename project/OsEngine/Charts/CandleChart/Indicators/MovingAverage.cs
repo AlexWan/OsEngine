@@ -304,20 +304,27 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             if (ui.IsChange)
             {
+                Reload();
+            }
+        }
 
-                if (_myValues != null)
-                {
-                    ProcessAll(_myValues);
-                }
-                if (_myCandles != null)
-                {
-                    ProcessAll(_myCandles);
-                }
-               
-                if (NeadToReloadEvent != null)
-                {
-                    NeadToReloadEvent(this);
-                }
+        /// <summary>
+        /// перезагрузить индикатор
+        /// </summary>
+        public void Reload()
+        {
+            if (_myValues != null)
+            {
+                ProcessAll(_myValues);
+            }
+            if (_myCandles != null)
+            {
+                ProcessAll(_myCandles);
+            }
+
+            if (NeadToReloadEvent != null)
+            {
+                NeadToReloadEvent(this);
             }
         }
 

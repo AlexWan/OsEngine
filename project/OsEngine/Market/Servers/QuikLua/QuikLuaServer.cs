@@ -238,7 +238,6 @@ namespace OsEngine.Market.Servers.QuikLua
             ServerStatus = ServerConnectStatus.Disconnect;  
         }
 
-
  // статус сервера
 
         private ServerConnectStatus _serverConnectStatus;
@@ -874,7 +873,6 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
-
         /// <summary>
         /// блокиратор доступа к фьючерсным позициям
         /// </summary>
@@ -1228,7 +1226,6 @@ namespace OsEngine.Market.Servers.QuikLua
         /// </summary>
         public event Action NeadToReconnectEvent;
 
-
 // свечи, взять историю свечек
 
         /// <summary>
@@ -1260,6 +1257,10 @@ namespace OsEngine.Market.Servers.QuikLua
                 {
                     tf = CandleInterval.M1;
                 }
+                else if (Convert.ToInt32(timeSpan.TotalMinutes) == 2)
+                {
+                    tf = CandleInterval.M2;
+                }
                 else if (Convert.ToInt32(timeSpan.TotalMinutes) == 5)
                 {
                     tf = CandleInterval.M5;
@@ -1280,14 +1281,14 @@ namespace OsEngine.Market.Servers.QuikLua
                 {
                     tf = CandleInterval.H1;
                 }
-
+                else if (Convert.ToInt32(timeSpan.TotalMinutes) == 120)
+                {
+                    tf = CandleInterval.H2;
+                }
                 
 
                 #region MyRegion
 
-                
-
-            
                 _candles = null;
 
                 var needSec = _securities.Find(sec => sec.Name == security);
@@ -1348,8 +1349,6 @@ namespace OsEngine.Market.Servers.QuikLua
         /// свечи скаченные из метода GetQuikLuaCandleHistory
         /// </summary>
         private List<Candle> _candles;
-        
-
 
 // стакан
 

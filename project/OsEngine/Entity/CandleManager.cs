@@ -241,7 +241,8 @@ namespace OsEngine.Entity
                             series.IsStarted = true;
                         }
                         else if (serverType == ServerType.Tester ||
-                                 serverType == ServerType.InteractivBrokers)
+                                 serverType == ServerType.InteractivBrokers ||
+                                 serverType == ServerType.Optimizer)
                         {
                             series.IsStarted = true;
                         }
@@ -338,7 +339,7 @@ namespace OsEngine.Entity
             {
                 _activSeries[i].Clear();
             }
-    }
+        }
 
         /// <summary>
         /// для тестера. Синхронизировать получаемые данные

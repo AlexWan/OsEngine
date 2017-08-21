@@ -31,15 +31,25 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// </summary>
         public static List<BotManualControl> TabsToCheck = new List<BotManualControl>();
 
+        private static object _activatorLocker = new object();
+
         /// <summary>
         /// активировать поток для просмотра сделок
         /// </summary>
         public static void Activate()
         {
-            Watcher = new Thread(WatcherHome);
-            Watcher.Name = "BotManualControlThread";
-            Watcher.IsBackground = true;
-            Watcher.Start();
+            lock (_activatorLocker)
+            {
+                if (Watcher != null)
+                {
+                    return;
+                }
+                Watcher = new Thread(WatcherHome);
+                Watcher.Name = "BotManualControlThread";
+                Watcher.IsBackground = true;
+                Watcher.Start();
+            }
+
         }
 
         /// <summary>
@@ -48,7 +58,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         public static void WatcherHome()
         {
             if (ServerMaster.IsTester ||
-                ServerMaster.IsOsData)
+                ServerMaster.IsOsData ||
+                ServerMaster.IsOsOptimizer)
             {
                 return;
             }

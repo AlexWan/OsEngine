@@ -68,14 +68,21 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Добавить новую бумагу в список
         /// </summary>
-        public void CreateNewSecurity()
+        public void ShowNewSecurityDialog()
+        {
+            CreateNewSecurityConnector();
+            Tabs[Tabs.Count - 1].ShowDialog();
+            Save();
+        }
+
+        /// <summary>
+        /// сделать новый адаптер для подключения данных
+        /// </summary>
+        public void CreateNewSecurityConnector()
         {
             Connector connector = new Connector(TabName + Tabs.Count);
             Tabs.Add(connector);
             Tabs[Tabs.Count - 1].NewCandlesChangeEvent += BotTabIndex_NewCandlesChangeEvent;
-            connector.ShowDialog();
-            Save();
-
         }
 
         /// <summary>
@@ -195,6 +202,28 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (File.Exists(@"Engine\" + TabName + @"SpreadSet.txt"))
             {
                 File.Delete(@"Engine\" + TabName + @"SpreadSet.txt");
+            }
+        }
+
+        /// <summary>
+        /// подключена ли вкладка на скачивание данных
+        /// </summary>
+        public bool IsConnected
+        {
+            get
+            {
+                if (Tabs == null)
+                {
+                    return false;
+                }
+                for (int i = 0; i < Tabs.Count; i++)
+                {
+                    if (Tabs[i].IsConnected == false)
+                    {
+                        return false;
+                    }
+                }
+                return true;
             }
         }
 
@@ -368,8 +397,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <returns>название массива в котором лежит финальное значение</returns>
         public string Calculate(string formula)
         {
-            try
-            {
+           // try
+            //{
                 if (string.IsNullOrWhiteSpace(formula))
                 {
                     return "";
@@ -573,11 +602,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 // подсчёт 
 
                 return Concate(valueOne, valueTwo, znak);
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage(error.ToString(),LogMessageType.Error);
-            }
+          //  }
+          //  catch (Exception error)
+         //   {
+           //     SendNewLogMessage(error.ToString(),LogMessageType.Error);
+         //   }
 
             return "";
         }
@@ -809,6 +838,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (valOne[0] == 'A')
             {
                 int iOne = Convert.ToInt32(valOne.Split('A')[1]);
+
+                if (iOne >= Tabs.Count)
+                {
+                    return "";
+                }
                 candlesOne = Tabs[iOne].Candles(true);
                 if(candlesOne == null)
                 {

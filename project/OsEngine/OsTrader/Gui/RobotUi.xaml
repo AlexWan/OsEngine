@@ -35,12 +35,13 @@
                         <Button x:Name="ButtonNewBot" Content="Добавить Панель" HorizontalAlignment="Left" Margin="66,70,0,0" VerticalAlignment="Top" Width="161" Click="ButtonNewBot_Click"/>
                         <Button x:Name="ButtonDeleteBot"  Content="Удалить" HorizontalAlignment="Left" Margin="66,97,0,0" VerticalAlignment="Top" Width="161" Click="ButtonDeleteBot_Click"/>
                         <Label Content="Управление панелью" HorizontalAlignment="Left" Margin="10,204,0,0" VerticalAlignment="Top" FontWeight="ExtraBlack" FontFamily="Calibri" FontSize="18"/>
-                        <Button x:Name="ButtonStrategSettings" Content="Сопровождение позиции"  HorizontalAlignment="Left" Margin="66,325,0,0" VerticalAlignment="Top" Width="161" Click="buttonStrategManualSettings_Click"/>
+                        <Button x:Name="ButtonStrategSettings" Content="Сопровождение позиции"  HorizontalAlignment="Left" Margin="66,355,0,0" VerticalAlignment="Top" Width="161" Click="buttonStrategManualSettings_Click"/>
+                        <Button x:Name="ButtonStrategParametr" Content="Настройка параметров"  HorizontalAlignment="Left" Margin="66,298,0,0" VerticalAlignment="Top" Width="161" Click="ButtonStrategParametr_Click" />
                         <Button x:Name="ButtonStrategSettingsIndividual" Content="Настройки панели" HorizontalAlignment="Left" Margin="66,241,0,0" VerticalAlignment="Top" Width="161" Click="ButtonStrategIndividualSettings_Click"/>
                         <Button x:Name="ButtonRedactTab" Content="Настройки данных"  HorizontalAlignment="Left" Margin="66,268,0,0" VerticalAlignment="Top" Width="161" Click="ButtonRedactTab_Click"  />
                         <Button x:Name="ButtonJournalCommunity" Content="Журнал" HorizontalAlignment="Left" Margin="66,124,0,0" VerticalAlignment="Top" Width="161" Click="ButtonJournalCommunity_Click"/>
                         <Button x:Name="ButtonRiskManagerCommunity" Content="Риск-менеджер" HorizontalAlignment="Left" Margin="66,151,0,0" VerticalAlignment="Top" Width="161" Click="ButtonRiskManagerCommunity_Click" />
-                        <Button x:Name="ButtonRiskManager" Content="Риск-менеджер" HorizontalAlignment="Left" Margin="66,298,0,0" VerticalAlignment="Top" Width="161" Click="ButtonRiskManager_Click" />
+                        <Button x:Name="ButtonRiskManager" Content="Риск-менеджер" HorizontalAlignment="Left" Margin="66,328,0,0" VerticalAlignment="Top" Width="161" Click="ButtonRiskManager_Click" />
                         <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовка интерфейса" HorizontalAlignment="Left" Margin="66,182,0,0" VerticalAlignment="Top"/>
                     </Grid>
                 </TabItem>

@@ -235,12 +235,25 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             if (ui.IsChange && _myCandles != null)
             {
-                ProcessAll(_myCandles);
+                Reload();
+            }
+        }
 
-                if (NeadToReloadEvent != null)
-                {
-                    NeadToReloadEvent(this);
-                }
+        /// <summary>
+        /// перезагрузить индикатор
+        /// </summary>
+        public void Reload()
+        {
+            if (_myCandles == null)
+            {
+                return;
+            }
+            ProcessAll(_myCandles);
+
+
+            if (NeadToReloadEvent != null)
+            {
+                NeadToReloadEvent(this);
             }
         }
 
@@ -443,6 +456,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 sumMa = sumMa + _moveAverage[i];
                 sumRa = sumRa + _rangeAverage[i]; 
+            }
+
+            if (sumRa == 0 || sumMa == 0)
+            {
+                return 0;
             }
 
             return Math.Round(sumMa/sumRa,2);

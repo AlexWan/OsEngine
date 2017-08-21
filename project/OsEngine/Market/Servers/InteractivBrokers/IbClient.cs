@@ -764,7 +764,6 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                     {
                         continue;
                     }
-
                     if (typeMessage == 1)
                     {
                         LoadTrade();
@@ -793,9 +792,10 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                     {
                         LoadContractData();
                     }
-                    else if (typeMessage == 12)
+                    else if (typeMessage == 12 ||
+                        typeMessage == 13)
                     {
-                        LoadMarketDepth();
+                        LoadMarketDepth(typeMessage);
                     }
                     else if (typeMessage == 15)
                     { 
@@ -819,10 +819,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                     {
                         LoadPortfolioPosition2();
                     }
-                    else if (typeMessage == 62)
-                    {
-                        TcpReadInt();
-                    }
+
 
 // далее не нужная Os.Engine дата, от которой всё же поток нужно чистить
 
@@ -830,20 +827,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                     { //OpenOrder
                         ClearOpenOrder();
                     }
-                    else if (typeMessage == 2)
-                    {// TickSize
-                        TcpReadInt();
-                        TcpReadInt();
-                        TcpReadInt();
-                        TcpReadInt();
-                    }
-                    else if (typeMessage == 45)
-                    { // TickGeneric
-                        TcpReadInt();
-                        TcpReadInt();
-                        TcpReadInt();
-                        TcpReadDouble();
-                    }
+
                     else if (typeMessage == 59)
                     {
                         ClearCommissionReport();
@@ -852,19 +836,14 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                     {
                         ClearExecutionData();
                     }
-                    else if (typeMessage == 52)
-                    {
-                        TcpReadInt();
-                        TcpReadInt();
-                    }
-                    else if (typeMessage == 64)
-                    {
-                        TcpReadInt();
-                        TcpReadString();
-                    }
+
                     else
                     {
-                        SendLogMessage("Неучтённое сообщение. Всё пропало! Номер: " + typeMessage, LogMessageType.Error);
+                        if(SkipUnnecessaryData(typeMessage) == false)
+                        {
+                            SendLogMessage("Неучтённое сообщение. Всё пропало! Номер: " + typeMessage, LogMessageType.Error);
+                        }
+                        
                     }
                 }
                 catch (Exception error)
@@ -873,6 +852,176 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                     return;
                 }
             }
+        }
+
+        /// <summary>
+        /// пропустить не нужные данные
+        /// </summary>
+        /// <param name="typeMessage">номер сообщения</param>
+        private bool SkipUnnecessaryData(int typeMessage)
+        {
+            // cписок всех номеров сообщений, которые могут возникнуть в системе
+            /* --- это нужные нашему Апи сообщения
+             * *** сообщения которые мы считываем и пропускаем
+---     TickPrice = 1,
+***		TickVolume = 2,
+---		OrderStatus = 3,
+---		ErrorMessage = 4,
+---		OpenOrder = 5,
+***		Portfolio = 6,
+---		PortfolioPosition = 7,
+***		PortfolioUpdateTime = 8,
+---		NextOrderId = 9,
+---		SecurityInfo = 10,
+---		MyTrade = 11,
+---		MarketDepth = 12,
+---		MarketDepthL2 = 13,
+***		NewsBulletins = 14,
+---		ManagedAccounts = 15,
+***		FinancialAdvice = 16,
+***		HistoricalData = 17,
+		BondInfo = 18,
+***		ScannerParameters = 19,
+		ScannerData = 20,
+		TickOptionComputation = 21,
+***		TickGeneric = 45,
+***		TickString = 46,
+***		TickEfp = 47,
+		CurrentTime = 49,
+		RealTimeBars = 50,
+		FundamentalData = 51,
+***		SecurityInfoEnd = 52,
+		OpenOrderEnd = 53,
+		AccountDownloadEnd = 54,
+		MyTradeEnd = 55,
+		DeltaNuetralValidation = 56,
+		TickSnapshotEnd = 57,
+		MarketDataType = 58,
+---		CommissionReport = 59,
+---		Position = 61,
+***		PositionEnd = 62,
+---		AccountSummary = 63,
+***		AccountSummaryEnd = 64,
+---		VerifyMessageApi = 65,
+---		VerifyCompleted = 66,
+		DisplayGroupList = 67,
+		DisplayGroupUpdated = 68,
+            */
+
+            if (typeMessage == 19)
+            { //ScannerParameters
+                TcpReadString();
+                return true;
+            }
+            else if (typeMessage == 17)
+            {
+                //HistoricalData
+                TcpReadInt();
+                TcpReadString();
+                TcpReadString();
+
+
+                int countElem = TcpReadInt();
+
+                for (int i = 0; i < countElem; i++)
+                {
+                    TcpReadString();
+                    TcpReadDecimal();
+                    TcpReadDecimal();
+                    TcpReadDecimal();
+                    TcpReadDecimal();
+                    TcpReadInt();
+                    TcpReadDecimal();
+                    TcpReadString();
+                    TcpReadInt();
+                }
+                return true;
+            }
+            else if (typeMessage == 16)
+            { //FinancialAdvice
+                TcpReadInt();
+                return true;
+            }
+            else if (typeMessage == 14)
+            { //NewsBulletins
+                TcpReadInt();
+                TcpReadInt();
+                TcpReadString();
+                TcpReadString();
+                return true;
+            }
+            else if (typeMessage == 8)
+            { //PortfolioUpdateTime  
+                TcpReadString();
+                return true;
+            }
+            else if (typeMessage == 6)
+            { //Portfolio
+                TcpReadString();
+                TcpReadString();
+                TcpReadString();
+                TcpReadString();
+                return true;
+            }
+            else if (typeMessage == 52)
+            {
+                TcpReadInt();
+                TcpReadInt();
+                return true;
+            }
+            else if (typeMessage == 64)
+            {
+                TcpReadInt();
+                TcpReadString();
+                return true;
+            }
+            else if (typeMessage == 2)
+            {
+// TickSize
+                TcpReadInt();
+                TcpReadInt();
+                TcpReadInt();
+                TcpReadInt();
+                return true;
+            }
+            else if (typeMessage == 45)
+            {
+                // TickGeneric
+                TcpReadInt();
+                TcpReadInt();
+                TcpReadInt();
+                TcpReadDouble();
+                return true;
+            }
+            else if (typeMessage == 46)
+            {
+                // TickString
+                TcpReadInt();
+                TcpReadInt();
+                TcpReadString();
+                return true;
+            }
+            else if (typeMessage == 47)
+            {
+                // TickEfp
+                TcpReadInt();
+                TcpReadInt();
+                TcpReadDouble();
+                TcpReadString();
+                TcpReadDouble();
+                TcpReadInt();
+                TcpReadString();
+                TcpReadDouble();
+                TcpReadDouble();
+                return true;
+            }
+            else if (typeMessage == 62)
+            {
+                TcpReadInt();
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -887,11 +1036,17 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// <summary>
         /// загрузить стакан
         /// </summary>
-        private void LoadMarketDepth()
+        private void LoadMarketDepth(int numMessage)
         {
             TcpReadInt();
             int requestId = TcpReadInt();
             int position = TcpReadInt();
+
+            if (numMessage == 13)
+            {
+                TcpReadString();
+            }
+
             int operation = TcpReadInt();
             int side = TcpReadInt();
             decimal price = TcpReadDecimal();

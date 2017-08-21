@@ -1642,6 +1642,7 @@ namespace OsEngine.Market.Servers.SmartCom
                    _ordersWhithId.Add(order);
                }
 
+
                if (state == StOrder_State.StOrder_State_Open ||
                    state == StOrder_State.StOrder_State_Submited)
                {
@@ -1664,16 +1665,20 @@ namespace OsEngine.Market.Servers.SmartCom
                {
                    order.State = OrderStateType.Fail;
                    order.VolumeExecute = 0;
+                   order.TimeCancel = datetime;
+                   order.TimeCallBack = datetime;
                }
 
                if (state == StOrder_State.StOrder_State_Filled)
                {
                    order.VolumeExecute = order.Volume;
+                   order.TimeCallBack = datetime;
                    order.State = OrderStateType.Done;
                }
                if (state == StOrder_State.StOrder_State_Partial)
                {
                    order.State = OrderStateType.Patrial;
+                   order.TimeCallBack = datetime;
                }
 
 

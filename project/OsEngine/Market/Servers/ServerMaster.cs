@@ -13,6 +13,7 @@ using OsEngine.Logging;
 using OsEngine.Market.Servers.AstsBridge;
 using OsEngine.Market.Servers.Finam;
 using OsEngine.Market.Servers.InteractivBrokers;
+using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Plaza;
 using OsEngine.Market.Servers.Quik;
 using OsEngine.Market.Servers.QuikLua;
@@ -28,6 +29,7 @@ namespace OsEngine.Market.Servers
     /// </summary>
     public class ServerMaster
     {
+
 // сервис
 
         /// <summary>
@@ -44,6 +46,11 @@ namespace OsEngine.Market.Servers
         /// является ли текущее подключение вызванным из OsData
         /// </summary>
         public static bool IsOsData;
+
+        /// <summary>
+        /// является ли текущее подключение вызванным из IsOsOptimizer
+        /// </summary>
+        public static bool IsOsOptimizer;
 
         /// <summary>
         /// отключить все сервера
@@ -273,6 +280,23 @@ namespace OsEngine.Market.Servers
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        /// <summary>
+        /// создать новый сервер оптимизации
+        /// </summary>
+        public static OptimizerServer CreateNextOptimizerServer(OptimizerDataStorage storage, int num, decimal portfolioStartVal)
+        {
+            _servers = new List<IServer>();
+
+            OptimizerServer serv = new OptimizerServer(storage, num, portfolioStartVal);
+            _servers.Add(serv);
+
+            if (ServerCreateEvent != null)
+            {
+                ServerCreateEvent();
+            }
+            return serv;
         }
 
         /// <summary>
@@ -1192,7 +1216,12 @@ namespace OsEngine.Market.Servers
     public enum ServerType
     {
         /// <summary>
-        /// квик луа
+        /// Оптимизатор
+        /// </summary>
+        Optimizer,
+
+        /// <summary>
+        /// Квик луа
         /// </summary>
         QuikLua,
 

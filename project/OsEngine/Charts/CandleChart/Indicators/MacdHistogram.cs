@@ -263,14 +263,27 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             if (ui.IsChange && _myCandles != null)
             {
-                ProcessAll(_myCandles);
-
-                if (NeadToReloadEvent != null)
-                {
-                    NeadToReloadEvent(this);
-                }
+                Reload();
             }
         }
+
+        /// <summary>
+        /// перезагрузить индикатор
+        /// </summary>
+        public void Reload()
+        {
+            if (_myCandles == null)
+            {
+                return;
+            }
+            ProcessAll(_myCandles);
+
+            if (NeadToReloadEvent != null)
+            {
+                NeadToReloadEvent(this);
+            }
+        }
+
         /// <summary>
         /// показать настройки короткой машки
         /// </summary>

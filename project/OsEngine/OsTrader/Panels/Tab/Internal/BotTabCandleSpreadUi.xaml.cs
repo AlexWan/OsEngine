@@ -110,7 +110,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
         private void ButtonAddSecurity_Click(object sender, RoutedEventArgs e)
         {
-            _spread.CreateNewSecurity();
+            _spread.ShowNewSecurityDialog();
             ReloadSecurityTable();
         }
 

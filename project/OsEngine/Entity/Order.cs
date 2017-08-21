@@ -78,14 +78,15 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (_trades != null)
+                if (_trades != null && (_volumeExecute == 0 || _volumeExecuteChange))
                 {
-                    int volumeExecute = 0;
+                    _volumeExecute = 0;
                     foreach (var trade in _trades)
                     {
-                        volumeExecute += trade.Volume;
+                        _volumeExecute += trade.Volume;
                     }
-                    return volumeExecute;
+                    _volumeExecuteChange = false;
+                    return _volumeExecute;
                 }
                 else
                 {
@@ -96,6 +97,7 @@ namespace OsEngine.Entity
             set { _volumeExecute = value; }
         }
         private int _volumeExecute;
+        private bool _volumeExecuteChange;
 
         public List<MyTrade> MyTrades
         {
@@ -209,6 +211,7 @@ namespace OsEngine.Entity
                 }
             }
 
+            _volumeExecuteChange = true;
 
             if (_trades == null)
             {

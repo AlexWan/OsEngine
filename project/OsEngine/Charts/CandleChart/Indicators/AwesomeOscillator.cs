@@ -298,15 +298,27 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             if (ui.IsChange && _myCandles != null)
             {
-                _longSma = new MovingAverage(false) { Lenght = LenghtLong, TypeCalculationAverage = TypeCalculationAverage, TypePointsToSearch = PriceTypePoints.Median };
-                _shortSma = new MovingAverage(false) { Lenght = LenghtShort, TypeCalculationAverage = TypeCalculationAverage, TypePointsToSearch = PriceTypePoints.Median };
-                Values = null;
-                ProcessAll(_myCandles);
+                Reload();
+            }
+        }
 
-                if (NeadToReloadEvent != null)
-                {
-                    NeadToReloadEvent(this);
-                }
+        /// <summary>
+        /// перезагрузить индикатор
+        /// </summary>
+        public void Reload()
+        {
+            if (_myCandles == null)
+            {
+                return;
+            }
+            _longSma = new MovingAverage(false) { Lenght = LenghtLong, TypeCalculationAverage = TypeCalculationAverage, TypePointsToSearch = PriceTypePoints.Median };
+            _shortSma = new MovingAverage(false) { Lenght = LenghtShort, TypeCalculationAverage = TypeCalculationAverage, TypePointsToSearch = PriceTypePoints.Median };
+            Values = null;
+            ProcessAll(_myCandles);
+
+            if (NeadToReloadEvent != null)
+            {
+                NeadToReloadEvent(this);
             }
         }
 

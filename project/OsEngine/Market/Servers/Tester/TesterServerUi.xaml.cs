@@ -38,6 +38,16 @@ namespace OsEngine.Market.Servers.Tester
 
             TextBoxStartDepozit.Text = _server.StartPortfolio.ToString(new CultureInfo("ru-RU"));
             TextBoxStartDepozit.TextChanged += TextBoxStartDepozit_TextChanged;
+
+            if (_server.ProfitMarketIsOn == true)
+            {
+                CheckBoxOnOffMarketPortfolio.IsChecked = true;
+            }
+            else
+            {
+                CheckBoxOnOffMarketPortfolio.IsChecked = false;
+            }
+
             ResizeMode = System.Windows.ResizeMode.NoResize;
             HostSecurities.Visibility = Visibility.Hidden;
             Host.Visibility = Visibility.Hidden;
@@ -63,8 +73,42 @@ namespace OsEngine.Market.Servers.Tester
             TextBoxFrom.TextChanged += TextBoxFrom_TextChanged;
             TextBoxTo.TextChanged += TextBoxTo_TextChanged;
 
-            TextBoxCommis.Text = _server.Commiss.ToString(new CultureInfo("ru-RU"));
-            TextBoxCommis.TextChanged += TextBoxCommis_TextChanged;
+            TextBoxSlipageSimpleOrder.Text = _server.SlipageToSimpleOrder.ToString(new CultureInfo("ru-RU"));
+            TextBoxSlipageSimpleOrder.TextChanged += TextBoxSlipageSimpleOrderTextChanged;
+
+            TextBoxSlipageStop.Text = _server.SlipageToStopOrder.ToString(new CultureInfo("ru-RU"));
+            TextBoxSlipageStop.TextChanged += TextBoxSlipageStop_TextChanged;
+
+            if (_server.SlipageToStopOrder == 0)
+            {
+                CheckBoxSlipageStopOff.IsChecked = true;
+            }
+            else
+            {
+                CheckBoxSlipageStopOn.IsChecked = false;
+            }
+
+            if (_server.SlipageToSimpleOrder == 0)
+            {
+                CheckBoxSlipageLimitOff.IsChecked = true;
+            }
+            else
+            {
+                CheckBoxSlipageLimitOn.IsChecked = false;
+            }
+
+            if (_server.OrderExecutionType == OrderExecutionType.Touch)
+            {
+                CheckBoxExecutionOrderTuch.IsChecked = true;
+            }
+            else if (_server.OrderExecutionType == OrderExecutionType.Intersection)
+            {
+                CheckBoxExecutionOrderIntersection.IsChecked = true;
+            }
+            else if (_server.OrderExecutionType == OrderExecutionType.FiftyFifty)
+            {
+                CheckBoxExecutionOrderFiftyFifty.IsChecked = true;
+            }
 
             // прогресс бар
 
@@ -200,19 +244,16 @@ namespace OsEngine.Market.Servers.Tester
         /// <summary>
         /// изменилось окно проскальзывания
         /// </summary>
-        void TextBoxCommis_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        void TextBoxSlipageSimpleOrderTextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             try
             {
-                decimal commis = Convert.ToInt32(TextBoxCommis.Text);
-                _server.Commiss = Convert.ToInt32(TextBoxCommis.Text);
-                _server.StartPortfolio = Convert.ToDecimal(TextBoxStartDepozit.Text);
+                _server.SlipageToSimpleOrder = Convert.ToInt32(TextBoxSlipageSimpleOrder.Text);
                 _server.Save();
             }
             catch (Exception)
             {
-                System.Windows.Forms.MessageBox.Show(@"Не допустимое значение в графе комиссии. Разделитель - запятая.");
-                TextBoxCommis.Text = _server.Commiss.ToString(new CultureInfo("ru-RU"));
+                TextBoxSlipageSimpleOrder.Text = _server.SlipageToSimpleOrder.ToString(new CultureInfo("ru-RU"));
                 // ignore
             }
             
@@ -225,15 +266,26 @@ namespace OsEngine.Market.Servers.Tester
         {
             try
             {
-                decimal commis = Convert.ToInt32(TextBoxCommis.Text);
-                _server.Commiss = Convert.ToInt32(TextBoxCommis.Text);
                 _server.StartPortfolio = Convert.ToDecimal(TextBoxStartDepozit.Text);
                 _server.Save();
             }
             catch (Exception)
             {
-                System.Windows.Forms.MessageBox.Show(@"Не допустимое значение в графе комиссии. Разделитель - запятая.");
-                TextBoxCommis.Text = _server.Commiss.ToString(new CultureInfo("ru-RU"));
+                TextBoxStartDepozit.Text = _server.StartPortfolio.ToString(new CultureInfo("ru-RU"));
+                // ignore
+            }
+        }
+
+        void TextBoxSlipageStop_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            try
+            {
+                _server.SlipageToStopOrder = Convert.ToInt32(TextBoxSlipageStop.Text);
+                _server.Save();
+            }
+            catch (Exception)
+            {
+                TextBoxSlipageStop.Text = _server.SlipageToStopOrder.ToString(new CultureInfo("ru-RU"));
                 // ignore
             }
         }
@@ -315,7 +367,8 @@ namespace OsEngine.Market.Servers.Tester
             {
 // если нужно раскрывать форму
                 Height = 600;
-                Width = 1300;
+                Width = 835;
+                MinWidth = 835;
                 HostSecurities.Visibility = Visibility.Visible;
                 Host.Visibility = Visibility.Visible;
                 SliderFrom.Visibility = Visibility.Visible;
@@ -346,6 +399,7 @@ namespace OsEngine.Market.Servers.Tester
                 ComboBoxSets.Visibility = Visibility.Hidden;
                 Height = 130;
                 Width = 570;
+                MinWidth = 570;
             }
         }
 
@@ -361,12 +415,12 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         private void CreateChart()
         {
-            if (_chartReport != null &&
-                _chartReport.InvokeRequired)
+            if (!HostPortfolio.Dispatcher.CheckAccess())
             {
-                _chartReport.Invoke(new Action(CreateChart));
+                HostPortfolio.Dispatcher.Invoke(CreateChart);
                 return;
             }
+
             _chartReport = new Chart();
             HostPortfolio.Child = _chartReport;
             HostPortfolio.Child.Show();
@@ -867,6 +921,65 @@ namespace OsEngine.Market.Servers.Tester
         {
             _server.ShowPathSenderDialog();
             TextBoxDataPath.Text = _server.PathToFolder;
+        }
+
+        private void CheckBoxSlipageLimitOff_Checked(object sender, RoutedEventArgs e)
+        {
+            TextBoxSlipageSimpleOrder.Text = "0";
+            TextBoxSlipageSimpleOrder.IsEnabled = false;
+            CheckBoxSlipageLimitOn.IsChecked = false;
+        }
+
+        private void CheckBoxSlipageLimitOn_Checked(object sender, RoutedEventArgs e)
+        {
+            TextBoxSlipageSimpleOrder.IsEnabled = true;
+            CheckBoxSlipageLimitOff.IsChecked = false;
+        }
+
+        private void CheckBoxSlipageStopOff_Checked(object sender, RoutedEventArgs e)
+        {
+            TextBoxSlipageStop.Text = "0";
+            TextBoxSlipageStop.IsEnabled = false;
+            CheckBoxSlipageStopOn.IsChecked = false;
+        }
+
+        private void CheckBoxSlipageStopOn_Checked(object sender, RoutedEventArgs e)
+        {
+            TextBoxSlipageStop.IsEnabled = true;
+            CheckBoxSlipageStopOff.IsChecked = false;
+        }
+
+        private void CheckBoxExecutionOrderIntersection_Checked(object sender, RoutedEventArgs e)
+        {
+            _server.OrderExecutionType = OrderExecutionType.Intersection;
+            CheckBoxExecutionOrderTuch.IsChecked = false;
+            CheckBoxExecutionOrderFiftyFifty.IsChecked = false;
+        }
+
+        private void CheckBoxExecutionOrderTuch_Checked(object sender, RoutedEventArgs e)
+        {
+            _server.OrderExecutionType = OrderExecutionType.Touch;
+            CheckBoxExecutionOrderIntersection.IsChecked = false;
+            CheckBoxExecutionOrderFiftyFifty.IsChecked = false;
+        }
+
+        private void CheckBoxExecutionOrderFiftyFifty_Checked(object sender, RoutedEventArgs e)
+        {
+            _server.OrderExecutionType = OrderExecutionType.FiftyFifty;
+            CheckBoxExecutionOrderTuch.IsChecked = false;
+            CheckBoxExecutionOrderIntersection.IsChecked = false;
+        }
+
+        private void CheckBoxOnOffMarketPortfolio_Checked(object sender, RoutedEventArgs e)
+        {
+            if (CheckBoxOnOffMarketPortfolio.IsChecked == true)
+            {
+                _server.ProfitMarketIsOn = true;
+            }
+            else
+            {
+                _server.ProfitMarketIsOn = false;
+            }
         }
     }
 }

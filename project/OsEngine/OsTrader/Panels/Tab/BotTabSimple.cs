@@ -18,6 +18,7 @@ using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
+using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels.Tab.Internal;
 
@@ -82,36 +83,6 @@ namespace OsEngine.OsTrader.Panels.Tab
 // управление
 
         /// <summary>
-        /// удалить робота и все дочерние структуры
-        /// </summary>
-        public void Delete()
-        {
-            try
-            {
-                _journal.Delete();
-                _connector.Delete();
-                _manualControl.Delete();
-                _chartMaster.Delete();
-
-                _alerts.DeleteAll();
-
-                if (File.Exists(@"Engine\" + TabName + @"SettingsBot.txt"))
-                {
-                    File.Delete(@"Engine\" + TabName + @"SettingsBot.txt");
-                }
-
-                if (DeleteBotEvent != null)
-                {
-                    DeleteBotEvent(TabNum);
-                }
-            }
-            catch (Exception error)
-            {
-                SetNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        /// <summary>
         /// начать прорисовку этого робота
         /// </summary> 
         public void StartPaint(WindowsFormsHost hostChart, WindowsFormsHost hostGlass, WindowsFormsHost hostOpenDeals,
@@ -165,13 +136,50 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                _journal.Delete();
+                _journal.Clear();
                 _chartMaster.Clear();
             }
             catch (Exception error)
             {
                 SetNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        /// <summary>
+        /// удалить робота и все дочерние структуры
+        /// </summary>
+        public void Delete()
+        {
+            try
+            {
+                _journal.Delete();
+                _connector.Delete();
+                _manualControl.Delete();
+                _chartMaster.Delete();
+                _alerts.DeleteAll();
+
+                if (File.Exists(@"Engine\" + TabName + @"SettingsBot.txt"))
+                {
+                    File.Delete(@"Engine\" + TabName + @"SettingsBot.txt");
+                }
+
+                if (DeleteBotEvent != null)
+                {
+                    DeleteBotEvent(TabNum);
+                }
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// подключен ли коннектор на скачивание данных
+        /// </summary>
+        public bool IsConnected
+        {
+            get { return _connector.IsConnected; }
         }
 
 // работа с логом
@@ -247,6 +255,14 @@ namespace OsEngine.OsTrader.Panels.Tab
 // закрытые составные части
 
         /// <summary>
+        /// класс отвечающий за подключение вкладки к бирже
+        /// </summary>
+        public Connector Connector
+        {
+            get { return _connector; }
+        }
+
+        /// <summary>
         /// коннектор к бирже
         /// </summary>
         private Connector _connector;
@@ -289,7 +305,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     return ServerConnectStatus.Disconnect;
                 }
-                IServer myServer = ServerMaster.GetServers().Find(serv => serv.ServerType == _connector.ServerType);
+                IServer myServer = _connector.MyServer;
 
                 if (myServer == null)
                 {
@@ -1489,6 +1505,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="priceLimit">цена ордера</param>
         /// <param name="priceRedLine">цена линии, после достижения которой будет выставлен ордер на продажу</param>
         /// <param name="activateType">тип активации ордера</param>
+        /// <param name="expiresBars">через сколько свечей заявка будет снята</param>
         public void SellAtStop(int volume, decimal priceLimit, decimal priceRedLine, StopActivateType activateType, int expiresBars)
         {
             try
@@ -2887,7 +2904,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void CheckSurplusPositions()
         {
-            if (_lastClosingSurplusTime != DateTime.MinValue &&
+            if (!ServerMaster.IsOsOptimizer && !ServerMaster.IsTester && _lastClosingSurplusTime != DateTime.MinValue &&
                 _lastClosingSurplusTime.AddSeconds(10) > DateTime.Now)
             {
                 return;
@@ -2907,7 +2924,31 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
-            List<Position> positions = PositionsAll.FindAll(position => position.State == PositionStateType.ClosingSurplus ||
+            bool haveSurplusPos = false;
+
+            List<Position> positions = PositionsAll;
+
+            if (positions == null ||
+                positions.Count == 0)
+            {
+                return;
+            }
+
+            for (int i = positions.Count - 1; i > -1 && i > positions.Count - 10; i--)
+            {
+                if (positions[i].State == PositionStateType.ClosingSurplus)
+                {
+                    haveSurplusPos = true;
+                    break;
+                }
+            }
+
+            if (haveSurplusPos == false)
+            {
+                return;
+            }
+
+            positions = PositionsAll.FindAll(position => position.State == PositionStateType.ClosingSurplus ||
                 position.OpenVolume < 0);
 
             if ( positions.Count == 0)
@@ -3144,7 +3185,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         decimal profit = position.ProfitPortfolioPunkt;
 
-                        ((TesterServer)ServerMaster.GetServers()[0]).AddProfit(profit);
+                        ((TesterServer)_connector.MyServer).AddProfit(profit);
+                    }
+                    if (ServerMaster.IsOsOptimizer)
+                    {
+                        decimal profit = position.ProfitPortfolioPunkt;
+
+                        ((OptimizerServer)_connector.MyServer).AddProfit(profit);
                     }
                 }
                 else if (position.State == PositionStateType.OpeningFail)
@@ -3387,7 +3434,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 for (int i = 0; i < openPositions.Count; i++)
                 {
-                    for (int i2 = _lastTickIndex; i2 < trades.Count; i2++)
+                    for (int i2 = _lastTickIndex; i2 < trades.Count && trades[i2] != null; i2++)
                     {
                         CheckStop(openPositions[i], trades[i2].Price);
                     }
@@ -3400,11 +3447,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     trades.RemoveAt(i2);
                     return;
-                }
-                if (trades[i2].Time.Day == 9 &&
-                    trades[i2].Time.Hour == 10)
-                {
-                    
                 }
                 CheckStopOpener(trades[i2].Price);
 

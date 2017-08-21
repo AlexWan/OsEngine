@@ -53,8 +53,6 @@ namespace OsEngine.Entity
 
         private CumulativeDeltaPeriods _deltaPeriods;
 
-
-
         /// <summary>
         /// нужно ли показывать неторговые свечки
         /// </summary>
@@ -209,15 +207,7 @@ namespace OsEngine.Entity
 
                 if (CandlesAll[CandlesAll.Count - 1].State != CandleStates.Finished)
                 {
-                    // если берём все свечи, включая не сформированные
-                    Candle[] shortHistory = new Candle[history.Count - 1];
-
-                    for (int i = 0; i < history.Count - 1 && i < shortHistory.Length; i++)
-                    {
-                        shortHistory[i] = history[i];
-                    }
-
-                    history = shortHistory.ToList();
+                    return CandlesAll.GetRange(0, CandlesAll.Count - 1); 
                 }
 
                 return history;
@@ -275,8 +265,13 @@ namespace OsEngine.Entity
                 return;
             }
 
-            if (!ServerMaster.IsTester &&
-                CandlesAll[CandlesAll.Count - 1].TimeStart.Add(_timeFrameSpan) < time)
+            if (ServerMaster.IsOsOptimizer ||
+               ServerMaster.IsTester)
+            {
+                return;
+            }
+
+            if (CandlesAll[CandlesAll.Count - 1].TimeStart.Add(_timeFrameSpan) < time)
             {
                 // пришло время закрыть свечу
                 CandlesAll[CandlesAll.Count - 1].State = CandleStates.Finished;
@@ -303,6 +298,13 @@ namespace OsEngine.Entity
                 return;
             }
             if (SeriesCreateDataType == CandleSeriesCreateDataType.MarketDepth)
+            {
+                return;
+            }
+
+            if ((ServerMaster.IsOsOptimizer ||
+                ServerMaster.IsTester) &&
+                TypeTesterData == TesterDataType.Candle)
             {
                 return;
             }
@@ -870,15 +872,15 @@ namespace OsEngine.Entity
         /// </summary>
         private void UpdateChangeCandle()
         {
-            if (!ServerMaster.IsTester ||
-                ServerMaster.IsTester &&
-                TypeTesterData != TesterDataType.TickOnlyReadyCandle &&
-                TypeTesterData != TesterDataType.MarketDepthOnlyReadyCandle)
+            if (ServerMaster.IsTester &&
+                (TypeTesterData == TesterDataType.MarketDepthOnlyReadyCandle ||
+                TypeTesterData == TesterDataType.TickOnlyReadyCandle))
             {
-                if (СandleUpdeteEvent != null)
-                {
-                    СandleUpdeteEvent(this);
-                }
+                return;
+            }
+            if (СandleUpdeteEvent != null)
+            {
+                СandleUpdeteEvent(this);
             }
         }
 
@@ -886,7 +888,7 @@ namespace OsEngine.Entity
 
         private void UpdateFinishCandle()
         {
-            if (!ServerMaster.IsTester)
+            if (!ServerMaster.IsTester && !ServerMaster.IsOsOptimizer)
             {
                 if (DateTime.Now < _lastNewCandleFinish.AddSeconds(TimeFrameSpan.TotalSeconds/2))
                 {
@@ -966,7 +968,7 @@ namespace OsEngine.Entity
             {
                 CandlesAll[CandlesAll.Count - 1] = candle;
 
-                UpdateChangeCandle();
+                UpdateFinishCandle();
                 return;
             }
 
