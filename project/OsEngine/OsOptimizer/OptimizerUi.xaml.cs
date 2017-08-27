@@ -1091,7 +1091,7 @@ namespace OsEngine.OsOptimizer
         /// <summary>
         /// параметры для оптимизации текущего робота
         /// </summary>
-        private List<StrategyParameter> _parameters;
+        private List<IIStrategyParameter> _parameters;
 
         /// <summary>
         /// список включенных параметров
@@ -1197,7 +1197,7 @@ namespace OsEngine.OsOptimizer
            
             _gridParametrs.CellValueChanged -= _gridParametrs_CellValueChanged;
 
-            List<StrategyParameter> fazes = _parameters;
+            List<IIStrategyParameter> fazes = _parameters;
 
             if (fazes == null ||
                 fazes.Count == 0)
@@ -1235,17 +1235,19 @@ namespace OsEngine.OsOptimizer
                     DataGridViewComboBoxCell cell = new DataGridViewComboBoxCell();
                     cell.Items.Add("False");
                     cell.Items.Add("True");
-                    cell.Value = _parameters[i].ValueBool.ToString();
+                    cell.Value = ((StrategyParameterBool)_parameters[i]).ValueBool.ToString();
                     row.Cells.Add(cell);
                 }
                 else if (_parameters[i].Type == StrategyParameterType.String)
                 {
                     DataGridViewComboBoxCell cell = new DataGridViewComboBoxCell();
-                    for (int i2 = 0; i2 < _parameters[i].ValuesString.Count; i2++)
+                    StrategyParameterString param = (StrategyParameterString) _parameters[i];
+
+                    for (int i2 = 0; i2 < param.ValuesString.Count; i2++)
                     {
-                        cell.Items.Add(_parameters[i].ValuesString[i2]);
+                        cell.Items.Add(param.ValuesString[i2]);
                     }
-                    cell.Value = _parameters[i].ValueString;
+                    cell.Value = param.ValueString;
                     row.Cells.Add(cell);
                 }
                 else if (_parameters[i].Type == StrategyParameterType.Int)
@@ -1275,15 +1277,17 @@ namespace OsEngine.OsOptimizer
                 else if (_parameters[i].Type == StrategyParameterType.Int)
                 {
                     DataGridViewTextBoxCell cell = new DataGridViewTextBoxCell();
-                    _parameters[i].ValueInt = _parameters[i].ValueIntStart;
-                    cell.Value = _parameters[i].ValueIntStart.ToString();
+                    StrategyParameterInt param = (StrategyParameterInt)_parameters[i];
+                    param.ValueInt = param.ValueIntStart;
+                    cell.Value = param.ValueIntStart.ToString();
                     row.Cells.Add(cell);
                 }
                 else if (_parameters[i].Type == StrategyParameterType.Decimal)
                 {
                     DataGridViewTextBoxCell cell = new DataGridViewTextBoxCell();
-                    cell.Value = _parameters[i].ValueDecimalStart.ToString();
-                    _parameters[i].ValueDecimal = _parameters[i].ValueDecimalStart;
+                    StrategyParameterDecimal param = (StrategyParameterDecimal)_parameters[i];
+                    cell.Value = param.ValueDecimalStart.ToString();
+                    param.ValueDecimal = param.ValueDecimalStart;
                     row.Cells.Add(cell);
                 }
 
@@ -1304,13 +1308,13 @@ namespace OsEngine.OsOptimizer
                 else if (_parameters[i].Type == StrategyParameterType.Int)
                 {
                     DataGridViewTextBoxCell cell = new DataGridViewTextBoxCell();
-                    cell.Value = _parameters[i].ValueIntStep.ToString();
+                    cell.Value = ((StrategyParameterInt)_parameters[i]).ValueIntStep.ToString();
                     row.Cells.Add(cell);
                 }
                 else if (_parameters[i].Type == StrategyParameterType.Decimal)
                 {
                     DataGridViewTextBoxCell cell = new DataGridViewTextBoxCell();
-                    cell.Value = _parameters[i].ValueDecimalStep.ToString();
+                    cell.Value = ((StrategyParameterDecimal)_parameters[i]).ValueDecimalStep.ToString();
                     row.Cells.Add(cell);
                 }
 
@@ -1331,13 +1335,13 @@ namespace OsEngine.OsOptimizer
                 else if (_parameters[i].Type == StrategyParameterType.Int)
                 {
                     DataGridViewTextBoxCell cell = new DataGridViewTextBoxCell();
-                    cell.Value = _parameters[i].ValueIntStop.ToString();
+                    cell.Value = ((StrategyParameterInt)_parameters[i]).ValueIntStop.ToString();
                     row.Cells.Add(cell);
                 }
                 else if (_parameters[i].Type == StrategyParameterType.Decimal)
                 {
                     DataGridViewTextBoxCell cell = new DataGridViewTextBoxCell();
-                    cell.Value = _parameters[i].ValueDecimalStop.ToString();
+                    cell.Value = ((StrategyParameterDecimal)_parameters[i]).ValueDecimalStop.ToString();
                     row.Cells.Add(cell);
                 }
 
@@ -1363,12 +1367,12 @@ namespace OsEngine.OsOptimizer
                 {
                     if (_parameters[i].Type == StrategyParameterType.String)
                     {
-                        _parameters[i].ValueString = _gridParametrs.Rows[i].Cells[3].Value.ToString();
+                        ((StrategyParameterString)_parameters[i]).ValueString = _gridParametrs.Rows[i].Cells[3].Value.ToString();
                         _parametrsActiv[i] = false;
                     }
                     else if (_parameters[i].Type == StrategyParameterType.Bool)
                     {
-                        _parameters[i].ValueBool = Convert.ToBoolean(_gridParametrs.Rows[i].Cells[3].Value.ToString());
+                        ((StrategyParameterBool)_parameters[i]).ValueBool = Convert.ToBoolean(_gridParametrs.Rows[i].Cells[3].Value.ToString());
                         _parametrsActiv[i] = false;
                     }
                     else if (_parameters[i].Type == StrategyParameterType.Int)
@@ -1384,11 +1388,13 @@ namespace OsEngine.OsOptimizer
                             return;
                         }
 
-                        if (valueStart != _parameters[i].ValueIntStart ||
-                            valueStep != _parameters[i].ValueIntStep ||
-                            valueStop != _parameters[i].ValueIntStop)
+                        StrategyParameterInt param = ((StrategyParameterInt)_parameters[i]);
+
+                        if (valueStart != param.ValueIntStart ||
+                            valueStep != param.ValueIntStep ||
+                            valueStop != param.ValueIntStop)
                         {
-                            _parameters.Insert(i, new StrategyParameter(_parameters[i].Name, _parameters[i].ValueInt,
+                            _parameters.Insert(i, new StrategyParameterInt(_parameters[i].Name, param.ValueInt,
                                 valueStart, valueStop, valueStep));
                             _parameters.RemoveAt(i + 1);
                         }
@@ -1417,11 +1423,13 @@ namespace OsEngine.OsOptimizer
                             return;
                         }
 
-                        if (valueStart != _parameters[i].ValueDecimalStart ||
-                            valueStep != _parameters[i].ValueDecimalStep ||
-                            valueStop != _parameters[i].ValueDecimalStop)
+                        StrategyParameterDecimal param = ((StrategyParameterDecimal)_parameters[i]);
+
+                        if (valueStart != param.ValueDecimalStart ||
+                            valueStep != param.ValueDecimalStep ||
+                            valueStop != param.ValueDecimalStop)
                         {
-                            _parameters.Insert(i, new StrategyParameter(_parameters[i].Name, _parameters[i].ValueDecimal,
+                            _parameters.Insert(i, new StrategyParameterDecimal(_parameters[i].Name, param.ValueDecimal,
                                valueStart, valueStop, valueStep));
                             _parameters.RemoveAt(i + 1);
                         }
@@ -1653,6 +1661,13 @@ namespace OsEngine.OsOptimizer
             column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridResults.Columns.Add(column3);
 
+            DataGridViewButtonColumn column4 = new DataGridViewButtonColumn();
+            column4.CellTemplate = new DataGridViewButtonCell();
+            column4.HeaderText = @"График";
+            column4.ReadOnly = true;
+            column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridResults.Columns.Add(column4);
+
             _gridResults.Rows.Add(null, null);
 
             WindowsFormsHostResults.Child = _gridResults;
@@ -1744,6 +1759,10 @@ namespace OsEngine.OsOptimizer
                 cell5.Value = "Журнал сделок";
                 row.Cells.Add(cell5);
 
+                DataGridViewButtonCell cell6 = new DataGridViewButtonCell();
+                cell6.Value = "График";
+                row.Cells.Add(cell6);
+
                 _gridResults.Rows.Add(row);
             }
             _gridResults.SelectionChanged += _gridResults_SelectionChanged;
@@ -1790,7 +1809,8 @@ namespace OsEngine.OsOptimizer
             }
 
             if (e.ColumnIndex != 3 &&
-                e.ColumnIndex != 4)
+                e.ColumnIndex != 4 && 
+                e.ColumnIndex != 5)
             {
                 return;
             }
@@ -1841,8 +1861,7 @@ namespace OsEngine.OsOptimizer
             {
                 bots[e.RowIndex].ShowParametrDialog();
             }
-
-            if (e.ColumnIndex == 4)
+            else if (e.ColumnIndex == 4)
             {
                 if (_journalUi != null)
                 {
@@ -1878,7 +1897,10 @@ namespace OsEngine.OsOptimizer
                 _journalUi.Closed += _journalUi_Closed;
                 _journalUi.Show();
             }
-
+            if (e.ColumnIndex == 5)
+            {
+                bots[e.RowIndex].ShowChartDialog();
+            }
         }
 
         /// <summary>

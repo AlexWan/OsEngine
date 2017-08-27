@@ -22,7 +22,7 @@
                     <Grid Background="Black">
                         <TextBox Name="TextBoxStartPortfolio" HorizontalAlignment="Left" Height="28" Margin="12,131,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="204"/>
                         <Label Content="Начальные средства" HorizontalAlignment="Left" Margin="12,106,0,0" VerticalAlignment="Top"/>
-                        <WindowsFormsHost Name="HostLog" Margin="10,164,10,10" Background="Azure" Foreground="Black"/>
+                        <WindowsFormsHost Name="HostLog" Margin="10,164,10,10" Foreground="Black"/>
                         <Rectangle Name="RectangleTimeFramesAndSecurities" Margin="231,0,0,0" Stroke="Black" Height="164" VerticalAlignment="Top"/>
                         <WindowsFormsHost x:Name="HostTabsSimple" Foreground="Black" Height="133" Margin="247,26,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="352"/>
                         <Label x:Name="LabelTabsEndTimeFrames" Content="Бумаги для вкладок" HorizontalAlignment="Left" Margin="247,1,0,0" VerticalAlignment="Top"/>

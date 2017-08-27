@@ -34,7 +34,7 @@ namespace OsEngine.OsOptimizer
         /// <param name="parametersOn">список включенных в перебор параметров</param>
         /// <param name="parameters">все параметры стратегии</param>
         /// <returns>true если старт оптимизации закончился успешно</returns>
-        public bool Start(List<bool> parametersOn, List<StrategyParameter> parameters)
+        public bool Start(List<bool> parametersOn, List<IIStrategyParameter> parameters)
         {
             if (_primeThreadWorker != null)
             {
@@ -66,7 +66,7 @@ namespace OsEngine.OsOptimizer
         /// <summary>
         /// параметры стратегии
         /// </summary>
-        private List<StrategyParameter> _parameters;
+        private List<IIStrategyParameter> _parameters;
 
         /// <summary>
         /// остановить процесс оптимизации
@@ -96,17 +96,17 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         private void PrimeThreadWorkerPlace()
         {
-            List<StrategyParameter> allParam = _parameters;
+            List<IIStrategyParameter> allParam = _parameters;
 
             for (int i = 0; i < _parameters.Count; i++)
             {
                 if (allParam[i].Type == StrategyParameterType.Int)
                 {
-                    allParam[i].ValueInt = allParam[i].ValueIntStart;
+                    ((StrategyParameterInt)allParam[i]).ValueInt = ((StrategyParameterInt)allParam[i]).ValueIntStart;
                 }
                 if (allParam[i].Type == StrategyParameterType.Decimal)
                 {
-                    allParam[i].ValueDecimal = allParam[i].ValueDecimalStart;
+                    ((StrategyParameterDecimal)allParam[i]).ValueDecimal = ((StrategyParameterDecimal)allParam[i]).ValueDecimalStart;
                 }
             }
 
@@ -114,7 +114,7 @@ namespace OsEngine.OsOptimizer
 
 // 1 считаем сколько проходов нам нужно сделать в первой фазе
 
-            List<StrategyParameter> optimizedParamToCheckCount = new List<StrategyParameter>();
+            List<IIStrategyParameter> optimizedParamToCheckCount = new List<IIStrategyParameter>();
 
             for (int i = 0; i < allParam.Count; i++)
             {
@@ -138,11 +138,13 @@ namespace OsEngine.OsOptimizer
 
                     if (optimizedParamToCheckCount[i2].Type == StrategyParameterType.Int)
                     {
-                        if (optimizedParamToCheckCount[i2].ValueInt < optimizedParamToCheckCount[i2].ValueIntStop)
+                        if (((StrategyParameterInt) optimizedParamToCheckCount[i2]).ValueInt <
+                            ((StrategyParameterInt) optimizedParamToCheckCount[i2]).ValueIntStop)
                         {
                             // по текущему индексу можно приращивать значение
-                            optimizedParamToCheckCount[i2].ValueInt = optimizedParamToCheckCount[i2].ValueInt +
-                                                                      optimizedParamToCheckCount[i2].ValueIntStep;
+                            ((StrategyParameterInt) optimizedParamToCheckCount[i2]).ValueInt =
+                                ((StrategyParameterInt) optimizedParamToCheckCount[i2]).ValueInt +
+                                ((StrategyParameterInt) optimizedParamToCheckCount[i2]).ValueIntStep;
                             if (i2 != 0)
                             {
                                 // если у нас есть предыдущий параметр
@@ -154,13 +156,14 @@ namespace OsEngine.OsOptimizer
                     else if (optimizedParamToCheckCount[i2].Type == StrategyParameterType.Decimal
                         )
                     {
-                        if (optimizedParamToCheckCount[i2].ValueDecimal <
-                            optimizedParamToCheckCount[i2].ValueDecimalStop)
+                        if (((StrategyParameterDecimal) optimizedParamToCheckCount[i2]).ValueDecimal <
+                            ((StrategyParameterDecimal) optimizedParamToCheckCount[i2]).ValueDecimalStop)
                         {
 // по текущему индексу можно приращивать значение
-                            optimizedParamToCheckCount[i2].ValueDecimal = optimizedParamToCheckCount[i2].ValueDecimal +
-                                                                          optimizedParamToCheckCount[i2]
-                                                                              .ValueDecimalStep;
+                            ((StrategyParameterDecimal) optimizedParamToCheckCount[i2]).ValueDecimal =
+                                ((StrategyParameterDecimal) optimizedParamToCheckCount[i2]).ValueDecimal +
+                                ((StrategyParameterDecimal) optimizedParamToCheckCount[i2])
+                                    .ValueDecimalStep;
                             if (i2 != 0)
                             {
 // если у нас есть предыдущий параметр
@@ -190,7 +193,7 @@ namespace OsEngine.OsOptimizer
 
 // 2 проходим первую фазу, когда нужно обойти все варианты
 
-            List<StrategyParameter> optimizedParam = new List<StrategyParameter>();
+            List<IIStrategyParameter> optimizedParam = new List<IIStrategyParameter>();
 
             for (int i = 0; i < allParam.Count; i++)
             {
@@ -202,7 +205,7 @@ namespace OsEngine.OsOptimizer
 
             List<OptimizerFaze> fazes = _master.Fazes;
 
-            List<StrategyParameter> currentParam = CopyParameters(optimizedParam);
+            List<IIStrategyParameter> currentParam = CopyParameters(optimizedParam);
 
             for (int i2 = 0; i2 < optimizedParam.Count; i2++)
             {
@@ -219,11 +222,11 @@ namespace OsEngine.OsOptimizer
                 {
                     if (currentParam[i2].Type == StrategyParameterType.Int)
                     {
-                        if (currentParam[i2].ValueInt < currentParam[i2].ValueIntStop)
+                        if (((StrategyParameterInt)currentParam[i2]).ValueInt < ((StrategyParameterInt)currentParam[i2]).ValueIntStop)
                         {
                             // по текущему индексу можно приращивать значение
-                            currentParam[i2].ValueInt = currentParam[i2].ValueInt +
-                                                        currentParam[i2].ValueIntStep;
+                            ((StrategyParameterInt)currentParam[i2]).ValueInt = ((StrategyParameterInt)currentParam[i2]).ValueInt +
+                                                        ((StrategyParameterInt)currentParam[i2]).ValueIntStep;
                             if (i2 != 0)
                             {
                                 // если у нас есть предыдущий параметр
@@ -235,11 +238,13 @@ namespace OsEngine.OsOptimizer
                     else if (currentParam[i2].Type == StrategyParameterType.Decimal
                         )
                     {
-                        if (currentParam[i2].ValueDecimal < currentParam[i2].ValueDecimalStop)
+                        if (((StrategyParameterDecimal) currentParam[i2]).ValueDecimal <
+                            ((StrategyParameterDecimal) currentParam[i2]).ValueDecimalStop)
                         {
 // по текущему индексу можно приращивать значение
-                            currentParam[i2].ValueDecimal = currentParam[i2].ValueDecimal +
-                                                            currentParam[i2].ValueDecimalStep;
+                            ((StrategyParameterDecimal) currentParam[i2]).ValueDecimal =
+                                ((StrategyParameterDecimal) currentParam[i2]).ValueDecimal +
+                                ((StrategyParameterDecimal) currentParam[i2]).ValueDecimalStep;
                             if (i2 != 0)
                             {
 // если у нас есть предыдущий параметр
@@ -312,7 +317,9 @@ namespace OsEngine.OsOptimizer
 
 // 3 фильтруем 
 
-            EndOfFazeFiltration(botsInFaze, fazes[0]);
+            List<BotPanel> botsToOutOfSample = new List<BotPanel>();
+
+            EndOfFazeFiltration(botsInFaze, fazes[0], botsToOutOfSample);
 
 // 4 делаем форварды
 
@@ -320,7 +327,7 @@ namespace OsEngine.OsOptimizer
 
             List<BotPanel> botsOutOfSample = new List<BotPanel>();
 
-            for (int i = 0; i < botsInFaze.Count; i++)
+            for (int i = 0; i < botsToOutOfSample.Count; i++)
             {
                 while (_servers.Count >= _master.ThreadsCount)
                 {
@@ -343,14 +350,14 @@ namespace OsEngine.OsOptimizer
                     }
                     if (TestReadyEvent != null)
                     {
-                        TestReadyEvent(botsInFaze, botsOutOfSample);
+                        TestReadyEvent(botsToOutOfSample, botsOutOfSample);
                     }
                     _primeThreadWorker = null;
                     return;
                 }
 
-                StartNewBot(botsInFaze[i].Parameters, new List<StrategyParameter>(), fazes[1], botsOutOfSample,
-                    botsInFaze[i].NameStrategyUniq.Replace(" InSample", "") + " OutOfSample");
+                StartNewBot(botsToOutOfSample[i].Parameters, new List<IIStrategyParameter>(), fazes[1], botsOutOfSample,
+                    botsToOutOfSample[i].NameStrategyUniq.Replace(" InSample", "") + " OutOfSample");
             }
 
             while (true)
@@ -380,48 +387,56 @@ namespace OsEngine.OsOptimizer
         /// сбросить параметр на начальные значения
         /// </summary>
         /// <param name="param">параметр который нужно привести в исходное состояние</param>
-        private void ReloadParam(StrategyParameter param)
+        private void ReloadParam(IIStrategyParameter param)
         {
             if (param.Type == StrategyParameterType.Int)
             {
-                param.ValueInt = param.ValueIntStart - param.ValueIntStep;
+                ((StrategyParameterInt) param).ValueInt = ((StrategyParameterInt) param).ValueIntStart -
+                                                          ((StrategyParameterInt) param).ValueIntStep;
             }
 
             if (param.Type == StrategyParameterType.Decimal)
             {
-                param.ValueDecimal = param.ValueDecimalStart - param.ValueIntStep;
+                ((StrategyParameterDecimal) param).ValueDecimal = ((StrategyParameterDecimal) param).ValueDecimalStart -
+                                                                  ((StrategyParameterDecimal) param).ValueDecimalStep;
             }
         }
 
         /// <summary>
         /// копировать список параметров
         /// </summary>
-        private List<StrategyParameter> CopyParameters(List<StrategyParameter> paramsToCopy)
+        private List<IIStrategyParameter> CopyParameters(List<IIStrategyParameter> paramsToCopy)
         {
-            List<StrategyParameter> newParameters = new List<StrategyParameter>();
+            List<IIStrategyParameter> newParameters = new List<IIStrategyParameter>();
 
             for (int i = 0; i < paramsToCopy.Count; i++)
             {
-                StrategyParameter newParam = null;
+                IIStrategyParameter newParam = null;
+
                 if (paramsToCopy[i].Type == StrategyParameterType.Bool)
                 {
-                    newParam = new StrategyParameter(paramsToCopy[i].Name, paramsToCopy[i].ValueBool);
+                    newParam = new StrategyParameterBool(paramsToCopy[i].Name, ((StrategyParameterBool)paramsToCopy[i]).ValueBool);
                 }
                 else if (paramsToCopy[i].Type == StrategyParameterType.String)
                 {
-                    newParam = new StrategyParameter(paramsToCopy[i].Name, paramsToCopy[i].ValueString,
-                        paramsToCopy[i].ValuesString);
+                    newParam = new StrategyParameterString(paramsToCopy[i].Name, ((StrategyParameterString)paramsToCopy[i]).ValueString,
+                        ((StrategyParameterString)paramsToCopy[i]).ValuesString);
                 }
                 else if (paramsToCopy[i].Type == StrategyParameterType.Int)
                 {
-                    newParam = new StrategyParameter(paramsToCopy[i].Name, paramsToCopy[i].ValueIntDefolt,
-                        paramsToCopy[i].ValueIntStart, paramsToCopy[i].ValueIntStop, paramsToCopy[i].ValueIntStep);
+                    newParam = new StrategyParameterInt(paramsToCopy[i].Name,
+                        ((StrategyParameterInt) paramsToCopy[i]).ValueIntDefolt,
+                        ((StrategyParameterInt) paramsToCopy[i]).ValueIntStart,
+                        ((StrategyParameterInt) paramsToCopy[i]).ValueIntStop,
+                        ((StrategyParameterInt) paramsToCopy[i]).ValueIntStep);
                 }
                 else if (paramsToCopy[i].Type == StrategyParameterType.Decimal)
                 {
-                    newParam = new StrategyParameter(paramsToCopy[i].Name, paramsToCopy[i].ValueDecimalDefolt,
-                        paramsToCopy[i].ValueDecimalStart, paramsToCopy[i].ValueDecimalStop,
-                        paramsToCopy[i].ValueDecimalStep);
+                    newParam = new StrategyParameterDecimal(paramsToCopy[i].Name,
+                        ((StrategyParameterDecimal) paramsToCopy[i]).ValueDecimalDefolt,
+                        ((StrategyParameterDecimal) paramsToCopy[i]).ValueDecimalStart,
+                        ((StrategyParameterDecimal) paramsToCopy[i]).ValueDecimalStop,
+                        ((StrategyParameterDecimal) paramsToCopy[i]).ValueDecimalStep);
                 }
                 newParameters.Add(newParam);
 
@@ -432,7 +447,7 @@ namespace OsEngine.OsOptimizer
         /// <summary>
         /// фильтрация результатов в конце текущей фазы
         /// </summary>
-        private void EndOfFazeFiltration(List<BotPanel> bots, OptimizerFaze faze)
+        private void EndOfFazeFiltration(List<BotPanel> bots, OptimizerFaze faze, List<BotPanel> botsToOutOfSample)
         {
             int startCount = bots.Count;
 
@@ -441,45 +456,44 @@ namespace OsEngine.OsOptimizer
                 if (_master.FilterMiddleProfitIsOn &&
                     bots[i].MiddleProfitInPersent < _master.FilterMiddleProfitValue)
                 {
-                    bots.RemoveAt(i);
-                    i--;
+
                 }
                 else if (_master.FilterProfitIsOn &&
                          bots[i].TotalProfitInPersent < _master.FilterProfitValue)
                 {
-                    bots.RemoveAt(i);
-                    i--;
+
                 }
                 else if (_master.FilterMaxDrowDownIsOn &&
                          bots[i].MaxDrowDown < _master.FilterMaxDrowDownValue)
                 {
-                    bots.RemoveAt(i);
-                    i--;
+
                 }
                 else if (_master.FilterProfitFactorIsOn &&
                          bots[i].ProfitFactor < _master.FilterProfitFactorValue)
                 {
-                    bots.RemoveAt(i);
-                    i--;
+
                 }
                 else if (_master.FilterWinPositionIsOn &&
                          bots[i].WinPositionPersent < _master.FilterWinPositionValue/100)
                 {
-                    bots.RemoveAt(i);
-                    i--;
+
+                }
+                else
+                {
+                    botsToOutOfSample.Add(bots[i]);
                 }
             }
 
 
-            if (bots.Count == 0)
+            if (botsToOutOfSample.Count == 0)
             {
                 SendLogMessage("К сожалению все боты были отфильтрованы. Поставьте более щадящие настройки для выбраковки результатов", LogMessageType.System);
                 MessageBox.Show("К сожалению все боты были отфильтрованы. Поставьте более щадящие настройки для выбраковки результатов");
                 NeadToMoveUiToEvent(NeadToMoveUiTo.TabsAndTimeFrames);
             }
-            else if (startCount != bots.Count)
+            else if (startCount != botsToOutOfSample.Count)
             {
-                SendLogMessage("Отфильтрованно ботов: " + (startCount - bots.Count), LogMessageType.System);
+                SendLogMessage("Отфильтрованно ботов: " + (startCount - botsToOutOfSample.Count), LogMessageType.System);
             }
 
         }
@@ -492,16 +506,17 @@ namespace OsEngine.OsOptimizer
         /// <param name="faze">текущая фаза оптимизации</param>
         /// <param name="botsInFaze">список ботов уже запущенный в текущей фазе</param>
         /// <param name="botName">имя создаваемого робота</param>
-        private void StartNewBot(List<StrategyParameter> parametrs, List<StrategyParameter> paramOptimized,
+        private void StartNewBot(List<IIStrategyParameter> parametrs, List<IIStrategyParameter> paramOptimized,
             OptimizerFaze faze, List<BotPanel> botsInFaze, string botName)
         {
 
             if (!MainWindow.GetDispatcher.CheckAccess())
             {
                 MainWindow.GetDispatcher.Invoke(
-                    new Action<List<StrategyParameter>, List<StrategyParameter>, OptimizerFaze, List<BotPanel>, string>(
-                        StartNewBot), parametrs,
-                    paramOptimized, faze, botsInFaze, botName);
+                    new Action
+                        <List<IIStrategyParameter>, List<IIStrategyParameter>,
+                            OptimizerFaze, List<BotPanel>, string>(StartNewBot),
+                    parametrs, paramOptimized, faze, botsInFaze, botName);
                 Thread.Sleep(1000);
                 return;
             }
@@ -530,7 +545,7 @@ namespace OsEngine.OsOptimizer
 
             for (int i = 0; i < parametrs.Count; i++)
             {
-                StrategyParameter par = paramOptimized.Find(p => p.Name == parametrs[i].Name);
+                IIStrategyParameter par = paramOptimized.Find(p => p.Name == parametrs[i].Name);
 
                 if (par == null)
                 {
@@ -539,19 +554,19 @@ namespace OsEngine.OsOptimizer
 
                 if (bot.Parameters[i].Type == StrategyParameterType.Bool)
                 {
-                    bot.Parameters[i].ValueBool = par.ValueBool;
+                    ((StrategyParameterBool)bot.Parameters[i]).ValueBool = ((StrategyParameterBool)par).ValueBool;
                 }
                 else if (bot.Parameters[i].Type == StrategyParameterType.String)
                 {
-                    bot.Parameters[i].ValueString = par.ValueString;
+                    ((StrategyParameterString)bot.Parameters[i]).ValueString = ((StrategyParameterString)par).ValueString;
                 }
                 else if (bot.Parameters[i].Type == StrategyParameterType.Int)
                 {
-                    bot.Parameters[i].ValueInt = par.ValueInt;
+                    ((StrategyParameterInt)bot.Parameters[i]).ValueInt = ((StrategyParameterInt)par).ValueInt;
                 }
                 else if (bot.Parameters[i].Type == StrategyParameterType.Bool)
                 {
-                    bot.Parameters[i].ValueDecimal = par.ValueDecimal;
+                    ((StrategyParameterBool)bot.Parameters[i]).ValueBool = ((StrategyParameterBool)par).ValueBool;
                 }
             }
 // настраиваем вкладки

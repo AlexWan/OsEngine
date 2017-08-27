@@ -4513,7 +4513,8 @@ namespace OsEngine.Charts.CandleChart
                     firstX = lastX - 2000;
                     candleArea.AxisX.ScaleView.Size = 2000;
                     candleArea.AxisX.ScaleView.Position = firstX;
-                   // return;
+                    ResizeXAxis();
+                    //return;
                 }
 
                 SeriesCollection chartSeries = _chart.Series;

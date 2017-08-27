@@ -1169,6 +1169,14 @@ namespace OsEngine.OsTrader.Panels.Tab
             _chartMaster.DeleteIndicator(indicator);
         }
 
+        /// <summary>
+        /// индикаторы доступные у индекса
+        /// </summary>
+        public List<IIndicatorCandle> Indicators
+        {
+            get { return _chartMaster.Indicators; }
+        } 
+
 // логирование
 
         /// <summary>

@@ -80,6 +80,26 @@ namespace OsEngine.OsTrader.Panels
             return journals;
         }
 
+        /// <summary>
+        /// показать окно графиков со сделками
+        /// </summary>
+        public void ShowChartDialog()
+        {
+            if (_chartUi == null)
+            {
+                _chartUi = new BotPanelChartUi(this);
+                _chartUi.Show();
+            }
+            _chartUi.Closed += _chartUi_Closed;
+        }
+
+
+        private BotPanelChartUi _chartUi;
+        void _chartUi_Closed(object sender, EventArgs e)
+        {
+            _chartUi = null;
+        }
+
 
         /// <summary>
         /// включена ли прорисовка 
@@ -466,6 +486,9 @@ namespace OsEngine.OsTrader.Panels
 
 // работа с параметрами стратегии
 
+        /// <summary>
+        /// показать окно настроек параметров
+        /// </summary>
         public void ShowParametrDialog()
         {
             if (_parameters == null ||
@@ -486,16 +509,16 @@ namespace OsEngine.OsTrader.Panels
         /// <param name="start">Первое значение при оптимизации</param>
         /// <param name="stop">Последнее значение при оптимизации</param>
         /// <param name="step">Шаг изменения при оптимизации</param>
-        public StrategyParameter CreateParameter(string name, decimal value, decimal start, decimal stop, decimal step) 
+        public StrategyParameterDecimal CreateParameter(string name, decimal value, decimal start, decimal stop, decimal step) 
         {
-            StrategyParameter newParameter = new StrategyParameter(name, value, start, stop, step);
+            StrategyParameterDecimal newParameter = new StrategyParameterDecimal(name, value, start, stop, step);
 
             if (_parameters.Find(p => p.Name == name)!= null)
             {
                 throw new Exception("Ахтунг! Параметр с таким именем уже существует!");
             }
 
-            return LoadParameterValues(newParameter);
+            return (StrategyParameterDecimal)LoadParameterValues(newParameter);
         }
 
         /// <summary>
@@ -506,16 +529,16 @@ namespace OsEngine.OsTrader.Panels
         /// <param name="start">Первое значение при оптимизации</param>
         /// <param name="stop">Последнее значение при оптимизации</param>
         /// <param name="step">Шаг изменения при оптимизации</param>
-        public StrategyParameter CreateParameter(string name, int value, int start, int stop, int step)
+        public StrategyParameterInt CreateParameter(string name, int value, int start, int stop, int step)
         {
-            StrategyParameter newParameter = new StrategyParameter(name, value, start, stop, step);
+            StrategyParameterInt newParameter = new StrategyParameterInt(name, value, start, stop, step);
 
             if (_parameters.Find(p => p.Name == name) != null)
             {
                 throw new Exception("Ахтунг! Параметр с таким именем уже существует!");
             }
 
-            return LoadParameterValues(newParameter);
+            return (StrategyParameterInt)LoadParameterValues(newParameter);
         }
 
         /// <summary>
@@ -524,16 +547,16 @@ namespace OsEngine.OsTrader.Panels
         /// <param name="name">Имя параметра</param>
         /// <param name="value">Значение по умолчанию</param>
         /// <param name="collection">Возможные значения для параметра</param>
-        public StrategyParameter CreateParameter(string name, string value, string[] collection)
+        public StrategyParameterString CreateParameter(string name, string value, string[] collection)
         {
-            StrategyParameter newParameter = new StrategyParameter(name, value, collection.ToList());
+            StrategyParameterString newParameter = new StrategyParameterString(name, value, collection.ToList());
 
             if (_parameters.Find(p => p.Name == name) != null)
             {
                 throw new Exception("Ахтунг! Параметр с таким именем уже существует!");
             }
 
-            return LoadParameterValues(newParameter);
+            return (StrategyParameterString)LoadParameterValues(newParameter);
         }
 
         /// <summary>
@@ -541,16 +564,16 @@ namespace OsEngine.OsTrader.Panels
         /// </summary>
         /// <param name="name">Имя параметра</param>
         /// <param name="value">Значение по умолчанию</param>
-        public StrategyParameter CreateParameter(string name, bool value)
+        public StrategyParameterBool CreateParameter(string name, bool value)
         {
-            StrategyParameter newParameter = new StrategyParameter(name, value);
+            StrategyParameterBool newParameter = new StrategyParameterBool(name, value);
 
             if (_parameters.Find(p => p.Name == name) != null)
             {
                 throw new Exception("Ахтунг! Параметр с таким именем уже существует!");
             }
 
-            return LoadParameterValues(newParameter);
+            return (StrategyParameterBool)LoadParameterValues(newParameter);
         }
 
         /// <summary>
@@ -558,7 +581,7 @@ namespace OsEngine.OsTrader.Panels
         /// </summary>
         /// <param name="newParameter">параметр настройки которого нужно загрузить</param>
         /// <returns></returns>
-        private StrategyParameter LoadParameterValues(StrategyParameter  newParameter)
+        private IIStrategyParameter LoadParameterValues(IIStrategyParameter  newParameter)
         {
             if (!ServerMaster.IsOsOptimizer)
             {// запущен тестер или робот, в котором можно менять параметры вручную
@@ -576,7 +599,7 @@ namespace OsEngine.OsTrader.Panels
         /// загрузить настройки параметра из файла
         /// </summary>
         /// <param name="parameter"></param>
-        private void GetValueParameterSaveByUser(StrategyParameter parameter)
+        private void GetValueParameterSaveByUser(IIStrategyParameter parameter)
         {
             if (!File.Exists(@"Engine\" + NameStrategyUniq + @"Parametrs.txt"))
             {
@@ -607,11 +630,11 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// список параметров доступных у панели
         /// </summary>
-        public List<StrategyParameter> Parameters
+        public List<IIStrategyParameter> Parameters
         {
             get { return _parameters; }
         } 
-        private List<StrategyParameter> _parameters = new List<StrategyParameter>();
+        private List<IIStrategyParameter> _parameters = new List<IIStrategyParameter>();
 
         /// <summary>
         /// у параметра изменились настройки

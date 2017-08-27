@@ -323,42 +323,42 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// длинна быстрой линии аллигатора
         /// </summary>
-        public StrategyParameter AlligatorFastLineLength;
+        public StrategyParameterInt AlligatorFastLineLength;
 
         /// <summary>
         /// длинна средней линии аллигатора
         /// </summary>
-        public StrategyParameter AlligatorMiddleLineLength;
+        public StrategyParameterInt AlligatorMiddleLineLength;
 
         /// <summary>
         /// длинна медленной линии аллигатора
         /// </summary>
-        public StrategyParameter AlligatorSlowLineLength;
+        public StrategyParameterInt AlligatorSlowLineLength;
 
         /// <summary>
         /// проскальзывание
         /// </summary>
-        public StrategyParameter Slipage;
+        public StrategyParameterInt Slipage;
 
         /// <summary>
         /// объём для первого входа
         /// </summary>
-        public StrategyParameter VolumeFirst;
+        public StrategyParameterInt VolumeFirst;
 
         /// <summary>
         /// объём для последующих входов
         /// </summary>
-        public StrategyParameter VolumeSecond;
+        public StrategyParameterInt VolumeSecond;
 
         /// <summary>
         /// максимальная позиция
         /// </summary>
-        public StrategyParameter MaximumPositions;
+        public StrategyParameterInt MaximumPositions;
 
         /// <summary>
         /// режим работы
         /// </summary>
-        public StrategyParameter Regime;
+        public StrategyParameterString Regime;
 
 // переменные, нужные для торговли
 
@@ -645,21 +645,21 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// проскальзывание
         /// </summary>
-        public StrategyParameter Slipage;
+        public StrategyParameterInt Slipage;
         /// <summary>
         /// режим работы робота
         /// </summary>
-        public StrategyParameter Regime;
+        public StrategyParameterString Regime;
         /// <summary>
         /// объём исполняемый в одной сделке
         /// </summary>
-        public StrategyParameter Volume;
-        public StrategyParameter MaximumPosition;
-        public StrategyParameter PersentDopBuy;
-        public StrategyParameter PersentDopSell;
+        public StrategyParameterInt Volume;
+        public StrategyParameterInt MaximumPosition;
+        public StrategyParameterDecimal PersentDopBuy;
+        public StrategyParameterDecimal PersentDopSell;
 
-        public StrategyParameter ChannelLength;
-        public StrategyParameter SmaLength;
+        public StrategyParameterInt ChannelLength;
+        public StrategyParameterInt SmaLength;
 
         /// <summary>
         /// удаление файла с сохранением
@@ -939,22 +939,22 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// проскальзывание
         /// </summary>
-        public StrategyParameter Slipage;
+        public StrategyParameterInt Slipage;
 
         /// <summary>
         /// фиксированный объем для входа
         /// </summary>
-        public StrategyParameter Volume;
+        public StrategyParameterInt Volume;
 
         /// <summary>
         /// режим работы
         /// </summary>
-        public StrategyParameter Regime;
+        public StrategyParameterString Regime;
 
         /// <summary>
         /// длинна индикатора
         /// </summary>
-        public StrategyParameter RviLenght;
+        public StrategyParameterInt RviLenght;
 
 
         // переменные, нужные для торговли
@@ -1076,8 +1076,8 @@ namespace OsEngine.OsTrader.Panels
             _tab3.CandleFinishedEvent += Strateg_CandleFinishedEvent;
 
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
-            Upline = CreateParameter("Upline", 10, 10, 80, 3);
-            Downline = CreateParameter("Downline", 10, 5, 150, 2);
+            Upline = CreateParameter("Upline", 10, 50, 80, 3);
+            Downline = CreateParameter("Downline", 10, 25, 50, 2);
             Volume = CreateParameter("Volume", 3, 1, 50, 4);
             Slipage = CreateParameter("Slipage", 0, 0, 20, 1);
             RsiLength = CreateParameter("RsiLength", 10, 5, 150, 2);
@@ -1144,30 +1144,30 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// проскальзывание
         /// </summary>
-        public StrategyParameter Slipage;
+        public StrategyParameterInt Slipage;
         /// <summary>
         /// режим работы робота
         /// </summary>
-        public StrategyParameter Regime;
+        public StrategyParameterString Regime;
         /// <summary>
         /// объём исполняемый в одной сделке
         /// </summary>
-        public StrategyParameter Volume;
+        public StrategyParameterInt Volume;
 
         /// <summary>
         /// верхняя граница для RSI для принятия решений
         /// </summary>
-        public StrategyParameter Upline;
+        public StrategyParameterInt Upline;
 
         /// <summary>
         /// верхняя граница для RSI для принятия решений
         /// </summary>
-        public StrategyParameter Downline;
+        public StrategyParameterInt Downline;
 
         /// <summary>
         /// длинна RSI
         /// </summary>
-        public StrategyParameter RsiLength;
+        public StrategyParameterInt RsiLength;
 
 // переменные, нужные для торговли
 

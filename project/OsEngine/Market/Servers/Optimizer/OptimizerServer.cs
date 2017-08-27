@@ -273,7 +273,7 @@ namespace OsEngine.Market.Servers.Optimizer
                         _securities = null;
                         _storages = null;
                         _storagePrime = null;
-                        _candleManager.Clear();
+                        //_candleManager.Clear();
                         _candleManager = null;
 
                         for (int i = 0; i < _candleSeriesTesterActivate.Count; i++)
@@ -338,6 +338,18 @@ namespace OsEngine.Market.Servers.Optimizer
         public void GetDataToSecurity(Security security, TimeFrame timeFrame, DateTime timeStart, DateTime timeEnd)
         {
             DataStorage newStorage = _storagePrime.GetStorageToSecurity(security, timeFrame, timeStart, timeEnd);
+
+            if (newStorage == null)
+            {
+                Thread.Sleep(500);
+                newStorage = _storagePrime.GetStorageToSecurity(security, timeFrame, timeStart, timeEnd);
+
+                if (newStorage == null)
+                {
+                    SendLogMessage("Хранилище с такими данными не обнаружено.", LogMessageType.Error);
+                    return;
+                }
+            }
 
             if (_storages.Find(s => s.Security.Name == newStorage.Security.Name &&
                                     s.Candles == newStorage.Candles &&

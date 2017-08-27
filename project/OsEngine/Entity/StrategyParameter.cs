@@ -4,9 +4,191 @@ using System.Collections.Generic;
 namespace OsEngine.Entity
 {
     /// <summary>
-    /// параметр стратегии
+    /// интерфейс для параметра
     /// </summary>
-    public class StrategyParameter
+    public interface IIStrategyParameter
+    {
+        /// <summary>
+        /// уникальное имя параметра
+        /// </summary>
+        string Name { get; }
+
+        /// <summary>
+        /// взять строку для сохранения
+        /// </summary>
+        string GetStringToSave();
+
+        /// <summary>
+        /// загрузить параметр из строки
+        /// </summary>
+        /// <param name="save">строка с сохранёнными параметрами</param>
+        void LoadParamFromString(string[] save);
+
+        /// <summary>
+        /// тип параметра
+        /// </summary>
+        StrategyParameterType Type { get; }
+
+        /// <summary>
+        /// изменилось состояние параметра
+        /// </summary>
+        event Action ValueChange;
+    }
+
+    /// <summary>
+    /// параметр для стратегии типа Int
+    /// </summary>
+    public class StrategyParameterInt : IIStrategyParameter
+    {
+        /// <summary>
+        /// конструктор для создания параметра хранящего переменные типа Int
+        /// </summary>
+        /// <param name="name">Имя параметра</param>
+        /// <param name="value">Значение по умолчанию</param>
+        /// <param name="start">Первое значение при оптимизации</param>
+        /// <param name="stop">Последнее значение при оптимизации</param>
+        /// <param name="step">Шаг изменения при оптимизации</param>
+        public StrategyParameterInt(string name, int value, int start, int stop, int step)
+        {
+            if (start > stop)
+            {
+                throw new Exception("Начальное значение параметра не может быть больше последнему");
+            }
+
+            _name = name;
+            _valueInt = value;
+            _valueIntDefolt = value;
+            _valueIntStart = start;
+            _valueIntStop = stop;
+            _valueIntStep = step;
+        }
+
+        /// <summary>
+        /// закрытый конструктор
+        /// </summary>
+        private StrategyParameterInt()
+        {
+            
+        }
+
+        /// <summary>
+        /// уникальное имя параметра
+        /// </summary>
+        public string Name
+        {
+            get { return _name; }
+        }
+        private string _name;
+
+        /// <summary>
+        /// взять строку сохранения
+        /// </summary>
+        public string GetStringToSave()
+        {
+            string save = _name + "#";
+
+            save += ValueInt + "#";
+            return save;
+        }
+
+        /// <summary>
+        /// загрузить параметр из сохранённого файла
+        /// </summary>
+        public void LoadParamFromString(string[] save)
+        {
+            _valueInt = Convert.ToInt32(save[1]);
+        }
+
+        /// <summary>
+        /// тип параметра
+        /// </summary>
+        public StrategyParameterType Type
+        {
+            get { return StrategyParameterType.Int; }
+        }
+
+        /// <summary>
+        /// текущее значение параметра типа Int
+        /// </summary>
+        public int ValueInt
+        {
+            get
+            {
+                return _valueInt;
+            }
+            set
+            {
+                if (_valueInt == value)
+                {
+                    return;
+                }
+                _valueInt = value;
+                if (ValueChange != null)
+                {
+                    ValueChange();
+                }
+            }
+        }
+        private int _valueInt;
+
+        /// <summary>
+        /// значение по умолчанию для параметра типа Int
+        /// </summary>
+        public int ValueIntDefolt
+        {
+            get
+            {
+                return _valueIntDefolt;
+            }
+        }
+        private int _valueIntDefolt;
+
+        /// <summary>
+        /// стартовое значение при оптимизации для параметра типа Int
+        /// </summary>
+        public int ValueIntStart
+        {
+            get
+            {
+                return _valueIntStart;
+            }
+        }
+        private int _valueIntStart;
+
+        /// <summary>
+        /// последнее значение при оптимизации для параметра типа Int
+        /// </summary>
+        public int ValueIntStop
+        {
+            get
+            {
+                return _valueIntStop;
+            }
+        }
+        private int _valueIntStop;
+
+        /// <summary>
+        /// шаг приращения для параметра типа Int 
+        /// </summary>
+        public int ValueIntStep
+        {
+            get
+            {
+                return _valueIntStep;
+            }
+        }
+        private int _valueIntStep;
+
+        /// <summary>
+        /// изменилось состояние параметра
+        /// </summary>
+        public event Action ValueChange;
+    }
+
+    /// <summary>
+    /// параметр стратегии типа Decimal
+    /// </summary>
+    public class StrategyParameterDecimal : IIStrategyParameter
     {
 
         /// <summary>
@@ -17,7 +199,7 @@ namespace OsEngine.Entity
         /// <param name="start">Первое значение при оптимизации</param>
         /// <param name="stop">Последнее значение при оптимизации</param>
         /// <param name="step">Шаг изменения при оптимизации</param>
-        public StrategyParameter(string name, decimal value, decimal start, decimal stop, decimal step)
+        public StrategyParameterDecimal(string name, decimal value, decimal start, decimal stop, decimal step)
         {
             if (start > stop)
             {
@@ -34,59 +216,9 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// конструктор для создания параметра хранящего переменные типа Int
-        /// </summary>
-        /// <param name="name">Имя параметра</param>
-        /// <param name="value">Значение по умолчанию</param>
-        /// <param name="start">Первое значение при оптимизации</param>
-        /// <param name="stop">Последнее значение при оптимизации</param>
-        /// <param name="step">Шаг изменения при оптимизации</param>
-        public StrategyParameter(string name, int value, int start, int stop, int step)
-        {
-            if (start > stop)
-            {
-                throw new Exception("Начальное значение параметра не может быть больше последнему");
-            }
-
-            _name = name;
-            _valueInt = value;
-            _valueIntDefolt = value;
-            _valueIntStart = start;
-            _valueIntStop = stop;
-            _valueIntStep = step;
-            _type = StrategyParameterType.Int;
-        }
-
-        /// <summary>
-        /// конструктор для создания параметра хранящего переменные типа String
-        /// </summary>
-        /// <param name="name">Имя параметра</param>
-        /// <param name="value">Значение по умолчанию</param>
-        /// <param name="collection">Возможные варианты значений</param>
-        public StrategyParameter(string name, string value, List<string> collection)
-        {
-            _name = name;
-            _valueString = value;
-            _setStringValues = collection;
-            _type = StrategyParameterType.String;
-        }
-
-        /// <summary>
-        /// конструктор для создания параметра хранящего переменные типа bool
-        /// </summary>
-        /// <param name="name">Имя параметра</param>
-        /// <param name="value">Значение по умолчанию</param>
-        public StrategyParameter(string name, bool value)
-        {
-            _name = name;
-            _valueBoolDefolt = value;
-            _type = StrategyParameterType.Bool;
-        }
-
-        /// <summary>
         /// заглушка. нельзя создать переменную типа StrategyParameter с пустым конструктором
         /// </summary>
-        private StrategyParameter()
+        private StrategyParameterDecimal()
         {
 
         }
@@ -97,23 +229,7 @@ namespace OsEngine.Entity
         public string GetStringToSave()
         {
             string save = _name + "#";
-            if (Type == StrategyParameterType.Decimal)
-            {
-                save += ValueDecimal + "#";
-            }
-            if (Type == StrategyParameterType.Bool)
-            {
-                save += ValueBool + "#";
-            }
-            if (Type == StrategyParameterType.Int)
-            {
-                save += ValueInt + "#";
-            }
-            if (Type == StrategyParameterType.String)
-            {
-                save += ValueString + "#";
-            }
-
+            save += ValueDecimal + "#";
             return save;
         }
 
@@ -123,22 +239,7 @@ namespace OsEngine.Entity
         /// <param name="save"></param>
         public void LoadParamFromString(string[] save)
         {
-            if (Type == StrategyParameterType.Decimal)
-            {
-                _valueDecimal = Convert.ToDecimal(save[1]);
-            }
-            if (Type == StrategyParameterType.Bool)
-            {
-                _valueBool = Convert.ToBoolean(save[1]);
-            }
-            if (Type == StrategyParameterType.Int)
-            {
-                _valueInt = Convert.ToInt32(save[1]);
-            }
-            if (Type == StrategyParameterType.String)
-            {
-                _valueString = save[1];
-            }
+            _valueDecimal = Convert.ToDecimal(save[1]);
         }
 
         /// <summary>
@@ -146,7 +247,7 @@ namespace OsEngine.Entity
         /// </summary>
         public string Name
         {
-            get { return _name; }   
+            get { return _name; }
         }
         private string _name;
 
@@ -166,10 +267,6 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (_type != StrategyParameterType.Decimal)
-                {
-                    throw new Exception("Попытка запросить у параметра с типом Decimal, поле " + _type);
-                } 
                 return _valueDecimal;
             }
             set
@@ -194,10 +291,6 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (_type != StrategyParameterType.Decimal)
-                {
-                    throw new Exception("Попытка запросить у параметра с типом Decimal, поле " + _type);
-                }
                 return _valueDecimalDefolt;
             }
         }
@@ -210,10 +303,6 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (_type != StrategyParameterType.Decimal)
-                {
-                    throw new Exception("Попытка запросить у параметра с типом Decimal, поле " + _type);
-                }
                 return _valueDecimalStart;
             }
         }
@@ -226,10 +315,6 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (_type != StrategyParameterType.Decimal)
-                {
-                    throw new Exception("Попытка запросить у параметра с типом Decimal, поле " + _type);
-                }
                 return _valueDecimalStop;
             }
         }
@@ -242,107 +327,73 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (_type != StrategyParameterType.Decimal)
-                {
-                    throw new Exception("Попытка запросить у параметра с типом Decimal, поле " + _type);
-                } 
                 return _valueDecimalStep;
             }
         }
         private decimal _valueDecimalStep;
 
+        /// <summary>
+        /// событие: параметр изменился
+        /// </summary>
+        public event Action ValueChange;
+    }
+
+    /// <summary>
+    /// параметр стратегии типа Bool
+    /// </summary>
+    public class StrategyParameterBool : IIStrategyParameter
+    {
+        public StrategyParameterBool(string name, bool value)
+        {
+            _name = name;
+            _valueBoolDefolt = value;
+            _type = StrategyParameterType.Bool;
+        }
 
         /// <summary>
-        /// текущее значение параметра типа Int
+        /// заглушка. нельзя создать переменную типа StrategyParameter с пустым конструктором
         /// </summary>
-        public int ValueInt
+        private StrategyParameterBool()
         {
-            get
-            {
-                if (_type != StrategyParameterType.Int)
-                {
-                    throw new Exception("Попытка запросить у параметра с типом Int, поле " + _type);
-                } 
-                return _valueInt;
-            }
-            set
-            {
-                if (_valueInt == value)
-                {
-                    return;
-                }
-                _valueInt = value;
-                if (ValueChange != null)
-                {
-                    ValueChange();
-                }
-            }
+
         }
-        private int _valueInt;
-        
-        /// <summary>
-        /// значение по умолчанию для параметра типа Int
-        /// </summary>
-        public int ValueIntDefolt
-        {
-            get
-            {
-                if (_type != StrategyParameterType.Int)
-                {
-                    throw new Exception("Попытка запросить у параметра с типом Int, поле " + _type);
-                } 
-                return _valueIntDefolt;
-            }
-        }
-        private int _valueIntDefolt;
 
         /// <summary>
-        /// стартовое значение при оптимизации для параметра типа Int
+        /// взять строку для сохранения
         /// </summary>
-        public int ValueIntStart
+        public string GetStringToSave()
         {
-            get
-            {
-                if (_type != StrategyParameterType.Int)
-                {
-                    throw new Exception("Попытка запросить у параметра с типом Int, поле " + _type);
-                } 
-                return _valueIntStart;
-            }
+            string save = _name + "#";
+            save += ValueBool + "#";
+            return save;
         }
-        private int _valueIntStart;
 
         /// <summary>
-        /// последнее значение при оптимизации для параметра типа Int
+        /// загрузить настройки из файла сохранения
         /// </summary>
-        public int ValueIntStop
+        /// <param name="save"></param>
+        public void LoadParamFromString(string[] save)
         {
-            get
-            {
-                if (_type != StrategyParameterType.Int)
-                {
-                    throw new Exception("Попытка запросить у параметра с типом Int, поле " + _type);
-                } 
-                return _valueIntStop;
-            }
+            _valueBool = Convert.ToBoolean(save[1]);
         }
-        private int _valueIntStop;
 
         /// <summary>
-        /// шаг приращения для параметра типа Int 
+        /// Название параметра. Используется для идентификации параметра в окнах настроек
         /// </summary>
-        public int ValueIntStep
+        public string Name
         {
-            get
-            {
-                if (_type != StrategyParameterType.Int)
-                {
-                    throw new Exception("Попытка запросить у параметра с типом Int, поле " + _type);
-                } 
-                return _valueIntStep;
-            }
+            get { return _name; }
         }
-        private int _valueIntStep;
+        private string _name;
+
+        /// <summary>
+        /// тип параметра
+        /// </summary>
+        public StrategyParameterType Type
+        {
+            get { return _type; }
+        }
+        private StrategyParameterType _type;
 
         /// <summary>
         /// значение булева параметра
@@ -351,10 +402,6 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (_type != StrategyParameterType.Bool)
-                {
-                    throw new Exception("Попытка запросить у параметра с типом Bool, поле " + _type);
-                } 
                 return _valueBool;
             }
             set
@@ -379,14 +426,81 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (_type != StrategyParameterType.Bool)
-                {
-                    throw new Exception("Попытка запросить у параметра с типом Bool, поле " + _type);
-                } 
                 return _valueBoolDefolt;
             }
         }
         private bool _valueBoolDefolt;
+
+        /// <summary>
+        /// событие: параметр изменился
+        /// </summary>
+        public event Action ValueChange;
+    }
+
+    /// <summary>
+    /// параметр стратегии хранящий в себе коллекцию строк
+    /// </summary>
+    public class StrategyParameterString: IIStrategyParameter
+    {
+        /// <summary>
+        /// конструктор для создания параметра хранящего переменные типа String
+        /// </summary>
+        /// <param name="name">Имя параметра</param>
+        /// <param name="value">Значение по умолчанию</param>
+        /// <param name="collection">Возможные варианты значений</param>
+        public StrategyParameterString(string name, string value, List<string> collection)
+        {
+            _name = name;
+            _valueString = value;
+            _setStringValues = collection;
+            _type = StrategyParameterType.String;
+        }
+
+        /// <summary>
+        /// заглушка. нельзя создать переменную типа StrategyParameter с пустым конструктором
+        /// </summary>
+        private StrategyParameterString()
+        {
+
+        }
+
+        /// <summary>
+        /// взять строку для сохранения
+        /// </summary>
+        public string GetStringToSave()
+        {
+            string save = _name + "#";
+            save += ValueString + "#";
+           
+            return save;
+        }
+
+        /// <summary>
+        /// загрузить настройки из файла сохранения
+        /// </summary>
+        /// <param name="save"></param>
+        public void LoadParamFromString(string[] save)
+        {
+           _valueString = save[1];
+        }
+
+        /// <summary>
+        /// Название параметра. Используется для идентификации параметра в окнах настроек
+        /// </summary>
+        public string Name
+        {
+            get { return _name; }
+        }
+        private string _name;
+
+        /// <summary>
+        /// тип параметра
+        /// </summary>
+        public StrategyParameterType Type
+        {
+            get { return _type; }
+        }
+        private StrategyParameterType _type;
 
         /// <summary>
         /// текущее значение параметра типа string
@@ -395,10 +509,6 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (_type != StrategyParameterType.String)
-                {
-                    throw new Exception("Попытка запросить у параметра с типом String, поле " + _type);
-                } 
                 return _valueString;
             }
             set
@@ -422,7 +532,7 @@ namespace OsEngine.Entity
                 if (_type != StrategyParameterType.String)
                 {
                     throw new Exception("Попытка запросить у параметра с типом String, поле " + _type);
-                } 
+                }
                 return _setStringValues;
             }
         }

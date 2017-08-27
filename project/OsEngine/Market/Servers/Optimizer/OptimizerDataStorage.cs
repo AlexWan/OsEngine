@@ -1456,78 +1456,83 @@ namespace OsEngine.Market.Servers.Optimizer
         /// </summary>
         private List<DataStorage> _storages = new List<DataStorage>();
 
+        private object _storageLocker = new object();
+
         /// <summary>
         /// взять хранилище с данными по бумаге
         /// </summary>
         /// <returns></returns>
         public DataStorage GetStorageToSecurity(Security security, TimeFrame timeFrame, DateTime timeStart, DateTime timeEnd)
         {
-            if (_typeTesterData == TesterDataType.Candle)
+            lock (_storageLocker)
             {
-                DataStorage storage =
-                               _storages.Find(s => s.Security.Name == security.Name && s.TimeFrame == timeFrame &&
-                                                          s.TimeStart == timeStart && s.TimeEnd == timeEnd && s.StorageType == TesterDataType.Candle);
-
-                if (storage != null)
+                if (_typeTesterData == TesterDataType.Candle)
                 {
+                    DataStorage storage =
+                                   _storages.Find(s => s.Security.Name == security.Name && s.TimeFrame == timeFrame &&
+                                                              s.TimeStart == timeStart && s.TimeEnd == timeEnd && s.StorageType == TesterDataType.Candle);
+
+                    if (storage != null)
+                    {
+                        return storage;
+                    }
+                    storage = LoadCandlesFromFolder(security, timeFrame, timeStart, timeEnd);
+
+                    if (storage == null)
+                    {
+                        SendLogMessage("В хранилище не найдены соответствующие данные. Бумага: " + security.Name + " Тип данных: " + _typeTesterData, LogMessageType.Error);
+                        return null;
+                    }
+
+                    _storages.Add(storage);
                     return storage;
                 }
-                storage = LoadCandlesFromFolder(security, timeFrame, timeStart, timeEnd);
-
-                if (storage == null)
+                if (_typeTesterData == TesterDataType.TickOnlyReadyCandle)
                 {
-                    SendLogMessage("В хранилище не найдены соответствующие данные. Бумага: " + security.Name + " Тип данных: " + _typeTesterData, LogMessageType.Error);
-                    return null;
-                }
+                    DataStorage storage =
+                                   _storages.Find(s => s.Security.Name == security.Name &&
+                                                              s.TimeStart == timeStart && s.TimeEnd == timeEnd && s.StorageType == TesterDataType.TickOnlyReadyCandle);
 
-                _storages.Add(storage);
-                return storage;
-            }
-            if (_typeTesterData == TesterDataType.TickOnlyReadyCandle)
-            {
-                DataStorage storage =
-                               _storages.Find(s => s.Security.Name == security.Name &&
-                                                          s.TimeStart == timeStart && s.TimeEnd == timeEnd && s.StorageType == TesterDataType.TickOnlyReadyCandle);
+                    if (storage != null)
+                    {
+                        return storage;
+                    }
+                    storage = LoadTradesFromFolder(security, timeStart, timeEnd);
 
-                if (storage != null)
-                {
+                    if (storage == null)
+                    {
+                        SendLogMessage("В хранилище не найдены соответствующие данные. Бумага: " + security.Name + " Тип данных: " + _typeTesterData, LogMessageType.Error);
+                        return null;
+                    }
+
+                    _storages.Add(storage);
                     return storage;
                 }
-                storage = LoadTradesFromFolder(security, timeStart, timeEnd);
-
-                if (storage == null)
+                if (_typeTesterData == TesterDataType.MarketDepthOnlyReadyCandle)
                 {
-                    SendLogMessage("В хранилище не найдены соответствующие данные. Бумага: " + security.Name + " Тип данных: " + _typeTesterData, LogMessageType.Error);
-                    return null;
-                }
+                    DataStorage storage =
+                                   _storages.Find(s => s.Security.Name == security.Name &&
+                                                              s.TimeStart == timeStart && s.TimeEnd == timeEnd && s.StorageType == TesterDataType.MarketDepthOnlyReadyCandle);
 
-                _storages.Add(storage);
-                return storage;
-            }
-            if (_typeTesterData == TesterDataType.MarketDepthOnlyReadyCandle)
-            {
-                DataStorage storage =
-                               _storages.Find(s => s.Security.Name == security.Name &&
-                                                          s.TimeStart == timeStart && s.TimeEnd == timeEnd && s.StorageType == TesterDataType.MarketDepthOnlyReadyCandle);
+                    if (storage != null)
+                    {
+                        return storage;
+                    }
+                    storage = LoadMarketDepthFromFolder(security, timeStart, timeEnd);
 
-                if (storage != null)
-                {
+                    if (storage == null)
+                    {
+                        SendLogMessage("В хранилище не найдены соответствующие данные. Бумага: " + security.Name + " Тип данных: " + _typeTesterData, LogMessageType.Error);
+                        return null;
+                    }
+
+                    _storages.Add(storage);
                     return storage;
                 }
-                storage = LoadMarketDepthFromFolder(security, timeStart, timeEnd);
 
-                if (storage == null)
-                {
-                    SendLogMessage("В хранилище не найдены соответствующие данные. Бумага: " + security.Name + " Тип данных: " + _typeTesterData, LogMessageType.Error);
-                    return null;
-                }
-
-                _storages.Add(storage);
-                return storage;
+                SendLogMessage("В хранилище не найдены соответствующие данные. Бумага: " + security.Name + " Тип данных: " + _typeTesterData, LogMessageType.Error);
+                return null;
             }
-
-            SendLogMessage("В хранилище не найдены соответствующие данные. Бумага: " + security.Name + " Тип данных: " + _typeTesterData, LogMessageType.Error);
-            return null;
         }
 
         /// <summary>

@@ -11,9 +11,9 @@ namespace OsEngine.Entity
     public partial class ParemetrsUi 
     {
 
-        private List<StrategyParameter> _parameters;
+        private List<IIStrategyParameter> _parameters;
 
-        public ParemetrsUi(List<StrategyParameter> parameters)
+        public ParemetrsUi(List<IIStrategyParameter> parameters)
         {
             InitializeComponent();
             _parameters = parameters;
@@ -82,39 +82,45 @@ namespace OsEngine.Entity
                 {
                     cell.Items.Add("False");
                     cell.Items.Add("True");
-                    cell.Value = _parameters[i].ValueBool.ToString();
+                    cell.Value = ((StrategyParameterBool)_parameters[i]).ValueBool.ToString();
                 }
                 else if (_parameters[i].Type == StrategyParameterType.String)
                 {
-                    for (int i2 = 0; i2 < _parameters[i].ValuesString.Count; i2++)
+                    StrategyParameterString param = (StrategyParameterString)_parameters[i];
+
+                    for (int i2 = 0; i2 < param.ValuesString.Count; i2++)
                     {
-                        cell.Items.Add(_parameters[i].ValuesString[i2]);
+                        cell.Items.Add(param.ValuesString[i2]);
                     }
-                    cell.Value = _parameters[i].ValueString;
+                    cell.Value = param.ValueString;
                 }
                 else if (_parameters[i].Type == StrategyParameterType.Int)
                 {
-                    cell.Items.Add(_parameters[i].ValueInt.ToString());
-                    int valueCurrent = _parameters[i].ValueIntStart;
-                    for (int i2 = 0; valueCurrent < _parameters[i].ValueIntStop; i2++)
+                    StrategyParameterInt param = (StrategyParameterInt)_parameters[i];
+
+                    cell.Items.Add(param.ValueInt.ToString());
+                    int valueCurrent = param.ValueIntStart;
+                    for (int i2 = 0; valueCurrent < param.ValueIntStop; i2++)
                     {
                         cell.Items.Add(valueCurrent.ToString());
-                        valueCurrent += _parameters[i].ValueIntStep;
+                        valueCurrent += param.ValueIntStep;
                     }
-                    cell.Items.Add(_parameters[i].ValueIntStop.ToString());
-                    cell.Value = _parameters[i].ValueInt.ToString();
+                    cell.Items.Add(param.ValueIntStop.ToString());
+                    cell.Value = param.ValueInt.ToString();
                 }
                 else if (_parameters[i].Type == StrategyParameterType.Decimal)
                 {
-                    cell.Items.Add(_parameters[i].ValueDecimal.ToString());
-                    decimal valueCurrent = _parameters[i].ValueDecimalStart;
-                    for (int i2 = 0; valueCurrent < _parameters[i].ValueDecimalStop; i2++)
+                    StrategyParameterDecimal param = (StrategyParameterDecimal)_parameters[i];
+
+                    cell.Items.Add(param.ValueDecimal.ToString());
+                    decimal valueCurrent = param.ValueDecimalStart;
+                    for (int i2 = 0; valueCurrent < param.ValueDecimalStop; i2++)
                     {
                         cell.Items.Add(valueCurrent.ToString());
-                        valueCurrent += _parameters[i].ValueDecimalStep;
+                        valueCurrent += param.ValueDecimalStep;
                     }
-                    cell.Items.Add(_parameters[i].ValueDecimalStop.ToString());
-                    cell.Value = _parameters[i].ValueDecimal.ToString();
+                    cell.Items.Add(param.ValueDecimalStop.ToString());
+                    cell.Value = param.ValueDecimal.ToString();
                 }
                 row.Cells.Add(cell);
 
@@ -128,19 +134,19 @@ namespace OsEngine.Entity
             {
                 if (_parameters[i].Type == StrategyParameterType.String)
                 {
-                    _parameters[i].ValueString = _grid.Rows[i].Cells[1].Value.ToString();
+                    ((StrategyParameterString)_parameters[i]).ValueString = _grid.Rows[i].Cells[1].Value.ToString();
                 }
                 else if (_parameters[i].Type == StrategyParameterType.Int)
                 {
-                    _parameters[i].ValueInt = Convert.ToInt32(_grid.Rows[i].Cells[1].Value.ToString());
+                     ((StrategyParameterInt)_parameters[i]).ValueInt = Convert.ToInt32(_grid.Rows[i].Cells[1].Value.ToString());
                 }
                 else if (_parameters[i].Type == StrategyParameterType.Bool)
                 {
-                    _parameters[i].ValueBool = Convert.ToBoolean(_grid.Rows[i].Cells[1].Value.ToString());
+                    ((StrategyParameterBool)_parameters[i]).ValueBool = Convert.ToBoolean(_grid.Rows[i].Cells[1].Value.ToString());
                 }
                 else if (_parameters[i].Type == StrategyParameterType.Decimal)
                 {
-                    _parameters[i].ValueDecimal = Convert.ToDecimal(_grid.Rows[i].Cells[1].Value.ToString());
+                    ((StrategyParameterDecimal)_parameters[i]).ValueDecimal = Convert.ToDecimal(_grid.Rows[i].Cells[1].Value.ToString());
                 }
             }
 

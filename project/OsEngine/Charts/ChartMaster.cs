@@ -637,6 +637,10 @@ namespace OsEngine.Charts
         /// <summary>
         /// Индикаторы
         /// </summary>
+        public List<IIndicatorCandle> Indicators
+        {
+            get { return _indicatorsCandles; }
+        } 
         private List<IIndicatorCandle> _indicatorsCandles;
 
         /// <summary>
@@ -947,28 +951,21 @@ namespace OsEngine.Charts
             _chartCandle.ClearAlerts(alertArray);
         }
 
-// входящие события
+// прорисовка свечей
 
         /// <summary>
-        /// в коннекторе обновились тики
+        /// свечи доступные на чарте
         /// </summary>
-        /// <param name="trades">тики</param>
-        public void SetTick(List<Trade> trades)
-        {
-            try
-            {
-                _chartCandle.PaintTrades(trades);
-            }
-            catch (Exception error)
-            {
-                SendErrorMessage(error);
-            }
-        }
-
         private List<Candle> _myCandles;
 
+        /// <summary>
+        /// последняя цена
+        /// </summary>
         private decimal _lastPrice;
 
+        /// <summary>
+        /// последнее кол-во свечей в массиве
+        /// </summary>
         private int _lastCount;
 
         /// <summary>
@@ -1001,14 +998,14 @@ namespace OsEngine.Charts
                 bool canReload = true;
 
                 if (!ServerMaster.IsTester &&
-                    _reloadState == ChartReloadState.OneSecond 
+                    _reloadState == ChartReloadState.OneSecond
                     && _lastCandleIncome.AddSeconds(1) > DateTime.Now)
                 {
                     canReload = false;
                 }
 
-                if (!ServerMaster.IsTester && 
-                    _reloadState == ChartReloadState.FiveSecond 
+                if (!ServerMaster.IsTester &&
+                    _reloadState == ChartReloadState.FiveSecond
                     && _lastCandleIncome.AddSeconds(5) > DateTime.Now)
                 {
                     canReload = false;
@@ -1018,7 +1015,7 @@ namespace OsEngine.Charts
                 {
                     canReload = false;
                 }
-                
+
                 _lastCount = candles.Count;
                 _lastPrice = candles[candles.Count - 1].Close;
                 _myCandles = candles;
@@ -1030,7 +1027,7 @@ namespace OsEngine.Charts
                         _lastCandleIncome = DateTime.Now;
                         _chartCandle.PaintCandles(candles);
                         _chartCandle.PaintPositions(_myPosition);
-                        
+
                     }
 
                     if (_indicatorsCandles != null)
@@ -1065,6 +1062,26 @@ namespace OsEngine.Charts
                 SendErrorMessage(error);
             }
         }
+
+// прорисовка тиков
+
+        /// <summary>
+        /// в коннекторе обновились тики
+        /// </summary>
+        /// <param name="trades">тики</param>
+        public void SetTick(List<Trade> trades)
+        {
+            try
+            {
+                _chartCandle.PaintTrades(trades);
+            }
+            catch (Exception error)
+            {
+                SendErrorMessage(error);
+            }
+        }
+
+// прорисовка позиций
 
         private List<Position> _myPosition;
 

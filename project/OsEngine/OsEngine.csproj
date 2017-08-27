@@ -426,6 +426,9 @@
     <Compile Include="OsData\OsDataUi.xaml.cs">
       <DependentUpon>OsDataUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="OsTrader\Panels\BotPanelChartUI.xaml.cs">
+      <DependentUpon>BotPanelChartUI.xaml</DependentUpon>
+    </Compile>
     <Compile Include="OsTrader\Panels\PanelsGui\BBPowerTradeUi.xaml.cs">
       <DependentUpon>BBPowerTradeUi.xaml</DependentUpon>
     </Compile>
@@ -863,6 +866,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="OsOptimizer\TabIndexOptimizerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\BotPanelChartUI.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

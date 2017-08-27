@@ -734,7 +734,7 @@ namespace OsEngine.OsOptimizer
         /// реально применяемые параметры для оптимизации.
         /// доступны для изменения в интерфейсе
         /// </summary>
-        public List<StrategyParameter> Parameters
+        public List<IIStrategyParameter> Parameters
         {
             get
             {
@@ -761,7 +761,7 @@ namespace OsEngine.OsOptimizer
                 return bot.Parameters;
             }
         }
-        private List<StrategyParameter> _parameters;
+        private List<IIStrategyParameter> _parameters;
 
         /// <summary>
         /// список параметров которые включены в оптимизацию

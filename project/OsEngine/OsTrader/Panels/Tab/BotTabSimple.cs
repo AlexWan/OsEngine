@@ -226,6 +226,14 @@ namespace OsEngine.OsTrader.Panels.Tab
             _chartMaster.DeleteIndicator(indicator);
         }
 
+        /// <summary>
+        /// все доступные индикаторы в системе
+        /// </summary>
+        public List<IIndicatorCandle> Indicators
+        {
+            get { return _chartMaster.Indicators; }
+        }
+
 // рисование элементов
 
         /// <summary>
@@ -463,7 +471,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public List<Candle> CandlesAll
         {
-            get { return _connector.Candles(false); }
+            get
+            {
+                return _connector.Candles(false);
+            }
         }
 
         /// <summary>
