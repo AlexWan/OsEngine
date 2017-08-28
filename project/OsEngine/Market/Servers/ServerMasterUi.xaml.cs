@@ -131,6 +131,7 @@ namespace OsEngine.Market.Servers
                 _gridSources.Rows.Add(row1);
             }
 
+            bool bitMexIsOn = false;
             bool quikIsOn = false;
             bool smartcomIsOn = false;
             bool plazaIsOn = false;
@@ -147,11 +148,14 @@ namespace OsEngine.Market.Servers
 
                 Enum.TryParse(row1.Cells[0].Value.ToString(), out type);
 
+                if (type == ServerType.BitMexServer)
+                {
+                    bitMexIsOn = true;
+                }
                 if (type == ServerType.QuikLua)
                 {
                     quikLuaIsOn = true;
                 }
-
                 if (type == ServerType.Quik)
                 {
                     quikIsOn = true;
@@ -178,6 +182,15 @@ namespace OsEngine.Market.Servers
                 }
             }
 
+            if (bitMexIsOn == false)
+            {
+                DataGridViewRow row1 = new DataGridViewRow();
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[0].Value = ServerType.BitMexServer;
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[1].Value = "Disconnect";
+                _gridSources.Rows.Add(row1);
+            }
             if (quikLuaIsOn == false)
             {
                 DataGridViewRow row1 = new DataGridViewRow();

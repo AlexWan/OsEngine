@@ -11,6 +11,7 @@ using System.Windows.Forms.Integration;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.AstsBridge;
+using OsEngine.Market.Servers.BitMex;
 using OsEngine.Market.Servers.Finam;
 using OsEngine.Market.Servers.InteractivBrokers;
 using OsEngine.Market.Servers.Plaza;
@@ -92,6 +93,25 @@ namespace OsEngine.Market.Servers
                 if (_servers == null)
                 {
                     _servers = new List<IServer>();
+                }
+
+                if (type == ServerType.BitMexServer)
+                {
+                    if (_servers.Find(server => server.ServerType == ServerType.BitMexServer) != null)
+                    {
+                        return;
+                    }
+                    
+                    BitMexServer serv = new BitMexServer(neadLoadTicks);
+                    _servers.Add(serv);
+                    serv.PortfoliosChangeEvent += _server_PortfoliosChangeEvent;
+                    serv.NewOrderIncomeEvent += _server_NewOrderIncomeEvent;
+                    serv.NewMyTradeEvent += serv_NewMyTradeEvent;
+                    
+                    if (ServerCreateEvent != null)
+                    {
+                        ServerCreateEvent();
+                    }
                 }
 
                 if (type == ServerType.QuikLua)
@@ -1191,6 +1211,11 @@ namespace OsEngine.Market.Servers
     /// </summary>
     public enum ServerType
     {
+        /// <summary>
+        /// биржа криптовалют BitMEX
+        /// </summary>
+        BitMexServer,
+
         /// <summary>
         /// квик луа
         /// </summary>

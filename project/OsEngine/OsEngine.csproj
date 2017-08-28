@@ -63,6 +63,10 @@
       <HintPath>bin\Debug\cgate_net64.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="qC, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\Debug\qC.dll</HintPath>
@@ -291,6 +295,18 @@
     <Compile Include="Market\Servers\AstsBridge\AstsBridgeServer.cs" />
     <Compile Include="Market\Servers\AstsBridge\AstsServerUi.xaml.cs">
       <DependentUpon>AstsServerUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Market\Servers\BitMex\BitMexClient.cs" />
+    <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexMyOrders.cs" />
+    <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexOrder.cs" />
+    <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexPortfolio.cs" />
+    <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexPosition.cs" />
+    <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexQuotes.cs" />
+    <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexSecurity.cs" />
+    <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexTrades.cs" />
+    <Compile Include="Market\Servers\BitMex\BitMexServer.cs" />
+    <Compile Include="Market\Servers\BitMex\BitMexServerUi.xaml.cs">
+      <DependentUpon>BitMexServerUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Market\Servers\Entity\BidAskSender.cs" />
     <Compile Include="Market\Servers\Entity\OrderSender.cs" />
@@ -738,6 +754,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Market\Servers\AstsBridge\AstsServerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\BitMex\BitMexServerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

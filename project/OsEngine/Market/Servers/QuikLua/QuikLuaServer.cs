@@ -1249,93 +1249,88 @@ namespace OsEngine.Market.Servers.QuikLua
                 lock (_getCandlesLocker)
                 {
                     if (timeSpan.TotalMinutes > 60 ||
-                    timeSpan.TotalMinutes < 1)
-                {
-                    return null;
-                }
-
-                CandleInterval tf = CandleInterval.M5;
-
-                if (Convert.ToInt32(timeSpan.TotalMinutes) == 1)
-                {
-                    tf = CandleInterval.M1;
-                }
-                else if (Convert.ToInt32(timeSpan.TotalMinutes) == 5)
-                {
-                    tf = CandleInterval.M5;
-                }
-                else if (Convert.ToInt32(timeSpan.TotalMinutes) == 10)
-                {
-                    tf = CandleInterval.M10;
-                }
-                else if (Convert.ToInt32(timeSpan.TotalMinutes) == 15)
-                {
-                    tf = CandleInterval.M15;
-                }
-                else if (Convert.ToInt32(timeSpan.TotalMinutes) == 30)
-                {
-                    tf = CandleInterval.M30;
-                }
-                else if (Convert.ToInt32(timeSpan.TotalMinutes) == 60)
-                {
-                    tf = CandleInterval.H1;
-                }
-
-                
-
-                #region MyRegion
-
-                
-
-            
-                _candles = null;
-
-                var needSec = _securities.Find(sec => sec.Name == security);
-
-                if (needSec != null)
-                {
-                    _candles = new List<Candle>();
-                    string classCode = needSec.NameClass;
-
-                    var allCandlesForSec = QuikLua.Candles.GetAllCandles(classCode, needSec.Name, tf).Result;
-
-                    for (int i = 0; i < allCandlesForSec.Count; i++)
+                        timeSpan.TotalMinutes < 1)
                     {
-                        if (allCandlesForSec[i] != null)
+                        return null;
+                    }
+
+                    CandleInterval tf = CandleInterval.M5;
+
+                    if (Convert.ToInt32(timeSpan.TotalMinutes) == 1)
+                    {
+                        tf = CandleInterval.M1;
+                    }
+                    else if (Convert.ToInt32(timeSpan.TotalMinutes) == 5)
+                    {
+                        tf = CandleInterval.M5;
+                    }
+                    else if (Convert.ToInt32(timeSpan.TotalMinutes) == 10)
+                    {
+                        tf = CandleInterval.M10;
+                    }
+                    else if (Convert.ToInt32(timeSpan.TotalMinutes) == 15)
+                    {
+                        tf = CandleInterval.M15;
+                    }
+                    else if (Convert.ToInt32(timeSpan.TotalMinutes) == 30)
+                    {
+                        tf = CandleInterval.M30;
+                    }
+                    else if (Convert.ToInt32(timeSpan.TotalMinutes) == 60)
+                    {
+                        tf = CandleInterval.H1;
+                    }
+                    
+                    #region MyRegion
+                    
+                    _candles = null;
+
+                    var needSec = _securities.Find(sec => sec.Name == security);
+
+                    if (needSec != null)
+                    {
+                        _candles = new List<Candle>();
+                        string classCode = needSec.NameClass;
+
+                        var allCandlesForSec = QuikLua.Candles.GetAllCandles(classCode, needSec.Name, tf).Result;
+
+                        for (int i = 0; i < allCandlesForSec.Count; i++)
                         {
-                            Candle newCandle = new Candle();
-
-                            newCandle.Close = allCandlesForSec[i].Close;
-                            newCandle.High = allCandlesForSec[i].High;
-                            newCandle.Low = allCandlesForSec[i].Low;
-                            newCandle.Open = allCandlesForSec[i].Open;
-                            newCandle.Volume = allCandlesForSec[i].Volume;
-
-                            if (i == allCandlesForSec.Count - 1)
+                            if (allCandlesForSec[i] != null)
                             {
-                                newCandle.State = CandleStates.None;
-                            }
-                            else
-                            {
-                                newCandle.State = CandleStates.Finished;
-                            }
+                                Candle newCandle = new Candle();
 
-                            newCandle.TimeStart = new DateTime(allCandlesForSec[i].Datetime.year,
-                                allCandlesForSec[i].Datetime.month,
-                                allCandlesForSec[i].Datetime.day,
-                                allCandlesForSec[i].Datetime.hour,
-                                allCandlesForSec[i].Datetime.min,
-                                allCandlesForSec[i].Datetime.sec);
+                                newCandle.Close = allCandlesForSec[i].Close;
+                                newCandle.High = allCandlesForSec[i].High;
+                                newCandle.Low = allCandlesForSec[i].Low;
+                                newCandle.Open = allCandlesForSec[i].Open;
+                                newCandle.Volume = allCandlesForSec[i].Volume;
 
-                            _candles.Add(newCandle);
+                                if (i == allCandlesForSec.Count - 1)
+                                {
+                                    newCandle.State = CandleStates.None;
+                                }
+                                else
+                                {
+                                    newCandle.State = CandleStates.Finished;
+                                }
+
+                                newCandle.TimeStart = new DateTime(allCandlesForSec[i].Datetime.year,
+                                    allCandlesForSec[i].Datetime.month,
+                                    allCandlesForSec[i].Datetime.day,
+                                    allCandlesForSec[i].Datetime.hour,
+                                    allCandlesForSec[i].Datetime.min,
+                                    allCandlesForSec[i].Datetime.sec);
+
+                                _candles.Add(newCandle);
+                            }
                         }
                     }
+
+                    #endregion
+
+                    return _candles;
                 }
-
-                #endregion
-
-                return _candles;
-            }
             }
             catch (Exception error)
             {

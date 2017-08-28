@@ -4662,8 +4662,8 @@ namespace OsEngine.Charts.CandleChart
             {
                 area.AxisX.CustomLabels[i].FromPosition = value-value*0.7;
                 area.AxisX.CustomLabels[i].ToPosition = value + value * 0.7;
-                area.AxisX.CustomLabels[i].Text = _myCandles[(int)value].TimeStart.ToString();
-                
+                if(_myCandles[(int)value].TimeStart != DateTime.MaxValue)
+                area.AxisX.CustomLabels[i].Text = _myCandles[(int) value].TimeStart.ToString();
                 value += area.AxisX.Interval;
 
                 if(value >= _myCandles.Count)
