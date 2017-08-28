@@ -9,6 +9,7 @@ using System.Threading;
 using System.Windows;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
+using OsEngine.Market.Servers.BitMex;
 using OsEngine.Market.Servers.QuikLua;
 using OsEngine.Market.Servers.SmartCom;
 using OsEngine.Market.Servers.Tester;
@@ -263,6 +264,27 @@ namespace OsEngine.Entity
                                 if (candles != null)
                                 {
                                     //candles.Reverse();
+                                    series.CandlesAll = candles;
+                                }
+                            }
+                            series.UpdateAllCandles();
+                            series.IsStarted = true;
+                        }
+                        else if (serverType == ServerType.BitMexServer)
+                        {
+                            BitMexServer bitMex = (BitMexServer)_server;
+                            if (series.TimeFrameSpan.TotalMinutes < 1)
+                            {
+                                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
+
+                                series.PreLoad(allTrades);
+                            }
+                            else
+                            {
+                                List<Candle> candles = bitMex.GetBitMexCandleHistory(series.Security.Name,
+                                    series.TimeFrameSpan);
+                                if (candles != null)
+                                {
                                     series.CandlesAll = candles;
                                 }
                             }
