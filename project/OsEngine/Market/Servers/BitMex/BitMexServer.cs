@@ -72,7 +72,7 @@ namespace OsEngine.Market.Servers.BitMex
         /// взять тип сервера. 
         /// </summary>
         /// <returns></returns>
-        public ServerType ServerType { get; }
+        public ServerType ServerType { get; set; }
 
 //сервис
 
@@ -86,8 +86,6 @@ namespace OsEngine.Market.Servers.BitMex
             get { return _isDemo; }
             set { _isDemo = value; }
         }
-
-        private int _countDaysTickNeadToSave;
 
         /// <summary>
         /// количество дней назад, тиковые данные по которым нужно сохранять
@@ -105,8 +103,7 @@ namespace OsEngine.Market.Servers.BitMex
                 _tickStorage.DaysToLoad = value;
             }
         }
-
-        private bool _neadToSaveTicks;
+        private int _countDaysTickNeadToSave;
 
         /// <summary>
         /// нужно ли сохранять тики 
@@ -124,6 +121,7 @@ namespace OsEngine.Market.Servers.BitMex
                 _tickStorage.NeadToSave = value;
             }
         }
+        private bool _neadToSaveTicks;
 
         /// <summary>
         /// показать настройки
