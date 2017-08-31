@@ -11,8 +11,10 @@ using System.Windows.Forms.Integration;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.AstsBridge;
+using OsEngine.Market.Servers.BitMex;
 using OsEngine.Market.Servers.Finam;
 using OsEngine.Market.Servers.InteractivBrokers;
+using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Plaza;
 using OsEngine.Market.Servers.Quik;
 using OsEngine.Market.Servers.QuikLua;
@@ -28,6 +30,7 @@ namespace OsEngine.Market.Servers
     /// </summary>
     public class ServerMaster
     {
+
 // сервис
 
         /// <summary>
@@ -44,6 +47,11 @@ namespace OsEngine.Market.Servers
         /// является ли текущее подключение вызванным из OsData
         /// </summary>
         public static bool IsOsData;
+
+        /// <summary>
+        /// является ли текущее подключение вызванным из IsOsOptimizer
+        /// </summary>
+        public static bool IsOsOptimizer;
 
         /// <summary>
         /// отключить все сервера
@@ -94,6 +102,24 @@ namespace OsEngine.Market.Servers
                     _servers = new List<IServer>();
                 }
 
+                if (type == ServerType.BitMexServer)
+                {
+                    if (_servers.Find(server => server.ServerType == ServerType.BitMexServer) != null)
+                    {
+                        return;
+                    }
+
+                    BitMexServer serv = new BitMexServer(neadLoadTicks);
+                    _servers.Add(serv);
+                    serv.PortfoliosChangeEvent += _server_PortfoliosChangeEvent;
+                    serv.NewOrderIncomeEvent += _server_NewOrderIncomeEvent;
+                    serv.NewMyTradeEvent += serv_NewMyTradeEvent;
+
+                    if (ServerCreateEvent != null)
+                    {
+                        ServerCreateEvent();
+                    }
+                }
                 if (type == ServerType.QuikLua)
                 {
                     if (_servers.Find(server => server.ServerType == ServerType.QuikLua) != null)
@@ -112,9 +138,9 @@ namespace OsEngine.Market.Servers
                     }
                 }
 
-                if (type == ServerType.Quik)
+                if (type == ServerType.QuikDde)
                 {
-                    if (_servers.Find(server => server.ServerType == ServerType.Quik) != null)
+                    if (_servers.Find(server => server.ServerType == ServerType.QuikDde) != null)
                     {
                         return;
                     }
@@ -273,6 +299,23 @@ namespace OsEngine.Market.Servers
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        /// <summary>
+        /// создать новый сервер оптимизации
+        /// </summary>
+        public static OptimizerServer CreateNextOptimizerServer(OptimizerDataStorage storage, int num, decimal portfolioStartVal)
+        {
+            _servers = new List<IServer>();
+
+            OptimizerServer serv = new OptimizerServer(storage, num, portfolioStartVal);
+            _servers.Add(serv);
+
+            if (ServerCreateEvent != null)
+            {
+                ServerCreateEvent();
+            }
+            return serv;
         }
 
         /// <summary>
@@ -1192,14 +1235,24 @@ namespace OsEngine.Market.Servers
     public enum ServerType
     {
         /// <summary>
-        /// квик луа
+        /// биржа криптовалют BitMEX
+        /// </summary>
+        BitMexServer,
+
+        /// <summary>
+        /// Оптимизатор
+        /// </summary>
+        Optimizer,
+
+        /// <summary>
+        /// Квик луа
         /// </summary>
         QuikLua,
 
         /// <summary>
         /// Квик
         /// </summary>
-        Quik,
+        QuikDde,
 
         /// <summary>
         /// Смарт-Ком

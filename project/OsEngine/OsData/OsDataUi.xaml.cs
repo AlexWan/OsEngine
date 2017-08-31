@@ -3,7 +3,7 @@
 */
 
 using OsEngine.Entity;
-using OsEngine.Market.Servers;
+using System.Windows;
 
 namespace OsEngine.OsData
 {
@@ -12,13 +12,30 @@ namespace OsEngine.OsData
     /// </summary>
     public partial class OsDataUi
     {
+        OsDataMaster _osDataMaster;
         public OsDataUi()
         {
             InitializeComponent();
-            ServerMaster.IsOsData = true;
-            new OsDataMaster(ChartHostPanel, HostLog, HostSource, HostSet, ComboBoxSecurity,ComboBoxTimeFrame,RectChart);
+            _osDataMaster = new OsDataMaster(ChartHostPanel, HostLog, HostSource, HostSet, ComboBoxSecurity,ComboBoxTimeFrame,RectChart);
+            CheckBoxPaintOnOff.IsChecked = _osDataMaster.IsPaintEnabled;
+            CheckBoxPaintOnOff.Click += CheckBoxPaintOnOff_Click;
             LabelOsa.Content = "V_" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
             Closing += OsDataUi_Closing;
+        }
+
+        void CheckBoxPaintOnOff_Click(object sender, RoutedEventArgs e)
+        {
+            if (CheckBoxPaintOnOff.IsChecked.HasValue &&
+                CheckBoxPaintOnOff.IsChecked.Value)
+            {
+                _osDataMaster.StartPaint();
+                _osDataMaster.SaveSettings();
+            }
+            else
+            {
+                _osDataMaster.StopPaint();
+                _osDataMaster.SaveSettings();
+            }
         }
 
         void OsDataUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)

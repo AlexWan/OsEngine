@@ -4,11 +4,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms.Integration;
 using System.Windows.Shapes;
 using OsEngine.Alerts;
+using OsEngine.Entity;
+using OsEngine.Journal.Internal;
 using OsEngine.Logging;
+using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.RiskManager;
 
@@ -54,34 +60,6 @@ namespace OsEngine.OsTrader.Panels
         /// </summary>
         public string NameStrategyUniq;
 
-        /// <summary>
-        /// удалить робота и все дочерние структуры
-        /// </summary>
-        public void Delete()
-        {
-            try
-            {
-                _riskManager.Delete();
-
-                if (_botTabs != null)
-                {
-                    for (int i = 0; i < _botTabs.Count; i++)
-                    {
-                        _botTabs[i].Delete();
-                    }
-                }
-
-                if (DeleteEvent != null)
-                {
-                    DeleteEvent();
-                }
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage(error.ToString(),LogMessageType.Error);
-            }
-        }
-
 // управление
 
         /// <summary>
@@ -101,6 +79,27 @@ namespace OsEngine.OsTrader.Panels
 
             return journals;
         }
+
+        /// <summary>
+        /// показать окно графиков со сделками
+        /// </summary>
+        public void ShowChartDialog()
+        {
+            if (_chartUi == null)
+            {
+                _chartUi = new BotPanelChartUi(this);
+                _chartUi.Show();
+            }
+            _chartUi.Closed += _chartUi_Closed;
+        }
+
+
+        private BotPanelChartUi _chartUi;
+        void _chartUi_Closed(object sender, EventArgs e)
+        {
+            _chartUi = null;
+        }
+
 
         /// <summary>
         /// включена ли прорисовка 
@@ -222,11 +221,42 @@ namespace OsEngine.OsTrader.Panels
         private WindowsFormsHost _hostAlerts;
         private TextBox _textBoxLimitPrice;
 
-
         /// <summary>
         /// название класса бота.
         /// </summary>
         public abstract string GetNameStrategyType();
+
+        /// <summary>
+        /// подключился ли робот к бирже всеми вкладкам
+        /// </summary>
+        public bool IsConnected
+        {
+            get
+            {
+                for (int i = 0; TabsSimple != null && i < TabsSimple.Count; i++)
+                {
+                    if (TabsSimple[i].IsConnected == false)
+                    {
+                        return false;
+                    }
+                }
+                for (int i = 0; TabsIndex != null && i < TabsIndex.Count; i++)
+                {
+                    if (TabsIndex[i].IsConnected == false)
+                    {
+                        return false;
+                    }
+                }
+
+                if (TabsSimple == null &&
+                    TabsIndex == null)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+        }
 
         /// <summary>
         /// очистить журнал и графики
@@ -263,6 +293,400 @@ namespace OsEngine.OsTrader.Panels
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
+        /// <summary>
+        /// удалить робота и все дочерние структуры
+        /// </summary>
+        public void Delete()
+        {
+            try
+            {
+                _riskManager.Delete();
+
+                if (_botTabs != null)
+                {
+                    for (int i = 0; i < _botTabs.Count; i++)
+                    {
+                        _botTabs[i].Delete();
+                    }
+                }
+
+                if (File.Exists(@"Engine\" + NameStrategyUniq + @"Parametrs.txt"))
+                {
+                    File.Delete(@"Engine\" + NameStrategyUniq + @"Parametrs.txt");
+                }
+
+                if (DeleteEvent != null)
+                {
+                    DeleteEvent();
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+// показатели торговли робота
+
+        /// <summary>
+        /// итоговая прибыль
+        /// </summary>
+        public decimal TotalProfitInPersent
+        {
+            get
+            {
+                List<Journal.Journal> journals = GetJournals();
+
+                if (journals == null ||
+                    journals.Count == 0)
+                {
+                    return 0;
+                }
+
+                decimal result = 0;
+
+                for (int i = 0; i < journals.Count; i++)
+                {
+                    if (journals[i].AllPosition == null ||
+                        journals[i].AllPosition.Count == 0)
+                    {
+                        continue;
+                    }
+                    result += PositionStaticticGenerator.GetAllProfitPersent(journals[i].AllPosition.ToArray());
+                }
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// средняя прибыль со сделки
+        /// </summary>
+        public decimal MiddleProfitInPersent
+        {
+            get
+            {
+                List<Journal.Journal> journals = GetJournals();
+
+                if (journals == null ||
+                    journals.Count == 0)
+                {
+                    return 0;
+                }
+
+                decimal result = 0;
+
+                for (int i = 0; i < journals.Count; i++)
+                {
+                    if (journals[i].AllPosition == null ||
+                        journals[i].AllPosition.Count == 0)
+                    {
+                        continue;
+                    }
+                    result += PositionStaticticGenerator.GetMidleProfitInPersent(journals[i].AllPosition.ToArray());
+                }
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// профит фактор
+        /// </summary>
+        public decimal ProfitFactor
+        {
+            get
+            {
+                List<Journal.Journal> journals = GetJournals();
+
+                if (journals == null ||
+                    journals.Count == 0)
+                {
+                    return 0;
+                }
+
+                decimal result = 0;
+
+                for (int i = 0; i < journals.Count; i++)
+                {
+                    if (journals[i].AllPosition == null ||
+                        journals[i].AllPosition.Count == 0)
+                    {
+                        continue;
+                    }
+                    result += PositionStaticticGenerator.GetProfitFactor(journals[i].AllPosition.ToArray());
+                }
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// максимальная просадка
+        /// </summary>
+        public decimal MaxDrowDown
+        {
+            get
+            {
+                List<Journal.Journal> journals = GetJournals();
+
+                if (journals == null ||
+                    journals.Count == 0)
+                {
+                    return 0;
+                }
+
+                decimal result = 0;
+
+                for (int i = 0; i < journals.Count; i++)
+                {
+                    if (journals[i].AllPosition == null ||
+                        journals[i].AllPosition.Count == 0)
+                    {
+                        continue;
+                    }
+                    result += PositionStaticticGenerator.GetMaxDownPersent(journals[i].AllPosition.ToArray());
+                }
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// кол-во выигранных сделок
+        /// </summary>
+        public decimal WinPositionPersent
+        {
+            get
+            {
+                List<Journal.Journal> journals = GetJournals();
+
+                if (journals == null ||
+                    journals.Count == 0)
+                {
+                    return 0;
+                }
+
+                decimal winPoses = 0;
+
+                decimal allPoses = 0;
+
+                for (int i = 0; i < journals.Count; i++)
+                {
+                    if (journals[i].AllPosition == null ||
+                        journals[i].AllPosition.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    allPoses += journals[i].AllPosition.Count;
+                    List<Position> winPositions = journals[i].AllPosition.FindAll(pos => pos.ProfitOperationPunkt > 0);
+                    winPoses += (winPositions.Count);
+                }
+                return winPoses / allPoses;
+            }
+        }
+
+// работа с параметрами стратегии
+
+        /// <summary>
+        /// показать окно настроек параметров
+        /// </summary>
+        public void ShowParametrDialog()
+        {
+            if (_parameters == null ||
+                _parameters.Count == 0)
+            {
+                MessageBox.Show("У данной стратегии нет встроенных параметров для настройки");
+                return;
+            }
+            ParemetrsUi ui = new ParemetrsUi(_parameters);
+            ui.ShowDialog();
+        }
+
+        /// <summary>
+        /// создать параметр типа Decimal
+        /// </summary>
+        /// <param name="name">Имя параметра</param>
+        /// <param name="value">Значение по умолчанию</param>
+        /// <param name="start">Первое значение при оптимизации</param>
+        /// <param name="stop">Последнее значение при оптимизации</param>
+        /// <param name="step">Шаг изменения при оптимизации</param>
+        public StrategyParameterDecimal CreateParameter(string name, decimal value, decimal start, decimal stop, decimal step) 
+        {
+            StrategyParameterDecimal newParameter = new StrategyParameterDecimal(name, value, start, stop, step);
+
+            if (_parameters.Find(p => p.Name == name)!= null)
+            {
+                throw new Exception("Ахтунг! Параметр с таким именем уже существует!");
+            }
+
+            return (StrategyParameterDecimal)LoadParameterValues(newParameter);
+        }
+
+        /// <summary>
+        /// создать параметр типа Int
+        /// </summary>
+        /// <param name="name">Имя параметра</param>
+        /// <param name="value">Значение по умолчанию</param>
+        /// <param name="start">Первое значение при оптимизации</param>
+        /// <param name="stop">Последнее значение при оптимизации</param>
+        /// <param name="step">Шаг изменения при оптимизации</param>
+        public StrategyParameterInt CreateParameter(string name, int value, int start, int stop, int step)
+        {
+            StrategyParameterInt newParameter = new StrategyParameterInt(name, value, start, stop, step);
+
+            if (_parameters.Find(p => p.Name == name) != null)
+            {
+                throw new Exception("Ахтунг! Параметр с таким именем уже существует!");
+            }
+
+            return (StrategyParameterInt)LoadParameterValues(newParameter);
+        }
+
+        /// <summary>
+        /// создать параметр типа String
+        /// </summary>
+        /// <param name="name">Имя параметра</param>
+        /// <param name="value">Значение по умолчанию</param>
+        /// <param name="collection">Возможные значения для параметра</param>
+        public StrategyParameterString CreateParameter(string name, string value, string[] collection)
+        {
+            StrategyParameterString newParameter = new StrategyParameterString(name, value, collection.ToList());
+
+            if (_parameters.Find(p => p.Name == name) != null)
+            {
+                throw new Exception("Ахтунг! Параметр с таким именем уже существует!");
+            }
+
+            return (StrategyParameterString)LoadParameterValues(newParameter);
+        }
+
+        /// <summary>
+        /// создать параметр типа Bool
+        /// </summary>
+        /// <param name="name">Имя параметра</param>
+        /// <param name="value">Значение по умолчанию</param>
+        public StrategyParameterBool CreateParameter(string name, bool value)
+        {
+            StrategyParameterBool newParameter = new StrategyParameterBool(name, value);
+
+            if (_parameters.Find(p => p.Name == name) != null)
+            {
+                throw new Exception("Ахтунг! Параметр с таким именем уже существует!");
+            }
+
+            return (StrategyParameterBool)LoadParameterValues(newParameter);
+        }
+
+        /// <summary>
+        /// загрузить настройки параметра
+        /// </summary>
+        /// <param name="newParameter">параметр настройки которого нужно загрузить</param>
+        /// <returns></returns>
+        private IIStrategyParameter LoadParameterValues(IIStrategyParameter  newParameter)
+        {
+            if (!ServerMaster.IsOsOptimizer)
+            {// запущен тестер или робот, в котором можно менять параметры вручную
+                GetValueParameterSaveByUser(newParameter);
+            }
+
+            newParameter.ValueChange += Parameter_ValueChange;
+
+            _parameters.Add(newParameter);
+
+            return newParameter;
+        }
+
+        /// <summary>
+        /// загрузить настройки параметра из файла
+        /// </summary>
+        /// <param name="parameter"></param>
+        private void GetValueParameterSaveByUser(IIStrategyParameter parameter)
+        {
+            if (!File.Exists(@"Engine\" + NameStrategyUniq + @"Parametrs.txt"))
+            {
+                return;
+            }
+            try
+            {
+                using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"Parametrs.txt"))
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        string[] save = reader.ReadLine().Split('#');
+
+                        if (save[0] == parameter.Name)
+                        {
+                            parameter.LoadParamFromString(save);
+                        }
+                    }
+                    reader.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // отправить в лог
+            }
+        }
+
+        /// <summary>
+        /// список параметров доступных у панели
+        /// </summary>
+        public List<IIStrategyParameter> Parameters
+        {
+            get { return _parameters; }
+        } 
+        private List<IIStrategyParameter> _parameters = new List<IIStrategyParameter>();
+
+        /// <summary>
+        /// у параметра изменились настройки
+        /// </summary>
+        void Parameter_ValueChange()
+        {
+            if (!ServerMaster.IsOsOptimizer)
+            {
+                SaveParametrs();
+            }
+            
+            if (ParametrsChangeByUser != null)
+            {
+                ParametrsChangeByUser();
+            }
+        }
+
+        /// <summary>
+        /// сохранить значения параметров
+        /// </summary>
+        private void SaveParametrs()
+        {
+            if (_parameters == null ||
+                _parameters.Count == 0)
+            {
+                return;
+            }
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"Parametrs.txt", false)
+                    )
+                {
+                    for (int i = 0; i < _parameters.Count; i++)
+                    {
+                        writer.WriteLine(_parameters[i].GetStringToSave());
+                    }
+
+                    writer.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // отправить в лог
+            }
+
+
+        }
+
+        /// <summary>
+        /// у параметра изменилось состояние
+        /// </summary>
+        public event Action ParametrsChangeByUser;
 
 // риск менеджер панели
 

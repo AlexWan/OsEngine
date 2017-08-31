@@ -74,8 +74,8 @@ namespace OsEngine.OsData
             ComboBoxSource.Items.Add(ServerType.Unknown);
             ComboBoxSource.Items.Add(ServerType.InteractivBrokers);
             ComboBoxSource.Items.Add(ServerType.Plaza);
-            ComboBoxSource.Items.Add(ServerType.Quik);
-            ComboBoxSource.Items.Add(ServerType.SmartCom);
+            ComboBoxSource.Items.Add(ServerType.QuikDde);
+            ComboBoxSource.Items.Add(ServerType.QuikLua);
             ComboBoxSource.Items.Add(ServerType.Finam);
 
             ComboBoxSource.SelectedItem = _set.Source;

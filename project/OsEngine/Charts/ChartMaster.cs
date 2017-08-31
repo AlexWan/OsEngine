@@ -22,7 +22,7 @@ namespace OsEngine.Charts
 {
 
     /// <summary>
-    /// класс-менеджер. Управляющий прорисовкой на чарте: индикаторов, сделок, свечек.
+    /// Класс-менеджер, управляющий прорисовкой индикаторов, сделок, свечек на чарте.
     /// </summary>
     public class ChartMaster
     {
@@ -30,9 +30,9 @@ namespace OsEngine.Charts
 // сервис
 
         /// <summary>
-        /// конструктор
+        /// Конструктор
         /// </summary>
-        /// <param name="nameBoss">имя робота которому принадлежит чарт</param>
+        /// <param name="nameBoss">Имя робота которому принадлежит чарт</param>
         public ChartMaster(string nameBoss)
         {
             _name = nameBoss + "ChartMaster";
@@ -47,7 +47,7 @@ namespace OsEngine.Charts
         }
 
         /// <summary>
-        /// загрузить настройки из файла
+        /// Загрузить настройки из файла
         /// </summary>
         private void Load()
         {
@@ -260,18 +260,18 @@ namespace OsEngine.Charts
         }
 
         /// <summary>
-        /// можно ли сохранять индикаторы.
-        /// Это нужно в момент их создания
+        /// Можно ли сохранять индикаторы.
+        /// Это нужно в момент их создания.
         /// </summary>
         private bool _canSave;
 
         /// <summary>
-        /// частота обновления чарта
+        /// Частота обновления чарта
         /// </summary>
         private ChartReloadState _reloadState;
 
         /// <summary>
-        /// сохранить настройки в файл
+        /// Сохранить настройки в файл
         /// </summary>
         private void Save()
         {
@@ -310,15 +310,15 @@ namespace OsEngine.Charts
         }
 
         /// <summary>
-        /// удалить файл настроек
+        /// Удалить файл настроек
         /// </summary>
         public void Delete()
         {
             try
             {
-                while (_indicatorsCandles != null)
+                for (int i = 0; _indicatorsCandles != null && i < _indicatorsCandles.Count; i++)
                 {
-                    DeleteIndicator(_indicatorsCandles[0]);
+                    _indicatorsCandles[i].Delete();
                 }
 
                 if (File.Exists(@"Engine\" + Name + @".txt"))
@@ -339,7 +339,7 @@ namespace OsEngine.Charts
         private string _name;
 
         /// <summary>
-        /// уникальное имя мастера чартов
+        /// Уникальное имя мастера чартов
         /// </summary>
         public string Name
         {
@@ -354,7 +354,7 @@ namespace OsEngine.Charts
 // контекстное меню
 
         /// <summary>
-        /// пользователь кликнул по чарту
+        /// Пользователь кликнул по чарту
         /// </summary>
         private void ChartMasterOneSecurity_Click(object sender, EventArgs e)
         {
@@ -373,7 +373,7 @@ namespace OsEngine.Charts
         }
 
         /// <summary>
-        /// пересобрать контекстное меню для чарта
+        /// Пересобрать контекстное меню для чарта
         /// </summary>
         private void ReloadContext()
         {
@@ -463,7 +463,7 @@ namespace OsEngine.Charts
         }
 
         /// <summary>
-        /// пользователь выбрал в контекстном меню: размер для точки отображающей позиции на графике: минимальный
+        /// Пользователь выбрал в контекстном меню размер для точки отображающей позиции на графике: минимальный
         /// </summary>
         private void ChartMinPointSize_Click(object sender, EventArgs e)
         {
@@ -471,7 +471,7 @@ namespace OsEngine.Charts
         }
 
         /// <summary>
-        /// пользователь выбрал в контекстном меню: размер для точки отображающей позиции на графике: средний
+        /// Пользователь выбрал в контекстном меню размер для точки отображающей позиции на графике: средний
         /// </summary>
         private void ChartMiddlePointSize_Click(object sender, EventArgs e)
         {
@@ -479,7 +479,7 @@ namespace OsEngine.Charts
         }
 
         /// <summary>
-        /// пользователь выбрал в контекстном меню: размер для точки отображающей позиции на графике: максимальный
+        /// Пользователь выбрал в контекстном меню размер для точки отображающей позиции на графике: максимальный
         /// </summary>
         private void ChartMaxPointSize_Click(object sender, EventArgs e)
         {
@@ -487,7 +487,7 @@ namespace OsEngine.Charts
         }
 
         /// <summary>
-        /// пользователь выбрал в контекстном меню: ромб для прорисовки сделок на чарте
+        /// Пользователь выбрал в контекстном меню ромб для прорисовки сделок на чарте
         /// </summary>
         private void ChartRombToPosition_Click(object sender, EventArgs e)
         {
@@ -495,7 +495,7 @@ namespace OsEngine.Charts
         }
 
         /// <summary>
-        /// пользователь выбрал в контекстном меню: кружок для прорисовки сделок на чарте
+        /// Пользователь выбрал в контекстном меню кружок для прорисовки сделок на чарте
         /// </summary>
         private void ChartCircleToPosition_Click(object sender, EventArgs e)
         {
@@ -503,7 +503,7 @@ namespace OsEngine.Charts
         }
 
         /// <summary>
-        /// пользователь выбрал в контекстном меню: треугольник для прорисовки сделок на чарте
+        /// Пользователь выбрал в контекстном меню треугольник для прорисовки сделок на чарте
         /// </summary>
         private void ChartTriangleToPosition_Click(object sender, EventArgs e)
         {
@@ -511,7 +511,7 @@ namespace OsEngine.Charts
         }
 
         /// <summary>
-        /// пользователь выбрал в контекстном меню максимальную скорость прорисовку чарта
+        /// Пользователь выбрал в контекстном меню максимальную скорость прорисовку чарта
         /// </summary>
         private void ChartReloadMaxFast_Click(object sender, EventArgs e)
         {
@@ -519,7 +519,7 @@ namespace OsEngine.Charts
         }
 
         /// <summary>
-        /// пользователь выбрал в контекстном меню среднюю скорость прорисовку чарта
+        /// Пользователь выбрал в контекстном меню среднюю скорость прорисовку чарта
         /// </summary>
         private void ChartReloadOneSecond_Click(object sender, EventArgs e)
         {
@@ -527,7 +527,7 @@ namespace OsEngine.Charts
         }
 
         /// <summary>
-        /// пользователь выбрал в контекстном меню медленную скорость прорисовку чарта
+        /// Пользователь выбрал в контекстном меню медленную скорость прорисовку чарта
         /// </summary>
         private void ChartReloadFiveSeconds_Click(object sender, EventArgs e)
         {
@@ -536,7 +536,7 @@ namespace OsEngine.Charts
 
 
         /// <summary>
-        /// пользователь выбрал в контекстном меню: настройку цветов
+        /// Пользователь выбрал в контекстном меню темную настройку цветов
         /// </summary>
         private void ChartBlackColor_Click(object sender, EventArgs e)
         {
@@ -544,7 +544,7 @@ namespace OsEngine.Charts
         }
 
         /// <summary>
-        /// пользователь выбрал в контекстном меню: настройку цветов
+        /// Пользователь выбрал в контекстном меню светлую настройку цветов
         /// </summary>
         private void ChartWhiteColor_Click(object sender, EventArgs e)
         {
@@ -552,7 +552,7 @@ namespace OsEngine.Charts
         }
 
         /// <summary>
-        /// пользователь выбрал в контекстном меню: спрятать области
+        /// Пользователь выбрал в контекстном меню спрятать области
         /// </summary>
         private void ChartHideIndicators_Click(object sender, EventArgs e)
         {
@@ -560,7 +560,7 @@ namespace OsEngine.Charts
         }
 
         /// <summary>
-        /// пользователь выбрал в контекстном меню: показать все области
+        /// Пользователь выбрал в контекстном меню показать все области
         /// </summary>
         private void ChartShowIndicators_Click(object sender, EventArgs e)
         {
@@ -568,7 +568,7 @@ namespace OsEngine.Charts
         }
 
         /// <summary>
-        /// пользователь выбрал в контекстном меню: редактировать индикатор
+        /// Пользователь выбрал в контекстном меню редактировать индикатор
         /// </summary>
         private void RedactContextMenu_Click(object sender, EventArgs e)
         {
@@ -584,7 +584,7 @@ namespace OsEngine.Charts
         }
 
         /// <summary>
-        /// пользователь выбрал в контекстном меню: удалить индикатор
+        /// Пользователь выбрал в контекстном меню удалить индикатор
         /// </summary>
         private void DeleteContextMenu_Click(object sender, EventArgs e)
         {
@@ -617,7 +617,7 @@ namespace OsEngine.Charts
         }
 
         /// <summary>
-        /// пользователь выбрал в контекстном меню: создать индикатор
+        /// Пользователь выбрал в контекстном меню создать индикатор
         /// </summary>
         private void CreateIndicators_Click(object sender, EventArgs e)
         {
@@ -635,8 +635,12 @@ namespace OsEngine.Charts
 // управление индикаторами
 
         /// <summary>
-        /// индикаторы
+        /// Индикаторы
         /// </summary>
+        public List<IIndicatorCandle> Indicators
+        {
+            get { return _indicatorsCandles; }
+        } 
         private List<IIndicatorCandle> _indicatorsCandles;
 
         /// <summary>
@@ -649,7 +653,7 @@ namespace OsEngine.Charts
         }
 
         /// <summary>
-        /// создать новый индикатор. Если уже есть с таким именем, то не создаётся а возвращается имеющийся
+        /// создать новый индикатор. Если уже есть с таким именем, возвращается имеющийся
         /// </summary>
         /// <param name="indicator">индикатор, который нужно интегрировать в чарт</param>
         /// <param name="nameArea">имя области, на которой следует прорисовать индикатор</param>
@@ -720,7 +724,7 @@ namespace OsEngine.Charts
         }
 
         /// <summary>
-        /// индикатор изменился. Надо перерисовать
+        /// Индикатор изменился. Надо перерисовать
         /// </summary>
         /// <param name="indicator">индикатор</param>
         private void indicator_NeadToReloadEvent(IIndicatorCandle indicator)
@@ -743,7 +747,7 @@ namespace OsEngine.Charts
         }
 
         /// <summary>
-        /// удалить индикатор
+        /// Удалить индикатор
         /// </summary>
         /// <param name="indicator">индикатор</param>
         public void DeleteIndicator(IIndicatorCandle indicator)
@@ -947,28 +951,21 @@ namespace OsEngine.Charts
             _chartCandle.ClearAlerts(alertArray);
         }
 
-// входящие события
+// прорисовка свечей
 
         /// <summary>
-        /// в коннекторе обновились тики
+        /// свечи доступные на чарте
         /// </summary>
-        /// <param name="trades">тики</param>
-        public void SetTick(List<Trade> trades)
-        {
-            try
-            {
-                _chartCandle.PaintTrades(trades);
-            }
-            catch (Exception error)
-            {
-                SendErrorMessage(error);
-            }
-        }
-
         private List<Candle> _myCandles;
 
+        /// <summary>
+        /// последняя цена
+        /// </summary>
         private decimal _lastPrice;
 
+        /// <summary>
+        /// последнее кол-во свечей в массиве
+        /// </summary>
         private int _lastCount;
 
         /// <summary>
@@ -1001,23 +998,26 @@ namespace OsEngine.Charts
                 bool canReload = true;
 
                 if (!ServerMaster.IsTester &&
-                    _reloadState == ChartReloadState.OneSecond 
+                    _reloadState == ChartReloadState.OneSecond
                     && _lastCandleIncome.AddSeconds(1) > DateTime.Now)
                 {
                     canReload = false;
                 }
 
-                if (!ServerMaster.IsTester && 
-                    _reloadState == ChartReloadState.FiveSecond 
+                if (!ServerMaster.IsTester &&
+                    _reloadState == ChartReloadState.FiveSecond
                     && _lastCandleIncome.AddSeconds(5) > DateTime.Now)
                 {
                     canReload = false;
                 }
 
-                
+                if (ServerMaster.IsOsOptimizer)
+                {
+                    canReload = false;
+                }
+
                 _lastCount = candles.Count;
                 _lastPrice = candles[candles.Count - 1].Close;
-
                 _myCandles = candles;
 
                 if (_chartCandle != null)
@@ -1027,7 +1027,7 @@ namespace OsEngine.Charts
                         _lastCandleIncome = DateTime.Now;
                         _chartCandle.PaintCandles(candles);
                         _chartCandle.PaintPositions(_myPosition);
-                        
+
                     }
 
                     if (_indicatorsCandles != null)
@@ -1063,6 +1063,26 @@ namespace OsEngine.Charts
             }
         }
 
+// прорисовка тиков
+
+        /// <summary>
+        /// в коннекторе обновились тики
+        /// </summary>
+        /// <param name="trades">тики</param>
+        public void SetTick(List<Trade> trades)
+        {
+            try
+            {
+                _chartCandle.PaintTrades(trades);
+            }
+            catch (Exception error)
+            {
+                SendErrorMessage(error);
+            }
+        }
+
+// прорисовка позиций
+
         private List<Position> _myPosition;
 
         /// <summary>
@@ -1071,6 +1091,10 @@ namespace OsEngine.Charts
         /// <param name="position">сделка</param>
         public void SetPosition(List<Position> position)
         {
+            if (ServerMaster.IsOsOptimizer)
+            {
+               return;
+            }
             _myPosition = position;
             _chartCandle.PaintPositions(position);
         }

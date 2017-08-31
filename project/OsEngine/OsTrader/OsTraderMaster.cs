@@ -936,6 +936,26 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// показать окно настроек параметров для робота
+        /// </summary>
+        public void BotShowParametrsDialog()
+        {
+            try
+            {
+                if (_activPanel == null)
+                {
+                    MessageBox.Show("Операция не может быть завершена, т.к. бот не активен");
+                    return;
+                }
+                _activPanel.ShowParametrDialog();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
         /// купить по маркету, для активного бота
         /// </summary>
         /// <param name="volume">объём</param>

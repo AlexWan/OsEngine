@@ -5,13 +5,17 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 using Microsoft.Win32;
 using OsEngine.Alerts;
+using OsEngine.Market.Servers;
 using OsEngine.OsConverter;
 using OsEngine.OsData;
+using OsEngine.OsOptimizer;
 using OsEngine.OsTrader.Gui;
 
 namespace OsEngine
@@ -22,7 +26,21 @@ namespace OsEngine
     /// </summary>
     public partial class MainWindow
     {
-        public MainWindow() // конструктор окна
+
+        private static MainWindow _window;
+
+        public static Dispatcher GetDispatcher
+        {
+            get { return _window.Dispatcher; }
+        }
+
+        /// <summary>
+        /// работает ли приложение или закрывается
+        /// </summary>
+        public static bool ProccesIsWorked;
+
+
+        public MainWindow()
         {
             Process ps = Process.GetCurrentProcess();
             ps.PriorityClass = ProcessPriorityClass.RealTime;
@@ -55,6 +73,7 @@ namespace OsEngine
             AlertMessageManager.TextBoxFromStaThread = new TextBox();
 
             ProccesIsWorked = true;
+            _window = this;
         }
 
         /// <summary>
@@ -115,6 +134,7 @@ namespace OsEngine
             try
             {
                 Hide();
+                ServerMaster.IsTester = true;
                 TesterUi candleOneUi = new TesterUi();
                 candleOneUi.ShowDialog();
                 Close();
@@ -151,6 +171,7 @@ namespace OsEngine
             try
             {
                 Hide();
+                ServerMaster.IsOsData = true;
                 OsDataUi ui = new OsDataUi();
                 ui.ShowDialog();
                 Close();
@@ -164,17 +185,31 @@ namespace OsEngine
             Process.GetCurrentProcess().Kill();
         }
 
-        /// <summary>
-        /// работает ли приложение или закрывается
-        /// </summary>
-        public static bool ProccesIsWorked;
-
         private void ButtonConverter_Click(object sender, RoutedEventArgs e)
         {
             try
             {
                 Hide();
                 OsConverterUi ui = new OsConverterUi();
+                ui.ShowDialog();
+                Close();
+                ProccesIsWorked = false;
+                Thread.Sleep(10000);
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.ToString());
+            }
+            Process.GetCurrentProcess().Kill();
+        }
+
+        private void ButtonOptimizer_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Hide();
+                ServerMaster.IsOsOptimizer = true;
+                OptimizerUi ui = new OptimizerUi();
                 ui.ShowDialog();
                 Close();
                 ProccesIsWorked = false;

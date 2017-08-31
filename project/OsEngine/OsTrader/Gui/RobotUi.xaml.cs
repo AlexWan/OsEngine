@@ -240,6 +240,9 @@ namespace OsEngine.OsTrader.Gui
             _strategyKeeper.BotShowRiskManager();
         }
 
-
+        private void ButtonStrategParametr_Click(object sender, RoutedEventArgs e)
+        {
+            _strategyKeeper.BotShowParametrsDialog();
+        }
     }
 }

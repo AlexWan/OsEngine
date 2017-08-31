@@ -144,20 +144,7 @@ namespace OsEngine.Market
                 _myServer.NeadToReconnectEvent -= _myServer_NeadToReconnectEvent;
             }
 
-            if (_subscrabler != null)
-            {
-                try
-                {
-                    if (_subscrabler.IsAlive)
-                    {
-                        _subscrabler.Abort();
-                    }
-                }
-                catch 
-                {
-                    //SendNewLogMessage(error.ToString(), LogMessageType.Error);
-                }
-            }
+            _neadToStopThread = true;
         }
 
         /// <summary>
@@ -326,8 +313,12 @@ namespace OsEngine.Market
         public ServerType ServerType;
 
         /// <summary>
-        /// мой сервер
+        /// сервер через который идёт торговля
         /// </summary>
+        public IServer MyServer
+        {
+            get { return _myServer; }
+        }
         private IServer _myServer;
 
         /// <summary>
@@ -373,6 +364,21 @@ namespace OsEngine.Market
         /// </summary>
         private readonly OrderExecutionEmulator _emulator;
 
+        /// <summary>
+        /// подключен ли коннектор на скачивание данных
+        /// </summary>
+        public bool IsConnected
+        {
+            get
+            {
+                if (_mySeries != null)
+                {
+                    return true;
+                }
+                return false;
+            }
+        }
+
 // подписка на данные 
 
         /// <summary>
@@ -386,6 +392,7 @@ namespace OsEngine.Market
                 {
                     _mySeries.СandleUpdeteEvent -= MySeries_СandleUpdeteEvent;
                     _mySeries.СandleFinishedEvent -= MySeries_СandleFinishedEvent;
+                    _mySeries.Stop();
 
                     _mySeries = null;
                 }
@@ -422,6 +429,8 @@ namespace OsEngine.Market
         /// </summary>
         private object _subscrableLocker = new object();
 
+        private bool _neadToStopThread;
+
         /// <summary>
         /// подписаться на получение свечек
         /// </summary>
@@ -431,7 +440,12 @@ namespace OsEngine.Market
             {
                 while (true)
                 {
-                    Thread.Sleep(500);
+                    Thread.Sleep(50);
+
+                    if (_neadToStopThread)
+                    {
+                        return;
+                    }
 
                     if (ServerType == ServerType.Unknown ||
                         string.IsNullOrWhiteSpace(NamePaper))
@@ -485,7 +499,7 @@ namespace OsEngine.Market
                         }
                     }
 
-                    Thread.Sleep(500);
+                    Thread.Sleep(50);
 
                     ServerConnectStatus stat = _myServer.ServerStatus;
 
@@ -499,7 +513,12 @@ namespace OsEngine.Market
                         {
                             while (_mySeries == null)
                             {
-                                Thread.Sleep(5000);
+                                if (_neadToStopThread)
+                                {
+                                    return;
+                                }
+
+                                Thread.Sleep(100);
                                 _mySeries = _myServer.StartThisSecurity(_namePaper, TimeFrameBuilder);
                             }
 

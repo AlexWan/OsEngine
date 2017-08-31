@@ -10,8 +10,10 @@ using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using OsEngine.Market.Servers;
+using OsEngine.Market.Servers.Optimizer;
 using OsEngine.OsConverter;
 using OsEngine.OsData;
+using OsEngine.OsOptimizer;
 using OsEngine.OsTrader;
 using OsEngine.OsTrader.Panels;
 
@@ -35,15 +37,25 @@ namespace OsEngine.Logging
         /// </summary>
         public static List<Log> LogsToCheck = new List<Log>();
 
+        private static object _activatorLocker = new object();
+
         /// <summary>
         /// активировать поток для сохранения
         /// </summary>
         public static void Activate()
         {
-            Watcher = new Thread(WatcherHome);
-            Watcher.Name = "LogSaveThread";
-            Watcher.IsBackground = true;
-            Watcher.Start();
+            lock (_activatorLocker)
+            {
+                if (Watcher != null)
+                {
+                    return;
+                }
+
+                Watcher = new Thread(WatcherHome);
+                Watcher.Name = "LogSaveThread";
+                Watcher.IsBackground = true;
+                Watcher.Start();
+            }
         }
 
         /// <summary>
@@ -149,12 +161,29 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// начать прослушку оптимизатора
+        /// </summary>
+        /// <param name="optimizer">оптимизатор</param>
+        public void Listen(OptimizerMaster optimizer)
+        {
+            optimizer.LogMessageEvent += LogMessageEvent;
+        }
+        
+        /// <summary>
         /// начать прослушку OsData
         /// </summary>
         /// <param name="master"></param>
         public void Listen(OsDataMaster master)
         {
             master.NewLogMessageEvent += LogMessageEvent;
+        }
+
+        /// <summary>
+        /// начать прослушку хранилища оптимизатора
+        /// </summary>
+        public void Listen(OptimizerDataStorage panel)
+        {
+            panel.LogMessageEvent += LogMessageEvent;
         }
 
         /// <summary>
@@ -210,6 +239,7 @@ namespace OsEngine.Logging
                 {
                     _messageses = new List<LogMessage>();
                 }
+
                 LogMessage messageLog = new LogMessage {Message = message, Time = DateTime.Now, Type = type};
                 _messageses.Add(messageLog);
 
@@ -222,7 +252,8 @@ namespace OsEngine.Logging
 
                 row.Cells.Add(new DataGridViewTextBoxCell());
                 row.Cells[2].Value = messageLog.Message;
-                _grid.Rows.Insert(0,row);
+                _grid.Rows.Insert(0, row);
+
 
                 _messageSender.AddNewMessage(messageLog);
 
@@ -415,9 +446,9 @@ namespace OsEngine.Logging
         /// </summary>
         private static void SetNewErrorMessage(string message)
         {
-            if (_gridErrorLog.InvokeRequired)
+            if (!MainWindow.GetDispatcher.CheckAccess())
             {
-                _gridErrorLog.Invoke(new Action<string>(SetNewErrorMessage), message);
+                MainWindow.GetDispatcher.Invoke(new Action<string>(SetNewErrorMessage), message);
                 return;
             }
 

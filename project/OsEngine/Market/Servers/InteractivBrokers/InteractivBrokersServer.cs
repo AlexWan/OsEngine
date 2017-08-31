@@ -415,7 +415,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 _ibClient.NewMarketDepth += _ibClient_NewMarketDepth;
                 _ibClient.NewMyTradeEvent += _ibClient_NewMyTradeEvent;
                 _ibClient.NewOrderEvent += _ibClient_NewOrderEvent;
-                _ibClient.NewTradeEvent += AddTick;
+                _ibClient.NewTradeEvent += AddTick; 
             }
         }
 

@@ -49,18 +49,17 @@ namespace OsEngine.OsData
             _log.Listen(this);
 
             Load();
+            LoadSettings();
 
             CreateSetGrid();
             RePaintSetGrid();
-
             try
             {
                 ServerMaster.CreateServer(ServerType.Finam, false);
-                ServerMaster.CreateServer(ServerType.Quik,false);
+                ServerMaster.CreateServer(ServerType.QuikDde,false);
+                ServerMaster.CreateServer(ServerType.QuikLua, false);
                 ServerMaster.CreateServer(ServerType.Plaza, false);
-                ServerMaster.CreateServer(ServerType.SmartCom, false);
                 ServerMaster.CreateServer(ServerType.InteractivBrokers, false);
-               
 
                 List<IServer> servers = ServerMaster.GetServers();
 
@@ -81,7 +80,26 @@ namespace OsEngine.OsData
 
             CreateSourceGrid();
             RePaintSourceGrid();
-            ChangeActivSet(0);
+        }
+
+        public void StopPaint()
+        {
+			_isPaintEnabled = false;
+            if (_selectSet != null)
+            {
+                _selectSet.StopPaint();
+            }
+            
+        }
+
+        public void StartPaint()
+        {
+			_isPaintEnabled = true;
+            if (_selectSet != null)
+            {
+                _selectSet.StartPaint(_hostChart, _rectangle);
+            }
+            
         }
 
         void OsDataMaster_LogMessageEvent(string message, LogMessageType type)
@@ -260,7 +278,8 @@ namespace OsEngine.OsData
 
                 _gridSources.Rows.Add(row1);
             }
-
+            _gridSources[1, 0].Selected = true; // Выбрать невидимую строку, чтобы убрать выделение по умолчанию с грида.
+            _gridSources.ClearSelection();
 
         }
 
@@ -338,33 +357,45 @@ namespace OsEngine.OsData
         /// </summary>
         private void RePaintSetGrid()
         {
-            if (_gridset.InvokeRequired)
+            try
             {
-                _gridset.Invoke(new Action(RePaintSetGrid));
-                return;
-            }
-            _gridset.Rows.Clear();
-
-            for (int i = 0;_sets != null && i < _sets.Count; i++)
-            {
-                DataGridViewRow nRow = new DataGridViewRow();
-
-                nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[0].Value = _sets[i].SetName;
-
-                nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[1].Value = _sets[i].Regime;
-
-                if (_sets[i].Regime == DataSetState.On)
+                if (_gridset.InvokeRequired)
                 {
-                    DataGridViewCellStyle style = new DataGridViewCellStyle();
-                    style.BackColor = Color.DarkSeaGreen;
-                    style.SelectionBackColor = Color.SeaGreen;
-                    nRow.Cells[1].Style = style;
-                    nRow.Cells[0].Style = style;
+                    _gridset.Invoke(new Action(RePaintSetGrid));
+                    return;
                 }
+                _gridset.Rows.Clear();
 
-                _gridset.Rows.Add(nRow);
+                for (int i = 0; _sets != null && i < _sets.Count; i++)
+                {
+                    DataGridViewRow nRow = new DataGridViewRow();
+
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[0].Value = _sets[i].SetName;
+
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[1].Value = _sets[i].Regime;
+
+                    if (_sets[i].Regime == DataSetState.On)
+                    {
+                        DataGridViewCellStyle style = new DataGridViewCellStyle();
+                        style.BackColor = Color.DarkSeaGreen;
+                        style.SelectionBackColor = Color.SeaGreen;
+                        nRow.Cells[1].Style = style;
+                        nRow.Cells[0].Style = style;
+                    }
+
+                    _gridset.Rows.Add(nRow);
+                }
+                if (_gridset.Rows.Count != 0)
+                {
+                    _gridset[0, 0].Selected = true; // Выбрать невидимую строку, чтобы убрать выделение по умолчанию с грида.
+                    _gridset.ClearSelection();
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -377,8 +408,10 @@ namespace OsEngine.OsData
             {
                 return;
             }
-            RedactThisSet(_gridset.CurrentCell.RowIndex);
+            int _rowIndex = _gridset.CurrentCell.RowIndex;
+            RedactThisSet(_rowIndex);
             RePaintSetGrid();
+            _gridset.Rows[_rowIndex].Selected = true; // Вернуть фокус на строку, которую редактировал.
         }
 
         /// <summary>
@@ -470,6 +503,15 @@ namespace OsEngine.OsData
         private OsDataSet _selectSet;
 
         /// <summary>
+        /// Включена ли прорисовка графика
+        /// </summary>
+        private bool _isPaintEnabled = true;
+        public bool IsPaintEnabled
+        {
+            get { return _isPaintEnabled; }
+        }
+
+        /// <summary>
         /// сменить активный сет
         /// </summary>
         /// <param name="index">индекс нового</param>
@@ -487,7 +529,6 @@ namespace OsEngine.OsData
             }
 
             OsDataSet currentSet = _sets[index];
-
             if (currentSet == _selectSet)
             {
                 return;
@@ -498,9 +539,13 @@ namespace OsEngine.OsData
             {
                 _selectSet.StopPaint();
             }
+           
 
             _selectSet = currentSet;
-            currentSet.StartPaint(_hostChart,_rectangle);
+            if (_isPaintEnabled)
+            {
+                currentSet.StartPaint(_hostChart, _rectangle);
+            }
         }
 
 // управление        
@@ -584,6 +629,53 @@ namespace OsEngine.OsData
             if (_sets[num].ShowDialog())
             {
                 _sets[num].Save();
+            }
+        }
+        /// <summary>
+        /// сохранить настройки
+        /// </summary>
+        public void SaveSettings()
+        {
+            try
+            {
+                if (!Directory.Exists("Data\\"))
+                {
+                    Directory.CreateDirectory("Data\\");
+                }
+                using (StreamWriter writer = new StreamWriter("Data\\Settings.txt", false))
+                {
+                    writer.WriteLine(_isPaintEnabled);
+                    writer.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+
+        /// <summary>
+        /// загрузить настройки
+        /// </summary>
+        private void LoadSettings()
+        {
+            if (!File.Exists("Data\\Settings.txt"))
+            {
+                return;
+            }
+
+            try
+            {
+                using (StreamReader reader = new StreamReader("Data\\Settings.txt"))
+                {
+                    _isPaintEnabled = Convert.ToBoolean(reader.ReadLine());
+
+                    reader.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
             }
         }
     }

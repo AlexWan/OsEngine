@@ -186,9 +186,9 @@ namespace OsEngine.Charts.CandleChart
                 {
                     if (_chart.Series[i].Points.Count != 0)
                     {
-                        _chart.Series[i].Points.Clear();
+                        _chart.Series[i].Points.Dispose();
                     }
-                    
+ 
                 }
 
                 ClearZoom();
@@ -986,7 +986,7 @@ namespace OsEngine.Charts.CandleChart
             ReloadAreaSizes();
         }
 
-// тики
+        // тики
 
         /// <summary>
         /// создать область для тиковых данных
@@ -4513,7 +4513,8 @@ namespace OsEngine.Charts.CandleChart
                     firstX = lastX - 2000;
                     candleArea.AxisX.ScaleView.Size = 2000;
                     candleArea.AxisX.ScaleView.Position = firstX;
-                   // return;
+                    ResizeXAxis();
+                    //return;
                 }
 
                 SeriesCollection chartSeries = _chart.Series;

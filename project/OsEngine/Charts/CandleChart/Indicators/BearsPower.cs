@@ -227,15 +227,26 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             BearsPowerUi ui = new BearsPowerUi(this);
             ui.ShowDialog();
-
-            if (ui.IsChange && _myCandles != null)
+            if (ui.IsChange)
             {
-                ProcessAll(_myCandles);
+                Reload();
+            }
+        }
 
-                if (NeadToReloadEvent != null)
-                {
-                    NeadToReloadEvent(this);
-                }
+        /// <summary>
+        /// перезагрузить индикатор
+        /// </summary>
+        public void Reload()
+        {
+            if (_myCandles == null)
+            {
+                return;
+            }
+            ProcessAll(_myCandles);
+
+            if (NeadToReloadEvent != null)
+            {
+                NeadToReloadEvent(this);
             }
         }
 

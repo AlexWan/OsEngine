@@ -18,8 +18,6 @@ namespace OsEngine.OsTrader.Gui
         public TesterUi()
         {
             InitializeComponent();
-
-            ServerMaster.IsTester = true;
             ServerMaster.SetHostTable(HostPositionOnBoard, HostOrdersOnBoard);
             ServerMaster.CreateServer(ServerType.Tester,false);
             ServerMaster.GetServers();
@@ -220,6 +218,11 @@ namespace OsEngine.OsTrader.Gui
         private void ButtonRiskManager_Click(object sender, RoutedEventArgs e)
         {
             _strategyKeeper.BotShowRiskManager();
+        }
+
+        private void ButtonStrategParametr_Click(object sender, RoutedEventArgs e)
+        {
+            _strategyKeeper.BotShowParametrsDialog();
         }
 
     }
