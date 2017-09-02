@@ -51,7 +51,7 @@ namespace OsEngine.Market
                     _selectedType = servers[0].ServerType;
                 }
 
-                if (ServerMaster.IsTester)
+                if (ServerMaster.StartProgram == ServerStartProgramm.IsTester)
                 {
                     ComboBoxTypeServer.IsEnabled = false;
                     CheckBoxIsEmulator.IsEnabled = false;
@@ -110,7 +110,7 @@ namespace OsEngine.Market
         {
             BoxTimeFrame.Items.Clear();
 
-            if (ServerMaster.IsTester)
+            if (ServerMaster.StartProgram == ServerStartProgramm.IsTester)
             {
                 // таймФрейм
                 TesterServer server = (TesterServer)ServerMaster.GetServers()[0];
@@ -396,6 +396,12 @@ namespace OsEngine.Market
                     return;
                 }
 
+                string curPortfolio = null;
+
+                if (ComboBoxPortfolio.SelectedItem != null)
+                {
+                    curPortfolio = ComboBoxPortfolio.SelectedItem.ToString();
+                }
 
                 ComboBoxPortfolio.Items.Clear();
 
@@ -433,6 +439,10 @@ namespace OsEngine.Market
                         continue;
                     }
                     ComboBoxPortfolio.Items.Add(portfolios[i].Number);
+                }
+                if (curPortfolio != null)
+                {
+                    ComboBoxPortfolio.SelectedItem = curPortfolio.ToString();
                 }
             }
             catch (Exception error)

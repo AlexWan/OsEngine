@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>OsEngine</RootNamespace>
     <AssemblyName>OsEngine</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
@@ -283,6 +283,7 @@
     <Compile Include="Entity\CumulativeDeltaTimeFrameUi.xaml.cs">
       <DependentUpon>CumulativeDeltaTimeFrameUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Entity\MarketDepthPainter.cs" />
     <Compile Include="Entity\SecurityLevelOne.cs" />
     <Compile Include="Entity\StrategyParameter.cs" />
     <Compile Include="Entity\TimeFrameBuilder.cs" />
@@ -340,6 +341,7 @@
     <Compile Include="Market\Servers\QuikLua\QuikLuaServerUi.xaml.cs">
       <DependentUpon>QuikLuaServerUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\Servers\ServerMasterPortfoliosPainter.cs" />
     <Compile Include="Market\Servers\ServerTickStorage.cs" />
     <Compile Include="Market\Servers\Tester\TesterServer.cs" />
     <Compile Include="Market\Servers\Tester\TesterServerUi.xaml.cs">

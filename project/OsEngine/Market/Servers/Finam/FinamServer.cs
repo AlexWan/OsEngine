@@ -52,7 +52,7 @@ namespace OsEngine.Market.Servers.Finam
             _threadPrime.IsBackground = true;
             _threadPrime.Start();
 
-            if (ServerMaster.IsOsData == false)
+            if (ServerMaster.StartProgram != ServerStartProgramm.IsOsData)
             {
                 Thread threadDataSender = new Thread(SenderThreadArea);
                 threadDataSender.CurrentCulture = new CultureInfo("ru-RU");
@@ -898,7 +898,7 @@ namespace OsEngine.Market.Servers.Finam
                         IsStarted = true
                     };
 
-                    if (ServerMaster.IsOsData == false)
+                    if (ServerMaster.StartProgram != ServerStartProgramm.IsOsData)
                     {
                         series.СandleFinishedEvent += series_СandleFinishedEvent;
                         series.СandleUpdeteEvent += series_СandleFinishedEvent;

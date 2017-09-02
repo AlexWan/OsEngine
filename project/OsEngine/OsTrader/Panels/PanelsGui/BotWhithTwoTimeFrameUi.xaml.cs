@@ -16,7 +16,7 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
         {
             InitializeComponent();
             _painter = new ChartPainter("chart");
-            _painter.StartPaint(HostChart,Rectangle);
+            _painter.StartPaintPrimeChart(HostChart,Rectangle);
             _bot = bot;
         }
 
@@ -25,7 +25,7 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
             _painter.Clear();
             if (_bot.MergeCandles != null && _bot.MergeCandles.Count != 0)
             {
-                _painter.PaintCandles(_bot.MergeCandles);
+                _painter.ProcessCandles(_bot.MergeCandles);
             }
         }
     }

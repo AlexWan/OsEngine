@@ -20,9 +20,8 @@ namespace OsEngine.OsTrader.Gui
         {
             InitializeComponent();
             _strategyKeeper = new OsTraderMaster( ChartHostPanel, HostGlass, HostOpenPosition, HostClosePosition, HostAllPosition,
-                                         HostBotLog, HostBotLogPrime, RectChart, HostAllert, TabControlBotsName,TabControlBotTab,TextBoxPrice);
+                                         HostBotLog, HostBotLogPrime, RectChart, HostAllert, TabControlBotsName,TabControlBotTab,TextBoxPrice,GridChartControlPanel);
             Closing += RobotUi_Closing;
-            ServerMaster.IsTester = false;
             ServerMaster.SetHostTable(HostPositionOnBoard, HostOrdersOnBoard);
 
             LocationChanged += RobotUi_LocationChanged;

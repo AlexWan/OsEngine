@@ -3,6 +3,7 @@
 */
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -41,9 +42,9 @@ namespace OsEngine.Journal.Internal
         /// </summary>
         public static void Activate()
         {
-            if (ServerMaster.IsTester ||
-                ServerMaster.IsOsData ||
-                ServerMaster.IsOsOptimizer)
+            if (ServerMaster.StartProgram == ServerStartProgramm.IsTester ||
+                ServerMaster.StartProgram == ServerStartProgramm.IsOsData ||
+                ServerMaster.StartProgram == ServerStartProgramm.IsOsOptimizer)
             {
                 return;
             }
@@ -66,6 +67,7 @@ namespace OsEngine.Journal.Internal
                 for (int i = 0; i < ControllersToCheck.Count; i++)
                 {
                     ControllersToCheck[i].SavePositions();
+                    ControllersToCheck[i].TryPaintPositions();
                 }
 
                 if (!MainWindow.ProccesIsWorked)
@@ -78,7 +80,7 @@ namespace OsEngine.Journal.Internal
         // сервис
         public PositionController(string name)
         {
-            if (ServerMaster.IsTester)
+            if (ServerMaster.StartProgram == ServerStartProgramm.IsTester)
             {
                 _typeWork = ConnectorWorkType.Tester;
             }
@@ -99,6 +101,15 @@ namespace OsEngine.Journal.Internal
             CreateTable();
 
             Load();
+
+            if (_deals != null &&
+                _deals.Count > 0)
+            {
+                _openPositions = _deals.FindAll(
+                    position => position.State != PositionStateType.Done
+                                && position.State != PositionStateType.OpeningFail);
+            }
+
         }
 
         /// <summary>
@@ -171,7 +182,7 @@ namespace OsEngine.Journal.Internal
                 {
                     for (int i2 = 0; i2 < _deals.Count; i2++)
                     {
-                        PaintPosition(_deals[i2]);
+                        ProcesPosition(_deals[i2]);
                     }
                 }
             }
@@ -193,6 +204,16 @@ namespace OsEngine.Journal.Internal
                 {
                     File.Delete(@"Engine\" + _name + @"DealController.txt");
                 }
+
+                for (int i = 0; i < ControllersToCheck.Count; i++)
+                {
+                    if (ControllersToCheck[i]._name == _name)
+                    {
+                        ControllersToCheck.RemoveAt(i);
+                        return;
+                    }
+                }
+
             }
             catch (Exception error)
             {
@@ -213,10 +234,10 @@ namespace OsEngine.Journal.Internal
 
                 for (int i = 0; deals != null && i < deals.Count; i++)
                 {
-                    PaintPosition(deals[i]);
+                    ProcesPosition(deals[i]);
                 }
 
-                _openPositionChanged = true;
+                _openPositions = new List<Position>();
                 _openLongChanged = true;
                 _openShortChanged = true;
                 _closePositionChanged = true;
@@ -282,17 +303,7 @@ namespace OsEngine.Journal.Internal
                 return;
             }
 
-            // 1 проверяем, нет ли такой сделки в массиве
-
-            for (int i = 0; _deals != null && i < _deals.Count; i++)
-            {
-                if (_deals[i].Number == newPosition.Number)
-                {
-                    return;
-                }
-            }
-
-            // 2 сохраняем
+            // сохраняем
 
             if (_deals == null)
             {
@@ -304,9 +315,10 @@ namespace OsEngine.Journal.Internal
                 _deals.Add(newPosition);
             }
 
-            PaintPosition(newPosition);
+            _openPositions.Add(newPosition);
+
+            ProcesPosition(newPosition);
             _lastPositionChange = true;
-            _openPositionChanged = true;
 
             if (newPosition.Direction == Side.Buy)
             {
@@ -332,14 +344,21 @@ namespace OsEngine.Journal.Internal
 
             _deals.Remove(position);
 
-            _openPositionChanged = true;
+            for (int i = 0; i < _openPositions.Count; i++)
+            {
+                if (_openPositions[i].Number == position.Number)
+                {
+                    _openPositions.RemoveAt(i);
+                }
+            }
+
             _openLongChanged = true;
             _openShortChanged = true;
             _closePositionChanged = true;
             _closeShortChanged = true;
             _closeLongChanged = true;
 
-            PaintPosition(position);
+            ProcesPosition(position);
 
             _neadToSave = true;
         }
@@ -394,12 +413,13 @@ namespace OsEngine.Journal.Internal
 
                     if (positionState != _deals[i].State)
                     {
-                        _openPositionChanged = true;
                         _openLongChanged = true;
                         _openShortChanged = true;
                         _closePositionChanged = true;
                         _closeShortChanged = true;
                         _closeLongChanged = true;
+
+                        UpdeteOpenPositionArray(_deals[i]);
                     }
 
                     if (positionState != _deals[i].State && PositionChangeEvent != null)
@@ -408,7 +428,7 @@ namespace OsEngine.Journal.Internal
                         PositionChangeEvent(_deals[i]);
                     }
 
-                    PaintPosition(_deals[i]);
+                    ProcesPosition(_deals[i]);
                     break;
                 }
             }
@@ -463,7 +483,7 @@ namespace OsEngine.Journal.Internal
 
                     if (positionState != _deals[i].State)
                     {
-                        _openPositionChanged = true;
+                        UpdeteOpenPositionArray(_deals[i]);
                         _openLongChanged = true;
                         _openShortChanged = true;
                         _closePositionChanged = true;
@@ -476,7 +496,7 @@ namespace OsEngine.Journal.Internal
                         PositionChangeEvent(_deals[i]);
                     }
 
-                    PaintPosition(_deals[i]);
+                    ProcesPosition(_deals[i]);
                 }
             }
             _neadToSave = true;
@@ -510,7 +530,7 @@ namespace OsEngine.Journal.Internal
 
                     if (profitOld != positions[i].ProfitPortfolioPunkt)
                     {
-                        PaintPosition(positions[i]);
+                        ProcesPosition(positions[i]);
                     }
                 }
             }
@@ -558,9 +578,7 @@ namespace OsEngine.Journal.Internal
 
         // открытые позиции
 
-        private bool _openPositionChanged = true;
-
-        private List<Position> _openPositions;
+        private List<Position> _openPositions = new List<Position>();
         /// <summary>
         /// взять открытые сделки
         /// </summary>
@@ -568,27 +586,25 @@ namespace OsEngine.Journal.Internal
         {
             get
             {
-                if (_openPositionChanged)
-                {
-                    _openPositionChanged = false;
-
-                    if (_deals != null && _deals.Count != 0)
-                    {
-                        _openPositions = _deals.FindAll(
-                        position => position.State != PositionStateType.Done
-                        && position.State != PositionStateType.OpeningFail);
-                    }
-                    else
-                    {
-                        _openPositions = null;
-                    }
-                }
-
-                if (_openPositions == null)
-                {
-                    return _emptyList;
-                }
                 return _openPositions;
+            }
+        }
+
+        private void UpdeteOpenPositionArray(Position position)
+        {
+            if (position.State != PositionStateType.Done && position.State != PositionStateType.OpeningFail)
+            {// это открытая позиция
+                if (_openPositions.Find(pos => pos.Number == position.Number) == null)
+                {
+                    _openPositions.Add(position);
+                }
+            }
+            else
+            {// закрытая
+                if (_openPositions.Find(pos => pos.Number == position.Number) != null)
+                {
+                    _openPositions.Remove(position);
+                }
             }
         }
 
@@ -804,6 +820,56 @@ namespace OsEngine.Journal.Internal
         }
 
 // прорисовка позиций в таблицах
+
+        private void TryPaintPositions()
+        {
+            if (ServerMaster.StartProgram == ServerStartProgramm.IsOsOptimizer)
+            {
+                return;
+            }
+
+            try
+            {
+                if (_hostCloseDeal != null && 
+                    _hostOpenDeal != null && 
+                    !_positionsToPaint.IsEmpty)
+                {
+                    List<Position> elements = new List<Position>();
+
+                    while (!_positionsToPaint.IsEmpty)
+                    {
+                        Position newElement;
+                        _positionsToPaint.TryDequeue(out newElement);
+
+                        if (newElement != null)
+                        {
+                            elements.Add(newElement);
+                        }
+                    }
+
+                    List<Position> elementsWithoutRepiat = new List<Position>();
+
+                    for (int i = elements.Count - 1; i > -1 && elements[i] != null; i--)
+                    {
+                        if (elementsWithoutRepiat.Find(element => element.Number == elements[i].Number) == null)
+                        {
+                            elementsWithoutRepiat.Add(elements[i]);
+                        }
+                    }
+
+                    for (int i = 0; i < elementsWithoutRepiat.Count; i++)
+                    {
+                        PaintPosition(elementsWithoutRepiat[i]);
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private ConcurrentQueue<Position> _positionsToPaint = new ConcurrentQueue<Position>();  
 
         /// <summary>
         /// создать таблицы для прорисовки позиций
@@ -1044,16 +1110,10 @@ namespace OsEngine.Journal.Internal
         /// <summary>
         /// прорисовать позицию в таблице
         /// </summary>
-        public void PaintPosition(Position position)
+        private void PaintPosition(Position position)
         {
             try
             {
-                if(ServerMaster.IsOsOptimizer)
-                {
-                    return;
-                }
-
-
                 if (_gridOpenDeal.InvokeRequired)
                 {
                     _gridOpenDeal.Invoke(new Action<Position>(PaintPosition), position);
@@ -1123,6 +1183,14 @@ namespace OsEngine.Journal.Internal
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        /// <summary>
+        /// добавить позицию в коллекцию на прорисовку
+        /// </summary>
+        public void ProcesPosition(Position position)
+        {
+          _positionsToPaint.Enqueue(position);
         }
 
         /// <summary>

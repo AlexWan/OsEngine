@@ -21,14 +21,14 @@ namespace OsEngine.Market.Servers
             List<IServer> servers = ServerMaster.GetServers();
 
             if (servers == null &&
-             ServerMaster.IsTester)
+             ServerMaster.StartProgram == ServerStartProgramm.IsTester)
             { // если это первый вызов сервера во время включённого тестера
 
                 ServerMaster.CreateServer(ServerType.Tester,false);
                 servers = ServerMaster.GetServers();
             }
 
-            if (ServerMaster.IsTester)
+            if (ServerMaster.StartProgram == ServerStartProgramm.IsTester)
             { // если это первый вызов сервера во время включённого тестера
 
                 servers = ServerMaster.GetServers();
@@ -148,7 +148,7 @@ namespace OsEngine.Market.Servers
 
                 Enum.TryParse(row1.Cells[0].Value.ToString(), out type);
 
-                if (type == ServerType.BitMexServer)
+                if (type == ServerType.BitMex)
                 {
                     bitMexIsOn = true;
                 }
@@ -188,7 +188,7 @@ namespace OsEngine.Market.Servers
             {
                 DataGridViewRow row1 = new DataGridViewRow();
                 row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.BitMexServer;
+                row1.Cells[0].Value = ServerType.BitMex;
                 row1.Cells.Add(new DataGridViewTextBoxCell());
                 row1.Cells[1].Value = "Disconnect";
                 _gridSources.Rows.Add(row1);

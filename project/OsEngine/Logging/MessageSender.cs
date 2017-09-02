@@ -143,7 +143,7 @@ namespace OsEngine.Logging
         /// </summary>
         public void AddNewMessage(LogMessage message)
         {
-            if (ServerMaster.IsTester)
+            if (ServerMaster.StartProgram != ServerStartProgramm.IsOsTrader)
             {
                 return;
             }

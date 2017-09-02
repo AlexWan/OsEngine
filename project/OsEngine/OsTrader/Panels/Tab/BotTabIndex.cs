@@ -25,11 +25,6 @@ namespace OsEngine.OsTrader.Panels.Tab
     public class BotTabIndex : IIBotTab
     {
 
-        /// <summary>
-        /// Массив для хранения списка интсрументов
-        /// </summary>
-        public List<Connector> Tabs;
-
         public BotTabIndex(string name)
         {
             TabName = name;
@@ -45,6 +40,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private ChartMaster _chartMaster;
 
+        /// <summary>
+        /// Массив для хранения списка интсрументов
+        /// </summary>
+        public List<Connector> Tabs;
+
  // управление
 
         /// <summary>
@@ -54,6 +54,16 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             BotTabCandleSpreadUi ui = new BotTabCandleSpreadUi(this);
             ui.ShowDialog();
+
+            if (Tabs.Count != 0)
+            {
+                _chartMaster.SetNewSecurity("Index on: " + _userFormula, Tabs[0].TimeFrame, null, Tabs[0].ServerType);
+            }
+            else
+            {
+                _chartMaster.Clear();
+                
+            }
         }
 
         /// <summary>

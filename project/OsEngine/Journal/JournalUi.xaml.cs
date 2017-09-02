@@ -330,7 +330,7 @@ namespace OsEngine.Journal
         /// </summary>
         private void ThreadWorkerPlace()
         {
-            if (ServerMaster.IsTester)
+            if (ServerMaster.StartProgram != ServerStartProgramm.IsOsTrader)
             {
                 return;
             }

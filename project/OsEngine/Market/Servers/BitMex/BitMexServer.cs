@@ -21,7 +21,7 @@ namespace OsEngine.Market.Servers.BitMex
         public BitMexServer(bool neadToLoadTicks)
         {
             ServerStatus = ServerConnectStatus.Disconnect;
-            ServerType = ServerType.BitMexServer;
+            ServerType = ServerType.BitMex;
 
             Load();
 
@@ -946,7 +946,7 @@ namespace OsEngine.Market.Servers.BitMex
         /// </summary>
         private CandleManager _candleManager;
 
-        private List<string> subscribedSec = new List<string>();
+        private List<string> _subscribedSec = new List<string>();
         /// <summary>
         /// объект блокирующий многопоточный доступ в StartThisSecurity
         /// </summary>
@@ -1018,7 +1018,7 @@ namespace OsEngine.Market.Servers.BitMex
                         CandlesAll = _candles
                     };
 
-                    if (subscribedSec.Find(s => s == namePaper) == null)
+                    if (_subscribedSec.Find(s => s == namePaper) == null)
                     {
 
                         string queryQuotes = "{\"op\": \"subscribe\", \"args\": [\"orderBook10:" + security.Name + "\"]}";
@@ -1043,7 +1043,7 @@ namespace OsEngine.Market.Servers.BitMex
 
                         _clientBitMex.SendQuery(queryorders);
 
-                        subscribedSec.Add(namePaper);
+                        _subscribedSec.Add(namePaper);
 
                     }
 
@@ -1054,6 +1054,11 @@ namespace OsEngine.Market.Servers.BitMex
 
                     SendLogMessage("Инструмент " + series.Security.Name + "ТаймФрейм" + series.TimeFrame +
                                    " успешно подключен на получение данных и прослушивание свечек", LogMessageType.System);
+
+                    if (_tickStorage != null)
+                    {
+                        _tickStorage.SetSecurityToSave(security);
+                    }
 
                     return series;
                 }
@@ -1238,20 +1243,20 @@ namespace OsEngine.Market.Servers.BitMex
         /// <returns></returns>
         private List<Candle> СandlesBuilder(string security, int tf)
         {
-            List<Candle> candles1m = new List<Candle>();
+            List<Candle> candles1M = new List<Candle>();
             int a = 0;
             if (tf >= 10)
             {
-                candles1m = GetCandlesTf(security, "5m", 5);
+                candles1M = GetCandlesTf(security, "5m", 5);
                 a = tf / 5;
             }
             else
             {
-                candles1m = GetCandlesTf(security, "1m", 1);
+                candles1M = GetCandlesTf(security, "1m", 1);
                 a = tf / 1;
             }
             
-            int index = candles1m.FindIndex(can => can.TimeStart.Minute % tf == 0);
+            int index = candles1M.FindIndex(can => can.TimeStart.Minute % tf == 0);
 
             List<Candle> candlestf = new List<Candle>();
 
@@ -1259,37 +1264,37 @@ namespace OsEngine.Market.Servers.BitMex
 
             Candle newCandle = new Candle();
 
-            for (int i = index; i < candles1m.Count; i ++)
+            for (int i = index; i < candles1M.Count; i ++)
             {
                 count++;
                 if (count == 1)
                 {
                     newCandle = new Candle();
-                    newCandle.Open = candles1m[i].Open;
-                    newCandle.TimeStart = candles1m[i].TimeStart;
+                    newCandle.Open = candles1M[i].Open;
+                    newCandle.TimeStart = candles1M[i].TimeStart;
                     newCandle.Low = Decimal.MaxValue;
                 }
 
-                newCandle.High = candles1m[i].High > newCandle.High
-                    ? candles1m[i].High
+                newCandle.High = candles1M[i].High > newCandle.High
+                    ? candles1M[i].High
                     : newCandle.High;
 
-                newCandle.Low = candles1m[i].Low < newCandle.Low
-                    ? candles1m[i].Low
+                newCandle.Low = candles1M[i].Low < newCandle.Low
+                    ? candles1M[i].Low
                     : newCandle.Low;
 
-                newCandle.Volume += candles1m[i].Volume;
+                newCandle.Volume += candles1M[i].Volume;
 
-                if (i == candles1m.Count - 1 && count != a)
+                if (i == candles1M.Count - 1 && count != a)
                 {
-                    newCandle.Close = candles1m[i].Close;
+                    newCandle.Close = candles1M[i].Close;
                     newCandle.State = CandleStates.None;
                     candlestf.Add(newCandle);
                 }
 
                 if (count == a)
                 {
-                    newCandle.Close = candles1m[i].Close;
+                    newCandle.Close = candles1M[i].Close;
                     newCandle.State = CandleStates.Finished;
                     candlestf.Add(newCandle);
                     count = 0;
@@ -1311,7 +1316,7 @@ namespace OsEngine.Market.Servers.BitMex
         /// </summary>
         private List<MarketDepth> _depths;
 
-        private object quoteLock = new object();
+        private object _quoteLock = new object();
 
         /// <summary>
         /// пришел обновленный стакан
@@ -1321,7 +1326,7 @@ namespace OsEngine.Market.Servers.BitMex
         {
             try
             {
-                lock (quoteLock)
+                lock (_quoteLock)
                 {
                     if (_depths == null)
                     {
@@ -1339,31 +1344,31 @@ namespace OsEngine.Market.Servers.BitMex
 
                     myDepth.Time = DateTime.Now;
 
-                    List<MarketDepthLevel> Ascs = new List<MarketDepthLevel>();
+                    List<MarketDepthLevel> ascs = new List<MarketDepthLevel>();
 
                     for (int i = 0; i < quotes.data[0].asks.Count; i++)
                     {
-                        Ascs.Add(new MarketDepthLevel()
+                        ascs.Add(new MarketDepthLevel()
                         {
                             Ask = quotes.data[0].asks[i][1],
                             Price = quotes.data[0].asks[i][0]
                         });
                     }
 
-                    myDepth.Asks = Ascs;
+                    myDepth.Asks = ascs;
 
-                    List<MarketDepthLevel> Bids = new List<MarketDepthLevel>();
+                    List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
 
                     for (int i = 0; i < quotes.data[0].bids.Count; i++)
                     {
-                        Bids.Add(new MarketDepthLevel()
+                        bids.Add(new MarketDepthLevel()
                         {
                             Bid = quotes.data[0].bids[i][1],
                             Price = quotes.data[0].bids[i][0]
                         });
                     }
 
-                    myDepth.Bids = Bids;
+                    myDepth.Bids = bids;
 
                     if (NewMarketDepthEvent != null)
                     {
@@ -1426,7 +1431,7 @@ namespace OsEngine.Market.Servers.BitMex
         {
             try
             {
-                List<Trade> _trades = new List<Trade>();
+                List<Trade> trades = new List<Trade>();
                 
                 Dictionary<string, string> param = new Dictionary<string, string>();
 
@@ -1444,16 +1449,16 @@ namespace OsEngine.Market.Servers.BitMex
                 {
                     Trade trade = new Trade();
                     trade.SecurityNameCode = oneTrade.symbol;
-                    trade.Id = oneTrade.trdMatchID;
+                    trade.Id = oneTrade.trdMatchId;
                     trade.Time = Convert.ToDateTime(oneTrade.timestamp);
                     trade.Price = oneTrade.price;
                     trade.Volume = oneTrade.size;
                     trade.Side = oneTrade.side == "Sell" ? Side.Sell : Side.Buy;
 
-                    _trades.Add(trade);
+                    trades.Add(trade);
                 }
 
-                return _trades;
+                return trades;
             }
             catch (Exception error)
             {
@@ -1562,7 +1567,7 @@ namespace OsEngine.Market.Servers.BitMex
             get { return _myTrades; }
         }
 
-        private object myTradeLocker = new object();
+        private object _myTradeLocker = new object();
 
         /// <summary>
         /// входящие из системы мои сделки
@@ -1571,7 +1576,7 @@ namespace OsEngine.Market.Servers.BitMex
         {
             try
             {
-                lock (myTradeLocker)
+                lock (_myTradeLocker)
                 {
                     for (int i = 0; i < order.data.Count; i++)
                     {
@@ -1671,19 +1676,19 @@ namespace OsEngine.Market.Servers.BitMex
         /// <summary>
         /// ордера, ожидающие регистрации
         /// </summary>
-        private List<Order> newOrders = new List<Order>();
+        private List<Order> _newOrders = new List<Order>();
 
         /// <summary>
         /// блокиратор доступа к ордерам
         /// </summary>
-        private object orderLocker = new object();
+        private object _orderLocker = new object();
 
         /// <summary>
         /// входящий из системы ордер
         /// </summary>
         private void BitMex_UpdateOrder(BitMexOrder myOrder)
         {
-            lock (orderLocker)
+            lock (_orderLocker)
             {
                 try
                 {
@@ -1723,13 +1728,13 @@ namespace OsEngine.Market.Servers.BitMex
                                 order.Side = Side.Buy;
                             }
                             
-                            newOrders.Add(order);
+                            _newOrders.Add(order);
 
                         }
 
                         else if (myOrder.action == "update" )
                         {
-                            var needOrder = newOrders.Find(order => order.NumberMarket == myOrder.data[i].orderID);
+                            var needOrder = _newOrders.Find(order => order.NumberMarket == myOrder.data[i].orderID);
 
                             if (needOrder != null)
                             {
@@ -1851,7 +1856,7 @@ namespace OsEngine.Market.Servers.BitMex
         public int size { get; set; }
         public decimal price { get; set; }
         public string tickDirection { get; set; }
-        public string trdMatchID { get; set; }
+        public string trdMatchId { get; set; }
         public object grossValue { get; set; }
         public double homeNotional { get; set; }
         public int foreignNotional { get; set; }

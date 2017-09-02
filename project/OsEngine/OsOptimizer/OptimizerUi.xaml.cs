@@ -30,7 +30,6 @@ namespace OsEngine.OsOptimizer
             _master.NewSecurityEvent += _master_NewSecurityEvent;
             _master.DateTimeStartEndChange += _master_DateTimeStartEndChange;
             _master.TestReadyEvent += _master_TestReadyEvent;
-            TabControlPrime.Items.RemoveAt(4);
 
             CreateTableTabsSimple();
             CreateTableTabsIndex();
@@ -123,9 +122,18 @@ namespace OsEngine.OsOptimizer
             DatePickerEnd.SelectedDateChanged += DatePickerEnd_SelectedDateChanged;
             TextBoxPercentFiltration.TextChanged += TextBoxPercentFiltration_TextChanged;
 
-            // Параметры
 
+            // алгоритмы оптимизации. Пока блокируем
 
+            CheckBoxOptimizationTypeSimulatedAnnealing.IsEnabled = false;
+            CheckBoxOptimizationTypeGeneticAlgoritm.IsEnabled = false;
+            CheckBoxOptimizationTypeAllBots.IsEnabled = false;
+            CheckBoxOptimizationTypeAllBots.IsChecked = true;
+
+            CheckBoxOptimizationFunctionTypeEndProfit.IsEnabled = false;
+            CheckBoxOptimizationFunctionMiddleProfitFromPosition.IsEnabled = false;
+            CheckBoxOptimizationFunctionMaxDrowDawn.IsEnabled = false;
+            CheckBoxOptimizationFunctionProfitFactor.IsEnabled = false;
 
             _master.NeadToMoveUiToEvent += _master_NeadToMoveUiToEvent;
 
@@ -163,7 +171,7 @@ namespace OsEngine.OsOptimizer
             }
 
             ButtonGo.Content = "Погнали!";
-            TabControlPrime.SelectedItem = TabControlPrime.Items[4];
+            TabControlPrime.SelectedItem = TabControlPrime.Items[5];
             TabControlPrime.IsEnabled = true;
             ComboBoxThreadsCount.IsEnabled = true;
         }

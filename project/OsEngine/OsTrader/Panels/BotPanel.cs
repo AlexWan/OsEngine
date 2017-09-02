@@ -111,7 +111,7 @@ namespace OsEngine.OsTrader.Panels
         /// </summary> 
         public void StartPaint(WindowsFormsHost hostChart, WindowsFormsHost glass, WindowsFormsHost hostOpenDeals,
             WindowsFormsHost hostCloseDeals, WindowsFormsHost boxLog, Rectangle rectangle, WindowsFormsHost hostAlerts,
-            TabControl tabBotTab, TextBox textBoxLimitPrice)
+            TabControl tabBotTab, TextBox textBoxLimitPrice, Grid gridChartControlPanel)
         {
             if (_isPainting)
             {
@@ -127,14 +127,14 @@ namespace OsEngine.OsTrader.Panels
             _rectangle = rectangle;
             _hostAlerts = hostAlerts;
             _textBoxLimitPrice = textBoxLimitPrice;
-
+            _gridChartControlPanel = gridChartControlPanel;
            
             try
             {
                 if (!_tabBotTab.Dispatcher.CheckAccess())
                 {
                     _tabBotTab.Dispatcher.Invoke(new Action<WindowsFormsHost,WindowsFormsHost,WindowsFormsHost,
-                    WindowsFormsHost, WindowsFormsHost,Rectangle,WindowsFormsHost,TabControl,TextBox> 
+                    WindowsFormsHost, WindowsFormsHost,Rectangle,WindowsFormsHost,TabControl,TextBox,Grid> 
                     (StartPaint),hostChart,glass,hostOpenDeals,hostCloseDeals,boxLog,rectangle,hostAlerts,tabBotTab,textBoxLimitPrice);
                     return;
                 }
@@ -203,6 +203,7 @@ namespace OsEngine.OsTrader.Panels
                 _rectangle = null;
                 _hostAlerts = null;
                 _textBoxLimitPrice = null;
+                _gridChartControlPanel = null;
 
                 _isPainting = false;
                 ReloadTab();
@@ -220,6 +221,7 @@ namespace OsEngine.OsTrader.Panels
         private Rectangle _rectangle;
         private WindowsFormsHost _hostAlerts;
         private TextBox _textBoxLimitPrice;
+        private Grid _gridChartControlPanel;
 
         /// <summary>
         /// название класса бота.
@@ -315,6 +317,8 @@ namespace OsEngine.OsTrader.Panels
                 {
                     File.Delete(@"Engine\" + NameStrategyUniq + @"Parametrs.txt");
                 }
+
+                _log.Delete();
 
                 if (DeleteEvent != null)
                 {
@@ -583,7 +587,7 @@ namespace OsEngine.OsTrader.Panels
         /// <returns></returns>
         private IIStrategyParameter LoadParameterValues(IIStrategyParameter  newParameter)
         {
-            if (!ServerMaster.IsOsOptimizer)
+            if (ServerMaster.StartProgram != ServerStartProgramm.IsOsOptimizer)
             {// запущен тестер или робот, в котором можно менять параметры вручную
                 GetValueParameterSaveByUser(newParameter);
             }
@@ -641,7 +645,7 @@ namespace OsEngine.OsTrader.Panels
         /// </summary>
         void Parameter_ValueChange()
         {
-            if (!ServerMaster.IsOsOptimizer)
+            if (ServerMaster.StartProgram != ServerStartProgramm.IsOsOptimizer)
             {
                 SaveParametrs();
             }
@@ -1008,7 +1012,8 @@ namespace OsEngine.OsTrader.Panels
 
                 if (ActivTab.GetType().Name == "BotTabSimple")
                 {
-                    ((BotTabSimple)ActivTab).StartPaint(_hostChart,_hostGlass,_hostOpenDeals,_hostCloseDeals,_rectangle,_hostAlerts,_textBoxLimitPrice);
+                    ((BotTabSimple) ActivTab).StartPaint(_hostChart, _hostGlass, _hostOpenDeals, _hostCloseDeals,
+                        _rectangle, _hostAlerts, _textBoxLimitPrice, _gridChartControlPanel);
                 }
                 else if (ActivTab.GetType().Name == "BotTabIndex")
                 {

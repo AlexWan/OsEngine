@@ -21,42 +21,42 @@ namespace OsEngine.Market.Servers.BitMex
     {
         public BitMexClient()
         {
-            ws = new ClientWebSocket();
+            _ws = new ClientWebSocket();
         }
 
-        private ClientWebSocket ws;
+        private ClientWebSocket _ws;
 
-        private string serverAdress;
+        private string _serverAdress;
 
         /// <summary>
         /// адрес сервера для подключения через websocket
         /// </summary>
         public string ServerAdres
         {
-            set { serverAdress = value; }
-            private get { return serverAdress; }
+            set { _serverAdress = value; }
+            private get { return _serverAdress; }
         }
 
-        private string secKey;
+        private string _secKey;
 
         /// <summary>
         /// секретный ключ пользователя
         /// </summary>
         public string SecKey
         {
-            set { secKey = value; }
-            private get { return secKey;}
+            set { _secKey = value; }
+            private get { return _secKey;}
         }
 
-        private string id;
+        private string _id;
 
         /// <summary>
         /// публичный ключ пользователя
         /// </summary>
         public string Id
         {
-            set { id = value; }
-            private get { return id; }
+            set { _id = value; }
+            private get { return _id; }
         }
 
         public bool IsConnected;
@@ -66,10 +66,10 @@ namespace OsEngine.Market.Servers.BitMex
         /// </summary>
         public void Connect()
         {
-            Uri uri = new Uri(serverAdress);
-            ws.ConnectAsync(uri, CancellationToken.None).Wait();
+            Uri uri = new Uri(_serverAdress);
+            _ws.ConnectAsync(uri, CancellationToken.None).Wait();
 
-            if (ws.State == WebSocketState.Open)
+            if (_ws.State == WebSocketState.Open)
             {
                 if (Connected != null)
                 {
@@ -78,28 +78,28 @@ namespace OsEngine.Market.Servers.BitMex
                 IsConnected = true;
             }
 
-            Thread _worker = new Thread(GetRes);
-            _worker.CurrentCulture = new CultureInfo("ru-RU");
-            _worker.IsBackground = true;
-            _worker.Start(ws);
+            Thread worker = new Thread(GetRes);
+            worker.CurrentCulture = new CultureInfo("ru-RU");
+            worker.IsBackground = true;
+            worker.Start(_ws);
 
-            Thread _converter = new Thread(Converter);
-            _converter.CurrentCulture = new CultureInfo("ru-RU");
-            _converter.IsBackground = true;
-            _converter.Start();
+            Thread converter = new Thread(Converter);
+            converter.CurrentCulture = new CultureInfo("ru-RU");
+            converter.IsBackground = true;
+            converter.Start();
 
-            Thread _wspinger = new Thread(_pinger);
-            _wspinger.CurrentCulture = new CultureInfo("ru-RU");
-            _wspinger.IsBackground = true;
-            _wspinger.Start();
+            Thread wspinger = new Thread(_pinger);
+            wspinger.CurrentCulture = new CultureInfo("ru-RU");
+            wspinger.IsBackground = true;
+            wspinger.Start();
 
             Auth();
         }
 
         public void Disconnect()
         {
-            ws.Abort();
-            ws.Dispose();
+            _ws.Abort();
+            _ws.Dispose();
             
         }
 
@@ -111,7 +111,7 @@ namespace OsEngine.Market.Servers.BitMex
             {
                 Thread.Sleep(10000);
 
-                if (ws.State != WebSocketState.Open)
+                if (_ws.State != WebSocketState.Open)
                 {
                     IsConnected = false;
                     
@@ -131,13 +131,13 @@ namespace OsEngine.Market.Servers.BitMex
         private void Auth()
         {
             string nonce = GetNonce().ToString();
-            byte[] signatureBytes = hmacsha256(Encoding.UTF8.GetBytes(secKey), Encoding.UTF8.GetBytes("GET/realtime" + nonce));
+            byte[] signatureBytes = Hmacsha256(Encoding.UTF8.GetBytes(_secKey), Encoding.UTF8.GetBytes("GET/realtime" + nonce));
             string signatureString = ByteArrayToString(signatureBytes);
-            string que = "{\"op\": \"authKey\", \"args\": [\"" + id + "\"," + nonce + ",\"" + signatureString + "\"]}";
+            string que = "{\"op\": \"authKey\", \"args\": [\"" + _id + "\"," + nonce + ",\"" + signatureString + "\"]}";
             var reqAsBytes = Encoding.UTF8.GetBytes(que);
             var ticksRequest = new ArraySegment<byte>(reqAsBytes);
 
-                ws.SendAsync(ticksRequest,
+                _ws.SendAsync(ticksRequest,
                 WebSocketMessageType.Text,
                 true,
                 CancellationToken.None).Wait();
@@ -147,19 +147,19 @@ namespace OsEngine.Market.Servers.BitMex
         /// <summary>
         /// блокиратор доступа к подписчику
         /// </summary>
-        private object queryLocker = new object();
+        private object _queryLocker = new object();
 
         /// <summary>
         /// подписаться на данные через websocket
         /// </summary>
         public void SendQuery(string que)
         {
-            lock (queryLocker)
+            lock (_queryLocker)
             {
                 var reqAsBytes = Encoding.UTF8.GetBytes(que);
                 var ticksRequest = new ArraySegment<byte>(reqAsBytes);
 
-                ws.SendAsync(ticksRequest,WebSocketMessageType.Text,
+                _ws.SendAsync(ticksRequest,WebSocketMessageType.Text,
                              true, CancellationToken.None).Wait();
             }
         }
@@ -365,17 +365,17 @@ namespace OsEngine.Market.Servers.BitMex
         /// <summary>
         /// блокиратор многопоточного доступа к http запросам
         /// </summary>
-        private object queryHttpLocker = new object();
+        private object _queryHttpLocker = new object();
 
-        private string domain;
+        private string _domain;
 
         /// <summary>
         /// адрес для отправки запросов
         /// </summary>
         public string Domain
         {
-            set { domain = value; }
-            private get { return domain; }
+            set { _domain = value; }
+            private get { return _domain; }
         }
 
         /// <summary>
@@ -388,24 +388,24 @@ namespace OsEngine.Market.Servers.BitMex
         /// <returns></returns>
         public string CreateQuery(string method, string function, Dictionary<string, string> param = null, bool auth = false)
         {
-            lock (queryHttpLocker)
+            lock (_queryHttpLocker)
             {
                 string paramData = BuildQueryData(param);
                 string url = "/api/v1" + function + ((method == "GET" && paramData != "") ? "?" + paramData : "");
                 string postData = (method != "GET") ? paramData : "";
 
-                HttpWebRequest webRequest = (HttpWebRequest) WebRequest.Create(domain + url);
+                HttpWebRequest webRequest = (HttpWebRequest) WebRequest.Create(_domain + url);
                 webRequest.Method = method;
 
                 if (auth)
                 {
                     string nonce = GetNonce().ToString();
                     string message = method + url + nonce + postData;
-                    byte[] signatureBytes = hmacsha256(Encoding.UTF8.GetBytes(secKey), Encoding.UTF8.GetBytes(message));
+                    byte[] signatureBytes = Hmacsha256(Encoding.UTF8.GetBytes(_secKey), Encoding.UTF8.GetBytes(message));
                     string signatureString = ByteArrayToString(signatureBytes);
 
                     webRequest.Headers.Add("api-nonce", nonce);
-                    webRequest.Headers.Add("api-key", id);
+                    webRequest.Headers.Add("api-key", _id);
                     webRequest.Headers.Add("api-signature", signatureString);
                 }
 
@@ -489,7 +489,7 @@ namespace OsEngine.Market.Servers.BitMex
             return hex.ToString();
         }
 
-        private byte[] hmacsha256(byte[] keyByte, byte[] messageBytes)
+        private byte[] Hmacsha256(byte[] keyByte, byte[] messageBytes)
         {
             using (var hash = new HMACSHA256(keyByte))
             {

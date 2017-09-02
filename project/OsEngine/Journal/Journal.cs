@@ -482,7 +482,7 @@ namespace OsEngine.Journal
         {
             try
             {
-                _positionController.PaintPosition(position);
+                _positionController.ProcesPosition(position);
             }
             catch (Exception error)
             {

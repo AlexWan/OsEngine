@@ -393,7 +393,7 @@ namespace OsEngine.OsTrader.Panels
                 return;
             }
 
-            if (!ServerMaster.IsTester && !ServerMaster.IsOsOptimizer 
+            if (ServerMaster.StartProgram == ServerStartProgramm.IsOsTrader
                 && DateTime.Now.Hour < 10)
             {
                 return;
@@ -714,7 +714,7 @@ namespace OsEngine.OsTrader.Panels
                 return;
             }
 
-            if (!ServerMaster.IsTester && !ServerMaster.IsOsOptimizer
+            if (ServerMaster.StartProgram == ServerStartProgramm.IsOsTrader
                 && DateTime.Now.Hour < 10)
             {
                 return;
@@ -3320,7 +3320,7 @@ namespace OsEngine.OsTrader.Panels
                 return;
             }
 
-            if (!ServerMaster.IsTester
+            if (!(ServerMaster.StartProgram == ServerStartProgramm.IsTester)
                 && DateTime.Now.Hour < 10)
             {
                 return;
@@ -4492,7 +4492,7 @@ namespace OsEngine.OsTrader.Panels
                 return;
             }
 
-            if (!ServerMaster.IsTester && DateTime.Now.Hour < 10)
+            if (!(ServerMaster.StartProgram == ServerStartProgramm.IsTester) && DateTime.Now.Hour < 10)
             {
                 return;
             }

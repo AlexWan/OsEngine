@@ -51,6 +51,7 @@ namespace OsEngine.Market.Servers.Tester
                 _worker = new Thread(WorkThreadArea);
                 _worker.CurrentCulture = new CultureInfo("ru-RU");
                 _worker.IsBackground = true;
+                _worker.Name = "TesterServerThread";
                 _worker.Start();
             }
 

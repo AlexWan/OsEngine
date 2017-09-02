@@ -74,7 +74,7 @@ namespace OsEngine.Entity
         /// <param name="trades">новый тик</param>
         private void server_NewTradeEvent(List<Trade> trades)
         {
-            if (ServerMaster.IsTester &&
+            if (ServerMaster.StartProgram == ServerStartProgramm.IsTester &&
                 TypeTesterData == TesterDataType.Candle)
             {
                 return;
@@ -107,7 +107,7 @@ namespace OsEngine.Entity
         /// <param name="marketDepth"></param>
         void _server_NewMarketDepthEvent(MarketDepth marketDepth)
         {
-            if (ServerMaster.IsTester &&
+            if (ServerMaster.StartProgram == ServerStartProgramm.IsTester &&
                 TypeTesterData == TesterDataType.Candle)
             {
                 return;
@@ -144,7 +144,7 @@ namespace OsEngine.Entity
         {
             try
             {
-                if (!ServerMaster.IsTester)
+                if (ServerMaster.StartProgram == ServerStartProgramm.IsOsTrader)
                 {
                     series.СandleUpdeteEvent += series_СandleUpdeteEvent; 
                 }
@@ -270,7 +270,7 @@ namespace OsEngine.Entity
                             series.UpdateAllCandles();
                             series.IsStarted = true;
                         }
-                        else if (serverType == ServerType.BitMexServer)
+                        else if (serverType == ServerType.BitMex)
                         {
                             BitMexServer bitMex = (BitMexServer)_server;
                             if (series.TimeFrameSpan.TotalMinutes < 1)

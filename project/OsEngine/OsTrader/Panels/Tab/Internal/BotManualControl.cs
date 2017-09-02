@@ -57,9 +57,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// </summary>
         public static void WatcherHome()
         {
-            if (ServerMaster.IsTester ||
-                ServerMaster.IsOsData ||
-                ServerMaster.IsOsOptimizer)
+            if (ServerMaster.StartProgram != ServerStartProgramm.IsOsTrader)
             {
                 return;
             }
@@ -123,7 +121,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             _botTab = botTab;
             _timeStart = DateTime.Now;
 
-            if (!ServerMaster.IsTester)
+            if (ServerMaster.StartProgram != ServerStartProgramm.IsTester)
             {
                 if (Watcher == null)
                 {

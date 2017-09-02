@@ -69,14 +69,15 @@
                 </TabItem>
                 <TabItem Header="Оптимизация" FontSize="14" Width="140">
                     <Grid Background="Black">
-                        <CheckBox Name="CheckBoxOptimizationTypeSimulatedAnnealing" Content="Алгоритм имитации отжига" HorizontalAlignment="Left" Margin="199,113,0,0" VerticalAlignment="Top"/>
-                        <CheckBox Name="CheckBoxOptimizationTypeGeneticAlgoritm" Content="Генетический алгоритм" HorizontalAlignment="Left" Margin="199,153,0,0" VerticalAlignment="Top"/>
+                        <CheckBox Name="CheckBoxOptimizationTypeSimulatedAnnealing" Content="Алгоритм имитации отжига" HorizontalAlignment="Left" Margin="199,152,0,0" VerticalAlignment="Top"/>
+                        <CheckBox Name="CheckBoxOptimizationTypeGeneticAlgoritm" Content="Генетический алгоритм" HorizontalAlignment="Left" Margin="199,189,0,0" VerticalAlignment="Top"/>
                         <Label Content="Алгоритм оптимизации:" HorizontalAlignment="Left" Margin="182,67,0,0" VerticalAlignment="Top" FontSize="18"/>
                         <CheckBox Name="CheckBoxOptimizationFunctionTypeEndProfit" Content="Итоговый профит" HorizontalAlignment="Right" Margin="0,113,264,0" VerticalAlignment="Top"/>
                         <CheckBox Name="CheckBoxOptimizationFunctionMiddleProfitFromPosition" Content="Средний профит со сделки" HorizontalAlignment="Right" Margin="0,137,205,0" VerticalAlignment="Top"/>
                         <Label Content="Оцениваем:" HorizontalAlignment="Right" Margin="0,67,319,0" VerticalAlignment="Top" FontSize="18"/>
                         <CheckBox Name="CheckBoxOptimizationFunctionMaxDrowDawn" Content="Максимальная просадка" HorizontalAlignment="Right" Margin="0,161,220,0" VerticalAlignment="Top"/>
                         <CheckBox Name="CheckBoxOptimizationFunctionProfitFactor" Content="Профит фактор" HorizontalAlignment="Right" Margin="0,185,279,0" VerticalAlignment="Top"/>
+                        <CheckBox x:Name="CheckBoxOptimizationTypeAllBots" Content="Обход всех вариантов" HorizontalAlignment="Left" Margin="199,113,0,0" VerticalAlignment="Top"/>
                     </Grid>
                 </TabItem>
                 <TabItem Header="Результаты" FontSize="14"  Width="120">

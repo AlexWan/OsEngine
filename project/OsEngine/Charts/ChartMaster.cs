@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Forms.Integration;
@@ -40,7 +41,6 @@ namespace OsEngine.Charts
             _chartCandle = new ChartPainter(nameBoss);
             _chartCandle.GetChart().Click += ChartMasterOneSecurity_Click;
             _chartCandle.LogMessageEvent += NewLogMessage;
-            _reloadState = ChartReloadState.OneSecond;
 
             Load();
             _canSave = true;
@@ -59,7 +59,6 @@ namespace OsEngine.Charts
             {
                 using (StreamReader reader = new StreamReader(@"Engine\" + Name + @".txt"))
                 {
-                    Enum.TryParse(reader.ReadLine(), out _reloadState);
                     while (!reader.EndOfStream)
                     {
                         string readerStr = reader.ReadLine();
@@ -260,36 +259,30 @@ namespace OsEngine.Charts
         }
 
         /// <summary>
-        /// Можно ли сохранять индикаторы.
-        /// Это нужно в момент их создания.
+        /// во время загрузки данных, робот пытается тутже сохранять их,т.к. создаются индикаторы
+        /// эта переменная защищает метод Save от ошибочного сохранения в это время
         /// </summary>
         private bool _canSave;
-
-        /// <summary>
-        /// Частота обновления чарта
-        /// </summary>
-        private ChartReloadState _reloadState;
 
         /// <summary>
         /// Сохранить настройки в файл
         /// </summary>
         private void Save()
         {
+            if (_canSave == false)
+            {
+                return;
+            }
             try
             {
-                if (_canSave == false)
-                {
-                    return;
-                }
+
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @".txt", false))
                 {
-                    writer.WriteLine(_reloadState);
 
                     if (_indicatorsCandles != null)
                     {
                         for (int i = 0; i < _indicatorsCandles.Count; i++)
                         {
-                            string s = _indicatorsCandles[i].GetType().Name;
                             writer.WriteLine(_indicatorsCandles[i].GetType().Name + "@" +
                                              _indicatorsCandles[i].Name + "@" + _indicatorsCandles[i].NameArea +
                                              "@" + _indicatorsCandles[i].CanDelete);
@@ -417,8 +410,7 @@ namespace OsEngine.Charts
                     new MenuItem[] 
                 {new MenuItem("Цветовая схема", new MenuItem[]{new MenuItem("Тёмная"),new MenuItem("Светлая")}),
                 new MenuItem("Фигура сделки", new MenuItem[]{new MenuItem("Ромб"),new MenuItem("Кружок"),new MenuItem("Треугольник(тормозит при дебаггинге)")}),
-                new MenuItem("Размер фигуры", new MenuItem[]{new MenuItem("6"),new MenuItem("10"),new MenuItem("14")}),
-                new MenuItem("Частота обновления", new MenuItem[]{new MenuItem("Максимально часто"),new MenuItem("Раз в секунду(оптимально)"),new MenuItem("Раз в пять секунд")})}
+                new MenuItem("Размер фигуры", new MenuItem[]{new MenuItem("6"),new MenuItem("10"),new MenuItem("14")})}
                 
                 ));
 
@@ -432,10 +424,6 @@ namespace OsEngine.Charts
                 items[items.Count - 1].MenuItems[2].MenuItems[0].Click += ChartMinPointSize_Click;
                 items[items.Count - 1].MenuItems[2].MenuItems[1].Click += ChartMiddlePointSize_Click;
                 items[items.Count - 1].MenuItems[2].MenuItems[2].Click += ChartMaxPointSize_Click;
-
-                items[items.Count - 1].MenuItems[3].MenuItems[0].Click += ChartReloadMaxFast_Click;
-                items[items.Count - 1].MenuItems[3].MenuItems[1].Click += ChartReloadOneSecond_Click;
-                items[items.Count - 1].MenuItems[3].MenuItems[2].Click += ChartReloadFiveSeconds_Click;
 
                 items.Add(new MenuItem("Скрыть области"));
                 items[items.Count - 1].Click += ChartHideIndicators_Click;
@@ -509,31 +497,6 @@ namespace OsEngine.Charts
         {
             _chartCandle.SetPointType(PointType.TriAngle);
         }
-
-        /// <summary>
-        /// Пользователь выбрал в контекстном меню максимальную скорость прорисовку чарта
-        /// </summary>
-        private void ChartReloadMaxFast_Click(object sender, EventArgs e)
-        {
-            _reloadState = ChartReloadState.Maximum;
-        }
-
-        /// <summary>
-        /// Пользователь выбрал в контекстном меню среднюю скорость прорисовку чарта
-        /// </summary>
-        private void ChartReloadOneSecond_Click(object sender, EventArgs e)
-        {
-            _reloadState = ChartReloadState.OneSecond;
-        }
-
-        /// <summary>
-        /// Пользователь выбрал в контекстном меню медленную скорость прорисовку чарта
-        /// </summary>
-        private void ChartReloadFiveSeconds_Click(object sender, EventArgs e)
-        {
-            _reloadState = ChartReloadState.FiveSecond;
-        }
-
 
         /// <summary>
         /// Пользователь выбрал в контекстном меню темную настройку цветов
@@ -832,7 +795,7 @@ namespace OsEngine.Charts
 
                 // 2 отправляем на прорисовку
 
-                _chartCandle.PaintElem(myElement);
+                _chartCandle.ProcessElem(myElement);
             }
             catch (Exception error)
             {
@@ -846,7 +809,7 @@ namespace OsEngine.Charts
         /// <param name="element">элемент</param>
         public void DeleteChartElement(IChartElement element)
         {
-            _chartCandle.ClearElem(element);
+            _chartCandle.ProcessClearElem(element);
 
             try
             {
@@ -906,13 +869,19 @@ namespace OsEngine.Charts
             {
                 _chartElements.Add(element);
             }
-            _chartCandle.PaintElem(element);
+            _chartCandle.ProcessElem(element);
         }
 
 // управление Алертов
 
+        /// <summary>
+        /// массив с алертами
+        /// </summary>
         private List<IIAlert> _alertArray;
 
+        /// <summary>
+        /// порисовать алерты
+        /// </summary>
         public void PaintAlerts(List<IIAlert> alertArray)
         {
             try
@@ -988,33 +957,15 @@ namespace OsEngine.Charts
                 }
 
                 if (_myCandles != null && _lastCount == candles.Count
-                    && !ServerMaster.IsTester &&
+                    && ServerMaster.StartProgram != ServerStartProgramm.IsTester &&
                     _lastPrice == candles[candles.Count - 1].Close)
                 {
                     // обновляем свечи только когда они действительно обновились
                     return;
                 }
 
-                bool canReload = true;
+                bool canReload = ServerMaster.StartProgram != ServerStartProgramm.IsOsOptimizer;
 
-                if (!ServerMaster.IsTester &&
-                    _reloadState == ChartReloadState.OneSecond
-                    && _lastCandleIncome.AddSeconds(1) > DateTime.Now)
-                {
-                    canReload = false;
-                }
-
-                if (!ServerMaster.IsTester &&
-                    _reloadState == ChartReloadState.FiveSecond
-                    && _lastCandleIncome.AddSeconds(5) > DateTime.Now)
-                {
-                    canReload = false;
-                }
-
-                if (ServerMaster.IsOsOptimizer)
-                {
-                    canReload = false;
-                }
 
                 _lastCount = candles.Count;
                 _lastPrice = candles[candles.Count - 1].Close;
@@ -1025,8 +976,8 @@ namespace OsEngine.Charts
                     if (canReload)
                     {
                         _lastCandleIncome = DateTime.Now;
-                        _chartCandle.PaintCandles(candles);
-                        _chartCandle.PaintPositions(_myPosition);
+                        _chartCandle.ProcessCandles(candles);
+                        _chartCandle.ProcessPositions(_myPosition);
 
                     }
 
@@ -1038,11 +989,11 @@ namespace OsEngine.Charts
 
                             if (canReload)
                             {
-                                _chartCandle.PaintIndicator(_indicatorsCandles[i]);
+                                _chartCandle.ProcessIndicator(_indicatorsCandles[i]);
                             }
                         }
                     }
-                    if (canReload)
+                    if (canReload && _alertArray != null && _alertArray.Count != 0)
                     {
                         _chartCandle.ClearAlerts(_alertArray);
 
@@ -1073,7 +1024,7 @@ namespace OsEngine.Charts
         {
             try
             {
-                _chartCandle.PaintTrades(trades);
+                _chartCandle.ProcessTrades(trades);
             }
             catch (Exception error)
             {
@@ -1083,6 +1034,9 @@ namespace OsEngine.Charts
 
 // прорисовка позиций
 
+        /// <summary>
+        /// массив с позициями
+        /// </summary>
         private List<Position> _myPosition;
 
         /// <summary>
@@ -1091,12 +1045,12 @@ namespace OsEngine.Charts
         /// <param name="position">сделка</param>
         public void SetPosition(List<Position> position)
         {
-            if (ServerMaster.IsOsOptimizer)
+            if (ServerMaster.StartProgram == ServerStartProgramm.IsOsOptimizer)
             {
                return;
             }
             _myPosition = position;
-            _chartCandle.PaintPositions(position);
+            _chartCandle.ProcessPositions(position);
         }
 
 // управление
@@ -1108,19 +1062,19 @@ namespace OsEngine.Charts
         {
             try
             {
-                _chartCandle.StartPaint(host, rectangle);
-                _chartCandle.PaintPositions(_myPosition);
+                _chartCandle.StartPaintPrimeChart(host, rectangle);
+                _chartCandle.ProcessPositions(_myPosition);
 
-                _chartCandle.PaintCandles(_myCandles);
+                _chartCandle.ProcessCandles(_myCandles);
 
                 for (int i = 0; _indicatorsCandles != null && i < _indicatorsCandles.Count; i++)
                 {
-                    _chartCandle.PaintIndicator(_indicatorsCandles[i]);
+                    _chartCandle.ProcessIndicator(_indicatorsCandles[i]);
                 }
                 
                 for (int i = 0; _chartElements != null && i < _chartElements.Count; i++)
                 {
-                    _chartCandle.PaintElem(_chartElements[i]);
+                    _chartCandle.ProcessElem(_chartElements[i]);
                 }
 
                 _chartCandle.ClearAlerts(_alertArray);
@@ -1132,7 +1086,6 @@ namespace OsEngine.Charts
                         _chartCandle.PaintAlert((AlertToChart)_alertArray[i]);
                     }
                 }
-
             }
             catch (Exception error)
             {
@@ -1146,6 +1099,12 @@ namespace OsEngine.Charts
         public void StopPaint()
         {
             _chartCandle.StopPaint();
+
+            if (_grid != null)
+            {
+                _grid.Children.Clear();
+                _grid = null;
+            }
         }
 
         /// <summary>
@@ -1219,7 +1178,84 @@ namespace OsEngine.Charts
             }
         }
 
-// события
+// окно отображения инструмента
+
+        public void StartPaintChartControlPanel(System.Windows.Controls.Grid grid)
+        {
+            if (_label == null)
+            {
+                _label = new System.Windows.Controls.Label();
+
+                _label.Margin = new Thickness(0, 0, 30, 0);
+                _label.VerticalAlignment = VerticalAlignment.Top;
+                _label.HorizontalAlignment = System.Windows.HorizontalAlignment.Right;
+            }
+
+            _grid = grid;
+            PaintLabelOnSlavePanel();
+        }
+
+        /// <summary>
+        /// подгрузить в чарт новый инструмент
+        /// </summary>
+        /// <param name="security">бумага</param>
+        /// <param name="timeFrame">таймФрейм</param>
+        /// <param name="portfolioName">портфель</param>
+        /// <param name="serverType">тип сервера</param>
+        public void SetNewSecurity(string security, TimeFrame timeFrame, string portfolioName, ServerType serverType)
+        {
+            if (_securityOnThisChart == security &&
+                _timeFrameSecurity == timeFrame)
+            {
+                return;
+            }
+
+            _securityOnThisChart = security;
+            _timeFrameSecurity = timeFrame;
+            Clear();
+            PaintLabelOnSlavePanel();
+        }
+
+        /// <summary>
+        /// бумага отображаемая на чарте
+        /// </summary>
+        private string _securityOnThisChart;
+
+        /// <summary>
+        /// таймфрейм бумаги этого чарта
+        /// </summary>
+        private TimeFrame _timeFrameSecurity;
+
+        private System.Windows.Controls.Label _label;
+
+        private System.Windows.Controls.Grid _grid;
+
+        private void PaintLabelOnSlavePanel()
+        {
+            if (_grid == null)
+            {
+                return;
+            }
+
+            if (!_label.Dispatcher.CheckAccess())
+            {
+                _label.Dispatcher.Invoke(PaintLabelOnSlavePanel);
+                return;
+            }
+
+            string security = _securityOnThisChart;
+
+            if (string.IsNullOrEmpty(security))
+            {
+                security = "Unknown";
+            }
+
+            _label.Content = "Бумага:  " + security + "     Таймфрейм:  " + _timeFrameSecurity;
+            _grid.Children.Clear();
+            _grid.Children.Add(_label);
+        }
+
+// логирование
 
         /// <summary>
         /// выслать наверх сообщение об ошибке
@@ -1255,25 +1291,5 @@ namespace OsEngine.Charts
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string,LogMessageType> LogMessageEvent;
-    }
-
-    /// <summary>
-    /// частота обновления чарта
-    /// </summary>
-    public enum ChartReloadState
-    {
-        /// <summary>
-        /// максимум
-        /// </summary>
-        Maximum,
-        /// <summary>
-        /// раз в секунду
-        /// </summary>
-        OneSecond,
-
-        /// <summary>
-        /// раз в пять секунд
-        /// </summary>
-        FiveSecond
     }
 }

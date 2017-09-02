@@ -265,8 +265,7 @@ namespace OsEngine.Entity
                 return;
             }
 
-            if (ServerMaster.IsOsOptimizer ||
-               ServerMaster.IsTester)
+            if (ServerMaster.StartProgram != ServerStartProgramm.IsOsTrader)
             {
                 return;
             }
@@ -302,8 +301,7 @@ namespace OsEngine.Entity
                 return;
             }
 
-            if ((ServerMaster.IsOsOptimizer ||
-                ServerMaster.IsTester) &&
+            if ((ServerMaster.StartProgram != ServerStartProgramm.IsOsTrader) &&
                 TypeTesterData == TesterDataType.Candle)
             {
                 return;
@@ -323,7 +321,7 @@ namespace OsEngine.Entity
                 }
                 UpDateCandle(trades[i].Time, trades[i].Price, trades[i].Volume, true, trades[i].Side);
 
-                if (ServerMaster.IsOsData)
+                if (ServerMaster.StartProgram == ServerStartProgramm.IsOsData)
                 {
                     continue;
                 }
@@ -872,7 +870,7 @@ namespace OsEngine.Entity
         /// </summary>
         private void UpdateChangeCandle()
         {
-            if (ServerMaster.IsTester &&
+            if (ServerMaster.StartProgram == ServerStartProgramm.IsTester &&
                 (TypeTesterData == TesterDataType.MarketDepthOnlyReadyCandle ||
                 TypeTesterData == TesterDataType.TickOnlyReadyCandle))
             {
@@ -888,7 +886,7 @@ namespace OsEngine.Entity
 
         private void UpdateFinishCandle()
         {
-            if (!ServerMaster.IsTester && !ServerMaster.IsOsOptimizer)
+            if (ServerMaster.StartProgram == ServerStartProgramm.IsOsTrader)
             {
                 if (DateTime.Now < _lastNewCandleFinish.AddSeconds(TimeFrameSpan.TotalSeconds/2))
                 {

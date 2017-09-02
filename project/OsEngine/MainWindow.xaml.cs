@@ -101,8 +101,8 @@ namespace OsEngine
                 }
                 if ((releaseKey >= 378675))
                 {
-                    MessageBox.Show("Ваша версия .Net 4.5.1 or later. Робот не будет работать в Вашей системе. С.м. в инструкции главу: Требования к Windows и .Net");
-                    return false;
+                    //"4.5.1 or later";
+                    return true;
                 }
                 if ((releaseKey >= 378389))
                 {
@@ -134,7 +134,7 @@ namespace OsEngine
             try
             {
                 Hide();
-                ServerMaster.IsTester = true;
+                ServerMaster.StartProgram = ServerStartProgramm.IsTester;
                 TesterUi candleOneUi = new TesterUi();
                 candleOneUi.ShowDialog();
                 Close();
@@ -153,6 +153,7 @@ namespace OsEngine
             try
             {
                 Hide();
+                ServerMaster.StartProgram = ServerStartProgramm.IsOsTrader;
                 RobotUi candleOneUi = new RobotUi();
                 candleOneUi.ShowDialog();
                 Close();
@@ -171,7 +172,7 @@ namespace OsEngine
             try
             {
                 Hide();
-                ServerMaster.IsOsData = true;
+                ServerMaster.StartProgram = ServerStartProgramm.IsOsData;
                 OsDataUi ui = new OsDataUi();
                 ui.ShowDialog();
                 Close();
@@ -208,7 +209,7 @@ namespace OsEngine
             try
             {
                 Hide();
-                ServerMaster.IsOsOptimizer = true;
+                ServerMaster.StartProgram = ServerStartProgramm.IsOsOptimizer;
                 OptimizerUi ui = new OptimizerUi();
                 ui.ShowDialog();
                 Close();

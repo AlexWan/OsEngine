@@ -326,7 +326,7 @@ namespace OsEngine.OsTrader
         public void journal_PositionChangeEvent(Position position)
         {
             // В ТЕСТЕРЕ позиции прорисоываются по очереди, В реале, в методе ThreadWatcher()
-            if (!ServerMaster.IsTester)
+            if (ServerMaster.StartProgram != ServerStartProgramm.IsTester)
             {
                 return;
             }
@@ -464,8 +464,7 @@ namespace OsEngine.OsTrader
         /// </summary>
         private void WatcherHome()
         {
-            if (ServerMaster.IsTester ||
-                ServerMaster.IsOsData)
+            if (ServerMaster.StartProgram != ServerStartProgramm.IsOsTrader)
             {
                 return;
             }

@@ -53,9 +53,7 @@ namespace OsEngine.OsTrader.RiskManager
         /// </summary>
         public static void WatcherHome()
         {
-            if (ServerMaster.IsTester ||
-                ServerMaster.IsOsData ||
-                ServerMaster.IsOsOptimizer)
+            if (ServerMaster.StartProgram != ServerStartProgramm.IsOsTrader)
             {
                 return;
             }

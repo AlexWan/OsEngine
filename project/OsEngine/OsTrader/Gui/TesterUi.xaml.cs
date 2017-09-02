@@ -23,8 +23,9 @@ namespace OsEngine.OsTrader.Gui
             ServerMaster.GetServers();
 
             _strategyKeeper = new OsTraderMaster(
-            ChartHostPanel, HostGlass, HostOpenPosition, HostClosePosition, HostAllPosition,
-            HostBotLog, HostBotLogPrime, RectChart, HostAllert, TabControlBotsName, TabControlBotTab, TextBoxPrice);
+                ChartHostPanel, HostGlass, HostOpenPosition, HostClosePosition, HostAllPosition,
+                HostBotLog, HostBotLogPrime, RectChart, HostAllert, TabControlBotsName, TabControlBotTab, TextBoxPrice,
+                GridChartControlPanel);
             LocationChanged += TesterUi_LocationChanged;
             LabelOsa.Content = "V_" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
 
@@ -41,9 +42,7 @@ namespace OsEngine.OsTrader.Gui
             if (ui.UserAcceptActioin == false)
             {
                 e.Cancel = true;
-                return;
             }
-
         }
 
         /// <summary>

@@ -51,7 +51,7 @@ namespace OsEngine.Entity
         /// </summary>
         public static int GetNumberDeal()
         {
-            if (_isFirstTime == true && !ServerMaster.IsTester)
+            if (_isFirstTime == true && ServerMaster.StartProgram == ServerStartProgramm.IsOsTrader)
             {
                 _isFirstTime = false;
                 Load();
@@ -73,7 +73,7 @@ namespace OsEngine.Entity
         /// </summary>
         public static int GetNumberOrder()
         {
-            if (_isFirstTime == true && !ServerMaster.IsTester)
+            if (_isFirstTime == true && ServerMaster.StartProgram == ServerStartProgramm.IsOsTrader)
             {
                 _isFirstTime = false;
                 Load();

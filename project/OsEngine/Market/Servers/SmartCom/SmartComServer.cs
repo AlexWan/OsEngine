@@ -1819,7 +1819,7 @@ namespace OsEngine.Market.Servers.SmartCom
         }
 
         private List<Order> _ordersWhithId = new List<Order>();
-
+        
         /// <summary>
         /// входящий из системы ордер
         /// </summary>

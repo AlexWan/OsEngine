@@ -3,12 +3,14 @@
 */
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Media;
 using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
+using OsEngine.Entity;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.OsConverter;
@@ -69,7 +71,8 @@ namespace OsEngine.Logging
 
                 for (int i = 0; i < LogsToCheck.Count; i++)
                 {
-                    LogsToCheck[i].CheckLog();
+                    LogsToCheck[i].TrySaveLog();
+                    LogsToCheck[i].TryPaintLog();
                 }
 
                 if (!MainWindow.ProccesIsWorked)
@@ -147,6 +150,38 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// удалить объект и очистить все файлы связанные с ним
+        /// </summary>
+        public void Delete()
+        {
+            for (int i = 0; i < LogsToCheck.Count; i++)
+            {
+                if (LogsToCheck[i]._uniqName == this._uniqName)
+                {
+                    LogsToCheck.RemoveAt(i);
+                    break;
+                }
+            }
+            _isDelete = true;
+
+            string date = DateTime.Now.Year + "_" + DateTime.Now.Month + "_" + DateTime.Now.Day;
+
+            if (File.Exists(@"Engine\Log\" + _uniqName + @"Log_" + date + ".txt"))
+            {
+                File.Delete(@"Engine\Log\" + _uniqName + @"Log_" + date + ".txt");
+            }
+
+            _grid = null;
+
+            _messageses = null;
+        }
+
+        /// <summary>
+        /// уничтожен ли объект
+        /// </summary>
+        private bool _isDelete;
+
+        /// <summary>
         /// имя
         /// </summary>
         private string _uniqName;
@@ -157,7 +192,7 @@ namespace OsEngine.Logging
         /// <param name="server">сервер</param>
         public void Listen(IServer server)
         {
-            server.LogMessageEvent += LogMessageEvent;
+            server.LogMessageEvent += ProcessMessage;
         }
 
         /// <summary>
@@ -166,7 +201,7 @@ namespace OsEngine.Logging
         /// <param name="optimizer">оптимизатор</param>
         public void Listen(OptimizerMaster optimizer)
         {
-            optimizer.LogMessageEvent += LogMessageEvent;
+            optimizer.LogMessageEvent += ProcessMessage;
         }
         
         /// <summary>
@@ -175,7 +210,7 @@ namespace OsEngine.Logging
         /// <param name="master"></param>
         public void Listen(OsDataMaster master)
         {
-            master.NewLogMessageEvent += LogMessageEvent;
+            master.NewLogMessageEvent += ProcessMessage;
         }
 
         /// <summary>
@@ -183,7 +218,7 @@ namespace OsEngine.Logging
         /// </summary>
         public void Listen(OptimizerDataStorage panel)
         {
-            panel.LogMessageEvent += LogMessageEvent;
+            panel.LogMessageEvent += ProcessMessage;
         }
 
         /// <summary>
@@ -191,7 +226,7 @@ namespace OsEngine.Logging
         /// </summary>
         public void Listen(BotPanel panel)
         {
-            panel.LogMessageEvent += LogMessageEvent;
+            panel.LogMessageEvent += ProcessMessage;
         }
 
         /// <summary>
@@ -199,7 +234,7 @@ namespace OsEngine.Logging
         /// </summary>
         public void Listen(OsTraderMaster master)
         {
-            master.LogMessageEvent += LogMessageEvent;
+            master.LogMessageEvent += ProcessMessage;
         }
 
         /// <summary>
@@ -207,7 +242,7 @@ namespace OsEngine.Logging
         /// </summary>
         public void Listen(OsConverterMaster master)
         {
-            master.LogMessageEvent += LogMessageEvent;
+            master.LogMessageEvent += ProcessMessage;
         }
 
         /// <summary>
@@ -220,18 +255,36 @@ namespace OsEngine.Logging
         /// </summary>
         private WindowsFormsHost _host;
 
+        private ConcurrentQueue<LogMessage> _incomingMessages = new ConcurrentQueue<LogMessage>();
+
         /// <summary>
         /// входящее сообщение
         /// </summary>
         /// <param name="message">сообщение</param>
         /// <param name="type">тип сообщения</param>
-        void LogMessageEvent(string message, LogMessageType type)
+        private void ProcessMessage(string message, LogMessageType type)
+        {
+            if (_isDelete)
+            {
+                return;
+            }
+
+            LogMessage messageLog = new LogMessage { Message = message, Time = DateTime.Now, Type = type };
+            _incomingMessages.Enqueue(messageLog);
+
+            if (messageLog.Type == LogMessageType.Error)
+            {
+                SetNewErrorMessage(messageLog);
+            }
+        }
+
+        private void PaintMessage(LogMessage messageLog)
         {
             try
             {
                 if (_grid.InvokeRequired)
                 {
-                    _grid.Invoke(new Action<string, LogMessageType>(LogMessageEvent), message, type);
+                    _grid.Invoke(new Action<LogMessage>(PaintMessage), messageLog);
                     return;
                 }
 
@@ -240,8 +293,9 @@ namespace OsEngine.Logging
                     _messageses = new List<LogMessage>();
                 }
 
-                LogMessage messageLog = new LogMessage {Message = message, Time = DateTime.Now, Type = type};
                 _messageses.Add(messageLog);
+
+                _messageSender.AddNewMessage(messageLog);
 
                 DataGridViewRow row = new DataGridViewRow();
                 row.Cells.Add(new DataGridViewTextBoxCell());
@@ -254,18 +308,34 @@ namespace OsEngine.Logging
                 row.Cells[2].Value = messageLog.Message;
                 _grid.Rows.Insert(0, row);
 
-
-                _messageSender.AddNewMessage(messageLog);
-
-                if (type == LogMessageType.Error)
-                {
-                    SetNewErrorMessage(message);
-                }
-
             }
             catch (Exception)
             {
-                 // ignore
+                // ignore
+            }
+        }
+
+        private void TryPaintLog()
+        {
+            if (_host != null && !_incomingMessages.IsEmpty)
+            {
+                List<LogMessage> elements = new List<LogMessage>();
+
+                while (!_incomingMessages.IsEmpty)
+                {
+                    LogMessage newElement;
+                    _incomingMessages.TryDequeue(out newElement);
+
+                    if (newElement != null)
+                    {
+                        elements.Add(newElement);
+                    }
+                }
+
+                for (int i = 0; i < elements.Count; i++)
+                {
+                    PaintMessage(elements[i]);
+                }
             }
         }
 
@@ -282,7 +352,7 @@ namespace OsEngine.Logging
         /// метод в котором работает поток который сохранит
         /// лог когда приложение начнёт закрыаться
         /// </summary>
-        public void CheckLog()
+        public void TrySaveLog()
         {
             if (!Directory.Exists(@"Engine\Log\"))
             {
@@ -444,11 +514,11 @@ namespace OsEngine.Logging
         /// <summary>
         /// выслать новое сообщение об ошибке
         /// </summary>
-        private static void SetNewErrorMessage(string message)
+        private static void SetNewErrorMessage(LogMessage message)
         {
             if (!MainWindow.GetDispatcher.CheckAccess())
             {
-                MainWindow.GetDispatcher.Invoke(new Action<string>(SetNewErrorMessage), message);
+                MainWindow.GetDispatcher.Invoke(new Action<LogMessage>(SetNewErrorMessage), message);
                 return;
             }
 
@@ -460,7 +530,7 @@ namespace OsEngine.Logging
             row.Cells[1].Value = LogMessageType.Error;
 
             row.Cells.Add(new DataGridViewTextBoxCell());
-            row.Cells[2].Value = message;
+            row.Cells[2].Value = message.Message;
             _gridErrorLog.Rows.Insert(0, row);
 
             if (_logErrorUi == null)
