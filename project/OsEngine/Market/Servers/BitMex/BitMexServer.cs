@@ -1449,7 +1449,7 @@ namespace OsEngine.Market.Servers.BitMex
                 {
                     Trade trade = new Trade();
                     trade.SecurityNameCode = oneTrade.symbol;
-                    trade.Id = oneTrade.trdMatchId;
+                    trade.Id = oneTrade.trdMatchID;
                     trade.Time = Convert.ToDateTime(oneTrade.timestamp);
                     trade.Price = oneTrade.price;
                     trade.Volume = oneTrade.size;
@@ -1856,7 +1856,7 @@ namespace OsEngine.Market.Servers.BitMex
         public int size { get; set; }
         public decimal price { get; set; }
         public string tickDirection { get; set; }
-        public string trdMatchId { get; set; }
+        public string trdMatchID { get; set; }
         public object grossValue { get; set; }
         public double homeNotional { get; set; }
         public int foreignNotional { get; set; }

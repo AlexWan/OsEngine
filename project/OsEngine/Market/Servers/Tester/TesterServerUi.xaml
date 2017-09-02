@@ -73,7 +73,7 @@
                     <WindowsFormsHost x:Name="HostPortfolio" Margin="0,40,0,0"/>
                     <Label Content="Начальный депозит " Margin="266,4,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="129"/>
                     <TextBox x:Name="TextBoxStartDepozit" Margin="400,4,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="141"/>
-                    <CheckBox Name="CheckBoxOnOffMarketPortfolio" Content="Включить рассчёт портфеля" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" ToolTip="Замедляет итоговое время тестирования. Но показывает динамику изменения портфеля. Эти же данные есть в журнале робота. Не работает в оптимизиторе" Click="CheckBoxOnOffMarketPortfolio_Checked"/>
+                    <CheckBox Name="CheckBoxOnOffMarketPortfolio" Content="Включить рассчёт портфеля" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" ToolTip="Замедляет итоговое время тестирования. Но показывает динамику изменения портфеля." Click="CheckBoxOnOffMarketPortfolio_Checked"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Лог" FontSize="14">
