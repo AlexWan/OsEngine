@@ -165,9 +165,9 @@ namespace OsEngine.Charts.CandleChart
         {
             try
             {
-                if (_host != null && !_host.Dispatcher.CheckAccess())
+                if (_chart != null && _chart.InvokeRequired)
                 {
-                    _host.Dispatcher.Invoke(Clear);
+                    _chart.Invoke(new Action(Clear));
                     return;
                 }
                 _timePoints.Clear();
@@ -771,11 +771,29 @@ namespace OsEngine.Charts.CandleChart
                     continue;
                 }
 
-                if (_lastTimeClear.AddSeconds(5) > DateTime.Now)
+                if (_lastTimeClear.AddSeconds(5) > DateTime.Now 
+                    && ServerMaster.StartProgram != ServerStartProgramm.IsOsOptimizer)
                 {
                     Thread.Sleep(5000);
                     _candlesToPaint = new ConcurrentQueue<List<Candle>>();
                     _indicatorsToPaint = new ConcurrentQueue<IIndicatorCandle>();
+                }
+
+                // проверяем, пришли ли свечи
+
+                if (!_candlesToPaint.IsEmpty)
+                {
+                    List<Candle> candles = new List<Candle>();
+
+                    while (!_candlesToPaint.IsEmpty)
+                    {
+                        _candlesToPaint.TryDequeue(out candles);
+                    }
+
+                    if (candles != null)
+                    {
+                        PaintCandles(candles);
+                    }
                 }
 
                 // проверяем, пришли ли позиции
@@ -795,23 +813,6 @@ namespace OsEngine.Charts.CandleChart
                     }
                 }
 
-                // проверяем, пришли ли свечи
-
-                if (!_candlesToPaint.IsEmpty)
-                {
-                    List<Candle> candles = new List<Candle>();
-
-                    while (!_candlesToPaint.IsEmpty)
-                    {
-                        _candlesToPaint.TryDequeue(out candles);
-                    }
-
-                    if (candles != null)
-                    {
-                        PaintCandles(candles);
-                    }
-                }
-               
                 // проверяем, пришли ли тики
 
                 if (!_tradesToPaint.IsEmpty)
@@ -1043,15 +1044,6 @@ namespace OsEngine.Charts.CandleChart
                 else if (history.Count == oldcandleSeries.Points.Count)
                 {
                     RePaintToIndex(history, history.Count - 1);
-                }
-                else if (oldcandleSeries.Points.Count + 20 > history.Count)
-                {
-                    for (int i = history.Count - (history.Count - oldcandleSeries.Points.Count); i < history.Count; i++)
-                    {
-                        AddCandleInArray(history, i);
-                    }
-                    ReloadAreaSizes();
-                    ResizeYAxisOnArea("Prime");
                 }
                 else
                 {
@@ -2896,25 +2888,6 @@ namespace OsEngine.Charts.CandleChart
             {// перерисовываем последнюю точку
                 RePaintLikePointLast(values, nameSeries);
             }
-            else if (mySeries.Points.Count + 20 > values.Count)
-            {  // если надо полностью перерисовываем весь индикатор
-
-                List<decimal> array = values;
-
-                for (int i = mySeries.Points.Count; i < array.Count; i++)
-                {
-                    if (array[i] != 0)
-                    {
-                        mySeries.Points.AddXY(i, array[i]);
-                    }
-                    else
-                    {
-                        mySeries.Points.AddXY(i, 0);
-                    }
-                }
-
-                ReloadAreaSizes();
-            }
             else
             {// если надо полностью перерисовываем весь индикатор
 
@@ -2999,30 +2972,6 @@ namespace OsEngine.Charts.CandleChart
                 values.Count == mySeries.Points.Count)
             {// перерисовываем последнюю точку
                 RePaintLikeLineLast(values, nameSeries);
-            }
-            else if (mySeries.Points.Count + 20 > values.Count)
-            {
-
-                List<decimal> array = values;
-
-                if (array == null)
-                {
-                    return;
-                }
-
-                for (int i = mySeries.Points.Count; i < array.Count; i++)
-                {
-                    if (array[i] != 0)
-                    {
-                        mySeries.Points.AddXY(i, array[i]);
-                    }
-                    else
-                    {
-                        mySeries.Points.AddXY(i, 0);
-                    }
-                }
-
-                ReloadAreaSizes();
             }
             else
             { // если надо полностью перерисовываем весь индикатор
@@ -3122,25 +3071,6 @@ namespace OsEngine.Charts.CandleChart
                 values.Count == mySeries.Points.Count)
             {// перерисовываем последнюю точку
                 RePaintLikeColumnLast(values, nameSeries, colorUp, colorDown);
-            }
-            else if (mySeries.Points.Count + 20 > values.Count)
-            { 
-
-                List<decimal> array = values;
-
-                for (int i = mySeries.Points.Count; i < array.Count; i++)
-                {
-                    if (array[i] != 0)
-                    {
-                        mySeries.Points.AddXY(i, array[i]);
-                    }
-                    else
-                    {
-                        mySeries.Points.AddXY(i, 0);
-                    }
-                }
-
-                ReloadAreaSizes();
             }
             else
             { // если надо полностью перерисовываем весь индикатор
@@ -5270,6 +5200,12 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         private void ResizeXAxis()
         {
+            if (_chart.InvokeRequired)
+            {
+                _chart.Invoke(new Action(ResizeXAxis));
+
+                return;
+            }
             if(_myCandles == null ||
                 _myCandles.Count < 5)
             {

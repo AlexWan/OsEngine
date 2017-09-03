@@ -958,6 +958,7 @@ namespace OsEngine.Charts
 
                 if (_myCandles != null && _lastCount == candles.Count
                     && ServerMaster.StartProgram != ServerStartProgramm.IsTester &&
+                    ServerMaster.StartProgram != ServerStartProgramm.IsOsData &&
                     _lastPrice == candles[candles.Count - 1].Close)
                 {
                     // обновляем свечи только когда они действительно обновились

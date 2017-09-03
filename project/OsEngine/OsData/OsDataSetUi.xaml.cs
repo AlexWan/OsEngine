@@ -72,11 +72,13 @@ namespace OsEngine.OsData
             CheckBoxNeadToLoadDataInServers.IsChecked = set.NeadToLoadDataInServers;
 
             ComboBoxSource.Items.Add(ServerType.Unknown);
+            ComboBoxSource.Items.Add(ServerType.Finam);
             ComboBoxSource.Items.Add(ServerType.InteractivBrokers);
             ComboBoxSource.Items.Add(ServerType.Plaza);
             ComboBoxSource.Items.Add(ServerType.QuikDde);
             ComboBoxSource.Items.Add(ServerType.QuikLua);
-            ComboBoxSource.Items.Add(ServerType.Finam);
+            ComboBoxSource.Items.Add(ServerType.BitMex);
+
 
             ComboBoxSource.SelectedItem = _set.Source;
             ComboBoxSource.SelectionChanged += ComboBoxSource_SelectionChanged;

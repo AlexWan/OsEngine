@@ -58,6 +58,11 @@ namespace OsEngine.Market.Servers.BitMex.BitMexEntity
         /// </summary>
         public string clOrdID { get; set; }
 
+        /// <summary>
+        /// реальная цена исполнения
+        /// </summary>
+        public double avgPx { get; set; }
+
         //public string clOrdLinkID { get; set; }
         //public int account { get; set; }
         //public double lastPx { get; set; }
@@ -84,7 +89,6 @@ namespace OsEngine.Market.Servers.BitMex.BitMexEntity
         //public int leavesQty { get; set; }
         //public double simpleCumQty { get; set; }
         //public int cumQty { get; set; }
-        //public double avgPx { get; set; }
         //public double commission { get; set; }
         //public string tradePublishIndicator { get; set; }
         //public string multiLegReportingType { get; set; }

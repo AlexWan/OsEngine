@@ -1384,6 +1384,11 @@ namespace OsEngine.Market.Servers.QuikLua
                     _depths = new List<MarketDepth>();
                 }
 
+                if (orderBook.bid == null || orderBook.offer == null)
+                {
+                    return;
+                }
+
                 MarketDepth myDepth = new MarketDepth();
 
                 myDepth.SecurityNameCode = orderBook.sec_code;

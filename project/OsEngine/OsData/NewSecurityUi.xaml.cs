@@ -133,7 +133,8 @@ namespace OsEngine.OsData
                     continue;
                 }
 
-                if (_securities[i].NameFull[0] == '\'' && _securities[i].NameFull[1] == '\'' &&
+                if (_securities[i].NameFull== null ||
+                    _securities[i].NameFull[0] == '\'' && _securities[i].NameFull[1] == '\'' &&
                     _securities[i].NameFull.Length == 2)
                 {
                     continue;

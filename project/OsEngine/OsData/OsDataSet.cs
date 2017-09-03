@@ -2023,6 +2023,10 @@ namespace OsEngine.OsData
 
                 for (int i = firstIndex; i < candles.Count; i++)
                 {
+                    if (candles[i].TimeStart == Candles[Candles.Count - 1].TimeStart)
+                    {
+                        continue;
+                    }
                     Candles.Add(candles[i]);
                 }
             }

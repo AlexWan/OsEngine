@@ -60,6 +60,7 @@ namespace OsEngine.OsData
                 ServerMaster.CreateServer(ServerType.QuikLua, false);
                 ServerMaster.CreateServer(ServerType.Plaza, false);
                 ServerMaster.CreateServer(ServerType.InteractivBrokers, false);
+                ServerMaster.CreateServer(ServerType.BitMex, false);
 
                 List<IServer> servers = ServerMaster.GetServers();
 

@@ -899,6 +899,7 @@ namespace OsEngine.Market.Servers.BitMex
                 {
                     Security security = new Security();
                     security.Name = oneBmSec.symbol;
+                    security.NameFull = oneBmSec.symbol;
                     security.NameClass = oneBmSec.typ;
                     security.Lot = Convert.ToDecimal(oneBmSec.lotSize);
                     if (oneBmSec.tickSize < 1)
@@ -911,6 +912,8 @@ namespace OsEngine.Market.Servers.BitMex
                     }
                     security.Expiration = Convert.ToDateTime(oneBmSec.expiry);
                     security.PriceStep = Convert.ToDecimal(oneBmSec.tickSize);
+                    security.PriceStepCost = Convert.ToDecimal(oneBmSec.tickSize);
+
                     security.State = oneBmSec.state == "Open" ? SecurityStateType.Activ : SecurityStateType.UnKnown;
 
                     _securities.Add(security);
@@ -1145,12 +1148,19 @@ namespace OsEngine.Market.Servers.BitMex
                         param["endTime"] = end;
                         param["partial"] = true.ToString();
 
-                        var res = _clientBitMex.CreateQuery("GET", "/trade/bucketed", param);
+                        try
+                        {
+                            var res = _clientBitMex.CreateQuery("GET", "/trade/bucketed", param);
 
-                        List<BitMexCandle> bmcandles =
-                            JsonConvert.DeserializeAnonymousType(res, new List<BitMexCandle>());
+                            List<BitMexCandle> bmcandles =
+                                JsonConvert.DeserializeAnonymousType(res, new List<BitMexCandle>());
 
-                        allbmcandles.AddRange(bmcandles);
+                            allbmcandles.AddRange(bmcandles);
+                        }
+                        catch
+                        {
+                            // ignored
+                        }
                     }
 
                     if (_candles == null)
@@ -1584,7 +1594,7 @@ namespace OsEngine.Market.Servers.BitMex
                         trade.NumberTrade = order.data[i].execID;
                         trade.NumberOrderParent = order.data[i].orderID;
                         trade.SecurityNameCode = order.data[i].symbol;
-                        trade.Price = order.data[i].price;
+                        trade.Price = Convert.ToDecimal(order.data[i].avgPx);
                         trade.Time = Convert.ToDateTime(order.data[i].transactTime);
                         trade.Side = order.data[i].side == "Buy" ? Side.Buy : Side.Sell;
 
