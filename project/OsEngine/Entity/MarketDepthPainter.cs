@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
-using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using OsEngine.Logging;
@@ -58,7 +56,7 @@ namespace OsEngine.Entity
         {
             while (true)
             {
-                Thread.Sleep(2000);
+                Thread.Sleep(700);
 
                 for (int i = 0; i < MarketDepthsToCheck.Count; i++)
                 {
@@ -71,7 +69,6 @@ namespace OsEngine.Entity
                 }
             }
         }
-
 
 // основной класс
 
@@ -588,7 +585,7 @@ namespace OsEngine.Entity
             }
             catch (Exception error)
             {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                //SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 

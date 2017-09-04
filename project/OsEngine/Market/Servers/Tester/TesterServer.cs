@@ -2010,9 +2010,8 @@ namespace OsEngine.Market.Servers.Tester
             {
                 return false;
             }
-            decimal maxPrice = lastMarketDepth.Asks[0].Price;
-            decimal minPrice = lastMarketDepth.Bids[0].Price;
-            decimal openPrice = lastMarketDepth.Asks[0].Price;
+            decimal minPrice = lastMarketDepth.Asks[0].Price;
+            decimal maxPrice = lastMarketDepth.Bids[0].Price;
 
             DateTime time = lastMarketDepth.Time;
 
@@ -2025,30 +2024,21 @@ namespace OsEngine.Market.Servers.Tester
             // проверяем, прошёл ли ордер
             if (order.Side == Side.Buy)
             {
-                 if ((OrderExecutionType == OrderExecutionType.Intersection && order.Price > minPrice) 
-                    ||
-                    (OrderExecutionType == OrderExecutionType.Touch && order.Price >= minPrice)
-                    ||
-                    (OrderExecutionType == OrderExecutionType.FiftyFifty && 
-                    _lastOrderExecutionTypeInFiftyFiftyType == OrderExecutionType.Intersection &&
-                    order.Price > minPrice) 
-                    ||
-                    (OrderExecutionType == OrderExecutionType.FiftyFifty &&
-                    _lastOrderExecutionTypeInFiftyFiftyType == OrderExecutionType.Touch &&
-                    order.Price >= minPrice)
-                    )
-                 {
+                if ((OrderExecutionType == OrderExecutionType.Intersection && order.Price > minPrice)
+                   ||
+                   (OrderExecutionType == OrderExecutionType.Touch && order.Price >= minPrice)
+                   ||
+                   (OrderExecutionType == OrderExecutionType.FiftyFifty &&
+                   _lastOrderExecutionTypeInFiftyFiftyType == OrderExecutionType.Intersection &&
+                   order.Price > minPrice)
+                   ||
+                   (OrderExecutionType == OrderExecutionType.FiftyFifty &&
+                   _lastOrderExecutionTypeInFiftyFiftyType == OrderExecutionType.Touch &&
+                   order.Price >= minPrice)
+                   )
+                {
                     decimal realPrice = order.Price;
 
-                    if (realPrice > openPrice && order.IsStopOrProfit == false)
-                    {
-                        // если заявка не котировачная и выставлена в рынок
-                        realPrice = openPrice;
-                    }
-                    else if (order.IsStopOrProfit && order.Price > maxPrice)
-                    {
-                        realPrice = maxPrice;
-                    }
                     int slipage = 0;
 
                     if (order.IsStopOrProfit && _slipageToStopOrder > 0)
@@ -2095,18 +2085,9 @@ namespace OsEngine.Market.Servers.Tester
                      order.Price <= maxPrice)
                     )
                 {
-// исполняем
+                    // исполняем
                     decimal realPrice = order.Price;
 
-                    if (realPrice < openPrice && order.IsStopOrProfit == false)
-                    {
-                        // если заявка не котировачная и выставлена в рынок
-                        realPrice = openPrice;
-                    }
-                    else if (order.IsStopOrProfit && order.Price < minPrice)
-                    {
-                        realPrice = minPrice;
-                    }
                     int slipage = 0;
 
                     if (order.IsStopOrProfit && _slipageToStopOrder > 0)

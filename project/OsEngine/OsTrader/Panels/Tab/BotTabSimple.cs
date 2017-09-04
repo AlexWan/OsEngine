@@ -3191,6 +3191,35 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 MarketDepthUpdateEvent(marketDepth);
             }
+
+            if (ServerMaster.StartProgram != ServerStartProgramm.IsOsTrader)
+            {
+                if (marketDepth.Asks == null || marketDepth.Asks.Count == 0 ||
+                    marketDepth.Bids == null || marketDepth.Bids.Count == 0)
+                {
+                    return;
+                }
+
+                List<Position> openPositions = _journal.OpenPositions;
+
+                if (openPositions != null)
+                {
+                    for (int i = 0; i < openPositions.Count; i++)
+                    {
+                        if (openPositions[i].State != PositionStateType.Open)
+                        {
+                            continue;
+                        }
+                        CheckStop(openPositions[i], marketDepth.Asks[0].Price);
+
+                        if (openPositions.Count <= i)
+                        {
+                            continue;
+                        }
+                        CheckStop(openPositions[i], marketDepth.Bids[0].Price);
+                    }
+                }
+            }
         }
 
         /// <summary>

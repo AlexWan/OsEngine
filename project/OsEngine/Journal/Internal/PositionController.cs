@@ -42,8 +42,7 @@ namespace OsEngine.Journal.Internal
         /// </summary>
         public static void Activate()
         {
-            if (ServerMaster.StartProgram == ServerStartProgramm.IsTester ||
-                ServerMaster.StartProgram == ServerStartProgramm.IsOsData ||
+            if (ServerMaster.StartProgram == ServerStartProgramm.IsOsData ||
                 ServerMaster.StartProgram == ServerStartProgramm.IsOsOptimizer)
             {
                 return;
@@ -165,6 +164,7 @@ namespace OsEngine.Journal.Internal
                         {
                             positions.Add(new Position());
                             positions[i].SetDealFromString(reader.ReadLine());
+                            UpdeteOpenPositionArray(positions[i]);
                         }
                         catch (Exception)
                         {
@@ -258,6 +258,11 @@ namespace OsEngine.Journal.Internal
         private void SavePositions()
         {
             if (!_neadToSave)
+            {
+                return;
+            }
+
+            if (ServerMaster.StartProgram == ServerStartProgramm.IsTester)
             {
                 return;
             }
@@ -834,8 +839,6 @@ namespace OsEngine.Journal.Internal
                     _hostOpenDeal != null && 
                     !_positionsToPaint.IsEmpty)
                 {
-                    List<Position> elements = new List<Position>();
-
                     while (!_positionsToPaint.IsEmpty)
                     {
                         Position newElement;
@@ -843,23 +846,8 @@ namespace OsEngine.Journal.Internal
 
                         if (newElement != null)
                         {
-                            elements.Add(newElement);
+                            PaintPosition(newElement);
                         }
-                    }
-
-                    List<Position> elementsWithoutRepiat = new List<Position>();
-
-                    for (int i = elements.Count - 1; i > -1 && elements[i] != null; i--)
-                    {
-                        if (elementsWithoutRepiat.Find(element => element.Number == elements[i].Number) == null)
-                        {
-                            elementsWithoutRepiat.Add(elements[i]);
-                        }
-                    }
-
-                    for (int i = 0; i < elementsWithoutRepiat.Count; i++)
-                    {
-                        PaintPosition(elementsWithoutRepiat[i]);
                     }
                 }
             }

@@ -187,6 +187,13 @@ namespace OsEngine.Market.Servers.BitMex
                     {
                         var buffer = new ArraySegment<byte>(new byte[1024]);
                         var result = ws.ReceiveAsync(buffer, CancellationToken.None).Result;
+
+                        if(result.Count == 0)
+                        {
+                            Thread.Sleep(1);
+                            continue;
+                        }
+
                         if (result.EndOfMessage == false)
                         {
                             res += Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
@@ -300,6 +307,10 @@ namespace OsEngine.Market.Servers.BitMex
                             }
                         }                      
 
+                    }
+                    else
+                    {
+                        Thread.Sleep(2);
                     }
                 }
                 catch (Exception exception)

@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Threading;
 using OsEngine.Charts.CandleChart.Elements;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
@@ -13,7 +15,6 @@ using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels.PanelsGui;
 using OsEngine.OsTrader.Panels.Tab;
-using ru.micexrts.cgate;
 using MessageBox = System.Windows.MessageBox;
 
 namespace OsEngine.OsTrader.Panels
@@ -26,8 +27,10 @@ namespace OsEngine.OsTrader.Panels
             List<string> result = new List<string>();
 
             // публичные примеры
-            result.Add("TwoTimeFrameBot");
+           
             result.Add("Engine");
+            result.Add("MarketDepthJuggler");
+            result.Add("TwoTimeFrameBot");
             result.Add("Bollinger");
             result.Add("Williams Band");
             result.Add("FilippLevel");
@@ -73,7 +76,10 @@ namespace OsEngine.OsTrader.Panels
 
             BotPanel bot = null;
             // примеры и бесплатные боты
-
+            if (nameClass == "MarketDepthJuggler")
+            {
+                bot = new MarketDepthJuggler(name);
+            }
             if (nameClass == "TwoTimeFrameBot")
             {
                 bot = new BotWhithTwoTimeFrame(name);
@@ -220,6 +226,297 @@ namespace OsEngine.OsTrader.Panels
     }
 
     # region примеры роботов для оптимизации
+
+    /// <summary>
+    /// робот анализирующий плотность стакана для входа
+    /// </summary>
+    public class MarketDepthJuggler : BotPanel
+    {
+        
+        //выставляем заявки над самыми толстыми покупками и продажами. 
+        //не далее чем в пяти тиков от центра стакана. По две заявки.
+        //Когда одна заявка отрабатывает, снимаем все ордера из системы.
+        //Выставляем профит в 10 пунктов и стоп в 5ть.
+
+        //На нашем Ютуб канале есть видео о том как я делаю этого бота:https://www.youtube.com/playlist?list=PL76DtREkiCATe28yPbAT_5em1JqA4xEiB
+        //Однако там не всё сделано, т.к. я кое-что доработал для реальной торговли
+
+        public MarketDepthJuggler(string name)
+            : base(name)
+        {
+            TabCreate(BotTabType.Simple);
+            _tab = TabsSimple[0];
+
+            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyClosePosition" });
+            Volume = CreateParameter("Volume", 1, 1, 100, 2);
+            Stop = CreateParameter("Stop", 5, 5, 15, 1);
+            Profit = CreateParameter("Profit", 5, 5, 20, 1);
+
+            MaxLevelsInMarketDepth = CreateParameter("MaxLevelsInMarketDepth", 5, 3, 15, 1);
+
+            _tab.MarketDepthUpdateEvent += _tab_MarketDepthUpdateEvent;
+
+            _tab.PositionOpeningSuccesEvent += _tab_PositionOpeningSuccesEvent;
+            _tab.PositionClosingFailEvent += _tab_PositionClosingFailEvent;
+
+            // этот поток создан для того чтобы в реальной торговле отзывать заявки
+            // т.к. нужно ожидать когда у ордеров вернётся номер ордера на бирже
+            // а когда у нас каждую секунду переустанавливаются ордера, этого может не 
+            // успевать происходить. Особенно через наш любимый квик.
+
+            Thread closerThread = new Thread(ClosePositionThreadArea);
+            closerThread.IsBackground = true;
+            closerThread.Start();
+        }
+
+        /// <summary>
+        /// вкладка для торговли
+        /// </summary>
+        private BotTabSimple _tab;
+
+        /// <summary>
+        /// режим работы
+        /// </summary>
+        public StrategyParameterString Regime;
+
+        /// <summary>
+        /// объем
+        /// </summary>
+        public StrategyParameterInt Volume;
+
+        /// <summary>
+        /// глубина анализа стакана
+        /// </summary>
+        public StrategyParameterInt MaxLevelsInMarketDepth;
+
+        /// <summary>
+        /// длинна стопа
+        /// </summary>
+        public StrategyParameterInt Stop;
+
+        /// <summary>
+        /// длинна профита
+        /// </summary>
+        public StrategyParameterInt Profit;
+
+        public override string GetNameStrategyType()
+        {
+            return "MarketDepthJuggler";
+        }
+
+        public override void ShowIndividualSettingsDialog()
+        {
+
+        }
+
+// начало логики
+
+        /// <summary>
+        /// последнее время проверки стакана
+        /// </summary>
+        private DateTime _lastCheckTime = DateTime.MinValue;
+
+        /// <summary>
+        /// новый входящий стакан
+        /// </summary>
+        void _tab_MarketDepthUpdateEvent(MarketDepth marketDepth)
+        {
+            if (Regime.ValueString == "Off")
+            {
+                return;
+            }
+            if (marketDepth.Asks == null || marketDepth.Asks.Count == 0 ||
+                marketDepth.Bids == null || marketDepth.Bids.Count == 0)
+            {
+                return;
+            }
+
+            if (_tab.PositionsOpenAll.Find(pos => pos.State == PositionStateType.Open ||
+                pos.State == PositionStateType.Closing
+                ) != null)
+            {
+                return;
+            }
+
+            if (ServerMaster.StartProgram == ServerStartProgramm.IsOsTrader &&
+                _lastCheckTime.AddSeconds(1) > DateTime.Now)
+            { // в реальной торговле, проверяем стакан раз в секунду
+                return;
+            }
+
+            _lastCheckTime = DateTime.Now;
+
+            Position positionBuy = _tab.PositionsOpenAll.Find(pos => pos.Direction == Side.Buy);
+            Position positionSell = _tab.PositionsOpenAll.Find(pos => pos.Direction == Side.Sell);
+
+            decimal buyPrice = 0;
+            int lastVolume = 0;
+
+            // проверка на покупку
+
+            for (int i = 0; i < marketDepth.Bids.Count && i < MaxLevelsInMarketDepth.ValueInt; i++)
+            {
+                if (marketDepth.Bids[i].Bid > lastVolume)
+                {
+                    buyPrice = marketDepth.Bids[i].Price + _tab.Securiti.PriceStep;
+                    lastVolume = Convert.ToInt32(marketDepth.Bids[i].Bid);
+                }
+            }
+
+            if (positionBuy != null &&
+                positionBuy.OpenOrders[0].Price != buyPrice &&
+                positionBuy.State != PositionStateType.Open &&
+                positionBuy.State != PositionStateType.Closing)
+            {
+                if (ServerMaster.StartProgram == ServerStartProgramm.IsOsTrader)
+                { // в реальной торговле отправляем позицию на отзыв в массив, 
+                    // который обрабатывается отдельным потоком, ожидая когда у ордеров позиции
+                    // вернутся номера ордеров, прежде чем мы их будем пытаться отозвать
+                    _positionsToClose.Add(positionBuy);
+
+                }
+                else
+                { // в тестере, сразу отправляем позицию на отзыв
+                    _tab.CloseAllOrderToPosition(positionBuy);
+                }
+                _tab.BuyAtLimit(Volume.ValueInt, buyPrice);
+            }
+            if (positionBuy == null)
+            {
+                _tab.BuyAtLimit(Volume.ValueInt, buyPrice);
+            }
+
+            // проверка на продажу
+
+            decimal sellPrice = 0;
+            int lastVolumeInAsk = 0;
+
+            for (int i = 0; i < marketDepth.Asks.Count && i < MaxLevelsInMarketDepth.ValueInt; i++)
+            {
+                if (marketDepth.Asks[i].Ask > lastVolumeInAsk)
+                {
+                    sellPrice = marketDepth.Asks[i].Price - _tab.Securiti.PriceStep;
+                    lastVolumeInAsk = Convert.ToInt32(marketDepth.Asks[i].Ask);
+                }
+            }
+
+            if (positionSell != null &&
+                positionSell.OpenOrders[0].Price != sellPrice &&
+                positionSell.State != PositionStateType.Open &&
+                positionSell.State != PositionStateType.Closing)
+            {
+                if (ServerMaster.StartProgram == ServerStartProgramm.IsOsTrader)
+                {
+                    _positionsToClose.Add(positionSell);
+                    // в реальной торговле отправляем позицию на отзыв в массив, 
+                    // который обрабатывается отдельным потоком, ожидая когда у ордеров позиции
+                    // вернутся номера ордеров, прежде чем мы их будем пытаться отозвать
+                }
+                else
+                {
+                    // в тестере, сразу отправляем позицию на отзыв
+                    _tab.CloseAllOrderToPosition(positionSell);
+                }
+
+                _tab.SellAtLimit(Volume.ValueInt, sellPrice);
+            }
+            if (positionSell == null)
+            {
+                _tab.SellAtLimit(Volume.ValueInt, sellPrice);
+            }
+        }
+
+        /// <summary>
+        /// успешное открытие позиции
+        /// </summary>
+        void _tab_PositionOpeningSuccesEvent(Position position)
+        {
+            if (position.Direction == Side.Buy)
+            {
+                _tab.CloseAtStop(position, position.EntryPrice - Stop.ValueInt * _tab.Securiti.PriceStep, position.EntryPrice - Stop.ValueInt * _tab.Securiti.PriceStep);
+                _tab.CloseAtProfit(position, position.EntryPrice + Profit.ValueInt * _tab.Securiti.PriceStep, position.EntryPrice + Profit.ValueInt * _tab.Securiti.PriceStep);
+            }
+            if (position.Direction == Side.Sell)
+            {
+                _tab.CloseAtStop(position, position.EntryPrice + Stop.ValueInt * _tab.Securiti.PriceStep, position.EntryPrice + Stop.ValueInt * _tab.Securiti.PriceStep);
+                _tab.CloseAtProfit(position, position.EntryPrice - Profit.ValueInt * _tab.Securiti.PriceStep, position.EntryPrice - Profit.ValueInt * _tab.Securiti.PriceStep);
+            }
+
+            List<Position> positions = _tab.PositionsOpenAll;
+
+            for (int i = 0; i < positions.Count; i++)
+            {
+                if (positions[i].Number == position.Number)
+                {
+                    continue;
+                }
+                if (ServerMaster.StartProgram == ServerStartProgramm.IsOsTrader)
+                {
+                    // в реальной торговле отправляем позицию на отзыв в массив, 
+                    // который обрабатывается отдельным потоком, ожидая когда у ордеров позиции
+                    // вернутся номера ордеров, прежде чем мы их будем пытаться отозвать
+                    _positionsToClose.Add(positions[i]);
+                }
+                else
+                {
+                    // в тестере, сразу отправляем позицию на отзыв
+                    _tab.CloseAllOrderToPosition(positions[i]);
+                }
+            }
+        }
+
+        /// <summary>
+        /// позиция не закрылась и у неё отозваны ордера
+        /// </summary>
+        void _tab_PositionClosingFailEvent(Position position)
+        {
+            if (position.CloseActiv)
+            {
+                return;
+            }
+            _tab.CloseAtMarket(position, position.OpenVolume);
+        }
+
+// отзыв заявок в реальном подключении
+
+        /// <summary>
+        /// позиции которые нужно отозвать
+        /// </summary>
+        List<Position> _positionsToClose = new List<Position>();
+
+        /// <summary>
+        /// место работы потока где отзываются заявки в реальном подключении
+        /// </summary>
+        private void ClosePositionThreadArea()
+        {
+            while (true)
+            {
+                Thread.Sleep(1000);
+
+                if (MainWindow.ProccesIsWorked == false)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < _positionsToClose.Count; i++)
+                {
+                    if (_positionsToClose[i].State != PositionStateType.Opening)
+                    {
+                        continue;
+                    }
+
+                    if (_positionsToClose[i].OpenOrders != null &&
+                        !string.IsNullOrWhiteSpace(_positionsToClose[i].OpenOrders[0].NumberMarket))
+                    {
+                        _tab.CloseAllOrderToPosition(_positionsToClose[i]);
+                        _positionsToClose.RemoveAt(i);
+                        i--;
+                    }
+                }
+            }
+        }
+    }
+
 
     /// <summary>
     /// трендовая стратегия Билла Вильямса на Аллигаторе и фракталах

@@ -20,7 +20,7 @@ namespace OsEngine.Entity
         public DateTime Time;
 
         /// <summary>
-        /// уровни предаж. лучшая с индексом 0
+        /// уровни продаж. лучшая с индексом 0
         /// </summary>
         public List<MarketDepthLevel> Asks;
 
