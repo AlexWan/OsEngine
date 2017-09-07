@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Windows;
 using OsEngine.Entity;
 using OsEngine.Logging;
@@ -442,7 +443,15 @@ namespace OsEngine.Market
                 }
                 if (curPortfolio != null)
                 {
-                    ComboBoxPortfolio.SelectedItem = curPortfolio.ToString();
+                    for (int i = 0; i < ComboBoxPortfolio.Items.Count; i++)
+                    {
+                        if (ComboBoxPortfolio.Items[i].ToString() == curPortfolio)
+                        {
+                            ComboBoxPortfolio.SelectedItem = curPortfolio;
+                            break;
+                        }
+                    }
+                   
                 }
             }
             catch (Exception error)

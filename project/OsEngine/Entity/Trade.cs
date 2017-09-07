@@ -4,6 +4,7 @@
 
 using System;
 using System.Globalization;
+using OsEngine.Market.Servers.Entity;
 
 namespace OsEngine.Entity
 {
@@ -12,6 +13,28 @@ namespace OsEngine.Entity
     /// </summary>
     public class Trade
     {
+
+// стандартная часть
+
+        /// <summary>
+        /// код инструмента по которому прошла сделка
+        /// </summary>
+        public string SecurityNameCode
+        {
+            get { return name; }
+            set
+            {
+                name = value;
+
+            }
+        }
+        private string name;
+
+        /// <summary>
+        /// номер сделки в системе
+        /// </summary>
+        public string Id;
+
         /// <summary>
         /// объём
         /// </summary>
@@ -37,24 +60,29 @@ namespace OsEngine.Entity
         /// </summary>
         public Side Side;
 
-        /// <summary>
-        /// код инструмента по которому прошла сделка
-        /// </summary>
-        public string SecurityNameCode
-        {
-            get { return name; }
-            set
-            {
-                name = value;
+// новая часть. Эту часть с финама не скачать. Её можно добыть OsData, только из стандартных коннекторов
 
-            }
-        }
-
-        private string name;
         /// <summary>
-        /// номер сделки в системе
+        /// лучшая продажа в стакане, на момент когда пришёл этот трейд
         /// </summary>
-        public string Id;
+        public decimal Bid;
+
+        /// <summary>
+        /// лучшая покупка в стакане, на момент когда пришёл этот трейд
+        /// </summary>
+        public decimal Ask;
+
+        /// <summary>
+        /// суммарный объём в продажах в стакане, на момент когда пришёл этот трейд
+        /// </summary>
+        public int BidsVolume;
+
+        /// <summary>
+        /// суммарный объём в покупках в стакане, на момент когда пришёл этот трейд
+        /// </summary>
+        public int AsksVolume;
+
+//сохранение / загрузка тика
 
         /// <summary>
         /// взять строку для сохранения
@@ -69,7 +97,20 @@ namespace OsEngine.Entity
             result += Price.ToString(new CultureInfo("en-US")) + ",";
             result += Volume + ",";
             result += Side + ",";
-            result += MicroSeconds;
+            result += MicroSeconds + ",";
+            result += Id;
+
+            if (Bid != 0 && Ask != 0 &&
+                BidsVolume != 0 && AsksVolume != 0)
+            {
+                result += ",";
+
+                result += Bid + ",";
+                result += Ask + ",";
+                result += BidsVolume + ",";
+                result += AsksVolume;
+                
+            }
 
             return result;
         }
@@ -109,7 +150,18 @@ namespace OsEngine.Entity
                 MicroSeconds = Convert.ToInt32(sIn[5]);
             }
 
-        }
+            if (sIn.Length > 6)
+            {
+                Id = sIn[6];
+            }
 
+            if (sIn.Length > 7)
+            {
+                Bid = Convert.ToDecimal(sIn[7].Replace(".", ","));
+                Ask = Convert.ToDecimal(sIn[8].Replace(".", ","));
+                BidsVolume = Convert.ToInt32(sIn[9]);
+                AsksVolume = Convert.ToInt32(sIn[10]);
+            }
+        }
     }
 }

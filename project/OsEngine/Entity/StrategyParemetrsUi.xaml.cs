@@ -134,19 +134,19 @@ namespace OsEngine.Entity
             {
                 if (_parameters[i].Type == StrategyParameterType.String)
                 {
-                    ((StrategyParameterString)_parameters[i]).ValueString = _grid.Rows[i].Cells[1].Value.ToString();
+                    ((StrategyParameterString)_parameters[i]).ValueString = _grid.Rows[i].Cells[1].EditedFormattedValue.ToString();
                 }
                 else if (_parameters[i].Type == StrategyParameterType.Int)
                 {
-                     ((StrategyParameterInt)_parameters[i]).ValueInt = Convert.ToInt32(_grid.Rows[i].Cells[1].Value.ToString());
+                    ((StrategyParameterInt)_parameters[i]).ValueInt = Convert.ToInt32(_grid.Rows[i].Cells[1].EditedFormattedValue.ToString());
                 }
                 else if (_parameters[i].Type == StrategyParameterType.Bool)
                 {
-                    ((StrategyParameterBool)_parameters[i]).ValueBool = Convert.ToBoolean(_grid.Rows[i].Cells[1].Value.ToString());
+                    ((StrategyParameterBool)_parameters[i]).ValueBool = Convert.ToBoolean(_grid.Rows[i].Cells[1].EditedFormattedValue.ToString());
                 }
                 else if (_parameters[i].Type == StrategyParameterType.Decimal)
                 {
-                    ((StrategyParameterDecimal)_parameters[i]).ValueDecimal = Convert.ToDecimal(_grid.Rows[i].Cells[1].Value.ToString());
+                    ((StrategyParameterDecimal)_parameters[i]).ValueDecimal = Convert.ToDecimal(_grid.Rows[i].Cells[1].EditedFormattedValue.ToString());
                 }
             }
 

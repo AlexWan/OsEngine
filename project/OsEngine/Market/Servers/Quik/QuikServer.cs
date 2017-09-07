@@ -847,6 +847,8 @@ namespace OsEngine.Market.Servers.Quik
                 AllTradesTableChangeEvent(tradesNew);
             }
 
+            BathTradeMarketDepthData(tradesNew);
+
             if (_allTrades == null)
             {
                 _allTrades = new List<Trade>[1];
@@ -858,6 +860,7 @@ namespace OsEngine.Market.Servers.Quik
                 for (int indTrade = 0; indTrade < tradesNew.Count; indTrade++)
                 {
                     Trade trade = tradesNew[indTrade];
+
                     bool isSave = false;
                     for (int i = 0; i < _allTrades.Length; i++)
                     {
@@ -995,6 +998,56 @@ namespace OsEngine.Market.Servers.Quik
 // стакан
 
         /// <summary>
+        /// стаканы по инструментам
+        /// </summary>
+        private List<MarketDepth> _marketDepths = new List<MarketDepth>();
+
+        /// <summary>
+        /// взять стакан по названию бумаги
+        /// </summary>
+        public MarketDepth GetMarketDepth(string securityName)
+        {
+            return _marketDepths.Find(m => m.SecurityNameCode == securityName);
+        }
+
+// сохранение расширенных данных по трейду
+
+        /// <summary>
+        /// прогрузить трейды данными стакана
+        /// </summary>
+        private void BathTradeMarketDepthData(List<Trade> trades)
+        {
+            MarketDepth depth = null;
+
+            for (int i = 0; i < trades.Count; i++)
+            {
+                if (i != 0 && depth == null &&
+                    trades[i - 1].SecurityNameCode == trades[i].SecurityNameCode)
+                {
+                    continue;
+                }
+
+                if (depth == null ||
+                    depth.SecurityNameCode != trades[i].SecurityNameCode)
+                {
+                    depth = _marketDepths.Find(d => d.SecurityNameCode == trades[i].SecurityNameCode);
+                }
+
+                if (depth == null ||
+                    depth.Asks == null || depth.Asks.Count == 0 ||
+                    depth.Bids == null || depth.Bids.Count == 0)
+                {
+                    return;
+                }
+
+                trades[i].Ask = depth.Asks[0].Price;
+                trades[i].Bid = depth.Bids[0].Price;
+                trades[i].BidsVolume = depth.BidSummVolume;
+                trades[i].AsksVolume = depth.AskSummVolume;
+            }
+        }
+
+        /// <summary>
         /// пришёл новый стакан
         /// </summary>
         void _serverDde_UpdateGlass(MarketDepth marketDepth)
@@ -1005,6 +1058,17 @@ namespace OsEngine.Market.Servers.Quik
             {
                 NewMarketDepthEvent(marketDepth);
             }
+
+            // грузим стаканы в хранилище
+            for (int i = 0; i < _marketDepths.Count; i++)
+            {
+                if (_marketDepths[i].SecurityNameCode == marketDepth.SecurityNameCode)
+                {
+                    _marketDepths[i] = marketDepth;
+                    return;
+                }
+            }
+            _marketDepths.Add(marketDepth);
         }
 
         /// <summary>

@@ -597,6 +597,41 @@ namespace OsEngine.Market.Servers.Plaza
 // стакан
 
         /// <summary>
+        /// стаканы по инструментам
+        /// </summary>
+        private List<MarketDepth> _marketDepths = new List<MarketDepth>();
+
+        /// <summary>
+        /// взять стакан по названию бумаги
+        /// </summary>
+        public MarketDepth GetMarketDepth(string securityName)
+        {
+            return _marketDepths.Find(m => m.SecurityNameCode == securityName);
+        }
+
+// сохранение расширенных данных по трейду
+
+        /// <summary>
+        /// прогрузить трейды данными стакана
+        /// </summary>
+        private void BathTradeMarketDepthData(Trade trade)
+        {
+            MarketDepth depth = _marketDepths.Find(d => d.SecurityNameCode == trade.SecurityNameCode);
+
+            if (depth == null ||
+                depth.Asks == null || depth.Asks.Count == 0 ||
+                depth.Bids == null || depth.Bids.Count == 0)
+            {
+                return;
+            }
+
+            trade.Ask = depth.Asks[0].Price;
+            trade.Bid = depth.Bids[0].Price;
+            trade.BidsVolume = depth.BidSummVolume;
+            trade.AsksVolume = depth.AskSummVolume;
+        }
+
+        /// <summary>
         /// изменился какой-то стакан
         /// </summary>
         /// <param name="depth"></param>
@@ -618,6 +653,18 @@ namespace OsEngine.Market.Servers.Plaza
                 }
                 NewBidAscIncomeEvent(depth.Asks[0].Price, depth.Bids[0].Price, GetSecurityForName(depth.SecurityNameCode));
             }
+
+            // грузим стаканы в хранилище
+            for (int i = 0; i < _marketDepths.Count; i++)
+            {
+                if (_marketDepths[i].SecurityNameCode == depth.SecurityNameCode)
+                {
+                    _marketDepths[i] = depth;
+                    return;
+                }
+            }
+
+            _marketDepths.Add(depth);
         }
 
         /// <summary>
@@ -647,7 +694,6 @@ namespace OsEngine.Market.Servers.Plaza
         {
             _allTrades = trades;
         }
-
 
         /// <summary>
         /// взять все сделки по бумаге
@@ -691,6 +737,8 @@ namespace OsEngine.Market.Servers.Plaza
             }
 
             trade.SecurityNameCode = security.Name;
+
+            BathTradeMarketDepthData(trade);
 
             if (_allTrades == null)
             {

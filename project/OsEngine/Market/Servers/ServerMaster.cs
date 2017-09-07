@@ -561,6 +561,11 @@ namespace OsEngine.Market.Servers
     public enum ServerType
     {
         /// <summary>
+        /// форекс брокер
+        /// </summary>
+        Oanda,
+
+        /// <summary>
         /// биржа криптовалют BitMEX
         /// </summary>
         BitMex,

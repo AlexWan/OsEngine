@@ -3520,20 +3520,22 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
+            int curCount = trades.Count;
+
             List<Position> openPositions = _journal.OpenPositions;
 
             if (openPositions != null)
             {
                 for (int i = 0; i < openPositions.Count; i++)
                 {
-                    for (int i2 = _lastTickIndex; i2 < trades.Count && trades[i2] != null; i2++)
+                    for (int i2 = _lastTickIndex; i2 < curCount && trades[i2] != null; i2++)
                     {
                         CheckStop(openPositions[i], trades[i2].Price);
                     }
                 }
             }
 
-            for (int i2 = _lastTickIndex; i2 < trades.Count && trades[i2] != null; i2++)
+            for (int i2 = _lastTickIndex; i2 < curCount && trades[i2] != null; i2++)
             {
                 if (trades[i2] == null)
                 {
@@ -3557,7 +3559,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
 
-            _lastTickIndex = trades.Count - 1;
+            _lastTickIndex = curCount-1;
 
             if (ServerMaster.StartProgram == ServerStartProgramm.IsOsTrader)
             {

@@ -1407,6 +1407,17 @@ namespace OsEngine.Market.Servers.SmartCom
                     Security = GetSecurityForName(symbol)
                 });
             }
+
+            // грузим стаканы в хранилище
+            for (int i = 0; i < _marketDepths.Count; i++)
+            {
+                if (_marketDepths[i].SecurityNameCode == myDepth.SecurityNameCode)
+                {
+                    _marketDepths[i] = myDepth;
+                    return;
+                }
+            }
+            _marketDepths.Add(myDepth);
         }
 
         /// <summary>
@@ -1418,6 +1429,38 @@ namespace OsEngine.Market.Servers.SmartCom
         /// вызывается когда изменяется стакан
         /// </summary>
         public event Action<MarketDepth> NewMarketDepthEvent;
+
+        /// <summary>
+        /// стаканы по инструментам
+        /// </summary>
+        private List<MarketDepth> _marketDepths = new List<MarketDepth>();
+
+        public MarketDepth GetMarketDepth(string securityName)
+        {
+            return _marketDepths.Find(m => m.SecurityNameCode == securityName);
+        }
+
+// сохранение расширенных данных по трейду
+
+        /// <summary>
+        /// прогрузить трейды данными стакана
+        /// </summary>
+        private void BathTradeMarketDepthData(Trade trade)
+        {
+            MarketDepth depth = _marketDepths.Find(d => d.SecurityNameCode == trade.SecurityNameCode);
+            
+            if (depth == null || 
+                depth.Asks == null || depth.Asks.Count == 0 ||
+                depth.Bids == null || depth.Bids.Count == 0)
+            {
+                return;
+            }
+
+            trade.Ask = depth.Asks[0].Price;
+            trade.Bid = depth.Bids[0].Price;
+            trade.BidsVolume = depth.BidSummVolume;
+            trade.AsksVolume = depth.AskSummVolume;
+        }
 
 // тики
 
@@ -1465,6 +1508,8 @@ namespace OsEngine.Market.Servers.SmartCom
                         trade.Side = Side.Sell;
                     }
 
+                    BathTradeMarketDepthData(trade);
+
                     // сохраняем
                     if (_allTrades == null)
                     {
@@ -1505,8 +1550,7 @@ namespace OsEngine.Market.Servers.SmartCom
 
 
                         _tradesToSend.Enqueue(myList);
-
-                    }
+                        }
 
                     // перегружаем последним временем тика время сервера
                     ServerTime = trade.Time;

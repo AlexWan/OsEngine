@@ -590,7 +590,6 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// </summary>
         private object _serverLocker = new object();
 
-
 //работа потока рассылки входящих данных
 
         /// <summary>
@@ -751,7 +750,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             }
         }
 
-//время сервера
+// время сервера
 
         private DateTime _serverTime;
 
@@ -1278,6 +1277,41 @@ namespace OsEngine.Market.Servers.InteractivBrokers
 // стакан
 
         /// <summary>
+        /// стаканы по инструментам
+        /// </summary>
+        private List<MarketDepth> _marketDepths = new List<MarketDepth>();
+
+        /// <summary>
+        /// взять стакан по названию бумаги
+        /// </summary>
+        public MarketDepth GetMarketDepth(string securityName)
+        {
+            return _marketDepths.Find(m => m.SecurityNameCode == securityName);
+        }
+
+// сохранение расширенных данных по трейду
+
+        /// <summary>
+        /// прогрузить трейды данными стакана
+        /// </summary>
+        private void BathTradeMarketDepthData(Trade trade)
+        {
+            MarketDepth depth = _marketDepths.Find(d => d.SecurityNameCode == trade.SecurityNameCode);
+
+            if (depth == null ||
+                depth.Asks == null || depth.Asks.Count == 0 ||
+                depth.Bids == null || depth.Bids.Count == 0)
+            {
+                return;
+            }
+
+            trade.Ask = depth.Asks[0].Price;
+            trade.Bid = depth.Bids[0].Price;
+            trade.BidsVolume = depth.BidSummVolume;
+            trade.AsksVolume = depth.AskSummVolume;
+        }
+
+        /// <summary>
         /// все стаканы
         /// </summary>
         private List<MarketDepth> _depths;
@@ -1418,7 +1452,20 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 if (myDepth.Bids[0].Price != 0 &&
                     myDepth.Asks[0].Price != 0)
                 {
-                    _marketDepthsToSend.Enqueue(myDepth);
+                    MarketDepth copy = myDepth.GetCopy();
+                    _marketDepthsToSend.Enqueue(copy);
+
+                    // грузим стаканы в хранилище
+                    for (int i = 0; i < _marketDepths.Count; i++)
+                    {
+                        if (_marketDepths[i].SecurityNameCode == copy.SecurityNameCode)
+                        {
+                            _marketDepths[i] = copy;
+                            return;
+                        }
+                    }
+                    _marketDepths.Add(copy);
+
                 }
             }
             catch (Exception error)
@@ -1459,6 +1506,8 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         {
             try
             {
+                BathTradeMarketDepthData(trade);
+
                 // сохраняем
                 if (_allTrades == null)
                 {

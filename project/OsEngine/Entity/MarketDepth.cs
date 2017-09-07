@@ -153,6 +153,9 @@ namespace OsEngine.Entity
             return result;
         }
 
+        /// <summary>
+        /// взять "глубокую" копию стакана
+        /// </summary>
         public MarketDepth GetCopy()
         {
             MarketDepth newDepth = new MarketDepth();

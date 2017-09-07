@@ -1359,9 +1359,39 @@ namespace OsEngine.Market.Servers.QuikLua
 // стакан
 
         /// <summary>
-        /// все стаканы
+        /// стаканы по инструментам
         /// </summary>
-        private List<MarketDepth> _depths;
+        private List<MarketDepth> _marketDepths = new List<MarketDepth>();
+
+        /// <summary>
+        /// взять стакан по инструменту
+        /// </summary>
+        public MarketDepth GetMarketDepth(string securityName)
+        {
+            return _marketDepths.Find(m => m.SecurityNameCode == securityName);
+        }
+
+        // сохранение расширенных данных по трейду
+
+        /// <summary>
+        /// прогрузить трейды данными стакана
+        /// </summary>
+        private void BathTradeMarketDepthData(Trade trade)
+        {
+            MarketDepth depth = _marketDepths.Find(d => d.SecurityNameCode == trade.SecurityNameCode);
+
+            if (depth == null ||
+                depth.Asks == null || depth.Asks.Count == 0 ||
+                depth.Bids == null || depth.Bids.Count == 0)
+            {
+                return;
+            }
+
+            trade.Ask = depth.Asks[0].Price;
+            trade.Bid = depth.Bids[0].Price;
+            trade.BidsVolume = depth.BidSummVolume;
+            trade.AsksVolume = depth.AskSummVolume;
+        }
 
         private List<string> subscribedBook= new List<string>();
 
@@ -1377,11 +1407,6 @@ namespace OsEngine.Market.Servers.QuikLua
                 if (subscribedBook.Find(name => name == orderBook.sec_code)== null)
                 {
                     return;
-                }
-
-                if (_depths == null)
-                {
-                    _depths = new List<MarketDepth>();
                 }
 
                 if (orderBook.bid == null || orderBook.offer == null)
@@ -1429,6 +1454,17 @@ namespace OsEngine.Market.Servers.QuikLua
                         Security = GetSecurityForName(orderBook.sec_code)
                     });
                 }
+
+                // грузим стаканы в хранилище
+                for (int i = 0; i < _marketDepths.Count; i++)
+                {
+                    if (_marketDepths[i].SecurityNameCode == myDepth.SecurityNameCode)
+                    {
+                        _marketDepths[i] = myDepth;
+                        return;
+                    }
+                }
+                _marketDepths.Add(myDepth);
             }
         }
 
@@ -1520,6 +1556,8 @@ namespace OsEngine.Market.Servers.QuikLua
                     trade.Time = new DateTime(allTrade.Datetime.year, allTrade.Datetime.month, allTrade.Datetime.day,
                                               allTrade.Datetime.hour, allTrade.Datetime.min, allTrade.Datetime.sec);
 
+                    BathTradeMarketDepthData(trade);
+
                     // сохраняем
                     if (_allTrades == null)
                     {
@@ -1563,6 +1601,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
                     // перегружаем последним временем тика время сервера
                     ServerTime = trade.Time;
+                    
                 }
             }
             catch (Exception error)

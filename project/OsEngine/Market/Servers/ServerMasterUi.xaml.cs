@@ -139,6 +139,7 @@ namespace OsEngine.Market.Servers
             bool finamIsOn = false;
             bool astsIsOn = false;
             bool quikLuaIsOn = false;
+            bool oandaIsOn = false;
 
             for (int i = 0; i < _gridSources.Rows.Count; i++)
             {
@@ -151,6 +152,11 @@ namespace OsEngine.Market.Servers
                 if (type == ServerType.BitMex)
                 {
                     bitMexIsOn = true;
+                }
+
+                if (type == ServerType.Oanda)
+                {
+                    oandaIsOn = true;
                 }
 
                 if (type == ServerType.QuikLua)
@@ -183,7 +189,33 @@ namespace OsEngine.Market.Servers
                     astsIsOn = true;
                 }
             }
-
+            if (quikIsOn == false)
+            {
+                DataGridViewRow row1 = new DataGridViewRow();
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[0].Value = ServerType.QuikDde;
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[1].Value = "Disconnect";
+                _gridSources.Rows.Add(row1);
+            }
+            if (plazaIsOn == false)
+            {
+                DataGridViewRow row1 = new DataGridViewRow();
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[0].Value = ServerType.Plaza;
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[1].Value = "Disconnect";
+                _gridSources.Rows.Add(row1);
+            }
+            if (smartcomIsOn == false)
+            {
+                DataGridViewRow row1 = new DataGridViewRow();
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[0].Value = ServerType.SmartCom;
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[1].Value = "Disconnect";
+                _gridSources.Rows.Add(row1);
+            }
             if (bitMexIsOn == false)
             {
                 DataGridViewRow row1 = new DataGridViewRow();
@@ -202,24 +234,15 @@ namespace OsEngine.Market.Servers
                 row1.Cells[1].Value = "Disconnect";
                 _gridSources.Rows.Add(row1);
             }
-            if (quikIsOn == false)
+           /* if (oandaIsOn == false)
             {
                 DataGridViewRow row1 = new DataGridViewRow();
                 row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.QuikDde;
+                row1.Cells[0].Value = ServerType.Oanda;
                 row1.Cells.Add(new DataGridViewTextBoxCell());
                 row1.Cells[1].Value = "Disconnect";
                 _gridSources.Rows.Add(row1);
-            }
-            if (smartcomIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.SmartCom;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
+            }*/
             if (astsIsOn == false)
             {
                 DataGridViewRow row1 = new DataGridViewRow();
@@ -229,15 +252,7 @@ namespace OsEngine.Market.Servers
                 row1.Cells[1].Value = "Disconnect";
                 _gridSources.Rows.Add(row1);
             }
-            if (plazaIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.Plaza;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
+
             if (ibIsOn == false)
             {
                 DataGridViewRow row1 = new DataGridViewRow();
