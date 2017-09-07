@@ -96,25 +96,34 @@ namespace OsEngine.Market.Servers.BitMex
             Auth();
         }
 
+        /// <summary>
+        /// отключение
+        /// </summary>
         public void Disconnect()
         {
-            _ws.Abort();
-            _ws.Dispose();
-            
+            if (_ws != null)
+            {
+                _ws.Abort();
+                _ws.Dispose();
+                Thread.Sleep(1000);
+                _ws = null;
+            }
         }
 
 
-
-        private  void _pinger()
+        /// <summary>
+        /// проверка соединения
+        /// </summary>
+        private void _pinger()
         {
             while (true)
             {
                 Thread.Sleep(10000);
 
-                if (_ws.State != WebSocketState.Open)
+                if (_ws != null && _ws.State != WebSocketState.Open && IsConnected)
                 {
                     IsConnected = false;
-                    
+
                     if (Disconnected != null)
                     {
                         Disconnected();

@@ -411,16 +411,8 @@ namespace OsEngine.Market.Servers.BitMex
 
         private void ClientBitMexOnDisconnected()
         {
-            SendLogMessage("КРИТИЧЕСКАЯ ОШИБКА. Реконнект", LogMessageType.Error);
+            SendLogMessage("Соединение разорвано", LogMessageType.Error);
             ServerStatus = ServerConnectStatus.Disconnect;
-            Dispose(); // очищаем данные о предыдущем коннекторе
-
-            Thread.Sleep(5000);
-            // переподключаемся
-            _threadPrime = new Thread(PrimeThreadArea);
-            _threadPrime.CurrentCulture = new CultureInfo("ru-RU");
-            _threadPrime.IsBackground = true;
-            _threadPrime.Start();
 
             if (NeadToReconnectEvent != null)
             {
@@ -510,6 +502,7 @@ namespace OsEngine.Market.Servers.BitMex
             if (_clientBitMex != null)
             {
                 _clientBitMex.Connected -= BitMexClient_Connected;
+                _clientBitMex.Disconnected -= ClientBitMexOnDisconnected;
                 _clientBitMex.UpdatePortfolio -= UpdatePortfolios;
                 _clientBitMex.UpdatePosition -= UpdatePosition;
                 _clientBitMex.UpdateMarketDepth -= UpdateMarketDepth;
@@ -521,9 +514,13 @@ namespace OsEngine.Market.Servers.BitMex
 
             _clientBitMex = null;
 
+            _candleManager = null;
+
             _startListeningPortfolios = false;
 
             _getPortfoliosAndSecurities = false;
+
+            _subscribedSec = new List<string>();
         }
 
         /// <summary>
