@@ -6,14 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
-using System.Windows.Forms;
 using System.Windows.Forms.Integration;
-using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.AstsBridge;
 using OsEngine.Market.Servers.BitMex;
 using OsEngine.Market.Servers.Finam;
 using OsEngine.Market.Servers.InteractivBrokers;
+using OsEngine.Market.Servers.Oanda;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Plaza;
 using OsEngine.Market.Servers.Quik;
@@ -91,7 +90,21 @@ namespace OsEngine.Market.Servers
                 {
                     _servers = new List<IServer>();
                 }
+                if (type == ServerType.Oanda)
+                {
+                    if (_servers.Find(server => server.ServerType == ServerType.Oanda) != null)
+                    {
+                        return;
+                    }
 
+                    OandaServer serv = new OandaServer(neadLoadTicks);
+                    _servers.Add(serv);
+
+                    if (ServerCreateEvent != null)
+                    {
+                        ServerCreateEvent();
+                    }
+                }
                 if (type == ServerType.BitMex)
                 {
                     if (_servers.Find(server => server.ServerType == ServerType.BitMex) != null)

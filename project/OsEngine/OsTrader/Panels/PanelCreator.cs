@@ -1942,18 +1942,14 @@ namespace OsEngine.OsTrader.Panels
                 return;
             }
 
-            if (_ma.Values == null)
-            {
-                return;
-            }
-            _lastIndex = _tab1.Candles[_tab1.Candles.Count - 1].Close;
-            _lastMa = _ma.Values[_ma.Values.Count - 1];
-            _lastPrice = candles[candles.Count - 1].Close;
-
             if (_ma.Values == null || _ma.Values.Count < _ma.Lenght + 2)
             {
                 return;
             }
+
+            _lastIndex = _tab1.Candles[_tab1.Candles.Count - 1].Close;
+            _lastMa = _ma.Values[_ma.Values.Count - 1];
+            _lastPrice = candles[candles.Count - 1].Close;
 
             // распределяем логику в зависимости от текущей позиции
 

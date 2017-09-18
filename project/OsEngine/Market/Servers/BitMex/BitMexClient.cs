@@ -108,6 +108,11 @@ namespace OsEngine.Market.Servers.BitMex
                 Thread.Sleep(1000);
                 _ws = null;
             }
+            IsConnected = false;
+            if (Disconnected != null)
+            {
+                Disconnected();
+            }
         }
 
 

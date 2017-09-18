@@ -243,6 +243,8 @@ namespace OsEngine.Journal.Internal
                 _closePositionChanged = true;
                 _closeShortChanged = true;
                 _closeLongChanged = true;
+                _positionsToPaint = new ConcurrentQueue<Position>();
+                ClearPositionsGrid();
             }
             catch (Exception error)
             {
@@ -458,7 +460,8 @@ namespace OsEngine.Journal.Internal
                 {
                     for (int indexCloseOrd = 0; indexCloseOrd < _deals[i].CloseOrders.Count; indexCloseOrd++)
                     {
-                        if (_deals[i].CloseOrders[indexCloseOrd].NumberMarket == trade.NumberOrderParent)
+                        if (_deals[i].CloseOrders[indexCloseOrd].NumberMarket == trade.NumberOrderParent ||
+                            _deals[i].CloseOrders[indexCloseOrd].NumberUser.ToString() == trade.NumberOrderParent)
                         {
                             isCloseOrder = true;
                             break;
@@ -472,7 +475,8 @@ namespace OsEngine.Journal.Internal
                 {
                     for (int indOpenOrd = 0; indOpenOrd < _deals[i].OpenOrders.Count; indOpenOrd++)
                     {
-                        if (_deals[i].OpenOrders[indOpenOrd].NumberMarket == trade.NumberOrderParent)
+                        if (_deals[i].OpenOrders[indOpenOrd].NumberMarket == trade.NumberOrderParent ||
+                            _deals[i].OpenOrders[indOpenOrd].NumberUser.ToString() == trade.NumberOrderParent)
                         {
                             isOpenOrder = true;
                             break;
@@ -730,6 +734,7 @@ namespace OsEngine.Journal.Internal
         private bool _closeLongChanged = true;
 
         private List<Position> _closeLongPositions;
+
         /// <summary>
         /// взять закрытые сделки в Лонг
         /// </summary>
@@ -1031,6 +1036,21 @@ namespace OsEngine.Journal.Internal
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
             return null;
+        }
+
+        /// <summary>
+        /// очистить таблицы от сделок
+        /// </summary>
+        private void ClearPositionsGrid()
+        {
+            if (_gridOpenDeal.InvokeRequired)
+            {
+                _gridOpenDeal.Invoke(new Action(ClearPositionsGrid));
+                return;
+            }
+
+            _gridOpenDeal.Rows.Clear();
+            _gridCloseDeal.Rows.Clear();
         }
 
         /// <summary>

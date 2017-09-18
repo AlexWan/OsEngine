@@ -1,49 +1,47 @@
-﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
-*/
-
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+using OkonkwoOandaV20;
+using OkonkwoOandaV20.TradeLibrary.DataTypes.Instrument;
+using OkonkwoOandaV20.TradeLibrary.Primitives;
 using OsEngine.Entity;
 using OsEngine.Logging;
-using Order = OsEngine.Entity.Order;
+using OsEngine.Market.Servers.InteractivBrokers;
 
-namespace OsEngine.Market.Servers.InteractivBrokers
+namespace OsEngine.Market.Servers.Oanda
 {
-
-    /// <summary>
-    /// класс - сервер для подключения к Interactive Brokers через терминал TWS
-    /// </summary>
-    public class InteractivBrokersServer : IServer
+    public class OandaServer : IServer
     {
 
-//сервис. менеджмент первичных настроек
+        //сервис. менеджмент первичных настроек
 
         /// <summary>
         ///  конструктор
         /// </summary>
-        public InteractivBrokersServer()
+        public OandaServer(bool neadToLoadTicks)
         {
-            Port = 7497;
-            Host = "127.0.0.1";
-            ClientIdInSystem = 1;
+            ClientIdInSystem = "";
+            Token = "";
             _neadToSaveTicks = false;
-            _countDaysTickNeadToSave = 2;
-            ServerType = ServerType.InteractivBrokers;
+            ServerType = ServerType.Oanda;
             ServerStatus = ServerConnectStatus.Disconnect;
 
             Load();
 
-            _tickStorage = new ServerTickStorage(this);
-            _tickStorage.NeadToSave = NeadToSaveTicks;
-            _tickStorage.DaysToLoad = CountDaysTickNeadToSave;
-            _tickStorage.TickLoadedEvent += _tickStorage_TickLoadedEvent;
-            _tickStorage.LogMessageEvent += SendLogMessage;
-            _tickStorage.LoadTick();
+            if (neadToLoadTicks)
+            {
+                _tickStorage = new ServerTickStorage(this);
+                _tickStorage.NeadToSave = NeadToSaveTicks;
+                _tickStorage.TickLoadedEvent += _tickStorage_TickLoadedEvent;
+                _tickStorage.LogMessageEvent += SendLogMessage;
+                _tickStorage.LoadTick();
+            }
 
             _ordersToExecute = new ConcurrentQueue<Order>();
             _ordersToCansel = new ConcurrentQueue<Order>();
@@ -55,6 +53,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             _newServerTime = new ConcurrentQueue<DateTime>();
             _candleSeriesToSend = new ConcurrentQueue<CandleSeries>();
             _marketDepthsToSend = new ConcurrentQueue<MarketDepth>();
+
 
             Thread ordersExecutor = new Thread(ExecutorOrdersThreadArea);
             ordersExecutor.CurrentCulture = new CultureInfo("ru-RU");
@@ -75,24 +74,22 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             threadDataSender.CurrentCulture = CultureInfo.InvariantCulture;
             threadDataSender.IsBackground = true;
             threadDataSender.Start();
-
-            LoadIbSecurities();
         }
-
-        /// <summary>
-        /// host подключения к Ib
-        /// </summary>
-        public string Host;
-
-        /// <summary>
-        /// порт для подключеня к Ib
-        /// </summary>
-        public int Port;
 
         /// <summary>
         /// номер клиента в системе
         /// </summary>
-        public int ClientIdInSystem;
+        public string ClientIdInSystem;
+
+        /// <summary>
+        /// секретный ключ для доступа к АПи. Пароль короч
+        /// </summary>
+        public string Token;
+
+        /// <summary>
+        /// тестовое ли это подключение
+        /// </summary>
+        public bool IsTestConnection;
 
         /// <summary>
         /// взять тип сервера
@@ -104,7 +101,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// </summary>
         public void ShowDialog()
         {
-            InteractivBrokersUi ui = new InteractivBrokersUi(this, _logMaster);
+            OandaServerUi ui = new OandaServerUi(this, _logMaster);
             ui.Show();
         }
 
@@ -113,19 +110,18 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// </summary>
         private void Load()
         {
-            if (!File.Exists(@"Engine\" + @"IbServer.txt"))
+            if (!File.Exists(@"Engine\" + @"OandaServer.txt"))
             {
                 return;
             }
 
             try
             {
-                using (StreamReader reader = new StreamReader(@"Engine\" + @"IbServer.txt"))
+                using (StreamReader reader = new StreamReader(@"Engine\" + @"OandaServer.txt"))
                 {
-                    Host = reader.ReadLine();
-                    Port = Convert.ToInt32(reader.ReadLine());
-                    ClientIdInSystem = Convert.ToInt32(reader.ReadLine());
-                    _countDaysTickNeadToSave = Convert.ToInt32(reader.ReadLine());
+                    IsTestConnection = Convert.ToBoolean(reader.ReadLine());
+                    Token = reader.ReadLine();
+                    ClientIdInSystem = reader.ReadLine();
                     _neadToSaveTicks = Convert.ToBoolean(reader.ReadLine());
 
                     reader.Close();
@@ -144,12 +140,11 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         {
             try
             {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + @"IbServer.txt", false))
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + @"OandaServer.txt", false))
                 {
-                    writer.WriteLine(Host);
-                    writer.WriteLine(Port);
+                    writer.WriteLine(IsTestConnection);
+                    writer.WriteLine(Token);
                     writer.WriteLine(ClientIdInSystem);
-                    writer.WriteLine(CountDaysTickNeadToSave);
                     writer.WriteLine(NeadToSaveTicks);
                     writer.Close();
                 }
@@ -160,27 +155,12 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             }
         }
 
-//хранилище тиков
-        
+        //хранилище тиков
+
         /// <summary>
         /// хранилище тиков
         /// </summary>
         private ServerTickStorage _tickStorage;
-
-        private int _countDaysTickNeadToSave;
-
-        /// <summary>
-        /// количество дней назад, тиковые данные по которым нужно сохранять
-        /// </summary>
-        public int CountDaysTickNeadToSave
-        {
-            get { return _countDaysTickNeadToSave; }
-            set
-            {
-                _countDaysTickNeadToSave = value;
-                _tickStorage.DaysToLoad = value;
-            }
-        }
 
         private bool _neadToSaveTicks;
 
@@ -197,7 +177,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             }
         }
 
-//статус сервера
+        //статус сервера
 
         private ServerConnectStatus _serverConnectStatus;
 
@@ -232,7 +212,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// </summary>
         public event Action<string> ConnectStatusChangeEvent;
 
-//подключение / отключение
+        //подключение / отключение
 
         /// <summary>
         /// запустить сервер
@@ -253,7 +233,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// <summary>
         /// соединение установлено
         /// </summary>
-        void _ibClient_ConnectionSucsess()
+        private void _ibClient_ConnectionSucsess()
         {
             try
             {
@@ -268,7 +248,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// <summary>
         /// соединение разорвано
         /// </summary>
-        void _ibClient_ConnectionFail()
+        private void _ibClient_ConnectionFail()
         {
             try
             {
@@ -280,9 +260,9 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             }
         }
 
-//работа потока следящего за соединением и заказывающего первичные данные
+        //работа потока следящего за соединением и заказывающего первичные данные
 
-        private IbClient _ibClient;
+        private OandaClient _Client;
 
         /// <summary>
         /// основной поток, следящий за подключением, загрузкой портфелей и бумаг, пересылкой данных на верх
@@ -304,10 +284,10 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 {
                     try
                     {
-                        if (_ibClient == null)
+                        if (_Client == null)
                         {
                             SendLogMessage("Создаём коннектор", LogMessageType.System);
-                            CreateNewServerTws();
+                            CreateNewServer();
                             continue;
                         }
 
@@ -384,7 +364,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                         // переподключаемся
                         _threadPrime = new Thread(PrimeThreadArea);
                         _threadPrime.CurrentCulture = new CultureInfo("us-US");
-                       // _threadPrime.IsBackground = true;
+                        // _threadPrime.IsBackground = true;
                         _threadPrime.Start();
                         return;
                     }
@@ -400,21 +380,20 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// <summary>
         /// создать новое подключение
         /// </summary>
-        private void CreateNewServerTws()
+        private void CreateNewServer()
         {
-            if (_ibClient == null)
+            if (_Client == null)
             {
-                _ibClient = new IbClient();
-                _ibClient.ConnectionFail += _ibClient_ConnectionFail;
-                _ibClient.ConnectionSucsess += _ibClient_ConnectionSucsess;
-                _ibClient.LogMessageEvent += SendLogMessage;
-                _ibClient.NewAccauntValue += _ibClient_NewAccauntValue;
-                _ibClient.NewPortfolioPosition += _ibClient_NewPortfolioPosition;
-                _ibClient.NewContractEvent += _ibClient_NewContractEvent;
-                _ibClient.NewMarketDepth += _ibClient_NewMarketDepth;
-                _ibClient.NewMyTradeEvent += _ibClient_NewMyTradeEvent;
-                _ibClient.NewOrderEvent += _ibClient_NewOrderEvent;
-                _ibClient.NewTradeEvent += AddTick; 
+                _Client = new OandaClient();
+                _Client.ConnectionFail += _ibClient_ConnectionFail;
+                _Client.ConnectionSucsess += _ibClient_ConnectionSucsess;
+                _Client.LogMessageEvent += SendLogMessage;
+                _Client.NewMyTradeEvent += _ibClient_NewMyTradeEvent;
+                _Client.NewOrderEvent += _ibClient_NewOrderEvent;
+                _Client.NewTradeEvent += AddTick;
+                _Client.PortfolioChangeEvent += _Client_PortfolioChangeEvent;
+                _Client.NewSecurityEvent += _Client_NewSecurityEvent;
+                _Client.MarketDepthChangeEvent += _Client_MarketDepthChangeEvent;
             }
         }
 
@@ -423,26 +402,14 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// </summary>
         private void Connect()
         {
-            if (string.IsNullOrWhiteSpace(Host))
-            {
-                SendLogMessage("Хост не может быть пустым. Подключение прервано.", LogMessageType.Error);
-                _serverStatusNead = ServerConnectStatus.Disconnect;
-                return;
-            }
-            if (Port <= 0)
-            {
-                SendLogMessage("В значении порт не верное значение. Подключение прервано.", LogMessageType.Error);
-                _serverStatusNead = ServerConnectStatus.Disconnect;
-                return;
-            }
-            if (ClientIdInSystem <= 0)
+            if (string.IsNullOrEmpty(ClientIdInSystem))
             {
                 SendLogMessage("В значении номер Id не верное значение. Подключение прервано.", LogMessageType.Error);
                 _serverStatusNead = ServerConnectStatus.Disconnect;
                 return;
             }
 
-            _ibClient.Connect(Host, Port);
+            _Client.Connect(ClientIdInSystem, Token, IsTestConnection);
             _lastStartServerTime = DateTime.Now;
             Thread.Sleep(5000);
         }
@@ -452,12 +419,17 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// </summary>
         private void Disconnect()
         {
-            if (_ibClient == null)
+            if (_Client == null)
             {
                 return;
             }
-            _ibClient.Disconnect();
+            _Client.Disconnect();
             Thread.Sleep(5000);
+
+            if (NeadToReconnectEvent != null)
+            {
+                NeadToReconnectEvent();
+            }
         }
 
         /// <summary>
@@ -478,7 +450,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// </summary>
         private void GetPortfolio()
         {
-            _ibClient.GetPortfolios();
+            _Client.GetPortfolios();
             Thread.Sleep(5000);
         }
 
@@ -492,41 +464,9 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// </summary>
         private void GetSecurities()
         {
-            if (_secIB == null ||
-                _secIB.Count == 0)
-            {
-                SendLogMessage("Не указаны инструменты которые надо скачать. Подключение остановлено. Укажите инструменты в соответствующем окне.", LogMessageType.System);
-                Thread.Sleep(15000);
-                return;
-            }
-
-            if (_namesSubscribleSecurities == null)
-            {
-                _namesSubscribleSecurities = new List<string>();
-            }
-            for (int i = 0; i < _secIB.Count; i++)
-            {
-                string name = _secIB[i].Symbol + "_" + _secIB[i].SecType + "_" + _secIB[i].Exchange;
-                if (_namesSubscribleSecurities.Find(s => s == name) != null)
-                {
-                    // если мы уже подписывались на данные этого инструмента
-                    continue;
-                }
-                _namesSubscribleSecurities.Add(name);
-
-                _ibClient.GetSecurityDetail(_secIB[i]);
-
-                //_twsServer.reqContractDetails(_secIB[i].Symbol, _secIB[i].SecType, _secIB[i].Expiry, _secIB[i].Strike,
-                    //_secIB[i].Right, _secIB[i].Multiplier, _secIB[i].Exchange, _secIB[i].Currency,0);
-            }
-
-            Thread.Sleep(5000);
+            _Client.GetSecurities(_portfolios);
+            Thread.Sleep(10000);
         }
-
-        /// <summary>
-        /// названия инструментов на которые мы уже подписались
-        /// </summary>
-        private List<string> _namesSubscribleSecurities;
 
         /// <summary>
         /// включена ли прослушка портфеля
@@ -539,12 +479,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         private void StartListeningPortfolios()
         {
             Thread.Sleep(3000);
-
-            for (int i = 0; i < Portfolios.Count; i++)
-            {
-                _ibClient.ListenPortfolio(Portfolios[i].Number);
-            }
-            
+            _Client.StartStreamThreads();
             Thread.Sleep(5000);
         }
 
@@ -554,26 +489,24 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void Dispose()
         {
-            if (_ibClient != null)
+            if (_Client != null)
             {
-             /*   _twsServer.nextValidId -= _twsServer_Connected;
-                _twsServer.connectionClosed -= _twsServer_Disconnect;
-                _twsServer.errMsg -= _twsServer_errMsg;
-                _twsServer.accountSummary -= _twsServer_accountSummary;
-                _twsServer.contractDetails -= _twsServer_contractDetails;
-                _twsServer.updatePortfolio -= _twsServer_updatePortfolio;
-                _twsServer.tickPrice -= _twsServer_tickPrice;
-                _twsServer.tickSize -= _twsServer_tickSize;
-                _twsServer.updateMktDepth -= _twsServer_updateMktDepth;
-                _twsServer.orderStatus -= _twsServer_orderStatus;
-                _twsServer.nextValidId -= _twsServer_nextValidId;*/
+                _Client.ConnectionFail -= _ibClient_ConnectionFail;
+                _Client.ConnectionSucsess -= _ibClient_ConnectionSucsess;
+                _Client.LogMessageEvent -= SendLogMessage;
+                _Client.NewMyTradeEvent-= _ibClient_NewMyTradeEvent;
+                _Client.NewOrderEvent -= _ibClient_NewOrderEvent;
+                _Client.NewTradeEvent -= AddTick;
+                _Client.PortfolioChangeEvent -= _Client_PortfolioChangeEvent;
+                _Client.NewSecurityEvent -= _Client_NewSecurityEvent;
+                _Client.MarketDepthChangeEvent -= _Client_MarketDepthChangeEvent;
             }
 
-           try
+            try
             {
-                if (_ibClient != null && ServerStatus == ServerConnectStatus.Connect)
+                if (_Client != null && ServerStatus == ServerConnectStatus.Connect)
                 {
-                    _ibClient.Disconnect();
+                    _Client.Disconnect();
                 }
             }
             catch (Exception error)
@@ -581,7 +514,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
 
-           _ibClient = null;
+            _Client = null;
         }
 
         /// <summary>
@@ -589,7 +522,8 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// </summary>
         private object _serverLocker = new object();
 
-//работа потока рассылки входящих данных
+
+        //работа потока рассылки входящих данных
 
         /// <summary>
         /// очередь новых ордеров
@@ -638,7 +572,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         {
             while (true)
             {
-               try
+                try
                 {
                     if (!_ordersToSend.IsEmpty)
                     {
@@ -749,7 +683,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             }
         }
 
-// время сервера
+        //время сервера
 
         private DateTime _serverTime;
 
@@ -778,7 +712,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// </summary>
         public event Action<DateTime> TimeServerChangeEvent;
 
-// портфели и позиции
+        // портфели и позиции
 
         private List<Portfolio> _portfolios;
 
@@ -811,224 +745,36 @@ namespace OsEngine.Market.Servers.InteractivBrokers
 
         }
 
+        void _Client_PortfolioChangeEvent(Portfolio portfolio)
+        {
+            if (portfolio == null)
+            {
+                return;
+            }
+
+            if (_portfolios == null)
+            {
+                _portfolios = new List<Portfolio>();
+            }
+
+            if (_portfolios.Find(p => p.Number == portfolio.Number) == null)
+            {
+                SendLogMessage("Доступен новый портфель. Номер: " + portfolio.Number, LogMessageType.System);
+                _portfolios.Add(portfolio);
+            }
+
+            if (PortfoliosChangeEvent != null)
+            {
+                PortfoliosChangeEvent(_portfolios);
+            }
+        }
+
         /// <summary>
         /// вызывается когда в системе появляются новые портфели
         /// </summary>
         public event Action<List<Portfolio>> PortfoliosChangeEvent;
 
-        void _ibClient_NewAccauntValue(string account, decimal value)
-        {
-            try
-            {
-                if (_portfolios == null)
-                {
-                    _portfolios = new List<Portfolio>();
-                }
-
-                Portfolio myPortfolio = _portfolios.Find(portfolio => portfolio.Number == account);
-
-                if (myPortfolio == null)
-                {
-                    Portfolio newpPortfolio = new Portfolio();
-                    newpPortfolio.Number = account;
-                    _portfolios.Add(newpPortfolio);
-                    myPortfolio = newpPortfolio;
-                    myPortfolio.ValueBlocked = 0;
-                    SendLogMessage("Создан портфель " + account, LogMessageType.System);
-                }
-
-                myPortfolio.ValueCurrent = value;
-
-                _portfolioToSend.Enqueue(_portfolios);
-            }
-            catch (Exception error)
-            {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        void _ibClient_NewPortfolioPosition(SecurityIb contract, string accountName, int value)
-        {
-            try
-            {
-                if (Portfolios == null ||
-               Portfolios.Count == 0)
-                {
-                    return;
-                }
-                // смотрим, есть ли уже нужный портфель
-                Portfolio portfolio = Portfolios.Find(portfolio1 => portfolio1.Number == accountName);
-
-                if (portfolio == null)
-                {
-                    //SendLogMessage("обновляли позицию. Не можем найти портфель");
-                    return;
-                }
-
-                // смотрим, есть ли нужная бумага в формате Os.Engine
-                string name = contract.Symbol + "_" + contract.SecType + "_" + contract.Exchange;
-
-                if (_securities.Find(security => security.Name == name) == null)
-                {
-                    //SendLogMessage("обновляли позицию. Не можем найти бумагу. " + contract.Symbol);
-                    return;
-                }
-
-                // обновляем позицию по контракту
-
-                PositionOnBoard positionOnBoard = new PositionOnBoard();
-
-                positionOnBoard.SecurityNameCode = name;
-                positionOnBoard.PortfolioName = accountName;
-                positionOnBoard.ValueCurrent = value;
-
-                portfolio.SetNewPosition(positionOnBoard);
-
-                _portfolioToSend.Enqueue(Portfolios);
-            }
-            catch (Exception error)
-            {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-//бумаги. То что пользователь вводит для подписки. Хранение и менеджмент
-
-        /// <summary>
-        /// показать окно настроек бумаг
-        /// </summary>
-        public void ShowSecuritySubscribleUi()
-        {
-            IbContractStorageUi ui = new IbContractStorageUi(_secIB);
-            ui.ShowDialog();
-            _secIB = ui.SecToSubscrible;
-            _neadToWatchSecurity = true;
-            SaveIbSecurities();
-        }
-
-        /// <summary>
-        /// бумаги для подписи у сервера в формате IB
-        /// </summary>
-        private List<SecurityIb> _secIB;
-
-        /// <summary>
-        /// сохранить бумаги для подключения
-        /// </summary>
-        private void SaveIbSecurities()
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + @"IbSecuritiesToWatch.txt", false))
-                {
-                    for (int i = 0; _secIB != null && i < _secIB.Count; i++)
-                    {
-                        string saveStr = "";
-                        //saveStr +=  _secToSubscrible[i].ComboLegs + "@";
-                        saveStr += _secIB[i].ComboLegsDescription + "@";
-                        saveStr += _secIB[i].ConId + "@";
-                        saveStr += _secIB[i].Currency + "@";
-                        saveStr += _secIB[i].Exchange + "@";
-                        saveStr += _secIB[i].Expiry + "@";
-                        saveStr += _secIB[i].IncludeExpired + "@";
-                        saveStr += _secIB[i].LocalSymbol + "@";
-                        saveStr += _secIB[i].Multiplier + "@";
-                        saveStr += _secIB[i].PrimaryExch + "@";
-                        saveStr += _secIB[i].Right + "@";
-                        saveStr += _secIB[i].SecId + "@";
-                        saveStr += _secIB[i].SecIdType + "@";
-                        saveStr += _secIB[i].SecType + "@";
-                        saveStr += _secIB[i].Strike + "@";
-                        saveStr += _secIB[i].Symbol + "@";
-                        saveStr += _secIB[i].TradingClass + "@";
-                        //saveStr += _secToSubscrible[i].UnderComp + "@";
-
-                        writer.WriteLine(saveStr);
-                    }
-                    writer.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
-        }
-
-        /// <summary>
-        /// загрузить бумаги для подключения
-        /// </summary>
-        private void LoadIbSecurities()
-        {
-            if (!File.Exists(@"Engine\" + @"IbServer.txt"))
-            {
-                return;
-            }
-
-            try
-            {
-                using (StreamReader reader = new StreamReader(@"Engine\" + @"IbSecuritiesToWatch.txt"))
-                {
-                    _secIB = new List<SecurityIb>();
-                    while (!reader.EndOfStream)
-                    {
-                        SecurityIb security = new SecurityIb();
-
-                        string[] contrStrings = reader.ReadLine().Split('@');
-
-                        security.ComboLegsDescription = contrStrings[0];
-                        security.ConId = Convert.ToInt32(contrStrings[1]);
-                        security.Currency = contrStrings[2];
-                        security.Exchange = contrStrings[3];
-                        security.Expiry = contrStrings[4];
-                        security.IncludeExpired = Convert.ToBoolean(contrStrings[5]);
-                        security.LocalSymbol = contrStrings[6];
-                        security.Multiplier = contrStrings[7];
-                        security.PrimaryExch = contrStrings[8];
-                        security.Right = contrStrings[9];
-                        security.SecId = contrStrings[10];
-                        security.SecIdType = contrStrings[11];
-                        security.SecType = contrStrings[12];
-                        security.Strike = Convert.ToDouble(contrStrings[13]);
-                        security.Symbol = contrStrings[14];
-                        security.TradingClass = contrStrings[15];
-
-                        _secIB.Add(security);
-                    }
-
-                    if (_secIB.Count == 0)
-                    {
-                        SecurityIb sec1 = new SecurityIb();
-                        sec1.Symbol = "AAPL";
-                        sec1.Exchange = "SMART";
-                        sec1.SecType = "STK";
-                        _secIB.Add(sec1);
-
-                        SecurityIb sec2 = new SecurityIb();
-                        sec2.Symbol = "FB";
-                        sec2.Exchange = "SMART";
-                        sec2.SecType = "STK";
-                        _secIB.Add(sec2);
-
-                        SecurityIb sec3 = new SecurityIb();
-                        sec3.Symbol = "EUR";
-                        sec3.Exchange = "IDEALPRO";
-                        sec3.SecType = "CASH";
-                        _secIB.Add(sec3);
-
-                        SecurityIb sec4 = new SecurityIb();
-                        sec4.Symbol = "GBP";
-                        sec4.Exchange = "IDEALPRO";
-                        sec4.SecType = "CASH";
-                        _secIB.Add(sec4);
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
-        }
-
-//бумаги. формат Os.Engine
+        //бумаги. формат Os.Engine
 
         private List<Security> _securities;
 
@@ -1052,62 +798,13 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             return _securities.Find(securiti => securiti.Name == name);
         }
 
-        void _ibClient_NewContractEvent(SecurityIb contract)
+        void _Client_NewSecurityEvent(List<Security> securities)
         {
-            try
+            _securities = securities;
+
+            if (SecuritiesChangeEvent != null)
             {
-                if (_securities == null)
-                {
-                    _securities = new List<Security>();
-                }
-
-                SecurityIb securityIb = _secIB.Find(security => security.Symbol == contract.Symbol
-                                                                        && security.Exchange == contract.Exchange);
-                securityIb.Exchange = contract.Exchange;
-                securityIb.Expiry = contract.Expiry;
-                securityIb.LocalSymbol = contract.LocalSymbol;
-                securityIb.Multiplier = contract.Multiplier;
-                securityIb.Right = contract.Right;
-                securityIb.ConId = contract.ConId;
-                securityIb.Currency = contract.Currency;
-                securityIb.Strike = contract.Strike;
-                //securityIb.Symbol = symbol;
-                securityIb.TradingClass = contract.TradingClass;
-
-                //_twsServer.reqMktData(securityIb.ConId, securityIb.Symbol, securityIb.SecType, securityIb.Expiry, securityIb.Strike,
-                //    securityIb.Right, securityIb.Multiplier, securityIb.Exchange, securityIb.PrimaryExch, securityIb.Currency,"",true, new TagValueList());
-                //_twsServer.reqMktData2(securityIb.ConId, securityIb.LocalSymbol, securityIb.SecType, securityIb.Exchange, securityIb.PrimaryExch, securityIb.Currency, "", false, new TagValueList());
-                _ibClient.GetMarketDataToSecurity(securityIb);
-
-
-                string name = securityIb.Symbol + "_" + securityIb.SecType + "_" + securityIb.Exchange;
-
-                if (_securities.Find(securiti => securiti.Name == name) == null)
-                {
-                    Security security = new Security();
-                    security.Name = name;
-                    security.NameFull = name;
-                    security.NameClass = securityIb.SecType;
-
-                    if (string.IsNullOrWhiteSpace(security.NameClass))
-                    {
-                        security.NameClass = "Unknown";
-                    }
-
-                    security.PriceStep = Convert.ToDecimal(securityIb.MinTick);
-                    security.PriceStepCost = Convert.ToDecimal(securityIb.MinTick);
-                    security.Lot = 1;
-                    security.PriceLimitLow = 0;
-                    security.PriceLimitHigh = 0;
-                    _securities.Add(security);
-
-                    _securitiesToSend.Enqueue(_securities);
-                    SendLogMessage("Подключен новый инструмент. " + name, LogMessageType.System);
-                }
-            }
-            catch (Exception error)
-            {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
+                SecuritiesChangeEvent(_securities);
             }
         }
 
@@ -1125,7 +822,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             ui.ShowDialog();
         }
 
-//Подпись на данные
+        //Подпись на данные
 
         /// <summary>
         /// мастер загрузки свечек
@@ -1148,100 +845,230 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// в случае неудачи null</returns>
         public CandleSeries StartThisSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder)
         {
-            try
+               try
+               {
+                   if (_lastStartServerTime.AddSeconds(15) > DateTime.Now)
+                   {
+                       return null;
+                   }
+
+                   lock (_lockerStarter)
+                   {
+                       if (namePaper == "")
+                       {
+                           return null;
+                       }
+                       // надо запустить сервер если он ещё отключен
+                       if (ServerStatus != ServerConnectStatus.Connect)
+                       {
+                           //MessageBox.Show("Сервер не запущен. Скачивание данных прервано. Инструмент: " + namePaper);
+                           return null;
+                       }
+
+                       if (_securities == null || _portfolios == null)
+                       {
+                           Thread.Sleep(5000);
+                           return null;
+                       }
+                       if (_lastStartServerTime != DateTime.MinValue &&
+                           _lastStartServerTime.AddSeconds(15) > DateTime.Now)
+                       {
+                           return null;
+                       }
+
+                       Security security = null;
+
+
+                       for (int i = 0; _securities != null && i < _securities.Count; i++)
+                       {
+                           if (_securities[i].Name == namePaper)
+                           {
+                               security = _securities[i];
+                               break;
+                           }
+                       }
+
+                       if (security == null)
+                       {
+                           return null;
+                       }
+
+                       if (_connectedContracts == null)
+                       {
+                           _connectedContracts = new List<string>();
+                       }
+
+                       if (_connectedContracts.Find(s => s == security.Name) == null)
+                       {
+                           _connectedContracts.Add(security.Name);
+                       }
+
+                       _tickStorage.SetSecurityToSave(security);
+
+                       // 2 создаём серию свечек
+                       CandleSeries series = new CandleSeries(timeFrameBuilder, security);
+
+                       if(NeadToGetCandles(timeFrameBuilder.TimeFrame))
+                       { // подгружаем в серию свечки, если коннектор это позволяет
+                           short count = 500;
+                           string price = "MBA";
+                           string instrument = security.Name;
+                           string granularity = GetTimeFrameInOandaFormat(timeFrameBuilder.TimeFrame).ToString();
+
+                           var parameters = new Dictionary<string, string>();
+                           parameters.Add("price", price);
+                           parameters.Add("granularity", granularity);
+                           parameters.Add("count", count.ToString());
+
+                           Task<List<CandlestickPlus>> result = Rest20.GetCandlesAsync(instrument, parameters);
+
+                           while (!result.IsCanceled &&
+                                  !result.IsCompleted &&
+                                  !result.IsFaulted)
+                           {
+                               Thread.Sleep(10);
+                           }
+
+                           List<CandlestickPlus> candleOanda = result.Result;
+
+                           List<Candle> candlesOsEngine = new List<Candle>();
+
+                           for (int i = 0; i < candleOanda.Count; i++)
+                           {
+                               Candle newCandle = new Candle();
+                               newCandle.Open = Convert.ToDecimal(candleOanda[i].bid.o);
+                               newCandle.High = Convert.ToDecimal(candleOanda[i].bid.h);
+                               newCandle.Low = Convert.ToDecimal(candleOanda[i].bid.l);
+                               newCandle.Close = Convert.ToDecimal(candleOanda[i].bid.c);
+                               newCandle.TimeStart = DateTime.Parse(candleOanda[i].time);
+                               newCandle.State = CandleStates.Finished;
+                               newCandle.Volume = candleOanda[i].volume;
+
+                               candlesOsEngine.Add(newCandle);
+                           }
+                           series.CandlesAll = candlesOsEngine;
+                       }
+
+                       _candleManager.StartSeries(series);
+
+                       SendLogMessage("Инструмент " + series.Security.Name + "ТаймФрейм " + series.TimeFrame +
+                                      " успешно подключен на получение данных и прослушивание свечек",
+                           LogMessageType.System);
+
+                       return series;
+
+                   }
+               }
+               catch (Exception error)
+               {
+                   SendLogMessage(error.ToString(), LogMessageType.Error);
+                   return null;
+               }
+        }
+
+        /// <summary>
+        /// позволяет ли выбранный таймфрейм запросить историю торгов
+        /// </summary>
+        /// <returns>true - позволяет</returns>
+        private bool NeadToGetCandles(TimeFrame frame)
+        {
+            if (frame == TimeFrame.Sec5)
             {
-                if (_lastStartServerTime.AddSeconds(15) > DateTime.Now)
-                {
-                    return null;
-                }
-
-                lock (_lockerStarter)
-                {
-                    if (namePaper == "")
-                    {
-                        return null;
-                    }
-                    // надо запустить сервер если он ещё отключен
-                    if (ServerStatus != ServerConnectStatus.Connect)
-                    {
-                        //MessageBox.Show("Сервер не запущен. Скачивание данных прервано. Инструмент: " + namePaper);
-                        return null;
-                    }
-
-                    if (_securities == null || _portfolios == null)
-                    {
-                        Thread.Sleep(5000);
-                        return null;
-                    }
-                    if (_lastStartServerTime != DateTime.MinValue &&
-                        _lastStartServerTime.AddSeconds(15) > DateTime.Now)
-                    {
-                        return null;
-                    }
-
-                    Security security = null;
-
-
-                    for (int i = 0; _securities != null && i < _securities.Count; i++)
-                    {
-                        if (_securities[i].Name == namePaper)
-                        {
-                            security = _securities[i];
-                            break;
-                        }
-                    }
-
-                    if (security == null ||
-                        _secIB == null)
-                    {
-                        return null;
-                    }
-
-                    SecurityIb contractIb =
-                        _secIB.Find(
-                            contract =>
-                                contract.Symbol + "_" + contract.SecType + "_" + contract.Exchange == security.Name);
-
-                    if (contractIb == null)
-                    {
-                        return null;
-                    }
-
-                    if (_connectedContracts == null)
-                    {
-                        _connectedContracts = new List<string>();
-                    }
-
-                    if (_connectedContracts.Find(s => s == security.Name) == null)
-                    {
-                        _connectedContracts.Add(security.Name);
-                        lock (_serverLocker)
-                        {
-                            _ibClient.GetMarketDepthToSecurity(contractIb);
-                        }
-                    }
-
-                    _tickStorage.SetSecurityToSave(security);
-
-                    // 2 создаём серию свечек
-                    CandleSeries series = new CandleSeries(timeFrameBuilder, security);
-
-                    _candleManager.StartSeries(series);
-
-                    SendLogMessage("Инструмент " + series.Security.Name + "ТаймФрейм " + series.TimeFrame +
-                                   " успешно подключен на получение данных и прослушивание свечек",
-                        LogMessageType.System);
-
-                    return series;
-
-                }
+                return true;
             }
-            catch (Exception error)
+            else if (frame == TimeFrame.Sec10)
             {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
-                return null;
+                return true;
             }
+            else if (frame == TimeFrame.Sec15)
+            {
+                return true;
+            }
+            else if (frame == TimeFrame.Sec30)
+            {
+                return true;
+            }
+            else if (frame == TimeFrame.Min1)
+            {
+                return true;
+            }
+            else if (frame == TimeFrame.Min5)
+            {
+                return true;
+            }
+            else if (frame == TimeFrame.Min10)
+            {
+                return true;
+            }
+            else if (frame == TimeFrame.Min15)
+            {
+                return true;
+            }
+            else if (frame == TimeFrame.Min30)
+            {
+                return true;
+            }
+            else if (frame == TimeFrame.Hour1)
+            {
+                return true;
+            }
+            else if (frame == TimeFrame.Hour2)
+            {
+                return true;
+            }
+            return false;
+        }
 
+        /// <summary>
+        /// взять таймфрейм в формате Oanda
+        /// </summary>
+        private string GetTimeFrameInOandaFormat(TimeFrame frame)
+        {
+            if (frame == TimeFrame.Sec5)
+            {
+                return CandleStickGranularity.Seconds05;
+            }
+            else if (frame == TimeFrame.Sec10)
+            {
+                return CandleStickGranularity.Seconds10;
+            }
+            else if (frame == TimeFrame.Sec15)
+            {
+                return CandleStickGranularity.Seconds15;
+            }
+            else if (frame == TimeFrame.Sec30)
+            {
+                return CandleStickGranularity.Seconds30;
+            }
+            else if (frame == TimeFrame.Min1)
+            {
+                return CandleStickGranularity.Minutes01;
+            }
+            else if (frame == TimeFrame.Min5)
+            {
+                return CandleStickGranularity.Minutes05;
+            }
+            else if (frame == TimeFrame.Min10)
+            {
+                return CandleStickGranularity.Minutes10;
+            }
+            else if (frame == TimeFrame.Min15)
+            {
+                return CandleStickGranularity.Minutes10;
+            }
+            else if (frame == TimeFrame.Min30)
+            {
+                return CandleStickGranularity.Minutes10;
+            }
+            else if (frame == TimeFrame.Hour1)
+            {
+                return CandleStickGranularity.Hours01;
+            }
+            else if (frame == TimeFrame.Hour2)
+            {
+                return CandleStickGranularity.Hours02;
+            }
+            return null;
         }
 
         /// <summary>
@@ -1273,7 +1100,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// </summary>
         public event Action NeadToReconnectEvent;
 
-// стакан
+        // стакан
 
         /// <summary>
         /// стаканы по инструментам
@@ -1288,188 +1115,47 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             return _marketDepths.Find(m => m.SecurityNameCode == securityName);
         }
 
-// сохранение расширенных данных по трейду
+        void _Client_MarketDepthChangeEvent(MarketDepth marketDepth)
+        {
+            _marketDepthsToSend.Enqueue(marketDepth);
+        }
+
+
+        // СДЕЛАТЬ!!!!!!!!!!!!!!!!!!!!сохранение расширенных данных по трейду 
+
 
         /// <summary>
         /// прогрузить трейды данными стакана
         /// </summary>
-        private void BathTradeMarketDepthData(Trade trade)
+        private void BathTradeMarketDepthData(List<Trade> trades)
         {
-            MarketDepth depth = _marketDepths.Find(d => d.SecurityNameCode == trade.SecurityNameCode);
+            MarketDepth depth = null;
 
-            if (depth == null ||
-                depth.Asks == null || depth.Asks.Count == 0 ||
-                depth.Bids == null || depth.Bids.Count == 0)
+            for (int i = 0; i < trades.Count; i++)
             {
-                return;
-            }
+                if (i != 0 && depth == null &&
+                    trades[i - 1].SecurityNameCode == trades[i].SecurityNameCode)
+                {
+                    continue;
+                }
 
-            trade.Ask = depth.Asks[0].Price;
-            trade.Bid = depth.Bids[0].Price;
-            trade.BidsVolume = depth.BidSummVolume;
-            trade.AsksVolume = depth.AskSummVolume;
-        }
+                if (depth == null ||
+                    depth.SecurityNameCode != trades[i].SecurityNameCode)
+                {
+                    depth = _marketDepths.Find(d => d.SecurityNameCode == trades[i].SecurityNameCode);
+                }
 
-        /// <summary>
-        /// все стаканы
-        /// </summary>
-        private List<MarketDepth> _depths;
-
-        void _ibClient_NewMarketDepth(int id, int position, int operation, int side, decimal price, int size)
-        {
-            try
-            {
-                // берём все нужные данные
-                SecurityIb myContract = _secIB.Find(contract => contract.ConId == id);
-
-                if (myContract == null)
+                if (depth == null ||
+                    depth.Asks == null || depth.Asks.Count == 0 ||
+                    depth.Bids == null || depth.Bids.Count == 0)
                 {
                     return;
                 }
 
-                if (position > 10)
-                {
-                    return;
-                }
-
-                string name = myContract.Symbol + "_" + myContract.SecType + "_" + myContract.Exchange;
-
-                Security mySecurity = Securities.Find(security => security.Name == name);
-
-                if (mySecurity == null)
-                {
-                    return;
-                }
-
-                if (_depths == null)
-                {
-                    _depths = new List<MarketDepth>();
-                }
-
-                MarketDepth myDepth = _depths.Find(depth => depth.SecurityNameCode == name);
-                if (myDepth == null)
-                {
-                    myDepth = new MarketDepth();
-                    myDepth.SecurityNameCode = name;
-                    _depths.Add(myDepth);
-                }
-
-                myDepth.Time = DateTime.Now;
-
-                Side sideLine;
-                if (side == 1)
-                { // аск
-                    sideLine = Side.Buy;
-                }
-                else
-                { // бид
-                    sideLine = Side.Sell;
-                }
-
-                List<MarketDepthLevel> bids  = myDepth.Bids;
-                List<MarketDepthLevel> asks = myDepth.Asks;
-
-                if (asks == null || asks.Count == 0)
-                {
-                    asks = new List<MarketDepthLevel>();
-                    bids = new List<MarketDepthLevel>();
-
-                    for (int i = 0; i < 10; i++)
-                    {
-                        asks.Add(new MarketDepthLevel());
-                        bids.Add(new MarketDepthLevel());
-                    }
-                    myDepth.Bids = bids;
-                    myDepth.Asks = asks;
-                }
-
-                if (operation == 2)
-                {// если нужно удалить
-
-                    if (sideLine == Side.Buy)
-                    {
-                        // asks.RemoveAt(position);
-                        MarketDepthLevel level = bids[position];
-                        level.Ask = 0;
-                        level.Bid = 0;
-                        level.Price = 0;
-                    }
-                    else if (sideLine == Side.Sell)
-                    {
-                        //bids.RemoveAt(position);
-                        MarketDepthLevel level = asks[position];
-                        level.Ask = 0;
-                        level.Bid = 0;
-                        level.Price = 0;
-                    }
-                }
-                /*else if (operation == 1)
-                { // нужно вставить
-                    if (sideLine == Side.Buy)
-                    {
-                        MarketDepthLevel level = new MarketDepthLevel();
-                        level.Bid = 0;
-                        level.Ask = Convert.ToDecimal(size);
-                        level.Price = Convert.ToDecimal(price);
-                        asks.Insert(position,level);
-                    }
-                    else if (sideLine == Side.Sell)
-                    {
-                        MarketDepthLevel level = new MarketDepthLevel();
-                        level.Bid = Convert.ToDecimal(size);
-                        level.Ask = 0;
-                        level.Price = Convert.ToDecimal(price);
-                        bids.Insert(position,level);
-                    }
-                    if (asks.Count > 10)
-                    {
-                        asks.RemoveAt(asks.Count - 1);
-                    }
-                    if (bids.Count > 10)
-                    {
-                        bids.RemoveAt(bids.Count - 1);
-                    }
-                }*/
-                else if (operation == 0 || operation == 1)
-                { // нужно обновить
-                    if (sideLine == Side.Buy)
-                    {
-                        MarketDepthLevel level = bids[position];
-                        level.Bid = Convert.ToDecimal(size);
-                        level.Ask = 0;
-                        level.Price = price;
-                    }
-                    else if (sideLine == Side.Sell)
-                    {
-                        MarketDepthLevel level = asks[position];
-                        level.Bid = 0;
-                        level.Ask = Convert.ToDecimal(size);
-                        level.Price = price;
-                    }
-                }
-
-                if (myDepth.Bids[0].Price != 0 &&
-                    myDepth.Asks[0].Price != 0)
-                {
-                    MarketDepth copy = myDepth.GetCopy();
-                    _marketDepthsToSend.Enqueue(copy);
-
-                    // грузим стаканы в хранилище
-                    for (int i = 0; i < _marketDepths.Count; i++)
-                    {
-                        if (_marketDepths[i].SecurityNameCode == copy.SecurityNameCode)
-                        {
-                            _marketDepths[i] = copy;
-                            return;
-                        }
-                    }
-                    _marketDepths.Add(copy);
-
-                }
-            }
-            catch (Exception error)
-            {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
+                trades[i].Ask = depth.Asks[0].Price;
+                trades[i].Bid = depth.Bids[0].Price;
+                trades[i].BidsVolume = depth.BidSummVolume;
+                trades[i].AsksVolume = depth.AskSummVolume;
             }
         }
 
@@ -1483,12 +1169,12 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// </summary>
         public event Action<MarketDepth> NewMarketDepthEvent;
 
-//тики
+        //тики
 
         /// <summary>
         /// все тики
         /// </summary>
-        private List<Trade>[] _allTrades; 
+        private List<Trade>[] _allTrades;
 
         /// <summary>
         /// все тики имеющиеся у сервера
@@ -1505,13 +1191,11 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         {
             try
             {
-                BathTradeMarketDepthData(trade);
-
                 // сохраняем
                 if (_allTrades == null)
                 {
                     _allTrades = new List<Trade>[1];
-                    _allTrades[0] = new List<Trade> {trade};
+                    _allTrades[0] = new List<Trade> { trade };
                 }
                 else
                 {
@@ -1559,7 +1243,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// <summary>
         /// пришли тики из хранилища тиков. Происходит сразу после загрузки
         /// </summary>
-        void _tickStorage_TickLoadedEvent(List<Trade>[] trades)
+        private void _tickStorage_TickLoadedEvent(List<Trade>[] trades)
         {
             _allTrades = trades;
         }
@@ -1590,7 +1274,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// </summary>
         public event Action<List<Trade>> NewTradeEvent;
 
-//мои сделки
+        //мои сделки
 
         private List<MyTrade> _myTrades;
 
@@ -1602,7 +1286,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             get { return _myTrades; }
         }
 
-        void _ibClient_NewMyTradeEvent(MyTrade trade)
+        private void _ibClient_NewMyTradeEvent(MyTrade trade)
         {
             if (_myTrades == null)
             {
@@ -1617,7 +1301,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// </summary>
         public event Action<MyTrade> NewMyTradeEvent;
 
-//исполнение ордеров
+        //исполнение ордеров
 
         /// <summary>
         /// место работы потока на очередях исполнения заявок и их отмены
@@ -1635,19 +1319,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                         {
                             lock (_serverLocker)
                             {
-                                
-                                SecurityIb contractIb =
-                                    _secIB.Find(
-                                        contract =>
-                                            contract.Symbol + "_" + contract.SecType + "_" + contract.Exchange ==
-                                            order.SecurityNameCode);
-
-                                if (contractIb == null)
-                                {
-                                    return;
-                                }
-
-                                _ibClient.ExecuteOrder(order, contractIb);
+                                _Client.ExecuteOrder(order);
                             }
                         }
                     }
@@ -1658,7 +1330,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                         {
                             lock (_serverLocker)
                             {
-                                _ibClient.CanselOrder(order);
+                                _Client.CanselOrder(order);
                             }
                         }
                     }
@@ -1669,7 +1341,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 }
                 catch (Exception error)
                 {
-                    SendLogMessage(error.ToString(),LogMessageType.Error);
+                    SendLogMessage(error.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -1687,7 +1359,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// <summary>
         /// ордера в формате IB
         /// </summary>
-        private List<Order> _orders; 
+        private List<Order> _orders;
 
         /// <summary>
         /// исполнить ордер
@@ -1711,7 +1383,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             _ordersToCansel.Enqueue(order);
         }
 
-        void _ibClient_NewOrderEvent(Order order)
+        private void _ibClient_NewOrderEvent(Order order)
         {
             try
             {
@@ -1720,19 +1392,12 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                     _orders = new List<Order>();
                 }
 
-                Order osOrder = _orders.Find(order1 => order1.NumberMarket == order.NumberMarket);
-
-                if (osOrder == null)
-                {
-                    return;
-                }
-
-                _ordersToSend.Enqueue(osOrder);
+                _ordersToSend.Enqueue(order);
             }
             catch (Exception error)
             {
                 SendLogMessage(error.ToString(), LogMessageType.Error);
-            } 
+            }
         }
 
         /// <summary>
@@ -1740,12 +1405,12 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// </summary>
         public event Action<Order> NewOrderIncomeEvent;
 
-//обработка лога
+        //обработка лога
 
         /// <summary>
         /// добавить в лог новое сообщение
         /// </summary>
-        private void SendLogMessage(string message,LogMessageType type)
+        private void SendLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
             {
@@ -1761,95 +1426,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// <summary>
         /// исходящее сообщение для лога
         /// </summary>
-        public event Action<string,LogMessageType> LogMessageEvent;
+        public event Action<string, LogMessageType> LogMessageEvent;
 
-    }
-
-    /// <summary>
-    /// класс костыль работающий в процессе создания моих трейдов
-    /// </summary>
-    public class MyTradeCreate
-    {
-        /// <summary>
-        /// номер ордера родителя
-        /// </summary>
-        public int idOrder;
-
-        /// <summary>
-        /// объём ордера родителя в момент выставления моего трейда
-        /// </summary>
-        public int FillOrderToCreateMyTrade;
-
-    }
-
-    /// <summary>
-    /// бумага в представлении Ib
-    /// </summary>
-    public class SecurityIb
-    {
-        /// <summary>
-        /// номер
-        /// </summary>
-        public int ConId;
-
-        /// <summary>
-        /// название полное
-        /// </summary>
-        public string Symbol;
-
-        /// <summary>
-        /// название
-        /// </summary>
-        public string LocalSymbol;
-
-        /// <summary>
-        /// валюта контракта
-        /// </summary>
-        public string Currency;
-
-        /// <summary>
-        /// биржа
-        /// </summary>
-        public string Exchange;
-
-        /// <summary>
-        /// основная биржа
-        /// </summary>
-        public string PrimaryExch;
-
-        /// <summary>
-        /// страйк
-        /// </summary>
-        public double Strike;
-
-        /// <summary>
-        /// класс инструмента
-        /// </summary>
-        public string TradingClass;
-
-        /// <summary>
-        /// минимальный шаг цены
-        /// </summary>
-        public double MinTick;
-
-        /// <summary>
-        /// мультипликатор?
-        /// </summary>
-        public string Multiplier;
-
-        public string Expiry;
-
-        public bool IncludeExpired;
-
-        public string ComboLegsDescription;
-
-        public string Right;
-
-        public string SecId;
-
-        public string SecIdType;
-
-        public string SecType;
-       
     }
 }

@@ -331,6 +331,11 @@
       <DependentUpon>InteractivBrokersUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Market\Servers\IServer.cs" />
+    <Compile Include="Market\Servers\Oanda\OandaClient.cs" />
+    <Compile Include="Market\Servers\Oanda\OandaServer.cs" />
+    <Compile Include="Market\Servers\Oanda\OandaServerUi.xaml.cs">
+      <DependentUpon>OandaServerUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Market\Servers\Optimizer\OptimizerServer.cs" />
     <Compile Include="Market\Servers\Optimizer\OptimizerDataStorage.cs" />
     <Compile Include="Market\Servers\Optimizer\OptimizerDataStorageUi.xaml.cs">
@@ -785,6 +790,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Market\Servers\InteractivBrokers\InteractivBrokersUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\Oanda\OandaServerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

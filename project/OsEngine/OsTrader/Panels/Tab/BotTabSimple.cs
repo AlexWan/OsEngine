@@ -3528,7 +3528,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 for (int i = 0; i < openPositions.Count; i++)
                 {
-                    for (int i2 = _lastTickIndex; i2 < curCount && trades[i2] != null; i2++)
+                    for (int i2 = _lastTickIndex; i < openPositions.Count && i2 < curCount && trades[i2] != null; i2++)
                     {
                         CheckStop(openPositions[i], trades[i2].Price);
                     }

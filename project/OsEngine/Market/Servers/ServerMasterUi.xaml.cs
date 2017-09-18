@@ -234,7 +234,7 @@ namespace OsEngine.Market.Servers
                 row1.Cells[1].Value = "Disconnect";
                 _gridSources.Rows.Add(row1);
             }
-           /* if (oandaIsOn == false)
+            if (oandaIsOn == false)
             {
                 DataGridViewRow row1 = new DataGridViewRow();
                 row1.Cells.Add(new DataGridViewTextBoxCell());
@@ -242,7 +242,7 @@ namespace OsEngine.Market.Servers
                 row1.Cells.Add(new DataGridViewTextBoxCell());
                 row1.Cells[1].Value = "Disconnect";
                 _gridSources.Rows.Add(row1);
-            }*/
+            }
             if (astsIsOn == false)
             {
                 DataGridViewRow row1 = new DataGridViewRow();

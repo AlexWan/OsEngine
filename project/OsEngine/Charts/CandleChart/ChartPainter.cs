@@ -5042,14 +5042,13 @@ namespace OsEngine.Charts.CandleChart
         {
             SeriesYLength currentLength = _seriesYLengths.Find(yl => yl.Series.Name == series.Name);
 
-            if(end == series.Points.Count)
+            if(end >= series.Points.Count)
             {
                 end = series.Points.Count - 1;
                 if(start!= 0)
                 {
                     start--;
                 }
-                
             }
 
             if (currentLength == null)
@@ -5076,13 +5075,20 @@ namespace OsEngine.Charts.CandleChart
             else if (currentLength.CountOneCandlesAdd < 20 &&
                     (currentLength.Xend +1 == end && currentLength.Xstart == start))
             { // отображение сдвинулось на один вправо
-                if (series.Points[currentLength.Xend + 1].YValues.Max() > currentLength.Ymax)
+
+                int x = currentLength.Xend + 1;
+
+                if (x >= series.Points.Count)
                 {
-                    currentLength.Ymax = series.Points[currentLength.Xend + 1].YValues.Max();
+                    x = series.Points.Count - 1;
                 }
-                if (series.Points[currentLength.Xend + 1].YValues.Min() < currentLength.Ymin)
+                if (series.Points[x].YValues.Max() > currentLength.Ymax)
                 {
-                    currentLength.Ymin = series.Points[currentLength.Xend + 1].YValues.Min();
+                    currentLength.Ymax = series.Points[x].YValues.Max();
+                }
+                if (series.Points[x].YValues.Min() < currentLength.Ymin)
+                {
+                    currentLength.Ymin = series.Points[x].YValues.Min();
                 }
                 currentLength.Xstart = start;
                 currentLength.Xend = end;

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
@@ -53,33 +54,25 @@ namespace OsEngine.OsData
 
             CreateSetGrid();
             RePaintSetGrid();
-            try
-            {
-                ServerMaster.CreateServer(ServerType.Finam, false);
-                ServerMaster.CreateServer(ServerType.QuikDde,false);
-                ServerMaster.CreateServer(ServerType.QuikLua, false);
-                ServerMaster.CreateServer(ServerType.Plaza, false);
-                ServerMaster.CreateServer(ServerType.InteractivBrokers, false);
-                ServerMaster.CreateServer(ServerType.BitMex, false);
-
-                List<IServer> servers = ServerMaster.GetServers();
-
-                for (int i = 0; i < servers.Count; i++)
-                {
-                    servers[i].ConnectStatusChangeEvent += ServerStatusChangeEvent;
-                    servers[i].LogMessageEvent += OsDataMaster_LogMessageEvent;
-                }
-                
-                SendNewLogMessage("Сервера успешно развёрнуты", LogMessageType.System);
-
-
-            }
-            catch (Exception)
-            {
-                SendNewLogMessage("Ошибка при создании серверов", LogMessageType.Error);
-            }
 
             CreateSourceGrid();
+            RePaintSourceGrid();
+
+            ServerMaster.ServerCreateEvent += ServerMaster_ServerCreateEvent;
+        }
+
+        void ServerMaster_ServerCreateEvent()
+        {
+            List<IServer> servers = ServerMaster.GetServers();
+
+            for (int i = 0; i < servers.Count; i++)
+            {
+                servers[i].ConnectStatusChangeEvent -= ServerStatusChangeEvent;
+                servers[i].LogMessageEvent -= OsDataMaster_LogMessageEvent;
+
+                servers[i].ConnectStatusChangeEvent += ServerStatusChangeEvent;
+                servers[i].LogMessageEvent += OsDataMaster_LogMessageEvent;
+            }
             RePaintSourceGrid();
         }
 
@@ -258,21 +251,47 @@ namespace OsEngine.OsData
 
             _gridSources.Rows.Clear();
 
-            List<IServer> servers = ServerMaster.GetServers();
+            List<ServerType> servers = new ServerType[]
+            {
+               ServerType.Finam, ServerType.QuikDde, ServerType.QuikLua, ServerType.SmartCom, ServerType.Plaza, 
+                ServerType.Oanda, ServerType.BitMex,  
+            }.ToList();
+
+            List<IServer> serversCreate = ServerMaster.GetServers();
+
+            if (serversCreate == null)
+            {
+                serversCreate = new List<IServer>();
+            }
 
             for (int i = 0; i < servers.Count; i++)
             {
                 DataGridViewRow row1 = new DataGridViewRow();
                 row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = servers[i].ServerType;
+                row1.Cells[0].Value = servers[i];
                 row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = servers[i].ServerStatus;
 
-                if (servers[i].ServerStatus == ServerConnectStatus.Connect)
+                IServer server = serversCreate.Find(s => s.ServerType == servers[i]);
+
+                if (server == null)
                 {
+                    row1.Cells[1].Value = "Disabled";
+                }
+                else if (server != null && server.ServerStatus == ServerConnectStatus.Connect)
+                {
+                    row1.Cells[1].Value = "Connect";
                     DataGridViewCellStyle style = new DataGridViewCellStyle();
                     style.BackColor = Color.DarkSeaGreen;
                     style.SelectionBackColor = Color.SeaGreen;
+                    row1.Cells[1].Style = style;
+                    row1.Cells[0].Style = style;
+                }
+                else
+                {
+                    row1.Cells[1].Value = "Disconnect";
+                    DataGridViewCellStyle style = new DataGridViewCellStyle();
+                    style.BackColor = Color.FloralWhite;
+                    style.SelectionBackColor = Color.DarkSalmon;
                     row1.Cells[1].Style = style;
                     row1.Cells[0].Style = style;
                 }
@@ -293,7 +312,24 @@ namespace OsEngine.OsData
             {
                 return;
             }
-            ServerMaster.GetServers()[_gridSources.CurrentCell.RowIndex].ShowDialog();
+
+            ServerType type;
+            Enum.TryParse(_gridSources.Rows[_gridSources.CurrentCell.RowIndex].Cells[0].Value.ToString(), out type);
+
+            if (ServerMaster.GetServers() == null)
+            {
+                ServerMaster.CreateServer(type,false);
+            }
+
+            IServer server = ServerMaster.GetServers().Find(s => s.ServerType == type);
+
+            if (server == null)
+            {
+                ServerMaster.CreateServer(type, false);
+                server = ServerMaster.GetServers().Find(s => s.ServerType == type);
+            }
+
+            server.ShowDialog();
         }
 
         /// <summary>

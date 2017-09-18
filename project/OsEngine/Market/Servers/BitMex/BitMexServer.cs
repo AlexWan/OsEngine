@@ -313,6 +313,7 @@ namespace OsEngine.Market.Servers.BitMex
                         {
                             SendLogMessage("Запущена процедура отключения подключения", LogMessageType.System);
                             Disconnect();
+                            Dispose();
                             continue;
                         }
 
@@ -411,7 +412,7 @@ namespace OsEngine.Market.Servers.BitMex
 
         private void ClientBitMexOnDisconnected()
         {
-            SendLogMessage("Соединение разорвано", LogMessageType.Error);
+            SendLogMessage("Соединение разорвано", LogMessageType.System);
             ServerStatus = ServerConnectStatus.Disconnect;
 
             if (NeadToReconnectEvent != null)
@@ -1521,6 +1522,11 @@ namespace OsEngine.Market.Servers.BitMex
                                     _allTrades[i][0].SecurityNameCode == trade.SecurityNameCode)
                                 {
                                     // если для этого инструметна уже есть хранилище, сохраняем и всё
+                                    if (trade.Time < _allTrades[i][_allTrades[i].Count - 1].Time)
+                                    {
+                                        return;
+                                    }
+
                                     _allTrades[i].Add(trade);
                                     myList = _allTrades[i];
                                     isSave = true;

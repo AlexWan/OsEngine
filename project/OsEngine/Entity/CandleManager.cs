@@ -10,6 +10,7 @@ using System.Windows;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.BitMex;
+using OsEngine.Market.Servers.Oanda;
 using OsEngine.Market.Servers.QuikLua;
 using OsEngine.Market.Servers.SmartCom;
 using OsEngine.Market.Servers.Tester;
@@ -204,6 +205,7 @@ namespace OsEngine.Entity
                         else if (serverType == ServerType.Plaza ||
                                  serverType == ServerType.QuikDde ||
                                  serverType == ServerType.AstsBridge ||
+
                                  (serverType == ServerType.InteractivBrokers
                                   && (series.CandlesAll == null || series.CandlesAll.Count == 0)))
                         {
@@ -243,11 +245,11 @@ namespace OsEngine.Entity
                         }
                         else if (serverType == ServerType.Tester ||
                                  serverType == ServerType.InteractivBrokers ||
-                                 serverType == ServerType.Optimizer)
+                                 serverType == ServerType.Optimizer ||
+                                 serverType == ServerType.Oanda)
                         {
                             series.IsStarted = true;
                         }
-
                         else if (serverType == ServerType.QuikLua)
                         {
                             QuikLuaServer luaServ = (QuikLuaServer)_server;
@@ -273,10 +275,11 @@ namespace OsEngine.Entity
                         else if (serverType == ServerType.BitMex)
                         {
                             BitMexServer bitMex = (BitMexServer)_server;
-                            if (series.TimeFrameSpan.TotalMinutes < 1)
+                            if (series.TimeFrameSpan.TotalMinutes < 1 ||
+                                series.TimeFrame == TimeFrame.Tick ||
+                                series.TimeFrame == TimeFrame.Delta)
                             {
                                 List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
-
                                 series.PreLoad(allTrades);
                             }
                             else

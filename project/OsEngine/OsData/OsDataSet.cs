@@ -656,6 +656,11 @@ namespace OsEngine.OsData
                 _myServer.NewMarketDepthEvent -= _myServer_NewMarketDepthEvent;
             }
 
+            if (ServerMaster.GetServers() == null)
+            {
+                return;
+            }
+
             _myServer = ServerMaster.GetServers().Find(server => server.ServerType == Source);
 
             if (_myServer == null || _myServer.ServerStatus == ServerConnectStatus.Disconnect)

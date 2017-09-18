@@ -566,7 +566,8 @@ namespace OsEngine.Entity
 
                 for (int i = 0; i < _openOrders.Count; i++)
                 {
-                    if (_openOrders[i].NumberMarket == trade.NumberOrderParent)
+                    if (_openOrders[i].NumberMarket == trade.NumberOrderParent||
+                        _openOrders[i].NumberUser.ToString() == trade.NumberOrderParent)
                     {
                         _openOrders[i].SetTrade(trade);
                         if (OpenVolume != 0)
@@ -585,7 +586,8 @@ namespace OsEngine.Entity
             {
                 for (int i = 0; i < CloseOrders.Count; i++)
                 {
-                    if (CloseOrders[i].NumberMarket == trade.NumberOrderParent)
+                    if (CloseOrders[i].NumberMarket == trade.NumberOrderParent ||
+                        CloseOrders[i].NumberUser.ToString() == trade.NumberOrderParent)
                     {
                         CloseOrders[i].SetTrade(trade);
                         if (OpenVolume == 0)

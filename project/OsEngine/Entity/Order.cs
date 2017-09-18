@@ -195,7 +195,11 @@ namespace OsEngine.Entity
         /// </summary>
         public void SetTrade(MyTrade trade)
         {
-            if (trade.NumberOrderParent != NumberMarket)
+            if ((trade.NumberOrderParent != NumberMarket &&
+                ServerType != ServerType.Oanda) ||
+                (ServerType == ServerType.Oanda &&
+                trade.NumberOrderParent != NumberMarket &&
+                trade.NumberOrderParent != NumberUser.ToString()))
             {
                 return;
             }
