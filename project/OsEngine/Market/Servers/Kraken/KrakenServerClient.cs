@@ -30,6 +30,7 @@ namespace OsEngine.Market.Servers.Kraken
             worker.Name = "KrakenKlientListenThread";
             worker.Start();
         }
+
 // коннект
 
         /// <summary>
@@ -160,7 +161,7 @@ namespace OsEngine.Market.Servers.Kraken
                 }
                 catch (Exception error)
                 {
-                    SendLogMessage(error.ToString(),LogMessageType.Error);
+                    SendLogMessage(error.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -312,7 +313,7 @@ namespace OsEngine.Market.Servers.Kraken
 
                 if (obj.Error.Count != 0)
                 {
-                    SendLogMessage(obj.Error[0],LogMessageType.Error);
+                    SendLogMessage(obj.Error[0], LogMessageType.Error);
                     return;
                 }
 
@@ -371,8 +372,8 @@ namespace OsEngine.Market.Servers.Kraken
                     _orders.Remove(order);
                 }
                 else if (order.Status == "canceled" ||
-                    order.Status == "expired" ||
-                    order.Status == null)
+                         order.Status == "expired" ||
+                         order.Status == null)
                 {
                     _orders.Remove(order);
 
@@ -418,7 +419,7 @@ namespace OsEngine.Market.Servers.Kraken
             {
                 newTrade.Price = osOrder.Price;
             }
-            
+
             newTrade.Volume = order.Volume;
             newTrade.SecurityNameCode = osOrder.SecurityNameCode;
 
@@ -438,10 +439,10 @@ namespace OsEngine.Market.Servers.Kraken
         /// </summary>
         private void GetSpreads()
         {
-                if (_lastTimeData == DateTime.MinValue)
-                {
-                    _lastTimeData = DateTime.Now;
-                }
+            if (_lastTimeData == DateTime.MinValue)
+            {
+                _lastTimeData = DateTime.Now;
+            }
 
             for (int i = 0; i < _namesListenSecurities.Count; i++)
             {
@@ -456,7 +457,7 @@ namespace OsEngine.Market.Servers.Kraken
 
                 _lastTimeData = DateTime.Now;
 
-                var json  = _kraken.GetOrderBook(_namesListenSecurities[i], 6);
+                var json = _kraken.GetOrderBook(_namesListenSecurities[i], 6);
                 var obj = JsonConvert.DeserializeObject<GetOrderBookResponse>(json.ToString());
 
                 if (obj.Error.Count != 0)
@@ -506,7 +507,7 @@ namespace OsEngine.Market.Servers.Kraken
         /// <summary>
         /// объекты необходимые для загрузки трейдов из АПИ
         /// </summary>
-        private List<DataSinece> _timeTrades = new List<DataSinece>(); 
+        private List<DataSinece> _timeTrades = new List<DataSinece>();
 
         /// <summary>
         /// взять трейды из АПИ
@@ -545,8 +546,8 @@ namespace OsEngine.Market.Servers.Kraken
                     message = _kraken.GetRecentTrades(_namesListenSecurities[i], myTimeTrades.Time);
                 }
 
-                JObject obj = (JObject)JsonConvert.DeserializeObject(message.ToString());
-                JArray err = (JArray)obj["error"];
+                JObject obj = (JObject) JsonConvert.DeserializeObject(message.ToString());
+                JArray err = (JArray) obj["error"];
                 if (err.Count != 0)
                 {
                     SendLogMessage(err[0].ToString(), LogMessageType.Error);
@@ -566,9 +567,9 @@ namespace OsEngine.Market.Servers.Kraken
                     {
                         var trade = new List<Trade>();
 
-                        foreach (var v in (JArray)o.Value)
+                        foreach (var v in (JArray) o.Value)
                         {
-                            var a = (JArray)v;
+                            var a = (JArray) v;
 
                             trade.Add(new Trade()
                             {
@@ -621,8 +622,8 @@ namespace OsEngine.Market.Servers.Kraken
                         {
                             MarketDepth newDepth = new MarketDepth();
                             newDepth.SecurityNameCode = _namesListenSecurities[i];
-                            newDepth.Bids.Add(new MarketDepthLevel() { Bid = 1, Price = newTrade.Price });
-                            newDepth.Asks.Add(new MarketDepthLevel() { Ask = 1, Price = newTrade.Price });
+                            newDepth.Bids.Add(new MarketDepthLevel() {Bid = 1, Price = newTrade.Price});
+                            newDepth.Asks.Add(new MarketDepthLevel() {Ask = 1, Price = newTrade.Price});
 
                             newDepth.Time = newTrade.Time;
 
@@ -650,7 +651,7 @@ namespace OsEngine.Market.Servers.Kraken
         /// <summary>
         /// исходные ордера в формате OsEngine
         /// </summary>
-        private List<Order> _osEngineOrders = new List<Order>(); 
+        private List<Order> _osEngineOrders = new List<Order>();
 
         /// <summary>
         /// исполнить ордер на бирже
@@ -675,10 +676,10 @@ namespace OsEngine.Market.Servers.Kraken
                 {
                     PlaceOrderResult result = PlaceOrder(ref order, false);
 
-                   SendLogMessage(result.ResultType.ToString(), LogMessageType.System);
+                    SendLogMessage(result.ResultType.ToString(), LogMessageType.System);
 
                     if (order.TxId != null &&
-                       result.ResultType == PlaceOrderResultType.success)
+                        result.ResultType == PlaceOrderResultType.success)
                     {
                         Order newOrder = new Order();
                         newOrder.SecurityNameCode = osOrder.SecurityNameCode;
@@ -730,7 +731,7 @@ namespace OsEngine.Market.Servers.Kraken
             {
                 JsonObject res = _kraken.AddOrder(order);
 
-                JsonArray error = (JsonArray)res["error"];
+                JsonArray error = (JsonArray) res["error"];
                 if (error.Count() > 0)
                 {
                     placeOrderResult.ResultType = PlaceOrderResultType.error;
@@ -744,9 +745,9 @@ namespace OsEngine.Market.Servers.Kraken
                 }
                 else
                 {
-                    JsonObject result = (JsonObject)res["result"];
-                    JsonObject descr = (JsonObject)result["descr"];
-                    JsonArray txid = (JsonArray)result["txid"];
+                    JsonObject result = (JsonObject) res["result"];
+                    JsonObject descr = (JsonObject) result["descr"];
+                    JsonArray txid = (JsonArray) result["txid"];
 
                     if (txid == null)
                     {
@@ -768,6 +769,7 @@ namespace OsEngine.Market.Servers.Kraken
                         if (wait)
                         {
                             #region Repeatedly check order status by calling RefreshOrder
+
                             bool keepSpinning = true;
                             while (keepSpinning)
                             {
@@ -792,21 +794,29 @@ namespace OsEngine.Market.Servers.Kraken
                                                 }
                                                 else
                                                 {
-                                                    placeOrderResult.ResultType = PlaceOrderResultType.canceled_not_partial;
+                                                    placeOrderResult.ResultType =
+                                                        PlaceOrderResultType.canceled_not_partial;
                                                     return placeOrderResult;
                                                 }
                                             default:
-                                                throw new Exception(string.Format("Unknown type of order status: {0}", order.Status));
+                                                throw new Exception(string.Format("Unknown type of order status: {0}",
+                                                    order.Status));
                                         }
                                         break;
                                     case RefreshOrderResultType.error:
-                                        throw new Exception(string.Format("An error occured while trying to refresh the order.\nError List: {0}", refreshOrderResult.Errors.ToString()));
+                                        throw new Exception(
+                                            string.Format(
+                                                "An error occured while trying to refresh the order.\nError List: {0}",
+                                                refreshOrderResult.Errors.ToString()));
 
                                     case RefreshOrderResultType.order_not_found:
-                                        throw new Exception("An error occured while trying to refresh the order.\nOrder not found");
+                                        throw new Exception(
+                                            "An error occured while trying to refresh the order.\nOrder not found");
 
                                     case RefreshOrderResultType.exception:
-                                        throw new Exception("An unexpected exception occured while trying to refresh the order.", refreshOrderResult.Exception);
+                                        throw new Exception(
+                                            "An unexpected exception occured while trying to refresh the order.",
+                                            refreshOrderResult.Exception);
 
                                     default:
                                         keepSpinning = false;
@@ -814,6 +824,7 @@ namespace OsEngine.Market.Servers.Kraken
                                 }
                                 Thread.Sleep(5000);
                             }
+
                             #endregion
                         }
 
@@ -844,7 +855,7 @@ namespace OsEngine.Market.Servers.Kraken
             {
                 JsonObject res = _kraken.QueryOrders(order.TxId);
 
-                JsonArray error = (JsonArray)res["error"];
+                JsonArray error = (JsonArray) res["error"];
                 if (error.Count() > 0)
                 {
                     refreshOrderResult.ResultType = RefreshOrderResultType.error;
@@ -858,8 +869,8 @@ namespace OsEngine.Market.Servers.Kraken
                 }
                 else
                 {
-                    JsonObject result = (JsonObject)res["result"];
-                    JsonObject orderDetails = (JsonObject)result[order.TxId];
+                    JsonObject result = (JsonObject) res["result"];
+                    JsonObject orderDetails = (JsonObject) result[order.TxId];
 
                     if (orderDetails == null)
                     {
@@ -872,13 +883,15 @@ namespace OsEngine.Market.Servers.Kraken
                         string reason = (orderDetails["reason"] != null) ? orderDetails["reason"].ToString() : null;
                         string openTime = (orderDetails["opentm"] != null) ? orderDetails["opentm"].ToString() : null;
                         string closeTime = (orderDetails["closetm"] != null) ? orderDetails["closetm"].ToString() : null;
-                        string vol_exec = (orderDetails["vol_exec"] != null) ? orderDetails["vol_exec"].ToString() : null;
+                        string vol_exec = (orderDetails["vol_exec"] != null)
+                            ? orderDetails["vol_exec"].ToString()
+                            : null;
                         string cost = (orderDetails["cost"] != null) ? orderDetails["cost"].ToString() : null;
                         string fee = (orderDetails["fee"] != null) ? orderDetails["fee"].ToString() : null;
                         string price = (orderDetails["price"] != null) ? orderDetails["price"].ToString() : null;
                         string misc = (orderDetails["misc"] != null) ? orderDetails["misc"].ToString() : null;
                         string oflags = (orderDetails["oflags"] != null) ? orderDetails["oflags"].ToString() : null;
-                        JsonArray tradesArray = (JsonArray)orderDetails["trades"];
+                        JsonArray tradesArray = (JsonArray) orderDetails["trades"];
                         string trades = null;
                         if (tradesArray != null)
                         {
@@ -968,7 +981,7 @@ namespace OsEngine.Market.Servers.Kraken
         /// <summary>
         /// новые бумаги в системе
         /// </summary>
-        public event Action<List<Security>> NewSecuritiesEvent; 
+        public event Action<List<Security>> NewSecuritiesEvent;
 
         /// <summary>
         /// новая моя сделка в системе
@@ -1024,56 +1037,47 @@ namespace OsEngine.Market.Servers.Kraken
         /// <summary>
         /// Equivalent balance(combined balance of all currencies).
         /// </summary>
-        [JsonProperty(PropertyName = "eb")]
-        public decimal EquivalentBalance;
+        [JsonProperty(PropertyName = "eb")] public decimal EquivalentBalance;
 
         /// <summary>
         /// Trade balance(combined balance of all equity currencies).
         /// </summary>
-        [JsonProperty(PropertyName = "tb")]
-        public decimal TradeBalance;
+        [JsonProperty(PropertyName = "tb")] public decimal TradeBalance;
 
         /// <summary>
         /// Margin amount of open positions.
         /// </summary>
-        [JsonProperty(PropertyName = "m")]
-        public decimal MarginAmount;
+        [JsonProperty(PropertyName = "m")] public decimal MarginAmount;
 
         /// <summary>
         /// Unrealized net profit/loss of open positions.
         /// </summary>
-        [JsonProperty(PropertyName = "n")]
-        public decimal UnrealizedProfitAndLoss;
+        [JsonProperty(PropertyName = "n")] public decimal UnrealizedProfitAndLoss;
 
         /// <summary>
         /// Cost basis of open positions.
         /// </summary>
-        [JsonProperty(PropertyName = "c")]
-        public decimal CostBasis;
+        [JsonProperty(PropertyName = "c")] public decimal CostBasis;
 
         /// <summary>
         /// Current floating valuation of open positions.
         /// </summary>
-        [JsonProperty(PropertyName = "v")]
-        public decimal FloatingValutation;
+        [JsonProperty(PropertyName = "v")] public decimal FloatingValutation;
 
         /// <summary>
         /// Equity = trade balance + unrealized net profit/loss.
         /// </summary>
-        [JsonProperty(PropertyName = "e")]
-        public decimal Equity;
+        [JsonProperty(PropertyName = "e")] public decimal Equity;
 
         /// <summary>
         /// Free margin = equity - initial margin(maximum margin available to open new positions).
         /// </summary>
-        [JsonProperty(PropertyName = "mf")]
-        public decimal FreeMargin;
+        [JsonProperty(PropertyName = "mf")] public decimal FreeMargin;
 
         /// <summary>
         /// Margin level = (equity / initial margin) * 100
         /// </summary>
-        [JsonProperty(PropertyName = "ml")]
-        public decimal MarginLevel;
+        [JsonProperty(PropertyName = "ml")] public decimal MarginLevel;
     }
 
     public class GetTradeBalanceResponse : ResponseBase
@@ -1101,8 +1105,7 @@ namespace OsEngine.Market.Servers.Kraken
         /// <summary>
         /// Asset private class of base component.
         /// </summary>
-        [JsonProperty(PropertyName = "aclass_base")]
-        public string AclassBase;
+        [JsonProperty(PropertyName = "aclass_base")] public string AclassBase;
 
         /// <summary>
         /// Asset id of base component
@@ -1112,8 +1115,7 @@ namespace OsEngine.Market.Servers.Kraken
         /// <summary>
         /// Asset class of quote component.
         /// </summary>
-        [JsonProperty(PropertyName = "aclass_quote")]
-        public string AclassQuote;
+        [JsonProperty(PropertyName = "aclass_quote")] public string AclassQuote;
 
         /// <summary>
         /// Asset id of quote component.
@@ -1128,32 +1130,27 @@ namespace OsEngine.Market.Servers.Kraken
         /// <summary>
         /// Scaling decimal places for pair.
         /// </summary>
-        [JsonProperty(PropertyName = "pair_decimals")]
-        public int PairDecimals;
+        [JsonProperty(PropertyName = "pair_decimals")] public int PairDecimals;
 
         /// <summary>
         /// Scaling decimal places for volume.
         /// </summary>
-        [JsonProperty(PropertyName = "lot_decimals")]
-        public int LotDecimals;
+        [JsonProperty(PropertyName = "lot_decimals")] public int LotDecimals;
 
         /// <summary>
         /// Amount to multiply lot volume by to get currency volume.
         /// </summary>
-        [JsonProperty(PropertyName = "lot_multiplier")]
-        public int LotMultiplier;
+        [JsonProperty(PropertyName = "lot_multiplier")] public int LotMultiplier;
 
         /// <summary>
         /// Array of leverage amounts available when buying.
         /// </summary>
-        [JsonProperty(PropertyName = "leverage_buy")]
-        public decimal[] LeverageBuy;
+        [JsonProperty(PropertyName = "leverage_buy")] public decimal[] LeverageBuy;
 
         /// <summary>
         /// Array of leverage amounts available when selling.
         /// </summary>
-        [JsonProperty(PropertyName = "leverage_sell")]
-        public decimal[] LeverageSell;
+        [JsonProperty(PropertyName = "leverage_sell")] public decimal[] LeverageSell;
 
         /// <summary>
         /// Fee schedule array in [volume, percent fee].
@@ -1163,26 +1160,22 @@ namespace OsEngine.Market.Servers.Kraken
         /// <summary>
         /// Maker fee schedule array in [volume, percent fee] tuples(if on maker/taker).
         /// </summary>
-        [JsonProperty(PropertyName = "fees_maker")]
-        public decimal[][] FeesMaker;
+        [JsonProperty(PropertyName = "fees_maker")] public decimal[][] FeesMaker;
 
         /// <summary>
         /// Volume discount currency
         /// </summary>
-        [JsonProperty(PropertyName = "fee_volume_currency")]
-        public string FeeVolumeCurrency;
+        [JsonProperty(PropertyName = "fee_volume_currency")] public string FeeVolumeCurrency;
 
         /// <summary>
         /// Margin call level.
         /// </summary>
-        [JsonProperty(PropertyName = "margin_call")]
-        public decimal MarginCall;
+        [JsonProperty(PropertyName = "margin_call")] public decimal MarginCall;
 
         /// <summary>
         /// Stop-out/liquidation margin level.
         /// </summary>
-        [JsonProperty(PropertyName = "margin_stop")]
-        public decimal MarginStop;
+        [JsonProperty(PropertyName = "margin_stop")] public decimal MarginStop;
     }
 
     public class OrderBook
