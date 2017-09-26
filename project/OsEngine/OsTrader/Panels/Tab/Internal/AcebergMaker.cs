@@ -31,7 +31,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// <param name="type">тип</param>
         /// <param name="volume">объём</param>
         /// <param name="bot">робот</param>
-        public void MakeNewAceberg(decimal price, TimeSpan lifiTime, int ordersCount, Position position, AcebergType type, int volume, BotTabSimple bot)
+        public void MakeNewAceberg(decimal price, TimeSpan lifiTime, int ordersCount, Position position, AcebergType type, decimal volume, BotTabSimple bot)
         {
             if (_acebergOrders == null)
             {
@@ -133,7 +133,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// <param name="bot">робот которому принадлежит айсберг</param>
         /// <param name="type">тип айсберга</param>
         /// <param name="volume">общий объём</param>
-        public Aceberg(decimal price, TimeSpan lifiTime, int ordersCount, Position position, BotTabSimple bot, AcebergType type, int volume)
+        public Aceberg(decimal price, TimeSpan lifiTime, int ordersCount, Position position, BotTabSimple bot, AcebergType type, decimal volume)
         {
             _bot = bot;
             _price = price;
@@ -185,7 +185,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// <summary>
         /// общий объём
         /// </summary>
-        private int _volume;
+        private decimal _volume;
 
         /// <summary>
         /// робот
@@ -218,7 +218,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             if (realCountOrders > _volume)
             {
-                realCountOrders = _volume;
+                realCountOrders = Convert.ToInt32(_volume);
             }
 
             Order[] orders = new Order[realCountOrders];
@@ -238,7 +238,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 {// если это последний ордер, 
                     // считаем отдельно, сколько реально осталось контрактов
 
-                    int realVolume = 0;
+                    decimal realVolume = 0;
 
                     for (int i2 = 0; i2 < orders.Length - 1; i2++)
                     {
@@ -271,7 +271,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             if (realCountOrders > _volume)
             {
-                realCountOrders = _volume;
+                realCountOrders = Convert.ToInt32(_volume);
             }
 
             Order[] orders = new Order[realCountOrders];
@@ -291,7 +291,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 {// если это последний ордер, 
                     // считаем отдельно, сколько реально осталось контрактов
 
-                    int realVolume = 0;
+                    decimal realVolume = 0;
 
                     for (int i2 = 0; i2 < orders.Length - 1; i2++)
                     {
@@ -315,7 +315,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             if (realCountOrders > _volume)
             {
-                realCountOrders = _volume;
+                realCountOrders = Convert.ToInt32(_volume);
             }
 
             Order[] orders = new Order[realCountOrders];
@@ -335,7 +335,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 {// если это последний ордер, 
                     // считаем отдельно, сколько реально осталось контрактов
 
-                    int realVolume = 0;
+                    decimal realVolume = 0;
 
                     for (int i2 = 0; i2 < orders.Length - 1; i2++)
                     {
@@ -359,7 +359,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             if (realCountOrders > _volume)
             {
-                realCountOrders = _volume;
+                realCountOrders = Convert.ToInt32(_volume);
             }
 
             Order[] orders = new Order[realCountOrders];
@@ -379,7 +379,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 {// если это последний ордер, 
                     // считаем отдельно, сколько реально осталось контрактов
 
-                    int realVolume = 0;
+                    decimal realVolume = 0;
 
                     for (int i2 = 0; i2 < orders.Length - 1; i2++)
                     {

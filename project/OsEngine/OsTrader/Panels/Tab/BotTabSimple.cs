@@ -938,7 +938,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// войти в позицию Лонг по любой цене
         /// </summary>
         /// <param name="volume">объём которым следует войти</param>
-        public Position BuyAtMarket(int volume)
+        public Position BuyAtMarket(decimal volume)
         {
             try
             {
@@ -986,7 +986,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="volume">объём которым следует войти</param>
         /// <param name="signalType">название сигнала для входа. Будет записано в свойство позиции: SignalTypeOpen </param>
         /// <returns></returns>
-        public Position BuyAtMarket(int volume, string signalType)
+        public Position BuyAtMarket(decimal volume, string signalType)
         {
             Position position = BuyAtMarket(volume);
 
@@ -1003,7 +1003,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         /// <param name="volume">объём позиции</param>
         /// <param name="priceLimit">цена выставляемой заявки</param>
-        public Position BuyAtLimit(int volume, decimal priceLimit)
+        public Position BuyAtLimit(decimal volume, decimal priceLimit)
         {
             try
             {
@@ -1022,7 +1022,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="volume">объём позиции</param>
         /// <param name="priceLimit">цена выставляемой заявки</param>
         /// <param name="signalType">>название сигнала для входа. Будет записано в свойство позиции: SignalTypeOpen</param>
-        public Position BuyAtLimit(int volume, decimal priceLimit, string signalType)
+        public Position BuyAtLimit(decimal volume, decimal priceLimit, string signalType)
         {
             Position position = BuyAtLimit(volume,priceLimit);
 
@@ -1041,7 +1041,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="volume">объём позиции</param>
         /// <param name="price">цена выставляемой заявки</param>
         /// /// <param name="orderCount">количество ордеров в айсберге</param>
-        public Position BuyAtAceberg(int volume, decimal price, int orderCount)
+        public Position BuyAtAceberg(decimal volume, decimal price, int orderCount)
         {
             try
             {
@@ -1130,7 +1130,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="price">цена выставляемой заявки</param>
         /// /// <param name="orderCount">количество ордеров в айсберге</param>
         /// <param name="signalType">название сигнала для входа. Будет записано в свойство позиции: SignalTypeOpen</param>
-        public Position BuyAtAceberg(int volume, decimal price, int orderCount, string signalType)
+        public Position BuyAtAceberg(decimal volume, decimal price, int orderCount, string signalType)
         {
             Position position = BuyAtAceberg(volume, price, orderCount);
 
@@ -1150,7 +1150,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="priceRedLine">цена линии, после достижения которой будет выставлен ордер на покупку</param>
         /// <param name="activateType">тип активации ордера</param>
         /// /// <param name="expiresBars">время жизни ордера в барах</param>
-        public void BuyAtStop(int volume, decimal priceLimit, decimal priceRedLine, StopActivateType activateType, int expiresBars)
+        public void BuyAtStop(decimal volume, decimal priceLimit, decimal priceRedLine, StopActivateType activateType, int expiresBars)
         {
             try
             {
@@ -1177,7 +1177,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             /// <param name="priceLimit">цена ордера</param>
             /// <param name="priceRedLine">цена линии, после достижения которой будет выставлен ордер на покупку</param>
             /// <param name="activateType">тип активации ордера</param>
-        public void BuyAtStop(int volume, decimal priceLimit, decimal priceRedLine, StopActivateType activateType)
+        public void BuyAtStop(decimal volume, decimal priceLimit, decimal priceRedLine, StopActivateType activateType)
         {
             BuyAtStop(volume, priceLimit, priceRedLine, activateType, 1);
         }
@@ -1188,7 +1188,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="position">позиция к которой будет добавлена заявка</param>
         /// <param name="priceLimit">цена заявки</param>
         /// <param name="volume">объём</param>
-        public void BuyAtLimitToPosition(Position position, decimal priceLimit, int volume)
+        public void BuyAtLimitToPosition(Position position, decimal priceLimit, decimal volume)
         {
             try
             {
@@ -1211,7 +1211,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         /// <param name="position">позиция к которой будет добавлена заявка</param>
         /// <param name="volume">объём</param>
-        public void BuyAtMarketToPosition(Position position, int volume)
+        public void BuyAtMarketToPosition(Position position, decimal volume)
         {
             try
             {
@@ -1261,7 +1261,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="price">цена заявок</param>
         /// <param name="volume">объём</param>
         /// <param name="orderCount">количество ордеров для айсберга</param>
-        public void BuyAtAcebergToPosition(Position position, decimal price, int volume, int orderCount)
+        public void BuyAtAcebergToPosition(Position position, decimal price, decimal volume, int orderCount)
         {
             try
             {
@@ -1366,7 +1366,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// войти в позицию Шорт по любой цене
         /// </summary>
         /// <param name="volume">объём позиции</param>
-        public Position SellAtMarket(int volume)
+        public Position SellAtMarket(decimal volume)
         {
             try
             {
@@ -1405,7 +1405,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         /// <param name="volume">объём позиции</param>
         /// <param name="signalType">название сигнала для входа. Будет записано в свойство позиции: SignalTypeOpen</param>
-        public Position SellAtMarket(int volume, string signalType)
+        public Position SellAtMarket(decimal volume, string signalType)
         {
             Position position = SellAtMarket(volume);
 
@@ -1422,7 +1422,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         /// <param name="volume">объём позиции</param>
         /// <param name="priceLimit">цена заявки</param>
-        public Position SellAtLimit(int volume, decimal priceLimit)
+        public Position SellAtLimit(decimal volume, decimal priceLimit)
         {
             try
             {
@@ -1441,7 +1441,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="volume">объём позиции</param>
         /// <param name="priceLimit">цена заявки</param>
         /// <param name="signalType">название сигнала для входа. Будет записано в свойство позиции: SignalTypeOpen</param>
-        public Position SellAtLimit(int volume, decimal priceLimit,string signalType)
+        public Position SellAtLimit(decimal volume, decimal priceLimit, string signalType)
         {
             Position position = SellAtLimit(volume, priceLimit);
 
@@ -1460,7 +1460,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="volume">объём позиции</param>
         /// <param name="price">цена</param>
         /// <param name="orderCount">количество ордеров в айсберге</param>
-        public Position SellAtAceberg(int volume, decimal price, int orderCount)
+        public Position SellAtAceberg(decimal volume, decimal price, int orderCount)
         {
             try
             {
@@ -1549,7 +1549,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="price">цена</param>
         /// <param name="orderCount">количество ордеров в айсберге</param>
         /// <param name="signalType">название сигнала для входа. Будет записано в свойство позиции: SignalTypeOpen</param>
-        public Position SellAtAceberg(int volume, decimal price, int orderCount, string signalType)
+        public Position SellAtAceberg(decimal volume, decimal price, int orderCount, string signalType)
         {
             Position position = SellAtAceberg(volume, price,orderCount);
 
@@ -1569,7 +1569,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="priceRedLine">цена линии, после достижения которой будет выставлен ордер на продажу</param>
         /// <param name="activateType">тип активации ордера</param>
         /// <param name="expiresBars">через сколько свечей заявка будет снята</param>
-        public void SellAtStop(int volume, decimal priceLimit, decimal priceRedLine, StopActivateType activateType, int expiresBars)
+        public void SellAtStop(decimal volume, decimal priceLimit, decimal priceRedLine, StopActivateType activateType, int expiresBars)
         {
             try
             {
@@ -1595,7 +1595,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="priceLimit">цена ордера</param>
         /// <param name="priceRedLine">цена линии, после достижения которой будет выставлен ордер на продажу</param>
         /// <param name="activateType">тип активации ордера</param>
-        public void SellAtStop(int volume, decimal priceLimit, decimal priceRedLine, StopActivateType activateType)
+        public void SellAtStop(decimal volume, decimal priceLimit, decimal priceRedLine, StopActivateType activateType)
         {
             SellAtStop(volume, priceLimit, priceRedLine, activateType, 1);
         }
@@ -1606,7 +1606,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="position">позиция к которой будет добавлена заявка</param>
         /// <param name="priceLimit">цена заявки</param>
         /// <param name="volume">объём</param>
-        public void SellAtLimitToPosition(Position position, decimal priceLimit, int volume)
+        public void SellAtLimitToPosition(Position position, decimal priceLimit, decimal volume)
         {
             try
             {
@@ -1630,7 +1630,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         /// <param name="position">позиция к которой будет добавлена заявка</param>
         /// <param name="volume">объём</param>
-        public void SellAtMarketToPosition(Position position, int volume)
+        public void SellAtMarketToPosition(Position position, decimal volume)
         {
             try
             {
@@ -1680,7 +1680,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="price">цена заявок</param>
         /// <param name="volume">объём</param>
         /// <param name="orderCount">количество ордеров для айсберга</param>
-        public void SellAtAcebergToPosition(Position position, decimal price, int volume, int orderCount)
+        public void SellAtAcebergToPosition(Position position, decimal price, decimal volume, int orderCount)
         {
             try
             {
@@ -1808,7 +1808,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         /// <param name="position">позиция которую будем закрывать</param>
         /// <param name="volume">объём нужный к закрытию</param>
-        public void CloseAtMarket(Position position, int volume)
+        public void CloseAtMarket(Position position, decimal volume)
         {
             try
             {
@@ -1861,7 +1861,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="position">позиция которую будем закрывать</param>
         /// <param name="volume">объём нужный к закрытию</param>
         /// <param name="signalType">название сигнала для входа. Будет записано в свойство позиции: SignalTypeOpen</param>
-        public void CloseAtMarket(Position position, int volume, string signalType)
+        public void CloseAtMarket(Position position, decimal volume, string signalType)
         {
             position.SignalTypeClose = signalType;
             CloseAtMarket(position,volume);
@@ -1874,7 +1874,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="priceLimit">цена ордера</param>
         /// Не закрытая/Частично закрытая заявка попадёт в обработчик закрытых заявок PositionClosingFail(Position position). 
         /// <param name="volume">объём нужный к закрытию</param>
-        public void CloseAtLimit(Position position, decimal priceLimit, int volume)
+        public void CloseAtLimit(Position position, decimal priceLimit, decimal volume)
         {
             try
             {
@@ -1905,7 +1905,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// Не закрытая/Частично закрытая заявка попадёт в обработчик закрытых заявок PositionClosingFail(Position position). 
         /// <param name="volume">объём нужный к закрытию</param>
         /// <param name="signalType">название сигнала для входа. Будет записано в свойство позиции: SignalTypeOpen</param>
-        public void CloseAtLimit(Position position, decimal priceLimit, int volume, string signalType)
+        public void CloseAtLimit(Position position, decimal priceLimit, decimal volume, string signalType)
         {
             position.SignalTypeClose = signalType;
             CloseAtLimit(position, priceLimit,volume);
@@ -1918,7 +1918,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="priceLimit">цена ордера</param>
         /// <param name="volume">объём нужный к закрытию</param>
         /// <param name="orderCount">количество ордеров для айсберга</param>
-        public void CloseAtAceberg(Position position, decimal priceLimit, int volume, int orderCount)
+        public void CloseAtAceberg(Position position, decimal priceLimit, decimal volume, int orderCount)
         {
             try
             {
@@ -1962,7 +1962,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="volume">объём нужный к закрытию</param>
         /// <param name="orderCount">количество ордеров для айсберга</param>
         /// <param name="signalType">название сигнала для входа. Будет записано в свойство позиции: SignalTypeOpen</param>
-        public void CloseAtAceberg(Position position, decimal priceLimit, int volume, int orderCount, string signalType)
+        public void CloseAtAceberg(Position position, decimal priceLimit, decimal volume, int orderCount, string signalType)
         {
             position.SignalTypeClose = signalType;
             CloseAtAceberg(position, priceLimit, volume, orderCount);
@@ -2106,7 +2106,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="timeLife">время жизни</param>
         /// <param name="isStopOrProfit">является ли ордер следствием срабатывания стопа или профита</param>
         /// <returns></returns>
-        private Position ShortCreate(decimal price, int volume, OrderPriceType priceType, TimeSpan timeLife,
+        private Position ShortCreate(decimal price, decimal volume, OrderPriceType priceType, TimeSpan timeLife,
             bool isStopOrProfit)
         {
             try
@@ -2162,7 +2162,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="timeLife">время жизни</param>
         /// <param name="isStopOrProfit">является ли ордер следствием срабатывания стопа или профита</param>
         /// <returns></returns>
-        private void ShortUpdate(Position position, decimal price, int volume, TimeSpan timeLife,
+        private void ShortUpdate(Position position, decimal price, decimal volume, TimeSpan timeLife,
             bool isStopOrProfit)
         {
             try
@@ -2229,7 +2229,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="timeLife">время жизни</param>
         /// <param name="isStopOrProfit">является ли ордер следствием срабатывания стопа или профита</param>
         /// <returns></returns>
-        private Position LongCreate(decimal price, int volume, OrderPriceType priceType, TimeSpan timeLife,
+        private Position LongCreate(decimal price, decimal volume, OrderPriceType priceType, TimeSpan timeLife,
             bool isStopOrProfit) // купить
         {
             try
@@ -2286,7 +2286,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="timeLife">время жизни</param>
         /// <param name="isStopOrProfit">является ли ордер следствием срабатывания стопа или профита</param>
         /// <returns></returns>
-        private void LongUpdate(Position position, decimal price, int volume, TimeSpan timeLife,
+        private void LongUpdate(Position position, decimal price, decimal volume, TimeSpan timeLife,
             bool isStopOrProfit)
         {
             try
@@ -2441,7 +2441,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="lifeTime">время жизни позиции</param>
         /// <param name="volume">объём на который следует закрыть позицию</param>
         private void ClosePeaceOfDeal(Position position, OrderPriceType priceType, decimal price, TimeSpan lifeTime,
-            int volume)
+            decimal volume)
         {
             try
             {
@@ -2546,7 +2546,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 // выставляем стоп
-                int volume = position.OpenVolume;
+                decimal volume = position.OpenVolume;
 
                 if (volume == 0)
                 {
@@ -2598,7 +2598,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 // выставляем профит
 
-                int volume = position.OpenVolume;
+                decimal volume = position.OpenVolume;
 
                 if (volume == 0)
                 {

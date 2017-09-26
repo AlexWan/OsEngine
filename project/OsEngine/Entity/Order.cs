@@ -69,12 +69,12 @@ namespace OsEngine.Entity
         /// <summary>
         /// объём
         /// </summary>
-        public int Volume;
+        public decimal Volume;
 
         /// <summary>
         /// объём исполнившийся
         /// </summary>
-        public int VolumeExecute
+        public decimal VolumeExecute
         {
             get
             {
@@ -96,19 +96,27 @@ namespace OsEngine.Entity
             }
             set { _volumeExecute = value; }
         }
-        private int _volumeExecute;
+        private decimal _volumeExecute;
         private bool _volumeExecuteChange;
 
         public List<MyTrade> MyTrades
         {
             get { return _trades; }
-        } 
+        }
 
         /// <summary>
         /// статус ордера: None, Pending, Done, Patrial, Fail
         /// </summary>
-        public OrderStateType State; 
+        public OrderStateType State 
+        {
+            get { return _state; }
+            set
+            {
+                _state = value;
+            } 
+        }
 
+        private OrderStateType _state;
         /// <summary>
         /// тип цены ордера. Limit, Market
         /// </summary>
@@ -351,9 +359,11 @@ namespace OsEngine.Entity
             NumberMarket = saveArray[2];
             Enum.TryParse(saveArray[3], true, out Side);
             Price = Convert.ToDecimal(saveArray[4]);
-            Volume = Convert.ToInt32(saveArray[6]);
-            VolumeExecute = Convert.ToInt32(saveArray[7]);
-            Enum.TryParse(saveArray[8], true, out State);
+            Volume = Convert.ToDecimal(saveArray[6]);
+            VolumeExecute = Convert.ToDecimal(saveArray[7]);
+
+
+            Enum.TryParse(saveArray[8], true, out _state);
             Enum.TryParse(saveArray[9], true, out TypeOrder);
             TimeCallBack = Convert.ToDateTime(saveArray[10]);
 

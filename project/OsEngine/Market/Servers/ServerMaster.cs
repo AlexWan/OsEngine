@@ -12,6 +12,7 @@ using OsEngine.Market.Servers.AstsBridge;
 using OsEngine.Market.Servers.BitMex;
 using OsEngine.Market.Servers.Finam;
 using OsEngine.Market.Servers.InteractivBrokers;
+using OsEngine.Market.Servers.Kraken;
 using OsEngine.Market.Servers.Oanda;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Plaza;
@@ -20,7 +21,6 @@ using OsEngine.Market.Servers.QuikLua;
 using OsEngine.Market.Servers.SmartCom;
 using OsEngine.Market.Servers.Tester;
 using MessageBox = System.Windows.MessageBox;
-using Point = System.Drawing.Point;
 
 namespace OsEngine.Market.Servers
 {
@@ -89,6 +89,21 @@ namespace OsEngine.Market.Servers
                 if (_servers == null)
                 {
                     _servers = new List<IServer>();
+                }
+                if (type == ServerType.Kraken)
+                {
+                    if (_servers.Find(server => server.ServerType == ServerType.Kraken) != null)
+                    {
+                        return;
+                    }
+
+                    KrakenServer serv = new KrakenServer(neadLoadTicks);
+                    _servers.Add(serv);
+
+                    if (ServerCreateEvent != null)
+                    {
+                        ServerCreateEvent();
+                    }
                 }
                 if (type == ServerType.Oanda)
                 {
@@ -574,7 +589,12 @@ namespace OsEngine.Market.Servers
     public enum ServerType
     {
         /// <summary>
-        /// форекс брокер
+        /// биржа криптовалют Kraken
+        /// </summary>
+        Kraken,
+
+        /// <summary>
+        /// форекс брокер Oanda
         /// </summary>
         Oanda,
 

@@ -375,7 +375,7 @@ namespace OsEngine.Entity
         /// <param name="volume">объём</param>
         /// <param name="canPushUp">можно ли передовать сведения о свечках выше</param>
         /// <param name="side">сторона в которую прошла последняя сделка</param>
-        private void UpDateCandle(DateTime time, decimal price, int volume, bool canPushUp, Side side)
+        private void UpDateCandle(DateTime time, decimal price, decimal volume, bool canPushUp, Side side)
         {
             if (_seriesCreateMethodType == CandleSeriesCreateMethodType.Simple)
             {
@@ -394,7 +394,7 @@ namespace OsEngine.Entity
         /// <summary>
         /// обновить свечи с обычным ТФ
         /// </summary>
-        private void UpDateSimpleTimeFrame(DateTime time, decimal price, int volume, bool canPushUp)
+        private void UpDateSimpleTimeFrame(DateTime time, decimal price, decimal volume, bool canPushUp)
         {
             //if (From > trade.Time)
             //{
@@ -572,7 +572,7 @@ namespace OsEngine.Entity
         /// <summary>
         /// обновить свечи с дельтой
         /// </summary>
-        private void UpDateDeltaTimeFrame(DateTime time, decimal price, int volume, bool canPushUp, Side side)
+        private void UpDateDeltaTimeFrame(DateTime time, decimal price, decimal volume, bool canPushUp, Side side)
         {
             if (CandlesAll != null && CandlesAll.Count > 0 && CandlesAll[CandlesAll.Count - 1] != null &&
                CandlesAll[CandlesAll.Count - 1].TimeStart > time)
@@ -710,7 +710,7 @@ namespace OsEngine.Entity
         /// </summary>
         private int _lastCandleTickCount;
 
-        private void UpDateTickTimeFrame(DateTime time, decimal price, int volume, bool canPushUp)
+        private void UpDateTickTimeFrame(DateTime time, decimal price, decimal volume, bool canPushUp)
         {
             if (CandlesAll != null && CandlesAll.Count > 0 && CandlesAll[CandlesAll.Count - 1] != null &&
                CandlesAll[CandlesAll.Count - 1].TimeStart > time)
@@ -991,6 +991,11 @@ namespace OsEngine.Entity
 
         public void SetNewMarketDepth(MarketDepth marketDepth)
         {
+            if (_isStarted == false)
+            {
+                return;
+            }
+
             if (_isStoped)
             {
                 return;

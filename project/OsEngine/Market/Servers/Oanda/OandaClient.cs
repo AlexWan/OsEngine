@@ -240,7 +240,7 @@ namespace OsEngine.Market.Servers.Oanda
                 trade.NumberOrderParent = order.clientOrderID;
                 trade.NumberTrade = order.id.ToString();
                 trade.Price = Convert.ToDecimal(order.price);
-                trade.Volume = Convert.ToInt32(order.units);
+                trade.Volume = Convert.ToDecimal(order.units);
                 trade.Time = DateTime.Parse(order.time);
                 trade.SecurityNameCode = order.instrument;
 
@@ -354,7 +354,7 @@ namespace OsEngine.Market.Servers.Oanda
             {
                 string expiry = ConvertDateTimeToAcceptDateFormat(DateTime.Now.AddMonths(1));
 
-                int volume = order.Volume;
+                decimal volume = order.Volume;
 
                 if (order.Side == Side.Sell)
                 {
@@ -366,7 +366,7 @@ namespace OsEngine.Market.Servers.Oanda
                 var request = new LimitOrderRequest()
                 {
                     instrument = order.SecurityNameCode,
-                    units = volume, // buy
+                    units = Convert.ToDouble(volume),
                     timeInForce = TimeInForce.GoodUntilDate,
                     gtdTime = expiry,
                     price = price,

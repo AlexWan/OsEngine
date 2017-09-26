@@ -140,6 +140,7 @@ namespace OsEngine.Market.Servers
             bool astsIsOn = false;
             bool quikLuaIsOn = false;
             bool oandaIsOn = false;
+            bool krakenIsOn = false;
 
             for (int i = 0; i < _gridSources.Rows.Count; i++)
             {
@@ -152,6 +153,11 @@ namespace OsEngine.Market.Servers
                 if (type == ServerType.BitMex)
                 {
                     bitMexIsOn = true;
+                }
+
+                if (type == ServerType.Kraken)
+                {
+                    krakenIsOn = true;
                 }
 
                 if (type == ServerType.Oanda)
@@ -189,6 +195,7 @@ namespace OsEngine.Market.Servers
                     astsIsOn = true;
                 }
             }
+
             if (quikIsOn == false)
             {
                 DataGridViewRow row1 = new DataGridViewRow();
@@ -212,6 +219,15 @@ namespace OsEngine.Market.Servers
                 DataGridViewRow row1 = new DataGridViewRow();
                 row1.Cells.Add(new DataGridViewTextBoxCell());
                 row1.Cells[0].Value = ServerType.SmartCom;
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[1].Value = "Disconnect";
+                _gridSources.Rows.Add(row1);
+            }
+            if (krakenIsOn == false)
+            {
+                DataGridViewRow row1 = new DataGridViewRow();
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[0].Value = ServerType.Kraken;
                 row1.Cells.Add(new DataGridViewTextBoxCell());
                 row1.Cells[1].Value = "Disconnect";
                 _gridSources.Rows.Add(row1);

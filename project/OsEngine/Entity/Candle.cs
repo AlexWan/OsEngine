@@ -41,7 +41,7 @@ namespace OsEngine.Entity
         /// <summary>
         /// объём
         /// </summary>
-        public int Volume;
+        public decimal Volume;
 
         /// <summary>
         /// статус завершённости свечи
@@ -168,14 +168,14 @@ namespace OsEngine.Entity
                 {
                     if (shit.Length == 2 && Convert.ToInt32(shit[1]) != 0)
                     {
-                        if (!Int32.TryParse(shit[0] + '.' + shit[1], out Volume))
+                        if (!Decimal.TryParse(shit[0] + '.' + shit[1], out Volume))
                         {
-                            Volume = Convert.ToInt32(shit[0] + ',' + shit[1]);
+                            Volume = Convert.ToDecimal(shit[0] + ',' + shit[1]);
                         }
                     }
                     else
                     {
-                        Volume = Convert.ToInt32(shit[0]);
+                        Volume = Convert.ToDecimal(shit[0]);
                     }
                 }
 

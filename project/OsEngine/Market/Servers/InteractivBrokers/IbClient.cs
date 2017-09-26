@@ -444,7 +444,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
 
                 // paramsList.AddParameter main order fields
                 TcpWrite(action);
-                TcpWrite(order.Volume.ToString());
+                TcpWrite(order.Volume.ToString(new NumberFormatInfo() { CurrencyDecimalSeparator = "." }));
                 TcpWrite(type);
                 TcpWrite(order.Price.ToString(new NumberFormatInfo(){CurrencyDecimalSeparator = "."}));
                 TcpWrite("");
@@ -1332,7 +1332,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             {
                 // надо сгенерить мои трейды
 
-                int volume = newOsOrder.VolumeExecute - osOrder.VolumeExecute;
+                decimal volume = newOsOrder.VolumeExecute - osOrder.VolumeExecute;
 
                 List<MyTradeCreate> myTradeCreates = _myTradeCreate.FindAll(create => create.idOrder == id);
 

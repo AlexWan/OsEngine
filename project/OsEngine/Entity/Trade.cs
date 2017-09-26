@@ -38,7 +38,7 @@ namespace OsEngine.Entity
         /// <summary>
         /// объём
         /// </summary>
-        public int Volume;
+        public decimal Volume;
 
         /// <summary>
         /// цена сделки
@@ -138,7 +138,7 @@ namespace OsEngine.Entity
 
             Price = Convert.ToDecimal(sIn[2].Replace(".",","));
             
-            Volume = Convert.ToInt32(sIn[3]);
+            Volume = Convert.ToDecimal(sIn[3]);
 
             if (sIn.Length > 4)
             {

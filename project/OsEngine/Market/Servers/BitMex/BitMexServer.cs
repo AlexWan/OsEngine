@@ -305,6 +305,8 @@ namespace OsEngine.Market.Servers.BitMex
                         if (stateIsActiv == false && _serverStatusNead == ServerConnectStatus.Connect)
                         {
                             SendLogMessage("Запущена процедура активации подключения", LogMessageType.System);
+                            Dispose();
+                            CreateNewServerBitMex();
                             Connect();
                             continue;
                         }
@@ -440,9 +442,9 @@ namespace OsEngine.Market.Servers.BitMex
             _clientBitMex.Id = UserId;
             _clientBitMex.SecKey = UserKey;
 
-            _clientBitMex.Connect();
-
             _lastStartServerTime = DateTime.Now;
+
+            _clientBitMex.Connect();
 
             Thread.Sleep(1000);
         }
@@ -1022,7 +1024,8 @@ namespace OsEngine.Market.Servers.BitMex
                     if (_subscribedSec.Find(s => s == namePaper) == null)
                     {
 
-                        string queryQuotes = "{\"op\": \"subscribe\", \"args\": [\"orderBook10:" + security.Name + "\"]}";
+
+                        string queryQuotes = "{\"op\": \"subscribe\", \"args\": [\"orderBookL2:" + security.Name + "\"]}";
 
                         _clientBitMex.SendQuery(queryQuotes);
 
@@ -1341,68 +1344,285 @@ namespace OsEngine.Market.Servers.BitMex
                         _depths = new List<MarketDepth>();
                     }
 
-                    MarketDepth myDepth = new MarketDepth();//_depths.Find(depth => depth.SecurityNameCode == quotes.data[0].symbol);
-
-                    //if (myDepth == null)
-                    //{
-                        //myDepth = new MarketDepth();
+                    if (quotes.action == "partial")
+                    {
+                        MarketDepth myDepth = new MarketDepth();
                         myDepth.SecurityNameCode = quotes.data[0].symbol;
-                        //_depths.Add(myDepth);
-                    //}
+                        List<MarketDepthLevel> ascs = new List<MarketDepthLevel>();
+                        List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
 
-                    myDepth.Time = DateTime.Now;
-
-                    List<MarketDepthLevel> ascs = new List<MarketDepthLevel>();
-
-                    for (int i = 0; i < quotes.data[0].asks.Count; i++)
-                    {
-                        ascs.Add(new MarketDepthLevel()
+                        for (int i = 0; i < quotes.data.Count; i++)
                         {
-                            Ask = quotes.data[0].asks[i][1],
-                            Price = quotes.data[0].asks[i][0]
-                        });
-                    }
-
-                    myDepth.Asks = ascs;
-
-                    List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
-
-                    for (int i = 0; i < quotes.data[0].bids.Count; i++)
-                    {
-                        bids.Add(new MarketDepthLevel()
-                        {
-                            Bid = quotes.data[0].bids[i][1],
-                            Price = quotes.data[0].bids[i][0]
-                        });
-                    }
-
-                    myDepth.Bids = bids;
-
-                    if (NewMarketDepthEvent != null)
-                    {
-                        _marketDepthsToSend.Enqueue(myDepth);
-
-                        if (quotes.data[0].bids.Count != 0 && quotes.data[0].asks.Count != 0)
-                        {
-                            _bidAskToSend.Enqueue(new BidAskSender
+                            if (quotes.data[i].side == "Sell")
                             {
-                                Ask = quotes.data[0].bids[0][0],
-                                Bid = quotes.data[0].asks[0][0],
-                                Security = quotes.data[0].symbol != null
-                                    ? GetSecurityForName(quotes.data[0].symbol)
-                                    : null
-
-                            });
+                                ascs.Add(new MarketDepthLevel()
+                                {
+                                    Ask = quotes.data[i].size,
+                                    Price = quotes.data[i].price,
+                                    Id = quotes.data[i].id
+                                });
+                            }
+                            else
+                            {
+                                bids.Add(new MarketDepthLevel()
+                                {
+                                    Bid = quotes.data[i].size,
+                                    Price = quotes.data[i].price,
+                                    Id = quotes.data[i].id
+                                });
+                            }
                         }
 
+                        ascs.Reverse();
+                        myDepth.Asks = ascs;
+                        myDepth.Bids = bids;
+                        _depths.Add(myDepth);
+
+                        if (NewMarketDepthEvent != null)
+                        {
+                            _marketDepthsToSend.Enqueue(myDepth);
+
+                            if (myDepth.Asks.Count != 0 && myDepth.Bids.Count != 0)
+                            {
+                                _bidAskToSend.Enqueue(new BidAskSender
+                                {
+                                    Ask = myDepth.Bids[0].Price,
+                                    Bid = myDepth.Asks[0].Price,
+                                    Security = quotes.data[0].symbol != null
+                                        ? GetSecurityForName(quotes.data[0].symbol)
+                                        : null
+                                });
+                            }
+                        }
+                    }
+
+                    if (quotes.action == "update")
+                    {
+                        MarketDepth myDepth = _depths.Find(depth => depth.SecurityNameCode == quotes.data[0].symbol);
+
+                        if (myDepth == null)
+                            return;
+
+                        for (int i = 0; i < quotes.data.Count; i++)
+                        {
+                            if (quotes.data[i].side == "Sell")
+                            {
+                                if (myDepth.Asks.Find(asc => asc.Id == quotes.data[i].id) != null)
+                                    myDepth.Asks.Find(asc => asc.Id == quotes.data[i].id).Ask = quotes.data[i].size;
+                                else
+                                {
+                                    long id = quotes.data[i].id;
+
+                                    for (int j = 0; j < myDepth.Asks.Count; j++)
+                                    {
+                                        if (j == 0 && id > myDepth.Asks[j].Id)
+                                        {
+                                            myDepth.Asks.Insert(j, new MarketDepthLevel()
+                                            {
+                                                Ask = quotes.data[i].size,
+                                                Price = quotes.data[i].price,
+                                                Id = quotes.data[i].id
+                                            });
+                                        }
+                                        else if (j != myDepth.Asks.Count - 1 && id < myDepth.Asks[j].Id && id > myDepth.Asks[j + 1].Id)
+                                        {
+                                            myDepth.Asks.Insert(j + 1, new MarketDepthLevel()
+                                            {
+                                                Ask = quotes.data[i].size,
+                                                Price = quotes.data[i].price,
+                                                Id = quotes.data[i].id
+                                            });
+                                        }
+                                        else if (j == myDepth.Asks.Count - 1 && id < myDepth.Asks[j].Id)
+                                        {
+                                            myDepth.Asks.Add(new MarketDepthLevel()
+                                            {
+                                                Ask = quotes.data[i].size,
+                                                Price = quotes.data[i].price,
+                                                Id = quotes.data[i].id
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if (myDepth.Bids.Find(bid => bid.Id == quotes.data[i].id) != null)
+                                    myDepth.Bids.Find(bid => bid.Id == quotes.data[i].id).Bid = quotes.data[i].size;
+                                else
+                                {
+                                    long id = quotes.data[i].id;
+
+                                    for (int j = 0; j < myDepth.Bids.Count; j++)
+                                    {
+                                        if (j == 0 && id < myDepth.Bids[j].Id)
+                                        {
+                                            myDepth.Bids.Insert(j, new MarketDepthLevel()
+                                            {
+                                                Bid = quotes.data[i].size,
+                                                Price = quotes.data[i].price,
+                                                Id = quotes.data[i].id
+                                            });
+                                        }
+                                        else if (j != myDepth.Bids.Count - 1 && id > myDepth.Bids[j].Id && id < myDepth.Bids[j + 1].Id)
+                                        {
+                                            myDepth.Bids.Insert(j + 1, new MarketDepthLevel()
+                                            {
+                                                Bid = quotes.data[i].size,
+                                                Price = quotes.data[i].price,
+                                                Id = quotes.data[i].id
+                                            });
+                                        }
+                                        else if (j == myDepth.Bids.Count - 1 && id > myDepth.Bids[j].Id)
+                                        {
+                                            myDepth.Bids.Add(new MarketDepthLevel()
+                                            {
+                                                Bid = quotes.data[i].size,
+                                                Price = quotes.data[i].price,
+                                                Id = quotes.data[i].id
+                                            });
+                                        }
+
+                                    }
+                                }
+                            }
+                        }
+
+                        DepthsToSend(myDepth);
+                    }
+
+                    if (quotes.action == "delete")
+                    {
+                        MarketDepth myDepth = _depths.Find(depth => depth.SecurityNameCode == quotes.data[0].symbol);
+
+                        if (myDepth == null)
+                            return;
+
+                        for (int i = 0; i < quotes.data.Count; i++)
+                        {
+                            if (quotes.data[i].side == "Sell")
+                            {
+                                myDepth.Asks.Remove(myDepth.Asks.Find(asc => asc.Id == quotes.data[i].id));
+                            }
+                            else
+                            {
+                                myDepth.Bids.Remove(myDepth.Bids.Find(bid => bid.Id == quotes.data[i].id));
+                            }
+                        }
+
+                        DepthsToSend(myDepth);
+                    }
+
+                    if (quotes.action == "insert")
+                    {
+                        MarketDepth myDepth = _depths.Find(depth => depth.SecurityNameCode == quotes.data[0].symbol);
+
+                        if (myDepth == null)
+                            return;
+
+                        for (int i = 0; i < quotes.data.Count; i++)
+                        {
+                            if (quotes.data[i].side == "Sell")
+                            {
+                                long id = quotes.data[i].id;
+
+                                for (int j = 0; j < myDepth.Asks.Count; j++)
+                                {
+                                    if (j == 0 && id > myDepth.Asks[j].Id)
+                                    {
+                                        myDepth.Asks.Insert(j, new MarketDepthLevel()
+                                        {
+                                            Ask = quotes.data[i].size,
+                                            Price = quotes.data[i].price,
+                                            Id = quotes.data[i].id
+                                        });
+                                    }
+                                    else if (j != myDepth.Asks.Count - 1 && id < myDepth.Asks[j].Id && id > myDepth.Asks[j + 1].Id)
+                                    {
+                                        myDepth.Asks.Insert(j + 1, new MarketDepthLevel()
+                                        {
+                                            Ask = quotes.data[i].size,
+                                            Price = quotes.data[i].price,
+                                            Id = quotes.data[i].id
+                                        });
+                                    }
+                                    else if (j == myDepth.Asks.Count - 1 && id < myDepth.Asks[j].Id)
+                                    {
+                                        myDepth.Asks.Add(new MarketDepthLevel()
+                                        {
+                                            Ask = quotes.data[i].size,
+                                            Price = quotes.data[i].price,
+                                            Id = quotes.data[i].id
+                                        });
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                long id = quotes.data[i].id;
+
+                                for (int j = 0; j < myDepth.Bids.Count; j++)
+                                {
+                                    if (j == 0 && id < myDepth.Bids[j].Id)
+                                    {
+                                        myDepth.Bids.Insert(j, new MarketDepthLevel()
+                                        {
+                                            Bid = quotes.data[i].size,
+                                            Price = quotes.data[i].price,
+                                            Id = quotes.data[i].id
+                                        });
+                                    }
+                                    else if (j != myDepth.Bids.Count - 1 && id > myDepth.Bids[j].Id && id < myDepth.Bids[j + 1].Id)
+                                    {
+                                        myDepth.Bids.Insert(j + 1, new MarketDepthLevel()
+                                        {
+                                            Bid = quotes.data[i].size,
+                                            Price = quotes.data[i].price,
+                                            Id = quotes.data[i].id
+                                        });
+                                    }
+                                    else if (j == myDepth.Bids.Count - 1 && id > myDepth.Bids[j].Id)
+                                    {
+                                        myDepth.Bids.Add(new MarketDepthLevel()
+                                        {
+                                            Bid = quotes.data[i].size,
+                                            Price = quotes.data[i].price,
+                                            Id = quotes.data[i].id
+                                        });
+                                    }
+
+                                }
+                            }
+                        }
+
+                        DepthsToSend(myDepth);
                     }
                 }
-        }
+            }
             catch (Exception error)
             {
                 SendLogMessage(error.ToString(), LogMessageType.Error);
-    }
-}
+            }
+        }
+
+        void DepthsToSend(MarketDepth myDepth)
+        {
+            if (NewMarketDepthEvent != null)
+            {
+                _marketDepthsToSend.Enqueue(myDepth);
+
+                if (myDepth.Asks.Count != 0 && myDepth.Bids.Count != 0)
+                {
+                    _bidAskToSend.Enqueue(new BidAskSender
+                    {
+                        Ask = myDepth.Bids[0].Price,
+                        Bid = myDepth.Asks[0].Price,
+                        Security = GetSecurityForName(myDepth.SecurityNameCode)
+                    });
+                }
+            }
+        }
+
 
         /// <summary>
         /// изменился лучший бид / аск по инструменту

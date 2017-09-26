@@ -21,7 +21,7 @@ namespace OsEngine.Market.Servers.Oanda
             log.StartPaint(Host);
             CheckBoxNeadToSaveTrade.IsChecked = _server.NeadToSaveTicks;
             CheckBoxNeadToSaveTrade.Click += CheckBoxNeadToSaveTrade_Click;
-            TextBoxToken.Text = _server.Token;
+            TextBoxToken.Password = _server.Token;
             TextBoxId.Text = _server.ClientIdInSystem;
             CheckBoxTestServer.IsChecked = _server.IsTestConnection;
         }
@@ -48,7 +48,7 @@ namespace OsEngine.Market.Servers.Oanda
 
         private void ButtonConnect_Click(object sender, RoutedEventArgs e) // кнопка подключить сервер
         {
-            if (string.IsNullOrWhiteSpace(TextBoxToken.Text) ||
+            if (string.IsNullOrWhiteSpace(TextBoxToken.Password) ||
                 string.IsNullOrWhiteSpace(TextBoxId.Text))
             {
                 MessageBox.Show("Не хватает данных чтобы запустить сервер!");
@@ -58,7 +58,7 @@ namespace OsEngine.Market.Servers.Oanda
             if (CheckBoxTestServer.IsChecked != null)
                 _server.IsTestConnection = CheckBoxTestServer.IsChecked.Value;
 
-            _server.Token = TextBoxToken.Text;
+            _server.Token = TextBoxToken.Password;
             _server.ClientIdInSystem = TextBoxId.Text;
 
             _server.Save();

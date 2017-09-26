@@ -965,7 +965,7 @@ namespace OsEngine.OsTrader
         /// купить по маркету, для активного бота
         /// </summary>
         /// <param name="volume">объём</param>
-        public void BotBuyMarket(int volume)
+        public void BotBuyMarket(decimal volume)
         {
             try
             {
@@ -988,7 +988,7 @@ namespace OsEngine.OsTrader
         /// продать по маркету, для активного бота
         /// </summary>
         /// <param name="volume">объём</param>
-        public void BotSellMarket(int volume)
+        public void BotSellMarket(decimal volume)
         {
             try
             {
@@ -1012,7 +1012,7 @@ namespace OsEngine.OsTrader
         /// </summary>
         /// <param name="volume">объём</param>
         /// <param name="price">цена</param>
-        public void BotBuyLimit(int volume,decimal price)
+        public void BotBuyLimit(decimal volume,decimal price)
         {
             try
             {
@@ -1036,7 +1036,7 @@ namespace OsEngine.OsTrader
         /// </summary>
         /// <param name="volume">объём</param>
         /// <param name="price">цена</param>
-        public void BotSellLimit(int volume,decimal price)
+        public void BotSellLimit(decimal volume,decimal price)
         {
             try
             {

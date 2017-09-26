@@ -86,7 +86,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// <summary>
         /// объём
         /// </summary>
-        public int Volume;
+        public decimal Volume;
         
         /// <summary>
         /// тип открытия позиции
@@ -112,7 +112,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             try
             {
                 Price = Convert.ToDecimal(TextBoxPrice.Text);
-                Volume = Convert.ToInt32(TextBoxVolume.Text);
+                Volume = Convert.ToDecimal(TextBoxVolume.Text);
 
                 if (Volume <= 0)
                 {

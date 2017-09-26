@@ -254,11 +254,11 @@ namespace OsEngine.Entity
         /// <summary>
         /// максимальный объём по позиции
         /// </summary>
-        public int MaxVolume
+        public decimal MaxVolume
         {
             get
             {
-                int value = 0;
+                decimal value = 0;
 
                 for (int i = 0; _openOrders != null && i < _openOrders.Count; i++)
                 {
@@ -273,13 +273,13 @@ namespace OsEngine.Entity
         /// <summary>
         /// количество контрактов открытых в сделке
         /// </summary>
-        public int OpenVolume 
+        public decimal OpenVolume 
         {
             get
             {
                 if (CloseOrders == null)
                 {
-                    int volume = 0;
+                    decimal volume = 0;
 
                     for (int i = 0;_openOrders != null && i < _openOrders.Count; i++)
                     {
@@ -288,7 +288,7 @@ namespace OsEngine.Entity
                     return volume;
                 }
 
-                int valueClose = 0;
+                decimal valueClose = 0;
 
                 if (CloseOrders != null)
                 {
@@ -298,14 +298,14 @@ namespace OsEngine.Entity
                     }
                 }
 
-                int volumeOpen = 0;
+                decimal volumeOpen = 0;
 
                 for (int i = 0; _openOrders != null && i < _openOrders.Count; i++)
                 {
                     volumeOpen += _openOrders[i].VolumeExecute;
                 }
 
-                int value = volumeOpen - valueClose;
+                decimal value = volumeOpen - valueClose;
 
                 return value;
 
@@ -315,11 +315,11 @@ namespace OsEngine.Entity
         /// <summary>
         /// количество котрактов ожидающих открытия
         /// </summary>
-        public int WaitVolume
+        public decimal WaitVolume
         {
             get
             {
-                int volumeWait = 0;
+                decimal volumeWait = 0;
 
                 for (int i = 0; _openOrders != null && i < _openOrders.Count; i++)
                 {
@@ -347,10 +347,10 @@ namespace OsEngine.Entity
                 }
 
                 decimal price = 0;
-                int volume = 0;
+                decimal volume = 0;
                 for (int i = 0; i < _openOrders.Count; i++)
                 {
-                    int volumeEx = _openOrders[i].VolumeExecute;
+                    decimal volumeEx = _openOrders[i].VolumeExecute;
                     if (volumeEx != 0)
                     {
                         volume += _openOrders[i].VolumeExecute;
@@ -380,10 +380,10 @@ namespace OsEngine.Entity
                 }
 
                 decimal price = 0;
-                int volume = 0;
+                decimal volume = 0;
                 for (int i = 0; i < _closeOrders.Count; i++)
                 {
-                    int volumeEx = _closeOrders[i].VolumeExecute;
+                    decimal volumeEx = _closeOrders[i].VolumeExecute;
                     if (volumeEx != 0)
                     {
                         volume += _closeOrders[i].VolumeExecute;
@@ -520,7 +520,7 @@ namespace OsEngine.Entity
                 {
                     //AlertMessageManager.ThrowAlert(null, "Done пересчёт", "");
                     decimal medianPriceClose = 0;
-                    int countValue = 0;
+                    decimal countValue = 0;
 
                     for (int i = 0; i < CloseOrders.Count; i++)
                     {
@@ -606,7 +606,7 @@ namespace OsEngine.Entity
             if (State == PositionStateType.Done && CloseOrders != null && EntryPrice != 0 )
             {
                 decimal medianPriceClose = 0;
-                int countValue = 0;
+                decimal countValue = 0;
 
                 for (int i = 0; i < CloseOrders.Count; i++)
                 {
@@ -879,7 +879,7 @@ namespace OsEngine.Entity
         {
             get
             {
-                int volume = 0;
+                decimal volume = 0;
 
                 for (int i = 0; i < _openOrders.Count; i++)
                 {

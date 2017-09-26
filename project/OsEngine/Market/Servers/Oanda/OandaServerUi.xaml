@@ -12,7 +12,7 @@
         <CheckBox Name="CheckBoxNeadToSaveTrade" Content="Сохранять историю" Margin="13,44,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="133"/>
         <TextBox x:Name="TextBoxId" HorizontalAlignment="Right" Height="23" Margin="0,11,10,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="221"/>
         <Label Content="Client Id: " HorizontalAlignment="Left" Margin="369,8,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name="TextBoxToken" HorizontalAlignment="Right" Height="23" Margin="0,39,10,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="221"/>
+        <PasswordBox x:Name="TextBoxToken" HorizontalAlignment="Right" Height="23" Margin="0,39,10,0"  VerticalAlignment="Top" Width="221"/>
         <Label Content="Token: " HorizontalAlignment="Left" Margin="369,36,0,0" VerticalAlignment="Top" />
         <CheckBox x:Name="CheckBoxTestServer" Content="Демо счет" HorizontalAlignment="Left" Margin="13,18,0,0" VerticalAlignment="Top"/>
 

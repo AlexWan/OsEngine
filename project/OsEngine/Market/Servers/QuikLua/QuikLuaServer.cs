@@ -1696,7 +1696,7 @@ namespace OsEngine.Market.Servers.QuikLua
                             qOrder.SecCode = order.SecurityNameCode;
                             qOrder.Account = order.PortfolioNumber;
                             qOrder.ClassCode = _securities.Find(sec => sec.Name == order.SecurityNameCode).NameClass;
-                            qOrder.Quantity = order.Volume;
+                            qOrder.Quantity = Convert.ToInt32(order.Volume);
                             qOrder.Operation = order.Side == Side.Buy ? Operation.Buy : Operation.Sell;
                             qOrder.Price = order.Price;
                             qOrder.Comment = order.NumberUser.ToString();

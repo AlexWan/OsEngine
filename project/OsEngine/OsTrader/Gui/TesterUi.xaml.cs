@@ -73,10 +73,10 @@ namespace OsEngine.OsTrader.Gui
 
         private void buttonBuyFast_Click_1(object sender, RoutedEventArgs e)
         {
-            int volume;
+            decimal volume;
             try
             {
-                volume = Convert.ToInt32(TextBoxVolumeFast.Text);
+                volume = Convert.ToDecimal(TextBoxVolumeFast.Text);
             }
             catch (Exception)
             {
@@ -88,10 +88,10 @@ namespace OsEngine.OsTrader.Gui
 
         private void buttonSellFast_Click(object sender, RoutedEventArgs e)
         {
-            int volume;
+            decimal volume;
             try
             {
-                volume = Convert.ToInt32(TextBoxVolumeFast.Text);
+                volume = Convert.ToDecimal(TextBoxVolumeFast.Text);
             }
             catch (Exception)
             {
@@ -108,10 +108,10 @@ namespace OsEngine.OsTrader.Gui
 
         private void ButtonBuyLimit_Click(object sender, RoutedEventArgs e)
         {
-            int volume;
+           decimal volume;
             try
             {
-                volume = Convert.ToInt32(TextBoxVolumeFast.Text);
+                volume = Convert.ToDecimal(TextBoxVolumeFast.Text);
             }
             catch (Exception)
             {
@@ -142,10 +142,10 @@ namespace OsEngine.OsTrader.Gui
 
         private void ButtonSellLimit_Click(object sender, RoutedEventArgs e)
         {
-            int volume;
+            decimal volume;
             try
             {
-                volume = Convert.ToInt32(TextBoxVolumeFast.Text);
+                volume = Convert.ToDecimal(TextBoxVolumeFast.Text);
             }
             catch (Exception)
             {

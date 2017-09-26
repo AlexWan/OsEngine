@@ -248,7 +248,7 @@ namespace OsEngine.OsTrader.Panels
             _tab = TabsSimple[0];
 
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyClosePosition" });
-            Volume = CreateParameter("Volume", 1, 1, 100, 2);
+            Volume = CreateParameter("Volume", 1, 1.0m, 100, 2);
             Stop = CreateParameter("Stop", 5, 5, 15, 1);
             Profit = CreateParameter("Profit", 5, 5, 20, 1);
 
@@ -282,7 +282,7 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// объем
         /// </summary>
-        public StrategyParameterInt Volume;
+        public StrategyParameterDecimal Volume;
 
         /// <summary>
         /// глубина анализа стакана
@@ -379,11 +379,11 @@ namespace OsEngine.OsTrader.Panels
                 { // в тестере, сразу отправляем позицию на отзыв
                     _tab.CloseAllOrderToPosition(positionBuy);
                 }
-                _tab.BuyAtLimit(Volume.ValueInt, buyPrice);
+                _tab.BuyAtLimit(Volume.ValueDecimal, buyPrice);
             }
             if (positionBuy == null)
             {
-                _tab.BuyAtLimit(Volume.ValueInt, buyPrice);
+                _tab.BuyAtLimit(Volume.ValueDecimal, buyPrice);
             }
 
             // проверка на продажу
@@ -418,11 +418,11 @@ namespace OsEngine.OsTrader.Panels
                     _tab.CloseAllOrderToPosition(positionSell);
                 }
 
-                _tab.SellAtLimit(Volume.ValueInt, sellPrice);
+                _tab.SellAtLimit(Volume.ValueDecimal, sellPrice);
             }
             if (positionSell == null)
             {
-                _tab.SellAtLimit(Volume.ValueInt, sellPrice);
+                _tab.SellAtLimit(Volume.ValueDecimal, sellPrice);
             }
         }
 
@@ -536,8 +536,8 @@ namespace OsEngine.OsTrader.Panels
 
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
             Slipage = CreateParameter("Slipage", 0, 0, 20, 1);
-            VolumeFirst = CreateParameter("FirstInterVolume", 3, 1, 50, 1);
-            VolumeSecond = CreateParameter("SecondInterVolume", 1, 1, 50, 1);
+            VolumeFirst = CreateParameter("FirstInterVolume", 3, 1.0m, 50, 1);
+            VolumeSecond = CreateParameter("SecondInterVolume", 1, 1.0m, 50, 1);
             MaximumPositions = CreateParameter("MaxPoses", 1, 1, 10, 1);
             AlligatorFastLineLength = CreateParameter("AlligatorFastLineLength", 3, 3, 30, 1);
             AlligatorMiddleLineLength = CreateParameter("AlligatorMiddleLineLength", 10, 10, 70, 5);
@@ -640,12 +640,12 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// объём для первого входа
         /// </summary>
-        public StrategyParameterInt VolumeFirst;
+        public StrategyParameterDecimal VolumeFirst;
 
         /// <summary>
         /// объём для последующих входов
         /// </summary>
-        public StrategyParameterInt VolumeSecond;
+        public StrategyParameterDecimal VolumeSecond;
 
         /// <summary>
         /// максимальная позиция
@@ -789,13 +789,13 @@ namespace OsEngine.OsTrader.Panels
                 && _lastPrice > _lastFractalUp
                 && Regime.ValueString != "OnlyShort")
             {
-                _tab.BuyAtLimit(VolumeFirst.ValueInt, _lastPrice + Slipage.ValueInt * _tab.Securiti.PriceStep);
+                _tab.BuyAtLimit(VolumeFirst.ValueDecimal, _lastPrice + Slipage.ValueInt * _tab.Securiti.PriceStep);
             }
             if (_lastPrice < _lastUpAlligator && _lastPrice < _lastMiddleAlligator && _lastPrice < _lastDownAlligator
                 && _lastPrice < _lastFractalDown
                 && Regime.ValueString != "OnlyLong")
             {
-                _tab.SellAtLimit(VolumeFirst.ValueInt, _lastPrice - Slipage.ValueInt * _tab.Securiti.PriceStep);
+                _tab.SellAtLimit(VolumeFirst.ValueDecimal, _lastPrice - Slipage.ValueInt * _tab.Securiti.PriceStep);
             }
         }
 
@@ -809,7 +809,7 @@ namespace OsEngine.OsTrader.Panels
                 if (_secondAo < _lastAo &&
                     _secondAo < _thirdAo)
                 {
-                    _tab.BuyAtLimit(VolumeSecond.ValueInt, _lastPrice + Slipage.ValueInt * _tab.Securiti.PriceStep);
+                    _tab.BuyAtLimit(VolumeSecond.ValueDecimal, _lastPrice + Slipage.ValueInt * _tab.Securiti.PriceStep);
                 }
             }
 
@@ -818,7 +818,7 @@ namespace OsEngine.OsTrader.Panels
                 if (_secondAo > _lastAo &&
                     _secondAo > _thirdAo)
                 {
-                    _tab.SellAtLimit(VolumeSecond.ValueInt, _lastPrice - Slipage.ValueInt * _tab.Securiti.PriceStep);
+                    _tab.SellAtLimit(VolumeSecond.ValueDecimal, _lastPrice - Slipage.ValueInt * _tab.Securiti.PriceStep);
                 }
             }
         }
@@ -870,7 +870,7 @@ namespace OsEngine.OsTrader.Panels
             ChannelLength = CreateParameter("ChannelLength", 10, 10, 80, 3);
             SmaLength = CreateParameter("SmaLength", 10, 5, 150, 2);
             MaximumPosition = CreateParameter("MaxPosition", 5, 1, 20, 3);
-            Volume = CreateParameter("Volume", 3, 1, 50, 4);
+            Volume = CreateParameter("Volume", 3, 1.0m, 50, 4);
             Slipage = CreateParameter("Slipage", 0, 0, 20, 1);
             PersentDopBuy = CreateParameter("PersentDopBuy", 0.5m, 0.1m, 2, 0.1m);
             PersentDopSell = CreateParameter("PersentDopSell", 0.5m, 0.1m, 2, 0.1m);
@@ -950,7 +950,7 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// объём исполняемый в одной сделке
         /// </summary>
-        public StrategyParameterInt Volume;
+        public StrategyParameterDecimal Volume;
         public StrategyParameterInt MaximumPosition;
         public StrategyParameterDecimal PersentDopBuy;
         public StrategyParameterDecimal PersentDopSell;
@@ -1085,7 +1085,7 @@ namespace OsEngine.OsTrader.Panels
                         {
                             return;
                         }
-                        _tab.BuyAtLimit(Volume.ValueInt, lastPrice + (Slipage.ValueInt * _tab.Securiti.PriceStep));
+                        _tab.BuyAtLimit(Volume.ValueDecimal, lastPrice + (Slipage.ValueInt * _tab.Securiti.PriceStep));
                     }
                 }
                 else if (positions == null || positions.Count == 0)
@@ -1093,7 +1093,7 @@ namespace OsEngine.OsTrader.Panels
                     //BuyAtStop(0, Volume, maxToCandleSeries + Slipage, maxToCandleSeries, candles[candles.Count - 1].Close);
                     _tab.SellAtStopCanсel();
                     _tab.BuyAtStopCanсel();
-                    _tab.BuyAtStop(Volume.ValueInt, maxToCandleSeries + (Slipage.ValueInt * _tab.Securiti.PriceStep), maxToCandleSeries, StopActivateType.HigherOrEqual);
+                    _tab.BuyAtStop(Volume.ValueDecimal, maxToCandleSeries + (Slipage.ValueInt * _tab.Securiti.PriceStep), maxToCandleSeries, StopActivateType.HigherOrEqual);
                 }
             }
 
@@ -1111,7 +1111,7 @@ namespace OsEngine.OsTrader.Panels
                     if (lastIntro - lastIntro * (PersentDopSell.ValueDecimal / 100) > lastPrice)
                     {
                         //SellAtLimit(0, Volume, lastPrice - Slipage);
-                        _tab.SellAtLimit(Volume.ValueInt, lastPrice - (Slipage.ValueInt * _tab.Securiti.PriceStep));
+                        _tab.SellAtLimit(Volume.ValueDecimal, lastPrice - (Slipage.ValueInt * _tab.Securiti.PriceStep));
                     }
                 }
                 else if (positions == null || positions.Count == 0)
@@ -1123,7 +1123,7 @@ namespace OsEngine.OsTrader.Panels
                     //SellAtStop(0, Volume, minToCandleSeries - Slipage, minToCandleSeries,candles[candles.Count - 1].Close);
                     _tab.SellAtStopCanсel();
                     _tab.BuyAtStopCanсel();
-                    _tab.SellAtStop(Volume.ValueInt, minToCandleSeries - (Slipage.ValueInt * _tab.Securiti.PriceStep), minToCandleSeries, StopActivateType.LowerOrEqyal);
+                    _tab.SellAtStop(Volume.ValueDecimal, minToCandleSeries - (Slipage.ValueInt * _tab.Securiti.PriceStep), minToCandleSeries, StopActivateType.LowerOrEqyal);
                 }
             }
         }
@@ -1184,7 +1184,7 @@ namespace OsEngine.OsTrader.Panels
 
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
             RviLenght = CreateParameter("RviLength", 10, 10, 80, 3);
-            Volume = CreateParameter("Volume", 3, 1, 50, 4);
+            Volume = CreateParameter("Volume", 3, 1.0m, 50, 4);
             Slipage = CreateParameter("Slipage", 0, 0, 20, 1);
 
             _rvi = new Rvi(name + "RviArea", false);
@@ -1241,7 +1241,7 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// фиксированный объем для входа
         /// </summary>
-        public StrategyParameterInt Volume;
+        public StrategyParameterDecimal Volume;
 
         /// <summary>
         /// режим работы
@@ -1310,12 +1310,12 @@ namespace OsEngine.OsTrader.Panels
         {
             if (_lastRviDown < 0 && _lastRviUp > _lastRviDown && Regime.ValueString != "OnlyShort")
             {
-                _tab.BuyAtLimit(Volume.ValueInt, _lastPrice + Slipage.ValueInt * _tab.Securiti.PriceStep);
+                _tab.BuyAtLimit(Volume.ValueDecimal, _lastPrice + Slipage.ValueInt * _tab.Securiti.PriceStep);
             }
 
             if (_lastRviDown > 0 && _lastRviUp < _lastRviDown && Regime.ValueString != "OnlyLong")
             {
-                _tab.SellAtLimit(Volume.ValueInt, _lastPrice - Slipage.ValueInt * _tab.Securiti.PriceStep);
+                _tab.SellAtLimit(Volume.ValueDecimal, _lastPrice - Slipage.ValueInt * _tab.Securiti.PriceStep);
             }
         }
 
@@ -1332,7 +1332,7 @@ namespace OsEngine.OsTrader.Panels
 
                     if (Regime.ValueString != "OnlyLong" && Regime.ValueString != "OnlyClosePosition")
                     {
-                        _tab.SellAtLimit(Volume.ValueInt, _lastPrice - Slipage.ValueInt * _tab.Securiti.PriceStep);
+                        _tab.SellAtLimit(Volume.ValueDecimal, _lastPrice - Slipage.ValueInt * _tab.Securiti.PriceStep);
                     }
                 }
             }
@@ -1345,7 +1345,7 @@ namespace OsEngine.OsTrader.Panels
 
                     if (Regime.ValueString != "OnlyShort" && Regime.ValueString != "OnlyClosePosition")
                     {
-                        _tab.BuyAtLimit(Volume.ValueInt, _lastPrice + Slipage.ValueInt*_tab.Securiti.PriceStep);
+                        _tab.BuyAtLimit(Volume.ValueDecimal, _lastPrice + Slipage.ValueInt*_tab.Securiti.PriceStep);
                     }
                 }
             }
@@ -3773,7 +3773,7 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// объём исполняемый в одной сделке
         /// </summary>
-        public int Volume;
+        public decimal Volume;
 
         /// <summary>
         /// расстояние между линиями в %
@@ -3822,7 +3822,7 @@ namespace OsEngine.OsTrader.Panels
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
-                    Volume = Convert.ToInt32(reader.ReadLine());
+                    Volume = Convert.ToDecimal(reader.ReadLine());
                     PersentToSpreadLines = Convert.ToDecimal(reader.ReadLine());
                     PaintOn = Convert.ToBoolean(reader.ReadLine());
                     reader.Close();
@@ -3999,7 +3999,7 @@ namespace OsEngine.OsTrader.Panels
                 return;
             }
             // 1 выясняем каким объёмом и в какую сторону нам надо заходить
-            int totalDeal = 0;
+            decimal totalDeal = 0;
 
             decimal lastPrice = candles[candles.Count - 2].Close;
             decimal nowPrice = candles[candles.Count - 1].Close;
@@ -4205,8 +4205,8 @@ namespace OsEngine.OsTrader.Panels
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
-                    Volume1 = Convert.ToInt32(reader.ReadLine());
-                    Volume2 = Convert.ToInt32(reader.ReadLine());
+                    Volume1 = Convert.ToDecimal(reader.ReadLine());
+                    Volume2 = Convert.ToDecimal(reader.ReadLine());
 
                     Slipage1 = Convert.ToDecimal(reader.ReadLine());
                     Slipage2 = Convert.ToDecimal(reader.ReadLine());
@@ -4272,9 +4272,9 @@ namespace OsEngine.OsTrader.Panels
         /// </summary>
         public decimal SpreadDeviation;
 
-        public int Volume1;
+        public decimal Volume1;
 
-        public int Volume2;
+        public decimal Volume2;
 
         public decimal Slipage1;
 

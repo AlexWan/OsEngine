@@ -682,7 +682,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
             decimal average = 0;
 
-            int weights = 0;
+            decimal weights = 0;
 
             for (int i = index; i > index - Lenght; i--)
             {

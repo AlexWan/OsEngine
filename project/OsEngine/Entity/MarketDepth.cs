@@ -206,5 +206,10 @@ namespace OsEngine.Entity
         /// цена
         /// </summary>
         public decimal Price;
+
+        /// <summary>
+        /// уникальный номер ценового уровня, необходим для работы с BitMex
+        /// </summary>
+        public long Id;
     }
 }

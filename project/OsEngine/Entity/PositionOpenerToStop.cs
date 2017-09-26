@@ -41,7 +41,7 @@ namespace OsEngine.Entity
         /// <summary>
         /// объём для открытия позиции
         /// </summary>
-        public int Volume;
+        public decimal Volume;
 
         /// <summary>
         /// сторона открываемой позиции

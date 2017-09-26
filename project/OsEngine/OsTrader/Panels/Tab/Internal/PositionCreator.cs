@@ -16,7 +16,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// <summary>
         /// создать сделку
         /// </summary>
-        public Position CreatePosition(string botName, Side direction, decimal priceOrder, int volume, OrderPriceType priceType, TimeSpan timeLife,
+        public Position CreatePosition(string botName, Side direction, decimal priceOrder, decimal volume, OrderPriceType priceType, TimeSpan timeLife,
             Security security, Portfolio portfolio)
         {
             Position newDeal = new Position();
@@ -38,7 +38,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// <summary>
         /// создать ордер
         /// </summary>
-        public Order CreateOrder(Side direction, decimal priceOrder, int volume, OrderPriceType priceType, TimeSpan timeLife)
+        public Order CreateOrder(Side direction, decimal priceOrder, decimal volume, OrderPriceType priceType, TimeSpan timeLife)
         {
             Order newOrder = new Order();
             newOrder.NumberUser = NumberGen.GetNumberOrder();
@@ -67,7 +67,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 direction = Side.Buy;
             }
 
-            int volume = deal.OpenVolume;
+            decimal volume = deal.OpenVolume;
 
             if (volume == 0)
             {

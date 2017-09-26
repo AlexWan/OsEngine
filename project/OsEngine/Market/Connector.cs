@@ -887,6 +887,13 @@ namespace OsEngine.Market
                 {
                     return;
                 }
+
+                if (_myServer.ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    SendNewLogMessage("Попытка выставить ордер при выключенном соединении",LogMessageType.Error);
+                    return;
+                }
+
                 order.SecurityNameCode = NamePaper;
                 order.PortfolioNumber = PortfolioName;
                 order.ServerType = ServerType;

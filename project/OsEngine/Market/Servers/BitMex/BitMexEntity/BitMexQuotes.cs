@@ -6,33 +6,37 @@ using System.Threading.Tasks;
 
 namespace OsEngine.Market.Servers.BitMex.BitMexEntity
 {
-    public class TypesQ
+    public class TypesQuote
     {
         public string symbol { get; set; }
-        public string bids { get; set; }
-        public string asks { get; set; }
-        public string timestamp { get; set; }
+        public string id { get; set; }
+        public string side { get; set; }
+        public string size { get; set; }
+        public string price { get; set; }
     }
 
-    public class ForeignKeysQ
+    public class ForeignKeysQuote
     {
         public string symbol { get; set; }
+        public string side { get; set; }
     }
 
-    public class AttributesQ
+    public class AttributesQuote
     {
         public string symbol { get; set; }
+        public string id { get; set; }
     }
 
-    public class DatumQ
+    public class DatumQuote
     {
         public string symbol { get; set; }
-        public List<List<decimal>> bids { get; set; }
-        public List<List<decimal>> asks { get; set; }
-        public string timestamp { get; set; }
+        public long id { get; set; }
+        public string side { get; set; }
+        public int size { get; set; }
+        public decimal price { get; set; }
     }
 
-    public class FilterQ
+    public class FilterQuote
     {
         public string symbol { get; set; }
     }
@@ -41,11 +45,11 @@ namespace OsEngine.Market.Servers.BitMex.BitMexEntity
     {
         public string table { get; set; }
         public List<string> keys { get; set; }
-        public TypesQ types { get; set; }
-        public ForeignKeysQ foreignKeys { get; set; }
-        public AttributesQ attributes { get; set; }
+        public TypesQuote types { get; set; }
+        public ForeignKeysQuote foreignKeys { get; set; }
+        public AttributesQuote attributes { get; set; }
         public string action { get; set; }
-        public List<DatumQ> data { get; set; }
-        public FilterQ filter { get; set; }
+        public List<DatumQuote> data { get; set; }
+        public FilterQuote filter { get; set; }
     }
 }

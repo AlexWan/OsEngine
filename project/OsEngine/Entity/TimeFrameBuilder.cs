@@ -409,7 +409,7 @@ namespace OsEngine.Entity
         /// <summary>
         /// проверить наступление события закрытия свечи
         /// </summary>
-        public bool CheckCloseCandle(DateTime time, decimal price, int volume, bool canPushUp, Side side)
+        public bool CheckCloseCandle(DateTime time, decimal price, decimal volume, bool canPushUp, Side side)
         {
             if (side == Side.Buy)
             {

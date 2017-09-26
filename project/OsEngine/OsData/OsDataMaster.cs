@@ -254,7 +254,7 @@ namespace OsEngine.OsData
             List<ServerType> servers = new ServerType[]
             {
                ServerType.Finam, ServerType.QuikDde, ServerType.QuikLua, ServerType.SmartCom, ServerType.Plaza, 
-                ServerType.Oanda, ServerType.BitMex,  
+                ServerType.Oanda, ServerType.BitMex, ServerType.Kraken 
             }.ToList();
 
             List<IServer> serversCreate = ServerMaster.GetServers();

@@ -119,7 +119,6 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
 
             _botTab = botTab;
-            _timeStart = DateTime.Now;
 
             if (ServerMaster.StartProgram != ServerStartProgramm.IsTester)
             {
@@ -340,11 +339,6 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         // отзыв ордеров
 
         /// <summary>
-        /// время создания объекта
-        /// </summary>
-        private DateTime _timeStart;
-
-        /// <summary>
         /// журнал
         /// </summary>
         private BotTabSimple _botTab;
@@ -390,11 +384,6 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                         {
                             continue;
                         }
-                        if (_timeStart.AddSeconds(10) > ServerTime)
-                        {
-                            openOrder.State = OrderStateType.Done;
-                            continue;
-                        }
 
                         if (SecondToOpenIsOn &&
                             openOrder.TimeCreate.Add(openOrder.LifeTime) < ServerTime)
@@ -434,11 +423,6 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                         if ((closeOrder.State != OrderStateType.Activ &&
                              closeOrder.State != OrderStateType.Patrial))
                         {
-                            continue;
-                        }
-                        if (_timeStart.AddSeconds(10) > ServerTime)
-                        {
-                            closeOrder.State = OrderStateType.Done;
                             continue;
                         }
 

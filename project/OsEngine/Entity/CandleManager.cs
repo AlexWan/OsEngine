@@ -10,6 +10,7 @@ using System.Windows;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.BitMex;
+using OsEngine.Market.Servers.Kraken;
 using OsEngine.Market.Servers.Oanda;
 using OsEngine.Market.Servers.QuikLua;
 using OsEngine.Market.Servers.SmartCom;
@@ -286,6 +287,29 @@ namespace OsEngine.Entity
                             {
                                 List<Candle> candles = bitMex.GetBitMexCandleHistory(series.Security.Name,
                                     series.TimeFrameSpan);
+                                if (candles != null)
+                                {
+                                    series.CandlesAll = candles;
+                                }
+                            }
+                            series.UpdateAllCandles();
+                            series.IsStarted = true;
+                        }
+                        else if (serverType == ServerType.Kraken)
+                        {
+                            KrakenServer kraken = (KrakenServer)_server;
+
+                           if (series.TimeFrameSpan.TotalMinutes < 1 ||
+                                series.TimeFrame == TimeFrame.Tick ||
+                                series.TimeFrame == TimeFrame.Delta)
+                            {
+                                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
+                                series.PreLoad(allTrades);
+                            }
+                            else
+                            {
+                                List<Candle> candles = kraken.GetHistory(series.Security.Name,
+                                    Convert.ToInt32(series.TimeFrameSpan.TotalMinutes));
                                 if (candles != null)
                                 {
                                     series.CandlesAll = candles;

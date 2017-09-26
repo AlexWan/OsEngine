@@ -62,6 +62,12 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\Debug\cgate_net64.dll</HintPath>
     </Reference>
+    <Reference Include="Jayrock">
+      <HintPath>..\..\..\OsEngineTepm\6Кракен\Jayrock-master\Jayrock-master\bin\net-4.0\debug\Jayrock.dll</HintPath>
+    </Reference>
+    <Reference Include="Jayrock.Json">
+      <HintPath>..\..\..\OsEngineTepm\6Кракен\Jayrock-master\Jayrock-master\bin\net-4.0\debug\Jayrock.Json.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -331,6 +337,15 @@
       <DependentUpon>InteractivBrokersUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Market\Servers\IServer.cs" />
+    <Compile Include="Market\Servers\Kraken\KrakenEntity\EnumerableExtensions.cs" />
+    <Compile Include="Market\Servers\Kraken\KrakenEntity\KrakenClient.cs" />
+    <Compile Include="Market\Servers\Kraken\KrakenEntity\KrakenOrder.cs" />
+    <Compile Include="Market\Servers\Kraken\KrakenEntity\RateGate.cs" />
+    <Compile Include="Market\Servers\Kraken\KrakenServerClient.cs" />
+    <Compile Include="Market\Servers\Kraken\KrakenServer.cs" />
+    <Compile Include="Market\Servers\Kraken\KrakenServerUi.xaml.cs">
+      <DependentUpon>KrakenServerUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Market\Servers\Oanda\OandaClient.cs" />
     <Compile Include="Market\Servers\Oanda\OandaServer.cs" />
     <Compile Include="Market\Servers\Oanda\OandaServerUi.xaml.cs">
@@ -790,6 +805,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Market\Servers\InteractivBrokers\InteractivBrokersUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\Kraken\KrakenServerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

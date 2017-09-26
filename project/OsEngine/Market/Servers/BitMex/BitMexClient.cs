@@ -19,10 +19,6 @@ namespace OsEngine.Market.Servers.BitMex
     /// </summary>
     public class BitMexClient
     {
-        public BitMexClient()
-        {
-            _ws = new ClientWebSocket();
-        }
 
         private ClientWebSocket _ws;
 
@@ -66,6 +62,13 @@ namespace OsEngine.Market.Servers.BitMex
         /// </summary>
         public void Connect()
         {
+            if (_ws != null)
+            {
+                Disconnect();
+            }
+
+            _ws = new ClientWebSocket();
+
             Uri uri = new Uri(_serverAdress);
             _ws.ConnectAsync(uri, CancellationToken.None).Wait();
 
@@ -114,7 +117,6 @@ namespace OsEngine.Market.Servers.BitMex
                 Disconnected();
             }
         }
-
 
         /// <summary>
         /// проверка соединения
@@ -276,7 +278,7 @@ namespace OsEngine.Market.Servers.BitMex
                                 continue;
                             }
 
-                            if (mes.Contains("\"table\"" + ":" + "\"orderBook10\""))
+                            if (mes.Contains("\"table\"" + ":" + "\"orderBookL2\""))
                             {
                                 var quotes = JsonConvert.DeserializeAnonymousType(mes, new BitMexQuotes());
 
