@@ -30,7 +30,7 @@ namespace OsEngine.Market.Servers.Kraken.KrakenEntity
             _version = 0;
             _key = key;
             _secret = privateKey;
-            _rateGate = new RateGate(1, TimeSpan.FromSeconds(5));
+            _rateGate = new RateGate(1, TimeSpan.FromSeconds(3));
 
         }
 
@@ -60,13 +60,12 @@ namespace OsEngine.Market.Servers.Kraken.KrakenEntity
         {
             string address = string.Format("{0}/{1}/public/{2}", _url, _version, a_sMethod);
             HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(address);
+            
             webRequest.ContentType = "application/x-www-form-urlencoded";
             webRequest.Method = "POST";
 
-
             if (props != null)
             {
-
                 using (var writer = new StreamWriter(webRequest.GetRequestStream()))
                 {
                     writer.Write(props);

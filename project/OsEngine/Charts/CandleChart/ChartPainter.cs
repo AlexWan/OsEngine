@@ -4975,8 +4975,7 @@ namespace OsEngine.Charts.CandleChart
 
                    double maxOnSeries = yLength.Ymax;
 
-                   if (maxOnSeries != 0.0 &&
-                       maxOnSeries > max)
+                   if (maxOnSeries > max)
                    {
                        max = maxOnSeries;
                    }
@@ -5134,7 +5133,7 @@ namespace OsEngine.Charts.CandleChart
 
         private double GetMaxFromSeries(Series series, int start, int end, Series candleSeries)
         {
-            double max = 0;
+            double max = Double.MinValue;
 
             double startVal = max;
 
@@ -5144,7 +5143,8 @@ namespace OsEngine.Charts.CandleChart
                 for (int i = start; series.Points.Count >= candleSeries.Points.Count - 1 && i < end && i < series.Points.Count; )
                 {
                     // серия паралельная свечкам, индикатор
-                    if (series.Points[i].YValues.Max() > max)
+                    if (series.Points[i].YValues.Max() > max &&
+                        series.Points[i].YValues.Max() != 0)
                     {
                         max = series.Points[i].YValues.Max();
                     }

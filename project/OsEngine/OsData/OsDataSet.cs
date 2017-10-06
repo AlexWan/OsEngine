@@ -377,6 +377,11 @@ namespace OsEngine.OsData
         /// </summary>
         public void AddNewSecurity()
         {
+            if (ServerMaster.GetServers() == null)
+            {
+                return;
+            }
+
             IServer myServer = ServerMaster.GetServers().Find(server => server.ServerType == Source);
 
             if (myServer == null)

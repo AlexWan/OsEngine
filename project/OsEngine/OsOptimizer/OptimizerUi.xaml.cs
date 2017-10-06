@@ -24,6 +24,8 @@ namespace OsEngine.OsOptimizer
         {
             InitializeComponent();
 
+            TabControlPrime.Items.RemoveAt(4);
+
             _master = new OptimizerMaster();
             _master.StrategyNamesReadyEvent += _master_StrategyNamesReadyEvent;
             _master.StartPaintLog(HostLog);
@@ -171,7 +173,7 @@ namespace OsEngine.OsOptimizer
             }
 
             ButtonGo.Content = "Погнали!";
-            TabControlPrime.SelectedItem = TabControlPrime.Items[5];
+            TabControlPrime.SelectedItem = TabControlPrime.Items[4];
             TabControlPrime.IsEnabled = true;
             ComboBoxThreadsCount.IsEnabled = true;
         }
