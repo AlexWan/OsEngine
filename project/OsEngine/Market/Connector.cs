@@ -147,7 +147,8 @@ namespace OsEngine.Market
         {
             try
             {
-                if (ServerMaster.GetServers() == null)
+                if (ServerMaster.GetServers() == null||
+                    ServerMaster.GetServers().Count == 0)
                 {
                     AlertMessageSimpleUi uiMessage = new AlertMessageSimpleUi("Ни одного соединения с биржей не найдено! " +
                                                         " Нажмите на кнопку ^Сервер^ ");

@@ -34,13 +34,12 @@ namespace OsEngine.Market.Servers
                 Directory.CreateDirectory(@"Data");
             }
 
+            _pathName = @"Data" + @"\" + server.GetType().Name + @"Trades";
+
             Thread saver = new Thread(TickSaverSpaceInOneFile);
             saver.CurrentCulture = new CultureInfo("RU-ru");
             saver.IsBackground = false;
             saver.Start();
-
-            _pathName = @"Data" + @"\" + server.GetType().Name + @"Trades";
-
         }
 
         private IServer _server;

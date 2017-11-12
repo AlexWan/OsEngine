@@ -58,8 +58,8 @@ namespace OsEngine.Market
                     CheckBoxIsEmulator.IsEnabled = false;
                     CheckBoxSetForeign.IsEnabled = false;
                     ComboBoxTypeServer.SelectedItem = ServerType.Tester;
-                    ComboBoxClass.SelectedItem = ServerMaster.GetServers()[0].Securities[0].NameClass;
-                    ComboBoxPortfolio.SelectedItem = ServerMaster.GetServers()[0].Portfolios[0].Number;
+                    //ComboBoxClass.SelectedItem = ServerMaster.GetServers()[0].Securities[0].NameClass;
+                    //ComboBoxPortfolio.SelectedItem = ServerMaster.GetServers()[0].Portfolios[0].Number;
 
                     connectorBot.ServerType = ServerType.Tester;
                     _selectedType = ServerType.Tester;

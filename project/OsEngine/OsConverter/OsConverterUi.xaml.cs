@@ -14,6 +14,7 @@ namespace OsEngine.OsConverter
         public OsConverterUi()
         {
             InitializeComponent();
+
             LabelOsa.Content = "V " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
 
             _master = new OsConverterMaster(TextBoxSource, TextBoxExit, ComboBoxTimeFrame, HostLog);

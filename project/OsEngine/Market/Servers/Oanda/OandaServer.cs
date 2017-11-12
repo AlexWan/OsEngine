@@ -61,7 +61,7 @@ namespace OsEngine.Market.Servers.Oanda
             ordersExecutor.IsBackground = true;
             ordersExecutor.Start();
 
-            _logMaster = new Log("IbServer");
+            _logMaster = new Log("OandaServer");
             _logMaster.Listen(this);
 
             _serverStatusNead = ServerConnectStatus.Disconnect;

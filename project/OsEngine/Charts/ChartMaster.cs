@@ -539,6 +539,7 @@ namespace OsEngine.Charts
             {
                 MenuItem item = (MenuItem)sender;
                 _indicatorsCandles[item.Index].ShowDialog();
+                _indicatorsCandles[item.Index].Save();
             }
             catch (Exception error)
             {
@@ -1211,10 +1212,18 @@ namespace OsEngine.Charts
                 return;
             }
 
+            string lastSecurity = _securityOnThisChart;
+            List<Position> positions = _myPosition;
+            
             _securityOnThisChart = security;
             _timeFrameSecurity = timeFrame;
             Clear();
             PaintLabelOnSlavePanel();
+
+            if (lastSecurity == security && positions != null)
+            {
+                SetPosition(positions);
+            }
         }
 
         /// <summary>

@@ -245,6 +245,7 @@ namespace OsEngine.Journal.Internal
                 _closeLongChanged = true;
                 _positionsToPaint = new ConcurrentQueue<Position>();
                 ClearPositionsGrid();
+                _neadToSave = true;
             }
             catch (Exception error)
             {
@@ -291,6 +292,14 @@ namespace OsEngine.Journal.Internal
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        /// <summary>
+        /// сохранить текущее состояние позиций
+        /// </summary>
+        public void Save()
+        {
+            _neadToSave = true;
         }
 
 // работа с позицией

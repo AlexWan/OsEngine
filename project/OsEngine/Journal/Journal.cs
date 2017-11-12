@@ -76,6 +76,15 @@ namespace OsEngine.Journal
             }
         }
 
+
+        /// <summary>
+        /// сохранить текущее состояние позиций
+        /// </summary>
+        public void Save()
+        {
+            _positionController.Save();
+        }
+
 // доступ к сделкам
 
         /// <summary>

@@ -29,7 +29,7 @@ namespace OsEngine.Entity
         /// номер ордера в роботе
         /// </summary>
         public int NumberUser;  
-
+        
         /// <summary>
         /// номер ордера на бирже
         /// </summary>
@@ -259,6 +259,11 @@ namespace OsEngine.Entity
             {
                 price += _trades[i].Volume*_trades[i].Price;
                 volumeExecute += _trades[i].Volume;
+            }
+
+            if (volumeExecute == 0)
+            {
+                return Price;
             }
 
             price = price/volumeExecute;

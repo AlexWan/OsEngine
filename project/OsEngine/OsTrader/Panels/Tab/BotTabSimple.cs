@@ -60,10 +60,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _journal.LogMessageEvent += SetNewLogMessage;
 
                 _chartMaster = new ChartMaster(TabName);
-                _chartMaster.SetPosition(_journal.AllPosition);
                 _chartMaster.LogMessageEvent += SetNewLogMessage;
-
                 _chartMaster.SetNewSecurity(_connector.NamePaper, _connector.TimeFrame, _connector.PortfolioName, _connector.ServerType);
+                _chartMaster.SetPosition(_journal.AllPosition);
 
                 _alerts = new AlertMaster(TabName, _connector, _chartMaster);
                 _alerts.LogMessageEvent += SetNewLogMessage;
@@ -2560,6 +2559,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _chartMaster.SetPosition(_journal.AllPosition);
                 _journal.PaintPosition(position);
+                _journal.Save();
             }
             catch (Exception error)
             {
@@ -2613,6 +2613,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _chartMaster.SetPosition(_journal.AllPosition);
                 _journal.PaintPosition(position);
+                _journal.Save();
+
             }
             catch (Exception error)
             {
@@ -3392,6 +3394,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             try
             {
                 AlertControlPosition();
+
                 _chartMaster.SetCandles(candles);
                 if (CandleUpdateEvent != null)
                 {

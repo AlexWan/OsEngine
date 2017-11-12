@@ -95,7 +95,7 @@ namespace OsEngine.Entity
             string result = "";
             result += Time.ToString("yyyyMMdd,HHmmss") + ",";
             result += Price.ToString(new CultureInfo("en-US")) + ",";
-            result += Volume + ",";
+            result += Volume.ToString(new CultureInfo("en-US")) + ",";
             result += Side + ",";
             result += MicroSeconds + ",";
             result += Id;
@@ -137,8 +137,8 @@ namespace OsEngine.Entity
             Time = new DateTime(year, month, day, hour, minute, second);
 
             Price = Convert.ToDecimal(sIn[2].Replace(".",","));
-            
-            Volume = Convert.ToDecimal(sIn[3]);
+
+            Volume = Convert.ToDecimal(sIn[3].Replace(".", ","));
 
             if (sIn.Length > 4)
             {

@@ -44,6 +44,14 @@ namespace OsEngine.OsConverter
             _comboBoxTimeFrame.Items.Add(TimeFrame.Sec15);
             _comboBoxTimeFrame.Items.Add(TimeFrame.Sec20);
             _comboBoxTimeFrame.Items.Add(TimeFrame.Sec30);
+            _comboBoxTimeFrame.Items.Add(TimeFrame.Min1);
+            _comboBoxTimeFrame.Items.Add(TimeFrame.Min2);
+            _comboBoxTimeFrame.Items.Add(TimeFrame.Min5);
+            _comboBoxTimeFrame.Items.Add(TimeFrame.Min10);
+            _comboBoxTimeFrame.Items.Add(TimeFrame.Min15);
+            _comboBoxTimeFrame.Items.Add(TimeFrame.Min20);
+            _comboBoxTimeFrame.Items.Add(TimeFrame.Min30);
+
 
             _comboBoxTimeFrame.SelectedItem = TimeFrame;
 

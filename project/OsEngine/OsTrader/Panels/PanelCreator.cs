@@ -867,13 +867,16 @@ namespace OsEngine.OsTrader.Panels
             _tab = TabsSimple[0];
 
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
-            ChannelLength = CreateParameter("ChannelLength", 10, 10, 80, 3);
+            ChannelLength = CreateParameter("ChannelLength", 10, 10, 400, 10);
             SmaLength = CreateParameter("SmaLength", 10, 5, 150, 2);
             MaximumPosition = CreateParameter("MaxPosition", 5, 1, 20, 3);
             Volume = CreateParameter("Volume", 3, 1.0m, 50, 4);
             Slipage = CreateParameter("Slipage", 0, 0, 20, 1);
             PersentDopBuy = CreateParameter("PersentDopBuy", 0.5m, 0.1m, 2, 0.1m);
             PersentDopSell = CreateParameter("PersentDopSell", 0.5m, 0.1m, 2, 0.1m);
+
+            TralingStopLength = CreateParameter("TralingStopLength", 3, 3, 8, 0.5m);
+            ExitType = CreateParameter("ExitType", "Traling", new[] { "Traling", "Sma" });
 
             _smaTrenda = new MovingAverage(name + "MovingLong", false) { Lenght = 150, ColorBase = Color.DodgerBlue };
             _smaTrenda = (MovingAverage)_tab.CreateCandleIndicator(_smaTrenda, "Prime");
@@ -958,6 +961,9 @@ namespace OsEngine.OsTrader.Panels
         public StrategyParameterInt ChannelLength;
         public StrategyParameterInt SmaLength;
 
+        public StrategyParameterDecimal TralingStopLength;
+        public StrategyParameterString ExitType;
+
         /// <summary>
         /// удаление файла с сохранением
         /// </summary>
@@ -979,12 +985,10 @@ namespace OsEngine.OsTrader.Panels
         {
             try
             {
-
                 if (Regime.ValueString == "Off")
                 {
                     return;
                 }
-
 
                 List<Position> openPosition = _tab.PositionsOpenAll;
 
@@ -998,7 +1002,6 @@ namespace OsEngine.OsTrader.Panels
             {
                 _tab.SetNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-
         }
 
         /// <summary>
@@ -1150,22 +1153,45 @@ namespace OsEngine.OsTrader.Panels
                     continue;
                 }
 
-                if (positions[i].Direction == Side.Buy)
+                if (ExitType.ValueString == "Sma")
                 {
-                    if (candles[candles.Count - 1].Close < _smaTrenda.Values[_smaTrenda.Values.Count - 1])
+                    if (positions[i].Direction == Side.Buy)
                     {
-                        _tab.CloseAtMarket(positions[i], positions[i].OpenVolume);
+                        if (candles[candles.Count - 1].Close < _smaTrenda.Values[_smaTrenda.Values.Count - 1])
+                        {
+                            _tab.CloseAtMarket(positions[i], positions[i].OpenVolume);
+                        }
+                    }
+                    else
+                    {
+                        if (candles[candles.Count - 1].Close > _smaTrenda.Values[_smaTrenda.Values.Count - 1])
+                        {
+                            _tab.CloseAtMarket(positions[i], positions[i].OpenVolume);
+                        }
                     }
                 }
-                else
+                else if (ExitType.ValueString == "Traling")
                 {
-                    if (candles[candles.Count - 1].Close > _smaTrenda.Values[_smaTrenda.Values.Count - 1])
+                    if (positions[i].Direction == Side.Buy)
                     {
-                        _tab.CloseAtMarket(positions[i], positions[i].OpenVolume);
+                        _tab.CloseAtTrailingStop(positions[i],
+                            candles[candles.Count - 1].Close -
+                            candles[candles.Count - 1].Close * TralingStopLength.ValueDecimal / 100,
+                            candles[candles.Count - 1].Close -
+                            candles[candles.Count - 1].Close * TralingStopLength.ValueDecimal / 100);
+                    }
+                    else
+                    {
+                        _tab.CloseAtTrailingStop(positions[i],
+                            candles[candles.Count - 1].Close +
+                            candles[candles.Count - 1].Close*TralingStopLength.ValueDecimal/100,
+                            candles[candles.Count - 1].Close +
+                            candles[candles.Count - 1].Close*TralingStopLength.ValueDecimal/100);
                     }
                 }
             }
         }
+
     }
 
     /// <summary>

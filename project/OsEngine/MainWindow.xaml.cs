@@ -191,6 +191,7 @@ namespace OsEngine
             try
             {
                 Hide();
+                ServerMaster.StartProgram = ServerStartProgramm.IsOsConverter;
                 OsConverterUi ui = new OsConverterUi();
                 ui.ShowDialog();
                 Close();

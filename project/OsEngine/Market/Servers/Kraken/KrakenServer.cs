@@ -351,7 +351,6 @@ namespace OsEngine.Market.Servers.Kraken
                         {
                             SendLogMessage("Запущена процедура отключения подключения", LogMessageType.System);
                             Disconnect();
-                            _startListening = false;
                             continue;
                         }
 
@@ -462,21 +461,6 @@ namespace OsEngine.Market.Servers.Kraken
                 _candleManager.LogMessageEvent += SendLogMessage;
             }
         }
-
-        /// <summary>
-        /// необходимо перезаказать информацию о контрактах
-        /// </summary>
-        private bool _neadToWatchSecurity;
-
-        /// <summary>
-        /// названия инструментов на которые мы уже подписались
-        /// </summary>
-        private List<string> _namesSubscribleSecurities;
-
-        /// <summary>
-        /// включена ли прослушка портфеля
-        /// </summary>
-        private bool _startListening;
 
         /// <summary>
         /// привести программу к моменту запуска. Очистить все объекты участвующие в подключении к серверу
@@ -1020,11 +1004,6 @@ namespace OsEngine.Market.Servers.Kraken
             trade.BidsVolume = depth.BidSummVolume;
             trade.AsksVolume = depth.AskSummVolume;
         }
-
-        /// <summary>
-        /// все стаканы
-        /// </summary>
-        private List<MarketDepth> _depths;
 
         /// <summary>
         /// вызывается когда изменяется бид или аск по инструменту

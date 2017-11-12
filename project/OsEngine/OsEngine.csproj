@@ -77,6 +77,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\OsEngineTepm\7 OANDA\OandaV20-master\OkonkwoOandaV20\OkonkwoOandaV20\bin\Debug\OandaV20.dll</HintPath>
     </Reference>
+    <Reference Include="PusherClient">
+      <HintPath>..\..\..\OsEngineTepm\12BitStamp\pusher-websocket-dotnet-master\pusher-websocket-dotnet-master\PusherClient\bin\Debug\PusherClient.dll</HintPath>
+    </Reference>
     <Reference Include="qC, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\Debug\qC.dll</HintPath>
@@ -84,6 +87,9 @@
     <Reference Include="QuikSharp, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\Debug\QuikSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="RestSharp">
+      <HintPath>..\..\..\OsEngineTepm\12BitStamp\Rokolab.BitstampClient-master (хороший HHTP клиент. Больше ничего )\Rokolab.BitstampClient\bin\Debug\RestSharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -96,6 +102,9 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WebSocket4Net">
+      <HintPath>..\..\..\OsEngineTepm\12BitStamp\pusher-websocket-dotnet-master\pusher-websocket-dotnet-master\PusherClient\bin\Debug\WebSocket4Net.dll</HintPath>
     </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
@@ -321,6 +330,13 @@
     <Compile Include="Market\Servers\BitMex\BitMexServerUi.xaml.cs">
       <DependentUpon>BitMexServerUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\Servers\BitStamp\BitStampServer.cs" />
+    <Compile Include="Market\Servers\BitStamp\BitStampClient.cs" />
+    <Compile Include="Market\Servers\BitStamp\BitStampEntity\RequestAuthenticator.cs" />
+    <Compile Include="Market\Servers\BitStamp\BitStampServerUi.xaml.cs">
+      <DependentUpon>BitStampServerUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Market\Servers\BitStamp\BitStampEntity\JsonResponse.cs" />
     <Compile Include="Market\Servers\Entity\BidAskSender.cs" />
     <Compile Include="Market\Servers\Entity\OrderSender.cs" />
     <Compile Include="Market\Servers\Entity\PositionOnBoardSander.cs" />
@@ -793,6 +809,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Market\Servers\BitMex\BitMexServerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\BitStamp\BitStampServerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

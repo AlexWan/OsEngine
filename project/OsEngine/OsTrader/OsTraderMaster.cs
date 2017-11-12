@@ -171,14 +171,23 @@ namespace OsEngine.OsTrader
                 while (!reader.EndOfStream)
                 {
                     string[] names = reader.ReadLine().Split('@');
-                    _panelsArray.Add(PanelCreator.GetStrategyForName(names[1],names[0]));
-                    _tabBotNames.Items.Add(_panelsArray[botIterator].NameStrategyUniq);
-                    SendNewLogMessage("Создан новый бот " + _panelsArray[botIterator].NameStrategyUniq, LogMessageType.System);
-                    botIterator++;
+                    BotPanel bot = PanelCreator.GetStrategyForName(names[1], names[0]);
+                    if (bot != null)
+                    {
+                        _panelsArray.Add(bot);
+                        _tabBotNames.Items.Add(_panelsArray[botIterator].NameStrategyUniq);
+                        SendNewLogMessage("Создан новый бот " + _panelsArray[botIterator].NameStrategyUniq,
+                            LogMessageType.System);
+                        botIterator++;
+                    }
+
                 }
             }
-
-            ReloadActivBot(_panelsArray[0]);
+            if (_panelsArray.Count != 0)
+            {
+                ReloadActivBot(_panelsArray[0]);
+            }
+            
 
             // }
             // catch

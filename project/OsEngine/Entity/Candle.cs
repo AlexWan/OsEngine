@@ -166,7 +166,7 @@ namespace OsEngine.Entity
                 }
                 else
                 {
-                    if (shit.Length == 2 && Convert.ToInt32(shit[1]) != 0)
+                    if (shit.Length == 2 && Convert.ToDecimal(shit[1]) != 0)
                     {
                         if (!Decimal.TryParse(shit[0] + '.' + shit[1], out Volume))
                         {
@@ -294,7 +294,7 @@ namespace OsEngine.Entity
                 result += High.ToString(new CultureInfo("en-US")) + ",";
                 result += Low.ToString(new CultureInfo("en-US")) + ",";
                 result += Close.ToString(new CultureInfo("en-US")) + ",";
-                result += Volume;
+                result += Volume.ToString(new CultureInfo("en-US"));
 
                 _stringToSave = result;
 

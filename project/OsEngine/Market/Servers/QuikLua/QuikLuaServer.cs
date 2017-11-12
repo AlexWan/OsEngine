@@ -44,13 +44,14 @@ namespace OsEngine.Market.Servers.QuikLua
             _ordersToExecute = new ConcurrentQueue<Order>();
             _ordersToCansel = new ConcurrentQueue<Order>();
 
+            _tickStorage = new ServerTickStorage(this);
+            _tickStorage.NeadToSave = NeadToSaveTicks;
+            _tickStorage.DaysToLoad = CountDaysTickNeadToSave;
+            _tickStorage.TickLoadedEvent += _tickStorage_TickLoadedEvent;
+            _tickStorage.LogMessageEvent += SendLogMessage;
+
             if (neadToLoadTicks)
             {
-                _tickStorage = new ServerTickStorage(this);
-                _tickStorage.NeadToSave = NeadToSaveTicks;
-                _tickStorage.DaysToLoad = CountDaysTickNeadToSave;
-                _tickStorage.TickLoadedEvent += _tickStorage_TickLoadedEvent;
-                _tickStorage.LogMessageEvent += SendLogMessage;
                 _tickStorage.LoadTick();
             }
 

@@ -247,7 +247,9 @@ namespace OsEngine.Entity
                         else if (serverType == ServerType.Tester ||
                                  serverType == ServerType.InteractivBrokers ||
                                  serverType == ServerType.Optimizer ||
-                                 serverType == ServerType.Oanda)
+                                 serverType == ServerType.Oanda||
+                                 serverType == ServerType.BitStamp
+                            )
                         {
                             series.IsStarted = true;
                         }

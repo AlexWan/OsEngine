@@ -303,6 +303,7 @@ namespace OsEngine.Entity
 
             if (ServerMaster.StartProgram != ServerStartProgramm.IsOsTrader &&
                 ServerMaster.StartProgram != ServerStartProgramm.IsOsData &&
+                ServerMaster.StartProgram != ServerStartProgramm.IsOsConverter &&
                 TypeTesterData == TesterDataType.Candle)
             {
                 return;

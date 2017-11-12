@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using Jayrock.Json;
@@ -138,8 +139,9 @@ namespace OsEngine.Market.Servers.Kraken
                     {
                         // раз в секунду запрашиваем наши ордера и мои трейды
 
-                        if (_lastTimeGetOrders.AddSeconds(10) < DateTime.Now)
+                        if (_lastTimeGetOrders.AddSeconds(1) < DateTime.Now)
                         {
+                            _lastTimeGetOrders = DateTime.Now;
                             GetOrders();
                         }
 
@@ -363,6 +365,7 @@ namespace OsEngine.Market.Servers.Kraken
                 Thread.Sleep(1000);
 
                 KrakenOrder order = _orders[i];
+                
 
                 RefreshOrder(ref order);
 
@@ -907,10 +910,10 @@ namespace OsEngine.Market.Servers.Kraken
                         order.Reason = reason;
                         order.OpenTime = openTime;
                         order.CloseTime = closeTime;
-                        order.VolumeExecuted = double.Parse(vol_exec);
-                        order.Cost = decimal.Parse(cost);
-                        order.Fee = decimal.Parse(fee);
-                        order.AveragePrice = decimal.Parse(price);
+                        order.VolumeExecuted = double.Parse(vol_exec.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                        order.Cost = decimal.Parse(cost.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                        order.Fee = decimal.Parse(fee.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                        order.AveragePrice = decimal.Parse(price.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                         order.Info = misc;
                         order.OFlags = oflags;
                         order.Trades = trades;

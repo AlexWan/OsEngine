@@ -10,6 +10,7 @@ using System.Windows.Forms.Integration;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.AstsBridge;
 using OsEngine.Market.Servers.BitMex;
+using OsEngine.Market.Servers.BitStamp;
 using OsEngine.Market.Servers.Finam;
 using OsEngine.Market.Servers.InteractivBrokers;
 using OsEngine.Market.Servers.Kraken;
@@ -89,6 +90,21 @@ namespace OsEngine.Market.Servers
                 if (_servers == null)
                 {
                     _servers = new List<IServer>();
+                }
+                if (type == ServerType.BitStamp)
+                {
+                    if (_servers.Find(server => server.ServerType == ServerType.BitStamp) != null)
+                    {
+                        return;
+                    }
+
+                    BitStampServer serv = new BitStampServer(neadLoadTicks);
+                    _servers.Add(serv);
+
+                    if (ServerCreateEvent != null)
+                    {
+                        ServerCreateEvent();
+                    }
                 }
                 if (type == ServerType.Kraken)
                 {
@@ -580,7 +596,12 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// терминал
         /// </summary>
-        IsOsTrader
+        IsOsTrader,
+
+        /// <summary>
+        /// конвертер тиков в свечи
+        /// </summary>
+        IsOsConverter
     }
 
     /// <summary>
@@ -602,6 +623,11 @@ namespace OsEngine.Market.Servers
         /// биржа криптовалют BitMEX
         /// </summary>
         BitMex,
+
+        /// <summary>
+        /// биржа криптовалют BitStamp
+        /// </summary>
+        BitStamp,
 
         /// <summary>
         /// Оптимизатор

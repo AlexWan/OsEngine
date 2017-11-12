@@ -1,4 +1,8 @@
-﻿using Newtonsoft.Json;
+﻿/*
+ *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.BitMex.BitMexEntity;
@@ -37,13 +41,14 @@ namespace OsEngine.Market.Servers.BitMex
             _ordersToExecute = new ConcurrentQueue<Order>();
             _ordersToCansel = new ConcurrentQueue<Order>();
 
+            _tickStorage = new ServerTickStorage(this);
+            _tickStorage.NeadToSave = NeadToSaveTicks;
+            _tickStorage.DaysToLoad = CountDaysTickNeadToSave;
+            _tickStorage.TickLoadedEvent += _tickStorage_TickLoadedEvent;
+            _tickStorage.LogMessageEvent += SendLogMessage;
+
             if (neadToLoadTicks)
             {
-                _tickStorage = new ServerTickStorage(this);
-                _tickStorage.NeadToSave = NeadToSaveTicks;
-                _tickStorage.DaysToLoad = CountDaysTickNeadToSave;
-                _tickStorage.TickLoadedEvent += _tickStorage_TickLoadedEvent;
-                _tickStorage.LogMessageEvent += SendLogMessage;
                 _tickStorage.LoadTick();
             }
 

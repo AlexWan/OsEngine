@@ -34,13 +34,14 @@ namespace OsEngine.Market.Servers.Plaza
             KeyToProggram = "11111111";
             Load();
 
+            _tickStorage = new ServerTickStorage(this);
+            _tickStorage.NeadToSave = NeadToSaveTicks;
+            _tickStorage.DaysToLoad = CountDaysTickNeadToSave;
+            _tickStorage.TickLoadedEvent += _tickStorage_TickLoadedEvent;
+            _tickStorage.LogMessageEvent += SendNewLogMessage;
+
             if (neadToLoadTicks)
             {
-                _tickStorage = new ServerTickStorage(this);
-                _tickStorage.NeadToSave = NeadToSaveTicks;
-                _tickStorage.DaysToLoad = CountDaysTickNeadToSave;
-                _tickStorage.TickLoadedEvent += _tickStorage_TickLoadedEvent;
-                _tickStorage.LogMessageEvent += SendNewLogMessage;
                 _tickStorage.LoadTick();
             }
         }

@@ -42,13 +42,14 @@ namespace OsEngine.Market.Servers.Quik
             worker.IsBackground = true;
             worker.Start();
 
+            _tickStorage = new ServerTickStorage(this);
+            _tickStorage.NeadToSave = NeadToSaveTicks;
+            _tickStorage.DaysToLoad = CountDaysTickNeadToSave;
+            _tickStorage.TickLoadedEvent += _tickStorage_TickLoadedEvent;
+            _tickStorage.LogMessageEvent += SendLogMessage;
+
             if (neadToLoadTicks)
             {
-                _tickStorage = new ServerTickStorage(this);
-                _tickStorage.NeadToSave = NeadToSaveTicks;
-                _tickStorage.DaysToLoad = CountDaysTickNeadToSave;
-                _tickStorage.TickLoadedEvent += _tickStorage_TickLoadedEvent;
-                _tickStorage.LogMessageEvent += SendLogMessage;
                 _tickStorage.LoadTick();
             }
 

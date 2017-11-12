@@ -136,11 +136,12 @@ namespace OsEngine.Market.Servers
             bool smartcomIsOn = false;
             bool plazaIsOn = false;
             bool ibIsOn = false;
-            bool finamIsOn = false;
             bool astsIsOn = false;
             bool quikLuaIsOn = false;
             bool oandaIsOn = false;
             bool krakenIsOn = false;
+            bool bitStampIsOn = false;
+
 
             for (int i = 0; i < _gridSources.Rows.Count; i++)
             {
@@ -149,6 +150,10 @@ namespace OsEngine.Market.Servers
                 ServerType type;
 
                 Enum.TryParse(row1.Cells[0].Value.ToString(), out type);
+                if (type == ServerType.BitStamp)
+                {
+                    bitStampIsOn = true;
+                }
 
                 if (type == ServerType.BitMex)
                 {
@@ -186,15 +191,13 @@ namespace OsEngine.Market.Servers
                 {
                     ibIsOn = true;
                 }
-                if (type == ServerType.Finam)
-                {
-                    finamIsOn = true;
-                }
                 if (type == ServerType.AstsBridge)
                 {
                     astsIsOn = true;
                 }
             }
+
+
 
             if (quikIsOn == false)
             {
@@ -241,6 +244,15 @@ namespace OsEngine.Market.Servers
                 row1.Cells[1].Value = "Disconnect";
                 _gridSources.Rows.Add(row1);
             }
+            if (bitStampIsOn == false)
+            {
+                DataGridViewRow row1 = new DataGridViewRow();
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[0].Value = ServerType.BitStamp;
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[1].Value = "Disconnect";
+                _gridSources.Rows.Add(row1);
+            }   
             if (quikLuaIsOn == false)
             {
                 DataGridViewRow row1 = new DataGridViewRow();
@@ -274,15 +286,6 @@ namespace OsEngine.Market.Servers
                 DataGridViewRow row1 = new DataGridViewRow();
                 row1.Cells.Add(new DataGridViewTextBoxCell());
                 row1.Cells[0].Value = ServerType.InteractivBrokers;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-            if (finamIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.Finam;
                 row1.Cells.Add(new DataGridViewTextBoxCell());
                 row1.Cells[1].Value = "Disconnect";
                 _gridSources.Rows.Add(row1);
