@@ -75,6 +75,10 @@ namespace OsEngine.Market.Servers.Oanda
             threadDataSender.CurrentCulture = CultureInfo.InvariantCulture;
             threadDataSender.IsBackground = true;
             threadDataSender.Start();
+
+            Thread watcherConnectThread = new Thread(ReconnectThread);
+            watcherConnectThread.IsBackground = true;
+            watcherConnectThread.Start();
         }
 
         /// <summary>
@@ -258,6 +262,44 @@ namespace OsEngine.Market.Servers.Oanda
             catch (Exception error)
             {
                 SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        // работа потока перезапускающего основное соединени
+        // оно просто иногда перестаёт подавать данные. Нужно перезапускать
+
+        private DateTime _lastTimeIncomeDate = DateTime.MinValue;
+
+        private void ReconnectThread()
+        {
+            while (true)
+            {
+                Thread.Sleep(5000);
+                if (_connectedContracts == null ||
+                    _connectedContracts.Count == 0)
+                {
+                    continue;
+                }
+
+                if (DateTime.Now.DayOfWeek == DayOfWeek.Saturday
+                    ||
+                    DateTime.Now.DayOfWeek == DayOfWeek.Sunday)
+                {
+                    continue;
+                }
+
+                if (_lastTimeIncomeDate == DateTime.MinValue)
+                {
+                    continue;
+                }
+
+                if (_lastTimeIncomeDate.AddMinutes(5) < DateTime.Now)
+                {
+                    _lastTimeIncomeDate = DateTime.Now;
+                    StopServer();
+                    Thread.Sleep(15000);
+                    StartServer();
+                }
             }
         }
 
@@ -1190,6 +1232,7 @@ namespace OsEngine.Market.Servers.Oanda
         /// </summary>
         private void AddTick(Trade trade)
         {
+            _lastTimeIncomeDate = DateTime.Now;
             try
             {
                 // сохраняем

@@ -187,6 +187,10 @@ namespace OsEngine.Entity
                         {
                             _timeFrameSpan = new TimeSpan(0, 0, 2, 0);
                         }
+                        else if (value == TimeFrame.Min3)
+                        {
+                            _timeFrameSpan = new TimeSpan(0, 0, 3, 0);
+                        }
                         else if (value == TimeFrame.Min5)
                         {
                             _timeFrameSpan = new TimeSpan(0, 0, 5, 0);
@@ -206,6 +210,10 @@ namespace OsEngine.Entity
                         else if (value == TimeFrame.Min30)
                         {
                             _timeFrameSpan = new TimeSpan(0, 0, 30, 0);
+                        }
+                        else if (value == TimeFrame.Min45)
+                        {
+                            _timeFrameSpan = new TimeSpan(0, 0, 45, 0);
                         }
                         else if (value == TimeFrame.Hour1)
                         {
@@ -343,6 +351,10 @@ namespace OsEngine.Entity
         /// </summary>
         Min2,
         /// <summary>
+        /// три минуты
+        /// </summary>
+        Min3,
+        /// <summary>
         /// пять минут
         /// </summary>
         Min5,
@@ -362,6 +374,10 @@ namespace OsEngine.Entity
         /// тридцать минут
         /// </summary>
         Min30,
+        /// <summary>
+        /// сорок пять минут
+        /// </summary>
+        Min45,
         /// <summary>
         /// один час
         /// </summary>

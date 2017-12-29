@@ -342,7 +342,14 @@ namespace OsEngine.Market.Servers
                 // отправляем портфели на прорисовку
                 for (int i = 0; _portfolios != null && i < _portfolios.Count; i++)
                 {
-                    PaintPortfolio(_portfolios[i]);
+                    try
+                    {
+                        PaintPortfolio(_portfolios[i]);
+                    }
+                    catch (Exception)
+                    {
+                        
+                    }
                 }
             }
             catch (Exception error)

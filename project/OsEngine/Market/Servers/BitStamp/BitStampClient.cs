@@ -195,6 +195,10 @@ namespace OsEngine.Market.Servers.BitStamp
                 { channelTrades.Bind("trade", (dynamic data) => { Trades_Income("etheur", data.ToString()); }); }
                 else if (security.Name == "ethbtc")
                 { channelTrades.Bind("trade", (dynamic data) => { Trades_Income("ethbtc", data.ToString()); }); }
+                else if (security.Name == "bcheur")
+                { channelTrades.Bind("trade", (dynamic data) => { Trades_Income("bcheur", data.ToString()); }); }
+                else if (security.Name == "bchusd")
+                { channelTrades.Bind("trade", (dynamic data) => { Trades_Income("bchusd", data.ToString()); }); }
 
                 Channel channelBook = null;
 
@@ -232,6 +236,10 @@ namespace OsEngine.Market.Servers.BitStamp
                 { channelBook.Bind("data", (dynamic data) => { OrderBook_Income("etheur", data.ToString()); }); }
                 else if (security.Name == "ethbtc")
                 { channelBook.Bind("data", (dynamic data) => { OrderBook_Income("ethbtc", data.ToString()); }); }
+                else if (security.Name == "bcheur")
+                { channelBook.Bind("data", (dynamic data) => { OrderBook_Income("bcheur", data.ToString()); }); }
+                else if (security.Name == "bchusd")
+                { channelBook.Bind("data", (dynamic data) => { OrderBook_Income("bchusd", data.ToString()); }); }
 
             }
         }
@@ -622,6 +630,8 @@ namespace OsEngine.Market.Servers.BitStamp
                 return;
             }
 
+            _osEngineOrders.Add(order);
+
             string url = "https://www.bitstamp.net/api/v2";
 
             if (order.Side == Side.Buy)
@@ -636,6 +646,11 @@ namespace OsEngine.Market.Servers.BitStamp
             url += order.SecurityNameCode + "/";
 
             BuySellResponse result = Execute((double)order.Volume, (double)order.Price, url);
+
+            if (result == null)
+            {
+                return;
+            }
 
             SendLogMessage("статус выставления ордера: " + result.status + "  " + result.reason, LogMessageType.System);
 
@@ -654,7 +669,7 @@ namespace OsEngine.Market.Servers.BitStamp
                 {
                     MyOrderEvent(newOrder);
                 }
-                _osEngineOrders.Add(order);
+                
             }
             else
             {
@@ -690,6 +705,15 @@ namespace OsEngine.Market.Servers.BitStamp
                     request.AddParameter("price", price.ToString().Replace(",", "."));
 
                     var response = new RestClient(securityUrl).Execute(request);
+
+                    if (response.Content.IndexOf("error", StringComparison.Ordinal) > 0)
+                    {
+                        SendLogMessage("Ошибка на выставлении ордера", LogMessageType.Error);
+                        SendLogMessage(response.Content, LogMessageType.Error);
+                        return null;
+                    }
+
+
                     return JsonConvert.DeserializeObject<BuySellResponse>(response.Content);
                 }
                 catch (Exception ex)

@@ -464,7 +464,15 @@ namespace OsEngine.Market
                         continue;
                     }
 
-                    _myServer = servers.Find(server => server.ServerType == ServerType);
+                    try
+                    {
+                        _myServer = servers.Find(server => server.ServerType == ServerType);
+                    }
+                    catch
+                    {
+                        // ignore
+                        continue;
+                    }
 
                     if (_myServer == null)
                     {

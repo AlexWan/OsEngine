@@ -129,6 +129,11 @@ namespace OsEngine.Entity
                     _seriesCreateMethodType = CandleSeriesCreateMethodType.Simple;
                     _timeFrameSpan = new TimeSpan(0, 0, 2, 0);
                 }
+                else if (value == TimeFrame.Min3)
+                {
+                    _seriesCreateMethodType = CandleSeriesCreateMethodType.Simple;
+                    _timeFrameSpan = new TimeSpan(0, 0, 3, 0);
+                }
                 else if (value == TimeFrame.Min5)
                 {
                     _seriesCreateMethodType = CandleSeriesCreateMethodType.Simple;
@@ -153,6 +158,11 @@ namespace OsEngine.Entity
                 {
                     _seriesCreateMethodType = CandleSeriesCreateMethodType.Simple;
                     _timeFrameSpan = new TimeSpan(0, 0, 30, 0);
+                }
+                else if (value == TimeFrame.Min45)
+                {
+                    _seriesCreateMethodType = CandleSeriesCreateMethodType.Simple;
+                    _timeFrameSpan = new TimeSpan(0, 0, 45, 0);
                 }
                 else if (value == TimeFrame.Hour1)
                 {
@@ -486,7 +496,6 @@ namespace OsEngine.Entity
                     if (canPushUp)
                     {
                         UpdateFinishCandle();
-                        ;
                     }
                 }
 
@@ -496,7 +505,8 @@ namespace OsEngine.Entity
                 {
                     timeNextCandle = time.AddSeconds(-time.Second);
 
-                    while (timeNextCandle.Minute%_timeFrameSpan.TotalMinutes != 0)
+                    while (timeNextCandle.Minute%_timeFrameSpan.TotalMinutes != 0 &&
+                        TimeFrame != TimeFrame.Min45 && TimeFrame != TimeFrame.Min3)
                     {
                         timeNextCandle = timeNextCandle.AddMinutes(-1);
                     }

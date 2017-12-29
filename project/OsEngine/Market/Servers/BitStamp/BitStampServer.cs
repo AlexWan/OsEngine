@@ -729,7 +729,8 @@ namespace OsEngine.Market.Servers.BitStamp
         {
             try
             {
-                if (portf.eur_balance == null)
+                if (portf == null ||
+                    portf.eur_balance == null)
                 {
                     return;
                 }

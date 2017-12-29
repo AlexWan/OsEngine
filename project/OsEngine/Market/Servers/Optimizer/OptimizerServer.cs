@@ -1383,6 +1383,11 @@ namespace OsEngine.Market.Servers.Optimizer
                 _dataIsActive = true;
             }
 
+            if (tradesNew.Count == 0)
+            {
+                return;
+            }
+
             if (_allTrades == null)
             {
                 _allTrades = new List<Trade>[1];
@@ -1421,6 +1426,11 @@ namespace OsEngine.Market.Servers.Optimizer
                        _allTrades = allTradesNew;
                    }
                 }
+            }
+
+            if (tradesNew.Count == 0)
+            {
+                return;
             }
 
             ServerTime = tradesNew[tradesNew.Count - 1].Time;

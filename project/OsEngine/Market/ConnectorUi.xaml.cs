@@ -122,11 +122,13 @@ namespace OsEngine.Market
                     BoxTimeFrame.Items.Add(TimeFrame.Day);
                     BoxTimeFrame.Items.Add(TimeFrame.Hour2);
                     BoxTimeFrame.Items.Add(TimeFrame.Hour1);
+                    BoxTimeFrame.Items.Add(TimeFrame.Min45);
                     BoxTimeFrame.Items.Add(TimeFrame.Min30);
                     BoxTimeFrame.Items.Add(TimeFrame.Min20);
                     BoxTimeFrame.Items.Add(TimeFrame.Min15);
                     BoxTimeFrame.Items.Add(TimeFrame.Min10);
                     BoxTimeFrame.Items.Add(TimeFrame.Min5);
+                    BoxTimeFrame.Items.Add(TimeFrame.Min3);
                     BoxTimeFrame.Items.Add(TimeFrame.Min2);
                     BoxTimeFrame.Items.Add(TimeFrame.Min1);
                     BoxTimeFrame.Items.Add(TimeFrame.Sec30);
@@ -154,11 +156,13 @@ namespace OsEngine.Market
                 BoxTimeFrame.Items.Add(TimeFrame.Day);
                 BoxTimeFrame.Items.Add(TimeFrame.Hour2);
                 BoxTimeFrame.Items.Add(TimeFrame.Hour1);
+                BoxTimeFrame.Items.Add(TimeFrame.Min45);
                 BoxTimeFrame.Items.Add(TimeFrame.Min30);
                 BoxTimeFrame.Items.Add(TimeFrame.Min20);
                 BoxTimeFrame.Items.Add(TimeFrame.Min15);
                 BoxTimeFrame.Items.Add(TimeFrame.Min10);
                 BoxTimeFrame.Items.Add(TimeFrame.Min5);
+                BoxTimeFrame.Items.Add(TimeFrame.Min3);
                 BoxTimeFrame.Items.Add(TimeFrame.Min2);
                 BoxTimeFrame.Items.Add(TimeFrame.Min1);
                 BoxTimeFrame.Items.Add(TimeFrame.Sec30);

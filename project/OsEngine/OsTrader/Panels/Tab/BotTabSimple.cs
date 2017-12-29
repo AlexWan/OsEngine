@@ -95,8 +95,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="serverType">тип сервера у коннектора</param>
         void _connector_ConnectorStartedReconnectEvent(string securityName, TimeFrame timeFrame, string portfolioName, ServerType serverType)
         {
-            if (string.IsNullOrEmpty(securityName) ||
-                string.IsNullOrEmpty(portfolioName))
+            if (string.IsNullOrEmpty(securityName)// ||
+                //string.IsNullOrEmpty(portfolioName)
+                )
             {
                 return;
             }
