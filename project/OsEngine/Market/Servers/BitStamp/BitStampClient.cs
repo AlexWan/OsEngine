@@ -249,11 +249,15 @@ namespace OsEngine.Market.Servers.BitStamp
         /// </summary>
         private void _pusher_Error(object sender, PusherException error)
         {
-            if (LogMessageEvent != null)
+            SendLogMessage(error.ToString(), LogMessageType.Error);
+
+            if (NeadReconnectEvent != null)
             {
-                LogMessageEvent(error.ToString(),LogMessageType.Error);
+                NeadReconnectEvent();
             }
         }
+
+        public event Action NeadReconnectEvent;
 
         /// <summary>
         /// изменилось сотояние подключения

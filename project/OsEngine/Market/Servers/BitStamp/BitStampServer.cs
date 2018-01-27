@@ -388,7 +388,16 @@ namespace OsEngine.Market.Servers.BitStamp
                 _clientBitStamp.MyTradeEvent += NewMyTrade;
                 _clientBitStamp.MyOrderEvent += BitMex_UpdateOrder;
                 _clientBitStamp.LogMessageEvent += SendLogMessage;
+
+                _clientBitStamp.NeadReconnectEvent += _clientBitStamp_NeadReconnectEvent;
             }
+        }
+
+        void _clientBitStamp_NeadReconnectEvent()
+        {
+            StopServer();
+            Thread.Sleep(5000);
+            StartServer();
         }
 
         /// <summary>
