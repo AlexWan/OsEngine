@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using OsEngine.Market.Servers;
 
@@ -80,11 +81,7 @@ namespace OsEngine.Entity
             {
                 if (_trades != null && (_volumeExecute == 0 || _volumeExecuteChange))
                 {
-                    _volumeExecute = 0;
-                    foreach (var trade in _trades)
-                    {
-                        _volumeExecute += trade.Volume;
-                    }
+                    _volumeExecute = _trades.Sum(trade => trade.Volume);
                     _volumeExecuteChange = false;
                     return _volumeExecute;
                 }
