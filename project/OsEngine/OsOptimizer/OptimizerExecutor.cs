@@ -564,9 +564,9 @@ namespace OsEngine.OsOptimizer
                 {
                     ((StrategyParameterInt)bot.Parameters[i]).ValueInt = ((StrategyParameterInt)par).ValueInt;
                 }
-                else if (bot.Parameters[i].Type == StrategyParameterType.Bool)
+                else if (bot.Parameters[i].Type == StrategyParameterType.Decimal)
                 {
-                    ((StrategyParameterBool)bot.Parameters[i]).ValueBool = ((StrategyParameterBool)par).ValueBool;
+                    ((StrategyParameterDecimal)bot.Parameters[i]).ValueDecimal = ((StrategyParameterDecimal)par).ValueDecimal;
                 }
             }
 // настраиваем вкладки
