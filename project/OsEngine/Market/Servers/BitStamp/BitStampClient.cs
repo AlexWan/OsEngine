@@ -484,7 +484,7 @@ namespace OsEngine.Market.Servers.BitStamp
                         MyTradeEvent(trade);
                     }
                 }
-                if (response.status == "Finished" || response.status == null)
+                else if (response.status == "Finished" || response.status == null)
                 {
                     Order newOrder = new Order();
                     newOrder.SecurityNameCode = order.SecurityNameCode;
