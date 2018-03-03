@@ -34,12 +34,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             InitializeComponent();
             _bollinger = bollinger;
 
-            for (int i = 2; i < 4; i++)
-            {
-                ComboBoxDeviation.Items.Add(i);
-            }
-
-            ComboBoxDeviation.SelectedItem = _bollinger.Deviation;
+            TextBoxDeviation.Text = _bollinger.Deviation.ToString();
 
             TextBoxLenght.Text = _bollinger.Lenght.ToString();
             HostColorUp.Child = new TextBox();
@@ -57,7 +52,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             try
             {
-                if (Convert.ToInt32(TextBoxLenght.Text) <= 0)
+                if (Convert.ToInt32(TextBoxLenght.Text) <= 0 ||
+                   Convert.ToDecimal(TextBoxDeviation.Text) <= 0)
                 {
                     throw new Exception("error");
                 }
@@ -70,7 +66,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             _bollinger.ColorUp = HostColorUp.Child.BackColor;
             _bollinger.ColorDown = HostColorDown.Child.BackColor;
-            _bollinger.Deviation = Convert.ToInt32(ComboBoxDeviation.Text);
+            _bollinger.Deviation = Convert.ToDecimal(TextBoxDeviation.Text);
 
             _bollinger.Lenght = Convert.ToInt32(TextBoxLenght.Text);
 

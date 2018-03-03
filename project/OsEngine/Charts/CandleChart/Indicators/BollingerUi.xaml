@@ -12,8 +12,8 @@
         <Button x:Name="ButtonColorDown" Content="Цвет нижней" Height="22" FontSize="14" FontFamily="Calibri" HorizontalAlignment="Left" Margin="20,106,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorDown_Click" />
         <WindowsFormsHost x:Name="HostColorDown" Height="22" Margin="152,106,20,0" VerticalAlignment="Top"/>
         <Label Content="Кол-во отклонений" HorizontalAlignment="Left" Margin="20,48,0,0" VerticalAlignment="Top" Foreground="#FF7212" FontFamily="Calibri" FontSize="14"/>
-        <ComboBox Name="ComboBoxDeviation" Margin="153,48,19,0" VerticalAlignment="Top"/>
         <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовывать" HorizontalAlignment="Left" Margin="153,133,0,0" VerticalAlignment="Top" Foreground="#FF7212" FontFamily="Calibri" FontSize="14"/>
+        <TextBox x:Name ="TextBoxDeviation" Height="23" Margin="153,48,19,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
 
     </Grid>
 </Window>

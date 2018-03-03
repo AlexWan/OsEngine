@@ -133,7 +133,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <summary>
         /// отклонение
         /// </summary>
-        public int Deviation
+        public decimal Deviation
         { get; set; }
 
         /// <summary>
@@ -170,7 +170,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                     ColorUp = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
                     ColorDown = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
                     Lenght = Convert.ToInt32(reader.ReadLine());
-                    Deviation = Convert.ToInt32(reader.ReadLine());
+                    Deviation = Convert.ToDecimal(reader.ReadLine());
                     PaintOn = Convert.ToBoolean(reader.ReadLine());
                     reader.Close();
                 }

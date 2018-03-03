@@ -278,6 +278,14 @@ namespace OsEngine.Market.Servers
                         continue;
                     }
 
+                    if (_tradeSaveInfo.Find(s => s.NameSecurity == newList[0].SecurityNameCode) == null)
+                    {
+                        TradeSaveInfo tradeInfo = new TradeSaveInfo();
+                        tradeInfo.NameSecurity = newList[0].SecurityNameCode;
+                        tradeInfo.LastSaveIndex = newList.Count;
+                        _tradeSaveInfo.Add(tradeInfo);
+                    }
+
                     if (allTrades == null)
                     {
                         allTrades = new[] { newList };
