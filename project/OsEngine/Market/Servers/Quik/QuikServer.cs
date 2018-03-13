@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using OsEngine.Entity;
@@ -850,55 +851,54 @@ namespace OsEngine.Market.Servers.Quik
 
             BathTradeMarketDepthData(tradesNew);
 
+// сортируем сделки по хранилищам
+
             if (_allTrades == null)
             {
-                _allTrades = new List<Trade>[1];
-                _allTrades[0] = new List<Trade>(tradesNew);
+                _allTrades = new List<Trade>[0];
             }
-            else
+
+            for (int indTrade = 0; indTrade < tradesNew.Count; indTrade++)
             {
-// сортируем сделки по хранилищам
-                for (int indTrade = 0; indTrade < tradesNew.Count; indTrade++)
+                Trade trade = tradesNew[indTrade];
+
+                bool isSave = false;
+                for (int i = 0; i < _allTrades.Length; i++)
                 {
-                    Trade trade = tradesNew[indTrade];
-
-                    bool isSave = false;
-                    for (int i = 0; i < _allTrades.Length; i++)
+                    if (_allTrades[i] != null && _allTrades[i].Count != 0 &&
+                        _allTrades[i][0].SecurityNameCode == trade.SecurityNameCode)
                     {
-                        if (_allTrades[i] != null && _allTrades[i].Count != 0 &&
-                            _allTrades[i][0].SecurityNameCode == trade.SecurityNameCode)
+                        // если для этого инструметна уже есть хранилище, сохраняем и всё
+                        isSave = true;
+                        if (_allTrades[i][_allTrades[i].Count - 1].Time > trade.Time)
                         {
-                            // если для этого инструметна уже есть хранилище, сохраняем и всё
-                            isSave = true;
-                            if (_allTrades[i][_allTrades[i].Count - 1].Time > trade.Time)
-                            {
-                                break;
-                            }
-
-                            Trade lastTrade = _allTrades[i][_allTrades[i].Count - 1];
-
-                            if (lastTrade.Time.Hour == 23 && trade.Time.Hour == 23 &&
-                                lastTrade.Time.Day != trade.Time.Day)
-                            { // иногда из квик приходит трейд в конце сессии с другой датой
-                                break;
-                            }
-
-                            _allTrades[i].Add(trade);
                             break;
                         }
-                    }
-                    if (isSave == false)
-                    {
-                        // хранилища для инструмента нет
-                        List<Trade>[] allTradesNew = new List<Trade>[_allTrades.Length + 1];
-                        for (int i = 0; i < _allTrades.Length; i++)
+
+                        Trade lastTrade = _allTrades[i][_allTrades[i].Count - 1];
+
+                        if (lastTrade.Time.Hour == 23 && trade.Time.Hour == 23 &&
+                            lastTrade.Time.Day != trade.Time.Day)
                         {
-                            allTradesNew[i] = _allTrades[i];
+                            // иногда из квик приходит трейд в конце сессии с другой датой
+                            break;
                         }
-                        allTradesNew[allTradesNew.Length - 1] = new List<Trade>();
-                        allTradesNew[allTradesNew.Length - 1].Add(trade);
-                        _allTrades = allTradesNew;
+
+                        _allTrades[i].Add(trade);
+                        break;
                     }
+                }
+                if (isSave == false)
+                {
+                    // хранилища для инструмента нет
+                    List<Trade>[] allTradesNew = new List<Trade>[_allTrades.Length + 1];
+                    for (int i = 0; i < _allTrades.Length; i++)
+                    {
+                        allTradesNew[i] = _allTrades[i];
+                    }
+                    allTradesNew[allTradesNew.Length - 1] = new List<Trade>();
+                    allTradesNew[allTradesNew.Length - 1].Add(trade);
+                    _allTrades = allTradesNew;
                 }
             }
 
@@ -908,9 +908,10 @@ namespace OsEngine.Market.Servers.Quik
             if (_tradesStatus == ServerConnectStatus.Connect &&
                 tradesNew[tradesNew.Count - 1].Time.AddSeconds(20) < _serverTime)
             {
-                
+
                 _tradesStatus = ServerConnectStatus.Disconnect;
-                SendLogMessage("Зафиксирован вход устаревших тиков. Запущена процедура перезагрузки сервера", LogMessageType.System);
+                SendLogMessage("Зафиксирован вход устаревших тиков. Запущена процедура перезагрузки сервера",
+                    LogMessageType.System);
                 _status = ServerConnectStatus.Disconnect;
                 Thread.Sleep(300);
             }
