@@ -142,6 +142,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void Clear()
         {
+            _valuesToFormula = new List<ValueSave>();
             _chartMaster.Clear();
         }
 

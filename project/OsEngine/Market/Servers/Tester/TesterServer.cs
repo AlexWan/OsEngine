@@ -729,11 +729,13 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         private void LoadSecurities()
         {
-            if(!Directory.Exists(_activSet))
+            if ((_sourceDataType == TesterSourceDataType.Set && (string.IsNullOrWhiteSpace(_activSet) || !Directory.Exists(_activSet))) ||
+                (_sourceDataType == TesterSourceDataType.Folder && (string.IsNullOrWhiteSpace(_pathToFolder) || !Directory.Exists(_pathToFolder))))
             {
                 return;
             }
-            if (_sourceDataType == TesterSourceDataType.Set && !string.IsNullOrWhiteSpace(_activSet))
+
+            if (_sourceDataType == TesterSourceDataType.Set)
             { // сеты данных Геркулеса
                 string[] directories = Directory.GetDirectories(_activSet);
 
@@ -750,7 +752,7 @@ namespace OsEngine.Market.Servers.Tester
 
                 _dataIsReady = true;
             }
-            else if (_sourceDataType == TesterSourceDataType.Folder&& !string.IsNullOrWhiteSpace(_pathToFolder))
+            else // if (_sourceDataType == TesterSourceDataType.Folder)
             { // простые файлы из папки
 
                 string[] files = Directory.GetFiles(_pathToFolder);
