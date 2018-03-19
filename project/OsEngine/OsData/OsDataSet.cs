@@ -209,6 +209,11 @@ namespace OsEngine.OsData
         {
             try
             {
+                if (SetName == "Set_")
+                {
+                    return;
+                }
+
                 if (!Directory.Exists("Data\\" + SetName))
                 {
                     Directory.CreateDirectory("Data\\" + SetName);

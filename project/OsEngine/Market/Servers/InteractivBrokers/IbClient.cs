@@ -832,6 +832,15 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                     {
                         ClearCommissionReport();
                     }
+                    else if (typeMessage == 58)
+                    {
+                        TcpReadInt();
+                        TcpReadInt();
+                        TcpReadInt();
+                        TcpReadInt();
+                        TcpReadInt();
+                        TcpReadInt();
+                    }
                     else if (typeMessage == 11)
                     {
                         ClearExecutionData();

@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading;
 using OsEngine.Entity;
 using OsEngine.Logging;
@@ -1071,6 +1072,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 securityIb.ConId = contract.ConId;
                 securityIb.Currency = contract.Currency;
                 securityIb.Strike = contract.Strike;
+                securityIb.MinTick = contract.MinTick;
                 //securityIb.Symbol = symbol;
                 securityIb.TradingClass = contract.TradingClass;
 
@@ -1635,7 +1637,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                         {
                             lock (_serverLocker)
                             {
-                                
+
                                 SecurityIb contractIb =
                                     _secIB.Find(
                                         contract =>
@@ -1646,6 +1648,44 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                                 {
                                     return;
                                 }
+
+                                if (contractIb.MinTick < 1)
+                                {
+                                    int decimals = 0;
+                                    decimal minTick = Convert.ToDecimal(contractIb.MinTick);
+
+                                    while (true)
+                                    {
+                                        minTick = minTick*10;
+
+                                        decimals++;
+
+                                        if (minTick > 1)
+                                        {
+                                            break;
+                                        }
+                                    }
+
+                                    while (true)
+                                    {
+                                        if (order.Price%Convert.ToDecimal(contractIb.MinTick) != 0)
+                                        {
+                                            string minusVal = "0.";
+
+                                            for (int i = 0; i < decimals-1; i++)
+                                            {
+                                                minusVal += "0";
+                                            }
+                                            minusVal += "1";
+                                            order.Price -= Convert.ToDecimal(minusVal, new CultureInfo("en-US"));
+                                        }
+                                        else
+                                        {
+                                            break;
+                                        }
+                                    }
+                                }
+
 
                                 _ibClient.ExecuteOrder(order, contractIb);
                             }
