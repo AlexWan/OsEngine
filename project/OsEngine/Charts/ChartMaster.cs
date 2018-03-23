@@ -1206,6 +1206,11 @@ namespace OsEngine.Charts
         /// <param name="serverType">тип сервера</param>
         public void SetNewSecurity(string security, TimeFrame timeFrame, string portfolioName, ServerType serverType)
         {
+            if (_chartCandle != null)
+            {
+                _chartCandle.Clear();
+            }
+
             if (_securityOnThisChart == security &&
                 _timeFrameSecurity == timeFrame)
             {

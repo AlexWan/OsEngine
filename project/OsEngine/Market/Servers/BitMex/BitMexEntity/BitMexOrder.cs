@@ -17,7 +17,7 @@ namespace OsEngine.Market.Servers.BitMex.BitMexEntity
         public string side { get; set; }
         public object simpleOrderQty { get; set; }
         public int? orderQty { get; set; }
-        public decimal price { get; set; }
+        public string price { get; set; }
         public object displayQty { get; set; }
         public object stopPx { get; set; }
         public object pegOffsetValue { get; set; }

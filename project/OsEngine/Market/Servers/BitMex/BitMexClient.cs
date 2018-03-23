@@ -89,7 +89,7 @@ namespace OsEngine.Market.Servers.BitMex
             worker.CurrentCulture = new CultureInfo("ru-RU");
             worker.IsBackground = true;
             worker.Start(_ws);
-
+           
             Thread converter = new Thread(Converter);
             converter.CurrentCulture = new CultureInfo("ru-RU");
             converter.IsBackground = true;
@@ -108,6 +108,9 @@ namespace OsEngine.Market.Servers.BitMex
         /// </summary>
         public void Disconnect()
         {
+            _neadToStopAllThreads = true;
+
+            Thread.Sleep(1000);
             if (_ws != null)
             {
                 _ws.Abort();
@@ -120,7 +123,13 @@ namespace OsEngine.Market.Servers.BitMex
             {
                 Disconnected();
             }
+            _neadToStopAllThreads = false;
         }
+
+        /// <summary>
+        /// флаг того что нужно все потоки остановить при дисконнекте
+        /// </summary>
+        private bool _neadToStopAllThreads;
 
         /// <summary>
         /// проверка соединения
@@ -129,7 +138,14 @@ namespace OsEngine.Market.Servers.BitMex
         {
             while (true)
             {
-                Thread.Sleep(10000);
+                for (int i = 0; i < 100; i++)
+                {
+                    Thread.Sleep(100);
+                    if (_neadToStopAllThreads == true)
+                    {
+                        return;
+                    }
+                }
 
                 if (_ws != null && _ws.State != WebSocketState.Open && IsConnected)
                 {
@@ -203,6 +219,13 @@ namespace OsEngine.Market.Servers.BitMex
             {
                 try
                 {
+                    Thread.Sleep(1);
+
+                    if (_neadToStopAllThreads == true)
+                    {
+                        return;
+                    }
+
                     if (IsConnected)
                     {
                         var buffer = new ArraySegment<byte>(new byte[1024]);
@@ -230,7 +253,7 @@ namespace OsEngine.Market.Servers.BitMex
                 {
                     if (BitMexLogMessageEvent != null)
                     {
-                        BitMexLogMessageEvent(exception, LogMessageType.System);
+                        BitMexLogMessageEvent(exception.ToString(), LogMessageType.Error);
                     }
                 }
 
@@ -246,6 +269,10 @@ namespace OsEngine.Market.Servers.BitMex
             {
                 try
                 {
+                    if (_neadToStopAllThreads == true)
+                    {
+                        return;
+                    }
                     if (!_newMessage.IsEmpty)
                     {
                         string mes;
@@ -337,7 +364,7 @@ namespace OsEngine.Market.Servers.BitMex
                 {
                     if (BitMexLogMessageEvent != null)
                     {
-                        BitMexLogMessageEvent(exception, LogMessageType.System);
+                        BitMexLogMessageEvent(exception.ToString(), LogMessageType.Error);
                     }
                 }
             }
@@ -346,7 +373,7 @@ namespace OsEngine.Market.Servers.BitMex
         /// <summary>
         /// отправляет исключения
         /// </summary>
-        public event Action<object, LogMessageType> BitMexLogMessageEvent;
+        public event Action<string, LogMessageType> BitMexLogMessageEvent;
 
         /// <summary>
         /// новые мои ордера

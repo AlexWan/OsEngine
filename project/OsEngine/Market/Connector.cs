@@ -549,6 +549,7 @@ namespace OsEngine.Market
 
         void _myServer_NeadToReconnectEvent()
         {
+
             Reconnect();
         }
 

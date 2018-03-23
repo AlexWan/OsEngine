@@ -62,7 +62,7 @@ namespace OsEngine.Market.Servers.BitMex.BitMexEntity
         /// <summary>
         /// реальная цена исполнения
         /// </summary>
-        public double avgPx { get; set; }
+        public string avgPx { get; set; }
 
         //public string clOrdLinkID { get; set; }
         //public int account { get; set; }
