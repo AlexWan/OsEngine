@@ -119,10 +119,7 @@ namespace OsEngine.Market.Servers.BitMex
                 _ws = null;
             }
             IsConnected = false;
-            if (Disconnected != null)
-            {
-                Disconnected();
-            }
+
             _neadToStopAllThreads = false;
         }
 
@@ -150,12 +147,19 @@ namespace OsEngine.Market.Servers.BitMex
                 if (_ws != null && _ws.State != WebSocketState.Open && IsConnected)
                 {
                     IsConnected = false;
-
-                    if (Disconnected != null)
-                    {
-                        Disconnected();
-                    }
+                    Thread woker = new Thread(ReconnectArea);
+                    woker.IsBackground = true;
+                    woker.Start();
+                    return;
                 }
+            }
+        }
+
+        private void ReconnectArea()
+        {
+            if (Disconnected != null)
+            {
+                Disconnected();
             }
         }
 

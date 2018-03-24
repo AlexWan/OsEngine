@@ -298,14 +298,12 @@ namespace OsEngine.Market.Servers.BitMex
                 {
                     try
                     {
-                        if (_clientBitMex == null)
-                        {
-                            SendLogMessage("Создаём коннектор BitMex", LogMessageType.System);
-                            CreateNewServerBitMex();
-                            continue;
-                        }
+                        bool stateIsActiv = false;
 
-                        bool stateIsActiv = _clientBitMex.IsConnected;
+                        if (_clientBitMex != null)
+                        {
+                            stateIsActiv = _clientBitMex.IsConnected;
+                        }
 
                         if (stateIsActiv == false && _serverStatusNead == ServerConnectStatus.Connect)
                         {
@@ -319,7 +317,6 @@ namespace OsEngine.Market.Servers.BitMex
                         if (stateIsActiv && _serverStatusNead == ServerConnectStatus.Disconnect)
                         {
                             SendLogMessage("Запущена процедура отключения подключения", LogMessageType.System);
-                            Disconnect();
                             Dispose();
                             continue;
                         }
@@ -420,13 +417,10 @@ namespace OsEngine.Market.Servers.BitMex
 
         private void ClientBitMexOnDisconnected()
         {
-            SendLogMessage("Соединение разорвано", LogMessageType.System);
-            ServerStatus = ServerConnectStatus.Disconnect;
-
-            if (NeadToReconnectEvent != null)
-            {
-                NeadToReconnectEvent();
-            }
+            SendLogMessage("В клиенте ошибка, запускаем процедуру перезапуска", LogMessageType.System);
+            _serverStatusNead = ServerConnectStatus.Disconnect;
+            Thread.Sleep(4000);
+            _serverStatusNead = ServerConnectStatus.Connect;
         }
 
         /// <summary>
@@ -450,18 +444,14 @@ namespace OsEngine.Market.Servers.BitMex
 
             _lastStartServerTime = DateTime.Now;
 
+            if (NeadToReconnectEvent != null)
+            {
+                NeadToReconnectEvent();
+            }
+
             _clientBitMex.Connect();
 
             Thread.Sleep(1000);
-        }
-
-        /// <summary>
-        /// приостановить подключение
-        /// </summary>
-        private void Disconnect()
-        {
-            _clientBitMex.Disconnect();
-            Thread.Sleep(5000);
         }
 
         /// <summary>
@@ -496,18 +486,6 @@ namespace OsEngine.Market.Servers.BitMex
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void Dispose()
         {
-            try
-            {
-                if (_clientBitMex != null)
-                {
-                    _clientBitMex.Disconnect();
-                }
-            }
-            catch (Exception error)
-            {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
-            }
-
             if (_clientBitMex != null)
             {
                 _clientBitMex.Connected -= BitMexClient_Connected;
@@ -519,6 +497,18 @@ namespace OsEngine.Market.Servers.BitMex
                 _clientBitMex.MyTradeEvent -= NewMyTrade;
                 _clientBitMex.MyOrderEvent -= BitMex_UpdateOrder;
                 _clientBitMex.ErrorEvent -= ErrorEvent;
+            }
+
+            try
+            {
+                if (_clientBitMex != null)
+                {
+                    _clientBitMex.Disconnect();
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
             }
 
             _clientBitMex = null;
@@ -1130,7 +1120,7 @@ namespace OsEngine.Market.Servers.BitMex
 
                     _candles = null;
 
-                    for (int i = 0; i < 15; i++)
+                    for (int i = 0; i < 5; i++)
                     {
                         if (i == 0)
                         {
