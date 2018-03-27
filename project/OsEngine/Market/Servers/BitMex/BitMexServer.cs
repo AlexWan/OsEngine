@@ -513,6 +513,8 @@ namespace OsEngine.Market.Servers.BitMex
 
             _clientBitMex = null;
 
+            _depths = new List<MarketDepth>();
+
             _candleManager = null;
 
             _startListeningPortfolios = false;
@@ -1362,7 +1364,7 @@ namespace OsEngine.Market.Servers.BitMex
                                     Id = quotes.data[i].id
                                 });
 
-                                if (myDepth.Bids != null && myDepth.Bids.Count != 0 &&
+                                if (myDepth.Bids != null && myDepth.Bids.Count > 2 &&
                                     quotes.data[i].price < myDepth.Bids[0].Price)
                                 {
                                     myDepth.Bids.RemoveAt(0);
@@ -1377,7 +1379,7 @@ namespace OsEngine.Market.Servers.BitMex
                                     Id = quotes.data[i].id
                                 });
 
-                                if (myDepth.Asks != null && myDepth.Asks.Count != 0 &&
+                                if (myDepth.Asks != null && myDepth.Asks.Count > 2 &&
                                     quotes.data[i].price > myDepth.Asks[0].Price)
                                 {
                                     myDepth.Asks.RemoveAt(0);
@@ -1459,7 +1461,7 @@ namespace OsEngine.Market.Servers.BitMex
                                             });
                                         }
 
-                                        if (myDepth.Bids != null && myDepth.Bids.Count != 0 &&
+                                        if (myDepth.Bids != null && myDepth.Bids.Count > 2 &&
                                             quotes.data[i].price < myDepth.Bids[0].Price)
                                         {
                                             myDepth.Bids.RemoveAt(0);
@@ -1506,7 +1508,7 @@ namespace OsEngine.Market.Servers.BitMex
                                             });
                                         }
 
-                                        if (myDepth.Asks != null && myDepth.Asks.Count != 0 &&
+                                        if (myDepth.Asks != null && myDepth.Asks.Count > 2 &&
                                             quotes.data[i].price > myDepth.Asks[0].Price)
                                         {
                                             myDepth.Asks.RemoveAt(0);
@@ -1588,7 +1590,7 @@ namespace OsEngine.Market.Servers.BitMex
                                         });
                                     }
 
-                                    if (myDepth.Bids != null && myDepth.Bids.Count != 0 &&
+                                    if (myDepth.Bids != null && myDepth.Bids.Count > 2 &&
                                         quotes.data[i].price < myDepth.Bids[0].Price)
                                     {
                                         myDepth.Bids.RemoveAt(0);
@@ -1629,7 +1631,7 @@ namespace OsEngine.Market.Servers.BitMex
                                         });
                                     }
 
-                                    if (myDepth.Asks != null && myDepth.Asks.Count != 0 &&
+                                    if (myDepth.Asks != null && myDepth.Asks.Count > 2 &&
                                         quotes.data[i].price > myDepth.Asks[0].Price)
                                     {
                                         myDepth.Asks.RemoveAt(0);
@@ -1638,14 +1640,14 @@ namespace OsEngine.Market.Servers.BitMex
                             }
                         }
 
-                        while (myDepth.Asks != null && myDepth.Asks.Count > 20)
+                        while (myDepth.Asks != null && myDepth.Asks.Count > 200)
                         {
-                            myDepth.Asks.RemoveAt(20);
+                            myDepth.Asks.RemoveAt(200);
                         }
 
-                        while (myDepth.Bids != null && myDepth.Bids.Count > 20)
+                        while (myDepth.Bids != null && myDepth.Bids.Count > 200)
                         {
-                            myDepth.Bids.RemoveAt(20);
+                            myDepth.Bids.RemoveAt(200);
                         }
 
 
@@ -1932,6 +1934,12 @@ namespace OsEngine.Market.Servers.BitMex
                             param["ordType"] = order.TypeOrder == OrderPriceType.Limit ? "Limit" : "Market";
 
                             var res = _clientBitMex.CreateQuery("POST", "/order", param, true);
+
+                            if (res == "")
+                            {
+                                order.State = OrderStateType.Cancel;
+                                _ordersToSend.Enqueue(order);
+                            }
                         }
                     }
                     else if (_ordersToCansel != null && _ordersToCansel.Count != 0)
