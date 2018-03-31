@@ -141,7 +141,7 @@ namespace OsEngine.Market.Servers
             bool oandaIsOn = false;
             bool krakenIsOn = false;
             bool bitStampIsOn = false;
-
+            bool binanceIsOn = false;
 
             for (int i = 0; i < _gridSources.Rows.Count; i++)
             {
@@ -150,6 +150,12 @@ namespace OsEngine.Market.Servers
                 ServerType type;
 
                 Enum.TryParse(row1.Cells[0].Value.ToString(), out type);
+
+                if (type == ServerType.Binance)
+                {
+                    binanceIsOn = true;
+                }
+
                 if (type == ServerType.BitStamp)
                 {
                     bitStampIsOn = true;
@@ -197,7 +203,15 @@ namespace OsEngine.Market.Servers
                 }
             }
 
-
+            if (binanceIsOn == false)
+            {
+                DataGridViewRow row1 = new DataGridViewRow();
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[0].Value = ServerType.Binance;
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[1].Value = "Disconnect";
+                _gridSources.Rows.Add(row1);
+            }
 
             if (quikIsOn == false)
             {
