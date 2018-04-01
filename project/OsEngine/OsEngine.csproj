@@ -318,6 +318,18 @@
     <Compile Include="Market\Servers\AstsBridge\AstsServerUi.xaml.cs">
       <DependentUpon>AstsServerUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\Servers\Binance\BinanceClient.cs" />
+    <Compile Include="Market\Servers\Binance\BinanceEntity\AccountResponse.cs" />
+    <Compile Include="Market\Servers\Binance\BinanceEntity\DepthResponse.cs" />
+    <Compile Include="Market\Servers\Binance\BinanceEntity\ExecutionReport.cs" />
+    <Compile Include="Market\Servers\Binance\BinanceEntity\ListenKey.cs" />
+    <Compile Include="Market\Servers\Binance\BinanceEntity\OutboundAccountInfo.cs" />
+    <Compile Include="Market\Servers\Binance\BinanceEntity\SecurityResponce.cs" />
+    <Compile Include="Market\Servers\Binance\BinanceEntity\TradeResponse.cs" />
+    <Compile Include="Market\Servers\Binance\BinanceServer.cs" />
+    <Compile Include="Market\Servers\Binance\BinanceServerUi.xaml.cs">
+      <DependentUpon>BinanceServerUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Market\Servers\BitMex\BitMexClient.cs" />
     <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexMyOrders.cs" />
     <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexOrder.cs" />
@@ -805,6 +817,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Market\Servers\AstsBridge\AstsServerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\Binance\BinanceServerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
