@@ -737,6 +737,11 @@ namespace OsEngine.Market.Servers.Binance
                     _portfolios = new List<Portfolio>();
                 }
 
+                if (portfs.balances == null)
+                {
+                    return;
+                }
+
                 foreach (var onePortf in portfs.balances)
                 {
                     Portfolio newPortf = new Portfolio();
@@ -1348,7 +1353,10 @@ namespace OsEngine.Market.Servers.Binance
             if (_portfolios != null)
             {
                 var needP = _portfolios.Find(p => myOrder.SecurityNameCode.Contains(p.Number));
-                myOrder.PortfolioNumber = needP.Number;
+                if (needP != null)
+                {
+                    myOrder.PortfolioNumber = needP.Number;
+                }               
             }
 
             _ordersToSend.Enqueue(myOrder);

@@ -41,7 +41,7 @@ namespace OsEngine.Market.Servers.Binance
             }
 
             // проверяем доступность сервера для HTTP общения с ним
-            Uri uri = new Uri($"{_baseUrl}/v1/time");
+            Uri uri = new Uri(_baseUrl+"/v1/time");
             try
             {
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
@@ -97,7 +97,7 @@ namespace OsEngine.Market.Servers.Binance
 
                 _listenKey = JsonConvert.DeserializeAnonymousType(res, new ListenKey()).listenKey;
 
-                string urlStr = $"wss://stream.binance.com:9443/ws/{_listenKey}";
+                string urlStr = "wss://stream.binance.com:9443/ws/" + _listenKey;
 
                 _userDataClient = new WebSocket(urlStr); //создаем вебсокет
 
@@ -226,7 +226,7 @@ namespace OsEngine.Market.Servers.Binance
                 }
                 catch (Exception ex)
                 {
-                    LogMessageEvent(ex.ToString(), LogMessageType.Error);
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
                     return null;
                 }
             }
@@ -378,30 +378,122 @@ namespace OsEngine.Market.Servers.Binance
                     break;
             }
 
-            if (needTf != "2m" || needTf != "10m" || needTf != "20m" || needTf != "45m")
+            string endPoint = "api/v1/klines";
+
+            if (needTf != "2m" && needTf != "10m" && needTf != "20m" && needTf != "45m")
             {
                 var param = new Dictionary<string, string>();
                 param.Add("symbol=" + nameSec.ToUpper(), "&interval=" + needTf);
-
-                string endPoint = "api/v1/klines";
-
+               
                 var res = CreateQuery(Method.GET, endPoint, param, false);
 
                 var candles = _deserializeCandles(res);
                 return candles;
 
             }
+            else
+            {
+                if (needTf == "2m")
+                {
+                    var param = new Dictionary<string, string>();
+                    param.Add("symbol=" + nameSec.ToUpper(), "&interval=1m");
+                    var res = CreateQuery(Method.GET, endPoint, param, false);
+                    var candles = _deserializeCandles(res);
 
-
-            //var param = new Dictionary<string, string>();
-            //param.Add(nameSec.ToLower(),tf.TotalMinutes.ToString());
-
-            //string queryStr = $"api/v1/klines";
+                    var newCandles = BuildCandles(candles, 2, 1);
+                    return newCandles;
+                }
+                else if (needTf == "10m")
+                {
+                    var param = new Dictionary<string, string>();
+                    param.Add("symbol=" + nameSec.ToUpper(), "&interval=5m");
+                    var res = CreateQuery(Method.GET, endPoint, param, false);
+                    var candles = _deserializeCandles(res);
+                    var newCandles = BuildCandles(candles, 10, 5);
+                    return newCandles;
+                }
+                else if (needTf == "20m")
+                {
+                    var param = new Dictionary<string, string>();
+                    param.Add("symbol=" + nameSec.ToUpper(), "&interval=5m");
+                    var res = CreateQuery(Method.GET, endPoint, param, false);
+                    var candles = _deserializeCandles(res);
+                    var newCandles = BuildCandles(candles, 20, 5);
+                    return newCandles;
+                }
+                else if (needTf == "45m")
+                {
+                    var param = new Dictionary<string, string>();
+                    param.Add("symbol=" + nameSec.ToUpper(), "&interval=15m");
+                    var res = CreateQuery(Method.GET, endPoint, param, false);
+                    var candles = _deserializeCandles(res);
+                    var newCandles = BuildCandles(candles, 45, 15);
+                    return newCandles;
+                }
+            }
 
             return null;
         }
 
+        /// <summary>
+        /// преобразует свечи одного таймфрейма в больший
+        /// </summary>
+        /// <param name="oldCandles"></param>
+        /// <param name="needTf"></param>
+        /// <param name="oldTf"></param>
+        /// <returns></returns>
+        private List<Candle> BuildCandles(List<Candle> oldCandles, int needTf, int oldTf)
+        {
+            List < Candle > newCandles = new List<Candle>();
 
+            int index = oldCandles.FindIndex(can => can.TimeStart.Minute % needTf == 0);
+
+            int count = needTf / oldTf;
+
+            int counter = 0;
+
+            Candle newCandle = new Candle();
+
+            for (int i = index; i < oldCandles.Count; i++)
+            {
+                counter++;
+
+                if (counter == 1)
+                {
+                    newCandle = new Candle();
+                    newCandle.Open = oldCandles[i].Open;
+                    newCandle.TimeStart = oldCandles[i].TimeStart;
+                    newCandle.Low = Decimal.MaxValue;
+                }
+
+                newCandle.High = oldCandles[i].High > newCandle.High
+                    ? oldCandles[i].High
+                    : newCandle.High;
+
+                newCandle.Low = oldCandles[i].Low < newCandle.Low
+                    ? oldCandles[i].Low
+                    : newCandle.Low;
+
+                newCandle.Volume += oldCandles[i].Volume;
+
+                if (counter == count)
+                {
+                    newCandle.Close = oldCandles[i].Close;
+                    newCandle.State = CandleStates.Finished;
+                    newCandles.Add(newCandle);
+                    counter = 0;
+                }
+
+                if (i == oldCandles.Count - 1 && counter != count)
+                {
+                    newCandle.Close = oldCandles[i].Close;
+                    newCandle.State = CandleStates.None;
+                    newCandles.Add(newCandle);
+                }
+            }
+
+            return newCandles;
+        }
         /// <summary>
         /// блокиратор многопоточного доступа к http запросам
         /// </summary>
@@ -439,26 +531,32 @@ namespace OsEngine.Market.Servers.Binance
 
                         if (fullUrl == "")
                         {
-                            fullUrl = $"?timestamp={timeStamp}&signature={CreateSignature(message)}";
+                            fullUrl = "?timestamp=" + timeStamp + "&signature=" + CreateSignature(message);
                         }
                         else
                         {
-                            message = fullUrl + $"&timestamp={timeStamp}";
-                            fullUrl += $"&timestamp={timeStamp}&signature={CreateSignature(message.Trim('?'))}";
+                            message = fullUrl + "&timestamp="+ timeStamp;
+                            fullUrl += "&timestamp="+ timeStamp + "&signature=" + CreateSignature(message.Trim('?'));
                         }
-
                     }
 
                     var request = new RestRequest(endpoint + fullUrl, method);
                     request.AddHeader("X-MBX-APIKEY", _apiKey);
 
-                    var response = new RestClient("https://api.binance.com").Execute(request);
-                    return response.Content;
+                    var response = new RestClient("https://api.binance.com").Execute(request).Content;
+
+                    if (response.Contains("code"))
+                    {
+                        var error = JsonConvert.DeserializeAnonymousType(response, new ErrorMessage());
+                        throw new Exception(error.msg);                        
+                    }
+
+                    return response;
                 }
             }
             catch (Exception ex)
             {
-                LogMessageEvent(ex.ToString(), LogMessageType.Error);
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
                 return null;
             }
         }
@@ -468,6 +566,9 @@ namespace OsEngine.Market.Servers.Binance
 
         private string GetNonce()
         {
+            //var resTime = CreateQuery(Method.GET, "api/v1/time", null, false);
+            //var result = JsonConvert.DeserializeAnonymousType(resTime, new BinanceTime());
+            //return (result.serverTime+500).ToString();
             DateTime yearBegin = new DateTime(1970, 1, 1);
             var res = DateTime.UtcNow;
             var timeStamp = DateTime.UtcNow - yearBegin;
@@ -642,7 +743,7 @@ namespace OsEngine.Market.Servers.Binance
         {
             if (!_wsStreams.ContainsKey(security.Name))
             {
-                string urlStr = $"wss://stream.binance.com:9443/stream?streams={security.Name.ToLower() + "@depth20"}/{security.Name.ToLower() + "@trade"}";
+                string urlStr = "wss://stream.binance.com:9443/stream?streams=" + security.Name.ToLower() + "@depth20/" +security.Name.ToLower() + "@trade";
 
                 _wsClient = new WebSocket(urlStr); //создаем вебсокет
 
@@ -681,9 +782,9 @@ namespace OsEngine.Market.Servers.Binance
 
                         if (_newUserDataMessage.TryDequeue(out mes))
                         {
-                            if (mes.Contains("error"))
+                            if (mes.Contains("code"))
                             {
-                                SendLogMessage(mes, LogMessageType.Error);
+                                SendLogMessage(JsonConvert.DeserializeAnonymousType(mes,new ErrorMessage()).msg, LogMessageType.Error);
                             }
 
                             else if (mes.Contains("\"e\"" + ":" + "\"executionReport\""))

@@ -320,7 +320,9 @@
     </Compile>
     <Compile Include="Market\Servers\Binance\BinanceClient.cs" />
     <Compile Include="Market\Servers\Binance\BinanceEntity\AccountResponse.cs" />
+    <Compile Include="Market\Servers\Binance\BinanceEntity\BinanceTime.cs" />
     <Compile Include="Market\Servers\Binance\BinanceEntity\DepthResponse.cs" />
+    <Compile Include="Market\Servers\Binance\BinanceEntity\ErrorMessage.cs" />
     <Compile Include="Market\Servers\Binance\BinanceEntity\ExecutionReport.cs" />
     <Compile Include="Market\Servers\Binance\BinanceEntity\ListenKey.cs" />
     <Compile Include="Market\Servers\Binance\BinanceEntity\OutboundAccountInfo.cs" />
