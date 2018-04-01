@@ -1285,6 +1285,12 @@ namespace OsEngine.Market.Servers.Binance
         private void NewMyTrade(MyTrade trade)
         {
             _myTradesToSend.Enqueue(trade);
+
+            if (_myTrades == null)
+            {
+                _myTrades = new List<MyTrade>();
+            }
+
             _myTrades.Add(trade);
         }
 
