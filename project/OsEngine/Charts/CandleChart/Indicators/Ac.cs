@@ -217,7 +217,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// </summary>
         public void ShowDialog()
         {
-            AсUi ui = new AсUi(this);
+            AcUi ui = new AcUi(this);
             ui.ShowDialog();
 
             if (ui.IsChange && _myCandles != null)

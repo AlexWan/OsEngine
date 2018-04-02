@@ -1,4 +1,4 @@
-﻿<Window x:Class="OsEngine.Charts.CandleChart.Indicators.AсUi"
+﻿<Window x:Class="OsEngine.Charts.CandleChart.Indicators.AcUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="AC" Height="257" Width="310" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico" Topmost="True">
