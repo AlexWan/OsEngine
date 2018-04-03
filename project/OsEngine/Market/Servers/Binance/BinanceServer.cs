@@ -1346,7 +1346,7 @@ namespace OsEngine.Market.Servers.Binance
         /// </summary>
         private ConcurrentQueue<Order> _ordersToCansel;
 
-        public ServerType ServerType { get; }
+        public ServerType ServerType { get; set; }
 
 
         public event Action<List<Portfolio>> PortfoliosChangeEvent;

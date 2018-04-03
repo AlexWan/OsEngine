@@ -341,7 +341,7 @@ namespace OsEngine.Market.Servers.Binance
         {
             string needTf = "";
 
-            switch (tf.TotalMinutes)
+            switch ((int)tf.TotalMinutes)
             {
                 case 1:
                     needTf = "1m";
