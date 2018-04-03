@@ -10,9 +10,9 @@ using TextBox = System.Windows.Forms.TextBox;
 namespace OsEngine.Charts.CandleChart.Indicators
 {
     /// <summary>
-    /// Логика взаимодействия для ACUi.xaml
+    /// Логика взаимодействия для AcUi.xaml
     /// </summary>
-    public partial class AсUi
+    public partial class AcUi
     { 
         
         /// <summary>
@@ -28,7 +28,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <summary>
         /// конструктор
         /// </summary>
-        public AсUi(Ac ac)
+        public AcUi(Ac ac)
         {
             InitializeComponent();
             _ac = ac;

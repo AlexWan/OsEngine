@@ -161,9 +161,9 @@
       <DependentUpon>AwesomeOscillatorUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Charts\CandleChart\Elements\LineElement.cs" />
-    <Compile Include="Charts\CandleChart\Indicators\Aс.cs" />
-    <Compile Include="Charts\CandleChart\Indicators\AсUi.xaml.cs">
-      <DependentUpon>AсUi.xaml</DependentUpon>
+    <Compile Include="Charts\CandleChart\Indicators\Ac.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\AcUi.xaml.cs">
+      <DependentUpon>AcUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Charts\CandleChart\Indicators\BearsPower.cs" />
     <Compile Include="Charts\CandleChart\Indicators\BearsPowerUi.xaml.cs">
@@ -670,7 +670,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Charts\CandleChart\Indicators\AсUi.xaml">
+    <Page Include="Charts\CandleChart\Indicators\AcUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
