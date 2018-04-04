@@ -1344,7 +1344,16 @@ namespace OsEngine.Market.Servers.BitMex
 
                     if (quotes.action == "partial")
                     {
-                        MarketDepth myDepth = new MarketDepth();
+                        MarketDepth myDepth = _depths.Find(depth => depth.SecurityNameCode == quotes.data[0].symbol);
+                        if (myDepth == null)
+                        {
+                            myDepth = new MarketDepth();
+                        }
+                        else
+                        {
+                            myDepth.Asks.Clear();
+                            myDepth.Bids.Clear();
+                        }
                         myDepth.SecurityNameCode = quotes.data[0].symbol;
                         List<MarketDepthLevel> ascs = new List<MarketDepthLevel>();
                         List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
@@ -1390,6 +1399,7 @@ namespace OsEngine.Market.Servers.BitMex
                         ascs.Reverse();
                         myDepth.Asks = ascs;
                         myDepth.Bids = bids;
+
                         _depths.Add(myDepth);
 
                         if (NewMarketDepthEvent != null)
@@ -1419,16 +1429,20 @@ namespace OsEngine.Market.Servers.BitMex
 
                         for (int i = 0; i < quotes.data.Count; i++)
                         {
-                            if (quotes.data[i].price == 0)
-                            {
-                                continue;
-                            }
+
                             if (quotes.data[i].side == "Sell")
                             {
                                 if (myDepth.Asks.Find(asc => asc.Id == quotes.data[i].id) != null)
+                                {
                                     myDepth.Asks.Find(asc => asc.Id == quotes.data[i].id).Ask = quotes.data[i].size;
+                                }
                                 else
                                 {
+                                    if (quotes.data[i].price == 0)
+                                    {
+                                        continue;
+                                    }
+
                                     long id = quotes.data[i].id;
 
                                     for (int j = 0; j < myDepth.Asks.Count; j++)
@@ -1470,12 +1484,19 @@ namespace OsEngine.Market.Servers.BitMex
                                     }
                                 }
                             }
-                            else
+                            else // if (quotes.data[i].side == "Buy")
                             {
                                 if (myDepth.Bids.Find(bid => bid.Id == quotes.data[i].id) != null)
+                                {
                                     myDepth.Bids.Find(bid => bid.Id == quotes.data[i].id).Bid = quotes.data[i].size;
+                                }
                                 else
                                 {
+                                    if (quotes.data[i].price == 0)
+                                    {
+                                        continue;
+                                    }
+
                                     long id = quotes.data[i].id;
 
                                     for (int j = 0; j < myDepth.Bids.Count; j++)
