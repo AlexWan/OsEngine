@@ -566,15 +566,16 @@ namespace OsEngine.Market.Servers.Binance
 
         private string GetNonce()
         {
-            //var resTime = CreateQuery(Method.GET, "api/v1/time", null, false);
-            //var result = JsonConvert.DeserializeAnonymousType(resTime, new BinanceTime());
-            //return (result.serverTime+500).ToString();
-            DateTime yearBegin = new DateTime(1970, 1, 1);
+            var resTime = CreateQuery(Method.GET, "api/v1/time", null, false);
+            var result = JsonConvert.DeserializeAnonymousType(resTime, new BinanceTime());
+            return (result.serverTime+500).ToString();
+
+            /*DateTime yearBegin = new DateTime(1970, 1, 1);
             var res = DateTime.UtcNow;
             var timeStamp = DateTime.UtcNow - yearBegin;
             var r = timeStamp.TotalMilliseconds;
             var re = Convert.ToInt64(r);
-            return re.ToString();
+            return re.ToString();*/
         }
 
         private string CreateSignature(string message)

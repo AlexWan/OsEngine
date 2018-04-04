@@ -1939,7 +1939,15 @@ namespace OsEngine.Market.Servers.BitMex
             {
                 try
                 {
-                    Thread.Sleep(20);
+                    Thread.Sleep(300);
+
+                    if (_serverConnectStatus == ServerConnectStatus.Disconnect ||
+                        _clientBitMex == null ||
+                        _lastSystemOverload.AddSeconds(50) > DateTime.Now)
+                    {
+                        continue;
+                    }
+
                     if (_ordersToExecute != null && _ordersToExecute.Count != 0)
                     {
                         Order order;
@@ -2002,6 +2010,11 @@ namespace OsEngine.Market.Servers.BitMex
         /// блокиратор доступа к ордерам
         /// </summary>
         private object _orderLocker = new object();
+
+        /// <summary>
+        /// время когда биржа последний раз оказалась не доступна из-за "перегрузки"
+        /// </summary>
+        private DateTime _lastSystemOverload;
 
         /// <summary>
         /// входящий из системы ордер
@@ -2206,6 +2219,22 @@ namespace OsEngine.Market.Servers.BitMex
         private void ErrorEvent(string error)
         {
             SendLogMessage(error, LogMessageType.Error);
+
+            if (error ==
+             "{\"error\":{\"message\":\"The system is currently overloaded. Please try again later.\",\"name\":\"HTTPError\"}}")
+            { // останавливаемся на минуту
+                _lastSystemOverload = DateTime.Now;
+            }
+            if (error == "{\"error\":{\"message\":\"Executing at order price would lead to immediate liquidation\",\"name\":\"ValidationError\"}}")
+            {
+                SendLogMessage("Цена ликвидации при таком объме выше чем текущая цена ордера. Уменьшите объём", LogMessageType.Error);
+            }
+            if (error == "{\"error\":{\"message\":\"This key is disabled.\",\"name\":\"HTTPError\"}}")
+            {
+                SendLogMessage("Биржа заблокировала Ваши ключи.", LogMessageType.System);
+                _serverStatusNead = ServerConnectStatus.Disconnect;
+                Thread.Sleep(2500);
+            }
         }
 
         /// <summary>
