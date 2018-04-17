@@ -1553,7 +1553,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     trade.Id = allTrade.TradeNum.ToString();
                     trade.Price = Convert.ToDecimal(allTrade.Price);
                     trade.Volume = Convert.ToInt32(allTrade.Qty);
-                    trade.Side = allTrade.Flags == AllTradeFlags.Buy ? Side.Buy : Side.Sell;
+                    trade.Side = Convert.ToInt32(allTrade.Flags) == 1025 ? Side.Sell : Side.Buy;
                     trade.Time = new DateTime(allTrade.Datetime.year, allTrade.Datetime.month, allTrade.Datetime.day,
                                               allTrade.Datetime.hour, allTrade.Datetime.min, allTrade.Datetime.sec);
 
