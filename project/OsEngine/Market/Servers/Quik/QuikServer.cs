@@ -855,7 +855,8 @@ namespace OsEngine.Market.Servers.Quik
 
             if (_allTrades == null)
             {
-                _allTrades = new List<Trade>[0];
+                _allTrades = new List<Trade>[1];
+                _allTrades[0] = new List<Trade>();
                 _allTrades[0].Add(tradesNew[0]);
             }
 
