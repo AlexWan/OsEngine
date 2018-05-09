@@ -1286,7 +1286,7 @@ Connection conn, Listener listener, Message msg)
                 }
                 if (_listenerMarketDepth.State == State.Closed)
                 {
-                    _listenerMarketDepth.Open("mode=online");
+                    _listenerMarketDepth.Open("mode=snapshot+online");
                     //_listenerMarketDepth.Open();
                 }
 

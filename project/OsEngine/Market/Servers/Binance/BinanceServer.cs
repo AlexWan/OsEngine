@@ -916,6 +916,7 @@ namespace OsEngine.Market.Servers.Binance
                     {
                         needDepth = new MarketDepth();
                         needDepth.SecurityNameCode = myDepth.stream.Split('@')[0].ToUpper();
+                        _depths.Add(needDepth);
                     }
 
                     List<MarketDepthLevel> ascs = new List<MarketDepthLevel>();
@@ -950,12 +951,11 @@ namespace OsEngine.Market.Servers.Binance
 
                     needDepth.Asks = ascs;
                     needDepth.Bids = bids;
-
-                    _depths.Add(needDepth);
+                    needDepth.Time = ServerTime;
 
                     if (NewMarketDepthEvent != null)
                     {
-                        _marketDepthsToSend.Enqueue(needDepth);
+                        _marketDepthsToSend.Enqueue(needDepth.GetCopy());
 
                         if (needDepth.Asks.Count != 0 && needDepth.Bids.Count != 0)
                         {

@@ -967,6 +967,7 @@ namespace OsEngine.Market.Servers.Kraken
         /// </summary>
         void _krakenClient_NewMarketDepthEvent(MarketDepth marketDepth)
         {
+            ServerTime = marketDepth.Time;
             _marketDepthsToSend.Enqueue(marketDepth);
 
             for (int i = 0; i < _marketDepths.Count; i++)
@@ -977,8 +978,6 @@ namespace OsEngine.Market.Servers.Kraken
                     return;
                 }
             }
-
-            ServerTime = marketDepth.Time;
 
             _marketDepths.Add(marketDepth);
         }

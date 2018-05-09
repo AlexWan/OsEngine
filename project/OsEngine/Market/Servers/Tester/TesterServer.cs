@@ -877,10 +877,10 @@ namespace OsEngine.Market.Servers.Tester
                         Candle candleN = new Candle();
                         candleN.SetCandleFromString(reader.ReadLine());
 
-                        decimal open = (decimal)Convert.ToDouble(candleN.Open);
-                        decimal high = (decimal)Convert.ToDouble(candleN.High);
-                        decimal low = (decimal)Convert.ToDouble(candleN.Low);
-                        decimal close = (decimal)Convert.ToDouble(candleN.Close);
+                        decimal open = (decimal) Convert.ToDouble(candleN.Open);
+                        decimal high = (decimal) Convert.ToDouble(candleN.High);
+                        decimal low = (decimal) Convert.ToDouble(candleN.Low);
+                        decimal close = (decimal) Convert.ToDouble(candleN.Close);
 
                         if (open.ToString(culture).Split(',').Length > 1 ||
                             high.ToString(culture).Split(',').Length > 1 ||
@@ -950,14 +950,14 @@ namespace OsEngine.Market.Servers.Tester
 
                             for (int i3 = open.ToString(culture).Length - 1; open.ToString(culture)[i3] == '0'; i3--)
                             {
-                                lenght = lenght * 10;
+                                lenght = lenght*10;
                             }
 
                             int lengthLow = 1;
 
                             for (int i3 = low.ToString(culture).Length - 1; low.ToString(culture)[i3] == '0'; i3--)
                             {
-                                lengthLow = lengthLow * 10;
+                                lengthLow = lengthLow*10;
 
                                 if (lenght > lengthLow)
                                 {
@@ -969,7 +969,7 @@ namespace OsEngine.Market.Servers.Tester
 
                             for (int i3 = high.ToString(culture).Length - 1; high.ToString(culture)[i3] == '0'; i3--)
                             {
-                                lengthHigh = lengthHigh * 10;
+                                lengthHigh = lengthHigh*10;
 
                                 if (lenght > lengthHigh)
                                 {
@@ -981,7 +981,7 @@ namespace OsEngine.Market.Servers.Tester
 
                             for (int i3 = close.ToString(culture).Length - 1; close.ToString(culture)[i3] == '0'; i3--)
                             {
-                                lengthClose = lengthClose * 10;
+                                lengthClose = lengthClose*10;
 
                                 if (lenght > lengthClose)
                                 {
@@ -994,8 +994,8 @@ namespace OsEngine.Market.Servers.Tester
                             }
 
                             if (minPriceStep == 1 &&
-                                open % 5 == 0 && high % 5 == 0 &&
-                                close % 5 == 0 && low % 5 == 0)
+                                open%5 == 0 && high%5 == 0 &&
+                                close%5 == 0 && low%5 == 0)
                             {
                                 countFive++;
                             }
@@ -1021,7 +1021,7 @@ namespace OsEngine.Market.Servers.Tester
                     {
                         lastString = reader.ReadLine();
                     }
-                    
+
 
                     Candle candle3 = new Candle();
                     candle3.SetCandleFromString(lastString);
@@ -1032,8 +1032,10 @@ namespace OsEngine.Market.Servers.Tester
                 {
                     security.Remove(security[security.Count - 1]);
                 }
-
-                reader.Close();
+                finally
+                {
+                    reader.Close();
+                }
             }
             
  // сохраняем бумаги

@@ -78,7 +78,9 @@ namespace OsEngine.OsData
             ComboBoxSource.Items.Add(ServerType.QuikDde);
             ComboBoxSource.Items.Add(ServerType.QuikLua);
             ComboBoxSource.Items.Add(ServerType.BitMex);
-
+            ComboBoxSource.Items.Add(ServerType.Kraken);
+            ComboBoxSource.Items.Add(ServerType.Binance);
+            ComboBoxSource.Items.Add(ServerType.BitStamp);
 
             ComboBoxSource.SelectedItem = _set.Source;
             ComboBoxSource.SelectionChanged += ComboBoxSource_SelectionChanged;

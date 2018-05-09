@@ -797,26 +797,31 @@ namespace OsEngine.Market.Servers.BitMex
                 {
                     osPortf = new Portfolio();
                     osPortf.Number = portf.data[0].account.ToString();
-                    osPortf.ValueBegin = portf.data[0].walletBalance;
-
+                    osPortf.ValueBegin = Convert.ToDecimal(portf.data[0].walletBalance) / 100000000m;
+                    osPortf.ValueCurrent = Convert.ToDecimal(portf.data[0].walletBalance) / 100000000m;
                     _portfolios.Add(osPortf);
+                }
+
+                if (portf.data[0].walletBalance == 0)
+                {
+                    return;
                 }
 
                 if (portf.action == "update")
                 {
-                    osPortf.ValueCurrent = portf.data[0].availableMargin;
+                    osPortf.ValueCurrent = Convert.ToDecimal(portf.data[0].walletBalance) / 100000000m;
                     osPortf.Profit = portf.data[0].unrealisedPnl;
                     //osPortf.ValueBlocked = portf.data[0].marginBalance - portf.data[0].availableMargin;
                     //_portfolios.Add(osPortf);
-                    _portfolioToSend.Enqueue(_portfolios);                  
+                    _portfolioToSend.Enqueue(_portfolios);
                 }
                 else
                 {
-                    
-                    osPortf.ValueCurrent = portf.data[0].availableMargin;
+
+                    osPortf.ValueCurrent = Convert.ToDecimal(portf.data[0].walletBalance) / 100000000m;
                     //osPortf.ValueBlocked = portf.data[0].marginBalance - portf.data[0].availableMargin;
                     osPortf.Profit = portf.data[0].unrealisedPnl;
-                   
+
                     _portfolioToSend.Enqueue(_portfolios);
                 }
             }
@@ -1539,7 +1544,8 @@ namespace OsEngine.Market.Servers.BitMex
                             }
                         }
 
-                        DepthsToSend(myDepth);
+                        myDepth.Time = ServerTime;
+                        DepthsToSend(myDepth.GetCopy());
                     }
 
                     if (quotes.action == "delete")
@@ -1561,7 +1567,8 @@ namespace OsEngine.Market.Servers.BitMex
                             }
                         }
 
-                        DepthsToSend(myDepth);
+                        myDepth.Time = ServerTime;
+                        DepthsToSend(myDepth.GetCopy());
                     }
 
                     if (quotes.action == "insert")
@@ -1672,7 +1679,8 @@ namespace OsEngine.Market.Servers.BitMex
                         }
 
 
-                        DepthsToSend(myDepth);
+                        myDepth.Time = ServerTime;
+                        DepthsToSend(myDepth.GetCopy());
 
                     }
                 }
@@ -1700,7 +1708,6 @@ namespace OsEngine.Market.Servers.BitMex
                 }
             }
         }
-
 
         /// <summary>
         /// изменился лучший бид / аск по инструменту
