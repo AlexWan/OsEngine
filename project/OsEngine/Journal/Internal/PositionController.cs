@@ -441,11 +441,11 @@ namespace OsEngine.Journal.Internal
                         UpdeteOpenPositionArray(_deals[i]);
                     }
 
-                   /* if (positionState != _deals[i].State && PositionStateChangeEvent != null)
+                    if (positionState != _deals[i].State && PositionStateChangeEvent != null)
                     {
                         // AlertMessageManager.ThrowAlert(null, "было " + positionState + "стало" + _deals[i].State, "");
                         PositionStateChangeEvent(_deals[i]);
-                    }*/
+                    }
 
                     if (lastPosVolume != _deals[i].OpenVolume && PositionNetVolumeChangeEvent != null)
                     {
