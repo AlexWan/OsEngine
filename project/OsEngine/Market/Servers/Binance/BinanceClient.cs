@@ -633,7 +633,7 @@ namespace OsEngine.Market.Servers.Binance
 
                     var res = CreateQuery(Method.POST, "api/v3/order", param, true);
 
-                    if (res.Contains("code"))
+                    if (res != null && res.Contains("code"))
                     {
                         SendLogMessage(res, LogMessageType.Trade);
                     }

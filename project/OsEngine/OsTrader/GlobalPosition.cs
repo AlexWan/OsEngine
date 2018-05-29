@@ -59,7 +59,7 @@ namespace OsEngine.OsTrader
                 if (_journals.Find(journal1 => journal1.Name == journal.Name) == null)
                 {
                     _journals.Add(journal);
-                    journal.PositionChangeEvent += journal_PositionChangeEvent;
+                    journal.PositionStateChangeEvent += journal_PositionChangeEvent;
 
                     List<Position> openPositions = journal.OpenPositions;
 
@@ -90,7 +90,7 @@ namespace OsEngine.OsTrader
 
                 for (int i = 0; _journals != null && i < _journals.Count; i++)
                 { // отписываемся от обновления позиции
-                    _journals[i].PositionChangeEvent -= journal_PositionChangeEvent;
+                    _journals[i].PositionStateChangeEvent -= journal_PositionChangeEvent;
                 }
 
                 _journals = null;

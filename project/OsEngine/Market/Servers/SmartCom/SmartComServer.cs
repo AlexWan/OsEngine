@@ -1617,6 +1617,16 @@ namespace OsEngine.Market.Servers.SmartCom
                 trade.NumberOrderParent = orderid;
                 trade.Price = Convert.ToDecimal(price);
                 trade.Volume = Convert.ToInt32(Math.Abs(amount));
+
+                if(amount >0)
+                {
+                    trade.Side = Side.Buy;
+                }
+                else
+                {
+                    trade.Side = Side.Sell;
+                }
+
                 trade.Time = datetime;
 
                 if (_myTrades == null)

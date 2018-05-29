@@ -55,7 +55,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _journal = new Journal.Journal(TabName);
 
-                _journal.PositionChangeEvent += _journal_DealChangeEvent;
+                _journal.PositionStateChangeEvent += _journal_PositionStateChangeEvent;
+                _journal.PositionNetVolumeChangeEvent += _journal_PositionNetVolumeChangeEvent;
                 _journal.UserSelectActionEvent += _journal_UserSelectActionEvent;
                 _journal.LogMessageEvent += SetNewLogMessage;
 
@@ -85,6 +86,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 SetNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
 
         /// <summary>
         /// коннектор запустил процедуру переподключения
@@ -3254,10 +3256,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// изменились сделки в журнале
+        /// изменился статус сделки
         /// </summary>
         /// <param name="position">позиция</param>
-        private void _journal_DealChangeEvent(Position position)
+        private void _journal_PositionStateChangeEvent(Position position)
         {
             try
             {
@@ -3350,6 +3352,19 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 SetNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        /// <summary>
+        /// изменился открытый объём по сделке
+        /// </summary>
+        /// <param name="position">позиция</param>
+        void _journal_PositionNetVolumeChangeEvent(Position position)
+        {
+            if (PositionNetVolumeChangeEvent != null)
+            {
+                PositionNetVolumeChangeEvent(position);
+            }
+            //SetNewLogMessage("Pos num " + position.Number + "Vol " + position.OpenVolume, LogMessageType.Error);
         }
 
         /// <summary>
@@ -3676,6 +3691,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// позиция успешно открыта
         /// </summary>
         public event Action<Position> PositionOpeningSuccesEvent;
+
+        /// <summary>
+        /// у позиции изменился открытый объём. 
+        /// Вызывается каждый раз когда по ордерам позиции проходит какой-то трейд.
+        /// </summary>
+        public event Action<Position> PositionNetVolumeChangeEvent;
 
         /// <summary>
         /// открытие позиции не случилось

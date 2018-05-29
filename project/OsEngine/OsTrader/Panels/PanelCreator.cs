@@ -2581,8 +2581,6 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
-
-
     }
 
     /// <summary>

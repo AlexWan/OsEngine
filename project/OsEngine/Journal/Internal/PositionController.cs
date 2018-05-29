@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
@@ -424,10 +425,12 @@ namespace OsEngine.Journal.Internal
                 if (isOpenOrder || isCloseOrder)
                 {
                     PositionStateType positionState = _deals[i].State;
+                    decimal lastPosVolume = _deals[i].OpenVolume;
 
                     _deals[i].SetOrder(updateOrder);
 
-                    if (positionState != _deals[i].State)
+                    if (positionState != _deals[i].State ||
+                        lastPosVolume != _deals[i].OpenVolume)
                     {
                         _openLongChanged = true;
                         _openShortChanged = true;
@@ -438,10 +441,15 @@ namespace OsEngine.Journal.Internal
                         UpdeteOpenPositionArray(_deals[i]);
                     }
 
-                    if (positionState != _deals[i].State && PositionChangeEvent != null)
+                   /* if (positionState != _deals[i].State && PositionStateChangeEvent != null)
                     {
                         // AlertMessageManager.ThrowAlert(null, "было " + positionState + "стало" + _deals[i].State, "");
-                        PositionChangeEvent(_deals[i]);
+                        PositionStateChangeEvent(_deals[i]);
+                    }*/
+
+                    if (lastPosVolume != _deals[i].OpenVolume && PositionNetVolumeChangeEvent != null)
+                    {
+                        PositionNetVolumeChangeEvent(_deals[i]);
                     }
 
                     ProcesPosition(_deals[i]);
@@ -497,9 +505,12 @@ namespace OsEngine.Journal.Internal
                 {
                     PositionStateType positionState = _deals[i].State;
 
+                    decimal lastPosVolume = _deals[i].OpenVolume;
+
                     _deals[i].SetTrade(trade);
 
-                    if (positionState != _deals[i].State)
+                    if (positionState != _deals[i].State ||
+                        lastPosVolume != _deals[i].OpenVolume)
                     {
                         UpdeteOpenPositionArray(_deals[i]);
                         _openLongChanged = true;
@@ -509,9 +520,14 @@ namespace OsEngine.Journal.Internal
                         _closeLongChanged = true;
                     }
 
-                    if (positionState != _deals[i].State && PositionChangeEvent != null)
+                    if (positionState != _deals[i].State && PositionStateChangeEvent != null)
                     {
-                        PositionChangeEvent(_deals[i]);
+                        PositionStateChangeEvent(_deals[i]);
+                    }
+
+                    if (lastPosVolume != _deals[i].OpenVolume && PositionNetVolumeChangeEvent != null)
+                    {
+                        PositionNetVolumeChangeEvent(_deals[i]);
                     }
 
                     ProcesPosition(_deals[i]);
@@ -1540,9 +1556,15 @@ namespace OsEngine.Journal.Internal
 
         // события
         /// <summary>
-        /// изменилось состояние сделок
+        /// изменился статус сделки
         /// </summary>
-        public event Action<Position> PositionChangeEvent;
+        public event Action<Position> PositionStateChangeEvent;
+
+        // события
+        /// <summary>
+        /// изменился открытый объём по позиции
+        /// </summary>
+        public event Action<Position> PositionNetVolumeChangeEvent;
 
         /// <summary>
         /// пользователь выбрал во всплывающем меню некое действие

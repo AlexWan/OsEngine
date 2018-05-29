@@ -1018,6 +1018,11 @@ namespace OsEngine.Market.Servers.Binance
         {
             try
             {
+                if (_allTrades == null)
+                {
+                    return null;
+                }
+
                 List<Trade> trades = new List<Trade>();
 
                 for (int i = 0; i < _allTrades.Length; i++)
