@@ -283,6 +283,11 @@ namespace OsEngine.Market.Servers.Kraken
                 Portfolio newPortfolio = new Portfolio();
                 newPortfolio.Number = "KrakenTradePortfolio";
 
+                if (ret == null ||
+                    ret.Result == null)
+                {
+                    return;
+                }
 
                 newPortfolio.ValueCurrent = ret.Result.TradeBalance;
                 newPortfolio.ValueBegin = ret.Result.TradeBalance;

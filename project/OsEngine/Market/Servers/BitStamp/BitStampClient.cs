@@ -77,11 +77,13 @@ namespace OsEngine.Market.Servers.BitStamp
             {
                 return;
             }
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 // проверяем доступность сервера для HTTP общения с ним
             Uri uri = new Uri("https://www.bitstamp.net");
             try
             {
                 HttpWebRequest httpWebRequest = (HttpWebRequest) HttpWebRequest.Create(uri);
+                
                 HttpWebResponse httpWebResponse = (HttpWebResponse) httpWebRequest.GetResponse();
             }
             catch
