@@ -62,7 +62,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _chartMaster = new ChartMaster(TabName);
                 _chartMaster.LogMessageEvent += SetNewLogMessage;
-                _chartMaster.SetNewSecurity(_connector.NamePaper, _connector.TimeFrame, _connector.PortfolioName, _connector.ServerType);
+                _chartMaster.SetNewSecurity(_connector.NamePaper, _connector.TimeFrame, _connector.TimeFrameTimeSpan, _connector.PortfolioName, _connector.ServerType);
                 _chartMaster.SetPosition(_journal.AllPosition);
 
                 _alerts = new AlertMaster(TabName, _connector, _chartMaster);
@@ -87,15 +87,15 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-
         /// <summary>
         /// коннектор запустил процедуру переподключения
         /// </summary>
         /// <param name="securityName">имя бумаги</param>
         /// <param name="timeFrame">таймфрейм бумаги</param>
+        /// <param name="timeFrameSpan">таймфрейм в виде времени</param>
         /// <param name="portfolioName">номер портфеля</param>
         /// <param name="serverType">тип сервера у коннектора</param>
-        void _connector_ConnectorStartedReconnectEvent(string securityName, TimeFrame timeFrame, string portfolioName, ServerType serverType)
+        void _connector_ConnectorStartedReconnectEvent(string securityName, TimeFrame timeFrame, TimeSpan timeFrameSpan, string portfolioName, ServerType serverType)
         {
             if (string.IsNullOrEmpty(securityName)// ||
                 //string.IsNullOrEmpty(portfolioName)
@@ -104,7 +104,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
-            _chartMaster.SetNewSecurity(securityName, timeFrame, portfolioName, serverType);
+            _chartMaster.SetNewSecurity(securityName, timeFrame,timeFrameSpan, portfolioName, serverType);
         }
 
 // управление

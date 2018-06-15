@@ -395,7 +395,7 @@ namespace OsEngine.Market
 
                 if (ConnectorStartedReconnectEvent != null)
                 {
-                    ConnectorStartedReconnectEvent(NamePaper, TimeFrame, PortfolioName, ServerType);
+                    ConnectorStartedReconnectEvent(NamePaper, TimeFrame, TimeFrameTimeSpan, PortfolioName, ServerType);
                 }
 
 
@@ -1002,7 +1002,7 @@ namespace OsEngine.Market
         /// <summary>
         /// коннектор начинает процедуру переподключения
         /// </summary>
-        public event Action<string, TimeFrame, string, ServerType> ConnectorStartedReconnectEvent;
+        public event Action<string, TimeFrame, TimeSpan, string, ServerType> ConnectorStartedReconnectEvent;
 
 // сообщения в лог 
 

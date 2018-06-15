@@ -90,7 +90,34 @@ namespace OsEngine.Charts.CandleChart
         /// <summary>
         /// свечки
         /// </summary>
-        private List<Candle> _myCandles; 
+        private List<Candle> _myCandles;
+
+        /// <summary>
+        /// таймфрейм свечек которые прорисовываются в чарте в виде времени
+        /// </summary>
+        private TimeSpan _timeFrameSpan;
+
+        /// <summary>
+        /// таймфрейм свечек которые прорисовываются в чарте
+        /// </summary>
+        private TimeFrame _timeFrame;
+
+        /// <summary>
+        /// таймфреймы для данного чата устанавливались
+        /// </summary>
+        private bool _timeFrameIsActivate;
+
+        /// <summary>
+        /// изменить таймФрейм свечек для прорисовки
+        /// </summary>
+        /// <param name="timeFrameSpan"></param>
+        /// <param name="timeFrame"></param>
+        public void SetNewTimeFrame(TimeSpan timeFrameSpan, TimeFrame timeFrame)
+        {
+            _timeFrameSpan = timeFrameSpan;
+            _timeFrame = timeFrame;
+            _timeFrameIsActivate = true;
+        }
 
         /// <summary>
         /// начать прорисовку графика
@@ -1967,7 +1994,21 @@ namespace OsEngine.Charts.CandleChart
                     return 0;
                 }
 
-                int result = myCandles.FindIndex(candle => candle.TimeStart >= time);
+                int result = myCandles.FindIndex
+                    (
+                        candle =>
+                            (
+                                candle.Trades != null &&
+                                candle.Trades.Count != 0 &&
+                                candle.Trades[candle.Trades.Count - 1].Time >= time
+                                )
+                            ||
+                            candle.TimeStart >= time 
+                            ||
+                            (  _timeFrameIsActivate &&
+                               candle.TimeStart.Add(_timeFrameSpan) >= time
+                            )
+                    );
 
                 if (result < 0)
                 {
@@ -1998,6 +2039,19 @@ namespace OsEngine.Charts.CandleChart
                 for (int i = start; i < end; i++)
                 {
                     if (candles[i].TimeStart >= time)
+                    {
+                        return i;
+                    }
+                    if (candles[i].Trades != null &&
+                        candles[i].Trades.Count != 0 &&
+                        candles[i].Trades[candles[i].Trades.Count - 1].Time >= time)
+                    {
+                        return i;
+                    }
+                    if (
+                        (_timeFrameIsActivate &&
+                         candles[i].TimeStart.Add(_timeFrameSpan) >= time
+                            ))
                     {
                         return i;
                     }

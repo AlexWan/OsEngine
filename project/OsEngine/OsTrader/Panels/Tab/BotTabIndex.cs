@@ -57,7 +57,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             if (Tabs.Count != 0)
             {
-                _chartMaster.SetNewSecurity("Index on: " + _userFormula, Tabs[0].TimeFrame, null, Tabs[0].ServerType);
+                _chartMaster.SetNewSecurity("Index on: " + _userFormula, Tabs[0].TimeFrame, Tabs[0].TimeFrameTimeSpan, null, Tabs[0].ServerType);
             }
             else
             {

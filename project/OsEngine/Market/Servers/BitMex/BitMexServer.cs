@@ -1946,11 +1946,11 @@ namespace OsEngine.Market.Servers.BitMex
             {
                 try
                 {
-                    Thread.Sleep(300);
+                    Thread.Sleep(400);
 
                     if (_serverConnectStatus == ServerConnectStatus.Disconnect ||
                         _clientBitMex == null ||
-                        _lastSystemOverload.AddSeconds(50) > DateTime.Now)
+                        LastSystemOverload.AddSeconds(30) > DateTime.Now)
                     {
                         continue;
                     }
@@ -1960,21 +1960,24 @@ namespace OsEngine.Market.Servers.BitMex
                         Order order;
                         if (_ordersToExecute.TryDequeue(out order))
                         {
-                            Dictionary<string,string> param = new Dictionary<string, string>();
+                            Dictionary<string, string> param = new Dictionary<string, string>();
 
                             param["symbol"] = order.SecurityNameCode;
-                            param["price"] = order.Price.ToString().Replace(",",".");
+                            param["price"] = order.Price.ToString().Replace(",", ".");
                             param["side"] = order.Side == Side.Buy ? "Buy" : "Sell";
+                            //param["orderIDs"] = order.NumberUser.ToString();
                             param["orderQty"] = order.Volume.ToString();
                             param["clOrdID"] = order.NumberUser.ToString();
+
                             param["ordType"] = order.TypeOrder == OrderPriceType.Limit ? "Limit" : "Market";
 
                             var res = _clientBitMex.CreateQuery("POST", "/order", param, true);
 
                             if (res == "")
                             {
-                                order.State = OrderStateType.Cancel;
-                                _ordersToSend.Enqueue(order);
+                                //order.State = OrderStateType.Cancel;
+                                //_ordersToCheck.Remove(order);
+                                //_ordersToSend.Enqueue(order);
                             }
                         }
                     }
@@ -1988,12 +1991,188 @@ namespace OsEngine.Market.Servers.BitMex
                             param["orderID"] = order.NumberMarket;
 
                             var res = _clientBitMex.CreateQuery("DELETE", "/order", param, true);
+
+                            order.State = OrderStateType.Cancel;
+                            _ordersToCheck.Remove(order);
+                            _ordersToSend.Enqueue(order);
                         }
+                    }
+
+                    if (_lastOrderCheck.AddSeconds(30) < DateTime.Now &&
+                        _ordersToCheck.Count != 0)
+                    {
+                        CheckOrders(_ordersToCheck[0].SecurityNameCode);
+                        _lastOrderCheck = DateTime.Now;
                     }
                 }
                 catch (Exception error)
                 {
                     SendLogMessage(error.ToString(), LogMessageType.Error);
+                }
+            }
+        }
+
+        public static DateTime LastSystemOverload;
+
+
+        private DateTime _lastOrderCheck;
+        public void CheckOrders(string security)
+        {
+            lock (_orderLocker)
+            {
+                if (_ordersToCheck.Count == 0)
+                {
+                    return;
+                }
+
+                var param = new Dictionary<string, string>();
+                param["symbol"] = security;
+                //param["filter"] = "{\"open\":true}";
+                //param["columns"] = "";
+                param["count"] = 30.ToString();
+                //param["start"] = 0.ToString();
+                param["reverse"] = true.ToString();
+                //param["startTime"] = "";
+                //param["endTime"] = "";
+
+                var res = _clientBitMex.CreateQuery("GET", "/order", param, true);
+
+                List<DatumOrder> myOrders =
+                    JsonConvert.DeserializeAnonymousType(res, new List<DatumOrder>());
+
+                List<Order> osaOrders = new List<Order>();
+
+                for (int i = 0; i < myOrders.Count; i++)
+                {
+                    if (String.IsNullOrEmpty(myOrders[i].clOrdID))
+                    {
+                        continue;
+                    }
+
+                    Order order = new Order();
+                    order.NumberUser = Convert.ToInt32(myOrders[i].clOrdID);
+                    order.NumberMarket = myOrders[i].orderID;
+                    order.SecurityNameCode = myOrders[i].symbol;
+
+                    if (!string.IsNullOrWhiteSpace(myOrders[i].price))
+                    {
+                        order.Price = Convert.ToDecimal(myOrders[i].price.Replace(",",
+                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                            CultureInfo.InvariantCulture);
+                    }
+
+                    if (myOrders[i].ordStatus == "Filled")
+                    {
+                        order.State = OrderStateType.Done;
+                    }
+                    else if (myOrders[i].ordStatus == "Canceled")
+                    {
+                        order.State = OrderStateType.Cancel;
+                    }
+                    else if (myOrders[i].ordStatus == "New")
+                    {
+                        order.State = OrderStateType.Activ;
+                    }
+
+                    if (myOrders[i].orderQty != null)
+                    {
+                        order.Volume = (int)myOrders[i].orderQty;
+                    }
+
+                    order.Comment = myOrders[i].text;
+                    order.TimeCallBack = Convert.ToDateTime(myOrders[0].transactTime);
+                    order.PortfolioNumber = myOrders[i].account.ToString();
+                    order.TypeOrder = myOrders[i].ordType == "Limit"
+                        ? OrderPriceType.Limit
+                        : OrderPriceType.Market;
+
+                    if (myOrders[i].side == "Sell")
+                    {
+                        order.Side = Side.Sell;
+                    }
+                    else if (myOrders[i].side == "Buy")
+                    {
+                        order.Side = Side.Buy;
+                    }
+                    osaOrders.Add(order);
+                }
+
+                for (int i = 0; i < _ordersToCheck.Count; i++)
+                {
+                    Order osOrder = osaOrders.Find(o => o.NumberUser == _ordersToCheck[i].NumberUser);
+
+                    if (osOrder == null && string.IsNullOrWhiteSpace(_ordersToCheck[i].NumberMarket))
+                    {
+                        if (_ordersToCheck[i].TimeCreate.AddMinutes(2) < DateTime.Now)
+                        {
+                            _ordersToCheck[i].State = OrderStateType.Cancel;
+
+                            _ordersToSend.Enqueue(_ordersToCheck[i]);
+                            SendLogMessage(
+                              "Отчёта об ордере небыло больше двух минут. Признаём его без вести пропавшим, а позицию по нему не открытой. Номер ордера: "
+                               + _ordersToCheck[i].NumberUser, LogMessageType.System);
+
+                            CanselOrder(_ordersToCheck[i]);
+
+                            _ordersToCheck.RemoveAt(i);
+
+                            i--;
+                        }
+                    }
+                    else if (osOrder != null)
+                    {
+                        if (!string.IsNullOrWhiteSpace(osOrder.NumberMarket))
+                        {
+                            _ordersToCheck[i].NumberMarket = osOrder.NumberMarket;
+                        }
+
+                        if (osOrder.State == OrderStateType.Cancel)
+                        {
+                            SendLogMessage(
+                                "Апи. Доп проверка. Ордер отозван. Номер ордера: " + _ordersToCheck[i].NumberUser,
+                                LogMessageType.System);
+                            _ordersToCheck[i].State = OrderStateType.Cancel;
+                            _ordersToSend.Enqueue(_ordersToCheck[i]);
+                            _ordersToCheck.RemoveAt(i);
+                            i--;
+                        }
+                        else if (osOrder.State == OrderStateType.Done)
+                        {
+                            SendLogMessage(
+                                "Апи. Доп проверка. Ордер исполнен. Номер ордера: " + _ordersToCheck[i].NumberUser,
+                                LogMessageType.System);
+                            _ordersToCheck[i].State = OrderStateType.Done;
+                            _ordersToSend.Enqueue(_ordersToCheck[i]);
+
+                            if (_myTrades != null &&
+                                _myTrades.Count != 0)
+                            {
+                                List<MyTrade> myTrade =
+                                    _myTrades.FindAll(trade => trade.NumberOrderParent == _ordersToCheck[i].NumberMarket);
+
+                                for (int tradeNum = 0; tradeNum < myTrade.Count; tradeNum++)
+                                {
+                                    _myTradesToSend.Enqueue(myTrade[tradeNum]);
+                                }
+                            }
+
+                            _ordersToCheck.RemoveAt(i);
+                            i--;
+                        }
+                        else if (osOrder.State == OrderStateType.Activ)
+                        {
+                            _ordersToCheck[i].State = OrderStateType.Activ;
+                            _ordersToSend.Enqueue(_ordersToCheck[i]);
+
+                            if (_ordersCanseled.Find(o => o.NumberUser == osOrder.NumberUser) != null)
+                            {
+                                SendLogMessage(
+                                    "Обнаружили что ранее снятый ордер всё ещё активен. Отзываем ещё раз. Номер ордера: " +
+                                    osOrder.NumberUser, LogMessageType.Error);
+                                _ordersToCansel.Enqueue(osOrder);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -2009,19 +2188,21 @@ namespace OsEngine.Market.Servers.BitMex
         private ConcurrentQueue<Order> _ordersToCansel;
 
         /// <summary>
+        /// ордера которые нужно проверить
+        /// </summary>
+        private List<Order> _ordersToCheck = new List<Order>();
+
+        /// <summary>
         /// ордера, ожидающие регистрации
         /// </summary>
         private List<Order> _newOrders = new List<Order>();
+
+        private List<Order> _ordersCanseled = new List<Order>();
 
         /// <summary>
         /// блокиратор доступа к ордерам
         /// </summary>
         private object _orderLocker = new object();
-
-        /// <summary>
-        /// время когда биржа последний раз оказалась не доступна из-за "перегрузки"
-        /// </summary>
-        private DateTime _lastSystemOverload;
 
         /// <summary>
         /// входящий из системы ордер
@@ -2037,7 +2218,6 @@ namespace OsEngine.Market.Servers.BitMex
                         return;
                     }
 
-                    
                     for (int i = 0; i < myOrder.data.Count; i++)
                     {
                         if (string.IsNullOrEmpty(myOrder.data[i].clOrdID))
@@ -2055,10 +2235,10 @@ namespace OsEngine.Market.Servers.BitMex
                             if (!string.IsNullOrWhiteSpace(myOrder.data[i].price))
                             {
                                 order.Price = Convert.ToDecimal(myOrder.data[i].price.Replace(",",
-                         CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                         CultureInfo.InvariantCulture);
+                                CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                                CultureInfo.InvariantCulture);
                             }
-                           
+
                             order.State = OrderStateType.Pending;
 
                             if (myOrder.data[i].orderQty != null)
@@ -2081,13 +2261,23 @@ namespace OsEngine.Market.Servers.BitMex
                             {
                                 order.Side = Side.Buy;
                             }
-                            
+
                             _newOrders.Add(order);
+
+                            if (_ordersToCheck != null && _ordersToCheck.Count != 0)
+                            {
+                                Order or = _ordersToCheck.Find(o => o.NumberUser == order.NumberUser);
+
+                                if (or != null && !string.IsNullOrWhiteSpace(order.NumberMarket))
+                                {
+                                    or.NumberMarket = order.NumberMarket;
+                                }
+                            }
 
                         }
 
-                        else if (myOrder.action == "update" || 
-                           (myOrder.action == "partial" && 
+                        else if (myOrder.action == "update" ||
+                           (myOrder.action == "partial" &&
                             (myOrder.data[i].ordStatus == "Canceled" || myOrder.data[i].ordStatus == "Rejected")
                             ))
                         {
@@ -2135,8 +2325,19 @@ namespace OsEngine.Market.Servers.BitMex
                                         needOrder.Side = Side.Buy;
                                     }
                                 }
-                            } 
-                                
+
+                                _newOrders.Add(needOrder);
+
+                                if (_ordersToCheck != null && _ordersToCheck.Count != 0)
+                                {
+                                    Order or = _ordersToCheck.Find(o => o.NumberUser == needOrder.NumberUser);
+
+                                    if (or != null && !string.IsNullOrWhiteSpace(needOrder.NumberMarket))
+                                    {
+                                        or.NumberMarket = needOrder.NumberMarket;
+                                    }
+                                }
+                            }
 
                             if (needOrder != null)
                             {
@@ -2148,24 +2349,28 @@ namespace OsEngine.Market.Servers.BitMex
                                 if (myOrder.data[i].ordStatus == "Canceled")
                                 {
                                     needOrder.State = OrderStateType.Cancel;
+                                    SendLogMessage("Апи. Ордер отозван. Номер " + needOrder.NumberUser, LogMessageType.System);
                                 }
 
                                 if (myOrder.data[i].ordStatus == "Rejected")
                                 {
                                     needOrder.State = OrderStateType.Fail;
                                     needOrder.VolumeExecute = 0;
+                                    SendLogMessage("Апи. Ордер отозван. Номер " + needOrder.NumberUser, LogMessageType.System);
                                 }
 
                                 if (myOrder.data[i].ordStatus == "PartiallyFilled")
                                 {
                                     needOrder.State = OrderStateType.Patrial;
                                     needOrder.VolumeExecute = myOrder.data[i].cumQty;
+                                    SendLogMessage("Апи. Ордер частично исполнен. Номер " + needOrder.NumberUser, LogMessageType.System);
                                 }
 
                                 if (myOrder.data[i].ordStatus == "Filled")
                                 {
                                     needOrder.State = OrderStateType.Done;
                                     needOrder.VolumeExecute = myOrder.data[i].cumQty;
+                                    SendLogMessage("Апи. Ордер исполнен. Номер " + needOrder.NumberUser, LogMessageType.System);
                                 }
                                 if (_myTrades != null &&
                                     _myTrades.Count != 0)
@@ -2178,9 +2383,26 @@ namespace OsEngine.Market.Servers.BitMex
                                         _myTradesToSend.Enqueue(myTrade[tradeNum]);
                                     }
                                 }
+
                                 _ordersToSend.Enqueue(needOrder);
+
+                                if (needOrder.State == OrderStateType.Done ||
+                                    needOrder.State == OrderStateType.Cancel ||
+                                    needOrder.State == OrderStateType.Fail)
+                                {
+                                    for (int i2 = 0; i2 < _ordersToCheck.Count; i2++)
+                                    {
+                                        if (_ordersToCheck[i2].NumberUser == needOrder.NumberUser)
+                                        {
+                                            _ordersToCheck.RemoveAt(i2);
+                                            break;
+                                        }
+                                    }
+                                }
                             }
                         }
+
+
                     }
                 }
                 catch (Exception error)
@@ -2198,9 +2420,10 @@ namespace OsEngine.Market.Servers.BitMex
         {
             order.TimeCreate = ServerTime;
             _ordersToExecute.Enqueue(order);
+            SendLogMessage("Выставлен ордер, цена: " + order.Price + " Сторона: " + order.Side + ", Объём: " + order.Volume +
+                ", Инструмент: " + order.SecurityNameCode + "Номер " + order.NumberUser, LogMessageType.System);
 
-            SendLogMessage("Выставлен ордер, цена: " + order.Price + ", Объём: " + order.Volume + ", Инструмент: " + order.SecurityNameCode +
-            ", Направление: " + order.Side + ", Номер: " + order.NumberUser, LogMessageType.System);
+            _ordersToCheck.Add(order);
         }
 
         /// <summary>
@@ -2209,13 +2432,16 @@ namespace OsEngine.Market.Servers.BitMex
         /// <param name="order">ордер</param>
         public void CanselOrder(Order order)
         {
+            SendLogMessage("Отзываем ордер: " + order.NumberUser, LogMessageType.System);
             _ordersToCansel.Enqueue(order);
+            _ordersCanseled.Add(order);
         }
 
         /// <summary>
         /// изменился ордер
         /// </summary>
         public event Action<Order> NewOrderIncomeEvent;
+
 
 // сообщения для лога
 
@@ -2230,7 +2456,7 @@ namespace OsEngine.Market.Servers.BitMex
             if (error ==
              "{\"error\":{\"message\":\"The system is currently overloaded. Please try again later.\",\"name\":\"HTTPError\"}}")
             { // останавливаемся на минуту
-                _lastSystemOverload = DateTime.Now;
+                LastSystemOverload = DateTime.Now;
             }
             if (error == "{\"error\":{\"message\":\"Executing at order price would lead to immediate liquidation\",\"name\":\"ValidationError\"}}")
             {

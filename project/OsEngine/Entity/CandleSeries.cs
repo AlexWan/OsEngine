@@ -280,7 +280,11 @@ namespace OsEngine.Entity
                 return;
             }
 
-            if (CandlesAll[CandlesAll.Count - 1].TimeStart.Add(_timeFrameSpan) < time)
+            if (
+                CandlesAll[CandlesAll.Count - 1].TimeStart.Add(_timeFrameSpan) < time 
+                ||
+                (TimeFrame == TimeFrame.Day && CandlesAll[CandlesAll.Count - 1].TimeStart.Date < time.Date)
+                )
             {
                 // пришло время закрыть свечу
                 CandlesAll[CandlesAll.Count - 1].State = CandleStates.Finished;
@@ -481,10 +485,18 @@ namespace OsEngine.Entity
                 SetForeign(time);
             }
 
-            if (CandlesAll != null &&
-                CandlesAll[CandlesAll.Count - 1].TimeStart < time &&
-                CandlesAll[CandlesAll.Count - 1].TimeStart.Add(_timeFrameSpan) <= time ||
-                CandlesAll[CandlesAll.Count - 1].TimeStart.Day != time.Day)
+            if (
+                (
+                  CandlesAll != null &&
+                  CandlesAll[CandlesAll.Count - 1].TimeStart < time &&
+                  CandlesAll[CandlesAll.Count - 1].TimeStart.Add(_timeFrameSpan) <= time
+                )
+                ||
+                (
+                  TimeFrame == TimeFrame.Day && 
+                  CandlesAll[CandlesAll.Count - 1].TimeStart.Date < time.Date
+                )
+                )
             {
                 // если пришли данные из новой свечки
 

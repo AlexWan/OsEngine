@@ -1202,13 +1202,15 @@ namespace OsEngine.Charts
         /// </summary>
         /// <param name="security">бумага</param>
         /// <param name="timeFrame">таймФрейм</param>
+        /// <param name="timeFrameSpan">таймфрейм в виде времени</param>
         /// <param name="portfolioName">портфель</param>
         /// <param name="serverType">тип сервера</param>
-        public void SetNewSecurity(string security, TimeFrame timeFrame, string portfolioName, ServerType serverType)
+        public void SetNewSecurity(string security, TimeFrame timeFrame, TimeSpan timeFrameSpan, string portfolioName, ServerType serverType)
         {
             if (_chartCandle != null)
             {
                 _chartCandle.Clear();
+                _chartCandle.SetNewTimeFrame(timeFrameSpan, timeFrame);
             }
 
             if (_securityOnThisChart == security &&
