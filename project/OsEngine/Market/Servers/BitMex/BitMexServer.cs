@@ -2054,7 +2054,7 @@ namespace OsEngine.Market.Servers.BitMex
                     order.NumberMarket = myOrders[i].orderID;
                     order.SecurityNameCode = myOrders[i].symbol;
 
-                    if (!string.IsNullOrWhiteSpace(myOrders[i].price))
+                    if (!string.IsNullOrEmpty(myOrders[i].price))
                     {
                         order.Price = Convert.ToDecimal(myOrders[i].price.Replace(",",
                             CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
@@ -2101,16 +2101,20 @@ namespace OsEngine.Market.Servers.BitMex
                 {
                     Order osOrder = osaOrders.Find(o => o.NumberUser == _ordersToCheck[i].NumberUser);
 
-                    if (osOrder == null && string.IsNullOrWhiteSpace(_ordersToCheck[i].NumberMarket))
+                    if (osOrder == null && string.IsNullOrEmpty(_ordersToCheck[i].NumberMarket))
                     {
-                        if (_ordersToCheck[i].TimeCreate.AddMinutes(2) < DateTime.Now)
+                        if (_ordersToCheck[i].TimeCreate.AddMinutes(10) < DateTime.Now)
                         {
                             _ordersToCheck[i].State = OrderStateType.Cancel;
 
                             _ordersToSend.Enqueue(_ordersToCheck[i]);
                             SendLogMessage(
-                              "Отчёта об ордере небыло больше двух минут. Признаём его без вести пропавшим, а позицию по нему не открытой. Номер ордера: "
-                               + _ordersToCheck[i].NumberUser, LogMessageType.System);
+                              "Отчёта об ордере небыло больше десяти минут. Признаём его без вести пропавшим, а позицию по нему не открытой. Номер ордера: "
+                               + _ordersToCheck[i].NumberUser, LogMessageType.Error);
+                            SendLogMessage(
+                              "После предыдущей ошибки, существует всё же шанс что биржа просто зависла забыв про нас и через несколько минут или десятков"+
+                              " минут роботу придёт оповещение " +
+                            "о том что ордер таки исполнился. Проверте НЕТТО позицию через личный кабинет руками!!!", LogMessageType.Error);
 
                             CanselOrder(_ordersToCheck[i]);
 
@@ -2121,7 +2125,7 @@ namespace OsEngine.Market.Servers.BitMex
                     }
                     else if (osOrder != null)
                     {
-                        if (!string.IsNullOrWhiteSpace(osOrder.NumberMarket))
+                        if (!string.IsNullOrEmpty(osOrder.NumberMarket))
                         {
                             _ordersToCheck[i].NumberMarket = osOrder.NumberMarket;
                         }
@@ -2232,7 +2236,7 @@ namespace OsEngine.Market.Servers.BitMex
                             order.NumberMarket = myOrder.data[i].orderID;
                             order.SecurityNameCode = myOrder.data[i].symbol;
 
-                            if (!string.IsNullOrWhiteSpace(myOrder.data[i].price))
+                            if (!string.IsNullOrEmpty(myOrder.data[i].price))
                             {
                                 order.Price = Convert.ToDecimal(myOrder.data[i].price.Replace(",",
                                 CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
@@ -2268,12 +2272,11 @@ namespace OsEngine.Market.Servers.BitMex
                             {
                                 Order or = _ordersToCheck.Find(o => o.NumberUser == order.NumberUser);
 
-                                if (or != null && !string.IsNullOrWhiteSpace(order.NumberMarket))
+                                if (or != null && !string.IsNullOrEmpty(order.NumberMarket))
                                 {
                                     or.NumberMarket = order.NumberMarket;
                                 }
                             }
-
                         }
 
                         else if (myOrder.action == "update" ||
@@ -2290,31 +2293,31 @@ namespace OsEngine.Market.Servers.BitMex
                                 needOrder.NumberMarket = myOrder.data[i].orderID;
                                 needOrder.SecurityNameCode = myOrder.data[i].symbol;
 
-                                if (!string.IsNullOrWhiteSpace(myOrder.data[i].price))
+                                if (!string.IsNullOrEmpty(myOrder.data[i].price))
                                 {
                                     needOrder.Price = Convert.ToDecimal(myOrder.data[i].price);
                                 }
 
-                                if (!string.IsNullOrWhiteSpace(myOrder.data[i].text))
+                                if (!string.IsNullOrEmpty(myOrder.data[i].text))
                                 {
                                     needOrder.Comment = myOrder.data[i].text;
                                 }
 
-                                if (!string.IsNullOrWhiteSpace(myOrder.data[0].transactTime))
+                                if (!string.IsNullOrEmpty(myOrder.data[0].transactTime))
                                 {
                                     needOrder.TimeCallBack = Convert.ToDateTime(myOrder.data[0].transactTime);
                                 }
 
                                 needOrder.PortfolioNumber = myOrder.data[i].account.ToString();
 
-                                if (!string.IsNullOrWhiteSpace(myOrder.data[i].ordType))
+                                if (!string.IsNullOrEmpty(myOrder.data[i].ordType))
                                 {
                                     needOrder.TypeOrder = myOrder.data[i].ordType == "Limit"
                                          ? OrderPriceType.Limit
                                          : OrderPriceType.Market;
                                 }
 
-                                if (!string.IsNullOrWhiteSpace(myOrder.data[i].side))
+                                if (!string.IsNullOrEmpty(myOrder.data[i].side))
                                 {
                                     if (myOrder.data[i].side == "Sell")
                                     {
@@ -2327,15 +2330,15 @@ namespace OsEngine.Market.Servers.BitMex
                                 }
 
                                 _newOrders.Add(needOrder);
+                            }
 
-                                if (_ordersToCheck != null && _ordersToCheck.Count != 0)
+                            if (_ordersToCheck != null && _ordersToCheck.Count != 0)
+                            {
+                                Order or = _ordersToCheck.Find(o => o.NumberUser == needOrder.NumberUser);
+
+                                if (or != null && !string.IsNullOrEmpty(needOrder.NumberMarket))
                                 {
-                                    Order or = _ordersToCheck.Find(o => o.NumberUser == needOrder.NumberUser);
-
-                                    if (or != null && !string.IsNullOrWhiteSpace(needOrder.NumberMarket))
-                                    {
-                                        or.NumberMarket = needOrder.NumberMarket;
-                                    }
+                                    or.NumberMarket = needOrder.NumberMarket;
                                 }
                             }
 
@@ -2384,8 +2387,6 @@ namespace OsEngine.Market.Servers.BitMex
                                     }
                                 }
 
-                                _ordersToSend.Enqueue(needOrder);
-
                                 if (needOrder.State == OrderStateType.Done ||
                                     needOrder.State == OrderStateType.Cancel ||
                                     needOrder.State == OrderStateType.Fail)
@@ -2399,6 +2400,7 @@ namespace OsEngine.Market.Servers.BitMex
                                         }
                                     }
                                 }
+                                _ordersToSend.Enqueue(needOrder);
                             }
                         }
 
