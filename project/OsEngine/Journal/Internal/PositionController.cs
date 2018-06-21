@@ -244,7 +244,7 @@ namespace OsEngine.Journal.Internal
                 _closePositionChanged = true;
                 _closeShortChanged = true;
                 _closeLongChanged = true;
-                _positionsToPaint = new ConcurrentQueue<Position>();
+                _positionsToPaint = new List<Position>();
                 ClearPositionsGrid();
                 _neadToSave = true;
             }
@@ -865,19 +865,24 @@ namespace OsEngine.Journal.Internal
 
             try
             {
-                if (_hostCloseDeal != null && 
-                    _hostOpenDeal != null && 
-                    !_positionsToPaint.IsEmpty)
+                if (_hostCloseDeal == null ||
+                    _hostOpenDeal == null ||
+                    _positionsToPaint.Count == 0)
                 {
-                    while (!_positionsToPaint.IsEmpty)
+                    return;
+                }
+
+                lock (_positionPaintLocker)
+                {
+                    while (_positionsToPaint.Count != 0)
                     {
-                        Position newElement;
-                        _positionsToPaint.TryDequeue(out newElement);
+                        Position newElement = _positionsToPaint[0];
 
                         if (newElement != null)
                         {
                             PaintPosition(newElement);
                         }
+                        _positionsToPaint.RemoveAt(0);
                     }
                 }
             }
@@ -887,7 +892,9 @@ namespace OsEngine.Journal.Internal
             }
         }
 
-        private ConcurrentQueue<Position> _positionsToPaint = new ConcurrentQueue<Position>();  
+        object _positionPaintLocker = new object();
+
+        private List<Position> _positionsToPaint = new List<Position>();  
 
         /// <summary>
         /// создать таблицы для прорисовки позиций
@@ -1223,7 +1230,19 @@ namespace OsEngine.Journal.Internal
         /// </summary>
         public void ProcesPosition(Position position)
         {
-          _positionsToPaint.Enqueue(position);
+            lock (_positionPaintLocker)
+            {
+                for (int i = 0; i < _positionsToPaint.Count; i++)
+                {
+                    if (_positionsToPaint[i].Number == position.Number)
+                    {
+                        _positionsToPaint[i] = position;
+                        return;
+                    }
+                }
+
+                _positionsToPaint.Add(position);
+            }
         }
 
         /// <summary>

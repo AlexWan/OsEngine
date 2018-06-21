@@ -275,7 +275,7 @@ namespace OsEngine.Entity
         {
             if (_trades == null)
             {
-                return DateTime.MinValue;
+                return TimeCallBack;
             }
 
            return _trades[_trades.Count - 1].Time;

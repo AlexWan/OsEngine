@@ -797,7 +797,7 @@ namespace OsEngine.Entity
             {
                 if (_openOrders != null)
                 {
-                    return _openOrders[_openOrders.Count-1].TimeCallBack;
+                    return _openOrders[_openOrders.Count - 1].GetLastTradeTime();
                 }
                 return DateTime.MinValue;
             }
@@ -812,7 +812,7 @@ namespace OsEngine.Entity
             {
                 if (CloseOrders != null && CloseOrders.Count != 0)
                 {
-                    return CloseOrders[CloseOrders.Count - 1].TimeCallBack;
+                    return CloseOrders[CloseOrders.Count - 1].GetLastTradeTime();
                 }
                 return TimeCreate;
             }

@@ -1727,7 +1727,7 @@ namespace OsEngine.Market.Servers.Tester
             decimal minPrice = decimal.MaxValue;
             decimal maxPrice = 0;
             decimal openPrice = 0;
-            DateTime time = DateTime.MinValue;
+            DateTime time = ServerTime;
 
             if (lastCandle != null)
             {
@@ -3183,7 +3183,10 @@ namespace OsEngine.Market.Servers.Tester
             if (orderOnBoard.IsStopOrProfit)
             {
                 SecurityTester security = SecuritiesTester.Find(tester => tester.Security.Name == order.SecurityNameCode);
-                CheckOrdersInCandleTest(order, security.LastCandle);
+                if (security.DataType == SecurityTesterDataType.Candle)
+                { // прогон на свечках
+                    CheckOrdersInCandleTest(order, security.LastCandle);
+                }
             }
         }
 

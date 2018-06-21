@@ -70,14 +70,13 @@ namespace OsEngine.Market.Servers
         {
             if (StartProgram == ServerStartProgramm.IsTester)
             {
-                
+                ServerMasterUi ui = new ServerMasterUi();
             }
             else
             {
                 ServerMasterUi ui = new ServerMasterUi();
                 ui.ShowDialog();
             }
-
         }
 
         /// <summary>

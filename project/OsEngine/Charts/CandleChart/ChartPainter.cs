@@ -2000,13 +2000,13 @@ namespace OsEngine.Charts.CandleChart
                             (
                                 candle.Trades != null &&
                                 candle.Trades.Count != 0 &&
-                                candle.Trades[candle.Trades.Count - 1].Time >= time
+                                candle.Trades[candle.Trades.Count - 1].Time > time
                                 )
                             ||
                             candle.TimeStart >= time 
                             ||
                             (  _timeFrameIsActivate &&
-                               candle.TimeStart.Add(_timeFrameSpan) >= time
+                               candle.TimeStart.Add(_timeFrameSpan) > time
                             )
                     );
 
@@ -2044,19 +2044,19 @@ namespace OsEngine.Charts.CandleChart
                     }
                     if (candles[i].Trades != null &&
                         candles[i].Trades.Count != 0 &&
-                        candles[i].Trades[candles[i].Trades.Count - 1].Time >= time)
+                        candles[i].Trades[candles[i].Trades.Count - 1].Time > time)
                     {
                         return i;
                     }
                     if (
                         (_timeFrameIsActivate &&
-                         candles[i].TimeStart.Add(_timeFrameSpan) >= time
+                         candles[i].TimeStart.Add(_timeFrameSpan) > time
                             ))
                     {
                         return i;
                     }
                 }
-                return end-1;
+                return end;
             }
 
             if (candles[start + (end - start)/2].TimeStart > time)
@@ -3403,16 +3403,24 @@ namespace OsEngine.Charts.CandleChart
 
                 int index = (int)_chart.ChartAreas[0].CursorX.Position;
 
-                if (index < 0 || index >= _myCandles.Count)
+                if (index < 0 || (index >= _myCandles.Count && index != 1))
                 {
                     return;
+                }
+                if(index == 1 && _myCandles.Count == 1)
+                {
+                    index = 0;
                 }
 
                 List<Series> series = new List<Series>();
 
                 for (int i = 0; i < _chart.Series.Count; i++)
                 {
-                    if (_chart.Series[i].Points.Count == _myCandles.Count)
+                    if (_chart.Series[i].Name != "Deal_BuySell" &&
+                       _chart.Series[i].Name.Split('_')[0] != "Close" &&
+                        _chart.Series[i].Name.Split('_')[0] != "Open" &&
+                        _chart.Series[i].Name.Split('_')[0] != "Stop" &&
+                        _chart.Series[i].Name.Split('_')[0] != "Profit")
                     {
                         series.Add(_chart.Series[i]);
                     }
@@ -3426,6 +3434,10 @@ namespace OsEngine.Charts.CandleChart
 
                 for (int i = 0; i < series.Count; i++)
                 {
+                    if (index > series[i].Points.Count)
+                    {
+                        continue;
+                    }
                     Series labelSeries = _labelSeries.Find(ser => ser.Name == series[i].Name + "label");
 
                     if (labelSeries == null)
@@ -5044,7 +5056,7 @@ namespace OsEngine.Charts.CandleChart
                 }
                 if (_areaSizes == null)
                 {
-                    return;
+                    ReloadAreaSizes();
                 }
 
                 ChartAreaSizes areaSize = _areaSizes.Find(size => size.Name == areaName);
@@ -5194,7 +5206,7 @@ namespace OsEngine.Charts.CandleChart
             try
             {
 
-                for (int i = start; series.Points.Count >= candleSeries.Points.Count - 1 && i < end && i < series.Points.Count; )
+                for (int i = start; series.Points.Count >= candleSeries.Points.Count - 1 && i <= end && i < series.Points.Count; )
                 {
                     // серия паралельная свечкам, индикатор
                     if (series.Points[i].YValues.Max() > max &&
@@ -5230,7 +5242,7 @@ namespace OsEngine.Charts.CandleChart
         {
             double min = double.MaxValue;
 
-            for (int i = start; series.Points.Count >= candleSeries.Points.Count - 1 && i < end && i < series.Points.Count; )
+            for (int i = start; series.Points.Count >= candleSeries.Points.Count - 1 && i <= end && i < series.Points.Count; )
             {
                 double minOnPoint = series.Points[i].YValues.Min();
                 if (minOnPoint < min &&
