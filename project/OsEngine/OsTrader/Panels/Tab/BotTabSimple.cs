@@ -2317,17 +2317,17 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 // закрываыем другие открывающие ордера, если они есть
 
-                /*if (position.OpenOrders != null &&
-                    position.OpenOrders.Length > 0)
+                if (position.OpenOrders != null &&
+                    position.OpenOrders.Count > 0)
                 {
-                    for (int i = 0; i < position.OpenOrders.Length; i++)
+                    for (int i = 0; i < position.OpenOrders.Count; i++)
                     {
                         if (position.OpenOrders[i].State == OrderStateType.Activ)
                         {
                             _connector.OrderCancel(position.OpenOrders[i]);
                         }
                     }
-                }*/
+                }
 
 
                 Order newOrder = _dealCreator.CreateOrder(Side.Buy, price, volume, OrderPriceType.Limit,

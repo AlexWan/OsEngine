@@ -2444,7 +2444,6 @@ namespace OsEngine.Market.Servers.BitMex
         /// </summary>
         public event Action<Order> NewOrderIncomeEvent;
 
-
 // сообщения для лога
 
         /// <summary>

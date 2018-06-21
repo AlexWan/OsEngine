@@ -1,0 +1,794 @@
+#region Using declarations
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Net;
+using System.Threading;
+using System.Xml.Serialization;
+using System.IO;
+using NinjaTrader.Cbi;
+using NinjaTrader.Gui;
+using NinjaTrader.Gui.Chart;
+using NinjaTrader.Gui.SuperDom;
+using NinjaTrader.Gui.Tools;
+using NinjaTrader.Data;
+using NinjaTrader.NinjaScript;
+using NinjaTrader.Core.FloatingPoint;
+using NinjaTrader.NinjaScript.Indicators;
+using NinjaTrader.NinjaScript.DrawingTools;
+using System.Net.Sockets;
+using System.Collections.Concurrent;
+using System.Globalization;
+
+#endregion
+
+//This namespace holds Strategies in this folder and is required. Do not change it. 
+namespace NinjaTrader.NinjaScript.Strategies
+{
+	public class OsEngineConnect : Strategy
+	{
+		//список бумаг по которым мы будем выкачиваеть трейды, стаканы и будем торговать
+		private string [] _loadSecurities = new string[]{
+			"NQ 09-18",
+			"6B 09-18",
+			"ES 09-18",
+			"",
+			"",
+			"",
+			"",
+		    "",
+			"",
+			"",
+			"",
+			"",
+			"",
+			""
+		};
+		
+		/// <summary>
+		/// конструктор
+		/// </summary>
+		public OsEngineConnect()
+		{
+
+		}
+	
+// обработка входящих сообщений		
+		
+		/// <summary>
+		/// поток обслуживающий соединение
+		/// </summary>
+		Thread worker;
+		
+		/// <summary>
+		/// после дисконнекта ставим флаг что пора отключаться
+		/// </summary>
+		bool _neadToStopWorker;
+		
+		/// <summary>
+		/// место работы потока соединения
+		/// </summary>
+		private void SocketWorkerPlace()
+		{
+		    // Устанавливаем для сокета локальную конечную точку
+            IPHostEntry ipHost = Dns.GetHostEntry("localhost");
+            IPAddress ipAddr = ipHost.AddressList[1];
+            IPEndPoint ipEndPoint = new IPEndPoint(ipAddr, 11000);
+
+            // Создаем сокет Tcp/Ip
+            Socket sListener = new Socket(ipAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+
+            // Назначаем сокет локальной конечной точке и слушаем входящие сокеты
+			
+            try
+            {
+                sListener.Bind(ipEndPoint);
+                sListener.Listen(10);
+
+                // Начинаем слушать соединения
+                while (true)
+                {
+					if(_neadToStopWorker == true)
+					{ // стратегия отключилась
+						return;
+					}
+					
+                    // Программа приостанавливается, ожидая входящее соединение
+                    Socket handler = sListener.Accept();
+                    string data = null;
+					
+					if(_neadToStopWorker == true)
+					{ // стратегия отключилась
+						return;
+					}
+
+                    // Мы дождались клиента, пытающегося с нами соединиться
+					
+                    byte[] bytes = new byte[1024];
+                    int bytesRec = handler.Receive(bytes);
+
+                    data += Encoding.UTF8.GetString(bytes, 0, bytesRec);
+
+                    // берём ответ из метода который считывает данные из входящего сообщения
+                    string reply = InComeMessage(data);
+					
+                    byte[] msg = Encoding.UTF8.GetBytes(reply);
+                    handler.Send(msg);
+
+                    if (data.IndexOf("<TheEnd>") > -1)
+                    {
+                        break;
+                    }
+
+                    handler.Shutdown(SocketShutdown.Both);
+                    handler.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+				if(State == State.Terminated ||
+                   State == State.Finalized)
+				{
+				    return;	
+				}
+				try{sListener.Disconnect(false);}catch{}
+				try{sListener.Dispose();}catch{}
+
+                try
+                {
+                    worker = new Thread(SocketWorkerPlace);
+                    worker.IsBackground = true;
+                    worker.Start();
+                }
+                catch { }
+            }
+		}
+		
+		/// <summary>
+		/// разбор входящих сообщений и генерация ответа
+		/// </summary>
+		private string InComeMessage(string message)
+		{
+			try
+			{
+					string tag = message.Split('@')[0];
+					if(tag == "Connect")
+					{
+	                    _tradesToSend = new ConcurrentQueue<string>();
+                        _errorsToSend = new ConcurrentQueue<string>();
+		                _ordersToSend = new ConcurrentQueue<string>();
+		                _myTradesToSend = new ConcurrentQueue<string>();
+		                _portfolioChangeToSend = new ConcurrentQueue<string>();
+		                _marketDepthsToSend = new ConcurrentQueue<string>();
+		                _positionsChangeToSend = new ConcurrentQueue<string>();
+						return "Connect";
+					}
+			        else if(tag == "Disconnect")
+					{
+						return "Disconnect";
+					}
+					else if(tag == "GetSecurities")
+					{
+						return "securities@" + GetSecuritiesString();
+					}
+					else if(tag == "GetAccaunts")
+					{
+						return "portfoliosOnStart@" + GetPortfoliosStringOnStart();
+					}
+					else if(tag == "OrderExecute")
+					{
+						return "orderExecuteReport@" + OrderExecute(message.Split('@')[1]);
+					}
+					else if(tag == "OrderCancel")
+					{
+						return "orderCanselReport@" +OrderCancel(message.Split('@')[1]);
+					}
+					else if(tag == "Process")
+					{// запрос каких либо потоковых данных
+
+						if(_errorsToSend.IsEmpty == false)
+						{
+							string lastError = null;
+							_errorsToSend.TryDequeue(out lastError);
+							if(lastError != null)
+							{
+								 return "error@" + lastError;
+							}
+						}
+						else if(_ordersToSend.IsEmpty == false)
+						{
+							 return "orders@" + GetStack(_ordersToSend);
+						}
+						else if(_myTradesToSend.IsEmpty == false)
+						{
+							return "myTrades@" + GetStack(_myTradesToSend);
+						}
+						else if(_positionsChangeToSend.IsEmpty == false)
+						{
+							return "positions@" + GetStack(_positionsChangeToSend);
+						}
+						else if(_portfolioChangeToSend.IsEmpty == false)
+						{
+							return "portfolios@" + GetStack(_portfolioChangeToSend);
+						}
+						else if(_tradesToSend.IsEmpty == false)
+						{
+						     return "trades@" + GetStack(_tradesToSend);
+						}
+						else if(_marketDepthsToSend.IsEmpty == false)
+						{
+							return "marketDepth@" + GetStack(_marketDepthsToSend);
+						}
+					}
+					return "";
+			}
+			catch(Exception error)
+			{
+				string errorMessage = "error@" + error.ToString();
+				return errorMessage;
+			}
+		}
+        
+// работа с ордерами
+		
+		/// <summary>
+		/// исполнить ордер
+		/// </summary>
+		private string OrderExecute(string orderStr)
+		{
+			string [] str = orderStr.Split('#');
+			
+
+			double price = Convert.ToDouble(str[4].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                        CultureInfo.InvariantCulture);
+			int volume = Convert.ToInt32(str[5].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+            CultureInfo.InvariantCulture);
+			
+			string numberUser = str[2];
+			
+			int numSecurity = 0;
+			
+		    string nameSecurity = str[0];
+			bool findInstrument = false;
+			
+			
+			if(Bars != null && Bars.Instrument.FullName == nameSecurity)
+			{
+				findInstrument = true;
+			}
+			else
+			{
+				List<Bars> series = this.BarsArray.ToList();
+				for(int i = 0;series != null && i < series.Count;i++)
+				{
+				  if(series[i].Instrument.FullName == nameSecurity)
+				  {
+					  numSecurity = i+1;
+					  findInstrument = true;
+				      // нашли наш инструмент в загруженных дополнительно
+					  break;
+				  }
+				}
+			}
+
+			if(findInstrument == false)
+			{
+			   return "";	
+			}
+			
+			Order order = null;
+			
+			if(str[3] == "Buy")
+			{
+				order = SubmitOrderUnmanaged(numSecurity, OrderAction.Buy, OrderType.Limit, volume,price);
+			}
+			else
+			{
+				order = SubmitOrderUnmanaged(numSecurity, OrderAction.Sell, OrderType.Limit, volume,price);
+			}
+			
+			
+			if(order == null || order.OrderState == OrderState.CancelSubmitted ||
+				order.OrderState == OrderState.Rejected||
+				order.OrderState == OrderState.Cancelled ||
+				order.OrderState == OrderState.CancelPending)
+			{
+				string result = "Error" + "#";
+				result += "Ордер отвергнут системой" + "#";
+				result += numberUser + "#";
+				result += numSecurity + "#";
+				result += volume + "#";
+				result += price + "#";
+				result += str[3] + "#";
+				return result;
+			}
+			else
+			{
+				string result =  "Accept#";
+				result +=  numberUser + "#";
+			    result += order.Id.ToString() + "#";
+			    result += order.OrderId.ToString() + "#";
+				result += order.Time.ToString() + "#";
+				
+			    return result;
+			}
+            return "";
+		}
+		
+		/// <summary>
+		/// список выставленных мной ордеров
+		/// </summary>
+		List<Order> _myOrders = new List<Order>();
+		
+		/// <summary>
+		/// отозвать ордер
+		/// </summary>
+		private string OrderCancel(string order)
+		{
+			string[] str = order.Split('#');
+			
+			string orderNum = str[2];
+			
+			Order myOrder = null;
+			
+			for(int i =0;i < _myOrders.Count;i++)
+			{
+				if(_myOrders[i].OrderId.ToString() == orderNum)
+				{
+					myOrder =_myOrders[i];
+				}
+			}
+			
+			if(myOrder != null)
+			{
+				CancelOrder(myOrder);
+				return "Cancel#" + myOrder.OrderId + "#" + str[3];
+			}
+			else
+			{
+				return "Fail#" + orderNum;
+			}
+			
+			return "";
+		}
+		
+		
+// очереди исходящих данных
+		
+		public static ConcurrentQueue<string> _tradesToSend = new ConcurrentQueue<string>();
+
+        public static ConcurrentQueue<string> _errorsToSend = new ConcurrentQueue<string>();
+		
+		public static ConcurrentQueue<string> _ordersToSend = new ConcurrentQueue<string>();
+		
+		public static ConcurrentQueue<string> _myTradesToSend = new ConcurrentQueue<string>();
+		
+		public static ConcurrentQueue<string> _portfolioChangeToSend = new ConcurrentQueue<string>();
+		
+		public static ConcurrentQueue<string> _marketDepthsToSend = new ConcurrentQueue<string>();
+		
+		public static ConcurrentQueue<string> _positionsChangeToSend = new ConcurrentQueue<string>();
+		
+// разбор запрашиваемых данных и подготовка их к пересылке
+		
+		/// <summary>
+		/// преобразование очереди в строку
+		/// </summary>
+		private string GetStack(ConcurrentQueue<string> queue)
+		{
+			string result = "";
+           
+ 			int step = 0;
+				
+			while(queue.Count != 0)
+			{
+				step ++;
+			    string	str = null;
+				queue.TryDequeue(out str);
+				
+				if(str != null)
+				{
+				    result += str;	
+				}
+				
+				if(step > 50)
+				{
+				    break;	
+				}
+			}
+			
+			return result;
+		}
+		
+		/// <summary>
+		/// взять доступные инструменты
+		/// </summary>
+		/// <returns></returns>
+		private string GetSecuritiesString()
+		{
+		    List<Instrument> securities =  Instrument.All.ToList();
+			
+			StringBuilder result = new StringBuilder();
+			
+			for(int i = 0;i < securities.Count;i++)
+			{
+				// name,NameFull, NameId, nameClass, PriceStep, PriceStepCost
+
+				string newSecurity = "";
+				if(securities[i].MasterInstrument.InstrumentType.ToString() != "Future")
+				{
+					newSecurity += securities[i].FullName + "%";
+				}
+				else
+				{
+					if(securities[i].Expiry.Year == 1900)
+					{
+						bool isInArray = false;
+						
+				        for(int i2 = 0;i2 < _loadSecurities.Length;i2++)
+					    {
+					   	    if(_loadSecurities[i2].Split(' ')[0] == securities[i].MasterInstrument.Name)
+							{
+								newSecurity += _loadSecurities[i2] + "%"; 
+								isInArray = true;
+								break;
+							}
+				       	}
+						 
+					     if(isInArray == false)
+						 {
+						     continue;	 
+						 }
+					}
+					else
+					{
+						continue;	
+						//newSecurity += securities[i].FullName + "%";
+					}
+				}
+				
+				newSecurity += securities[i].Id + "%";
+				newSecurity += securities[i].MasterInstrument.InstrumentType + "%";
+				newSecurity += securities[i].MasterInstrument.TickSize + "%";
+				newSecurity += securities[i].MasterInstrument.PointValue + "%";
+				newSecurity += securities[i].Expiry.Month + "-" + securities[i].Expiry.Year + "%";
+				
+				result.Append(newSecurity + "&");
+			}
+			
+			return result.ToString();
+		}
+		
+		/// <summary>
+		/// взять портфели
+		/// </summary>
+		private string GetPortfoliosStringOnStart()
+		{
+		    List<Account> accounts =  Account.All.ToList();
+			
+			StringBuilder result = new StringBuilder();
+			
+			for(int i = 0;i < accounts.Count;i++)
+			{
+				string newAccount = "";
+				newAccount += accounts[i].Name;
+				result.Append(newAccount + "&");
+			}
+			
+			
+			return result.ToString();
+		}
+
+// входящие события		
+		
+		/// <summary>
+		/// Здесь у нас происходит инициализация инструментов
+		/// </summary>
+		protected override void OnStateChange()
+		{
+			if (State == State.SetDefaults)
+			{
+				Description									= @"Enter the description for your new custom Strategy here.";
+				Name										= "OsEngineConnect";
+				Calculate									= Calculate.OnEachTick;
+				EntriesPerDirection							= 1;
+				EntryHandling								= EntryHandling.AllEntries;
+				IsExitOnSessionCloseStrategy				= false;
+				ExitOnSessionCloseSeconds					= 30;
+				IsFillLimitOnTouch							= false;
+				MaximumBarsLookBack							= MaximumBarsLookBack.TwoHundredFiftySix;
+				OrderFillResolution							= OrderFillResolution.Standard;
+				Slippage									= 0;
+				StartBehavior								= StartBehavior.WaitUntilFlat;
+				TimeInForce									= TimeInForce.Gtc;
+				TraceOrders									= false;
+				RealtimeErrorHandling						= RealtimeErrorHandling.StopCancelClose;
+				StopTargetHandling							= StopTargetHandling.PerEntryExecution;
+				BarsRequiredToTrade							= 1;
+			
+				IsUnmanaged = true; // разрешение использовать некотролируемые методы выставления ордеров
+				// Disable this property for performance gains in Strategy Analyzer optimizations
+				// See the Help Guide for additional information
+				IsInstantiatedOnEachOptimizationIteration	= true;
+			}
+			else if(State == State.Active ||State == State.Realtime)
+			{
+				//запускаем поток обслуживающий соединение
+				if(worker == null)
+				{
+                    worker = new Thread(SocketWorkerPlace);
+			        worker.IsBackground = true;
+			        worker.Start();
+				}
+			}
+			else if (State == State.Configure)
+			{
+				try
+				{
+				   for(int i = 0;i < _loadSecurities.Length;i++)
+					    {
+							if(_loadSecurities[i] == "")
+							{
+							    continue;	
+							}
+							
+							AddDataSeries(_loadSecurities[i].Split(',')[0], Data.BarsPeriodType.Minute, 1, Data.MarketDataType.Last);
+				     }
+				}
+				catch(Exception error)
+				{
+					MessageBox.Show(error.ToString());
+				}
+			   
+			}
+			else if (State == State.Terminated ||
+                   State == State.Finalized)
+			{
+				_neadToStopWorker = true;	   
+			}
+		}
+
+		/// <summary>
+		/// изменились ордера в системе
+		/// </summary>
+		protected override void OnOrderUpdate(Cbi.Order order, double limitPrice, double stopPrice, 
+			int quantity, int filled, double averageFillPrice, 
+			Cbi.OrderState orderState, DateTime time, Cbi.ErrorCode error, string comment)
+		{
+			try
+			{
+				if(string.IsNullOrEmpty(order.OrderId))
+				{
+				    return;	
+				}
+				
+				bool isInArray = false;
+				
+				for(int i = 0;i< _myOrders.Count;i++)
+				{
+					if(_myOrders[i].OrderId == order.OrderId)
+					{
+					    isInArray = true;	
+						_myOrders[i] = order;
+						break;
+					}
+				}
+				
+				if(isInArray == false)
+				{
+				 	_myOrders.Add(order);
+				}
+				
+				string orderstr = order.Id + "#"; // номер который ему дал клиент. Хрен. Нет такого фунционала
+				orderstr += order.Id + "#"; // номер на бирже
+				orderstr += order.Instrument.FullName + "#"; // имя инструмента
+				orderstr += order.Quantity + "#"; // весь объём ордера
+				orderstr += order.Filled + "#"; // исполнено
+				orderstr += order.LimitPrice + "#"; // цена ордера
+				orderstr += order.Account.Name + "#"; // портфель
+				
+				if(order.OrderAction == OrderAction.Buy ||
+					order.OrderAction == OrderAction.BuyToCover)
+				{
+					orderstr += "Buy" + "#"; 
+				}
+				else
+				{
+					orderstr += "Sell" + "#"; 
+				}
+				
+				if
+					(order.OrderState == OrderState.Initialized ||
+					order.OrderState == OrderState.Accepted ||
+					order.OrderState == OrderState.Submitted ||
+					order.OrderState == OrderState.Working)
+				{
+					orderstr += "Activ" + "#"; 
+				}
+				else if
+					(order.OrderState == OrderState.Cancelled ||
+					order.OrderState == OrderState.Rejected ||
+					order.OrderState == OrderState.CancelPending ||
+					order.OrderState == OrderState.CancelSubmitted)
+				{
+					orderstr += "Cancel" + "#"; 
+				}
+				else if
+					(order.OrderState == OrderState.PartFilled)
+				{
+					orderstr += "Patrial" + "#"; 
+				}
+				else if
+					(order.OrderState == OrderState.Filled)
+				{
+					orderstr += "Done" + "#"; 
+				}
+				else
+				{
+				    return;	
+				}
+				
+				
+				orderstr += order.Time + "$";
+				
+				_ordersToSend.Enqueue(orderstr);
+			}
+			catch (Exception err)
+			{
+				_errorsToSend.Enqueue(err.Message);
+			}
+		}
+		
+		/// <summary>
+		/// новый наш трейд в системе
+		/// </summary>
+		protected override void OnExecutionUpdate(Cbi.Execution execution, string executionId, double price, int quantity, 
+			Cbi.MarketPosition marketPosition, string orderId, DateTime time)
+		{
+			try
+			{
+				string tradeStr = execution.Instrument.FullName + "#"; // имя инструмента
+				tradeStr += execution.ExecutionId + "#"; // номер на бирже
+				tradeStr += execution.OrderId + "#"; // номер ордера по которому прошла сделка
+				tradeStr += execution.Price + "#"; // цена сведения
+				tradeStr += execution.Quantity + "#"; // объём
+				
+				if(execution.MarketPosition == MarketPosition.Long)
+				{
+					tradeStr += "Buy" + "#";
+				}
+				else
+				{
+					tradeStr += "Sell" + "#";
+				}
+				
+				tradeStr += execution.Time + "$";
+
+				_myTradesToSend.Enqueue(tradeStr);
+			}
+			catch (Exception err)
+			{
+				_errorsToSend.Enqueue(err.Message);
+			}
+		}
+		
+		/// <summary>
+		/// изменилось состояние портфеля
+		/// </summary>
+		protected override void OnAccountItemUpdate(Account account, AccountItem item, double value)
+		{
+		    try
+			{
+				if(item != AccountItem.CashValue)
+				{
+				   return;	
+				}
+				
+				string portfolioStr = account.Name + "#"; // портфель
+	            
+				portfolioStr += value + "$"; // текущее кол-во денег на счёте
+	            
+				_portfolioChangeToSend.Enqueue(portfolioStr);
+			}
+			catch (Exception err)
+			{
+				_errorsToSend.Enqueue(err.Message);
+			}
+		}
+
+	    /// <summary>
+		/// изменилась позиция на рынке
+		/// </summary>
+		protected override void OnPositionUpdate(Cbi.Position position, double averagePrice, 
+			int quantity, Cbi.MarketPosition marketPosition)
+		{		
+			try
+			{
+				string positionstr = position.Instrument.FullName + "#"; // бумага
+	            positionstr += position.Account.Name + "#"; // название портфеля
+				positionstr += position.Quantity + "$"; // текущий объём на рынке
+	            
+				_positionsChangeToSend.Enqueue(positionstr);
+			}
+			catch (Exception err)
+			{
+				_errorsToSend.Enqueue(err.Message);
+			}
+			
+		}
+		
+		/// <summary>
+		/// новые трейды
+		/// </summary>
+		protected override void OnMarketData(MarketDataEventArgs marketDataUpdate)
+		{
+			try
+			{
+				if(marketDataUpdate.Price == 0 ||
+					marketDataUpdate.Volume == 0 ||
+					marketDataUpdate.MarketDataType != MarketDataType.Last)
+				{
+					return;
+				}
+				
+				string trade = marketDataUpdate.Instrument.FullName + "#"; // имя инструмента
+				trade += marketDataUpdate.Price + "#"; // цена
+				trade += marketDataUpdate.Volume + "#"; // объём
+				trade += marketDataUpdate.Time + "$"; // время исполнения
+				
+			    _tradesToSend.Enqueue(trade);
+			}
+			catch (Exception err)
+			{
+				_errorsToSend.Enqueue(err.Message);
+			}
+		}
+
+		/// <summary>
+		/// изменился стакан
+		/// </summary>
+		protected override void OnMarketDepth(MarketDepthEventArgs marketDepthUpdate)
+		{
+			try
+			{
+				if(marketDepthUpdate.MarketDataType != MarketDataType.Ask &&
+					marketDepthUpdate.MarketDataType != MarketDataType.Bid)
+				{
+				    return;	
+				}
+				
+				string marketDepthStr = marketDepthUpdate.Instrument.FullName + "#"; // бумага
+				
+				if(marketDepthUpdate.MarketDataType == MarketDataType.Ask)
+				{
+					marketDepthStr += "Ask" + "#";
+				}
+				else
+				{
+					marketDepthStr += "Bid" + "#";
+				}
+
+				marketDepthStr += marketDepthUpdate.Operation + "#"; // операция
+		        
+				marketDepthStr += marketDepthUpdate.Price + "#"; // цена
+				marketDepthStr += marketDepthUpdate.Volume + "#"; // объём на уровне
+				
+				marketDepthStr += marketDepthUpdate.Time + "$"; // время
+		        
+				_marketDepthsToSend.Enqueue(marketDepthStr);
+			}
+			catch (Exception err)
+			{
+				_errorsToSend.Enqueue(err.Message);
+			}
+						
+		}
+	}
+}

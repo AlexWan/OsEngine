@@ -207,6 +207,7 @@ namespace OsEngine.Entity
                         else if (serverType == ServerType.Plaza ||
                                  serverType == ServerType.QuikDde ||
                                  serverType == ServerType.AstsBridge ||
+                                 serverType == ServerType.NinjaTrader ||
 
                                  (serverType == ServerType.InteractivBrokers
                                   && (series.CandlesAll == null || series.CandlesAll.Count == 0)))

@@ -142,6 +142,7 @@ namespace OsEngine.Market.Servers
             bool krakenIsOn = false;
             bool bitStampIsOn = false;
             bool binanceIsOn = false;
+            bool ninjaIsOn = false;
 
             for (int i = 0; i < _gridSources.Rows.Count; i++)
             {
@@ -154,6 +155,11 @@ namespace OsEngine.Market.Servers
                 if (type == ServerType.Binance)
                 {
                     binanceIsOn = true;
+                }
+
+                if (type == ServerType.NinjaTrader)
+                {
+                    ninjaIsOn = true;
                 }
 
                 if (type == ServerType.BitStamp)
@@ -203,15 +209,6 @@ namespace OsEngine.Market.Servers
                 }
             }
 
-            if (binanceIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.Binance;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
 
             if (quikIsOn == false)
             {
@@ -240,11 +237,38 @@ namespace OsEngine.Market.Servers
                 row1.Cells[1].Value = "Disconnect";
                 _gridSources.Rows.Add(row1);
             }
+            if (ninjaIsOn == false)
+            {
+                DataGridViewRow row1 = new DataGridViewRow();
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[0].Value = ServerType.NinjaTrader;
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[1].Value = "Disconnect";
+                _gridSources.Rows.Add(row1);
+            }
+            if (ibIsOn == false)
+            {
+                DataGridViewRow row1 = new DataGridViewRow();
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[0].Value = ServerType.InteractivBrokers;
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[1].Value = "Disconnect";
+                _gridSources.Rows.Add(row1);
+            }
             if (krakenIsOn == false)
             {
                 DataGridViewRow row1 = new DataGridViewRow();
                 row1.Cells.Add(new DataGridViewTextBoxCell());
                 row1.Cells[0].Value = ServerType.Kraken;
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[1].Value = "Disconnect";
+                _gridSources.Rows.Add(row1);
+            }
+            if (binanceIsOn == false)
+            {
+                DataGridViewRow row1 = new DataGridViewRow();
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[0].Value = ServerType.Binance;
                 row1.Cells.Add(new DataGridViewTextBoxCell());
                 row1.Cells[1].Value = "Disconnect";
                 _gridSources.Rows.Add(row1);
@@ -290,16 +314,6 @@ namespace OsEngine.Market.Servers
                 DataGridViewRow row1 = new DataGridViewRow();
                 row1.Cells.Add(new DataGridViewTextBoxCell());
                 row1.Cells[0].Value = ServerType.AstsBridge;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-
-            if (ibIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.InteractivBrokers;
                 row1.Cells.Add(new DataGridViewTextBoxCell());
                 row1.Cells[1].Value = "Disconnect";
                 _gridSources.Rows.Add(row1);

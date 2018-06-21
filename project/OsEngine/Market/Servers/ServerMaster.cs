@@ -15,6 +15,7 @@ using OsEngine.Market.Servers.BitStamp;
 using OsEngine.Market.Servers.Finam;
 using OsEngine.Market.Servers.InteractivBrokers;
 using OsEngine.Market.Servers.Kraken;
+using OsEngine.Market.Servers.NinjaTrader;
 using OsEngine.Market.Servers.Oanda;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Plaza;
@@ -69,7 +70,7 @@ namespace OsEngine.Market.Servers
         {
             if (StartProgram == ServerStartProgramm.IsTester)
             {
-                ServerMasterUi ui = new ServerMasterUi();
+                
             }
             else
             {
@@ -100,6 +101,21 @@ namespace OsEngine.Market.Servers
                     }
 
                     BinanceServer serv = new BinanceServer(neadLoadTicks);
+                    _servers.Add(serv);
+
+                    if (ServerCreateEvent != null)
+                    {
+                        ServerCreateEvent();
+                    }
+                }
+                if (type == ServerType.NinjaTrader)
+                {
+                    if (_servers.Find(server => server.ServerType == ServerType.NinjaTrader) != null)
+                    {
+                        return;
+                    }
+
+                    NinjaTraderServer serv = new NinjaTraderServer(neadLoadTicks);
                     _servers.Add(serv);
 
                     if (ServerCreateEvent != null)
@@ -629,6 +645,11 @@ namespace OsEngine.Market.Servers
         /// биржа криптовалют Binance
         /// </summary>
         Binance,
+
+        /// <summary>
+        /// нинзя трейдер
+        /// </summary>
+        NinjaTrader,
 
         /// <summary>
         /// биржа криптовалют Kraken

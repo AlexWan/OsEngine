@@ -376,6 +376,11 @@
     <Compile Include="Market\Servers\Kraken\KrakenServerUi.xaml.cs">
       <DependentUpon>KrakenServerUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\Servers\NinjaTrader\NinjaTraderClient.cs" />
+    <Compile Include="Market\Servers\NinjaTrader\NinjaTraderServer.cs" />
+    <Compile Include="Market\Servers\NinjaTrader\NinjaTraderUi.xaml.cs">
+      <DependentUpon>NinjaTraderUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Market\Servers\Oanda\OandaClient.cs" />
     <Compile Include="Market\Servers\Oanda\OandaServer.cs" />
     <Compile Include="Market\Servers\Oanda\OandaServerUi.xaml.cs">
@@ -847,6 +852,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Market\Servers\Kraken\KrakenServerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\NinjaTrader\NinjaTraderUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
