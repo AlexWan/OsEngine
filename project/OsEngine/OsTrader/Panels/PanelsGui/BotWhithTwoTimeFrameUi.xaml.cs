@@ -22,7 +22,7 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
 
         private void ButtonPaint_Click(object sender, RoutedEventArgs e)
         {
-            _painter.Clear();
+            _painter.ClearDataPointsAndSizeValue();
             if (_bot.MergeCandles != null && _bot.MergeCandles.Count != 0)
             {
                 _painter.ProcessCandles(_bot.MergeCandles);

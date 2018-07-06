@@ -702,6 +702,10 @@ namespace OsEngine.Market.Servers.BitMex
                     }
                     else
                     {
+                        if (MainWindow.ProccesIsWorked == false)
+                        {
+                            return;
+                        }
                         Thread.Sleep(1);
                     }
                 }
@@ -907,7 +911,7 @@ namespace OsEngine.Market.Servers.BitMex
                     security.Lot = Convert.ToDecimal(oneBmSec.lotSize);
                     if (oneBmSec.tickSize < 1)
                     {
-                        security.Decimals = Convert.ToString(oneBmSec.tickSize).Split(',')[1].Length;
+                        security.Decimals = Convert.ToString(oneBmSec.tickSize, CultureInfo.InvariantCulture).Split(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator[0])[1].Length;
                     }
                     else
                     {
@@ -1122,7 +1126,7 @@ namespace OsEngine.Market.Servers.BitMex
                 {
                     List<BitMexCandle> allbmcandles = new List<BitMexCandle>();
 
-                    DateTime endTime = DateTime.MinValue;
+                    DateTime endTime;
                     DateTime startTime = DateTime.MinValue;
 
                     _candles = null;
@@ -1257,8 +1261,8 @@ namespace OsEngine.Market.Servers.BitMex
         /// <returns></returns>
         private List<Candle> СandlesBuilder(string security, int tf)
         {
-            List<Candle> candles1M = new List<Candle>();
-            int a = 0;
+            List<Candle> candles1M;
+            int a;
             if (tf >= 10)
             {
                 candles1M = GetCandlesTf(security, "5m", 5);
@@ -2050,7 +2054,15 @@ namespace OsEngine.Market.Servers.BitMex
                     }
 
                     Order order = new Order();
-                    order.NumberUser = Convert.ToInt32(myOrders[i].clOrdID);
+                    try
+                    {
+                        order.NumberUser = Convert.ToInt32(myOrders[i].clOrdID);
+                    }
+                    catch (Exception)
+                    {
+                        continue;
+                    }
+                   
                     order.NumberMarket = myOrders[i].orderID;
                     order.SecurityNameCode = myOrders[i].symbol;
 
@@ -2175,6 +2187,9 @@ namespace OsEngine.Market.Servers.BitMex
                                     osOrder.NumberUser, LogMessageType.Error);
                                 _ordersToCansel.Enqueue(osOrder);
                             }
+                            // отчёт об ордере пришёл. Удаляем ордер из ордеров нужных к проверке
+                            _ordersToCheck.RemoveAt(i);
+                            i--;
                         }
                     }
                 }

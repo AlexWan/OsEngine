@@ -42,7 +42,7 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
             try
             {
 
-                if (Convert.ToInt32(TextBoxVolumeOne.Text) <= 0 ||
+                if (Convert.ToDecimal(TextBoxVolumeOne.Text) <= 0 ||
                     Convert.ToDecimal(WillUp.Text) >= 0 ||
                     Convert.ToDecimal(WillDown.Text) >= 0 ||
                     Convert.ToDecimal(TextBoxSlipage.Text) < 0)
@@ -57,7 +57,7 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
                 return;
             }
 
-            _strategy.VolumeFix = Convert.ToInt32(TextBoxVolumeOne.Text);
+            _strategy.VolumeFix = Convert.ToDecimal(TextBoxVolumeOne.Text);
             _strategy.Slipage = Convert.ToDecimal(TextBoxSlipage.Text);
 
 

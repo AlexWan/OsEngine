@@ -37,7 +37,7 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
         {
             try
             {
-                if (Convert.ToInt32(TextBoxVolumeOne.Text) <= 0 || 
+                if (Convert.ToDecimal(TextBoxVolumeOne.Text) <= 0 || 
                     Convert.ToInt32(RsiUp.Text) <= 0 || 
                     Convert.ToInt32(RsiDown.Text) <= 0 ||
                     Convert.ToDecimal(TextBoxSlipage.Text) < 0 ||
@@ -55,7 +55,7 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
 
             Enum.TryParse(ComboBoxRegime.Text, true, out _strategy.Regime);
             _strategy.Slipage = Convert.ToDecimal(TextBoxSlipage.Text);
-            _strategy.VolumeFix = Convert.ToInt32(TextBoxVolumeOne.Text);
+            _strategy.VolumeFix = Convert.ToDecimal(TextBoxVolumeOne.Text);
             _strategy.Upline.Value = Convert.ToDecimal(RsiUp.Text);
             _strategy.Downline.Value = Convert.ToDecimal(RsiDown.Text);
 

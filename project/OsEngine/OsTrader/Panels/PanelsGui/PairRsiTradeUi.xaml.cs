@@ -31,8 +31,8 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
             try
             {
 
-                if (Convert.ToInt32(TextBoxVolumeOne.Text) <= 0 ||
-                    Convert.ToInt32(TextBoxVolumeTwo.Text) <= 0 ||
+                if (Convert.ToDecimal(TextBoxVolumeOne.Text) <= 0 ||
+                    Convert.ToDecimal(TextBoxVolumeTwo.Text) <= 0 ||
                     Convert.ToInt32(Spread.Text) <=0
                     )
                 {
@@ -46,8 +46,8 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
                 return;
             }
 
-            _strategy.Volume1 = Convert.ToInt32(TextBoxVolumeOne.Text);
-            _strategy.Volume2 = Convert.ToInt32(TextBoxVolumeTwo.Text);
+            _strategy.Volume1 = Convert.ToDecimal(TextBoxVolumeOne.Text);
+            _strategy.Volume2 = Convert.ToDecimal(TextBoxVolumeTwo.Text);
             _strategy.RsiSpread = Convert.ToInt32(Spread.Text);
 
             

@@ -632,7 +632,12 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// конвертер тиков в свечи
         /// </summary>
-        IsOsConverter
+        IsOsConverter,
+
+        /// <summary>
+        /// майнер паттернов
+        /// </summary>
+        IsOsMiner
     }
 
     /// <summary>
@@ -674,6 +679,11 @@ namespace OsEngine.Market.Servers
         /// Оптимизатор
         /// </summary>
         Optimizer,
+
+        /// <summary>
+        /// Майнер
+        /// </summary>
+        Miner,
 
         /// <summary>
         /// Квик луа

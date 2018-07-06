@@ -1,5 +1,5 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -10,11 +10,11 @@ using System.Media;
 using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
-using OsEngine.Entity;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.OsConverter;
 using OsEngine.OsData;
+using OsEngine.OsMiner;
 using OsEngine.OsOptimizer;
 using OsEngine.OsTrader;
 using OsEngine.OsTrader.Panels;
@@ -27,7 +27,7 @@ namespace OsEngine.Logging
     public class Log
     {
 
-// статическая часть с работой потока сохраняющего логи
+        // статическая часть с работой потока сохраняющего логи
 
         /// <summary>
         /// поток 
@@ -82,7 +82,7 @@ namespace OsEngine.Logging
             }
         }
 
-// объект лога
+        // объект лога
 
         /// <summary>
         /// конструктор
@@ -196,6 +196,14 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// начать прослушку сервера майнера
+        /// </summary>
+        public void Listen(OsMinerServer server)
+        {
+            server.LogMessageEvent += ProcessMessage;
+        }
+
+        /// <summary>
         /// начать прослушку оптимизатора
         /// </summary>
         /// <param name="optimizer">оптимизатор</param>
@@ -203,7 +211,7 @@ namespace OsEngine.Logging
         {
             optimizer.LogMessageEvent += ProcessMessage;
         }
-        
+
         /// <summary>
         /// начать прослушку OsData
         /// </summary>
@@ -212,6 +220,16 @@ namespace OsEngine.Logging
         {
             master.NewLogMessageEvent += ProcessMessage;
         }
+
+        /// <summary>
+        /// начать прослушку OsData
+        /// </summary>
+        /// <param name="master"></param>
+        public void Listen(OsMinerMaster master)
+        {
+            master.LogMessageEvent += ProcessMessage;
+        }
+
 
         /// <summary>
         /// начать прослушку хранилища оптимизатора
@@ -339,7 +357,7 @@ namespace OsEngine.Logging
             }
         }
 
- // сохранение сообщений      
+        // сохранение сообщений      
 
         /// <summary>
         /// все сообщения лога
@@ -390,7 +408,7 @@ namespace OsEngine.Logging
 
         }
 
-// рассылка
+        // рассылка
 
         /// <summary>
         /// объект рассылающий сообщения
@@ -405,7 +423,7 @@ namespace OsEngine.Logging
             _messageSender.ShowDialog();
         }
 
-// прорисовка
+        // прорисовка
 
         /// <summary>
         /// начать прорисовку объекта
@@ -415,7 +433,7 @@ namespace OsEngine.Logging
             _host = host;
             if (!_host.CheckAccess())
             {
-                _host.Dispatcher.Invoke(new Action<WindowsFormsHost>(StartPaint),host);
+                _host.Dispatcher.Invoke(new Action<WindowsFormsHost>(StartPaint), host);
                 return;
             }
 
@@ -444,7 +462,7 @@ namespace OsEngine.Logging
         }
 
 
-// общий лог для ошибок
+        // общий лог для ошибок
 
         /// <summary>
         /// таблица для прорисовки сообщений с ошибками

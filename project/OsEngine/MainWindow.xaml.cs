@@ -15,6 +15,7 @@ using OsEngine.Alerts;
 using OsEngine.Market.Servers;
 using OsEngine.OsConverter;
 using OsEngine.OsData;
+using OsEngine.OsMiner;
 using OsEngine.OsOptimizer;
 using OsEngine.OsTrader.Gui;
 
@@ -48,7 +49,7 @@ namespace OsEngine
             Thread.CurrentThread.CurrentCulture = new CultureInfo("ru-RU");
             InitializeComponent();
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-            
+
             try
             {
                 int winVersion = Environment.OSVersion.Version.Major;
@@ -83,9 +84,9 @@ namespace OsEngine
         {
             using (RegistryKey ndpKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32).OpenSubKey("SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full\\"))
             {
-                if(ndpKey == null)
+                if (ndpKey == null)
                 {
-                  return false;
+                    return false;
                 }
                 int releaseKey = Convert.ToInt32(ndpKey.GetValue("Release"));
 
@@ -212,6 +213,25 @@ namespace OsEngine
                 Hide();
                 ServerMaster.StartProgram = ServerStartProgramm.IsOsOptimizer;
                 OptimizerUi ui = new OptimizerUi();
+                ui.ShowDialog();
+                Close();
+                ProccesIsWorked = false;
+                Thread.Sleep(10000);
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.ToString());
+            }
+            Process.GetCurrentProcess().Kill();
+        }
+
+        private void ButtonMiner_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Hide();
+                ServerMaster.StartProgram = ServerStartProgramm.IsOsMiner;
+                OsMinerUi ui = new OsMinerUi();
                 ui.ShowDialog();
                 Close();
                 ProccesIsWorked = false;

@@ -24,7 +24,7 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            _robot.Volume = Convert.ToInt32(VolumeBox.Text);
+            _robot.Volume = Convert.ToDecimal(VolumeBox.Text);
             Close();
         }
     }

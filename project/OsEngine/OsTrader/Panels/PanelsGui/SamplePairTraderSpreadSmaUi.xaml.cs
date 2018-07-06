@@ -56,8 +56,8 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
             _strategy.Slipage2 = Convert.ToDecimal(TextBoxSlipage2.Text);
             Enum.TryParse(ComboBoxRegime.Text, true, out _strategy.Regime);
 
-            _strategy.Volume2 = Convert.ToInt32(TextBoxVolume2.Text);
-            _strategy.Volume1 = Convert.ToInt32(TextBoxVolume1.Text);
+            _strategy.Volume2 = Convert.ToDecimal(TextBoxVolume2.Text);
+            _strategy.Volume1 = Convert.ToDecimal(TextBoxVolume1.Text);
 
             _strategy.Save();
             Close();

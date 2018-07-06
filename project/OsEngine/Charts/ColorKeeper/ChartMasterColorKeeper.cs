@@ -21,6 +21,13 @@ namespace OsEngine.Charts.ColorKeeper
         /// </summary>
         private readonly string _name;
 
+        public ChartColorScheme ColorScheme
+        {
+            get { return _colorScheme; }
+        }
+
+        private ChartColorScheme _colorScheme;
+
         /// <summary>
         /// конструктор
         /// </summary>
@@ -61,7 +68,7 @@ namespace OsEngine.Charts.ColorKeeper
                         ColorText = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
                         Enum.TryParse(reader.ReadLine(), true, out _pointType);
                         _pointSize = Convert.ToInt32(reader.ReadLine());
-                        
+                        Enum.TryParse(reader.ReadLine(), true, out _colorScheme);
                     }
                 }
                 else
@@ -77,6 +84,7 @@ namespace OsEngine.Charts.ColorKeeper
                     ColorBackCursor = Color.DarkOrange;
 
                     ColorText = Color.DimGray;
+                    _colorScheme = ChartColorScheme.Black;
                 }
             }
             catch (Exception error)
@@ -106,6 +114,8 @@ namespace OsEngine.Charts.ColorKeeper
 
                     writer.WriteLine(_pointType);
                     writer.WriteLine(_pointSize);
+
+                    writer.WriteLine(_colorScheme);
                 }
 
                 if (NeedToRePaintFormEvent != null)
@@ -169,6 +179,7 @@ namespace OsEngine.Charts.ColorKeeper
             ColorBackCursor = Color.DarkOrange;
 
             ColorText = Color.DimGray; 
+            _colorScheme = ChartColorScheme.Black;
 
             Save();
 
@@ -196,6 +207,8 @@ namespace OsEngine.Charts.ColorKeeper
             ColorBackCursor = Color.FromArgb(255, 255, 107, 0);
 
             ColorText = Color.Black;
+
+            _colorScheme = ChartColorScheme.White;
 
             Save();
 
@@ -304,5 +317,20 @@ namespace OsEngine.Charts.ColorKeeper
         /// ромб
         /// </summary>
         Romb
+    }
+
+    /// <summary>
+    /// схема раскраски чарта
+    /// </summary>
+    public enum ChartColorScheme
+    {
+        /// <summary>
+        /// чёрная
+        /// </summary>
+        Black,
+        /// <summary>
+        /// белая
+        /// </summary>
+        White
     }
 }

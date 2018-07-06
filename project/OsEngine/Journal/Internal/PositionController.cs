@@ -124,10 +124,13 @@ namespace OsEngine.Journal.Internal
         /// </summary>
         private void Load()
         {
-            if (_typeWork == ConnectorWorkType.Tester)
+            if (ServerMaster.StartProgram == ServerStartProgramm.IsTester ||
+               ServerMaster.StartProgram == ServerStartProgramm.IsOsOptimizer ||
+                ServerMaster.StartProgram == ServerStartProgramm.IsOsMiner)
             {
                 return;
             }
+
             if (!File.Exists(@"Engine\" + _name + @"DealController.txt"))
             {
                 return;
@@ -266,7 +269,9 @@ namespace OsEngine.Journal.Internal
                 return;
             }
 
-            if (ServerMaster.StartProgram == ServerStartProgramm.IsTester)
+            if (ServerMaster.StartProgram == ServerStartProgramm.IsTester ||
+               ServerMaster.StartProgram == ServerStartProgramm.IsOsOptimizer ||
+                ServerMaster.StartProgram == ServerStartProgramm.IsOsMiner)
             {
                 return;
             }

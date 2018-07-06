@@ -65,8 +65,8 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
             Enum.TryParse(ComboBoxRegime.Text, true, out _strategy.Regime);
             _strategy.CountCandles = Convert.ToInt32(TextBoxCandleCount.Text);
 
-            _strategy.Volume2 = Convert.ToInt32(TextBoxVolume2.Text);
-            _strategy.Volume1 = Convert.ToInt32(TextBoxVolume1.Text);
+            _strategy.Volume2 = Convert.ToDecimal(TextBoxVolume2.Text);
+            _strategy.Volume1 = Convert.ToDecimal(TextBoxVolume1.Text);
 
             _strategy.SpreadDeviation = Convert.ToDecimal(TextBoxDivergention.Text);
 

@@ -792,6 +792,11 @@ namespace OsEngine.Market.Servers.Binance
                             {
                                 var order = JsonConvert.DeserializeAnonymousType(mes, new ExecutionReport());
 
+                                if (string.IsNullOrEmpty(order.c))
+                                {
+                                   continue;
+                                }
+
                                 if (order.x == "NEW")
                                 {
                                     Order newOrder = new Order();
@@ -846,6 +851,7 @@ namespace OsEngine.Market.Servers.Binance
                                 }
                                 else if (order.x == "TRADE")
                                 {
+
                                     MyTrade trade = new MyTrade();
                                     trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.T));
                                     trade.NumberOrderParent = order.i.ToString();

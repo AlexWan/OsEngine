@@ -466,6 +466,27 @@
       <DependentUpon>PositionUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Journal\Internal\DealStaticticGenerator.cs" />
+    <Compile Include="OsMiner\OsMinerServer.cs" />
+    <Compile Include="OsMiner\OsMinerMaster.cs" />
+    <Compile Include="OsMiner\OsMinerSet.cs" />
+    <Compile Include="OsMiner\OsMinerSetUi.xaml.cs">
+      <DependentUpon>OsMinerSetUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsMiner\OsMinerUi.xaml.cs">
+      <DependentUpon>OsMinerUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsMiner\Patterns\IPattern.cs" />
+    <Compile Include="OsMiner\Patterns\PatternCandle.cs" />
+    <Compile Include="OsMiner\Patterns\PatternController.cs" />
+    <Compile Include="OsMiner\Patterns\PatternControllerUi.xaml.cs">
+      <DependentUpon>PatternControllerUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsMiner\Patterns\PatternIndicators.cs" />
+    <Compile Include="OsMiner\Patterns\PatternsCreateUi.xaml.cs">
+      <DependentUpon>PatternsCreateUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsMiner\Patterns\PatternTime.cs" />
+    <Compile Include="OsMiner\Patterns\PatternVolume.cs" />
     <Compile Include="OsOptimizer\OptimizerExecutor.cs" />
     <Compile Include="OsOptimizer\OptimizerMaster.cs" />
     <Compile Include="OsOptimizer\OptimizerUi.xaml.cs">
@@ -513,8 +534,8 @@
     <Compile Include="OsTrader\Panels\PanelsGui\BollingerOutburstUi.xaml.cs">
       <DependentUpon>BollingerOutburstUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="OsTrader\Panels\PanelsGui\BollingerStrategyUi.xaml.cs">
-      <DependentUpon>BollingerStrategyUi.xaml</DependentUpon>
+    <Compile Include="OsTrader\Panels\SingleRobots\StrategyBollingerUi.xaml.cs">
+      <DependentUpon>StrategyBollingerUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="OsTrader\Panels\PanelsGui\BollingerTradeUi.xaml.cs">
       <DependentUpon>BollingerTradeUi.xaml</DependentUpon>
@@ -582,6 +603,12 @@
     <Compile Include="OsTrader\Panels\PanelsGui\WilliamsRangeTradeUi.xaml.cs">
       <DependentUpon>WilliamsRangeTradeUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="OsTrader\Panels\SingleRobots\MarketMakerBot.cs" />
+    <Compile Include="OsTrader\Panels\SingleRobots\PatternTrader.cs" />
+    <Compile Include="OsTrader\Panels\SingleRobots\PatternTraderUi.xaml.cs">
+      <DependentUpon>PatternTraderUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\SingleRobots\StrategyBollinger.cs" />
     <Compile Include="OsTrader\Panels\Tab\Internal\BotTabCandleSpreadUi.xaml.cs">
       <DependentUpon>BotTabCandleSpreadUi.xaml</DependentUpon>
     </Compile>
@@ -593,8 +620,8 @@
     </Compile>
     <Compile Include="Journal\Internal\PositionController.cs" />
     <Compile Include="OsTrader\Panels\BotPanel.cs" />
-    <Compile Include="OsTrader\Panels\PanelsGui\SampleFilipLevelUi.xaml.cs">
-      <DependentUpon>SampleFilipLevelUi.xaml</DependentUpon>
+    <Compile Include="OsTrader\Panels\SingleRobots\MarketMakerBotUi.xaml.cs">
+      <DependentUpon>MarketMakerBotUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="OsTrader\Panels\PanelsGui\SamplePairTraderSimpleUi.xaml.cs">
       <DependentUpon>SamplePairTraderSimpleUi.xaml</DependentUpon>
@@ -947,6 +974,22 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="OsMiner\OsMinerSetUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsMiner\OsMinerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsMiner\Patterns\PatternControllerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsMiner\Patterns\PatternsCreateUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="OsOptimizer\OptimizerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -983,7 +1026,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="OsTrader\Panels\PanelsGui\BollingerStrategyUi.xaml">
+    <Page Include="OsTrader\Panels\SingleRobots\StrategyBollingerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -1075,6 +1118,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="OsTrader\Panels\SingleRobots\PatternTraderUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="OsTrader\Panels\Tab\Internal\BotTabCandleSpreadUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -1087,7 +1134,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="OsTrader\Panels\PanelsGui\SampleFilipLevelUi.xaml">
+    <Page Include="OsTrader\Panels\SingleRobots\MarketMakerBotUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -1209,7 +1256,9 @@
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </COMReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="OsTrader\Panels\SingleRobots\1readme.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

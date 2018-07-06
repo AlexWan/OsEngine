@@ -14,6 +14,7 @@ using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels.PanelsGui;
+using OsEngine.OsTrader.Panels.SingleRobots;
 using OsEngine.OsTrader.Panels.Tab;
 using MessageBox = System.Windows.MessageBox;
 
@@ -29,11 +30,14 @@ namespace OsEngine.OsTrader.Panels
             // публичные примеры
            
             result.Add("Engine");
-            result.Add("MarketDepthJuggler");
+            result.Add("PatternTrader");
+            result.Add("HighFrequencyTrader");
+            result.Add("MarketMakerBot");
+            result.Add("PivotPointsRobot");
+            result.Add("TwoLegArbitrage");
             result.Add("TwoTimeFrameBot");
             result.Add("Bollinger");
             result.Add("Williams Band");
-            result.Add("FilippLevel");
             result.Add("Levermor");
             result.Add("PairTraderSimple");
             result.Add("RsiTrade");
@@ -52,8 +56,6 @@ namespace OsEngine.OsTrader.Panels
             result.Add("MomentumMACD");
             result.Add("PinBarTrade");
             result.Add("PairRsiTrade");
-            result.Add("PivotPointsRobot");
-            result.Add("TwoLegArbitrage");
             result.Add("OneLegArbitration");
             result.Add("ThreeSoldier");
             result.Add("BollingerOutburst");
@@ -76,9 +78,14 @@ namespace OsEngine.OsTrader.Panels
 
             BotPanel bot = null;
             // примеры и бесплатные боты
-            if (nameClass == "MarketDepthJuggler")
+
+            if (nameClass == "PatternTrader")
             {
-                bot = new MarketDepthJuggler(name);
+                bot = new PatternTrader(name);
+            }
+            if (nameClass == "HighFrequencyTrader")
+            {
+                bot = new HighFrequencyTrader(name);
             }
             if (nameClass == "TwoTimeFrameBot")
             {
@@ -100,9 +107,9 @@ namespace OsEngine.OsTrader.Panels
             {
                 bot = new StrategyLevermor(name);
             }
-            if (nameClass == "FilippLevel")
+            if (nameClass == "MarketMakerBot")
             {
-                bot = new FilippLevel(name);
+                bot = new MarketMakerBot(name);
             }
             if (nameClass == "Bollinger")
             {
@@ -230,7 +237,7 @@ namespace OsEngine.OsTrader.Panels
     /// <summary>
     /// робот анализирующий плотность стакана для входа
     /// </summary>
-    public class MarketDepthJuggler : BotPanel
+    public class HighFrequencyTrader : BotPanel // бывший MarketDepthJuggler
     {
         
         //выставляем заявки над самыми толстыми покупками и продажами. 
@@ -241,7 +248,7 @@ namespace OsEngine.OsTrader.Panels
         //На нашем Ютуб канале есть видео о том как я делаю этого бота:https://www.youtube.com/playlist?list=PL76DtREkiCATe28yPbAT_5em1JqA4xEiB
         //Однако там не всё сделано, т.к. я кое-что доработал для реальной торговли
 
-        public MarketDepthJuggler(string name)
+        public HighFrequencyTrader(string name)
             : base(name)
         {
             TabCreate(BotTabType.Simple);
@@ -301,7 +308,7 @@ namespace OsEngine.OsTrader.Panels
 
         public override string GetNameStrategyType()
         {
-            return "MarketDepthJuggler";
+            return "HighFrequencyTrader";
         }
 
         public override void ShowIndividualSettingsDialog()
@@ -516,7 +523,6 @@ namespace OsEngine.OsTrader.Panels
             }
         }
     }
-
 
     /// <summary>
     /// трендовая стратегия Билла Вильямса на Аллигаторе и фракталах
@@ -1597,7 +1603,7 @@ namespace OsEngine.OsTrader.Panels
     {
         private BotTabSimple _tab;
         private Bollinger _bol;
-        public int Volume;
+        public decimal Volume;
 
         public override string GetNameStrategyType()
         {
@@ -1884,7 +1890,7 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// фиксированный объем для входа позицию
         /// </summary>
-        public int VolumeFix;
+        public decimal VolumeFix;
 
         /// <summary>
         /// режим работы
@@ -1928,7 +1934,7 @@ namespace OsEngine.OsTrader.Panels
                 {
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
                     Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToInt32(reader.ReadLine());
+                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
                     reader.Close();
                 }
             }
@@ -2152,7 +2158,7 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// фиксированный объем для входа позицию
         /// </summary>
-        public int VolumeFix;
+        public decimal VolumeFix;
 
         /// <summary>
         /// режим работы
@@ -2201,7 +2207,7 @@ namespace OsEngine.OsTrader.Panels
                 {
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
                     Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToInt32(reader.ReadLine());
+                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
                     HeightSoldiers = Convert.ToInt32(reader.ReadLine());
                     MinHeightSoldier = Convert.ToInt32(reader.ReadLine());
                     ProcHeightTake = Convert.ToInt32(reader.ReadLine());
@@ -2400,7 +2406,7 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// фиксированный объем для входа позицию
         /// </summary>
-        public int VolumeFix;
+        public decimal VolumeFix;
 
         /// <summary>
         /// режим работы
@@ -2444,7 +2450,7 @@ namespace OsEngine.OsTrader.Panels
                 {
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
                     Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToInt32(reader.ReadLine());
+                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
                     reader.Close();
                 }
             }
@@ -2651,7 +2657,7 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// фиксированный объем для входа позицию
         /// </summary>
-        public int VolumeFix;
+        public decimal VolumeFix;
 
         /// <summary>
         /// режим работы
@@ -2695,7 +2701,7 @@ namespace OsEngine.OsTrader.Panels
                 {
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
                     Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToInt32(reader.ReadLine());
+                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
                     reader.Close();
                 }
             }
@@ -2912,12 +2918,12 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// фиксированный объем для входа в первую позицию
         /// </summary>
-        public int VolumeFix1;
+        public decimal VolumeFix1;
 
         /// <summary>
         /// фиксированный объем для входа во вторую позицию
         /// </summary>
-        public int VolumeFix2;
+        public decimal VolumeFix2;
 
         /// <summary>
         /// коэффициент ATR
@@ -2971,8 +2977,8 @@ namespace OsEngine.OsTrader.Panels
                 {
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
                     Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix1 = Convert.ToInt32(reader.ReadLine());
-                    VolumeFix2 = Convert.ToInt32(reader.ReadLine());
+                    VolumeFix1 = Convert.ToDecimal(reader.ReadLine());
+                    VolumeFix2 = Convert.ToDecimal(reader.ReadLine());
                     LengthAtr = Convert.ToInt32(reader.ReadLine());
                     KofAtr= Convert.ToDecimal(reader.ReadLine());
                     LengthUp = Convert.ToInt32(reader.ReadLine());
@@ -3263,7 +3269,7 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// фиксированный объем для входа
         /// </summary>
-        public int VolumeFix;
+        public decimal VolumeFix;
 
         /// <summary>
         /// режим работы
@@ -3320,7 +3326,7 @@ namespace OsEngine.OsTrader.Panels
                 {
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
                     Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToInt32(reader.ReadLine());
+                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
                     Upline.Value = Convert.ToDecimal(reader.ReadLine());
                     Downline.Value = Convert.ToDecimal(reader.ReadLine());
                     reader.Close();
@@ -3477,647 +3483,6 @@ namespace OsEngine.OsTrader.Panels
         public override void ShowIndividualSettingsDialog()
         {
             MessageBox.Show("У данной стратегии нет настроек. Это ж привод и сам он ничего не делает.");
-        }
-    }
-
-    /// <summary>
-    /// стратегия основанная на линиях боллинджера
-    /// </summary>
-    public class StrategyBollinger : BotPanel
-    {
-
-        /// <summary>
-        /// конструктор
-        /// </summary>
-        public StrategyBollinger(string name)
-            : base(name)
-        {
-            TabCreate(BotTabType.Simple);
-            _tab = TabsSimple[0];
-
-            _bollinger = new Bollinger(name + "Bollinger", false);
-            _bollinger = (Bollinger)_tab.CreateCandleIndicator(_bollinger, "Prime");
-            _bollinger.Save();
-
-            _moving = new MovingAverage(name + "Moving", false) { Lenght = 15 };
-            _moving = (MovingAverage)_tab.CreateCandleIndicator(_moving, "Prime");
-            _moving.Save();
-
-            _tab.CandleFinishedEvent += Bot_CandleFinishedEvent;
-
-            Slipage = 0;
-            Volume = 1;
-            Regime = BotTradeRegime.On;
-
-            DeleteEvent += Strategy_DeleteEvent;
-
-            Load();
-        }
-
-        /// <summary>
-        /// взять уникальное имя стратегии
-        /// </summary>
-        public override string GetNameStrategyType()
-        {
-            return "Bollinger";
-        }
-
-        /// <summary>
-        /// показать окно настроек
-        /// </summary>
-        public override void ShowIndividualSettingsDialog()
-        {
-            BollingerStrategyUi ui = new BollingerStrategyUi(this);
-            ui.ShowDialog();
-        }
-
-        /// <summary>
-        /// вкладка через которую ведётся торговля
-        /// </summary>
-        private BotTabSimple _tab;
-
-        // индикаторы
-
-        /// <summary>
-        /// боллиндер
-        /// </summary>
-        private Bollinger _bollinger;
-
-        /// <summary>
-        /// мувинг
-        /// </summary>
-        private MovingAverage _moving;
-
-        // настройки публичные
-
-        /// <summary>
-        /// проскальзывание
-        /// </summary>
-        public decimal Slipage;
-
-        /// <summary>
-        /// объём входа
-        /// </summary>
-        public int Volume;
-
-        /// <summary>
-        /// режим работы
-        /// </summary>
-        public BotTradeRegime Regime;
-
-        /// <summary>
-        /// сохранить настройки
-        /// </summary>
-        public void Save()
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt", false)
-                    )
-                {
-                    writer.WriteLine(Slipage);
-                    writer.WriteLine(Volume);
-                    writer.WriteLine(Regime);
-                    writer.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // отправить в лог
-            }
-        }
-
-        /// <summary>
-        /// загрузить настройки
-        /// </summary>
-        private void Load()
-        {
-            if (!File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-            {
-                return;
-            }
-            try
-            {
-                using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-                {
-                    Slipage = Convert.ToDecimal(reader.ReadLine());
-                    Volume = Convert.ToInt32(reader.ReadLine());
-                    Enum.TryParse(reader.ReadLine(), true, out Regime);
-                    reader.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // отправить в лог
-            }
-        }
-
-        /// <summary>
-        /// удаление файла с сохранением
-        /// </summary>
-        void Strategy_DeleteEvent()
-        {
-            if (File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-            {
-                File.Delete(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt");
-            }
-        }
-
-        // логика
-
-        /// <summary>
-        /// событие завершения свечи
-        /// </summary>
-        private void Bot_CandleFinishedEvent(List<Candle> candles)
-        {
-
-            // берём значения из инидикаторов.
-            if (Regime == BotTradeRegime.Off)
-            {
-                return;
-            }
-
-            if (!(ServerMaster.StartProgram == ServerStartProgramm.IsTester)
-                && DateTime.Now.Hour < 10)
-            {
-                return;
-            }
-
-            if (_bollinger.ValuesUp == null ||
-                _bollinger.ValuesUp.Count == 0 ||
-                _bollinger.ValuesUp.Count < candles.Count ||
-                _moving.Values.Count < candles.Count)
-            {
-                return;
-            }
-
-            // распределяем логику в зависимости от текущей позиции
-
-            List<Position> openPosition = _tab.PositionsOpenAll;
-
-            if (openPosition != null && openPosition.Count != 0
-                && candles[candles.Count - 1].TimeStart.Hour <= 18)
-            {
-                for (int i = 0; i < openPosition.Count; i++)
-                {
-                    LogicClosePosition(openPosition[i], candles);
-                }
-            }
-
-            if (Regime == BotTradeRegime.OnlyClosePosition)
-            {
-                return;
-            }
-
-            if (openPosition == null || openPosition.Count == 0
-                && candles[candles.Count - 1].TimeStart.Hour >= 11
-                && candles[candles.Count - 1].TimeStart.Hour <= 18)
-            {
-                LogicOpenPosition(candles);
-            }
-        }
-
-        /// <summary>
-        /// логика открытия позиции
-        /// </summary>
-        /// <param name="candles"></param>
-        private void LogicOpenPosition(List<Candle> candles)
-        {
-            decimal bollingerUpLast = _bollinger.ValuesUp[_bollinger.ValuesUp.Count - 1];
-
-            decimal bollingerDownLast = _bollinger.ValuesDown[_bollinger.ValuesDown.Count - 1];
-
-            if (bollingerUpLast == 0 ||
-                bollingerDownLast == 0)
-            {
-                return;
-            }
-
-            decimal close = candles[candles.Count - 1].Close;
-
-            if (close > bollingerUpLast
-                && Regime != BotTradeRegime.OnlyLong)
-            {
-                _tab.SellAtLimit(Volume, close - Slipage);
-            }
-
-            if (close < bollingerDownLast
-                && Regime != BotTradeRegime.OnlyShort)
-            {
-                _tab.BuyAtLimit(Volume, close + Slipage);
-            }
-        }
-
-        /// <summary>
-        /// логика закрытия позиции
-        /// </summary>
-        private void LogicClosePosition(Position position, List<Candle> candles)
-        {
-            if (position.State == PositionStateType.Closing)
-            {
-                return;
-            }
-            decimal moving = _moving.Values[_moving.Values.Count - 1];
-
-            decimal lastClose = candles[candles.Count - 1].Close;
-
-            if (position.Direction == Side.Buy)
-            {
-                if (lastClose > moving)
-                {
-                    _tab.CloseAtLimit(position, lastClose - Slipage, position.OpenVolume);
-                }
-            }
-
-            if (position.Direction == Side.Sell)
-            {
-                if (lastClose < moving)
-                {
-                    _tab.CloseAtLimit(position, lastClose + Slipage, position.OpenVolume);
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// стратегия реализующая набор котртрендовой позиции по линиям
-    /// </summary>
-    public class FilippLevel : BotPanel
-    {
-        /// <summary>
-        /// конструктор
-        /// </summary>
-        public FilippLevel(string name)
-            : base(name)
-        {
-            TabCreate(BotTabType.Simple);
-            _tab = TabsSimple[0];
-
-            Regime = BotTradeRegime.On;
-            PersentToSpreadLines = 0.5m;
-            Volume = 1;
-
-            Load();
-
-            _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
-
-            DeleteEvent += Strategy_DeleteEvent;
-        }
-
-        /// <summary>
-        /// переопределённый метод, позволяющий менеджеру ботов определять что за робот перед ним
-        /// </summary>
-        /// <returns>название стратегии</returns>
-        public override string GetNameStrategyType()
-        {
-            return "FilippLevel";
-        }
-
-        /// <summary>
-        /// показать окно настроек
-        /// </summary>
-        public override void ShowIndividualSettingsDialog()
-        {
-            FilipLevelUi ui = new FilipLevelUi(this);
-            ui.ShowDialog();
-        }
-
-        /// <summary>
-        /// вкладка через которую ведётся торговля
-        /// </summary>
-        private BotTabSimple _tab;
-
-        // настройки стандартные
-
-        /// <summary>
-        /// режим работы робота
-        /// </summary>
-        public BotTradeRegime Regime;
-
-        /// <summary>
-        /// объём исполняемый в одной сделке
-        /// </summary>
-        public decimal Volume;
-
-        /// <summary>
-        /// расстояние между линиями в %
-        /// </summary>
-        public decimal PersentToSpreadLines;
-
-        /// <summary>
-        /// нужно ли прорисовывать линии
-        /// </summary>
-        public bool PaintOn;
-
-        /// <summary>
-        /// сохранить публичные настройки
-        /// </summary>
-        public void Save()
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt", false)
-                    )
-                {
-                    writer.WriteLine(Regime);
-                    writer.WriteLine(Volume);
-                    writer.WriteLine(PersentToSpreadLines);
-                    writer.WriteLine(PaintOn);
-                    writer.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // отправить в лог
-            }
-        }
-
-        /// <summary>
-        /// загрузить публичные настройки из файла
-        /// </summary>
-        private void Load()
-        {
-            if (!File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-            {
-                return;
-            }
-            try
-            {
-                using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-                {
-                    Enum.TryParse(reader.ReadLine(), true, out Regime);
-                    Volume = Convert.ToDecimal(reader.ReadLine());
-                    PersentToSpreadLines = Convert.ToDecimal(reader.ReadLine());
-                    PaintOn = Convert.ToBoolean(reader.ReadLine());
-                    reader.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // отправить в лог
-            }
-        }
-
-        /// <summary>
-        /// удаление файла с сохранением
-        /// </summary>
-        void Strategy_DeleteEvent()
-        {
-            if (File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-            {
-                File.Delete(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt");
-            }
-        }
-
-        // переменные, нужные для торговли
-
-        private DateTime _lastReloadLineTime = DateTime.MinValue;
-
-        private List<decimal> _lines;
-
-        private List<LineHorisontal> _lineElements;
-
-        // логика
-
-        /// <summary>
-        /// событие завершения свечи
-        /// </summary>
-        private void Strateg_CandleFinishedEvent(List<Candle> candles)
-        {
-            if (Regime == BotTradeRegime.Off)
-            {
-                ClearLines();
-                return;
-            }
-
-            if (candles.Count < 2)
-            {
-                return;
-            }
-
-            // распределяем логику в зависимости от текущей позиции
-
-            List<Position> openPosition = _tab.PositionsOpenAll;
-
-            if (candles[candles.Count - 1].TimeStart.DayOfWeek == DayOfWeek.Friday &&
-             candles[candles.Count - 1].TimeStart.Hour >= 18)
-            {// если у нас пятница вечер
-                if (openPosition != null && openPosition.Count != 0)
-                {
-                    _tab.CloseAllAtMarket();
-                }
-                return;
-            }
-
-            if (_lastReloadLineTime == DateTime.MinValue ||
-                candles[candles.Count - 1].TimeStart.DayOfWeek == DayOfWeek.Monday &&
-                candles[candles.Count - 1].TimeStart.Hour < 11 &&
-                _lastReloadLineTime.Day != candles[candles.Count - 1].TimeStart.Day)
-            {// если у нас понедельник утро
-                _lastReloadLineTime = candles[candles.Count - 1].TimeStart;
-                ReloadLines(candles);
-            }
-
-            if (PaintOn)
-            {
-                RepaintLines();
-            }
-            else
-            {
-                ClearLines();
-            }
-
-            if (Regime == BotTradeRegime.OnlyClosePosition)
-            {
-                // если у бота включен режим "только закрытие"
-                return;
-            }
-
-            LogicOpenPosition(candles);
-
-        }
-
-        /// <summary>
-        /// перезагрузить линии
-        /// </summary>
-        private void ReloadLines(List<Candle> candles)
-        {
-            _lines = new List<decimal>();
-
-            // клоз это линия номер ноль и по 30 штук вверх и вниз
-
-            _lines.Add(candles[candles.Count - 1].Close);
-
-            decimal concateValue = candles[candles.Count - 1].Close / 100 * PersentToSpreadLines;
-
-            // считаем 30 вниз
-
-            for (int i = 1; i < 21; i++)
-            {
-                _lines.Add(candles[candles.Count - 1].Close - concateValue * i);
-            }
-
-            // считаем 30 вверх
-
-            for (int i = 1; i < 21; i++)
-            {
-                _lines.Insert(0, candles[candles.Count - 1].Close + concateValue * i);
-            }
-        }
-
-        /// <summary>
-        /// перерисовать линии
-        /// </summary>
-        private void RepaintLines()
-        {
-            if (_lineElements == null ||
-                _lines.Count != _lineElements.Count)
-            { // нужно полностью перерисовать
-                _lineElements = new List<LineHorisontal>();
-
-                for (int i = 0; i < _lines.Count; i++)
-                {
-                    _lineElements.Add(new LineHorisontal(NameStrategyUniq + "Line" + i, "Prime", false) { Value = _lines[i] });
-                    _tab.SetChartElement(_lineElements[i]);
-                }
-            }
-            else
-            { // надо проверить уровни линиий, и несовпадающие перерисовать
-                for (int i = 0; i < _lineElements.Count; i++)
-                {
-                    if (_lineElements[i].Value != _lines[i])
-                    {
-                        _lineElements[i].Value = _lines[i];
-                    }
-                    _lineElements[i].Refresh();
-                }
-            }
-        }
-
-        /// <summary>
-        /// очистить линии с графика
-        /// </summary>
-        private void ClearLines()
-        {
-            if (_lineElements == null ||
-                _lineElements.Count == 0)
-            {
-                return;
-            }
-
-            for (int i = 0; i < _lineElements.Count; i++)
-            {
-                _lineElements[i].Delete();
-            }
-        }
-
-        /// <summary>
-        /// логика торговли
-        /// </summary>
-        /// <param name="candles"></param>
-        private void LogicOpenPosition(List<Candle> candles)
-        {
-            if (_lines == null ||
-                _lines.Count == 0)
-            {
-                return;
-            }
-            // 1 выясняем каким объёмом и в какую сторону нам надо заходить
-            decimal totalDeal = 0;
-
-            decimal lastPrice = candles[candles.Count - 2].Close;
-            decimal nowPrice = candles[candles.Count - 1].Close;
-
-            for (int i = 0; i < _lines.Count; i++)
-            {
-                if (lastPrice < _lines[i] &&
-                    nowPrice > _lines[i])
-                { // пробой снизу вверх
-                    totalDeal--;
-                }
-
-                if (lastPrice > _lines[i] &&
-                    nowPrice < _lines[i])
-                { // пробой сверху вниз
-                    totalDeal++;
-                }
-            }
-
-            if (totalDeal == 0)
-            {
-                return;
-            }
-
-            // 2 заходим в нужную сторону
-
-            if (totalDeal > 0)
-            { // нужно лонговать
-                List<Position> positionsShort = _tab.PositionOpenShort;
-
-                if (positionsShort != null && positionsShort.Count != 0)
-                {
-                    if (positionsShort[0].OpenVolume <= totalDeal)
-                    {
-                        _tab.CloseAtMarket(positionsShort[0], positionsShort[0].OpenVolume);
-                        totalDeal -= positionsShort[0].OpenVolume;
-                    }
-                    else
-                    {
-                        _tab.CloseAtMarket(positionsShort[0], totalDeal);
-                        totalDeal = 0;
-                    }
-                }
-
-                if (totalDeal > 0 && totalDeal != 0)
-                {
-                    List<Position> positionsLong = _tab.PositionOpenLong;
-
-                    if (positionsLong != null && positionsLong.Count != 0)
-                    {
-                        _tab.BuyAtMarketToPosition(positionsLong[0], totalDeal);
-                    }
-                    else
-                    {
-                        _tab.BuyAtMarket(totalDeal);
-                    }
-                }
-            }
-
-            if (totalDeal < 0)
-            {
-                // нужно шортить
-                totalDeal = Math.Abs(totalDeal);
-
-                List<Position> positionsLong = _tab.PositionOpenLong;
-
-                if (positionsLong != null && positionsLong.Count != 0)
-                {
-                    if (positionsLong[0].OpenVolume <= totalDeal)
-                    {
-                        _tab.CloseAtMarket(positionsLong[0], positionsLong[0].OpenVolume);
-                        totalDeal -= positionsLong[0].OpenVolume;
-                    }
-                    else
-                    {
-                        _tab.CloseAtMarket(positionsLong[0], totalDeal);
-                        totalDeal = 0;
-                    }
-                }
-
-                if (totalDeal > 0)
-                {
-                    List<Position> positionsShort = _tab.PositionOpenShort;
-
-                    if (positionsShort != null && positionsShort.Count != 0)
-                    {
-                        _tab.SellAtMarketToPosition(positionsShort[0], totalDeal);
-                    }
-                    else
-                    {
-                        _tab.SellAtMarket(totalDeal);
-                    }
-                }
-            }
         }
     }
 
@@ -4646,8 +4011,8 @@ namespace OsEngine.OsTrader.Panels
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
-                    Volume1 = Convert.ToInt32(reader.ReadLine());
-                    Volume2 = Convert.ToInt32(reader.ReadLine());
+                    Volume1 = Convert.ToDecimal(reader.ReadLine());
+                    Volume2 = Convert.ToDecimal(reader.ReadLine());
 
                     Slipage1 = Convert.ToDecimal(reader.ReadLine());
                     Slipage2 = Convert.ToDecimal(reader.ReadLine());
@@ -4683,12 +4048,12 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// объём первого инструмента
         /// </summary>
-        public int Volume1;
+        public decimal Volume1;
 
         /// <summary>
         /// объём второго инструмента
         /// </summary>
-        public int Volume2;
+        public decimal Volume2;
 
         /// <summary>
         /// проскальзоывание для первого инструмента
@@ -5009,7 +4374,7 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// фиксированный объем для входа
         /// </summary>
-        public int VolumeFix;
+        public decimal VolumeFix;
 
         /// <summary>
         /// режим работы
@@ -5065,7 +4430,7 @@ namespace OsEngine.OsTrader.Panels
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
                     Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToInt32(reader.ReadLine());
+                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
                     Upline.Value = Convert.ToDecimal(reader.ReadLine());
                     Downline.Value = Convert.ToDecimal(reader.ReadLine());
@@ -5258,8 +4623,6 @@ namespace OsEngine.OsTrader.Panels
             DeleteEvent += Strategy_DeleteEvent;
         }
 
-
-
         /// <summary>
         /// взять уникальное имя
         /// </summary>
@@ -5307,13 +4670,12 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// фиксированный объем для входа
         /// </summary>
-        public int VolumeFix;
+        public decimal VolumeFix;
 
         /// <summary>
         /// режим работы
         /// </summary>
         public BotTradeRegime Regime;
-
 
         /// <summary>
         /// сохранить настройки
@@ -5354,7 +4716,7 @@ namespace OsEngine.OsTrader.Panels
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
                     Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToInt32(reader.ReadLine());
+                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
                     Upline.Value = Convert.ToDecimal(reader.ReadLine());
                     Downline.Value = Convert.ToDecimal(reader.ReadLine());
@@ -5555,7 +4917,7 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// фиксированный объем для входа
         /// </summary>
-        public int VolumeFix;
+        public decimal VolumeFix;
 
         /// <summary>
         /// режим работы
@@ -5599,7 +4961,7 @@ namespace OsEngine.OsTrader.Panels
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
                     Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToInt32(reader.ReadLine());
+                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
 
                     reader.Close();
@@ -5803,7 +5165,7 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// фиксированный объем для входа
         /// </summary>
-        public int VolumeFix;
+        public decimal VolumeFix;
 
         /// <summary>
         /// режим работы
@@ -5848,7 +5210,7 @@ namespace OsEngine.OsTrader.Panels
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
                     Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToInt32(reader.ReadLine());
+                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
                     Step = Convert.ToDecimal(reader.ReadLine());
 
@@ -6073,7 +5435,7 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// фиксированный объем для входа
         /// </summary>
-        public int VolumeFix;
+        public decimal VolumeFix;
 
         /// <summary>
         /// режим работы
@@ -6119,7 +5481,7 @@ namespace OsEngine.OsTrader.Panels
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
                     Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToInt32(reader.ReadLine());
+                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
                     Upline.Value = Convert.ToDecimal(reader.ReadLine());
                     Downline.Value = Convert.ToDecimal(reader.ReadLine());
@@ -6319,7 +5681,7 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// фиксированный объем для входа
         /// </summary>
-        public int VolumeFix;
+        public decimal VolumeFix;
 
         /// <summary>
         /// режим работы
@@ -6364,7 +5726,7 @@ namespace OsEngine.OsTrader.Panels
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
                     Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToInt32(reader.ReadLine());
+                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
 
 
@@ -6561,7 +5923,7 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// фиксированный объем для входа
         /// </summary>
-        public int VolumeFix;
+        public decimal VolumeFix;
 
         /// <summary>
         /// режим работы
@@ -6605,7 +5967,7 @@ namespace OsEngine.OsTrader.Panels
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
                     Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToInt32(reader.ReadLine());
+                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
 
 
@@ -6770,8 +6132,6 @@ namespace OsEngine.OsTrader.Panels
             DeleteEvent += Strategy_DeleteEvent;
         }
 
-
-
         /// <summary>
         /// взять уникальное имя
         /// </summary>
@@ -6819,7 +6179,7 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// фиксированный объем для входа
         /// </summary>
-        public int VolumeFix;
+        public decimal VolumeFix;
 
         /// <summary>
         /// режим работы
@@ -6864,7 +6224,7 @@ namespace OsEngine.OsTrader.Panels
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
                     Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToInt32(reader.ReadLine());
+                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
                     Step = Convert.ToDecimal(reader.ReadLine());
 
@@ -7057,7 +6417,7 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// фиксированный объем для входа
         /// </summary>
-        public int VolumeFix;
+        public decimal VolumeFix;
 
         /// <summary>
         /// режим работы
@@ -7101,7 +6461,7 @@ namespace OsEngine.OsTrader.Panels
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
                     Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToInt32(reader.ReadLine());
+                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
 
 
@@ -7323,7 +6683,7 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// фиксированный объем для входа
         /// </summary>
-        public int VolumeFix;
+        public decimal VolumeFix;
 
         /// <summary>
         /// режим работы
@@ -7369,7 +6729,7 @@ namespace OsEngine.OsTrader.Panels
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
                     Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToInt32(reader.ReadLine());
+                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
                     Upline.Value = Convert.ToDecimal(reader.ReadLine());
                     Downline.Value = Convert.ToDecimal(reader.ReadLine());
@@ -7578,7 +6938,7 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// фиксированный объем для входа
         /// </summary>
-        public int VolumeFix;
+        public decimal VolumeFix;
 
 
         /// <summary>
@@ -7625,7 +6985,7 @@ namespace OsEngine.OsTrader.Panels
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
                     Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToInt32(reader.ReadLine());
+                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
                     TrailStop = Convert.ToDecimal(reader.ReadLine());
                     Step = Convert.ToDecimal(reader.ReadLine());
@@ -7843,7 +7203,7 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// фиксированный объем для входа
         /// </summary>
-        public int VolumeFix;
+        public decimal VolumeFix;
 
 
         /// <summary>
@@ -7891,7 +7251,7 @@ namespace OsEngine.OsTrader.Panels
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
                     Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToInt32(reader.ReadLine());
+                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
                     Upline = Convert.ToDecimal(reader.ReadLine());
                     Downline = Convert.ToDecimal(reader.ReadLine());
@@ -8090,7 +7450,7 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// фиксированный объем для входа
         /// </summary>
-        public int VolumeFix;
+        public decimal VolumeFix;
 
 
         /// <summary>
@@ -8135,7 +7495,7 @@ namespace OsEngine.OsTrader.Panels
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
                     Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToInt32(reader.ReadLine());
+                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
 
 
@@ -8330,7 +7690,7 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// фиксированный объем для входа
         /// </summary>
-        public int VolumeFix;
+        public decimal VolumeFix;
 
 
         /// <summary>
@@ -8375,7 +7735,7 @@ namespace OsEngine.OsTrader.Panels
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
                     Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToInt32(reader.ReadLine());
+                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
 
 
@@ -8606,8 +7966,8 @@ namespace OsEngine.OsTrader.Panels
             {
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
-                    Volume1 = Convert.ToInt32(reader.ReadLine());
-                    Volume2 = Convert.ToInt32(reader.ReadLine());
+                    Volume1 = Convert.ToDecimal(reader.ReadLine());
+                    Volume2 = Convert.ToDecimal(reader.ReadLine());
                     RsiSpread = Convert.ToInt32(reader.ReadLine());
 
 
@@ -8641,12 +8001,12 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// объём первого инструмента
         /// </summary>
-        public int Volume1;
+        public decimal Volume1;
 
         /// <summary>
         /// объём второго инструмента
         /// </summary>
-        public int Volume2;
+        public decimal Volume2;
 
         /// <summary>
         /// вкладка с первым инструметом
@@ -8854,7 +8214,7 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// фиксированный объем для входа
         /// </summary>
-        public int VolumeFix;
+        public decimal VolumeFix;
 
         /// <summary>
         /// режим работы
@@ -8899,7 +8259,7 @@ namespace OsEngine.OsTrader.Panels
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
                     Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToInt32(reader.ReadLine());
+                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
                     Stop = Convert.ToDecimal(reader.ReadLine());
 

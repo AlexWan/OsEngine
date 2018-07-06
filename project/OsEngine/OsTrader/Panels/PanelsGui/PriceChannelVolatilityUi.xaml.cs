@@ -41,8 +41,8 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
             try
             {
 
-                if (Convert.ToInt32(TextBoxVolumeOne.Text) <= 0 ||
-                    Convert.ToInt32(TextBoxVolumeTwo.Text) <= 0 ||
+                if (Convert.ToDecimal(TextBoxVolumeOne.Text) <= 0 ||
+                    Convert.ToDecimal(TextBoxVolumeTwo.Text) <= 0 ||
                     Convert.ToDecimal(TextBoxKofAtr.Text) < 0 ||
                     Convert.ToInt32(TextBoxLengthAtr.Text) <0 ||
                      Convert.ToInt32(TextBoxPcUp.Text) < 0 ||
@@ -58,8 +58,8 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
             }
             Enum.TryParse(ComboBoxRegime.Text, true, out _strategy.Regime);
             _strategy.Slipage = Convert.ToDecimal(TextBoxSlipage.Text);
-            _strategy.VolumeFix1 = Convert.ToInt32(TextBoxVolumeOne.Text);
-            _strategy.VolumeFix2 = Convert.ToInt32(TextBoxVolumeTwo.Text);
+            _strategy.VolumeFix1 = Convert.ToDecimal(TextBoxVolumeOne.Text);
+            _strategy.VolumeFix2 = Convert.ToDecimal(TextBoxVolumeTwo.Text);
             _strategy.LengthAtr = Convert.ToInt32(TextBoxLengthAtr.Text);
             _strategy.KofAtr = Convert.ToDecimal(TextBoxKofAtr.Text);
             _strategy.LengthUp = Convert.ToInt32(TextBoxPcUp.Text);

@@ -779,6 +779,11 @@ namespace OsEngine.Market.Servers.NinjaTrader
 
                 string[] sec = securityArray[i].Split('%');
 
+                if (sec[0] == "6B 09-18")
+                {
+
+                }
+
                 try
                 {
                     newSecurity.Name = sec[0];

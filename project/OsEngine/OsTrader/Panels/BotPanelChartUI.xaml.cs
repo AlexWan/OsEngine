@@ -57,7 +57,7 @@ namespace OsEngine.OsTrader.Panels
             if (_chart != null)
             {
                 _chart.StopPaint();
-                _chart.Clear();
+                _chart.ClearDataPointsAndSizeValue();
                 _chart.Delete();
             }
 

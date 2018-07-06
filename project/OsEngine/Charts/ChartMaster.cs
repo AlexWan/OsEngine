@@ -38,10 +38,10 @@ namespace OsEngine.Charts
         {
             _name = nameBoss + "ChartMaster";
 
-            _chartCandle = new ChartPainter(nameBoss);
-            _chartCandle.GetChart().Click += ChartMasterOneSecurity_Click;
-            _chartCandle.LogMessageEvent += NewLogMessage;
-
+            ChartCandle = new ChartPainter(nameBoss);
+            ChartCandle.GetChart().Click += ChartMasterOneSecurity_Click;
+            ChartCandle.LogMessageEvent += NewLogMessage;
+            ChartCandle.ClickToIndexEvent += _chartCandle_ClickToIndexEvent;
             Load();
             _canSave = true;
         }
@@ -176,7 +176,7 @@ namespace OsEngine.Charts
                         }
                         if (indicator[0] == "Trades")
                         {
-                            _chartCandle.CreateTickArea();
+                            ChartCandle.CreateTickArea();
                         }
                         if (indicator[0] == "PriceChannel")
                         {
@@ -288,7 +288,7 @@ namespace OsEngine.Charts
                                              "@" + _indicatorsCandles[i].CanDelete);
                         }
                     }
-                    if (_chartCandle.GetChartArea("TradeArea") != null)
+                    if (ChartCandle.GetChartArea("TradeArea") != null)
                     {
                         writer.WriteLine("Trades");
                     }
@@ -318,9 +318,9 @@ namespace OsEngine.Charts
                 {
                     File.Delete(@"Engine\" + Name + @".txt");
                 }
-                if (_chartCandle != null)
+                if (ChartCandle != null)
                 {
-                    _chartCandle.Delete();
+                    ChartCandle.Delete();
                 }
             }
             catch (Exception error)
@@ -342,7 +342,7 @@ namespace OsEngine.Charts
         /// <summary>
         /// чарт
         /// </summary>
-        private ChartPainter _chartCandle;
+        public ChartPainter ChartCandle;
 
 // контекстное меню
 
@@ -392,7 +392,7 @@ namespace OsEngine.Charts
                     }
                 }
 
-                if (_chartCandle.GetChartArea("TradeArea") != null)
+                if (ChartCandle.GetChartArea("TradeArea") != null)
                 {
                     if (menuRedact == null)
                     {
@@ -442,7 +442,7 @@ namespace OsEngine.Charts
 
                 ContextMenu menu = new ContextMenu(items.ToArray());
 
-                _chartCandle.GetChart().ContextMenu = menu;
+                ChartCandle.GetChart().ContextMenu = menu;
             }
             catch (Exception error)
             {
@@ -455,7 +455,7 @@ namespace OsEngine.Charts
         /// </summary>
         private void ChartMinPointSize_Click(object sender, EventArgs e)
         {
-            _chartCandle.SetPointSize(6);
+            ChartCandle.SetPointSize(6);
         }
 
         /// <summary>
@@ -463,7 +463,7 @@ namespace OsEngine.Charts
         /// </summary>
         private void ChartMiddlePointSize_Click(object sender, EventArgs e)
         {
-            _chartCandle.SetPointSize(10);
+            ChartCandle.SetPointSize(10);
         }
 
         /// <summary>
@@ -471,7 +471,7 @@ namespace OsEngine.Charts
         /// </summary>
         private void ChartMaxPointSize_Click(object sender, EventArgs e)
         {
-            _chartCandle.SetPointSize(14);
+            ChartCandle.SetPointSize(14);
         }
 
         /// <summary>
@@ -479,7 +479,7 @@ namespace OsEngine.Charts
         /// </summary>
         private void ChartRombToPosition_Click(object sender, EventArgs e)
         {
-            _chartCandle.SetPointType(PointType.Romb);
+            ChartCandle.SetPointType(PointType.Romb);
         }
 
         /// <summary>
@@ -487,7 +487,7 @@ namespace OsEngine.Charts
         /// </summary>
         private void ChartCircleToPosition_Click(object sender, EventArgs e)
         {
-            _chartCandle.SetPointType(PointType.Circle);
+            ChartCandle.SetPointType(PointType.Circle);
         }
 
         /// <summary>
@@ -495,7 +495,7 @@ namespace OsEngine.Charts
         /// </summary>
         private void ChartTriangleToPosition_Click(object sender, EventArgs e)
         {
-            _chartCandle.SetPointType(PointType.TriAngle);
+            ChartCandle.SetPointType(PointType.TriAngle);
         }
 
         /// <summary>
@@ -503,7 +503,7 @@ namespace OsEngine.Charts
         /// </summary>
         private void ChartBlackColor_Click(object sender, EventArgs e)
         {
-            _chartCandle.SetBlackScheme();
+            ChartCandle.SetBlackScheme();
         }
 
         /// <summary>
@@ -511,7 +511,7 @@ namespace OsEngine.Charts
         /// </summary>
         private void ChartWhiteColor_Click(object sender, EventArgs e)
         {
-            _chartCandle.SetWhiteScheme();
+            ChartCandle.SetWhiteScheme();
         }
 
         /// <summary>
@@ -519,7 +519,7 @@ namespace OsEngine.Charts
         /// </summary>
         private void ChartHideIndicators_Click(object sender, EventArgs e)
         {
-            _chartCandle.HideAreaOnChart();
+            ChartCandle.HideAreaOnChart();
         }
 
         /// <summary>
@@ -527,7 +527,7 @@ namespace OsEngine.Charts
         /// </summary>
         private void ChartShowIndicators_Click(object sender, EventArgs e)
         {
-            _chartCandle.ShowAreaOnChart();
+            ChartCandle.ShowAreaOnChart();
         }
 
         /// <summary>
@@ -556,7 +556,7 @@ namespace OsEngine.Charts
             {
                 if (((MenuItem)sender).Text == @"Trades")
                 {
-                    _chartCandle.DeleteTickArea();
+                    ChartCandle.DeleteTickArea();
                     Save();
                     return;
                 }
@@ -612,7 +612,7 @@ namespace OsEngine.Charts
         /// </summary>
         public void CreateTickChart()
         {
-            _chartCandle.CreateTickArea();
+            ChartCandle.CreateTickArea();
             Save();
         }
 
@@ -642,7 +642,7 @@ namespace OsEngine.Charts
 
                 bool inNewArea = true;
 
-                if (_chartCandle.GetChartArea(nameArea) != null)
+                if (ChartCandle.GetChartArea(nameArea) != null)
                 {
                     inNewArea = false;
                 }
@@ -653,13 +653,13 @@ namespace OsEngine.Charts
                 {
                     if (inNewArea == false)
                     {
-                        indicator.NameSeries = _chartCandle.CreateSeries(_chartCandle.GetChartArea(nameArea),
+                        indicator.NameSeries = ChartCandle.CreateSeries(ChartCandle.GetChartArea(nameArea),
                             indicator.TypeIndicator, indicator.Name + i);
                     }
                     else
                     {
-                        ChartArea area = _chartCandle.CreateArea(nameArea, 15);
-                        indicator.NameSeries = _chartCandle.CreateSeries(area,
+                        ChartArea area = ChartCandle.CreateArea(nameArea, 15);
+                        indicator.NameSeries = ChartCandle.CreateSeries(area,
                             indicator.TypeIndicator, indicator.Name + i);
                     }
                 }
@@ -702,7 +702,7 @@ namespace OsEngine.Charts
                     indicator.Process(candles);
                 }
 
-                _chartCandle.RePaintIndicator(indicator);
+                ChartCandle.RePaintIndicator(indicator);
             }
             catch (Exception error)
             {
@@ -718,7 +718,7 @@ namespace OsEngine.Charts
         {
             try
             {
-                _chartCandle.DeleteIndicator(indicator);
+                ChartCandle.DeleteIndicator(indicator);
 
                 indicator.Delete();
 
@@ -746,7 +746,7 @@ namespace OsEngine.Charts
         /// <returns>true - создан false - нет</returns>
         public bool IndicatorIsCreate(string name)
         {
-            return _chartCandle.IndicatorIsCreate(name);
+            return ChartCandle.IndicatorIsCreate(name);
         }
 
         /// <summary>
@@ -756,7 +756,7 @@ namespace OsEngine.Charts
         /// <returns></returns>
         public bool AreaIsCreate(string name)
         {
-            return _chartCandle.AreaIsCreate(name);
+            return ChartCandle.AreaIsCreate(name);
         }
 
 // управление элементами чарта
@@ -796,7 +796,7 @@ namespace OsEngine.Charts
 
                 // 2 отправляем на прорисовку
 
-                _chartCandle.ProcessElem(myElement);
+                ChartCandle.ProcessElem(myElement);
             }
             catch (Exception error)
             {
@@ -810,7 +810,7 @@ namespace OsEngine.Charts
         /// <param name="element">элемент</param>
         public void DeleteChartElement(IChartElement element)
         {
-            _chartCandle.ProcessClearElem(element);
+            ChartCandle.ProcessClearElem(element);
 
             try
             {
@@ -870,7 +870,7 @@ namespace OsEngine.Charts
             {
                 _chartElements.Add(element);
             }
-            _chartCandle.ProcessElem(element);
+            ChartCandle.ProcessElem(element);
         }
 
 // управление Алертов
@@ -900,7 +900,7 @@ namespace OsEngine.Charts
                 {
                     if (alertArray[i].TypeAlert == AlertType.ChartAlert)
                     {
-                        _chartCandle.PaintAlert((AlertToChart)alertArray[i]);
+                        ChartCandle.PaintAlert((AlertToChart)alertArray[i]);
                     }
                 }
             }
@@ -918,7 +918,7 @@ namespace OsEngine.Charts
         /// </summary>
         private void EraseAlertFromChart(List<IIAlert> alertArray)
         {
-            _chartCandle.ClearAlerts(alertArray);
+            ChartCandle.ClearAlerts(alertArray);
         }
 
 // прорисовка свечей
@@ -973,13 +973,13 @@ namespace OsEngine.Charts
                 _lastPrice = candles[candles.Count - 1].Close;
                 _myCandles = candles;
 
-                if (_chartCandle != null)
+                if (ChartCandle != null)
                 {
                     if (canReload)
                     {
                         _lastCandleIncome = DateTime.Now;
-                        _chartCandle.ProcessCandles(candles);
-                        _chartCandle.ProcessPositions(_myPosition);
+                        ChartCandle.ProcessCandles(candles);
+                        ChartCandle.ProcessPositions(_myPosition);
 
                     }
 
@@ -991,19 +991,19 @@ namespace OsEngine.Charts
 
                             if (canReload)
                             {
-                                _chartCandle.ProcessIndicator(_indicatorsCandles[i]);
+                                ChartCandle.ProcessIndicator(_indicatorsCandles[i]);
                             }
                         }
                     }
                     if (canReload && _alertArray != null && _alertArray.Count != 0)
                     {
-                        _chartCandle.ClearAlerts(_alertArray);
+                        ChartCandle.ClearAlerts(_alertArray);
 
                         for (int i = 0; _alertArray != null && i < _alertArray.Count; i++)
                         {
                             if (_alertArray[i].TypeAlert == AlertType.ChartAlert)
                             {
-                                _chartCandle.PaintAlert((AlertToChart)_alertArray[i]);
+                                ChartCandle.PaintAlert((AlertToChart)_alertArray[i]);
                             }
                         }
                     }
@@ -1026,7 +1026,7 @@ namespace OsEngine.Charts
         {
             try
             {
-                _chartCandle.ProcessTrades(trades);
+                ChartCandle.ProcessTrades(trades);
             }
             catch (Exception error)
             {
@@ -1052,7 +1052,7 @@ namespace OsEngine.Charts
                return;
             }
             _myPosition = position;
-            _chartCandle.ProcessPositions(position);
+            ChartCandle.ProcessPositions(position);
         }
 
 // управление
@@ -1064,28 +1064,28 @@ namespace OsEngine.Charts
         {
             try
             {
-                _chartCandle.StartPaintPrimeChart(host, rectangle);
-                _chartCandle.ProcessPositions(_myPosition);
+                ChartCandle.StartPaintPrimeChart(host, rectangle);
+                ChartCandle.ProcessPositions(_myPosition);
 
-                _chartCandle.ProcessCandles(_myCandles);
+                ChartCandle.ProcessCandles(_myCandles);
 
                 for (int i = 0; _indicatorsCandles != null && i < _indicatorsCandles.Count; i++)
                 {
-                    _chartCandle.ProcessIndicator(_indicatorsCandles[i]);
+                    ChartCandle.ProcessIndicator(_indicatorsCandles[i]);
                 }
                 
                 for (int i = 0; _chartElements != null && i < _chartElements.Count; i++)
                 {
-                    _chartCandle.ProcessElem(_chartElements[i]);
+                    ChartCandle.ProcessElem(_chartElements[i]);
                 }
 
-                _chartCandle.ClearAlerts(_alertArray);
+                ChartCandle.ClearAlerts(_alertArray);
 
                 for (int i = 0; _alertArray != null && i < _alertArray.Count; i++)
                 {
                     if (_alertArray[i].TypeAlert == AlertType.ChartAlert)
                     {
-                        _chartCandle.PaintAlert((AlertToChart)_alertArray[i]);
+                        ChartCandle.PaintAlert((AlertToChart)_alertArray[i]);
                     }
                 }
             }
@@ -1100,7 +1100,7 @@ namespace OsEngine.Charts
         /// </summary>
         public void StopPaint()
         {
-            _chartCandle.StopPaint();
+            ChartCandle.StopPaint();
 
             if (_grid != null)
             {
@@ -1115,8 +1115,9 @@ namespace OsEngine.Charts
         public void Clear()
         {
             _myCandles = null;
-            _chartCandle.Clear();
+            ChartCandle.ClearDataPointsAndSizeValue();
             _myPosition = null;
+           
 
             for (int i = 0; _indicatorsCandles != null && i < _indicatorsCandles.Count; i++)
             {
@@ -1129,7 +1130,7 @@ namespace OsEngine.Charts
         /// </summary>
         public Chart GetChart()
         {
-            return _chartCandle.GetChart();
+            return ChartCandle.GetChart();
         }
 
         /// <summary>
@@ -1138,7 +1139,7 @@ namespace OsEngine.Charts
         /// <param name="name">имя области</param>
         public ChartArea GetChartArea(string name)
         {
-            return _chartCandle.GetChartArea(name);
+            return ChartCandle.GetChartArea(name);
         }
 
         /// <summary>
@@ -1147,7 +1148,16 @@ namespace OsEngine.Charts
         /// <param name="time">время</param>
         public void GoChartToTime(DateTime time)
         {
-            _chartCandle.GoChartToTime(time);
+            ChartCandle.GoChartToTime(time);
+        }
+
+        public void GoChartToIndex(int index)
+        {
+            if (index < 0)
+            {
+                return;
+            }
+            ChartCandle.GoChartToIndex(index);
         }
 
         /// <summary>
@@ -1162,7 +1172,7 @@ namespace OsEngine.Charts
 
                 Chart chart;
 
-                chart = _chartCandle.GetChart();
+                chart = ChartCandle.GetChart();
 
 
                 for (int i = 0; i < chart.ChartAreas.Count; i++)
@@ -1207,10 +1217,10 @@ namespace OsEngine.Charts
         /// <param name="serverType">тип сервера</param>
         public void SetNewSecurity(string security, TimeFrame timeFrame, TimeSpan timeFrameSpan, string portfolioName, ServerType serverType)
         {
-            if (_chartCandle != null)
+            if (ChartCandle != null)
             {
-                _chartCandle.Clear();
-                _chartCandle.SetNewTimeFrame(timeFrameSpan, timeFrame);
+                ChartCandle.ClearDataPointsAndSizeValue();
+                ChartCandle.SetNewTimeFrame(timeFrameSpan, timeFrame);
             }
 
             if (_securityOnThisChart == security &&
@@ -1270,6 +1280,29 @@ namespace OsEngine.Charts
             _label.Content = "Бумага:  " + security + "     Таймфрейм:  " + _timeFrameSecurity;
             _grid.Children.Clear();
             _grid.Children.Add(_label);
+        }
+
+// работа с паттернами
+
+        void _chartCandle_ClickToIndexEvent(int index)
+        {
+            if (ClickToIndexEvent != null)
+            {
+                ClickToIndexEvent(index);
+            }
+        }
+
+        public event Action<int> ClickToIndexEvent;
+
+        public void PaintInDifColor(int indexStart, int indexEnd, string seriesName)
+        {
+            ChartCandle.PaintInDifColor(indexStart, indexEnd, seriesName);
+        }
+
+        public void RefreshChartColor()
+        {
+            
+            ChartCandle.RefreshChartColor();
         }
 
 // логирование
