@@ -120,6 +120,11 @@ namespace OsEngine.OsMiner.Patterns
             _pattern.StopMining();
         }
 
+        private void ButtonJournals_Click(object sender, RoutedEventArgs e)
+        {
+            _pattern.ShowTestResults();
+        }
+
 // вкладка поиска паттернов
 
         void InitializeTabPatternsSearch()
@@ -223,9 +228,6 @@ namespace OsEngine.OsMiner.Patterns
             _pattern.SaveTempPattern();
             PaintGridPatternsToOpen();
             PaintGridPatternsToClose();
-
-            InitializeCandlePatternTab();
-            TabControlTypePatternsToFind.SelectedIndex = 0;
         }
 
 // индивидуальные вкладки паттернов
@@ -403,6 +405,16 @@ namespace OsEngine.OsMiner.Patterns
 
             TextBoxWeigthToInter.Text = _pattern.WeigthToInter.ToString(CultureInfo.InvariantCulture);
             TextBoxWeigthToInter.TextChanged += TextBoxWeigthToInter_TextChanged;
+
+            ComboBoxLotsCountType.Items.Add(LotsCountType.All);
+            ComboBoxLotsCountType.Items.Add(LotsCountType.One);
+            ComboBoxLotsCountType.SelectedItem = _pattern.LotsCount;
+            ComboBoxLotsCountType.SelectionChanged += ComboBoxLotsCountType_SelectionChanged;
+        }
+
+        void ComboBoxLotsCountType_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            Enum.TryParse(ComboBoxLotsCountType.SelectedItem.ToString(), out _pattern.LotsCount);
         }
 
         void InitializeComboBoxSecurityToInter()
@@ -574,6 +586,7 @@ namespace OsEngine.OsMiner.Patterns
                     _pattern.PatternsToOpen[i].Expand = Convert.ToDecimal(_gridPatternsToOpen.Rows[i].Cells[3].Value.ToString().Replace(",",
                         CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                 }
+                _pattern.Save();
             }
             catch (Exception)
             {
@@ -800,6 +813,7 @@ namespace OsEngine.OsMiner.Patterns
                     _pattern.PatternsToClose[i].Expand = Convert.ToDecimal(_gridPatternsToClose.Rows[i].Cells[3].Value.ToString().Replace(",",
                         CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                 }
+                _pattern.Save();
             }
             catch (Exception)
             {

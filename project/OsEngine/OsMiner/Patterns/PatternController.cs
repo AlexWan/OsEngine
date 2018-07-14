@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Windows;
 using System.Windows.Forms.Integration;
 using System.Windows.Shapes;
 using OsEngine.Charts;
@@ -35,6 +36,7 @@ namespace OsEngine.OsMiner.Patterns
             MiningMo = 0.01m;
             MiningDealsCount = 50;
             MiningProfit = 10;
+            LotsCount = LotsCountType.All;
         }
 
         /// <summary>
@@ -139,7 +141,7 @@ namespace OsEngine.OsMiner.Patterns
 
             DataServer = new OsMinerServer(Name);
             DataServer.CandleSeriesChangeEvent += _dataServer_CandleSeriesChangeEvent;
-
+            
             _chart = new ChartMaster(_name);
             _chart.ClickToIndexEvent += _chart_ClickToIndexEvent;
 
@@ -328,6 +330,10 @@ namespace OsEngine.OsMiner.Patterns
             PaintTempPattern();
         }
 
+        /// <summary>
+        /// тип лотов
+        /// </summary>
+        public LotsCountType LotsCount;
 
 // Настройки и Паттерны для входа
 
@@ -592,9 +598,16 @@ namespace OsEngine.OsMiner.Patterns
                 return;
             }
 
+            int indexWithPosition = 0;
 
             for (int i = 0; i < candlesToTrade.Candles.Count-1; i++)
             {// первый цикл ищет входы
+
+                if (LotsCount == LotsCountType.One && indexWithPosition > i)
+                {
+                    continue;
+                }
+
                 if (CheckInter(PatternsToOpen, candlesParallelPatternsToInter, i, candlesToTrade.Candles[i].TimeStart,WeigthToInter) == false)
                 {
                     continue;
@@ -645,13 +658,14 @@ namespace OsEngine.OsMiner.Patterns
                     {
                         continue;
                     }
-
+                    indexWithPosition = i2;
                     ClosePosition(position, i2, candlesToTrade.Candles[i2+1].TimeStart, candlesToTrade.Candles[i2+1].Open);
 
                     PositionsInTrades.Add(position);
                     break;
                 }
             }
+
         }
 
         /// <summary>
@@ -1043,6 +1057,7 @@ namespace OsEngine.OsMiner.Patterns
             int curNum = 0;
 
             MinerCandleSeries mySeries = CandleSeries.Find(ser => ser.Security.Name == SecurityToInter);
+            _testResults = new List<TestResult>();
 
             while (true)
             {
@@ -1058,6 +1073,7 @@ namespace OsEngine.OsMiner.Patterns
                 if (curNum >= mySeries.Candles.Count)
                 {
                     StopMiningProcces();
+                    MessageBox.Show("Поиск паттернов завершён. Мы проверили все данные");
                     return;
                 }
 
@@ -1075,19 +1091,28 @@ namespace OsEngine.OsMiner.Patterns
                     mO = profit / PositionsInTrades.Count;
                 }
 
-                if (MiningMo < mO &&
+                if (MiningMo < Math.Abs(mO) &&
                     MiningDealsCount < PositionsInTrades.Count &&
-                    MiningProfit < profit)
+                    MiningProfit < Math.Abs(profit))
                 {
                     StopMiningProcces();
                     return;
                 }
 
-               
+              
                 GetPatternToIndex();
                 BackTestTempPattern(false);
+                TestResult result = new TestResult();
+
+                result.Pattern = GetTempPattern(_curTempPatternType).GetCopy();
+                result.Positions = PositionsInTrades;
+                result.ShortReport = GetShortReport();
+
+                _testResults.Add(result);
             }
         }
+
+        private List<TestResult> _testResults = new List<TestResult>();
 
         /// <summary>
         /// остановить майнинг паттерна и прорисовать результаты
@@ -1105,6 +1130,47 @@ namespace OsEngine.OsMiner.Patterns
                 BackTestEndEvent(GetShortReport());
             }
             _neadToStopMining = false;
+        }
+
+        AutoTestResultsUi _uiTestResuits;
+
+        /// <summary>
+        /// показать результаты тестов по паттернам
+        /// </summary>
+        public void ShowTestResults()
+        {
+            if (_uiTestResuits == null)
+            {
+                _uiTestResuits = new AutoTestResultsUi(_testResults);
+                _uiTestResuits.Show();
+                _uiTestResuits.Closing += (sender, args) => { _uiTestResuits = null; };
+                _uiTestResuits.UserClickOnNewPattern += _uiTestResuits_UserClickOnNewPattern;
+            }
+            else
+            {
+                _uiTestResuits.Activate();
+            }
+        }
+
+        void _uiTestResuits_UserClickOnNewPattern(TestResult result)
+        {
+            PositionsInTrades = result.Positions;
+            _curTempPatternType = result.Pattern.Type;
+
+            GetTempPattern(_curTempPatternType);
+
+            for (int i = 0; i < _tempPatterns.Count; i++)
+            {
+                if (_tempPatterns[i].Type == result.Pattern.Type)
+                {
+                    _tempPatterns[i] = result.Pattern;
+                }
+            }
+            PaintTempPattern();
+            if (BackTestEndEvent != null)
+            {
+                BackTestEndEvent(GetShortReport());
+            }
         }
 
 // поиск нового паттернов
@@ -1151,7 +1217,7 @@ namespace OsEngine.OsMiner.Patterns
         /// </summary>
         public void SaveTempPattern()
         {
-            IPattern pattern = GetTempPattern(_curTempPatternType);
+            IPattern pattern = GetTempPattern(_curTempPatternType).GetCopy();
 
             if (PlaceToUsePattern == UsePatternType.OpenPosition)
             {
@@ -1164,9 +1230,6 @@ namespace OsEngine.OsMiner.Patterns
                 PaintClosePattern(PatternsToClose.Count-1);
             }
             Save();
-
-            _tempPatterns.Remove(pattern);
-            GetTempPattern(_curTempPatternType);
         }
 
         /// <summary>
@@ -1531,5 +1594,33 @@ namespace OsEngine.OsMiner.Patterns
         /// конечный индекс
         /// </summary>
         public int IndexEnd;
+    }
+
+    /// <summary>
+    /// результаты тестирования одного паттерна
+    /// </summary>
+    public class TestResult
+    {
+        public IPattern Pattern;
+
+        public List<Position> Positions;
+
+        public string ShortReport;
+    }
+
+
+    /// <summary>
+    /// количество лотов
+    /// </summary>
+    public enum LotsCountType
+    {
+        /// <summary>
+        /// один
+        /// </summary>
+        One,
+        /// <summary>
+        /// много
+        /// </summary>
+        All
     }
 }

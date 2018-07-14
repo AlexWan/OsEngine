@@ -229,6 +229,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         /// </summary>
         public decimal OpenVolume;
 
+
 // работа с файловой системой
 
         /// <summary>
@@ -539,4 +540,5 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             }
         }
     }
+
 }

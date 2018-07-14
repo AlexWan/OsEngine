@@ -113,5 +113,19 @@ namespace OsEngine.OsMiner.Patterns
 
             return saveStr;
         }
+
+        /// <summary>
+        /// взять копию
+        /// </summary>
+        public IPattern GetCopy()
+        {
+            PatternTime pattern = new PatternTime();
+            pattern.StartTime = StartTime;
+            pattern.EndTime = EndTime;
+            pattern.Expand = Expand;
+            pattern.Weigth = Weigth;
+
+            return pattern;
+        }
     }
 }

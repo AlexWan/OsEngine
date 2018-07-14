@@ -56,6 +56,11 @@ namespace OsEngine.OsMiner.Patterns
         /// <returns></returns>
         string GetSaveString();
 
+        /// <summary>
+        /// Взять копию
+        /// </summary>
+        IPattern GetCopy();
+
     }
 
     /// <summary>

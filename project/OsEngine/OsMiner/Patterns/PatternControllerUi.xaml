@@ -1,7 +1,7 @@
 ﻿<Window x:Class="OsEngine.OsMiner.Patterns.PatternControllerUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Настройка и поиск паттернов" Height="554" MinHeight="475" Width="832" MinWidth="700" ResizeMode="CanResize" Style="{StaticResource WindowStyleNoResize}" Topmost="False" WindowStartupLocation="CenterScreen" Icon="/OsEngine;component/Images/OsLogo.ico">
+        Title="Настройка и поиск паттернов" Height="502" MinHeight="520" Width="851" MinWidth="800" ResizeMode="CanResize" Style="{StaticResource WindowStyleNoResize}" Topmost="False" WindowStartupLocation="CenterScreen" Icon="/OsEngine;component/Images/OsLogo.ico">
     <Grid>
         <Rectangle Height="69" Margin="5,0,2,0" Stroke="Black" VerticalAlignment="Top"/>
         <TabControl x:Name="TabControlPrime" Margin="5,61,2,2">
@@ -46,7 +46,7 @@
                     <Label Content="Вес для выхода"  Margin="0,56,195,0" HorizontalAlignment="Right" VerticalAlignment="Top" />
                 </Grid>
             </TabItem>
-            <TabItem Header="Поиск паттерна">
+            <TabItem Header="Поиск паттерна" Margin="-2,0">
                 <Grid >
                     <TabControl x:Name="TabControlTypePatternsToFind" Margin="12,0,0,141" HorizontalAlignment="Left" Width="377">
                         <TabItem Header="Свечи">
@@ -100,8 +100,9 @@
                     <TextBox Name="TextBoxMiningDealsCount" HorizontalAlignment="Left" Height="23" Margin="78,0,0,58" TextWrapping="Wrap"  VerticalAlignment="Bottom" Width="120"/>
                     <Label Content="Профит &gt;" HorizontalAlignment="Left" Margin="12,0,0,30" VerticalAlignment="Bottom"/>
                     <TextBox Name="TextBoxMiningProfit" HorizontalAlignment="Left" Height="23" Margin="78,0,0,30" TextWrapping="Wrap"  VerticalAlignment="Bottom" Width="120"/>
-                    <Button Name="ButtonStartMining" Content="> >" HorizontalAlignment="Left" Margin="253,0,0,78" VerticalAlignment="Bottom" Width="75" Click="ButtonStartMining_Click"/>
-                    <Button Name="ButtonStopMining" Content="| |" HorizontalAlignment="Left" Margin="253,0,0,37" VerticalAlignment="Bottom" Width="75" Click="ButtonStopMining_Click"/>
+                    <Button Name="ButtonStartMining" Content="> >" HorizontalAlignment="Left" Margin="253,0,0,86" VerticalAlignment="Bottom" Width="75" Click="ButtonStartMining_Click" Height="23"/>
+                    <Button Name="ButtonStopMining" Content="| |" HorizontalAlignment="Left" Margin="253,0,0,58" VerticalAlignment="Bottom" Width="75" Click="ButtonStopMining_Click" Height="23"/>
+                    <Button x:Name="ButtonJournals" Content="Отчёт" HorizontalAlignment="Left" Margin="253,0,0,30" VerticalAlignment="Bottom" Width="75"  Height="23" Click="ButtonJournals_Click"/>
 
                 </Grid>
             </TabItem>
@@ -128,8 +129,10 @@
             </Label.RenderTransform>
         </Label>
         <Label Content="Инструмент" HorizontalAlignment="Left" Margin="193,22,0,0" VerticalAlignment="Top" />
-        <ComboBox x:Name="ComboBoxSecurityToInter" HorizontalAlignment="Left" Margin="299,22,0,0"   VerticalAlignment="Top" Width="151"/>
+        <ComboBox x:Name="ComboBoxSecurityToInter" HorizontalAlignment="Left" Margin="272,22,0,0"   VerticalAlignment="Top" Width="151"/>
         <Button x:Name="ButtonReload" ToolTip="Тестирует текущую конфигурацию паттернов без учёта паттерна во вкладке поиска" Content="Пересчитать" HorizontalAlignment="Left" VerticalAlignment="Top" Width="145" Height="41" Click="ButtonReload_Click" Margin="15,15,0,0"/>
-        <Button x:Name="ButtonTempPatternJournal" ToolTip="Журнал сделок по последнему тесту" Content="Журнал" HorizontalAlignment="Right" Margin="0,22,163,0" Width="146" Click="ButtonTempPatternJournal_Click" Height="25" VerticalAlignment="Top"/>
+        <Button x:Name="ButtonTempPatternJournal" ToolTip="Журнал сделок по последнему тесту" Content="Журнал" HorizontalAlignment="Right" Margin="0,22,219,0" Width="146" Click="ButtonTempPatternJournal_Click" Height="25" VerticalAlignment="Top"/>
+        <Label Content="Позиции" HorizontalAlignment="Right" Margin="0,22,153,0" VerticalAlignment="Top" />
+        <ComboBox x:Name="ComboBoxLotsCountType" HorizontalAlignment="Right" Margin="0,22,10,0"   VerticalAlignment="Top" Width="143"/>
     </Grid>
 </Window>

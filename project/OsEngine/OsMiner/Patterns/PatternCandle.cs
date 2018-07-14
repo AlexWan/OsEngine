@@ -212,7 +212,7 @@ namespace OsEngine.OsMiner.Patterns
 
             List<Candle> result = new List<Candle>();
 
-            for (int i = 0; i < Length; i++)
+            for (int i = 0; i < Sequence.Length; i++)
             {
                 Candle newCandle = new Candle();
 
@@ -318,6 +318,20 @@ namespace OsEngine.OsMiner.Patterns
             return saveStr;
         }
 
+        /// <summary>
+        /// взять копию
+        /// </summary>
+        public IPattern GetCopy()
+        {
+            PatternCandle pattern = new PatternCandle();
+            pattern.Length = Length;
+            pattern.Expand = Expand;
+            pattern.Sequence = Sequence;
+            pattern.TypeWatch = TypeWatch;
+            pattern.Weigth = Weigth;
+
+            return pattern;
+        }
     }
 
     public enum TypeWatchCandlePattern

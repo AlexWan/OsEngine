@@ -342,6 +342,21 @@ namespace OsEngine.OsMiner.Patterns
 
             return sequence;
         }
+
+        /// <summary>
+        /// взять копию
+        /// </summary>
+        public IPattern GetCopy()
+        {
+            PatternIndicators pattern = new PatternIndicators();
+            pattern.Sequence = Sequence;
+            pattern.SequenceCandlePosition = SequenceCandlePosition;
+            pattern.Length = Length;
+            pattern.Expand = Expand;
+            pattern.Weigth = Weigth;
+
+            return pattern;
+        }
     }
 
     /// <summary>

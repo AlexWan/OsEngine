@@ -475,6 +475,9 @@
     <Compile Include="OsMiner\OsMinerUi.xaml.cs">
       <DependentUpon>OsMinerUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="OsMiner\Patterns\AutoTestResultsUi.xaml.cs">
+      <DependentUpon>AutoTestResultsUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="OsMiner\Patterns\IPattern.cs" />
     <Compile Include="OsMiner\Patterns\PatternCandle.cs" />
     <Compile Include="OsMiner\Patterns\PatternController.cs" />
@@ -979,6 +982,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="OsMiner\OsMinerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsMiner\Patterns\AutoTestResultsUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

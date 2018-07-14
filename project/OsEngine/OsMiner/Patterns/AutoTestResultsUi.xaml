@@ -1,0 +1,11 @@
+﻿<Window x:Class="OsEngine.OsMiner.Patterns.AutoTestResultsUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Паттерны найденные за последнюю сессию майнинга" Height="356.713" Width="422.112" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico" Topmost="True">
+    <Grid>
+        <Rectangle Margin="5,5,5,5"/>
+        <WindowsFormsHost Name="Host" HorizontalAlignment="Left" Height="306" Margin="10,10,0,0" VerticalAlignment="Top" Width="398"/>
+
+    </Grid>
+</Window>
+
