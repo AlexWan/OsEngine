@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
@@ -103,15 +104,43 @@ namespace OsEngine.OsMiner.Patterns
 
             for (int i = 0; i < _testResults.Count; i++)
             {
+                for (int i2 = 1; i2 < _testResults.Count; i2++)
+                {
+                    TestResult res1 = _testResults[i2];
+                    TestResult res2 = _testResults[i2-1];
+                    if (GetProfit(res1.Positions) > GetProfit(res2.Positions))
+                    {
+                        _testResults[i2] = res2;
+                        _testResults[i2-1] = res1;
+
+                    }
+
+                }
+            }
+
+            for (int i = 0; i < _testResults.Count; i++)
+            {
+                decimal profit = GetProfit(_testResults[i].Positions);
+
                 DataGridViewRow nRow = new DataGridViewRow();
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[0].Value = i;
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[1].Value = _testResults[i].Positions.Count;
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[2].Value = GetProfit(_testResults[i].Positions);
+                nRow.Cells[2].Value = profit;
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[3].Value = GetMeadleProfit(_testResults[i].Positions);
+
+                if (profit > 0)
+                {
+                    nRow.DefaultCellStyle.BackColor = Color.MediumSeaGreen;
+                }
+                else
+                {
+                    nRow.DefaultCellStyle.BackColor = Color.IndianRed;
+                }
+
                 _grid.Rows.Add(nRow);
             }
         }

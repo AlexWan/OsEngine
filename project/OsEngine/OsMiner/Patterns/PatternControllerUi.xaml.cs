@@ -54,7 +54,6 @@ namespace OsEngine.OsMiner.Patterns
             InitializeMiningTab();
         }
 
-
 // Авто поиск паттернов
 
         private void InitializeMiningTab()

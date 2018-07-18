@@ -3630,7 +3630,7 @@ namespace OsEngine.Charts.CandleChart
 
                 for (int i = 0; i < series.Count; i++)
                 {
-                    if (index > series[i].Points.Count)
+                    if (index >= series[i].Points.Count)
                     {
                         continue;
                     }
