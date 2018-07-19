@@ -543,7 +543,9 @@ namespace OsEngine.Market.Servers.BitMex
         private long GetNonce()
         {
             DateTime yearBegin = new DateTime(1990, 1, 1);
-            return DateTime.UtcNow.Ticks - yearBegin.Ticks;
+            long nonce = DateTime.UtcNow.Ticks - yearBegin.Ticks;
+            long shortNonce =  nonce - 8000000000000000;
+            return shortNonce;
         }
 
         public static string ByteArrayToString(byte[] ba)
