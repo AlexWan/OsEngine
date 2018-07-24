@@ -2771,20 +2771,20 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// проверить, не сработал ли стоп или профит у сделки
         /// </summary>
-        private void CheckStop(Position position, decimal lastTrade)
+        private bool CheckStop(Position position, decimal lastTrade)
         {
             try
             {
                 if (!position.StopOrderIsActiv && !position.ProfitOrderIsActiv)
                 {
-                    return;
+                    return false;
                 }
 
                 if (ServerStatus != ServerConnectStatus.Connect ||
                     Securiti == null ||
                     Portfolio == null)
                 {
-                    return;
+                    return false;
                 }
 
                 if (position.StopOrderIsActiv)
@@ -2797,6 +2797,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         position.StopOrderIsActiv = false;
 
                         CloseDeal(position, OrderPriceType.Limit, position.StopOrderPrice, _manualControl.SecondToClose, true);
+                        return true;
                     }
 
                     if (position.Direction == Side.Sell &&
@@ -2805,6 +2806,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         position.StopOrderIsActiv = false;
                         position.ProfitOrderIsActiv = false;
                         CloseDeal(position, OrderPriceType.Limit, position.StopOrderPrice, _manualControl.SecondToClose, true);
+                        return true;
                     }
                 }
 
@@ -2817,6 +2819,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         position.ProfitOrderIsActiv = false;
 
                         CloseDeal(position, OrderPriceType.Limit, position.ProfitOrderPrice, _manualControl.SecondToClose, true);
+                        return true;
                     }
 
                     if (position.Direction == Side.Sell &&
@@ -2825,6 +2828,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         position.StopOrderIsActiv = false;
                         position.ProfitOrderIsActiv = false;
                         CloseDeal(position, OrderPriceType.Limit, position.ProfitOrderPrice, _manualControl.SecondToClose, true);
+                        return true;
                     }
                 }
             }
@@ -2832,6 +2836,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 SetNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+            return false;
         }
 
         /// <summary>
@@ -3549,7 +3554,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     for (int i2 = _lastTickIndex; i < openPositions.Count && i2 < curCount && trades[i2] != null; i2++)
                     {
-                        CheckStop(openPositions[i], trades[i2].Price);
+                        if (CheckStop(openPositions[i], trades[i2].Price))
+                        {
+                            if (ServerMaster.StartProgram != ServerStartProgramm.IsOsTrader)
+                            {
+                                i--;
+                            }
+                            break;
+                        }
                     }
                 }
             }

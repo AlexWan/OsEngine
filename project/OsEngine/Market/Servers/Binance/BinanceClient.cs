@@ -902,7 +902,7 @@ namespace OsEngine.Market.Servers.Binance
 
                 catch (Exception exception)
                 {
-                    SendLogMessage(exception.Message, LogMessageType.Connect);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                 }
                 Thread.Sleep(1);
             }
@@ -960,7 +960,7 @@ namespace OsEngine.Market.Servers.Binance
 
                 catch (Exception exception)
                 {
-                    SendLogMessage(exception.Message, LogMessageType.Connect);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                 }
                 Thread.Sleep(1);
             }
