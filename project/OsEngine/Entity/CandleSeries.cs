@@ -177,7 +177,7 @@ namespace OsEngine.Entity
                 else if (value == TimeFrame.Day)
                 {
                     _seriesCreateMethodType = CandleSeriesCreateMethodType.Simple;
-                    _timeFrameSpan = new TimeSpan(24, 0, 0, 0);
+                    _timeFrameSpan = new TimeSpan(0, 24, 0, 0);
                 }
                 else if (value == TimeFrame.Delta)
                 {

@@ -20,12 +20,12 @@ namespace OsEngine.Market.Servers.Binance
     {
         public BinanceClient(string pubKey, string secKey)
         {
-            _apiKey = pubKey;
-            _secretKey = secKey;
+            ApiKey = pubKey;
+            SecretKey = secKey;
         }
 
-        string _apiKey;
-        string _secretKey;
+        public string ApiKey;
+        public string SecretKey;
 
         private string _baseUrl = "https://api.binance.com/api";
 
@@ -34,8 +34,8 @@ namespace OsEngine.Market.Servers.Binance
         /// </summary>
         public void Connect()
         {
-            if (string.IsNullOrWhiteSpace(_apiKey) ||
-                string.IsNullOrWhiteSpace(_secretKey))
+            if (string.IsNullOrEmpty(ApiKey) ||
+                string.IsNullOrEmpty(SecretKey))
             {
                 return;
             }
@@ -541,7 +541,7 @@ namespace OsEngine.Market.Servers.Binance
                     }
 
                     var request = new RestRequest(endpoint + fullUrl, method);
-                    request.AddHeader("X-MBX-APIKEY", _apiKey);
+                    request.AddHeader("X-MBX-APIKEY", ApiKey);
 
                     var response = new RestClient("https://api.binance.com").Execute(request).Content;
 
@@ -581,7 +581,7 @@ namespace OsEngine.Market.Servers.Binance
         private string CreateSignature(string message)
         {
             var messageBytes = Encoding.UTF8.GetBytes(message);
-            var keyBytes = Encoding.UTF8.GetBytes(_secretKey);
+            var keyBytes = Encoding.UTF8.GetBytes(SecretKey);
             var hash = new HMACSHA256(keyBytes);
             var computedHash = hash.ComputeHash(messageBytes);
             return BitConverter.ToString(computedHash).Replace("-", "").ToLower();

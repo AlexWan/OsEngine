@@ -225,7 +225,7 @@ namespace OsEngine.Entity
                         }
                         else if (value == TimeFrame.Day)
                         {
-                            _timeFrameSpan = new TimeSpan(24, 0, 0, 0);
+                            _timeFrameSpan = new TimeSpan(0, 24, 0, 0);
                         }
                         Save();
                     }

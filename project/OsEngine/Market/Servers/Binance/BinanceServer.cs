@@ -194,6 +194,12 @@ namespace OsEngine.Market.Servers.Binance
         /// </summary>
         public void StartServer()
         {
+            if (_clientBinance != null)
+            {
+                _clientBinance.ApiKey = UserKey;
+                _clientBinance.SecretKey = UserPrivateKey;
+            }
+
             _serverStatusNead = ServerConnectStatus.Connect;
         }
 
@@ -778,7 +784,19 @@ namespace OsEngine.Market.Servers.Binance
                 }
                 foreach (var onePortf in portfs.B)
                 {
+                    if (onePortf == null ||
+                        onePortf.f == null ||
+                        onePortf.l == null)
+                    {
+                        continue;
+                    }
                     Portfolio neeedPortf = _portfolios.Find(p => p.Number == onePortf.a);
+
+                    if (neeedPortf == null)
+                    {
+                        continue;
+                    }
+
                     neeedPortf.ValueCurrent = Convert.ToDecimal(onePortf.f.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                     neeedPortf.ValueBlocked = Convert.ToDecimal(onePortf.l.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                 }
