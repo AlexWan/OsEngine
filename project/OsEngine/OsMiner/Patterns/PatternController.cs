@@ -926,6 +926,9 @@ namespace OsEngine.OsMiner.Patterns
             string result = "";
 
             decimal profit = 0;
+            _lastCount = 0;
+            _lastProfit = 0;
+            _lastMo = 0;
 
             for (int i = 0; i < PositionsInTrades.Count; i++)
             {
@@ -937,14 +940,23 @@ namespace OsEngine.OsMiner.Patterns
                 return "По паттерну небыло сделок";
             }
 
-            decimal mO = profit / PositionsInTrades.Count;
+            _lastProfit = profit;
 
+            decimal mO = profit / PositionsInTrades.Count;
+            _lastCount = PositionsInTrades.Count;
+            _lastMo = mO;
             result += "Общий профит: " + profit + "\r\n";
             result += "Прибыль со сделки: " + mO + "\r\n";
             result += "Количество входов: " + PositionsInTrades.Count + "\r\n";
 
             return result;
         }
+
+        private decimal _lastProfit;
+
+        private int _lastCount;
+
+        private decimal _lastMo;
 
 // перемещение графика по паттернам
 
@@ -1107,8 +1119,30 @@ namespace OsEngine.OsMiner.Patterns
                 result.Pattern = GetTempPattern(_curTempPatternType).GetCopy();
                 result.Positions = PositionsInTrades;
                 result.ShortReport = GetShortReport();
+                result.SummProfit = _lastProfit;
+                result.Mo = _lastMo;
 
-                _testResults.Add(result);
+                if (_testResults.Count == 0)
+                {
+                    _testResults.Add(result);
+                }
+                else
+                {
+                    bool isInArray = false;
+                    for (int i = 0; i < _testResults.Count; i++)
+                    {
+                        if (_testResults[i].SummProfit < result.SummProfit)
+                        {
+                            isInArray = true;
+                            _testResults.Insert(i, result);
+                            break;
+                        }
+                    }
+                    if (isInArray == false)
+                    {
+                        _testResults.Add(result);
+                    }
+                }
             }
         }
 
@@ -1606,6 +1640,10 @@ namespace OsEngine.OsMiner.Patterns
         public List<Position> Positions;
 
         public string ShortReport;
+
+        public decimal SummProfit;
+
+        public decimal Mo;
     }
 
 

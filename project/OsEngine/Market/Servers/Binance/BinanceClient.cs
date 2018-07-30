@@ -797,6 +797,15 @@ namespace OsEngine.Market.Servers.Binance
                                    continue;
                                 }
 
+                                try
+                                {
+                                    Convert.ToInt32(order.c);
+                                }
+                                catch (Exception)
+                                {
+                                    continue;
+                                }
+
                                 if (order.x == "NEW")
                                 {
                                     Order newOrder = new Order();

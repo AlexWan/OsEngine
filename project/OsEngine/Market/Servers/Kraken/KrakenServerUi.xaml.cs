@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using OsEngine.Entity;
 using OsEngine.Logging;
 
 namespace OsEngine.Market.Servers.Kraken
@@ -28,8 +29,23 @@ namespace OsEngine.Market.Servers.Kraken
 
             ComboBoxLoadDataType.Items.Add(KrakenDateType.OnlyMarketDepth);
             ComboBoxLoadDataType.Items.Add(KrakenDateType.OnlyTrades);
+            ComboBoxLoadDataType.Items.Add(KrakenDateType.AllData);
+            
             ComboBoxLoadDataType.SelectedItem = _server.LoadDateType;
 
+            ComboBoxLeverage.Items.Add("none");
+            ComboBoxLeverage.Items.Add("2");
+            ComboBoxLeverage.Items.Add("3");
+            ComboBoxLeverage.Items.Add("4");
+            ComboBoxLeverage.Items.Add("5");
+            ComboBoxLeverage.SelectedItem = _server.LeverageType;
+            ComboBoxLeverage.SelectionChanged += ComboBoxLeverage_SelectionChanged;
+        }
+
+        void ComboBoxLeverage_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            _server.LeverageType = ComboBoxLeverage.SelectedItem.ToString();
+            _server.Save();
         }
 
         void TextBoxCountDaysSave_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
@@ -97,6 +113,12 @@ namespace OsEngine.Market.Servers.Kraken
         private void ButtonAbort_Click(object sender, RoutedEventArgs e) // кнопка остановить сервер
         {
             _server.StopServer();
+        }
+
+        private void ButtonProxy_Click(object sender, RoutedEventArgs e)
+        {
+            ProxiesUi ui = new ProxiesUi(_server.Proxies, _server);
+            ui.ShowDialog();
         }
 
     }

@@ -32,6 +32,17 @@ namespace OsEngine.Market.Servers.Kraken
             worker.Start();
         }
 
+        public void InsertProxies(List<ProxyHolder> proxies)
+        {
+            _proxies = proxies;
+            if (_kraken != null)
+            {
+                _kraken.InsertProxies(proxies);
+            }
+        }
+
+        private List<ProxyHolder> _proxies;
+
 // коннект
 
         /// <summary>
@@ -57,6 +68,11 @@ namespace OsEngine.Market.Servers.Kraken
             try
             {
                 _kraken = new KrakenApi(publicKey, privateKey);
+
+                if (_proxies != null)
+                {
+                    _kraken.InsertProxies(_proxies);
+                }
 
                 if (_kraken.GetServerTime() == null)
                 {
@@ -139,7 +155,7 @@ namespace OsEngine.Market.Servers.Kraken
                     {
                         // раз в секунду запрашиваем наши ордера и мои трейды
 
-                        if (_lastTimeGetOrders.AddSeconds(1) < DateTime.Now)
+                        if (_lastTimeGetOrders.AddSeconds(2) < DateTime.Now)
                         {
                             _lastTimeGetOrders = DateTime.Now;
                             GetOrders();
@@ -156,6 +172,12 @@ namespace OsEngine.Market.Servers.Kraken
 
                         if (DataType == KrakenDateType.OnlyTrades)
                         {
+                            GetTrades();
+                        }
+
+                        if (DataType == KrakenDateType.AllData)
+                        {
+                            GetSpreads();
                             GetTrades();
                         }
 
@@ -335,11 +357,11 @@ namespace OsEngine.Market.Servers.Kraken
                     sec.Name = assets.Keys.ElementAt(i);
                     sec.NameFull = pair.Base;
                     sec.NameClass = pair.AclassQuote;
-                    sec.Decimals = pair.LotDecimals;
+                    sec.Decimals = pair.PairDecimals;
 
                     decimal step = 1;
 
-                    for (int i2 = 0; i2 < pair.LotDecimals; i2++)
+                    for (int i2 = 0; i2 < pair.PairDecimals; i2++)
                     {
                         step *= 0.1m;
                     }
@@ -454,16 +476,6 @@ namespace OsEngine.Market.Servers.Kraken
 
             for (int i = 0; i < _namesListenSecurities.Count; i++)
             {
-                if (_lastTimeData.AddSeconds(2) > DateTime.Now)
-                {
-                    TimeSpan waitTime = DateTime.Now - _lastTimeData;
-                    if (waitTime.TotalSeconds > 0)
-                    {
-                        Thread.Sleep(waitTime);
-                    }
-                }
-
-                _lastTimeData = DateTime.Now;
 
                 var json = _kraken.GetOrderBook(_namesListenSecurities[i], 6);
                 var obj = JsonConvert.DeserializeObject<GetOrderBookResponse>(json.ToString());
@@ -474,14 +486,14 @@ namespace OsEngine.Market.Servers.Kraken
                     return;
                 }
 
-                var trades = obj.Result;
+                var trades = obj.Result.ToList();
 
                 for (int i2 = 0; i2 < trades.Count; i2++)
                 {
-                    OrderBook info = trades.Values.ElementAt(i);
+                    OrderBook info = trades[i2].Value;
 
                     MarketDepth newDepth = new MarketDepth();
-                    newDepth.SecurityNameCode = _namesListenSecurities[i];
+                    newDepth.SecurityNameCode = trades[i2].Key;
 
                     int countElem = info.Bids.GetLength(0);
                     for (int i3 = 0; i3 < countElem; i3++)
@@ -524,15 +536,6 @@ namespace OsEngine.Market.Servers.Kraken
         {
             for (int i = 0; i < _namesListenSecurities.Count; i++)
             {
-                if (_lastTimeData.AddSeconds(2) > DateTime.Now)
-                {
-                    TimeSpan waitTime = DateTime.Now - _lastTimeData;
-                    if (waitTime.TotalSeconds > 0)
-                    {
-                        Thread.Sleep(waitTime);
-                        _lastTimeData = DateTime.Now;
-                    }
-                }
 
                 DataSinece myTimeTrades = _timeTrades.Find(t => t.NameSecurity == _namesListenSecurities[i]);
 

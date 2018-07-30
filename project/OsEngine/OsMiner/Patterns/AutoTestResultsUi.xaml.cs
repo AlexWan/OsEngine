@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
-using OsEngine.Entity;
 
 namespace OsEngine.OsMiner.Patterns
 {
@@ -104,23 +103,7 @@ namespace OsEngine.OsMiner.Patterns
 
             for (int i = 0; i < _testResults.Count; i++)
             {
-                for (int i2 = 1; i2 < _testResults.Count; i2++)
-                {
-                    TestResult res1 = _testResults[i2];
-                    TestResult res2 = _testResults[i2-1];
-                    if (GetProfit(res1.Positions) > GetProfit(res2.Positions))
-                    {
-                        _testResults[i2] = res2;
-                        _testResults[i2-1] = res1;
-
-                    }
-
-                }
-            }
-
-            for (int i = 0; i < _testResults.Count; i++)
-            {
-                decimal profit = GetProfit(_testResults[i].Positions);
+                decimal profit = _testResults[i].SummProfit;
 
                 DataGridViewRow nRow = new DataGridViewRow();
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
@@ -130,7 +113,7 @@ namespace OsEngine.OsMiner.Patterns
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[2].Value = profit;
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[3].Value = GetMeadleProfit(_testResults[i].Positions);
+                nRow.Cells[3].Value = _testResults[i].Mo;
 
                 if (profit > 0)
                 {
@@ -144,35 +127,5 @@ namespace OsEngine.OsMiner.Patterns
                 _grid.Rows.Add(nRow);
             }
         }
-
-        private decimal GetProfit(List<Position> positions)
-        {
-            decimal result = 0;
-
-            for (int i = 0; i < positions.Count; i++)
-            {
-                result += positions[i].ProfitPortfolioPunkt;
-            }
-            return result;
-        }
-
-        private decimal GetMeadleProfit(List<Position> positions)
-        {
-            decimal result = 0;
-
-            for (int i = 0; i < positions.Count; i++)
-            {
-                result += positions[i].ProfitPortfolioPunkt;
-            }
-
-            if (positions.Count != 0)
-            {
-                result = result/positions.Count;
-            }
-
-            return result;
-        }
-
-
     }
 }

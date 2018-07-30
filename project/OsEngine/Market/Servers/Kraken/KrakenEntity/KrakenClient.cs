@@ -8,7 +8,8 @@ using System.Security.Cryptography;
 using System.Text;
 using Jayrock.Json;
 using Jayrock.Json.Conversion;
-using Newtonsoft.Json.Linq;
+using OsEngine.Entity;
+using OsEngine.Logging;
 
 
 namespace OsEngine.Market.Servers.Kraken.KrakenEntity
@@ -33,6 +34,42 @@ namespace OsEngine.Market.Servers.Kraken.KrakenEntity
             _rateGate = new RateGate(1, TimeSpan.FromSeconds(3));
 
         }
+
+        public void InsertProxies(List<ProxyHolder> proxies)
+        {
+            _proxies = proxies;
+
+            _webProxies = new List<WebProxy>();
+
+            if (proxies == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < proxies.Count; i++)
+            {
+                WebProxy newProxy = new WebProxy(_proxies[i].Ip, true);
+                newProxy.Credentials = new NetworkCredential(_proxies[i].UserName, _proxies[i].UserPassword);
+                _webProxies.Add(newProxy);
+            }
+
+            int milliseconds = 3000;
+
+            if (proxies.Count != 0)
+            {
+                milliseconds = milliseconds / proxies.Count + 1;
+            }
+
+            _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(milliseconds));
+        }
+
+        private List<ProxyHolder> _proxies;
+
+        private List<WebProxy> _webProxies = new List<WebProxy>();
+
+        private int _lastProxyNum = 0;
+
+        private object _queryLocker = new object();
 
         public void Dispose()
         {
@@ -60,23 +97,57 @@ namespace OsEngine.Market.Servers.Kraken.KrakenEntity
         {
             string address = string.Format("{0}/{1}/public/{2}", _url, _version, a_sMethod);
             HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(address);
-            
+
             webRequest.ContentType = "application/x-www-form-urlencoded";
             webRequest.Method = "POST";
 
-            if (props != null)
+            lock (_queryLocker)
             {
-                using (var writer = new StreamWriter(webRequest.GetRequestStream()))
+                if (_proxies != null &&
+                    _proxies.Count != 0 &&
+                    _lastProxyNum < _webProxies.Count)
                 {
-                    writer.Write(props);
+                    webRequest.Proxy = _webProxies[_lastProxyNum];
+                    _lastProxyNum++;
                 }
+
+                if (webRequest.Proxy != null &&
+                    webRequest.Proxy.Credentials == null &&
+                    _webProxies != null &&
+                    _lastProxyNum >= _webProxies.Count)
+                {
+                    _lastProxyNum = 0;
+                }
+
+                try
+                {
+                    if (props != null)
+                    {
+                        using (var writer = new StreamWriter(webRequest.GetRequestStream()))
+                        {
+                            writer.Write(props);
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    //Thread.Sleep(2000);
+                    if (props != null)
+                    {
+                        using (var writer = new StreamWriter(webRequest.GetRequestStream()))
+                        {
+                            writer.Write(props);
+                        }
+                    }
+                }
+
+                //Wait for RateGate
+                _rateGate.WaitToProceed();
             }
 
             //Make the request
             try
             {
-                //Wait for RateGate
-                _rateGate.WaitToProceed();
 
                 using (WebResponse webResponse = webRequest.GetResponse())
                 {
@@ -115,13 +186,28 @@ namespace OsEngine.Market.Servers.Kraken.KrakenEntity
             Int64 nonce = DateTime.Now.Ticks;
             props = "nonce=" + nonce + props;
 
-
             string path = string.Format("/{0}/private/{1}", _version, a_sMethod);
             string address = _url + path;
             HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(address);
             webRequest.ContentType = "application/x-www-form-urlencoded";
             webRequest.Method = "POST";
             webRequest.Headers.Add("API-Key", _key);
+
+            if (_proxies != null &&
+                _proxies.Count != 0 &&
+                _lastProxyNum < _webProxies.Count)
+            {
+                webRequest.Proxy = _webProxies[_lastProxyNum];
+                _lastProxyNum++;
+            }
+
+            if (webRequest.Proxy != null && 
+                webRequest.Proxy.Credentials == null &&
+                _webProxies != null &&
+                _lastProxyNum >= _webProxies.Count)
+            {
+                _lastProxyNum = 0;
+            }
 
 
             byte[] base64DecodedSecred = Convert.FromBase64String(_secret);
@@ -138,9 +224,9 @@ namespace OsEngine.Market.Servers.Kraken.KrakenEntity
 
             webRequest.Headers.Add("API-Sign", Convert.ToBase64String(signature));
 
+
             if (props != null)
             {
-
                 using (var writer = new StreamWriter(webRequest.GetRequestStream()))
                 {
                     writer.Write(props);
@@ -152,6 +238,7 @@ namespace OsEngine.Market.Servers.Kraken.KrakenEntity
             {
                 //Wait for RateGate
                 _rateGate.WaitToProceed();
+                //Thread.Sleep(2000);
 
                 using (WebResponse webResponse = webRequest.GetResponse())
                 {
@@ -183,6 +270,24 @@ namespace OsEngine.Market.Servers.Kraken.KrakenEntity
 
             }
         }
+
+        //обработка лога
+
+        /// <summary>
+        /// добавить в лог новое сообщение
+        /// </summary>
+        private void SendLogMessage(string message, LogMessageType type)
+        {
+            if (LogMessageEvent != null)
+            {
+                LogMessageEvent(message, type);
+            }
+        }
+
+        /// <summary>
+        /// исходящее сообщение для лога
+        /// </summary>
+        public event Action<string, LogMessageType> LogMessageEvent;
 
         #region Public queries
 

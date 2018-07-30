@@ -8,12 +8,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Threading;
-using OkonkwoOandaV20.TradeLibrary.DataTypes.Order;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Kraken.KrakenEntity;
 using Order = OsEngine.Entity.Order;
-using Trade = OsEngine.Entity.Trade;
 
 namespace OsEngine.Market.Servers.Kraken
 {
@@ -34,8 +32,9 @@ namespace OsEngine.Market.Servers.Kraken
             ServerType = ServerType.Kraken;
             ServerStatus = ServerConnectStatus.Disconnect;
             LoadDateType = KrakenDateType.OnlyTrades;
-
+            LeverageType = "none";
             Load();
+            LoadProxies();
 
             _tickStorage = new ServerTickStorage(this);
             _tickStorage.NeadToSave = NeadToSaveTicks;
@@ -112,6 +111,8 @@ namespace OsEngine.Market.Servers.Kraken
         /// </summary>
         public ServerType ServerType { get; set; }
 
+        public string LeverageType;
+
         /// <summary>
         /// вызвать окно настроек
         /// </summary>
@@ -142,6 +143,8 @@ namespace OsEngine.Market.Servers.Kraken
 
                     Enum.TryParse(reader.ReadLine(), out _loadDateType);
                     LoadDateType = _loadDateType;
+                    LeverageType = reader.ReadLine();
+
                     reader.Close();
                 }
             }
@@ -165,6 +168,68 @@ namespace OsEngine.Market.Servers.Kraken
                     writer.WriteLine(CountDaysTickNeadToSave);
                     writer.WriteLine(NeadToSaveTicks);
                     writer.WriteLine(_loadDateType);
+                    writer.WriteLine(LeverageType);
+                    writer.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+
+            if (_krakenClient != null)
+            {
+                _krakenClient.InsertProxies(Proxies);
+            }
+        }
+
+        // хранилище прокси
+
+        public List<ProxyHolder> Proxies = new List<ProxyHolder>();
+
+        public void LoadProxies()
+        {
+            if (!File.Exists(@"Engine\" + @"KrakenServerProxy.txt"))
+            {
+                return;
+            }
+
+            try
+            {
+                using (StreamReader reader = new StreamReader(@"Engine\" + @"KrakenServerProxy.txt"))
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        ProxyHolder newProxy = new ProxyHolder();
+                        newProxy.LoadFromString(reader.ReadLine());
+                        Proxies.Add(newProxy);
+                    }
+                    reader.Close();
+                }
+            }
+            catch
+            {
+                // ignored
+            }
+
+            if (_krakenClient != null)
+            {
+                _krakenClient.InsertProxies(Proxies);
+            }
+        }
+
+        public void SaveProxies(List<ProxyHolder> proxies)
+        {
+            Proxies = proxies;
+
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + @"KrakenServerProxy.txt", false))
+                {
+                    for (int i = 0; i < proxies.Count; i++)
+                    {
+                        writer.WriteLine(proxies[i].GetStringToSave());
+                    }
 
                     writer.Close();
                 }
@@ -173,7 +238,13 @@ namespace OsEngine.Market.Servers.Kraken
             {
                 // ignored
             }
+
+            if (_krakenClient != null)
+            {
+                _krakenClient.InsertProxies(Proxies);
+            }
         }
+
 
 //хранилище тиков
         
@@ -410,6 +481,8 @@ namespace OsEngine.Market.Servers.Kraken
                 _krakenClient.NewSecuritiesEvent += _krakenClient_NewSecuritiesEvent;
                 _krakenClient.NewMarketDepthEvent += _krakenClient_NewMarketDepthEvent;
                 _krakenClient.DataType = _loadDateType;
+
+                _krakenClient.InsertProxies(Proxies);
             }
         }
 
@@ -651,6 +724,10 @@ namespace OsEngine.Market.Servers.Kraken
                     }
                     else
                     {
+                        if (MainWindow.ProccesIsWorked == false)
+                        {
+                            return;
+                        }
                         Thread.Sleep(1);
                     }
                 }
@@ -967,6 +1044,14 @@ namespace OsEngine.Market.Servers.Kraken
         /// </summary>
         void _krakenClient_NewMarketDepthEvent(MarketDepth marketDepth)
         {
+
+            if (LoadDateType == KrakenDateType.AllData &&
+                marketDepth.Bids.Count == 1 &&
+                marketDepth.Asks.Count == 1)
+            {
+                return;
+            }
+
             ServerTime = marketDepth.Time;
             _marketDepthsToSend.Enqueue(marketDepth);
 
@@ -1175,12 +1260,12 @@ namespace OsEngine.Market.Servers.Kraken
                                 if (order.Side == Side.Buy)
                                 {
                                     orderKraken.Type = "buy";
-                                    orderKraken.Leverage = "2";
+                                    orderKraken.Leverage = LeverageType;
                                 }
                                 else
                                 {
                                     orderKraken.Type = "sell";
-                                    orderKraken.Leverage = "2";
+                                    orderKraken.Leverage = LeverageType;
                                 }
                                 orderKraken.Price = order.Price;
                                 orderKraken.OrderType = "limit";
@@ -1329,6 +1414,11 @@ namespace OsEngine.Market.Servers.Kraken
         /// <summary>
         /// только трейды
         /// </summary>
-        OnlyTrades
+        OnlyTrades,
+
+        /// <summary>
+        /// все типы данных
+        /// </summary>
+        AllData
     }
 }
