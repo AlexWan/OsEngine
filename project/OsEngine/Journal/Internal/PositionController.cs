@@ -172,6 +172,7 @@ namespace OsEngine.Journal.Internal
                         }
                         catch (Exception)
                         {
+                            i--;
                             positions.Remove(positions[i]);
                         }
 

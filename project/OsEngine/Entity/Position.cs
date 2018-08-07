@@ -735,13 +735,13 @@ namespace OsEngine.Entity
 
             NameBot = arraySave[2];
 
-            ProfitOperationPersent = Convert.ToDecimal(arraySave[3]);
+            ProfitOperationPersent = Convert.ToDecimal(arraySave[3].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
 
-            ProfitOperationPunkt = Convert.ToDecimal(arraySave[4]);
+            ProfitOperationPunkt = Convert.ToDecimal(arraySave[4].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
 
             if (arraySave[5] != "null")
             {
-               string[] ordersOpen = arraySave[5].Split('^');
+                string[] ordersOpen = arraySave[5].Split('^');
                 if (ordersOpen.Length != 1)
                 {
                     _openOrders = new List<Order>();
@@ -757,18 +757,18 @@ namespace OsEngine.Entity
             Comment = arraySave[7];
 
             StopOrderIsActiv = Convert.ToBoolean(arraySave[8]);
-            StopOrderPrice = Convert.ToDecimal(arraySave[9]);
-            StopOrderRedLine = Convert.ToDecimal(arraySave[10]);
+            StopOrderPrice = Convert.ToDecimal(arraySave[9].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+            StopOrderRedLine = Convert.ToDecimal(arraySave[10].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
 
             ProfitOrderIsActiv = Convert.ToBoolean(arraySave[11]);
-            ProfitOrderPrice = Convert.ToDecimal(arraySave[12]);
+            ProfitOrderPrice = Convert.ToDecimal(arraySave[12].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
 
-            Lots = Convert.ToDecimal(arraySave[13]);
-            PriceStepCost = Convert.ToDecimal(arraySave[14]);
-            PriceStep = Convert.ToDecimal(arraySave[15]);
-            PortfolioValueOnOpenPosition = Convert.ToDecimal(arraySave[16]);
+            Lots = Convert.ToDecimal(arraySave[13].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+            PriceStepCost = Convert.ToDecimal(arraySave[14].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+            PriceStep = Convert.ToDecimal(arraySave[15].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+            PortfolioValueOnOpenPosition = Convert.ToDecimal(arraySave[16].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
 
-            ProfitOrderRedLine = Convert.ToDecimal(arraySave[17]);
+            ProfitOrderRedLine = Convert.ToDecimal(arraySave[17].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
 
             SignalTypeOpen = arraySave[18];
             SignalTypeClose = arraySave[19];
@@ -812,7 +812,14 @@ namespace OsEngine.Entity
             {
                 if (CloseOrders != null && CloseOrders.Count != 0)
                 {
-                    return CloseOrders[CloseOrders.Count - 1].GetLastTradeTime();
+                    for (int i = CloseOrders.Count-1; i > -1 && i < CloseOrders.Count; i--)
+                    {
+                        DateTime time = CloseOrders[i].GetLastTradeTime();
+                        if (time != DateTime.MinValue)
+                        {
+                            return time;
+                        }
+                    }
                 }
                 return TimeCreate;
             }

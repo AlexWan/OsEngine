@@ -272,6 +272,13 @@ namespace OsEngine.Market.Servers.BitMex
         /// </summary>
         private void Converter()
         {
+            string myTradesStr = "{\"table\"" + ":" + "\"execution\"";
+            string ordersStr = "{\"table\"" + ":" + "\"order\"";
+            string marginStr = "{\"table\"" + ":" + "\"margin\"";
+            string positionsStr = "{\"table\"" + ":" + "\"position\"";
+            string marketDepthStr = "{\"table\"" + ":" + "\"orderBookL2\"";
+            string tradesStr = "{\"table\"" + ":" + "\"trade\"";
+
             while (true)
             {
                 try
@@ -286,59 +293,9 @@ namespace OsEngine.Market.Servers.BitMex
 
                         if (_newMessage.TryDequeue(out mes))
                         {
-                            if (mes.Contains("error"))
-                            {
-                                if (ErrorEvent != null)
-                                {
-                                    ErrorEvent(mes);
-                                }
-                            }
 
-                            if (mes.Contains("\"table\"" + ":" + "\"margin\""))
-                            {
-                                var portf = JsonConvert.DeserializeAnonymousType(mes, new BitMexPortfolio());
 
-                                if (UpdatePortfolio != null)
-                                {
-                                    UpdatePortfolio(portf);
-                                }
-                                continue;
-                            }
-
-                            if (mes.Contains("\"table\"" + ":" + "\"position\""))
-                            {
-                                var pos = JsonConvert.DeserializeAnonymousType(mes, new BitMexPosition());
-
-                                if (UpdatePosition != null)
-                                {
-                                    UpdatePosition(pos);
-                                }
-                                continue;
-                            }
-
-                            if (mes.Contains("\"table\"" + ":" + "\"orderBookL2\""))
-                            {
-                                var quotes = JsonConvert.DeserializeAnonymousType(mes, new BitMexQuotes());
-
-                                if (UpdateMarketDepth != null && quotes.data.Count != 0 && quotes.data != null)
-                                {
-                                    UpdateMarketDepth(quotes);
-                                }
-                                continue;
-                            }
-
-                            if (mes.Contains("\"table\"" + ":" + "\"trade\""))
-                            {
-                                var trade = JsonConvert.DeserializeAnonymousType(mes, new BitMexTrades());
-
-                                if (NewTradesEvent != null)
-                                {
-                                    NewTradesEvent(trade);
-                                }
-                                continue;
-                            }
-
-                            if (mes.Contains("\"table\"" + ":" + "\"execution\""))
+                            if (mes.StartsWith(myTradesStr))
                             {
                                 var myOrder = JsonConvert.DeserializeAnonymousType(mes, new BitMexMyOrders());
 
@@ -349,7 +306,7 @@ namespace OsEngine.Market.Servers.BitMex
                                 continue;
                             }
 
-                            if (mes.Contains("\"table\"" + ":" + "\"order\""))
+                            if (mes.StartsWith(ordersStr))
                             {
                                 var order = JsonConvert.DeserializeAnonymousType(mes, new BitMexOrder());
 
@@ -359,12 +316,64 @@ namespace OsEngine.Market.Servers.BitMex
                                 }
                                 continue;
                             }
-                        }                      
+
+                            if (mes.StartsWith(marginStr))
+                            {
+                                var portf = JsonConvert.DeserializeAnonymousType(mes, new BitMexPortfolio());
+
+                                if (UpdatePortfolio != null)
+                                {
+                                    UpdatePortfolio(portf);
+                                }
+                                continue;
+                            }
+
+                            if (mes.StartsWith(positionsStr))
+                            {
+                                var pos = JsonConvert.DeserializeAnonymousType(mes, new BitMexPosition());
+
+                                if (UpdatePosition != null)
+                                {
+                                    UpdatePosition(pos);
+                                }
+                                continue;
+                            }
+
+                            if (mes.StartsWith(marketDepthStr))
+                            {
+                                var quotes = JsonConvert.DeserializeAnonymousType(mes, new BitMexQuotes());
+
+                                if (UpdateMarketDepth != null && quotes.data.Count != 0 && quotes.data != null)
+                                {
+                                    UpdateMarketDepth(quotes);
+                                }
+                                continue;
+                            }
+
+                            if (mes.StartsWith(tradesStr))
+                            {
+                                var trade = JsonConvert.DeserializeAnonymousType(mes, new BitMexTrades());
+
+                                if (NewTradesEvent != null)
+                                {
+                                    NewTradesEvent(trade);
+                                }
+                                continue;
+                            }
+
+                            if (mes.Contains("error"))
+                            {
+                                if (ErrorEvent != null)
+                                {
+                                    ErrorEvent(mes);
+                                }
+                            }
+                        }
 
                     }
                     else
                     {
-                        Thread.Sleep(2);
+                        Thread.Sleep(1);
                     }
                 }
                 catch (Exception exception)
@@ -376,7 +385,6 @@ namespace OsEngine.Market.Servers.BitMex
                 }
             }
         }
-
         /// <summary>
         /// отправляет исключения
         /// </summary>

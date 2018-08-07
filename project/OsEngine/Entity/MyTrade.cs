@@ -71,8 +71,8 @@ namespace OsEngine.Entity
         {
             string[] arraySave = saveString.Split('&');
 
-            Volume = Convert.ToDecimal(arraySave[0]);
-            Price = Convert.ToDecimal(arraySave[1]);
+            Volume = Convert.ToDecimal(arraySave[0].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+            Price = Convert.ToDecimal(arraySave[1].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
             NumberOrderParent = arraySave[2];
             Time = Convert.ToDateTime(arraySave[3]);
             NumberTrade = arraySave[4];

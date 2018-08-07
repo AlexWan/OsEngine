@@ -353,16 +353,16 @@ namespace OsEngine.Entity
         /// </summary>
         public void SetOrderFromString(string saveString)
         {
-            string [] saveArray = saveString.Split('@');
+            string[] saveArray = saveString.Split('@');
             NumberUser = Convert.ToInt32(saveArray[0]);
 
             Enum.TryParse(saveArray[1], true, out ServerType);
 
             NumberMarket = saveArray[2];
             Enum.TryParse(saveArray[3], true, out Side);
-            Price = Convert.ToDecimal(saveArray[4]);
-            Volume = Convert.ToDecimal(saveArray[6]);
-            VolumeExecute = Convert.ToDecimal(saveArray[7]);
+            Price = Convert.ToDecimal(saveArray[4].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+            Volume = Convert.ToDecimal(saveArray[6].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+            VolumeExecute = Convert.ToDecimal(saveArray[7].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
 
 
             Enum.TryParse(saveArray[8], true, out _state);
@@ -376,7 +376,7 @@ namespace OsEngine.Entity
             TimeCreate = Convert.ToDateTime(saveArray[13]);
             TimeCancel = Convert.ToDateTime(saveArray[14]);
             TimeCallBack = Convert.ToDateTime(saveArray[15]);
-            TimeSpan.TryParse(saveArray[16],out LifeTime);
+            TimeSpan.TryParse(saveArray[16], out LifeTime);
             // сделки, которыми открывался ордер и рассчёт цены исполнения ордера
 
             if (saveArray[17] == "null")
@@ -385,11 +385,11 @@ namespace OsEngine.Entity
             }
             else
             {
-                string [] tradesArray = saveArray[17].Split('*');
+                string[] tradesArray = saveArray[17].Split('*');
 
                 _trades = new List<MyTrade>();
 
-                for (int i = 0; i < tradesArray.Length-1; i++)
+                for (int i = 0; i < tradesArray.Length - 1; i++)
                 {
                     _trades.Add(new MyTrade());
                     _trades[i].SetTradeFromString(tradesArray[i]);
@@ -398,6 +398,7 @@ namespace OsEngine.Entity
             Comment = saveArray[18];
         }
     }
+
 
     /// <summary>
     /// тип цены для ордера

@@ -10,6 +10,7 @@ using OsEngine.Market.Servers.Entity;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Threading;
@@ -71,6 +72,11 @@ namespace OsEngine.Market.Servers.BitMex
             threadDataSender.CurrentCulture = new CultureInfo("ru-RU");
             threadDataSender.IsBackground = true;
             threadDataSender.Start();
+
+            Thread marketDepthConverterThread = new Thread(MarketDepthLoaderThreadArea);
+            marketDepthConverterThread.IsBackground = true;
+            marketDepthConverterThread.CurrentCulture = new CultureInfo("ru-RU");
+            marketDepthConverterThread.Start();
         }
 
         /// <summary>
@@ -1131,8 +1137,9 @@ namespace OsEngine.Market.Servers.BitMex
 
                     _candles = null;
 
-                    for (int i = 0; i < 5; i++)
+                    for (int i = 0; i < 10; i++)
                     {
+                        Thread.Sleep(500);
                         if (i == 0)
                         {
                             endTime = DateTime.UtcNow.Add(TimeSpan.FromMinutes(shift));
@@ -1327,7 +1334,7 @@ namespace OsEngine.Market.Servers.BitMex
         /// </summary>
         public event Action<CandleSeries> NewCandleIncomeEvent;
 
-// стакан
+        // стакан
 
         /// <summary>
         /// все стаканы
@@ -1341,6 +1348,47 @@ namespace OsEngine.Market.Servers.BitMex
         /// </summary>
         /// <param name="quotes"></param>
         private void UpdateMarketDepth(BitMexQuotes quotes)
+        {
+            _quoteses.Enqueue(quotes);
+        }
+
+        /// <summary>
+        /// очередь стаканов на разбор
+        /// </summary>
+        private ConcurrentQueue<BitMexQuotes> _quoteses = new ConcurrentQueue<BitMexQuotes>();
+
+        /// <summary>
+        /// место разбора стаканов
+        /// </summary>
+        private void MarketDepthLoaderThreadArea()
+        {
+            while (true)
+            {
+                if (MainWindow.ProccesIsWorked == false)
+                {
+                    return;
+                }
+
+                if (_quoteses.IsEmpty == false)
+                {
+                    BitMexQuotes quotes;
+
+                    _quoteses.TryDequeue(out quotes);
+
+                    LoadMarketDepth(quotes);
+                }
+                else
+                {
+                    Thread.Sleep(1);
+                }
+            }
+        }
+
+        /// <summary>
+        /// пришел обновленный стакан
+        /// </summary>
+        /// <param name="quotes"></param>
+        private void LoadMarketDepth(BitMexQuotes quotes)
         {
             try
             {
@@ -2158,6 +2206,9 @@ namespace OsEngine.Market.Servers.BitMex
                                 "Апи. Доп проверка. Ордер исполнен. Номер ордера: " + _ordersToCheck[i].NumberUser,
                                 LogMessageType.System);
                             _ordersToCheck[i].State = OrderStateType.Done;
+                            _ordersToCheck[i].TimeCallBack = ServerTime;
+                            _ordersToCheck[i].VolumeExecute = _ordersToCheck[i].Volume;
+                            
                             _ordersToSend.Enqueue(_ordersToCheck[i]);
 
                             if (_myTrades != null &&
