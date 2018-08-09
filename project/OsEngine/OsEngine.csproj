@@ -339,6 +339,17 @@
     <Compile Include="Market\Servers\Binance\BinanceServerUi.xaml.cs">
       <DependentUpon>BinanceServerUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\Servers\Bitfinex\BitfinexClient.cs" />
+    <Compile Include="Market\Servers\Bitfinex\BitfinexServer.cs" />
+    <Compile Include="Market\Servers\Bitfinex\BitfinexServerUi.xaml.cs">
+      <DependentUpon>BitfinexServerUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Market\Servers\Bitfinex\BitfitnexEntity\BitfinexOrder.cs" />
+    <Compile Include="Market\Servers\Bitfinex\BitfitnexEntity\BitfinexSecurity.cs" />
+    <Compile Include="Market\Servers\Bitfinex\BitfitnexEntity\EventInfo.cs" />
+    <Compile Include="Market\Servers\Bitfinex\BitfitnexEntity\JsonConverter.cs" />
+    <Compile Include="Market\Servers\Bitfinex\BitfitnexEntity\NewOrderPayload.cs" />
+    <Compile Include="Market\Servers\Bitfinex\BitfitnexEntity\SubscriptionInformation.cs" />
     <Compile Include="Market\Servers\BitMex\BitMexClient.cs" />
     <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexMyOrders.cs" />
     <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexOrder.cs" />
@@ -875,6 +886,10 @@
     <Page Include="Market\Servers\Binance\BinanceServerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\Bitfinex\BitfinexServerUi.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Market\Servers\BitMex\BitMexServerUi.xaml">
       <SubType>Designer</SubType>

@@ -131,6 +131,7 @@ namespace OsEngine.Market.Servers
                 _gridSources.Rows.Add(row1);
             }
 
+            bool bitfinex = false;
             bool bitMexIsOn = false;
             bool quikIsOn = false;
             bool smartcomIsOn = false;
@@ -151,6 +152,11 @@ namespace OsEngine.Market.Servers
                 ServerType type;
 
                 Enum.TryParse(row1.Cells[0].Value.ToString(), out type);
+
+                if (type == ServerType.Bitfinex)
+                {
+                    bitfinex = true;
+                }
 
                 if (type == ServerType.Binance)
                 {
@@ -209,7 +215,15 @@ namespace OsEngine.Market.Servers
                 }
             }
 
-
+            if (bitfinex == false)
+            {
+                DataGridViewRow row1 = new DataGridViewRow();
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[0].Value = ServerType.Bitfinex;
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[1].Value = "Disconnect";
+                _gridSources.Rows.Add(row1);
+            }
             if (quikIsOn == false)
             {
                 DataGridViewRow row1 = new DataGridViewRow();
