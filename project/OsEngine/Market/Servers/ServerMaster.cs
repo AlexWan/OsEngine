@@ -10,6 +10,7 @@ using System.Windows.Forms.Integration;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.AstsBridge;
 using OsEngine.Market.Servers.Binance;
+using OsEngine.Market.Servers.Bitfinex;
 using OsEngine.Market.Servers.BitMex;
 using OsEngine.Market.Servers.BitStamp;
 using OsEngine.Market.Servers.Finam;
@@ -91,6 +92,21 @@ namespace OsEngine.Market.Servers
                 if (_servers == null)
                 {
                     _servers = new List<IServer>();
+                }
+                if (type == ServerType.Bitfinex)
+                {
+                    if (_servers.Find(server => server.ServerType == ServerType.Bitfinex) != null)
+                    {
+                        return;
+                    }
+
+                    BitfinexServer serv = new BitfinexServer(neadLoadTicks);
+                    _servers.Add(serv);
+
+                    if (ServerCreateEvent != null)
+                    {
+                        ServerCreateEvent();
+                    }
                 }
                 if (type == ServerType.Binance)
                 {
@@ -645,6 +661,11 @@ namespace OsEngine.Market.Servers
     /// </summary>
     public enum ServerType
     {
+        /// <summary>
+        /// биржа криптовалют Bitfinex
+        /// </summary>
+        Bitfinex,
+
         /// <summary>
         /// биржа криптовалют Binance
         /// </summary>

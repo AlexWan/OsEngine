@@ -10,6 +10,7 @@ using System.Windows;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Binance;
+using OsEngine.Market.Servers.Bitfinex;
 using OsEngine.Market.Servers.BitMex;
 using OsEngine.Market.Servers.Kraken;
 using OsEngine.Market.Servers.Oanda;
@@ -335,6 +336,28 @@ namespace OsEngine.Entity
                             else
                             {
                                 List<Candle> candles = binance.GetCandleHistory(series.Security.Name,
+                                    series.TimeFrameSpan);
+                                if (candles != null)
+                                {
+                                    series.CandlesAll = candles;
+                                }
+                            }
+                            series.UpdateAllCandles();
+                            series.IsStarted = true;
+                        }
+                        else if (serverType == ServerType.Bitfinex)
+                        {
+                            BitfinexServer bitfinex = (BitfinexServer)_server;
+                            if (series.TimeFrameSpan.TotalMinutes < 1 ||
+                                series.TimeFrame == TimeFrame.Tick ||
+                                series.TimeFrame == TimeFrame.Delta)
+                            {
+                                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
+                                series.PreLoad(allTrades);
+                            }
+                            else
+                            {
+                                List<Candle> candles = bitfinex.GetCandleHistory(series.Security.Name,
                                     series.TimeFrameSpan);
                                 if (candles != null)
                                 {
