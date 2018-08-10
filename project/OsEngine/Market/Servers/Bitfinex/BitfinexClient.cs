@@ -27,13 +27,15 @@ namespace OsEngine.Market.Servers.Bitfinex
         {
             _restClient = new RestClient(_baseUrlV1);
 
-            converter = new Thread(Converter);
-            converter.CurrentCulture = new CultureInfo("ru-RU");
-            converter.IsBackground = true;
-            converter.Start();
+            for (int i = 0; i < 5; i++)
+            {
+               Thread converter = new Thread(Converter);
+                converter.CurrentCulture = new CultureInfo("ru-RU");
+                converter.Name = "BitFinexConverterFread" + i;
+                converter.IsBackground = true;
+                converter.Start();
+            }
         }
-
-        private Thread converter;
 
         private string _baseUrlV1 = "https://api.bitfinex.com/v1";
 
@@ -97,8 +99,6 @@ namespace OsEngine.Market.Servers.Bitfinex
             }
            
             IsConnected = false;
-
-            converter.Abort();
 
             _isDisposed = true;
         }
@@ -204,11 +204,11 @@ namespace OsEngine.Market.Servers.Bitfinex
                         newOsOrder.NumberMarket = newCreatedOrder.order_id.ToString();
                         newOsOrder.NumberUser = order.NumberUser;
 
-                        newOsOrder.Price = Convert.ToDecimal(newCreatedOrder.price.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                        newOsOrder.Volume = Convert.ToDecimal(newCreatedOrder.original_amount.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                        newOsOrder.VolumeExecute = Convert.ToDecimal(newCreatedOrder.executed_amount.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                        newOsOrder.Price = Convert.ToDecimal(newCreatedOrder.price.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                        newOsOrder.Volume = Convert.ToDecimal(newCreatedOrder.original_amount.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                        newOsOrder.VolumeExecute = Convert.ToDecimal(newCreatedOrder.executed_amount.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
 
-                        newOsOrder.TimeCallBack = new DateTime(1970, 1, 1) + TimeSpan.FromSeconds(Math.Round(Convert.ToDouble(newCreatedOrder.timestamp.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture)));
+                        newOsOrder.TimeCallBack = new DateTime(1970, 1, 1) + TimeSpan.FromSeconds(Math.Round(Convert.ToDouble(newCreatedOrder.timestamp.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture)));
 
                         newOsOrder.State = OrderStateType.Activ;
 
@@ -216,6 +216,14 @@ namespace OsEngine.Market.Servers.Bitfinex
                         {
                             MyOrderEvent(newOsOrder);
                         }
+                    }
+                    else
+                    {
+                         order.State = OrderStateType.Fail;
+                         if (MyOrderEvent != null)
+                         {
+                             MyOrderEvent(order);
+                         }
                     }
                 }
                 catch (Exception ex)
@@ -292,7 +300,6 @@ namespace OsEngine.Market.Servers.Bitfinex
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
                 return null;
             }
-
         }
 
         /// <summary>
@@ -375,12 +382,12 @@ namespace OsEngine.Market.Servers.Bitfinex
         /// <param name="payload">сообщение</param>
         /// <param name="apiSecret">секретный ключ</param>
         /// <returns></returns>
-        public static string CreateSignature(string payload, string apiSecret)
+        public string CreateSignature(string payload, string apiSecret)
         {
             var keyBytes = Encoding.UTF8.GetBytes(payload);
             var secretBytes = Encoding.UTF8.GetBytes(apiSecret);
             
-            string ByteToString(byte[] buff)
+            /*string ByteToString(byte[] buff)
             {
                 var builder = new StringBuilder();
 
@@ -389,7 +396,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                     builder.Append(buff[i].ToString("X2")); // hex format
                 }
                 return builder.ToString();
-            }
+            }*/
 
             using (var hmacsha384 = new HMACSHA384(secretBytes))
             {
@@ -397,6 +404,19 @@ namespace OsEngine.Market.Servers.Bitfinex
                 return ByteToString(hashmessage).ToLower();
             }
         }
+
+        private string ByteToString(byte[] buff)
+        {
+            var builder = new StringBuilder();
+
+            for (var i = 0; i < buff.Length; i++)
+            {
+                builder.Append(buff[i].ToString("X2")); // hex format
+            }
+            return builder.ToString();
+
+        }
+
         #endregion
 
         #region сообщения для лога
@@ -567,6 +587,11 @@ namespace OsEngine.Market.Servers.Bitfinex
         private Dictionary<string, int> _subscribedBooksSecurity = new Dictionary<string, int>();
 
         /// <summary>
+        /// блокировка многопоточной высылки даных на верх
+        /// </summary>
+        private object _senderLocker = new object();
+
+        /// <summary>
         /// берет сообщения из общей очереди, конвертирует их в классы C# и отправляет на верх
         /// </summary>
         public void Converter()
@@ -588,17 +613,23 @@ namespace OsEngine.Market.Servers.Bitfinex
                         {
                             if (mes.Contains("\"event\":\"error\""))
                             {
-                                SendLogMessage(mes, LogMessageType.Error);
-                            }
-                            else if (mes.Contains("\"event\":\"info\""))
-                            {
-                                if (mes.Contains("\"code\":20051") || mes.Contains("\"code\":20060"))
+                                lock (_senderLocker)
                                 {
-                                    SendLogMessage("остановка/перезапуск сервера Websocket", LogMessageType.Error);
-
-                                    if (Disconnected != null)
+                                    SendLogMessage(mes, LogMessageType.Error);
+                                }
+                            }
+                            else if (mes.StartsWith("{\"event\":\"info\""))
+                            {
+                                lock (_senderLocker)
+                                {
+                                    if (mes.Contains("\"code\":20051") || mes.Contains("\"code\":20060"))
                                     {
-                                        Disconnected();
+                                        SendLogMessage("остановка/перезапуск сервера Websocket", LogMessageType.Error);
+
+                                        if (Disconnected != null)
+                                        {
+                                            Disconnected();
+                                        }
                                     }
                                 }
                             }
@@ -617,97 +648,105 @@ namespace OsEngine.Market.Servers.Bitfinex
                             }
                             else if ( mes.Contains("\"ou\"") || mes.Contains("\"oc\"")) // обновление или закрытие моего ордера
                             {
-                                Thread.Sleep(300);
-
-                                var values = ParseData(mes);
-
-                                int numUser = _osOrders[values[0]];
-                                
-                                var order = new Order();
-
-                                order.NumberUser = numUser;
-                                order.SecurityNameCode = values[1];
-                                order.PortfolioNumber = values[1].Substring(3);
-                                order.Side = Convert.ToDecimal(values[2].Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator)
-                                                                                    , CultureInfo.InvariantCulture) > 0 ? Side.Buy : Side.Sell;
-                                order.NumberMarket = values[0];
-                                order.Price = Convert.ToDecimal(values[6].Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                                order.Volume = Math.Abs(Convert.ToDecimal(values[2].Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture));
-
-                                order.TimeCallBack = DateTime.Parse(values[8].TrimEnd('Z'));
-
-                                if (values[5].Contains("EXECUTED"))
+                                lock (_senderLocker)
                                 {
-                                    order.State = OrderStateType.Done;
-                                    continue;                                    
-                                }
-                                else
-                                {
-                                    switch (values[5])
+                                    Thread.Sleep(300);
+
+                                    var values = ParseData(mes);
+
+                                    int numUser = _osOrders[values[0]];
+
+                                    var order = new Order();
+
+                                    order.NumberUser = numUser;
+                                    order.SecurityNameCode = values[1];
+                                    order.PortfolioNumber = values[1].Substring(3);
+                                    order.Side = Convert.ToDecimal(values[2].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator)
+                                                                                        , CultureInfo.InvariantCulture) > 0 ? Side.Buy : Side.Sell;
+                                    order.NumberMarket = values[0];
+                                    order.Price = Convert.ToDecimal(values[6].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                                    order.Volume = Math.Abs(Convert.ToDecimal(values[2].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture));
+
+                                    order.TimeCallBack = DateTime.Parse(values[8].TrimEnd('Z'));
+
+                                    if (values[5].Contains("EXECUTED"))
                                     {
-                                        case "ACTIVE":
-                                            order.State = OrderStateType.Activ;
-                                            break;
-
-                                        case "PARTIALLY FILLED":
-                                            order.State = OrderStateType.Patrial;
-                                            break;
-
-                                        case "CANCELED":
-                                            order.State = OrderStateType.Cancel;
-                                            _osOrders.Remove(order.NumberMarket);
-                                            break;
-
-                                        default:
-                                            order.State = OrderStateType.None;
-                                            break;
+                                        order.State = OrderStateType.Done;
                                     }
+                                    else
+                                    {
+                                        switch (values[5])
+                                        {
+                                            case "ACTIVE":
+                                                order.State = OrderStateType.Activ;
+                                                break;
 
-                                }
-                                if (MyOrderEvent != null)
-                                {
-                                    MyOrderEvent(order);
-                                }
+                                            case "PARTIALLY FILLED":
+                                                order.State = OrderStateType.Patrial;
+                                                break;
 
+                                            case "CANCELED":
+                                                order.State = OrderStateType.Cancel;
+                                                _osOrders.Remove(order.NumberMarket);
+                                                break;
+
+                                            default:
+                                                order.State = OrderStateType.None;
+                                                break;
+                                        }
+                                    }
+                                    if (MyOrderEvent != null)
+                                    {
+                                        MyOrderEvent(order);
+                                    }
+                                }
                             }
                             else if (mes.Contains("[0,\"tu\",[")) // новая моя сделка
                             {
-                                // [0,"tu",["5809001-IOTBTC",275774974,"IOTBTC",1533415991,15073784940,13,0.00012184,"EXCHANGE LIMIT",0.00012184,-0.026,"IOT"]] моя сделка
-                                var valuesMyTrade = ParseData(mes);
-
-                                Thread.Sleep(300);
-
-                                MyTrade myTrade = new MyTrade();
-                                myTrade.Price = Convert.ToDecimal(valuesMyTrade[6].Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                                myTrade.NumberTrade = valuesMyTrade[1];
-                                myTrade.SecurityNameCode = valuesMyTrade[2];
-                                myTrade.Side = valuesMyTrade[5].Contains("-") ? Side.Sell : Side.Buy;
-                                myTrade.Volume = Math.Abs(Convert.ToDecimal(valuesMyTrade[5].Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture));
-                                myTrade.Time = new DateTime(1970,01,01) + TimeSpan.FromSeconds(Convert.ToDouble(valuesMyTrade[3]));
-                                myTrade.NumberOrderParent = valuesMyTrade[4];
-
-                                if (MyTradeEvent != null)
+                                lock (_senderLocker)
                                 {
-                                    MyTradeEvent(myTrade);
-                                }
+                                    // [0,"tu",["5809001-IOTBTC",275774974,"IOTBTC",1533415991,15073784940,13,0.00012184,"EXCHANGE LIMIT",0.00012184,-0.026,"IOT"]] моя сделка
+                                    var valuesMyTrade = ParseData(mes);
 
+                                    Thread.Sleep(300);
+
+                                    MyTrade myTrade = new MyTrade();
+                                    myTrade.Price = Convert.ToDecimal(valuesMyTrade[6].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                                    myTrade.NumberTrade = valuesMyTrade[1];
+                                    myTrade.SecurityNameCode = valuesMyTrade[2];
+                                    myTrade.Side = valuesMyTrade[5].Contains("-") ? Side.Sell : Side.Buy;
+                                    myTrade.Volume = Math.Abs(Convert.ToDecimal(valuesMyTrade[5].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture));
+                                    myTrade.Time = new DateTime(1970, 01, 01) + TimeSpan.FromSeconds(Convert.ToDouble(valuesMyTrade[3]));
+                                    myTrade.NumberOrderParent = valuesMyTrade[4];
+
+                                    if (MyTradeEvent != null)
+                                    {
+                                        MyTradeEvent(myTrade);
+                                    }
+                                }
                             }
                             else if (mes.Contains("\"ws\"")) // снимок портфелей
                             {
-                                var res = Walets.FromJson(mes)[2].AllWallets;
-
-                                if (NewPortfolio!= null)
+                                lock (_senderLocker)
                                 {
-                                    NewPortfolio(res);
+                                    var res = Walets.FromJson(mes)[2].AllWallets;
+
+                                    if (NewPortfolio != null)
+                                    {
+                                        NewPortfolio(res);
+                                    }
                                 }
                             }
                             else if (mes.Contains("\"wu\"")) // обновление портфеля
                             {
-                                var res = WalletUpdate.FromJson(mes)[2].UpdatedWallet; ;
-
-                                if (UpdatePortfolio != null)
+                                lock (_senderLocker)
                                 {
-                                    UpdatePortfolio(res);
+                                    var res = WalletUpdate.FromJson(mes)[2].UpdatedWallet; ;
+
+                                    if (UpdatePortfolio != null)
+                                    {
+                                        UpdatePortfolio(res);
+                                    }
                                 }
                             }
                             else if (mes.Contains("[0,\"ps\",[")) // снимок позиций
@@ -720,56 +759,70 @@ namespace OsEngine.Market.Servers.Bitfinex
                             }
                             else if (mes.Contains("\"event\":\"subscribed\"") && mes.Contains("\"chanId\""))
                             {
-                                // информируем об успешной подписке
-                                var info = JsonConvert.DeserializeAnonymousType(mes, new SubscriptionInformation());
-
-                                if (info.channel == "trades")
+                                lock (_senderLocker)
                                 {
-                                    _subscribedTradesSecurity.Add(info.pair, info.chanId);
+                                    // информируем об успешной подписке
+                                    var info = JsonConvert.DeserializeAnonymousType(mes, new SubscriptionInformation());
+
+                                    if (info.channel == "trades")
+                                    {
+                                        _subscribedTradesSecurity.Add(info.pair, info.chanId);
+                                    }
+
+                                    if (info.channel == "book")
+                                    {
+                                        _subscribedBooksSecurity.Add(info.pair, info.chanId);
+                                    }
+
+                                    string msgInfo =
+                                        string.Format(
+                                            "Инструмент {0} успешно подписан на канал : {1}, Id канала = {2}", info.pair,
+                                            info.channel, info.chanId);
+
+                                    SendLogMessage(msgInfo, LogMessageType.System);
+
                                 }
-
-                                if (info.channel == "book")
-                                {
-                                    _subscribedBooksSecurity.Add(info.pair, info.chanId);
-                                }
-
-                                string msgInfo = string.Format("Инструмент {0} успешно подписан на канал : {1}, Id канала = {2}", info.pair, info.channel, info.chanId);
-
-                                SendLogMessage(msgInfo, LogMessageType.System);
-                                
-                                continue;
                             }
                             else if (mes.Contains("\"tu\"")) // новый тик
                             {
-                                var bitfinexTick = UpdateDataBitfinex.FromJson(mes);
-
-                                // находим бумагу которой принадлежит этот снимок
-                                var namePair = _subscribedTradesSecurity.FirstOrDefault(dic => dic.Value == Convert.ToInt32(bitfinexTick[0].Double));
-
-                                if (NewTradesEvent != null)
+                                lock (_senderLocker)
                                 {
-                                    NewTradesEvent(bitfinexTick, namePair.Key);
+                                    var bitfinexTick = UpdateDataBitfinex.FromJson(mes);
+
+                                    // находим бумагу которой принадлежит этот снимок
+                                    var namePair =
+                                        _subscribedTradesSecurity.FirstOrDefault(
+                                            dic => dic.Value == Convert.ToInt32(bitfinexTick[0].Double));
+
+                                    if (NewTradesEvent != null)
+                                    {
+                                        NewTradesEvent(bitfinexTick, namePair.Key);
+                                    }
                                 }
                             }
                             else if (mes.Contains("[["))
                             {
-                                var countParams = NumberParametersSnapshot(mes);
-
-                                if (countParams == 3)
+                                lock (_senderLocker)
                                 {
-                                    // обрабатываем снимок стакана
+                                    var countParams = NumberParametersSnapshot(mes);
 
-                                    var orderBook = BitfinexSnapshotParser.FromJson(mes);
-
-                                    // находим бумагу которой принадлежит этот снимок
-                                    var namePair = _subscribedBooksSecurity.FirstOrDefault(dic => dic.Value == Convert.ToInt32(orderBook[0].IdChanel));
-
-                                    if (NewMarketDepth != null)
+                                    if (countParams == 3)
                                     {
-                                        NewMarketDepth(orderBook, namePair.Key);
+                                        // обрабатываем снимок стакана
+
+                                        var orderBook = BitfinexSnapshotParser.FromJson(mes);
+
+                                        // находим бумагу которой принадлежит этот снимок
+                                        var namePair =
+                                            _subscribedBooksSecurity.FirstOrDefault(
+                                                dic => dic.Value == Convert.ToInt32(orderBook[0].IdChanel));
+
+                                        if (NewMarketDepth != null)
+                                        {
+                                            NewMarketDepth(orderBook, namePair.Key);
+                                        }
                                     }
                                 }
-                                
                             }
                             else if (mes.Contains("hb"))
                             {
@@ -777,17 +830,26 @@ namespace OsEngine.Market.Servers.Bitfinex
                             }
                             else if (!mes.Contains("[[") && !mes.Contains("\"te\"") && !mes.Contains("\"ws\""))
                             {
-                                var bitfinexChangeOrderBook = UpdateDataBitfinex.FromJson(mes);
-
-                                // находим бумагу которой принадлежит этот снимок
-                                var namePair = _subscribedBooksSecurity.FirstOrDefault(dic => dic.Value == Convert.ToInt32(bitfinexChangeOrderBook[0].Double));
-
-                                if (UpdateMarketDepth != null)
+                                lock (_senderLocker)
                                 {
-                                    UpdateMarketDepth(bitfinexChangeOrderBook, namePair.Key);
+                                    var bitfinexChangeOrderBook = UpdateDataBitfinex.FromJson(mes);
+
+                                    // находим бумагу которой принадлежит этот снимок
+                                    var namePair =
+                                        _subscribedBooksSecurity.FirstOrDefault(
+                                            dic => dic.Value == Convert.ToInt32(bitfinexChangeOrderBook[0].Double));
+
+                                    if (UpdateMarketDepth != null)
+                                    {
+                                        UpdateMarketDepth(bitfinexChangeOrderBook, namePair.Key);
+                                    }
                                 }
                             }
                         }
+                    }
+                    else
+                    {
+                        Thread.Sleep(1);
                     }
                 }
 

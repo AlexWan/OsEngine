@@ -18,12 +18,19 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfitnexEntity
         public double? Double;
         public string String;
 
-        public bool IsNull => Double == null && String == null;
+        public bool IsNull
+        {
+            get { return Double == null && String == null; }
+        }
     }
 
     public class UpdateDataBitfinex
     {
-        public static List<ChangedElement> FromJson(string json) => JsonConvert.DeserializeObject<List<ChangedElement>>(json, OsEngine.Market.Servers.Bitfinex.BitfitnexEntity.ConverterTicks.Settings);
+        public static List<ChangedElement> FromJson(string json)
+        {
+            return JsonConvert.DeserializeObject<List<ChangedElement>>(json,
+                OsEngine.Market.Servers.Bitfinex.BitfitnexEntity.ConverterTicks.Settings);
+        }
     }
 
     internal static class ConverterTicks
@@ -41,7 +48,10 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfitnexEntity
 
     internal class TickElementConverter : JsonConverter
     {
-        public override bool CanConvert(Type t) => t == typeof(ChangedElement) || t == typeof(ChangedElement?);
+        public override bool CanConvert(Type t)
+        {
+            return t == typeof (ChangedElement) || t == typeof (ChangedElement?);
+        }
 
         public override object ReadJson(JsonReader reader, Type t, object existingValue, JsonSerializer serializer)
         {
@@ -99,12 +109,19 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfitnexEntity
         public List<List<double>> Values;
         public long? IdChanel;
 
-        public bool IsNull => Values == null && IdChanel == null;
+        public bool IsNull
+        {
+            get { return Values == null && IdChanel == null; }
+        }
     }
 
     public class BitfinexSnapshotParser
     {
-        public static List<DataObject> FromJson(string json) => JsonConvert.DeserializeObject<List<DataObject>>(json, OsEngine.Market.Servers.Bitfinex.BitfitnexEntity.Converter.Settings);
+        public static List<DataObject> FromJson(string json)
+        {
+            return JsonConvert.DeserializeObject<List<DataObject>>(json,
+                OsEngine.Market.Servers.Bitfinex.BitfitnexEntity.Converter.Settings);
+        }
     }
 
     //public static class Serialize
@@ -127,7 +144,10 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfitnexEntity
 
     internal class TradeConverter : JsonConverter
     {
-        public override bool CanConvert(Type t) => t == typeof(DataObject) || t == typeof(DataObject?);
+        public override bool CanConvert(Type t)
+        {
+            return t == typeof (DataObject) || t == typeof (DataObject?);
+        }
 
         public override object ReadJson(JsonReader reader, Type t, object existingValue, JsonSerializer serializer)
         {
@@ -168,7 +188,11 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfitnexEntity
 
     public class Candles
     {
-        public static List<List<double>> FromJson(string json) => JsonConvert.DeserializeObject<List<List<double>>>(json, OsEngine.Market.Servers.Bitfinex.BitfitnexEntity.CandlesConverter.Settings);
+        public static List<List<double>> FromJson(string json)
+        {
+            return JsonConvert.DeserializeObject<List<List<double>>>(json,
+                OsEngine.Market.Servers.Bitfinex.BitfitnexEntity.CandlesConverter.Settings);
+        }
     }
 
     //public static class Serialize
@@ -190,7 +214,11 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfitnexEntity
 
     public class LastCandle
     {
-        public static List<double> FromJson(string json) => JsonConvert.DeserializeObject<List<double>>(json, OsEngine.Market.Servers.Bitfinex.BitfitnexEntity.ConverterLastCandle.Settings);
+        public static List<double> FromJson(string json)
+        {
+            return JsonConvert.DeserializeObject<List<double>>(json,
+                OsEngine.Market.Servers.Bitfinex.BitfitnexEntity.ConverterLastCandle.Settings);
+        }
     }
 
     internal static class ConverterLastCandle
@@ -214,7 +242,10 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfitnexEntity
         public double? Double;
         public string String;
 
-        public bool IsNull => Double == null && String == null;
+        public bool IsNull
+        {
+            get { return Double == null && String == null; }
+        }
     }
 
     public partial struct PurpleWalet
@@ -223,12 +254,18 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfitnexEntity
         public long? IdChannel;
         public string MessageName;
 
-        public bool IsNull => AllWallets == null && IdChannel == null && MessageName == null;
+        public bool IsNull
+        {
+            get { return AllWallets == null && IdChannel == null && MessageName == null; }
+        }
     }
 
     public class Walets
     {
-        public static List<PurpleWalet> FromJson(string json) => JsonConvert.DeserializeObject<List<PurpleWalet>>(json, ConverterWallets.Settings);
+        public static List<PurpleWalet> FromJson(string json)
+        {
+            return JsonConvert.DeserializeObject<List<PurpleWalet>>(json, ConverterWallets.Settings);
+        }
     }
 
     internal static class ConverterWallets
@@ -247,7 +284,10 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfitnexEntity
 
     internal class PurpleWaletConverter : JsonConverter
     {
-        public override bool CanConvert(Type t) => t == typeof(PurpleWalet) || t == typeof(PurpleWalet?);
+        public override bool CanConvert(Type t)
+        {
+            return t == typeof (PurpleWalet) || t == typeof (PurpleWalet?);
+        }
 
         public override object ReadJson(JsonReader reader, Type t, object existingValue, JsonSerializer serializer)
         {
@@ -293,7 +333,10 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfitnexEntity
 
     internal class WaletWaletConverter : JsonConverter
     {
-        public override bool CanConvert(Type t) => t == typeof(WaletWalet) || t == typeof(WaletWalet?);
+        public override bool CanConvert(Type t)
+        {
+            return t == typeof (WaletWalet) || t == typeof (WaletWalet?);
+        }
 
         public override object ReadJson(JsonReader reader, Type t, object existingValue, JsonSerializer serializer)
         {
@@ -339,7 +382,10 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfitnexEntity
         public double? Double;
         public string String;
 
-        public bool IsNull => Double == null && String == null;
+        public bool IsNull
+        {
+            get { return Double == null && String == null; }
+        }
     }
 
     public partial struct PurpleWalletUpdate
@@ -348,12 +394,18 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfitnexEntity
         public long? Integer;
         public string String;
 
-        public bool IsNull => UpdatedWallet == null && Integer == null && String == null;
+        public bool IsNull
+        {
+            get { return UpdatedWallet == null && Integer == null && String == null; }
+        }
     }
 
     public class WalletUpdate
     {
-        public static List<PurpleWalletUpdate> FromJson(string json) => JsonConvert.DeserializeObject<List<PurpleWalletUpdate>>(json, ConverterWallet.Settings);
+        public static List<PurpleWalletUpdate> FromJson(string json)
+        {
+            return JsonConvert.DeserializeObject<List<PurpleWalletUpdate>>(json, ConverterWallet.Settings);
+        }
     }
 
     internal static class ConverterWallet
@@ -372,7 +424,10 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfitnexEntity
 
     internal class PurpleWalletUpdateConverter : JsonConverter
     {
-        public override bool CanConvert(Type t) => t == typeof(PurpleWalletUpdate) || t == typeof(PurpleWalletUpdate?);
+        public override bool CanConvert(Type t)
+        {
+            return t == typeof (PurpleWalletUpdate) || t == typeof (PurpleWalletUpdate?);
+        }
 
         public override object ReadJson(JsonReader reader, Type t, object existingValue, JsonSerializer serializer)
         {
@@ -418,7 +473,10 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfitnexEntity
 
     internal class WalletUpdateWalletUpdateConverter : JsonConverter
     {
-        public override bool CanConvert(Type t) => t == typeof(WalletUpdateWalletUpdate) || t == typeof(WalletUpdateWalletUpdate?);
+        public override bool CanConvert(Type t)
+        {
+            return t == typeof (WalletUpdateWalletUpdate) || t == typeof (WalletUpdateWalletUpdate?);
+        }
 
         public override object ReadJson(JsonReader reader, Type t, object existingValue, JsonSerializer serializer)
         {

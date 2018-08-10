@@ -3,12 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Navigation;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Bitfinex.BitfitnexEntity;
@@ -127,14 +122,14 @@ namespace OsEngine.Market.Servers.Bitfinex
         /// </summary>
         public void Load()
         {
-            if (!File.Exists(@"Engine\" + @"BinanceServer.txt"))
+            if (!File.Exists(@"Engine\" + @"BitFinexServer.txt"))
             {
                 return;
             }
 
             try
             {
-                using (StreamReader reader = new StreamReader(@"Engine\" + @"BinanceServer.txt"))
+                using (StreamReader reader = new StreamReader(@"Engine\" + @"BitFinexServer.txt"))
                 {
                     UserKey = reader.ReadLine();
                     UserPrivateKey = reader.ReadLine();
@@ -157,7 +152,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         {
             try
             {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + @"BinanceServer.txt", false))
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + @"BitFinexServer.txt", false))
                 {
 
                     writer.WriteLine(UserKey);
@@ -757,7 +752,16 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                 if (needSec != null)
                 {
-                    needSec.Decimals = price.ToString(CultureInfo.InvariantCulture).Split('.')[1].Length;
+                    string[] decimals = price.ToString(CultureInfo.InvariantCulture).Split('.');
+
+                    if (decimals.Length == 1)
+                    {
+                        needSec.Decimals = 0;
+                    }
+                    else
+                    {
+                        needSec.Decimals = decimals[1].Length;
+                    }
 
                     switch (needSec.Decimals)
                     {
@@ -1326,10 +1330,19 @@ namespace OsEngine.Market.Servers.Bitfinex
             {
                 lock (_depthLocker)
                 {
+                    if(_depths == null)
+                    {
+                        return;
+                    }
                     var needDepth = _depths.Find(depth =>
                         depth.SecurityNameCode == nameSecurity);
 
                     if (needDepth == null)
+                    {
+                        return;
+                    }
+
+                    if(newData.Count < 4)
                     {
                         return;
                     }
