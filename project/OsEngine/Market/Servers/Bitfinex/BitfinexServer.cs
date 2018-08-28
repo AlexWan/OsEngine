@@ -107,6 +107,20 @@ namespace OsEngine.Market.Servers.Bitfinex
             ui.ShowDialog();
         }
 
+        private bool _needUseMarginTrading;
+
+        /// <summary>
+        /// нужно ли использовать плечи при торговле 
+        /// </summary>
+        public bool NeedUseMarginTrading
+        {
+            get { return _needUseMarginTrading; }
+            set
+            {
+                _needUseMarginTrading = value;                
+            }
+        }
+
         /// <summary>
         /// публичный ключ пользователя
         /// </summary>
@@ -135,6 +149,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                     UserPrivateKey = reader.ReadLine();
                     _countDaysTickNeadToSave = Convert.ToInt32(reader.ReadLine());
                     _neadToSaveTicks = Convert.ToBoolean(reader.ReadLine());
+                    _needUseMarginTrading = Convert.ToBoolean(reader.ReadLine());
 
                     reader.Close();
                 }
@@ -159,6 +174,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                     writer.WriteLine(UserPrivateKey);
                     writer.WriteLine(CountDaysTickNeadToSave);
                     writer.WriteLine(NeadToSaveTicks);
+                    writer.WriteLine(NeedUseMarginTrading);                    
 
                     writer.Close();
                 }
@@ -360,7 +376,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         {
             _lastStartServerTime = DateTime.Now;
 
-            _client.Connect(UserKey, UserPrivateKey);
+            _client.Connect(UserKey, UserPrivateKey, NeedUseMarginTrading);
             Thread.Sleep(1000);
         }
 

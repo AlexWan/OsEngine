@@ -33,6 +33,7 @@ namespace OsEngine.Market.Servers.Bitfinex
             _server.ConnectStatusChangeEvent += _server_ConnectStatusChangeEvent;
             log.StartPaint(Host);
 
+            CheckBoxMarginTrading.IsChecked = _server.NeedUseMarginTrading;
             CheckBoxNeadToSaveTrade.IsChecked = _server.NeadToSaveTicks;
             CheckBoxNeadToSaveTrade.Click += CheckBoxNeadToSaveTrade_Click;
             TextBoxCountDaysSave.Text = _server.CountDaysTickNeadToSave.ToString();
@@ -89,6 +90,15 @@ namespace OsEngine.Market.Servers.Bitfinex
         private void ButtonAbort_Click(object sender, RoutedEventArgs e)
         {
             _server.StopServer();
+        }
+
+        private void CheckBoxMarginTrading_Click(object sender, RoutedEventArgs e)
+        {
+            if (CheckBoxMarginTrading.IsChecked.HasValue)
+            {
+                _server.NeedUseMarginTrading = CheckBoxMarginTrading.IsChecked.Value;
+                _server.Save();
+            }
         }
     }
 }
