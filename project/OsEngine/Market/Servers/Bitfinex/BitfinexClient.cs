@@ -49,8 +49,9 @@ namespace OsEngine.Market.Servers.Bitfinex
         /// <summary>
         /// установить соединение с биржей 
         /// </summary>
-        public void Connect(string pubKey, string secKey)
+        public void Connect(string pubKey, string secKey, bool isMargin)
         {
+            _isMarginTrading = isMargin;
             _apiKey = pubKey;
             _secretKey = secKey;
 
@@ -158,6 +159,8 @@ namespace OsEngine.Market.Servers.Bitfinex
             }
         }
 
+        private bool _isMarginTrading;
+
         private object _lockOrder = new object();
 
         /// <summary>
@@ -176,7 +179,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                     NewOrderPayload newOrder = new NewOrderPayload();
 
-                    newOrder.type = "exchange limit";
+                    newOrder.type = _isMarginTrading ? "limit" : "exchange limit";
                     newOrder.exchange = "bitfinex";
                     newOrder.request = "/v1/order/new";
                     newOrder.side = order.Side == Side.Buy ? "buy" : "sell";

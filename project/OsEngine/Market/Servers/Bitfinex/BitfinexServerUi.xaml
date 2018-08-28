@@ -9,6 +9,7 @@
         <Button x:Name="ButtonConnect" Content="Подключить" HorizontalAlignment="Right" Margin="0,0,160,10" VerticalAlignment="Bottom" Width="120" Click="ButtonConnect_Click"/>
         <Button x:Name="ButtonAbort" Content="Отключить" Margin="0,0,10,10" VerticalAlignment="Bottom" Click="ButtonAbort_Click" HorizontalAlignment="Right" Width="120"/>
         <Label Content="" HorizontalAlignment="Left" Margin="41,138,0,0" VerticalAlignment="Top"/>
+        <CheckBox Name="CheckBoxMarginTrading" Content="Маржинальная торговля" HorizontalAlignment="Left" Margin="332,10,0,0" VerticalAlignment="Top" Click="CheckBoxMarginTrading_Click"/>
         <CheckBox Name="CheckBoxNeadToSaveTrade" Content="Сохранять историю" HorizontalAlignment="Left" Margin="21,10,0,0" VerticalAlignment="Top"/>
         <Label Content="Статус сервера: " HorizontalAlignment="Left" Margin="19,62,0,0" VerticalAlignment="Top"/>
         <Label x:Name="LabelStatus" Content="Disconnect" HorizontalAlignment="Left" Margin="147,62,0,0" VerticalAlignment="Top"/>
