@@ -400,7 +400,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             }
             else
             {
-                _tab.BuyAtLimit(OpenVolume, price - _tab.Securiti.PriceStep * InterToPatternSleepage);
+                _tab.SellAtLimit(OpenVolume, price - _tab.Securiti.PriceStep * InterToPatternSleepage);
             }
         }
 

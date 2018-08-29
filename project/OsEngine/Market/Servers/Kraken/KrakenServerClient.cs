@@ -367,6 +367,7 @@ namespace OsEngine.Market.Servers.Kraken
                     }
 
                     sec.PriceStep = step;
+                    sec.PriceStepCost = step;
 
                     securities.Add(sec);
                 }

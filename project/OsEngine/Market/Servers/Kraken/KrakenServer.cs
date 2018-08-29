@@ -10,6 +10,7 @@ using System.IO;
 using System.Threading;
 using OsEngine.Entity;
 using OsEngine.Logging;
+using OsEngine.Market.Servers.Entity;
 using OsEngine.Market.Servers.Kraken.KrakenEntity;
 using Order = OsEngine.Entity.Order;
 
@@ -57,6 +58,7 @@ namespace OsEngine.Market.Servers.Kraken
             _newServerTime = new ConcurrentQueue<DateTime>();
             _candleSeriesToSend = new ConcurrentQueue<CandleSeries>();
             _marketDepthsToSend = new ConcurrentQueue<MarketDepth>();
+            _bidAskToSend = new ConcurrentQueue<BidAskSender>();
 
             Thread ordersExecutor = new Thread(ExecutorOrdersThreadArea);
             ordersExecutor.CurrentCulture = new CultureInfo("ru-RU");
@@ -617,6 +619,11 @@ namespace OsEngine.Market.Servers.Kraken
         private ConcurrentQueue<MarketDepth> _marketDepthsToSend;
 
         /// <summary>
+        /// очередь обновлений бида с аска по инструментам 
+        /// </summary>
+        private ConcurrentQueue<BidAskSender> _bidAskToSend;
+
+        /// <summary>
         /// метод работы потока рассылающий входящие данные
         /// </summary>
         private void SenderThreadArea()
@@ -719,6 +726,18 @@ namespace OsEngine.Market.Servers.Kraken
                             if (NewMarketDepthEvent != null)
                             {
                                 NewMarketDepthEvent(depth);
+                            }
+                        }
+                    }
+                    else if (!_bidAskToSend.IsEmpty)
+                    {
+                        BidAskSender bidAsk;
+
+                        if (_bidAskToSend.TryDequeue(out bidAsk))
+                        {
+                            if (NewBidAscIncomeEvent != null)
+                            {
+                                NewBidAscIncomeEvent(bidAsk.Bid, bidAsk.Ask, bidAsk.Security);
                             }
                         }
                     }
@@ -1055,16 +1074,30 @@ namespace OsEngine.Market.Servers.Kraken
             ServerTime = marketDepth.Time;
             _marketDepthsToSend.Enqueue(marketDepth);
 
+            bool isInArra = false;
             for (int i = 0; i < _marketDepths.Count; i++)
             {
                 if (_marketDepths[i].SecurityNameCode == marketDepth.SecurityNameCode)
                 {
-                    _marketDepths[i] = (marketDepth);
-                    return;
+                    _marketDepths[i] = marketDepth;
+                    isInArra = true;
+                    break;
                 }
             }
+            if (isInArra == false)
+            {
+                _marketDepths.Add(marketDepth);
+            }
 
-            _marketDepths.Add(marketDepth);
+            if (marketDepth.Asks.Count != 0 && marketDepth.Bids.Count != 0)
+            {
+                _bidAskToSend.Enqueue(new BidAskSender
+                {
+                    Ask = marketDepth.Bids[0].Price,
+                    Bid = marketDepth.Asks[0].Price,
+                    Security = GetSecurityForName(marketDepth.SecurityNameCode)
+                });
+            }
         }
 
 // сохранение расширенных данных по трейду

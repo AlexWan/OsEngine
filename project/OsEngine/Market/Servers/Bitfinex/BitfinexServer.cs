@@ -802,6 +802,8 @@ namespace OsEngine.Market.Servers.Bitfinex
                             break;
                     }
 
+                    needSec.PriceStepCost = needSec.PriceStep;
+
                     _securitiesToSend.Enqueue(_securities);
                 }
             }
@@ -1535,6 +1537,8 @@ namespace OsEngine.Market.Servers.Bitfinex
         {
             order.TimeCreate = ServerTime;
             _ordersToExecute.Enqueue(order);
+            SendLogMessage("Выставлен ордер, цена: " + order.Price + " Сторона: " + order.Side + ", Объём: " + order.Volume +
+    ", Инструмент: " + order.SecurityNameCode + "Номер " + order.NumberUser, LogMessageType.System);
         }
 
         /// <summary>
@@ -1543,6 +1547,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         /// <param name="order">ордер</param>
         public void CanselOrder(Order order)
         {
+            SendLogMessage("Отзываем ордер: " + order.NumberUser, LogMessageType.System);
             _ordersToCansel.Enqueue(order);
         }
 

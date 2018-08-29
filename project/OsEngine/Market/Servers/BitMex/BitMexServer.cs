@@ -2163,21 +2163,21 @@ namespace OsEngine.Market.Servers.BitMex
 
                     if (osOrder == null && string.IsNullOrEmpty(_ordersToCheck[i].NumberMarket))
                     {
-                        if (_ordersToCheck[i].TimeCreate.AddMinutes(10) < DateTime.Now)
+                        if (_ordersToCheck[i].TimeCreate.AddMinutes(5) < ServerTime)
                         {
                             _ordersToCheck[i].State = OrderStateType.Cancel;
 
                             _ordersToSend.Enqueue(_ordersToCheck[i]);
                             SendLogMessage(
-                              "Отчёта об ордере небыло больше десяти минут. Признаём его без вести пропавшим, а позицию по нему не открытой. Номер ордера: "
+                              "Отчёта об ордере небыло больше пяти минут. Признаём его без вести пропавшим, а позицию по нему не открытой. Номер ордера: "
                                + _ordersToCheck[i].NumberUser, LogMessageType.Error);
                             SendLogMessage(
                               "После предыдущей ошибки, существует всё же шанс что биржа просто зависла забыв про нас и через несколько минут или десятков"+
                               " минут роботу придёт оповещение " +
                             "о том что ордер таки исполнился. Проверте НЕТТО позицию через личный кабинет руками!!!", LogMessageType.Error);
 
+                            _ordersToSend.Enqueue(_ordersToCheck[i]);
                             CanselOrder(_ordersToCheck[i]);
-
                             _ordersToCheck.RemoveAt(i);
 
                             i--;

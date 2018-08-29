@@ -1,16 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using OsEngine.Logging;
 
 namespace OsEngine.Market.Servers.Bitfinex
@@ -18,7 +7,7 @@ namespace OsEngine.Market.Servers.Bitfinex
     /// <summary>
     /// Логика взаимодействия для BitfinexServerUi.xaml
     /// </summary>
-    public partial class BitfinexServerUi : Window
+    public partial class BitfinexServerUi
     {
         private BitfinexServer _server;
         public BitfinexServerUi(BitfinexServer server, Log log)

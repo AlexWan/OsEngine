@@ -785,21 +785,24 @@ namespace OsEngine.Market.Servers.Binance
                         {
                             if (mes.Contains("code"))
                             {
-                                SendLogMessage(JsonConvert.DeserializeAnonymousType(mes,new ErrorMessage()).msg, LogMessageType.Error);
+                                SendLogMessage(JsonConvert.DeserializeAnonymousType(mes, new ErrorMessage()).msg, LogMessageType.Error);
                             }
 
                             else if (mes.Contains("\"e\"" + ":" + "\"executionReport\""))
                             {
                                 var order = JsonConvert.DeserializeAnonymousType(mes, new ExecutionReport());
 
-                                if (string.IsNullOrEmpty(order.c))
+                                string orderNumUser = order.C;
+
+                                if (string.IsNullOrEmpty(orderNumUser) ||
+                                    orderNumUser == "null")
                                 {
-                                   continue;
+                                    orderNumUser = order.c;
                                 }
 
                                 try
                                 {
-                                    Convert.ToInt32(order.c);
+                                    Convert.ToInt32(orderNumUser);
                                 }
                                 catch (Exception)
                                 {
@@ -811,7 +814,8 @@ namespace OsEngine.Market.Servers.Binance
                                     Order newOrder = new Order();
                                     newOrder.SecurityNameCode = order.s;
                                     newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.E));
-                                    newOrder.NumberUser = Convert.ToInt32(order.c);
+                                    newOrder.NumberUser = Convert.ToInt32(orderNumUser);
+
                                     newOrder.NumberMarket = order.i.ToString();
                                     //newOrder.PortfolioNumber = order.PortfolioNumber; добавить в сервере
                                     newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
@@ -829,7 +833,7 @@ namespace OsEngine.Market.Servers.Binance
                                     Order newOrder = new Order();
                                     newOrder.SecurityNameCode = order.s;
                                     newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.E));
-                                    newOrder.NumberUser = Convert.ToInt32(order.C);
+                                    newOrder.NumberUser = Convert.ToInt32(orderNumUser);
                                     newOrder.NumberMarket = order.i.ToString();
                                     newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
                                     newOrder.State = OrderStateType.Cancel;
@@ -846,7 +850,7 @@ namespace OsEngine.Market.Servers.Binance
                                     Order newOrder = new Order();
                                     newOrder.SecurityNameCode = order.s;
                                     newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.E));
-                                    newOrder.NumberUser = Convert.ToInt32(order.c);
+                                    newOrder.NumberUser = Convert.ToInt32(orderNumUser);
                                     newOrder.NumberMarket = order.i.ToString();
                                     newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
                                     newOrder.State = OrderStateType.Fail;
@@ -879,7 +883,7 @@ namespace OsEngine.Market.Servers.Binance
                                     Order newOrder = new Order();
                                     newOrder.SecurityNameCode = order.s;
                                     newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.E));
-                                    newOrder.NumberUser = Convert.ToInt32(order.c);
+                                    newOrder.NumberUser = Convert.ToInt32(orderNumUser);
                                     newOrder.NumberMarket = order.i.ToString();
                                     newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
                                     newOrder.State = OrderStateType.Cancel;
