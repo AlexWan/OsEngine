@@ -119,11 +119,10 @@ namespace OsEngine.OsMiner.Patterns
         /// </summary>
         public IPattern GetCopy()
         {
-            PatternTime pattern = new PatternTime();
-            pattern.StartTime = StartTime;
-            pattern.EndTime = EndTime;
-            pattern.Expand = Expand;
-            pattern.Weigth = Weigth;
+            PatternIndicators pattern = new PatternIndicators();
+
+            string save = GetSaveString();
+            pattern.Load(save);
 
             return pattern;
         }

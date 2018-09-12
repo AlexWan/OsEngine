@@ -3523,6 +3523,12 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 return;
             }
+
+            if (_chartMaster == null)
+            {
+                return;
+            }
+
             _chartMaster.SetTick(trades);
 
             Trade trade = trades[trades.Count - 1];
@@ -3614,7 +3620,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="time">новое время</param>
         void StrategOneSecurity_TimeServerChangeEvent(DateTime time)
         {
-            _manualControl.ServerTime = time;
+            if (_manualControl != null)
+            {
+                _manualControl.ServerTime = time;
+            }
+            
             if (ServerTimeChangeEvent != null)
             {
                 ServerTimeChangeEvent(time);

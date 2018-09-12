@@ -413,15 +413,15 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             {
                 if (position.Direction == Side.Buy)
                 {
-                    decimal stopPrice = position.EntryPrice + _tab.Securiti.PriceStep * ProfitOrderValue;
-                    decimal stopOrderPrice = stopPrice - _tab.Securiti.PriceStep * ProfitOrderSleepage;
+                    decimal stopPrice = position.EntryPrice + position.EntryPrice * ProfitOrderValue;
+                    decimal stopOrderPrice = stopPrice - stopPrice * ProfitOrderSleepage;
 
                     _tab.CloseAtProfit(position, stopPrice, stopOrderPrice);
                 }
                 else if (position.Direction == Side.Sell)
                 {
-                    decimal stopPrice = position.EntryPrice - _tab.Securiti.PriceStep * ProfitOrderValue;
-                    decimal stopOrderPrice = stopPrice + _tab.Securiti.PriceStep * ProfitOrderSleepage;
+                    decimal stopPrice = position.EntryPrice - position.EntryPrice * ProfitOrderValue;
+                    decimal stopOrderPrice = stopPrice + stopPrice * ProfitOrderSleepage;
                     _tab.CloseAtProfit(position, stopPrice, stopOrderPrice);
                 }
             }
@@ -430,14 +430,14 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             {
                 if (position.Direction == Side.Buy)
                 {
-                    decimal stopPrice = position.EntryPrice - _tab.Securiti.PriceStep*StopOrderValue;
-                    decimal stopOrderPrice = stopPrice - _tab.Securiti.PriceStep * StopOrderSleepage;
+                    decimal stopPrice = position.EntryPrice - position.EntryPrice * StopOrderValue;
+                    decimal stopOrderPrice = stopPrice - stopPrice * StopOrderSleepage;
                     _tab.CloseAtStop(position, stopPrice, stopOrderPrice);
                 }
                 else if (position.Direction == Side.Sell)
                 {
-                    decimal stopPrice = position.EntryPrice + _tab.Securiti.PriceStep * StopOrderValue;
-                    decimal stopOrderPrice = stopPrice + _tab.Securiti.PriceStep * StopOrderSleepage;
+                    decimal stopPrice = position.EntryPrice + position.EntryPrice * StopOrderValue;
+                    decimal stopOrderPrice = stopPrice + stopPrice * StopOrderSleepage;
                     _tab.CloseAtStop(position, stopPrice, stopOrderPrice);
                 }
             }
@@ -484,13 +484,13 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             {
                 if (position.Direction == Side.Buy)
                 {
-                    decimal newTrail = position.EntryPrice - _tab.Securiti.PriceStep * TreilingStopValue;
+                    decimal newTrail = candles[candles.Count - 1].Close - candles[candles.Count - 1].Close * TreilingStopValue / 100;
 
                     _tab.CloseAtTrailingStop(position,newTrail,newTrail - _tab.Securiti.PriceStep * StopOrderSleepage);
                 }
                 else
                 {
-                    decimal newTrail = position.EntryPrice + _tab.Securiti.PriceStep * TreilingStopValue;
+                    decimal newTrail = candles[candles.Count - 1].Close + candles[candles.Count - 1].Close * TreilingStopValue / 100;
 
                     _tab.CloseAtTrailingStop(position, newTrail, newTrail + _tab.Securiti.PriceStep * StopOrderSleepage);
                 }

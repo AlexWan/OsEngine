@@ -97,6 +97,10 @@ namespace OsEngine.OsMiner.Patterns
             tempIndicators.Expand = Expand;
             tempIndicators.SetFromIndex(candles, indicators, numberPattern);
 
+            if (tempIndicators.SequenceCandlePosition == null)
+            {
+                return false;
+            }
 
             if (SearchType == PatternIndicatorSearchType.CandlePosition)
             {
@@ -349,11 +353,9 @@ namespace OsEngine.OsMiner.Patterns
         public IPattern GetCopy()
         {
             PatternIndicators pattern = new PatternIndicators();
-            pattern.Sequence = Sequence;
-            pattern.SequenceCandlePosition = SequenceCandlePosition;
-            pattern.Length = Length;
-            pattern.Expand = Expand;
-            pattern.Weigth = Weigth;
+
+            string save = GetSaveString();
+            pattern.Load(save);
 
             return pattern;
         }

@@ -468,8 +468,16 @@ namespace OsEngine.Market.Servers.Bitfinex
 
             _wsClient.Open();
 
-            while (_wsClient.State != WebSocketState.Open){}
+            Thread.Sleep(2000);
 
+            if (_wsClient.State != WebSocketState.Open)
+            {
+                if (Disconnected != null)
+                {
+                    SendLogMessage("Подключение к бирже битфайнекс не удалось. Отсутствует связь с биржей",LogMessageType.Error);
+                    Disconnected();
+                }
+            }
         }
 
         private List<Security> _subscribedSecurities = new List<Security>();

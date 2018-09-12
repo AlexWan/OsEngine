@@ -577,7 +577,7 @@ namespace OsEngine.OsMiner.Patterns
 
             if (patternsToInter.Count != candlesParallelPatternsToInter.Count)
             {
-                SendNewLogMessage("К паттрнам на ОТКРЫТИЕ не удалось найти всех нужных серий данных. Перейдите в соответствующую вкладку и назначте всем паттернам серию данных.",LogMessageType.Error);
+                SendNewLogMessage("К паттрнам на ОТКРЫТИЕ не удалось найти всех нужных серий данных. Перейдите в соответствующую вкладку и назначте всем паттернам серию данных.", LogMessageType.Error);
                 return;
             }
 
@@ -600,7 +600,7 @@ namespace OsEngine.OsMiner.Patterns
 
             int indexWithPosition = 0;
 
-            for (int i = 0; i < candlesToTrade.Candles.Count-1; i++)
+            for (int i = 0; i < candlesToTrade.Candles.Count - 1; i++)
             {// первый цикл ищет входы
 
                 if (LotsCount == LotsCountType.One && indexWithPosition > i)
@@ -608,23 +608,23 @@ namespace OsEngine.OsMiner.Patterns
                     continue;
                 }
 
-                if (CheckInter(PatternsToOpen, candlesParallelPatternsToInter, i, candlesToTrade.Candles[i].TimeStart,WeigthToInter) == false)
+                if (CheckInter(PatternsToOpen, candlesParallelPatternsToInter, i, candlesToTrade.Candles[i].TimeStart, WeigthToInter) == false)
                 {
                     continue;
                 }
 
-                Position position = CreatePosition(candlesToTrade.Candles[i+1].Open, candlesToTrade.Security, i,
-                    candlesToTrade.Candles[i+1].TimeStart);
+                Position position = CreatePosition(candlesToTrade.Candles[i + 1].Open, candlesToTrade.Security, i,
+                    candlesToTrade.Candles[i + 1].TimeStart);
 
                 if (StopOrderIsOn)
                 {
                     if (position.Direction == Side.Buy)
                     {
-                        position.StopOrderPrice = position.EntryPrice - candlesToTrade.Security.PriceStep*StopOrderValue;
+                        position.StopOrderPrice = position.EntryPrice - position.EntryPrice * StopOrderValue / 100;
                     }
                     else
                     {
-                        position.StopOrderPrice = position.EntryPrice + candlesToTrade.Security.PriceStep * StopOrderValue;
+                        position.StopOrderPrice = position.EntryPrice + position.EntryPrice * StopOrderValue / 100;
                     }
                 }
 
@@ -632,11 +632,11 @@ namespace OsEngine.OsMiner.Patterns
                 {
                     if (position.Direction == Side.Buy)
                     {
-                        position.ProfitOrderPrice = position.EntryPrice + candlesToTrade.Security.PriceStep * ProfitOrderValue;
+                        position.ProfitOrderPrice = position.EntryPrice + position.EntryPrice * ProfitOrderValue / 100;
                     }
                     else
                     {
-                        position.ProfitOrderPrice = position.EntryPrice - candlesToTrade.Security.PriceStep * ProfitOrderValue;
+                        position.ProfitOrderPrice = position.EntryPrice - position.EntryPrice * ProfitOrderValue / 100;
                     }
                 }
 
@@ -644,22 +644,44 @@ namespace OsEngine.OsMiner.Patterns
                 {
                     if (position.Direction == Side.Buy)
                     {
-                        position.StopOrderRedLine = position.EntryPrice - candlesToTrade.Security.PriceStep * TreilingStopValue;
+                        position.StopOrderRedLine = position.EntryPrice - position.EntryPrice * TreilingStopValue / 100;
                     }
                     else
                     {
-                        position.StopOrderRedLine = position.EntryPrice + candlesToTrade.Security.PriceStep * TreilingStopValue;
+                        position.StopOrderRedLine = position.EntryPrice + position.EntryPrice * TreilingStopValue / 100;
                     }
                 }
 
-                for (int i2 = i; i2 < candlesToTrade.Candles.Count-1; i2++)
+                for (int i2 = i; i2 < candlesToTrade.Candles.Count - 1; i2++)
                 {// второй  цикл ищет выходы
+
+                    if (TrailingStopIsOn)
+                    {
+                        if (position.Direction == Side.Buy)
+                        {
+                            decimal price = candlesToTrade.Candles[i2].Close - candlesToTrade.Candles[i2].Close * TreilingStopValue / 100;
+                            if (price > position.StopOrderRedLine)
+                            {
+                                position.StopOrderRedLine = price;
+                            }
+                        }
+                        else
+                        {
+                            decimal price = candlesToTrade.Candles[i2].Close + candlesToTrade.Candles[i2].Close * TreilingStopValue / 100;
+                            if (price < position.StopOrderRedLine)
+                            {
+                                position.StopOrderRedLine = price;
+                            }
+                        }
+                    }
+
                     if (CheckExit(position, patternsToExit, candlesParallelPatternsToExit, i2, candlesToTrade.Candles[i2].TimeStart, candlesToTrade.Candles[i2].Close, candlesToTrade) == false)
                     {
                         continue;
                     }
+
                     indexWithPosition = i2;
-                    ClosePosition(position, i2, candlesToTrade.Candles[i2+1].TimeStart, candlesToTrade.Candles[i2+1].Open);
+                    ClosePosition(position, i2, candlesToTrade.Candles[i2 + 1].TimeStart, candlesToTrade.Candles[i2 + 1].Open);
 
                     PositionsInTrades.Add(position);
                     break;
@@ -1441,6 +1463,11 @@ namespace OsEngine.OsMiner.Patterns
 
             _chart.Clear();
             _chart.StartPaint(_chartHost,_rectChart);
+
+            if (CandleSeries == null)
+            {
+                return;
+            }
 
             MinerCandleSeries series = CandleSeries.Find(ser => ser.Security.Name == SecurityToInter);
 

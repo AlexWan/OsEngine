@@ -1,7 +1,7 @@
 ﻿<Window x:Class="OsEngine.OsMiner.Patterns.PatternControllerUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Настройка и поиск паттернов" Height="502" MinHeight="520" Width="851" MinWidth="800" ResizeMode="CanResize" Style="{StaticResource WindowStyleNoResize}" Topmost="False" WindowStartupLocation="CenterScreen" Icon="/OsEngine;component/Images/OsLogo.ico">
+               Title="Настройка и поиск паттернов" Height="502" MinHeight="520" Width="851" MinWidth="800" ResizeMode="CanResize" Style="{StaticResource WindowStyleNoResize}" Topmost="False" WindowStartupLocation="CenterScreen" Icon="/OsEngine;component/Images/OsLogo.ico">
     <Grid>
         <Rectangle Height="69" Margin="5,0,2,0" Stroke="Black" VerticalAlignment="Top"/>
         <TabControl x:Name="TabControlPrime" Margin="5,61,2,2">
@@ -30,17 +30,17 @@
             </TabItem>
             <TabItem Header="Закрытие позиции" Foreground="Black" >
                 <Grid >
-                    <CheckBox x:Name="CheckBoxProfitOrderIsOn" Content="Профит-ордер" HorizontalAlignment="Left" Margin="88,35,0,0" VerticalAlignment="Top"/>
-                    <CheckBox x:Name="CheckBoxStopOrderIsOn" Content="Стоп-ордер" HorizontalAlignment="Left" Margin="88,7,0,0" VerticalAlignment="Top"/>
-                    <TextBox x:Name="TextBoxStopOrderValue" ToolTip="Величина стоп ордера в минимальных движениях цены" HorizontalAlignment="Left" Height="23" Margin="204,0,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
-                    <TextBox x:Name="TextBoxProfitOrderValue" ToolTip="Величина профит ордера в минимальных движениях цены" HorizontalAlignment="Left" Height="23" Margin="204,28,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
+                    <CheckBox x:Name="CheckBoxProfitOrderIsOn" Content="Профит-ордер %" HorizontalAlignment="Left" Margin="88,35,0,0" VerticalAlignment="Top"/>
+                    <CheckBox x:Name="CheckBoxStopOrderIsOn" Content="Стоп-ордер %" HorizontalAlignment="Left" Margin="88,7,0,0" VerticalAlignment="Top"/>
+                    <TextBox x:Name="TextBoxStopOrderValue" ToolTip="Величина стоп ордера в %" HorizontalAlignment="Left" Height="23" Margin="204,0,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
+                    <TextBox x:Name="TextBoxProfitOrderValue" ToolTip="Величина профит ордера в %" HorizontalAlignment="Left" Height="23" Margin="204,28,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
                     <TextBox x:Name="TextBoxExitFromSomeCandlesValue" ToolTip="Через сколько свечей позиция будет принудительно закрыта" Height="23" Margin="0,0,45,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="141"/>
-                    <CheckBox x:Name="CheckBoxExitFromSomeCandlesIsOn"  Content="Через N свечей" HorizontalAlignment="Right" Margin="0,7,191,0" VerticalAlignment="Top"/>
+                    <CheckBox x:Name="CheckBoxExitFromSomeCandlesIsOn"  Content="Через N свечей" HorizontalAlignment="Right" Margin="0,7,204,0" VerticalAlignment="Top"/>
                     <Label Content="Паттерны" HorizontalAlignment="Left" Margin="14,59,0,0" VerticalAlignment="Top" />
                     <WindowsFormsHost x:Name="HostGridPatternToClose" Margin="14,89,233,10"/>
                     <Label Content="* все настройки в минимальных движениях цены инструмента" FontSize="12" VerticalAlignment="Bottom" Margin="0,0,2,-9" HorizontalAlignment="Right" Width="330"/>
-                    <TextBox x:Name="TextBoxTreilingStopValue" ToolTip="Величина подтягивающегося стопа в минимальных движениях цены" Height="23" Margin="0,28,45,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="141"/>
-                    <CheckBox x:Name="CheckBoxTrailingStopIsOn" Content="Трейлинг-Стоп" HorizontalAlignment="Right" Margin="0,35,195,0" VerticalAlignment="Top"/>
+                    <TextBox x:Name="TextBoxTreilingStopValue" ToolTip="Величина подтягивающегося стопа в %" Height="23" Margin="0,28,45,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="141"/>
+                    <CheckBox x:Name="CheckBoxTrailingStopIsOn" Content="Трейлинг-Стоп %" HorizontalAlignment="Right" Margin="0,35,195,0" VerticalAlignment="Top"/>
                     <WindowsFormsHost x:Name="HostSinglePatternToClose" HorizontalAlignment="Right" Margin="0,89,5,10" Width="223"/>
                     <TextBox x:Name="TextBoxWeigthToExit" ToolTip="Общий вес найденных на текущей свече паттернов, необходимых для выхода в позицию" Height="23" Margin="0,56,45,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="141"/>
                     <Label Content="Вес для выхода"  Margin="0,56,195,0" HorizontalAlignment="Right" VerticalAlignment="Top" />

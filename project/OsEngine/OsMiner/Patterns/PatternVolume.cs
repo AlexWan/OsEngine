@@ -207,11 +207,10 @@ namespace OsEngine.OsMiner.Patterns
         /// </summary>
         public IPattern GetCopy()
         {
-            PatternVolume pattern = new PatternVolume();
-            pattern.Sequence = Sequence;
-            pattern.Length = Length;
-            pattern.Expand = Expand;
-            pattern.Weigth = Weigth;
+            PatternIndicators pattern = new PatternIndicators();
+
+            string save = GetSaveString();
+            pattern.Load(save);
 
             return pattern;
         }

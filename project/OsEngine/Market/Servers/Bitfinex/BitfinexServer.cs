@@ -1676,6 +1676,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         {
             try
             {
+                Thread.Sleep(1000);
                 Dictionary<string, string> param = new Dictionary<string, string>();
                 param.Add("trade:" + tf, ":t" + security + "/hist" + "?limit=1000");
                 var candles = _client.GetCandles(param);
