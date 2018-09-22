@@ -97,7 +97,14 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         {
             try
             {
-                _bot.OpenVolume = Convert.ToInt32(TextBoxOpenVolume.Text.Replace(",",
+                if (_bot.OpenVolume.ToString() == "" ||
+                    _bot.OpenVolume.ToString().EndsWith(",") ||
+                    _bot.OpenVolume.ToString().EndsWith("."))
+                {
+                    return;
+                }
+
+                _bot.OpenVolume = Convert.ToDecimal(TextBoxOpenVolume.Text.Replace(",",
                     CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
             }
             catch (Exception)

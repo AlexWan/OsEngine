@@ -2626,13 +2626,13 @@ namespace OsEngine.Market.Servers.Tester
                 if (TypeTesterData == TesterDataType.MarketDepthAllCandleState ||
                     TypeTesterData == TesterDataType.MarketDepthOnlyReadyCandle)
                 {
-                    timeFrameBuilder.CandleCreateType = CandleSeriesCreateDataType.MarketDepth;
+                    timeFrameBuilder.CandleMarketDataType = CandleMarketDataType.MarketDepth;
                 }
 
                 if (TypeTesterData == TesterDataType.TickAllCandleState ||
                     TypeTesterData == TesterDataType.TickOnlyReadyCandle)
                 {
-                    timeFrameBuilder.CandleCreateType = CandleSeriesCreateDataType.Tick;
+                    timeFrameBuilder.CandleMarketDataType = CandleMarketDataType.Tick;
                 }
 
                 CandleSeries series = new CandleSeries(timeFrameBuilder, security);
@@ -2640,7 +2640,7 @@ namespace OsEngine.Market.Servers.Tester
    // запускаем бумагу на выгрузку
 
                 if (TypeTesterData != TesterDataType.Candle &&
-                    timeFrameBuilder.CandleCreateType == CandleSeriesCreateDataType.Tick)
+                    timeFrameBuilder.CandleMarketDataType == CandleMarketDataType.Tick)
                 {
                     if (_candleSeriesTesterActivate.Find(tester => tester.Security.Name == namePaper &&
                                                                    tester.DataType == SecurityTesterDataType.Tick) == null)
@@ -2660,7 +2660,7 @@ namespace OsEngine.Market.Servers.Tester
                 }
 
                 else if (TypeTesterData != TesterDataType.Candle &&
-                         timeFrameBuilder.CandleCreateType == CandleSeriesCreateDataType.MarketDepth)
+                         timeFrameBuilder.CandleMarketDataType == CandleMarketDataType.MarketDepth)
                 {
                     if (_candleSeriesTesterActivate.Find(tester => tester.Security.Name == namePaper &&
                                                                    tester.DataType == SecurityTesterDataType.MarketDepth) == null)

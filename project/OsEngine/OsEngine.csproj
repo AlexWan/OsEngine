@@ -300,9 +300,6 @@
       <DependentUpon>AcceptDialogUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Entity\CandleConverter.cs" />
-    <Compile Include="Entity\CumulativeDeltaTimeFrameUi.xaml.cs">
-      <DependentUpon>CumulativeDeltaTimeFrameUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Entity\MarketDepthPainter.cs" />
     <Compile Include="Entity\ProxyHolder.cs" />
     <Compile Include="Entity\ProxyHolderAddUi.xaml.cs">
@@ -856,10 +853,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Entity\AcceptDialogUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Entity\CumulativeDeltaTimeFrameUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

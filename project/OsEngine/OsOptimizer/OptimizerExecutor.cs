@@ -606,18 +606,18 @@ namespace OsEngine.OsOptimizer
                 bot.TabsSimple[i].Connector.ServerType = ServerType.Optimizer;
                 bot.TabsSimple[i].Connector.PortfolioName = server.Portfolios[0].Number;
                 bot.TabsSimple[i].Connector.NamePaper = _master.TabsSimpleNamesAndTimeFrames[i].NameSecurity;
-                bot.TabsSimple[i].Connector.TimeFrameBuilder.TimeFrame =
+                bot.TabsSimple[i].Connector.TimeFrame =
                     _master.TabsSimpleNamesAndTimeFrames[i].TimeFrame;
 
                 if (server.TypeTesterData == TesterDataType.Candle)
                 {
-                    bot.TabsSimple[i].Connector.TimeFrameBuilder.CandleCreateType = CandleSeriesCreateDataType.Tick;
+                    bot.TabsSimple[i].Connector.CandleMarketDataType = CandleMarketDataType.Tick;
                 }
                 else if (server.TypeTesterData == TesterDataType.MarketDepthAllCandleState ||
                          server.TypeTesterData == TesterDataType.MarketDepthOnlyReadyCandle)
                 {
-                    bot.TabsSimple[i].Connector.TimeFrameBuilder.CandleCreateType =
-                        CandleSeriesCreateDataType.MarketDepth;
+                    bot.TabsSimple[i].Connector.CandleMarketDataType =
+                        CandleMarketDataType.MarketDepth;
                 }
             }
 
@@ -634,18 +634,18 @@ namespace OsEngine.OsOptimizer
                     bot.TabsIndex[i].Tabs[i2].ServerType = ServerType.Optimizer;
                     bot.TabsIndex[i].Tabs[i2].PortfolioName = server.Portfolios[0].Number;
                     bot.TabsIndex[i].Tabs[i2].NamePaper = _master.TabsIndexNamesAndTimeFrames[i].NamesSecurity[i2];
-                    bot.TabsIndex[i].Tabs[i2].TimeFrameBuilder.TimeFrame =
+                    bot.TabsIndex[i].Tabs[i2].TimeFrame =
                         _master.TabsIndexNamesAndTimeFrames[i].TimeFrame;
 
                     if (server.TypeTesterData == TesterDataType.Candle)
                     {
-                        bot.TabsIndex[i].Tabs[i2].TimeFrameBuilder.CandleCreateType = CandleSeriesCreateDataType.Tick;
+                        bot.TabsIndex[i].Tabs[i2].CandleMarketDataType = CandleMarketDataType.Tick;
                     }
                     else if (server.TypeTesterData == TesterDataType.MarketDepthAllCandleState ||
                              server.TypeTesterData == TesterDataType.MarketDepthOnlyReadyCandle)
                     {
-                        bot.TabsIndex[i].Tabs[i2].TimeFrameBuilder.CandleCreateType =
-                            CandleSeriesCreateDataType.MarketDepth;
+                        bot.TabsIndex[i].Tabs[i2].CandleMarketDataType =
+                            CandleMarketDataType.MarketDepth;
                     }
                 }
                 bot.TabsIndex[i].UserFormula = _master.TabsIndexNamesAndTimeFrames[i].Formula;

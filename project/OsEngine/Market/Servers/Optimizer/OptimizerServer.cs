@@ -1174,13 +1174,13 @@ namespace OsEngine.Market.Servers.Optimizer
                 if (TypeTesterData == TesterDataType.MarketDepthAllCandleState ||
                     TypeTesterData == TesterDataType.MarketDepthOnlyReadyCandle)
                 {
-                    timeFrameBuilder.CandleCreateType = CandleSeriesCreateDataType.MarketDepth;
+                    timeFrameBuilder.CandleMarketDataType = CandleMarketDataType.MarketDepth;
                 }
 
                 if (TypeTesterData == TesterDataType.TickAllCandleState ||
                     TypeTesterData == TesterDataType.TickOnlyReadyCandle)
                 {
-                    timeFrameBuilder.CandleCreateType = CandleSeriesCreateDataType.Tick;
+                    timeFrameBuilder.CandleMarketDataType = CandleMarketDataType.Tick;
                 }
 
                 CandleSeries series = new CandleSeries(timeFrameBuilder, security);

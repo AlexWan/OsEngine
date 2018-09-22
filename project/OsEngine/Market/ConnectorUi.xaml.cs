@@ -4,12 +4,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Windows;
+using System.Windows.Forms;
+using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Tester;
+using CheckBox = System.Windows.Controls.CheckBox;
+using ComboBox = System.Windows.Controls.ComboBox;
+using MessageBox = System.Windows.MessageBox;
 
 namespace OsEngine.Market
 {
@@ -65,8 +71,6 @@ namespace OsEngine.Market
                     _selectedType = ServerType.Tester;
                 }
 
-                
-
                 LoadClassOnBox();
 
                 LoadSecurityOnBox();
@@ -77,24 +81,43 @@ namespace OsEngine.Market
 
                 CheckBoxIsEmulator.IsChecked = _connectorBot.EmulatorIsOn;
 
-                CheckBoxSetForeign.IsChecked = _connectorBot.SetForeign;
-
                 ComboBoxTypeServer.SelectionChanged += ComboBoxTypeServer_SelectionChanged;
 
-                BoxTimeFrame.SelectionChanged += BoxTimeFrame_SelectionChanged;
+                ComboBoxCandleMarketDataType.Items.Add(CandleMarketDataType.Tick);
+                ComboBoxCandleMarketDataType.Items.Add(CandleMarketDataType.MarketDepth);
+                ComboBoxCandleMarketDataType.SelectedItem = _connectorBot.CandleMarketDataType;
 
-                CreateTimeFrameBox();
-
-                BoxTimeFrame.ToolTip = "ТФ Delta не имеет чёткого критерия закрытия и закрывает свечи по изменению дельты \n(разницы между объёмом текущих покупок и продаж прошедших с утра) на N(настраивается отдельно) пунктов";
+                ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Simple);
+                ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Ticks);
+                ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Volume);
+                ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Renko);
+                ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Delta);
                 
-                
+                ComboBoxCandleCreateMethodType.SelectedItem = _connectorBot.CandleCreateMethodType;
 
-                BoxTimeCandleCreateType.Items.Add(CandleSeriesCreateDataType.Tick);
-                BoxTimeCandleCreateType.Items.Add(CandleSeriesCreateDataType.MarketDepth);
-                BoxTimeCandleCreateType.SelectedItem = _connectorBot.CandleCreateType;
-                BoxTimeCandleCreateType.SelectionChanged += BoxTimeCandleCreateType_SelectionChanged;
+                CheckBoxSetForeign.IsChecked = _connectorBot.SetForeign;
+
+                LoadTimeFrameBox();
+
                 TextBoxCountTradesInCandle.Text = _connectorBot.CountTradeInCandle.ToString();
+                _countTradesInCandle = _connectorBot.CountTradeInCandle;
                 TextBoxCountTradesInCandle.TextChanged += TextBoxCountTradesInCandle_TextChanged;
+
+                TextBoxVolumeToClose.Text = _connectorBot.VolumeToCloseCandleInVolumeType.ToString();
+                _volumeToClose = _connectorBot.VolumeToCloseCandleInVolumeType;
+                TextBoxVolumeToClose.TextChanged += TextBoxVolumeToClose_TextChanged;
+
+                TextBoxRencoPunkts.Text = _connectorBot.RencoPunktsToCloseCandleInRencoType.ToString();
+                _rencoPuncts = _connectorBot.RencoPunktsToCloseCandleInRencoType;
+                TextBoxRencoPunkts.TextChanged += TextBoxRencoPunkts_TextChanged;
+
+                TextBoxDeltaPeriods.Text = _connectorBot.DeltaPeriods.ToString();
+                TextBoxDeltaPeriods.TextChanged += TextBoxDeltaPeriods_TextChanged;
+                _deltaPeriods = _connectorBot.DeltaPeriods;
+
+                ShowDopCandleSettings();
+
+                ComboBoxCandleCreateMethodType.SelectionChanged += ComboBoxCandleCreateMethodType_SelectionChanged;
             }
             catch (Exception error)
             {
@@ -102,98 +125,51 @@ namespace OsEngine.Market
             }
         }
 
-        void BoxTimeCandleCreateType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+
+        void ComboBoxCandleCreateMethodType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
-             CreateTimeFrameBox();
+            ShowDopCandleSettings(); ;
         }
 
-        private void CreateTimeFrameBox()
+        private int _countTradesInCandle;
+
+        private decimal _rencoPuncts;
+
+        private decimal _volumeToClose;
+
+        private decimal _deltaPeriods;
+
+        void TextBoxDeltaPeriods_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            BoxTimeFrame.Items.Clear();
-
-            if (ServerMaster.StartProgram == ServerStartProgramm.IsTester)
+            try
             {
-                // таймФрейм
-                TesterServer server = (TesterServer)ServerMaster.GetServers()[0];
-                if (server.TypeTesterData != TesterDataType.Candle)
+                if (TextBoxDeltaPeriods.Text == "" ||
+                    TextBoxDeltaPeriods.Text.EndsWith(",") ||
+                    TextBoxDeltaPeriods.Text.EndsWith(".") ||
+                    TextBoxDeltaPeriods.Text == "0")
                 {
-                    // если строим данные на тиках или стаканах, то можно использовать любой ТФ
-                    // менеджер свечей построит любой
-                    BoxTimeFrame.Items.Add(TimeFrame.Day);
-                    BoxTimeFrame.Items.Add(TimeFrame.Hour2);
-                    BoxTimeFrame.Items.Add(TimeFrame.Hour1);
-                    BoxTimeFrame.Items.Add(TimeFrame.Min45);
-                    BoxTimeFrame.Items.Add(TimeFrame.Min30);
-                    BoxTimeFrame.Items.Add(TimeFrame.Min20);
-                    BoxTimeFrame.Items.Add(TimeFrame.Min15);
-                    BoxTimeFrame.Items.Add(TimeFrame.Min10);
-                    BoxTimeFrame.Items.Add(TimeFrame.Min5);
-                    BoxTimeFrame.Items.Add(TimeFrame.Min3);
-                    BoxTimeFrame.Items.Add(TimeFrame.Min2);
-                    BoxTimeFrame.Items.Add(TimeFrame.Min1);
-                    BoxTimeFrame.Items.Add(TimeFrame.Sec30);
-                    BoxTimeFrame.Items.Add(TimeFrame.Sec20);
-                    BoxTimeFrame.Items.Add(TimeFrame.Sec15);
-                    BoxTimeFrame.Items.Add(TimeFrame.Sec10);
-                    BoxTimeFrame.Items.Add(TimeFrame.Sec5);
-                    BoxTimeFrame.Items.Add(TimeFrame.Sec2);
-                    BoxTimeFrame.Items.Add(TimeFrame.Sec1);
-
-                    BoxTimeFrame.Items.Add(TimeFrame.Delta);
-                    BoxTimeFrame.Items.Add(TimeFrame.Tick);
+                    return;
                 }
-                else
+                if (
+                    Convert.ToDecimal(
+                        TextBoxDeltaPeriods.Text.Replace(",",
+                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                        CultureInfo.InvariantCulture) <= 0)
                 {
-                    // далее, если используем готовые свечки, то нужно ставить только те ТФ, которые есть
-                    // и вставляются они только когда мы выбираем бумагу в методе 
-
-                    ComboBoxSecurities.SelectionChanged += ComboBoxSecurities_SelectionChanged;
-                    GetTimeFramesInTester();
+                    throw new Exception();
                 }
+                _deltaPeriods =
+                    Convert.ToDecimal(
+                        TextBoxDeltaPeriods.Text.Replace(",",
+                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                        CultureInfo.InvariantCulture);
             }
-            else
+            catch
             {
-                BoxTimeFrame.Items.Add(TimeFrame.Day);
-                BoxTimeFrame.Items.Add(TimeFrame.Hour2);
-                BoxTimeFrame.Items.Add(TimeFrame.Hour1);
-                BoxTimeFrame.Items.Add(TimeFrame.Min45);
-                BoxTimeFrame.Items.Add(TimeFrame.Min30);
-                BoxTimeFrame.Items.Add(TimeFrame.Min20);
-                BoxTimeFrame.Items.Add(TimeFrame.Min15);
-                BoxTimeFrame.Items.Add(TimeFrame.Min10);
-                BoxTimeFrame.Items.Add(TimeFrame.Min5);
-                BoxTimeFrame.Items.Add(TimeFrame.Min3);
-                BoxTimeFrame.Items.Add(TimeFrame.Min2);
-                BoxTimeFrame.Items.Add(TimeFrame.Min1);
-                BoxTimeFrame.Items.Add(TimeFrame.Sec30);
-                BoxTimeFrame.Items.Add(TimeFrame.Sec20);
-                BoxTimeFrame.Items.Add(TimeFrame.Sec15);
-                BoxTimeFrame.Items.Add(TimeFrame.Sec10);
-                BoxTimeFrame.Items.Add(TimeFrame.Sec5);
-                BoxTimeFrame.Items.Add(TimeFrame.Sec2);
-                BoxTimeFrame.Items.Add(TimeFrame.Sec1);
-
-                CandleSeriesCreateDataType createType = CandleSeriesCreateDataType.Tick;
-                if (BoxTimeCandleCreateType.SelectedItem != null)
-                {
-                    Enum.TryParse(BoxTimeCandleCreateType.SelectedItem.ToString(), true, out createType);
-                }
-                
-
-                if (createType == CandleSeriesCreateDataType.Tick)
-                {
-                    BoxTimeFrame.Items.Add(TimeFrame.Tick);
-                    BoxTimeFrame.Items.Add(TimeFrame.Delta);
-                }
-            }
-
-            BoxTimeFrame.SelectedItem = _connectorBot.TimeFrame;
-
-            if (BoxTimeFrame.SelectedItem == null)
-            {
-                BoxTimeFrame.SelectedItem = TimeFrame.Min1;
+                TextBoxDeltaPeriods.Text = _deltaPeriods.ToString();
             }
         }
+
 
         /// <summary>
         /// изменилось кол-во трейдов в свече с ТФ "трейды"
@@ -206,50 +182,75 @@ namespace OsEngine.Market
                 {
                     throw new Exception();
                 }
-                _connectorBot.CountTradeInCandle = Convert.ToInt32(TextBoxCountTradesInCandle.Text);
+                _countTradesInCandle = Convert.ToInt32(TextBoxCountTradesInCandle.Text);
             }
             catch
             {
-                TextBoxCountTradesInCandle.Text = _connectorBot.CountTradeInCandle.ToString();
+                TextBoxCountTradesInCandle.Text = _countTradesInCandle.ToString();
             }
         }
 
-        /// <summary>
-        /// переключен таймфрейм
-        /// </summary>
-        void BoxTimeFrame_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private void TextBoxRencoPunkts_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            if (BoxTimeFrame.SelectedValue == null)
+            try
             {
-                return;
+                if (TextBoxRencoPunkts.Text == "" ||
+                    TextBoxRencoPunkts.Text.EndsWith(",") ||
+                    TextBoxRencoPunkts.Text.EndsWith(".") ||
+                    TextBoxRencoPunkts.Text == "0")
+                {
+                    return;
+                }
+                if (
+                    Convert.ToDecimal(
+                        TextBoxRencoPunkts.Text.Replace(",",
+                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                        CultureInfo.InvariantCulture) <= 0)
+                {
+                    throw new Exception();
+                }
+                _rencoPuncts =
+                    Convert.ToDecimal(
+                        TextBoxRencoPunkts.Text.Replace(",",
+                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                        CultureInfo.InvariantCulture);
             }
-            if (BoxTimeFrame.SelectedValue.ToString() == "Delta")
+            catch
             {
-                BoxTimeFrame.Margin = new Thickness(189, 130, 99, 0);
-                ButtonDeltaSettings.Margin = new Thickness(302, 130, 24, 0);
-                TextBoxCountTradesInCandle.Margin = new Thickness(302, 930, 24, 0);
-            }
-            else if (BoxTimeFrame.SelectedValue.ToString() == "Tick")
-            {
-                BoxTimeFrame.Margin = new Thickness(189, 130, 99, 0);
-                ButtonDeltaSettings.Margin = new Thickness(302, 930, 24, 0);
-                TextBoxCountTradesInCandle.Margin = new Thickness(302, 131, 24, 0);
-            }
-            else
-            {
-                BoxTimeFrame.Margin = new Thickness(189, 130, 24, 0);
-                ButtonDeltaSettings.Margin = new Thickness(302, 930, 24, 0);
-                TextBoxCountTradesInCandle.Margin = new Thickness(302, 930, 24, 0);
+                TextBoxRencoPunkts.Text = _rencoPuncts.ToString();
             }
         }
 
-        /// <summary>
-        /// запрашиваем настройки для дельты
-        /// </summary>
-        private void ButtonDeltaSettings_Click(object sender, RoutedEventArgs e)
+        private void TextBoxVolumeToClose_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            _connectorBot.TimeFrameBuilder.DeltaPeriods.ShowDialog();
-            _connectorBot.Save();
+            try
+            {
+                if (TextBoxVolumeToClose.Text == "" ||
+                    TextBoxVolumeToClose.Text.EndsWith(",") ||
+                    TextBoxVolumeToClose.Text.EndsWith(".") ||
+                    TextBoxVolumeToClose.Text == "0")
+                {
+                    return;
+                }
+
+                if (
+                    Convert.ToDecimal(
+                        TextBoxVolumeToClose.Text.Replace(",",
+                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                        CultureInfo.InvariantCulture) <= 0)
+                {
+                    throw new Exception();
+                }
+                _volumeToClose =
+                    Convert.ToDecimal(
+                        TextBoxVolumeToClose.Text.Replace(",",
+                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                        CultureInfo.InvariantCulture);
+            }
+            catch
+            {
+                TextBoxVolumeToClose.Text = _volumeToClose.ToString();
+            }
         }
 
         /// <summary>
@@ -280,30 +281,30 @@ namespace OsEngine.Market
 
             string lastTf = null;
 
-            if (BoxTimeFrame.SelectedItem != null)
+            if (ComboBoxTimeFrame.SelectedItem != null)
             {
-                lastTf = BoxTimeFrame.SelectedItem.ToString();
+                lastTf = ComboBoxTimeFrame.SelectedItem.ToString();
             }
 
-            BoxTimeFrame.Items.Clear();
+            ComboBoxTimeFrame.Items.Clear();
 
             for (int i = 0; i < securities.Count; i++)
             {
                 if (name == securities[i].Security.Name)
                 {
-                    BoxTimeFrame.Items.Add(securities[i].TimeFrame);
+                    ComboBoxTimeFrame.Items.Add(securities[i].TimeFrame);
                 }
             }
             if (lastTf == null)
             {
-                BoxTimeFrame.SelectedItem = securities[0].TimeFrame;
+                ComboBoxTimeFrame.SelectedItem = securities[0].TimeFrame;
             }
             else
             {
                 TimeFrame oldFrame;
                 Enum.TryParse(lastTf, out oldFrame);
 
-                BoxTimeFrame.SelectedItem = oldFrame;
+                ComboBoxTimeFrame.SelectedItem = oldFrame;
             }
         }
 
@@ -594,6 +595,93 @@ namespace OsEngine.Market
             }
         }
 
+        private void LoadTimeFrameBox()
+        {
+            ComboBoxTimeFrame.Items.Clear();
+
+            if (ServerMaster.StartProgram == ServerStartProgramm.IsTester)
+            {
+                // таймФрейм
+                TesterServer server = (TesterServer)ServerMaster.GetServers()[0];
+                if (server.TypeTesterData != TesterDataType.Candle)
+                {
+                    // если строим данные на тиках или стаканах, то можно использовать любой ТФ
+                    // менеджер свечей построит любой
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Day);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Hour2);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Hour1);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min45);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min30);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min20);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min15);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min10);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min5);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min3);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min2);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min1);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Sec30);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Sec20);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Sec15);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Sec10);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Sec5);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Sec2);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Sec1);
+
+                    ComboBoxCandleMarketDataType.SelectedItem = CandleMarketDataType.Tick;
+                    ComboBoxCandleMarketDataType.IsEnabled = false;
+                }
+                else
+                {
+                    // далее, если используем готовые свечки, то нужно ставить только те ТФ, которые есть
+                    // и вставляются они только когда мы выбираем бумагу в методе 
+
+                    ComboBoxSecurities.SelectionChanged += ComboBoxSecurities_SelectionChanged;
+                    GetTimeFramesInTester();
+                    ComboBoxCandleCreateMethodType.SelectedItem = CandleCreateMethodType.Simple;
+                    ComboBoxCandleCreateMethodType.IsEnabled = false;
+
+                    ComboBoxCandleMarketDataType.SelectedItem = CandleMarketDataType.Tick;
+                    ComboBoxCandleMarketDataType.IsEnabled = false;
+                }
+            }
+            else
+            {
+                ComboBoxTimeFrame.Items.Add(TimeFrame.Day);
+                ComboBoxTimeFrame.Items.Add(TimeFrame.Hour2);
+                ComboBoxTimeFrame.Items.Add(TimeFrame.Hour1);
+                ComboBoxTimeFrame.Items.Add(TimeFrame.Min45);
+                ComboBoxTimeFrame.Items.Add(TimeFrame.Min30);
+                ComboBoxTimeFrame.Items.Add(TimeFrame.Min20);
+                ComboBoxTimeFrame.Items.Add(TimeFrame.Min15);
+                ComboBoxTimeFrame.Items.Add(TimeFrame.Min10);
+                ComboBoxTimeFrame.Items.Add(TimeFrame.Min5);
+                ComboBoxTimeFrame.Items.Add(TimeFrame.Min3);
+                ComboBoxTimeFrame.Items.Add(TimeFrame.Min2);
+                ComboBoxTimeFrame.Items.Add(TimeFrame.Min1);
+                ComboBoxTimeFrame.Items.Add(TimeFrame.Sec30);
+                ComboBoxTimeFrame.Items.Add(TimeFrame.Sec20);
+                ComboBoxTimeFrame.Items.Add(TimeFrame.Sec15);
+                ComboBoxTimeFrame.Items.Add(TimeFrame.Sec10);
+                ComboBoxTimeFrame.Items.Add(TimeFrame.Sec5);
+                ComboBoxTimeFrame.Items.Add(TimeFrame.Sec2);
+                ComboBoxTimeFrame.Items.Add(TimeFrame.Sec1);
+
+                CandleMarketDataType createType = CandleMarketDataType.Tick;
+                if (ComboBoxCandleMarketDataType.SelectedItem != null)
+                {
+                    Enum.TryParse(ComboBoxCandleMarketDataType.SelectedItem.ToString(), true, out createType);
+                }
+
+            }
+
+            ComboBoxTimeFrame.SelectedItem = _connectorBot.TimeFrame;
+
+            if (ComboBoxTimeFrame.SelectedItem == null)
+            {
+                ComboBoxTimeFrame.SelectedItem = TimeFrame.Min1;
+            }
+        }
+
         /// <summary>
         ///  кнопка принять
         /// </summary>
@@ -602,32 +690,35 @@ namespace OsEngine.Market
             try
             {
                 _connectorBot.PortfolioName = ComboBoxPortfolio.Text;
-
                 if (CheckBoxIsEmulator.IsChecked != null)
                 {
                     _connectorBot.EmulatorIsOn = CheckBoxIsEmulator.IsChecked.Value;
                 }
-
                 TimeFrame timeFrame;
-
-                Enum.TryParse(BoxTimeFrame.Text, out timeFrame);
+                Enum.TryParse(ComboBoxTimeFrame.Text, out timeFrame);
 
                 _connectorBot.TimeFrame = timeFrame;
-
                 _connectorBot.NamePaper = ComboBoxSecurities.Text;
-
                 Enum.TryParse(ComboBoxTypeServer.Text, true, out _connectorBot.ServerType);
 
-                CandleSeriesCreateDataType createType;
-                Enum.TryParse(BoxTimeCandleCreateType.Text, true, out createType);
+                CandleMarketDataType createType;
+                Enum.TryParse(ComboBoxCandleMarketDataType.Text, true, out createType);
+                _connectorBot.CandleMarketDataType = createType;
 
-                _connectorBot.CandleCreateType = createType;
+                CandleCreateMethodType methodType;
+                Enum.TryParse(ComboBoxCandleCreateMethodType.Text, true, out methodType);
+
+                _connectorBot.CandleCreateMethodType = methodType;
 
                 if (CheckBoxSetForeign.IsChecked.HasValue)
                 {
                     _connectorBot.SetForeign = CheckBoxSetForeign.IsChecked.Value;
                 }
-                
+
+                _connectorBot.RencoPunktsToCloseCandleInRencoType = _rencoPuncts;
+                _connectorBot.CountTradeInCandle = _countTradesInCandle;
+                _connectorBot.VolumeToCloseCandleInVolumeType = _volumeToClose;
+                _connectorBot.DeltaPeriods= _deltaPeriods;
 
                 _connectorBot.Save();
                 Close();
@@ -656,5 +747,106 @@ namespace OsEngine.Market
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
+        // дополнительные настройки разных типов свечей
+
+        private void ShowDopCandleSettings()
+        {
+            ClearDopCandleSettings();
+
+            CandleCreateMethodType type;
+
+            Enum.TryParse(ComboBoxCandleCreateMethodType.SelectedItem.ToString(), out type);
+
+            if (type == CandleCreateMethodType.Simple)
+            {
+                CreateSimpleCandleSettings();
+            }
+            if (type == CandleCreateMethodType.Delta)
+            {
+                CreateDeltaCandleSettings();
+            }
+            if (type == CandleCreateMethodType.Ticks)
+            {
+                CreateTicksCandleSettings();
+            }
+            if (type == CandleCreateMethodType.Renko)
+            {
+                CreateRencoCandleSettings();
+            }
+            if (type == CandleCreateMethodType.Volume)
+            {
+                CreateVolumeCandleSettings();
+            }
+        }
+
+        private void ClearDopCandleSettings()
+        {
+            TextBoxDeltaPeriods.Visibility = Visibility.Hidden;
+            LabelDeltaPeriods.Visibility = Visibility.Hidden;
+            ComboBoxTimeFrame.Visibility = Visibility.Hidden;
+            CheckBoxSetForeign.Visibility = Visibility.Hidden;
+            TextBoxCountTradesInCandle.Visibility = Visibility.Hidden;
+            LabelTimeFrame.Visibility = Visibility.Hidden;
+            LabelCountTradesInCandle.Visibility = Visibility.Hidden;
+            TextBoxVolumeToClose.Visibility = Visibility.Hidden;
+            LabelVolumeToClose.Visibility = Visibility.Hidden;
+            TextBoxRencoPunkts.Visibility = Visibility.Hidden;
+            LabelRencoPunkts.Visibility = Visibility.Hidden;
+        }
+
+        private void CreateSimpleCandleSettings()
+        {
+            ComboBoxTimeFrame.Visibility = Visibility.Visible;
+            ComboBoxTimeFrame.Margin = new Thickness(206, 296, 0, 0);
+            
+            LabelTimeFrame.Visibility = Visibility.Visible;
+            LabelTimeFrame.Margin = new Thickness(41, 296, 0, 0);
+
+            CheckBoxSetForeign.Visibility = Visibility.Visible;
+            CheckBoxSetForeign.Margin = new Thickness(120, 327, 0, 0);
+
+            this.Height = 445;
+        }
+
+        private void CreateDeltaCandleSettings()
+        {
+            TextBoxDeltaPeriods.Visibility = Visibility.Visible;
+            LabelDeltaPeriods.Visibility = Visibility.Visible;
+
+            TextBoxDeltaPeriods.Margin = new Thickness(246, 296, 0, 0);
+            LabelDeltaPeriods.Margin = new Thickness(41, 295, 0, 0);
+
+            this.Height = 420;
+        }
+
+        private void CreateTicksCandleSettings()
+        {
+            TextBoxCountTradesInCandle.Visibility = Visibility.Visible;
+            LabelCountTradesInCandle.Visibility = Visibility.Visible;
+
+            TextBoxCountTradesInCandle.Margin = new Thickness(206, 296, 0, 0);
+            LabelCountTradesInCandle.Margin = new Thickness(41, 295, 0, 0);
+            Height = 420;
+        }
+
+        private void CreateRencoCandleSettings()
+        {
+            TextBoxRencoPunkts.Visibility = Visibility.Visible;
+            TextBoxRencoPunkts.Margin = new Thickness(206, 296, 0, 0);
+
+            LabelRencoPunkts.Visibility = Visibility.Visible;
+            LabelRencoPunkts.Margin = new Thickness(41, 296, 0, 0);
+            Height = 420;
+        }
+
+        private void CreateVolumeCandleSettings()
+        {
+            LabelVolumeToClose.Visibility = Visibility.Visible;
+            TextBoxVolumeToClose.Visibility = Visibility.Visible;
+
+            LabelVolumeToClose.Margin = new Thickness(41, 296, 0, 0);
+            TextBoxVolumeToClose.Margin = new Thickness(206, 296, 0, 0);
+            Height = 420;
+        }
     }
 }

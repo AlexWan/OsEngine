@@ -88,8 +88,8 @@ namespace OsEngine.OsData
             DatePickerTimeStart.SelectedDate = _set.TimeStart;
             DatePickerTimeEnd.SelectedDate = _set.TimeEnd;
 
-            ComboBoxCandleCreateType.Items.Add(CandleSeriesCreateDataType.Tick);
-            ComboBoxCandleCreateType.Items.Add(CandleSeriesCreateDataType.MarketDepth);
+            ComboBoxCandleCreateType.Items.Add(CandleMarketDataType.Tick);
+            ComboBoxCandleCreateType.Items.Add(CandleMarketDataType.MarketDepth);
             ComboBoxCandleCreateType.SelectedItem = _set.CandleCreateType;
 
             CheckBoxNeadToUpDate.IsChecked = _set.NeadToUpdate;

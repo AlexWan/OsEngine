@@ -489,6 +489,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         {
             try
             {
+                Thread.Sleep(1000);
                 var needSec = _subscribedSecurities.Find(s => s.Name == security.Name);
 
                 if (needSec == null)
@@ -908,7 +909,6 @@ namespace OsEngine.Market.Servers.Bitfinex
 
             return countParams;
         }
-
 
         #endregion
 

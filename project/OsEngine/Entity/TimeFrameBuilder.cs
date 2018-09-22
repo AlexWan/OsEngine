@@ -3,7 +3,6 @@
 */
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 
 namespace OsEngine.Entity
@@ -18,19 +17,28 @@ namespace OsEngine.Entity
         public TimeFrameBuilder(string name)
         {
             _name = name;
-            DeltaPeriods = new CumulativeDeltaPeriods();
-            _candleCreateType = CandleSeriesCreateDataType.Tick;
+            
+            _candleCreateType = CandleMarketDataType.Tick;
+            _seriesCreateMethodType = CandleCreateMethodType.Simple;
             TimeFrame = TimeFrame.Min1;
             TradeCount = 100;
+            _volumeToCloseCandleInVolumeType = 1000;
+            _rencoPunktsToCloseCandleInRencoType = 100;
+            _deltaPeriods = 1000;
+
             Load();
             _canSave = true;
         }
 
         public TimeFrameBuilder()
         {
-            DeltaPeriods = new CumulativeDeltaPeriods();
+            _candleCreateType = CandleMarketDataType.Tick;
+            _seriesCreateMethodType = CandleCreateMethodType.Simple;
             TimeFrame = TimeFrame.Min1;
-            _candleCreateType = CandleSeriesCreateDataType.Tick;
+            TradeCount = 100;
+            _volumeToCloseCandleInVolumeType = 1000;
+            _rencoPunktsToCloseCandleInRencoType = 100;
+            _deltaPeriods = 1000;
             _canSave = true;
         }
 
@@ -58,28 +66,10 @@ namespace OsEngine.Entity
                     _setForeign = Convert.ToBoolean(reader.ReadLine());
                     _tradeCount = Convert.ToInt32(reader.ReadLine());
 
-                    if (!reader.EndOfStream)
-                    {
-                        DeltaPeriods.Periods = new List<CumulativeDeltaPeriod>();
-
-                        for (int i = 0; i < 24; i++)
-                        {
-                            string currentPeriod = reader.ReadLine();
-                            if (currentPeriod == null)
-                            {
-                                return;
-                            }
-                            DeltaPeriods.Periods.Add(new CumulativeDeltaPeriod()
-                            {
-                                DeltaStep = Convert.ToInt32(currentPeriod.Split('%')[0]),
-                                HourStart = Convert.ToInt32(currentPeriod.Split('%')[1]),
-                                HourEnd = Convert.ToInt32(currentPeriod.Split('%')[2])
-                            });
-                        }
-                    }
-
-
-
+                    Enum.TryParse(reader.ReadLine(), out _seriesCreateMethodType);
+                    _volumeToCloseCandleInVolumeType = Convert.ToDecimal(reader.ReadLine());
+                    _rencoPunktsToCloseCandleInRencoType = Convert.ToDecimal(reader.ReadLine());
+                    _deltaPeriods = Convert.ToDecimal(reader.ReadLine());
 
                     reader.Close();
                 }
@@ -107,11 +97,10 @@ namespace OsEngine.Entity
                     writer.WriteLine(_candleCreateType);
                     writer.WriteLine(_setForeign);
                     writer.WriteLine(_tradeCount);
-
-                    for (int i = 0; i < DeltaPeriods.Periods.Count; i++)
-                    {
-                        writer.WriteLine(DeltaPeriods.Periods[i].DeltaStep + "%" + DeltaPeriods.Periods[i].HourStart + "%" + DeltaPeriods.Periods[i].HourEnd);
-                    }
+                    writer.WriteLine(_seriesCreateMethodType);
+                    writer.WriteLine(_volumeToCloseCandleInVolumeType);
+                    writer.WriteLine(_rencoPunktsToCloseCandleInRencoType);
+                    writer.WriteLine(_deltaPeriods);
 
                     writer.Close();
                 }
@@ -247,10 +236,27 @@ namespace OsEngine.Entity
         }
         private TimeSpan _timeFrameSpan;
 
-        public CumulativeDeltaPeriods DeltaPeriods;
+        /// <summary>
+        /// переод дельты для закрытия свечи по дельте
+        /// </summary>
+        public decimal DeltaPeriods
+        {
+            get { return _deltaPeriods; }
+            set
+            {
+                if (_deltaPeriods == value)
+                {
+                    return;
+                }
+                _deltaPeriods = value;
+                Save();
+            }
+        }
+
+        private decimal _deltaPeriods;
 
         /// <summary>
-        /// по сколько трейдов пакуем тики когда включен таймФрейм Трейды
+        /// по сколько трейдов пакуем свечи когда включен режим закрытия свечи по кол-ву трейдов
         /// </summary>
         public int TradeCount
         {
@@ -284,9 +290,9 @@ namespace OsEngine.Entity
         private bool _setForeign;
 
         /// <summary>
-        /// способ создания свечей: из тиков или из стаканов
+        /// данные из которых собираем свечи: из тиков или из стаканов
         /// </summary>
-        public CandleSeriesCreateDataType CandleCreateType
+        public CandleMarketDataType CandleMarketDataType
         {
             get { return _candleCreateType; }
             set
@@ -298,7 +304,52 @@ namespace OsEngine.Entity
                 }
             }
         }
-        private CandleSeriesCreateDataType _candleCreateType;
+        private CandleMarketDataType _candleCreateType;
+
+        /// <summary>
+        /// тип сборки свечей: обычный, ренко, дельта, 
+        /// </summary>
+        public CandleCreateMethodType CandleCreateMethodType
+        {
+            get { return _seriesCreateMethodType; }
+            set
+            {
+                if (value != _seriesCreateMethodType)
+                {
+                    _seriesCreateMethodType = value;
+                    Save();
+                }
+            }
+        }
+        private CandleCreateMethodType _seriesCreateMethodType;
+
+        /// <summary>
+        /// объём необходимый для закрытия свечи, когда выбран режим закрытия свечи по объёму
+        /// </summary>
+        public decimal VolumeToCloseCandleInVolumeType
+        {
+            get { return _volumeToCloseCandleInVolumeType; }
+            set
+            {
+                _volumeToCloseCandleInVolumeType = value;
+                Save();
+            }
+        }
+        private decimal _volumeToCloseCandleInVolumeType;
+
+        /// <summary>
+        /// движение необходимое для закрытия свечи, когда выбран режим свечей ренко
+        /// </summary>
+        public decimal RencoPunktsToCloseCandleInRencoType
+        {
+            get { return _rencoPunktsToCloseCandleInRencoType; }
+            set
+            {
+                _rencoPunktsToCloseCandleInRencoType = value;
+                Save();
+            }
+        }
+        private decimal _rencoPunktsToCloseCandleInRencoType;
     }
 
     /// <summary>
@@ -306,14 +357,6 @@ namespace OsEngine.Entity
     /// </summary>
     public enum TimeFrame
     {
-        /// <summary>
-        /// тиковый таймФрейм
-        /// </summary>
-        Tick,
-        /// <summary>
-        /// таймФрейм основанный на изменении дельты потока покупок и продаж
-        /// </summary>
-        Delta,
         /// <summary>
         /// одна секунда
         /// </summary>
@@ -392,91 +435,4 @@ namespace OsEngine.Entity
         Day
     }
 
-    /// <summary>
-    /// объект помогающий строить свечи по изменению дельты открытых позиций
-    /// </summary>
-    public class CumulativeDeltaPeriods
-    {
-        public CumulativeDeltaPeriods()
-        {
-            Periods = new List<CumulativeDeltaPeriod>();
-
-            for (int i = 0; i < 24; i++)
-            {
-                Periods.Add(new CumulativeDeltaPeriod() { DeltaStep = 1000, HourStart = i, HourEnd = i });
-            }
-        }
-
-        /// <summary>
-        /// периоды
-        /// </summary>
-        public List<CumulativeDeltaPeriod> Periods;
-
-        /// <summary>
-        /// текущая дельта
-        /// </summary>
-        private decimal _commulativDelta;
-
-        /// <summary>
-        /// значение дельты в последний раз когда мы закрывали свечу
-        /// </summary>
-        private decimal _deltaOnLastCandleClose;
-
-        /// <summary>
-        /// проверить наступление события закрытия свечи
-        /// </summary>
-        public bool CheckCloseCandle(DateTime time, decimal price, decimal volume, bool canPushUp, Side side)
-        {
-            if (side == Side.Buy)
-            {
-                _commulativDelta += volume;
-            }
-            else if (side == Side.Sell)
-            {
-                _commulativDelta -= volume;
-            }
-
-            CumulativeDeltaPeriod myPeriod =
-                Periods.Find(period => period.HourStart <= time.Hour && period.HourEnd >= time.Hour);
-
-            if (_commulativDelta > _deltaOnLastCandleClose + myPeriod.DeltaStep ||
-                _commulativDelta < _deltaOnLastCandleClose - myPeriod.DeltaStep)
-            {
-                _deltaOnLastCandleClose = _commulativDelta;
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// показать окно настроек
-        /// </summary>
-        public void ShowDialog()
-        {
-            CumulativeDeltaTimeFrameUi ui = new CumulativeDeltaTimeFrameUi(this);
-            ui.ShowDialog();
-        }
-    }
-
-    /// <summary>
-    /// дельта на временном уровне
-    /// </summary>
-    public class CumulativeDeltaPeriod
-    {
-        /// <summary>
-        /// начало периода
-        /// </summary>
-        public int HourStart;
-
-        /// <summary>
-        /// конец периода
-        /// </summary>
-        public int HourEnd;
-
-        /// <summary>
-        /// шаг свечей по дельте покупок и продаж
-        /// </summary>
-        public int DeltaStep;
-    }
 }

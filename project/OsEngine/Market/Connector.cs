@@ -31,7 +31,7 @@ namespace OsEngine.Market
         {
             _name = name;
 
-            TimeFrameBuilder = new TimeFrameBuilder(_name);
+            _timeFrameBuilder = new TimeFrameBuilder(_name);
             ServerType = ServerType.Unknown;
             Load();
             _canSave = true;
@@ -115,7 +115,7 @@ namespace OsEngine.Market
         /// </summary>
         public void Delete()
         {
-            TimeFrameBuilder.Delete();
+            _timeFrameBuilder.Delete();
             if (File.Exists(@"Engine\" + _name + @"ConnectorPrime.txt"))
             {
                 File.Delete(@"Engine\" + _name + @"ConnectorPrime.txt");
@@ -246,23 +246,43 @@ namespace OsEngine.Market
             }
         }
 
-        public TimeFrameBuilder TimeFrameBuilder;
+        /// <summary>
+        /// объект сохраняющий в себе настройки для построения свечек
+        /// </summary>
+        private TimeFrameBuilder _timeFrameBuilder;
 
         /// <summary>
         /// способ создания свечей: из тиков или из стаканов
         /// </summary>
-        public CandleSeriesCreateDataType CandleCreateType
+        public CandleMarketDataType CandleMarketDataType
         {
             set
             {
-                if (value == TimeFrameBuilder.CandleCreateType)
+                if (value == _timeFrameBuilder.CandleMarketDataType)
                 {
                     return;
                 }
-                TimeFrameBuilder.CandleCreateType = value;
+                _timeFrameBuilder.CandleMarketDataType = value;
                 Reconnect();
             }
-            get { return TimeFrameBuilder.CandleCreateType; }
+            get { return _timeFrameBuilder.CandleMarketDataType; }
+        }
+
+        /// <summary>
+        /// способ создания свечей: из тиков или из стаканов
+        /// </summary>
+        public CandleCreateMethodType CandleCreateMethodType
+        {
+            set
+            {
+                if (value == _timeFrameBuilder.CandleCreateMethodType)
+                {
+                    return;
+                }
+                _timeFrameBuilder.CandleCreateMethodType = value;
+                Reconnect();
+            }
+            get { return _timeFrameBuilder.CandleCreateMethodType; }
         }
 
         /// <summary>
@@ -270,14 +290,14 @@ namespace OsEngine.Market
         /// </summary>
         public TimeFrame TimeFrame
         {
-            get { return TimeFrameBuilder.TimeFrame; }
+            get { return _timeFrameBuilder.TimeFrame; }
             set
             {
                 try
                 {
-                    if (value != TimeFrameBuilder.TimeFrame)
+                    if (value != _timeFrameBuilder.TimeFrame)
                     {
-                        TimeFrameBuilder.TimeFrame = value;
+                        _timeFrameBuilder.TimeFrame = value;
                         Reconnect();
                     }
                 }
@@ -289,11 +309,44 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// хранилище переодов для дельты
+        /// </summary>
+        public decimal DeltaPeriods
+        {
+            get { return _timeFrameBuilder.DeltaPeriods; }
+            set
+            {
+                if (value == _timeFrameBuilder.DeltaPeriods)
+                {
+                    return;
+                }
+                _timeFrameBuilder.DeltaPeriods = value;
+                Reconnect();
+            }
+        }
+
+        /// <summary>
+        /// движение необходимое для закрытия свечи, когда выбран режим свечей ренко
+        /// </summary>
+        public decimal RencoPunktsToCloseCandleInRencoType
+        {
+            get { return _timeFrameBuilder.RencoPunktsToCloseCandleInRencoType; }
+            set
+            {
+                if (value != _timeFrameBuilder.RencoPunktsToCloseCandleInRencoType)
+                {
+                    _timeFrameBuilder.RencoPunktsToCloseCandleInRencoType = value;
+                    Reconnect();
+                }
+            }
+        }
+
+        /// <summary>
         /// ТаймФрейм свечек в виде TimeSpan на который подписан коннектор
         /// </summary>
         public TimeSpan TimeFrameTimeSpan
         {
-            get { return TimeFrameBuilder.TimeFrameTimeSpan; }
+            get { return _timeFrameBuilder.TimeFrameTimeSpan; }
         }
 
         /// <summary>
@@ -325,14 +378,14 @@ namespace OsEngine.Market
         /// </summary>
         public bool SetForeign
         {
-            get { return TimeFrameBuilder.SetForeign; }
+            get { return _timeFrameBuilder.SetForeign; }
             set
             {
-                if (TimeFrameBuilder.SetForeign == value)
+                if (_timeFrameBuilder.SetForeign == value)
                 {
                     return;
                 }
-                TimeFrameBuilder.SetForeign = value;
+                _timeFrameBuilder.SetForeign = value;
                 Reconnect();
             }
         }
@@ -342,12 +395,28 @@ namespace OsEngine.Market
         /// </summary>
         public int CountTradeInCandle
         {
-            get { return TimeFrameBuilder.TradeCount; }
+            get { return _timeFrameBuilder.TradeCount; }
             set
             {
-                if (value != TimeFrameBuilder.TradeCount)
+                if (value != _timeFrameBuilder.TradeCount)
                 {
-                    TimeFrameBuilder.TradeCount = value;
+                    _timeFrameBuilder.TradeCount = value;
+                    Reconnect();
+                }
+            }
+        }
+
+        /// <summary>
+        /// объём необходимый для закрытия свечи, когда выбран режим закрытия свечи по объёму
+        /// </summary>
+        public decimal VolumeToCloseCandleInVolumeType
+        {
+            get { return _timeFrameBuilder.VolumeToCloseCandleInVolumeType; }
+            set
+            {
+                if (value != _timeFrameBuilder.VolumeToCloseCandleInVolumeType)
+                {
+                    _timeFrameBuilder.VolumeToCloseCandleInVolumeType = value;
                     Reconnect();
                 }
             }
@@ -527,7 +596,7 @@ namespace OsEngine.Market
                                 }
 
                                 Thread.Sleep(100);
-                                _mySeries = _myServer.StartThisSecurity(_namePaper, TimeFrameBuilder);
+                                _mySeries = _myServer.StartThisSecurity(_namePaper, _timeFrameBuilder);
                             }
 
 

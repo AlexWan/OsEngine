@@ -888,15 +888,27 @@ namespace OsEngine.Market.Servers.Bitfinex
                 {
                     _portfolios = new List<Portfolio>();
                 }
-                
-                foreach (var portfolio in portfolios)
+
+                for (int i = 0; i < portfolios.Count; i++)
                 {
+                    List<WaletWalet> portfolio = portfolios[i];
+
                     Portfolio newPortf = new Portfolio();
                     newPortf.Number = portfolio[1].String;
+
+                    if (_portfolios.Find(p => p.Number == newPortf.Number) != null)
+                    {
+                        newPortf = _portfolios.Find(p => p.Number == newPortf.Number);
+                    }
+
                     newPortf.ValueCurrent = Convert.ToDecimal(portfolio[2].Double);
                     newPortf.ValueBlocked = Convert.ToDecimal(portfolio[3].Double);
+                    newPortf.ValueBegin = Convert.ToDecimal(portfolio[2].Double);
 
-                    _portfolios.Add(newPortf);
+                    if (_portfolios.Find(p => p.Number == newPortf.Number) == null)
+                    {
+                        _portfolios.Add(newPortf);
+                    }
                 }
 
                 _portfolioToSend.Enqueue(_portfolios);
@@ -1354,6 +1366,8 @@ namespace OsEngine.Market.Servers.Bitfinex
                     var count = Convert.ToDecimal(newData[2].Double);
 
                     var amount = Convert.ToDecimal(newData[3].Double);
+
+                    needDepth.Time = ServerTime;
 
                     // если колл-во ореров равно 0, значит надо найти уровень этой цены и удалить его
                     if (count == 0)

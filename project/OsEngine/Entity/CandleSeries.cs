@@ -26,12 +26,8 @@ namespace OsEngine.Entity
         /// <param name="security">бумага на которою мы подписаны</param>
         public CandleSeries(TimeFrameBuilder timeFrameBuilder, Security security)
         {
-            TimeFrame = timeFrameBuilder.TimeFrame;
-            SeriesCreateDataType = timeFrameBuilder.CandleCreateType;
+            _timeFrameBuilder = timeFrameBuilder;
             Security = security;
-            _setForeign = timeFrameBuilder.SetForeign;
-            _deltaPeriods = timeFrameBuilder.DeltaPeriods;
-            _countTickInCandle = timeFrameBuilder.TradeCount;
         }
 
         /// <summary>
@@ -43,153 +39,45 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// тип сборки свечей - тики или стаканы
+        /// данные из которых собираем свечи: из тиков или из стаканов
         /// </summary>
-        public CandleSeriesCreateDataType SeriesCreateDataType;
-
-        private CandleSeriesCreateMethodType _seriesCreateMethodType;
-
-        private int _countTickInCandle;
-
-        private CumulativeDeltaPeriods _deltaPeriods;
+        public CandleMarketDataType CandleMarketDataType
+        {
+            get { return _timeFrameBuilder.CandleMarketDataType; }
+        }
 
         /// <summary>
-        /// нужно ли показывать неторговые свечки
+        /// тип сборки свечей: обычный, ренко, дельта, 
         /// </summary>
-        private bool _setForeign;
+        public CandleCreateMethodType CandleCreateMethodType
+        {
+            get { return _timeFrameBuilder.CandleCreateMethodType; }
+        }
+
+        private readonly TimeFrameBuilder _timeFrameBuilder;
 
         /// <summary>
         /// бумага по которой собираются свечи
         /// </summary>
         public Security Security;
 
-        private TimeSpan _timeFrameSpan;
-
         /// <summary>
         /// таймФрейм собираемых свечей в виде TimeSpan
         /// </summary>
         public TimeSpan TimeFrameSpan
         {
-            get { return _timeFrameSpan; }
+            get { return _timeFrameBuilder.TimeFrameTimeSpan; }
         }
-
-        private TimeFrame _timeFrame;
 
         /// <summary>
         /// таймфрейм в виде перечисления
         /// </summary>
         public TimeFrame TimeFrame
         {
-            get { return _timeFrame; }
+            get { return _timeFrameBuilder.TimeFrame; }
             set
             {
-                _timeFrame = value;
-                if (value == TimeFrame.Sec1)
-                {
-                    _seriesCreateMethodType = CandleSeriesCreateMethodType.Simple;
-                    _timeFrameSpan = new TimeSpan(0, 0, 0, 1);
-                }
-                else if (value == TimeFrame.Sec2)
-                {
-                    _seriesCreateMethodType = CandleSeriesCreateMethodType.Simple;
-                    _timeFrameSpan = new TimeSpan(0, 0, 0, 2);
-                }
-                else if (value == TimeFrame.Sec5)
-                {
-                    _seriesCreateMethodType = CandleSeriesCreateMethodType.Simple;
-                    _timeFrameSpan = new TimeSpan(0, 0, 0, 5);
-                }
-                else if (value == TimeFrame.Sec10)
-                {
-                    _seriesCreateMethodType = CandleSeriesCreateMethodType.Simple;
-                    _timeFrameSpan = new TimeSpan(0, 0, 0, 10);
-                }
-                else if (value == TimeFrame.Sec15)
-                {
-                    _seriesCreateMethodType = CandleSeriesCreateMethodType.Simple;
-                    _timeFrameSpan = new TimeSpan(0, 0, 0, 15);
-                }
-                else if (value == TimeFrame.Sec20)
-                {
-                    _seriesCreateMethodType = CandleSeriesCreateMethodType.Simple;
-                    _timeFrameSpan = new TimeSpan(0, 0, 0, 20);
-                }
-                else if (value == TimeFrame.Sec30)
-                {
-                    _seriesCreateMethodType = CandleSeriesCreateMethodType.Simple;
-                    _timeFrameSpan = new TimeSpan(0, 0, 0, 30);
-                }
-                else if (value == TimeFrame.Min1)
-                {
-                    _seriesCreateMethodType = CandleSeriesCreateMethodType.Simple;
-                    _timeFrameSpan = new TimeSpan(0, 0, 1, 0);
-                }
-                else if (value == TimeFrame.Min2)
-                {
-                    _seriesCreateMethodType = CandleSeriesCreateMethodType.Simple;
-                    _timeFrameSpan = new TimeSpan(0, 0, 2, 0);
-                }
-                else if (value == TimeFrame.Min3)
-                {
-                    _seriesCreateMethodType = CandleSeriesCreateMethodType.Simple;
-                    _timeFrameSpan = new TimeSpan(0, 0, 3, 0);
-                }
-                else if (value == TimeFrame.Min5)
-                {
-                    _seriesCreateMethodType = CandleSeriesCreateMethodType.Simple;
-                    _timeFrameSpan = new TimeSpan(0, 0, 5, 0);
-                }
-                else if (value == TimeFrame.Min10)
-                {
-                    _seriesCreateMethodType = CandleSeriesCreateMethodType.Simple;
-                    _timeFrameSpan = new TimeSpan(0, 0, 10, 0);
-                }
-                else if (value == TimeFrame.Min15)
-                {
-                    _seriesCreateMethodType = CandleSeriesCreateMethodType.Simple;
-                    _timeFrameSpan = new TimeSpan(0, 0, 15, 0);
-                }
-                else if (value == TimeFrame.Min20)
-                {
-                    _seriesCreateMethodType = CandleSeriesCreateMethodType.Simple;
-                    _timeFrameSpan = new TimeSpan(0, 0, 20, 0);
-                }
-                else if (value == TimeFrame.Min30)
-                {
-                    _seriesCreateMethodType = CandleSeriesCreateMethodType.Simple;
-                    _timeFrameSpan = new TimeSpan(0, 0, 30, 0);
-                }
-                else if (value == TimeFrame.Min45)
-                {
-                    _seriesCreateMethodType = CandleSeriesCreateMethodType.Simple;
-                    _timeFrameSpan = new TimeSpan(0, 0, 45, 0);
-                }
-                else if (value == TimeFrame.Hour1)
-                {
-                    _seriesCreateMethodType = CandleSeriesCreateMethodType.Simple;
-                    _timeFrameSpan = new TimeSpan(0, 1, 0, 0);
-                }
-                else if (value == TimeFrame.Hour2)
-                {
-                    _seriesCreateMethodType = CandleSeriesCreateMethodType.Simple;
-                    _timeFrameSpan = new TimeSpan(0, 2, 0, 0);
-                }
-                else if (value == TimeFrame.Day)
-                {
-                    _seriesCreateMethodType = CandleSeriesCreateMethodType.Simple;
-                    _timeFrameSpan = new TimeSpan(0, 24, 0, 0);
-                }
-                else if (value == TimeFrame.Delta)
-                {
-                    _seriesCreateMethodType = CandleSeriesCreateMethodType.Delta;
-                    _timeFrameSpan = new TimeSpan(0, 0, 0, 1);
-                }
-                else if (value == TimeFrame.Tick)
-                {
-                    _seriesCreateMethodType = CandleSeriesCreateMethodType.Ticks;
-                    _timeFrameSpan = new TimeSpan(0, 0, 0, 1);
-                }
-             
+                _timeFrameBuilder.TimeFrame = value;
             }
         }
 
@@ -280,8 +168,12 @@ namespace OsEngine.Entity
                 return;
             }
 
-            if (
-                CandlesAll[CandlesAll.Count - 1].TimeStart.Add(_timeFrameSpan) < time 
+            if (_timeFrameBuilder.CandleCreateMethodType != CandleCreateMethodType.Simple)
+            {
+                return;
+            }
+
+            if ((CandlesAll[CandlesAll.Count - 1].TimeStart.Add(TimeFrameSpan) < time)
                 ||
                 (TimeFrame == TimeFrame.Day && CandlesAll[CandlesAll.Count - 1].TimeStart.Date < time.Date)
                 )
@@ -310,7 +202,7 @@ namespace OsEngine.Entity
             {
                 return;
             }
-            if (SeriesCreateDataType == CandleSeriesCreateDataType.MarketDepth)
+            if (_timeFrameBuilder.CandleMarketDataType == CandleMarketDataType.MarketDepth)
             {
                 return;
             }
@@ -357,7 +249,7 @@ namespace OsEngine.Entity
         /// <param name="trades">тики</param>
         public void PreLoad(List<Trade> trades)
         {
-            if (SeriesCreateDataType == CandleSeriesCreateDataType.MarketDepth)
+            if (_timeFrameBuilder.CandleMarketDataType == CandleMarketDataType.MarketDepth)
             {
                 return;
             }
@@ -392,17 +284,25 @@ namespace OsEngine.Entity
         /// <param name="side">сторона в которую прошла последняя сделка</param>
         private void UpDateCandle(DateTime time, decimal price, decimal volume, bool canPushUp, Side side)
         {
-            if (_seriesCreateMethodType == CandleSeriesCreateMethodType.Simple)
+            if (_timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Simple)
             {
                 UpDateSimpleTimeFrame(time, price, volume, canPushUp);
             }
-            else if (_seriesCreateMethodType == CandleSeriesCreateMethodType.Delta)
+            else if (_timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Delta)
             {
                 UpDateDeltaTimeFrame(time, price, volume, canPushUp,side);
             }
-            else if (_seriesCreateMethodType == CandleSeriesCreateMethodType.Ticks)
+            else if (_timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Ticks)
             {
                 UpDateTickTimeFrame(time, price, volume, canPushUp);
+            }
+            else if (_timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Volume)
+            {
+                UpDateVolumeTimeFrame(time, price, volume, canPushUp);
+            }
+            else if (_timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Renko)
+            {
+                UpDateRencoTimeFrame(time, price, volume, canPushUp);
             }
         }
 
@@ -430,11 +330,11 @@ namespace OsEngine.Entity
 
                 DateTime timeNextCandle = time;
 
-                if (_timeFrameSpan.TotalMinutes >= 1)
+                if (TimeFrameSpan.TotalMinutes >= 1)
                 {
                     timeNextCandle = time.AddSeconds(-time.Second);
 
-                    while (timeNextCandle.Minute%_timeFrameSpan.TotalMinutes != 0)
+                    while (timeNextCandle.Minute % TimeFrameSpan.TotalMinutes != 0)
                     {
                         timeNextCandle = timeNextCandle.AddMinutes(-1);
                     }
@@ -446,7 +346,7 @@ namespace OsEngine.Entity
                 }
                 else
                 {
-                    while (timeNextCandle.Second%_timeFrameSpan.TotalSeconds != 0)
+                    while (timeNextCandle.Second % TimeFrameSpan.TotalSeconds != 0)
                     {
                         timeNextCandle = timeNextCandle.AddSeconds(-1);
                     }
@@ -478,8 +378,8 @@ namespace OsEngine.Entity
                 return;
             }
 
-            if (CandlesAll[CandlesAll.Count - 1].TimeStart.Add(_timeFrameSpan + _timeFrameSpan) <= time &&
-                _setForeign)
+            if (CandlesAll[CandlesAll.Count - 1].TimeStart.Add(TimeFrameSpan + TimeFrameSpan) <= time &&
+                _timeFrameBuilder.SetForeign)
             {
                 // произошёл пропуск данных в результате клиринга или перерыва в торгах
                 SetForeign(time);
@@ -489,7 +389,7 @@ namespace OsEngine.Entity
                 (
                   CandlesAll != null &&
                   CandlesAll[CandlesAll.Count - 1].TimeStart < time &&
-                  CandlesAll[CandlesAll.Count - 1].TimeStart.Add(_timeFrameSpan) <= time
+                  CandlesAll[CandlesAll.Count - 1].TimeStart.Add(TimeFrameSpan) <= time
                 )
                 ||
                 (
@@ -513,11 +413,11 @@ namespace OsEngine.Entity
 
                 DateTime timeNextCandle = time;
 
-                if (_timeFrameSpan.TotalMinutes >= 1)
+                if (TimeFrameSpan.TotalMinutes >= 1)
                 {
                     timeNextCandle = time.AddSeconds(-time.Second);
 
-                    while (timeNextCandle.Minute%_timeFrameSpan.TotalMinutes != 0 &&
+                    while (timeNextCandle.Minute % TimeFrameSpan.TotalMinutes != 0 &&
                         TimeFrame != TimeFrame.Min45 && TimeFrame != TimeFrame.Min3)
                     {
                         timeNextCandle = timeNextCandle.AddMinutes(-1);
@@ -530,7 +430,7 @@ namespace OsEngine.Entity
                 }
                 else
                 {
-                    while (timeNextCandle.Second%_timeFrameSpan.TotalSeconds != 0)
+                    while (timeNextCandle.Second % TimeFrameSpan.TotalSeconds != 0)
                     {
                         timeNextCandle = timeNextCandle.AddSeconds(-1);
                     }
@@ -565,7 +465,7 @@ namespace OsEngine.Entity
 
             if (CandlesAll != null &&
                 CandlesAll[CandlesAll.Count - 1].TimeStart <= time &&
-                CandlesAll[CandlesAll.Count - 1].TimeStart.Add(_timeFrameSpan) > time)
+                CandlesAll[CandlesAll.Count - 1].TimeStart.Add(TimeFrameSpan) > time)
             {
                 // если пришли данные внутри свечи
 
@@ -589,14 +489,19 @@ namespace OsEngine.Entity
             }
         }
 
-        // Формула кумулятивной дельты 
-		//Delta= ∑_i▒vBuy- ∑_i▒vSell 
+        /// <summary>
+        /// текущее накопление дельты
+        /// </summary>
+        private decimal _currentDelta;
 
         /// <summary>
         /// обновить свечи с дельтой
         /// </summary>
         private void UpDateDeltaTimeFrame(DateTime time, decimal price, decimal volume, bool canPushUp, Side side)
         {
+            // Формула кумулятивной дельты 
+            //Delta= ∑_i▒vBuy- ∑_i▒vSell 
+
             if (CandlesAll != null && CandlesAll.Count > 0 && CandlesAll[CandlesAll.Count - 1] != null &&
                CandlesAll[CandlesAll.Count - 1].TimeStart > time)
             {// если пришли старые данные
@@ -609,28 +514,6 @@ namespace OsEngine.Entity
                 CandlesAll = new List<Candle>();
 
                 DateTime timeNextCandle = time;
-
-                if (_timeFrameSpan.TotalMinutes >= 1)
-                {
-                    timeNextCandle = time.AddSeconds(-time.Second);
-
-                    while (timeNextCandle.Minute % _timeFrameSpan.TotalMinutes != 0)
-                    {
-                        timeNextCandle = timeNextCandle.AddMinutes(-1);
-                    }
-
-                    while (timeNextCandle.Second != 0)
-                    {
-                        timeNextCandle = timeNextCandle.AddSeconds(-1);
-                    }
-                }
-                else
-                {
-                    while (timeNextCandle.Second % _timeFrameSpan.TotalSeconds != 0)
-                    {
-                        timeNextCandle = timeNextCandle.AddSeconds(-1);
-                    }
-                }
 
                 while (timeNextCandle.Millisecond != 0)
                 {
@@ -658,10 +541,22 @@ namespace OsEngine.Entity
                 return;
             }
 
+            if (side == Side.Buy)
+            {
+                _currentDelta += volume;
+            }
+            else
+            {
+                _currentDelta -= volume;
+            }
+
+
             if (CandlesAll != null &&
-                _deltaPeriods.CheckCloseCandle(time,price,volume,canPushUp,side))
+                Math.Abs(_currentDelta) >= _timeFrameBuilder.DeltaPeriods)
             {
                 // если пришли данные из новой свечки
+
+                _currentDelta = 0;
 
                 if (CandlesAll[CandlesAll.Count - 1].State != CandleStates.Finished)
                 {
@@ -733,6 +628,9 @@ namespace OsEngine.Entity
         /// </summary>
         private int _lastCandleTickCount;
 
+        /// <summary>
+        /// обновить свечи по кол-ву обезличенных сделок в свече
+        /// </summary>
         private void UpDateTickTimeFrame(DateTime time, decimal price, decimal volume, bool canPushUp)
         {
             if (CandlesAll != null && CandlesAll.Count > 0 && CandlesAll[CandlesAll.Count - 1] != null &&
@@ -748,27 +646,11 @@ namespace OsEngine.Entity
 
                 DateTime timeNextCandle = time;
 
-                if (_timeFrameSpan.TotalMinutes >= 1)
+                while (timeNextCandle.Second % 1 != 0)
                 {
-                    timeNextCandle = time.AddSeconds(-time.Second);
-
-                    while (timeNextCandle.Minute % _timeFrameSpan.TotalMinutes != 0)
-                    {
-                        timeNextCandle = timeNextCandle.AddMinutes(-1);
-                    }
-
-                    while (timeNextCandle.Second != 0)
-                    {
-                        timeNextCandle = timeNextCandle.AddSeconds(-1);
-                    }
+                    timeNextCandle = timeNextCandle.AddSeconds(-1);
                 }
-                else
-                {
-                    while (timeNextCandle.Second % _timeFrameSpan.TotalSeconds != 0)
-                    {
-                        timeNextCandle = timeNextCandle.AddSeconds(-1);
-                    }
-                }
+
 
                 while (timeNextCandle.Millisecond != 0)
                 {
@@ -798,7 +680,7 @@ namespace OsEngine.Entity
             }
 
             if (CandlesAll != null &&
-                _lastCandleTickCount >= _countTickInCandle)
+                _lastCandleTickCount >= _timeFrameBuilder.TradeCount)
             {
                 // если пришли данные из новой свечки
 
@@ -814,12 +696,6 @@ namespace OsEngine.Entity
                 }
 
                 DateTime timeNextCandle = time;
-
-
-                while (timeNextCandle.Second % _timeFrameSpan.TotalSeconds != 0)
-                {
-                    timeNextCandle = timeNextCandle.AddSeconds(-1);
-                }
                 
                 while (timeNextCandle.Millisecond != 0)
                 {
@@ -850,7 +726,7 @@ namespace OsEngine.Entity
             }
 
             if (CandlesAll != null &&
-                 _lastCandleTickCount < _countTickInCandle)
+                 _lastCandleTickCount < _timeFrameBuilder.TradeCount)
             {
                 // если пришли данные внутри свечи
                 _lastCandleTickCount++;
@@ -873,6 +749,290 @@ namespace OsEngine.Entity
                     UpdateChangeCandle();
                 }
             }
+        }
+
+        /// <summary>
+        /// обновить свечи по объёму в свече
+        /// </summary>
+        private void UpDateVolumeTimeFrame(DateTime time, decimal price, decimal volume, bool canPushUp)
+        {
+            if (CandlesAll != null && CandlesAll.Count > 0 && CandlesAll[CandlesAll.Count - 1] != null &&
+               CandlesAll[CandlesAll.Count - 1].TimeStart > time)
+            {// если пришли старые данные
+                return;
+            }
+
+            if (CandlesAll == null)
+            {
+                // пришла первая сделка
+                CandlesAll = new List<Candle>();
+
+                DateTime timeNextCandle = time;
+
+                while (timeNextCandle.Millisecond != 0)
+                {
+                    timeNextCandle = timeNextCandle.AddMilliseconds(-1);
+                }
+
+                Candle candle = new Candle()
+                {
+                    Close = price,
+                    High = price,
+                    Low = price,
+                    Open = price,
+                    State = CandleStates.Started,
+                    TimeStart = timeNextCandle,
+                    Volume = volume
+                };
+
+                CandlesAll.Add(candle);
+
+                if (canPushUp)
+                {
+                    UpdateChangeCandle();
+                }
+
+                return;
+            }
+
+            if (CandlesAll != null &&
+                CandlesAll[CandlesAll.Count - 1].Volume >= _timeFrameBuilder.VolumeToCloseCandleInVolumeType)
+            {
+                // если пришли данные из новой свечки
+
+                if (CandlesAll[CandlesAll.Count - 1].State != CandleStates.Finished)
+                {
+                    // если последнюю свечку ещё не закрыли и не отправили
+                    CandlesAll[CandlesAll.Count - 1].State = CandleStates.Finished;
+
+                    if (canPushUp)
+                    {
+                        UpdateFinishCandle();
+                    }
+                }
+
+                DateTime timeNextCandle = time;
+
+                while (timeNextCandle.Millisecond != 0)
+                {
+                    timeNextCandle = timeNextCandle.AddMilliseconds(-1);
+                }
+
+
+                Candle newCandle = new Candle()
+                {
+                    Close = price,
+                    High = price,
+                    Low = price,
+                    Open = price,
+                    State = CandleStates.Started,
+                    TimeStart = timeNextCandle,
+                    Volume = volume
+                };
+
+                CandlesAll.Add(newCandle);
+
+                if (canPushUp)
+                {
+                    UpdateChangeCandle();
+                }
+
+                return;
+            }
+
+            if (CandlesAll != null)
+            {
+                // если пришли данные внутри свечи
+
+                CandlesAll[CandlesAll.Count - 1].Volume += volume;
+                CandlesAll[CandlesAll.Count - 1].Close = price;
+
+                if (CandlesAll[CandlesAll.Count - 1].High < price)
+                {
+                    CandlesAll[CandlesAll.Count - 1].High = price;
+                }
+
+                if (CandlesAll[CandlesAll.Count - 1].Low > price)
+                {
+                    CandlesAll[CandlesAll.Count - 1].Low = price;
+                }
+
+                if (canPushUp)
+                {
+                    UpdateChangeCandle();
+                }
+            }
+        }
+
+        private decimal _rencoStartPrice;
+
+        private Side _rencoLastSide;
+
+        private void UpDateRencoTimeFrame(DateTime time, decimal price, decimal volume, bool canPushUp)
+        {
+            if (CandlesAll != null && CandlesAll.Count > 0 && CandlesAll[CandlesAll.Count - 1] != null &&
+               CandlesAll[CandlesAll.Count - 1].TimeStart > time)
+            {// если пришли старые данные
+                return;
+            }
+
+            if (CandlesAll == null)
+            {
+                _rencoStartPrice = price;
+                _rencoLastSide = Side.UnKnown;
+                // пришла первая сделка
+                CandlesAll = new List<Candle>();
+
+                DateTime timeNextCandle = time;
+
+                while (timeNextCandle.Millisecond != 0)
+                {
+                    timeNextCandle = timeNextCandle.AddMilliseconds(-1);
+                }
+
+                Candle candle = new Candle()
+                {
+                    Close = price,
+                    High = price,
+                    Low = price,
+                    Open = price,
+                    State = CandleStates.Started,
+                    TimeStart = timeNextCandle,
+                    Volume = volume
+                };
+
+                CandlesAll.Add(candle);
+
+                if (canPushUp)
+                {
+                    UpdateChangeCandle();
+                }
+
+                return;
+            }
+
+            decimal renDist = _timeFrameBuilder.RencoPunktsToCloseCandleInRencoType;
+
+            if (
+                (_rencoLastSide == Side.UnKnown && Math.Abs(_rencoStartPrice - price) >= renDist)
+                ||
+                (_rencoLastSide == Side.Buy && price - _rencoStartPrice >= renDist)
+                ||
+                (_rencoLastSide == Side.Buy && _rencoStartPrice - price >= renDist * 2)
+                ||
+                (_rencoLastSide == Side.Sell && _rencoStartPrice - price >= renDist)
+                ||
+                (_rencoLastSide == Side.Sell && price - _rencoStartPrice >= renDist * 2)
+                )
+            {
+                // если пришли данные из новой свечки
+
+                Candle lastCandle = CandlesAll[CandlesAll.Count - 1];
+                
+
+
+                if (
+                    (_rencoLastSide == Side.UnKnown && price - _rencoStartPrice  >= renDist)
+                    ||
+                    (_rencoLastSide == Side.Buy && price - _rencoStartPrice >= renDist)
+                    )
+                {
+                    _rencoLastSide = Side.Buy;
+                    _rencoStartPrice = _rencoStartPrice + renDist;
+                    lastCandle.High = _rencoStartPrice;
+                }
+                else if (
+                (_rencoLastSide == Side.UnKnown && _rencoStartPrice - price >= renDist)
+                ||
+                (_rencoLastSide == Side.Sell && _rencoStartPrice - price >= renDist)
+                )
+                {
+                    _rencoLastSide = Side.Sell;
+                    _rencoStartPrice = _rencoStartPrice - renDist;
+                    lastCandle.Low = _rencoStartPrice;
+                }
+                else if (
+                    _rencoLastSide == Side.Buy && _rencoStartPrice - price >= renDist*2 )
+                {
+                    _rencoLastSide = Side.Sell;
+                    lastCandle.Open = _rencoStartPrice - renDist;
+                    _rencoStartPrice = _rencoStartPrice - renDist*2;
+                    lastCandle.Low = _rencoStartPrice;
+                }
+                else if (
+                    _rencoLastSide == Side.Sell && price - _rencoStartPrice >= renDist * 2)
+                {
+                    _rencoLastSide = Side.Buy;
+                    lastCandle.Open = _rencoStartPrice + renDist;
+                    _rencoStartPrice = _rencoStartPrice + renDist * 2;
+                    lastCandle.High = _rencoStartPrice;
+                }
+
+                lastCandle.Close = _rencoStartPrice;
+
+                if (CandlesAll[CandlesAll.Count - 1].State != CandleStates.Finished)
+                {
+                    // если последнюю свечку ещё не закрыли и не отправили
+                    CandlesAll[CandlesAll.Count - 1].State = CandleStates.Finished;
+
+                    if (canPushUp)
+                    {
+                        UpdateFinishCandle();
+                    }
+                }
+
+                DateTime timeNextCandle = time;
+
+                while (timeNextCandle.Millisecond != 0)
+                {
+                    timeNextCandle = timeNextCandle.AddMilliseconds(-1);
+                }
+
+
+                Candle newCandle = new Candle()
+                {
+                    Close = _rencoStartPrice,
+                    High = _rencoStartPrice,
+                    Low = _rencoStartPrice,
+                    Open = _rencoStartPrice,
+                    State = CandleStates.Started,
+                    TimeStart = timeNextCandle,
+                    Volume = volume
+                };
+
+                CandlesAll.Add(newCandle);
+
+                if (canPushUp)
+                {
+                    UpdateChangeCandle();
+                }
+
+                return;
+            }
+
+            if (CandlesAll != null)
+            {
+                // если пришли данные внутри свечи
+
+                CandlesAll[CandlesAll.Count - 1].Volume += volume;
+                CandlesAll[CandlesAll.Count - 1].Close = price;
+
+                if (CandlesAll[CandlesAll.Count - 1].High < price)
+                {
+                    CandlesAll[CandlesAll.Count - 1].High = price;
+                }
+
+                if (CandlesAll[CandlesAll.Count - 1].Low > price)
+                {
+                    CandlesAll[CandlesAll.Count - 1].Low = price;
+                }
+
+                if (canPushUp)
+                {
+                    UpdateChangeCandle();
+                }
+            }
+
         }
 
         /// <summary>
@@ -965,7 +1125,7 @@ namespace OsEngine.Entity
         /// <param name="candle"></param>
         public void SetNewCandleInArray(Candle candle)
         {
-            if (SeriesCreateDataType == CandleSeriesCreateDataType.MarketDepth)
+            if (_timeFrameBuilder.CandleMarketDataType == CandleMarketDataType.MarketDepth)
             {
                 return;
             }
@@ -1024,7 +1184,7 @@ namespace OsEngine.Entity
                 return;
             }
 
-            if (SeriesCreateDataType != CandleSeriesCreateDataType.MarketDepth)
+            if (_timeFrameBuilder.CandleMarketDataType != CandleMarketDataType.MarketDepth)
             {
                 return;
             }
@@ -1059,7 +1219,7 @@ namespace OsEngine.Entity
     /// <summary>
     /// тип данных для рассчёта свечек в серии свечей
     /// </summary>
-    public enum CandleSeriesCreateDataType
+    public enum CandleMarketDataType
     {
         /// <summary>
         /// создание свечей из тиков
@@ -1075,12 +1235,22 @@ namespace OsEngine.Entity
     /// <summary>
     /// метод создания свечей
     /// </summary>
-    public enum CandleSeriesCreateMethodType
+    public enum CandleCreateMethodType
     {
         /// <summary>
         /// свечи с обычным ТФ от 1 секунды и выше
         /// </summary>
         Simple,
+
+        /// <summary>
+        /// свечи ренко
+        /// </summary>
+        Renko,
+
+        /// <summary>
+        /// свечи набираются из объёма
+        /// </summary>
+        Volume,
 
         /// <summary>
         /// свечи набираемые из тиков

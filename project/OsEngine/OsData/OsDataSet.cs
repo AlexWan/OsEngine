@@ -118,7 +118,7 @@ namespace OsEngine.OsData
         /// <summary>
         /// тип создания свечек - из стакана или из тиков
         /// </summary>
-        public CandleSeriesCreateDataType CandleCreateType;
+        public CandleMarketDataType CandleCreateType;
 
         /// <summary>
         /// уникальное имя сета
@@ -1913,8 +1913,7 @@ namespace OsEngine.OsData
                 {
                     return;
                 }
-                if (_selectedTf != TimeFrame.Tick &&
-                    _selectedTf != TimeFrame.Sec1 &&
+                if ( _selectedTf != TimeFrame.Sec1 &&
                     _selectedTf != TimeFrame.Sec2 &&
                     _selectedTf != TimeFrame.Sec5 &&
                     _selectedTf != TimeFrame.Sec10 &&
