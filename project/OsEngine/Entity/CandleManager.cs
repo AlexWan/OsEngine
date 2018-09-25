@@ -228,7 +228,8 @@ namespace OsEngine.Entity
                         {
                             SmartComServer smart = (SmartComServer) _server;
 
-                            if (series.TimeFrameSpan.TotalMinutes < 1)
+                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
+                                series.TimeFrameSpan.TotalMinutes < 1)
                             {
                                 List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
 
@@ -259,7 +260,8 @@ namespace OsEngine.Entity
                         else if (serverType == ServerType.QuikLua)
                         {
                             QuikLuaServer luaServ = (QuikLuaServer)_server;
-                            if (series.TimeFrameSpan.TotalMinutes < 1)
+                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple || 
+                                series.TimeFrameSpan.TotalMinutes < 1)
                             {
                                 List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
 
@@ -281,9 +283,8 @@ namespace OsEngine.Entity
                         else if (serverType == ServerType.BitMex)
                         {
                             BitMexServer bitMex = (BitMexServer)_server;
-                            if (series.TimeFrameSpan.TotalMinutes < 1 ||
-                                series.CandleCreateMethodType == CandleCreateMethodType.Ticks ||
-                                series.CandleCreateMethodType == CandleCreateMethodType.Delta)
+                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple || 
+                                series.TimeFrameSpan.TotalMinutes < 1)
                             {
                                 List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
                                 series.PreLoad(allTrades);
@@ -304,9 +305,8 @@ namespace OsEngine.Entity
                         {
                             KrakenServer kraken = (KrakenServer)_server;
 
-                           if (series.TimeFrameSpan.TotalMinutes < 1 ||
-                                series.CandleCreateMethodType == CandleCreateMethodType.Ticks ||
-                                series.CandleCreateMethodType == CandleCreateMethodType.Delta)
+                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple || 
+                                series.TimeFrameSpan.TotalMinutes < 1)
                             {
                                 List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
                                 series.PreLoad(allTrades);
@@ -326,9 +326,8 @@ namespace OsEngine.Entity
                         else if (serverType == ServerType.Binance)
                         {
                             BinanceServer binance = (BinanceServer)_server;
-                            if (series.TimeFrameSpan.TotalMinutes < 1 ||
-                                series.CandleCreateMethodType == CandleCreateMethodType.Ticks ||
-                                series.CandleCreateMethodType == CandleCreateMethodType.Delta)
+                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple || 
+                                series.TimeFrameSpan.TotalMinutes < 1)
                             {
                                 List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
                                 series.PreLoad(allTrades);
@@ -348,9 +347,8 @@ namespace OsEngine.Entity
                         else if (serverType == ServerType.Bitfinex)
                         {
                             BitfinexServer bitfinex = (BitfinexServer)_server;
-                            if (series.TimeFrameSpan.TotalMinutes < 1 ||
-                                series.CandleCreateMethodType == CandleCreateMethodType.Ticks ||
-                                series.CandleCreateMethodType == CandleCreateMethodType.Delta)
+                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple || 
+                                series.TimeFrameSpan.TotalMinutes < 1)
                             {
                                 List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
                                 series.PreLoad(allTrades);

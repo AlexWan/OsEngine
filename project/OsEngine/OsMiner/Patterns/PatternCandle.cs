@@ -323,7 +323,7 @@ namespace OsEngine.OsMiner.Patterns
         /// </summary>
         public IPattern GetCopy()
         {
-            PatternIndicators pattern = new PatternIndicators();
+            PatternCandle pattern = new PatternCandle();
 
             string save = GetSaveString();
             pattern.Load(save);

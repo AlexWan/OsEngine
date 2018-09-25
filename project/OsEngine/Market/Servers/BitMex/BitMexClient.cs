@@ -221,8 +221,6 @@ namespace OsEngine.Market.Servers.BitMex
             {
                 try
                 {
-                    Thread.Sleep(1);
-
                     if (_neadToStopAllThreads == true)
                     {
                         return;
