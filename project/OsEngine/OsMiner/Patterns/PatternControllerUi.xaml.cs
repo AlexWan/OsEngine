@@ -49,8 +49,6 @@ namespace OsEngine.OsMiner.Patterns
 
             InitializeTabPatternsSearch();
 
-
-
             InitializeMiningTab();
         }
 
@@ -280,6 +278,8 @@ namespace OsEngine.OsMiner.Patterns
             {
                 TextBoxCandlePatternLength.Text = pattern.Length.ToString();
             }
+            _pattern.GetPatternToIndex();
+            _pattern.Save();
         }
 
         void ComboBoxTypeWatchCandlePattern_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -311,6 +311,7 @@ namespace OsEngine.OsMiner.Patterns
             {
                 TextBoxVolumePatternLength.Text = pattern.Length.ToString();
             }
+            _pattern.GetPatternToIndex();
             _pattern.Save();
         }
 
@@ -387,6 +388,7 @@ namespace OsEngine.OsMiner.Patterns
             {
                 TextBoxPatternIndicatorLenght.Text = pattern.Length.ToString();
             }
+            _pattern.GetPatternToIndex();
             _pattern.Save();
         }
 
