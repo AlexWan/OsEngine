@@ -340,13 +340,21 @@ namespace OsEngine.OsData
         private void ReloadSecuritiesOnTable()
         {
             _grid.Rows.Clear();
-            List<string> names = _set.SecuritiesNames;
+            List<SecurityToLoad> names = _set.SecuritiesNames;
 
             for (int i = 0;names != null &&  i < names.Count; i++)
             {
                 DataGridViewRow row = new DataGridViewRow();
                 row.Cells.Add(new DataGridViewTextBoxCell());
-                row.Cells[0].Value = names[i];
+
+                if (names[i].Name.Contains(""))
+                {
+                    row.Cells[0].Value = names[i].Name.Split('*')[0];
+                }
+                else
+                {
+                    row.Cells[0].Value = names[i];
+                }
 
                 _grid.Rows.Insert(0, row);
             }

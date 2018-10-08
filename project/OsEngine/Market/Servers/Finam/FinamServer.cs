@@ -536,6 +536,8 @@ namespace OsEngine.Market.Servers.Finam
                 }
             }
 
+            _finamSecurities.AddRange(Ge3tCryptoSec());
+
             _securities = new List<Security>();
 
             for (int i = 0; i < _finamSecurities.Count; i++)
@@ -554,6 +556,98 @@ namespace OsEngine.Market.Servers.Finam
             _securitiesToSend.Enqueue(_securities);
 
             SendLogMessage("Доступно " +  _securities.Count + " бумаг.", LogMessageType.System);
+        }
+
+        private List<FinamSecurity> Ge3tCryptoSec()
+        {
+          List<FinamSecurity> crypto = new List<FinamSecurity>();
+
+            for (int i = 0; i < 13; i++)
+            {
+                crypto.Add(new FinamSecurity());
+                crypto[i].Market = "Криптовалюты";
+                crypto[i].MarketId = 520.ToString();
+            }
+
+            crypto[0].Id = 484427.ToString();
+            crypto[0].Code = "GDAX.ETH-BTC";
+            crypto[0].Url = "cryptocurrencies/eth-btc";
+            crypto[0].Name = "ETH-BTC";
+            crypto[0].Decp = "5";
+
+            crypto[1].Id = 491809.ToString();
+            crypto[1].Code = "GDAX.BCH-USD";
+            crypto[1].Url = "cryptocurrencies/bch-usd";
+            crypto[1].Name = "BCH-USD";
+            crypto[1].Decp = "2";
+
+            crypto[2].Id = 484425.ToString();
+            crypto[2].Code = "GDAX.BTC-EUR";
+            crypto[2].Url = "cryptocurrencies/btc-eur";
+            crypto[2].Name = "BTC-EUR";
+            crypto[2].Decp = "2";
+
+            crypto[3].Id = 484424.ToString();
+            crypto[3].Code = "GDAX.BTC-GBP";
+            crypto[3].Url = "cryptocurrencies/btc-gbp";
+            crypto[3].Name = "BTC-GBP";
+            crypto[3].Decp = "2";
+
+            crypto[4].Id = 484429.ToString();
+            crypto[4].Code = "GDAX.BTC-USD";
+            crypto[4].Url = "cryptocurrencies/btc-usd";
+            crypto[4].Name = "BTC-USD";
+            crypto[4].Decp = "2";
+
+            crypto[5].Id = 484427.ToString();
+            crypto[5].Code = "GDAX.ETH-BTC";
+            crypto[5].Url = "cryptocurrencies/eth-btc";
+            crypto[5].Name = "ETH-BTC";
+            crypto[5].Decp = "5";
+
+            crypto[6].Id = 484426.ToString();
+            crypto[6].Code = "GDAX.ETH-EUR";
+            crypto[6].Url = "cryptocurrencies/eth-eur";
+            crypto[6].Name = "ETH-EUR";
+            crypto[6].Decp = "2";
+
+            crypto[7].Id = 484430.ToString();
+            crypto[7].Code = "GDAX.ETH-USD";
+            crypto[7].Url = "cryptocurrencies/eth-usd";
+            crypto[7].Name = "ETH-USD";
+            crypto[7].Decp = "2";
+
+            crypto[8].Id = 484423.ToString();
+            crypto[8].Code = "GDAX.LTC-BTC";
+            crypto[8].Url = "cryptocurrencies/ltc-btc";
+            crypto[8].Name = "LTC-BTC";
+            crypto[8].Decp = "5";
+
+            crypto[9].Id = 484422.ToString();
+            crypto[9].Code = "GDAX.LTC-EUR";
+            crypto[9].Url = "cryptocurrencies/ltc-eur";
+            crypto[9].Name = "LTC-EUR";
+            crypto[9].Decp = "2";
+
+            crypto[10].Id = 484428.ToString();
+            crypto[10].Code = "GDAX.LTC-USD";
+            crypto[10].Url = "cryptocurrencies/ltc-usd";
+            crypto[10].Name = "LTC-USD";
+            crypto[10].Decp = "2";
+
+            crypto[11].Id = 491575.ToString();
+            crypto[11].Code = "BTSM.ETH/EUR@milli";
+            crypto[11].Url = "cryptocurrencies/ether-euro-milli";
+            crypto[11].Name = "Ether / Euro milli";
+            crypto[11].Decp = "2";
+
+            crypto[12].Id = 491576.ToString();
+            crypto[12].Code = "BTSP.ETH/USD@milli";
+            crypto[12].Url = "cryptocurrencies/ether-usd-milli";
+            crypto[12].Name = "Ether / U.S. dollar milli";
+            crypto[12].Decp = "2";
+
+            return crypto;
         }
 
         private void CreatePortfolio()
@@ -793,46 +887,13 @@ namespace OsEngine.Market.Servers.Finam
         /// в случае неудачи null</returns>
         public CandleSeries StartThisSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder)
         {
-            int DaysCount = 2;
-
-            TimeFrame timeFrame = timeFrameBuilder.TimeFrame;
-
-              if (timeFrame == TimeFrame.Day)
-              {
-                  DaysCount = 100;
-              }
-                else if (timeFrame == TimeFrame.Hour1)
-                {
-                    DaysCount = 50;
-                }
-                else if (timeFrame == TimeFrame.Min30)
-                {
-                    DaysCount = 30;
-                }
-                else if (timeFrame == TimeFrame.Min15)
-                {
-                    DaysCount = 20;
-                }
-                else if (timeFrame == TimeFrame.Min10)
-                {
-                    DaysCount = 15;
-                }
-                else if (timeFrame == TimeFrame.Min5)
-                {
-                    DaysCount = 10;
-                }
-                else if (timeFrame == TimeFrame.Min1)
-                {
-                    DaysCount = 5;
-                }
-
-              return StartThisSecurity(namePaper, timeFrameBuilder, DateTime.Now.AddDays(-DaysCount), DateTime.Now.AddDays(2), DateTime.MinValue,true);
+            return null;
         }
 
         /// <summary>
         /// Начать выгрузку данных по инструменту. 
         /// </summary>
-        /// <param name="namePaper">имя бумаги которую будем запускать</param>
+        /// <param name="securityId">айди бумаги</param>
         /// <param name="timeFrameBuilder">объект несущий в себе данные по таймФреймам</param>
         /// <param name="startTime">время начала загрузки</param>
         /// <param name="endTime">время завершения работы</param>
@@ -840,7 +901,7 @@ namespace OsEngine.Market.Servers.Finam
         /// <param name="neadToUpdate">нужно ли автоматически обновлять</param>
         /// <returns>В случае удачи возвращает CandleSeries
         /// в случае неудачи null</returns>
-        public CandleSeries StartThisSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdate)
+        public CandleSeries StartThisSecurity(string securityId, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdate)
         {
             try
             {
@@ -852,7 +913,7 @@ namespace OsEngine.Market.Servers.Finam
                 // дальше по одному
                 lock (_lockerStarter)
                 {
-                    if (namePaper == "")
+                    if (securityId == null)
                     {
                         return null;
                     }
@@ -878,7 +939,7 @@ namespace OsEngine.Market.Servers.Finam
 
                     for (int i = 0; _securities != null && i < _securities.Count; i++)
                     {
-                        if (_securities[i].Name == namePaper)
+                        if (_securities[i].NameId == securityId)
                         {
                             security = _securities[i];
                             break;
@@ -993,7 +1054,7 @@ namespace OsEngine.Market.Servers.Finam
             _bidAskToSend.Enqueue(bidAskSender);
         }
 
-        public bool StartTickToSecurity(string namePaper, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdete)
+        public bool StartTickToSecurity(string id, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdete)
         {
             try
             {
@@ -1005,7 +1066,7 @@ namespace OsEngine.Market.Servers.Finam
                 // дальше по одному
                 lock (_lockerStarter)
                 {
-                    if (namePaper == "")
+                    if (id == null)
                     {
                         return false;
                     }
@@ -1032,7 +1093,7 @@ namespace OsEngine.Market.Servers.Finam
 
                     for (int i = 0; _securities != null && i < _securities.Count; i++)
                     {
-                        if (_securities[i].Name == namePaper)
+                        if (_securities[i].NameId == id)
                         {
                             security = _securities[i];
                             break;

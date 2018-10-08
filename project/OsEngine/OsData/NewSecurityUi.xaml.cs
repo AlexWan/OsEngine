@@ -114,6 +114,11 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
+        /// отображаемые на текущий момент бумаги
+        /// </summary>
+        private List<Security> _securitiesInBox = new List<Security>(); 
+
+        /// <summary>
         /// перезагрузить меню выбора инструментов
         /// </summary>
         private void ReloadSecurityTable()
@@ -123,6 +128,7 @@ namespace OsEngine.OsData
                 return;
             }
 
+            _securitiesInBox = new List<Security>();
             _grid.Rows.Clear();
 
             List<DataGridViewRow> rows = new List<DataGridViewRow>();
@@ -148,6 +154,8 @@ namespace OsEngine.OsData
                 row.Cells[1].Value = _securities[i].NameFull;
 
                 rows.Add(row);
+
+                _securitiesInBox.Add(_securities[i]);
             }
 
             _grid.Rows.AddRange(rows.ToArray());
@@ -171,8 +179,7 @@ namespace OsEngine.OsData
             {
                 return;
             }
-
-            SelectedSecurity = _securities.Find(security => security.Name == _grid.SelectedCells[0].Value.ToString());
+            SelectedSecurity = _securitiesInBox.Find(security => security.NameFull == _grid.SelectedCells[1].Value.ToString());
             Close();
         }
 
