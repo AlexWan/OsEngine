@@ -280,6 +280,7 @@ namespace OsEngine.Market.Servers
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+            _neadToPaintPortfolio = true;
         }
 
 // работа потока прорисовывающего портфели и ордера
@@ -288,17 +289,36 @@ namespace OsEngine.Market.Servers
         {
             while (true)
             {
-               Thread.Sleep(2000);
+               Thread.Sleep(1000);
 
                 if (MainWindow.ProccesIsWorked == false)
                 {
                     return;
                 }
 
-                PaintOrders();
-                RePaintPortfolio();
+                if (_needToPaintOrders)
+                {
+                    _needToPaintOrders = false;
+                    PaintOrders();
+                }
+
+                if (_neadToPaintPortfolio)
+                {
+                    RePaintPortfolio();
+                    _neadToPaintPortfolio = false;
+                }
             }
         }
+
+        /// <summary>
+        /// флаг, означающий что состояние портфеля изменилось и нужно его перерисовать
+        /// </summary>
+        private bool _neadToPaintPortfolio;
+
+        /// <summary>
+        /// флаг, означающий что ордера на бирже изменились и нужно их перерисовать
+        /// </summary>
+        private bool _needToPaintOrders;
 
 // прорисовка портфеля
 
@@ -450,11 +470,11 @@ namespace OsEngine.Market.Servers
         /// </summary>
         private void _server_NewOrderIncomeEvent(Order order)
         {
-            if (ServerMaster.StartProgram == ServerStartProgramm.IsTester ||
-                ServerMaster.StartProgram == ServerStartProgramm.IsOsOptimizer)
+            if (ServerMaster.StartProgram != ServerStartProgramm.IsOsTrader)
             {
                 return;
             }
+
             try
             {
                 if (_orders == null)
@@ -519,6 +539,7 @@ namespace OsEngine.Market.Servers
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+            _needToPaintOrders = true;
         }
 
         /// <summary>
@@ -527,8 +548,7 @@ namespace OsEngine.Market.Servers
         /// <param name="trade"></param>
         private void serv_NewMyTradeEvent(MyTrade trade)
         {
-            if (ServerMaster.StartProgram == ServerStartProgramm.IsTester ||
-                ServerMaster.StartProgram == ServerStartProgramm.IsOsOptimizer)
+            if (ServerMaster.StartProgram != ServerStartProgramm.IsOsTrader)
             {
                 return;
             }
@@ -546,6 +566,7 @@ namespace OsEngine.Market.Servers
             }
 
             _orders.Remove(myOrder);
+            _needToPaintOrders = true;
         }
 
         /// <summary>
