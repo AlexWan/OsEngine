@@ -347,7 +347,7 @@ namespace OsEngine.OsData
                 DataGridViewRow row = new DataGridViewRow();
                 row.Cells.Add(new DataGridViewTextBoxCell());
 
-                if (names[i].Name.Contains(""))
+                if (names[i].Name.Contains("*"))
                 {
                     row.Cells[0].Value = names[i].Name.Split('*')[0];
                 }
