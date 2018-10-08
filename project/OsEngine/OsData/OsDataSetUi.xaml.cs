@@ -346,16 +346,7 @@ namespace OsEngine.OsData
             {
                 DataGridViewRow row = new DataGridViewRow();
                 row.Cells.Add(new DataGridViewTextBoxCell());
-
-                if (names[i].Name.Contains("*"))
-                {
-                    row.Cells[0].Value = names[i].Name.Split('*')[0];
-                }
-                else
-                {
-                    row.Cells[0].Value = names[i];
-                }
-
+                row.Cells[0].Value = names[i].Name;
                 _grid.Rows.Insert(0, row);
             }
         }
