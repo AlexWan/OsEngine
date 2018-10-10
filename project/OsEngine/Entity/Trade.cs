@@ -94,8 +94,8 @@ namespace OsEngine.Entity
             // либо 20150401,100000,86160.000000000,2, Buy/Sell
             string result = "";
             result += Time.ToString("yyyyMMdd,HHmmss") + ",";
-            result += Price.ToString(new CultureInfo("en-US")) + ",";
-            result += Volume.ToString(new CultureInfo("en-US")) + ",";
+            result += Price.ToString(CultureInfo.InvariantCulture) + ",";
+            result += Volume.ToString(CultureInfo.InvariantCulture) + ",";
             result += Side + ",";
             result += MicroSeconds + ",";
             result += Id;
@@ -136,9 +136,9 @@ namespace OsEngine.Entity
 
             Time = new DateTime(year, month, day, hour, minute, second);
 
-            Price = Convert.ToDecimal(sIn[2].Replace(".",","));
+            Price = Convert.ToDecimal(sIn[2].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
 
-            Volume = Convert.ToDecimal(sIn[3].Replace(".", ","));
+            Volume = Convert.ToDecimal(sIn[3].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
 
             if (sIn.Length > 4)
             {
@@ -157,8 +157,8 @@ namespace OsEngine.Entity
 
             if (sIn.Length > 7)
             {
-                Bid = Convert.ToDecimal(sIn[7].Replace(".", ","));
-                Ask = Convert.ToDecimal(sIn[8].Replace(".", ","));
+                Bid = Convert.ToDecimal(sIn[7].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                Ask = Convert.ToDecimal(sIn[8].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                 BidsVolume = Convert.ToInt32(sIn[9]);
                 AsksVolume = Convert.ToInt32(sIn[10]);
             }

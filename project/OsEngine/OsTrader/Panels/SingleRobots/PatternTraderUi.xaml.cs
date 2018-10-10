@@ -1,25 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using OsEngine.Charts.CandleChart;
 using OsEngine.Entity;
-using OsEngine.Logging;
 using OsEngine.OsMiner.Patterns;
-using ContextMenu = System.Windows.Controls.ContextMenu;
-using MenuItem = System.Windows.Controls.MenuItem;
-using MouseEventArgs = System.Windows.Input.MouseEventArgs;
 
 namespace OsEngine.OsTrader.Panels.SingleRobots
 {
@@ -203,6 +192,12 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
 
         void TextBoxWeigthToInter_TextChanged(object sender, TextChangedEventArgs e)
         {
+            if (TextBoxWeigthToInter.Text == "" ||
+                TextBoxWeigthToInter.Text == "0," ||
+                TextBoxWeigthToInter.Text == "0.")
+            {
+                return;
+            }
             try
             {
                 _bot.WeigthToInter = Convert.ToDecimal(TextBoxWeigthToInter.Text.Replace(",",
@@ -336,6 +331,13 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
 
         void TextBoxWeigthToExit_TextChanged(object sender, TextChangedEventArgs e)
         {
+            if (TextBoxWeigthToExit.Text == "" ||
+                TextBoxWeigthToExit.Text == "0," ||
+                TextBoxWeigthToExit.Text == "0.")
+            {
+                return;
+            }
+            
             try
             {
                 _bot.WeigthToExit = Convert.ToDecimal(TextBoxWeigthToExit.Text.Replace(",",
@@ -344,19 +346,6 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             catch (Exception)
             {
                 TextBoxWeigthToExit.Text = _bot.WeigthToExit.ToString(CultureInfo.InvariantCulture);
-            }
-            _bot.Save();
-        }
-
-        void TextBoxTreilingStopValue_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            try
-            {
-                _bot.TreilingStopValue = Convert.ToInt32(TextBoxTreilingStopValue.Text);
-            }
-            catch (Exception)
-            {
-                TextBoxTreilingStopValue.Text = _bot.TreilingStopValue.ToString();
             }
             _bot.Save();
         }
@@ -374,11 +363,40 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             _bot.Save();
         }
 
-        void TextBoxProfitOrderValue_TextChanged(object sender, TextChangedEventArgs e)
+        void TextBoxTreilingStopValue_TextChanged(object sender, TextChangedEventArgs e)
         {
+            if (TextBoxTreilingStopValue.Text == "" ||
+                TextBoxTreilingStopValue.Text == "0," ||
+                TextBoxTreilingStopValue.Text == "0.")
+            {
+                return;
+            }
+
             try
             {
-                _bot.ProfitOrderValue = Convert.ToInt32(TextBoxProfitOrderValue.Text);
+                _bot.TreilingStopValue = Convert.ToDecimal(TextBoxTreilingStopValue.Text.Replace(",",
+                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+            }
+            catch (Exception)
+            {
+                TextBoxTreilingStopValue.Text = _bot.TreilingStopValue.ToString();
+            }
+            _bot.Save();
+        }
+
+
+        void TextBoxProfitOrderValue_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (TextBoxProfitOrderValue.Text == "" ||
+                TextBoxProfitOrderValue.Text == "0," ||
+                TextBoxProfitOrderValue.Text == "0.")
+            {
+                return;
+            }
+            try
+            {
+                _bot.ProfitOrderValue = Convert.ToDecimal(TextBoxProfitOrderValue.Text.Replace(",",
+                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
             }
             catch (Exception)
             {
@@ -389,9 +407,16 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
 
         void TextBoxStopOrderValue_TextChanged(object sender, TextChangedEventArgs e)
         {
+            if (TextBoxStopOrderValue.Text == "" ||
+                TextBoxStopOrderValue.Text == "0," ||
+                TextBoxStopOrderValue.Text == "0.")
+            {
+                return;
+            }
             try
             {
-                _bot.StopOrderValue = Convert.ToInt32(TextBoxStopOrderValue.Text);
+                _bot.StopOrderValue = Convert.ToDecimal(TextBoxStopOrderValue.Text.Replace(",",
+                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
             }
             catch (Exception)
             {

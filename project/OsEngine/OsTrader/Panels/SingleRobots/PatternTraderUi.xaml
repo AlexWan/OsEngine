@@ -19,16 +19,16 @@
             </TabItem>
             <TabItem Header="Закрытие позиции" Foreground="Black" >
                 <Grid >
-                    <CheckBox x:Name="CheckBoxProfitOrderIsOn" Content="Профит-ордер" HorizontalAlignment="Left" Margin="88,35,0,0" VerticalAlignment="Top"/>
-                    <CheckBox x:Name="CheckBoxStopOrderIsOn" Content="Стоп-ордер" HorizontalAlignment="Left" Margin="88,7,0,0" VerticalAlignment="Top"/>
-                    <TextBox x:Name="TextBoxStopOrderValue" ToolTip="Величина стоп ордера в минимальных движениях цены" HorizontalAlignment="Left" Height="23" Margin="204,0,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
-                    <TextBox x:Name="TextBoxProfitOrderValue" ToolTip="Величина профит ордера в минимальных движениях цены" HorizontalAlignment="Left" Height="23" Margin="204,28,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
+                    <CheckBox x:Name="CheckBoxProfitOrderIsOn" Content="Профит-ордер %" HorizontalAlignment="Left" Margin="88,35,0,0" VerticalAlignment="Top"/>
+                    <CheckBox x:Name="CheckBoxStopOrderIsOn" Content="Стоп-ордер %" HorizontalAlignment="Left" Margin="88,7,0,0" VerticalAlignment="Top"/>
+                    <TextBox x:Name="TextBoxStopOrderValue" HorizontalAlignment="Left" Height="23" Margin="204,0,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
+                    <TextBox x:Name="TextBoxProfitOrderValue"  HorizontalAlignment="Left" Height="23" Margin="204,28,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
                     <TextBox x:Name="TextBoxExitFromSomeCandlesValue" ToolTip="Через сколько свечей позиция будет принудительно закрыта" Height="23" Margin="204,56,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="141"/>
                     <CheckBox x:Name="CheckBoxExitFromSomeCandlesIsOn"  Content="Через N свечей" HorizontalAlignment="Left" Margin="88,63,0,0" VerticalAlignment="Top"/>
                     <WindowsFormsHost x:Name="HostGridPatternToClose" Margin="14,143,233,10"/>
-                    <Label Content="* все настройки в минимальных движениях цены инструмента" FontSize="12" VerticalAlignment="Bottom" Margin="0,0,2,-9" HorizontalAlignment="Right" Width="330"/>
-                    <TextBox x:Name="TextBoxTreilingStopValue" ToolTip="Величина подтягивающегося стопа в минимальных движениях цены" Height="23" Margin="204,84,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="141"/>
-                    <CheckBox x:Name="CheckBoxTrailingStopIsOn" Content="Трейлинг-Стоп" HorizontalAlignment="Left" Margin="88,91,0,0" VerticalAlignment="Top"/>
+                    <Label Content="*в минимальных движениях цены инструмента" FontSize="12" VerticalAlignment="Bottom" Margin="0,0,0,-9" HorizontalAlignment="Right" Width="330"/>
+                    <TextBox x:Name="TextBoxTreilingStopValue"  Height="23" Margin="204,84,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="141"/>
+                    <CheckBox x:Name="CheckBoxTrailingStopIsOn" Content="Трейлинг-Стоп %" HorizontalAlignment="Left" Margin="88,91,0,0" VerticalAlignment="Top"/>
                     <WindowsFormsHost x:Name="HostSinglePatternToClose" HorizontalAlignment="Right" Margin="0,143,5,10" Width="223"/>
                     <TextBox x:Name="TextBoxWeigthToExit" ToolTip="Общий вес найденных на текущей свече паттернов, необходимых для выхода в позицию" Height="23" Margin="0,115,10,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="92"/>
                     <Label Content="Вес для выхода"  Margin="0,113,119,0" HorizontalAlignment="Right" VerticalAlignment="Top" />
@@ -36,10 +36,10 @@
                     <TextBox x:Name="TextBoxProfitOrderValueSleepage"  HorizontalAlignment="Right" Height="23" Margin="0,31,78,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
                     <TextBox x:Name="TextBoxExitFromSomeCandlesValueSleepage"  Height="23" Margin="0,59,78,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="141"/>
                     <TextBox x:Name="TextBoxTreilingStopValueSleepage"  Height="23" Margin="0,87,78,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="141"/>
-                    <Label Content="Проскальзывание" HorizontalAlignment="Right" Margin="0,1,224,0" VerticalAlignment="Top"/>
-                    <Label Content="Проскальзывание" HorizontalAlignment="Right" Margin="0,29,224,0" VerticalAlignment="Top"/>
-                    <Label Content="Проскальзывание" HorizontalAlignment="Right" Margin="0,57,224,0" VerticalAlignment="Top"/>
-                    <Label Content="Проскальзывание" HorizontalAlignment="Right" Margin="0,87,224,0" VerticalAlignment="Top"/>
+                    <Label Content="Проскальзывание*" HorizontalAlignment="Right" Margin="0,1,224,0" VerticalAlignment="Top"/>
+                    <Label Content="Проскальзывание*" HorizontalAlignment="Right" Margin="0,29,224,0" VerticalAlignment="Top"/>
+                    <Label Content="Проскальзывание*" HorizontalAlignment="Right" Margin="0,57,224,0" VerticalAlignment="Top"/>
+                    <Label Content="Проскальзывание*" HorizontalAlignment="Right" Margin="0,87,224,0" VerticalAlignment="Top"/>
                     <TextBox x:Name="TextBoxStopExitToPatternsSleepage"  Height="23" Margin="347,115,233,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
                     <Label Content="Проскальзывание для выхода по  паттернам" HorizontalAlignment="Left" Margin="69,113,0,0" VerticalAlignment="Top"/>
                 </Grid>

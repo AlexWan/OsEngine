@@ -392,7 +392,6 @@ namespace OsEngine.OsMiner.Patterns
             _pattern.Save();
         }
 
-
 // вкладка открытие позиции ПЕРЕМЕННЫЕ
 
         void InitializeTabOpenPosition()
@@ -450,6 +449,12 @@ namespace OsEngine.OsMiner.Patterns
 
         void TextBoxWeigthToInter_TextChanged(object sender, TextChangedEventArgs e)
         {
+            if (TextBoxWeigthToInter.Text == "" ||
+                TextBoxWeigthToInter.Text == "0," ||
+                TextBoxWeigthToInter.Text == "0.")
+            {
+                return;
+            } 
             try
             {
                 _pattern.WeigthToInter = Convert.ToDecimal(TextBoxWeigthToInter.Text.Replace(",",
@@ -679,6 +684,12 @@ namespace OsEngine.OsMiner.Patterns
 
         void TextBoxWeigthToExit_TextChanged(object sender, TextChangedEventArgs e)
         {
+            if (TextBoxWeigthToExit.Text == "" ||
+                TextBoxWeigthToExit.Text == "0," ||
+                TextBoxWeigthToExit.Text == "0.")
+            {
+                return;
+            }
             try
             {
                 _pattern.WeigthToExit = Convert.ToDecimal(TextBoxWeigthToExit.Text.Replace(",",
@@ -687,19 +698,6 @@ namespace OsEngine.OsMiner.Patterns
             catch (Exception)
             {
                 TextBoxWeigthToExit.Text = _pattern.WeigthToExit.ToString(CultureInfo.InvariantCulture);
-            }
-            _pattern.Save();
-        }
-
-        void TextBoxTreilingStopValue_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            try
-            {
-                _pattern.TreilingStopValue = Convert.ToInt32(TextBoxTreilingStopValue.Text);
-            }
-            catch (Exception)
-            {
-                TextBoxTreilingStopValue.Text = _pattern.TreilingStopValue.ToString();
             }
             _pattern.Save();
         }
@@ -717,11 +715,38 @@ namespace OsEngine.OsMiner.Patterns
             _pattern.Save();
         }
 
-        void TextBoxProfitOrderValue_TextChanged(object sender, TextChangedEventArgs e)
+        void TextBoxTreilingStopValue_TextChanged(object sender, TextChangedEventArgs e)
         {
+            if (TextBoxTreilingStopValue.Text == "" ||
+                TextBoxTreilingStopValue.Text == "0," ||
+                TextBoxTreilingStopValue.Text == "0.")
+            {
+                return;
+            }
             try
             {
-                _pattern.ProfitOrderValue = Convert.ToInt32(TextBoxProfitOrderValue.Text);
+                _pattern.TreilingStopValue = Convert.ToDecimal(TextBoxTreilingStopValue.Text.Replace(",",
+                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+            }
+            catch (Exception)
+            {
+                TextBoxTreilingStopValue.Text = _pattern.TreilingStopValue.ToString();
+            }
+            _pattern.Save();
+        }
+
+        void TextBoxProfitOrderValue_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (TextBoxProfitOrderValue.Text == "" ||
+                TextBoxProfitOrderValue.Text == "0," ||
+                TextBoxProfitOrderValue.Text == "0.")
+            {
+                return;
+            }
+            try
+            {
+                _pattern.ProfitOrderValue = Convert.ToDecimal(TextBoxProfitOrderValue.Text.Replace(",",
+                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
             }
             catch (Exception)
             {
@@ -732,9 +757,16 @@ namespace OsEngine.OsMiner.Patterns
 
         void TextBoxStopOrderValue_TextChanged(object sender, TextChangedEventArgs e)
         {
+            if (TextBoxStopOrderValue.Text == "" ||
+                TextBoxStopOrderValue.Text == "0," ||
+                TextBoxStopOrderValue.Text == "0.")
+            {
+                return;
+            }
             try
             {
-                _pattern.StopOrderValue = Convert.ToInt32(TextBoxStopOrderValue.Text);
+                _pattern.StopOrderValue = Convert.ToDecimal(TextBoxStopOrderValue.Text.Replace(",",
+                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
             }
             catch (Exception)
             {

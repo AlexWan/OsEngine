@@ -147,7 +147,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         /// <summary>
         /// величина стопОрдера
         /// </summary>
-        public int StopOrderValue;
+        public decimal StopOrderValue;
 
         /// <summary>
         /// проскальзывание для стопОрдера
@@ -162,7 +162,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         /// <summary>
         /// величина профит ордера
         /// </summary>
-        public int ProfitOrderValue;
+        public decimal ProfitOrderValue;
 
         /// <summary>
         /// просальзывание для профитОрдера
@@ -192,7 +192,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         /// <summary>
         /// величина трейлинг стопа
         /// </summary>
-        public int TreilingStopValue;
+        public decimal TreilingStopValue;
 
         /// <summary>
         /// проскальзывание для трейлинг стопа
@@ -293,16 +293,16 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
                     WeigthToInter = Convert.ToDecimal(reader.ReadLine());
                     WeigthToExit = Convert.ToDecimal(reader.ReadLine());
                     StopOrderIsOn = Convert.ToBoolean(reader.ReadLine());
-                    StopOrderValue = Convert.ToInt32(reader.ReadLine());
+                    StopOrderValue = Convert.ToDecimal(reader.ReadLine());
                     StopOrderSleepage = Convert.ToInt32(reader.ReadLine());
                     ProfitOrderIsOn = Convert.ToBoolean(reader.ReadLine());
-                    ProfitOrderValue = Convert.ToInt32(reader.ReadLine());
+                    ProfitOrderValue = Convert.ToDecimal(reader.ReadLine());
                     ProfitOrderSleepage = Convert.ToInt32(reader.ReadLine());
                     ExitFromSomeCandlesIsOn = Convert.ToBoolean(reader.ReadLine());
                     ExitFromSomeCandlesValue = Convert.ToInt32(reader.ReadLine());
                     ExitFromSomeCandlesSleepage = Convert.ToInt32(reader.ReadLine());
                     TrailingStopIsOn = Convert.ToBoolean(reader.ReadLine());
-                    TreilingStopValue = Convert.ToInt32(reader.ReadLine());
+                    TreilingStopValue = Convert.ToDecimal(reader.ReadLine());
                     TreilingStopSleepage = Convert.ToInt32(reader.ReadLine());
                     NameGroupPatternsToTrade = reader.ReadLine();
                     InterToPatternSleepage = Convert.ToInt32(reader.ReadLine());
@@ -413,15 +413,15 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             {
                 if (position.Direction == Side.Buy)
                 {
-                    decimal stopPrice = position.EntryPrice + position.EntryPrice * ProfitOrderValue;
-                    decimal stopOrderPrice = stopPrice - stopPrice * ProfitOrderSleepage;
+                    decimal stopPrice = position.EntryPrice + position.EntryPrice * (ProfitOrderValue / 100);
+                    decimal stopOrderPrice = stopPrice - _tab.Securiti.PriceStep * ProfitOrderSleepage;
 
                     _tab.CloseAtProfit(position, stopPrice, stopOrderPrice);
                 }
                 else if (position.Direction == Side.Sell)
                 {
-                    decimal stopPrice = position.EntryPrice - position.EntryPrice * ProfitOrderValue;
-                    decimal stopOrderPrice = stopPrice + stopPrice * ProfitOrderSleepage;
+                    decimal stopPrice = position.EntryPrice - position.EntryPrice * (ProfitOrderValue / 100);
+                    decimal stopOrderPrice = stopPrice + _tab.Securiti.PriceStep * ProfitOrderSleepage;
                     _tab.CloseAtProfit(position, stopPrice, stopOrderPrice);
                 }
             }
@@ -430,14 +430,14 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             {
                 if (position.Direction == Side.Buy)
                 {
-                    decimal stopPrice = position.EntryPrice - position.EntryPrice * StopOrderValue;
-                    decimal stopOrderPrice = stopPrice - stopPrice * StopOrderSleepage;
+                    decimal stopPrice = position.EntryPrice - position.EntryPrice * (StopOrderValue/100);
+                    decimal stopOrderPrice = stopPrice - _tab.Securiti.PriceStep * StopOrderSleepage;
                     _tab.CloseAtStop(position, stopPrice, stopOrderPrice);
                 }
                 else if (position.Direction == Side.Sell)
                 {
-                    decimal stopPrice = position.EntryPrice + position.EntryPrice * StopOrderValue;
-                    decimal stopOrderPrice = stopPrice + stopPrice * StopOrderSleepage;
+                    decimal stopPrice = position.EntryPrice + position.EntryPrice * (StopOrderValue / 100);
+                    decimal stopOrderPrice = stopPrice + _tab.Securiti.PriceStep * StopOrderSleepage;
                     _tab.CloseAtStop(position, stopPrice, stopOrderPrice);
                 }
             }
@@ -484,14 +484,12 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             {
                 if (position.Direction == Side.Buy)
                 {
-                    decimal newTrail = candles[candles.Count - 1].Close - candles[candles.Count - 1].Close * TreilingStopValue / 100;
-
+                    decimal newTrail = candles[candles.Count - 1].Close - candles[candles.Count - 1].Close * (TreilingStopValue / 100);
                     _tab.CloseAtTrailingStop(position,newTrail,newTrail - _tab.Securiti.PriceStep * StopOrderSleepage);
                 }
                 else
                 {
-                    decimal newTrail = candles[candles.Count - 1].Close + candles[candles.Count - 1].Close * TreilingStopValue / 100;
-
+                    decimal newTrail = candles[candles.Count - 1].Close + candles[candles.Count - 1].Close * (TreilingStopValue / 100);
                     _tab.CloseAtTrailingStop(position, newTrail, newTrail + _tab.Securiti.PriceStep * StopOrderSleepage);
                 }
             }

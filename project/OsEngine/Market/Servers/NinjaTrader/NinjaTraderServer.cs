@@ -980,8 +980,8 @@ namespace OsEngine.Market.Servers.NinjaTrader
                     {
                         _bidAskToSend.Enqueue(new BidAskSender
                         {
-                            Ask = myDepth.Bids[0].Price,
-                            Bid = myDepth.Asks[0].Price,
+                            Bid = myDepth.Bids[0].Price,
+                            Ask = myDepth.Asks[0].Price,
                             Security = GetSecurityForName(myDepth.SecurityNameCode)
                         });
                     }

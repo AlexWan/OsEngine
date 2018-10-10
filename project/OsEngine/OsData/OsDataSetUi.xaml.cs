@@ -10,7 +10,6 @@ using OsEngine.Market.Servers;
 
 namespace OsEngine.OsData
 {
-
     /// <summary>
     /// Логика взаимодействия для OsDataSetUi.xaml
     /// </summary>

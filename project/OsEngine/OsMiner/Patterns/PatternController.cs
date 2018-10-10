@@ -125,9 +125,9 @@ namespace OsEngine.OsMiner.Patterns
             ProfitOrderIsOn = Convert.ToBoolean(array[6]);
             ExitFromSomeCandlesIsOn = Convert.ToBoolean(array[7]);
             TrailingStopIsOn = Convert.ToBoolean(array[8]);
-            StopOrderValue = Convert.ToInt32(array[9]);
-            ProfitOrderValue = Convert.ToInt32(array[10]);
-            TreilingStopValue = Convert.ToInt32(array[11]);
+            StopOrderValue = Convert.ToDecimal(array[9]);
+            ProfitOrderValue = Convert.ToDecimal(array[10]);
+            TreilingStopValue = Convert.ToDecimal(array[11]);
             ExitFromSomeCandlesValue = Convert.ToInt32(array[12]);
             SecurityToInter = array[13];
             WeigthToInter = Convert.ToDecimal(array[14]);
@@ -418,17 +418,17 @@ namespace OsEngine.OsMiner.Patterns
         /// <summary>
         /// величина стопОрдера
         /// </summary>
-        public int StopOrderValue;
+        public decimal StopOrderValue;
 
         /// <summary>
         /// величина профит ордера
         /// </summary>
-        public int ProfitOrderValue;
+        public decimal ProfitOrderValue;
 
         /// <summary>
         /// величина трейлинг стопа
         /// </summary>
-        public int TreilingStopValue;
+        public decimal TreilingStopValue;
 
         /// <summary>
         /// количество свечек после которого сработает выход через N свечек
@@ -626,11 +626,11 @@ namespace OsEngine.OsMiner.Patterns
                 {
                     if (position.Direction == Side.Buy)
                     {
-                        position.StopOrderPrice = position.EntryPrice - position.EntryPrice * StopOrderValue / 100;
+                        position.StopOrderPrice = position.EntryPrice - position.EntryPrice * (StopOrderValue / 100);
                     }
                     else
                     {
-                        position.StopOrderPrice = position.EntryPrice + position.EntryPrice * StopOrderValue / 100;
+                        position.StopOrderPrice = position.EntryPrice + position.EntryPrice * (StopOrderValue / 100);
                     }
                 }
 
@@ -638,11 +638,11 @@ namespace OsEngine.OsMiner.Patterns
                 {
                     if (position.Direction == Side.Buy)
                     {
-                        position.ProfitOrderPrice = position.EntryPrice + position.EntryPrice * ProfitOrderValue / 100;
+                        position.ProfitOrderPrice = position.EntryPrice + position.EntryPrice * (ProfitOrderValue / 100);
                     }
                     else
                     {
-                        position.ProfitOrderPrice = position.EntryPrice - position.EntryPrice * ProfitOrderValue / 100;
+                        position.ProfitOrderPrice = position.EntryPrice - position.EntryPrice * (ProfitOrderValue / 100);
                     }
                 }
 
@@ -650,11 +650,11 @@ namespace OsEngine.OsMiner.Patterns
                 {
                     if (position.Direction == Side.Buy)
                     {
-                        position.StopOrderRedLine = position.EntryPrice - position.EntryPrice * TreilingStopValue / 100;
+                        position.StopOrderRedLine = position.EntryPrice - position.EntryPrice * (TreilingStopValue / 100);
                     }
                     else
                     {
-                        position.StopOrderRedLine = position.EntryPrice + position.EntryPrice * TreilingStopValue / 100;
+                        position.StopOrderRedLine = position.EntryPrice + position.EntryPrice * (TreilingStopValue / 100);
                     }
                 }
 
