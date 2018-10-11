@@ -88,10 +88,11 @@ namespace OsEngine.Market
                 ComboBoxCandleMarketDataType.SelectedItem = _connectorBot.CandleMarketDataType;
 
                 ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Simple);
-                ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Ticks);
-                ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Volume);
                 ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Renko);
+                ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.HeikenAshi);
                 ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Delta);
+                ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Volume);
+                ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Ticks);
                 
                 ComboBoxCandleCreateMethodType.SelectedItem = _connectorBot.CandleCreateMethodType;
 

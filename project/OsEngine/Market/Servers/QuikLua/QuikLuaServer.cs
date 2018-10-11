@@ -1321,11 +1321,11 @@ namespace OsEngine.Market.Servers.QuikLua
 
                             if (i == allCandlesForSec.Count - 1)
                             {
-                                newCandle.State = CandleStates.None;
+                                newCandle.State = CandleState.None;
                             }
                             else
                             {
-                                newCandle.State = CandleStates.Finished;
+                                newCandle.State = CandleState.Finished;
                             }
 
                             newCandle.TimeStart = new DateTime(allCandlesForSec[i].Datetime.year,

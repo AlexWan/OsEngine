@@ -984,7 +984,7 @@ namespace OsEngine.Market.Servers.Oanda
                                newCandle.Low = Convert.ToDecimal(candleOanda[i].bid.l);
                                newCandle.Close = Convert.ToDecimal(candleOanda[i].bid.c);
                                newCandle.TimeStart = DateTime.Parse(candleOanda[i].time);
-                               newCandle.State = CandleStates.Finished;
+                               newCandle.State = CandleState.Finished;
                                newCandle.Volume = candleOanda[i].volume;
 
                                candlesOsEngine.Add(newCandle);

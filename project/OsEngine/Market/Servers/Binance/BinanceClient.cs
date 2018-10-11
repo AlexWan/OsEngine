@@ -479,7 +479,7 @@ namespace OsEngine.Market.Servers.Binance
                 if (counter == count)
                 {
                     newCandle.Close = oldCandles[i].Close;
-                    newCandle.State = CandleStates.Finished;
+                    newCandle.State = CandleState.Finished;
                     newCandles.Add(newCandle);
                     counter = 0;
                 }
@@ -487,7 +487,7 @@ namespace OsEngine.Market.Servers.Binance
                 if (i == oldCandles.Count - 1 && counter != count)
                 {
                     newCandle.Close = oldCandles[i].Close;
-                    newCandle.State = CandleStates.None;
+                    newCandle.State = CandleState.None;
                     newCandles.Add(newCandle);
                 }
             }

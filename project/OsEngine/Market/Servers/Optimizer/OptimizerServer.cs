@@ -2069,7 +2069,7 @@ namespace OsEngine.Market.Servers.Optimizer
                     NewTradesEvent(lastTradesSeries,0,0);
                 }
 
-                LastCandle.State = CandleStates.Finished;
+                LastCandle.State = CandleState.Finished;
 
                 if (NewCandleEvent != null)
                 {
@@ -2082,7 +2082,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 LastCandle.TimeStart < now)
             {
                 LastCandle = Candles[_lastCandleIndex];
-                LastCandle.State = CandleStates.Finished;
+                LastCandle.State = CandleState.Finished;
                 _lastCandleIndex++;
             }
 
@@ -2100,7 +2100,7 @@ namespace OsEngine.Market.Servers.Optimizer
                     NewTradesEvent(lastTradesSeries,0,0);
                 }
 
-                LastCandle.State = CandleStates.Finished;
+                LastCandle.State = CandleState.Finished;
 
                 if (NewCandleEvent != null)
                 {

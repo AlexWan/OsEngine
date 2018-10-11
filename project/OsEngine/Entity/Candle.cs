@@ -46,7 +46,7 @@ namespace OsEngine.Entity
         /// <summary>
         /// статус завершённости свечи
         /// </summary>
-        public CandleStates State;
+        public CandleState State;
 
         /// <summary>
         /// трейды составляющие эту свечу
@@ -238,7 +238,7 @@ namespace OsEngine.Entity
     /// <summary>
     /// состояние формирования свечи
     /// </summary>
-    public enum CandleStates
+    public enum CandleState
     {
         /// <summary>
         /// завершено

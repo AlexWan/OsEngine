@@ -1313,14 +1313,14 @@ namespace OsEngine.Market.Servers.BitMex
                 if (i == candles1M.Count - 1 && count != a)
                 {
                     newCandle.Close = candles1M[i].Close;
-                    newCandle.State = CandleStates.None;
+                    newCandle.State = CandleState.None;
                     candlestf.Add(newCandle);
                 }
 
                 if (count == a)
                 {
                     newCandle.Close = candles1M[i].Close;
-                    newCandle.State = CandleStates.Finished;
+                    newCandle.State = CandleState.Finished;
                     candlestf.Add(newCandle);
                     count = 0;
                 }               

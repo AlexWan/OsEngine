@@ -1773,14 +1773,14 @@ namespace OsEngine.Market.Servers.Bitfinex
                 if (i == 1 && count != entrance)
                 {
                     newCandle.Close = Convert.ToDecimal(rawCandles[i][2]);
-                    newCandle.State = CandleStates.None;
+                    newCandle.State = CandleState.None;
                     newCandles.Add(newCandle);
                 }
 
                 if (count == entrance)
                 {
                     newCandle.Close = Convert.ToDecimal(rawCandles[i][2]);
-                    newCandle.State = CandleStates.Finished;
+                    newCandle.State = CandleState.Finished;
                     newCandles.Add(newCandle);
                     count = 0;
                 }

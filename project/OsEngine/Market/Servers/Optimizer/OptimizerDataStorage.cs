@@ -1561,7 +1561,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 try
                 {
                     candle.SetCandleFromString(reader.ReadLine());
-                    candle.State = CandleStates.Finished;
+                    candle.State = CandleState.Finished;
                 }
                 catch
                 {
