@@ -196,7 +196,6 @@ namespace OsEngine.Entity
             return result;
         }
 
-
         private string _stringToSave;
         private decimal _closeWhenGotLastString;
         public string StringToSave

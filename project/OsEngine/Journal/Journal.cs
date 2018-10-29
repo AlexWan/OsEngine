@@ -9,6 +9,7 @@ using OsEngine.Alerts;
 using OsEngine.Entity;
 using OsEngine.Journal.Internal;
 using OsEngine.Logging;
+using OsEngine.Market;
 
 namespace OsEngine.Journal
 {
@@ -24,13 +25,14 @@ namespace OsEngine.Journal
         /// конструктор
         /// </summary>
         /// <param name="name">имя робота</param>
-        public Journal(string name)
+        /// <param name="startProgram">программа запрашивающая создание журнала</param>
+        public Journal(string name, StartProgram startProgram)
         {
             Name = name;
 
             try
             {
-                _positionController = new PositionController(name);
+                _positionController = new PositionController(name,startProgram);
                 _positionController.PositionStateChangeEvent += _positionController_DealStateChangeEvent;
                 _positionController.PositionNetVolumeChangeEvent += _positionController_PositionNetVolumeChangeEvent;
                 _positionController.UserSelectActionEvent += _positionController_UserSelectActionEvent;

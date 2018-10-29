@@ -12,7 +12,7 @@ using OsEngine.Charts.CandleChart.Elements;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Logging;
-using OsEngine.Market.Servers;
+using OsEngine.Market;
 using OsEngine.OsTrader.Panels.PanelsGui;
 using OsEngine.OsTrader.Panels.SingleRobots;
 using OsEngine.OsTrader.Panels.Tab;
@@ -73,7 +73,7 @@ namespace OsEngine.OsTrader.Panels
             return result;
         }
 
-        public static BotPanel GetStrategyForName(string nameClass, string name)
+        public static BotPanel GetStrategyForName(string nameClass, string name, StartProgram startProgram)
         {
 
             BotPanel bot = null;
@@ -81,150 +81,150 @@ namespace OsEngine.OsTrader.Panels
 
             if (nameClass == "PatternTrader")
             {
-                bot = new PatternTrader(name);
+                bot = new PatternTrader(name, startProgram);
             }
             if (nameClass == "HighFrequencyTrader")
             {
-                bot = new HighFrequencyTrader(name);
+                bot = new HighFrequencyTrader(name, startProgram);
             }
             if (nameClass == "TwoTimeFrameBot")
             {
-                bot = new BotWhithTwoTimeFrame(name);
+                bot = new BotWhithTwoTimeFrame(name, startProgram);
             }
             if (nameClass == "PivotPointsRobot")
             {
-                bot = new PivotPointsRobot(name);
+                bot = new PivotPointsRobot(name, startProgram);
             }
             if (nameClass == "Engine")
             {
-                bot = new StrategyEngineCandle(name);
+                bot = new StrategyEngineCandle(name, startProgram);
             }
             if (nameClass == "Williams Band")
             {
-                bot = new StrategyBillWilliams(name);
+                bot = new StrategyBillWilliams(name, startProgram);
             }
             if (nameClass == "Levermor")
             {
-                bot = new StrategyLevermor(name);
+                bot = new StrategyLevermor(name, startProgram);
             }
             if (nameClass == "MarketMakerBot")
             {
-                bot = new MarketMakerBot(name);
+                bot = new MarketMakerBot(name, startProgram);
             }
             if (nameClass == "Bollinger")
             {
-                bot = new StrategyBollinger(name);
+                bot = new StrategyBollinger(name, startProgram);
             }
             if (nameClass == "PairTraderSimple")
             {
-                bot = new PairTraderSimple(name);
+                bot = new PairTraderSimple(name, startProgram);
             }
 
 // под релиз
             if (nameClass == "RsiTrade")
             {
-                bot = new RsiTrade(name);
+                bot = new RsiTrade(name, startProgram);
             }
             if (nameClass == "StochasticTrade")
             {
-                bot = new StochasticTrade(name);
+                bot = new StochasticTrade(name, startProgram);
             }
             if (nameClass == "BollingerTrade")
             {
-                bot = new BollingerTrade(name);
+                bot = new BollingerTrade(name, startProgram);
             }
             if (nameClass == "TRIXTrade")
             {
-                bot = new TrixTrade(name);
+                bot = new TrixTrade(name, startProgram);
             }
             if (nameClass == "CCITrade")
             {
-                bot = new CciTrade(name);
+                bot = new CciTrade(name, startProgram);
             }
             if (nameClass == "ParabolicSarTrade")
             {
-                bot = new ParabolicSarTrade(name);
+                bot = new ParabolicSarTrade(name, startProgram);
             }
             if (nameClass == "PriceChannelTrade")
             {
-                bot = new PriceChannelTrade(name);
+                bot = new PriceChannelTrade(name, startProgram);
             }
             if (nameClass == "MACDTrade")
             {
-                bot = new MacdTrade(name);
+                bot = new MacdTrade(name, startProgram);
             }
             if (nameClass == "BBPowerTrade")
             {
-                bot = new BbPowerTrade(name);
+                bot = new BbPowerTrade(name, startProgram);
             }
             if (nameClass == "RviTrade")
             {
-                bot = new RviTrade(name);
+                bot = new RviTrade(name, startProgram);
             }
             if (nameClass == "WilliamsRangeTrade")
             {
-                bot = new WilliamsRangeTrade(name);
+                bot = new WilliamsRangeTrade(name, startProgram);
             }
             if (nameClass == "MacdTrail")
             {
-                bot = new MacdTrail(name);
+                bot = new MacdTrail(name, startProgram);
             }
             if (nameClass == "SmaStochastic")
             {
-                bot = new SmaStochastic(name);
+                bot = new SmaStochastic(name, startProgram);
             }
             if (nameClass == "MomentumMACD")
             {
-                bot = new MomentumMacd(name);
+                bot = new MomentumMacd(name, startProgram);
             }
             if (nameClass == "PinBarTrade")
             {
-                bot = new PinBarTrade(name);
+                bot = new PinBarTrade(name, startProgram);
             }
             if (nameClass == "PairRsiTrade")
             {
-                bot = new PairRsiTrade(name);
+                bot = new PairRsiTrade(name, startProgram);
             }
             if (nameClass == "Robot")
             {
-                bot = new Robot(name);
+                bot = new Robot(name, startProgram);
             }
             if (nameClass == "FirstBot")
             {
-                bot = new FirstBot(name);
+                bot = new FirstBot(name, startProgram);
             }
 
             if (nameClass == "TwoLegArbitrage")
             {
-                bot = new TwoLegArbitrage(name);
+                bot = new TwoLegArbitrage(name, startProgram);
             }
             if (nameClass == "OneLegArbitration")
             {
-                bot = new OneLegArbitration(name);
+                bot = new OneLegArbitration(name, startProgram);
             }
             if (nameClass == "ThreeSoldier")
             {
-                bot = new ThreeSoldier(name);
+                bot = new ThreeSoldier(name, startProgram);
             }
             if (nameClass == "BollingerOutburst")
             {
-                bot = new BollingerOutburst(name);
+                bot = new BollingerOutburst(name, startProgram);
             }
             if (nameClass == "RsiContrtrend")
             {
-                bot = new RsiContrtrend(name);
+                bot = new RsiContrtrend(name, startProgram);
             }
             if (nameClass == "PriceChannelVolatility")
             {
-                bot = new PriceChannelVolatility(name);
+                bot = new PriceChannelVolatility(name, startProgram);
             }
             if (nameClass == "PriceChannelBreak")
             {
-                bot = new PriceChannelBreak(name);
+                bot = new PriceChannelBreak(name, startProgram);
             }
             if (nameClass == "PairTraderSpreadSma")
             {
-                bot = new PairTraderSpreadSma(name);
+                bot = new PairTraderSpreadSma(name, startProgram);
             }
             
 
@@ -248,8 +248,8 @@ namespace OsEngine.OsTrader.Panels
         //На нашем Ютуб канале есть видео о том как я делаю этого бота:https://www.youtube.com/playlist?list=PL76DtREkiCATe28yPbAT_5em1JqA4xEiB
         //Однако там не всё сделано, т.к. я кое-что доработал для реальной торговли
 
-        public HighFrequencyTrader(string name)
-            : base(name)
+        public HighFrequencyTrader(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -345,7 +345,7 @@ namespace OsEngine.OsTrader.Panels
                 return;
             }
 
-            if (ServerMaster.StartProgram == ServerStartProgramm.IsOsTrader &&
+            if (StartProgram == StartProgram.IsOsTrader &&
                 _lastCheckTime.AddSeconds(1) > DateTime.Now)
             { // в реальной торговле, проверяем стакан раз в секунду
                 return;
@@ -375,7 +375,7 @@ namespace OsEngine.OsTrader.Panels
                 positionBuy.State != PositionStateType.Open &&
                 positionBuy.State != PositionStateType.Closing)
             {
-                if (ServerMaster.StartProgram == ServerStartProgramm.IsOsTrader)
+                if (StartProgram == StartProgram.IsOsTrader)
                 { // в реальной торговле отправляем позицию на отзыв в массив, 
                     // который обрабатывается отдельным потоком, ожидая когда у ордеров позиции
                     // вернутся номера ордеров, прежде чем мы их будем пытаться отозвать
@@ -412,7 +412,7 @@ namespace OsEngine.OsTrader.Panels
                 positionSell.State != PositionStateType.Open &&
                 positionSell.State != PositionStateType.Closing)
             {
-                if (ServerMaster.StartProgram == ServerStartProgramm.IsOsTrader)
+                if (StartProgram == StartProgram.IsOsTrader)
                 {
                     _positionsToClose.Add(positionSell);
                     // в реальной торговле отправляем позицию на отзыв в массив, 
@@ -457,7 +457,7 @@ namespace OsEngine.OsTrader.Panels
                 {
                     continue;
                 }
-                if (ServerMaster.StartProgram == ServerStartProgramm.IsOsTrader)
+                if (StartProgram == StartProgram.IsOsTrader)
                 {
                     // в реальной торговле отправляем позицию на отзыв в массив, 
                     // который обрабатывается отдельным потоком, ожидая когда у ордеров позиции
@@ -532,8 +532,8 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// конструктор
         /// </summary>
-        public StrategyBillWilliams(string name)
-            : base(name)
+        public StrategyBillWilliams(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -696,7 +696,7 @@ namespace OsEngine.OsTrader.Panels
                 return;
             }
 
-            if (ServerMaster.StartProgram == ServerStartProgramm.IsOsTrader
+            if (StartProgram == StartProgram.IsOsTrader
                 && DateTime.Now.Hour < 10)
             {
                 return;
@@ -866,8 +866,8 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// конструктор
         /// </summary>
-        public StrategyLevermor(string name)
-            : base(name)
+        public StrategyLevermor(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -1020,7 +1020,7 @@ namespace OsEngine.OsTrader.Panels
                 return;
             }
 
-            if (ServerMaster.StartProgram == ServerStartProgramm.IsOsTrader
+            if (StartProgram == StartProgram.IsOsTrader
                 && DateTime.Now.Hour < 10)
             {
                 return;
@@ -1208,8 +1208,8 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// конструктор
         /// </summary>
-        public RviTrade(string name)
-            : base(name)
+        public RviTrade(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -1390,8 +1390,8 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// конструктор
         /// </summary>
-        public TwoLegArbitrage(string name)
-            : base(name)
+        public TwoLegArbitrage(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Index);
             _tab1 = TabsIndex[0];
@@ -1616,8 +1616,8 @@ namespace OsEngine.OsTrader.Panels
             ui.ShowDialog();
         }
 
-        public Robot(string name)
-            : base(name)
+        public Robot(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -1682,8 +1682,8 @@ namespace OsEngine.OsTrader.Panels
             MessageBox.Show("У данной стратегии пока нет настроек");
         }
 
-        public FirstBot(string name)
-            : base(name)
+        public FirstBot(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -1733,7 +1733,8 @@ namespace OsEngine.OsTrader.Panels
 
     public class BotWhithTwoTimeFrame : BotPanel
     {
-        public BotWhithTwoTimeFrame(string name) : base(name)
+        public BotWhithTwoTimeFrame(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             TabsSimple[0].CandleFinishedEvent += BotWhithTwoTimeFrame_CandleFinishedEvent;
@@ -1822,8 +1823,8 @@ namespace OsEngine.OsTrader.Panels
         /// <param name="_ma">MovingAverage</param>
         /// <param name="Slipage">Проскальзывание</param>
         /// <param name="VolumeFix">Объем для первого входа</param>
-        public OneLegArbitration(string name)
-            : base(name)
+        public OneLegArbitration(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Index);
             _tab1 = TabsIndex[0];
@@ -2087,8 +2088,8 @@ namespace OsEngine.OsTrader.Panels
         /// <param name="minHeightSoldier">минимальный размер тела свечи в паттрене</param>
         /// <param name="procHeightSto">процент от общей высоты паттрена на стоплос от точки входа</param>
         /// <param name="procHeightTake">процент от общей высоты паттрена на тейкпрофит от точки входа</param>
-        public ThreeSoldier(string name)
-            : base(name)
+        public ThreeSoldier(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -2347,8 +2348,8 @@ namespace OsEngine.OsTrader.Panels
         /// <param name="_bollinger">BollingerBands</param>
         /// <param name="Slipage">Проскальзывание</param>
         /// <param name="VolumeFix">Объем для первого входа</param>
-        public BollingerOutburst(string name)
-            : base(name)
+        public BollingerOutburst(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -2597,8 +2598,8 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// конструктор
         /// </summary>
-        public PriceChannelBreak(string name)
-            : base(name)
+        public PriceChannelBreak(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -2832,8 +2833,8 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// конструктор
         /// </summary>
-        public PriceChannelVolatility(string name)
-            : base(name)
+        public PriceChannelVolatility(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -3179,8 +3180,8 @@ namespace OsEngine.OsTrader.Panels
         /// <param name="_rsi">RSI</param>
         /// <param name="Slipage">Проскальзывание</param>
         /// <param name="VolumeFix">Объем для первого входа</param>
-        public RsiContrtrend(string name)
-            : base(name)
+        public RsiContrtrend(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -3461,8 +3462,8 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// конструктор
         /// </summary>
-        public StrategyEngineCandle(string name)
-            : base(name)
+        public StrategyEngineCandle(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             //создание вкладки
             TabCreate(BotTabType.Simple);
@@ -3494,8 +3495,8 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// конструктор
         /// </summary>
-        public PairTraderSimple(string name)
-            : base(name)
+        public PairTraderSimple(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab1 = TabsSimple[0];
@@ -3918,8 +3919,8 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// конструктор
         /// </summary>
-        public PairTraderSpreadSma(string name)
-            : base(name)
+        public PairTraderSpreadSma(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab1 = TabsSimple[0];
@@ -4174,7 +4175,7 @@ namespace OsEngine.OsTrader.Panels
                 return;
             }
 
-            if (!(ServerMaster.StartProgram == ServerStartProgramm.IsTester) && DateTime.Now.Hour < 10)
+            if (StartProgram == StartProgram.IsOsTrader && DateTime.Now.Hour < 10)
             {
                 return;
             }
@@ -4292,8 +4293,8 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// конструктор
         /// </summary>
-        public RsiTrade(string name)
-            : base(name)
+        public RsiTrade(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -4580,8 +4581,8 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// конструктор
         /// </summary>
-        public StochasticTrade(string name)
-            : base(name)
+        public StochasticTrade(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -4858,8 +4859,8 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// конструктор
         /// </summary>
-        public BollingerTrade(string name)
-            : base(name)
+        public BollingerTrade(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -5101,8 +5102,8 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// конструктор
         /// </summary>
-        public TrixTrade(string name)
-            : base(name)
+        public TrixTrade(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -5347,8 +5348,8 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// конструктор
         /// </summary>
-        public CciTrade(string name)
-            : base(name)
+        public CciTrade(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -5618,8 +5619,8 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// конструктор
         /// </summary>
-        public ParabolicSarTrade(string name)
-            : base(name)
+        public ParabolicSarTrade(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -5860,8 +5861,8 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// конструктор
         /// </summary>
-        public PriceChannelTrade(string name)
-            : base(name)
+        public PriceChannelTrade(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -6105,8 +6106,8 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// конструктор
         /// </summary>
-        public BbPowerTrade(string name)
-            : base(name)
+        public BbPowerTrade(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -6357,8 +6358,8 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// конструктор
         /// </summary>
-        public MacdTrade(string name)
-            : base(name)
+        public MacdTrade(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -6593,8 +6594,8 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// конструктор
         /// </summary>
-        public WilliamsRangeTrade(string name)
-            : base(name)
+        public WilliamsRangeTrade(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -6864,8 +6865,8 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// конструктор
         /// </summary>
-        public MacdTrail(string name)
-            : base(name)
+        public MacdTrail(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -7117,8 +7118,8 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// конструктор
         /// </summary>
-        public SmaStochastic(string name)
-            : base(name)
+        public SmaStochastic(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -7380,8 +7381,8 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// конструктор
         /// </summary>
-        public MomentumMacd(string name)
-            : base(name)
+        public MomentumMacd(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -7632,8 +7633,8 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// конструктор
         /// </summary>
-        public PinBarTrade(string name)
-            : base(name)
+        public PinBarTrade(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -7882,8 +7883,8 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// конструктор
         /// </summary>
-        public PairRsiTrade(string name)
-            : base(name)
+        public PairRsiTrade(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab1 = TabsSimple[0];
@@ -8152,7 +8153,8 @@ namespace OsEngine.OsTrader.Panels
         /// конструктор
         /// </summary>
         /// <param name="name"></param>
-        public PivotPointsRobot(string name) : base(name)
+        public PivotPointsRobot(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];

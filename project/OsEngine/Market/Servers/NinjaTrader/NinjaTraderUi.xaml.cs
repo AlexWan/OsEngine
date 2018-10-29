@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Windows;
+using OsEngine.Logging;
+
 /*
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
-using System.Windows;
-using OsEngine.Logging;
 
 namespace OsEngine.Market.Servers.NinjaTrader
 {

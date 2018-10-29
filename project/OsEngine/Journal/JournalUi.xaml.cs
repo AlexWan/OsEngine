@@ -19,7 +19,7 @@ using OsEngine.Logging;
 using Color = System.Drawing.Color;
 using Rectangle = System.Drawing.Rectangle;
 using System.Windows.Forms.DataVisualization.Charting;
-using OsEngine.Market.Servers;
+using OsEngine.Market;
 using Chart = System.Windows.Forms.DataVisualization.Charting.Chart;
 using ChartArea = System.Windows.Forms.DataVisualization.Charting.ChartArea;
 using ContextMenu = System.Windows.Forms.ContextMenu;
@@ -47,8 +47,9 @@ namespace OsEngine.Journal
         /// <summary>
         /// конструктор
         /// </summary>
-        public JournalUi(List<BotPanelJournal> botsJournals)
+        public JournalUi(List<BotPanelJournal> botsJournals,StartProgram startProgram)
         {
+            _startProgram = startProgram;
             InitializeComponent();
             _botsJournals = botsJournals;
             TabControlCreateNameBots();
@@ -82,6 +83,8 @@ namespace OsEngine.Journal
         }
 
         private object _paintLocker = new object();
+
+        private StartProgram _startProgram;
 
         /// <summary>
         /// главный метод перерисовки таблиц отчётов
@@ -330,7 +333,7 @@ namespace OsEngine.Journal
         /// </summary>
         private void ThreadWorkerPlace()
         {
-            if (ServerMaster.StartProgram != ServerStartProgramm.IsOsTrader)
+            if (_startProgram != StartProgram.IsOsTrader)
             {
                 return;
             }

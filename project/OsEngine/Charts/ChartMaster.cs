@@ -17,7 +17,7 @@ using OsEngine.Charts.CandleChart.Elements;
 using OsEngine.Charts.ColorKeeper;
 using OsEngine.Entity;
 using OsEngine.Logging;
-using OsEngine.Market.Servers;
+using OsEngine.Market;
 
 namespace OsEngine.Charts
 {
@@ -34,11 +34,12 @@ namespace OsEngine.Charts
         /// Конструктор
         /// </summary>
         /// <param name="nameBoss">Имя робота которому принадлежит чарт</param>
-        public ChartMaster(string nameBoss)
+        /// <param name="startProgram">программа создавшая класс</param>
+        public ChartMaster(string nameBoss, StartProgram startProgram)
         {
             _name = nameBoss + "ChartMaster";
-
-            ChartCandle = new ChartPainter(nameBoss);
+            _startProgram = startProgram;
+            ChartCandle = new ChartPainter(nameBoss,startProgram);
             ChartCandle.GetChart().Click += ChartMasterOneSecurity_Click;
             ChartCandle.LogMessageEvent += NewLogMessage;
             ChartCandle.ClickToIndexEvent += _chartCandle_ClickToIndexEvent;
@@ -263,6 +264,11 @@ namespace OsEngine.Charts
         /// эта переменная защищает метод Save от ошибочного сохранения в это время
         /// </summary>
         private bool _canSave;
+
+        /// <summary>
+        /// программа создавшая объект
+        /// </summary>
+        private StartProgram _startProgram;
 
         /// <summary>
         /// Сохранить настройки в файл
@@ -958,15 +964,15 @@ namespace OsEngine.Charts
                 }
 
                 if (_myCandles != null && _lastCount == candles.Count
-                    && ServerMaster.StartProgram != ServerStartProgramm.IsTester &&
-                    ServerMaster.StartProgram != ServerStartProgramm.IsOsData &&
+                    && _startProgram != StartProgram.IsTester &&
+                    _startProgram != StartProgram.IsOsData &&
                     _lastPrice == candles[candles.Count - 1].Close)
                 {
                     // обновляем свечи только когда они действительно обновились
                     return;
                 }
 
-                bool canReload = ServerMaster.StartProgram != ServerStartProgramm.IsOsOptimizer;
+                bool canReload = _startProgram != StartProgram.IsOsOptimizer;
 
 
                 _lastCount = candles.Count;
@@ -1047,7 +1053,7 @@ namespace OsEngine.Charts
         /// <param name="position">сделка</param>
         public void SetPosition(List<Position> position)
         {
-            if (ServerMaster.StartProgram == ServerStartProgramm.IsOsOptimizer)
+            if (_startProgram == StartProgram.IsOsOptimizer)
             {
                return;
             }
@@ -1211,29 +1217,28 @@ namespace OsEngine.Charts
         /// подгрузить в чарт новый инструмент
         /// </summary>
         /// <param name="security">бумага</param>
-        /// <param name="timeFrame">таймФрейм</param>
-        /// <param name="timeFrameSpan">таймфрейм в виде времени</param>
+        /// <param name="timeFrameBuilder">объект хранящий в себе настройки построения свечей</param>
         /// <param name="portfolioName">портфель</param>
         /// <param name="serverType">тип сервера</param>
-        public void SetNewSecurity(string security, TimeFrame timeFrame, TimeSpan timeFrameSpan, string portfolioName, ServerType serverType)
+        public void SetNewSecurity(string security, TimeFrameBuilder timeFrameBuilder, string portfolioName, ServerType serverType)
         {
             if (ChartCandle != null)
             {
                 ChartCandle.ClearDataPointsAndSizeValue();
-                ChartCandle.SetNewTimeFrame(timeFrameSpan, timeFrame);
+                ChartCandle.SetNewTimeFrame(timeFrameBuilder.TimeFrameTimeSpan, timeFrameBuilder.TimeFrame);
             }
 
             if (_securityOnThisChart == security &&
-                _timeFrameSecurity == timeFrame)
+                _timeFrameSecurity == timeFrameBuilder.TimeFrame)
             {
                 return;
             }
 
             string lastSecurity = _securityOnThisChart;
             List<Position> positions = _myPosition;
-            
+            _timeFrameBuilder = timeFrameBuilder;
             _securityOnThisChart = security;
-            _timeFrameSecurity = timeFrame;
+            _timeFrameSecurity = timeFrameBuilder.TimeFrame;
             Clear();
             PaintLabelOnSlavePanel();
 
@@ -1242,6 +1247,9 @@ namespace OsEngine.Charts
                 SetPosition(positions);
             }
         }
+
+
+        private TimeFrameBuilder _timeFrameBuilder;
 
         /// <summary>
         /// бумага отображаемая на чарте
@@ -1276,8 +1284,15 @@ namespace OsEngine.Charts
             {
                 security = "Unknown";
             }
-
-            _label.Content = "Бумага:  " + security + "     Таймфрейм:  " + _timeFrameSecurity;
+            if (_timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Simple)
+            {
+                _label.Content = "Бумага:  " + security + "     Таймфрейм:  " + _timeFrameSecurity;
+            }
+            else
+            {
+                _label.Content = "Бумага:  " + security + "     Таймфрейм:  " + _timeFrameBuilder.CandleCreateMethodType;
+            }
+            
             _grid.Children.Clear();
             _grid.Children.Add(_label);
         }

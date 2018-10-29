@@ -13,13 +13,14 @@ using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Tester;
 
-namespace OsEngine.Market
+namespace OsEngine.Market.Connectors
 {
 
     /// <summary>
-    /// класс предоставляющий универсальный интерфейс для подключения к серверам биржи
+    /// класс предоставляющий универсальный интерфейс для подключения к серверам биржи для роботов, 
+    /// терминалов и вкладок, которые могут торговать
     /// </summary>
-    public class Connector
+    public class ConnectorCandles
     {
 // сервис
 
@@ -27,12 +28,14 @@ namespace OsEngine.Market
         /// конструктор
         /// </summary>
         /// <param name="name">имя робота</param>
-        public Connector(string name)
+        /// <param name="startProgram">программа создавшая робота который создал это подключение</param>
+        public ConnectorCandles(string name,StartProgram startProgram)
         {
             _name = name;
+            StartProgram = startProgram;
 
-            _timeFrameBuilder = new TimeFrameBuilder(_name);
-            ServerType = ServerType.Unknown;
+            TimeFrameBuilder = new TimeFrameBuilder(_name);
+            ServerType = ServerType.None;
             Load();
             _canSave = true;
 
@@ -79,6 +82,11 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// программа создавшая робота который создал это подключение
+        /// </summary>
+        public StartProgram StartProgram;
+
+        /// <summary>
         /// можно ли сохранять настройки
         /// </summary>
         private bool _canSave;
@@ -115,7 +123,7 @@ namespace OsEngine.Market
         /// </summary>
         public void Delete()
         {
-            _timeFrameBuilder.Delete();
+            TimeFrameBuilder.Delete();
             if (File.Exists(@"Engine\" + _name + @"ConnectorPrime.txt"))
             {
                 File.Delete(@"Engine\" + _name + @"ConnectorPrime.txt");
@@ -156,7 +164,7 @@ namespace OsEngine.Market
                     return;
                 }
 
-                ConnectorUi ui = new ConnectorUi(this);
+                ConnectorCandlesUi ui = new ConnectorCandlesUi(this);
                 ui.LogMessageEvent += SendNewLogMessage;
                 ui.ShowDialog();
             }
@@ -249,7 +257,7 @@ namespace OsEngine.Market
         /// <summary>
         /// объект сохраняющий в себе настройки для построения свечек
         /// </summary>
-        private TimeFrameBuilder _timeFrameBuilder;
+        public TimeFrameBuilder TimeFrameBuilder;
 
         /// <summary>
         /// способ создания свечей: из тиков или из стаканов
@@ -258,14 +266,14 @@ namespace OsEngine.Market
         {
             set
             {
-                if (value == _timeFrameBuilder.CandleMarketDataType)
+                if (value == TimeFrameBuilder.CandleMarketDataType)
                 {
                     return;
                 }
-                _timeFrameBuilder.CandleMarketDataType = value;
+                TimeFrameBuilder.CandleMarketDataType = value;
                 Reconnect();
             }
-            get { return _timeFrameBuilder.CandleMarketDataType; }
+            get { return TimeFrameBuilder.CandleMarketDataType; }
         }
 
         /// <summary>
@@ -275,14 +283,14 @@ namespace OsEngine.Market
         {
             set
             {
-                if (value == _timeFrameBuilder.CandleCreateMethodType)
+                if (value == TimeFrameBuilder.CandleCreateMethodType)
                 {
                     return;
                 }
-                _timeFrameBuilder.CandleCreateMethodType = value;
+                TimeFrameBuilder.CandleCreateMethodType = value;
                 Reconnect();
             }
-            get { return _timeFrameBuilder.CandleCreateMethodType; }
+            get { return TimeFrameBuilder.CandleCreateMethodType; }
         }
 
         /// <summary>
@@ -290,14 +298,14 @@ namespace OsEngine.Market
         /// </summary>
         public TimeFrame TimeFrame
         {
-            get { return _timeFrameBuilder.TimeFrame; }
+            get { return TimeFrameBuilder.TimeFrame; }
             set
             {
                 try
                 {
-                    if (value != _timeFrameBuilder.TimeFrame)
+                    if (value != TimeFrameBuilder.TimeFrame)
                     {
-                        _timeFrameBuilder.TimeFrame = value;
+                        TimeFrameBuilder.TimeFrame = value;
                         Reconnect();
                     }
                 }
@@ -313,14 +321,14 @@ namespace OsEngine.Market
         /// </summary>
         public decimal DeltaPeriods
         {
-            get { return _timeFrameBuilder.DeltaPeriods; }
+            get { return TimeFrameBuilder.DeltaPeriods; }
             set
             {
-                if (value == _timeFrameBuilder.DeltaPeriods)
+                if (value == TimeFrameBuilder.DeltaPeriods)
                 {
                     return;
                 }
-                _timeFrameBuilder.DeltaPeriods = value;
+                TimeFrameBuilder.DeltaPeriods = value;
                 Reconnect();
             }
         }
@@ -330,14 +338,27 @@ namespace OsEngine.Market
         /// </summary>
         public decimal RencoPunktsToCloseCandleInRencoType
         {
-            get { return _timeFrameBuilder.RencoPunktsToCloseCandleInRencoType; }
+            get { return TimeFrameBuilder.RencoPunktsToCloseCandleInRencoType; }
             set
             {
-                if (value != _timeFrameBuilder.RencoPunktsToCloseCandleInRencoType)
+                if (value != TimeFrameBuilder.RencoPunktsToCloseCandleInRencoType)
                 {
-                    _timeFrameBuilder.RencoPunktsToCloseCandleInRencoType = value;
+                    TimeFrameBuilder.RencoPunktsToCloseCandleInRencoType = value;
                     Reconnect();
                 }
+            }
+        }
+
+        /// <summary>
+        /// стороим ли мы тени у свечи когда выбран ренко. true - строим
+        /// </summary>
+        public bool RencoIsBuildShadows
+        {
+            get { return TimeFrameBuilder.RencoIsBuildShadows; }
+            set
+            {
+                TimeFrameBuilder.RencoIsBuildShadows = value;
+                Reconnect();
             }
         }
 
@@ -346,7 +367,7 @@ namespace OsEngine.Market
         /// </summary>
         public TimeSpan TimeFrameTimeSpan
         {
-            get { return _timeFrameBuilder.TimeFrameTimeSpan; }
+            get { return TimeFrameBuilder.TimeFrameTimeSpan; }
         }
 
         /// <summary>
@@ -378,14 +399,14 @@ namespace OsEngine.Market
         /// </summary>
         public bool SetForeign
         {
-            get { return _timeFrameBuilder.SetForeign; }
+            get { return TimeFrameBuilder.SetForeign; }
             set
             {
-                if (_timeFrameBuilder.SetForeign == value)
+                if (TimeFrameBuilder.SetForeign == value)
                 {
                     return;
                 }
-                _timeFrameBuilder.SetForeign = value;
+                TimeFrameBuilder.SetForeign = value;
                 Reconnect();
             }
         }
@@ -395,12 +416,12 @@ namespace OsEngine.Market
         /// </summary>
         public int CountTradeInCandle
         {
-            get { return _timeFrameBuilder.TradeCount; }
+            get { return TimeFrameBuilder.TradeCount; }
             set
             {
-                if (value != _timeFrameBuilder.TradeCount)
+                if (value != TimeFrameBuilder.TradeCount)
                 {
-                    _timeFrameBuilder.TradeCount = value;
+                    TimeFrameBuilder.TradeCount = value;
                     Reconnect();
                 }
             }
@@ -411,12 +432,12 @@ namespace OsEngine.Market
         /// </summary>
         public decimal VolumeToCloseCandleInVolumeType
         {
-            get { return _timeFrameBuilder.VolumeToCloseCandleInVolumeType; }
+            get { return TimeFrameBuilder.VolumeToCloseCandleInVolumeType; }
             set
             {
-                if (value != _timeFrameBuilder.VolumeToCloseCandleInVolumeType)
+                if (value != TimeFrameBuilder.VolumeToCloseCandleInVolumeType)
                 {
-                    _timeFrameBuilder.VolumeToCloseCandleInVolumeType = value;
+                    TimeFrameBuilder.VolumeToCloseCandleInVolumeType = value;
                     Reconnect();
                 }
             }
@@ -516,7 +537,7 @@ namespace OsEngine.Market
                         return;
                     }
 
-                    if (ServerType == ServerType.Unknown ||
+                    if (ServerType == ServerType.None ||
                         string.IsNullOrWhiteSpace(NamePaper))
                     {
                         continue;
@@ -526,7 +547,7 @@ namespace OsEngine.Market
 
                     if (servers == null)
                     {
-                        if (ServerType != ServerType.Unknown)
+                        if (ServerType != ServerType.None)
                         {
                             ServerMaster.SetNeedServer(ServerType);
                         }
@@ -545,7 +566,7 @@ namespace OsEngine.Market
 
                     if (_myServer == null)
                     {
-                        if (ServerType != ServerType.Unknown)
+                        if (ServerType != ServerType.None)
                         {
                             ServerMaster.SetNeedServer(ServerType);
                         }
@@ -569,7 +590,7 @@ namespace OsEngine.Market
                         _myServer.TimeServerChangeEvent += myServer_TimeServerChangeEvent;
                         _myServer.NeadToReconnectEvent += _myServer_NeadToReconnectEvent;
 
-                        if (ServerMaster.StartProgram == ServerStartProgramm.IsTester)
+                        if (_myServer.ServerType == ServerType.Tester)
                         {
                             ((TesterServer)_myServer).TestingEndEvent -= ConnectorReal_TestingEndEvent;
                             ((TesterServer)_myServer).TestingEndEvent += ConnectorReal_TestingEndEvent;
@@ -596,7 +617,7 @@ namespace OsEngine.Market
                                 }
 
                                 Thread.Sleep(100);
-                                _mySeries = _myServer.StartThisSecurity(_namePaper, _timeFrameBuilder);
+                                _mySeries = _myServer.StartThisSecurity(_namePaper, TimeFrameBuilder);
                             }
 
 
@@ -731,12 +752,12 @@ namespace OsEngine.Market
                     return;
                 }
 
-                _bestAsk = bestBid;
-                _bestBid = bestAsk;
+                _bestBid = bestBid;
+                _bestAsk = bestAsk;
 
                 if (EmulatorIsOn || ServerType == ServerType.Finam)
                 {
-                    _emulator.ProcessBidAsc(_bestAsk, _bestBid, MarketTime);
+                    _emulator.ProcessBidAsc(_bestBid, _bestAsk, MarketTime);
                 }
 
                 if (BestBidAskChangeEvent != null)

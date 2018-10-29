@@ -4,7 +4,6 @@
 
 using System;
 using System.Globalization;
-using OsEngine.Market.Servers.Entity;
 
 namespace OsEngine.Entity
 {
@@ -75,12 +74,12 @@ namespace OsEngine.Entity
         /// <summary>
         /// суммарный объём в продажах в стакане, на момент когда пришёл этот трейд
         /// </summary>
-        public int BidsVolume;
+        public decimal BidsVolume;
 
         /// <summary>
         /// суммарный объём в покупках в стакане, на момент когда пришёл этот трейд
         /// </summary>
-        public int AsksVolume;
+        public decimal AsksVolume;
 
 //сохранение / загрузка тика
 
@@ -105,10 +104,10 @@ namespace OsEngine.Entity
             {
                 result += ",";
 
-                result += Bid + ",";
-                result += Ask + ",";
-                result += BidsVolume + ",";
-                result += AsksVolume;
+                result += Bid.ToString(CultureInfo.InvariantCulture) + ",";
+                result += Ask.ToString(CultureInfo.InvariantCulture) + ",";
+                result += BidsVolume.ToString(CultureInfo.InvariantCulture) + ",";
+                result += AsksVolume.ToString(CultureInfo.InvariantCulture);
                 
             }
 

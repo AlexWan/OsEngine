@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using OsEngine.Entity;
 
-namespace OsEngine.Market
+namespace OsEngine.Market.Connectors
 {
 
     /// <summary>
@@ -146,6 +146,8 @@ namespace OsEngine.Market
             newOrder.VolumeExecute = order.Volume;
             newOrder.Price = order.Price;
             newOrder.TimeCallBack = _serverTime;
+            newOrder.Side = order.Side;
+            newOrder.SecurityNameCode = order.SecurityNameCode;
 
             if (OrderChangeEvent != null)
             {
@@ -156,8 +158,9 @@ namespace OsEngine.Market
             trade.Volume = order.Volume;
             trade.Time = _serverTime;
             trade.Price = price;
+            trade.SecurityNameCode = order.SecurityNameCode;
             trade.NumberTrade = "emu" + order.NumberMarket;
-
+            trade.Side = order.Side;
             trade.NumberOrderParent = newOrder.NumberMarket;
 
             if (MyTradeEvent != null)
@@ -181,6 +184,8 @@ namespace OsEngine.Market
             newOrder.VolumeExecute = 0;
             newOrder.Price = order.Price;
             newOrder.TimeCallBack = _serverTime;
+            newOrder.Side = order.Side;
+            newOrder.SecurityNameCode = order.SecurityNameCode;
 
             if (OrderChangeEvent != null)
             {

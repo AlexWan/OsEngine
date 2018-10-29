@@ -1,7 +1,7 @@
 ﻿<Window x:Class="OsEngine.Market.Servers.InteractivBrokers.InteractivBrokersUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-          Title="Подключение к Interactiv Brokers" Height="295" Width="662" MinWidth="690" MinHeight="200" Topmost="True" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+          Title="Подключение к Interactiv Brokers" Height="295" Width="662" MinWidth="690" MinHeight="200" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
         <Button Name="ButtonConnect" Content="Подключить" Margin="0,0,152,10" VerticalAlignment="Bottom" Click="ButtonConnect_Click" HorizontalAlignment="Right" Width="120"/>

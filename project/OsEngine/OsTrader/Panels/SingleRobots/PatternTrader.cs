@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using OsEngine.Entity;
+using OsEngine.Market;
 using OsEngine.OsMiner;
 using OsEngine.OsMiner.Patterns;
 using OsEngine.OsTrader.Panels.Tab;
@@ -15,7 +16,8 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
     {
 
 // сервис
-        public PatternTrader(string name) : base(name)
+        public PatternTrader(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];

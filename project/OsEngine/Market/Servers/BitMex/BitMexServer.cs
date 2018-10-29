@@ -2,19 +2,17 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Threading;
 using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.BitMex.BitMexEntity;
 using OsEngine.Market.Servers.Entity;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Globalization;
-using System.IO;
-using System.Threading;
-
 
 namespace OsEngine.Market.Servers.BitMex
 {
@@ -58,7 +56,7 @@ namespace OsEngine.Market.Servers.BitMex
             ordersExecutor.IsBackground = true;
             ordersExecutor.Start();
 
-            _logMaster = new Log("BitMexServer");
+            _logMaster = new Log("BitMexServer", StartProgram.IsOsTrader);
             _logMaster.Listen(this);
 
             _serverStatusNead = ServerConnectStatus.Disconnect;
@@ -139,9 +137,23 @@ namespace OsEngine.Market.Servers.BitMex
         /// </summary>
         public void ShowDialog()
         {
-            BitMexServerUi ui = new BitMexServerUi(this, _logMaster);
-            ui.ShowDialog();
+            if (_ui == null)
+            {
+                _ui = new BitMexServerUi(this, _logMaster);
+                _ui.Show();
+                _ui.Closing += (sender, args) => { _ui = null; };
+            }
+            else
+            {
+                _ui.Activate();
+            }
+           
         }
+
+        /// <summary>
+        /// окно управления элемента
+        /// </summary>
+        private BitMexServerUi _ui;
 
         /// <summary>
         /// адрес сервера по которому нужно соединяться с сервером
@@ -1029,7 +1041,7 @@ namespace OsEngine.Market.Servers.BitMex
 
                     _candles = null;
 
-                    CandleSeries series = new CandleSeries(timeFrameBuilder, security)
+                    CandleSeries series = new CandleSeries(timeFrameBuilder, security,StartProgram.IsOsTrader)
                     {
                         CandlesAll = _candles
                     };

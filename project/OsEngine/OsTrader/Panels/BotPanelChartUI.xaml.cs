@@ -64,7 +64,7 @@ namespace OsEngine.OsTrader.Panels
 
             if (tabNum < _panel.TabsSimple.Count)
             {
-                _chart = new ChartPainter(_panel.NameStrategyUniq);
+                _chart = new ChartPainter(_panel.NameStrategyUniq, _panel.StartProgram);
                 _chart.ProcessCandles(_panel.TabsSimple[tabNum].CandlesFinishedOnly);
                 _chart.StartPaintPrimeChart(ChartHostPanel, RectChart);
                 _chart.ProcessPositions(_panel.TabsSimple[tabNum].PositionsAll);
@@ -82,7 +82,7 @@ namespace OsEngine.OsTrader.Panels
             {
 
                 tabNum = tabNum - _panel.TabsSimple.Count;
-                _chart = new ChartPainter(_panel.NameStrategyUniq);
+                _chart = new ChartPainter(_panel.NameStrategyUniq,_panel.StartProgram);
                 _chart.ProcessCandles(_panel.TabsIndex[tabNum].Candles);
                 _chart.StartPaintPrimeChart(ChartHostPanel, RectChart);
 

@@ -13,6 +13,7 @@ using System.Windows.Shapes;
 using OsEngine.Charts;
 using OsEngine.Entity;
 using OsEngine.Logging;
+using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Finam;
 
@@ -181,7 +182,7 @@ namespace OsEngine.OsData
             Tf2HourIsOn = false;
             TfTickIsOn = false;
             TfMarketDepthIsOn = false;
-            Source = ServerType.Unknown;
+            Source = ServerType.None;
             SecuritiesNames = new List<SecurityToLoad>();
             TimeStart = DateTime.Now.AddDays(-5);
             TimeEnd = DateTime.Now.AddDays(5);
@@ -193,7 +194,7 @@ namespace OsEngine.OsData
             worker.IsBackground = true;
             worker.Start();
 
-            _chartMaster = new ChartMaster(nameUniq);
+            _chartMaster = new ChartMaster(nameUniq,StartProgram.IsOsData);
             _chartMaster.StopPaint();
 
             _comboBoxSecurity = comboBoxSecurity;

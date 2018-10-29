@@ -10,6 +10,7 @@ using System.Windows.Forms.Integration;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using System.Drawing;
+using OsEngine.Market;
 using OsEngine.OsMiner.Patterns;
 
 
@@ -40,7 +41,7 @@ namespace OsEngine.OsMiner
             _hostChart = hostChart;
             _rectChart = rectChart;
 
-            Log log = new Log("OsMiner");
+            Log log = new Log("OsMiner", StartProgram.IsOsMiner);
             log.Listen(this);
             log.StartPaint(hostLog);
 

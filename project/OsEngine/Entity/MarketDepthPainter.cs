@@ -621,8 +621,8 @@ namespace OsEngine.Entity
 
                 if (ask != 0 && bid != 0)
                 {
-                    _glassBox.Rows[25].Cells[2].Value = ask;
-                    _glassBox.Rows[24].Cells[2].Value = bid;
+                    _glassBox.Rows[25].Cells[2].Value = bid;
+                    _glassBox.Rows[24].Cells[2].Value = ask;
                 }
             }
             catch (Exception error)

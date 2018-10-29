@@ -1,15 +1,15 @@
-﻿using OsEngine.Entity;
-using OsEngine.Logging;
-using OsEngine.Market.Servers.Entity;
-using QuikSharp;
-using QuikSharp.DataStructures;
-using QuikSharp.DataStructures.Transaction;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Threading;
+using OsEngine.Entity;
+using OsEngine.Logging;
+using OsEngine.Market.Servers.Entity;
+using QuikSharp;
+using QuikSharp.DataStructures;
+using QuikSharp.DataStructures.Transaction;
 using Candle = OsEngine.Entity.Candle;
 using Order = OsEngine.Entity.Order;
 using State = QuikSharp.DataStructures.State;
@@ -60,7 +60,7 @@ namespace OsEngine.Market.Servers.QuikLua
             ordersExecutor.IsBackground = true;
             ordersExecutor.Start();
 
-            _logMaster = new Log("QuikLuaServer");
+            _logMaster = new Log("QuikLuaServer", StartProgram.IsOsTrader);
             _logMaster.Listen(this);
 
             _serverStatusNead = ServerConnectStatus.Disconnect;
@@ -134,9 +134,22 @@ namespace OsEngine.Market.Servers.QuikLua
         /// </summary>
         public void ShowDialog()
         {
-            QuikLuaServerUi ui = new QuikLuaServerUi(this, _logMaster);
-            ui.ShowDialog();
+            if (_ui == null)
+            {
+                _ui = new QuikLuaServerUi(this, _logMaster);
+                _ui.Show();
+                _ui.Closing += (sender, args) => { _ui = null; };
+            }
+            else
+            {
+                _ui.Activate();
+            }
         }
+
+        /// <summary>
+        /// окно управления элемента
+        /// </summary>
+        private QuikLuaServerUi _ui;
 
         /// <summary>
         /// загрузить настройки
@@ -1007,7 +1020,7 @@ namespace OsEngine.Market.Servers.QuikLua
                             string classCode = oneSec.ClassCode;
                             if (oneSec.ClassCode == "SPBFUT")
                             {
-                                newSec.Type = SecurityType.Futures;
+                                newSec.SecurityType = SecurityType.Futures;
                                 var exp = oneSec.MatDate;
                                 newSec.Expiration = new DateTime(Convert.ToInt32(exp.Substring(0, 4))
                                     , Convert.ToInt32(exp.Substring(4, 2))
@@ -1019,7 +1032,7 @@ namespace OsEngine.Market.Servers.QuikLua
                             }
                             else if (oneSec.ClassCode == "SPBOPT")
                             {
-                                newSec.Type = SecurityType.Option;
+                                newSec.SecurityType = SecurityType.Option;
 
                                 newSec.OptionType = QuikLua.Trading.GetParamEx(classCode, secCode, "OPTIONTYPE")
                                                         .Result.ParamImage == "Put"
@@ -1041,7 +1054,7 @@ namespace OsEngine.Market.Servers.QuikLua
                             }
                             else 
                             {
-                                newSec.Type = SecurityType.Stock;
+                                newSec.SecurityType = SecurityType.Stock;
                             }
                             
                             newSec.Name = oneSec.SecCode; // тест
@@ -1170,7 +1183,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
                     //_candles = null;
                     
-                    CandleSeries series = new CandleSeries(timeFrameBuilder, security)
+                    CandleSeries series = new CandleSeries(timeFrameBuilder, security,StartProgram.IsOsTrader)
                     {
                         CandlesAll = null
                     };

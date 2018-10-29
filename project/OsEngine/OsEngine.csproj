@@ -317,6 +317,8 @@
     <Compile Include="Logging\LogErrorUi.xaml.cs">
       <DependentUpon>LogErrorUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\Servers\AServer.cs" />
+    <Compile Include="Market\Servers\AServerTests.cs" />
     <Compile Include="Market\Servers\AstsBridge\AstsBridgeWrapper.cs" />
     <Compile Include="Market\Servers\AstsBridge\AstsBridgeServer.cs" />
     <Compile Include="Market\Servers\AstsBridge\AstsServerUi.xaml.cs">
@@ -328,6 +330,7 @@
     <Compile Include="Market\Servers\Binance\BinanceEntity\DepthResponse.cs" />
     <Compile Include="Market\Servers\Binance\BinanceEntity\ErrorMessage.cs" />
     <Compile Include="Market\Servers\Binance\BinanceEntity\ExecutionReport.cs" />
+    <Compile Include="Market\Servers\Binance\BinanceEntity\HistoryOrderReport.cs" />
     <Compile Include="Market\Servers\Binance\BinanceEntity\ListenKey.cs" />
     <Compile Include="Market\Servers\Binance\BinanceEntity\OutboundAccountInfo.cs" />
     <Compile Include="Market\Servers\Binance\BinanceEntity\SecurityResponce.cs" />
@@ -382,6 +385,7 @@
       <DependentUpon>InteractivBrokersUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Market\Servers\IServer.cs" />
+    <Compile Include="Market\Servers\IServerRealization.cs" />
     <Compile Include="Market\Servers\Kraken\KrakenEntity\EnumerableExtensions.cs" />
     <Compile Include="Market\Servers\Kraken\KrakenEntity\KrakenClient.cs" />
     <Compile Include="Market\Servers\Kraken\KrakenEntity\KrakenOrder.cs" />
@@ -416,25 +420,24 @@
     <Compile Include="Market\Servers\QuikLua\QuikLuaServerUi.xaml.cs">
       <DependentUpon>QuikLuaServerUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Market\Servers\ServerMasterPortfoliosPainter.cs" />
+    <Compile Include="Market\ServerMasterPortfoliosPainter.cs" />
     <Compile Include="Market\Servers\ServerTickStorage.cs" />
     <Compile Include="Market\Servers\Tester\TesterServer.cs" />
     <Compile Include="Market\Servers\Tester\TesterServerUi.xaml.cs">
       <DependentUpon>TesterServerUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Market\Servers\Quik\QuikDde.cs" />
-    <Compile Include="Market\Connector.cs" />
-    <Compile Include="Market\ConnectorUi.xaml.cs">
-      <DependentUpon>ConnectorUi.xaml</DependentUpon>
+    <Compile Include="Market\Connectors\ConnectorCandles.cs" />
+    <Compile Include="Market\Connectors\ConnectorCandlesUi.xaml.cs">
+      <DependentUpon>ConnectorCandlesUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Market\Servers\Quik\QuikServer.cs" />
     <Compile Include="Market\Servers\Quik\QuikServerUi.xaml.cs">
       <DependentUpon>QuikServerUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Market\Servers\Quik\Trans2Quik.cs" />
-    <Compile Include="Market\OrderExecutionEmulator.cs" />
-    <Compile Include="Market\Servers\ServerMaster.cs" />
-    <Compile Include="Market\Servers\ServerMasterUi.xaml.cs">
+    <Compile Include="Market\Connectors\OrderExecutionEmulator.cs" />
+    <Compile Include="Market\ServerMaster.cs" />
+    <Compile Include="Market\ServerMasterUi.xaml.cs">
       <DependentUpon>ServerMasterUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Market\Servers\SmartCom\SmartComServer.cs" />
@@ -481,6 +484,7 @@
       <DependentUpon>PositionUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Journal\Internal\DealStaticticGenerator.cs" />
+    <Compile Include="Market\Servers\Quik\QuikDdeServer.cs" />
     <Compile Include="OsMiner\OsMinerServer.cs" />
     <Compile Include="OsMiner\OsMinerMaster.cs" />
     <Compile Include="OsMiner\OsMinerSet.cs" />
@@ -924,7 +928,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Market\ConnectorUi.xaml">
+    <Page Include="Market\Connectors\ConnectorCandlesUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -940,7 +944,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Market\Servers\ServerMasterUi.xaml">
+    <Page Include="Market\ServerMasterUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -1289,6 +1293,7 @@
   <ItemGroup>
     <Resource Include="OsTrader\Panels\SingleRobots\1readme.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 
-
 namespace OsEngine.Market.Servers.BitMex.BitMexEntity
 {
     public class TypesTrades

@@ -4,7 +4,7 @@ using System.Threading;
 using System.Windows;
 using OsEngine.Entity;
 using OsEngine.Logging;
-using OsEngine.Market.Servers;
+using OsEngine.Market;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels;
@@ -540,7 +540,6 @@ namespace OsEngine.OsOptimizer
         private void StartNewBot(List<IIStrategyParameter> parametrs, List<IIStrategyParameter> paramOptimized,
             OptimizerFaze faze, List<BotPanel> botsInFaze, string botName)
         {
-
             if (!MainWindow.GetDispatcher.CheckAccess())
             {
                 MainWindow.GetDispatcher.Invoke(
@@ -553,8 +552,7 @@ namespace OsEngine.OsOptimizer
             }
 
 // 1. создаём новый сервер для оптимизации. И один поток соответственно
-            OptimizerServer server = ServerMaster.CreateNextOptimizerServer(_master.Storage, _serverNum,
-                _master.StartDepozit);
+            OptimizerServer server = new OptimizerServer(_master.Storage, _serverNum, _master.StartDepozit);
             _serverNum++;
             _servers.Add(server);
 
@@ -572,7 +570,7 @@ namespace OsEngine.OsOptimizer
             }
 // 2. создаём нового робота и прогружаем его соответствующими настройками и параметрами
 
-            BotPanel bot = PanelCreator.GetStrategyForName(_master.StrategyName, botName);
+            BotPanel bot = PanelCreator.GetStrategyForName(_master.StrategyName, botName,StartProgram.IsOsOptimizer);
 
             for (int i = 0; i < parametrs.Count; i++)
             {

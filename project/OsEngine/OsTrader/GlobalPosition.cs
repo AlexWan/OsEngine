@@ -9,7 +9,7 @@ using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
 using OsEngine.Logging;
-using OsEngine.Market.Servers;
+using OsEngine.Market;
 
 namespace OsEngine.OsTrader
 {
@@ -25,8 +25,11 @@ namespace OsEngine.OsTrader
         /// конструктор
         /// </summary>
         /// <param name="allPositionHost">хост на который будем рисовать дата грид</param>
-        public GlobalPosition(WindowsFormsHost allPositionHost)
+        /// <param name="startProgram">программа запустившая класс</param>
+        public GlobalPosition(WindowsFormsHost allPositionHost, StartProgram startProgram)
         {
+            _startProgram = startProgram;
+
             _host = allPositionHost;
 
             _grid = CreateNewTable();
@@ -116,6 +119,11 @@ namespace OsEngine.OsTrader
         /// таблица для прорисовки позиций
         /// </summary>
         private DataGridView _grid;
+
+        /// <summary>
+        /// программа запустившая класс
+        /// </summary>
+        private StartProgram _startProgram;
 
 //прорисовка
 
@@ -326,7 +334,7 @@ namespace OsEngine.OsTrader
         public void journal_PositionChangeEvent(Position position)
         {
             // В ТЕСТЕРЕ позиции прорисоываются по очереди, В реале, в методе ThreadWatcher()
-            if (ServerMaster.StartProgram != ServerStartProgramm.IsTester)
+            if (_startProgram != StartProgram.IsTester)
             {
                 return;
             }
@@ -464,7 +472,7 @@ namespace OsEngine.OsTrader
         /// </summary>
         private void WatcherHome()
         {
-            if (ServerMaster.StartProgram != ServerStartProgramm.IsOsTrader)
+            if (_startProgram != StartProgram.IsOsTrader)
             {
                 return;
             }

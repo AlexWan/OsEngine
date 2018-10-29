@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
-using OsEngine.Market.Servers;
+using OsEngine.Market;
 using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.OsTrader.Panels.SingleRobots
@@ -17,8 +17,8 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         /// <summary>
         /// конструктор
         /// </summary>
-        public StrategyBollinger(string name)
-            : base(name)
+        public StrategyBollinger(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -165,7 +165,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
                 return;
             }
 
-            if (!(ServerMaster.StartProgram == ServerStartProgramm.IsTester)
+            if (StartProgram == StartProgram.IsOsTrader
                 && DateTime.Now.Hour < 10)
             {
                 return;

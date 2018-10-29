@@ -6,7 +6,7 @@ using System;
 using System.Windows;
 using OsEngine.Charts.CandleChart;
 using OsEngine.Entity;
-using OsEngine.Market.Servers;
+using OsEngine.Market;
 
 namespace OsEngine.OsTrader.Gui
 {
@@ -21,7 +21,7 @@ namespace OsEngine.OsTrader.Gui
             InitializeComponent();
             ServerMaster.SetHostTable(HostPositionOnBoard, HostOrdersOnBoard);
             _strategyKeeper = new OsTraderMaster( ChartHostPanel, HostGlass, HostOpenPosition, HostClosePosition, HostAllPosition,
-                                         HostBotLog, HostBotLogPrime, RectChart, HostAllert, TabControlBotsName,TabControlBotTab,TextBoxPrice,GridChartControlPanel);
+                                         HostBotLog, HostBotLogPrime, RectChart, HostAllert, TabControlBotsName,TabControlBotTab,TextBoxPrice,GridChartControlPanel, StartProgram.IsOsTrader);
             Closing += RobotUi_Closing;
            
 
@@ -88,7 +88,7 @@ namespace OsEngine.OsTrader.Gui
 
         private void ButtonServer_Click(object sender, RoutedEventArgs e)
         {
-            ServerMaster.ShowDialog();
+            ServerMaster.ShowDialog(false);
         }
 
         private void ButtonNewBot_Click(object sender, RoutedEventArgs e)

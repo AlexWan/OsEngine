@@ -14,6 +14,7 @@ using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Journal;
 using OsEngine.Logging;
+using OsEngine.Market;
 
 namespace OsEngine.OsMiner.Patterns
 {
@@ -57,14 +58,14 @@ namespace OsEngine.OsMiner.Patterns
                 DataServer = new OsMinerServer(_name);
                 DataServer.CandleSeriesChangeEvent += _dataServer_CandleSeriesChangeEvent;
 
-                _chart = new ChartMaster(_name);
+                _chart = new ChartMaster(_name,StartProgram.IsOsMiner);
                 _chart.ClickToIndexEvent += _chart_ClickToIndexEvent;
 
-                _chartTempPattern = new ChartPainter(_name + "TempPattern");
+                _chartTempPattern = new ChartPainter(_name + "TempPattern",StartProgram.IsOsMiner);
                 _chartTempPattern.IsPatternChart = true;
-                _chartSingleOpenPattern = new ChartPainter(_name + "OpenSinglePattern");
+                _chartSingleOpenPattern = new ChartPainter(_name + "OpenSinglePattern", StartProgram.IsOsMiner);
                 _chartSingleOpenPattern.IsPatternChart = true;
-                _chartSingleClosePattern = new ChartPainter(_name + "CloseSinglePattern");
+                _chartSingleClosePattern = new ChartPainter(_name + "CloseSinglePattern", StartProgram.IsOsMiner);
                 _chartSingleClosePattern.IsPatternChart = true;
             }
         }
@@ -142,14 +143,14 @@ namespace OsEngine.OsMiner.Patterns
             DataServer = new OsMinerServer(Name);
             DataServer.CandleSeriesChangeEvent += _dataServer_CandleSeriesChangeEvent;
             
-            _chart = new ChartMaster(_name);
+            _chart = new ChartMaster(_name,StartProgram.IsOsMiner);
             _chart.ClickToIndexEvent += _chart_ClickToIndexEvent;
 
-            _chartTempPattern = new ChartPainter(_name + "TempPattern");
+            _chartTempPattern = new ChartPainter(_name + "TempPattern", StartProgram.IsOsMiner);
             _chartTempPattern.IsPatternChart = true;
-            _chartSingleOpenPattern = new ChartPainter(_name + "OpenSinglePattern");
+            _chartSingleOpenPattern = new ChartPainter(_name + "OpenSinglePattern", StartProgram.IsOsMiner);
             _chartSingleOpenPattern.IsPatternChart = true;
-            _chartSingleClosePattern = new ChartPainter(_name + "CloseSinglePattern");
+            _chartSingleClosePattern = new ChartPainter(_name + "CloseSinglePattern", StartProgram.IsOsMiner);
             _chartSingleClosePattern.IsPatternChart = true;
 
             if (PatternsToOpen.Count != 0)
@@ -482,7 +483,7 @@ namespace OsEngine.OsMiner.Patterns
         /// </summary>
         public void ShowJournal()
         {
-            Journal.Journal journal = new Journal.Journal("");
+            Journal.Journal journal = new Journal.Journal("",StartProgram.IsOsMiner);
             for (int i = 0; i < PositionsInTrades.Count; i++)
             {
                 journal.SetNewDeal(PositionsInTrades[i]);
@@ -500,7 +501,7 @@ namespace OsEngine.OsMiner.Patterns
             List<BotPanelJournal> list = new List<BotPanelJournal>();
             list.Add(botPanelJournal);
 
-            JournalUi ui = new JournalUi(list);
+            JournalUi ui = new JournalUi(list,StartProgram.IsOsMiner);
             ui.ShowDialog();
         }
 
@@ -521,6 +522,11 @@ namespace OsEngine.OsMiner.Patterns
         {
             try
             {
+                if (PatternsToOpen == null || PatternsToOpen.Count == 0)
+                {
+                    return;
+                }
+
                 Test(PatternsToOpen, PatternsToClose);
                 PaintPatternsColorSeries();
 
@@ -545,6 +551,10 @@ namespace OsEngine.OsMiner.Patterns
         /// </summary>
         private void Test(List<IPattern> patternsToInter, List<IPattern> patternsToExit)
         {
+            if (string.IsNullOrEmpty(SecurityToInter))
+            {
+                return;
+            }
             MinerCandleSeries candlesToTrade = GetCandleSeries(SecurityToInter);
 
             ColorSeries = new List<ChartColorSeries>();
@@ -1379,6 +1389,11 @@ namespace OsEngine.OsMiner.Patterns
         /// <param name="neadToPaint">нужно ли прорисовывать результаты тестов</param>
         public void BackTestTempPattern(bool neadToPaint)
         {
+            if (string.IsNullOrEmpty(SecurityToInter))
+            {
+                return;
+            }
+
             try
             {
                 IPattern pattern = GetTempPattern(_curTempPatternType);

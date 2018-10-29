@@ -205,16 +205,16 @@ namespace OsEngine.Market.Servers.Quik
 
                                     if (type == "Ценные бумаги")
                                     {
-                                        securities[i].Type = SecurityType.Stock;
+                                        securities[i].SecurityType = SecurityType.Stock;
                                     }
                                     else if (type == "Фьючерсы")
                                     {
-                                        securities[i].Type = SecurityType.Futures;
+                                        securities[i].SecurityType = SecurityType.Futures;
                                         securities[i].Lot = 1;
                                     }
                                     else if (type == "Опционы")
                                     {
-                                        securities[i].Type = SecurityType.Option;
+                                        securities[i].SecurityType = SecurityType.Option;
                                         securities[i].Lot = 1;
                                     }
                                 }
@@ -301,12 +301,12 @@ namespace OsEngine.Market.Servers.Quik
                         }
                         else
                         {
-                            trades[i].Side = Side.UnKnown;
+                            trades[i].Side = Side.None;
                         }
                     }
                     else
                     {
-                        trades[i].Side = Side.UnKnown;
+                        trades[i].Side = Side.None;
                     }
 
                 }

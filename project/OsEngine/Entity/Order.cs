@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using OsEngine.Market.Servers;
+using OsEngine.Market;
 
 namespace OsEngine.Entity
 {
@@ -23,7 +23,7 @@ namespace OsEngine.Entity
             TimeCallBack = DateTime.MinValue;
             TimeCancel = DateTime.MinValue;
             NumberMarket = "";
-            Side = Side.UnKnown;
+            Side = Side.None;
         }
 
         /// <summary>
@@ -186,7 +186,6 @@ namespace OsEngine.Entity
         public bool IsStopOrProfit;
 
         public ServerType ServerType;
- 
 
 // сделки, которыми открывался ордер и рассчёт цены исполнения ордера
 
@@ -427,13 +426,14 @@ namespace OsEngine.Entity
     public enum OrderStateType
     {
         /// <summary>
-        /// принята биржей и выставленна в систему
-        /// </summary>
-        Activ,
-        /// <summary>
         /// отсутствует
         /// </summary>
         None,
+
+        /// <summary>
+        /// принята биржей и выставленна в систему
+        /// </summary>
+        Activ,
 
         /// <summary>
         /// ожидает регистрации

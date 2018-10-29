@@ -8,12 +8,12 @@ using System.Globalization;
 using System.Threading;
 using System.Windows;
 using OsEngine.Logging;
+using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Binance;
 using OsEngine.Market.Servers.Bitfinex;
 using OsEngine.Market.Servers.BitMex;
 using OsEngine.Market.Servers.Kraken;
-using OsEngine.Market.Servers.Oanda;
 using OsEngine.Market.Servers.QuikLua;
 using OsEngine.Market.Servers.SmartCom;
 using OsEngine.Market.Servers.Tester;
@@ -30,10 +30,10 @@ namespace OsEngine.Entity
         /// конструктор
         /// </summary>
         /// <param name="server">сервер из которго будут идти данные для создания свечек</param>
+        /// <param name="startProgram">программа которая создала объект класса</param>
         public CandleManager(IServer server)
         {
             _server = server;
-
             _server.NewTradeEvent += server_NewTradeEvent;
             _server.TimeServerChangeEvent += _server_TimeServerChangeEvent;
             _server.NewMarketDepthEvent += _server_NewMarketDepthEvent;
@@ -78,7 +78,7 @@ namespace OsEngine.Entity
         /// <param name="trades">новый тик</param>
         private void server_NewTradeEvent(List<Trade> trades)
         {
-            if (ServerMaster.StartProgram == ServerStartProgramm.IsTester &&
+            if (_server.ServerType == ServerType.Tester &&
                 TypeTesterData == TesterDataType.Candle)
             {
                 return;
@@ -111,7 +111,7 @@ namespace OsEngine.Entity
         /// <param name="marketDepth"></param>
         void _server_NewMarketDepthEvent(MarketDepth marketDepth)
         {
-            if (ServerMaster.StartProgram == ServerStartProgramm.IsTester &&
+            if (_server.ServerType == ServerType.Tester &&
                 TypeTesterData == TesterDataType.Candle)
             {
                 return;
@@ -148,7 +148,9 @@ namespace OsEngine.Entity
         {
             try
             {
-                if (ServerMaster.StartProgram == ServerStartProgramm.IsOsTrader)
+                if (_server.ServerType != ServerType.Tester &&
+                    _server.ServerType != ServerType.Optimizer &&
+                    _server.ServerType != ServerType.Miner)
                 {
                     series.СandleUpdeteEvent += series_СandleUpdeteEvent; 
                 }

@@ -438,7 +438,7 @@ namespace OsEngine.Market.Servers.Kraken
 
             MyTrade newTrade = new MyTrade();
             newTrade.NumberOrderParent = order.TxId;
-            newTrade.NumberTrade = NumberGen.GetNumberOrder().ToString();
+            newTrade.NumberTrade = NumberGen.GetNumberOrder(StartProgram.IsOsTrader).ToString();
 
             newTrade.Side = osOrder.Side;
             if (order.AveragePrice != null &&

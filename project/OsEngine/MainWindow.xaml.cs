@@ -5,14 +5,13 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using Microsoft.Win32;
 using OsEngine.Alerts;
-using OsEngine.Market.Servers;
+using OsEngine.Market;
 using OsEngine.OsConverter;
 using OsEngine.OsData;
 using OsEngine.OsMiner;
@@ -75,6 +74,8 @@ namespace OsEngine
 
             ProccesIsWorked = true;
             _window = this;
+
+            ServerMaster.ActivateLogging();
         }
 
         /// <summary>
@@ -135,7 +136,6 @@ namespace OsEngine
             try
             {
                 Hide();
-                ServerMaster.StartProgram = ServerStartProgramm.IsTester;
                 TesterUi candleOneUi = new TesterUi();
                 candleOneUi.ShowDialog();
                 Close();
@@ -154,7 +154,6 @@ namespace OsEngine
             try
             {
                 Hide();
-                ServerMaster.StartProgram = ServerStartProgramm.IsOsTrader;
                 RobotUi candleOneUi = new RobotUi();
                 candleOneUi.ShowDialog();
                 Close();
@@ -173,7 +172,6 @@ namespace OsEngine
             try
             {
                 Hide();
-                ServerMaster.StartProgram = ServerStartProgramm.IsOsData;
                 OsDataUi ui = new OsDataUi();
                 ui.ShowDialog();
                 Close();
@@ -192,7 +190,6 @@ namespace OsEngine
             try
             {
                 Hide();
-                ServerMaster.StartProgram = ServerStartProgramm.IsOsConverter;
                 OsConverterUi ui = new OsConverterUi();
                 ui.ShowDialog();
                 Close();
@@ -211,7 +208,6 @@ namespace OsEngine
             try
             {
                 Hide();
-                ServerMaster.StartProgram = ServerStartProgramm.IsOsOptimizer;
                 OptimizerUi ui = new OptimizerUi();
                 ui.ShowDialog();
                 Close();
@@ -230,7 +226,6 @@ namespace OsEngine
             try
             {
                 Hide();
-                ServerMaster.StartProgram = ServerStartProgramm.IsOsMiner;
                 OsMinerUi ui = new OsMinerUi();
                 ui.ShowDialog();
                 Close();

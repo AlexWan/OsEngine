@@ -5,26 +5,21 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Windows;
-using System.Windows.Forms;
-using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Tester;
-using CheckBox = System.Windows.Controls.CheckBox;
-using ComboBox = System.Windows.Controls.ComboBox;
 using MessageBox = System.Windows.MessageBox;
 
-namespace OsEngine.Market
+namespace OsEngine.Market.Connectors
 {
     /// <summary>
     /// Логика взаимодействия для ConnectorQuikUi.xaml
     /// </summary>
-    public partial class ConnectorUi
+    public partial class ConnectorCandlesUi
     {
-        public ConnectorUi(Connector connectorBot)
+        public ConnectorCandlesUi(ConnectorCandles connectorBot)
         {
             try
             {
@@ -47,7 +42,7 @@ namespace OsEngine.Market
                     ComboBoxTypeServer.Items.Add(servers[i].ServerType);
                 }
 
-                if (connectorBot.ServerType != ServerType.Unknown)
+                if (connectorBot.ServerType != ServerType.None)
                 {
                     ComboBoxTypeServer.SelectedItem = connectorBot.ServerType;
                     _selectedType = connectorBot.ServerType;
@@ -58,7 +53,7 @@ namespace OsEngine.Market
                     _selectedType = servers[0].ServerType;
                 }
 
-                if (ServerMaster.StartProgram == ServerStartProgramm.IsTester)
+                if (connectorBot.StartProgram == StartProgram.IsTester)
                 {
                     ComboBoxTypeServer.IsEnabled = false;
                     CheckBoxIsEmulator.IsEnabled = false;
@@ -112,6 +107,11 @@ namespace OsEngine.Market
                 _rencoPuncts = _connectorBot.RencoPunktsToCloseCandleInRencoType;
                 TextBoxRencoPunkts.TextChanged += TextBoxRencoPunkts_TextChanged;
 
+                if (_connectorBot.RencoIsBuildShadows)
+                {
+                    CheckBoxRencoIsBuildShadows.IsChecked = true;
+                }
+
                 TextBoxDeltaPeriods.Text = _connectorBot.DeltaPeriods.ToString();
                 TextBoxDeltaPeriods.TextChanged += TextBoxDeltaPeriods_TextChanged;
                 _deltaPeriods = _connectorBot.DeltaPeriods;
@@ -125,7 +125,6 @@ namespace OsEngine.Market
                  MessageBox.Show("Ошибка в конструкторе " + error);
             }
         }
-
 
         void ComboBoxCandleCreateMethodType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
@@ -312,7 +311,7 @@ namespace OsEngine.Market
         /// <summary>
         /// коннектор к серверу
         /// </summary>
-        private Connector _connectorBot;
+        private ConnectorCandles _connectorBot;
 
         /// <summary>
         /// выбранный в данным момент сервер
@@ -600,7 +599,7 @@ namespace OsEngine.Market
         {
             ComboBoxTimeFrame.Items.Clear();
 
-            if (ServerMaster.StartProgram == ServerStartProgramm.IsTester)
+            if (_connectorBot.StartProgram == StartProgram.IsTester)
             {
                 // таймФрейм
                 TesterServer server = (TesterServer)ServerMaster.GetServers()[0];
@@ -721,6 +720,11 @@ namespace OsEngine.Market
                 _connectorBot.VolumeToCloseCandleInVolumeType = _volumeToClose;
                 _connectorBot.DeltaPeriods= _deltaPeriods;
 
+                if (CheckBoxRencoIsBuildShadows.IsChecked != null)
+                {
+                    _connectorBot.RencoIsBuildShadows = CheckBoxRencoIsBuildShadows.IsChecked.Value;
+                }
+
                 _connectorBot.Save();
                 Close();
             }
@@ -782,6 +786,7 @@ namespace OsEngine.Market
 
         private void ClearDopCandleSettings()
         {
+            CheckBoxRencoIsBuildShadows.Visibility = Visibility.Hidden;
             TextBoxDeltaPeriods.Visibility = Visibility.Hidden;
             LabelDeltaPeriods.Visibility = Visibility.Hidden;
             ComboBoxTimeFrame.Visibility = Visibility.Hidden;
@@ -837,7 +842,10 @@ namespace OsEngine.Market
 
             LabelRencoPunkts.Visibility = Visibility.Visible;
             LabelRencoPunkts.Margin = new Thickness(41, 296, 0, 0);
-            Height = 420;
+
+            CheckBoxRencoIsBuildShadows.Visibility = Visibility.Visible;
+            CheckBoxRencoIsBuildShadows.Margin = new Thickness(120, 327, 0, 0);
+            Height  = 445;
         }
 
         private void CreateVolumeCandleSettings()

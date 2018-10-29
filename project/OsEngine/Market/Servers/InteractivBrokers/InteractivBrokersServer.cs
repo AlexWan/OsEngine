@@ -7,7 +7,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading;
 using OsEngine.Entity;
 using OsEngine.Logging;
@@ -62,7 +61,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             ordersExecutor.IsBackground = true;
             ordersExecutor.Start();
 
-            _logMaster = new Log("IbServer");
+            _logMaster = new Log("IbServer", StartProgram.IsOsTrader);
             _logMaster.Listen(this);
 
             _serverStatusNead = ServerConnectStatus.Disconnect;
@@ -101,13 +100,27 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         public ServerType ServerType { get; set; }
 
         /// <summary>
-        /// вызвать окно настроек
+        /// показать настройки
         /// </summary>
         public void ShowDialog()
         {
-            InteractivBrokersUi ui = new InteractivBrokersUi(this, _logMaster);
-            ui.Show();
+            if (_ui == null)
+            {
+                _ui = new InteractivBrokersUi(this, _logMaster);
+                _ui.Show();
+                _ui.Closing += (sender, args) => { _ui = null; };
+            }
+            else
+            {
+                _ui.Activate();
+            }
+           
         }
+
+        /// <summary>
+        /// окно управления элемента
+        /// </summary>
+        private InteractivBrokersUi _ui;
 
         /// <summary>
         /// загрузить настройки из файла
@@ -1226,7 +1239,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                     _tickStorage.SetSecurityToSave(security);
 
                     // 2 создаём серию свечек
-                    CandleSeries series = new CandleSeries(timeFrameBuilder, security);
+                    CandleSeries series = new CandleSeries(timeFrameBuilder, security, StartProgram.IsOsTrader);
 
                     _candleManager.StartSeries(series);
 

@@ -20,7 +20,7 @@ namespace OsEngine.Market.Servers.Optimizer
         /// </summary>
         public OptimizerDataStorage()
         {
-            _logMaster = new Log("TesterServer");
+            _logMaster = new Log("TesterServer",StartProgram.IsOsOptimizer);
             _logMaster.Listen(this);
             TypeTesterData = TesterDataType.Candle;
             Load();

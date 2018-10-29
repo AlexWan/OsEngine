@@ -3,16 +3,12 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using OkonkwoOandaV20;
 using OkonkwoOandaV20.TradeLibrary.DataTypes.Instrument;
-using OkonkwoOandaV20.TradeLibrary.Primitives;
 using OsEngine.Entity;
 using OsEngine.Logging;
-using OsEngine.Market.Servers.InteractivBrokers;
 
 namespace OsEngine.Market.Servers.Oanda
 {
@@ -61,7 +57,7 @@ namespace OsEngine.Market.Servers.Oanda
             ordersExecutor.IsBackground = true;
             ordersExecutor.Start();
 
-            _logMaster = new Log("OandaServer");
+            _logMaster = new Log("OandaServer", StartProgram.IsOsTrader);
             _logMaster.Listen(this);
 
             _serverStatusNead = ServerConnectStatus.Disconnect;
@@ -102,13 +98,26 @@ namespace OsEngine.Market.Servers.Oanda
         public ServerType ServerType { get; set; }
 
         /// <summary>
-        /// вызвать окно настроек
+        /// показать настройки
         /// </summary>
         public void ShowDialog()
         {
-            OandaServerUi ui = new OandaServerUi(this, _logMaster);
-            ui.Show();
+            if (_ui == null)
+            {
+                _ui = new OandaServerUi(this, _logMaster);
+                _ui.Show();
+                _ui.Closing += (sender, args) => { _ui = null; };
+            }
+            else
+            {
+                _ui.Activate();
+            }
         }
+
+        /// <summary>
+        /// окно управления элемента
+        /// </summary>
+        private OandaServerUi _ui;
 
         /// <summary>
         /// загрузить настройки из файла
@@ -168,6 +177,8 @@ namespace OsEngine.Market.Servers.Oanda
         private ServerTickStorage _tickStorage;
 
         private bool _neadToSaveTicks;
+
+        public int CountDaysTickNeadToSave { get; set; }
 
         /// <summary>
         /// нужно ли сохранять тики 
@@ -949,7 +960,7 @@ namespace OsEngine.Market.Servers.Oanda
                        _tickStorage.SetSecurityToSave(security);
 
                        // 2 создаём серию свечек
-                       CandleSeries series = new CandleSeries(timeFrameBuilder, security);
+                       CandleSeries series = new CandleSeries(timeFrameBuilder, security, StartProgram.IsOsTrader);
 
                        if(NeadToGetCandles(timeFrameBuilder.TimeFrame))
                        { // подгружаем в серию свечки, если коннектор это позволяет

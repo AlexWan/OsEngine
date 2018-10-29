@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
 using OsEngine.Logging;
+using OsEngine.Market;
 using ComboBox = System.Windows.Controls.ComboBox;
 using TextBox = System.Windows.Controls.TextBox;
 
@@ -60,7 +61,7 @@ namespace OsEngine.OsConverter
             _textBoxSourceFile.Text = _sourceFile;
             _textBoxExitFile.Text = _exitFile;
 
-            Log log = new Log("OsDataMaster");
+            Log log = new Log("OsDataMaster", StartProgram.IsOsData);
             log.StartPaint(logFormsHost);
             log.Listen(this);
         }
@@ -291,7 +292,7 @@ namespace OsEngine.OsConverter
                         TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder();
                         timeFrameBuilder.TimeFrame = TimeFrame;
 
-                        CandleSeries series = new CandleSeries(timeFrameBuilder, new Security() { Name = "Unknown" });
+                        CandleSeries series = new CandleSeries(timeFrameBuilder, new Security() { Name = "Unknown" },StartProgram.IsOsConverter);
 
                         series.IsStarted = true;
 

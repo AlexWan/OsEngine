@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
 using OsEngine.Logging;
+using OsEngine.Market;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels;
@@ -20,7 +21,7 @@ namespace OsEngine.OsOptimizer
     {
         public OptimizerMaster()
         {
-            _log = new Log("OptimizerLog");
+            _log = new Log("OptimizerLog", StartProgram.IsOsOptimizer);
             _log.Listen(this);
 
             _threadsCount = 1;
@@ -171,7 +172,7 @@ namespace OsEngine.OsOptimizer
 
             for (int i = numThread; i < names.Count; i += 3)
             {
-                BotPanel bot = PanelCreator.GetStrategyForName(names[i], numThread.ToString());
+                BotPanel bot = PanelCreator.GetStrategyForName(names[i], numThread.ToString(), StartProgram.IsOsOptimizer);
                 if (bot.Parameters == null ||
                     bot.Parameters.Count == 0)
                 {
@@ -743,7 +744,7 @@ namespace OsEngine.OsOptimizer
                     return null;
                 }
 
-                BotPanel bot = PanelCreator.GetStrategyForName(_strategyName,"");
+                BotPanel bot = PanelCreator.GetStrategyForName(_strategyName, "", StartProgram.IsOsOptimizer);
 
                 if (bot == null)
                 {

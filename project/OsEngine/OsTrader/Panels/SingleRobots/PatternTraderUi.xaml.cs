@@ -34,9 +34,9 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             CreateGridPatternsGrid(_gridPatternsToOpen, HostGridPatternsToOpen);
             CreateGridPatternsGrid(_gridPatternsToClose, HostGridPatternToClose);
 
-            _chartSingleOpenPattern = new ChartPainter("OpenSinglePattern");
+            _chartSingleOpenPattern = new ChartPainter("OpenSinglePattern", bot.StartProgram);
             _chartSingleOpenPattern.IsPatternChart = true;
-            _chartSingleClosePattern = new ChartPainter("CloseSinglePattern");
+            _chartSingleClosePattern = new ChartPainter("CloseSinglePattern", bot.StartProgram);
             _chartSingleClosePattern.IsPatternChart = true;
 
             _chartSingleOpenPattern.StartPaintPrimeChart(HostSinglePatternToOpen, new Rectangle());

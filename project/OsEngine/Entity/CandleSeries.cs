@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using OsEngine.Market.Servers;
+using OsEngine.Market;
 using OsEngine.Market.Servers.Tester;
 
 namespace OsEngine.Entity
@@ -24,10 +24,12 @@ namespace OsEngine.Entity
         /// </summary>
         /// <param name="timeFrameBuilder">объект несущий в себе данные о таймФрейме</param>
         /// <param name="security">бумага на которою мы подписаны</param>
-        public CandleSeries(TimeFrameBuilder timeFrameBuilder, Security security)
+        /// <param name="startProgram">программа создавшая объект</param>
+        public CandleSeries(TimeFrameBuilder timeFrameBuilder, Security security, StartProgram startProgram)
         {
             _timeFrameBuilder = timeFrameBuilder;
             Security = security;
+            _startProgram = startProgram;
         }
 
         /// <summary>
@@ -37,6 +39,11 @@ namespace OsEngine.Entity
         {
 
         }
+
+        /// <summary>
+        /// программа создавшая объект
+        /// </summary>
+        private StartProgram _startProgram;
 
         /// <summary>
         /// данные из которых собираем свечи: из тиков или из стаканов
@@ -163,7 +170,7 @@ namespace OsEngine.Entity
                 return;
             }
 
-            if (ServerMaster.StartProgram != ServerStartProgramm.IsOsTrader)
+            if (_startProgram != StartProgram.IsOsTrader)
             {
                 return;
             }
@@ -207,9 +214,9 @@ namespace OsEngine.Entity
                 return;
             }
 
-            if (ServerMaster.StartProgram != ServerStartProgramm.IsOsTrader &&
-                ServerMaster.StartProgram != ServerStartProgramm.IsOsData &&
-                ServerMaster.StartProgram != ServerStartProgramm.IsOsConverter &&
+            if (_startProgram != StartProgram.IsOsTrader &&
+                _startProgram != StartProgram.IsOsData &&
+                _startProgram != StartProgram.IsOsConverter &&
                 TypeTesterData == TesterDataType.Candle)
             {
                 return;
@@ -229,7 +236,7 @@ namespace OsEngine.Entity
                 }
                 UpDateCandle(trades[i].Time, trades[i].Price, trades[i].Volume, true, trades[i].Side);
 
-                if (ServerMaster.StartProgram == ServerStartProgramm.IsOsData)
+                if (_startProgram == StartProgram.IsOsData)
                 {
                     continue;
                 }
@@ -311,7 +318,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// обновить свечи с обычным ТФ
+        /// обновить свечи Heiken Ashi
         /// </summary>
         private void UpDateHeikenAshiCandle(DateTime time, decimal price, decimal volume, bool canPushUp)
         {
@@ -1055,6 +1062,8 @@ namespace OsEngine.Entity
 
         private Side _rencoLastSide;
 
+        private bool _rencoIsBuildShadows;
+
         private void UpDateRencoTimeFrame(DateTime time, decimal price, decimal volume, bool canPushUp)
         {
             if (CandlesAll != null && CandlesAll.Count > 0 && CandlesAll[CandlesAll.Count - 1] != null &&
@@ -1066,7 +1075,7 @@ namespace OsEngine.Entity
             if (CandlesAll == null)
             {
                 _rencoStartPrice = price;
-                _rencoLastSide = Side.UnKnown;
+                _rencoLastSide = Side.None;
                 // пришла первая сделка
                 CandlesAll = new List<Candle>();
 
@@ -1101,7 +1110,7 @@ namespace OsEngine.Entity
             decimal renDist = _timeFrameBuilder.RencoPunktsToCloseCandleInRencoType;
 
             if (
-                (_rencoLastSide == Side.UnKnown && Math.Abs(_rencoStartPrice - price) >= renDist)
+                (_rencoLastSide == Side.None && Math.Abs(_rencoStartPrice - price) >= renDist)
                 ||
                 (_rencoLastSide == Side.Buy && price - _rencoStartPrice >= renDist)
                 ||
@@ -1119,7 +1128,7 @@ namespace OsEngine.Entity
 
 
                 if (
-                    (_rencoLastSide == Side.UnKnown && price - _rencoStartPrice  >= renDist)
+                    (_rencoLastSide == Side.None && price - _rencoStartPrice  >= renDist)
                     ||
                     (_rencoLastSide == Side.Buy && price - _rencoStartPrice >= renDist)
                     )
@@ -1129,7 +1138,7 @@ namespace OsEngine.Entity
                     lastCandle.High = _rencoStartPrice;
                 }
                 else if (
-                (_rencoLastSide == Side.UnKnown && _rencoStartPrice - price >= renDist)
+                (_rencoLastSide == Side.None && _rencoStartPrice - price >= renDist)
                 ||
                 (_rencoLastSide == Side.Sell && _rencoStartPrice - price >= renDist)
                 )
@@ -1156,6 +1165,20 @@ namespace OsEngine.Entity
                 }
 
                 lastCandle.Close = _rencoStartPrice;
+
+                if (_timeFrameBuilder.RencoIsBuildShadows == false)
+                {
+                    if (lastCandle.IsUp)
+                    {
+                        lastCandle.Low = lastCandle.Open;
+                        lastCandle.High = lastCandle.Close;
+                    }
+                    else
+                    {
+                        lastCandle.High = lastCandle.Open;
+                        lastCandle.Low = lastCandle.Close;
+                    }
+                }
 
                 if (CandlesAll[CandlesAll.Count - 1].State != CandleState.Finished)
                 {
@@ -1241,7 +1264,7 @@ namespace OsEngine.Entity
         /// </summary>
         private void UpdateChangeCandle()
         {
-            if (ServerMaster.StartProgram == ServerStartProgramm.IsTester &&
+            if (_startProgram == StartProgram.IsTester &&
                 (TypeTesterData == TesterDataType.MarketDepthOnlyReadyCandle ||
                 TypeTesterData == TesterDataType.TickOnlyReadyCandle))
             {
@@ -1253,19 +1276,8 @@ namespace OsEngine.Entity
             }
         }
 
-        private DateTime _lastNewCandleFinish = DateTime.MinValue;
-
         private void UpdateFinishCandle()
         {
-            if (ServerMaster.StartProgram == ServerStartProgramm.IsOsTrader)
-            {
-                if (DateTime.Now < _lastNewCandleFinish.AddSeconds(TimeFrameSpan.TotalSeconds/2))
-                {
-                    return;
-                }
-                _lastNewCandleFinish = DateTime.Now;
-            }
-
             if (СandleFinishedEvent != null)
             {
                 СandleFinishedEvent(this);
@@ -1393,7 +1405,7 @@ namespace OsEngine.Entity
 
             decimal price = marketDepth.Bids[0].Price + (marketDepth.Asks[0].Price - marketDepth.Bids[0].Price)/2;
 
-            UpDateCandle(marketDepth.Time, price, 1, true, Side.UnKnown);
+            UpDateCandle(marketDepth.Time, price, 1, true, Side.None);
         }
 
 

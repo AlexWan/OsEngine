@@ -28,11 +28,6 @@ namespace OsEngine.Market.Servers
         void ShowDialog();
 
         /// <summary>
-        /// показать бумаги
-        /// </summary>
-        void ShowSecuritiesDialog();
-
-        /// <summary>
         /// сохранить настройки в файл
         /// </summary>
         void Save();
@@ -58,6 +53,18 @@ namespace OsEngine.Market.Servers
         /// изменилось состояние соединения
         /// </summary>
         event Action<string> ConnectStatusChangeEvent;
+
+// сохранение / загрузка тиковых данных в хранилище
+
+        /// <summary>
+        /// количество тиков которые нужно сохранять
+        /// </summary>
+        int CountDaysTickNeadToSave { get; set; }
+
+        /// <summary>
+        /// нужно ли сохранять историю
+        /// </summary>
+        bool NeadToSaveTicks { get; set; }
 
 // время сервера
         /// <summary>

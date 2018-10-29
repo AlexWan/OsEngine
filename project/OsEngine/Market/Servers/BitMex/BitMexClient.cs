@@ -2,9 +2,6 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using Newtonsoft.Json;
-using OsEngine.Logging;
-using OsEngine.Market.Servers.BitMex.BitMexEntity;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -15,6 +12,9 @@ using System.Net.WebSockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+using Newtonsoft.Json;
+using OsEngine.Logging;
+using OsEngine.Market.Servers.BitMex.BitMexEntity;
 
 namespace OsEngine.Market.Servers.BitMex
 {

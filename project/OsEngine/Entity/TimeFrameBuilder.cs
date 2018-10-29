@@ -70,7 +70,7 @@ namespace OsEngine.Entity
                     _volumeToCloseCandleInVolumeType = Convert.ToDecimal(reader.ReadLine());
                     _rencoPunktsToCloseCandleInRencoType = Convert.ToDecimal(reader.ReadLine());
                     _deltaPeriods = Convert.ToDecimal(reader.ReadLine());
-
+                    _rencoIsBuildShadows = Convert.ToBoolean(reader.ReadLine());
                     reader.Close();
                 }
             }
@@ -101,7 +101,7 @@ namespace OsEngine.Entity
                     writer.WriteLine(_volumeToCloseCandleInVolumeType);
                     writer.WriteLine(_rencoPunktsToCloseCandleInRencoType);
                     writer.WriteLine(_deltaPeriods);
-
+                    writer.WriteLine(_rencoIsBuildShadows);
                     writer.Close();
                 }
             }
@@ -350,6 +350,21 @@ namespace OsEngine.Entity
             }
         }
         private decimal _rencoPunktsToCloseCandleInRencoType;
+
+        /// <summary>
+        /// стороим ли мы тени у свечи когда выбран ренко. true - строим
+        /// </summary>
+        public bool RencoIsBuildShadows
+        {
+            get { return _rencoIsBuildShadows; }
+            set
+            {
+                _rencoIsBuildShadows = value;
+                Save();
+            }
+        }
+
+        private bool _rencoIsBuildShadows;
     }
 
     /// <summary>

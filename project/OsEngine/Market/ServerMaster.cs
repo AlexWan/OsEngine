@@ -8,6 +8,7 @@ using System.IO;
 using System.Threading;
 using System.Windows.Forms.Integration;
 using OsEngine.Logging;
+using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.AstsBridge;
 using OsEngine.Market.Servers.Binance;
 using OsEngine.Market.Servers.Bitfinex;
@@ -18,7 +19,6 @@ using OsEngine.Market.Servers.InteractivBrokers;
 using OsEngine.Market.Servers.Kraken;
 using OsEngine.Market.Servers.NinjaTrader;
 using OsEngine.Market.Servers.Oanda;
-using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Plaza;
 using OsEngine.Market.Servers.Quik;
 using OsEngine.Market.Servers.QuikLua;
@@ -26,7 +26,7 @@ using OsEngine.Market.Servers.SmartCom;
 using OsEngine.Market.Servers.Tester;
 using MessageBox = System.Windows.MessageBox;
 
-namespace OsEngine.Market.Servers
+namespace OsEngine.Market
 {
     /// <summary>
     /// класс менеджер серверов подключения к бирже
@@ -40,11 +40,6 @@ namespace OsEngine.Market.Servers
         /// массив развёрнутых серверов
         /// </summary>
         private static List<IServer> _servers;
-
-        /// <summary>
-        /// какая программа запустила мастер серверов
-        /// </summary>
-        public static ServerStartProgramm StartProgram;
 
         /// <summary>
         /// отключить все сервера
@@ -67,18 +62,21 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// показать настройки
         /// </summary>
-        public static void ShowDialog() 
+        public static void ShowDialog(bool isTester)
         {
-            if (StartProgram == ServerStartProgramm.IsTester)
+            if (_ui == null)
             {
-                ServerMasterUi ui = new ServerMasterUi();
+                _ui = new ServerMasterUi(isTester);
+                _ui.Show();
+                _ui.Closing += (sender, args) => { _ui = null; };
             }
             else
             {
-                ServerMasterUi ui = new ServerMasterUi();
-                ui.ShowDialog();
+                _ui.Activate();
             }
         }
+
+        private static ServerMasterUi _ui;
 
         /// <summary>
         /// создать сервер
@@ -93,224 +91,170 @@ namespace OsEngine.Market.Servers
                 {
                     _servers = new List<IServer>();
                 }
+
+                if (_servers.Find(server => server.ServerType == type) != null)
+                {
+                    return;
+                }
+
                 if (type == ServerType.Bitfinex)
                 {
-                    if (_servers.Find(server => server.ServerType == ServerType.Bitfinex) != null)
-                    {
-                        return;
-                    }
-
                     BitfinexServer serv = new BitfinexServer(neadLoadTicks);
                     _servers.Add(serv);
 
                     if (ServerCreateEvent != null)
                     {
-                        ServerCreateEvent();
+                        ServerCreateEvent(serv);
                     }
                 }
                 if (type == ServerType.Binance)
                 {
-                    if (_servers.Find(server => server.ServerType == ServerType.Binance) != null)
-                    {
-                        return;
-                    }
-
-                    BinanceServer serv = new BinanceServer(neadLoadTicks);
+                    BinanceServer serv = new BinanceServer();
                     _servers.Add(serv);
 
                     if (ServerCreateEvent != null)
                     {
-                        ServerCreateEvent();
+                        ServerCreateEvent(serv);
                     }
                 }
                 if (type == ServerType.NinjaTrader)
                 {
-                    if (_servers.Find(server => server.ServerType == ServerType.NinjaTrader) != null)
-                    {
-                        return;
-                    }
-
                     NinjaTraderServer serv = new NinjaTraderServer(neadLoadTicks);
                     _servers.Add(serv);
 
                     if (ServerCreateEvent != null)
                     {
-                        ServerCreateEvent();
+                        ServerCreateEvent(serv);
                     }
                 }
                 if (type == ServerType.BitStamp)
                 {
-                    if (_servers.Find(server => server.ServerType == ServerType.BitStamp) != null)
-                    {
-                        return;
-                    }
-
                     BitStampServer serv = new BitStampServer(neadLoadTicks);
                     _servers.Add(serv);
 
                     if (ServerCreateEvent != null)
                     {
-                        ServerCreateEvent();
+                        ServerCreateEvent(serv);
                     }
                 }
                 if (type == ServerType.Kraken)
                 {
-                    if (_servers.Find(server => server.ServerType == ServerType.Kraken) != null)
-                    {
-                        return;
-                    }
-
                     KrakenServer serv = new KrakenServer(neadLoadTicks);
                     _servers.Add(serv);
 
                     if (ServerCreateEvent != null)
                     {
-                        ServerCreateEvent();
+                        ServerCreateEvent(serv);
                     }
                 }
                 if (type == ServerType.Oanda)
                 {
-                    if (_servers.Find(server => server.ServerType == ServerType.Oanda) != null)
-                    {
-                        return;
-                    }
-
                     OandaServer serv = new OandaServer(neadLoadTicks);
                     _servers.Add(serv);
 
                     if (ServerCreateEvent != null)
                     {
-                        ServerCreateEvent();
+                        ServerCreateEvent(serv);
                     }
                 }
                 if (type == ServerType.BitMex)
                 {
-                    if (_servers.Find(server => server.ServerType == ServerType.BitMex) != null)
-                    {
-                        return;
-                    }
-
                     BitMexServer serv = new BitMexServer(neadLoadTicks);
                     _servers.Add(serv);
 
                     if (ServerCreateEvent != null)
                     {
-                        ServerCreateEvent();
+                        ServerCreateEvent(serv);
                     }
                 }
                 if (type == ServerType.QuikLua)
                 {
-                    if (_servers.Find(server => server.ServerType == ServerType.QuikLua) != null)
-                    {
-                        return;
-                    }
                     QuikLuaServer serv = new QuikLuaServer(neadLoadTicks);
                     _servers.Add(serv);
 
                     if (ServerCreateEvent != null)
                     {
-                        ServerCreateEvent();
+                        ServerCreateEvent(serv);
                     }
                 }
 
                 if (type == ServerType.QuikDde)
                 {
-                    if (_servers.Find(server => server.ServerType == ServerType.QuikDde) != null)
-                    {
-                        return;
-                    }
-
-                    QuikServer serv = new QuikServer(neadLoadTicks);
+                    QuikServer serv = new QuikServer();
                     _servers.Add(serv);
 
                     if (ServerCreateEvent != null)
                     {
-                        ServerCreateEvent();
+                        ServerCreateEvent(serv);
                     }
                 }
                 if (type == ServerType.InteractivBrokers)
                 {
-                    if (_servers.Find(server => server.ServerType == ServerType.InteractivBrokers) != null)
-                    {
-                        return;
-                    }
-
                     InteractivBrokersServer serv = new InteractivBrokersServer();
                     _servers.Add(serv);
 
                     if (ServerCreateEvent != null)
                     {
-                        ServerCreateEvent();
+                        ServerCreateEvent(serv);
                     }
                 }
                 else if (type == ServerType.SmartCom)
                 {
-                    if (_servers.Find(server => server.ServerType == ServerType.SmartCom) != null)
-                    {
-                        return;
-                    }
                     try
                     {
                         SmartComServer serv = new SmartComServer();
                         _servers.Add(serv);
+                        if (ServerCreateEvent != null)
+                        {
+                            ServerCreateEvent(serv);
+                        }
                     }
                     catch (Exception)
                     {
                         MessageBox.Show(
                             "Произошла ошибка создания сервера СмартКом. Вероятно у Вас не установлена соответствующая программа. SmartCOM_Setup_3.0.146.msi ");
-                        return;
-                    }
-
-                    if (ServerCreateEvent != null)
-                    {
-                        ServerCreateEvent();
+                        throw;
                     }
                 }
                 else if (type == ServerType.Plaza)
                 {
-                    if (_servers.Find(server => server.ServerType == ServerType.Plaza) != null)
-                    {
-                        return;
-                    }
                     try
                     {
                         PlazaServer serv = new PlazaServer(neadLoadTicks);
                         _servers.Add(serv);
+                        if (ServerCreateEvent != null)
+                        {
+                            ServerCreateEvent(serv);
+                        }
                     }
                     catch (Exception)
                     {
                         MessageBox.Show(
                             "Произошла ошибка создания сервера Плаза. Вероятно у Вас не установлено соответствующее программное обеспечение.");
-                        return;
+                        throw;
                     }
 
-                    if (ServerCreateEvent != null)
-                    {
-                        ServerCreateEvent();
-                    }
+
                 }
                 else if (type == ServerType.AstsBridge)
                 {
-                    if (_servers.Find(server => server.ServerType == ServerType.AstsBridge) != null)
-                    {
-                        return;
-                    }
                     try
                     {
                         AstsBridgeServer serv = new AstsBridgeServer(neadLoadTicks);
                         _servers.Add(serv);
+                        if (ServerCreateEvent != null)
+                        {
+                            ServerCreateEvent(serv);
+                        }
                     }
                     catch (Exception)
                     {
                         MessageBox.Show(
-                            "Произошла ошибка создания сервера Плаза. Вероятно у Вас не установлено соответствующее программное обеспечение.");
-                        return;
+                            "Произошла ошибка создания сервера ASTS Bridge. Вероятно у Вас не установлено соответствующее программное обеспечение.");
+                        throw;
                     }
 
-                    if (ServerCreateEvent != null)
-                    {
-                        ServerCreateEvent();
-                    }
+
                 }
                 else if (type == ServerType.Tester)
                 {
@@ -318,18 +262,19 @@ namespace OsEngine.Market.Servers
                     {
                         TesterServer serv = new TesterServer();
                         _servers.Add(serv);
+                        if (ServerCreateEvent != null)
+                        {
+                            ServerCreateEvent(serv);
+                        }
                     }
                     catch (Exception)
                     {
                         MessageBox.Show(
                             "Произошла ошибка создания тестового сервера.");
-                        return;
+                        throw;
                     }
 
-                    if (ServerCreateEvent != null)
-                    {
-                        ServerCreateEvent();
-                    }
+
                 }
                 else if (type == ServerType.Finam)
                 {
@@ -337,41 +282,27 @@ namespace OsEngine.Market.Servers
                     {
                         FinamServer serv = new FinamServer();
                         _servers.Add(serv);
+                        if (ServerCreateEvent != null)
+                        {
+                            ServerCreateEvent(serv);
+                        }
                     }
                     catch (Exception)
                     {
                         MessageBox.Show(
-                            "Произошла ошибка создания тестового сервера.");
-                        return;
+                            "Произошла ошибка создания тестера финам.");
+                        throw ;
                     }
 
-                    if (ServerCreateEvent != null)
-                    {
-                        ServerCreateEvent();
-                    }
+
                 }
+
+                SendNewLogMessage("Создан сервер: " + _servers[_servers.Count - 1].ServerType, LogMessageType.System);
             }
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-        }
-
-        /// <summary>
-        /// создать новый сервер оптимизации
-        /// </summary>
-        public static OptimizerServer CreateNextOptimizerServer(OptimizerDataStorage storage, int num, decimal portfolioStartVal)
-        {
-            _servers = new List<IServer>();
-
-            OptimizerServer serv = new OptimizerServer(storage, num, portfolioStartVal);
-            _servers.Add(serv);
-
-            if (ServerCreateEvent != null)
-            {
-                ServerCreateEvent();
-            }
-            return serv;
         }
 
         /// <summary>
@@ -385,14 +316,40 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// создан новый сервер
         /// </summary>
-        public static event Action ServerCreateEvent;
+        public static event Action<IServer> ServerCreateEvent;
+
+        /// <summary>
+        /// взять список существующих подключений
+        /// </summary>
+        /// <returns></returns>
+        public static List<ServerType> GetServerTypes()
+        {
+            List < ServerType > types = new List<ServerType>();
+
+            types.Add(ServerType.AstsBridge);
+            types.Add(ServerType.Binance);
+            types.Add(ServerType.BitMex);
+            types.Add(ServerType.BitStamp);
+            types.Add(ServerType.Bitfinex);
+            types.Add(ServerType.Finam);
+            types.Add(ServerType.InteractivBrokers);
+            types.Add(ServerType.Kraken);
+            types.Add(ServerType.NinjaTrader);
+            types.Add(ServerType.Oanda);
+            types.Add(ServerType.Plaza);
+            types.Add(ServerType.QuikDde);
+            types.Add(ServerType.QuikLua);
+            types.Add(ServerType.SmartCom);
+
+            return types;
+        }
 
 // создание серверов автоматически
 
         /// <summary>
         /// загрузить настройки сервера
         /// </summary>
-        public static void Activate()
+        public static void ActivateAutoConnection()
         {
             Load();
             Thread starterThread = new Thread(ThreadStarterWorkArea);
@@ -486,10 +443,6 @@ namespace OsEngine.Market.Servers
         /// </summary>
         private static void ThreadStarterWorkArea()
         {
-            if (StartProgram == ServerStartProgramm.IsTester)
-            {
-                return;
-            }
             Thread.Sleep(20000);
             while (true)
             {
@@ -512,6 +465,12 @@ namespace OsEngine.Market.Servers
 
                 for (int i = 0; _needServerTypes != null && i < _needServerTypes.Count; i++)
                 {
+                    if (_needServerTypes[i] == ServerType.Tester ||
+                        _needServerTypes[i] == ServerType.Optimizer ||
+                        _needServerTypes[i] == ServerType.Miner)
+                    {
+                        continue;
+                    }
                     TryStartThisSevrverInAutoType(_needServerTypes[i]);
                 }
             }
@@ -597,7 +556,18 @@ namespace OsEngine.Market.Servers
             _painter.SetHostTable(hostPortfolio, hostOrders);
         }
 
-        // сообщения в лог
+// сообщения в лог
+
+        public static void ActivateLogging()
+        {
+            if (Log == null)
+            {
+                Log = new Log("ServerMaster",StartProgram.IsOsTrader);
+                Log.ListenServerMaster();
+            }
+        }
+
+        public static Log Log;
 
         /// <summary>
         /// выслать новое сообщение на верх
@@ -624,7 +594,7 @@ namespace OsEngine.Market.Servers
     /// <summary>
     /// какая программа запустила мастер серверов
     /// </summary>
-    public enum ServerStartProgramm
+    public enum StartProgram
     {
         /// <summary>
         /// тестер
@@ -662,6 +632,10 @@ namespace OsEngine.Market.Servers
     /// </summary>
     public enum ServerType
     {
+        /// <summary>
+        /// Тип сервера не назначен
+        /// </summary>
+        None,
         /// <summary>
         /// биржа криптовалют Bitfinex
         /// </summary>
@@ -745,11 +719,6 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// AstsBridge, он же ШЛЮЗ, он же TEAP 
         /// </summary>
-        AstsBridge,
-
-        /// <summary>
-        /// Тип сервера не назначен
-        /// </summary>
-        Unknown
+        AstsBridge
     }
 }

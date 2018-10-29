@@ -4,6 +4,7 @@
 
 using System;
 using OsEngine.Entity;
+using OsEngine.Market;
 
 namespace OsEngine.OsTrader.Panels.Tab.Internal
 {
@@ -17,14 +18,14 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// создать сделку
         /// </summary>
         public Position CreatePosition(string botName, Side direction, decimal priceOrder, decimal volume, OrderPriceType priceType, TimeSpan timeLife,
-            Security security, Portfolio portfolio)
+            Security security, Portfolio portfolio, StartProgram startProgram)
         {
             Position newDeal = new Position();
-            newDeal.Number = NumberGen.GetNumberDeal();
+            newDeal.Number = NumberGen.GetNumberDeal(startProgram);
             newDeal.Direction = direction;
             newDeal.State = PositionStateType.Opening;
 
-            newDeal.AddNewOpenOrder(CreateOrder(direction, priceOrder, volume, priceType, timeLife));
+            newDeal.AddNewOpenOrder(CreateOrder(direction, priceOrder, volume, priceType, timeLife, startProgram));
 
             newDeal.NameBot = botName;
             newDeal.Lots = security.Lot;
@@ -38,10 +39,10 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// <summary>
         /// создать ордер
         /// </summary>
-        public Order CreateOrder(Side direction, decimal priceOrder, decimal volume, OrderPriceType priceType, TimeSpan timeLife)
+        public Order CreateOrder(Side direction, decimal priceOrder, decimal volume, OrderPriceType priceType, TimeSpan timeLife, StartProgram startProgram)
         {
             Order newOrder = new Order();
-            newOrder.NumberUser = NumberGen.GetNumberOrder();
+            newOrder.NumberUser = NumberGen.GetNumberOrder(startProgram);
             newOrder.Side = direction;
             newOrder.Price = priceOrder;
             newOrder.Volume = volume;
@@ -54,7 +55,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// <summary>
         /// создать закрывающий ордер для сделки
         /// </summary>
-        public Order CreateCloseOrderForDeal(Position deal, decimal price, OrderPriceType priceType, TimeSpan timeLife)
+        public Order CreateCloseOrderForDeal(Position deal, decimal price, OrderPriceType priceType, TimeSpan timeLife, StartProgram startProgram)
         {
             Side direction;
 
@@ -76,7 +77,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             Order newOrder = new Order();
 
-            newOrder.NumberUser = NumberGen.GetNumberOrder();
+            newOrder.NumberUser = NumberGen.GetNumberOrder(startProgram);
             newOrder.Side = direction;
             newOrder.Price = price;
             newOrder.Volume = volume;

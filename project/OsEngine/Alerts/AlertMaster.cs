@@ -12,7 +12,7 @@ using System.Windows.Forms.Integration;
 using OsEngine.Charts;
 using OsEngine.Entity;
 using OsEngine.Logging;
-using OsEngine.Market;
+using OsEngine.Market.Connectors;
 using MessageBox = System.Windows.MessageBox;
 using MouseEventArgs = System.Windows.Forms.MouseEventArgs;
 
@@ -30,7 +30,7 @@ namespace OsEngine.Alerts
         /// <param name="name">имя владельца хранилища алертов</param>
         /// <param name="connector">коннектор</param>
         /// <param name="chartMaster">чарт</param>
-        public AlertMaster(string name, Connector connector, ChartMaster chartMaster) 
+        public AlertMaster(string name, ConnectorCandles connector, ChartMaster chartMaster) 
         {
             _name = name;
             _connector = connector;
@@ -103,7 +103,7 @@ namespace OsEngine.Alerts
         /// <summary>
         /// коннектор
         /// </summary>
-        private Connector _connector; 
+        private ConnectorCandles _connector; 
 
         /// <summary>
         /// мастер прорисовки графика

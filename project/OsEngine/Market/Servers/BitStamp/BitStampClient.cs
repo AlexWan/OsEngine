@@ -2,18 +2,18 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using Newtonsoft.Json;
-using RestSharp;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Net;
 using System.Threading;
+using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.BitStamp.BitStampEntity;
-using Trade = OsEngine.Entity.Trade;
 using PusherClient;
-using System.Globalization;
+using RestSharp;
+using Trade = OsEngine.Entity.Trade;
 
 
 namespace OsEngine.Market.Servers.BitStamp

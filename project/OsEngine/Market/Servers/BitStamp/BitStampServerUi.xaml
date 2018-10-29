@@ -1,7 +1,7 @@
 ﻿<Window x:Class="OsEngine.Market.Servers.BitStamp.BitStampServerUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Подключение к BitStamp" Height="339.667" Width="662" MinWidth="690" MinHeight="200" Style="{StaticResource WindowStyleCanResize}" Topmost="True" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+        Title="Подключение к BitStamp" Height="339.667" Width="662" MinWidth="690" MinHeight="200" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid Margin="0,0,0,2">
         <Rectangle Margin="5,5,5,37"/>
         <TextBox Name="TextBoxUserId" Height="23" Margin="454,10,15,0" TextWrapping="Wrap" VerticalAlignment="Top"/>

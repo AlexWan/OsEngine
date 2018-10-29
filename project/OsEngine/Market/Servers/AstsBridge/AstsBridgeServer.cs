@@ -9,10 +9,10 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading;
+using System.Windows.Forms;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
-using System.Windows.Forms;
 
 namespace OsEngine.Market.Servers.AstsBridge
 {
@@ -35,7 +35,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
             Load();
 
-            _logMaster = new Log("AstsBridgeServer");
+            _logMaster = new Log("AstsBridgeServer", StartProgram.IsOsTrader);
             _logMaster.Listen(this);
 
             _serverStatusNead = ServerConnectStatus.Disconnect;
@@ -84,9 +84,23 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         public void ShowDialog()
         {
-            AstsServerUi ui = new AstsServerUi(this, _logMaster);
-           ui.ShowDialog();
+            if (_ui == null)
+            {
+                _ui = new AstsServerUi(this, _logMaster);
+                _ui.Show();
+                _ui.Closing += (sender, args) => { _ui = null; };
+            }
+            else
+            {
+                _ui.Activate();
+            }
+            
         }
+
+        /// <summary>
+        /// окно управления элемента
+        /// </summary>
+        private AstsServerUi _ui;
 
         /// <summary>
         /// адрес сервера по которому нужно соединяться с сервером
@@ -1067,7 +1081,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                     }
 
 
-                    CandleSeries series = new CandleSeries(timeFrameBuilder, security);
+                    CandleSeries series = new CandleSeries(timeFrameBuilder, security, StartProgram.IsOsTrader);
 
                     lock (_serverLocker)
                     {

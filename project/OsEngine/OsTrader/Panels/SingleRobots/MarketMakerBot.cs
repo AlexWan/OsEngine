@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using OsEngine.Charts.CandleChart.Elements;
 using OsEngine.Entity;
+using OsEngine.Market;
 using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.OsTrader.Panels.SingleRobots
@@ -15,8 +16,8 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         /// <summary>
         /// конструктор
         /// </summary>
-        public MarketMakerBot(string name)
-            : base(name)
+        public MarketMakerBot(string name, StartProgram startProgram)
+            : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];

@@ -9,8 +9,8 @@ using System.IO;
 using System.Threading;
 using OsEngine.Entity;
 using OsEngine.Logging;
-using OsEngine.Market.Servers.Plaza.Internal;
 using OsEngine.Market.Servers.Entity;
+using OsEngine.Market.Servers.Plaza.Internal;
 
 namespace OsEngine.Market.Servers.Plaza
 {
@@ -29,7 +29,7 @@ namespace OsEngine.Market.Servers.Plaza
             _countDaysTickNeadToSave = 3;
             ServerStatus = ServerConnectStatus.Disconnect;
             ServerType = ServerType.Plaza;
-            _logMaster = new Log("PlazaServer");
+            _logMaster = new Log("PlazaServer",StartProgram.IsOsTrader);
             _logMaster.Listen(this);
             KeyToProggram = "11111111";
             Load();
@@ -53,13 +53,26 @@ namespace OsEngine.Market.Servers.Plaza
         public ServerType ServerType { get; set; }
 
         /// <summary>
-        /// показать окно настроек
+        /// показать настройки
         /// </summary>
         public void ShowDialog()
         {
-            PlazaServerUi ui = new PlazaServerUi(this,_logMaster);
-            ui.ShowDialog();
+            if (_ui == null)
+            {
+                _ui = new PlazaServerUi(this, _logMaster);
+                _ui.Show();
+                _ui.Closing += (sender, args) => { _ui = null; };
+            }
+            else
+            {
+                _ui.Activate();
+            }
         }
+
+        /// <summary>
+        /// окно управления элемента
+        /// </summary>
+        private PlazaServerUi _ui;
 
         /// <summary>
         /// сохранить настройки
@@ -538,7 +551,7 @@ namespace OsEngine.Market.Servers.Plaza
                     return null;
                 }
 
-                CandleSeries series = new CandleSeries(timeFrameBuilder, security);
+                CandleSeries series = new CandleSeries(timeFrameBuilder, security,StartProgram.IsOsTrader);
 
                 _plazaController.StartMarketDepth(security);
                 Thread.Sleep(5000);

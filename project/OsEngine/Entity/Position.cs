@@ -996,6 +996,11 @@ namespace OsEngine.Entity
     public enum Side
     {
         /// <summary>
+        /// не определено
+        /// </summary>
+        None,
+
+        /// <summary>
         /// купля
         /// </summary>
         Buy,
@@ -1003,11 +1008,6 @@ namespace OsEngine.Entity
         /// <summary>
         /// продажа
         /// </summary>
-        Sell,
-
-        /// <summary>
-        /// неизвестно
-        /// </summary>
-        UnKnown
+        Sell
     }
 }

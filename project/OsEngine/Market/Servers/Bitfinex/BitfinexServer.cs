@@ -43,7 +43,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 _tickStorage.LoadTick();
             }
 
-            _logMaster = new Log("BitfinexServer");
+            _logMaster = new Log("BitfinexServer", StartProgram.IsOsTrader);
             _logMaster.Listen(this);
 
             _serverStatusNead = ServerConnectStatus.Disconnect;
@@ -103,9 +103,23 @@ namespace OsEngine.Market.Servers.Bitfinex
         /// </summary>
         public void ShowDialog()
         {
-            BitfinexServerUi ui = new BitfinexServerUi(this, _logMaster);
-            ui.ShowDialog();
+            if (_ui == null)
+            {
+                _ui = new BitfinexServerUi(this, _logMaster);
+                _ui.Show();
+                _ui.Closing += (sender, args) => { _ui = null; };
+            }
+            else
+            {
+                _ui.Activate();
+            }
+           
         }
+
+        /// <summary>
+        /// окно управления элемента
+        /// </summary>
+        private BitfinexServerUi _ui;
 
         /// <summary>
         /// публичный ключ пользователя
@@ -1034,7 +1048,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                         return null;
                     }
 
-                    CandleSeries series = new CandleSeries(timeFrameBuilder, security);
+                    CandleSeries series = new CandleSeries(timeFrameBuilder, security, StartProgram.IsOsTrader);
 
                     _client.SubscribleTradesAndDepths(security);
 

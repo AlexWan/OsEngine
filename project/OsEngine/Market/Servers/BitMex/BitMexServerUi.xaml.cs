@@ -5,9 +5,6 @@
 using System;
 using System.Windows;
 using OsEngine.Logging;
-using OsEngine.Market.Servers.BitMex;
-
-
 
 namespace OsEngine.Market.Servers.BitMex
 {

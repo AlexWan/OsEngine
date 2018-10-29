@@ -17,7 +17,7 @@ using OsEngine.Entity;
 using OsEngine.Journal;
 using OsEngine.Logging;
 using OsEngine.Market;
-using OsEngine.Market.Servers;
+using OsEngine.Market.Connectors;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
@@ -47,12 +47,15 @@ namespace OsEngine.OsTrader
         /// <param name="tabBotTab">панель робота с вкладками инструментов</param>
         /// <param name="textBoxLimitPrice">текстБокс с ценой лимитника при вводе заявки</param>
         /// <param name="gridChartControlPanel">грид для панели управления чартом</param>
+        /// <param name="startProgram">тип программы который запросил создание класса</param>
         public OsTraderMaster(WindowsFormsHost hostChart, WindowsFormsHost hostGlass, WindowsFormsHost hostOpenDeals,
             WindowsFormsHost hostCloseDeals, WindowsFormsHost hostAllDeals, WindowsFormsHost hostLogBot, WindowsFormsHost hostLogPrime, Rectangle rectangleAroundChart, WindowsFormsHost hostAlerts,
-            TabControl tabPanel, TabControl tabBotTab, TextBox textBoxLimitPrice, Grid gridChartControlPanel)
+            TabControl tabPanel, TabControl tabBotTab, TextBox textBoxLimitPrice, Grid gridChartControlPanel, StartProgram startProgram)
         {
-            NumberGen.GetNumberOrder();
-            if (ServerMaster.StartProgram == ServerStartProgramm.IsTester)
+            NumberGen.GetNumberOrder(startProgram);
+            _startProgram = startProgram;
+
+            if (_startProgram == StartProgram.IsTester)
             {
                 _typeWorkKeeper = ConnectorWorkType.Tester;
                 ((TesterServer)ServerMaster.GetServers()[0]).TestingStartEvent += StrategyKeeper_TestingStartEvent;
@@ -60,9 +63,9 @@ namespace OsEngine.OsTrader
                 ((TesterServer)ServerMaster.GetServers()[0]).TestingEndEvent += StrategyKeeper_TestingEndEvent;
             }
 
-            if (ServerMaster.StartProgram != ServerStartProgramm.IsTester)
+            if (_startProgram != StartProgram.IsTester)
             {
-                ServerMaster.Activate();
+                ServerMaster.ActivateAutoConnection();
             }
 
             ServerMaster.LogMessageEvent += SendNewLogMessage;
@@ -87,13 +90,13 @@ namespace OsEngine.OsTrader
             _tabBotNames = tabPanel;
             _tabBotNames.Items.Clear();
 
-            _riskManager = new RiskManager.RiskManager("GlobalRiskManager");
+            _riskManager = new RiskManager.RiskManager("GlobalRiskManager", _startProgram);
             _riskManager.RiskManagerAlarmEvent += _riskManager_RiskManagerAlarmEvent;
             _riskManager.LogMessageEvent += SendNewLogMessage;
-            _globalController = new GlobalPosition(_hostAllDeals);
+            _globalController = new GlobalPosition(_hostAllDeals,_startProgram);
             _globalController.LogMessageEvent += SendNewLogMessage;
 
-            _log = new Log("Prime");
+            _log = new Log("Prime",_startProgram);
             _log.StartPaint(hostLogPrime);
             _log.Listen(this);
             _hostLogPrime = hostLogPrime;
@@ -120,6 +123,11 @@ namespace OsEngine.OsTrader
         private ConnectorWorkType _typeWorkKeeper;
         private TextBox _textBoxLimitPrice;
         private Grid _gridChartControlPanel;
+
+        /// <summary>
+        /// какая программа запустила класс
+        /// </summary>
+        private StartProgram _startProgram;
 
         /// <summary>
         /// массив роботов
@@ -171,7 +179,7 @@ namespace OsEngine.OsTrader
                 while (!reader.EndOfStream)
                 {
                     string[] names = reader.ReadLine().Split('@');
-                    BotPanel bot = PanelCreator.GetStrategyForName(names[1], names[0]);
+                    BotPanel bot = PanelCreator.GetStrategyForName(names[1], names[0],_startProgram);
                     if (bot != null)
                     {
                         _panelsArray.Add(bot);
@@ -516,7 +524,7 @@ namespace OsEngine.OsTrader
                     panelsJournal.Add(botPanel);
                 }
 
-                _journalUi = new JournalUi(panelsJournal);
+                _journalUi = new JournalUi(panelsJournal,_startProgram);
                 _journalUi.LogMessageEvent += SendNewLogMessage;
                 _journalUi.Closed += _journalUi_Closed;
                 _journalUi.Show();
@@ -824,7 +832,7 @@ namespace OsEngine.OsTrader
 
                 // 3 создаём робота и сохраняем
 
-                BotPanel newRobot = PanelCreator.GetStrategyForName(ui.NameStrategy, ui.NameBot);
+                BotPanel newRobot = PanelCreator.GetStrategyForName(ui.NameStrategy, ui.NameBot, _startProgram);
 
                 if (_panelsArray == null)
                 {

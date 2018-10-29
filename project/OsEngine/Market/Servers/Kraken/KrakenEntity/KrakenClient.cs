@@ -11,7 +11,6 @@ using Jayrock.Json.Conversion;
 using OsEngine.Entity;
 using OsEngine.Logging;
 
-
 namespace OsEngine.Market.Servers.Kraken.KrakenEntity
 {
 

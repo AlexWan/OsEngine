@@ -9,7 +9,7 @@ using System.IO;
 using System.Threading;
 using OsEngine.Entity;
 using OsEngine.Logging;
-using OsEngine.Market.Servers;
+using OsEngine.Market;
 using OsEngine.Market.Servers.Tester;
 
 namespace OsEngine.OsMiner
@@ -24,7 +24,7 @@ namespace OsEngine.OsMiner
         /// </summary>
         public OsMinerServer(string name)
         {
-            Log = new Log(name + "DataServer");
+            Log = new Log(name + "DataServer",StartProgram.IsOsMiner);
             Log.Listen(this);
             _name = name;
 

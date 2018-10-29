@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using OsEngine.Entity;
-using OsEngine.Market.Servers;
+using OsEngine.Market;
 
 namespace OsEngine.OsData
 {
@@ -70,7 +70,7 @@ namespace OsEngine.OsData
 
             CheckBoxNeadToLoadDataInServers.IsChecked = set.NeadToLoadDataInServers;
 
-            ComboBoxSource.Items.Add(ServerType.Unknown);
+            ComboBoxSource.Items.Add(ServerType.None);
             ComboBoxSource.Items.Add(ServerType.Finam);
             ComboBoxSource.Items.Add(ServerType.InteractivBrokers);
             ComboBoxSource.Items.Add(ServerType.Plaza);
@@ -81,6 +81,9 @@ namespace OsEngine.OsData
             ComboBoxSource.Items.Add(ServerType.Binance);
             ComboBoxSource.Items.Add(ServerType.BitStamp);
             ComboBoxSource.Items.Add(ServerType.NinjaTrader);
+            ComboBoxSource.Items.Add(ServerType.SmartCom);
+            ComboBoxSource.Items.Add(ServerType.Oanda);
+
 
             ComboBoxSource.SelectedItem = _set.Source;
             ComboBoxSource.SelectionChanged += ComboBoxSource_SelectionChanged;
@@ -379,6 +382,10 @@ namespace OsEngine.OsData
                 MessageBox.Show(@"Сохранение прервано. Сету необходимо задать имя");
                 return;
             }
+
+            TextBoxFolderName.Text = TextBoxFolderName.Text.Replace("_", "");
+            TextBoxFolderName.Text = TextBoxFolderName.Text.Replace("\\", "");
+            TextBoxFolderName.Text = TextBoxFolderName.Text.Replace("/", "");
 
             SaveSettings();
 

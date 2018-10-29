@@ -1,6 +1,6 @@
-﻿using OsEngine.Logging;
-using System;
+﻿using System;
 using System.Windows;
+using OsEngine.Logging;
 
 namespace OsEngine.Market.Servers.Binance
 {
@@ -10,13 +10,18 @@ namespace OsEngine.Market.Servers.Binance
     public partial class BinanceServerUi
     {
         private BinanceServer _server;
+
+        private BinanceServerRealization _serverRealization;
+
         public BinanceServerUi(BinanceServer server, Log log)
         {
             InitializeComponent();
             _server = server;
 
-            TextBoxUserKey.Password = _server.UserKey;
-            TextBoxUserSecretKey.Password = _server.UserPrivateKey;
+            _serverRealization = (BinanceServerRealization)_server.ServerRealization;
+
+            TextBoxUserKey.Password = _serverRealization.UserKey;
+            TextBoxUserSecretKey.Password = _serverRealization.UserPrivateKey;
 
             LabelStatus.Content = _server.ServerStatus;
             _server.ConnectStatusChangeEvent += _server_ConnectStatusChangeEvent;
@@ -69,8 +74,8 @@ namespace OsEngine.Market.Servers.Binance
 
         private void ButtonConnect_Click(object sender, RoutedEventArgs e)
         {
-            _server.UserKey = TextBoxUserKey.Password;
-            _server.UserPrivateKey = TextBoxUserSecretKey.Password;
+            _serverRealization.UserKey = TextBoxUserKey.Password;
+            _serverRealization.UserPrivateKey = TextBoxUserSecretKey.Password;
             _server.Save();
             _server.StartServer();
         }

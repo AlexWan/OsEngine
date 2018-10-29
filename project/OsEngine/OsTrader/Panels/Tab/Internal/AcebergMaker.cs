@@ -133,8 +133,10 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// <param name="bot">робот которому принадлежит айсберг</param>
         /// <param name="type">тип айсберга</param>
         /// <param name="volume">общий объём</param>
+        /// <param name="startProgram">программа которая создала робота создающего айсберг</param>
         public Aceberg(decimal price, TimeSpan lifiTime, int ordersCount, Position position, BotTabSimple bot, AcebergType type, decimal volume)
         {
+         
             _bot = bot;
             _price = price;
             _lifiTime = lifiTime;
@@ -232,7 +234,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 orders[i].Price = _price;
                 orders[i].PortfolioNumber = _bot.Portfolio.Number;
                 orders[i].SecurityNameCode = _bot.Securiti.Name;
-                orders[i].NumberUser = NumberGen.GetNumberOrder();
+                orders[i].NumberUser = NumberGen.GetNumberOrder(_bot.StartProgram);
   
                 if (i + 1 == orders.Length)
                 {// если это последний ордер, 
@@ -285,7 +287,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 orders[i].Price = _price;
                 orders[i].PortfolioNumber = _bot.Portfolio.Number;
                 orders[i].SecurityNameCode = _bot.Securiti.Name;
-                orders[i].NumberUser = NumberGen.GetNumberOrder();
+                orders[i].NumberUser = NumberGen.GetNumberOrder(_bot.StartProgram);
 
                 if (i + 1 == orders.Length)
                 {// если это последний ордер, 
@@ -329,7 +331,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 orders[i].Price = _price;
                 orders[i].PortfolioNumber = _bot.Portfolio.Number;
                 orders[i].SecurityNameCode = _bot.Securiti.Name;
-                orders[i].NumberUser = NumberGen.GetNumberOrder();
+                orders[i].NumberUser = NumberGen.GetNumberOrder(_bot.StartProgram);
 
                 if (i + 1 == orders.Length)
                 {// если это последний ордер, 
@@ -373,7 +375,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 orders[i].Price = _price;
                 orders[i].PortfolioNumber = _bot.Portfolio.Number;
                 orders[i].SecurityNameCode = _bot.Securiti.Name;
-                orders[i].NumberUser = NumberGen.GetNumberOrder();
+                orders[i].NumberUser = NumberGen.GetNumberOrder(_bot.StartProgram);
 
                 if (i + 1 == orders.Length)
                 {// если это последний ордер, 

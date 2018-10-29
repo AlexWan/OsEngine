@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Threading;
 
-
 namespace OsEngine.Market.Servers.Kraken.KrakenEntity
 {
     /// <summary>

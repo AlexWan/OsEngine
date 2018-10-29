@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using OsEngine.Entity;
 using OsEngine.Logging;
+using OsEngine.Market.Connectors;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
 
@@ -30,7 +31,7 @@ namespace OsEngine.Market.Servers.Tester
         public TesterServer()
         {
             _portfolios = new List<Portfolio>();
-            _logMaster = new Log("TesterServer");
+            _logMaster = new Log("TesterServer", StartProgram.IsTester);
             _logMaster.Listen(this);
             _serverConnectStatus = ServerConnectStatus.Disconnect;
             ServerStatus = ServerConnectStatus.Disconnect;
@@ -562,7 +563,7 @@ namespace OsEngine.Market.Servers.Tester
 
                     for (int i3 = 0; index.Tabs != null && i3 < index.Tabs.Count; i3++)
                     {
-                        Connector currentConnector = index.Tabs[i3];
+                        ConnectorCandles currentConnector = index.Tabs[i3];
 
                         if (!string.IsNullOrWhiteSpace(currentConnector.NamePaper))
                         {
@@ -2355,6 +2356,10 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         public event Action<string> ConnectStatusChangeEvent;
 
+        public int CountDaysTickNeadToSave { get; set; }
+
+        public bool NeadToSaveTicks { get; set; }
+
 // время сервера
 
         private DateTime _serverTime;
@@ -2635,7 +2640,7 @@ namespace OsEngine.Market.Servers.Tester
                     timeFrameBuilder.CandleMarketDataType = CandleMarketDataType.Tick;
                 }
 
-                CandleSeries series = new CandleSeries(timeFrameBuilder, security);
+                CandleSeries series = new CandleSeries(timeFrameBuilder, security, StartProgram.IsTester);
 
    // запускаем бумагу на выгрузку
 

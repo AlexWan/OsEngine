@@ -9,7 +9,7 @@ using System.IO;
 using System.Threading;
 using OsEngine.Entity;
 using OsEngine.Logging;
-using OsEngine.Market.Servers;
+using OsEngine.Market;
 
 namespace OsEngine.OsTrader.Panels.Tab.Internal
 {
@@ -57,11 +57,6 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// </summary>
         public static void WatcherHome()
         {
-            if (ServerMaster.StartProgram != ServerStartProgramm.IsOsTrader)
-            {
-                return;
-            }
-
             while (true)
             {
                 Thread.Sleep(2000);
@@ -82,9 +77,10 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
         private string _name;
 
-        public BotManualControl(string name, BotTabSimple botTab)
+        public BotManualControl(string name, BotTabSimple botTab,StartProgram startProgram)
         {
             _name = name;
+            _startProgram = startProgram;
 
             // грузим настройки по умолчанию
 
@@ -120,7 +116,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             _botTab = botTab;
 
-            if (ServerMaster.StartProgram != ServerStartProgramm.IsTester)
+            if (_startProgram != StartProgram.IsTester)
             {
                 if (Watcher == null)
                 {
@@ -242,6 +238,11 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             ui.ShowDialog();
         }
 
+        /// <summary>
+        /// программа создавшая робота 
+        /// </summary>
+        private StartProgram _startProgram;
+
         // стоп
         /// <summary>
         /// включен ли стоп
@@ -357,6 +358,11 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
 
             if (ServerTime == DateTime.MinValue)
+            {
+                return;
+            }
+
+            if (_startProgram != StartProgram.IsOsTrader)
             {
                 return;
             }

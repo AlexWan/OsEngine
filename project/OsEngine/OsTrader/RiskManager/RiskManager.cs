@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using OsEngine.Logging;
-using OsEngine.Market.Servers;
+using OsEngine.Market;
 
 namespace OsEngine.OsTrader.RiskManager
 {
@@ -53,11 +53,6 @@ namespace OsEngine.OsTrader.RiskManager
         /// </summary>
         public static void WatcherHome()
         {
-            if (ServerMaster.StartProgram != ServerStartProgramm.IsOsTrader)
-            {
-                return;
-            }
-
             while (true)
             {
                 Thread.Sleep(2000);
@@ -76,8 +71,14 @@ namespace OsEngine.OsTrader.RiskManager
 
 // сервис
 
-        public RiskManager(string nameBot)
+        /// <summary>
+        /// конструктор
+        /// </summary>
+        /// <param name="nameBot">uid / имя робота</param>
+        /// <param name="startProgram">программа которая запустила класс</param>
+        public RiskManager(string nameBot, StartProgram startProgram)
         {
+            _startProgram = startProgram;
             _name = nameBot + "RiskManager";
             MaxDrowDownToDayPersent = 1;
             Load();
@@ -88,6 +89,11 @@ namespace OsEngine.OsTrader.RiskManager
             }
             RiskManagersToCheck.Add(this);
         }
+
+        /// <summary>
+        /// какая программа запустила класс
+        /// </summary>
+        private StartProgram _startProgram;
 
         /// <summary>
         /// имя 
@@ -236,48 +242,47 @@ namespace OsEngine.OsTrader.RiskManager
         }
 
         /// <summary>
-        /// метод, в котором живёт поток, отвечающий за слежение за убытками
+        /// метод, в котором мы просматриваем журналы на превышение допустимых  норм убытков
         /// </summary>
         private void CheckJournals()
         {
-            while (true)
+            try
             {
-                try
+                if (!IsActiv)
                 {
-                    Thread.Sleep(5000);
+                    return;
+                }
 
-                    if (!IsActiv)
+                if (_startProgram != StartProgram.IsOsTrader)
+                {
+                    return;
+                }
+
+                if (_journals == null)
+                {
+                    return;
+                }
+
+                decimal profit = 0;
+
+                for (int i = 0; i < _journals.Count; i++)
+                {
+                    profit += _journals[i].GetProfitFromThatDayInPersent();
+                }
+
+                if (profit < -Math.Abs(MaxDrowDownToDayPersent))
+                {
+                    IsActiv = false;
+
+                    if (RiskManagerAlarmEvent != null)
                     {
-                        continue;
-                    }
-
-
-                    if (_journals == null)
-                    {
-                        continue;
-                    }
-
-                    decimal profit = 0;
-
-                    for (int i = 0; i < _journals.Count; i++)
-                    {
-                        profit += _journals[i].GetProfitFromThatDayInPersent();
-                    }
-
-                    if (profit < -Math.Abs(MaxDrowDownToDayPersent))
-                    {
-                        IsActiv = false;
-
-                        if (RiskManagerAlarmEvent != null)
-                        {
-                            RiskManagerAlarmEvent(ReactionType);
-                        }
+                        RiskManagerAlarmEvent(ReactionType);
                     }
                 }
-                catch (Exception error)
-                {
-                    SendNewLogMessage(error.ToString(), LogMessageType.Error);
-                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 

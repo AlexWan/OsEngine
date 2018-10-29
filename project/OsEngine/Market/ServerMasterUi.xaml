@@ -1,0 +1,21 @@
+﻿<Window x:Class="OsEngine.Market.ServerMasterUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Роутер" Height="350" Width="600" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
+    <Grid>
+        <TabControl Foreground="Black" Margin="0,0,0,0">
+            <TabItem Header="Подключения">
+                <Grid Background="Black">
+                    <WindowsFormsHost x:Name="HostSource" Foreground="Black" Margin="0,0,0,31"/>
+                    <CheckBox x:Name="CheckBoxServerAutoOpen" Content="Разворачивать сервера автоматически" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="0,0,0,10"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Логирование">
+                <Grid Background="Black">
+                    <WindowsFormsHost Name="HostLog" Foreground="Black" Margin="0,0,0,0"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+    </Grid>
+</Window>

@@ -2,14 +2,14 @@
 //
 //    var trades = BitfinexSnapshotParser.FromJson(jsonString);
 
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+
 namespace OsEngine.Market.Servers.Bitfinex.BitfitnexEntity
 {
-    using System;
-    using System.Collections.Generic;
-
-    using System.Globalization;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
 
     #region Парсер тиков
 
@@ -29,7 +29,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfitnexEntity
         public static List<ChangedElement> FromJson(string json)
         {
             return JsonConvert.DeserializeObject<List<ChangedElement>>(json,
-                OsEngine.Market.Servers.Bitfinex.BitfitnexEntity.ConverterTicks.Settings);
+                ConverterTicks.Settings);
         }
     }
 
@@ -120,7 +120,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfitnexEntity
         public static List<DataObject> FromJson(string json)
         {
             return JsonConvert.DeserializeObject<List<DataObject>>(json,
-                OsEngine.Market.Servers.Bitfinex.BitfitnexEntity.Converter.Settings);
+                Converter.Settings);
         }
     }
 
@@ -191,7 +191,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfitnexEntity
         public static List<List<double>> FromJson(string json)
         {
             return JsonConvert.DeserializeObject<List<List<double>>>(json,
-                OsEngine.Market.Servers.Bitfinex.BitfitnexEntity.CandlesConverter.Settings);
+                CandlesConverter.Settings);
         }
     }
 
@@ -217,7 +217,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfitnexEntity
         public static List<double> FromJson(string json)
         {
             return JsonConvert.DeserializeObject<List<double>>(json,
-                OsEngine.Market.Servers.Bitfinex.BitfitnexEntity.ConverterLastCandle.Settings);
+                ConverterLastCandle.Settings);
         }
     }
 

@@ -42,7 +42,7 @@ namespace OsEngine.Market.Servers.Finam
 
             Load();
 
-            _logMaster = new Log("FinamServer");
+            _logMaster = new Log("FinamServer", StartProgram.IsOsData);
             _logMaster.Listen(this);
 
             _serverStatusNead = ServerConnectStatus.Disconnect;
@@ -52,13 +52,11 @@ namespace OsEngine.Market.Servers.Finam
             _threadPrime.IsBackground = true;
             _threadPrime.Start();
 
-            if (ServerMaster.StartProgram != ServerStartProgramm.IsOsData)
-            {
-                Thread threadDataSender = new Thread(SenderThreadArea);
-                threadDataSender.CurrentCulture = new CultureInfo("ru-RU");
-                threadDataSender.IsBackground = true;
-                threadDataSender.Start();
-            }
+
+            Thread threadDataSender = new Thread(SenderThreadArea);
+            threadDataSender.CurrentCulture = new CultureInfo("ru-RU");
+            threadDataSender.IsBackground = true;
+            threadDataSender.Start();
 
             _tradesToSend = new ConcurrentQueue<List<Trade>>();
             _securitiesToSend = new ConcurrentQueue<List<Security>>();
@@ -80,13 +78,27 @@ namespace OsEngine.Market.Servers.Finam
         public ServerType ServerType { get; set; }
 
         /// <summary>
-        /// показать окно настроект
+        /// показать настройки
         /// </summary>
         public void ShowDialog()
         {
-            FinamServerUi ui = new FinamServerUi(this, _logMaster);
-            ui.ShowDialog();
+            if (_ui == null)
+            {
+                _ui = new FinamServerUi(this, _logMaster);
+                _ui.Show();
+                _ui.Closing += (sender, args) => { _ui = null; };
+            }
+            else
+            {
+                _ui.Activate();
+            }
+            
         }
+
+        /// <summary>
+        /// окно управления элемента
+        /// </summary>
+        private FinamServerUi _ui;
 
         /// <summary>
         /// адрес сервера по которому нужно соединяться с сервером
@@ -166,6 +178,10 @@ namespace OsEngine.Market.Servers.Finam
         /// вызывается когда статус соединения изменяется
         /// </summary>
         public event Action<string> ConnectStatusChangeEvent;
+
+        public int CountDaysTickNeadToSave { get; set; }
+
+        public bool NeadToSaveTicks { get; set; }
 
         // подключение / отключение
 
@@ -953,18 +969,11 @@ namespace OsEngine.Market.Servers.Finam
 
                     _candles = null;
 
-                    CandleSeries series = new CandleSeries(timeFrameBuilder, security)
+                    CandleSeries series = new CandleSeries(timeFrameBuilder, security, StartProgram.IsOsData)
                     {
                         CandlesAll = _candles,
                         IsStarted = true
                     };
-
-                    if (ServerMaster.StartProgram != ServerStartProgramm.IsOsData)
-                    {
-                        series.СandleFinishedEvent += series_СandleFinishedEvent;
-                        series.СandleUpdeteEvent += series_СandleFinishedEvent;
-                    }
-
 
                     FinamDataSeries finamDataSeries = new FinamDataSeries();
 

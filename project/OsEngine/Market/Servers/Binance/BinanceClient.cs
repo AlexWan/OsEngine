@@ -1,9 +1,4 @@
-﻿using Newtonsoft.Json;
-using OsEngine.Entity;
-using OsEngine.Logging;
-using OsEngine.Market.Servers.Binance.BinanceEntity;
-using RestSharp;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
@@ -11,6 +6,11 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+using Newtonsoft.Json;
+using OsEngine.Entity;
+using OsEngine.Logging;
+using OsEngine.Market.Servers.Binance.BinanceEntity;
+using RestSharp;
 using WebSocket4Net;
 using TradeResponse = OsEngine.Market.Servers.Binance.BinanceEntity.TradeResponse;
 
@@ -637,6 +637,14 @@ namespace OsEngine.Market.Servers.Binance
                     {
                         SendLogMessage(res, LogMessageType.Trade);
                     }
+                    else
+                    {
+                        order.State = OrderStateType.Fail;
+                        if (MyOrderEvent != null)
+                        {
+                            MyOrderEvent(order);
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -669,6 +677,99 @@ namespace OsEngine.Market.Servers.Binance
 
                 }
             }
+        }
+
+        /// <summary>
+        /// проверить ордера на состояние
+        /// </summary>
+        public bool GetAllOrders(List<Order> oldOpenOrders)
+        {
+            List<string> namesSec = new List<string>();
+
+            for (int i = 0; i < oldOpenOrders.Count; i++)
+            {
+                if (namesSec.Find(name => name.Contains(oldOpenOrders[i].SecurityNameCode)) == null)
+                {
+                    namesSec.Add(oldOpenOrders[i].SecurityNameCode);
+                }
+            }
+
+
+            string endPoint = "/api/v3/allOrders";
+
+            List<HistoryOrderReport> allOrders = new List<HistoryOrderReport>();
+
+            for (int i = 0; i < namesSec.Count; i++)
+            {
+                var param = new Dictionary<string, string>();
+                param.Add("symbol=", namesSec[i].ToUpper());
+                //param.Add("&recvWindow=" , "100");
+                //param.Add("&limit=", GetNonce());
+                param.Add("&limit=", "500");
+                //"symbol={symbol.ToUpper()}&recvWindow={recvWindow}"
+
+                var res = CreateQuery(Method.GET, endPoint, param, true);
+
+                HistoryOrderReport[] orders = JsonConvert.DeserializeObject<HistoryOrderReport[]>(res);
+
+                if (orders != null && orders.Length != 0)
+                {
+                    allOrders.AddRange(orders);
+                }
+            }
+
+            for (int i = 0; i < oldOpenOrders.Count; i++)
+            {
+                HistoryOrderReport myOrder = allOrders.Find(ord => ord.orderId == oldOpenOrders[i].NumberMarket);
+
+                if (myOrder == null)
+                {
+                    continue;
+                }
+
+                if (myOrder.status == "NEW")
+                { // ордер активен. Ничего не делаем
+                    continue;
+                }
+
+                else if (myOrder.status == "FILLED" ||
+                    myOrder.status == "PARTIALLY_FILLED")
+                { // ордер исполнен
+
+                    MyTrade trade = new MyTrade();
+                    trade.NumberOrderParent = oldOpenOrders[i].NumberMarket;
+                    trade.NumberTrade = NumberGen.GetNumberOrder(StartProgram.IsOsTrader).ToString();
+                    trade.SecurityNameCode = oldOpenOrders[i].SecurityNameCode;
+                    trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(myOrder.updateTime));
+                    trade.Side = oldOpenOrders[i].Side;
+                    
+                    if (MyTradeEvent != null)
+                    {
+                        MyTradeEvent(trade);
+                    }
+                }
+                else
+                {
+                    Order newOrder = new Order();
+                    newOrder.NumberMarket = oldOpenOrders[i].NumberMarket;
+                    newOrder.NumberUser = oldOpenOrders[i].NumberUser;
+                    newOrder.SecurityNameCode = oldOpenOrders[i].SecurityNameCode;
+                    newOrder.State = OrderStateType.Cancel;
+                    newOrder.Volume = oldOpenOrders[i].Volume;
+                    newOrder.VolumeExecute = oldOpenOrders[i].VolumeExecute;
+                    newOrder.Price = oldOpenOrders[i].Price;
+                    newOrder.TypeOrder = oldOpenOrders[i].TypeOrder;
+                    newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(myOrder.updateTime));
+                    newOrder.ServerType = ServerType.Binance;
+                    newOrder.PortfolioNumber = oldOpenOrders[i].PortfolioNumber;
+
+                    if (MyOrderEvent != null)
+                    {
+                        MyOrderEvent(newOrder);
+                    }
+                }
+            }
+            return true;
         }
 
 
@@ -822,6 +923,8 @@ namespace OsEngine.Market.Servers.Binance
                                     newOrder.State = OrderStateType.Activ;
                                     newOrder.Volume = Convert.ToDecimal(order.q.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                                     newOrder.Price = Convert.ToDecimal(order.p.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                                    newOrder.ServerType = ServerType.Binance;
+                                    newOrder.PortfolioNumber = newOrder.SecurityNameCode;
 
                                     if (MyOrderEvent != null)
                                     {
@@ -839,6 +942,8 @@ namespace OsEngine.Market.Servers.Binance
                                     newOrder.State = OrderStateType.Cancel;
                                     newOrder.Volume = Convert.ToDecimal(order.q.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                                     newOrder.Price = Convert.ToDecimal(order.p.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                                    newOrder.ServerType = ServerType.Binance;
+                                    newOrder.PortfolioNumber = newOrder.SecurityNameCode;
 
                                     if (MyOrderEvent != null)
                                     {
@@ -856,6 +961,8 @@ namespace OsEngine.Market.Servers.Binance
                                     newOrder.State = OrderStateType.Fail;
                                     newOrder.Volume = Convert.ToDecimal(order.q.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                                     newOrder.Price = Convert.ToDecimal(order.p.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                                    newOrder.ServerType = ServerType.Binance;
+                                    newOrder.PortfolioNumber = newOrder.SecurityNameCode;
 
                                     if (MyOrderEvent != null)
                                     {
@@ -889,6 +996,8 @@ namespace OsEngine.Market.Servers.Binance
                                     newOrder.State = OrderStateType.Cancel;
                                     newOrder.Volume = Convert.ToDecimal(order.q.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                                     newOrder.Price = Convert.ToDecimal(order.p.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                                    newOrder.ServerType = ServerType.Binance;
+                                    newOrder.PortfolioNumber = newOrder.SecurityNameCode;
 
                                     if (MyOrderEvent != null)
                                     {
@@ -1047,7 +1156,5 @@ namespace OsEngine.Market.Servers.Binance
         public event Action<string, LogMessageType> LogMessageEvent;
 
         #endregion
-
     }
-
 }

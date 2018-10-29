@@ -14,6 +14,7 @@ using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market;
+using OsEngine.Market.Connectors;
 using OsEngine.OsTrader.Panels.Tab.Internal;
 
 namespace OsEngine.OsTrader.Panels.Tab
@@ -25,15 +26,23 @@ namespace OsEngine.OsTrader.Panels.Tab
     public class BotTabIndex : IIBotTab
     {
 
-        public BotTabIndex(string name)
+        public BotTabIndex(string name, StartProgram  startProgram)
         {
             TabName = name;
-            Tabs = new List<Connector>();
+            _startProgram = startProgram;
+
+            Tabs = new List<ConnectorCandles>();
             _valuesToFormula = new List<ValueSave>();
-            _chartMaster = new ChartMaster(TabName);
+            _chartMaster = new ChartMaster(TabName, _startProgram);
 
             Load();
         }
+
+        /// <summary>
+        /// программа создавшая робота
+        /// </summary>
+        private StartProgram _startProgram;
+
 
         /// <summary>
         /// чарт для прорисовки
@@ -43,7 +52,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Массив для хранения списка интсрументов
         /// </summary>
-        public List<Connector> Tabs;
+        public List<ConnectorCandles> Tabs;
 
  // управление
 
@@ -57,7 +66,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             if (Tabs.Count != 0)
             {
-                _chartMaster.SetNewSecurity("Index on: " + _userFormula, Tabs[0].TimeFrame, Tabs[0].TimeFrameTimeSpan, null, Tabs[0].ServerType);
+                _chartMaster.SetNewSecurity("Index on: " + _userFormula, Tabs[0].TimeFrameBuilder, null, Tabs[0].ServerType);
             }
             else
             {
@@ -90,7 +99,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void CreateNewSecurityConnector()
         {
-            Connector connector = new Connector(TabName + Tabs.Count);
+            ConnectorCandles connector = new ConnectorCandles(TabName + Tabs.Count, _startProgram);
             Tabs.Add(connector);
             Tabs[Tabs.Count - 1].NewCandlesChangeEvent += BotTabIndex_NewCandlesChangeEvent;
         }
@@ -189,7 +198,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     string[] save2 = reader.ReadLine().Split('#');
                     for (int i = 0; i < save2.Length - 1; i++)
                     {
-                        Tabs.Add(new Connector(save2[i]));
+                        Tabs.Add(new ConnectorCandles(save2[i], _startProgram));
                         Tabs[Tabs.Count - 1].NewCandlesChangeEvent += BotTabIndex_NewCandlesChangeEvent;
                     }
                     UserFormula = reader.ReadLine();

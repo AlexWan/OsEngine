@@ -1,7 +1,7 @@
 ﻿<Window x:Class="OsEngine.Market.Servers.AstsBridge.AstsServerUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-     Title="Подключение к Asts Bridge" Height="401" Width="541" MinWidth="690" MinHeight="200" Style="{StaticResource WindowStyleCanResize}" Topmost="True" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+     Title="Подключение к Asts Bridge" Height="401" Width="541" MinWidth="690" MinHeight="200" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
         <TextBox Name="TextBoxServerAdress" HorizontalAlignment="Left" Height="23" Margin="79,14,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="153"/>

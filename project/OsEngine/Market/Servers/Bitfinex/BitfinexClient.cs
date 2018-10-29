@@ -1,10 +1,4 @@
-﻿using Newtonsoft.Json;
-using OsEngine.Entity;
-using OsEngine.Logging;
-using OsEngine.Market.Servers.Binance.BinanceEntity;
-using OsEngine.Market.Servers.Bitfinex.BitfitnexEntity;
-using RestSharp;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
@@ -13,8 +7,13 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+using Newtonsoft.Json;
+using OsEngine.Entity;
+using OsEngine.Logging;
+using OsEngine.Market.Servers.Binance.BinanceEntity;
+using OsEngine.Market.Servers.Bitfinex.BitfitnexEntity;
+using RestSharp;
 using WebSocket4Net;
-
 
 namespace OsEngine.Market.Servers.Bitfinex
 {

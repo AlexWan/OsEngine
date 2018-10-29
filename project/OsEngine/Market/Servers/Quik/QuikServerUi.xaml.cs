@@ -23,7 +23,7 @@ namespace OsEngine.Market.Servers.Quik
 
             LabelStatus.Content = _server.ServerStatus;
             _server.ConnectStatusChangeEvent += server_ConnectChangeEvent;
-            TextBoxPathToQuik.Text = _server.PathToQuik;
+            TextBoxPathToQuik.Text = ((QuikDdeServerRealization)_server.ServerRealization).PathToQuik;
             log.StartPaint(Host);
             CheckBoxNeadToSaveTrade.IsChecked = _server.NeadToSaveTicks;
             CheckBoxNeadToSaveTrade.Click += CheckBoxNeadToSaveTrade_Click;
@@ -78,7 +78,7 @@ namespace OsEngine.Market.Servers.Quik
                 return;
             }
 
-            _server.PathToQuik = TextBoxPathToQuik.Text;
+            ((QuikDdeServerRealization)_server.ServerRealization).PathToQuik = TextBoxPathToQuik.Text;
             _server.Save();
 
             _server.StartServer();
@@ -91,15 +91,15 @@ namespace OsEngine.Market.Servers.Quik
 
             if (myDialog.SelectedPath != "") // если хоть что-то выбрано и это свечи
             {
-                _server.PathToQuik = myDialog.SelectedPath;
-                TextBoxPathToQuik.Text = _server.PathToQuik;
+                ((QuikDdeServerRealization)_server.ServerRealization).PathToQuik = myDialog.SelectedPath;
+                TextBoxPathToQuik.Text = ((QuikDdeServerRealization)_server.ServerRealization).PathToQuik;
                 _server.Save();
             }
         }
 
         private void ButtonAbort_Click(object sender, RoutedEventArgs e) // кнопка остановить сервер
         {
-            _server.PathToQuik = TextBoxPathToQuik.Text;
+            ((QuikDdeServerRealization)_server.ServerRealization).PathToQuik = TextBoxPathToQuik.Text;
             _server.StopServer();
         }
 

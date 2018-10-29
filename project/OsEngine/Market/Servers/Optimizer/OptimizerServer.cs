@@ -5,14 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Threading;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Tester;
-using OsEngine.OsTrader.Panels;
-using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.Market.Servers.Optimizer
 {
@@ -32,7 +28,7 @@ namespace OsEngine.Market.Servers.Optimizer
         public OptimizerServer(OptimizerDataStorage dataStorage, int num, decimal portfolioStratValue)
         {
             _storagePrime = dataStorage;
-            _logMaster = new Log("OptimizerServer");
+            _logMaster = new Log("OptimizerServer",StartProgram.IsOsOptimizer);
             _logMaster.Listen(this);
             _serverConnectStatus = ServerConnectStatus.Disconnect;
             ServerStatus = ServerConnectStatus.Disconnect;
@@ -960,6 +956,10 @@ namespace OsEngine.Market.Servers.Optimizer
         /// </summary>
         public event Action<string> ConnectStatusChangeEvent;
 
+        public int CountDaysTickNeadToSave { get; set; }
+
+        public bool NeadToSaveTicks { get; set; }
+
 // время сервера
 
         private DateTime _serverTime;
@@ -1183,7 +1183,7 @@ namespace OsEngine.Market.Servers.Optimizer
                     timeFrameBuilder.CandleMarketDataType = CandleMarketDataType.Tick;
                 }
 
-                CandleSeries series = new CandleSeries(timeFrameBuilder, security);
+                CandleSeries series = new CandleSeries(timeFrameBuilder, security, StartProgram.IsOsOptimizer);
 
                 _candleManager.StartSeries(series);
 

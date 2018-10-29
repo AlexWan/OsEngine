@@ -57,7 +57,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
             ordersExecutor.IsBackground = true;
             ordersExecutor.Start();
 
-            _logMaster = new Log("NinjaTraderServer");
+            _logMaster = new Log("NinjaTraderServer", StartProgram.IsOsTrader);
             _logMaster.Listen(this);
 
             _serverStatusNead = ServerConnectStatus.Disconnect;
@@ -117,9 +117,22 @@ namespace OsEngine.Market.Servers.NinjaTrader
         /// </summary>
         public void ShowDialog()
         {
-            NinjaTraderUi ui = new NinjaTraderUi(this, _logMaster);
-            ui.ShowDialog();
+            if (_ui == null)
+            {
+                _ui = new NinjaTraderUi(this, _logMaster);
+                _ui.Show();
+                _ui.Closing += (sender, args) => { _ui = null; };
+            }
+            else
+            {
+                _ui.Activate();
+            }
         }
+
+        /// <summary>
+        /// окно управления элемента
+        /// </summary>
+        private NinjaTraderUi _ui;
 
         /// <summary>
         /// адрес сервера
@@ -262,15 +275,12 @@ namespace OsEngine.Market.Servers.NinjaTrader
                 Thread.Sleep(1000);
                 try
                 {
-                    if (_client == null)
-                    {
-                        CreateNewServer();
-                    }
 
-                    if (_client.IsConnected == false
+                    if ((_client == null || _client.IsConnected == false)
                         && _serverStatusNead == ServerConnectStatus.Connect &&
                         _lastStartServerTime.AddSeconds(30) < DateTime.Now)
                     {
+                        CreateNewServer();
                         SendLogMessage("Запущена процедура активации подключения", LogMessageType.System);
                         Dispose();
                         CreateNewServer();
@@ -278,15 +288,14 @@ namespace OsEngine.Market.Servers.NinjaTrader
                         continue;
                     }
 
-                    bool stateIsActiv = _client.IsConnected;
-                    if (stateIsActiv && _serverStatusNead == ServerConnectStatus.Disconnect)
+                    if (_client != null && _client.IsConnected && _serverStatusNead == ServerConnectStatus.Disconnect)
                     {
                         SendLogMessage("Запущена процедура отключения подключения", LogMessageType.System);
                         Dispose();
                         continue;
                     }
 
-                    if (stateIsActiv == false)
+                    if (_client == null || _client.IsConnected == false)
                     {
                         continue;
                     }
@@ -894,7 +903,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
                         return null;
                     }
 
-                    CandleSeries series = new CandleSeries(timeFrameBuilder, security);
+                    CandleSeries series = new CandleSeries(timeFrameBuilder, security, StartProgram.IsOsTrader);
 
                     _client.SubscribleTradesAndDepths(security);
 

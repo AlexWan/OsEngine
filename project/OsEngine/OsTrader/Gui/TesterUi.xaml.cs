@@ -6,7 +6,7 @@ using System;
 using System.Windows;
 using OsEngine.Charts.CandleChart;
 using OsEngine.Entity;
-using OsEngine.Market.Servers;
+using OsEngine.Market;
 
 namespace OsEngine.OsTrader.Gui
 {
@@ -25,7 +25,7 @@ namespace OsEngine.OsTrader.Gui
             _strategyKeeper = new OsTraderMaster(
                 ChartHostPanel, HostGlass, HostOpenPosition, HostClosePosition, HostAllPosition,
                 HostBotLog, HostBotLogPrime, RectChart, HostAllert, TabControlBotsName, TabControlBotTab, TextBoxPrice,
-                GridChartControlPanel);
+                GridChartControlPanel,StartProgram.IsTester);
             LocationChanged += TesterUi_LocationChanged;
             LabelOsa.Content = "V_" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
 
@@ -181,7 +181,7 @@ namespace OsEngine.OsTrader.Gui
 
         private void ButtonServer_Click(object sender, RoutedEventArgs e)
         {
-            ServerMaster.ShowDialog();
+            ServerMaster.ShowDialog(true);
         }
 
         private void ButtonNewBot_Click(object sender, RoutedEventArgs e)

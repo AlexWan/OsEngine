@@ -15,7 +15,7 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
         public BotWhithTwoTimeFrameUi(BotWhithTwoTimeFrame bot)
         {
             InitializeComponent();
-            _painter = new ChartPainter("chart");
+            _painter = new ChartPainter("chart",bot.StartProgram);
             _painter.StartPaintPrimeChart(HostChart,Rectangle);
             _bot = bot;
         }

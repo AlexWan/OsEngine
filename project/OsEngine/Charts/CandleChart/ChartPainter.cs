@@ -19,7 +19,7 @@ using OsEngine.Charts.CandleChart.Elements;
 using OsEngine.Charts.ColorKeeper;
 using OsEngine.Entity;
 using OsEngine.Logging;
-using OsEngine.Market.Servers;
+using OsEngine.Market;
 using Color = System.Drawing.Color;
 using Rectangle = System.Windows.Shapes.Rectangle;
 
@@ -37,10 +37,12 @@ namespace OsEngine.Charts.CandleChart
         /// конструктор
         /// </summary>
         /// <param name="name">имя робота, которому принадлежит чарт</param>
-        public ChartPainter(string name)
+        /// <param name="startProgram">программа создающая объект класса</param>
+        public ChartPainter(string name,StartProgram startProgram)
         {
             try
             {
+                _startProgram = startProgram;
                 _colorKeeper = new ChartMasterColorKeeper(name);
                 _colorKeeper.LogMessageEvent += SendLogMessage;
                 _colorKeeper.NeedToRePaintFormEvent += _colorKeeper_NeedToRePaintFormEvent;
@@ -71,6 +73,11 @@ namespace OsEngine.Charts.CandleChart
                 SendLogMessage(error.ToString(),LogMessageType.Error);
             }
         }
+
+        /// <summary>
+        /// программа создающая объект класса
+        /// </summary>
+        private StartProgram _startProgram;
 
         /// <summary>
         /// область на которой будет размещён чарт
@@ -833,8 +840,8 @@ namespace OsEngine.Charts.CandleChart
                     continue;
                 }
 
-                if (_lastTimeClear.AddSeconds(5) > DateTime.Now 
-                    && ServerMaster.StartProgram != ServerStartProgramm.IsOsOptimizer)
+                if (_lastTimeClear.AddSeconds(5) > DateTime.Now
+                    && _startProgram != StartProgram.IsOsOptimizer)
                 {
                     Thread.Sleep(5000);
                     _candlesToPaint = new ConcurrentQueue<List<Candle>>();
@@ -991,8 +998,8 @@ namespace OsEngine.Charts.CandleChart
                     }
                 }
 
-                if (ServerMaster.StartProgram == ServerStartProgramm.IsTester ||
-                    ServerMaster.StartProgram == ServerStartProgramm.IsOsOptimizer)
+                if (_startProgram == StartProgram.IsTester ||
+                    _startProgram == StartProgram.IsOsOptimizer)
                 {
                     Thread.Sleep(2000);
                 }
@@ -1086,7 +1093,7 @@ namespace OsEngine.Charts.CandleChart
                     return;
                 }
 
-                if (ServerMaster.StartProgram != ServerStartProgramm.IsTester)
+                if (_startProgram != StartProgram.IsTester)
                 { // в реальном подключении, каждую новую свечу рассчитываем 
                     // актуальные мультипликаторы для областей
                     ReloadAreaSizes();
@@ -1134,8 +1141,8 @@ namespace OsEngine.Charts.CandleChart
         /// <param name="history">свечи</param>
         public void ProcessCandles(List<Candle> history)
         {
-            if ((ServerMaster.StartProgram == ServerStartProgramm.IsTester ||
-                ServerMaster.StartProgram == ServerStartProgramm.IsOsMiner) &&
+            if ((_startProgram == StartProgram.IsTester ||
+                 _startProgram == StartProgram.IsOsMiner) &&
                 _host != null)
             {
                 PaintCandles(history);
@@ -1158,7 +1165,7 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
 
-            if (history.Count >= index)
+            if (index >= history.Count)
             {
                 index = history.Count - 1;
                 //return;
@@ -1361,7 +1368,7 @@ namespace OsEngine.Charts.CandleChart
         /// <param name="trades">тики</param>
         public void ProcessTrades(List<Trade> trades)
         {
-            if (ServerMaster.StartProgram == ServerStartProgramm.IsTester &&
+            if (_startProgram == StartProgram.IsTester &&
                 _host != null)
             {
                 PaintTrades(trades);
@@ -1906,7 +1913,7 @@ namespace OsEngine.Charts.CandleChart
         /// <param name="deals">сделки</param>
         public void ProcessPositions(List<Position> deals)
         {
-            if (ServerMaster.StartProgram == ServerStartProgramm.IsTester &&
+            if (_startProgram == StartProgram.IsTester &&
                 _host != null)
             {
                 PaintPositions(deals);
@@ -2154,7 +2161,7 @@ namespace OsEngine.Charts.CandleChart
         /// <param name="element">элемент</param>
         public void ProcessElem(IChartElement element)
         {
-            if (ServerMaster.StartProgram == ServerStartProgramm.IsTester &&
+            if (_startProgram == StartProgram.IsTester &&
                 _host != null)
             {
                 PaintElem(element);
@@ -2214,7 +2221,7 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         public void ProcessClearElem(IChartElement element)
         {
-            if (ServerMaster.StartProgram == ServerStartProgramm.IsTester &&
+            if (_startProgram == StartProgram.IsTester &&
                 _host != null)
             {
                 ClearElem(element);
@@ -2867,8 +2874,8 @@ namespace OsEngine.Charts.CandleChart
         /// <param name="indicator">индикатор</param>
         public void ProcessIndicator(IIndicatorCandle indicator)
         {
-            if ((ServerMaster.StartProgram == ServerStartProgramm.IsTester
-                || ServerMaster.StartProgram == ServerStartProgramm.IsOsMiner ||
+            if ((_startProgram == StartProgram.IsTester
+                || _startProgram == StartProgram.IsOsMiner ||
                 IsPatternChart) 
             &&
                 _host != null)

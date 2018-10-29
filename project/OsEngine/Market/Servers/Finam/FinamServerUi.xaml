@@ -1,7 +1,7 @@
 ﻿<Window x:Class="OsEngine.Market.Servers.Finam.FinamServerUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-         Title="Подключение к Finam" Height="295" Width="662" MinWidth="690" MinHeight="200" Style="{StaticResource WindowStyleCanResize}" Topmost="True" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+         Title="Подключение к Finam" Height="295" Width="662" MinWidth="690" MinHeight="200" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
         <TextBox Name="TextBoxServerAdress" HorizontalAlignment="Left" Margin="116,14,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="353"/>

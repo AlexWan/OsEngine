@@ -51,7 +51,7 @@ namespace OsEngine.Market.Servers.SmartCom
             ordersExecutor.Name = "SmartComExecutorOrdersThread";
             ordersExecutor.Start();
 
-            _logMaster = new Log("SmartComServer");
+            _logMaster = new Log("SmartComServer", StartProgram.IsOsTrader);
             _logMaster.Listen(this);
 
             _serverStatusNead = ServerConnectStatus.Disconnect;
@@ -82,13 +82,26 @@ namespace OsEngine.Market.Servers.SmartCom
         public ServerType ServerType { get; set; }
 
         /// <summary>
-        /// показать окно настроект
+        /// показать настройки
         /// </summary>
         public void ShowDialog()
         {
-            SmartComServerUi ui = new SmartComServerUi(this, _logMaster);
-            ui.ShowDialog();
+            if (_ui == null)
+            {
+                _ui = new SmartComServerUi(this, _logMaster);
+                _ui.Show();
+                _ui.Closing += (sender, args) => { _ui = null; };
+            }
+            else
+            {
+                _ui.Activate();
+            }
         }
+
+        /// <summary>
+        /// окно управления элемента
+        /// </summary>
+        private SmartComServerUi _ui;
 
         /// <summary>
         /// порт по которому нужно соединяться с сервером
@@ -189,6 +202,10 @@ namespace OsEngine.Market.Servers.SmartCom
         /// вызывается когда статус соединения изменяется
         /// </summary>
         public event Action<string> ConnectStatusChangeEvent;
+
+        public int CountDaysTickNeadToSave { get; set; }
+
+        public bool NeadToSaveTicks { get; set; }
 
 // подключение / отключение
 
@@ -1171,7 +1188,7 @@ namespace OsEngine.Market.Servers.SmartCom
 
                     _candles = null;
 
-                    CandleSeries series = new CandleSeries(timeFrameBuilder, security)
+                    CandleSeries series = new CandleSeries(timeFrameBuilder, security,StartProgram.IsOsTrader)
                     {
                         CandlesAll = _candles
                     };

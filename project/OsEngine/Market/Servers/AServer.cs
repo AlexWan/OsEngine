@@ -1,207 +1,133 @@
-﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
-*/
-
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Threading;
 using OsEngine.Entity;
 using OsEngine.Logging;
-using OsEngine.Market.Servers.BitStamp.BitStampEntity;
 using OsEngine.Market.Servers.Entity;
 
-namespace OsEngine.Market.Servers.BitStamp
+namespace OsEngine.Market.Servers
 {
-    public class BitStampServer: IServer
+    public abstract class AServer: IServer
     {
         /// <summary>
-        /// конструктор
+        /// реализация подключения к API
         /// </summary>
-        public BitStampServer(bool neadToLoadTicks)
+        public IServerRealization ServerRealization
         {
-            ServerStatus = ServerConnectStatus.Disconnect;
-            ServerType = ServerType.BitStamp;
-
-            Load();
-
-            _ordersToSend = new ConcurrentQueue<Order>();
-            _tradesToSend = new ConcurrentQueue<List<Trade>>();
-            _portfolioToSend = new ConcurrentQueue<List<Portfolio>>();
-            _securitiesToSend = new ConcurrentQueue<List<Security>>();
-            _myTradesToSend = new ConcurrentQueue<MyTrade>();
-            _newServerTime = new ConcurrentQueue<DateTime>();
-            _candleSeriesToSend = new ConcurrentQueue<CandleSeries>();
-            _marketDepthsToSend = new ConcurrentQueue<MarketDepth>();
-            _bidAskToSend = new ConcurrentQueue<BidAskSender>();
-            _ordersToExecute = new ConcurrentQueue<Order>();
-            _ordersToCansel = new ConcurrentQueue<Order>();
-
-            _tickStorage = new ServerTickStorage(this);
-            _tickStorage.NeadToSave = NeadToSaveTicks;
-            _tickStorage.DaysToLoad = CountDaysTickNeadToSave;
-            _tickStorage.TickLoadedEvent += _tickStorage_TickLoadedEvent;
-            _tickStorage.LogMessageEvent += SendLogMessage;
-
-            if (neadToLoadTicks)
+            set
             {
+                _serverRealization = value;
+                _serverRealization.NewTradesEvent += ServerRealization_NewTradesEvent;
+                _serverRealization.ConnectEvent += _serverRealization_Connected;
+                _serverRealization.DisconnectEvent += _serverRealization_Disconnected;
+                _serverRealization.MarketDepthEvent += _serverRealization_MarketDepthEvent;
+                _serverRealization.MyOrderEvent += _serverRealization_MyOrderEvent;
+                _serverRealization.MyTradeEvent += _serverRealization_MyTradeEvent;
+                _serverRealization.PortfolioEvent += _serverRealization_PortfolioEvent;
+                _serverRealization.SecurityEvent += _serverRealization_SecurityEvent;
+                _serverRealization.LogMessageEvent += SendLogMessage;
+
+
+                _tickStorage = new ServerTickStorage(this);
+                _tickStorage.NeadToSave = NeadToSaveTicks;
+                _tickStorage.DaysToLoad = CountDaysTickNeadToSave;
+                _tickStorage.TickLoadedEvent += _tickStorage_TickLoadedEvent;
+                _tickStorage.LogMessageEvent += SendLogMessage;
                 _tickStorage.LoadTick();
+                
+
+                Thread ordersExecutor = new Thread(ExecutorOrdersThreadArea);
+                ordersExecutor.CurrentCulture = CultureInfo.InvariantCulture;
+                ordersExecutor.IsBackground = true;
+                ordersExecutor.Name = "ServerThreadOrderExecutor" + _serverRealization.ServerType;
+                ordersExecutor.Start();
+
+                Log = new Log(_serverRealization.ServerType + "Server", StartProgram.IsOsTrader);
+                Log.Listen(this);
+
+                _serverStatusNead = ServerConnectStatus.Disconnect;
+
+                _threadPrime = new Thread(PrimeThreadArea);
+                _threadPrime.CurrentCulture = CultureInfo.InvariantCulture;
+                _threadPrime.IsBackground = true;
+                _threadPrime.Name = "ServerThreadPrime" + _serverRealization.ServerType;
+                _threadPrime.Start();
+
+                Thread threadDataSender = new Thread(SenderThreadArea);
+                threadDataSender.CurrentCulture = CultureInfo.InvariantCulture;
+                threadDataSender.IsBackground = true;
+                threadDataSender.Name = "ServerThreadDataSender" + _serverRealization.ServerType;
+                threadDataSender.Start();
+
+                AServerTests tester = new AServerTests();
+                tester.Listen(this);
+                tester.LogMessageEvent += SendLogMessage;
             }
-
-            Thread ordersExecutor = new Thread(ExecutorOrdersThreadArea);
-            ordersExecutor.CurrentCulture = new CultureInfo("ru-RU");
-            ordersExecutor.IsBackground = true;
-            ordersExecutor.Start();
-
-            _logMaster = new Log("BitStampServer", StartProgram.IsOsTrader);
-            _logMaster.Listen(this);
-
-            _serverStatusNead = ServerConnectStatus.Disconnect;
-
-            _threadPrime = new Thread(PrimeThreadArea);
-            _threadPrime.CurrentCulture = new CultureInfo("ru-RU");
-            _threadPrime.IsBackground = true;
-            _threadPrime.Start();
-
-            Thread threadDataSender = new Thread(SenderThreadArea);
-            threadDataSender.CurrentCulture = new CultureInfo("ru-RU");
-            threadDataSender.IsBackground = true;
-            threadDataSender.Start();
+            get { return _serverRealization; }
         }
+        private IServerRealization _serverRealization;
 
         /// <summary>
-        /// взять тип сервера. 
+        /// тип сервера
         /// </summary>
-        public ServerType ServerType { get; set; }
+        public ServerType ServerType { get { return ServerRealization.ServerType; } }
 
-//сервис
+        /// <summary>
+        /// показать окно настроек
+        /// </summary>
+        public abstract void ShowDialog();
+
+        /// <summary>
+        /// сохранить
+        /// </summary>
+        public void Save()
+        {
+            ServerRealization.Save();
+        }
 
         /// <summary>
         /// количество дней назад, тиковые данные по которым нужно сохранять
         /// </summary>
         public int CountDaysTickNeadToSave
         {
-            get { return _countDaysTickNeadToSave; }
+            get { return ServerRealization.CountDaysTickNeadToSave; }
             set
             {
-                if (_tickStorage == null)
+                if (ServerRealization != null)
                 {
-                    return;
+                    ServerRealization.CountDaysTickNeadToSave = value;
                 }
-                _countDaysTickNeadToSave = value;
-                _tickStorage.DaysToLoad = value;
+                
+                if (_tickStorage != null)
+                {
+                    _tickStorage.DaysToLoad = value;
+                }
             }
         }
-        private int _countDaysTickNeadToSave;
 
         /// <summary>
         /// нужно ли сохранять тики 
         /// </summary>
         public bool NeadToSaveTicks
         {
-            get { return _neadToSaveTicks; }
+            get { return ServerRealization.NeadToSaveTicks; }
             set
             {
-                _neadToSaveTicks = value;
-                _tickStorage.NeadToSave = value;
-            }
-        }
-        private bool _neadToSaveTicks;
-
-        /// <summary>
-        /// показать настройки
-        /// </summary>
-        public void ShowDialog()
-        {
-            if (_ui == null)
-            {
-                _ui = new BitStampServerUi(this, _logMaster);
-                _ui.Show();
-                _ui.Closing += (sender, args) => { _ui = null; };
-            }
-            else
-            {
-                _ui.Activate();
-            }
-            
-        }
-
-        /// <summary>
-        /// окно управления элемента
-        /// </summary>
-        private BitStampServerUi _ui;
-
-        /// <summary>
-        /// публичный ключ пользователя
-        /// </summary>
-        public string UserId;
-
-        /// <summary>
-        /// публичный ключ пользователя
-        /// </summary>
-        public string UserKey;
-
-        /// <summary>
-        /// секретный ключ пользователя
-        /// </summary>
-        public string UserPrivateKey;
-
-        /// <summary>
-        /// загрузить настройки сервера из файла
-        /// </summary>
-        public void Load()
-        {
-            if (!File.Exists(@"Engine\" + @"BitStampServer.txt"))
-            {
-                return;
-            }
-
-            try
-            {
-                using (StreamReader reader = new StreamReader(@"Engine\" + @"BitStampServer.txt"))
+                if (ServerRealization != null)
                 {
-                    UserId = reader.ReadLine();
-                    UserKey = reader.ReadLine();
-                    UserPrivateKey = reader.ReadLine();
-                    _countDaysTickNeadToSave = Convert.ToInt32(reader.ReadLine());
-                    _neadToSaveTicks = Convert.ToBoolean(reader.ReadLine());
-
-                    reader.Close();
+                    ServerRealization.NeadToSaveTicks = value;
                 }
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
-        }
-
-        /// <summary>
-        /// сохранить настройки сервера в файл
-        /// </summary>
-        public void Save()
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + @"BitStampServer.txt", false))
+                if (_tickStorage != null)
                 {
-                    writer.WriteLine(UserId);
-                    writer.WriteLine(UserKey);
-                    writer.WriteLine(UserPrivateKey);
-                    writer.WriteLine(CountDaysTickNeadToSave);
-                    writer.WriteLine(NeadToSaveTicks);
-
-                    writer.Close();
+                    _tickStorage.NeadToSave = value;
                 }
-            }
-            catch (Exception)
-            {
-                // ignored
+                
             }
         }
 
-// подключение/отключение
+        // подключение/отключение
 
         /// <summary>
         /// нужный статус сервера. Нужен потоку который следит за соединением
@@ -214,6 +140,10 @@ namespace OsEngine.Market.Servers.BitStamp
         /// </summary>
         public void StartServer()
         {
+            if (UserWhantConnect != null)
+            {
+                UserWhantConnect();
+            }
             _serverStatusNead = ServerConnectStatus.Connect;
         }
 
@@ -222,20 +152,23 @@ namespace OsEngine.Market.Servers.BitStamp
         /// </summary>
         public void StopServer()
         {
+            if (UserWhantDisconnect != null)
+            {
+                UserWhantDisconnect();
+            }
             _serverStatusNead = ServerConnectStatus.Disconnect;
         }
 
         /// <summary>
         /// пришло оповещение от клиента, что соединение установлено
         /// </summary>
-        void Сlient_Connected()
+        void _serverRealization_Connected()
         {
+            SendLogMessage("Соединение установлено", LogMessageType.System);
             ServerStatus = ServerConnectStatus.Connect;
         }
 
-// статус соединения
-
-        private ServerConnectStatus _serverConnectStatus;
+        // статус соединения
 
         /// <summary>
         /// статус сервера
@@ -256,13 +189,14 @@ namespace OsEngine.Market.Servers.BitStamp
                 }
             }
         }
+        private ServerConnectStatus _serverConnectStatus;
 
         /// <summary>
         /// изменилось состояние соединения
         /// </summary>
         public event Action<string> ConnectStatusChangeEvent;
 
-// работа основного потока !!!!!!
+        // работа основного потока !!!!!!
 
         /// <summary>
         /// основной поток, следящий за подключением, загрузкой портфелей и бумаг, пересылкой данных на верх
@@ -281,32 +215,30 @@ namespace OsEngine.Market.Servers.BitStamp
                 Thread.Sleep(1000);
                 try
                 {
-                    if (_clientBitStamp == null)
+                    if (ServerRealization == null)
                     {
-                        SendLogMessage("Создаём коннектор BitStamp", LogMessageType.System);
-                        CreateNewServer();
                         continue;
                     }
 
-                    bool stateIsActiv = _clientBitStamp.IsConnected;
-
-                    if (stateIsActiv == false && _serverStatusNead == ServerConnectStatus.Connect)
+                    if ((ServerRealization.ServerStatus != ServerConnectStatus.Connect)
+                        && _serverStatusNead == ServerConnectStatus.Connect &&
+                        _lastStartServerTime.AddSeconds(60) < DateTime.Now)
                     {
                         SendLogMessage("Запущена процедура активации подключения", LogMessageType.System);
                         Dispose();
-                        CreateNewServer();
-                        Connect();
+                        ServerRealization.Connect();
+                        _lastStartServerTime = DateTime.Now;
                         continue;
                     }
 
-                    if (stateIsActiv && _serverStatusNead == ServerConnectStatus.Disconnect)
+                    if (ServerRealization.ServerStatus == ServerConnectStatus.Connect && _serverStatusNead == ServerConnectStatus.Disconnect)
                     {
                         SendLogMessage("Запущена процедура отключения подключения", LogMessageType.System);
                         Dispose();
                         continue;
                     }
 
-                    if (stateIsActiv == false)
+                    if (ServerRealization.ServerStatus != ServerConnectStatus.Connect)
                     {
                         continue;
                     }
@@ -318,31 +250,14 @@ namespace OsEngine.Market.Servers.BitStamp
                         continue;
                     }
 
-                    if (_getPortfoliosAndSecurities == false)
-                    {
-                        SendLogMessage("Скачиваем бумаги и портфели", LogMessageType.System);
-                        SubscribePortfolio();
-                        Thread threadGetSec = new Thread(GetSecurities);
-                        threadGetSec.CurrentCulture = new CultureInfo("ru-RU");
-                        threadGetSec.IsBackground = true;
-                        threadGetSec.Start();
-                        _getPortfoliosAndSecurities = true;
-                        continue;
-                    }
-
                     if (_portfolios == null || _portfolios.Count == 0)
                     {
-                        SubscribePortfolio();
+                        ServerRealization.GetPortfolios();
                     }
 
-                    if (_startListeningPortfolios == false)
+                    if (_securities== null || Securities.Count == 0)
                     {
-                        if (_portfolios != null)
-                        {
-                            SendLogMessage("Подписываемся на обновления портфелей. Берём активные ордера",
-                                LogMessageType.System);
-                            _startListeningPortfolios = true;
-                        }
+                        ServerRealization.GetSecurities();
                     }
                 }
                 catch (Exception error)
@@ -375,48 +290,9 @@ namespace OsEngine.Market.Servers.BitStamp
         private DateTime _lastStartServerTime = DateTime.MinValue;
 
         /// <summary>
-        /// включена ли прослушка портфелей
-        /// </summary>
-        private bool _startListeningPortfolios;
-
-        /// <summary>
-        /// скачаны ли портфели и бумаги
-        /// </summary>
-        private bool _getPortfoliosAndSecurities;
-
-        /// <summary>
-        /// создать новое подключение
-        /// </summary>
-        private void CreateNewServer()
-        {
-            if (_clientBitStamp == null)
-            {
-                _clientBitStamp = new BitstampClient(UserKey,UserPrivateKey,UserId);
-                _clientBitStamp.Connected += Сlient_Connected;
-                _clientBitStamp.UpdatePairs += _clientBitStamp_UpdatePairs;
-                _clientBitStamp.Disconnected += ClientnDisconnected;
-                _clientBitStamp.UpdatePortfolio += UpdatePortfolios;
-                _clientBitStamp.UpdateMarketDepth += UpdateMarketDepth;
-                _clientBitStamp.NewTradesEvent += NewTrades;
-                _clientBitStamp.MyTradeEvent += NewMyTrade;
-                _clientBitStamp.MyOrderEvent += BitMex_UpdateOrder;
-                _clientBitStamp.LogMessageEvent += SendLogMessage;
-
-                _clientBitStamp.NeadReconnectEvent += _clientBitStamp_NeadReconnectEvent;
-            }
-        }
-
-        void _clientBitStamp_NeadReconnectEvent()
-        {
-            StopServer();
-            Thread.Sleep(5000);
-            StartServer();
-        }
-
-        /// <summary>
         /// соединение с клиентом разорвано
         /// </summary>
-        private void ClientnDisconnected()
+        void _serverRealization_Disconnected()
         {
             SendLogMessage("Соединение разорвано", LogMessageType.System);
             ServerStatus = ServerConnectStatus.Disconnect;
@@ -425,17 +301,6 @@ namespace OsEngine.Market.Servers.BitStamp
             {
                 NeadToReconnectEvent();
             }
-        }
-
-        /// <summary>
-        /// начать процесс подключения
-        /// </summary>
-        private void Connect()
-        {
-            _lastStartServerTime = DateTime.Now;
-
-            _clientBitStamp.Connect();
-            Thread.Sleep(1000);
         }
 
         /// <summary>
@@ -452,95 +317,63 @@ namespace OsEngine.Market.Servers.BitStamp
         }
 
         /// <summary>
-        /// подписываемся на обновление портфеля и позиций
-        /// </summary>
-        private void SubscribePortfolio()
-        {
-            _clientBitStamp.GetBalance();
-            Thread.Sleep(500);
-        }
-
-        /// <summary>
         /// привести программу к моменту запуска. Очистить все объекты участвующие в подключении к серверу
         /// </summary>
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void Dispose()
         {
-            if (_clientBitStamp != null)
-            {
-                _clientBitStamp.Dispose();
-
-                _clientBitStamp.Connected -= Сlient_Connected;
-                _clientBitStamp.Disconnected -= ClientnDisconnected;
-                _clientBitStamp.UpdatePortfolio -= UpdatePortfolios;
-                _clientBitStamp.UpdateMarketDepth -= UpdateMarketDepth;
-                _clientBitStamp.NewTradesEvent -= NewTrades;
-                _clientBitStamp.MyTradeEvent -= NewMyTrade;
-                _clientBitStamp.MyOrderEvent -= BitMex_UpdateOrder;
-            }
-
-            _clientBitStamp = null;
-
+            ServerRealization.Dispose();
             _candleManager = null;
-
-            _startListeningPortfolios = false;
-
-            _getPortfoliosAndSecurities = false;
         }
 
-        /// <summary>
-        /// bitmex client
-        /// </summary>
-        private BitstampClient _clientBitStamp;
-
-// работа потока рассылки !!!!!
+        // работа потока рассылки !!!!!
 
         #region MyRegion
 
         /// <summary>
         /// очередь новых ордеров
         /// </summary>
-        private ConcurrentQueue<Order> _ordersToSend;
+        private ConcurrentQueue<Order> _ordersToSend = new ConcurrentQueue<Order>();
 
         /// <summary>
         /// очередь тиков
         /// </summary>
-        private ConcurrentQueue<List<Trade>> _tradesToSend;
+        private ConcurrentQueue<List<Trade>> _tradesToSend = new ConcurrentQueue<List<Trade>>();
 
         /// <summary>
         /// очередь новых портфелей
         /// </summary>
-        private ConcurrentQueue<List<Portfolio>> _portfolioToSend;
+        private ConcurrentQueue<List<Portfolio>> _portfolioToSend = new ConcurrentQueue<List<Portfolio>>();
 
         /// <summary>
         /// очередь новых инструментов
         /// </summary>
-        private ConcurrentQueue<List<Security>> _securitiesToSend;
+        private ConcurrentQueue<List<Security>> _securitiesToSend = new ConcurrentQueue<List<Security>>();
 
         /// <summary>
         /// очередь новых моих сделок
         /// </summary>
-        private ConcurrentQueue<MyTrade> _myTradesToSend;
+        private ConcurrentQueue<MyTrade> _myTradesToSend = new ConcurrentQueue<MyTrade>();
 
         /// <summary>
         /// очередь нового времени
         /// </summary>
-        private ConcurrentQueue<DateTime> _newServerTime;
+        private ConcurrentQueue<DateTime> _newServerTime = new ConcurrentQueue<DateTime>();
 
         /// <summary>
         /// очередь обновлённых серий свечек
         /// </summary>
-        private ConcurrentQueue<CandleSeries> _candleSeriesToSend;
+        private ConcurrentQueue<CandleSeries> _candleSeriesToSend = new ConcurrentQueue<CandleSeries>();
 
         /// <summary>
         /// очередь новых стаканов
         /// </summary>
-        private ConcurrentQueue<MarketDepth> _marketDepthsToSend;
+        private ConcurrentQueue<MarketDepth> _marketDepthsToSend = new ConcurrentQueue<MarketDepth>();
 
         /// <summary>
         /// очередь обновлений бида с аска по инструментам 
         /// </summary>
-        private ConcurrentQueue<BidAskSender> _bidAskToSend;
+        private ConcurrentQueue<BidAskSender> _bidAskToSend = new ConcurrentQueue<BidAskSender>();
 
         /// <summary>
         /// место в котором контролируется соединение
@@ -666,6 +499,10 @@ namespace OsEngine.Market.Servers.BitStamp
                     }
                     else
                     {
+                        if (MainWindow.ProccesIsWorked == false)
+                        {
+                            return;
+                        }
                         Thread.Sleep(1);
                     }
                 }
@@ -678,10 +515,7 @@ namespace OsEngine.Market.Servers.BitStamp
 
         #endregion
 
-
-// время сервера
-
-        private DateTime _serverTime;
+        // время сервера
 
         /// <summary>
         /// время сервера
@@ -704,17 +538,17 @@ namespace OsEngine.Market.Servers.BitStamp
                 {
                     _newServerTime.Enqueue(_serverTime);
                 }
+                ServerRealization.ServerTime = _serverTime;
             }
         }
+        private DateTime _serverTime;
 
         /// <summary>
         /// изменилось время сервера
         /// </summary>
         public event Action<DateTime> TimeServerChangeEvent;
 
- // портфели
-
-        private List<Portfolio> _portfolios;
+        // портфели
 
         /// <summary>
         /// все счета в системе
@@ -723,6 +557,7 @@ namespace OsEngine.Market.Servers.BitStamp
         {
             get { return _portfolios; }
         }
+        private List<Portfolio> _portfolios;
 
         /// <summary>
         /// взять портфель по номеру
@@ -747,57 +582,22 @@ namespace OsEngine.Market.Servers.BitStamp
         /// <summary>
         /// обновился портфель
         /// </summary>
-        private void UpdatePortfolios(BalanceResponse portf)
+        private void _serverRealization_PortfolioEvent(List<Portfolio> portf)
         {
             try
             {
-                if (portf == null ||
-                    portf.eur_balance == null)
-                {
-                    return;
-                }
-
                 if (_portfolios == null)
                 {
                     _portfolios = new List<Portfolio>();
                 }
 
-                Portfolio osPortEur = _portfolios.Find(p => p.Number == "eurPortfolio");
-
-                if (osPortEur == null)
+                for (int i = 0; i < portf.Count; i++)
                 {
-                    osPortEur = new Portfolio();
-                    osPortEur.Number = "eurPortfolio";
-                    _portfolios.Add(osPortEur);
+                    if (_portfolios.Find(p => p.Number == portf[i].Number) == null)
+                    {
+                        _portfolios.Add(portf[i]);
+                    }
                 }
-
-                osPortEur.ValueBegin = Convert.ToDecimal(portf.eur_balance.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                osPortEur.ValueBlocked = Convert.ToDecimal(portf.eur_reserved.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-
-                Portfolio osPortUsd = _portfolios.Find(p => p.Number == "usdPortfolio");
-
-                if (osPortUsd == null)
-                {
-                    osPortUsd = new Portfolio();
-                    osPortUsd.Number = "usdPortfolio";
-                    _portfolios.Add(osPortUsd);
-                }
-
-                osPortUsd.ValueBegin = Convert.ToDecimal(portf.usd_balance.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                osPortUsd.ValueBlocked = Convert.ToDecimal(portf.usd_reserved.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-
-
-                Portfolio osPortBtc = _portfolios.Find(p => p.Number == "btcPortfolio");
-
-                if (osPortBtc == null)
-                {
-                    osPortBtc = new Portfolio();
-                    osPortBtc.Number = "btcPortfolio";
-                    _portfolios.Add(osPortBtc);
-                }
-
-                osPortBtc.ValueBegin = Convert.ToDecimal(portf.btc_balance.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                osPortBtc.ValueBlocked = Convert.ToDecimal(portf.btc_reserved.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
 
                 _portfolioToSend.Enqueue(_portfolios);
             }
@@ -812,9 +612,7 @@ namespace OsEngine.Market.Servers.BitStamp
         /// </summary>
         public event Action<List<Portfolio>> PortfoliosChangeEvent;
 
-// инструменты
-
-        private List<Security> _securities;
+        // инструменты
 
         /// <summary>
         /// все инструменты в системе
@@ -823,6 +621,7 @@ namespace OsEngine.Market.Servers.BitStamp
         {
             get { return _securities; }
         }
+        private List<Security> _securities;
 
         /// <summary>
         /// взять инструмент в виде класса Security, по имени инструмента 
@@ -837,54 +636,25 @@ namespace OsEngine.Market.Servers.BitStamp
         }
 
         /// <summary>
-        /// получить инструменты
-        /// </summary>
-        private void GetSecurities()
-        {
-            try
-            {
-                _clientBitStamp.GetSecurities();
-            }
-            catch (Exception error)
-            {
-                SendLogMessage(error.ToString(),LogMessageType.Error);
-            }
-        }
-
-        /// <summary>
         /// обновился список бумаг
         /// </summary>
-        void _clientBitStamp_UpdatePairs(List<PairInfoResponse> pairs)
+        void _serverRealization_SecurityEvent(List<Security> securities)
         {
             if (_securities == null)
             {
-                 _securities = new List<Security>();
+                _securities = new List<Security>();
             }
-            for (int i = 0; i < pairs.Count; i++)
+            for (int i = 0; i < securities.Count; i++)
             {
-
-                Security security = new Security();
-                security.Name = pairs[i].url_symbol;
-                security.NameFull = pairs[i].url_symbol;
-                security.NameClass = "currency";
-                security.Lot = 1;
-                security.PriceStep = 0.01m;
-                security.PriceStepCost = 0.01m;
-
-                if (security.PriceStep < 1)
+                if (securities[i].NameId == null)
                 {
-                    security.Decimals = Convert.ToString(security.PriceStep).Split(',')[1].Length;
+                    SendLogMessage("Во входящих из реализации бумагах, отсутствуют NameId",LogMessageType.Error);
+                    return;
                 }
-                else
+                if (_securities.Find(s => s.NameId == securities[i].NameId) == null)
                 {
-                    security.Decimals = 0;
+                    _securities.Add(securities[i]);
                 }
-
-
-                security.State = SecurityStateType.Activ;
-
-                _securities.Add(security);
-
             }
 
             _securitiesToSend.Enqueue(_securities);
@@ -904,7 +674,7 @@ namespace OsEngine.Market.Servers.BitStamp
             ui.ShowDialog();
         }
 
- // Подпись на данные
+        // Подпись на данные
 
         /// <summary>
         /// мастер загрузки свечек
@@ -924,37 +694,32 @@ namespace OsEngine.Market.Servers.BitStamp
         /// <returns>в случае успешного запуска возвращает CandleSeries, объект генерирующий свечи</returns>
         public CandleSeries StartThisSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder)
         {
-             try
+            try
             {
-                if (_lastStartServerTime.AddSeconds(15) > DateTime.Now)
-                {
-                    return null;
-                }
-
-                if (_startListeningPortfolios == false)
-                {
-                    return null;
-                }
                 lock (_lockerStarter)
                 {
                     if (namePaper == "")
                     {
                         return null;
                     }
-                    // надо запустить сервер если он ещё отключен
-                    if (ServerStatus != ServerConnectStatus.Connect)
+
+                    if (Portfolios == null || Securities == null)
                     {
-                        //MessageBox.Show("Сервер не запущен. Скачивание данных прервано. Инструмент: " + namePaper);
                         return null;
                     }
 
-                    if (_securities == null || _portfolios == null)
-                    {
-                        Thread.Sleep(5000);
-                        return null;
-                    }
                     if (_lastStartServerTime != DateTime.MinValue &&
                         _lastStartServerTime.AddSeconds(15) > DateTime.Now)
+                    {
+                        return null;
+                    }
+
+                    if (ServerStatus != ServerConnectStatus.Connect)
+                    {
+                        return null;
+                    }
+
+                    if (_candleManager == null)
                     {
                         return null;
                     }
@@ -977,7 +742,7 @@ namespace OsEngine.Market.Servers.BitStamp
 
                     CandleSeries series = new CandleSeries(timeFrameBuilder, security, StartProgram.IsOsTrader);
 
-                    _clientBitStamp.SubscribleTradesAndDepths(security);
+                    ServerRealization.Subscrible(security);
 
                     Thread.Sleep(300);
 
@@ -1031,7 +796,7 @@ namespace OsEngine.Market.Servers.BitStamp
         /// </summary>
         public event Action<CandleSeries> NewCandleIncomeEvent;
 
-// стакан
+        // стакан
 
         /// <summary>
         /// все стаканы
@@ -1041,8 +806,8 @@ namespace OsEngine.Market.Servers.BitStamp
         /// <summary>
         /// пришел обновленный стакан
         /// </summary>
-        /// <param name="quotes"></param>
-        private void UpdateMarketDepth(MarketDepth myDepth)
+        /// <param name="myDepth"></param>
+        void _serverRealization_MarketDepthEvent(MarketDepth myDepth)
         {
             try
             {
@@ -1061,8 +826,8 @@ namespace OsEngine.Market.Servers.BitStamp
                     {
                         _bidAskToSend.Enqueue(new BidAskSender
                         {
-                            Ask = myDepth.Bids[0].Price,
-                            Bid = myDepth.Asks[0].Price,
+                            Bid = myDepth.Bids[0].Price,
+                            Ask = myDepth.Asks[0].Price,
                             Security = GetSecurityForName(myDepth.SecurityNameCode)
                         });
                     }
@@ -1085,7 +850,7 @@ namespace OsEngine.Market.Servers.BitStamp
         /// </summary>
         public event Action<MarketDepth> NewMarketDepthEvent;
 
-// тики
+        // тики
 
         /// <summary>
         /// хранилище тиков
@@ -1113,8 +878,12 @@ namespace OsEngine.Market.Servers.BitStamp
         /// <returns>сделки</returns>
         public List<Trade> GetAllTradesToSecurity(Security security)
         {
-             try
+            try
             {
+                if (_allTrades == null)
+                {
+                    return null;
+                }
                 List<Trade> trades = new List<Trade>();
 
                 for (int i = 0; i < _allTrades.Length; i++)
@@ -1132,7 +901,7 @@ namespace OsEngine.Market.Servers.BitStamp
             {
                 SendLogMessage(error.ToString(), LogMessageType.Error);
                 return null;
-            }    
+            }
         }
 
         /// <summary>
@@ -1143,7 +912,7 @@ namespace OsEngine.Market.Servers.BitStamp
         /// <summary>
         /// пришли новые тики
         /// </summary>
-        private void NewTrades(Trade trade)
+        void ServerRealization_NewTradesEvent(Trade trade)
         {
             try
             {
@@ -1151,7 +920,7 @@ namespace OsEngine.Market.Servers.BitStamp
                 if (_allTrades == null)
                 {
                     _allTrades = new List<Trade>[1];
-                    _allTrades[0] = new List<Trade> {trade};
+                    _allTrades[0] = new List<Trade> { trade };
                 }
                 else
                 {
@@ -1207,9 +976,9 @@ namespace OsEngine.Market.Servers.BitStamp
         /// </summary>
         public event Action<List<Trade>> NewTradeEvent;
 
-// новая моя сделка
+        // новая моя сделка
 
-        private List<MyTrade> _myTrades;
+        private List<MyTrade> _myTrades = new List<MyTrade>();
 
         /// <summary>
         /// мои сделки
@@ -1222,8 +991,13 @@ namespace OsEngine.Market.Servers.BitStamp
         /// <summary>
         /// входящие из системы мои сделки
         /// </summary>
-        private void NewMyTrade(MyTrade trade)
+        void _serverRealization_MyTradeEvent(MyTrade trade)
         {
+            if (trade.Time == DateTime.MinValue)
+            {
+                trade.Time = ServerTime;
+            }
+            
             _myTradesToSend.Enqueue(trade);
             _myTrades.Add(trade);
         }
@@ -1233,7 +1007,7 @@ namespace OsEngine.Market.Servers.BitStamp
         /// </summary>
         public event Action<MyTrade> NewMyTradeEvent;
 
-// работа с ордерами
+        // работа с ордерами
 
         /// <summary>
         /// место работы потока на очередях исполнения заявок и их отмены
@@ -1242,6 +1016,11 @@ namespace OsEngine.Market.Servers.BitStamp
         {
             while (true)
             {
+                if (_lastStartServerTime.AddSeconds(30) > DateTime.Now)
+                {
+                    Thread.Sleep(1000);
+                    continue;
+                }
                 try
                 {
                     Thread.Sleep(20);
@@ -1250,7 +1029,7 @@ namespace OsEngine.Market.Servers.BitStamp
                         Order order;
                         if (_ordersToExecute.TryDequeue(out order))
                         {
-                            _clientBitStamp.ExecuteOrder(order);
+                            ServerRealization.SendOrder(order);
                         }
                     }
                     else if (_ordersToCansel != null && _ordersToCansel.Count != 0)
@@ -1258,7 +1037,7 @@ namespace OsEngine.Market.Servers.BitStamp
                         Order order;
                         if (_ordersToCansel.TryDequeue(out order))
                         {
-                            _clientBitStamp.CanselOrder(order);
+                            ServerRealization.CanselOrder(order);
                         }
                     }
                 }
@@ -1272,17 +1051,17 @@ namespace OsEngine.Market.Servers.BitStamp
         /// <summary>
         /// очередь ордеров для выставления в систему
         /// </summary>
-        private ConcurrentQueue<Order> _ordersToExecute;
+        private ConcurrentQueue<Order> _ordersToExecute = new ConcurrentQueue<Order>();
 
         /// <summary>
         /// очередь ордеров для отмены в системе
         /// </summary>
-        private ConcurrentQueue<Order> _ordersToCansel;
+        private ConcurrentQueue<Order> _ordersToCansel = new ConcurrentQueue<Order>();
 
         /// <summary>
         /// входящий из системы ордер
         /// </summary>
-        private void BitMex_UpdateOrder(Order myOrder)
+        void _serverRealization_MyOrderEvent(Order myOrder)
         {
             _ordersToSend.Enqueue(myOrder);
         }
@@ -1293,8 +1072,25 @@ namespace OsEngine.Market.Servers.BitStamp
         /// <param name="order">ордер</param>
         public void ExecuteOrder(Order order)
         {
+            if (UserSetOrderOnExecute != null)
+            {
+                UserSetOrderOnExecute(order);
+            }
+            if (_lastStartServerTime.AddMinutes(1) > DateTime.Now)
+            {
+                order.State = OrderStateType.Fail;
+                _ordersToSend.Enqueue(order);
+
+                SendLogMessage("Ордер № " + order.NumberUser +
+                    " не может быть выставлен, т.к. с времени предыдущего включения сервера прошло менее одной минуты", LogMessageType.Error);
+                return;
+            }
+
             order.TimeCreate = ServerTime;
             _ordersToExecute.Enqueue(order);
+
+            SendLogMessage("Выставлен ордер, цена: " + order.Price + " Сторона: " + order.Side + ", Объём: " + order.Volume +
+            ", Инструмент: " + order.SecurityNameCode + "Номер " + order.NumberUser, LogMessageType.System);
         }
 
         /// <summary>
@@ -1303,7 +1099,12 @@ namespace OsEngine.Market.Servers.BitStamp
         /// <param name="order">ордер</param>
         public void CanselOrder(Order order)
         {
+            if (UserSetOrderOnCancel != null)
+            {
+                UserSetOrderOnCancel(order);
+            }
             _ordersToCansel.Enqueue(order);
+            SendLogMessage("Отзываем ордер: " + order.NumberUser, LogMessageType.System);
         }
 
         /// <summary>
@@ -1311,7 +1112,7 @@ namespace OsEngine.Market.Servers.BitStamp
         /// </summary>
         public event Action<Order> NewOrderIncomeEvent;
 
-// сообщения для лога
+        // сообщения для лога
 
         /// <summary>
         /// добавить в лог новое сообщение
@@ -1327,12 +1128,33 @@ namespace OsEngine.Market.Servers.BitStamp
         /// <summary>
         /// менеджер лога
         /// </summary>
-        private Log _logMaster;
+        public Log Log;
 
         /// <summary>
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
-    }
 
+        // исходящие события для автоматического тестирования
+
+        /// <summary>
+        /// внешние системы запросили исполнение ордера
+        /// </summary>
+        public event Action<Order> UserSetOrderOnExecute;
+
+        /// <summary>
+        /// внешние системы запросили отзыв ордера
+        /// </summary>
+        public event Action<Order> UserSetOrderOnCancel;
+
+        /// <summary>
+        /// пользователь запросил подключение к АПИ
+        /// </summary>
+        public event Action UserWhantConnect;
+
+        /// <summary>
+        /// пользователь запросил отключение от АПИ
+        /// </summary>
+        public event Action UserWhantDisconnect;
+    }
 }

@@ -5,9 +5,10 @@ using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
 using OsEngine.Logging;
+using OsEngine.Market.Servers;
 using Point = System.Drawing.Point;
 
-namespace OsEngine.Market.Servers
+namespace OsEngine.Market
 {
     /// <summary>
     /// класс отвечающий за прорисовку всех портфелей
@@ -28,7 +29,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// входящее событие. В сервермастере был развёрнут новый сервер
         /// </summary>
-        private void ServerMaster_ServerCreateEvent()
+        private void ServerMaster_ServerCreateEvent(IServer server)
         {
             List<IServer> servers = ServerMaster.GetServers();
 
@@ -470,7 +471,9 @@ namespace OsEngine.Market.Servers
         /// </summary>
         private void _server_NewOrderIncomeEvent(Order order)
         {
-            if (ServerMaster.StartProgram != ServerStartProgramm.IsOsTrader)
+            if (order.ServerType == ServerType.Tester ||
+                order.ServerType == ServerType.Optimizer ||
+                order.ServerType == ServerType.Miner)
             {
                 return;
             }
@@ -500,7 +503,7 @@ namespace OsEngine.Market.Servers
                         myOrder.Price = order.Price;
                     }
 
-                    if (order.Side != Side.UnKnown)
+                    if (order.Side != Side.None)
                     {
                         myOrder.Side = order.Side;
                     }
@@ -548,11 +551,6 @@ namespace OsEngine.Market.Servers
         /// <param name="trade"></param>
         private void serv_NewMyTradeEvent(MyTrade trade)
         {
-            if (ServerMaster.StartProgram != ServerStartProgramm.IsOsTrader)
-            {
-                return;
-            }
-
             if (_orders == null || _orders.Count == 0)
             {
                 return;
@@ -561,6 +559,13 @@ namespace OsEngine.Market.Servers
             Order myOrder = _orders.Find(order1 => order1.NumberMarket == trade.NumberOrderParent);
 
             if (myOrder == null)
+            {
+                return;
+            }
+
+            if (myOrder.ServerType == ServerType.Tester ||
+                myOrder.ServerType == ServerType.Optimizer ||
+                myOrder.ServerType == ServerType.Miner)
             {
                 return;
             }
@@ -601,7 +606,7 @@ namespace OsEngine.Market.Servers
                 for (int i = _orders.Count - 1; _orders != null && _orders.Count != 0 && i > -1; i--)
                 {
                     if (_orders[i].State != OrderStateType.Activ
-                      || _orders[i].Side == Side.UnKnown)
+                      || _orders[i].Side == Side.None)
                     {
                         continue;
                     }

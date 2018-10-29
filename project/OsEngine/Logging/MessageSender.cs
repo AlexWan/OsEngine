@@ -4,7 +4,7 @@
 
 using System;
 using System.IO;
-using OsEngine.Market.Servers;
+using OsEngine.Market;
 
 namespace OsEngine.Logging
 {
@@ -34,8 +34,14 @@ namespace OsEngine.Logging
 
         private string _name; // имя
 
-        public MessageSender(string name)
+        /// <summary>
+        /// программа создавшая объект
+        /// </summary>
+        private StartProgram _startProgram;
+
+        public MessageSender(string name, StartProgram startProgram)
         {
+            _startProgram = startProgram;
             _name = name;
             Load();
         }
@@ -143,7 +149,7 @@ namespace OsEngine.Logging
         /// </summary>
         public void AddNewMessage(LogMessage message)
         {
-            if (ServerMaster.StartProgram != ServerStartProgramm.IsOsTrader)
+            if (_startProgram != StartProgram.IsOsTrader)
             {
                 return;
             }

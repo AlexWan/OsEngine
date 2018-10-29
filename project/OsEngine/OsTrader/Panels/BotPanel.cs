@@ -14,7 +14,7 @@ using OsEngine.Alerts;
 using OsEngine.Entity;
 using OsEngine.Journal.Internal;
 using OsEngine.Logging;
-using OsEngine.Market.Servers;
+using OsEngine.Market;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.RiskManager;
 
@@ -43,22 +43,29 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// конструктор
         /// </summary>
-        protected BotPanel(string name)
+        protected BotPanel(string name, StartProgram startProgram)
         {
-             NameStrategyUniq = name;
+            NameStrategyUniq = name;
+            StartProgram = startProgram;
+
             ReloadTab();
 
-            _riskManager = new RiskManager.RiskManager(NameStrategyUniq);
+            _riskManager = new RiskManager.RiskManager(NameStrategyUniq, startProgram);
             _riskManager.RiskManagerAlarmEvent += _riskManager_RiskManagerAlarmEvent;
 
-            _log = new Log(name);
+            _log = new Log(name, startProgram);
             _log.Listen(this);
         }
 
         /// <summary>
-        /// уникальное имя робота. Передаётся в конструктор. Участвует в процессе сохранения всех данных связанных с ботом
+        /// уникальный номер/имя робота. Передаётся в конструктор. Участвует в процессе сохранения всех данных связанных с ботом
         /// </summary>
         public string NameStrategyUniq;
+
+        /// <summary>
+        /// программа которая запустила робота. Тестер / Робот / Оптимизатор
+        /// </summary>
+        public StartProgram StartProgram;
 
 // управление
 
@@ -587,7 +594,7 @@ namespace OsEngine.OsTrader.Panels
         /// <returns></returns>
         private IIStrategyParameter LoadParameterValues(IIStrategyParameter  newParameter)
         {
-            if (ServerMaster.StartProgram != ServerStartProgramm.IsOsOptimizer)
+            if (StartProgram != StartProgram.IsOsOptimizer)
             {// запущен тестер или робот, в котором можно менять параметры вручную
                 GetValueParameterSaveByUser(newParameter);
             }
@@ -645,7 +652,7 @@ namespace OsEngine.OsTrader.Panels
         /// </summary>
         void Parameter_ValueChange()
         {
-            if (ServerMaster.StartProgram != ServerStartProgramm.IsOsOptimizer)
+            if (StartProgram != StartProgram.IsOsOptimizer)
             {
                 SaveParametrs();
             }
@@ -926,11 +933,11 @@ namespace OsEngine.OsTrader.Panels
 
                 if (tabType == BotTabType.Simple)
                 {
-                    newTab = new BotTabSimple(nameTab);
+                    newTab = new BotTabSimple(nameTab, StartProgram);
                 }
                 else if (tabType == BotTabType.Index)
                 {
-                    newTab = new BotTabIndex(nameTab);
+                    newTab = new BotTabIndex(nameTab, StartProgram);
                 }
                 else
                 {

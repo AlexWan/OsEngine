@@ -3,11 +3,9 @@
 */
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
@@ -16,7 +14,6 @@ using OsEngine.Alerts;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market;
-using OsEngine.Market.Servers;
 
 namespace OsEngine.Journal.Internal
 {
@@ -43,11 +40,6 @@ namespace OsEngine.Journal.Internal
         /// </summary>
         public static void Activate()
         {
-            if (ServerMaster.StartProgram == ServerStartProgramm.IsOsData ||
-                ServerMaster.StartProgram == ServerStartProgramm.IsOsOptimizer)
-            {
-                return;
-            }
             Watcher = new Thread(WatcherHome);
             Watcher.Name = "PositionControllerThread";
             Watcher.IsBackground = true;
@@ -78,18 +70,10 @@ namespace OsEngine.Journal.Internal
         }
 
         // сервис
-        public PositionController(string name)
+        public PositionController(string name, StartProgram  startProgram)
         {
-            if (ServerMaster.StartProgram == ServerStartProgramm.IsTester)
-            {
-                _typeWork = ConnectorWorkType.Tester;
-            }
-            else
-            {
-                _typeWork = ConnectorWorkType.Real;
-            }
-
             _name = name;
+            _startProgram = startProgram;
 
             if (Watcher == null)
             {
@@ -112,21 +96,21 @@ namespace OsEngine.Journal.Internal
 
         }
 
+        private StartProgram _startProgram;
+
         /// <summary>
         /// имя
         /// </summary>
         private string _name;
-
-        private ConnectorWorkType _typeWork;
 
         /// <summary>
         /// загрузить
         /// </summary>
         private void Load()
         {
-            if (ServerMaster.StartProgram == ServerStartProgramm.IsTester ||
-               ServerMaster.StartProgram == ServerStartProgramm.IsOsOptimizer ||
-                ServerMaster.StartProgram == ServerStartProgramm.IsOsMiner)
+            if (_startProgram == StartProgram.IsTester ||
+                _startProgram == StartProgram.IsOsOptimizer ||
+                _startProgram == StartProgram.IsOsMiner)
             {
                 return;
             }
@@ -270,9 +254,7 @@ namespace OsEngine.Journal.Internal
                 return;
             }
 
-            if (ServerMaster.StartProgram == ServerStartProgramm.IsTester ||
-               ServerMaster.StartProgram == ServerStartProgramm.IsOsOptimizer ||
-                ServerMaster.StartProgram == ServerStartProgramm.IsOsMiner)
+            if (_startProgram != StartProgram.IsOsTrader)
             {
                 return;
             }
@@ -864,7 +846,7 @@ namespace OsEngine.Journal.Internal
 
         private void TryPaintPositions()
         {
-            if (ServerMaster.StartProgram == ServerStartProgramm.IsOsOptimizer)
+            if (_startProgram == StartProgram.IsOsOptimizer)
             {
                 return;
             }

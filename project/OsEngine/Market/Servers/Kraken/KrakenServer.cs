@@ -65,7 +65,7 @@ namespace OsEngine.Market.Servers.Kraken
             ordersExecutor.IsBackground = true;
             ordersExecutor.Start();
 
-            _logMaster = new Log("KrakenServer");
+            _logMaster = new Log("KrakenServer", StartProgram.IsOsTrader);
             _logMaster.Listen(this);
 
             _serverStatusNead = ServerConnectStatus.Disconnect;
@@ -116,13 +116,26 @@ namespace OsEngine.Market.Servers.Kraken
         public string LeverageType;
 
         /// <summary>
-        /// вызвать окно настроек
+        /// показать настройки
         /// </summary>
         public void ShowDialog()
         {
-            KrakenServerUi ui = new KrakenServerUi(this, _logMaster);
-            ui.Show();
+            if (_ui == null)
+            {
+                _ui = new KrakenServerUi(this, _logMaster);
+                _ui.Show();
+                _ui.Closing += (sender, args) => { _ui = null; };
+            }
+            else
+            {
+                _ui.Activate();
+            }
         }
+
+        /// <summary>
+        /// окно управления элемента
+        /// </summary>
+        private KrakenServerUi _ui;
 
         /// <summary>
         /// загрузить настройки из файла
@@ -975,7 +988,7 @@ namespace OsEngine.Market.Servers.Kraken
                     _krakenClient.ListenSecurity(namePaper);
 
                     // 2 создаём серию свечек
-                    CandleSeries series = new CandleSeries(timeFrameBuilder, security);
+                    CandleSeries series = new CandleSeries(timeFrameBuilder, security, StartProgram.IsOsTrader);
 
                     _candleManager.StartSeries(series);
 

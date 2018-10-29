@@ -168,7 +168,7 @@ namespace OsEngine.Entity
                 nRow.Cells[0].Value = securities[indexSecuriti].Name;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[1].Value = securities[indexSecuriti].Type;
+                nRow.Cells[1].Value = securities[indexSecuriti].SecurityType;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[2].Value = securities[indexSecuriti].Lot;

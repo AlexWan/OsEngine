@@ -10,6 +10,7 @@ using System.Media;
 using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
+using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.OsConverter;
@@ -88,9 +89,11 @@ namespace OsEngine.Logging
         /// конструктор
         /// </summary>
         /// <param name="uniqName">имя объекта которому принадлежит лог</param>
-        public Log(string uniqName)
+        /// <param name="startProgram">программа создавшая класс</param>
+        public Log(string uniqName, StartProgram startProgram)
         {
             _uniqName = uniqName;
+            _startProgram = startProgram;
 
             if (Watcher == null)
             {
@@ -144,7 +147,7 @@ namespace OsEngine.Logging
             _grid.Rows.Add(null, null);
             _grid.DoubleClick += _grid_DoubleClick;
 
-            _messageSender = new MessageSender(uniqName);
+            _messageSender = new MessageSender(uniqName,_startProgram);
 
             CreateErrorLogGreed();
         }
@@ -185,6 +188,8 @@ namespace OsEngine.Logging
         /// имя
         /// </summary>
         private string _uniqName;
+
+        private StartProgram _startProgram;
 
         /// <summary>
         /// начать прослушку сервера
@@ -261,6 +266,14 @@ namespace OsEngine.Logging
         public void Listen(OsConverterMaster master)
         {
             master.LogMessageEvent += ProcessMessage;
+        }
+
+        /// <summary>
+        /// начать прослушку роутера
+        /// </summary>
+        public void ListenServerMaster()
+        {
+            ServerMaster.LogMessageEvent += ProcessMessage;
         }
 
         /// <summary>
@@ -376,7 +389,6 @@ namespace OsEngine.Logging
             {
                 Directory.CreateDirectory(@"Engine\Log\");
             }
-
 
             try
             {

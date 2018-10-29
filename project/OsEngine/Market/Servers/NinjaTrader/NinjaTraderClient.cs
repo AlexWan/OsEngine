@@ -12,7 +12,6 @@ using System.Text;
 using System.Threading;
 using OsEngine.Entity;
 using OsEngine.Logging;
-using OsEngine.Market.Servers.Entity;
 
 namespace OsEngine.Market.Servers.NinjaTrader
 {

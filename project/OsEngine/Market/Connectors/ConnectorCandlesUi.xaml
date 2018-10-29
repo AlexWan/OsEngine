@@ -1,4 +1,4 @@
-﻿<Window x:Class="OsEngine.Market.ConnectorUi"
+﻿<Window x:Class="OsEngine.Market.Connectors.ConnectorCandlesUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Подключение потока данных" Height="567" Width="419" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
@@ -46,6 +46,7 @@
         <TextBox x:Name ="TextBoxRencoPunkts" Margin="206,432,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
         <Label x:Name="LabelDeltaPeriods" Content="Изменение дельты для закрытия" HorizontalAlignment="Left" Margin="41,372,0,0" VerticalAlignment="Top" />
         <TextBox x:Name ="TextBoxDeltaPeriods" Margin="246,372,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="144"  />
+        <CheckBox x:Name="CheckBoxRencoIsBuildShadows" Content="Строить тени" HorizontalAlignment="Left" Margin="120,462,0,0" VerticalAlignment="Top"/>
 
 
     </Grid>
