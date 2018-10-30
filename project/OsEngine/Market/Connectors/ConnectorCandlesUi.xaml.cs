@@ -782,6 +782,10 @@ namespace OsEngine.Market.Connectors
             {
                 CreateVolumeCandleSettings();
             }
+            if (type == CandleCreateMethodType.HeikenAshi)
+            {
+                CreateHaikenAshiCandleSettings();
+            }
         }
 
         private void ClearDopCandleSettings()
@@ -855,6 +859,11 @@ namespace OsEngine.Market.Connectors
 
             LabelVolumeToClose.Margin = new Thickness(41, 296, 0, 0);
             TextBoxVolumeToClose.Margin = new Thickness(206, 296, 0, 0);
+            Height = 420;
+        }
+
+        private void CreateHaikenAshiCandleSettings()
+        {
             Height = 420;
         }
     }

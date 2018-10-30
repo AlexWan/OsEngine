@@ -30,7 +30,7 @@ namespace OsEngine.Market.Servers
                 _serverRealization.SecurityEvent += _serverRealization_SecurityEvent;
                 _serverRealization.LogMessageEvent += SendLogMessage;
 
-                CreateParameterBolean("Сохранять историю", true);
+                CreateParameterBoolean("Сохранять историю", true);
                 _neadToSaveTicksParam = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
                 _neadToSaveTicksParam.ValueChange += SaveHistoryParam_ValueChange;
 
@@ -218,7 +218,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// создать булевый параметр сервера
         /// </summary>
-        public void CreateParameterBolean(string name, bool param)
+        public void CreateParameterBoolean(string name, bool param)
         {
             ServerParameterBool newParam = new ServerParameterBool();
             newParam.Name = name;
@@ -339,7 +339,7 @@ namespace OsEngine.Market.Servers
             {
                 using (StreamReader reader = new StreamReader(@"Engine\" + ServerType + @"Params.txt"))
                 {
-                    if (reader.EndOfStream == false)
+                    while(reader.EndOfStream == false)
                     {
                         string save = reader.ReadLine();
 
@@ -375,6 +375,11 @@ namespace OsEngine.Market.Servers
                             oldParam = new ServerParameterPath();
                         }
 
+                        if (oldParam == null)
+                        {
+                            continue;
+                        }
+
                         oldParam.LoadFromStr(save);
 
                         if (oldParam.Name == param.Name &&
@@ -383,10 +388,9 @@ namespace OsEngine.Market.Servers
                             return oldParam;
                         }
                     }
-                    else
-                    {
-                        return param;
-                    }
+
+                    return param;
+                    
 
                 }
             }

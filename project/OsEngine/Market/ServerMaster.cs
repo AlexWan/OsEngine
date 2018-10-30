@@ -672,6 +672,7 @@ namespace OsEngine.Market
         /// Тип сервера не назначен
         /// </summary>
         None,
+
         /// <summary>
         /// биржа криптовалют Bitfinex
         /// </summary>
