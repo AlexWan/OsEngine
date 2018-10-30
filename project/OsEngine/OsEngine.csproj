@@ -318,6 +318,9 @@
       <DependentUpon>LogErrorUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Market\Servers\AServer.cs" />
+    <Compile Include="Market\Servers\AServerParameterUi.xaml.cs">
+      <DependentUpon>AServerParameterUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Market\Servers\AServerTests.cs" />
     <Compile Include="Market\Servers\AstsBridge\AstsBridgeWrapper.cs" />
     <Compile Include="Market\Servers\AstsBridge\AstsBridgeServer.cs" />
@@ -336,9 +339,6 @@
     <Compile Include="Market\Servers\Binance\BinanceEntity\SecurityResponce.cs" />
     <Compile Include="Market\Servers\Binance\BinanceEntity\TradeResponse.cs" />
     <Compile Include="Market\Servers\Binance\BinanceServer.cs" />
-    <Compile Include="Market\Servers\Binance\BinanceServerUi.xaml.cs">
-      <DependentUpon>BinanceServerUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Market\Servers\Bitfinex\BitfinexClient.cs" />
     <Compile Include="Market\Servers\Bitfinex\BitfinexServer.cs" />
     <Compile Include="Market\Servers\Bitfinex\BitfinexServerUi.xaml.cs">
@@ -372,6 +372,7 @@
     <Compile Include="Market\Servers\Entity\BidAskSender.cs" />
     <Compile Include="Market\Servers\Entity\OrderSender.cs" />
     <Compile Include="Market\Servers\Entity\PositionOnBoardSander.cs" />
+    <Compile Include="Market\Servers\Entity\ServerParameter.cs" />
     <Compile Include="Market\Servers\Finam\FinamServer.cs" />
     <Compile Include="Market\Servers\Finam\FinamServerUi.xaml.cs">
       <DependentUpon>FinamServerUi.xaml</DependentUpon>
@@ -430,9 +431,6 @@
     <Compile Include="Market\Connectors\ConnectorCandles.cs" />
     <Compile Include="Market\Connectors\ConnectorCandlesUi.xaml.cs">
       <DependentUpon>ConnectorCandlesUi.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Market\Servers\Quik\QuikServerUi.xaml.cs">
-      <DependentUpon>QuikServerUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Market\Servers\Quik\Trans2Quik.cs" />
     <Compile Include="Market\Connectors\OrderExecutionEmulator.cs" />
@@ -876,11 +874,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Market\Servers\AstsBridge\AstsServerUi.xaml">
+    <Page Include="Market\Servers\AServerParameterUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Market\Servers\Binance\BinanceServerUi.xaml">
+    <Page Include="Market\Servers\AstsBridge\AstsServerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -937,10 +935,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Market\Servers\Tester\TesterServerUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Market\Servers\Quik\QuikServerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

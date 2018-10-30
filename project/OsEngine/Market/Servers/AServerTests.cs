@@ -26,6 +26,9 @@ namespace OsEngine.Market.Servers
         /// </summary>
         private bool _isWorking = false;
 
+        /// <summary>
+        /// начать прослушку сервера
+        /// </summary>
         public void Listen(AServer server)
         {
             if (_isWorking == false)
@@ -77,8 +80,6 @@ namespace OsEngine.Market.Servers
             bidAskCheker.IsBackground = true;
             bidAskCheker.Start();
         }
-
-
 
         void server_UserWhantDisconnect()
         {

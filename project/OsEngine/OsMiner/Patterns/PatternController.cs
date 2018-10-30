@@ -38,6 +38,8 @@ namespace OsEngine.OsMiner.Patterns
             MiningDealsCount = 50;
             MiningProfit = 10;
             LotsCount = LotsCountType.All;
+            SideInter= Side.Buy;
+           
         }
 
         /// <summary>

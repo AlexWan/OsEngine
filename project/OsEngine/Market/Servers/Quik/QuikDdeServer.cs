@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using OsEngine.Entity;
 using OsEngine.Logging;
+using OsEngine.Market.Servers.Entity;
 
 namespace OsEngine.Market.Servers.Quik
 {
@@ -17,32 +18,10 @@ namespace OsEngine.Market.Servers.Quik
         public QuikServer()
         {
             QuikDdeServerRealization realization = new QuikDdeServerRealization();
-            CountDaysTickNeadToSave = realization.CountDaysTickNeadToSave;
-            NeadToSaveTicks = realization.NeadToSaveTicks;
             ServerRealization = realization;
-        }
 
-        /// <summary>
-        /// показать настройки
-        /// </summary>
-        public override void ShowDialog()
-        {
-            if (_ui == null)
-            {
-                _ui = new QuikServerUi(this, Log);
-                _ui.Show();
-                _ui.Closing += (sender, args) => { _ui = null; };
-            }
-            else
-            {
-                _ui.Activate();
-            }
+            CreateParameterPath("Путь к Квик");
         }
-
-        /// <summary>
-        /// окно управления элемента
-        /// </summary>
-        private QuikServerUi _ui;
     }
 
     /// <summary>
@@ -60,14 +39,10 @@ namespace OsEngine.Market.Servers.Quik
             statusWatcher.Name = "ThreadQuikDdeServerRealizationStatusWatcher";
             statusWatcher.Start();
 
-            NeadToSaveTicks = true;
-            CountDaysTickNeadToSave = 2;
             _status = ServerConnectStatus.Disconnect;
             _ddeStatus = ServerConnectStatus.Disconnect;
             _transe2QuikStatus = ServerConnectStatus.Disconnect;
             _tradesStatus = ServerConnectStatus.Disconnect;
-
-            Load();
         }
 
         /// <summary>
@@ -78,71 +53,10 @@ namespace OsEngine.Market.Servers.Quik
             get { return ServerType.QuikDde; }
         }
 
-        /// <summary>
-        /// количество дней назад, тиковые данные по которым нужно сохранять
-        /// </summary>
-        public int CountDaysTickNeadToSave { get; set; }
-
-        /// <summary>
-        /// нужно ли сохранять тики 
-        /// </summary>
-        public bool NeadToSaveTicks { get; set; }
+        public List<IServerParameter> ServerParameters { get; set; }
 
         public DateTime ServerTime { get; set; }
 
-        /// <summary>
-        /// путь к квик
-        /// </summary>
-        public string PathToQuik;
-
-        /// <summary>
-        /// сохранить
-        /// </summary>
-        public void Save()
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + ServerType +".txt", false))
-                {
-                    writer.WriteLine(PathToQuik);
-                    writer.WriteLine(CountDaysTickNeadToSave);
-                    writer.WriteLine(NeadToSaveTicks);
-
-                    writer.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
-        }
-
-        /// <summary>
-        /// загрузить
-        /// </summary>
-        public void Load()
-        {
-            if (!File.Exists(@"Engine\" + ServerType + ".txt"))
-            {
-                return;
-            }
-
-            try
-            {
-                using (StreamReader reader = new StreamReader(@"Engine\" + ServerType + ".txt"))
-                {
-                    PathToQuik = reader.ReadLine();
-                    CountDaysTickNeadToSave = Convert.ToInt32(reader.ReadLine());
-                    NeadToSaveTicks = Convert.ToBoolean(reader.ReadLine());
-
-                    reader.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
-        }
 
 // подключение / отключение
 
@@ -188,7 +102,9 @@ namespace OsEngine.Market.Servers.Quik
             {
                 _lastStartServerTime = DateTime.Now;
 
-                if (string.IsNullOrWhiteSpace(PathToQuik))
+                
+
+                if (string.IsNullOrWhiteSpace(((ServerParameterPath)ServerParameters[0]).Value))
                 {
                     SendLogMessage("Ошибка. Необходимо указать местоположение Quik", LogMessageType.Error);
                     return;
@@ -214,15 +130,13 @@ namespace OsEngine.Market.Servers.Quik
                         return;
                     }
 
-                    result = Trans2Quik.CONNECT(PathToQuik, out error, msg, msg.Capacity);
+                    result = Trans2Quik.CONNECT(((ServerParameterPath)ServerParameters[0]).Value, out error, msg, msg.Capacity);
 
                     if (result != Trans2Quik.QuikResult.SUCCESS && result != Trans2Quik.QuikResult.ALREADY_CONNECTED_TO_QUIK)
                     {
                         SendLogMessage("Ошибка при попытке подклчиться через Transe2Quik." + msg, LogMessageType.Error);
                         return;
                     }
-
-
 
                     Trans2Quik.SET_TRANSACTIONS_REPLY_CALLBACK(TransactionReplyCallback, out error, msg,
                          msg.Capacity);

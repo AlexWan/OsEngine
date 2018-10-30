@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using OsEngine.Entity;
 using OsEngine.Logging;
+using OsEngine.Market.Servers.Entity;
 
 namespace OsEngine.Market.Servers.Binance
 {
@@ -15,33 +16,11 @@ namespace OsEngine.Market.Servers.Binance
         public BinanceServer()
         {
             BinanceServerRealization realization = new BinanceServerRealization();
-            CountDaysTickNeadToSave = realization.CountDaysTickNeadToSave;
-            NeadToSaveTicks = realization.NeadToSaveTicks;
             ServerRealization = realization;
+
+            CreateParameterString("Публичный ключ","");
+            CreateParameterPassword("Секретный ключ", "");
         }
-
-        /// <summary>
-        /// показать настройки
-        /// </summary>
-        public override void ShowDialog()
-        {
-            if (_ui == null)
-            {
-                _ui = new BinanceServerUi(this, Log);
-                _ui.Show();
-                _ui.Closing += (sender, args) => { _ui = null; };
-            }
-            else
-            {
-                _ui.Activate();
-            }
-
-        }
-
-        /// <summary>
-        /// окно управления элемента
-        /// </summary>
-        private BinanceServerUi _ui;
 
         /// <summary>
         /// запрос истории по инструменту
@@ -57,9 +36,6 @@ namespace OsEngine.Market.Servers.Binance
         public BinanceServerRealization()
         {
             ServerStatus = ServerConnectStatus.Disconnect;
-            NeadToSaveTicks = true;
-            CountDaysTickNeadToSave = 2;
-            Load();
         }
 
         /// <summary>
@@ -70,81 +46,12 @@ namespace OsEngine.Market.Servers.Binance
             get { return ServerType.Binance; }
         }
 
-        /// <summary>
-        /// количество дней назад, тиковые данные по которым нужно сохранять
-        /// </summary>
-        public int CountDaysTickNeadToSave { get; set; }
-
-        /// <summary>
-        /// нужно ли сохранять тики 
-        /// </summary>
-        public bool NeadToSaveTicks { get; set; }
+        public List<IServerParameter> ServerParameters { get; set; }
 
         /// <summary>
         /// время сервера
         /// </summary>
         public DateTime ServerTime { get; set; }
-
-        /// <summary>
-        /// публичный ключ пользователя
-        /// </summary>
-        public string UserKey;
-
-        /// <summary>
-        /// секретный ключ пользователя
-        /// </summary>
-        public string UserPrivateKey;
-
-        /// <summary>
-        /// сохранить
-        /// </summary>
-        public void Save()
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + ServerType + ".txt", false))
-                {
-                    writer.WriteLine(UserKey);
-                    writer.WriteLine(UserPrivateKey);
-                    writer.WriteLine(CountDaysTickNeadToSave);
-                    writer.WriteLine(NeadToSaveTicks);
-
-                    writer.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
-        }
-
-        /// <summary>
-        /// загрузить
-        /// </summary>
-        public void Load()
-        {
-            if (!File.Exists(@"Engine\" + ServerType + ".txt"))
-            {
-                return;
-            }
-
-            try
-            {
-                using (StreamReader reader = new StreamReader(@"Engine\" + ServerType + ".txt"))
-                {
-                    UserKey = reader.ReadLine();
-                    UserPrivateKey = reader.ReadLine();
-                    CountDaysTickNeadToSave = Convert.ToInt32(reader.ReadLine());
-                    NeadToSaveTicks = Convert.ToBoolean(reader.ReadLine());
-
-                    reader.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
-        }
 
 // запросы
 
@@ -187,7 +94,7 @@ namespace OsEngine.Market.Servers.Binance
         {
             if (_client == null)
             {
-                _client = new BinanceClient(UserKey, UserPrivateKey);
+                _client = new BinanceClient(((ServerParameterString)ServerParameters[0]).Value, ((ServerParameterPassword)ServerParameters[1]).Value);
                 _client.Connected += _client_Connected;
                 _client.UpdatePairs += _client_UpdatePairs;
                 _client.Disconnected += _client_Disconnected;

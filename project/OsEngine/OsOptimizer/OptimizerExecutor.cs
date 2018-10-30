@@ -552,7 +552,9 @@ namespace OsEngine.OsOptimizer
             }
 
 // 1. создаём новый сервер для оптимизации. И один поток соответственно
-            OptimizerServer server = new OptimizerServer(_master.Storage, _serverNum, _master.StartDepozit);
+            OptimizerServer server = ServerMaster.CreateNextOptimizerServer(_master.Storage, _serverNum,
+            _master.StartDepozit);
+
             _serverNum++;
             _servers.Add(server);
 

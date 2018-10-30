@@ -35,6 +35,10 @@ namespace OsEngine.Market
 
             for (int i = 0; i < servers.Count; i++)
             {
+                if (servers[i].ServerType == ServerType.Optimizer)
+                {
+                    continue;
+                }
                 servers[i].PortfoliosChangeEvent -= _server_PortfoliosChangeEvent;
                 servers[i].NewOrderIncomeEvent -= _server_NewOrderIncomeEvent;
                 servers[i].NewMyTradeEvent -= serv_NewMyTradeEvent;

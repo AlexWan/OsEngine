@@ -19,6 +19,7 @@ using OsEngine.Market.Servers.InteractivBrokers;
 using OsEngine.Market.Servers.Kraken;
 using OsEngine.Market.Servers.NinjaTrader;
 using OsEngine.Market.Servers.Oanda;
+using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Plaza;
 using OsEngine.Market.Servers.Quik;
 using OsEngine.Market.Servers.QuikLua;
@@ -303,6 +304,41 @@ namespace OsEngine.Market
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        /// <summary>
+        /// создать новый сервер оптимизации
+        /// </summary>
+        public static OptimizerServer CreateNextOptimizerServer(OptimizerDataStorage storage, int num, decimal portfolioStartVal)
+        {
+            OptimizerServer serv = new OptimizerServer(storage, num, portfolioStartVal);
+
+            bool isInArray = false;
+
+            if (_servers == null)
+            {
+                _servers = new List<IServer>();
+            }
+
+            for (int i = 0; i < _servers.Count; i++)
+            {
+                if (_servers[i].ServerType == ServerType.Optimizer)
+                {
+                    _servers[i] = serv;
+                    isInArray = true;
+                }
+            }
+
+            if (isInArray == false)
+            {
+                _servers.Add(serv);
+            }
+            
+            if (ServerCreateEvent != null)
+            {
+                ServerCreateEvent(serv);
+            }
+            return serv;
         }
 
         /// <summary>

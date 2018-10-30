@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.Logging;
+using OsEngine.Market.Servers.Entity;
 
 namespace OsEngine.Market.Servers
 {
@@ -16,29 +17,14 @@ namespace OsEngine.Market.Servers
         ServerType ServerType { get;}
 
         /// <summary>
-        /// количество тиков которые нужно сохранять
+        /// параметры стратегии
         /// </summary>
-        int CountDaysTickNeadToSave { get; set; }
+        List<IServerParameter> ServerParameters { get; set; }
 
-        /// <summary>
-        /// нужно ли сохранять историю
-        /// </summary>
-        bool NeadToSaveTicks { get; set; }
-
-        /// <summary>
+            /// <summary>
         /// время сервера
         /// </summary>
         DateTime ServerTime { get; set; }
-
-        /// <summary>
-        /// сохранить
-        /// </summary>
-        void Save();
-
-        /// <summary>
-        /// загрузить
-        /// </summary>
-        void Load();
 
         /// <summary>
         /// освободить ресурсы АПИ

@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Threading;
 using OsEngine.Entity;
 using OsEngine.Logging;
@@ -29,10 +30,20 @@ namespace OsEngine.Market.Servers
                 _serverRealization.SecurityEvent += _serverRealization_SecurityEvent;
                 _serverRealization.LogMessageEvent += SendLogMessage;
 
+                CreateParameterBolean("Сохранять историю", true);
+                _neadToSaveTicksParam = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
+                _neadToSaveTicksParam.ValueChange += SaveHistoryParam_ValueChange;
+
+
+                CreateParameterInt("Дней подгружать", 5);
+                _neadToSaveTicksDaysCountParam = (ServerParameterInt)ServerParameters[ServerParameters.Count - 1];
+                _neadToSaveTicksDaysCountParam.ValueChange += _neadToSaveTicksDaysCountParam_ValueChange;
+
+                _serverRealization.ServerParameters = ServerParameters;
 
                 _tickStorage = new ServerTickStorage(this);
-                _tickStorage.NeadToSave = NeadToSaveTicks;
-                _tickStorage.DaysToLoad = CountDaysTickNeadToSave;
+                _tickStorage.NeadToSave = _neadToSaveTicksParam.Value;
+                _tickStorage.DaysToLoad = _neadToSaveTicksDaysCountParam.Value;
                 _tickStorage.TickLoadedEvent += _tickStorage_TickLoadedEvent;
                 _tickStorage.LogMessageEvent += SendLogMessage;
                 _tickStorage.LoadTick();
@@ -64,9 +75,13 @@ namespace OsEngine.Market.Servers
                 AServerTests tester = new AServerTests();
                 tester.Listen(this);
                 tester.LogMessageEvent += SendLogMessage;
+
+                _serverIsStart = true;
+
             }
             get { return _serverRealization; }
         }
+
         private IServerRealization _serverRealization;
 
         /// <summary>
@@ -77,54 +92,309 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// показать окно настроек
         /// </summary>
-        public abstract void ShowDialog();
-
-        /// <summary>
-        /// сохранить
-        /// </summary>
-        public void Save()
+        public void ShowDialog()
         {
-            ServerRealization.Save();
-        }
-
-        /// <summary>
-        /// количество дней назад, тиковые данные по которым нужно сохранять
-        /// </summary>
-        public int CountDaysTickNeadToSave
-        {
-            get { return ServerRealization.CountDaysTickNeadToSave; }
-            set
+            if (_ui == null)
             {
-                if (ServerRealization != null)
-                {
-                    ServerRealization.CountDaysTickNeadToSave = value;
-                }
-                
-                if (_tickStorage != null)
-                {
-                    _tickStorage.DaysToLoad = value;
-                }
+                _ui = new AServerParameterUi(this);
+                _ui.Show();
+                _ui.Closing += (sender, args) => { _ui = null; };
+            }
+            else
+            {
+                _ui.Activate();
             }
         }
 
         /// <summary>
-        /// нужно ли сохранять тики 
+        /// окно настроек
         /// </summary>
-        public bool NeadToSaveTicks
+        private AServerParameterUi _ui;
+
+        void _neadToSaveTicksDaysCountParam_ValueChange()
         {
-            get { return ServerRealization.NeadToSaveTicks; }
-            set
+            if (_tickStorage != null)
             {
-                if (ServerRealization != null)
-                {
-                    ServerRealization.NeadToSaveTicks = value;
-                }
-                if (_tickStorage != null)
-                {
-                    _tickStorage.NeadToSave = value;
-                }
-                
+                _tickStorage.DaysToLoad = _neadToSaveTicksDaysCountParam.Value;
             }
+        }
+
+        void SaveHistoryParam_ValueChange()
+        {
+            if (_tickStorage != null)
+            {
+                _tickStorage.NeadToSave = _neadToSaveTicksParam.Value;
+            }
+        }
+
+        // параметры
+
+        /// <summary>
+        /// запустился ли сервер
+        /// </summary>
+        private bool _serverIsStart;
+
+        /// <summary>
+        /// параметр с флагом о том, нужно ли сохранять тики для сервера
+        /// </summary>
+        private ServerParameterBool _neadToSaveTicksParam;
+
+        /// <summary>
+        /// параметр с количеством дней которые нужно сохранять тики
+        /// </summary>
+        private ServerParameterInt _neadToSaveTicksDaysCountParam;
+
+        /// <summary>
+        /// параметры сервера
+        /// </summary>
+        public List<IServerParameter> ServerParameters = new List<IServerParameter>();
+
+        /// <summary>
+        /// создать строковый параметр сервера
+        /// </summary>
+        public void CreateParameterString(string name, string param)
+        {
+            ServerParameterString newParam = new ServerParameterString();
+            newParam.Name = name;
+            newParam.Value = param;
+
+            newParam = (ServerParameterString)LoadParam(newParam);
+            if (_serverIsStart)
+            {
+                ServerParameters.Insert(ServerParameters.Count - 2, newParam);
+            }
+            else
+            {
+                ServerParameters.Add(newParam);
+            }
+
+            newParam.ValueChange += newParam_ValueChange;
+        }
+
+        /// <summary>
+        /// создать интовый параметр сервера
+        /// </summary>
+        public void CreateParameterInt(string name, int param)
+        {
+            ServerParameterInt newParam = new ServerParameterInt();
+            newParam.Name = name;
+            newParam.Value = param;
+
+            newParam = (ServerParameterInt)LoadParam(newParam);
+            if (_serverIsStart)
+            {
+                ServerParameters.Insert(ServerParameters.Count - 2, newParam);
+            }
+            else
+            {
+                ServerParameters.Add(newParam);
+            }
+
+            newParam.ValueChange += newParam_ValueChange;
+        }
+
+        /// <summary>
+        /// создать десимал параметр сервера
+        /// </summary>
+        public void CreateParameterDecimal(string name, decimal param)
+        {
+            ServerParameterDecimal newParam = new ServerParameterDecimal();
+            newParam.Name = name;
+            newParam.Value = param;
+
+            newParam = (ServerParameterDecimal)LoadParam(newParam);
+            if (_serverIsStart)
+            {
+                ServerParameters.Insert(ServerParameters.Count - 2, newParam);
+            }
+            else
+            {
+                ServerParameters.Add(newParam);
+            }
+
+            newParam.ValueChange += newParam_ValueChange;
+        }
+
+        /// <summary>
+        /// создать булевый параметр сервера
+        /// </summary>
+        public void CreateParameterBolean(string name, bool param)
+        {
+            ServerParameterBool newParam = new ServerParameterBool();
+            newParam.Name = name;
+            newParam.Value = param;
+
+            newParam = (ServerParameterBool)LoadParam(newParam);
+            if (_serverIsStart)
+            {
+                ServerParameters.Insert(ServerParameters.Count - 2, newParam);
+            }
+            else
+            {
+                ServerParameters.Add( newParam);
+            }
+            
+
+            newParam.ValueChange += newParam_ValueChange;
+        }
+
+        /// <summary>
+        /// создать парольный параметр сервера
+        /// </summary>
+        public void CreateParameterPassword(string name, string param)
+        {
+            ServerParameterPassword newParam = new ServerParameterPassword();
+            newParam.Name = name;
+            newParam.Value = param;
+
+            newParam = (ServerParameterPassword)LoadParam(newParam);
+            if (_serverIsStart)
+            {
+                ServerParameters.Insert(ServerParameters.Count - 2, newParam);
+            }
+            else
+            {
+                ServerParameters.Add(newParam);
+            }
+
+            newParam.ValueChange += newParam_ValueChange;
+        }
+
+        /// <summary>
+        /// создать параметр сервера для пути к папке
+        /// </summary>
+        public void CreateParameterPath(string name)
+        {
+            ServerParameterPath newParam = new ServerParameterPath();
+            newParam.Name = name;
+
+            newParam = (ServerParameterPath)LoadParam(newParam);
+            if (_serverIsStart)
+            {
+                ServerParameters.Insert(ServerParameters.Count - 2, newParam);
+            }
+            else
+            {
+                ServerParameters.Add(newParam);
+            }
+
+            newParam.ValueChange += newParam_ValueChange;
+        }
+
+        /// <summary>
+        /// изменилось состояние параметра
+        /// </summary>
+        void newParam_ValueChange()
+        {
+            SaveParam();
+        }
+
+        /// <summary>
+        /// сохранить параметры
+        /// </summary>
+        private void SaveParam()
+        {
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + ServerType + @"Params.txt", false)
+                    )
+                {
+                    for (int i = 0; i < ServerParameters.Count; i++)
+                    {
+                        writer.WriteLine(ServerParameters[i].GetStringToSave());
+                    }
+                    
+                    writer.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // отправить в лог
+            }
+        }
+
+        /// <summary>
+        /// загрузить параметр
+        /// </summary>
+        private IServerParameter LoadParam(IServerParameter param)
+        {
+            try
+            {
+                if (ServerType == ServerType.Binance)
+                {
+                    
+                }
+            }
+            catch (Exception)
+            {
+                throw new Exception("You try create Parameter befor create realization. Set CreateParam method after create ServerRealization");
+            }
+
+
+            if (!File.Exists(@"Engine\" + ServerType + @"Params.txt"))
+            {
+                return param;
+            }
+            try
+            {
+                using (StreamReader reader = new StreamReader(@"Engine\" + ServerType + @"Params.txt"))
+                {
+                    if (reader.EndOfStream == false)
+                    {
+                        string save = reader.ReadLine();
+
+                        string[] saveAr = save.Split('^');
+
+                        ServerParameterType type;
+                        Enum.TryParse(saveAr[0], out type);
+
+                        IServerParameter oldParam = null;
+
+                        if (type == ServerParameterType.String)
+                        {
+                            oldParam = new ServerParameterString();
+                        }
+                        if (type == ServerParameterType.Decimal)
+                        {
+                            oldParam = new ServerParameterDecimal();
+                        }
+                        if (type == ServerParameterType.Int)
+                        {
+                            oldParam = new ServerParameterInt();
+                        }
+                        if (type == ServerParameterType.Bool)
+                        {
+                            oldParam = new ServerParameterBool();
+                        }
+                        if (type == ServerParameterType.Password)
+                        {
+                            oldParam = new ServerParameterPassword();
+                        }
+                        if (type == ServerParameterType.Path)
+                        {
+                            oldParam = new ServerParameterPath();
+                        }
+
+                        oldParam.LoadFromStr(save);
+
+                        if (oldParam.Name == param.Name &&
+                            oldParam.Type == param.Type)
+                        {
+                            return oldParam;
+                        }
+                    }
+                    else
+                    {
+                        return param;
+                    }
+
+                }
+            }
+            catch (Exception error)
+            {
+               SendLogMessage(error.ToString(),LogMessageType.Error);
+            }
+            return param;
         }
 
         // подключение/отключение

@@ -22,15 +22,11 @@ namespace OsEngine.Market.Servers
         ServerType ServerType { get;}
 
 //сервис
+
         /// <summary>
         /// показать настройки
         /// </summary>
         void ShowDialog();
-
-        /// <summary>
-        /// сохранить настройки в файл
-        /// </summary>
-        void Save();
 
 // подключение/отключение
         /// <summary>
@@ -53,18 +49,6 @@ namespace OsEngine.Market.Servers
         /// изменилось состояние соединения
         /// </summary>
         event Action<string> ConnectStatusChangeEvent;
-
-// сохранение / загрузка тиковых данных в хранилище
-
-        /// <summary>
-        /// количество тиков которые нужно сохранять
-        /// </summary>
-        int CountDaysTickNeadToSave { get; set; }
-
-        /// <summary>
-        /// нужно ли сохранять историю
-        /// </summary>
-        bool NeadToSaveTicks { get; set; }
 
 // время сервера
         /// <summary>
