@@ -68,8 +68,17 @@ namespace OsEngine.Market
             if (_ui == null)
             {
                 _ui = new ServerMasterUi(isTester);
-                _ui.Show();
-                _ui.Closing += (sender, args) => { _ui = null; };
+
+                try
+                {
+                    _ui.Show();
+                    _ui.Closing += (sender, args) => { _ui = null; };
+                }
+                catch
+                {
+                    _ui = null;
+                }
+
             }
             else
             {
