@@ -2148,7 +2148,9 @@ namespace OsEngine.Market.Servers.BitMex
 
                     if (myOrders[i].orderQty != null)
                     {
-                        order.Volume = (int)myOrders[i].orderQty;
+                        order.Volume = Convert.ToDecimal(myOrders[i].orderQty.Replace(",",
+                                CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                            CultureInfo.InvariantCulture);
                     }
 
                     order.Comment = myOrders[i].text;
@@ -2325,7 +2327,9 @@ namespace OsEngine.Market.Servers.BitMex
 
                             if (myOrder.data[i].orderQty != null)
                             {
-                                order.Volume = (int)myOrder.data[i].orderQty;
+                                order.Volume = Convert.ToDecimal(myOrder.data[i].orderQty.Replace(",",
+                                        CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                                    CultureInfo.InvariantCulture);
                             }
 
                             order.Comment = myOrder.data[i].text;
@@ -2422,7 +2426,7 @@ namespace OsEngine.Market.Servers.BitMex
 
                             if (needOrder != null)
                             {
-                                if (myOrder.data[i].workingIndicator)
+                                if (Convert.ToBoolean(myOrder.data[i].workingIndicator))
                                 {
                                     needOrder.State = OrderStateType.Activ;
                                 }
@@ -2443,14 +2447,25 @@ namespace OsEngine.Market.Servers.BitMex
                                 if (myOrder.data[i].ordStatus == "PartiallyFilled")
                                 {
                                     needOrder.State = OrderStateType.Patrial;
-                                    needOrder.VolumeExecute = myOrder.data[i].cumQty;
+                                    if (myOrder.data[i].cumQty != null)
+                                    {
+                                        needOrder.VolumeExecute = Convert.ToDecimal(myOrder.data[i].cumQty.Replace(",",
+                                                CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                                            CultureInfo.InvariantCulture);
+                                    }
+
                                     SendLogMessage("Апи. Ордер частично исполнен. Номер " + needOrder.NumberUser, LogMessageType.System);
                                 }
 
                                 if (myOrder.data[i].ordStatus == "Filled")
                                 {
                                     needOrder.State = OrderStateType.Done;
-                                    needOrder.VolumeExecute = myOrder.data[i].cumQty;
+                                    if (myOrder.data[i].cumQty != null)
+                                    {
+                                        needOrder.VolumeExecute = Convert.ToDecimal(myOrder.data[i].cumQty.Replace(",",
+                                                CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                                            CultureInfo.InvariantCulture);
+                                    }
                                     SendLogMessage("Апи. Ордер исполнен. Номер " + needOrder.NumberUser, LogMessageType.System);
                                 }
                                 if (_myTrades != null &&
