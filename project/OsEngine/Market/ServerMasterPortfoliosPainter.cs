@@ -47,7 +47,7 @@ namespace OsEngine.Market
                 servers[i].NewOrderIncomeEvent += _server_NewOrderIncomeEvent;
                 servers[i].NewMyTradeEvent += serv_NewMyTradeEvent;
             }
-        }
+        } 
 
         /// <summary>
         /// начать прорисовывать контролы класса 

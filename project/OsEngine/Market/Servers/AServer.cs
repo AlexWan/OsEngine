@@ -499,7 +499,8 @@ namespace OsEngine.Market.Servers
                         _lastStartServerTime.AddSeconds(60) < DateTime.Now)
                     {
                         SendLogMessage("Запущена процедура активации подключения", LogMessageType.System);
-                        Dispose();
+                        ServerRealization.Dispose();
+                        _candleManager = null;
                         ServerRealization.Connect();
                         _lastStartServerTime = DateTime.Now;
                         continue;
@@ -508,7 +509,8 @@ namespace OsEngine.Market.Servers
                     if (ServerRealization.ServerStatus == ServerConnectStatus.Connect && _serverStatusNead == ServerConnectStatus.Disconnect)
                     {
                         SendLogMessage("Запущена процедура отключения подключения", LogMessageType.System);
-                        Dispose();
+                        ServerRealization.Dispose();
+                        _candleManager = null;
                         continue;
                     }
 
@@ -539,7 +541,8 @@ namespace OsEngine.Market.Servers
                     SendLogMessage("КРИТИЧЕСКАЯ ОШИБКА. Реконнект", LogMessageType.Error);
                     SendLogMessage(error.ToString(), LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    Dispose(); // очищаем данные о предыдущем коннекторе
+                    ServerRealization.Dispose();
+                    _candleManager = null;
 
                     Thread.Sleep(5000);
                     // переподключаемся
@@ -590,19 +593,7 @@ namespace OsEngine.Market.Servers
             }
         }
 
-        /// <summary>
-        /// привести программу к моменту запуска. Очистить все объекты участвующие в подключении к серверу
-        /// </summary>
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
-        private void Dispose()
-        {
-            ServerRealization.Dispose();
-            _candleManager = null;
-        }
-
-        // работа потока рассылки !!!!!
-
-        #region MyRegion
+        #region Работа потока рассылки
 
         /// <summary>
         /// очередь новых ордеров

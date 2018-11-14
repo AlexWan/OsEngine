@@ -187,7 +187,7 @@ namespace OsEngine.Market.Servers
 
         #region Валидация простых данных
 
-        // валидация бида с аском
+// валидация бида с аском
 
         private BidAskSender _bidAsk = new BidAskSender();
 
@@ -239,7 +239,7 @@ namespace OsEngine.Market.Servers
 
         }
 
-        // валидация ордеров
+// валидация ордеров
 
         private ConcurrentQueue<Order> _orders = new ConcurrentQueue<Order>();
 
