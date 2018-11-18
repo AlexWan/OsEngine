@@ -25,6 +25,18 @@ namespace OsEngine.Market.Servers
 
             CreateParamDataGrid();
             UpdateParamDataGrid();
+            LabelStatus.Content = server.ServerStatus;
+            server.ConnectStatusChangeEvent += Server_ConnectStatusChangeEvent;
+        }
+
+        private void Server_ConnectStatusChangeEvent(string s)
+        {
+            if (LabelStatus.Dispatcher.CheckAccess() == false)
+            {
+                LabelStatus.Dispatcher.Invoke(new Action<string>(Server_ConnectStatusChangeEvent), s);
+                return;
+            }
+            LabelStatus.Content = _server.ServerStatus;
         }
 
         private DataGridView _newGrid; 

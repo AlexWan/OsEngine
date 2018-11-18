@@ -1479,8 +1479,8 @@ namespace OsEngine.Market.Servers.BitMex
                             {
                                 _bidAskToSend.Enqueue(new BidAskSender
                                 {
-                                    Ask = myDepth.Bids[0].Price,
-                                    Bid = myDepth.Asks[0].Price,
+                                    Bid= myDepth.Bids[0].Price,
+                                    Ask = myDepth.Asks[0].Price,
                                     Security = quotes.data[0].symbol != null
                                         ? GetSecurityForName(quotes.data[0].symbol)
                                         : null
@@ -1765,8 +1765,8 @@ namespace OsEngine.Market.Servers.BitMex
                 {
                     _bidAskToSend.Enqueue(new BidAskSender
                     {
-                        Ask = myDepth.Bids[0].Price,
-                        Bid = myDepth.Asks[0].Price,
+                        Bid = myDepth.Bids[0].Price,
+                        Ask = myDepth.Asks[0].Price,
                         Security = GetSecurityForName(myDepth.SecurityNameCode)
                     });
                 }
