@@ -1210,7 +1210,8 @@ namespace OsEngine.Charts.CandleChart
                 }
 
                 ChartArea candleArea = FundAreaByNameSafe("Prime");
-                if (candleArea != null && candleArea.AxisX.ScrollBar.IsVisible)
+                if (candleArea != null && candleArea.AxisX.ScrollBar.IsVisible &&
+                    candleArea.AxisX.ScaleView.Position + candleArea.AxisX.ScaleView.Size + 3 >= candleSeries.Points.Count)
                 //если уже выбран какой-то диапазон
                 {
                     // сдвигаем представление вправо
@@ -1256,8 +1257,9 @@ namespace OsEngine.Charts.CandleChart
             // candleSeries.Points[candleSeries.Points.Count - 1].AxisLabel = history[lastIndex].TimeStart.ToString(_culture);
 
             ChartArea candleArea = FundAreaByNameSafe("Prime");
-            if (candleArea != null && candleArea.AxisX.ScrollBar.IsVisible)
-            //если уже выбран какой-то диапазон
+            if (candleArea != null && candleArea.AxisX.ScrollBar.IsVisible &&
+                candleArea.AxisX.ScaleView.Position + candleArea.AxisX.ScaleView.Size + 3 >= candleSeries.Points.Count)
+                //если уже выбран какой-то диапазон
             {
                 // сдвигаем представление вправо
                 candleArea.AxisX.ScaleView.Scroll(candleSeries.Points.Count + 1);

@@ -1,7 +1,7 @@
 ﻿<Window x:Class="OsEngine.OsData.OsDataSetUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Сет данных" Height="427.859" Width="563" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Topmost="True">
+        Title="Сет данных" Height="425" Width="565" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Topmost="True">
     <Grid>
         <Rectangle Margin="5,5,5,0" Height="234" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBoxFolderName" HorizontalAlignment="Left" Height="23" Margin="138,18,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="133"/>

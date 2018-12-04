@@ -1,7 +1,7 @@
 ﻿<Window x:Class="OsEngine.Market.Connectors.ConnectorCandlesUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Подключение потока данных" Height="567" Width="419" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+        Title="Подключение потока данных" Height="565" Width="420" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid>
         <Rectangle Margin="5,154,5,40" />
 

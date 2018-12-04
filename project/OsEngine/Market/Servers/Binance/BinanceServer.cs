@@ -415,7 +415,7 @@ namespace OsEngine.Market.Servers.Binance
                 security.NameId = sec.symbol + sec.quoteAsset;
                 security.SecurityType = SecurityType.CurrencyPair;
                 // sec.filters[1] - минимальный объем равный цена * объем
-                security.Lot = Convert.ToDecimal(sec.filters[1].stepSize.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                security.Lot = Convert.ToDecimal(sec.filters[2].stepSize.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                 security.PriceStep = Convert.ToDecimal(sec.filters[0].tickSize.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                 security.PriceStepCost = security.PriceStep;
                

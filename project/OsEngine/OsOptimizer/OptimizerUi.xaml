@@ -1,7 +1,7 @@
 ﻿<Window x:Class="OsEngine.OsOptimizer.OptimizerUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-       Title="Os.Optimizer" Height="497" Width="991" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" MinWidth="1000" MinHeight="500" Icon="/Images/OsLogo.ico">
+       Title="Os.Optimizer" Height="500" Width="990" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" MinWidth="1000" MinHeight="500" Icon="/Images/OsLogo.ico">
     <Grid Name="GridPrime">
         <Grid.RowDefinitions>
             <RowDefinition Height="119*" />

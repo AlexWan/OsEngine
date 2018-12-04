@@ -1,7 +1,7 @@
 ﻿<Window x:Class="OsEngine.OsTrader.Panels.Tab.Internal.BotManualControlUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Настройки сопровождения позиций" Height="362.79" Width="609.284" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+        Title="Настройки сопровождения позиций" Height="360" Width="610" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid>
         <Rectangle Margin="5,129,0,5" HorizontalAlignment="Left" Width="285"/>
         <Rectangle  Margin="5,5,0,0" Height="119" VerticalAlignment="Top" HorizontalAlignment="Left" Width="285" />

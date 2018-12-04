@@ -1,16 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2050
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OsEngine", "OsEngine", "{813FA674-29CB-43F9-8B99-EB1FABEE928B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OsEngine", "OsEngine\OsEngine.csproj", "{D5B52FC8-875D-4CBF-886B-B71F8D556341}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EC4FEDDA-1B05-4455-A382-D1EE8A8CC054}"
-	ProjectSection(SolutionItems) = preProject
-		Performance1.psess = Performance1.psess
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -28,5 +23,8 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{D5B52FC8-875D-4CBF-886B-B71F8D556341} = {813FA674-29CB-43F9-8B99-EB1FABEE928B}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A055394D-902A-4DE6-B356-28227F117BA8}
 	EndGlobalSection
 EndGlobal
