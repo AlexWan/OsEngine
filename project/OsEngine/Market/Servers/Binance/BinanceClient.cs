@@ -217,6 +217,11 @@ namespace OsEngine.Market.Servers.Binance
                 {
                     var res = CreateQuery(Method.GET, "api/v3/account", null, true);
 
+                    if (res == null)
+                    {
+                        return null;
+                    }
+
                     AccountResponse resp = JsonConvert.DeserializeAnonymousType(res, new AccountResponse());
                     if (NewPortfolio != null)
                     {

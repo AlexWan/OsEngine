@@ -87,7 +87,9 @@ namespace OsEngine.Market.Servers
             HostSettings.Child = _newGrid;
 
             _newGrid.CellValueChanged += _newGrid_CellValueChanged;
+
             _newGrid.Click += _newGrid_Click;
+            _newGrid.MouseLeave += delegate(object sender, EventArgs args) { _newGrid.EndEdit(); };
         }
 
         public void UpdateParamDataGrid()
