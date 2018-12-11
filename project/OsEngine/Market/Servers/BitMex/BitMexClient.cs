@@ -45,7 +45,7 @@ namespace OsEngine.Market.Servers.BitMex
         public string SecKey
         {
             set { _secKey = value; }
-            private get { return _secKey;}
+            private get { return _secKey; }
         }
 
         private string _id;
@@ -89,7 +89,7 @@ namespace OsEngine.Market.Servers.BitMex
             worker.CurrentCulture = new CultureInfo("ru-RU");
             worker.IsBackground = true;
             worker.Start(_ws);
-           
+
             Thread converter = new Thread(Converter);
             converter.CurrentCulture = new CultureInfo("ru-RU");
             converter.IsBackground = true;
@@ -175,10 +175,10 @@ namespace OsEngine.Market.Servers.BitMex
             var reqAsBytes = Encoding.UTF8.GetBytes(que);
             var ticksRequest = new ArraySegment<byte>(reqAsBytes);
 
-                _ws.SendAsync(ticksRequest,
-                WebSocketMessageType.Text,
-                true,
-                CancellationToken.None).Wait();
+            _ws.SendAsync(ticksRequest,
+            WebSocketMessageType.Text,
+            true,
+            CancellationToken.None).Wait();
 
         }
 
@@ -197,8 +197,38 @@ namespace OsEngine.Market.Servers.BitMex
                 var reqAsBytes = Encoding.UTF8.GetBytes(que);
                 var ticksRequest = new ArraySegment<byte>(reqAsBytes);
 
-                _ws.SendAsync(ticksRequest,WebSocketMessageType.Text,
+                _ws.SendAsync(ticksRequest, WebSocketMessageType.Text,
                              true, CancellationToken.None).Wait();
+            }
+        }
+
+        private object _lock = new object();
+
+        public List<BitMexSecurity> GetSecurities()
+        {
+            lock (_lock)
+            {
+                try
+                {
+                    var res11 = CreateQuery("GET", "/instrument/active");
+                    List<BitMexSecurity> listSec = JsonConvert.DeserializeObject<List<BitMexSecurity>>(res11);
+
+                    if (UpdateSecurity != null)
+                    {
+                        UpdateSecurity(listSec);
+                    }
+
+                    return listSec;
+                }
+                catch (Exception ex)
+                {
+                    if (BitMexLogMessageEvent != null)
+                    {
+                        BitMexLogMessageEvent(ex.ToString(), LogMessageType.Error);
+                    }
+
+                    return null;
+                }
             }
         }
 
@@ -211,9 +241,9 @@ namespace OsEngine.Market.Servers.BitMex
         /// метод, который в отдельном потоке принимает все новые сообщения от биржи и кладет их в общую очередь
         /// </summary>
         /// <param name="clientWebSocket">вебсокет клиент</param>
-        private  void GetRes(object clientWebSocket)
+        private void GetRes(object clientWebSocket)
         {
-            ClientWebSocket ws = (ClientWebSocket) clientWebSocket;
+            ClientWebSocket ws = (ClientWebSocket)clientWebSocket;
 
             string res = "";
 
@@ -236,7 +266,7 @@ namespace OsEngine.Market.Servers.BitMex
                         var buffer = new ArraySegment<byte>(new byte[1024]);
                         var result = ws.ReceiveAsync(buffer, CancellationToken.None).Result;
 
-                        if(result.Count == 0)
+                        if (result.Count == 0)
                         {
                             Thread.Sleep(1);
                             continue;
@@ -404,6 +434,11 @@ namespace OsEngine.Market.Servers.BitMex
         public event Action<BitMexPortfolio> UpdatePortfolio;
 
         /// <summary>
+        /// событие обновления инструментов
+        /// </summary>
+        public event Action<List<BitMexSecurity>> UpdateSecurity;
+
+        /// <summary>
         /// событие обновления позиций
         /// </summary>
         public event Action<BitMexPosition> UpdatePosition;
@@ -465,7 +500,7 @@ namespace OsEngine.Market.Servers.BitMex
                 string url = "/api/v1" + function + ((method == "GET" && paramData != "") ? "?" + paramData : "");
                 string postData = (method != "GET") ? paramData : "";
 
-                HttpWebRequest webRequest = (HttpWebRequest) WebRequest.Create(_domain + url);
+                HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(_domain + url);
                 webRequest.Method = method;
 
                 if (auth)
@@ -501,7 +536,7 @@ namespace OsEngine.Market.Servers.BitMex
                 }
                 catch (WebException wex)
                 {
-                    using (HttpWebResponse response = (HttpWebResponse) wex.Response)
+                    using (HttpWebResponse response = (HttpWebResponse)wex.Response)
                     {
                         if (response == null)
                             throw;
@@ -550,7 +585,7 @@ namespace OsEngine.Market.Servers.BitMex
         {
             DateTime yearBegin = new DateTime(1990, 1, 1);
             long nonce = DateTime.UtcNow.Ticks - yearBegin.Ticks;
-            long shortNonce =  nonce - 8000000000000000;
+            long shortNonce = nonce - 8000000000000000;
             return shortNonce;
         }
 

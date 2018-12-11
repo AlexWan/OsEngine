@@ -359,9 +359,6 @@
     <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexSecurity.cs" />
     <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexTrades.cs" />
     <Compile Include="Market\Servers\BitMex\BitMexServer.cs" />
-    <Compile Include="Market\Servers\BitMex\BitMexServerUi.xaml.cs">
-      <DependentUpon>BitMexServerUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Market\Servers\BitStamp\BitStampServer.cs" />
     <Compile Include="Market\Servers\BitStamp\BitStampClient.cs" />
     <Compile Include="Market\Servers\BitStamp\BitStampEntity\RequestAuthenticator.cs" />
@@ -885,10 +882,6 @@
     <Page Include="Market\Servers\Bitfinex\BitfinexServerUi.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Market\Servers\BitMex\BitMexServerUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Market\Servers\BitStamp\BitStampServerUi.xaml">
       <SubType>Designer</SubType>
