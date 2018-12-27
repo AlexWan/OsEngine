@@ -82,7 +82,6 @@ namespace OsEngine.Market.Servers.BitMex
                 {
                     Connected.Invoke();
                 }
-
                 IsConnected = true;
             }
 
@@ -119,7 +118,6 @@ namespace OsEngine.Market.Servers.BitMex
                 Thread.Sleep(1000);
                 _ws = null;
             }
-
             IsConnected = false;
         }
 
@@ -171,17 +169,16 @@ namespace OsEngine.Market.Servers.BitMex
         private void Auth()
         {
             string nonce = GetNonce().ToString();
-            byte[] signatureBytes = Hmacsha256(Encoding.UTF8.GetBytes(_secKey),
-                Encoding.UTF8.GetBytes("GET/realtime" + nonce));
+            byte[] signatureBytes = Hmacsha256(Encoding.UTF8.GetBytes(_secKey), Encoding.UTF8.GetBytes("GET/realtime" + nonce));
             string signatureString = ByteArrayToString(signatureBytes);
             string que = "{\"op\": \"authKey\", \"args\": [\"" + _id + "\"," + nonce + ",\"" + signatureString + "\"]}";
             var reqAsBytes = Encoding.UTF8.GetBytes(que);
             var ticksRequest = new ArraySegment<byte>(reqAsBytes);
 
             _ws.SendAsync(ticksRequest,
-                WebSocketMessageType.Text,
-                true,
-                CancellationToken.None).Wait();
+            WebSocketMessageType.Text,
+            true,
+            CancellationToken.None).Wait();
 
         }
 
@@ -201,37 +198,7 @@ namespace OsEngine.Market.Servers.BitMex
                 var ticksRequest = new ArraySegment<byte>(reqAsBytes);
 
                 _ws.SendAsync(ticksRequest, WebSocketMessageType.Text,
-                    true, CancellationToken.None).Wait();
-            }
-        }
-
-        private object _lock = new object();
-
-        public List<BitMexSecurity> GetSecurities()
-        {
-            lock (_lock)
-            {
-                try
-                {
-                    var res11 = CreateQuery("GET", "/instrument/active");
-                    List<BitMexSecurity> listSec = JsonConvert.DeserializeObject<List<BitMexSecurity>>(res11);
-
-                    if (UpdateSecurity != null)
-                    {
-                        UpdateSecurity(listSec);
-                    }
-
-                    return listSec;
-                }
-                catch (Exception ex)
-                {
-                    if (BitMexLogMessageEvent != null)
-                    {
-                        BitMexLogMessageEvent(ex.ToString(), LogMessageType.Error);
-                    }
-
-                    return null;
-                }
+                             true, CancellationToken.None).Wait();
             }
         }
 
@@ -246,7 +213,7 @@ namespace OsEngine.Market.Servers.BitMex
         /// <param name="clientWebSocket">вебсокет клиент</param>
         private void GetRes(object clientWebSocket)
         {
-            ClientWebSocket ws = (ClientWebSocket) clientWebSocket;
+            ClientWebSocket ws = (ClientWebSocket)clientWebSocket;
 
             string res = "";
 
@@ -318,7 +285,6 @@ namespace OsEngine.Market.Servers.BitMex
                     {
                         return;
                     }
-
                     if (!_newMessage.IsEmpty)
                     {
                         string mes;
@@ -331,12 +297,10 @@ namespace OsEngine.Market.Servers.BitMex
                             {
                                 var myOrder = JsonConvert.DeserializeAnonymousType(mes, new BitMexMyOrders());
 
-                                if (MyTradeEvent != null && myOrder.data.Count != 0 &&
-                                    myOrder.data[0].execType == "Trade")
+                                if (MyTradeEvent != null && myOrder.data.Count != 0 && myOrder.data[0].execType == "Trade")
                                 {
                                     MyTradeEvent(myOrder);
                                 }
-
                                 continue;
                             }
 
@@ -348,7 +312,6 @@ namespace OsEngine.Market.Servers.BitMex
                                 {
                                     MyOrderEvent(order);
                                 }
-
                                 continue;
                             }
 
@@ -360,7 +323,6 @@ namespace OsEngine.Market.Servers.BitMex
                                 {
                                     UpdatePortfolio(portf);
                                 }
-
                                 continue;
                             }
 
@@ -372,7 +334,6 @@ namespace OsEngine.Market.Servers.BitMex
                                 {
                                     UpdatePosition(pos);
                                 }
-
                                 continue;
                             }
 
@@ -384,7 +345,6 @@ namespace OsEngine.Market.Servers.BitMex
                                 {
                                     UpdateMarketDepth(quotes);
                                 }
-
                                 continue;
                             }
 
@@ -396,7 +356,6 @@ namespace OsEngine.Market.Servers.BitMex
                                 {
                                     NewTradesEvent(trade);
                                 }
-
                                 continue;
                             }
 
@@ -424,7 +383,6 @@ namespace OsEngine.Market.Servers.BitMex
                 }
             }
         }
-
         /// <summary>
         /// отправляет исключения
         /// </summary>
@@ -444,11 +402,6 @@ namespace OsEngine.Market.Servers.BitMex
         /// событие обновления портфеля
         /// </summary>
         public event Action<BitMexPortfolio> UpdatePortfolio;
-
-        /// <summary>
-        /// событие обновления инструментов
-        /// </summary>
-        public event Action<List<BitMexSecurity>> UpdateSecurity;
 
         /// <summary>
         /// событие обновления позиций
@@ -504,8 +457,7 @@ namespace OsEngine.Market.Servers.BitMex
         /// <param name="param">коллекция параметров</param>
         /// <param name="auth">нужна ли аутентификация для этого запроса</param>
         /// <returns></returns>
-        public string CreateQuery(string method, string function, Dictionary<string, string> param = null,
-            bool auth = false)
+        public string CreateQuery(string method, string function, Dictionary<string, string> param = null, bool auth = false)
         {
             lock (_queryHttpLocker)
             {
@@ -513,15 +465,14 @@ namespace OsEngine.Market.Servers.BitMex
                 string url = "/api/v1" + function + ((method == "GET" && paramData != "") ? "?" + paramData : "");
                 string postData = (method != "GET") ? paramData : "";
 
-                HttpWebRequest webRequest = (HttpWebRequest) WebRequest.Create(_domain + url);
+                HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(_domain + url);
                 webRequest.Method = method;
 
                 if (auth)
                 {
                     string nonce = GetNonce().ToString();
                     string message = method + url + nonce + postData;
-                    byte[] signatureBytes =
-                        Hmacsha256(Encoding.UTF8.GetBytes(_secKey), Encoding.UTF8.GetBytes(message));
+                    byte[] signatureBytes = Hmacsha256(Encoding.UTF8.GetBytes(_secKey), Encoding.UTF8.GetBytes(message));
                     string signatureString = ByteArrayToString(signatureBytes);
 
                     webRequest.Headers.Add("api-nonce", nonce);
@@ -550,7 +501,7 @@ namespace OsEngine.Market.Servers.BitMex
                 }
                 catch (WebException wex)
                 {
-                    using (HttpWebResponse response = (HttpWebResponse) wex.Response)
+                    using (HttpWebResponse response = (HttpWebResponse)wex.Response)
                     {
                         if (response == null)
                             throw;
@@ -565,7 +516,6 @@ namespace OsEngine.Market.Servers.BitMex
                                 {
                                     ErrorEvent(error);
                                 }
-
                                 return sr.ReadToEnd();
                             }
                         }
@@ -588,14 +538,8 @@ namespace OsEngine.Market.Servers.BitMex
             foreach (var item in param)
                 b.Append(string.Format("&{0}={1}", item.Key, item.Value));
 
-            try
-            {
-                return b.ToString().Substring(1);
-            }
-            catch (Exception)
-            {
-                return "";
-            }
+            try { return b.ToString().Substring(1); }
+            catch (Exception) { return ""; }
         }
 
         /// <summary>
