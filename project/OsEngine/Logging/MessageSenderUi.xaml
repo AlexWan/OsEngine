@@ -12,8 +12,8 @@
         <Rectangle Margin="324,5,5,37"/>
         <Label Content="Электронная почта" HorizontalAlignment="Left" Margin="329,10,0,0" VerticalAlignment="Top" FontWeight="ExtraBlack"  FontSize="18"/>
         <Label Content="СМС" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" FontWeight="ExtraBlack" FontSize="18"/>
-        <Label Content="Режим" HorizontalAlignment="Left" Margin="47,41,0,0" VerticalAlignment="Top"/>
-        <ComboBox Name="ComboBoxModeSms" HorizontalAlignment="Left" Margin="137,32,0,0" VerticalAlignment="Top" Width="155">
+        <Label Content="Режим" HorizontalAlignment="Left" Margin="47,40,0,0" VerticalAlignment="Top"/>
+        <ComboBox Name="ComboBoxModeSms" HorizontalAlignment="Left" Margin="137,40,0,0" VerticalAlignment="Top" Width="155">
             <system:String>Отключен</system:String>
             <system:String>Включен</system:String>
         </ComboBox>
@@ -22,8 +22,8 @@
         <CheckBox Name="CheckBoxSmsSystem" Content="Система" HorizontalAlignment="Left" Margin="206,90,0,0" VerticalAlignment="Top"/>
         <CheckBox Name="CheckBoxSmsError" Content="Ошибки" HorizontalAlignment="Left" Margin="47,112,0,0" VerticalAlignment="Top"/>
         <CheckBox Name="CheckBoxSmsConnect" Content="Соединение" HorizontalAlignment="Left" Margin="206,112,0,0" VerticalAlignment="Top"/>
-        <Label Content="Режим" HorizontalAlignment="Left" Margin="380,41,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="ComboBoxModeMail" Margin="471,32,26,0" VerticalAlignment="Top">
+        <Label Content="Режим" HorizontalAlignment="Left" Margin="380,40,0,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name="ComboBoxModeMail" Margin="471,40,26,0" VerticalAlignment="Top">
             <system:String>Отключен</system:String>
             <system:String>Включен</system:String>
         </ComboBox>

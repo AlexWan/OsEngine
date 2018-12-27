@@ -11,14 +11,14 @@
         <ComboBox x:Name="ComboBoxType" HorizontalAlignment="Left" Margin="194,26,0,0" VerticalAlignment="Top" Width="185"/>
         <Button x:Name="ButtonSendFirst" Content="Указать" HorizontalAlignment="Left" Margin="394,26,0,0" VerticalAlignment="Top" Width="65" Click="ButtonSendFirst_Click"/>
         <Button x:Name="ButtonSave" Content="Принять" Margin="0,0,71,12" VerticalAlignment="Bottom" Click="ButtonSave_Click" HorizontalAlignment="Right" Width="132"/>
-        <CheckBox x:Name="CheckBoxMusicAlert" Content="Звуковой Сигнал" HorizontalAlignment="Left" Margin="29,232,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="CheckBoxMusicAlert" Content="Звуковой Сигнал" HorizontalAlignment="Left" Margin="44,231,0,0" VerticalAlignment="Top"/>
         <CheckBox x:Name="CheckBoxOnOff" Content="Вкл/выкл"  HorizontalAlignment="Left" Margin="29,22,0,0" VerticalAlignment="Top"  FontSize="18" FontWeight="Bold"/>
-        <Label Content="Текст подписи" HorizontalAlignment="Left" Margin="52,290,0,0" VerticalAlignment="Top" />
+        <Label Content="Текст подписи" HorizontalAlignment="Left" Margin="45,290,0,0" VerticalAlignment="Top" />
         <TextBox x:Name="TextBoxLabelAlert" HorizontalAlignment="Left" Height="45" Margin="52,312,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="193" />
-        <Label Content="Цвет линии" HorizontalAlignment="Left" Margin="279,258,0,0" VerticalAlignment="Top"/>
+        <Label Content="Цвет линии" HorizontalAlignment="Left" Margin="267,259,0,0" VerticalAlignment="Top"/>
         <Button  x:Name="ButtonColorLine" Content="Настроить" HorizontalAlignment="Left" Margin="358,259,0,0" VerticalAlignment="Top" Width="96" Click="ButtonColorLine_Click"/>
         <CheckBox  x:Name="CheckBoxWindow" Content="Всплывающее окно" HorizontalAlignment="Left" Margin="261,290,0,0" VerticalAlignment="Top"/>
-        <Label Content="Ширина линии" HorizontalAlignment="Left" Margin="52,258,0,0" VerticalAlignment="Top" />
+        <Label Content="Ширина линии" HorizontalAlignment="Left" Margin="45,262,0,0" VerticalAlignment="Top" />
         <ComboBox x:Name="ComboBoxFatLine" HorizontalAlignment="Left" Margin="166,262,0,0" VerticalAlignment="Top" Width="79">
             <system:Int32>1</system:Int32>
             <system:Int32>2</system:Int32>
@@ -27,19 +27,19 @@
             <system:Int32>5</system:Int32>
         </ComboBox>
         <TextBox x:Name="TextBoxAlertMessage" HorizontalAlignment="Left" Height="45" Margin="261,312,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="193" />
-        <Label Content="Цвет подписи" HorizontalAlignment="Left" Margin="267,227,0,0" VerticalAlignment="Top"/>
+        <Label Content="Цвет подписи" HorizontalAlignment="Left" Margin="267,232,0,0" VerticalAlignment="Top"/>
         <Button x:Name="ButtonColorLabel" Content="Настроить" HorizontalAlignment="Left" Margin="358,232,0,0" VerticalAlignment="Top" Width="96" Click="ButtonColorLabel_Click"/>
-        <Label Content="Тип реакции" HorizontalAlignment="Left" Margin="45,101,0,0" VerticalAlignment="Top" />
+        <Label Content="Тип реакции" HorizontalAlignment="Left" Margin="38,101,0,0" VerticalAlignment="Top" />
         <ComboBox x:Name="ComboBoxSignalType" HorizontalAlignment="Left" Margin="124,101,0,0" VerticalAlignment="Top" Width="103"/>
         <Slider x:Name="Slider" Margin="0,22,26,18" Maximum="200" SmallChange="1" Orientation="Vertical" Value="100" ValueChanged="Slider_ValueChanged" HorizontalAlignment="Right" Width="22"/>
         <TextBox x:Name="TextBoxVolumeReaction" HorizontalAlignment="Left" Height="23" Margin="358,97,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="96"/>
-        <Label Content="Объём" HorizontalAlignment="Left" Margin="304,103,0,0" VerticalAlignment="Top" />
+        <Label Content="Объём" HorizontalAlignment="Left" Margin="304,97,0,0" VerticalAlignment="Top" />
         <ComboBox x:Name="ComboBoxOrderType" HorizontalAlignment="Left" Margin="124,129,0,0" VerticalAlignment="Top" Width="103" />
-        <Label Content="Тип ордера" HorizontalAlignment="Left" Margin="45,129,0,0" VerticalAlignment="Top" />
+        <Label Content="Тип ордера" HorizontalAlignment="Left" Margin="38,129,0,0" VerticalAlignment="Top" />
         <TextBox x:Name="TextBoxSlippage" HorizontalAlignment="Left" Height="23" Margin="358,125,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="96" />
-        <Label Content="Проскальзывание" HorizontalAlignment="Left" Margin="240,129,0,0" VerticalAlignment="Top" />
+        <Label Content="Проскальзывание" HorizontalAlignment="Left" Margin="238,125,0,0" VerticalAlignment="Top" />
         <TextBox x:Name="TextBoxClosePosition" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" VerticalAlignment="Top" Width="96" Margin="358,153,0,0" />
-        <Label Content="Номер закрываемой позиции" HorizontalAlignment="Left" Margin="171,155,0,0" VerticalAlignment="Top"/>
+        <Label Content="Номер закрываемой позиции" HorizontalAlignment="Left" Margin="171,153,0,0" VerticalAlignment="Top"/>
         <Label Content="Торговля" HorizontalAlignment="Left" Margin="29,66,0,0" VerticalAlignment="Top" FontSize="18" FontWeight="Bold"/>
         <Label Content="Фейерверки" HorizontalAlignment="Left" Margin="29,198,0,0" VerticalAlignment="Top" FontSize="18" FontWeight="Bold"/>
         <ComboBox x:Name="ComboBoxMusicType" HorizontalAlignment="Left" Margin="166,231,0,0" VerticalAlignment="Top" Width="79" ></ComboBox>
@@ -53,7 +53,7 @@
                 </TransformGroup>
             </Rectangle.RenderTransform>
         </Rectangle>
-        <Label Name="LabelOsa" Content="O-S-A.NET" Foreground="Black" HorizontalAlignment="Left" Margin="-22,304,0,0" VerticalAlignment="Top" FontWeight="Bold" RenderTransformOrigin="0.5,0.5" FontSize="14">
+        <Label Name="LabelOsa" Content="O-S-A.NET" Foreground="Black" HorizontalAlignment="Left" Margin="-28,304,0,0" VerticalAlignment="Top" FontWeight="Bold" RenderTransformOrigin="0.5,0.5" FontSize="14">
             <Label.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform/>

@@ -1204,7 +1204,7 @@ namespace OsEngine.Charts
             {
                 _label = new System.Windows.Controls.Label();
 
-                _label.Margin = new Thickness(0, 0, 30, 0);
+                _label.Margin = new Thickness(0, 0, 25, 0);
                 _label.VerticalAlignment = VerticalAlignment.Top;
                 _label.HorizontalAlignment = System.Windows.HorizontalAlignment.Right;
             }

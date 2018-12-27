@@ -8,11 +8,11 @@
         <Rectangle Margin="5,5,5,37"/>
         <TextBox x:Name="TextBoxMyAdress" Height="23" Margin="105,18,19,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
         <TextBox x:Name="TextBoxPassword" Height="23" Margin="105,46,19,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
-        <TextBox x:Name="TextBoxAdress" Margin="105,105,19,44" TextWrapping="Wrap" VerticalScrollBarVisibility="Visible"/>
-        <Label Content="Моя почта" HorizontalAlignment="Left" Margin="19,21,0,0" VerticalAlignment="Top" Width="81" />
-        <Label Content="Пароль" HorizontalAlignment="Left" Margin="19,49,0,0" VerticalAlignment="Top" Width="67" />
-        <Label Content="Адресаты" HorizontalAlignment="Left" Margin="19,114,0,0" VerticalAlignment="Top" Width="81" />
-        <Label Content="Почтовик" HorizontalAlignment="Left" Margin="19,82,0,0" VerticalAlignment="Top" Width="67" />
+        <TextBox x:Name="TextBoxAdress" Margin="105,102,19,40" TextWrapping="Wrap"  Height="Auto"/>
+        <Label Content="Моя почта" HorizontalAlignment="Left" Margin="19,18,0,0" VerticalAlignment="Top" Width="81" />
+        <Label Content="Пароль" HorizontalAlignment="Left" Margin="19,46,0,0" VerticalAlignment="Top" Width="67" />
+        <Label Content="Адресаты" HorizontalAlignment="Left" Margin="19,102,0,0" VerticalAlignment="Top" Width="81" />
+        <Label Content="Почтовик" HorizontalAlignment="Left" Margin="19,74,0,0" VerticalAlignment="Top" Width="81" />
         <ComboBox x:Name="ComboBoxMyMaster" Margin="105,74,19,0" VerticalAlignment="Top">
             <system:String>Яндекс</system:String>
             <system:String>Гугл</system:String>

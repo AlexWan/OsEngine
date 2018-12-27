@@ -6,19 +6,19 @@
     <Grid>
         <Rectangle Margin="5">
         </Rectangle>
-        <Label Content="Цвет фона рабочих областей" HorizontalAlignment="Left" Margin="10,14,0,0" VerticalAlignment="Top" />
+        <Label Content="Цвет фона рабочих областей" HorizontalAlignment="Left" Margin="10,18,0,0" VerticalAlignment="Top" />
         <Button Name="ButtonColorSecondTable" Content="Настроить" HorizontalAlignment="Left" Margin="261,18,0,0" VerticalAlignment="Top" Width="75" Click="ButtonColorSecondTable_Click"/>
-        <Label Content="Цвет фона чарта" HorizontalAlignment="Left" Margin="10,41,0,0" VerticalAlignment="Top" />
+        <Label Content="Цвет фона чарта" HorizontalAlignment="Left" Margin="10,43,0,0" VerticalAlignment="Top" />
         <Button Name="ButtonColorChart" Content="Настроить" HorizontalAlignment="Left" Margin="261,45,0,0" VerticalAlignment="Top" Width="75" Click="ButtonColorChart_Click"/>
-        <Label Content="Цвет курсора" HorizontalAlignment="Left" Margin="10,68,0,0" VerticalAlignment="Top" />
+        <Label Content="Цвет курсора" HorizontalAlignment="Left" Margin="10,72,0,0" VerticalAlignment="Top" />
         <Button Name="ButtonColorCursor" Content="Настроить" HorizontalAlignment="Left" Margin="261,72,0,0" VerticalAlignment="Top" Width="75" Click="ButtonColorCursor_Click"/>
-        <Label Content="Цвет контура растущей свечи" HorizontalAlignment="Left" Margin="10,95,0,0" VerticalAlignment="Top" />
+        <Label Content="Цвет контура растущей свечи" HorizontalAlignment="Left" Margin="10,99,0,0" VerticalAlignment="Top" />
         <Button Name ="ButtonColorUpCandleBorder" Content="Настроить" HorizontalAlignment="Left" Margin="261,99,0,0" VerticalAlignment="Top" Width="75" Click="ButtonColorUpCandleBorder_Click"/>
-        <Label Content="Цвет тела растущей свечи" HorizontalAlignment="Left" Margin="10,122,0,0" VerticalAlignment="Top" />
+        <Label Content="Цвет тела растущей свечи" HorizontalAlignment="Left" Margin="10,126,0,0" VerticalAlignment="Top" />
         <Button Name="ButtonColorUpCandleBody" Content="Настроить" HorizontalAlignment="Left" Margin="261,126,0,0" VerticalAlignment="Top" Width="75" Click="ButtonColorUpCandleBody_Click"/>
-        <Label Content="Цвет контура падающей свечи" HorizontalAlignment="Left" Margin="10,149,0,0" VerticalAlignment="Top" />
+        <Label Content="Цвет контура падающей свечи" HorizontalAlignment="Left" Margin="10,153,0,0" VerticalAlignment="Top" />
         <Button Name="ButtonColorDownCandleBorder" Content="Настроить" HorizontalAlignment="Left" Margin="261,153,0,0" VerticalAlignment="Top" Width="75" Click="ButtonColorDownCandleBorder_Click"/>
-        <Label Content="Цвет тела падающей свечи" HorizontalAlignment="Left" Margin="10,176,0,0" VerticalAlignment="Top" />
+        <Label Content="Цвет тела падающей свечи" HorizontalAlignment="Left" Margin="10,180,0,0" VerticalAlignment="Top" />
         <Button Name="ButtonColorDownCandleBody" Content="Настроить" HorizontalAlignment="Left" Margin="261,180,0,0" VerticalAlignment="Top" Width="75" Click="ButtonColorDownCandleBody_Click"/>
         <WindowsFormsHost x:Name="HostSecondTable" HorizontalAlignment="Left" Height="22" Margin="193,18,0,0" VerticalAlignment="Top" Width="53"/>
         <WindowsFormsHost x:Name="HostChart" HorizontalAlignment="Left" Height="22" Margin="193,45,0,0" VerticalAlignment="Top" Width="53"/>
@@ -27,7 +27,7 @@
         <WindowsFormsHost x:Name="HostUpBody" HorizontalAlignment="Left" Height="22" Margin="193,126,0,0" VerticalAlignment="Top" Width="53"/>
         <WindowsFormsHost x:Name="HostDownBorder" HorizontalAlignment="Left" Height="22" Margin="205,153,0,0" VerticalAlignment="Top" Width="41"/>
         <WindowsFormsHost x:Name="HostDownBody" HorizontalAlignment="Left" Height="22" Margin="193,180,0,0" VerticalAlignment="Top" Width="53"/>
-        <Label Content="Цвет текста" HorizontalAlignment="Left" Margin="10,203,0,0" VerticalAlignment="Top" />
+        <Label Content="Цвет текста" HorizontalAlignment="Left" Margin="10,207,0,0" VerticalAlignment="Top" />
         <Button x:Name="ButtonColorText" Content="Настроить" HorizontalAlignment="Left" Margin="261,207,0,0" VerticalAlignment="Top" Width="75" Click="ButtonColorText_Click" />
         <WindowsFormsHost x:Name="HostText" HorizontalAlignment="Left" Height="22" Margin="193,207,0,0" VerticalAlignment="Top" Width="53"/>
         <Button x:Name ="ButtonStandart" Content="Стандарт" HorizontalAlignment="Left" Margin="236,244,0,0" VerticalAlignment="Top" Width="100" Click="ButtonStandart_Click" Height="21"/>

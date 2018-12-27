@@ -4,12 +4,12 @@
         Title="Настройки стратегии" Height="213" Width="330" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Topmost="True">
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
-        <Label Content="Объём" HorizontalAlignment="Left" Margin="23,49,0,0" VerticalAlignment="Top" />
+        <Label Content="Объём" HorizontalAlignment="Left" Margin="23,52,0,0" VerticalAlignment="Top" />
         <TextBox Name="TextBoxVolumeOne" Height="23" Margin="173,52,19,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
         <Button Content="Принять" HorizontalAlignment="Right" Margin="0,0,5,10" VerticalAlignment="Bottom" Width="120" Click="Button_Click"/>
         <ComboBox Name="ComboBoxRegime" Margin="173,21,19,0" VerticalAlignment="Top"/>
-        <Label Content="Режим" HorizontalAlignment="Left" Margin="23,25,0,0" VerticalAlignment="Top" />
-        <Label Content="% между линиями" HorizontalAlignment="Left" Margin="23,77,0,0" VerticalAlignment="Top" />
+        <Label Content="Режим" HorizontalAlignment="Left" Margin="23,21,0,0" VerticalAlignment="Top" />
+        <Label Content="% между линиями" HorizontalAlignment="Left" Margin="23,80,0,0" VerticalAlignment="Top" />
         <TextBox x:Name="TextBoxSpreadBeetwenLine" Height="23" Margin="173,80,19,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
         <CheckBox Name="CheckBoxNeadToPaint" Content="Прорисовывать" HorizontalAlignment="Left" Margin="173,108,0,0" VerticalAlignment="Top" />
         <Button x:Name="ButtonAbout" Content="???" HorizontalAlignment="Left" Margin="5,0,0,10" VerticalAlignment="Bottom" Width="43" Click="ButtonAbout_Click"/>

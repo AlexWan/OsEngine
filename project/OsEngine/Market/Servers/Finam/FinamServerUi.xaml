@@ -5,12 +5,12 @@
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
         <TextBox Name="TextBoxServerAdress" HorizontalAlignment="Left" Margin="116,14,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="353"/>
-        <Label Content="Адрес сервера" HorizontalAlignment="Left" Margin="21,15,0,0" VerticalAlignment="Top"/>
+        <Label Content="Адрес сервера" HorizontalAlignment="Left" Margin="15,14,0,0" VerticalAlignment="Top"/>
         <Button x:Name="ButtonConnect" Content="Подключить" HorizontalAlignment="Right" Margin="0,0,160,10" VerticalAlignment="Bottom" Width="120" Click="ButtonConnect_Click"/>
         <Button x:Name="ButtonAbort" Content="Отключить" Margin="0,0,10,10" VerticalAlignment="Bottom" Click="ButtonAbort_Click" HorizontalAlignment="Right" Width="120"/>
         <Label Content="" HorizontalAlignment="Left" Margin="41,138,0,0" VerticalAlignment="Top"/>
-        <Label Content="Статус сервера: " HorizontalAlignment="Right" Margin="0,15,101,0" VerticalAlignment="Top"/>
-        <Label x:Name="LabelStatus" Content="Disconnect" HorizontalAlignment="Right" Margin="0,15,15,0" VerticalAlignment="Top"/>
+        <Label Content="Статус сервера: " HorizontalAlignment="Right" Margin="0,14,100,0" VerticalAlignment="Top"/>
+        <Label x:Name="LabelStatus" Content="Disconnect" HorizontalAlignment="Right" Margin="0,14,15,0" VerticalAlignment="Top"/>
         <WindowsFormsHost x:Name="Host" Margin="15,45,15,42"/>
     </Grid>
 </Window>

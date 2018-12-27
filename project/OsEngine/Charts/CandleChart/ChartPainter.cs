@@ -425,8 +425,9 @@ namespace OsEngine.Charts.CandleChart
                 {
                     if (candleSeries.Points[i].YValues[3] > candleSeries.Points[i].YValues[2])
                     {
-                        candleSeries.Points[i].Color = _colorKeeper.ColorUpBodyCandle;
+                        candleSeries.Points[i].Color = _colorKeeper.ColorUpBorderCandle;
                         candleSeries.Points[i].BorderColor = _colorKeeper.ColorUpBorderCandle;
+                        candleSeries.Points[i].BackSecondaryColor = _colorKeeper.ColorUpBodyCandle;
                     }
                     else
                     {
@@ -1199,8 +1200,9 @@ namespace OsEngine.Charts.CandleChart
                 candleSeries.Points[index].YValues = doubles;
                 if (history[index].Close > history[index].Open)
                 {
-                    candleSeries.Points[index].Color = _colorKeeper.ColorUpBodyCandle;
+                    candleSeries.Points[index].Color = _colorKeeper.ColorUpBorderCandle;
                     candleSeries.Points[index].BorderColor = _colorKeeper.ColorUpBorderCandle;
+                    candleSeries.Points[index].BackSecondaryColor = _colorKeeper.ColorUpBodyCandle;
                 }
                 else
                 {
@@ -1244,8 +1246,9 @@ namespace OsEngine.Charts.CandleChart
             candleSeries.Points.AddXY(index, history[index].Low, history[index].High, history[index].Open, history[index].Close);
             if (history[index].Close > history[index].Open)
             {
-                candleSeries.Points[candleSeries.Points.Count - 1].Color = _colorKeeper.ColorUpBodyCandle;
+                candleSeries.Points[candleSeries.Points.Count - 1].Color = _colorKeeper.ColorUpBorderCandle;
                 candleSeries.Points[candleSeries.Points.Count - 1].BorderColor = _colorKeeper.ColorUpBorderCandle;
+                candleSeries.Points[candleSeries.Points.Count - 1].BackSecondaryColor = _colorKeeper.ColorUpBodyCandle;
             }
             else
             {
@@ -1295,8 +1298,9 @@ namespace OsEngine.Charts.CandleChart
 
                 if (history[i].Close > history[i].Open)
                 {
-                    candleSeries.Points[candleSeries.Points.Count - 1].Color = _colorKeeper.ColorUpBodyCandle;
+                    candleSeries.Points[candleSeries.Points.Count - 1].Color = _colorKeeper.ColorUpBorderCandle;
                     candleSeries.Points[candleSeries.Points.Count - 1].BorderColor = _colorKeeper.ColorUpBorderCandle;
+                    candleSeries.Points[candleSeries.Points.Count - 1].BackSecondaryColor = _colorKeeper.ColorUpBodyCandle;
                 }
                 else
                 {
@@ -1995,7 +1999,10 @@ namespace OsEngine.Charts.CandleChart
         /// <returns>индекс. Если время не найдено, возвращает 0</returns>
         private int GetTimeIndex(DateTime time)
         {
-
+            if (_timePoints == null)
+            {
+                _timePoints = new List<TimeAxisXPoint>();
+            }
             TimeAxisXPoint point = _timePoints.Find(po => po.PositionTime == time);
 
             if (point != null)

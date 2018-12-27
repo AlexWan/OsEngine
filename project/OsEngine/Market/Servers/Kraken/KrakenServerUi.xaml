@@ -10,14 +10,14 @@
         <Label Name="LabelStatus" Content="Disconnect" HorizontalAlignment="Left" Margin="130,55,0,0" VerticalAlignment="Top"/>
         <WindowsFormsHost Name="Host" Margin="10,85,10,42"/>
         <PasswordBox Name="TextBoxPrivateKey" HorizontalAlignment="Right" Height="23" Margin="0,30,10,0" VerticalAlignment="Top" Width="352"/>
-        <Label Content="Приватный ключ: " HorizontalAlignment="Right" Margin="0,28,367,0" VerticalAlignment="Top"/>
+        <Label Content="Приватный ключ: " HorizontalAlignment="Right" Margin="0,30,367,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBoxPublicKey" HorizontalAlignment="Right" Height="23" Margin="0,7,10,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="352"/>
         <Label Content="Публичный ключ: " HorizontalAlignment="Right" Margin="0,6,367,0" VerticalAlignment="Top"/>
-        <CheckBox Name="CheckBoxNeadToSaveTrade" Content="Сохранять историю" HorizontalAlignment="Left" Margin="16,10,0,0" VerticalAlignment="Top"/>
+        <CheckBox Name="CheckBoxNeadToSaveTrade" Content="Сохранять историю" HorizontalAlignment="Left" Margin="16,5,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBoxCountDaysSave" HorizontalAlignment="Left" Height="23" Margin="139,30,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="52"/>
         <Label Content="Дней подгружать: " HorizontalAlignment="Left" Margin="16,28,0,0" VerticalAlignment="Top"/>
         <ComboBox Name="ComboBoxLoadDataType" Margin="0,53,221,0" ToolTip="Kraken имеет жесткие ограничения по скачиванию данных. Поэтому желательно выбирать только какой-то один тип данных" VerticalAlignment="Top" HorizontalAlignment="Right" Width="141"/>
-        <Label Content="Скачиваем: " Margin="0,53,368,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="79"/>
+        <Label Content="Скачиваем: " Margin="0,53,367,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="79"/>
         <Button x:Name="ButtonProxy" Content="Прокси" HorizontalAlignment="Left" Margin="10,0,0,7" VerticalAlignment="Bottom" Width="191" Click="ButtonProxy_Click"/>
         <ComboBox x:Name="ComboBoxLeverage" Margin="0,55,10,0" ToolTip="Kraken имеет маржинальную торговлю. Не уверены - оставьте none. Не меняйте её во время торгов! Ордер с одними настройками левереджа не может закрыть позицию с другими настройками" VerticalAlignment="Top" HorizontalAlignment="Right" Width="141"/>
         <Label Content="Плечо: " Margin="0,55,152,0" VerticalAlignment="Top" HorizontalAlignment="Right" />

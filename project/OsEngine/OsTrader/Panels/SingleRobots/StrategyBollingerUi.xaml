@@ -4,9 +4,9 @@
       Title="Настройки стратегии" Height="226" Width="342" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Topmost="True">
     <Grid>
         <Rectangle x:Name="RectTradeEngine" Margin="5,5,5,40"/>
-        <Label Content="Объём первого входа" HorizontalAlignment="Left" Margin="23,53,0,0" VerticalAlignment="Top" />
+        <Label Content="Объём первого входа" HorizontalAlignment="Left" Margin="23,56,0,0" VerticalAlignment="Top" />
         <TextBox Name="TextBoxVolumeOne" Height="23" Margin="173,56,25,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
-        <Label Content="Проскальзывание" HorizontalAlignment="Left" Margin="23,81,0,0" VerticalAlignment="Top" />
+        <Label Content="Проскальзывание" HorizontalAlignment="Left" Margin="23,84,0,0" VerticalAlignment="Top" />
         <TextBox Name="TextBoxSlipage" Height="23" Margin="173,84,25,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
         <Button Content="Принять" Margin="0,0,10,10" Click="Button_Click" Height="22" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="120"/>
         <ComboBox Name="ComboBoxRegime" Margin="173,25,25,0" VerticalAlignment="Top"/>

@@ -6,10 +6,10 @@
         <Rectangle Margin="5,5,5,37" Stroke="Black"/>
         <Button x:Name="ButtonAccept" Content="Принять" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="130" Click="ButtonAccept_Click"/>
         <Label  Name="LabelName" Content="Name" HorizontalAlignment="Left" Margin="119,18,0,0" VerticalAlignment="Top"/>
-        <Label  Content="Шаг" HorizontalAlignment="Left" Margin="66,43,0,0" VerticalAlignment="Top"/>
-        <Label   Content="Цена шага" HorizontalAlignment="Left" Margin="28,74,0,0" VerticalAlignment="Top"/>
-        <Label   Content="Г.О % цены" HorizontalAlignment="Left" Margin="28,102,0,0" VerticalAlignment="Top"/>
-        <Label   Content="Лоты" HorizontalAlignment="Left" Margin="59,130,0,0" VerticalAlignment="Top"/>
+        <Label  Content="Шаг" HorizontalAlignment="Left" Margin="28,40,0,0" VerticalAlignment="Top"/>
+        <Label   Content="Цена шага" HorizontalAlignment="Left" Margin="28,68,0,0" VerticalAlignment="Top"/>
+        <Label   Content="Г.О % цены" HorizontalAlignment="Left" Margin="28,96,0,0" VerticalAlignment="Top"/>
+        <Label   Content="Лоты" HorizontalAlignment="Left" Margin="28,124,0,0" VerticalAlignment="Top"/>
         <TextBox Name="TextBoxStep" Height="23" Margin="119,40,19,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <TextBox Name="TextBoxStepCost" Height="23" Margin="119,68,19,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <TextBox Name="TextBoxGoPersent" Height="23" Margin="119,96,19,0" TextWrapping="Wrap" VerticalAlignment="Top"/>

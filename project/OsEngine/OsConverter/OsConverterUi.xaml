@@ -6,17 +6,17 @@
 
 
         <Rectangle Margin="5,5,5,0" Height="85" VerticalAlignment="Top"/>
-        <Label Content="Исходные данные" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="26,14,0,0" FontSize="16"/>
-        <TextBox Name="TextBoxSource" Height="23" Margin="26,46,15,0" TextWrapping="Wrap" VerticalAlignment="Top" IsEnabled="False"/>
-        <Button Name="ButtonSetSource" Content="Указать"  HorizontalAlignment="Left" Margin="195,17,0,0" VerticalAlignment="Top" Width="181" Click="ButtonSetSource_Click"/>
+        <Label Content="Исходные данные" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="26,15,0,0" FontSize="16"/>
+        <TextBox Name="TextBoxSource"  Margin="26,46,15,0" TextWrapping="Wrap" VerticalAlignment="Top" IsEnabled="False"/>
+        <Button Name="ButtonSetSource" Content="Указать"  HorizontalAlignment="Left" Margin="195,14,0,0" VerticalAlignment="Top" Width="181" Click="ButtonSetSource_Click"/>
         <Rectangle Margin="5,95,5,0" Height="96" VerticalAlignment="Top"/>
-        <Label Content="Исходящие данные" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="26,104,0,0" FontSize="16" />
-        <TextBox x:Name="TextBoxExit" Height="23" Margin="26,131,15,0" TextWrapping="Wrap" VerticalAlignment="Top" IsEnabled="False"/>
-        <Button x:Name="ButtonSetExitFile" Content="Указать" HorizontalAlignment="Left" Margin="195,104,0,0" VerticalAlignment="Top" Width="183" Click="ButtonSetExitFile_Click"/>
+        <Label Content="Исходящие данные" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="26,102,0,0" FontSize="16" />
+        <TextBox x:Name="TextBoxExit"  Margin="26,131,15,0" TextWrapping="Wrap" VerticalAlignment="Top" IsEnabled="False"/>
+        <Button x:Name="ButtonSetExitFile" Content="Указать" HorizontalAlignment="Left" Margin="195,101,0,0" VerticalAlignment="Top" Width="183" Click="ButtonSetExitFile_Click"/>
         <Grid x:Name="GreedLog" Margin="10,196,5,6">
             <TabControl Margin="10,-21,0,0" x:Name="TabControlPrime" BorderThickness="0" Background="#FF17171B">
                 <TabItem Header="Лог" Width="140" >
-                    <Grid Background="#FF17171B">
+                    <Grid>
                         <WindowsFormsHost x:Name="HostLog"/>
                     </Grid>
                 </TabItem>
@@ -43,7 +43,7 @@
                 </TransformGroup>
             </Label.RenderTransform>
         </Label>
-        <Button x:Name="ButtonStart" Content="Начать конвертацию" Margin="195,161,15,0" VerticalAlignment="Top" Click="ButtonStart_Click"/>
+        <Button x:Name="ButtonStart" Content="Начать конвертацию" Margin="195,159,15,0" VerticalAlignment="Top" Click="ButtonStart_Click"/>
 
     </Grid>
 </Window>

@@ -127,25 +127,14 @@ namespace OsEngine.Market.Servers.Optimizer
         /// </summary>
         private void CreateGrid()
         {
-            _myGridView = new DataGridView();
-            HostSecurities.Child = _myGridView;
-            HostSecurities.Child.Show();
-            _myGridView.AllowUserToOrderColumns = false;
-            _myGridView.AllowUserToResizeRows = false;
-            _myGridView.AllowUserToDeleteRows = false;
-            _myGridView.AllowUserToAddRows = false;
-            _myGridView.RowHeadersVisible = false;
-            _myGridView.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            _myGridView.MultiSelect = false;
-
-            _myGridView.DoubleClick += _myGridView_DoubleClick;
-
-            DataGridViewCellStyle style = new DataGridViewCellStyle();
-            style.Alignment = DataGridViewContentAlignment.BottomRight;
+            _myGridView = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = style;
+            cell0.Style = _myGridView.DefaultCellStyle;
 
+            HostSecurities.Child = _myGridView;
+            HostSecurities.Child.Show();
+            _myGridView.DoubleClick += _myGridView_DoubleClick;
             DataGridViewColumn column2 = new DataGridViewColumn();
             column2.CellTemplate = cell0;
             column2.HeaderText = @"Файл";

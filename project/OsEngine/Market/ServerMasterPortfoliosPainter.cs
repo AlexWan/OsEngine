@@ -81,23 +81,13 @@ namespace OsEngine.Market
         {
             try
             {
-                _gridPosition = new DataGridView();
-                _positionHost = hostPortfolio;
-                _positionHost.Child = _gridPosition;
-
-                _gridPosition.AllowUserToOrderColumns = false;
-                _gridPosition.AllowUserToResizeRows = false;
-                _gridPosition.AllowUserToDeleteRows = false;
-                _gridPosition.AllowUserToAddRows = false;
-                _gridPosition.RowHeadersVisible = false;
-                _gridPosition.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-                _gridPosition.MultiSelect = false;
-
-                DataGridViewCellStyle style = new DataGridViewCellStyle();
-                style.Alignment = DataGridViewContentAlignment.BottomRight;
+                _gridPosition = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
 
                 DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-                cell0.Style = style;
+                cell0.Style = _gridPosition.DefaultCellStyle;
+
+                _positionHost = hostPortfolio;
+                _positionHost.Child = _gridPosition;
 
                 DataGridViewColumn column0 = new DataGridViewColumn();
                 column0.CellTemplate = cell0;
@@ -167,23 +157,16 @@ namespace OsEngine.Market
                 _positionHost.Child.Refresh();
 
 
-                _gridOrders = new DataGridView();
-                _ordersHost = hostOrders;
-                _ordersHost.Child = _gridOrders;
-
-                _gridOrders.AllowUserToOrderColumns = false;
-                _gridOrders.AllowUserToResizeRows = false;
-                _gridOrders.AllowUserToDeleteRows = false;
-                _gridOrders.AllowUserToAddRows = false;
-                _gridOrders.RowHeadersVisible = false;
-                _gridOrders.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-                _gridOrders.MultiSelect = false;
+                _gridOrders = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
 
                 DataGridViewColumn colu = new DataGridViewColumn();
                 colu.CellTemplate = cell0;
                 colu.HeaderText = @"Время";
                 colu.ReadOnly = true;
                 colu.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+                _ordersHost = hostOrders;
+                _ordersHost.Child = _gridOrders;
 
                 _gridOrders.Columns.Add(colu);
 

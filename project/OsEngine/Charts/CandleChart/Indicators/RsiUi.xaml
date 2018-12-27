@@ -6,7 +6,7 @@
         <Rectangle  Margin="5,5,5,37"/>
         <Button Name ="ButtonAccept"  Content="Принять" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="119" Click="ButtonAccept_Click"/>
         <TextBox Name ="TextBoxLenght" Height="23" Margin="150,18,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Длинна индикатора" HorizontalAlignment="Left" Margin="17,18,0,0" VerticalAlignment="Top" />
+        <Label Content="Длина индикатора" HorizontalAlignment="Left" Margin="17,18,0,0" VerticalAlignment="Top" />
         <Button Name="ButtonColor" Content="Цвет" HorizontalAlignment="Left" Margin="17,46,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"/>
         <WindowsFormsHost Name="HostColor" Height="22" Margin="150,46,20,0" VerticalAlignment="Top"/>
     </Grid>

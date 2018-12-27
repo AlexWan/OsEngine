@@ -9,14 +9,14 @@
         <Label Content="Статус сервера: " Margin="0,0,151,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="101"/>
         <Label Name="LabelStatus" Content="Disconnect" Margin="0,0,75,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="71" />
         <TabControl Margin="0,0,0,35">
-            <TabItem Header="Настройки" Foreground="Black">
-                <Grid Background="#FFE5E5E5">
-                    <WindowsFormsHost Name="HostSettings" Background="Black" Margin="0,0,0,0"/>
+            <TabItem Header=" Настройки ">
+                <Grid >
+                    <WindowsFormsHost Name="HostSettings"  Margin="0,0,0,0"/>
                 </Grid>
             </TabItem>
-            <TabItem Header="Логирование" Foreground="Black">
-                <Grid Background="#FFE5E5E5">
-                    <WindowsFormsHost Name="HostLog" Background="Black" Margin="0,0,0,0"/>
+            <TabItem Header=" Логирование ">
+                <Grid >
+                    <WindowsFormsHost Name="HostLog" Margin="0,0,0,0"/>
                 </Grid>
             </TabItem>
         </TabControl>

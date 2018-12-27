@@ -1444,6 +1444,18 @@ namespace OsEngine.Market.Servers.Bitfinex
                     
                     if (NewMarketDepthEvent != null)
                     {
+                        if (needDepth.Asks[0].Price < needDepth.Bids[0].Price)
+                        {
+                            if (needDepth.Asks[0].Price < needDepth.Bids[1].Price)
+                            {
+                                needDepth.Asks.Remove(needDepth.Asks[0]);
+                            }
+                            else if (needDepth.Bids[0].Price > needDepth.Asks[1].Price)
+                            {
+                                needDepth.Bids.Remove(needDepth.Bids[0]);
+                            }
+                        }
+
                         _marketDepthsToSend.Enqueue(needDepth.GetCopy());
 
                         if (needDepth.Asks.Count != 0 && needDepth.Bids.Count != 0)

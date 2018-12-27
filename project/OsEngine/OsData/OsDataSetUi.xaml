@@ -35,7 +35,7 @@
         <CheckBox x:Name="CheckBoxTfTickIsOn" Content="тики"  HorizontalAlignment="Left" Margin="270,174,0,0" VerticalAlignment="Top" />
         <CheckBox x:Name="CheckBoxTfMarketDepthIsOn" Content="стакан"  HorizontalAlignment="Left" Margin="270,195,0,0" VerticalAlignment="Top" />
         <WindowsFormsHost x:Name="HostSecurities" Margin="358,46,10,0" Height="187" VerticalAlignment="Top"/>
-        <Label Content="Инструменты" HorizontalAlignment="Left" Margin="358,18,0,0" VerticalAlignment="Top" />
+        <Label Content="Инструменты" HorizontalAlignment="Left" Margin="358,16,0,0" VerticalAlignment="Top" />
         <Rectangle Margin="5,244,5,10"/>
         <DatePicker Name="DatePickerTimeStart" HorizontalAlignment="Left" Margin="98,253,0,0" VerticalAlignment="Top" Width="133"/>
         <DatePicker Name="DatePickerTimeEnd" HorizontalAlignment="Left" Margin="98,290,0,0" VerticalAlignment="Top" Width="133"/>
@@ -49,8 +49,8 @@
         <Label Content="Сборка свечей" HorizontalAlignment="Left" Margin="25,76,0,0" VerticalAlignment="Top" />
         <ComboBox x:Name="ComboBoxMarketDepthDepth" HorizontalAlignment="Left" Margin="270,215,0,0" VerticalAlignment="Top" Width="83" Height="20"/>
         <Label Content="глубина" HorizontalAlignment="Left" Margin="216,212,0,0" VerticalAlignment="Top" />
-        <CheckBox x:Name="CheckBoxNeadToUpDate" Content="Авто обновление" HorizontalAlignment="Right" Margin="0,299,134,0" VerticalAlignment="Top" />
+        <CheckBox x:Name="CheckBoxNeadToUpDate" Content="Авто обновление" HorizontalAlignment="Right" Margin="0,298,137,0" VerticalAlignment="Top" />
         <CheckBox x:Name="CheckBoxNeadToLoadDataInServers" Content="Добавить данные к торговым серверам" HorizontalAlignment="Left" Margin="305,278,0,0" VerticalAlignment="Top" />
-        <Button Name="ButtonAccept" Content="Принять" HorizontalAlignment="Right" Margin="0,0,10,24" VerticalAlignment="Bottom" Width="191" Click="ButtonAccept_Click"/>
+        <Button Name="ButtonAccept" Content="Принять" HorizontalAlignment="Right" Margin="0,0,10,29" VerticalAlignment="Bottom" Width="191" Click="ButtonAccept_Click"/>
     </Grid>
 </Window>

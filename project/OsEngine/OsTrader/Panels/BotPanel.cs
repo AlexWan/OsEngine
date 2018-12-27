@@ -126,7 +126,6 @@ namespace OsEngine.OsTrader.Panels
             }
 
             _tabBotTab = tabBotTab;
-            _tabBotTab = tabBotTab;
             _hostChart = hostChart;
             _hostGlass = glass;
             _hostOpenDeals = hostOpenDeals;
@@ -162,7 +161,7 @@ namespace OsEngine.OsTrader.Panels
                         && _tabBotTab.Items.Count != 0
                         && _tabBotTab.SelectedItem != null)
                     {
-                        ChangeActivTab(Convert.ToInt32(_tabBotTab.SelectedItem.ToString()));
+                        ChangeActivTab(_tabBotTab.SelectedIndex);
                     }
                     else if (_tabBotTab != null
                              && _tabBotTab.Items.Count != 0
@@ -888,7 +887,7 @@ namespace OsEngine.OsTrader.Panels
             {
                 if (_tabBotTab != null && _tabBotTab.Items.Count != 0)
                 {
-                    ChangeActivTab(Convert.ToInt32(_tabBotTab.SelectedItem.ToString()));
+                    ChangeActivTab(_tabBotTab.SelectedIndex);
                 }
             }
             catch (Exception error)
@@ -1063,7 +1062,8 @@ namespace OsEngine.OsTrader.Panels
                     {
                         for (int i = 0; i < _botTabs.Count; i++)
                         {
-                            _tabBotTab.Items.Add(i);
+                            _tabBotTab.Items.Add(" "+ (i+1));
+                         
                         }
                     }
 

@@ -4,9 +4,9 @@
       Title="Новый инструмент" Height="285" Width="303" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Topmost="True">
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
-        <Label Content="Класс" HorizontalAlignment="Left" Margin="10,15,0,0" VerticalAlignment="Top" />
+        <Label Content="Класс" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" />
         <Button Name="ButtonAccept" Content="Выбрать" Height="22" FontSize="13" FontFamily="Calibri" Margin="0,0,5,10" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="129" Click="ButtonAccept_Click"/>
-        <ComboBox Name="ComboBoxClass" Margin="76,15,10,0" VerticalAlignment="Top"/>
-        <WindowsFormsHost Name="HostSecurity" Margin="10,46,10,42"/>
+        <ComboBox Name="ComboBoxClass" Margin="76,10,10,0" VerticalAlignment="Top"/>
+        <WindowsFormsHost Name="HostSecurity" Margin="10,38,10,42"/>
     </Grid>
 </Window>

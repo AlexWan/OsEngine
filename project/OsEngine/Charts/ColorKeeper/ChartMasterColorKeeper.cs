@@ -73,17 +73,18 @@ namespace OsEngine.Charts.ColorKeeper
                 }
                 else
                 {
-                    ColorUpBodyCandle = Color.DeepSkyBlue;
-                    ColorUpBorderCandle = Color.Blue;
+                    ColorUpBodyCandle = Color.FromArgb(83, 83, 130);
+                    ColorUpBorderCandle = Color.FromArgb(83, 83, 130);
 
-                    ColorDownBodyCandle = Color.DarkRed;
-                    ColorDownBorderCandle = Color.Red;
+                    ColorDownBodyCandle = Color.FromArgb(17, 18, 23);
+                    ColorDownBorderCandle = Color.FromArgb(255, 83, 0);
 
-                    ColorBackSecond = Color.Black;
-                    ColorBackChart = Color.FromArgb(-15395563);
-                    ColorBackCursor = Color.DarkOrange;
+                    ColorBackSecond = Color.FromArgb(17, 18, 23);
+                    ColorBackChart = Color.FromArgb(17, 18, 23);
+                    ColorBackCursor = Color.FromArgb(255, 83, 0);
 
-                    ColorText = Color.DimGray;
+                    ColorText = Color.FromArgb(51, 51, 62);
+
                     _colorScheme = ChartColorScheme.Black;
                 }
             }
@@ -163,22 +164,24 @@ namespace OsEngine.Charts.ColorKeeper
             }
         }
 
+
         /// <summary>
         /// загрузить чёрную схему
         /// </summary>
         public void SetBlackScheme()
         {
-            ColorUpBodyCandle = Color.DeepSkyBlue;
-            ColorUpBorderCandle = Color.Blue;
+            ColorUpBodyCandle = Color.FromArgb(149, 159, 176);
+            ColorUpBorderCandle = Color.FromArgb(149, 159, 176);
 
-            ColorDownBodyCandle = Color.DarkRed;
-            ColorDownBorderCandle = Color.Red;
+            ColorDownBodyCandle = Color.FromArgb(17, 18, 23);
+            ColorDownBorderCandle = Color.FromArgb(255, 83, 0);
 
-            ColorBackSecond = Color.Black;
-            ColorBackChart = Color.FromArgb(255,27,27,27);
-            ColorBackCursor = Color.DarkOrange;
+            ColorBackSecond = Color.FromArgb(17, 18, 23);
+            ColorBackChart = Color.FromArgb(17, 18, 23);
+            ColorBackCursor = Color.FromArgb(255, 83, 0);
 
-            ColorText = Color.DimGray; 
+            ColorText = Color.FromArgb(149, 159, 176);
+
             _colorScheme = ChartColorScheme.Black;
 
             Save();
@@ -331,6 +334,10 @@ namespace OsEngine.Charts.ColorKeeper
         /// <summary>
         /// белая
         /// </summary>
-        White
+        White,
+        /// <summary>
+        /// тёмная
+        /// </summary>
+        Dark,
     }
 }

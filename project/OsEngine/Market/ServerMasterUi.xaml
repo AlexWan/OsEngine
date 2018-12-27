@@ -4,14 +4,14 @@
         Title="Роутер" Height="350" Width="600" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
     <Grid>
         <TabControl Foreground="Black" Margin="0,0,0,0">
-            <TabItem Header="Подключения">
-                <Grid Background="Black">
+            <TabItem Header=" Подключения ">
+                <Grid>
                     <WindowsFormsHost x:Name="HostSource" Foreground="Black" Margin="0,0,0,31"/>
-                    <CheckBox x:Name="CheckBoxServerAutoOpen" Content="Разворачивать сервера автоматически" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="0,0,0,10"/>
+                    <CheckBox x:Name="CheckBoxServerAutoOpen" Content="Разворачивать сервера автоматически" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10,0,0,3"/>
                 </Grid>
             </TabItem>
-            <TabItem Header="Логирование">
-                <Grid Background="Black">
+            <TabItem Header=" Логирование ">
+                <Grid>
                     <WindowsFormsHost Name="HostLog" Foreground="Black" Margin="0,0,0,0"/>
                 </Grid>
             </TabItem>

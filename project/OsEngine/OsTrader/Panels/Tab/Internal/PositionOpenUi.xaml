@@ -5,7 +5,7 @@
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
         <Label Content="Бумага" HorizontalAlignment="Left" Margin="25,11,0,0" VerticalAlignment="Top" />
-        <Label Content="Объём" HorizontalAlignment="Left" Margin="184,116,0,0" VerticalAlignment="Top">
+        <Label Content="Объём" HorizontalAlignment="Left" Margin="175,116,0,0" VerticalAlignment="Top">
         </Label>
         <TextBox Name="TextBoxSecurity" IsReadOnly="True" HorizontalAlignment="Left" Height="23" Margin="25,33,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="135"/>
         <TextBox Name="TextBoxVolume" Height="23" Margin="175,138,25,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
@@ -15,8 +15,8 @@
         <ComboBox Name="ComboBoxSide" HorizontalAlignment="Left" Margin="25,83,0,0" VerticalAlignment="Top" Width="135"/>
         <Label Content="Направление" HorizontalAlignment="Left" Margin="25,61,0,0" VerticalAlignment="Top"/>
         <ComboBox Name="ComboBoxOrderType" Margin="175,33,25,0" VerticalAlignment="Top"/>
-        <Label  Content="Тип ордера" HorizontalAlignment="Left" Margin="184,11,0,0" VerticalAlignment="Top"/>
-        <Label Content="Ордеров в айсберг" HorizontalAlignment="Left" Margin="184,62,0,0" VerticalAlignment="Top"/>
+        <Label  Content="Тип ордера" HorizontalAlignment="Left" Margin="175,11,0,0" VerticalAlignment="Top"/>
+        <Label Content="Ордеров в айсберг" HorizontalAlignment="Left" Margin="175,61,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBoxAcebergOrdersCount" Height="23" Margin="175,86,25,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
     </Grid>
 </Window>

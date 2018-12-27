@@ -207,21 +207,10 @@ namespace OsEngine.OsData
         /// </summary>
         private void CreateSourceGrid()
         {
-            DataGridView newGrid = new DataGridView();
-
-            newGrid.AllowUserToOrderColumns = false;
-            newGrid.AllowUserToResizeRows = false;
-            newGrid.AllowUserToDeleteRows = false;
-            newGrid.AllowUserToAddRows = false;
-            newGrid.RowHeadersVisible = false;
-            newGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            newGrid.MultiSelect = false;
-
-            DataGridViewCellStyle style = new DataGridViewCellStyle();
-            style.Alignment = DataGridViewContentAlignment.BottomRight;
+            DataGridView newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = style;
+            cell0.Style = newGrid.DefaultCellStyle;
 
             DataGridViewColumn colum0 = new DataGridViewColumn();
             colum0.CellTemplate = cell0;
@@ -358,21 +347,10 @@ namespace OsEngine.OsData
         /// </summary>
         private void CreateSetGrid()
         {
-            DataGridView newGrid = new DataGridView();
-
-            newGrid.AllowUserToOrderColumns = false;
-            newGrid.AllowUserToResizeRows = false;
-            newGrid.AllowUserToDeleteRows = false;
-            newGrid.AllowUserToAddRows = false;
-            newGrid.RowHeadersVisible = false;
-            newGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            newGrid.MultiSelect = false;
-
-            DataGridViewCellStyle style = new DataGridViewCellStyle();
-            style.Alignment = DataGridViewContentAlignment.BottomRight;
+            DataGridView newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = style;
+            cell0.Style = newGrid.DefaultCellStyle;
 
             DataGridViewColumn colum0 = new DataGridViewColumn();
             colum0.CellTemplate = cell0;

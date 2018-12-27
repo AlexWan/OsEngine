@@ -133,21 +133,14 @@ namespace OsEngine.Entity
         {
             try
             {
-                _glassBox = new DataGridView();
-                _glassBox.AllowUserToOrderColumns = false;
+                _glassBox = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
+                    DataGridViewAutoSizeRowsMode.None);
                 _glassBox.AllowUserToResizeRows = false;
-                _glassBox.AllowUserToDeleteRows = false;
-                _glassBox.AllowUserToAddRows = false;
-                _glassBox.RowHeadersVisible = false;
-                _glassBox.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-                _glassBox.MultiSelect = false;
+
                 _glassBox.SelectionChanged += _glassBox_SelectionChanged;
 
-                DataGridViewCellStyle style = new DataGridViewCellStyle();
-                style.Alignment = DataGridViewContentAlignment.BottomRight;
-
                 DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-                cell0.Style = style;
+                cell0.Style = _glassBox.DefaultCellStyle;
 
                 DataGridViewColumn column0 = new DataGridViewColumn();
                 column0.CellTemplate = cell0;
@@ -187,15 +180,15 @@ namespace OsEngine.Entity
 
                 DataGridViewCellStyle styleRed = new DataGridViewCellStyle();
                 styleRed.Alignment = DataGridViewContentAlignment.MiddleRight;
-                styleRed.ForeColor = Color.Black;
-                styleRed.Font = new Font("Stencil", 4);
+                styleRed.ForeColor = Color.FromArgb(254, 84, 0);
+                styleRed.Font = new Font("Areal", 3);
 
 
                 for (int i = 0; i < 25; i++)
                 {
                     _glassBox.Rows.Add(null, null, null);
-                    _glassBox.Rows[_glassBox.Rows.Count - 1].DefaultCellStyle.BackColor = Color.Gainsboro;
-                    _glassBox.Rows[_glassBox.Rows.Count - 1].DefaultCellStyle.ForeColor = Color.Black;
+                    _glassBox.Rows[_glassBox.Rows.Count - 1].DefaultCellStyle.BackColor = Color.FromArgb(28, 33, 37);
+                    _glassBox.Rows[_glassBox.Rows.Count - 1].DefaultCellStyle.ForeColor = Color.FromArgb(254, 84, 0);
                     _glassBox.Rows[_glassBox.Rows.Count - 1].DefaultCellStyle.Font = new Font("New Times Roman", 10);
                     _glassBox.Rows[_glassBox.Rows.Count - 1].Cells[0].Style = styleRed;
                     _glassBox.Rows[_glassBox.Rows.Count - 1].Cells[1].Style = styleRed;
@@ -203,14 +196,14 @@ namespace OsEngine.Entity
 
                 DataGridViewCellStyle styleBlue = new DataGridViewCellStyle();
                 styleBlue.Alignment = DataGridViewContentAlignment.MiddleRight;
-                styleBlue.ForeColor = Color.DarkOrange;
-                styleBlue.Font = new Font("Stencil", 4);
+                styleBlue.ForeColor = Color.FromArgb(57, 157,54);
+                styleBlue.Font = new Font("Areal", 3);
 
                 for (int i = 0; i < 25; i++)
                 {
                     _glassBox.Rows.Add(null, null, null);
-                    _glassBox.Rows[_glassBox.Rows.Count - 1].DefaultCellStyle.BackColor = Color.Black;
-                    _glassBox.Rows[_glassBox.Rows.Count - 1].DefaultCellStyle.ForeColor = Color.DarkOrange;
+                    //_glassBox.Rows[_glassBox.Rows.Count - 1].DefaultCellStyle.BackColor = Color.Black;
+                    _glassBox.Rows[_glassBox.Rows.Count - 1].DefaultCellStyle.ForeColor = Color.FromArgb(57, 157, 54);
                     _glassBox.Rows[_glassBox.Rows.Count - 1].DefaultCellStyle.Font = new Font("New Times Roman", 10);
                     _glassBox.Rows[_glassBox.Rows.Count - 1].Cells[0].Style = styleBlue;
                     _glassBox.Rows[_glassBox.Rows.Count - 1].Cells[1].Style = styleBlue;
@@ -517,7 +510,7 @@ namespace OsEngine.Entity
 
                     StringBuilder builder = new StringBuilder(percentFromMax);
 
-                    for (int i2 = 0; i2 < percentFromMax; i2++)
+                    for (int i2 = 0; i2 < percentFromMax ; i2++)
                     {
                         builder.Append('|');
                     }

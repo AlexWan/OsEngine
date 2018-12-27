@@ -6,7 +6,7 @@
         <Rectangle Margin="5,5,5,37"/>
         <Button x:Name ="ButtonAccept"  Content="Принять" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="139" Click="ButtonAccept_Click"/>
         <TextBox x:Name ="TextBoxLenghtUp" HorizontalAlignment="Left" Height="23" Margin="155,44,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <Label Content="Длинна" HorizontalAlignment="Left" Margin="86,50,0,0" VerticalAlignment="Top"/>
+        <Label Content="Длина" HorizontalAlignment="Left" Margin="86,44,0,0" VerticalAlignment="Top"/>
         <Button x:Name="ButtonColorUp" Content="Цвет" HorizontalAlignment="Left" Margin="19,98,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorUp_Click" />
         <WindowsFormsHost x:Name="HostColorUp" HorizontalAlignment="Left" Height="22" Margin="155,98,0,0" VerticalAlignment="Top" Width="120"/>
         <Button x:Name="ButtonColorDown" Content="Цвет" HorizontalAlignment="Left" Margin="292,97,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorDown_Click" />
@@ -20,16 +20,16 @@
         <Label Content="Зубы Аллигатора. Средняя" HorizontalAlignment="Left" Margin="9,142,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
         <Label Content="Губы Аллигатора. Быстрая" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
         <TextBox x:Name ="TextBoxLenghtBase" HorizontalAlignment="Left" Height="23" Margin="155,177,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <Label Content="Длинна" HorizontalAlignment="Left" Margin="86,183,0,0" VerticalAlignment="Top" />
+        <Label Content="Длина" HorizontalAlignment="Left" Margin="86,177,0,0" VerticalAlignment="Top" />
         <TextBox x:Name ="TextBoxShiftBase" HorizontalAlignment="Left" Height="23" Margin="155,205,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <Label Content="Сдвиг" HorizontalAlignment="Left" Margin="86,211,0,0" VerticalAlignment="Top"/>
+        <Label Content="Сдвиг" HorizontalAlignment="Left" Margin="86,205,0,0" VerticalAlignment="Top"/>
         <Label Content="Челюсть Аллигатора. Медленная" HorizontalAlignment="Left" Margin="288,10,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
         <TextBox x:Name ="TextBoxLenghtDown" Height="23" Margin="420,44,23,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Длинна" HorizontalAlignment="Left" Margin="359,49,0,0" VerticalAlignment="Top" />
+        <Label Content="Длина" HorizontalAlignment="Left" Margin="359,44,0,0" VerticalAlignment="Top" />
         <TextBox x:Name ="TextBoxShiftDown" Height="23" Margin="420,70,23,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <Label Content="Сдвиг" HorizontalAlignment="Left" Margin="359,70,0,0" VerticalAlignment="Top"/>
         <ComboBox x:Name="ComboBoxMovingType" Margin="420,177,23,0" VerticalAlignment="Top"/>
-        <Label Content="Метод рассчёта" HorizontalAlignment="Left" Margin="310,183,0,0" VerticalAlignment="Top"/>
+        <Label Content="Метод рассчёта" HorizontalAlignment="Left" Margin="303,177,0,0" VerticalAlignment="Top"/>
 
     </Grid>
 </Window>

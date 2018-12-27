@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Entity;
 using OsEngine.Market.Servers;
 
 namespace OsEngine.Market
@@ -77,21 +78,10 @@ namespace OsEngine.Market
         /// </summary>
         private void CreateSourceGrid()
         {
-            DataGridView newGrid = new DataGridView();
-
-            newGrid.AllowUserToOrderColumns = false;
-            newGrid.AllowUserToResizeRows = false;
-            newGrid.AllowUserToDeleteRows = false;
-            newGrid.AllowUserToAddRows = false;
-            newGrid.RowHeadersVisible = false;
-            newGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            newGrid.MultiSelect = false;
-
-            DataGridViewCellStyle style = new DataGridViewCellStyle();
-            style.Alignment = DataGridViewContentAlignment.BottomRight;
+            DataGridView newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = style;
+            cell0.Style = newGrid.DefaultCellStyle;
 
             DataGridViewColumn colum0 = new DataGridViewColumn();
             colum0.CellTemplate = cell0;

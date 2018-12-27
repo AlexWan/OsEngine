@@ -6,18 +6,18 @@
         <Rectangle Margin="5,5,5,37"/>
         <Button Name="ButtonConnect" Content="Подключить" Margin="0,0,152,10" VerticalAlignment="Bottom" Click="ButtonConnect_Click" HorizontalAlignment="Right" Width="120"/>
         <Button Name="ButtonAbort" Content="Отключить" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="120" Click="ButtonAbort_Click"/>
-        <Label Content="Статус сервера: " HorizontalAlignment="Left" Margin="27,14,0,0" VerticalAlignment="Top"/>
-        <Label Name="LabelStatus" Content="Disconnect" HorizontalAlignment="Left" Margin="139,14,0,0" VerticalAlignment="Top"/>
+        <Label Content="Статус сервера: " HorizontalAlignment="Left" Margin="16,12,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelStatus" Content="Disconnect" HorizontalAlignment="Left" Margin="144,12,0,0" VerticalAlignment="Top"/>
         <WindowsFormsHost Name="Host" Margin="10,66,10,42"/>
-        <TextBox Name="TextBoxHost" HorizontalAlignment="Right" Height="23" Margin="0,38,10,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="137"/>
-        <Label Content="Host: " HorizontalAlignment="Right" Margin="0,43,152,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxHost" HorizontalAlignment="Right" Height="23" Margin="0,37,10,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="137"/>
+        <Label Content="Host: " HorizontalAlignment="Right" Margin="0,38,152,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBoxPort" HorizontalAlignment="Right" Height="23" Margin="0,12,10,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="138"/>
-        <Label Content="Port: " HorizontalAlignment="Right" Margin="0,14,152,0" VerticalAlignment="Top"/>
-        <CheckBox Name="CheckBoxNeadToSaveTrade" Content="Сохранять историю" HorizontalAlignment="Right" Margin="0,43,285,0" VerticalAlignment="Top"/>
+        <Label Content="Port: " HorizontalAlignment="Right" Margin="0,12,155,0" VerticalAlignment="Top"/>
+        <CheckBox Name="CheckBoxNeadToSaveTrade" Content="Сохранять историю" HorizontalAlignment="Right" Margin="0,37,292,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBoxCountDaysSave" HorizontalAlignment="Left" Height="23" Margin="139,37,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="76"/>
-        <Label Content="Дней подгружать: " HorizontalAlignment="Left" Margin="16,43,0,0" VerticalAlignment="Top"/>
+        <Label Content="Дней подгружать: " HorizontalAlignment="Left" Margin="16,37,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBoxId" HorizontalAlignment="Right" Height="23" Margin="0,12,226,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="131"/>
-        <Label Content="Client Id: " HorizontalAlignment="Right" Margin="0,15,362,0" VerticalAlignment="Top" />
+        <Label Content="Client Id: " HorizontalAlignment="Right" Margin="0,12,362,0" VerticalAlignment="Top" />
         <Button x:Name="ButtonSecurities" Content="Инструменты" Margin="10,0,0,10" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="120" Click="ButtonSecurities_Click"/>
 
     </Grid>

@@ -9,12 +9,12 @@
         <Label Content="Статус сервера: " HorizontalAlignment="Left" Margin="13,65,0,0" VerticalAlignment="Top"/>
         <Label Name="LabelStatus" Content="Disconnect" HorizontalAlignment="Left" Margin="121,65,0,0" VerticalAlignment="Top"/>
         <WindowsFormsHost Name="Host" Margin="10,95,10,42"/>
-        <CheckBox Name="CheckBoxNeadToSaveTrade" Content="Сохранять историю" Margin="13,44,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="133"/>
-        <TextBox x:Name="TextBoxId" HorizontalAlignment="Right" Height="23" Margin="0,11,10,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="221"/>
-        <Label Content="Client Id: " HorizontalAlignment="Left" Margin="369,8,0,0" VerticalAlignment="Top" />
-        <PasswordBox x:Name="TextBoxToken" HorizontalAlignment="Right" Height="23" Margin="0,39,10,0"  VerticalAlignment="Top" Width="221"/>
-        <Label Content="Token: " HorizontalAlignment="Left" Margin="369,36,0,0" VerticalAlignment="Top" />
-        <CheckBox x:Name="CheckBoxTestServer" Content="Демо счет" HorizontalAlignment="Left" Margin="13,18,0,0" VerticalAlignment="Top"/>
+        <CheckBox Name="CheckBoxNeadToSaveTrade" Content="Сохранять историю" Margin="13,38,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="133"/>
+        <TextBox x:Name="TextBoxId" HorizontalAlignment="Right" Height="23" Margin="0,10,10,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="221"/>
+        <Label Content="Client Id: " HorizontalAlignment="Left" Margin="369,10,0,0" VerticalAlignment="Top" />
+        <PasswordBox x:Name="TextBoxToken" HorizontalAlignment="Right" Height="23" Margin="0,38,10,0"  VerticalAlignment="Top" Width="221"/>
+        <Label Content="Token: " HorizontalAlignment="Left" Margin="369,38,0,0" VerticalAlignment="Top" />
+        <CheckBox x:Name="CheckBoxTestServer" Content="Демо счет" HorizontalAlignment="Left" Margin="13,10,0,0" VerticalAlignment="Top"/>
 
     </Grid>
 </Window>

@@ -14,7 +14,7 @@
         <CheckBox Name="CheckBoxNeadToSaveTrade" Content="Сохранять историю" HorizontalAlignment="Left" Margin="21,10,0,0" VerticalAlignment="Top"/>
         <Label Content="Статус сервера: " HorizontalAlignment="Left" Margin="19,62,0,0" VerticalAlignment="Top"/>
         <Label x:Name="LabelStatus" Content="Disconnect" HorizontalAlignment="Left" Margin="147,62,0,0" VerticalAlignment="Top"/>
-        <Label Content="Дней подгружать: " Margin="21,31,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="118"/>
+        <Label Content="Дней подгружать: " Margin="21,35,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="118"/>
         <TextBox x:Name="TextBoxCountDaysSave" HorizontalAlignment="Right" Height="23" Margin="0,35,460,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="74"/>
         <WindowsFormsHost x:Name="Host" Margin="15,84,15,42"/>
         <PasswordBox x:Name="TextBoxUserSecretKey" Height="23" Margin="454,56,15,0" VerticalAlignment="Top"/>

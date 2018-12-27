@@ -1,7 +1,7 @@
 ﻿<Window x:Class="OsEngine.Charts.CandleChart.Indicators.IshimokuUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-       Title="Ishimoku" Height="447.252" Width="400" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico" Topmost="True">
+       Title="Ishimoku" Height="424.15" Width="400" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico" Topmost="True">
     <Grid>
         <Rectangle  Margin="5,5,5,37"/>
         <Button x:Name ="ButtonAccept"  Content="Принять" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="139" Click="ButtonAccept_Click"/>
@@ -9,28 +9,28 @@
         <WindowsFormsHost x:Name="HostEtalonLine" Height="25" Margin="302,22,10,0" VerticalAlignment="Top"/>
         <Button x:Name="ButtonLineRounded" Content="Цвет" HorizontalAlignment="Left" Margin="174,52,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorDown_Click" />
         <WindowsFormsHost x:Name="HostLineRounded" Height="25" Margin="302,52,10,0" VerticalAlignment="Top"/>
-        <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовывать" HorizontalAlignment="Left" Margin="174,320,0,0" VerticalAlignment="Top"/>
-        <Label Content="Эталонная линия" HorizontalAlignment="Left" Margin="56,22,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
+        <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовывать" HorizontalAlignment="Left" Margin="174,311,0,0" VerticalAlignment="Top"/>
+        <Label Content="Эталонная линия" HorizontalAlignment="Left" Margin="17,22,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
         <Button x:Name="ButtonLineLate" Content="Цвет" HorizontalAlignment="Left" Margin="174,82,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorBase_Click" />
         <WindowsFormsHost x:Name="HostLineLate" Height="25" Margin="302,82,10,0" VerticalAlignment="Top"/>
-        <Label Content="Запаздывающая линия" HorizontalAlignment="Left" Margin="19,82,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
+        <Label Content="Запаздывающая линия" HorizontalAlignment="Left" Margin="17,82,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
         <Label Content="" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
-        <Label Content="Линия вращения" HorizontalAlignment="Left" Margin="57,52,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
-        <Label Content="Первая упреждающая" HorizontalAlignment="Left" Margin="24,112,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
+        <Label Content="Линия вращения" HorizontalAlignment="Left" Margin="17,52,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
+        <Label Content="Первая упреждающая" HorizontalAlignment="Left" Margin="17,112,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
         <Button x:Name="ButtonFirst" Content="Цвет" HorizontalAlignment="Left" Margin="174,112,0,0" VerticalAlignment="Top" Width="120" Click="ButtonFirst_Click" />
         <WindowsFormsHost x:Name="HostColorFirst" Height="25" Margin="302,112,10,0" VerticalAlignment="Top"/>
-        <Label Content="Вторая упреждающая" HorizontalAlignment="Left" Margin="26,142,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
+        <Label Content="Вторая упреждающая" HorizontalAlignment="Left" Margin="17,142,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
         <Button x:Name="ButtonSecond" Content="Цвет" HorizontalAlignment="Left" Margin="174,142,0,0" VerticalAlignment="Top" Width="120" Click="ButtonSecond_Click" />
         <WindowsFormsHost x:Name="HostColorSecond" Height="25" Margin="302,142,10,0" VerticalAlignment="Top"/>
-        <Label Content="Tenkan" HorizontalAlignment="Left" Margin="91,170,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
-        <Label Content="Kijun" HorizontalAlignment="Left" Margin="91,198,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
-        <Label Content="Sencou" HorizontalAlignment="Left" Margin="91,226,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
+        <Label Content="Tenkan" HorizontalAlignment="Left" Margin="72,172,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
+        <Label Content="Kijun" HorizontalAlignment="Left" Margin="72,200,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
+        <Label Content="Sencou" HorizontalAlignment="Left" Margin="72,228,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
         <TextBox Name="TextBoxPeriodOne" HorizontalAlignment="Left" Height="23" Margin="174,172,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
         <TextBox Name="TextBoxPerionTwo" HorizontalAlignment="Left" Height="23" Margin="174,200,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
         <TextBox Name="TextBoxPerionThree" HorizontalAlignment="Left" Height="23" Margin="174,228,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <Label Content="Сдвиг" HorizontalAlignment="Left" Margin="91,281,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
+        <Label Content="Сдвиг" HorizontalAlignment="Left" Margin="72,283,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
         <TextBox x:Name="TextBoxShift" HorizontalAlignment="Left" Height="23" Margin="174,283,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <Label Content="Chinkou" HorizontalAlignment="Left" Margin="91,254,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
+        <Label Content="Chinkou" HorizontalAlignment="Left" Margin="72,256,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
         <TextBox x:Name="TextBoxChinkou" HorizontalAlignment="Left" Height="23" Margin="174,256,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
 
     </Grid>

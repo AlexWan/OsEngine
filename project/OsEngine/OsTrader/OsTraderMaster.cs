@@ -49,7 +49,8 @@ namespace OsEngine.OsTrader
         /// <param name="gridChartControlPanel">грид для панели управления чартом</param>
         /// <param name="startProgram">тип программы который запросил создание класса</param>
         public OsTraderMaster(WindowsFormsHost hostChart, WindowsFormsHost hostGlass, WindowsFormsHost hostOpenDeals,
-            WindowsFormsHost hostCloseDeals, WindowsFormsHost hostAllDeals, WindowsFormsHost hostLogBot, WindowsFormsHost hostLogPrime, Rectangle rectangleAroundChart, WindowsFormsHost hostAlerts,
+            WindowsFormsHost hostCloseDeals, WindowsFormsHost hostAllDeals, WindowsFormsHost hostLogBot, WindowsFormsHost hostLogPrime, Rectangle rectangleAroundChart, 
+            WindowsFormsHost hostAlerts,
             TabControl tabPanel, TabControl tabBotTab, TextBox textBoxLimitPrice, Grid gridChartControlPanel, StartProgram startProgram)
         {
             NumberGen.GetNumberOrder(startProgram);
@@ -183,7 +184,7 @@ namespace OsEngine.OsTrader
                     if (bot != null)
                     {
                         _panelsArray.Add(bot);
-                        _tabBotNames.Items.Add(_panelsArray[botIterator].NameStrategyUniq);
+                        _tabBotNames.Items.Add(" " +_panelsArray[botIterator].NameStrategyUniq + " ");
                         SendNewLogMessage("Создан новый бот " + _panelsArray[botIterator].NameStrategyUniq,
                             LogMessageType.System);
                         botIterator++;
@@ -305,12 +306,12 @@ namespace OsEngine.OsTrader
 
                 _tabBotNames.SelectionChanged -= _tabBotControl_SelectionChanged;
 
-                _tabBotNames.SelectedItem = _activPanel.NameStrategyUniq;
+                _tabBotNames.SelectedItem = " " + _activPanel.NameStrategyUniq + " ";
 
-                if (_tabBotNames.SelectedItem == null || _tabBotNames.SelectedItem.ToString() != _activPanel.NameStrategyUniq)
+                if (_tabBotNames.SelectedItem == null || _tabBotNames.SelectedItem.ToString() != " " + _activPanel.NameStrategyUniq + " ")
                 {
-                    _tabBotNames.Items.Add(_activPanel.NameStrategyUniq);
-                    _tabBotNames.SelectedItem = _activPanel.NameStrategyUniq;
+                    _tabBotNames.Items.Add(" " + _activPanel.NameStrategyUniq + " ");
+                    _tabBotNames.SelectedItem = " " + _activPanel.NameStrategyUniq + " ";
                 }
 
                 _tabBotNames.SelectionChanged += _tabBotControl_SelectionChanged;
@@ -332,7 +333,7 @@ namespace OsEngine.OsTrader
                 {
                     for (int i = 0; i < _panelsArray.Count; i++)
                     {
-                        if (_panelsArray[i].NameStrategyUniq == newBotName)
+                        if (_panelsArray[i].NameStrategyUniq == newBotName.Replace(" ",""))
                         {
                             ReloadActivBot(_panelsArray[i]);
                             return;
@@ -749,7 +750,7 @@ namespace OsEngine.OsTrader
                 {
                     for (int i = 0; i < _panelsArray.Count; i++)
                     {
-                        _tabBotNames.Items.Add(_panelsArray[i].NameStrategyUniq);
+                        _tabBotNames.Items.Add(" " + _panelsArray[i].NameStrategyUniq + " ");
                     }
 
                     ReloadActivBot(_panelsArray[0]);

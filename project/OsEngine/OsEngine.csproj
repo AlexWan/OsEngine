@@ -300,6 +300,7 @@
       <DependentUpon>AcceptDialogUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Entity\CandleConverter.cs" />
+    <Compile Include="Entity\DataGridFactory.cs" />
     <Compile Include="Entity\MarketDepthPainter.cs" />
     <Compile Include="Entity\ProxyHolder.cs" />
     <Compile Include="Entity\ProxyHolderAddUi.xaml.cs">
@@ -1281,7 +1282,15 @@
   <ItemGroup>
     <Resource Include="OsTrader\Panels\SingleRobots\1readme.txt" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Images\MainWIndow\test.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\MainWIndow\data.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\MainWIndow\Trading.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

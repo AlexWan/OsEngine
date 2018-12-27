@@ -27,7 +27,7 @@ namespace OsEngine.Market.Servers.BitMex
 
         public List<Candle> GetBitMexCandleHistory(string nameSec, TimeSpan tf)
         {
-            return ((BitMexServerRealization)ServerRealization).GetBitMexCandleHistory(nameSec, tf);
+            return ((BitMexServerRealization) ServerRealization).GetBitMexCandleHistory(nameSec, tf);
         }
     }
 
@@ -98,7 +98,7 @@ namespace OsEngine.Market.Servers.BitMex
 
             _lastStartServerTime = DateTime.Now;
 
-            if (((ServerParameterBool)ServerParameters[2]).Value)
+            if (((ServerParameterBool) ServerParameters[2]).Value)
             {
                 _client.Domain = "https://testnet.bitmex.com";
                 _client.ServerAdres = "wss://testnet.bitmex.com/realtime";
@@ -108,8 +108,9 @@ namespace OsEngine.Market.Servers.BitMex
                 _client.Domain = "https://www.bitmex.com";
                 _client.ServerAdres = "wss://www.bitmex.com/realtime";
             }
-            _client.Id = ((ServerParameterString)ServerParameters[0]).Value;
-            _client.SecKey = ((ServerParameterPassword)ServerParameters[1]).Value;
+
+            _client.Id = ((ServerParameterString) ServerParameters[0]).Value;
+            _client.SecKey = ((ServerParameterPassword) ServerParameters[1]).Value;
 
             _client.Connect();
         }
@@ -206,6 +207,7 @@ namespace OsEngine.Market.Servers.BitMex
         private CandleManager _candleManager;
 
         private List<string> _subscribedSec = new List<string>();
+
         /// <summary>
         /// объект блокирующий многопоточный доступ в StartThisSecurity
         /// </summary>
@@ -231,6 +233,7 @@ namespace OsEngine.Market.Servers.BitMex
                     {
                         return;
                     }
+
                     // надо запустить сервер если он ещё отключен
                     if (ServerStatus != ServerConnectStatus.Connect)
                     {
@@ -243,6 +246,7 @@ namespace OsEngine.Market.Servers.BitMex
                         Thread.Sleep(5000);
                         return;
                     }
+
                     if (_lastStartServerTime != DateTime.MinValue &&
                         _lastStartServerTime.AddSeconds(15) > DateTime.Now)
                     {
@@ -271,7 +275,8 @@ namespace OsEngine.Market.Servers.BitMex
                     {
 
 
-                        string queryQuotes = "{\"op\": \"subscribe\", \"args\": [\"orderBookL2:" + security.Name + "\"]}";
+                        string queryQuotes = "{\"op\": \"subscribe\", \"args\": [\"orderBookL2:" + security.Name +
+                                             "\"]}";
 
                         _client.SendQuery(queryQuotes);
 
@@ -283,7 +288,8 @@ namespace OsEngine.Market.Servers.BitMex
 
 
 
-                        string queryMyTrades = "{\"op\": \"subscribe\", \"args\": [\"execution:" + security.Name + "\"]}";
+                        string queryMyTrades =
+                            "{\"op\": \"subscribe\", \"args\": [\"execution:" + security.Name + "\"]}";
 
                         _client.SendQuery(queryMyTrades);
 
@@ -295,6 +301,7 @@ namespace OsEngine.Market.Servers.BitMex
                         _subscribedSec.Add(namePaper);
 
                     }
+
                     Thread.Sleep(300);
                 }
             }
@@ -380,11 +387,13 @@ namespace OsEngine.Market.Servers.BitMex
                         newCandle.High = bitMexCandle.high;
                         newCandle.Low = bitMexCandle.low;
                         newCandle.Close = bitMexCandle.close;
-                        newCandle.TimeStart = Convert.ToDateTime(bitMexCandle.timestamp).Subtract(TimeSpan.FromMinutes(shift));
+                        newCandle.TimeStart = Convert.ToDateTime(bitMexCandle.timestamp)
+                            .Subtract(TimeSpan.FromMinutes(shift));
                         newCandle.Volume = bitMexCandle.volume;
 
                         _candles.Add(newCandle);
                     }
+
                     _candles.Reverse();
                     return _candles;
                 }
@@ -423,10 +432,12 @@ namespace OsEngine.Market.Servers.BitMex
                     {
                         return GetCandlesTf(security, "1m", 1);
                     }
+
                     if (timeSpan.Minutes == 5)
                     {
                         return GetCandlesTf(security, "5m", 5);
                     }
+
                     if (timeSpan.Minutes == 00)
                     {
                         return GetCandlesTf(security, "1h", 60);
@@ -520,6 +531,7 @@ namespace OsEngine.Market.Servers.BitMex
             {
                 ConnectEvent();
             }
+
             ServerStatus = ServerConnectStatus.Connect;
         }
 
@@ -529,6 +541,7 @@ namespace OsEngine.Market.Servers.BitMex
             {
                 DisconnectEvent();
             }
+
             ServerStatus = ServerConnectStatus.Disconnect;
         }
 
@@ -540,6 +553,7 @@ namespace OsEngine.Market.Servers.BitMex
                 {
                     _portfolios = new List<Portfolio>();
                 }
+
                 Portfolio osPortf = _portfolios.Find(p => p.Number == portf.data[0].account.ToString());
 
                 if (osPortf == null)
@@ -601,6 +615,7 @@ namespace OsEngine.Market.Servers.BitMex
                             _depth.Asks.Clear();
                             _depth.Bids.Clear();
                         }
+
                         _depth.SecurityNameCode = quotes.data[0].symbol;
                         List<MarketDepthLevel> ascs = new List<MarketDepthLevel>();
                         List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
@@ -611,6 +626,7 @@ namespace OsEngine.Market.Servers.BitMex
                             {
                                 continue;
                             }
+
                             if (quotes.data[i].side == "Sell")
                             {
                                 ascs.Add(new MarketDepthLevel()
@@ -681,7 +697,8 @@ namespace OsEngine.Market.Servers.BitMex
                                                 Id = quotes.data[i].id
                                             });
                                         }
-                                        else if (j != _depth.Asks.Count - 1 && id < _depth.Asks[j].Id && id > _depth.Asks[j + 1].Id)
+                                        else if (j != _depth.Asks.Count - 1 && id < _depth.Asks[j].Id &&
+                                                 id > _depth.Asks[j + 1].Id)
                                         {
                                             _depth.Asks.Insert(j + 1, new MarketDepthLevel()
                                             {
@@ -728,7 +745,8 @@ namespace OsEngine.Market.Servers.BitMex
                                             Id = quotes.data[i].id
                                         });
                                     }
-                                    else if (j != _depth.Bids.Count - 1 && id > _depth.Bids[i].Id && id < _depth.Bids[j + 1].Id)
+                                    else if (j != _depth.Bids.Count - 1 && id > _depth.Bids[i].Id &&
+                                             id < _depth.Bids[j + 1].Id)
                                     {
                                         _depth.Bids.Insert(j + 1, new MarketDepthLevel()
                                         {
@@ -791,6 +809,7 @@ namespace OsEngine.Market.Servers.BitMex
                         {
                             continue;
                         }
+
                         if (quotes.data[i].side == "Sell")
                         {
                             long id = quotes.data[i].id;
@@ -806,7 +825,8 @@ namespace OsEngine.Market.Servers.BitMex
                                         Id = quotes.data[i].id
                                     });
                                 }
-                                else if (j != _depth.Asks.Count - 1 && id < _depth.Asks[j].Id && id > _depth.Asks[j + 1].Id)
+                                else if (j != _depth.Asks.Count - 1 && id < _depth.Asks[j].Id &&
+                                         id > _depth.Asks[j + 1].Id)
                                 {
                                     _depth.Asks.Insert(j + 1, new MarketDepthLevel()
                                     {
@@ -847,7 +867,8 @@ namespace OsEngine.Market.Servers.BitMex
                                         Id = quotes.data[i].id
                                     });
                                 }
-                                else if (j != _depth.Bids.Count - 1 && id > _depth.Bids[j].Id && id < _depth.Bids[j + 1].Id)
+                                else if (j != _depth.Bids.Count - 1 && id > _depth.Bids[j].Id &&
+                                         id < _depth.Bids[j + 1].Id)
                                 {
                                     _depth.Bids.Insert(j + 1, new MarketDepthLevel()
                                     {
@@ -946,13 +967,17 @@ namespace OsEngine.Market.Servers.BitMex
                         trade.NumberTrade = order.data[i].execID;
                         trade.NumberOrderParent = order.data[i].orderID;
                         trade.SecurityNameCode = order.data[i].symbol;
-                        trade.Price = Convert.ToDecimal(order.data[i].avgPx.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberGroupSeparator), CultureInfo.InvariantCulture);
+                        trade.Price =
+                            Convert.ToDecimal(
+                                order.data[i].avgPx.Replace(",",
+                                    CultureInfo.InvariantCulture.NumberFormat.NumberGroupSeparator),
+                                CultureInfo.InvariantCulture);
                         trade.Time = Convert.ToDateTime(order.data[i].transactTime);
                         trade.Side = order.data[i].side == "Buy" ? Side.Buy : Side.Sell;
 
                         if (order.data[i].lastQty != null)
                         {
-                            trade.Volume = (int)order.data[i].lastQty;
+                            trade.Volume = (int) order.data[i].lastQty;
                         }
 
                         if (MyTradeEvent != null)
@@ -1003,7 +1028,11 @@ namespace OsEngine.Market.Servers.BitMex
 
                         if (!string.IsNullOrEmpty(myOrder.data[i].price))
                         {
-                            order.Price = Convert.ToDecimal(myOrder.data[i].price.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                            order.Price =
+                                Convert.ToDecimal(
+                                    myOrder.data[i].price.Replace(",",
+                                        CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                                    CultureInfo.InvariantCulture);
                         }
 
                         order.State = OrderStateType.Pending;
@@ -1016,7 +1045,9 @@ namespace OsEngine.Market.Servers.BitMex
                         order.Comment = myOrder.data[i].text;
                         order.TimeCallBack = Convert.ToDateTime(myOrder.data[0].transactTime);
                         order.PortfolioNumber = myOrder.data[i].account.ToString();
-                        order.TypeOrder = myOrder.data[i].ordType == "Limit" ? OrderPriceType.Limit : OrderPriceType.Market;
+                        order.TypeOrder = myOrder.data[i].ordType == "Limit"
+                            ? OrderPriceType.Limit
+                            : OrderPriceType.Market;
 
                         if (myOrder.data[i].side == "Sell")
                         {
@@ -1026,6 +1057,7 @@ namespace OsEngine.Market.Servers.BitMex
                         {
                             order.Side = Side.Buy;
                         }
+
                         if (MyOrderEvent != null)
                         {
                             MyOrderEvent(order);
@@ -1059,7 +1091,11 @@ namespace OsEngine.Market.Servers.BitMex
                 security.NameClass = sec.typ;
                 security.NameId = sec.symbol + sec.expiry;
                 security.SecurityType = SecurityType.CurrencyPair;
-                security.Lot = Convert.ToDecimal(sec.lotSize.ToString().Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                security.Lot =
+                    Convert.ToDecimal(
+                        sec.lotSize.ToString().Replace(".",
+                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                        CultureInfo.InvariantCulture);
                 security.PriceStep = sec.tickSize;
                 security.PriceStepCost = sec.tickSize;
 
@@ -1088,14 +1124,21 @@ namespace OsEngine.Market.Servers.BitMex
             _client_SendLogMessage(error, LogMessageType.Error);
 
             if (error ==
-             "{\"error\":{\"message\":\"The system is currently overloaded. Please try again later.\",\"name\":\"HTTPError\"}}")
-            { // останавливаемся на минуту
+                "{\"error\":{\"message\":\"The system is currently overloaded. Please try again later.\",\"name\":\"HTTPError\"}}"
+            )
+            {
+                // останавливаемся на минуту
                 //LastSystemOverload = DateTime.Now;
             }
-            if (error == "{\"error\":{\"message\":\"Executing at order price would lead to immediate liquidation\",\"name\":\"ValidationError\"}}")
+
+            if (error ==
+                "{\"error\":{\"message\":\"Executing at order price would lead to immediate liquidation\",\"name\":\"ValidationError\"}}"
+            )
             {
-                _client_SendLogMessage("Цена ликвидации при таком объме выше чем текущая цена ордера. Уменьшите объём", LogMessageType.Error);
+                _client_SendLogMessage("Цена ликвидации при таком объме выше чем текущая цена ордера. Уменьшите объём",
+                    LogMessageType.Error);
             }
+
             if (error == "{\"error\":{\"message\":\"This key is disabled.\",\"name\":\"HTTPError\"}}")
             {
                 _client_SendLogMessage("Биржа заблокировала Ваши ключи.", LogMessageType.System);

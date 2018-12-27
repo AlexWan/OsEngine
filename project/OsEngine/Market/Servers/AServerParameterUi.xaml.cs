@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Entity;
 using OsEngine.Market.Servers.Entity;
 using Color = System.Drawing.Color;
 
@@ -43,23 +44,10 @@ namespace OsEngine.Market.Servers
 
         public void CreateParamDataGrid()
         {
-            _newGrid = new DataGridView();
-
-            _newGrid.AllowUserToOrderColumns = false;
-            _newGrid.AllowUserToResizeRows = false;
-            _newGrid.AllowUserToDeleteRows = false;
-            _newGrid.AllowUserToAddRows = false;
-            _newGrid.RowHeadersVisible = false;
-            //_newGrid.SelectionMode = DataGridViewSelectionMode.;
-            _newGrid.MultiSelect = false;
-            _newGrid.BackColor = Color.Black;
-           
-
-            DataGridViewCellStyle style = new DataGridViewCellStyle();
-            style.Alignment = DataGridViewContentAlignment.BottomRight;
+            _newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.None);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = style;
+            cell0.Style = _newGrid.DefaultCellStyle;
 
             DataGridViewColumn colum0 = new DataGridViewColumn();
             colum0.CellTemplate = cell0;
@@ -89,7 +77,6 @@ namespace OsEngine.Market.Servers
             _newGrid.CellValueChanged += _newGrid_CellValueChanged;
 
             _newGrid.Click += _newGrid_Click;
-            _newGrid.MouseLeave += delegate(object sender, EventArgs args) { _newGrid.EndEdit(); };
         }
 
         public void UpdateParamDataGrid()
@@ -219,6 +206,10 @@ namespace OsEngine.Market.Servers
 
         void _newGrid_Click(object sender, EventArgs e)
         {
+            var s = e.GetType();
+
+            var mouse = (MouseEventArgs) e;
+
             int clickRow = _newGrid.SelectedCells[0].RowIndex;
 
             int clickColumn = _newGrid.SelectedCells[0].ColumnIndex;

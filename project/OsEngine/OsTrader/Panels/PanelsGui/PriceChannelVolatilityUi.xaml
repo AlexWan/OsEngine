@@ -6,7 +6,7 @@
         <Rectangle Margin="5,5,5,37"/>
         <Label Content="Объём первого входа" HorizontalAlignment="Left" Margin="23,90,0,0" VerticalAlignment="Top" />
         <TextBox Name="TextBoxVolumeOne"  HorizontalAlignment="Left" Height="23" Margin="166,90,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="83"/>
-        <Label Content="Проскальзывание" HorizontalAlignment="Left" Margin="23,55,0,0" VerticalAlignment="Top" />
+        <Label Content="Проскальзывание" HorizontalAlignment="Left" Margin="23,57,0,0" VerticalAlignment="Top" />
         <TextBox Name="TextBoxSlipage" HorizontalAlignment="Left" Height="23" Margin="166,57,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
         <Button Content="Принять" Margin="0,0,10,10" Click="Button_Click" Height="22" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="120"/>
         <ComboBox Name="ComboBoxRegime" HorizontalAlignment="Left" Margin="166,21,0,0" VerticalAlignment="Top" Width="120"/>

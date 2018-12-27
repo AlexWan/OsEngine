@@ -5,8 +5,8 @@
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
         <Button x:Name ="ButtonAccept"  Content="Принять" Height="22" FontSize="14" FontFamily="Calibri"  HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="116" Click="ButtonAccept_Click"/>
-        <TextBox x:Name ="TextBoxLenght" Height="23" Margin="147,19,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Длинна индикатора" HorizontalAlignment="Left" Margin="15,25,0,0" VerticalAlignment="Top" Foreground="#FF7212" FontFamily="Calibri" FontSize="14"/>
+        <TextBox x:Name ="TextBoxLenght"  Margin="147,19,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <Label Content="Длина индикатора" HorizontalAlignment="Left" Margin="15,19,0,0" VerticalAlignment="Top" Foreground="#FF7212" FontFamily="Calibri" FontSize="14"/>
         <Button x:Name="ButtonColor" Content="Цвет" Height="22" FontSize="14" FontFamily="Calibri"  HorizontalAlignment="Left" Margin="15,47,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"/>
         <WindowsFormsHost x:Name="HostColor" Height="22" Margin="147,47,20,0" VerticalAlignment="Top"/>
         <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовывать" HorizontalAlignment="Left" Margin="147,74,0,0" VerticalAlignment="Top" Foreground="#FF7212" FontFamily="Calibri" FontSize="14"/>

@@ -316,24 +316,10 @@ namespace OsEngine.OsMiner
         /// </summary>
         private void CreatePatternGrid()
         {
-            _gridPatternsInSet = new DataGridView();
-
-            _gridPatternsInSet.AllowUserToOrderColumns = true;
-            _gridPatternsInSet.AllowUserToResizeRows = true;
-            _gridPatternsInSet.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-            _gridPatternsInSet.AllowUserToDeleteRows = false;
-            _gridPatternsInSet.AllowUserToAddRows = false;
-            _gridPatternsInSet.RowHeadersVisible = false;
-            _gridPatternsInSet.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            _gridPatternsInSet.MultiSelect = false;
-
-            DataGridViewCellStyle style = new DataGridViewCellStyle();
-            style.Alignment = DataGridViewContentAlignment.TopLeft;
-            style.WrapMode = DataGridViewTriState.True;
-            _gridPatternsInSet.DefaultCellStyle = style;
+            _gridPatternsInSet = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = style;
+            cell0.Style = _gridPatternsInSet.DefaultCellStyle;
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;

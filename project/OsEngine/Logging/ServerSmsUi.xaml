@@ -8,10 +8,10 @@
         <Rectangle Margin="5,5,5,37"/>
         <TextBox x:Name="TextBoxMyLogin" Height="23" Margin="107,20,19,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
         <TextBox x:Name="TextBoxPassword" Height="23" Margin="107,48,19,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
-        <TextBox x:Name="TextBoxFones" Margin="107,76,19,46" TextWrapping="Wrap" VerticalScrollBarVisibility="Visible"/>
+        <TextBox x:Name="TextBoxFones" Margin="107,76,19,40" TextWrapping="Wrap" Height="Auto"/>
         <Label Content="Логин" HorizontalAlignment="Left" Margin="21,20,0,0" VerticalAlignment="Top" Width="81"/>
-        <Label Content="Пароль" HorizontalAlignment="Left" Margin="21,51,0,0" VerticalAlignment="Top" Width="67"/>
-        <Label Content="Адресаты" HorizontalAlignment="Left" Margin="21,89,0,0" VerticalAlignment="Top" Width="81"/>
+        <Label Content="Пароль" HorizontalAlignment="Left" Margin="21,48,0,0" VerticalAlignment="Top" Width="67"/>
+        <Label Content="Адресаты" HorizontalAlignment="Left" Margin="21,76,0,0" VerticalAlignment="Top" Width="81"/>
 
     </Grid>
 </Window>

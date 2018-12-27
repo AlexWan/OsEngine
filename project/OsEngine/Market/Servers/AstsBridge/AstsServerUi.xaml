@@ -6,26 +6,26 @@
         <Rectangle Margin="5,5,5,37"/>
         <TextBox Name="TextBoxServerAdress" HorizontalAlignment="Left" Height="23" Margin="79,14,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="153"/>
         <TextBox Name="TextBoxUserName" Height="23" Margin="360,42,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="146"/>
-        <PasswordBox Name="TextBoxUserPassword" Height="23" Margin="575,14,15,0" VerticalAlignment="Top"/>
+        <PasswordBox Name="TextBoxUserPassword" Height="23" Margin="575,12,15,0" VerticalAlignment="Top"/>
         <Label Content="Адрес" HorizontalAlignment="Left" Margin="21,15,0,0" VerticalAlignment="Top"/>
-        <Label Content="Имя пользователя" HorizontalAlignment="Left" Margin="238,40,0,0" VerticalAlignment="Top"/>
-        <Label Content="Пароль" HorizontalAlignment="Left" Margin="518,14,0,0" VerticalAlignment="Top"/>
+        <Label Content="Имя пользователя" HorizontalAlignment="Left" Margin="237,40,0,0" VerticalAlignment="Top"/>
+        <Label Content="Пароль" HorizontalAlignment="Left" Margin="517,15,0,0" VerticalAlignment="Top"/>
         <Button x:Name="ButtonConnect" Content="Подключить" HorizontalAlignment="Right" Margin="0,0,160,10" VerticalAlignment="Bottom" Width="120" Click="ButtonConnect_Click"/>
         <Button x:Name="ButtonAbort" Content="Отключить" Margin="0,0,10,10" VerticalAlignment="Bottom" Click="ButtonAbort_Click" HorizontalAlignment="Right" Width="120"/>
         <Label Content="" HorizontalAlignment="Left" Margin="41,138,0,0" VerticalAlignment="Top"/>
         <Label Content="Статус:" HorizontalAlignment="Left" Margin="521,40,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="LabelStatus" Content="Disconnect" HorizontalAlignment="Left" Margin="575,40,0,0" VerticalAlignment="Top"/>
-        <WindowsFormsHost x:Name="Host" Margin="15,128,15,42"/>
+        <Label x:Name="LabelStatus" Content="Disconnect" HorizontalAlignment="Left" Margin="578,40,0,0" VerticalAlignment="Top"/>
+        <WindowsFormsHost x:Name="Host" Margin="15,126,15,42"/>
         <TextBox x:Name="TextBoxServerName" HorizontalAlignment="Left" Height="23" Margin="110,42,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="122"/>
-        <Label Content="Имя сервера" HorizontalAlignment="Left" Margin="21,43,0,0" VerticalAlignment="Top"/>
+        <Label Content="Имя сервера" HorizontalAlignment="Left" Margin="21,40,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBoxServiceName" Height="23" Margin="110,70,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="122"/>
         <Label Content="Имя сервиса" HorizontalAlignment="Left" Margin="21,70,0,0" VerticalAlignment="Top"/>
         <ComboBox Name="ComboBoxDislocation" Margin="360,12,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="146"/>
-        <Label Content="Расположение" HorizontalAlignment="Left" Margin="260,12,0,0" VerticalAlignment="Top"/>
-        <CheckBox x:Name="CheckBoxNeadToSaveTrade" Content="Сохранять историю" HorizontalAlignment="Left" Margin="298,72,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="TextBoxCountDaysSave" HorizontalAlignment="Right" Height="23" Margin="0,70,15,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="85"/>
+        <Label Content="Расположение" HorizontalAlignment="Left" Margin="237,12,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="CheckBoxNeadToSaveTrade" Content="Сохранять историю" HorizontalAlignment="Left" Margin="297,70,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="TextBoxCountDaysSave" HorizontalAlignment="Right" Height="23" Margin="0,68,15,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="85"/>
         <Label Content="Дней подгружать: " Margin="452,68,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="118"/>
-        <TextBox x:Name="TextBoxClientCode" Height="23" Margin="111,100,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="122" ToolTip="Актуально при реальном подключении. Выдаёт брокер. Если введено, сделки видно в Квик."/>
-        <Label Content="ClientCode" HorizontalAlignment="Left" Margin="22,100,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="TextBoxClientCode" Height="23" Margin="110,98,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="122" ToolTip="Актуально при реальном подключении. Выдаёт брокер. Если введено, сделки видно в Квик."/>
+        <Label Content="ClientCode" HorizontalAlignment="Left" Margin="21,98,0,0" VerticalAlignment="Top"/>
     </Grid>
 </Window>

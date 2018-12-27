@@ -6,8 +6,8 @@
         <Rectangle Margin="5,5,5,44"/>
         <Label Content="Номер сделки" HorizontalAlignment="Left" Margin="23,14,0,0" VerticalAlignment="Top" />
         <TextBox Name="TextBoxPositionNumber" IsReadOnly="True"  HorizontalAlignment="Left" Height="23" Margin="23,36,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="135"/>
-        <Label Content="Бумага" HorizontalAlignment="Left" Margin="187,14,0,0" VerticalAlignment="Top"/>
-        <Label Content="Объём" HorizontalAlignment="Left" Margin="187,67,0,0" VerticalAlignment="Top"/>
+        <Label Content="Бумага" HorizontalAlignment="Left" Margin="175,14,0,0" VerticalAlignment="Top"/>
+        <Label Content="Объём" HorizontalAlignment="Left" Margin="175,67,0,0" VerticalAlignment="Top"/>
         <TextBox Name="TextBoxSecurity" IsReadOnly="True" Height="23" Margin="175,36,25,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
         <TextBox Name="TextBoxVolume" IsReadOnly="True" Height="23" Margin="175,89,25,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
         <Label Content="Цена активации" HorizontalAlignment="Left" Margin="23,67,0,0" VerticalAlignment="Top"/>
