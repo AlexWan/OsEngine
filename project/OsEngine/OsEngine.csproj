@@ -45,7 +45,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -53,45 +53,45 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>Images\OsLogo.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="cgate_net64, Version=5.2.1.21764, Culture=neutral, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\cgate_net64.dll</HintPath>
+    <Reference Include="cgate_net64">
+      <HintPath>..\ExtDll\cgate_net64.dll</HintPath>
     </Reference>
-    <Reference Include="Jayrock">
-      <HintPath>..\..\..\OsEngineTepm\6Кракен\Jayrock-master\Jayrock-master\bin\net-4.0\debug\Jayrock.dll</HintPath>
+    <Reference Include="Jayrock, Version=0.9.16530.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\jayrock.0.9.16530\lib\net40\Jayrock.dll</HintPath>
     </Reference>
-    <Reference Include="Jayrock.Json">
-      <HintPath>..\..\..\OsEngineTepm\6Кракен\Jayrock-master\Jayrock-master\bin\net-4.0\debug\Jayrock.Json.dll</HintPath>
+    <Reference Include="Jayrock.Json, Version=0.9.16530.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\jayrock-json.0.9.16530\lib\net40\Jayrock.Json.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="OandaV20, Version=1.0.6457.18210, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\OsEngineTepm\7 OANDA\OandaV20-master\OkonkwoOandaV20\OkonkwoOandaV20\bin\Debug\OandaV20.dll</HintPath>
+      <HintPath>..\ExtDll\OandaV20.dll</HintPath>
     </Reference>
-    <Reference Include="PusherClient">
-      <HintPath>..\..\..\OsEngineTepm\12BitStamp\pusher-websocket-dotnet-master\pusher-websocket-dotnet-master\PusherClient\bin\Debug\PusherClient.dll</HintPath>
+    <Reference Include="PusherClient, Version=0.5.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PusherClient.0.5.1\lib\net40\PusherClient.dll</HintPath>
     </Reference>
-    <Reference Include="qC, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\qC.dll</HintPath>
+    <Reference Include="qC">
+      <HintPath>..\ExtDll\qC.dll</HintPath>
     </Reference>
-    <Reference Include="QuikSharp, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\QuikSharp.dll</HintPath>
+    <Reference Include="QUIKSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=eb70e0fec970faf8, processorArchitecture=MSIL">
+      <HintPath>..\packages\QUIKSharp.1.0.0-beta2\lib\net45\QUIKSharp.dll</HintPath>
     </Reference>
-    <Reference Include="RestSharp">
-      <HintPath>..\..\..\OsEngineTepm\12BitStamp\Rokolab.BitstampClient-master (хороший HHTP клиент. Больше ничего )\Rokolab.BitstampClient\bin\Debug\RestSharp.dll</HintPath>
+    <Reference Include="RestSharp, Version=105.2.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\RestSharp.105.2.3\lib\net45\RestSharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Buffers.4.3.0\lib\netstandard1.1\System.Buffers.dll</HintPath>
+    </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Drawing" />
@@ -103,8 +103,8 @@
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
-    <Reference Include="WebSocket4Net">
-      <HintPath>..\..\..\OsEngineTepm\12BitStamp\pusher-websocket-dotnet-master\pusher-websocket-dotnet-master\PusherClient\bin\Debug\WebSocket4Net.dll</HintPath>
+    <Reference Include="WebSocket4Net, Version=0.14.1.0, Culture=neutral, PublicKeyToken=eb4e154b696bf72a, processorArchitecture=MSIL">
+      <HintPath>..\packages\WebSocket4Net.0.14.1\lib\net45\WebSocket4Net.dll</HintPath>
     </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
@@ -1227,6 +1227,28 @@
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="СхемаХраненияДанных.docx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="lua\dkjson.lua">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="lua\qscallbacks.lua">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="lua\qsfunctions.lua">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="lua\qsutils.lua">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="lua\QuikSharp.lua">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="lua\socket.lua">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -1264,16 +1286,24 @@
     <None Include="Resources\Bird.wav" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\pickDown.png" />
+    <Resource Include="Images\pickDown.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\pickDownSmall.png" />
+    <Resource Include="Images\pickDownSmall.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\pickUp.png" />
+    <Resource Include="Images\pickUp.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\pickUpSmall.png" />
+    <Resource Include="Images\pickUpSmall.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
   <ItemGroup>
     <COMReference Include="SmartCOM4Lib">
@@ -1297,6 +1327,17 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\MainWIndow\Trading.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="lua\clibs\lua51.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lua\clibs\socket\core.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Data\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
