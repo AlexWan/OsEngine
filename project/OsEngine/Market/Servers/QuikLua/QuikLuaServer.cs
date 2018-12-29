@@ -784,7 +784,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 var clientCode = QuikLua.Class.GetClientCode().Result;
                 while (true)
                 {
-                    Thread.Sleep(5000);
+                    Thread.Sleep(1);
 
                     for (int i = 0; i < accaunts.Count; i++)
                     {
@@ -839,6 +839,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     }
                     _portfolioToSend.Enqueue(_portfolios);
                     
+                    Thread.Sleep(5000); 
                 }
             }
 
