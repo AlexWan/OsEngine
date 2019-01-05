@@ -92,24 +92,11 @@ namespace OsEngine.OsOptimizer
 
         private void CreateTable()
         {
-            _securitiesNamesGrid = new DataGridView();
-
-            _securitiesNamesGrid.AllowUserToOrderColumns = true;
-            _securitiesNamesGrid.AllowUserToResizeRows = true;
-            _securitiesNamesGrid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-            _securitiesNamesGrid.AllowUserToDeleteRows = false;
-            _securitiesNamesGrid.AllowUserToAddRows = false;
-            _securitiesNamesGrid.RowHeadersVisible = false;
-            _securitiesNamesGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            _securitiesNamesGrid.MultiSelect = false;
-
-            DataGridViewCellStyle style = new DataGridViewCellStyle();
-            style.Alignment = DataGridViewContentAlignment.TopLeft;
-            style.WrapMode = DataGridViewTriState.True;
-            _securitiesNamesGrid.DefaultCellStyle = style;
+            _securitiesNamesGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
+                DataGridViewAutoSizeRowsMode.None);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = style;
+            cell0.Style = _securitiesNamesGrid.DefaultCellStyle;
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;

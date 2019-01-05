@@ -46,13 +46,15 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
+    <DebugType>none</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <LangVersion>5</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>Images\OsLogo.ico</ApplicationIcon>
@@ -300,6 +302,7 @@
       <DependentUpon>AcceptDialogUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Entity\CandleConverter.cs" />
+    <Compile Include="Entity\DataGridFactory.cs" />
     <Compile Include="Entity\MarketDepthPainter.cs" />
     <Compile Include="Entity\ProxyHolder.cs" />
     <Compile Include="Entity\ProxyHolderAddUi.xaml.cs">
@@ -360,6 +363,9 @@
     <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexSecurity.cs" />
     <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexTrades.cs" />
     <Compile Include="Market\Servers\BitMex\BitMexServer.cs" />
+    <Compile Include="Market\Servers\BitMex\BitMexServerUi.xaml.cs">
+      <DependentUpon>BitMexServerUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Market\Servers\BitStamp\BitStampServer.cs" />
     <Compile Include="Market\Servers\BitStamp\BitStampClient.cs" />
     <Compile Include="Market\Servers\BitStamp\BitStampEntity\RequestAuthenticator.cs" />
@@ -884,6 +890,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Market\Servers\BitMex\BitMexServerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Market\Servers\BitStamp\BitStampServerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -1219,6 +1229,26 @@
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="-ExtDlls-\Data\СхемаХраненияДанных.docx" />
+    <None Include="-ExtDlls-\lua\dkjson.lua" />
+    <None Include="-ExtDlls-\lua\qscallbacks.lua" />
+    <None Include="-ExtDlls-\lua\qsfunctions.lua" />
+    <None Include="-ExtDlls-\lua\qsutils.lua" />
+    <None Include="-ExtDlls-\lua\QuikSharp.lua" />
+    <None Include="-ExtDlls-\lua\socket.lua" />
+    <Content Include="-ExtDlls-\OsEngine.exe.config" />
+    <Content Include="-ExtDlls-\OsEngine.vshost.exe.config" />
+    <None Include="-ExtDlls-\Plaza\netrepl.trace.ini" />
+    <None Include="-ExtDlls-\Plaza\PlazaStartSettings.ini" />
+    <None Include="-ExtDlls-\Plaza\Schemas\forts_messages.ini" />
+    <None Include="-ExtDlls-\Plaza\Schemas\fut-deals.ini" />
+    <None Include="-ExtDlls-\Plaza\Schemas\fut_info.ini" />
+    <None Include="-ExtDlls-\Plaza\Schemas\fut_trades.ini" />
+    <None Include="-ExtDlls-\Plaza\Schemas\orders_aggr.ini" />
+    <None Include="-ExtDlls-\Plaza\Schemas\part.ini" />
+    <None Include="-ExtDlls-\Plaza\Schemas\portfolios.ini" />
+    <Content Include="-ExtDlls-\PusherClient.dll.config" />
+    <Content Include="-ExtDlls-\QuikSharp.dll.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -1256,16 +1286,24 @@
     <None Include="Resources\Bird.wav" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\pickDown.png" />
+    <Resource Include="Images\pickDown.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\pickDownSmall.png" />
+    <Resource Include="Images\pickDownSmall.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\pickUp.png" />
+    <Resource Include="Images\pickUp.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\pickUpSmall.png" />
+    <Resource Include="Images\pickUpSmall.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
   <ItemGroup>
     <COMReference Include="SmartCOM4Lib">
@@ -1281,8 +1319,51 @@
   <ItemGroup>
     <Resource Include="OsTrader\Panels\SingleRobots\1readme.txt" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Images\MainWIndow\test.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\MainWIndow\data.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\MainWIndow\Trading.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="-ExtDlls-\cgate64.dll" />
+    <Content Include="-ExtDlls-\cgate_net64.dll" />
+    <Content Include="-ExtDlls-\Interop.SmartCOM4Lib.dll" />
+    <Content Include="-ExtDlls-\Jayrock.dll" />
+    <Content Include="-ExtDlls-\Jayrock.Json.dll" />
+    <Content Include="-ExtDlls-\lua\clibs\cjson.dll" />
+    <Content Include="-ExtDlls-\lua\clibs\lua51.dll" />
+    <Content Include="-ExtDlls-\lua\clibs\socket\core.dll" />
+    <Content Include="-ExtDlls-\msvcp110.dll" />
+    <Content Include="-ExtDlls-\msvcr110.dll" />
+    <Content Include="-ExtDlls-\mtesrl64.dll" />
+    <Content Include="-ExtDlls-\Newtonsoft.Json.dll" />
+    <Content Include="-ExtDlls-\Newtonsoft.Json.xml" />
+    <Content Include="-ExtDlls-\OandaV20.dll" />
+    <Content Include="-ExtDlls-\P2DB64.dll" />
+    <Content Include="-ExtDlls-\P2DBSQLite3x64.dll" />
+    <Content Include="-ExtDlls-\P2ReplClient64.dll" />
+    <Content Include="-ExtDlls-\P2Sys64.dll" />
+    <Content Include="-ExtDlls-\P2SysExt64.dll" />
+    <Content Include="-ExtDlls-\P2Tbl64.dll" />
+    <Content Include="-ExtDlls-\PusherClient.dll" />
+    <Content Include="-ExtDlls-\qC.dll" />
+    <Content Include="-ExtDlls-\QuikSharp.dll" />
+    <Content Include="-ExtDlls-\QuikSharp.xml" />
+    <Content Include="-ExtDlls-\RestSharp.dll" />
+    <Content Include="-ExtDlls-\RestSharp.xml" />
+    <Content Include="-ExtDlls-\System.Buffers.dll" />
+    <Content Include="-ExtDlls-\TRANS2QUIK.dll" />
+    <Content Include="-ExtDlls-\TWSLib.dll" />
+    <Content Include="-ExtDlls-\WebSocket4Net.dll" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /E /y "$(ProjectDir)-ExtDlls-\*"  "$(ProjectDir)$(OutDir)"</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

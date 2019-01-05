@@ -9,11 +9,11 @@
         <Rectangle Margin="5,5,5,42"/>
         <Button Name="ButtonConnect" Content="Подключить" Margin="0,0,144,10" VerticalAlignment="Bottom" Click="ButtonConnect_Click" HorizontalAlignment="Right" Width="120"/>
         <Button Name="ButtonAbort" Content="Отключить" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="120" Click="ButtonAbort_Click"/>
-        <Label Content="Статус сервера: " Margin="16,19,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="101"/>
-        <Label Name="LabelStatus" Content="Disconnect" Margin="134,19,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
-        <WindowsFormsHost Name="Host" Margin="10,69,10,48"/>
-        <CheckBox Name="CheckBoxNeadToSaveTrade" Content="Сохранять историю" HorizontalAlignment="Left" Margin="465,15,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="TextBoxCountDaysSave" HorizontalAlignment="Right" Height="23" Margin="0,41,10,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="74"/>
-        <Label Content="Дней подгружать: " Margin="465,39,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="118"/>
+        <Label Content="Статус сервера: " Margin="16,34,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="101"/>
+        <Label Name="LabelStatus" Content="Disconnect" Margin="134,34,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
+        <WindowsFormsHost Name="Host" Margin="10,62,10,48"/>
+        <CheckBox Name="CheckBoxNeadToSaveTrade" Content="Сохранять историю" HorizontalAlignment="Left" Margin="446,10,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="TextBoxCountDaysSave" HorizontalAlignment="Right" Height="23" Margin="0,34,10,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="85"/>
+        <Label Content="Дней подгружать: " Margin="446,34,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="118"/>
     </Grid>
 </Window>

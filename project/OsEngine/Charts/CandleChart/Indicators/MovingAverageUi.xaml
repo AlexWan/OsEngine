@@ -6,19 +6,19 @@
         <Rectangle Margin="5,5,5,37"/>
         <Button x:Name ="ButtonAccept"  Content="Принять" Height="22" FontSize="14" FontFamily="Calibri"  HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="152" Click="ButtonAccept_Click"/>
         <TextBox x:Name ="TextBoxLenght" HorizontalAlignment="Left" Height="23" Margin="152,17,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <Label Content="Длинна индикатора" HorizontalAlignment="Left" Margin="19,22,0,0" VerticalAlignment="Top"/>
+        <Label Content="Длина индикатора" HorizontalAlignment="Left" Margin="19,17,0,0" VerticalAlignment="Top"/>
         <Button x:Name="ButtonColor" Content="Цвет" Height="22" FontSize="14" FontFamily="Calibri"  HorizontalAlignment="Left" Margin="19,45,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"/>
         <WindowsFormsHost x:Name="HostColor" HorizontalAlignment="Left" Height="22" Margin="152,45,0,0" VerticalAlignment="Top" Width="120"/>
         <ComboBox Name="ComboBoxMovingType" HorizontalAlignment="Left" Margin="152,72,0,0" VerticalAlignment="Top" Width="120"/>
-        <Label Content="Метод расчёта" HorizontalAlignment="Left" Margin="19,81,0,0" VerticalAlignment="Top"/>
+        <Label Content="Метод расчёта" HorizontalAlignment="Left" Margin="19,72,0,0" VerticalAlignment="Top"/>
         <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовывать" HorizontalAlignment="Left" Margin="152,134,0,0" VerticalAlignment="Top"/>
         <ComboBox x:Name="ComboBoxPriceField" HorizontalAlignment="Left" Margin="152,103,0,0" VerticalAlignment="Top" Width="120"/>
-        <Label Content="Поле цены (свечи)" HorizontalAlignment="Left" Margin="21,112,0,0" VerticalAlignment="Top"/>
+        <Label Content="Поле цены (свечи)" HorizontalAlignment="Left" Margin="19,103,0,0" VerticalAlignment="Top"/>
         <Label Content="Адаптивная Кауфмана" HorizontalAlignment="Left" Margin="290,30,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name ="TextBoxKaufmanSlow" Height="23" Margin="374,61,27,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <Label Content="Медленная" HorizontalAlignment="Left" Margin="290,62,0,0" VerticalAlignment="Top" />
         <TextBox x:Name ="TextBoxKaufmanFast" Height="23" Margin="374,92,27,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Быстрая" HorizontalAlignment="Left" Margin="290,93,0,0" VerticalAlignment="Top" />
+        <Label Content="Быстрая" HorizontalAlignment="Left" Margin="290,92,0,0" VerticalAlignment="Top" />
 
     </Grid>
 </Window>

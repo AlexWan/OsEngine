@@ -4,26 +4,26 @@
         Title="Настройки стратегии" Height="262.059" Width="621" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Topmost="True">
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
-        <Label Content="Проскальзывание1" HorizontalAlignment="Left" Margin="311,77,0,0" VerticalAlignment="Top" />
-        <TextBox Name="TextBoxSlipage1" Height="23" Margin="461,71,21,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
+        <Label Content="Проскальзывание1" HorizontalAlignment="Left" Margin="320,73,0,0" VerticalAlignment="Top" />
+        <TextBox Name="TextBoxSlipage1" Height="23" Margin="461,73,21,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
         <Button Content="Принять" Margin="0,0,5,10" Click="Button_Click" Height="22" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="120"/>
         <Label Content="" HorizontalAlignment="Left" Margin="23,81,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBoxCandleCount" HorizontalAlignment="Left" Height="23" Margin="173,45,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
-        <Label Content="Количество свечек" HorizontalAlignment="Left" Margin="23,49,0,0" VerticalAlignment="Top" />
+        <Label Content="Количество свечек" HorizontalAlignment="Left" Margin="23,45,0,0" VerticalAlignment="Top" />
         <ComboBox x:Name="ComboBoxRegime" HorizontalAlignment="Left" Margin="173,14,0,0" VerticalAlignment="Top" Width="120"/>
-        <Label Content="Режим работы" HorizontalAlignment="Left" Margin="23,23,0,0" VerticalAlignment="Top" />
-        <Label Content="Объём1" HorizontalAlignment="Left" Margin="311,49,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="TextBoxVolume1" Height="23" Margin="461,43,21,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
+        <Label Content="Режим работы" HorizontalAlignment="Left" Margin="23,14,0,0" VerticalAlignment="Top" />
+        <Label Content="Объём1" HorizontalAlignment="Left" Margin="320,45,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="TextBoxVolume1" Height="23" Margin="461,45,21,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
         <TextBox x:Name="TextBoxDivergention" HorizontalAlignment="Left" Height="23" Margin="173,73,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120" RenderTransformOrigin="0.483,0.609"/>
-        <Label Content="Расширение спреда" HorizontalAlignment="Left" Margin="23,77,0,0" VerticalAlignment="Top" />
-        <Label Content="Проскальзывание2" HorizontalAlignment="Left" Margin="23,135,0,0" VerticalAlignment="Top"/>
+        <Label Content="Расширение спреда" HorizontalAlignment="Left" Margin="23,73,0,0" VerticalAlignment="Top" />
+        <Label Content="Проскальзывание2" HorizontalAlignment="Left" Margin="23,129,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBoxSlipage2" HorizontalAlignment="Left" Height="23" Margin="173,129,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
-        <Label Content="Объём2" HorizontalAlignment="Left" Margin="23,107,0,0" VerticalAlignment="Top" />
+        <Label Content="Объём2" HorizontalAlignment="Left" Margin="23,99,0,0" VerticalAlignment="Top" />
         <TextBox x:Name="TextBoxVolume2" HorizontalAlignment="Left" Height="23" Margin="173,101,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
-        <Label Content="Профит в % от спреда" HorizontalAlignment="Left" Margin="311,105,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name="TextBoxProfit1" Height="23" Margin="461,99,21,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
-        <Label Content="Лосс в % от спреда" HorizontalAlignment="Left" Margin="311,133,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name="TextBoxLoss1" Height="23" Margin="461,127,21,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
+        <Label Content="Профит в % от спреда" HorizontalAlignment="Left" Margin="320,101,0,0" VerticalAlignment="Top" />
+        <TextBox x:Name="TextBoxProfit1" Height="23" Margin="461,101,21,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
+        <Label Content="Лосс в % от спреда" HorizontalAlignment="Left" Margin="320,129,0,0" VerticalAlignment="Top" />
+        <TextBox x:Name="TextBoxLoss1" Height="23" Margin="461,129,21,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
         <Button x:Name="ButtonAbout" Content="???" HorizontalAlignment="Left" Margin="5,0,0,10" VerticalAlignment="Bottom" Width="43" Click="ButtonAbout_Click"/>
     </Grid>
 </Window>

@@ -13,9 +13,9 @@
         <Button x:Name="ButtonAccept" Content="Принять" HorizontalAlignment="Right" Margin="0,0,5,10" Width="144" Click="ButtonAccept_Click" Height="22" VerticalAlignment="Bottom"/>
         <CheckBox Name="CheckBoxIsOn" Content="Включить" HorizontalAlignment="Left" Margin="168,22,0,0" VerticalAlignment="Top"/>
         <TextBox Name="TextBoxOpenMaxDd" Height="23" Margin="241,60,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Максимальный убыток за день в %" HorizontalAlignment="Left" Margin="19,58,0,0" VerticalAlignment="Top"/>
+        <Label Content="Максимальный убыток за день в %" HorizontalAlignment="Left" Margin="18,60,0,0" VerticalAlignment="Top"/>
         <ComboBox Name="ComboBoxReaction" Margin="241,99,20,0" VerticalAlignment="Top"/>
-        <Label Content="Реакция на максимальный убыток" HorizontalAlignment="Left" Margin="19,99,0,0" VerticalAlignment="Top"/>
+        <Label Content="Реакция на максимальный убыток" HorizontalAlignment="Left" Margin="18,99,0,0" VerticalAlignment="Top"/>
 
     </Grid>
 </Window>

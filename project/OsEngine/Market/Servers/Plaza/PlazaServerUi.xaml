@@ -7,14 +7,14 @@
         <Button x:Name="ButtonConnect" Content="Подключить" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Width="120" Click="ButtonConnect_Click"/>
         <Button x:Name="ButtonAbort" Content="Отключить" Margin="0,0,10,10" VerticalAlignment="Bottom" Click="ButtonAbort_Click" HorizontalAlignment="Right" Width="120"/>
         <Label Content="" HorizontalAlignment="Left" Margin="41,138,0,0" VerticalAlignment="Top"/>
-        <Label Content="Статус сервера: " HorizontalAlignment="Left" Margin="26,19,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="LabelStatus" Content="Disconnect" HorizontalAlignment="Left" Margin="134,19,0,0" VerticalAlignment="Top"/>
-        <WindowsFormsHost Name="Host" Margin="10,69,10,43"/>
-        <PasswordBox Name="TextBoxKey" Height="23" Margin="303,13,10,0"  VerticalAlignment="Top"/>
-        <Label Content="Ключ: " HorizontalAlignment="Left" Margin="252,15,0,0" VerticalAlignment="Top"/>
-        <CheckBox x:Name="CheckBoxNeadToSaveTrade" Content="Сохранять историю" HorizontalAlignment="Left" Margin="26,47,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="TextBoxCountDaysSave" HorizontalAlignment="Left" Height="23" Margin="387,41,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="76"/>
-        <Label Content="Дней подгружать: " HorizontalAlignment="Left" Margin="252,43,0,0" VerticalAlignment="Top" />
+        <Label Content="Статус сервера: " HorizontalAlignment="Left" Margin="26,10,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="LabelStatus" Content="Disconnect" HorizontalAlignment="Left" Margin="135,10,0,0" VerticalAlignment="Top"/>
+        <WindowsFormsHost Name="Host" Margin="10,66,10,43"/>
+        <PasswordBox Name="TextBoxKey" Height="23" Margin="303,10,10,0"  VerticalAlignment="Top"/>
+        <Label Content="Ключ: " HorizontalAlignment="Left" Margin="252,10,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="CheckBoxNeadToSaveTrade" Content="Сохранять историю" HorizontalAlignment="Left" Margin="26,37,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="TextBoxCountDaysSave" HorizontalAlignment="Left" Height="23" Margin="387,38,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="76"/>
+        <Label Content="Дней подгружать: " HorizontalAlignment="Left" Margin="252,38,0,0" VerticalAlignment="Top" />
 
     </Grid>
 </Window>

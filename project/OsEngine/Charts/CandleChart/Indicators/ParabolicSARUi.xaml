@@ -6,9 +6,9 @@
         <Rectangle Margin="5,5,5,37"/>
         <Button x:Name ="ButtonAccept"  Content="Принять" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="120" Click="ButtonAccept_Click"/>
         <TextBox x:Name ="TextBoxAf" Height="23" Margin="149,17,19,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Шаг" HorizontalAlignment="Left" Margin="112,23,0,0" VerticalAlignment="Top"/>
+        <Label Content="Шаг" HorizontalAlignment="Left" Margin="18,17,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name ="TextBoxMaxAf" Height="23" Margin="149,45,19,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Максимальный шаг" HorizontalAlignment="Left" Margin="18,51,0,0" VerticalAlignment="Top" />
+        <Label Content="Максимальный шаг" HorizontalAlignment="Left" Margin="18,45,0,0" VerticalAlignment="Top" />
 
         <Button x:Name="ButtonColor" Content="Цвет" Height="22" FontSize="14" FontFamily="Calibri"  HorizontalAlignment="Left" Margin="18,73,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"/>
         <WindowsFormsHost x:Name="HostColor" Height="22" Margin="149,73,19,0" VerticalAlignment="Top"/>

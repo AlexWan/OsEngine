@@ -6,13 +6,13 @@
         <Rectangle Margin="5,5,5,37"/>
         <Button x:Name ="ButtonAccept"  Content="Принять" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="120" Click="ButtonAccept_Click"/>
         <TextBox x:Name ="TextBoxLenghtUp" Height="23" Margin="149,20,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Длинна верхней" HorizontalAlignment="Left" Margin="16,17,0,0" VerticalAlignment="Top"/>
+        <Label Content="Длина верхней" HorizontalAlignment="Left" Margin="16,20,0,0" VerticalAlignment="Top"/>
         <Button x:Name="ButtonColorUp" Content="Цвет верхней" HorizontalAlignment="Left" Margin="17,74,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorUp_Click" />
         <WindowsFormsHost x:Name="HostColorUp" Height="22" Margin="149,74,20,0" VerticalAlignment="Top"/>
         <Button x:Name="ButtonColorDown" Content="Цвет нижней"  HorizontalAlignment="Left" Margin="17,101,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorDown_Click" />
         <WindowsFormsHost x:Name="HostColorDown" Height="22" Margin="150,101,20,0" VerticalAlignment="Top"/>
         <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовывать" HorizontalAlignment="Left" Margin="150,128,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name ="TextBoxLenghtDown" Height="23" Margin="149,46,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Длинна нижней" HorizontalAlignment="Left" Margin="16,43,0,0" VerticalAlignment="Top"/>
+        <Label Content="Длина нижней" HorizontalAlignment="Left" Margin="16,46,0,0" VerticalAlignment="Top"/>
     </Grid>
 </Window>

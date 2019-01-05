@@ -71,6 +71,9 @@ namespace OsEngine.Entity
                     _rencoPunktsToCloseCandleInRencoType = Convert.ToDecimal(reader.ReadLine());
                     _deltaPeriods = Convert.ToDecimal(reader.ReadLine());
                     _rencoIsBuildShadows = Convert.ToBoolean(reader.ReadLine());
+                    _reversCandlesPunktsMinMove = Convert.ToDecimal(reader.ReadLine());
+                    _reversCandlesPunktsBackMove = Convert.ToDecimal(reader.ReadLine());
+                    _rangeCandlesPunkts = Convert.ToDecimal(reader.ReadLine());
                     reader.Close();
                 }
             }
@@ -102,6 +105,9 @@ namespace OsEngine.Entity
                     writer.WriteLine(_rencoPunktsToCloseCandleInRencoType);
                     writer.WriteLine(_deltaPeriods);
                     writer.WriteLine(_rencoIsBuildShadows);
+                    writer.WriteLine(_reversCandlesPunktsMinMove);
+                    writer.WriteLine(_reversCandlesPunktsBackMove);
+                    writer.WriteLine(_rangeCandlesPunkts);
                     writer.Close();
                 }
             }
@@ -363,8 +369,64 @@ namespace OsEngine.Entity
                 Save();
             }
         }
-
         private bool _rencoIsBuildShadows;
+
+        /// <summary>
+        /// минимальное движение для риверсивных баров
+        /// </summary>
+        public decimal ReversCandlesPunktsMinMove
+        {
+            get { return _reversCandlesPunktsMinMove; }
+            set
+            {
+                if (value == _reversCandlesPunktsMinMove)
+                {
+                    return;
+                }
+                _reversCandlesPunktsMinMove = value;
+                Save();
+            }
+        }
+
+        private decimal _reversCandlesPunktsMinMove;
+
+        /// <summary>
+        /// величина отката для риверсивных баров
+        /// </summary>
+        public decimal ReversCandlesPunktsBackMove
+        {
+            get { return _reversCandlesPunktsBackMove; }
+            set
+            {
+                if (value == _reversCandlesPunktsBackMove)
+                {
+                    return;
+                }
+                _reversCandlesPunktsBackMove = value;
+                Save();
+            }
+        }
+
+        private decimal _reversCandlesPunktsBackMove;
+
+        /// <summary>
+        /// величина рейдж баров
+        /// </summary>
+        public decimal RangeCandlesPunkts
+        {
+            get { return _rangeCandlesPunkts; }
+            set
+            {
+                if (value == _rangeCandlesPunkts)
+                {
+                    return;
+                }
+                _rangeCandlesPunkts = value;
+                Save();
+            }
+        }
+
+        private decimal _rangeCandlesPunkts;
     }
 
     /// <summary>

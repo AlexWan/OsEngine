@@ -3,35 +3,20 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                Title="Главное меню" Style="{StaticResource WindowStyleNoResize}" Height="260" Width="625" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen" Icon="Images/OsLogo.ico">
     <Grid>
-        <Rectangle Margin="5" />
-        <GroupBox Header="Работа с данными" HorizontalAlignment="Left"  Margin="10,5,0,21" Width="198" Foreground="DarkOrange"  FontSize="18"/>
-        <GroupBox Header="Тестирование" HorizontalAlignment="Left" Margin="213,5,0,21" Width="198" Foreground="DarkOrange" FontSize="18"/>
-        <GroupBox Header="Торговля" Margin="416,5,9,21" Foreground="DarkOrange" FontSize="18"/>
-        <Button  x:Name="ButtonRobotCandleOne" Content="Терминал" Margin="441,91,0,0" VerticalAlignment="Top" Click="ButtonRobotCandleOne_Click" HorizontalAlignment="Left" Width="146" Height="35" />
-        <Button  x:Name="ButtonTesterCandleOne" Content="Тестер" Margin="235,52,0,0" VerticalAlignment="Top" Click="ButtonTesterCandleOne_Click" HorizontalAlignment="Left" Width="146" Height="34"   />
-        <Button  x:Name="ButtonData" Content="Дата" Margin="36,63,0,0" VerticalAlignment="Top" Click="ButtonData_Click" HorizontalAlignment="Left" Width="146" Height="35" />
-        <Button  x:Name="ButtonConverter" Content="Конвертер" Margin="35,102,0,0" VerticalAlignment="Top" Click="ButtonConverter_Click" Height="35" HorizontalAlignment="Left" Width="146" />
-        <Button  x:Name="ButtonOptimizer" Content="Оптимизатор" Margin="235,91,0,0" VerticalAlignment="Top" Click="ButtonOptimizer_Click" HorizontalAlignment="Left" Width="146" Height="35"  />
-        <Button  x:Name="ButtonMiner" Content="Майнер паттернов" Margin="235,131,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="146" Height="35" Click="ButtonMiner_Click"  />
-        <Rectangle Fill="#FCEE21" Height="131" Stroke="Black" StrokeThickness="0" VerticalAlignment="Bottom" RenderTransformOrigin="0.5,0.5" Margin="0,0,4,4" HorizontalAlignment="Right" Width="20">
-            <Rectangle.RenderTransform>
-                <TransformGroup>
-                    <ScaleTransform/>
-                    <SkewTransform AngleY="-44"/>
-                    <RotateTransform/>
-                    <TranslateTransform Y="-12.012"/>
-                </TransformGroup>
-            </Rectangle.RenderTransform>
-        </Rectangle>
-        <Label x:Name="LabelOsa" Content="O-S-A.NET" Foreground="Black" Margin="0,0,-26,72" FontWeight="Bold" RenderTransformOrigin="0.5,0.5" FontSize="14" Height="28" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="80">
-            <Label.RenderTransform>
-                <TransformGroup>
-                    <ScaleTransform/>
-                    <SkewTransform/>
-                    <RotateTransform Angle="-90"/>
-                    <TranslateTransform/>
-                </TransformGroup>
-            </Label.RenderTransform>
-        </Label>
+        <Rectangle Margin="429,7,10,7" />
+        <Rectangle Margin="222,7,202,7" />
+        <Rectangle Margin="10,7,409,7" />
+        <Button  x:Name="ButtonRobotCandleOne" Content="Терминал" Margin="448,171,0,0" VerticalAlignment="Top" Click="ButtonRobotCandleOne_Click" HorizontalAlignment="Left" Width="146" Height="28" />
+        <Button  x:Name="ButtonTesterCandleOne" Content="Тестер" Margin="246,105,0,0" VerticalAlignment="Top" Click="ButtonTesterCandleOne_Click" HorizontalAlignment="Left" Width="146" Height="28"   />
+        <Button  x:Name="ButtonData" Content="Дата" Margin="36,138,0,0" VerticalAlignment="Top" Click="ButtonData_Click" HorizontalAlignment="Left" Width="146" Height="28" />
+        <Button  x:Name="ButtonConverter" Content="Конвертер" Margin="35,171,0,0" VerticalAlignment="Top" Click="ButtonConverter_Click" Height="28" HorizontalAlignment="Left" Width="146" />
+        <Button  x:Name="ButtonOptimizer" Content="Оптимизатор" Margin="246,138,0,0" VerticalAlignment="Top" Click="ButtonOptimizer_Click" HorizontalAlignment="Left" Width="146" Height="28"  />
+        <Button  x:Name="ButtonMiner" Content="Майнер паттернов" Margin="246,171,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="146" Height="28" Click="ButtonMiner_Click"  />
+        <Label Content="    Работа &#xD;&#xA;с данными" HorizontalAlignment="Center"  Margin="35,56,432,0" VerticalAlignment="Top" Width="154" Height="66" FontSize="28" Foreground="#FFA7A8AA"/>
+        <Label Content="Тестирование" HorizontalAlignment="Center"  Margin="230,56,202,0" VerticalAlignment="Top" Width="189" FontSize="28" Foreground="#FFA7A8AA" Height="39"/>
+        <Label Content="Торговля" HorizontalAlignment="Center"  Margin="456,54,37,0" VerticalAlignment="Top"  FontSize="28" Foreground="#FFA7A8AA" Height="39" Width="128"/>
+        <Image HorizontalAlignment="Left" Source="Images/MainWIndow/test.png" Height="60" Margin="292,7,0,0" VerticalAlignment="Top" Width="60"/>
+        <Image HorizontalAlignment="Left" Source="Images/MainWIndow/data.png" Height="68" Margin="76,7,0,0" VerticalAlignment="Top" Width="68"/>
+        <Image HorizontalAlignment="Left" Source="Images/MainWIndow/Trading.png" Height="85" Margin="484,0,0,0" VerticalAlignment="Top" Width="85"/>
     </Grid>
 </Window>

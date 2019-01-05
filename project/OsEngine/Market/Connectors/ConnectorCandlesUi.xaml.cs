@@ -88,7 +88,9 @@ namespace OsEngine.Market.Connectors
                 ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Delta);
                 ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Volume);
                 ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Ticks);
-                
+                ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Range);
+                ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Rеvers);
+
                 ComboBoxCandleCreateMethodType.SelectedItem = _connectorBot.CandleCreateMethodType;
 
                 CheckBoxSetForeign.IsChecked = _connectorBot.SetForeign;
@@ -116,6 +118,18 @@ namespace OsEngine.Market.Connectors
                 TextBoxDeltaPeriods.TextChanged += TextBoxDeltaPeriods_TextChanged;
                 _deltaPeriods = _connectorBot.DeltaPeriods;
 
+                TextBoxRangeCandlesPunkts.Text = _connectorBot.RangeCandlesPunkts.ToString();
+                TextBoxRangeCandlesPunkts.TextChanged += TextBoxRangeCandlesPunkts_TextChanged;
+                _rangeCandlesPunkts = _connectorBot.RangeCandlesPunkts;
+
+                TextBoxReversCandlesPunktsMinMove.Text = _connectorBot.ReversCandlesPunktsMinMove.ToString();
+                TextBoxReversCandlesPunktsMinMove.TextChanged += TextBoxReversCandlesPunktsMinMove_TextChanged;
+                _reversCandlesPunktsBackMove = _connectorBot.ReversCandlesPunktsBackMove;
+
+                TextBoxReversCandlesPunktsBackMove.Text = _connectorBot.ReversCandlesPunktsBackMove.ToString();
+                TextBoxReversCandlesPunktsBackMove.TextChanged += TextBoxReversCandlesPunktsBackMove_TextChanged;
+                _reversCandlesPunktsMinMove = _connectorBot.ReversCandlesPunktsMinMove;
+
                 ShowDopCandleSettings();
 
                 ComboBoxCandleCreateMethodType.SelectionChanged += ComboBoxCandleCreateMethodType_SelectionChanged;
@@ -123,6 +137,99 @@ namespace OsEngine.Market.Connectors
             catch (Exception error)
             {
                  MessageBox.Show("Ошибка в конструкторе " + error);
+            }
+        }
+
+        private void TextBoxReversCandlesPunktsBackMove_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            try
+            {
+                if (TextBoxReversCandlesPunktsBackMove.Text == "" ||
+                    TextBoxReversCandlesPunktsBackMove.Text.EndsWith(",") ||
+                    TextBoxReversCandlesPunktsBackMove.Text.EndsWith(".") ||
+                    TextBoxReversCandlesPunktsBackMove.Text == "0")
+                {
+                    return;
+                }
+                if (
+                    Convert.ToDecimal(
+                        TextBoxReversCandlesPunktsBackMove.Text.Replace(",",
+                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                        CultureInfo.InvariantCulture) <= 0)
+                {
+                    throw new Exception();
+                }
+                _reversCandlesPunktsBackMove =
+                    Convert.ToDecimal(
+                        TextBoxReversCandlesPunktsBackMove.Text.Replace(",",
+                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                        CultureInfo.InvariantCulture);
+            }
+            catch
+            {
+                TextBoxReversCandlesPunktsBackMove.Text = _connectorBot.ReversCandlesPunktsBackMove.ToString();
+            }
+        }
+
+        private void TextBoxReversCandlesPunktsMinMove_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            try
+            {
+                if (TextBoxReversCandlesPunktsMinMove.Text == "" ||
+                    TextBoxReversCandlesPunktsMinMove.Text.EndsWith(",") ||
+                    TextBoxReversCandlesPunktsMinMove.Text.EndsWith(".") ||
+                    TextBoxReversCandlesPunktsMinMove.Text == "0")
+                {
+                    return;
+                }
+                if (
+                    Convert.ToDecimal(
+                        TextBoxReversCandlesPunktsMinMove.Text.Replace(",",
+                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                        CultureInfo.InvariantCulture) <= 0)
+                {
+                    throw new Exception();
+                }
+                _reversCandlesPunktsMinMove =
+                    Convert.ToDecimal(
+                        TextBoxReversCandlesPunktsMinMove.Text.Replace(",",
+                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                        CultureInfo.InvariantCulture);
+            }
+            catch
+            {
+                TextBoxReversCandlesPunktsMinMove.Text = _connectorBot.ReversCandlesPunktsMinMove.ToString();
+            }
+        }
+
+        private void TextBoxRangeCandlesPunkts_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            try
+            {
+                if (TextBoxRangeCandlesPunkts.Text == "" ||
+                    TextBoxRangeCandlesPunkts.Text.EndsWith(",") ||
+                    TextBoxRangeCandlesPunkts.Text.EndsWith(".") ||
+                    TextBoxRangeCandlesPunkts.Text == "0")
+                {
+                    return;
+                }
+                if (
+                    Convert.ToDecimal(
+                        TextBoxRangeCandlesPunkts.Text.Replace(",",
+                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                        CultureInfo.InvariantCulture) <= 0)
+                {
+                    throw new Exception();
+                }
+                _rangeCandlesPunkts =
+                    Convert.ToDecimal(
+                        TextBoxRangeCandlesPunkts.Text.Replace(",",
+                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                        CultureInfo.InvariantCulture);
+            }
+            catch
+            {
+                TextBoxRangeCandlesPunkts.Text = _connectorBot.RangeCandlesPunkts.ToString();
             }
         }
 
@@ -138,6 +245,12 @@ namespace OsEngine.Market.Connectors
         private decimal _volumeToClose;
 
         private decimal _deltaPeriods;
+
+        private decimal _rangeCandlesPunkts;
+
+        private decimal _reversCandlesPunktsMinMove;
+
+        private decimal _reversCandlesPunktsBackMove;
 
         void TextBoxDeltaPeriods_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
@@ -719,6 +832,9 @@ namespace OsEngine.Market.Connectors
                 _connectorBot.CountTradeInCandle = _countTradesInCandle;
                 _connectorBot.VolumeToCloseCandleInVolumeType = _volumeToClose;
                 _connectorBot.DeltaPeriods= _deltaPeriods;
+                _connectorBot.RangeCandlesPunkts = _rangeCandlesPunkts;
+                _connectorBot.ReversCandlesPunktsMinMove = _reversCandlesPunktsMinMove;
+                _connectorBot.ReversCandlesPunktsBackMove = _reversCandlesPunktsBackMove;
 
                 if (CheckBoxRencoIsBuildShadows.IsChecked != null)
                 {
@@ -766,25 +882,40 @@ namespace OsEngine.Market.Connectors
             {
                 CreateSimpleCandleSettings();
             }
+
             if (type == CandleCreateMethodType.Delta)
             {
                 CreateDeltaCandleSettings();
             }
+
             if (type == CandleCreateMethodType.Ticks)
             {
                 CreateTicksCandleSettings();
             }
+
             if (type == CandleCreateMethodType.Renko)
             {
                 CreateRencoCandleSettings();
             }
+
             if (type == CandleCreateMethodType.Volume)
             {
                 CreateVolumeCandleSettings();
             }
+
             if (type == CandleCreateMethodType.HeikenAshi)
             {
                 CreateHaikenAshiCandleSettings();
+            }
+
+            if (type == CandleCreateMethodType.Range)
+            {
+                CreateRangeCandleSettings();
+            }
+
+            if (type == CandleCreateMethodType.Rеvers)
+            {
+                CreateReversCandleSettings();
             }
         }
 
@@ -802,15 +933,22 @@ namespace OsEngine.Market.Connectors
             LabelVolumeToClose.Visibility = Visibility.Hidden;
             TextBoxRencoPunkts.Visibility = Visibility.Hidden;
             LabelRencoPunkts.Visibility = Visibility.Hidden;
+
+            LabelRangeCandlesPunkts.Visibility = Visibility.Hidden;
+            LabelReversCandlesPunktsBackMove.Visibility = Visibility.Hidden;
+            LabelReversCandlesPunktsMinMove.Visibility = Visibility.Hidden;
+            TextBoxRangeCandlesPunkts.Visibility = Visibility.Hidden;
+            TextBoxReversCandlesPunktsBackMove.Visibility = Visibility.Hidden;
+            TextBoxReversCandlesPunktsMinMove.Visibility = Visibility.Hidden;
         }
 
         private void CreateSimpleCandleSettings()
         {
             ComboBoxTimeFrame.Visibility = Visibility.Visible;
-            ComboBoxTimeFrame.Margin = new Thickness(206, 296, 0, 0);
+            ComboBoxTimeFrame.Margin = new Thickness(206, 297, 0, 0);
             
             LabelTimeFrame.Visibility = Visibility.Visible;
-            LabelTimeFrame.Margin = new Thickness(41, 296, 0, 0);
+            LabelTimeFrame.Margin = new Thickness(41, 297, 0, 0);
 
             CheckBoxSetForeign.Visibility = Visibility.Visible;
             CheckBoxSetForeign.Margin = new Thickness(120, 327, 0, 0);
@@ -823,8 +961,8 @@ namespace OsEngine.Market.Connectors
             TextBoxDeltaPeriods.Visibility = Visibility.Visible;
             LabelDeltaPeriods.Visibility = Visibility.Visible;
 
-            TextBoxDeltaPeriods.Margin = new Thickness(246, 296, 0, 0);
-            LabelDeltaPeriods.Margin = new Thickness(41, 295, 0, 0);
+            TextBoxDeltaPeriods.Margin = new Thickness(246, 297, 0, 0);
+            LabelDeltaPeriods.Margin = new Thickness(41, 297, 0, 0);
 
             this.Height = 420;
         }
@@ -834,18 +972,18 @@ namespace OsEngine.Market.Connectors
             TextBoxCountTradesInCandle.Visibility = Visibility.Visible;
             LabelCountTradesInCandle.Visibility = Visibility.Visible;
 
-            TextBoxCountTradesInCandle.Margin = new Thickness(206, 296, 0, 0);
-            LabelCountTradesInCandle.Margin = new Thickness(41, 295, 0, 0);
+            TextBoxCountTradesInCandle.Margin = new Thickness(206, 297, 0, 0);
+            LabelCountTradesInCandle.Margin = new Thickness(41, 297, 0, 0);
             Height = 420;
         }
 
         private void CreateRencoCandleSettings()
         {
             TextBoxRencoPunkts.Visibility = Visibility.Visible;
-            TextBoxRencoPunkts.Margin = new Thickness(206, 296, 0, 0);
+            TextBoxRencoPunkts.Margin = new Thickness(206, 297, 0, 0);
 
             LabelRencoPunkts.Visibility = Visibility.Visible;
-            LabelRencoPunkts.Margin = new Thickness(41, 296, 0, 0);
+            LabelRencoPunkts.Margin = new Thickness(41, 297, 0, 0);
 
             CheckBoxRencoIsBuildShadows.Visibility = Visibility.Visible;
             CheckBoxRencoIsBuildShadows.Margin = new Thickness(120, 327, 0, 0);
@@ -857,14 +995,48 @@ namespace OsEngine.Market.Connectors
             LabelVolumeToClose.Visibility = Visibility.Visible;
             TextBoxVolumeToClose.Visibility = Visibility.Visible;
 
-            LabelVolumeToClose.Margin = new Thickness(41, 296, 0, 0);
-            TextBoxVolumeToClose.Margin = new Thickness(206, 296, 0, 0);
+            LabelVolumeToClose.Margin = new Thickness(41, 297, 0, 0);
+            TextBoxVolumeToClose.Margin = new Thickness(206, 297, 0, 0);
             Height = 420;
         }
 
         private void CreateHaikenAshiCandleSettings()
         {
+            ComboBoxTimeFrame.Visibility = Visibility.Visible;
+            ComboBoxTimeFrame.Margin = new Thickness(206, 297, 0, 0);
+
+            LabelTimeFrame.Visibility = Visibility.Visible;
+            LabelTimeFrame.Margin = new Thickness(41, 297, 0, 0);
+
             Height = 420;
+        }
+
+        private void CreateRangeCandleSettings()
+        {
+            LabelRangeCandlesPunkts.Visibility = Visibility.Visible;
+            TextBoxRangeCandlesPunkts.Visibility = Visibility.Visible;
+
+            LabelRangeCandlesPunkts.Margin = new Thickness(41, 297, 0, 0);
+            TextBoxRangeCandlesPunkts.Margin = new Thickness(206, 297, 0, 0);
+            Height = 420;
+
+        }
+
+        private void CreateReversCandleSettings()
+        {
+            TextBoxReversCandlesPunktsMinMove.Visibility = Visibility.Visible;
+            TextBoxReversCandlesPunktsMinMove.Margin = new Thickness(206, 297, 0, 0);
+
+            LabelReversCandlesPunktsMinMove.Visibility = Visibility.Visible;
+            LabelReversCandlesPunktsMinMove.Margin = new Thickness(41, 297, 0, 0);
+
+            TextBoxReversCandlesPunktsBackMove.Visibility = Visibility.Visible;
+            TextBoxReversCandlesPunktsBackMove.Margin = new Thickness(206, 326, 0, 0);
+
+            LabelReversCandlesPunktsBackMove.Visibility = Visibility.Visible;
+            LabelReversCandlesPunktsBackMove.Margin = new Thickness(41, 326, 0, 0);
+
+            Height = 445;
         }
     }
 }

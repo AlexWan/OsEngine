@@ -6,12 +6,12 @@
         <Rectangle Margin="5,5,5,37"/>
         <Button x:Name ="ButtonAccept"  Content="Принять" Height="22" FontSize="14" FontFamily="Calibri"  HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="114" Click="ButtonAccept_Click"/>
         <TextBox x:Name ="TextBoxLenght" Height="23" Margin="154,23,22,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Длинна скользящей" HorizontalAlignment="Left" Margin="24,26,0,0" VerticalAlignment="Top" Foreground="#FF7212" FontFamily="Calibri" FontSize="14"/>
+        <Label Content="Длина скользящей" HorizontalAlignment="Left" Margin="18,23,0,0" VerticalAlignment="Top" Foreground="#FF7212" FontFamily="Calibri" FontSize="14"/>
         <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовывать" HorizontalAlignment="Left" Margin="154,106,0,0" VerticalAlignment="Top" Foreground="#FF7212" FontFamily="Calibri" FontSize="14"/>
         <Button x:Name="ButtonColorAdx" Content="Цвет" Height="22" FontSize="14" FontFamily="Calibri"  HorizontalAlignment="Left" Margin="21,79,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"  />
         <WindowsFormsHost x:Name="HostColorBase" Height="22" Margin="154,79,22,0" VerticalAlignment="Top"/>
         <TextBox x:Name ="TextBoxLenghtAverage" Height="23" Margin="154,51,22,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Длинна сглаживания" HorizontalAlignment="Left" Margin="18,55,0,0" VerticalAlignment="Top" Foreground="#FF7212" FontFamily="Calibri" FontSize="14"/>
+        <Label Content="Длина сглаживания" HorizontalAlignment="Left" Margin="18,51,0,0" VerticalAlignment="Top" Foreground="#FF7212" FontFamily="Calibri" FontSize="14"/>
 
     </Grid>
 </Window>

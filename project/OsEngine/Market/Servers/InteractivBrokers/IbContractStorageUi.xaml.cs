@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Entity;
 using ContextMenu = System.Windows.Forms.ContextMenu;
 using MenuItem = System.Windows.Forms.MenuItem;
 using MouseEventArgs = System.Windows.Forms.MouseEventArgs;
@@ -24,24 +25,10 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             InitializeComponent();
             SecToSubscrible = secToSubscrible;
 
-            _grid = new DataGridView();
-
-            _grid.AllowUserToOrderColumns = true;
-            _grid.AllowUserToResizeRows = true;
-            _grid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-            _grid.AllowUserToDeleteRows = false;
-            _grid.AllowUserToAddRows = false;
-            _grid.RowHeadersVisible = false;
-            _grid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            _grid.MultiSelect = false;
-
-            DataGridViewCellStyle style = new DataGridViewCellStyle();
-            style.Alignment = DataGridViewContentAlignment.TopLeft;
-            style.WrapMode = DataGridViewTriState.True;
-            _grid.DefaultCellStyle = style;
+            _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = style;
+            cell0.Style = _grid.DefaultCellStyle;
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;

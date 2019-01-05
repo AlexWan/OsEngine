@@ -293,24 +293,10 @@ namespace OsEngine.OsMiner
         /// </summary>
         private void CreateSetsDataGrid()
         {
-            _gridSets = new DataGridView();
-
-            _gridSets.AllowUserToOrderColumns = true;
-            _gridSets.AllowUserToResizeRows = true;
-            _gridSets.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-            _gridSets.AllowUserToDeleteRows = false;
-            _gridSets.AllowUserToAddRows = false;
-            _gridSets.RowHeadersVisible = false;
-            _gridSets.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            _gridSets.MultiSelect = false;
-
-            DataGridViewCellStyle style = new DataGridViewCellStyle();
-            style.Alignment = DataGridViewContentAlignment.TopLeft;
-            style.WrapMode = DataGridViewTriState.True;
-            _gridSets.DefaultCellStyle = style;
+            _gridSets = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = style;
+            cell0.Style = _gridSets.DefaultCellStyle;
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;

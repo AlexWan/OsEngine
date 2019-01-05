@@ -4,15 +4,15 @@
         Title="Настройки стратегии" Height="189.099" Width="580" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Topmost="True">
     <Grid Margin="0,0,0,1">
         <Rectangle Margin="5,5,5,37"/>
-        <Label Content="Объём фиксированный" HorizontalAlignment="Left" Margin="23,45,0,0" VerticalAlignment="Top" />
+        <Label Content="Объём фиксированный" HorizontalAlignment="Left" Margin="23,52,0,0" VerticalAlignment="Top" />
         <TextBox Name="TextBoxVolumeOne"  HorizontalAlignment="Left" Height="23" Margin="173,52,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
-        <Label Content="Проскальзывание" HorizontalAlignment="Left" Margin="23,77,0,0" VerticalAlignment="Top" />
+        <Label Content="Проскальзывание" HorizontalAlignment="Left" Margin="23,79,0,0" VerticalAlignment="Top" />
         <TextBox Name="TextBoxSlipage" HorizontalAlignment="Left" Height="23" Margin="173,79,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
         <Button Content="Принять" Margin="0,0,10,10" Click="Button_Click" Height="22" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="120"/>
         <ComboBox Name="ComboBoxRegime" HorizontalAlignment="Left" Margin="173,25,0,0" VerticalAlignment="Top" Width="120"/>
-        <Label Content="Режим" HorizontalAlignment="Left" Margin="23,21,0,0" VerticalAlignment="Top" />
-        <Label Content="RSI верхнее значение" HorizontalAlignment="Left" Margin="301,21,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name="RsiUp" HorizontalAlignment="Left" Height="23" Margin="458,21,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="83"/>
+        <Label Content="Режим" HorizontalAlignment="Left" Margin="23,25,0,0" VerticalAlignment="Top" />
+        <Label Content="RSI верхнее значение" HorizontalAlignment="Left" Margin="301,25,0,0" VerticalAlignment="Top" />
+        <TextBox x:Name="RsiUp" HorizontalAlignment="Left" Height="23" Margin="458,25,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="83"/>
         <Label Content="RSI нижнее значение" HorizontalAlignment="Left" Margin="301,52,0,0" VerticalAlignment="Top" />
         <TextBox x:Name="RsiDown" HorizontalAlignment="Left" Height="23" Margin="458,52,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="83"/>
     </Grid>

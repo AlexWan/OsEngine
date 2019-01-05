@@ -202,36 +202,6 @@ namespace OsEngine.Market.Servers.BitMex
             }
         }
 
-        private object _lock = new object();
-
-        public List<BitMexSecurity> GetSecurities()
-        {
-            lock (_lock)
-            {
-                try
-                {
-                    var res11 = CreateQuery("GET", "/instrument/active");
-                    List<BitMexSecurity> listSec = JsonConvert.DeserializeObject<List<BitMexSecurity>>(res11);
-
-                    if (UpdateSecurity != null)
-                    {
-                        UpdateSecurity(listSec);
-                    }
-
-                    return listSec;
-                }
-                catch (Exception ex)
-                {
-                    if (BitMexLogMessageEvent != null)
-                    {
-                        BitMexLogMessageEvent(ex.ToString(), LogMessageType.Error);
-                    }
-
-                    return null;
-                }
-            }
-        }
-
         /// <summary>
         /// очередь новых сообщений, пришедших с сервера биржи
         /// </summary>
@@ -432,11 +402,6 @@ namespace OsEngine.Market.Servers.BitMex
         /// событие обновления портфеля
         /// </summary>
         public event Action<BitMexPortfolio> UpdatePortfolio;
-
-        /// <summary>
-        /// событие обновления инструментов
-        /// </summary>
-        public event Action<List<BitMexSecurity>> UpdateSecurity;
 
         /// <summary>
         /// событие обновления позиций

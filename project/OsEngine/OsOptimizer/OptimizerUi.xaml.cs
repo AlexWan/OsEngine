@@ -632,24 +632,10 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         private void CreateTableTabsSimple()
         {
-            _gridTableTabsSimple = new DataGridView();
-
-            _gridTableTabsSimple.AllowUserToOrderColumns = true;
-            _gridTableTabsSimple.AllowUserToResizeRows = true;
-            _gridTableTabsSimple.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-            _gridTableTabsSimple.AllowUserToDeleteRows = false;
-            _gridTableTabsSimple.AllowUserToAddRows = false;
-            _gridTableTabsSimple.RowHeadersVisible = false;
-            _gridTableTabsSimple.SelectionMode = DataGridViewSelectionMode.ColumnHeaderSelect;
-            _gridTableTabsSimple.MultiSelect = false;
-
-            DataGridViewCellStyle style = new DataGridViewCellStyle();
-            style.Alignment = DataGridViewContentAlignment.TopLeft;
-            style.WrapMode = DataGridViewTriState.True;
-            _gridTableTabsSimple.DefaultCellStyle = style;
+            _gridTableTabsSimple = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, DataGridViewAutoSizeRowsMode.None);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = style;
+            cell0.Style = _gridTableTabsSimple.DefaultCellStyle;
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;
@@ -837,24 +823,10 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         private void CreateTableTabsIndex()
         {
-            _gridTableTabsIndex = new DataGridView();
-
-            _gridTableTabsIndex.AllowUserToOrderColumns = true;
-            _gridTableTabsIndex.AllowUserToResizeRows = true;
-            _gridTableTabsIndex.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-            _gridTableTabsIndex.AllowUserToDeleteRows = false;
-            _gridTableTabsIndex.AllowUserToAddRows = false;
-            _gridTableTabsIndex.RowHeadersVisible = false;
-            _gridTableTabsIndex.SelectionMode = DataGridViewSelectionMode.ColumnHeaderSelect;
-            _gridTableTabsIndex.MultiSelect = false;
-
-            DataGridViewCellStyle style = new DataGridViewCellStyle();
-            style.Alignment = DataGridViewContentAlignment.TopLeft;
-            style.WrapMode = DataGridViewTriState.True;
-            _gridTableTabsIndex.DefaultCellStyle = style;
+            _gridTableTabsIndex  = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, DataGridViewAutoSizeRowsMode.None);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = style;
+            cell0.Style = _gridTableTabsIndex.DefaultCellStyle;
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;
@@ -988,24 +960,10 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         private void CreateTableOptimizeFazes()
         {
-            _gridFazes = new DataGridView();
-
-            _gridFazes.AllowUserToOrderColumns = true;
-            _gridFazes.AllowUserToResizeRows = true;
-            _gridFazes.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-            _gridFazes.AllowUserToDeleteRows = false;
-            _gridFazes.AllowUserToAddRows = false;
-            _gridFazes.RowHeadersVisible = false;
-            _gridFazes.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            _gridFazes.MultiSelect = false;
-
-            DataGridViewCellStyle style = new DataGridViewCellStyle();
-            style.Alignment = DataGridViewContentAlignment.TopLeft;
-            style.WrapMode = DataGridViewTriState.True;
-            _gridFazes.DefaultCellStyle = style;
+            _gridFazes = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = style;
+            cell0.Style = _gridFazes.DefaultCellStyle;
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;
@@ -1119,24 +1077,10 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         private void CreateTableParametrs()
         {
-            _gridParametrs = new DataGridView();
-
-            _gridParametrs.AllowUserToOrderColumns = false;
-            _gridParametrs.AllowUserToResizeRows = true;
-            _gridParametrs.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-            _gridParametrs.AllowUserToDeleteRows = false;
-            _gridParametrs.AllowUserToAddRows = false;
-            _gridParametrs.RowHeadersVisible = false;
-            _gridParametrs.SelectionMode = DataGridViewSelectionMode.CellSelect;
-            _gridParametrs.MultiSelect = false;
-
-            DataGridViewCellStyle style = new DataGridViewCellStyle();
-            style.Alignment = DataGridViewContentAlignment.TopLeft;
-            style.WrapMode = DataGridViewTriState.True;
-            _gridParametrs.DefaultCellStyle = style;
+            _gridParametrs = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.None);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = style;
+            cell0.Style = _gridParametrs.DefaultCellStyle;
 
             DataGridViewCheckBoxColumn column0 = new DataGridViewCheckBoxColumn();
             column0.CellTemplate = new DataGridViewCheckBoxCell();
@@ -1482,24 +1426,10 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         private void CreateTableFazes()
         {
-            _gridFazesEnd = new DataGridView();
-
-            _gridFazesEnd.AllowUserToOrderColumns = true;
-            _gridFazesEnd.AllowUserToResizeRows = true;
-            _gridFazesEnd.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-            _gridFazesEnd.AllowUserToDeleteRows = false;
-            _gridFazesEnd.AllowUserToAddRows = false;
-            _gridFazesEnd.RowHeadersVisible = false;
-            _gridFazesEnd.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            _gridFazesEnd.MultiSelect = false;
-
-            DataGridViewCellStyle style = new DataGridViewCellStyle();
-            style.Alignment = DataGridViewContentAlignment.TopLeft;
-            style.WrapMode = DataGridViewTriState.True;
-            _gridFazesEnd.DefaultCellStyle = style;
+            _gridFazesEnd = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = style;
+            cell0.Style = _gridFazesEnd.DefaultCellStyle;
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;
@@ -1616,24 +1546,10 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         private void CreateTableResults()
         {
-            _gridResults = new DataGridView();
-
-            _gridResults.AllowUserToOrderColumns = true;
-            _gridResults.AllowUserToResizeRows = true;
-            _gridResults.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-            _gridResults.AllowUserToDeleteRows = false;
-            _gridResults.AllowUserToAddRows = false;
-            _gridResults.RowHeadersVisible = false;
-            _gridResults.SelectionMode = DataGridViewSelectionMode.ColumnHeaderSelect;
-            _gridResults.MultiSelect = false;
-
-            DataGridViewCellStyle style = new DataGridViewCellStyle();
-            style.Alignment = DataGridViewContentAlignment.TopLeft;
-            style.WrapMode = DataGridViewTriState.True;
-            _gridResults.DefaultCellStyle = style;
+            _gridResults = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, DataGridViewAutoSizeRowsMode.None);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = style;
+            cell0.Style = _gridResults.DefaultCellStyle;
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;

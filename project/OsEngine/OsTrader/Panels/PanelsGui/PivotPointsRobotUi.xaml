@@ -5,12 +5,12 @@
     <Grid Margin="0,0,0,1">
 
         <Rectangle Margin="5,5,5,37" Grid.ColumnSpan="2"/>
-        <Label Content="Размер стопа в %" HorizontalAlignment="Left" Margin="23,105,0,0" VerticalAlignment="Top" Width="115" RenderTransformOrigin="0.501,2.093" />
+        <Label Content="Размер стопа в %" HorizontalAlignment="Left" Margin="23,107,0,0" VerticalAlignment="Top" Width="115" RenderTransformOrigin="0.501,2.093" />
         <TextBox Name="TextBoxVolumeOne"  HorizontalAlignment="Left" Height="23" Margin="176,49,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120" RenderTransformOrigin="0.492,0.522"/>
         <Label Content="Объём фиксированный" HorizontalAlignment="Left" Margin="23,49,0,0" VerticalAlignment="Top" Width="148" />
         <TextBox Name="TextBoxStop"  HorizontalAlignment="Left" Height="23" Margin="176,107,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
-        <Label Content="Проскальзывание" HorizontalAlignment="Left" Margin="23,77,0,0" VerticalAlignment="Top" Width="115" Height="25" />
-        <TextBox Name="TextBoxSlipage" HorizontalAlignment="Left" Height="23" Margin="176,77,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
+        <Label Content="Проскальзывание" HorizontalAlignment="Left" Margin="23,77,0,0" VerticalAlignment="Top" Width="115" />
+        <TextBox Name="TextBoxSlipage" HorizontalAlignment="Left"  Margin="176,77,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
         <Button Content="Принять" Margin="0,0,10,10" Click="Button_Click" Height="22" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="120" Grid.Column="1"/>
         <ComboBox Name="ComboBoxRegime" HorizontalAlignment="Left" Margin="176,19,0,0" VerticalAlignment="Top" Width="120"/>
         <Label Content="Режим" HorizontalAlignment="Left" Margin="23,19,0,0" VerticalAlignment="Top" Width="48" />

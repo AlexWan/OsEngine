@@ -11,7 +11,7 @@
             <Rectangle Margin="5,5,5,5"/>
             <Button Name="ButtonGo" Content="Погнали!" Margin="0,39,24,19" Height="Auto" VerticalAlignment="Center" MinHeight="40" HorizontalAlignment="Right" Width="148" FontSize="14" Click="ButtonGo_Click" />
             <ProgressBar Name="ProgressBarPrime" Height="14" Margin="10,10,24,0" VerticalAlignment="Top"/>
-            <Label Content="Общий прогресс" HorizontalAlignment="Left" Margin="10,5,0,0" VerticalAlignment="Top" Height="19" Width="117" FontSize="12"/>
+            <Label Content="Общий прогресс" Foreground="AliceBlue" HorizontalAlignment="Left" Margin="10,5,0,0" VerticalAlignment="Top" Height="19" Width="117" FontSize="12"/>
             <Grid Name="GridThreadsProgress" Margin="10,29,326,10" MinHeight="10"/>
             <ComboBox Name="ComboBoxThreadsCount" HorizontalAlignment="Right" Margin="0,0,186,19" VerticalAlignment="Bottom" Width="135" Height="21"/>
             <Label Content="Потоков" HorizontalAlignment="Right" Margin="0,0,224,41" VerticalAlignment="Bottom"/>
@@ -19,16 +19,16 @@
         <Grid Grid.Row="1">
             <TabControl Name="TabControlPrime" Margin="10,-15,10,10">
                 <TabItem Header="Управление" FontSize="14" Width="120">
-                    <Grid Background="Black">
+                    <Grid >
                         <TextBox Name="TextBoxStartPortfolio" HorizontalAlignment="Left" Height="28" Margin="12,131,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="204"/>
                         <Label Content="Начальные средства" HorizontalAlignment="Left" Margin="12,106,0,0" VerticalAlignment="Top"/>
                         <WindowsFormsHost Name="HostLog" Margin="10,164,10,10" Foreground="Black"/>
-                        <Rectangle Name="RectangleTimeFramesAndSecurities" Margin="231,0,0,0" Stroke="Black" Height="164" VerticalAlignment="Top"/>
+                        <Rectangle Name="RectangleTimeFramesAndSecurities" Margin="231,0,0,0" Height="164" VerticalAlignment="Top"/>
                         <WindowsFormsHost x:Name="HostTabsSimple" Foreground="Black" Height="133" Margin="247,26,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="352"/>
                         <Label x:Name="LabelTabsEndTimeFrames" Content="Бумаги для вкладок" HorizontalAlignment="Left" Margin="247,1,0,0" VerticalAlignment="Top"/>
-                        <Rectangle Name="RectangleServerData" HorizontalAlignment="Left" Height="55" Margin="10,1,0,0" Stroke="Black" VerticalAlignment="Top" Width="206"/>
+                        <Rectangle Name="RectangleServerData" HorizontalAlignment="Left" Height="55" Margin="10,1,0,0" VerticalAlignment="Top" Width="206"/>
                         <Button x:Name="ButtonServerDialog" Content="Настройки сервера данных" HorizontalAlignment="Left" Margin="12,10,0,0" VerticalAlignment="Top" Width="204" Height="39" Click="ButtonServerDialog_Click"/>
-                        <Rectangle Name="RectangleStrategyName" HorizontalAlignment="Left" Height="58" Margin="10,48,0,0" Stroke="Black" VerticalAlignment="Top" Width="216"/>
+                        <Rectangle Name="RectangleStrategyName" HorizontalAlignment="Left" Height="58" Margin="10,48,0,0"  VerticalAlignment="Top" Width="216"/>
                         <ComboBox x:Name="ComboBoxNameStrategyToOptimization" HorizontalAlignment="Left" Margin="12,73,0,0" VerticalAlignment="Top" Width="204" Height="28"/>
                         <Label Content="Стратегия для оптимизации" HorizontalAlignment="Left" Margin="12,48,0,0" VerticalAlignment="Top"/>
                         <WindowsFormsHost x:Name="HostTabsIndex" Foreground="Black"  Height="133" Margin="604,26,10,0" VerticalAlignment="Top"/>
@@ -36,13 +36,13 @@
                     </Grid>
                 </TabItem>
                 <TabItem Header="Параметры" FontSize="14" Width="120">
-                    <Grid Name="GridParametrs" Background="Black">
+                    <Grid Name="GridParametrs" >
                         <WindowsFormsHost Name="HostParam"  Foreground="Black" Margin="10,38,10,10"/>
                         <Label Content="Таблица параметров" HorizontalAlignment="Left" Margin="10,8,0,0" VerticalAlignment="Top"/>
                     </Grid>
                 </TabItem>
                 <TabItem Header="Этапы" FontSize="14" Width="120">
-                    <Grid Name="GridFazes" Background="Black">
+                    <Grid Name="GridFazes" >
                         <Button Name="ButtonCreateOptimizeFazes" Content="Создать схему оптимизации" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="201" Height="54" Click="ButtonCreateOptimizeFazes_Click"/>
                         <WindowsFormsHost Name="HostStepsOptimize"  Foreground="Black" Margin="10,69,10,10"/>
                         <DatePicker Name="DatePickerStart" HorizontalAlignment="Center" Margin="230,27,570,0" VerticalAlignment="Top" Width="156"/>
@@ -53,7 +53,7 @@
                     </Grid>
                 </TabItem>
                 <TabItem Header="Фильтры" FontSize="14" Width="120">
-                    <Grid Name="GridFilters" Background="Black">
+                    <Grid Name="GridFilters" >
                         <Label Content="Если результаты теста не будут проходить по условиям, то прогон будет исключён из общих результатов" HorizontalAlignment="Left" Margin="149,10,0,0" VerticalAlignment="Top"/>
                         <CheckBox Name="CheckBoxFilterProfitIsOn" Content="Профит в % к депо >" HorizontalAlignment="Left" Margin="281,88,0,0" VerticalAlignment="Top"/>
                         <CheckBox Name="CheckBoxFilterMaxDrowDownIsOn" Content="Максимальная просадка %>" HorizontalAlignment="Left" Margin="281,116,0,0" VerticalAlignment="Top"/>
@@ -68,7 +68,7 @@
                     </Grid>
                 </TabItem>
                 <TabItem Header="Оптимизация" FontSize="14" Width="140">
-                    <Grid Background="Black">
+                    <Grid >
                         <CheckBox Name="CheckBoxOptimizationTypeSimulatedAnnealing" Content="Алгоритм имитации отжига" HorizontalAlignment="Left" Margin="199,152,0,0" VerticalAlignment="Top"/>
                         <CheckBox Name="CheckBoxOptimizationTypeGeneticAlgoritm" Content="Генетический алгоритм" HorizontalAlignment="Left" Margin="199,189,0,0" VerticalAlignment="Top"/>
                         <Label Content="Алгоритм оптимизации:" HorizontalAlignment="Left" Margin="182,67,0,0" VerticalAlignment="Top" FontSize="18"/>
@@ -81,7 +81,7 @@
                     </Grid>
                 </TabItem>
                 <TabItem Header="Результаты" FontSize="14"  Width="120">
-                    <Grid Background="Black">
+                    <Grid>
                         <WindowsFormsHost Name="WindowsFormsHostFazeNumOnTubResult"  Foreground="Black" Height="92" Margin="10,27,10,0" VerticalAlignment="Top"/>
                         <Label Content="Серия оптимизации" HorizontalAlignment="Left"   Margin="10,2,0,0" VerticalAlignment="Top"/>
                         <WindowsFormsHost Name="WindowsFormsHostResults"  Foreground="Black" Margin="10,144,10,10"/>

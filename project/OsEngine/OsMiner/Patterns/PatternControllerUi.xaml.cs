@@ -10,6 +10,7 @@ using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Tester;
 using ContextMenu = System.Windows.Forms.ContextMenu;
+using DataGrid = System.Windows.Controls.DataGrid;
 using MenuItem = System.Windows.Forms.MenuItem;
 using MouseEventArgs = System.Windows.Forms.MouseEventArgs;
 
@@ -33,11 +34,11 @@ namespace OsEngine.OsMiner.Patterns
 
             InitializeTabClosePosition();
 
-            _gridPatternsToOpen = new DataGridView();
+            _gridPatternsToOpen = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
             _gridPatternsToOpen.MouseClick += _gridPatternsToOpen_MouseClick;
             _gridPatternsToOpen.CellValueChanged += _gridPatternsToOpen_CellValueChanged;
 
-            _gridPatternsToClose = new DataGridView();
+            _gridPatternsToClose = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
             _gridPatternsToClose.MouseClick += _gridPatternsToClose_MouseClick;
             _gridPatternsToClose.CellValueChanged += _gridPatternsToClose_CellValueChanged;
 
@@ -490,26 +491,12 @@ namespace OsEngine.OsMiner.Patterns
 
         void CreateGridPatternsGrid(DataGridView grid, WindowsFormsHost host)
         {
-            
-            grid.AllowUserToOrderColumns = true;
-            grid.AllowUserToResizeRows = true;
-            grid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-            grid.AllowUserToDeleteRows = false;
-            grid.AllowUserToAddRows = false;
-            grid.RowHeadersVisible = false;
-            grid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            grid.MultiSelect = false;
-
-            DataGridViewCellStyle style = new DataGridViewCellStyle();
-            style.Alignment = DataGridViewContentAlignment.TopLeft;
-            style.WrapMode = DataGridViewTriState.True;
-            grid.DefaultCellStyle = style;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = style;
+            cell0.Style = grid.DefaultCellStyle;
 
             DataGridViewComboBoxCell cellComboBox = new DataGridViewComboBoxCell();
-            cellComboBox.Style = style;
+            cellComboBox.Style = grid.DefaultCellStyle;
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;
@@ -978,22 +965,13 @@ namespace OsEngine.OsMiner.Patterns
         /// </summary>
         private void CreateGridDataServer()
         {
-            _myGridView = new DataGridView();
-            HostSecurities.Child = _myGridView;
-            HostSecurities.Child.Show();
-            _myGridView.AllowUserToOrderColumns = false;
-            _myGridView.AllowUserToResizeRows = false;
-            _myGridView.AllowUserToDeleteRows = false;
-            _myGridView.AllowUserToAddRows = false;
-            _myGridView.RowHeadersVisible = false;
-            _myGridView.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            _myGridView.MultiSelect = false;
-
-            DataGridViewCellStyle style = new DataGridViewCellStyle();
-            style.Alignment = DataGridViewContentAlignment.BottomRight;
+            _myGridView = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = style;
+            cell0.Style = _myGridView.DefaultCellStyle;
+
+            HostSecurities.Child = _myGridView;
+            HostSecurities.Child.Show();
 
             DataGridViewColumn column2 = new DataGridViewColumn();
             column2.CellTemplate = cell0;

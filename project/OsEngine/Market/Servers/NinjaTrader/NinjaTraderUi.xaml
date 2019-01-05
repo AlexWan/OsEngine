@@ -9,7 +9,7 @@
         <Label Content="Статус сервера: " Margin="12,54,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="101"/>
         <Label Name="LabelStatus" Content="Disconnect" Margin="157,54,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
         <WindowsFormsHost Name="Host" Margin="10,84,10,48"/>
-        <CheckBox Name="CheckBoxNeadToSaveTrade" Content="Сохранять историю" HorizontalAlignment="Left" Margin="39,5,0,0" VerticalAlignment="Top"/>
+        <CheckBox Name="CheckBoxNeadToSaveTrade" Content="Сохранять историю" HorizontalAlignment="Left" Margin="12,5,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBoxCountDaysSave" HorizontalAlignment="Left" Height="23" Margin="130,30,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="98"/>
         <Label Content="Дней подгружать: " Margin="12,28,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="118"/>
         <TextBox Name="TextBoxServerAdress" Height="23" Margin="427,19,10,0" TextWrapping="Wrap" VerticalAlignment="Top"/>

@@ -8,7 +8,7 @@
         <ComboBox Name="ComboBoxStrategyType" Margin="130,26,24,0" VerticalAlignment="Top"/>
         <Label Content="Тип стратегии" HorizontalAlignment="Left" Margin="26,26,0,0" VerticalAlignment="Top"/>
         <TextBox Name="TextBoxName" Height="23" Margin="130,72,24,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Имя" HorizontalAlignment="Left" Margin="82,78,0,0" VerticalAlignment="Top"/>
+        <Label Content="Имя" HorizontalAlignment="Left" Margin="26,72,0,0" VerticalAlignment="Top"/>
 
     </Grid>
 </Window>

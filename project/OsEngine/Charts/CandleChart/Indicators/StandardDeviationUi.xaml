@@ -6,11 +6,11 @@
         <Rectangle Margin="5,5,5,37"/>
         <Button x:Name ="ButtonAccept"  Content="Принять" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="109" Click="ButtonAccept_Click"/>
         <TextBox x:Name ="TextBoxLenght" Height="23" Margin="154,16,22,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Длинна индикатора" HorizontalAlignment="Left" Margin="21,22,0,0" VerticalAlignment="Top"/>
+        <Label Content="Длина индикатора" HorizontalAlignment="Left" Margin="21,16,0,0" VerticalAlignment="Top"/>
         <Button x:Name="ButtonColor" Content="Цвет" HorizontalAlignment="Left" Margin="21,44,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"/>
         <WindowsFormsHost x:Name="HostColor" Height="22" Margin="154,44,22,0" VerticalAlignment="Top"/>
         <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовывать" HorizontalAlignment="Left" Margin="154,98,0,0" VerticalAlignment="Top"/>
         <ComboBox x:Name="ComboBoxPriceField" Margin="154,71,22,0" VerticalAlignment="Top"/>
-        <Label Content="Поле цены (свечи)" HorizontalAlignment="Left" Margin="21,67,0,0" VerticalAlignment="Top"/>
+        <Label Content="Поле цены (свечи)" HorizontalAlignment="Left" Margin="21,71,0,0" VerticalAlignment="Top"/>
     </Grid>
 </Window>

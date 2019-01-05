@@ -5,15 +5,15 @@
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
         <Button x:Name ="ButtonAccept"  Content="Принять" Height="22" FontSize="14" FontFamily="Calibri" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="122" Click="ButtonAccept_Click"/>
-        <TextBox x:Name ="TextBoxLenght" Height="23" Margin="153,20,19,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Длинна индикатора" HorizontalAlignment="Left" Margin="19,22,0,0" VerticalAlignment="Top" Foreground="#FF7212" FontFamily="Calibri" FontSize="14"/>
+        <TextBox x:Name ="TextBoxLenght"  Margin="153,20,19,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <Label Content="Длина индикатора" HorizontalAlignment="Left" Margin="20,20,0,0" VerticalAlignment="Top" Foreground="#FF7212" FontFamily="Calibri" FontSize="14"/>
         <Button x:Name="ButtonColorUp" Content="Цвет верхней" Height="22" FontSize="14" FontFamily="Calibri" HorizontalAlignment="Left" Margin="20,79,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorUp_Click" />
         <WindowsFormsHost x:Name="HostColorUp" Height="22" Margin="152,79,20,0" VerticalAlignment="Top"/>
         <Button x:Name="ButtonColorDown" Content="Цвет нижней" Height="22" FontSize="14" FontFamily="Calibri" HorizontalAlignment="Left" Margin="20,106,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorDown_Click" />
         <WindowsFormsHost x:Name="HostColorDown" Height="22" Margin="152,106,20,0" VerticalAlignment="Top"/>
         <Label Content="Кол-во отклонений" HorizontalAlignment="Left" Margin="20,48,0,0" VerticalAlignment="Top" Foreground="#FF7212" FontFamily="Calibri" FontSize="14"/>
         <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовывать" HorizontalAlignment="Left" Margin="153,133,0,0" VerticalAlignment="Top" Foreground="#FF7212" FontFamily="Calibri" FontSize="14"/>
-        <TextBox x:Name ="TextBoxDeviation" Height="23" Margin="153,48,19,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <TextBox x:Name ="TextBoxDeviation"  Margin="153,48,19,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
 
     </Grid>
 </Window>

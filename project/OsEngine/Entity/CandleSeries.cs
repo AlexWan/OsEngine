@@ -315,6 +315,264 @@ namespace OsEngine.Entity
             {
                 UpDateHeikenAshiCandle(time, price, volume, canPushUp);
             }
+            else if (_timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Range)
+            {
+                UpDateRangeCandles(time, price, volume, canPushUp);
+            }
+            else if (_timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Rеvers)
+            {
+                UpDateReversCandles(time, price, volume, canPushUp);
+            }
+        }
+
+        private void UpDateRangeCandles(DateTime time, decimal price, decimal volume, bool canPushUp)
+        {
+            if (CandlesAll != null && CandlesAll.Count > 0 && CandlesAll[CandlesAll.Count - 1] != null &&
+              CandlesAll[CandlesAll.Count - 1].TimeStart > time)
+            {// если пришли старые данные
+                return;
+            }
+
+            if (CandlesAll == null)
+            {
+                // пришла первая сделка
+                CandlesAll = new List<Candle>();
+
+                DateTime timeNextCandle = time;
+
+                while (timeNextCandle.Second % 1 != 0)
+                {
+                    timeNextCandle = timeNextCandle.AddSeconds(-1);
+                }
+
+
+                while (timeNextCandle.Millisecond != 0)
+                {
+                    timeNextCandle = timeNextCandle.AddMilliseconds(-1);
+                }
+
+                Candle candle = new Candle()
+                {
+                    Close = price,
+                    High = price,
+                    Low = price,
+                    Open = price,
+                    State = CandleState.Started,
+                    TimeStart = timeNextCandle,
+                    Volume = volume
+                };
+
+                CandlesAll.Add(candle);
+
+                if (canPushUp)
+                {
+                    UpdateChangeCandle();
+                }
+
+                return;
+            }
+
+
+
+            if (CandlesAll != null &&
+                CandlesAll[CandlesAll.Count - 1].High - CandlesAll[CandlesAll.Count-1].Low >= _timeFrameBuilder.RangeCandlesPunkts)
+            {
+                // если пришли данные из новой свечки
+
+                if (CandlesAll[CandlesAll.Count - 1].State != CandleState.Finished)
+                {
+                    // если последнюю свечку ещё не закрыли и не отправили
+                    CandlesAll[CandlesAll.Count - 1].State = CandleState.Finished;
+
+                    if (canPushUp)
+                    {
+                        UpdateFinishCandle();
+                    }
+                }
+
+                DateTime timeNextCandle = time;
+
+                while (timeNextCandle.Millisecond != 0)
+                {
+                    timeNextCandle = timeNextCandle.AddMilliseconds(-1);
+                }
+
+                Candle newCandle = new Candle()
+                {
+                    Close = price,
+                    High = price,
+                    Low = price,
+                    Open = price,
+                    State = CandleState.Started,
+                    TimeStart = timeNextCandle,
+                    Volume = volume
+                };
+
+                CandlesAll.Add(newCandle);
+
+                if (canPushUp)
+                {
+                    UpdateChangeCandle();
+                }
+
+                return;
+            }
+
+            if (CandlesAll != null &&
+                CandlesAll[CandlesAll.Count - 1].High - CandlesAll[CandlesAll.Count - 1].Low < _timeFrameBuilder.RangeCandlesPunkts)
+            {
+                // если пришли данные внутри свечи
+
+                CandlesAll[CandlesAll.Count - 1].Volume += volume;
+                CandlesAll[CandlesAll.Count - 1].Close = price;
+
+                if (CandlesAll[CandlesAll.Count - 1].High < price)
+                {
+                    CandlesAll[CandlesAll.Count - 1].High = price;
+                }
+
+                if (CandlesAll[CandlesAll.Count - 1].Low > price)
+                {
+                    CandlesAll[CandlesAll.Count - 1].Low = price;
+                }
+
+                if (canPushUp)
+                {
+                    UpdateChangeCandle();
+                }
+            }
+        }
+
+        private void UpDateReversCandles(DateTime time, decimal price, decimal volume, bool canPushUp)
+        {
+            if (CandlesAll != null && CandlesAll.Count > 0 && CandlesAll[CandlesAll.Count - 1] != null &&
+             CandlesAll[CandlesAll.Count - 1].TimeStart > time)
+            {// если пришли старые данные
+                return;
+            }
+
+            if (CandlesAll == null)
+            {
+                // пришла первая сделка
+                CandlesAll = new List<Candle>();
+
+                DateTime timeNextCandle = time;
+
+                while (timeNextCandle.Second % 1 != 0)
+                {
+                    timeNextCandle = timeNextCandle.AddSeconds(-1);
+                }
+
+
+                while (timeNextCandle.Millisecond != 0)
+                {
+                    timeNextCandle = timeNextCandle.AddMilliseconds(-1);
+                }
+
+                Candle candle = new Candle()
+                {
+                    Close = price,
+                    High = price,
+                    Low = price,
+                    Open = price,
+                    State = CandleState.Started,
+                    TimeStart = timeNextCandle,
+                    Volume = volume
+                };
+
+                CandlesAll.Add(candle);
+
+                if (canPushUp)
+                {
+                    UpdateChangeCandle();
+                }
+
+                return;
+            }
+
+            bool candleReady = false;
+
+            Candle lastCandle = CandlesAll[CandlesAll.Count - 1];
+
+            if (lastCandle.High - lastCandle.Open >= _timeFrameBuilder.ReversCandlesPunktsMinMove && //движение нужное есть
+                lastCandle.High - lastCandle.Close >= _timeFrameBuilder.ReversCandlesPunktsBackMove) // откат имеется
+            { // есть откат от хая
+                candleReady = true;
+            }
+
+            if (lastCandle.Open - lastCandle.Low >= _timeFrameBuilder.ReversCandlesPunktsMinMove && //движение нужное есть
+                lastCandle.Close - lastCandle.Low >= _timeFrameBuilder.ReversCandlesPunktsBackMove) // откат имеется
+            { // есть откат от лоя
+                candleReady = true;
+            }
+
+            if (CandlesAll != null &&
+                candleReady)
+            {
+                // если пришли данные из новой свечки
+
+                if (CandlesAll[CandlesAll.Count - 1].State != CandleState.Finished)
+                {
+                    // если последнюю свечку ещё не закрыли и не отправили
+                    CandlesAll[CandlesAll.Count - 1].State = CandleState.Finished;
+
+                    if (canPushUp)
+                    {
+                        UpdateFinishCandle();
+                    }
+                }
+
+                DateTime timeNextCandle = time;
+
+                while (timeNextCandle.Millisecond != 0)
+                {
+                    timeNextCandle = timeNextCandle.AddMilliseconds(-1);
+                }
+
+                Candle newCandle = new Candle()
+                {
+                    Close = price,
+                    High = price,
+                    Low = price,
+                    Open = price,
+                    State = CandleState.Started,
+                    TimeStart = timeNextCandle,
+                    Volume = volume
+                };
+
+                CandlesAll.Add(newCandle);
+
+                if (canPushUp)
+                {
+                    UpdateChangeCandle();
+                }
+
+                return;
+            }
+
+            if (CandlesAll != null &&
+                candleReady == false)
+            {
+                // если пришли данные внутри свечи
+
+                CandlesAll[CandlesAll.Count - 1].Volume += volume;
+                CandlesAll[CandlesAll.Count - 1].Close = price;
+
+                if (CandlesAll[CandlesAll.Count - 1].High < price)
+                {
+                    CandlesAll[CandlesAll.Count - 1].High = price;
+                }
+
+                if (CandlesAll[CandlesAll.Count - 1].Low > price)
+                {
+                    CandlesAll[CandlesAll.Count - 1].Low = price;
+                }
+
+                if (canPushUp)
+                {
+                    UpdateChangeCandle();
+                }
+            }
         }
 
         /// <summary>
@@ -1463,6 +1721,16 @@ namespace OsEngine.Entity
         /// <summary>
         /// свечи хейкен аши
         /// </summary>
-        HeikenAshi
+        HeikenAshi,
+
+        /// <summary>
+        /// реверсивные свечи
+        /// </summary>
+        Rеvers,
+
+        /// <summary>
+        /// рендж бары
+        /// </summary>
+        Range
     }
 }

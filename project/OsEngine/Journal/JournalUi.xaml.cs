@@ -120,7 +120,7 @@ namespace OsEngine.Journal
                     {
                         for (int i2 = 0; i2 < _botsJournals[i]._Tabs.Count; i2++)
                         {
-                            string nameTab = ((TabItem)TabControlLeft.SelectedItem).Header.ToString();
+                            string nameTab = ((TabItem)TabControlLeft.SelectedItem).Header.ToString().Replace(" ","");
                             // 2 берём только наши вкладки
                             if (name == "V" || nameTab == "V" || nameTab == _botsJournals[i]._Tabs[i2].TabNum.ToString())
                             {
@@ -408,13 +408,13 @@ namespace OsEngine.Journal
                     {
                         if (_botsJournals[i]._Tabs.Count > 1)
                         {
-                            TabItem item = new TabItem() { Header = "V", FontSize = 12 };
+                            TabItem item = new TabItem() { Header = " V", FontSize = 12 };
                             TabControlLeft.Items.Add(item);
                         }
 
                         for (int i2 = 0; i2 < _botsJournals[i]._Tabs.Count; i2++)
                         {
-                            TabItem item = new TabItem() { Header = i2.ToString(), FontSize = 12 };
+                            TabItem item = new TabItem() { Header = " " + i2.ToString(), FontSize = 12 };
                             TabControlLeft.Items.Add(item);
                         }
 
@@ -424,7 +424,7 @@ namespace OsEngine.Journal
 
                 if (((TabItem)TabBots.Items[TabBots.SelectedIndex]).Header.ToString() == "V")
                 {
-                    TabItem item = new TabItem() { Header = "V", FontSize = 12 };
+                    TabItem item = new TabItem() { Header = " V", FontSize = 12 };
                     TabControlLeft.Items.Add(item);
                     TabControlLeft.SelectedItem = item;
                 }
@@ -457,26 +457,12 @@ namespace OsEngine.Journal
         {
             try
             {
-                _gridStatistics = new DataGridView();
-                HostStatistics.Child = _gridStatistics;
-                HostStatistics.Child.Show();
-                _gridStatistics.AllowUserToOrderColumns = false;
+                _gridStatistics = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
+
                 _gridStatistics.AllowUserToResizeRows = false;
-                _gridStatistics.AllowUserToDeleteRows = false;
-                _gridStatistics.AllowUserToAddRows = false;
-                _gridStatistics.RowHeadersVisible = false;
-                _gridStatistics.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-                _gridStatistics.MultiSelect = false;
-
-
-                DataGridViewCellStyle style = new DataGridViewCellStyle();
-                style.Alignment = DataGridViewContentAlignment.BottomRight;
-                style.SelectionBackColor = Color.White;
-                style.SelectionForeColor = Color.Black;
-
 
                 CustomDataGridViewCell cell0 = new CustomDataGridViewCell();
-                cell0.Style = style;
+                cell0.Style = _gridStatistics.DefaultCellStyle;
                 cell0.AdvancedBorderStyle = new DataGridViewAdvancedBorderStyle
                 {
                     Bottom = DataGridViewAdvancedCellBorderStyle.None,
@@ -484,6 +470,9 @@ namespace OsEngine.Journal
                     Left = DataGridViewAdvancedCellBorderStyle.Inset,
                     Right = DataGridViewAdvancedCellBorderStyle.Inset
                 };
+
+                HostStatistics.Child = _gridStatistics;
+                HostStatistics.Child.Show();
 
                 DataGridViewColumn column0 = new DataGridViewColumn();
                 column0.CellTemplate = cell0;
@@ -518,39 +507,6 @@ namespace OsEngine.Journal
                 for (int i = 0; i < 27; i++)
                 {
                     _gridStatistics.Rows.Add(); // добавление строки
-                    DataGridViewRow newRow = _gridStatistics.Rows[_gridStatistics.Rows.Count - 1];
-                    for (int i2 = 0; i2 < 4; i2++)
-                    {
-
-                        Color lineColor = new Color();
-                        if (i % 2 > 0) lineColor = Color.FromArgb(200, 200, 200); //WhiteSmoke;
-                        else lineColor = Color.White;
-
-                        newRow.Cells[i2] = (new CustomDataGridViewCell()
-                        {
-
-                            AdvancedBorderStyle =
-                                new DataGridViewAdvancedBorderStyle()
-                                {
-                                    Top = DataGridViewAdvancedCellBorderStyle.None,
-                                    Bottom = DataGridViewAdvancedCellBorderStyle.None,
-                                    Left = DataGridViewAdvancedCellBorderStyle.Inset,
-                                    Right = DataGridViewAdvancedCellBorderStyle.Inset
-                                },
-
-                            Style = new DataGridViewCellStyle()
-                            {
-                                Alignment = DataGridViewContentAlignment.BottomRight,
-                                SelectionBackColor = Color.White,
-                                SelectionForeColor = Color.Black,
-                                BackColor = lineColor
-                            }
-
-
-                        });
-
-
-                    }
                 }
 
                 _gridStatistics.Rows[0].Cells[0].Value = @"Чистый П\У";
@@ -559,51 +515,12 @@ namespace OsEngine.Journal
                 _gridStatistics.Rows[3].Cells[0].Value = "Profit Factor";
                 _gridStatistics.Rows[4].Cells[0].Value = "Recovery";
 
-                for (int i = 0; i < 4; i++)
-                {
-
-                    _gridStatistics.Rows[5].Cells[i] = new CustomDataGridViewCell()
-                    {
-                        AdvancedBorderStyle =
-                            new DataGridViewAdvancedBorderStyle()
-                            {
-                                Top = DataGridViewAdvancedCellBorderStyle.None,
-                                Bottom = DataGridViewAdvancedCellBorderStyle.Single,
-                                Left = DataGridViewAdvancedCellBorderStyle.Inset,
-                                Right = DataGridViewAdvancedCellBorderStyle.Inset
-                            },
-                        Style = new DataGridViewCellStyle()
-                        {
-                            BackColor = Color.FromArgb(200, 200, 200)
-                        }
-                    };
-                }
-
                 _gridStatistics.Rows[6].Cells[0].Value = @"Сред. П\У   движение";
                 _gridStatistics.Rows[7].Cells[0].Value = @"Сред. П\У % движение";
                 _gridStatistics.Rows[8].Cells[0].Value = @"Сред. П\У    капитал";
                 _gridStatistics.Rows[9].Cells[0].Value = @"Сред. П\У %  капитал";
 
 
-
-                for (int i = 0; i < 4; i++)
-                {
-                    _gridStatistics.Rows[10].Cells[i] = new CustomDataGridViewCell()
-                    {
-                        AdvancedBorderStyle =
-                            new DataGridViewAdvancedBorderStyle()
-                            {
-                                Top = DataGridViewAdvancedCellBorderStyle.None,
-                                Bottom = DataGridViewAdvancedCellBorderStyle.Single,
-                                Left = DataGridViewAdvancedCellBorderStyle.Inset,
-                                Right = DataGridViewAdvancedCellBorderStyle.Inset
-                            },
-                        Style = new DataGridViewCellStyle()
-                        {
-                            BackColor = Color.White
-                        }
-                    };
-                }
                 _gridStatistics.Rows[11].Cells[0].Value = "Прибыльных сделок";
                 _gridStatistics.Rows[12].Cells[0].Value = @"Прибыльных %";
                 _gridStatistics.Rows[13].Cells[0].Value = @"Сред. П\У     движение";
@@ -611,25 +528,6 @@ namespace OsEngine.Journal
                 _gridStatistics.Rows[15].Cells[0].Value = @"Сред. П\У      капитал";
                 _gridStatistics.Rows[16].Cells[0].Value = @"Сред. П\У %    капитал";
                 _gridStatistics.Rows[17].Cells[0].Value = "Максимум подряд";
-
-                for (int i = 0; i < 4; i++)
-                {
-                    _gridStatistics.Rows[18].Cells[i] = new CustomDataGridViewCell()
-                    {
-                        AdvancedBorderStyle =
-                            new DataGridViewAdvancedBorderStyle()
-                            {
-                                Top = DataGridViewAdvancedCellBorderStyle.None,
-                                Bottom = DataGridViewAdvancedCellBorderStyle.Single,
-                                Left = DataGridViewAdvancedCellBorderStyle.Inset,
-                                Right = DataGridViewAdvancedCellBorderStyle.Inset
-                            },
-                        Style = new DataGridViewCellStyle()
-                        {
-                            BackColor = Color.White
-                        }
-                    };
-                }
 
                 _gridStatistics.Rows[19].Cells[0].Value = "Убыточных сделок";
                 _gridStatistics.Rows[20].Cells[0].Value = "Убыточных %";
@@ -720,7 +618,7 @@ namespace OsEngine.Journal
 
                 _chartEquity.Series.Clear();
                 _chartEquity.ChartAreas.Clear();
-                _chartEquity.BackColor = Color.FromArgb(255, 27, 27, 27);
+                _chartEquity.BackColor = Color.FromArgb(17, 18, 23);
                 _chartEquity.Click += _chartEquity_Click;
 
                 ChartArea areaLineProfit = new ChartArea("ChartAreaProfit");
@@ -745,7 +643,7 @@ namespace OsEngine.Journal
                 for (int i = 0; i < _chartEquity.ChartAreas.Count; i++)
                 {
                     _chartEquity.ChartAreas[i].BorderColor = Color.Black;
-                    _chartEquity.ChartAreas[i].BackColor = Color.FromArgb(255, 27, 27, 27);
+                    _chartEquity.ChartAreas[i].BackColor = Color.FromArgb(17, 18, 23);
                     _chartEquity.ChartAreas[i].CursorY.LineColor = Color.Gainsboro;
                     _chartEquity.ChartAreas[i].CursorX.LineColor = Color.Black;
                     _chartEquity.ChartAreas[i].AxisX.TitleForeColor = Color.Gainsboro;
@@ -912,7 +810,7 @@ namespace OsEngine.Journal
 
                 _chartEquity.Series[i].Points[index].Label = label;
                 _chartEquity.Series[i].Points[index].LabelForeColor = _chartEquity.Series[i].Points[index].Color;
-                _chartEquity.Series[i].Points[index].LabelBackColor = Color.Black;
+                _chartEquity.Series[i].Points[index].LabelBackColor = Color.FromArgb(17, 18, 23);
             }
         }
 
@@ -934,7 +832,7 @@ namespace OsEngine.Journal
                 HostVolume.Child = _chartVolume;
                 HostVolume.Child.Show();
 
-                _chartVolume.BackColor = Color.FromArgb(255, 27, 27, 27);
+                _chartVolume.BackColor = Color.FromArgb(17, 18, 23);
                 _chartVolume.Click += _chartVolume_Click;
             }
             catch (Exception error)
@@ -1114,7 +1012,7 @@ namespace OsEngine.Journal
             areaLineSecurity.CursorX.IsUserEnabled = true; //чертa
 
             areaLineSecurity.BorderColor = Color.Black;
-            areaLineSecurity.BackColor = Color.FromArgb(255, 27, 27, 27);
+            areaLineSecurity.BackColor = Color.FromArgb(17, 18, 23);
             areaLineSecurity.CursorY.LineColor = Color.Gainsboro;
             areaLineSecurity.CursorX.LineColor = Color.Black;
             areaLineSecurity.AxisX.TitleForeColor = Color.Gainsboro;
@@ -1239,7 +1137,7 @@ namespace OsEngine.Journal
 
                 _chartVolume.Series[i].Points[index].Label = label;
                 _chartVolume.Series[i].Points[index].LabelForeColor = _chartVolume.Series[i].Points[index].Color;
-                _chartVolume.Series[i].Points[index].LabelBackColor = Color.Black;
+                _chartVolume.Series[i].Points[index].LabelBackColor = Color.FromArgb(17, 18, 23);
             }
         }
 
@@ -1263,7 +1161,7 @@ namespace OsEngine.Journal
 
                 _chartDd.Series.Clear();
                 _chartDd.ChartAreas.Clear();
-                _chartDd.BackColor = Color.FromArgb(255, 27, 27, 27);
+                _chartDd.BackColor = Color.FromArgb(17, 18, 23);
                 _chartDd.Click += _chartDd_Click;
 
                 ChartArea areaDdPunct = new ChartArea("ChartAreaDdPunct");
@@ -1288,7 +1186,7 @@ namespace OsEngine.Journal
                 for (int i = 0; i < _chartDd.ChartAreas.Count; i++)
                 {
                     _chartDd.ChartAreas[i].BorderColor = Color.Black;
-                    _chartDd.ChartAreas[i].BackColor = Color.FromArgb(255, 27, 27, 27);
+                    _chartDd.ChartAreas[i].BackColor = Color.FromArgb(17, 18, 23);
                     _chartDd.ChartAreas[i].CursorY.LineColor = Color.Gainsboro;
                     _chartDd.ChartAreas[i].CursorX.LineColor = Color.Black;
                     _chartDd.ChartAreas[i].AxisX.TitleForeColor = Color.Gainsboro;
@@ -1481,22 +1379,10 @@ namespace OsEngine.Journal
         {
             try
             {
-                DataGridView newGrid = new DataGridView();
-
-                newGrid.AllowUserToOrderColumns = false;
-                newGrid.AllowUserToResizeRows = false;
-                newGrid.AllowUserToDeleteRows = false;
-                newGrid.AllowUserToAddRows = false;
-                newGrid.RowHeadersVisible = false;
-                newGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-                newGrid.MultiSelect = false;
-               
-
-                DataGridViewCellStyle style = new DataGridViewCellStyle();
-                style.Alignment = DataGridViewContentAlignment.BottomRight;
-
+                DataGridView newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
                 DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-                cell0.Style = style;
+                cell0.Style = newGrid.DefaultCellStyle;
+                newGrid.ForeColor = Color.Black;
 
                 DataGridViewColumn colum0 = new DataGridViewColumn();
                 colum0.CellTemplate = cell0;
@@ -1654,36 +1540,16 @@ namespace OsEngine.Journal
 
             try
             {
-                DataGridViewCellStyle styleDefolt = new DataGridViewCellStyle();
-
+                DataGridViewRow nRow = new DataGridViewRow();
 
                 if (position.ProfitPortfolioPunkt > 0)
                 {
-                    styleDefolt.BackColor = Color.DarkSeaGreen;
-                    styleDefolt.SelectionBackColor = Color.SeaGreen;
+                    nRow.DefaultCellStyle.ForeColor = Color.FromArgb(57, 157, 54);
                 }
-                else if (position.ProfitPortfolioPunkt < 0)
+                else if (position.ProfitPortfolioPunkt <= 0)
                 {
-                    styleDefolt.BackColor = Color.LightSalmon;
-                    styleDefolt.SelectionBackColor = Color.Salmon;
+                    nRow.DefaultCellStyle.ForeColor = Color.FromArgb(254, 84, 0);
                 }
-
-                DataGridViewCellStyle styleSide = new DataGridViewCellStyle();
-
-                if (position.Direction == Side.Buy)
-                {
-                    styleSide.BackColor = Color.DodgerBlue;
-                    styleSide.SelectionBackColor = Color.DodgerBlue;
-                }
-                else
-                {
-                    styleSide.BackColor = Color.DarkOrange;
-                    styleSide.SelectionBackColor = Color.DarkOrange;
-                }
-
-                DataGridViewRow nRow = new DataGridViewRow();
-
-                nRow.DefaultCellStyle = styleDefolt;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[0].Value = position.Number;
@@ -1702,7 +1568,17 @@ namespace OsEngine.Journal
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[5].Value = position.Direction;
-                nRow.Cells[5].Style = styleSide;
+
+                if (position.Direction == Side.Buy)
+                {
+                    nRow.Cells[5].Style.ForeColor = Color.DodgerBlue;
+                    //nRow.Cells[5].Style.SelectionBackColor = Color.DodgerBlue;
+                }
+                else
+                {
+                    nRow.Cells[5].Style.ForeColor = Color.DarkRed;
+                    //nRow.Cells[5].Style.SelectionBackColor = Color.DarkOrange;
+                }
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[6].Value = position.State;

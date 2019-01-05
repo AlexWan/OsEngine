@@ -40,24 +40,10 @@ namespace OsEngine.Alerts
             
             Load();
 
-            GridViewBox = new DataGridView();
-
-            GridViewBox.AllowUserToOrderColumns = true;
-            GridViewBox.AllowUserToResizeRows = true;
-            GridViewBox.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-            GridViewBox.AllowUserToDeleteRows = false;
-            GridViewBox.AllowUserToAddRows = false;
-            GridViewBox.RowHeadersVisible = false;
-            GridViewBox.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            GridViewBox.MultiSelect = false;
-
-            DataGridViewCellStyle style = new DataGridViewCellStyle();
-            style.Alignment = DataGridViewContentAlignment.TopLeft;
-            style.WrapMode = DataGridViewTriState.True;
-            GridViewBox.DefaultCellStyle = style;
+            GridViewBox = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,DataGridViewAutoSizeRowsMode.None);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = style;
+            cell0.Style = GridViewBox.DefaultCellStyle;
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;

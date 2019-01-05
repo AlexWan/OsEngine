@@ -8,9 +8,9 @@
         <TextBox Name="TextBoxIP" Height="23" Margin="159,10,15,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBoxName" Height="23" Margin="159,38,15,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBoxPassword" Height="23" Margin="159,66,15,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="IP" HorizontalAlignment="Left" Margin="62,8,0,0" VerticalAlignment="Top"/>
-        <Label Content="User Name" HorizontalAlignment="Left" Margin="39,36,0,0" VerticalAlignment="Top"/>
-        <Label Content="User Password" HorizontalAlignment="Left" Margin="30,64,0,0" VerticalAlignment="Top"/>
+        <Label Content="IP" HorizontalAlignment="Left" Margin="62,10,0,0" VerticalAlignment="Top"/>
+        <Label Content="User Name" HorizontalAlignment="Left" Margin="39,38,0,0" VerticalAlignment="Top"/>
+        <Label Content="User Password" HorizontalAlignment="Left" Margin="30,66,0,0" VerticalAlignment="Top"/>
 
     </Grid>
 </Window>

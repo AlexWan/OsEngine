@@ -6,7 +6,7 @@
         <Rectangle Margin="5,5,5,37"/>
         <Button x:Name ="ButtonAccept"  Content="Принять" HorizontalAlignment="Right" Margin="5,5,5,10" VerticalAlignment="Bottom" Width="100" Click="ButtonAccept_Click"/>
         <TextBox x:Name ="TextBoxLenght" Margin="154,20,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Длинная" HorizontalAlignment='Left' Margin="23,20,0,0" VerticalAlignment="Top"/>
+        <Label Content="Длинная" HorizontalAlignment='Left' Margin="21,20,0,0" VerticalAlignment="Top"/>
         <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовывать" HorizontalAlignment="Left" Margin="154,147,0,0" VerticalAlignment="Top"/>
         <Button x:Name="ButtonColorUp" Content="Цвет вверх" HorizontalAlignment="Left" Margin="21,80,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"  />
         <WindowsFormsHost x:Name="HostColorUp" Height="25" Margin="154,80,20,0" VerticalAlignment="Top"/>

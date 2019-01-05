@@ -5,7 +5,7 @@
     <Grid>
         <Rectangle Height="69" Margin="5,0,2,0" Stroke="Black" VerticalAlignment="Top"/>
         <TabControl x:Name="TabControlPrime" Margin="5,61,2,2">
-            <TabItem Header="Данные"  Foreground="Black" Margin="0,0,-4,0" >
+            <TabItem Header="Данные"   Margin="0,0,-4,0" >
                 <Grid >
                     <WindowsFormsHost x:Name="HostSecurities" Foreground="Black" Margin="14,74,3,0" Height="128" VerticalAlignment="Top"/>
                     <ComboBox x:Name="ComboBoxSets" Margin="0,14,3,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="331"/>
@@ -17,7 +17,7 @@
                     <WindowsFormsHost x:Name="HostLogDataServer" Margin="14,207,3,3"/>
                 </Grid>
             </TabItem>
-            <TabItem Header="Открытие позиции" Foreground="Black" >
+            <TabItem Header="Открытие позиции"  >
                 <Grid >
                     <WindowsFormsHost x:Name="HostGridPatternsToOpen" Margin="14,40,233,5"/>
                     <Label Content="Паттерны" HorizontalAlignment="Left" Margin="14,10,0,0" VerticalAlignment="Top"/>
@@ -28,29 +28,29 @@
                     <ComboBox x:Name="ComboBoxSideInter" ToolTip="Что будем делать когда наёдём нужные паттерны для входа. Покупать или продавать" HorizontalAlignment="Left" Margin="181,10,0,0"   VerticalAlignment="Top" Width="151"/>
                 </Grid>
             </TabItem>
-            <TabItem Header="Закрытие позиции" Foreground="Black" >
+            <TabItem Header="Закрытие позиции"  >
                 <Grid >
-                    <CheckBox x:Name="CheckBoxProfitOrderIsOn" Content="Профит-ордер %" HorizontalAlignment="Left" Margin="88,35,0,0" VerticalAlignment="Top"/>
-                    <CheckBox x:Name="CheckBoxStopOrderIsOn" Content="Стоп-ордер %" HorizontalAlignment="Left" Margin="88,7,0,0" VerticalAlignment="Top"/>
+                    <CheckBox x:Name="CheckBoxProfitOrderIsOn" Content="Профит-ордер %" HorizontalAlignment="Left" Margin="88,28,0,0" VerticalAlignment="Top"/>
+                    <CheckBox x:Name="CheckBoxStopOrderIsOn" Content="Стоп-ордер %" HorizontalAlignment="Left" Margin="88,0,0,0" VerticalAlignment="Top"/>
                     <TextBox x:Name="TextBoxStopOrderValue" ToolTip="Величина стоп ордера в %" HorizontalAlignment="Left" Height="23" Margin="204,0,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
                     <TextBox x:Name="TextBoxProfitOrderValue" ToolTip="Величина профит ордера в %" HorizontalAlignment="Left" Height="23" Margin="204,28,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
                     <TextBox x:Name="TextBoxExitFromSomeCandlesValue" ToolTip="Через сколько свечей позиция будет принудительно закрыта" Height="23" Margin="0,0,45,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="141"/>
-                    <CheckBox x:Name="CheckBoxExitFromSomeCandlesIsOn"  Content="Через N свечей" HorizontalAlignment="Right" Margin="0,7,204,0" VerticalAlignment="Top"/>
-                    <Label Content="Паттерны" HorizontalAlignment="Left" Margin="14,59,0,0" VerticalAlignment="Top" />
-                    <WindowsFormsHost x:Name="HostGridPatternToClose" Margin="14,89,233,10"/>
+                    <CheckBox x:Name="CheckBoxExitFromSomeCandlesIsOn"  Content="Через N свечей" HorizontalAlignment="Right" Margin="0,0,204,0" VerticalAlignment="Top"/>
+                    <Label Content="Паттерны" HorizontalAlignment="Left" Margin="14,56,0,0" VerticalAlignment="Top" />
+                    <WindowsFormsHost x:Name="HostGridPatternToClose" Margin="14,84,233,10"/>
                     <Label Content="* все настройки в минимальных движениях цены инструмента" FontSize="12" VerticalAlignment="Bottom" Margin="0,0,2,-9" HorizontalAlignment="Right" Width="330"/>
                     <TextBox x:Name="TextBoxTreilingStopValue" ToolTip="Величина подтягивающегося стопа в %" Height="23" Margin="0,28,45,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="141"/>
-                    <CheckBox x:Name="CheckBoxTrailingStopIsOn" Content="Трейлинг-Стоп %" HorizontalAlignment="Right" Margin="0,35,195,0" VerticalAlignment="Top"/>
-                    <WindowsFormsHost x:Name="HostSinglePatternToClose" HorizontalAlignment="Right" Margin="0,89,5,10" Width="223"/>
+                    <CheckBox x:Name="CheckBoxTrailingStopIsOn" Content="Трейлинг-Стоп %" HorizontalAlignment="Right" Margin="0,28,195,0" VerticalAlignment="Top"/>
+                    <WindowsFormsHost x:Name="HostSinglePatternToClose" HorizontalAlignment="Right" Margin="0,84,5,10" Width="223"/>
                     <TextBox x:Name="TextBoxWeigthToExit" ToolTip="Общий вес найденных на текущей свече паттернов, необходимых для выхода в позицию" Height="23" Margin="0,56,45,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="141"/>
-                    <Label Content="Вес для выхода"  Margin="0,56,195,0" HorizontalAlignment="Right" VerticalAlignment="Top" />
+                    <Label Content="Вес для выхода"  Margin="0,56,215,0" HorizontalAlignment="Right" VerticalAlignment="Top" />
                 </Grid>
             </TabItem>
             <TabItem Header="Поиск паттерна" Margin="-2,0">
                 <Grid >
                     <TabControl x:Name="TabControlTypePatternsToFind" Margin="12,0,0,141" HorizontalAlignment="Left" Width="377">
                         <TabItem Header="Свечи">
-                            <Grid Background="Black">
+                            <Grid >
                                 <TextBox x:Name="TextBoxCandlePatternLength" HorizontalAlignment="Left" Height="23" Margin="128,58,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
                                 <Label Content="Длина" HorizontalAlignment="Left" Margin="64,56,0,0" VerticalAlignment="Top"/>
                                 <ComboBox x:Name="ComboBoxTypeWatchCandlePattern" HorizontalAlignment="Left" Margin="128,123,0,0" VerticalAlignment="Top" Width="199"/>
@@ -58,13 +58,13 @@
                             </Grid>
                         </TabItem>
                         <TabItem Header="Объём">
-                            <Grid Background="Black">
-                                <Label Content="Длина" HorizontalAlignment="Left" Margin="71,99,0,0" VerticalAlignment="Top"/>
-                                <TextBox Name="TextBoxVolumePatternLength" HorizontalAlignment="Left" Height="23" Margin="172,99,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="162"/>
+                            <Grid >
+                                <Label Content="Длина" HorizontalAlignment="Left" Margin="67,56,0,0" VerticalAlignment="Top"/>
+                                <TextBox Name="TextBoxVolumePatternLength" HorizontalAlignment="Left" Height="23" Margin="130,56,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="200"/>
                             </Grid>
                         </TabItem>
                         <TabItem Header="Время">
-                            <Grid Background="Black">
+                            <Grid >
                                 <Label Content="Торговый период" HorizontalAlignment="Left" VerticalAlignment="Top"/>
                                 <TextBox Name="TextBoxPatternTimeStartTime" HorizontalAlignment="Left" Height="23" Margin="174,72,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="169"/>
                                 <TextBox x:Name="TextBoxPatternTimeEndTime" HorizontalAlignment="Left" Height="23" Margin="174,119,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="169"/>
@@ -73,7 +73,7 @@
                             </Grid>
                         </TabItem>
                         <TabItem Header="Индикаторы">
-                            <Grid Background="Black">
+                            <Grid >
                                 <Label Content="Анализ линий индикаторов" HorizontalAlignment="Left" VerticalAlignment="Top"/>
                                 <TextBox Name="TextBoxPatternIndicatorLenght" HorizontalAlignment="Left"  Height="23" Margin="128,58,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
                                 <Label Content="Длина" HorizontalAlignment="Left" Margin="59,56,0,0" VerticalAlignment="Top"/>
@@ -83,16 +83,16 @@
                         </TabItem>
                     </TabControl>
                     <ComboBox x:Name="ComboBoxPlaceToUsePattern" Margin="0,38,1,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="145"/>
-                    <Label Content="Использование" HorizontalAlignment="Right" Margin="0,25,52,0" FontSize="13" Height="13" VerticalAlignment="Top"/>
+                    <Label Content="Использование" HorizontalAlignment="Right" Margin="0,25,44,0" FontSize="13" Height="13" VerticalAlignment="Top"/>
                     <TextBox x:Name="TextBoxWeigthToTempPattern" HorizontalAlignment="Right" Height="23" Margin="0,76,1,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="145"/>
                     <Label Content="Вес" HorizontalAlignment="Right" Margin="0,63,118,0" FontSize="13" Height="13" VerticalAlignment="Top"/>
                     <Button x:Name="ButtonReloadTempPattern" Content="Пересчитать" Margin="0,0,1,202" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="144" Click="ButtonReloadTempPattern_Click"/>
                     <WindowsFormsHost x:Name="HostTempPattern" Margin="394,25,152,141"/>
-                    <Button x:Name="ButtonSaveTempPattern" Content="Сохранить" HorizontalAlignment="Right" Margin="0,0,1,142" VerticalAlignment="Bottom" Width="144" Click="ButtonSaveTempPattern_Click"/>
+                    <Button x:Name="ButtonSaveTempPattern" Content="Сохранить" HorizontalAlignment="Right" Margin="0,0,1,172" VerticalAlignment="Bottom" Width="144" Click="ButtonSaveTempPattern_Click"/>
                     <TextBox x:Name="TextBoxShortReportToTempPattern" Height="114" Margin="394,0,2,3" TextWrapping="Wrap" VerticalAlignment="Bottom"/>
                     <Label Content="Короткий отчёт" HorizontalAlignment="Left" Margin="394,0,0,116" VerticalAlignment="Bottom"/>
                     <TextBox x:Name="TextBoxExpandToTempPattern" HorizontalAlignment="Right" Height="23" Margin="0,117,1,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="145"/>
-                    <Label Content="Узнаваемость" HorizontalAlignment="Right" Margin="0,102,61,0" FontSize="13" Height="13" VerticalAlignment="Top"/>
+                    <Label Content="Узнаваемость" HorizontalAlignment="Right" Margin="0,104,55,0" FontSize="13" Height="13" VerticalAlignment="Top"/>
                     <Label Content="Автоматический поиск" HorizontalAlignment="Left" Margin="12,0,0,116" VerticalAlignment="Bottom"/>
                     <Label Content="МО >" HorizontalAlignment="Left" Margin="12,0,0,86" VerticalAlignment="Bottom"/>
                     <TextBox Name="TextBoxMiningMo" HorizontalAlignment="Left" Height="23" Margin="78,0,0,86" TextWrapping="Wrap" VerticalAlignment="Bottom" Width="120"/>

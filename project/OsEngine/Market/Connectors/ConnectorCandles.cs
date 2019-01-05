@@ -363,6 +363,56 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// величина рейдж баров
+        /// </summary>
+        public decimal RangeCandlesPunkts
+        {
+            get { return TimeFrameBuilder.RangeCandlesPunkts; }
+            set
+            {
+                if (value != TimeFrameBuilder.RangeCandlesPunkts)
+                {
+                    TimeFrameBuilder.RangeCandlesPunkts = value;
+                    Reconnect();
+                }
+            }
+        }
+
+        /// <summary>
+        /// минимальное движение для риверсивных баров
+        /// </summary>
+        public decimal ReversCandlesPunktsMinMove
+        {
+            get { return TimeFrameBuilder.ReversCandlesPunktsMinMove; }
+            set
+            {
+                if (value == TimeFrameBuilder.ReversCandlesPunktsMinMove)
+                {
+                    return;
+                }
+                TimeFrameBuilder.ReversCandlesPunktsMinMove = value;
+                Reconnect();
+            }
+        }
+
+        /// <summary>
+        /// величина отката для риверсивных баров
+        /// </summary>
+        public decimal ReversCandlesPunktsBackMove
+        {
+            get { return TimeFrameBuilder.ReversCandlesPunktsBackMove; }
+            set
+            {
+                if (value == TimeFrameBuilder.ReversCandlesPunktsBackMove)
+                {
+                    return;
+                }
+                TimeFrameBuilder.ReversCandlesPunktsBackMove = value;
+                Reconnect();
+            }
+        }
+
+        /// <summary>
         /// ТаймФрейм свечек в виде TimeSpan на который подписан коннектор
         /// </summary>
         public TimeSpan TimeFrameTimeSpan

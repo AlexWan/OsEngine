@@ -5,11 +5,13 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Media;
 using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
+using OsEngine.Entity;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Optimizer;
@@ -102,31 +104,17 @@ namespace OsEngine.Logging
 
             LogsToCheck.Add(this);
 
-            _grid = new DataGridView();
-
-            _grid.AllowUserToOrderColumns = true;
-            _grid.AllowUserToResizeRows = true;
-            _grid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-            _grid.AllowUserToDeleteRows = false;
-            _grid.AllowUserToAddRows = false;
-            _grid.RowHeadersVisible = false;
-            _grid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            _grid.MultiSelect = false;
-
-            DataGridViewCellStyle style = new DataGridViewCellStyle();
-            style.Alignment = DataGridViewContentAlignment.TopLeft;
-            style.WrapMode = DataGridViewTriState.True;
-            _grid.DefaultCellStyle = style;
+            _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = style;
+            cell0.Style = _grid.DefaultCellStyle;
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;
             column0.HeaderText = @"Время";
             column0.ReadOnly = true;
             column0.Width = 170;
-
+            
             _grid.Columns.Add(column0);
 
             DataGridViewColumn column1 = new DataGridViewColumn();
@@ -302,6 +290,7 @@ namespace OsEngine.Logging
 
             LogMessage messageLog = new LogMessage { Message = message, Time = DateTime.Now, Type = type };
             _incomingMessages.Enqueue(messageLog);
+            _messageSender.AddNewMessage(messageLog);
 
             if (messageLog.Type == LogMessageType.Error)
             {
@@ -326,7 +315,7 @@ namespace OsEngine.Logging
 
                 _messageses.Add(messageLog);
 
-                _messageSender.AddNewMessage(messageLog);
+                
 
                 DataGridViewRow row = new DataGridViewRow();
                 row.Cells.Add(new DataGridViewTextBoxCell());
@@ -507,6 +496,10 @@ namespace OsEngine.Logging
             _gridErrorLog.RowHeadersVisible = false;
             _gridErrorLog.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             _gridErrorLog.MultiSelect = false;
+
+            _gridErrorLog.BackColor = Color.FromArgb(17, 18, 23);
+            _gridErrorLog.BackgroundColor = Color.FromArgb(17, 18, 23);
+            _gridErrorLog.GridColor = Color.FromArgb(17, 18, 23);
 
             DataGridViewCellStyle style = new DataGridViewCellStyle();
             style.Alignment = DataGridViewContentAlignment.TopLeft;

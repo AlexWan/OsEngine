@@ -6,8 +6,8 @@
         <Rectangle Margin="5,5,5,37"/>
         <Label Content="Объём Первый" HorizontalAlignment="Left" Margin="27,20,0,0" VerticalAlignment="Top" />
         <TextBox Name="TextBoxVolumeOne"  HorizontalAlignment="Left" Height="23" Margin="173,20,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
-        <Label Content="Разница RSI" HorizontalAlignment="Left" Margin="27,90,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.465,0.754" />
-        <TextBox Name="Spread" HorizontalAlignment="Left" Height="23" Margin="173,90,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
+        <Label Content="Разница RSI" HorizontalAlignment="Left" Margin="27,76,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.465,0.754" />
+        <TextBox Name="Spread" HorizontalAlignment="Left" Height="23" Margin="173,76,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
         <Button Content="Принять" Margin="0,0,10,10" Click="Button_Click" Height="22" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="120"/>
         <TextBox x:Name="TextBoxVolumeTwo"  HorizontalAlignment="Left" Height="23" Margin="173,48,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
         <Label Content="Объём Второй" HorizontalAlignment="Left" Margin="27,48,0,0" VerticalAlignment="Top" />

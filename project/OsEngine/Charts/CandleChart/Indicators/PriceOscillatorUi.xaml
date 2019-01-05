@@ -11,7 +11,7 @@
         <Button x:Name="ButtonMa1" Content="MaShort" HorizontalAlignment="Left" Margin="22,77,0,0" VerticalAlignment="Top" Width="120" Click="ButtonMa1_Click" />
         <Button x:Name="ButtonMa2" Content="MaLong" Margin="154,77,20,0" VerticalAlignment="Top" Click="ButtonMa2_Click" />
         <ComboBox Name="ComboBoxTypeSerch" Margin="154,46,20,0" VerticalAlignment="Top"/>
-        <Label Content="Тип рассчёта" HorizontalAlignment="Left" Margin="54,46,0,0" VerticalAlignment="Top" Width="88"/>
+        <Label Content="Тип расчёта" HorizontalAlignment="Left" Margin="22,46,0,0" VerticalAlignment="Top" Width="88"/>
 
     </Grid>
 </Window>

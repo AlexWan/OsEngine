@@ -5,31 +5,36 @@
              StartupUri="MainWindow.xaml">
     <Application.Resources>
 
-        <SolidColorBrush x:Key="ControlForeground" Color="#FFFD9804" />
+        <SolidColorBrush x:Key="ControlForeground" Color="#ff5500" />
         <SolidColorBrush x:Key="ControlForegroundWhite" Color="#FFEEEFFF" />
         <SolidColorBrush x:Key="BorderBrushVisual" Color="Transparent"/>
         <SolidColorBrush x:Key="ControlPressedVisualBrush" Color="Transparent"/>
 
         <RadialGradientBrush x:Key="ControlBackgroundNormal" GradientOrigin="0.5,0">
-            <GradientStop Color ="Black"  Offset="1"/>
-            <GradientStop Color= "#FF585555" Offset="0.082"/>
+            <GradientStop Color ="#111217"  Offset="1"/>
+            <GradientStop Color= "#111217" Offset="0.082"/>
         </RadialGradientBrush>
 
-        <SolidColorBrush x:Key="StandartBackgroundBrush" Color="Black" />
+        <RadialGradientBrush x:Key="ControlBackgroundNormalLigth" GradientOrigin="0.5,0">
+            <GradientStop Color ="#151a1e" Offset="1"/>
+            <GradientStop Color= "#151a1e" Offset="0.082"/>
+        </RadialGradientBrush> 
+ 
+        <SolidColorBrush x:Key="StandartBackgroundBrush" Color="#111217" />
         
         <LinearGradientBrush x:Key="ControlBackgroundOver" EndPoint="0,1" StartPoint="0,0">
-            <GradientStop Color="#FFEFCF38" Offset="0"/>
-            <GradientStop Color="#FFFD9804" Offset="1"/>
+            <GradientStop Color="#ff5500" Offset="0"/>
+            <GradientStop Color="#ff5500" Offset="1"/>
         </LinearGradientBrush>
 
         <LinearGradientBrush x:Key="ControlBackgroundPressed" EndPoint="0,1" StartPoint="0,0">
-            <GradientStop Color="#FFEFA05D" Offset="0"/>
-            <GradientStop Color="#FFE04800" Offset="1"/>
+            <GradientStop Color="#ff5500" Offset="0"/>
+            <GradientStop Color="#ff5500" Offset="1"/>
         </LinearGradientBrush>
 
         <LinearGradientBrush x:Key="ControlLightBackground" EndPoint="0,1" StartPoint="0,0">
             <GradientStop Color="#FF878585" Offset="0"/>
-            <GradientStop Color="Black" Offset="1"/>
+            <GradientStop Color="#1c2228" Offset="1"/>
         </LinearGradientBrush>
 
         <LinearGradientBrush x:Key="DisabledBrush" EndPoint="0,1" StartPoint="0,0">
@@ -44,18 +49,18 @@
         <SolidColorBrush x:Key="FocusVisualBrush" Color="#B6BBBBBB" />
 
         <LinearGradientBrush x:Key="ControlBorderBrush" StartPoint="0,0.5" EndPoint="1,0.5">
-            <GradientStop Color="#FF686868" Offset="0.204" />
-            <GradientStop Color="#FF686868" Offset="0.864" />
+            <GradientStop Color="#1c2228" Offset="0.204" />
+            <GradientStop Color="#1c2228" Offset="0.864" />
         </LinearGradientBrush>
 
         <LinearGradientBrush x:Key="ControlActiveBorderBrush" StartPoint="0,0.5" EndPoint="1,0.5">
-            <GradientStop Color="#FFBE841D" Offset="0.204" />
-            <GradientStop Color="#FFCD9E1E" Offset="0.864" />
+            <GradientStop Color="#ff5500" Offset="0.204" />
+            <GradientStop Color="#ff5500" Offset="0.864" />
         </LinearGradientBrush>
 
         <LinearGradientBrush x:Key="ToggleButtonChecked" EndPoint="0,1" StartPoint="0,0">
-            <GradientStop Color="#FFF99743" Offset="0"/>
-            <GradientStop Color="#FFE04800" Offset="1"/>
+            <GradientStop Color="#ff5500" Offset="0"/>
+            <GradientStop Color="#ff5500" Offset="1"/>
         </LinearGradientBrush>
 
         <RadialGradientBrush x:Key="ControlBackgroundLine">
@@ -152,8 +157,8 @@
     </LinearGradientBrush>
      
          <LinearGradientBrush x:Key="TabControlItemBackgroundNormal" EndPoint="0,1" StartPoint="0,0">
-        <GradientStop Color="#FF727171" Offset="0"/>
-        <GradientStop Color="#FF494949" Offset="1"/>
+        <GradientStop Color="#151a1e" Offset="0"/>
+        <GradientStop Color="#151a1e" Offset="1"/>
     </LinearGradientBrush>
     
          <LinearGradientBrush StartPoint="0,0" EndPoint="0,1" x:Key="PressedBackgroundTabItem">
@@ -166,7 +171,7 @@
         <GradientStop Color="#4e4e4c" Offset="0"/>
     </RadialGradientBrush>
     
-         <SolidColorBrush x:Key="SliderSelectRange" Color="#FFE4960A"/>
+         <SolidColorBrush x:Key="SliderSelectRange" Color="#ff5500"/>
 
 <!-- Calendar -->
         
@@ -214,11 +219,11 @@
 
 
         <!-- Colors -->
-        <Color x:Key="BorderLightBrushGradientColor1">#FF878585</Color>
+        <Color x:Key="BorderLightBrushGradientColor1">#111217</Color>
         <Color x:Key="BorderLightBrushGradientColor2">Black</Color>
         <Color x:Key="DisabledForeground">#FF676767</Color>
         <Color x:Key="DisabledForeground3">#FF171717</Color>
-        <Color x:Key="ColorForeground">#FFFD9804</Color>
+        <Color x:Key="ColorForeground">#ff5500</Color>
         <Color x:Key="ColorForegroundWhite">#FFEEEFFF</Color>
         <Color x:Key="BorderBrushSolidColor">#FF686868</Color>
         <Color x:Key="BorderBrushGradientColor1">#FFEFCF38</Color>
@@ -226,6 +231,8 @@
         <Color x:Key="HighlightComboBoxItem1">#FF333333</Color>
         <Color x:Key="HighlightComboBoxItem2">#FF474747</Color>
         <Color x:Key="ArrowBrushComboBox">#FFDDDEEE</Color>
+        <Color x:Key="StandartBackGroundColor">#111217</Color>
+        <Color x:Key="StandartBackGroundColorLigth">#151a1e</Color>
 
         <!-- Effects -->
         <DropShadowEffect x:Key="ControlShadowEffect" BlurRadius="3" Color="#000000" Direction="-90" Opacity="0.55" ShadowDepth="1" />
@@ -263,8 +270,8 @@
         </Style>
 
         <!-- Const -->
-        <Thickness x:Key="BorderThicknessButton">0</Thickness>
-        <Thickness x:Key="BorderThicknessButtonOutline">1,1,0,0</Thickness>
+        <Thickness x:Key="BorderThicknessButton">1</Thickness>
+        <Thickness x:Key="BorderThicknessButtonOutline">0,0,0,0</Thickness>
         <Thickness x:Key="ThicknessButtonVisual">0</Thickness>
         <Thickness x:Key="MarginBorderButton">0</Thickness>
         <Thickness x:Key="MarginContentButton">0</Thickness>
@@ -279,37 +286,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type ToggleButton}">
-                        <ControlTemplate.Resources>
-                            <Storyboard x:Key="HoverOn">
-                                <ColorAnimation Storyboard.TargetProperty="(Border.BorderBrush).(GradientBrush.GradientStops)[0].(GradientStop.Color)" Storyboard.TargetName="Border"
-                                Duration="0:0:0.4" To="{StaticResource BorderBrushGradientColor1}"/>
-                                <ColorAnimation Storyboard.TargetProperty="(Border.BorderBrush).(GradientBrush.GradientStops)[1].(GradientStop.Color)" Storyboard.TargetName="Border"
-                                Duration="0:0:0.4" To="{StaticResource BorderBrushGradientColor2}"/>
-                                <ColorAnimation Storyboard.TargetProperty="(Path.Fill).(GradientBrush.GradientStops)[0].(GradientStop.Color)" Storyboard.TargetName="ArrowDown"
-                                Duration="0:0:0.4" To="{StaticResource BorderBrushGradientColor2}"/>
-                                <ColorAnimation Storyboard.TargetProperty="(Path.Fill).(GradientBrush.GradientStops)[1].(GradientStop.Color)" Storyboard.TargetName="ArrowDown"
-                                Duration="0:0:0.4" To="{StaticResource BorderBrushGradientColor2}"/>
-                                <ColorAnimation Storyboard.TargetProperty="(Path.Fill).(GradientBrush.GradientStops)[0].(GradientStop.Color)" Storyboard.TargetName="ArrowUp"
-                                Duration="0:0:0.4" To="{StaticResource BorderBrushGradientColor2}"/>
-                                <ColorAnimation Storyboard.TargetProperty="(Path.Fill).(GradientBrush.GradientStops)[1].(GradientStop.Color)" Storyboard.TargetName="ArrowUp"
-                                Duration="0:0:0.4" To="{StaticResource BorderBrushGradientColor2}"/>
-                            </Storyboard>
-                            <Storyboard x:Key="HoverOff">
-                                <ColorAnimation Storyboard.TargetProperty="(Border.BorderBrush).(GradientBrush.GradientStops)[0].(GradientStop.Color)" Storyboard.TargetName="Border"
-                                            Duration="0:0:0.4" To="{StaticResource BorderBrushSolidColor}"/>
-                                <ColorAnimation Storyboard.TargetProperty="(Border.BorderBrush).(GradientBrush.GradientStops)[1].(GradientStop.Color)" Storyboard.TargetName="Border"
-                                            Duration="0:0:0.4" To="{StaticResource BorderBrushSolidColor}"/>
-                                <ColorAnimation Storyboard.TargetProperty="(Path.Fill).(GradientBrush.GradientStops)[0].(GradientStop.Color)" Storyboard.TargetName="ArrowDown"
-                                Duration="0:0:0.4" To="#DDDEEE"/>
-                                <ColorAnimation Storyboard.TargetProperty="(Path.Fill).(GradientBrush.GradientStops)[1].(GradientStop.Color)" Storyboard.TargetName="ArrowDown"
-                                Duration="0:0:0.4" To="#DDDDDD"/>
-                                <ColorAnimation Storyboard.TargetProperty="(Path.Fill).(GradientBrush.GradientStops)[0].(GradientStop.Color)" Storyboard.TargetName="ArrowUp"
-                                Duration="0:0:0.4" To="{StaticResource ArrowBrushComboBox}"/>
-                                <ColorAnimation Storyboard.TargetProperty="(Path.Fill).(GradientBrush.GradientStops)[1].(GradientStop.Color)" Storyboard.TargetName="ArrowUp"
-                                Duration="0:0:0.4" To="{StaticResource ArrowBrushComboBox}"/>
-                            </Storyboard>
-                        </ControlTemplate.Resources>
-                        <Border CornerRadius="0"
+                        <Border CornerRadius="8"
                             BorderThickness="{Binding BorderThickness, Mode=OneWay, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ComboBox}}}" 
                             BorderBrush="{Binding BorderBrush, Mode=OneWay, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ComboBox}}}">
                             <Grid>
@@ -317,9 +294,9 @@
                                     <ColumnDefinition />
                                     <ColumnDefinition Width="24" />
                                 </Grid.ColumnDefinitions>
-                                <Border x:Name="Border" Grid.ColumnSpan="2" CornerRadius="0" Background="{StaticResource ControlBackgroundNormal}" 
+                                <Border x:Name="Border" Grid.ColumnSpan="2" CornerRadius="8" Background="{StaticResource ControlBackgroundNormal}" 
                                     BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="1" />
-                                <Border x:Name="BorderToggle" Grid.Column="0" CornerRadius="0,0,0,0" 
+                                <Border x:Name="BorderToggle" Grid.Column="0" CornerRadius="8,8,8,8" 
                                     Background="{Binding Background, Mode=OneWay, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ComboBox}}}"
                                     BorderBrush="{StaticResource ControlBorderBrush}" Margin="1" BorderThickness="0,0,1,0" />
                                 <Grid Grid.Column="1">
@@ -345,14 +322,6 @@
                             </Grid>
                         </Border>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="ToggleButton.IsMouseOver" Value="True">
-                                <Trigger.EnterActions>
-                                    <BeginStoryboard Storyboard="{StaticResource HoverOn}"/>
-                                </Trigger.EnterActions>
-                                <Trigger.ExitActions>
-                                    <BeginStoryboard Storyboard="{StaticResource HoverOff}"/>
-                                </Trigger.ExitActions>
-                            </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="Border" Property="Background" Value="{StaticResource DisabledBrush}" />
                                 <Setter TargetName="BorderToggle" Property="Background" Value="{StaticResource DisabledBrush}" />
@@ -378,16 +347,16 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        
+
         <ControlTemplate x:Key="ComboBoxTextBox" TargetType="{x:Type TextBox}">
-            <Border x:Name="PART_ContentHost" Focusable="False" Background="{TemplateBinding Background}" />
+            <Border x:Name="PART_ContentHost" Focusable="False" Background="{StaticResource ControlBackgroundNormal}" />
         </ControlTemplate>
-        
+
         <Style x:Key="{x:Type ComboBox}" TargetType="{x:Type ComboBox}">
-            <Setter Property="Background" Value="{StaticResource ControlLightBackground}"/>
+            <Setter Property="Background" Value="{StaticResource ControlBackgroundNormal}"/>
             <Setter Property="Width" Value="Auto"/>
-            <Setter Property="Height" Value="25"/>
-            <Setter Property="FontFamily" Value="Calibri,Arial"/>
+            <Setter Property="Height" Value="23"/>
+            <Setter Property="FontFamily" Value="Arial"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="Padding" Value="4"/>
             <Setter Property="Foreground" Value="{StaticResource ControlForegroundWhite}"/>
@@ -421,7 +390,7 @@
                             <Popup Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False"
                                PopupAnimation="Slide" Margin="3,-8,-3,8">
                                 <Grid Name="DropDown" SnapsToDevicePixels="True" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
-                                    <Border x:Name="DropDownBorder" Background="{StaticResource ControlLightBackground}" BorderThickness="1" CornerRadius="0" Margin="0,3,0,3"
+                                    <Border x:Name="DropDownBorder" Background="{StaticResource ControlBackgroundNormalLigth}" BorderThickness="1" CornerRadius="0" Margin="0,3,0,3"
                                         BorderBrush="{StaticResource ControlBorderBrush}"/>
                                     <ScrollViewer Margin="0,3" SnapsToDevicePixels="True">
                                         <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
@@ -472,9 +441,9 @@
                                 <ColorAnimation Storyboard.TargetName="content" Storyboard.TargetProperty="(ComboBoxItem.Foreground).(SolidColorBrush.Color)"
                                             Duration="0:0:0.3" To="{StaticResource BorderBrushGradientColor2}"/>
                                 <ColorAnimation Storyboard.TargetName="Border" Storyboard.TargetProperty="(Border.Background).(GradientBrush.GradientStops)[0].(GradientStop.Color)"
-                                            Duration="0:0:0" To="{StaticResource HighlightComboBoxItem1}"/>
+                                            Duration="0:0:0" To="{StaticResource StandartBackGroundColorLigth}"/>
                                 <ColorAnimation Storyboard.TargetName="Border" Storyboard.TargetProperty="(Border.Background).(GradientBrush.GradientStops)[1].(GradientStop.Color)"
-                                            Duration="0:0:0" To="{StaticResource HighlightComboBoxItem2}"/>
+                                            Duration="0:0:0" To="{StaticResource StandartBackGroundColorLigth}"/>
                             </Storyboard>
                             <Storyboard x:Key="HoverOff">
                                 <ColorAnimation Storyboard.TargetName="content" Storyboard.TargetProperty="(ComboBoxItem.Foreground).(SolidColorBrush.Color)"
@@ -523,6 +492,7 @@
             <Setter Property="Padding" Value="{StaticResource MarginContentButton}"/>
             <Setter Property="Height" Value="25"/>
             <Setter Property="Template">
+
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Grid x:Name="Root">
@@ -536,17 +506,17 @@
                                     <VisualState x:Name="Normal" />
                                     <VisualState x:Name="MouseOver">
                                         <Storyboard>
-                                            <DoubleAnimation Duration="0" Storyboard.TargetName="PressedElement" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="0" />
+                                            <DoubleAnimation Duration="0" Storyboard.TargetName="PressedElement" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="1" />
                                             <DoubleAnimation Duration="0" Storyboard.TargetName="MouseOverElement" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="1" />
                                         </Storyboard>
                                     </VisualState>
                                     <VisualState x:Name="Pressed">
                                         <Storyboard>
-                                            <DoubleAnimation Duration="0" Storyboard.TargetName="NormalElement" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="0.25" />
+                                            <DoubleAnimation Duration="0" Storyboard.TargetName="NormalElement" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="0" />
                                             <DoubleAnimation Duration="0" Storyboard.TargetName="PressedElement" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="1" />
                                             <DoubleAnimation Duration="0" Storyboard.TargetName="MouseOverElement" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="0" />
                                             <DoubleAnimation Duration="0" Storyboard.TargetName="BorderVisual" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="0" />
-                                            <DoubleAnimation Duration="0" Storyboard.TargetName="BorderPressed" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="1" />
+  
                                         </Storyboard>
                                     </VisualState>
                                     <VisualState x:Name="Disabled">
@@ -563,18 +533,18 @@
                                     <VisualState x:Name="Unfocused" />
                                 </VisualStateGroup>
                             </VisualStateManager.VisualStateGroups>
-                            <Border x:Name="DisabledElement" Background="{StaticResource DisabledBrush}" CornerRadius="0" Opacity="0">
-                                <Border BorderBrush="{StaticResource DisabledBorderBrush}" BorderThickness="0,0,1,1" CornerRadius="0" />
+                            <Border x:Name="DisabledElement" Background="{StaticResource DisabledBrush}" CornerRadius="15" Opacity="0">
+                                <Border BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="1,1,1,1" CornerRadius="15" />
                             </Border>
-                            <Border x:Name="BorderVisual" Background="Transparent" CornerRadius="0" BorderBrush="{StaticResource BorderBrushVisual}" BorderThickness="{StaticResource ThicknessButtonVisual}" />
-                            <Border x:Name="BorderPressed" Background="Transparent" CornerRadius="0" BorderBrush="{StaticResource ControlPressedVisualBrush}" BorderThickness="{StaticResource ThicknessButtonVisual}" Opacity="0" />
-                            <Border x:Name="NormalElement" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" CornerRadius="0" Effect="{StaticResource ControlShadowEffect}"
+                            <Border x:Name="BorderVisual" Background="Transparent" CornerRadius="15" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="{StaticResource ThicknessButtonVisual}" />
+                            <Border x:Name="BorderPressed" Background="Transparent" CornerRadius="15" BorderBrush="{StaticResource ControlActiveBorderBrush}" BorderThickness="{StaticResource ThicknessButtonVisual}" Opacity="0" />
+                            <Border x:Name="NormalElement" Background="{TemplateBinding Background}" BorderBrush="{StaticResource ControlBorderBrush}" CornerRadius="15" 
                                 BorderThickness="{TemplateBinding BorderThickness}" Margin="{StaticResource MarginBorderButton}"/>
-                            <Border x:Name="MouseOverElement" BorderBrush="{StaticResource ControlActiveBorderBrush}" Background="{StaticResource ControlBackgroundOver}" CornerRadius="0" Opacity="0" 
+                            <Border x:Name="MouseOverElement" BorderBrush="{StaticResource ControlActiveBorderBrush}"  Background="{StaticResource ControlBackgroundOver}" CornerRadius="15" Opacity="0" 
                                 BorderThickness="{TemplateBinding BorderThickness}" Margin="{StaticResource MarginBorderButtonOver}"/>
-                            <Border x:Name="PressedElement" Background="{StaticResource ControlBackgroundPressed}" CornerRadius="0" Opacity="0" BorderThickness="{TemplateBinding BorderThickness}"
+                            <Border x:Name="PressedElement" Background="{StaticResource ControlBackgroundPressed}" CornerRadius="15" Opacity="0" 
                                 BorderBrush="{StaticResource ControlActiveBorderBrush}" Margin="{StaticResource MarginBorderButton}"/>
-                            <Border x:Name="HighlightElement" BorderBrush="{StaticResource ControlHighlight}" BorderThickness="{StaticResource BorderThicknessButtonOutline}" CornerRadius="0" />
+                            <Border x:Name="HighlightElement" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="{StaticResource BorderThicknessButtonOutline}" CornerRadius="15" />
                             <ContentPresenter x:Name="ContentHost" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
                             </ContentPresenter>
                         </Grid>
@@ -585,80 +555,26 @@
 
         <!-- TextBox -->
         <Style TargetType="{x:Type TextBox}" BasedOn="{x:Null}">
-            <Setter Property="Background" Value="{StaticResource ControlLightBackground}" />
+            <Setter Property="Background" Value="{StaticResource ControlBackgroundNormal}" />
             <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Foreground" Value="{StaticResource ControlForegroundWhite}" />
             <Setter Property="CaretBrush" Value="{StaticResource ControlBackgroundOver}"/>
             <Setter Property="AllowDrop" Value="True"/>
-            <Setter Property="Height" Value="25"/>
+            <Setter Property="Height" Value="23"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type TextBox}">
-                        <ControlTemplate.Resources>
-                            <Storyboard x:Key="HoverOn">
-                                <DoubleAnimation Duration="0:0:0.4" Storyboard.TargetName="txb_mouseOver1" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="1" />
-                                <DoubleAnimation Duration="0:0:0" Storyboard.TargetName="txb_mouseOver2" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="1" />
-                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(GradientBrush.GradientStops)[0].(GradientStop.Color)" Storyboard.TargetName="txb_border"
-                                            Duration="0:0:0" To="Transparent"/>
-                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(GradientBrush.GradientStops)[1].(GradientStop.Color)" Storyboard.TargetName="txb_border"
-                                            Duration="0:0:0" To="Transparent"/>
-                            </Storyboard>
-                            <Storyboard x:Key="HoverOff">
-                                <DoubleAnimation Duration="0:0:0.4" Storyboard.TargetName="txb_mouseOver1" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="0" />
-                                <DoubleAnimation Duration="0:0:0" Storyboard.TargetName="txb_mouseOver2" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="0" BeginTime="0:0:0.4" />
-                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(GradientBrush.GradientStops)[0].(GradientStop.Color)" Storyboard.TargetName="txb_border"
-                                            Duration="0:0:0" To="{StaticResource BorderLightBrushGradientColor1}" BeginTime="0:0:0.4"/>
-                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(GradientBrush.GradientStops)[1].(GradientStop.Color)" Storyboard.TargetName="txb_border"
-                                            Duration="0:0:0" To="{StaticResource BorderLightBrushGradientColor2}" BeginTime="0:0:0.4"/>
-                            </Storyboard>
-                            <Storyboard x:Key="FocusOn">
-                                <ColorAnimation Storyboard.TargetProperty="(Border.BorderBrush).(GradientBrush.GradientStops)[0].(GradientStop.Color)" Storyboard.TargetName="txb_border"
-                                            Duration="0:0:0.4" To="{StaticResource BorderBrushGradientColor1}"/>
-                                <ColorAnimation Storyboard.TargetProperty="(Border.BorderBrush).(GradientBrush.GradientStops)[1].(GradientStop.Color)" Storyboard.TargetName="txb_border"
-                                            Duration="0:0:0.4" To="{StaticResource BorderBrushGradientColor2}"/>
-                            </Storyboard>
-                            <Storyboard x:Key="FocusOff">
-                                <ColorAnimation Storyboard.TargetProperty="(Border.BorderBrush).(GradientBrush.GradientStops)[0].(GradientStop.Color)" Storyboard.TargetName="txb_border"
-                                            Duration="0:0:0.4" To="{StaticResource BorderBrushSolidColor}"/>
-                                <ColorAnimation Storyboard.TargetProperty="(Border.BorderBrush).(GradientBrush.GradientStops)[1].(GradientStop.Color)" Storyboard.TargetName="txb_border"
-                                            Duration="0:0:0.4" To="{StaticResource BorderBrushSolidColor}"/>
-                            </Storyboard>
-                        </ControlTemplate.Resources>
+
                         <Grid>
-                            <Border x:Name="txb_mouseOver2" Background="{TemplateBinding Background}" Opacity="0" CornerRadius="0" />
-                            <Border x:Name="txb_mouseOver1" Background="{StaticResource ControlBackgroundLine}" Opacity="0" CornerRadius="0" />
-                            <Border x:Name="txb_border" Background="{TemplateBinding Background}" CornerRadius="0" 
+                            <Border x:Name="txb_mouseOver2" Background="{TemplateBinding Background}" Opacity="0" CornerRadius="8" />
+                            <Border x:Name="txb_mouseOver1" Background="{StaticResource ControlBackgroundLine}" Opacity="0" CornerRadius="8" />
+                            <Border x:Name="txb_border" Background="{TemplateBinding Background}" CornerRadius="8" 
                             BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
                                 <ScrollViewer x:Name="PART_ContentHost" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                             </Border>
                         </Grid>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Trigger.EnterActions>
-                                    <BeginStoryboard Storyboard="{StaticResource HoverOn}"/>
-                                </Trigger.EnterActions>
-                                <Trigger.ExitActions>
-                                    <BeginStoryboard Storyboard="{StaticResource HoverOff}"/>
-                                </Trigger.ExitActions>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Background" TargetName="txb_border" Value="{StaticResource DisabledBrush}"/>
-                                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
-                                <Setter Property="Opacity" Value="0.85"/>
-                                <Setter TargetName="txb_border" Property="BorderBrush" Value="{StaticResource DisabledBrush}"/>
-                                <Setter TargetName="txb_border" Property="BorderThickness" Value="1"/>
-                            </Trigger>
-                            <Trigger Property="IsKeyboardFocused" Value="True">
-                                <Trigger.EnterActions>
-                                    <BeginStoryboard Storyboard="{StaticResource FocusOn}"/>
-                                </Trigger.EnterActions>
-                                <Trigger.ExitActions>
-                                    <BeginStoryboard Storyboard="{StaticResource FocusOff}"/>
-                                </Trigger.ExitActions>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -671,6 +587,7 @@
             <Setter Property="Foreground" Value="{StaticResource ControlForegroundWhite}" />
             <Setter Property="HorizontalContentAlignment" Value="Left" />
             <Setter Property="Padding" Value="4,0" />
+            <Setter Property="Height" Value="23" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="FocusVisualStyle" Value="{StaticResource FocusLine}"/>
             <Setter Property="Template">
@@ -692,7 +609,7 @@
                         </ControlTemplate.Resources>
                         <BulletDecorator Background="Transparent">
                             <BulletDecorator.Bullet>
-                                <Grid Width="16" Height="16">
+                                <Grid Width="15" Height="23">
                                     <Rectangle Height="14" Width="14" x:Name="background_checkbox" Stroke="{TemplateBinding BorderBrush}"
                                            Fill="{TemplateBinding Background}"/>
                                     <Path x:Name="check_icon" Opacity="0" Stretch="Fill" 
@@ -734,31 +651,31 @@
 
         <!-- Label -->
         <Style TargetType="{x:Type Label}">
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="FontFamily" Value="Calibri"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontFamily" Value="Areal"/>
             <Setter Property="Foreground" Value="#FF7212" />
             <Setter Property="HorizontalContentAlignment" Value="Left" />
             <Setter Property="Padding" Value="4,0" />
-            <Setter Property="Height" Value="25" />
+            <Setter Property="Height" Value="23" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
 
         <!-- Rectangle -->
         <Style TargetType="{x:Type Rectangle}">
-            <Setter Property="Fill" Value="Black"/>
-            <Setter Property="RadiusY" Value="0"/>
-            <Setter Property="RadiusX" Value="0"/>
+            <Setter Property="Fill" Value="{StaticResource ControlBackgroundNormalLigth}"/>
+            <Setter Property="RadiusY" Value="4"/>
+            <Setter Property="RadiusX" Value="4"/>
         </Style>
 
         <!-- PasswordBox -->
         <Style TargetType="{x:Type PasswordBox}" BasedOn="{x:Null}">
-            <Setter Property="Background" Value="{StaticResource ControlLightBackground}" />
+            <Setter Property="Background" Value="{StaticResource ControlBackgroundNormal}" />
             <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Foreground" Value="{StaticResource ControlBackgroundOver}" />
             <Setter Property="CaretBrush" Value="{StaticResource ControlBackgroundOver}"/>
             <Setter Property="AllowDrop" Value="True"/>
-            <Setter Property="Height" Value="25"/>
+            <Setter Property="Height" Value="23"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -794,9 +711,9 @@
                             </Storyboard>
                         </ControlTemplate.Resources>
                         <Grid>
-                            <Border x:Name="txb_mouseOver2" Background="{TemplateBinding Background}" Opacity="0" CornerRadius="0" />
-                            <Border x:Name="txb_mouseOver1" Background="{StaticResource ControlBackgroundLine}" Opacity="0" CornerRadius="0" />
-                            <Border x:Name="txb_border" Background="{TemplateBinding Background}" CornerRadius="0" 
+                            <Border x:Name="txb_mouseOver2" Background="{TemplateBinding Background}" Opacity="0" CornerRadius="8" />
+                            <Border x:Name="txb_mouseOver1" Background="{StaticResource ControlBackgroundLine}" Opacity="0" CornerRadius="8" />
+                            <Border x:Name="txb_border" Background="{TemplateBinding Background}" CornerRadius="8" 
                             BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
                                 <ScrollViewer x:Name="PART_ContentHost" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                             </Border>
@@ -837,6 +754,7 @@
             <Setter Property="Maximum" Value="100"/>
             <Setter Property="Height" Value="20"/>
             <Setter Property="IsTabStop" Value="False"/>
+        
             <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -966,7 +884,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type RepeatButton}">
                         <Grid>
-                            <Border x:Name="bg" Background="{StaticResource BrushTrackProgressBar}" CornerRadius="0"/>
+                            <Border x:Name="bg" Background="{StaticResource BrushTrackProgressBar}" CornerRadius="3"/>
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsEnabled" Value="False">
@@ -1071,7 +989,7 @@
             <Setter Property="Foreground" Value="{StaticResource ControlForegroundWhite}"/>
             <Setter Property="Padding" Value="4"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Background" Value="{StaticResource StandartBackgroundBrush}"/>
+            <Setter Property="Background" Value="{StaticResource ControlBackgroundNormalLigth}"/>
             <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
@@ -1148,63 +1066,42 @@
         
         <Style TargetType="{x:Type TabItem}">
             <Setter Property="FocusVisualStyle" Value="{StaticResource FocusLine}"/>
-            <Setter Property="Background" Value="{StaticResource TabControlItemBackgroundNormal}"/>
+            <Setter Property="Background" Value="{StaticResource ControlBackgroundNormalLigth}"/>
             <Setter Property="Foreground" Value="{StaticResource ControlForegroundWhite}"/>
             <Setter Property="Padding" Value="10"/>
             <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}"/>
-            <Setter Property="BorderThickness" Value="1,1,1,0" />
+            <Setter Property="BorderThickness" Value="1,1,1,1" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
             <Setter Property="VerticalContentAlignment" Value="Stretch"/>
             <Setter Property="MinWidth" Value="10" />
             <Setter Property="MinHeight" Value="20" />
             <Setter Property="Height" Value="26" />
+            
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type TabItem}">
-                        <ControlTemplate.Resources>
-                            <Storyboard x:Key="HoverOn">
-                                <ColorAnimation Duration="0:0:0.3" Storyboard.TargetName="Content" Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)"
-                                            To="{StaticResource ColorForeground}"/>
-                            </Storyboard>
-                            <Storyboard x:Key="HoverOff">
-                                <ColorAnimation Duration="0:0:0.3" Storyboard.TargetName="Content" Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)"
-                                            To="{StaticResource ColorForegroundWhite}"/>
-                            </Storyboard>
-                        </ControlTemplate.Resources>
-                        <Grid SnapsToDevicePixels="True" x:Name="grid" Background="Transparent" Margin="0,0,3,0">
-                            <Border x:Name="border_inner" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1,1,1,0" 
-                                    Background="{TemplateBinding Background}">
-                                <ContentPresenter x:Name="Content" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" 
+
+                        <Grid SnapsToDevicePixels="True" x:Name="grid" Background="Transparent" Margin="0,0,3,0" >
+                            <Border x:Name="border_inner" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="1,1,1,1" CornerRadius="15"
+                                    Background="{StaticResource ControlBackgroundNormal}">
+                                <ContentPresenter x:Name="Content" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" MinWidth="15" 
                                               HorizontalAlignment="{Binding Path=HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" 
                                               VerticalAlignment="{Binding Path=VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" 
-                                              ContentSource="Header" RecognizesAccessKey="True"/>
+                                              ContentSource="Header" RecognizesAccessKey="True" />
                             </Border>
-                            <Border x:Name="border_hover" Background="{StaticResource ControlBackgroundLine}" Opacity="0"/>
+                            <Border x:Name="border_hover" Background="{StaticResource ControlBackgroundNormalLigth}" Opacity="0" CornerRadius="15"/>
                         </Grid>
                         <ControlTemplate.Triggers>
-                            <MultiTrigger>
-                                <MultiTrigger.Conditions>
-                                    <Condition Property="IsMouseOver" Value="True"/>
-                                    <Condition Property="IsSelected" Value="False"/>
-                                </MultiTrigger.Conditions>
-                                <MultiTrigger.EnterActions>
-                                    <BeginStoryboard Storyboard="{StaticResource HoverOn}"/>
-                                </MultiTrigger.EnterActions>
-                                <MultiTrigger.ExitActions>
-                                    <BeginStoryboard Storyboard="{StaticResource HoverOff}"/>
-                                </MultiTrigger.ExitActions>
-                            </MultiTrigger>
+
                             <Trigger Property="IsSelected" Value="true">
                                 <Setter Property="Panel.ZIndex" Value="1"/>
-                                <Setter Property="Background" TargetName="border_inner" Value="{StaticResource ControlBackgroundNormal}"/>
-                                <Setter Property="Foreground" Value="{StaticResource ControlForeground}"/>
-                                <Trigger.EnterActions>
-                                    <BeginStoryboard Storyboard="{StaticResource HoverOn}"/>
-                                </Trigger.EnterActions>
+
+                                <Setter Property="Background" TargetName="border_inner" Value="{StaticResource ControlForeground}"/>
+                                
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="false">
-                                <Setter Property="Background" TargetName="border_inner" Value="{StaticResource DisabledBrush}"/>
-                                <Setter Property="BorderBrush" TargetName="border_inner" Value="{StaticResource DisabledBorderBrush}"/>
+                                <Setter Property="Background" TargetName="border_inner" Value="{StaticResource ControlBackgroundNormal}"/>
+                                <Setter Property="BorderBrush" TargetName="border_inner" Value="{StaticResource ControlBorderBrush}"/>
                                 <Setter Property="Foreground">
                                     <Setter.Value>
                                         <SolidColorBrush Color="{StaticResource DisabledForeground}"/>
@@ -1335,7 +1232,7 @@
                                             <Border x:Name="Background" Margin="0" Opacity="1" Grid.ColumnSpan="4" Grid.Row="1" Grid.RowSpan="3" 
                                                 Background="{StaticResource ControlBackgroundNormal}" CornerRadius="0"/>
                                             <Border x:Name="HoverBorder" BorderBrush="{x:Null}" BorderThickness="1" CornerRadius="0,0,1,1" Grid.ColumnSpan="4" 
-                                                Grid.RowSpan="4" Background="{StaticResource HoverBackgroundCalendar}" Opacity="0"/>
+                                                Grid.RowSpan="4" Background="{StaticResource ControlBackgroundNormalLigth}" Opacity="0"/>
                                             <Rectangle Grid.ColumnSpan="4" Grid.RowSpan="1" StrokeThickness="1" Fill="{StaticResource ControlLightBackground}" />
                                             <Path HorizontalAlignment="Center" Margin="4,3" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5" 
                                               Grid.Column="0" Grid.ColumnSpan="4" Grid.Row="1" Grid.RowSpan="3" Fill="{StaticResource ControlForeground}" Stretch="Fill" 
@@ -1370,7 +1267,7 @@
 
         <Style TargetType="{x:Type DatePickerTextBox}">
             <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}"/>
-            <Setter Property="Background" Value="{StaticResource ControlLightBackground}"/>
+            <Setter Property="Background" Value="{StaticResource StandartBackgroundBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource ControlForegroundWhite}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CaretBrush" Value="{StaticResource ControlForeground}"/>
@@ -1378,10 +1275,10 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type DatePickerTextBox}">
                         <Grid>
-                            <Border x:Name="Border" Opacity="1" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
-                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="0">
+                            <Border x:Name="Border"  Opacity="1" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5">
                                 <Grid>
-                                    <Border BorderThickness="1" CornerRadius="0">
+                                    <Border BorderThickness="1" CornerRadius="5">
                                         <Border.BorderBrush>
                                             <SolidColorBrush Color="Transparent" x:Name="MouseOverColor"/>
                                         </Border.BorderBrush>
@@ -1417,7 +1314,7 @@
 
         <!-- Calendar -->
         <Style x:Key="CalendarStyle" TargetType="{x:Type Calendar}">
-            <Setter Property="Background" Value="{StaticResource ControlLightBackground}" />
+            <Setter Property="Background" Value="{StaticResource StandartBackgroundBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CalendarButtonStyle" Value="{DynamicResource CalendarButtonStyle}" />
             <Setter Property="CalendarDayButtonStyle" Value="{DynamicResource CalendarDayButtonStyle}" />
@@ -1425,7 +1322,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type Calendar}">
                         <StackPanel x:Name="PART_Root" HorizontalAlignment="Center">
-                            <CalendarItem x:Name="PART_CalendarItem" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}"/>
+                            <CalendarItem x:Name="PART_CalendarItem" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{StaticResource StandartBackgroundBrush}"/>
                         </StackPanel>
                     </ControlTemplate>
                 </Setter.Value>
@@ -1438,12 +1335,12 @@
                     <ControlTemplate TargetType="{x:Type CalendarItem}">
                         <ControlTemplate.Resources>
                             <DataTemplate x:Key="{x:Static CalendarItem.DayTitleTemplateResourceKey}">
-                                <TextBlock x:Name="txt" Foreground="{StaticResource ControlForeground}" FontWeight="Bold" FontSize="9.5" FontFamily="Verdana" HorizontalAlignment="Center" Margin="0,4,0,4" Text="{Binding}" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="txt" Background="{StaticResource StandartBackgroundBrush}" Foreground="{StaticResource ControlForeground}" FontWeight="Bold" FontSize="9.5" FontFamily="Verdana" HorizontalAlignment="Center" Margin="0,4,0,4" Text="{Binding}" VerticalAlignment="Center"/>
                             </DataTemplate>
                         </ControlTemplate.Resources>
                         <Grid x:Name="PART_Root">
                             <Border Margin="0,2,0,2" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" 
-                                Background="{TemplateBinding Background}" CornerRadius="0">
+                                Background="{StaticResource StandartBackgroundBrush}" CornerRadius="0">
                                 <Border BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="2" CornerRadius="0">
                                     <Grid>
                                         <Grid.Resources>
@@ -1618,7 +1515,7 @@
         </Style>
 
         <Style x:Key="CalendarButtonStyle" TargetType="{x:Type CalendarButton}">
-            <Setter Property="Background" Value="{StaticResource HoverBackgroundCalendar}"/>
+            <Setter Property="Background" Value="{StaticResource StandartBackgroundBrush}"/>
             <Setter Property="MinWidth" Value="40"/>
             <Setter Property="MinHeight" Value="42"/>
             <Setter Property="FontSize" Value="10"/>
@@ -1706,8 +1603,8 @@
                                     </VisualState>
                                 </VisualStateGroup>
                             </VisualStateManager.VisualStateGroups>
-                            <Rectangle x:Name="SelectedBackground" Opacity="0" Fill="{TemplateBinding Background}" RadiusX="3" RadiusY="3" Stroke="{StaticResource ControlActiveBorderBrush}"/>
-                            <Rectangle x:Name="Background" Opacity="0" Fill="{TemplateBinding Background}" RadiusX="3" RadiusY="3" Stroke="{StaticResource ControlBorderBrush}"/>
+                            <Rectangle x:Name="SelectedBackground" Opacity="0" Fill="{StaticResource ControlBackgroundNormalLigth}" RadiusX="3" RadiusY="3" Stroke="{StaticResource ControlActiveBorderBrush}"/>
+                            <Rectangle x:Name="Background" Opacity="0" Fill="{StaticResource StandartBackgroundBrush}" RadiusX="3" RadiusY="3" Stroke="{StaticResource ControlBorderBrush}"/>
                             <ContentControl x:Name="NormalText" FontSize="{TemplateBinding FontSize}" IsTabStop="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" 
                                         Margin="1,0,1,1" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Content="{TemplateBinding Content}" 
                                         ContentTemplate="{TemplateBinding ContentTemplate}">
@@ -1728,7 +1625,7 @@
         </Style>
 
         <Style x:Key="CalendarDayButtonStyle" TargetType="{x:Type CalendarDayButton}">
-            <Setter Property="Background" Value="{StaticResource HoverBackgroundCalendar}"/>
+            <Setter Property="Background" Value="{StaticResource StandartBackgroundBrush}"/>
             <Setter Property="Foreground" Value="Lime"/>
             <Setter Property="MinWidth" Value="5"/>
             <Setter Property="MinHeight" Value="5"/>
@@ -1853,7 +1750,7 @@
                             </VisualStateManager.VisualStateGroups>
                             <Rectangle x:Name="TodayBackground" Opacity="0" Fill="{StaticResource TodayBackgroundBrush}" RadiusX="3" RadiusY="3" Stroke="{StaticResource ControlBorderBrush}"/>
                             <Rectangle x:Name="SelectedBackground" Opacity="0" Fill="{TemplateBinding Background}" RadiusX="3" RadiusY="3" Stroke="{StaticResource ControlBorderBrush}"/>
-                            <Rectangle x:Name="Background" Opacity="0" Fill="{TemplateBinding Background}" RadiusX="3" RadiusY="3" Stroke="{StaticResource ControlBorderBrush}"/>
+                            <Rectangle x:Name="Background" Opacity="0" Fill="{StaticResource StandartBackgroundBrush}" RadiusX="3" RadiusY="3" Stroke="{StaticResource ControlBorderBrush}"/>
                             <ContentControl x:Name="NormalText" FontSize="{TemplateBinding FontSize}" IsTabStop="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" 
                                         Margin="5,0,5,1" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Content="{TemplateBinding Content}" 
                                         ContentTemplate="{TemplateBinding ContentTemplate}">
@@ -1871,15 +1768,15 @@
         </Style>
 
         <!-- Windows -->
-        <SolidColorBrush x:Key="WindowTitleBarBackgroundBrush" Color="#4c4c4c"/>
+        <SolidColorBrush x:Key="WindowTitleBarBackgroundBrush" Color="#151a1e"/>
         <SolidColorBrush x:Key="WindowBorderBrush" Color="#FF17171B" />
         <SolidColorBrush x:Key="WindowBorderBrushInactive" Color="#999999" />
         <SolidColorBrush x:Key="WindowStatusForeground" Color="#FFFFFF" />
         <SolidColorBrush x:Key="WindowStatusForegroundInactive" Color="#FFFFFF" />
         <SolidColorBrush x:Key="WindowForeground" Color="#F3F3F3" />
         <LinearGradientBrush x:Key="WindowBackgroundGradientBrush" EndPoint="0,1" StartPoint="0,0">
-            <GradientStop Color="#999999" Offset="0"></GradientStop>
-            <GradientStop Color="#FF17171B" Offset="1"></GradientStop>
+            <GradientStop Color="#111217" Offset="0"></GradientStop>
+            <GradientStop Color="#111217" Offset="1"></GradientStop>
         </LinearGradientBrush>
 
         <Style x:Key="WindowStyleTitleBarButton" TargetType="{x:Type Button}">
