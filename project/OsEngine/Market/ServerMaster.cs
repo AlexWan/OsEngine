@@ -17,6 +17,7 @@ using OsEngine.Market.Servers.BitStamp;
 using OsEngine.Market.Servers.Finam;
 using OsEngine.Market.Servers.InteractivBrokers;
 using OsEngine.Market.Servers.Kraken;
+using OsEngine.Market.Servers.Lmax;
 using OsEngine.Market.Servers.NinjaTrader;
 using OsEngine.Market.Servers.Oanda;
 using OsEngine.Market.Servers.Optimizer;
@@ -105,6 +106,17 @@ namespace OsEngine.Market
                 if (_servers.Find(server => server.ServerType == type) != null)
                 {
                     return;
+                }
+
+                if (type == ServerType.Lmax)
+                {
+                    LmaxServer serv = new LmaxServer();
+                    _servers.Add(serv);
+
+                    if (ServerCreateEvent != null)
+                    {
+                        ServerCreateEvent(serv);
+                    }
                 }
 
                 if (type == ServerType.Bitfinex)
@@ -379,6 +391,7 @@ namespace OsEngine.Market
             types.Add(ServerType.Finam);
             types.Add(ServerType.InteractivBrokers);
             types.Add(ServerType.Kraken);
+            types.Add(ServerType.Lmax);
             types.Add(ServerType.NinjaTrader);
             types.Add(ServerType.Oanda);
             types.Add(ServerType.Plaza);
@@ -681,6 +694,11 @@ namespace OsEngine.Market
         /// Тип сервера не назначен
         /// </summary>
         None,
+
+        /// <summary>
+        /// биржа LMax
+        /// </summary>
+        Lmax,
 
         /// <summary>
         /// биржа криптовалют Bitfinex

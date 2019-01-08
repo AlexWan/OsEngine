@@ -211,6 +211,7 @@ namespace OsEngine.Entity
                                  serverType == ServerType.QuikDde ||
                                  serverType == ServerType.AstsBridge ||
                                  serverType == ServerType.NinjaTrader ||
+                                 serverType == ServerType.Lmax ||
 
                                  (serverType == ServerType.InteractivBrokers
                                   && (series.CandlesAll == null || series.CandlesAll.Count == 0)))
