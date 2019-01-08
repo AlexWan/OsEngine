@@ -1006,8 +1006,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 TimeSpan timeLife = _manualControl.SecondToOpen;
 
-                if (_connector.ServerType == ServerType.InteractivBrokers)
-                { // маркет заявки запрещены везде кроме IB
+                if (_connector.ServerType == ServerType.InteractivBrokers || _connector.ServerType == ServerType.Lmax)
+                { // маркет заявки запрещены везде кроме IB и Lmax
                     return LongCreate(price, volume, type, timeLife, false);
                 }
                 else
@@ -1434,8 +1434,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 TimeSpan timeLife = _manualControl.SecondToOpen;
 
-                if (_connector.ServerType == ServerType.InteractivBrokers)
-                { // везде кроме IB маркет заявки запрещены
+                if (_connector.ServerType == ServerType.InteractivBrokers || _connector.ServerType == ServerType.Lmax)
+                { // везде кроме IB и Lmax маркет заявки запрещены
                     return ShortCreate(price, volume, type, timeLife, false);
                 }
                 else
@@ -1883,8 +1883,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                if (_connector.ServerType == ServerType.InteractivBrokers)
-                { // маркет заявки разрешены только в IB
+                if (_connector.ServerType == ServerType.InteractivBrokers || _connector.ServerType == ServerType.Lmax)
+                { // маркет заявки разрешены только в IB и Lmax
                     if (position.OpenVolume <= volume)
                     {
                         CloseDeal(position, OrderPriceType.Market, price, _manualControl.SecondToClose, false);

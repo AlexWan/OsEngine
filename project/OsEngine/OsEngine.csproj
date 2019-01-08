@@ -68,6 +68,10 @@
     <Reference Include="Jayrock.Json">
       <HintPath>..\..\..\OsEngineTepm\6Кракен\Jayrock-master\Jayrock-master\bin\net-4.0\debug\Jayrock.Json.dll</HintPath>
     </Reference>
+    <Reference Include="LmaxClientLibrary, Version=1.9.0.2, Culture=neutral, PublicKeyToken=f45712b013135aca, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\LmaxClientLibrary.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -379,6 +383,10 @@
     <Compile Include="Market\Servers\Finam\FinamServerUi.xaml.cs">
       <DependentUpon>FinamServerUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\Servers\FixProtocolEntities\Field.cs" />
+    <Compile Include="Market\Servers\FixProtocolEntities\FixEntity.cs" />
+    <Compile Include="Market\Servers\FixProtocolEntities\FixMessage.cs" />
+    <Compile Include="Market\Servers\FixProtocolEntities\StandartHeaderSettings.cs" />
     <Compile Include="Market\Servers\InteractivBrokers\IbClient.cs" />
     <Compile Include="Market\Servers\InteractivBrokers\IbContractStorageUi.xaml.cs">
       <DependentUpon>IbContractStorageUi.xaml</DependentUpon>
@@ -398,6 +406,13 @@
     <Compile Include="Market\Servers\Kraken\KrakenServerUi.xaml.cs">
       <DependentUpon>KrakenServerUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\Servers\Lmax\LmaxEntity\FixMessageCreator.cs" />
+    <Compile Include="Market\Servers\Lmax\LmaxEntity\FixMessageParser.cs" />
+    <Compile Include="Market\Servers\Lmax\LmaxEntity\RejectReasons.cs" />
+    <Compile Include="Market\Servers\Lmax\LmaxEntity\Session.cs" />
+    <Compile Include="Market\Servers\Lmax\LmaxFixClient.cs" />
+    <Compile Include="Market\Servers\Lmax\LmaxServer.cs" />
+    <Compile Include="Market\Servers\Lmax\Tags.cs" />
     <Compile Include="Market\Servers\NinjaTrader\NinjaTraderClient.cs" />
     <Compile Include="Market\Servers\NinjaTrader\NinjaTraderServer.cs" />
     <Compile Include="Market\Servers\NinjaTrader\NinjaTraderUi.xaml.cs">

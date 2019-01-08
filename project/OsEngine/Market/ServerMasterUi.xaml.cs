@@ -128,6 +128,7 @@ namespace OsEngine.Market
                 _gridSources.Rows.Add(row1);
             }
 
+            bool lmaxIsOn = false;
             bool bitfinex = false;
             bool bitMexIsOn = false;
             bool quikIsOn = false;
@@ -149,6 +150,11 @@ namespace OsEngine.Market
                 ServerType type;
 
                 Enum.TryParse(row1.Cells[0].Value.ToString(), out type);
+
+                if (type == ServerType.Lmax)
+                {
+                    lmaxIsOn = true;
+                }
 
                 if (type == ServerType.Bitfinex)
                 {
@@ -212,7 +218,15 @@ namespace OsEngine.Market
                 }
             }
 
-
+            if (lmaxIsOn == false)
+            {
+                DataGridViewRow row1 = new DataGridViewRow();
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[0].Value = ServerType.Lmax;
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[1].Value = "Disconnect";
+                _gridSources.Rows.Add(row1);
+            }
             if (quikIsOn == false)
             {
                 DataGridViewRow row1 = new DataGridViewRow();
@@ -456,6 +470,7 @@ namespace OsEngine.Market
                 _gridSources.Rows.Add(row1);
             }
 
+            bool lmaxIsOn = false;
             bool bitfinex = false;
             bool bitMexIsOn = false;
             bool quikIsOn = false;
@@ -477,6 +492,11 @@ namespace OsEngine.Market
                 ServerType type;
 
                 Enum.TryParse(row1.Cells[0].Value.ToString(), out type);
+
+                if (type == ServerType.Lmax)
+                {
+                    lmaxIsOn = true;
+                }
 
                 if (type == ServerType.Bitfinex)
                 {
@@ -540,7 +560,15 @@ namespace OsEngine.Market
                 }
             }
 
-
+            if (lmaxIsOn == false)
+            {
+                DataGridViewRow row1 = new DataGridViewRow();
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[0].Value = ServerType.Lmax;
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[1].Value = "Disconnect";
+                _gridSources.Rows.Add(row1);
+            }
             if (quikIsOn == false)
             {
                 DataGridViewRow row1 = new DataGridViewRow();
