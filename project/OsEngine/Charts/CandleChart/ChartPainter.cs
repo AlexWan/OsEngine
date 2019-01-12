@@ -8,7 +8,6 @@ using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
-using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Forms.Integration;
@@ -61,6 +60,8 @@ namespace OsEngine.Charts.CandleChart
                 _chart.MouseMove += _chartForCandle_MouseMove2ChartElement;
                 _chart.MouseDown += _chartForCandle_MouseDown2ChartElement;
                 _chart.MouseUp += _chartForCandle_MouseUp2ChartElement;
+
+                _chart.MouseLeave += _chart_MouseLeave;
 
                 Thread painterThred = new Thread(PainterThreadArea);
                 painterThred.IsBackground = true;
@@ -3507,6 +3508,18 @@ namespace OsEngine.Charts.CandleChart
             }
         }
 
+// управление исчезанием перекрестия на графике
+
+
+        private void _chart_MouseLeave(object sender, EventArgs e)
+        {
+            for (int i = 0; i < _chart.ChartAreas.Count; i++)
+            {
+                _chart.ChartAreas[i].CursorX.Position = double.NaN;
+                _chart.ChartAreas[i].CursorY.Position = 0;
+            }
+        }
+
 // переход по чарту
 
         /// <summary>
@@ -3646,11 +3659,14 @@ namespace OsEngine.Charts.CandleChart
 
                 for (int i = 0; i < series.Count; i++)
                 {
-                    if (index >= series[i].Points.Count)
+                    if (index >= series[i].Points.Count ||
+                        series[i].Name.EndsWith("label"))
                     {
                         continue;
                     }
-                    Series labelSeries = _labelSeries.Find(ser => ser.Name == series[i].Name + "label");
+                    Series labelSeries = _labelSeries.Find(ser => ser.Name == series[i].Name + "label"
+                                                                  ||
+                                                                  (ser.Name.EndsWith("label") && ser.Name == series[i].Name));
 
                     if (labelSeries == null)
                     {
@@ -5558,7 +5574,7 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
             if(_myCandles == null ||
-                _myCandles.Count < 5)
+                _myCandles.Count ==0)
             {
                 return;
             }
@@ -5584,22 +5600,41 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
 
-            area.AxisX.Interval = values/4;
+            int labelCount = 4;
 
-            if (area.AxisX.CustomLabels.Count == 0)
+
+            if (_myCandles.Count <= 2)
+            {
+                labelCount = 2;
+            }
+            else if (_myCandles.Count == 3)
+            {
+                labelCount = 3;
+            }
+
+            area.AxisX.Interval = values/ labelCount;
+
+            while(area.AxisX.CustomLabels.Count < labelCount)
             {
                 area.AxisX.CustomLabels.Add(new CustomLabel());
-                area.AxisX.CustomLabels.Add(new CustomLabel());
-                area.AxisX.CustomLabels.Add(new CustomLabel());
-                area.AxisX.CustomLabels.Add(new CustomLabel());
+            }
+            while (area.AxisX.CustomLabels.Count > labelCount)
+            {
+                area.AxisX.CustomLabels.RemoveAt(0);
             }
 
             double value = firstPos + area.AxisX.Interval;
 
-            for (int i = 0; i < 4; i++)
+            if (labelCount < 4)
             {
-                area.AxisX.CustomLabels[i].FromPosition = value-value*0.7;
-                area.AxisX.CustomLabels[i].ToPosition = value + value * 0.7;
+                value = 0;
+            }
+
+
+            for (int i = 0; i < labelCount; i++)
+            {
+                area.AxisX.CustomLabels[i].FromPosition = value - area.AxisX.Interval * 0.7;
+                area.AxisX.CustomLabels[i].ToPosition = value + area.AxisX.Interval * 0.7;
                 area.AxisX.CustomLabels[i].Text = _myCandles[(int)value].TimeStart.ToString();
                 
                 value += area.AxisX.Interval;

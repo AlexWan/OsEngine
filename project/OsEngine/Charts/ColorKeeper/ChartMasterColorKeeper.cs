@@ -73,8 +73,8 @@ namespace OsEngine.Charts.ColorKeeper
                 }
                 else
                 {
-                    ColorUpBodyCandle = Color.FromArgb(83, 83, 130);
-                    ColorUpBorderCandle = Color.FromArgb(83, 83, 130);
+                    ColorUpBodyCandle = Color.FromArgb(57, 157, 54);
+                    ColorUpBorderCandle = Color.FromArgb(57, 157, 54);
 
                     ColorDownBodyCandle = Color.FromArgb(17, 18, 23);
                     ColorDownBorderCandle = Color.FromArgb(255, 83, 0);
@@ -170,8 +170,8 @@ namespace OsEngine.Charts.ColorKeeper
         /// </summary>
         public void SetBlackScheme()
         {
-            ColorUpBodyCandle = Color.FromArgb(149, 159, 176);
-            ColorUpBorderCandle = Color.FromArgb(149, 159, 176);
+            ColorUpBodyCandle = Color.FromArgb(57, 157, 54);
+            ColorUpBorderCandle = Color.FromArgb(57, 157, 54);
 
             ColorDownBodyCandle = Color.FromArgb(17, 18, 23);
             ColorDownBorderCandle = Color.FromArgb(255, 83, 0);

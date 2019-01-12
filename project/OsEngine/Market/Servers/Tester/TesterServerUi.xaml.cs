@@ -346,6 +346,15 @@ namespace OsEngine.Market.Servers.Tester
         private void buttonPausePlay_Click(object sender, RoutedEventArgs e)
         {
             _server.TestingPausePlay();
+
+            if (ButtonPausePlay.Content.ToString() == "| |")
+            {
+                ButtonPausePlay.Content = ">";
+            }
+            else
+            {
+                ButtonPausePlay.Content = "| |";
+            }
         }
 
         private void buttonNextCandle_Click(object sender, RoutedEventArgs e)
@@ -359,6 +368,7 @@ namespace OsEngine.Market.Servers.Tester
             worker.CurrentCulture = new CultureInfo("ru-RU");
             worker.IsBackground = true;
             worker.Start();
+            ButtonPausePlay.Content = "| |";
         }
 
         private void ButtonSinhronazer_Click(object sender, RoutedEventArgs e)
