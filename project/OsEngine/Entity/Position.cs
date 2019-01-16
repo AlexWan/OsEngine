@@ -58,11 +58,19 @@ namespace OsEngine.Entity
         }
         private List<Order> _closeOrders;
 
+        /// <summary>
+        /// трейды этой позиции
+        /// </summary>
         public List<MyTrade> MyTrades
         {
             get
             {
-                List<MyTrade> myTrades = new List<MyTrade>();
+                List<MyTrade> trades = _myTrades;
+                if (trades != null)
+                {
+                    return trades;
+                }
+                trades = new List<MyTrade>();
 
                 for (int i = 0; _openOrders != null && i < _openOrders.Count; i++)
                 {
@@ -70,7 +78,7 @@ namespace OsEngine.Entity
                     if (newTrades != null &&
                         newTrades.Count != 0)
                     {
-                        myTrades.AddRange(newTrades);
+                        trades.AddRange(newTrades);
                     }
                 }
 
@@ -80,13 +88,16 @@ namespace OsEngine.Entity
                     if (newTrades != null &&
                         newTrades.Count != 0)
                     {
-                        myTrades.AddRange(newTrades);
+                        trades.AddRange(newTrades);
                     }
                 }
 
-                return myTrades;
+                _myTrades = trades;
+                return trades;
             }
         }
+
+        private List<MyTrade> _myTrades;
 
         /// <summary>
         /// загрузить в позицию новый ордер закрывающий позицию
@@ -558,6 +569,7 @@ namespace OsEngine.Entity
         /// </summary>
         public void SetTrade(MyTrade trade)
         {
+            _myTrades = null;
             if (_openOrders != null)
             {
 
@@ -566,6 +578,7 @@ namespace OsEngine.Entity
                     if (_openOrders[i].NumberMarket == trade.NumberOrderParent||
                         _openOrders[i].NumberUser.ToString() == trade.NumberOrderParent)
                     {
+                        trade.NumberPosition = Number.ToString();
                         _openOrders[i].SetTrade(trade);
                         if (OpenVolume != 0)
                         {
@@ -586,6 +599,7 @@ namespace OsEngine.Entity
                     if (CloseOrders[i].NumberMarket == trade.NumberOrderParent ||
                         CloseOrders[i].NumberUser.ToString() == trade.NumberOrderParent)
                     {
+                        trade.NumberPosition = Number.ToString();
                         CloseOrders[i].SetTrade(trade);
                         if (OpenVolume == 0)
                         {

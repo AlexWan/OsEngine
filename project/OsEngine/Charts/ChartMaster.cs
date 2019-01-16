@@ -43,9 +43,56 @@ namespace OsEngine.Charts
             ChartCandle.GetChart().Click += ChartMasterOneSecurity_Click;
             ChartCandle.LogMessageEvent += NewLogMessage;
             ChartCandle.ClickToIndexEvent += _chartCandle_ClickToIndexEvent;
+            ChartCandle.SizeAxisXChangeEvent += ChartCandle_SizeAxisXChangeEvent;
             Load();
             _canSave = true;
         }
+
+        private void ChartCandle_SizeAxisXChangeEvent(int newSizeX)
+        {
+            if (_myPosition == null ||
+                _myPosition.Count == 0)
+            {
+                return;
+            }
+
+            if (_lastAbsoluteSizeX == newSizeX)
+            {
+                return;
+            }
+
+            if (_lastTipeSizeX != ChartPositionTradeSize.Size4 && newSizeX < 200)
+            {
+                _lastTipeSizeX = ChartPositionTradeSize.Size4;
+                ChartCandle.SetPointSize(ChartPositionTradeSize.Size4);
+                ChartCandle.ProcessPositions(_myPosition);
+            }
+
+            else if (_lastTipeSizeX != ChartPositionTradeSize.Size3 && newSizeX > 200 && newSizeX < 500)
+            {
+                _lastTipeSizeX = ChartPositionTradeSize.Size3;
+                ChartCandle.SetPointSize(ChartPositionTradeSize.Size3);
+                ChartCandle.ProcessPositions(_myPosition);
+            }
+            else if (_lastTipeSizeX != ChartPositionTradeSize.Size2 && newSizeX > 500 && newSizeX < 1300)
+            {
+                _lastTipeSizeX = ChartPositionTradeSize.Size2;
+                ChartCandle.SetPointSize(ChartPositionTradeSize.Size2);
+                ChartCandle.ProcessPositions(_myPosition);
+            }
+            else if (_lastTipeSizeX != ChartPositionTradeSize.Size1 && newSizeX > 1300)
+            {
+                _lastTipeSizeX = ChartPositionTradeSize.Size1;
+                ChartCandle.SetPointSize(ChartPositionTradeSize.Size1);
+                ChartCandle.ProcessPositions(_myPosition);
+            }
+
+            _lastAbsoluteSizeX = newSizeX;
+        }
+
+        private int _lastAbsoluteSizeX;
+
+        private ChartPositionTradeSize _lastTipeSizeX;
 
         /// <summary>
         /// Загрузить настройки из файла
@@ -415,21 +462,17 @@ namespace OsEngine.Charts
                 items.Add(new MenuItem("Отрисовка чарта", 
                     new MenuItem[] 
                 {new MenuItem("Цветовая схема", new MenuItem[]{new MenuItem("Тёмная"),new MenuItem("Светлая")}),
-                new MenuItem("Фигура сделки", new MenuItem[]{new MenuItem("Ромб"),new MenuItem("Кружок"),new MenuItem("Треугольник(тормозит при дебаггинге)")}),
-                new MenuItem("Размер фигуры", new MenuItem[]{new MenuItem("6"),new MenuItem("10"),new MenuItem("14")})}
+                new MenuItem("Фигура сделки", new MenuItem[]{ new MenuItem("Перекрестие"), new MenuItem("Ромб"),new MenuItem("Кружок"),new MenuItem("Треугольник(тормозит при дебаггинге)")})}
                 
                 ));
 
                 items[items.Count - 1].MenuItems[0].MenuItems[0].Click += ChartBlackColor_Click;
                 items[items.Count - 1].MenuItems[0].MenuItems[1].Click += ChartWhiteColor_Click;
 
-                items[items.Count - 1].MenuItems[1].MenuItems[0].Click += ChartRombToPosition_Click;
-                items[items.Count - 1].MenuItems[1].MenuItems[1].Click += ChartCircleToPosition_Click;
-                items[items.Count - 1].MenuItems[1].MenuItems[2].Click += ChartTriangleToPosition_Click;
-
-                items[items.Count - 1].MenuItems[2].MenuItems[0].Click += ChartMinPointSize_Click;
-                items[items.Count - 1].MenuItems[2].MenuItems[1].Click += ChartMiddlePointSize_Click;
-                items[items.Count - 1].MenuItems[2].MenuItems[2].Click += ChartMaxPointSize_Click;
+                items[items.Count - 1].MenuItems[1].MenuItems[0].Click += ChartCrossToPosition_Click;
+                items[items.Count - 1].MenuItems[1].MenuItems[1].Click += ChartRombToPosition_Click;
+                items[items.Count - 1].MenuItems[1].MenuItems[2].Click += ChartCircleToPosition_Click;
+                items[items.Count - 1].MenuItems[1].MenuItems[3].Click += ChartTriangleToPosition_Click;
 
                 items.Add(new MenuItem("Скрыть области"));
                 items[items.Count - 1].Click += ChartHideIndicators_Click;
@@ -457,27 +500,12 @@ namespace OsEngine.Charts
         }
 
         /// <summary>
-        /// Пользователь выбрал в контекстном меню размер для точки отображающей позиции на графике: минимальный
+        /// Пользователь выбрал в контекстном меню перекрестие для прорисовки сделок на чарте
         /// </summary>
-        private void ChartMinPointSize_Click(object sender, EventArgs e)
+        private void ChartCrossToPosition_Click(object sender, EventArgs e)
         {
-            ChartCandle.SetPointSize(6);
-        }
-
-        /// <summary>
-        /// Пользователь выбрал в контекстном меню размер для точки отображающей позиции на графике: средний
-        /// </summary>
-        private void ChartMiddlePointSize_Click(object sender, EventArgs e)
-        {
-            ChartCandle.SetPointSize(10);
-        }
-
-        /// <summary>
-        /// Пользователь выбрал в контекстном меню размер для точки отображающей позиции на графике: максимальный
-        /// </summary>
-        private void ChartMaxPointSize_Click(object sender, EventArgs e)
-        {
-            ChartCandle.SetPointSize(14);
+            ChartCandle.SetPointType(PointType.Cross);
+            ChartCandle.ProcessPositions(_myPosition);
         }
 
         /// <summary>
@@ -486,6 +514,7 @@ namespace OsEngine.Charts
         private void ChartRombToPosition_Click(object sender, EventArgs e)
         {
             ChartCandle.SetPointType(PointType.Romb);
+            ChartCandle.ProcessPositions(_myPosition);
         }
 
         /// <summary>
@@ -494,6 +523,7 @@ namespace OsEngine.Charts
         private void ChartCircleToPosition_Click(object sender, EventArgs e)
         {
             ChartCandle.SetPointType(PointType.Circle);
+            ChartCandle.ProcessPositions(_myPosition);
         }
 
         /// <summary>
@@ -502,6 +532,7 @@ namespace OsEngine.Charts
         private void ChartTriangleToPosition_Click(object sender, EventArgs e)
         {
             ChartCandle.SetPointType(PointType.TriAngle);
+            ChartCandle.ProcessPositions(_myPosition);
         }
 
         /// <summary>
@@ -1239,6 +1270,8 @@ namespace OsEngine.Charts
             _timeFrameBuilder = timeFrameBuilder;
             _securityOnThisChart = security;
             _timeFrameSecurity = timeFrameBuilder.TimeFrame;
+            _serverType = serverType;
+
             Clear();
             PaintLabelOnSlavePanel();
 
@@ -1250,6 +1283,8 @@ namespace OsEngine.Charts
 
 
         private TimeFrameBuilder _timeFrameBuilder;
+
+        private ServerType _serverType;
 
         /// <summary>
         /// бумага отображаемая на чарте
@@ -1284,13 +1319,16 @@ namespace OsEngine.Charts
             {
                 security = "Unknown";
             }
+
+            _label.Content =  _serverType;
+
             if (_timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Simple)
             {
-                _label.Content = "Бумага:  " + security + "     Таймфрейм:  " + _timeFrameSecurity;
+                _label.Content += " / " + security + " / " + _timeFrameSecurity;
             }
             else
             {
-                _label.Content = "Бумага:  " + security + "     Таймфрейм:  " + _timeFrameBuilder.CandleCreateMethodType;
+                _label.Content += " / " + security + " / " + _timeFrameBuilder.CandleCreateMethodType;
             }
             
             _grid.Children.Clear();

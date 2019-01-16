@@ -33,6 +33,11 @@ namespace OsEngine.Entity
         public string NumberOrderParent;
 
         /// <summary>
+        /// номер позиции у робота в OsEngine
+        /// </summary>
+        public string NumberPosition;
+
+        /// <summary>
         /// код инструмента по которому прошла сделка
         /// </summary>
         public string SecurityNameCode;
@@ -61,6 +66,7 @@ namespace OsEngine.Entity
             result += NumberTrade.ToString(new CultureInfo("ru-RU")) + "&";
             result += Side + "&";
             result += SecurityNameCode + "&";
+            result += NumberPosition + "&";
             return result;
         }
 
@@ -78,6 +84,38 @@ namespace OsEngine.Entity
             NumberTrade = arraySave[4];
             Enum.TryParse(arraySave[5], out Side);
             SecurityNameCode = arraySave[6];
+            NumberPosition = arraySave[7];
         }
+
+        /// <summary>
+        /// взять строку для подсказки
+        /// </summary>
+        public string ToolTip
+        {
+            get
+            {
+                if (_toolTip != null)
+                {
+                    return _toolTip;
+                }
+
+                if (NumberPosition != null)
+                {
+                    _toolTip = "Pos. num: " + NumberPosition;
+                }
+
+                _toolTip += " Ord. num: " + NumberOrderParent;
+                _toolTip += " Trade num: " + NumberTrade + "\r\n";
+
+                _toolTip += "Side: " + Side + "\r\n";
+                _toolTip += "Time: " + Time + "\r\n";
+                _toolTip += "Price: " + Price + "\r\n";
+                _toolTip += "Volume: " + Volume + "\r\n";
+
+                return _toolTip;
+            }
+        }
+
+        private string _toolTip;
     }
 }

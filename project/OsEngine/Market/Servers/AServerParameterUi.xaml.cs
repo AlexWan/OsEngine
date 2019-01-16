@@ -45,7 +45,7 @@ namespace OsEngine.Market.Servers
         public void CreateParamDataGrid()
         {
             _newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.None);
-
+            
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = _newGrid.DefaultCellStyle;
 
