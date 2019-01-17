@@ -8,7 +8,6 @@ using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
-using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Forms.Integration;
@@ -61,6 +60,8 @@ namespace OsEngine.Charts.CandleChart
                 _chart.MouseMove += _chartForCandle_MouseMove2ChartElement;
                 _chart.MouseDown += _chartForCandle_MouseDown2ChartElement;
                 _chart.MouseUp += _chartForCandle_MouseUp2ChartElement;
+
+                _chart.MouseLeave += _chart_MouseLeave;
 
                 Thread painterThred = new Thread(PainterThreadArea);
                 painterThred.IsBackground = true;
@@ -347,7 +348,7 @@ namespace OsEngine.Charts.CandleChart
             _colorKeeper.SetBlackScheme();
         }
 
-        public void SetPointSize(int pointSize)
+        public void SetPointSize(ChartPositionTradeSize pointSize)
         {
             _colorKeeper.PointsSize = pointSize;
         }
@@ -1211,6 +1212,8 @@ namespace OsEngine.Charts.CandleChart
                     candleSeries.Points[index].BackSecondaryColor = _colorKeeper.ColorDownBodyCandle;
                 }
 
+                candleSeries.Points[index].ToolTip = history[index].ToolTip;
+
                 ChartArea candleArea = FundAreaByNameSafe("Prime");
                 if (candleArea != null && candleArea.AxisX.ScrollBar.IsVisible &&
                     candleArea.AxisX.ScaleView.Position + candleArea.AxisX.ScaleView.Size + 3 >= candleSeries.Points.Count)
@@ -1256,6 +1259,9 @@ namespace OsEngine.Charts.CandleChart
                 candleSeries.Points[candleSeries.Points.Count - 1].BorderColor = _colorKeeper.ColorDownBorderCandle;
                 candleSeries.Points[candleSeries.Points.Count - 1].BackSecondaryColor = _colorKeeper.ColorDownBodyCandle;
             }
+
+           
+            candleSeries.Points[candleSeries.Points.Count - 1].ToolTip = history[candleSeries.Points.Count - 1].ToolTip;
 
             // candleSeries.Points[candleSeries.Points.Count - 1].AxisLabel = history[lastIndex].TimeStart.ToString(_culture);
 
@@ -1308,6 +1314,8 @@ namespace OsEngine.Charts.CandleChart
                     candleSeries.Points[candleSeries.Points.Count - 1].BorderColor = _colorKeeper.ColorDownBorderCandle;
                     candleSeries.Points[candleSeries.Points.Count - 1].BackSecondaryColor = _colorKeeper.ColorDownBodyCandle;
                 }
+
+                candleSeries.Points[candleSeries.Points.Count - 1].ToolTip = history[candleSeries.Points.Count - 1].ToolTip;
 
                 // candleSeries.Points[candleSeries.Points.Count - 1].AxisLabel = history[i].TimeStart.ToString(new CultureInfo("ru-RU"));
             }
@@ -1532,7 +1540,7 @@ namespace OsEngine.Charts.CandleChart
             {
                 if (_mouseDown == true)
                 {
-                    return;
+                    //return;
                 }
 
                 if (_myCandles == null)
@@ -1559,9 +1567,31 @@ namespace OsEngine.Charts.CandleChart
                 buySellSeries.YAxisType = AxisType.Secondary;
                 buySellSeries.ChartArea = "Prime";
                 buySellSeries.YValuesPerPoint = 1;
-                buySellSeries.MarkerSize = _colorKeeper.PointsSize;
+                
                 buySellSeries.ChartType = SeriesChartType.Point;
+                buySellSeries.MarkerStyle = MarkerStyle.Cross;
 
+                if (_colorKeeper.PointsSize == ChartPositionTradeSize.Size4)
+                {
+                    buySellSeries.MarkerSize = 12;
+                }
+                if (_colorKeeper.PointsSize == ChartPositionTradeSize.Size3)
+                {
+                    buySellSeries.MarkerSize = 11;
+                }
+                if (_colorKeeper.PointsSize == ChartPositionTradeSize.Size2)
+                {
+                    buySellSeries.MarkerSize = 10;
+                }
+                if (_colorKeeper.PointsSize == ChartPositionTradeSize.Size1)
+                {
+                    buySellSeries.MarkerSize = 9;
+                }
+
+                if (_colorKeeper.PointType == PointType.Cross)
+                {
+                    buySellSeries.MarkerStyle = MarkerStyle.Cross;
+                }
                 if (_colorKeeper.PointType == PointType.Circle)
                 {
                     buySellSeries.MarkerStyle = MarkerStyle.Circle;
@@ -1575,156 +1605,96 @@ namespace OsEngine.Charts.CandleChart
                     buySellSeries.MarkerStyle = MarkerStyle.Triangle;
                 }
 
-
-
-                for (int i = 0; i < deals.Count; i++)
-                { // проходим ордера на ОТКРЫТИЕ
-                    if (deals[i].EntryPrice != 0)
-                    {
-                        for (int index2 = 0; index2 < deals[i].OpenOrders.Count; index2++)
-                        {
-                            Order openOrder = deals[i].OpenOrders[index2];
-                            if (openOrder != null && openOrder.PriceReal != 0 && openOrder.VolumeExecute != 0)
-                            {
-                                DateTime timePoint = openOrder.GetLastTradeTime();
-
-                                if (timePoint == DateTime.MinValue)
-                                {
-                                    continue;
-                                }
-                                int xIndexPoint = GetTimeIndex(timePoint);
-                                if (xIndexPoint == 0)
-                                {
-                                    continue;
-                                }
-
-                                buySellSeries.Points.AddXY(xIndexPoint, openOrder.PriceReal);
-
-                                if (_colorKeeper.PointType == PointType.TriAngle)
-                                {
-                                    // прорисовываем картинки
-                                    double openViewSize = _myCandles.Count;
-
-                                    if (_chart.ChartAreas[0].AxisX.ScaleView.IsZoomed)
-                                    {
-                                        openViewSize = _chart.ChartAreas[0].AxisX.ScaleView.Size;
-                                    }
-                                    if (openOrder.Side == Side.Buy)
-                                    {
-                                        if (openViewSize < 500)
-                                        {
-                                            buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage =
-                                                @"Images\pickUp.png";
-                                        }
-                                        else
-                                        {
-                                            buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage =
-                                                @"Images\pickUpSmall.png";
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (openViewSize < 500)
-                                        {
-                                            buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage =
-                                                @"Images\pickDown.png";
-                                        }
-                                        else
-                                        {
-                                            buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage =
-                                                @"Images\pickDownSmall.png";
-                                        }
-                                    }
-                                }
-
-                                if (openOrder.Side == Side.Buy)
-                                {
-                                    buySellSeries.Points[buySellSeries.Points.Count - 1].Color = Color.ForestGreen;
-                                }
-                                else
-                                {
-                                    buySellSeries.Points[buySellSeries.Points.Count - 1].Color = Color.Red;
-
-                                }
-
-                            }
-                        }
-                    }
-                }
-
                 for (int i = 0; i < deals.Count; i++)
                 {
-                    // проходим ордера на ЗАКРЫТИЕ 
-                    if (deals[i].CloseOrders != null)
+                    List<MyTrade> trades = deals[i].MyTrades;
+
+                    for (int indTrades = 0; indTrades < trades.Count; indTrades++)
                     {
-                        for (int index2 = 0; index2 < deals[i].CloseOrders.Count; index2++)
+                        DateTime timePoint = trades[indTrades].Time;
+
+                        if (timePoint == DateTime.MinValue)
                         {
-                            Order closeOrder = deals[i].CloseOrders[index2];
-                            if (closeOrder != null && closeOrder.PriceReal != 0 && closeOrder.VolumeExecute != 0)
+                            continue;
+                        }
+                        int xIndexPoint = GetTimeIndex(timePoint);
+                        if (xIndexPoint == 0)
+                        {
+                            continue;
+                        }
+
+                        buySellSeries.Points.AddXY(xIndexPoint, trades[indTrades].Price);
+
+                        buySellSeries.Points[buySellSeries.Points.Count - 1].ToolTip = trades[indTrades].ToolTip;
+
+                        if (_colorKeeper.PointType == PointType.TriAngle)
+                        {
+                            // прорисовываем картинки
+                            double openViewSize = _myCandles.Count;
+
+                            if (_chart.ChartAreas[0].AxisX.ScaleView.IsZoomed)
                             {
-                                DateTime timePoint = closeOrder.GetLastTradeTime();
-
-                                if (timePoint == DateTime.MinValue)
+                                openViewSize = _chart.ChartAreas[0].AxisX.ScaleView.Size;
+                            }
+                            if (trades[indTrades].Side == Side.Buy)
+                            {
+                                if (_colorKeeper.PointsSize == ChartPositionTradeSize.Size4)
                                 {
-                                    continue;
+                                    buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage =
+                                        @"Images\pickUpSize4.png";
                                 }
-                                int xIndexPoint = GetTimeIndex(timePoint);
-                                if (xIndexPoint == 0)
+                                else if (_colorKeeper.PointsSize == ChartPositionTradeSize.Size3)
                                 {
-                                    continue;
+                                    buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage =
+                                        @"Images\pickUpSize3.png";
                                 }
-
-                                buySellSeries.Points.AddXY(xIndexPoint, closeOrder.PriceReal);
-
-                                if (closeOrder.Side == Side.Buy)
+                                else if (_colorKeeper.PointsSize == ChartPositionTradeSize.Size2)
                                 {
-                                    buySellSeries.Points[buySellSeries.Points.Count - 1].Color = Color.ForestGreen;
+                                    buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage =
+                                        @"Images\pickUpSize2.png";
                                 }
-                                else
+                                else if (_colorKeeper.PointsSize == ChartPositionTradeSize.Size1)
                                 {
-                                    buySellSeries.Points[buySellSeries.Points.Count - 1].Color = Color.Red;
+                                    buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage =
+                                        @"Images\pickUpSize2.png";
                                 }
-                                if (_colorKeeper.PointType == PointType.TriAngle)
+                            }
+                            else
+                            {
+                                if (_colorKeeper.PointsSize == ChartPositionTradeSize.Size4)
                                 {
-                                    // прорисовываем картинки
-                                    double openViewSize = _myCandles.Count;
-
-                                    if (_chart.ChartAreas[0].AxisX.ScaleView.IsZoomed)
-                                    {
-                                        openViewSize = _chart.ChartAreas[0].AxisX.ScaleView.Size;
-                                    }
-                                    if (closeOrder.Side == Side.Buy)
-                                    {
-                                        if (openViewSize < 500)
-                                        {
-                                            buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage =
-                                                @"Images\pickUp.png";
-                                        }
-                                        else
-                                        {
-                                            buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage =
-                                                @"Images\pickUpSmall.png";
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (openViewSize < 500)
-                                        {
-                                            buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage =
-                                                @"Images\pickDown.png";
-                                        }
-                                        else
-                                        {
-                                            buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage =
-                                                @"Images\pickDownSmall.png";
-                                        }
-                                    }
+                                    buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage =
+                                        @"Images\pickDownSize4.png";
+                                }
+                                if (_colorKeeper.PointsSize == ChartPositionTradeSize.Size3)
+                                {
+                                    buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage =
+                                        @"Images\pickDownSize3.png";
+                                }
+                                else if (_colorKeeper.PointsSize == ChartPositionTradeSize.Size2)
+                                {
+                                    buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage =
+                                        @"Images\pickDownSize2.png";
+                                }
+                                else if (_colorKeeper.PointsSize == ChartPositionTradeSize.Size1)
+                                {
+                                    buySellSeries.Points[buySellSeries.Points.Count - 1].MarkerImage =
+                                        @"Images\pickDownSize2.png";
                                 }
                             }
                         }
+
+                        if (trades[indTrades].Side == Side.Buy)
+                        {
+                            buySellSeries.Points[buySellSeries.Points.Count - 1].Color = Color.Aqua;
+                        }
+                        else
+                        {
+                            buySellSeries.Points[buySellSeries.Points.Count - 1].Color = Color.DarkRed;
+
+                        }
                     }
                 }
-
 
                 // формируем линии Профитов и Стопов
                 for (int i = 0; i < deals.Count; i++)
@@ -3014,6 +2984,7 @@ namespace OsEngine.Charts.CandleChart
                     if (array[i] != 0)
                     {
                         series.Points.AddXY(i, array[i]);
+                        series.Points[series.Points.Count - 1].ToolTip = array[i].ToString();
                     }
                 }
                 ReloadAreaSizes();
@@ -3031,6 +3002,7 @@ namespace OsEngine.Charts.CandleChart
 
             decimal lastPoint = values[values.Count - 1];
             mySeries.Points.AddXY(values.Count - 1, lastPoint);
+            mySeries.Points[mySeries.Points.Count - 1].ToolTip = lastPoint.ToString();
         }
 
         /// <summary>
@@ -3041,7 +3013,7 @@ namespace OsEngine.Charts.CandleChart
             Series mySeries = FundSeriesByNameSafe(nameSeries);
             decimal point2 = Convert.ToDecimal(values[values.Count - 2]);
             mySeries.Points[mySeries.Points.Count - 1].YValues = new[] { Convert.ToDouble(point2) };
-
+            mySeries.Points[mySeries.Points.Count - 1].ToolTip = point2.ToString();
         }
 
 // Индикатор линия
@@ -3104,6 +3076,7 @@ namespace OsEngine.Charts.CandleChart
                     if (array[i] != 0)
                     {
                         series.Points.AddXY(i, array[i]);
+                        series.Points[series.Points.Count - 1].ToolTip = array[i].ToString();
                     }
                     else
                     {
@@ -3127,6 +3100,7 @@ namespace OsEngine.Charts.CandleChart
 
             decimal lastPoint = values[values.Count - 1];
             mySeries.Points.AddXY(mySeries.Points.Count, lastPoint);
+            mySeries.Points[mySeries.Points.Count - 1].ToolTip = lastPoint.ToString();
 
             RePaintRightLebels();
         }
@@ -3140,6 +3114,8 @@ namespace OsEngine.Charts.CandleChart
 
             decimal lastPoint = Convert.ToDecimal(values[values.Count - 1]);
             mySeries.Points[mySeries.Points.Count - 1].YValues = new [] { Convert.ToDouble(lastPoint) };
+            mySeries.Points[mySeries.Points.Count - 1].ToolTip = lastPoint.ToString();
+
             RePaintRightLebels();
         }
 
@@ -3198,6 +3174,7 @@ namespace OsEngine.Charts.CandleChart
                     if (array[i] != 0)
                     {
                         series.Points.AddXY(i, array[i]);
+                        series.Points[series.Points.Count - 1].ToolTip = array[i].ToString();
                     }
                     else
                     {
@@ -3239,6 +3216,7 @@ namespace OsEngine.Charts.CandleChart
             Series mySeriesUp = FundSeriesByNameSafe(nameSeries);
             decimal lastPointUp = values[values.Count - 1];
             mySeriesUp.Points.AddXY(mySeriesUp.Points.Count, lastPointUp);
+            mySeriesUp.Points[mySeriesUp.Points.Count - 1].ToolTip = lastPointUp.ToString();
 
             if (values[values.Count - 1] > values[values.Count - 2])
             {
@@ -3264,6 +3242,7 @@ namespace OsEngine.Charts.CandleChart
             Series mySeriesUp = FundSeriesByNameSafe(nameSeries);
             decimal lastPoint = Convert.ToDecimal(values[values.Count - 1]);
             mySeriesUp.Points[mySeriesUp.Points.Count - 1].YValues = new[] { Convert.ToDouble(lastPoint) };
+            mySeriesUp.Points[mySeriesUp.Points.Count - 1].ToolTip = lastPoint.ToString();
 
             if (values.Count != 1)
             {
@@ -3507,6 +3486,18 @@ namespace OsEngine.Charts.CandleChart
             }
         }
 
+// управление исчезанием перекрестия на графике
+
+
+        private void _chart_MouseLeave(object sender, EventArgs e)
+        {
+            for (int i = 0; i < _chart.ChartAreas.Count; i++)
+            {
+                _chart.ChartAreas[i].CursorX.Position = double.NaN;
+                _chart.ChartAreas[i].CursorY.Position = 0;
+            }
+        }
+
 // переход по чарту
 
         /// <summary>
@@ -3646,11 +3637,14 @@ namespace OsEngine.Charts.CandleChart
 
                 for (int i = 0; i < series.Count; i++)
                 {
-                    if (index >= series[i].Points.Count)
+                    if (index >= series[i].Points.Count ||
+                        series[i].Name.EndsWith("label"))
                     {
                         continue;
                     }
-                    Series labelSeries = _labelSeries.Find(ser => ser.Name == series[i].Name + "label");
+                    Series labelSeries = _labelSeries.Find(ser => ser.Name == series[i].Name + "label"
+                                                                  ||
+                                                                  (ser.Name.EndsWith("label") && ser.Name == series[i].Name));
 
                     if (labelSeries == null)
                     {
@@ -3681,7 +3675,7 @@ namespace OsEngine.Charts.CandleChart
 
                     if (series[i].Name == "SeriesCandle")
                     {
-                        labelSeries.Points[0].Label = _myCandles[index].GetBeautifulString();
+                        labelSeries.Points[0].Label = _myCandles[index].ToolTip;
                     }
                     else
                     {
@@ -5291,6 +5285,11 @@ namespace OsEngine.Charts.CandleChart
                     return;
                 }
 
+                if (SizeAxisXChangeEvent != null)
+                {
+                    SizeAxisXChangeEvent(lastX - firstX);
+                }
+
                 double max = double.MinValue;
                 double min = double.MaxValue;
 
@@ -5318,10 +5317,10 @@ namespace OsEngine.Charts.CandleChart
                        max = maxOnSeries;
                    }
 
-                   if (seriesOnArea[serIterator].ChartType == SeriesChartType.Column)
+                  /* if (seriesOnArea[serIterator].ChartType == SeriesChartType.Column)
                    {
                        min = 0;
-                   }
+                   }*/
                 }
 
                 if (min == double.MaxValue ||
@@ -5558,7 +5557,7 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
             if(_myCandles == null ||
-                _myCandles.Count < 5)
+                _myCandles.Count ==0)
             {
                 return;
             }
@@ -5584,22 +5583,41 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
 
-            area.AxisX.Interval = values/4;
+            int labelCount = 4;
 
-            if (area.AxisX.CustomLabels.Count == 0)
+
+            if (_myCandles.Count <= 2)
+            {
+                labelCount = 2;
+            }
+            else if (_myCandles.Count == 3)
+            {
+                labelCount = 3;
+            }
+
+            area.AxisX.Interval = values/ labelCount;
+
+            while(area.AxisX.CustomLabels.Count < labelCount)
             {
                 area.AxisX.CustomLabels.Add(new CustomLabel());
-                area.AxisX.CustomLabels.Add(new CustomLabel());
-                area.AxisX.CustomLabels.Add(new CustomLabel());
-                area.AxisX.CustomLabels.Add(new CustomLabel());
+            }
+            while (area.AxisX.CustomLabels.Count > labelCount)
+            {
+                area.AxisX.CustomLabels.RemoveAt(0);
             }
 
             double value = firstPos + area.AxisX.Interval;
 
-            for (int i = 0; i < 4; i++)
+            if (labelCount < 4)
             {
-                area.AxisX.CustomLabels[i].FromPosition = value-value*0.7;
-                area.AxisX.CustomLabels[i].ToPosition = value + value * 0.7;
+                value = 0;
+            }
+
+
+            for (int i = 0; i < labelCount; i++)
+            {
+                area.AxisX.CustomLabels[i].FromPosition = value - area.AxisX.Interval * 0.7;
+                area.AxisX.CustomLabels[i].ToPosition = value + area.AxisX.Interval * 0.7;
                 area.AxisX.CustomLabels[i].Text = _myCandles[(int)value].TimeStart.ToString();
                 
                 value += area.AxisX.Interval;
@@ -5722,6 +5740,11 @@ namespace OsEngine.Charts.CandleChart
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
+        /// <summary>
+        /// изменилось представление по оси Х
+        /// </summary>
+        public event Action<int> SizeAxisXChangeEvent;
     }
 
     /// <summary>

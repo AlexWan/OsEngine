@@ -41,7 +41,7 @@ namespace OsEngine.Entity
             grid.DefaultCellStyle = style;
             grid.ColumnHeadersDefaultCellStyle = style;
 
-            grid.MouseEnter += delegate(object sender, EventArgs args)
+            grid.MouseHover += delegate(object sender, EventArgs args)
             {
                 grid.Focus();
             };

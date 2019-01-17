@@ -363,7 +363,6 @@ namespace OsEngine.Entity
             Volume = Convert.ToDecimal(saveArray[6].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
             VolumeExecute = Convert.ToDecimal(saveArray[7].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
 
-
             Enum.TryParse(saveArray[8], true, out _state);
             Enum.TryParse(saveArray[9], true, out TypeOrder);
             TimeCallBack = Convert.ToDateTime(saveArray[10]);

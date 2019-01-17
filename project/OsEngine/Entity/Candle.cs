@@ -121,79 +121,84 @@ namespace OsEngine.Entity
         /// <summary>
         /// взять строку с подписями
         /// </summary>
-        public string GetBeautifulString()
+        public string ToolTip
         {
             //Date - 20131001 Time - 100000 
             // Open - 97.8000000 High - 97.9900000 Low - 97.7500000 Close - 97.9000000
-
-            string result = string.Empty;
-
-            if (TimeStart.Day > 9)
+            get
             {
-                result += TimeStart.Day.ToString();
-            }
-            else
-            {
-                result += "0" + TimeStart.Day;
-            }
 
-            result += ".";
+                string result = string.Empty;
 
-            if (TimeStart.Month > 9)
-            {
-                result += TimeStart.Month.ToString();
+                if (TimeStart.Day > 9)
+                {
+                    result += TimeStart.Day.ToString();
+                }
+                else
+                {
+                    result += "0" + TimeStart.Day;
+                }
+
+                result += ".";
+
+                if (TimeStart.Month > 9)
+                {
+                    result += TimeStart.Month.ToString();
+                }
+                else
+                {
+                    result += "0" + TimeStart.Month;
+                }
+
+                result += ".";
+                result += TimeStart.Year.ToString();
+
+                result += " ";
+
+                if (TimeStart.Hour > 9)
+                {
+                    result += TimeStart.Hour.ToString();
+                }
+                else
+                {
+                    result += "0" + TimeStart.Hour;
+                }
+
+                result += ":";
+
+                if (TimeStart.Minute > 9)
+                {
+                    result += TimeStart.Minute.ToString();
+                }
+                else
+                {
+                    result += "0" + TimeStart.Minute;
+                }
+
+                result += ":";
+
+                if (TimeStart.Second > 9)
+                {
+                    result += TimeStart.Second.ToString();
+                }
+                else
+                {
+                    result += "0" + TimeStart.Second;
+                }
+
+                result += "  \r\n";
+
+                result += " O: ";
+                result += Open.ToString(new CultureInfo("ru-RU"));
+                result += " H: ";
+                result += High.ToString(new CultureInfo("ru-RU"));
+                result += " L: ";
+                result += Low.ToString(new CultureInfo("ru-RU"));
+                result += " C: ";
+                result += Close.ToString(new CultureInfo("ru-RU"));
+
+                return result;
             }
-            else
-            {
-                result += "0" + TimeStart.Month;
-            }
-            result += ".";
-            result += TimeStart.Year.ToString();
-
-            result += " ";
-
-            if (TimeStart.Hour > 9)
-            {
-                result += TimeStart.Hour.ToString();
-            }
-            else
-            {
-                result += "0" + TimeStart.Hour;
-            }
-
-            result += ":";
-
-            if (TimeStart.Minute > 9)
-            {
-                result += TimeStart.Minute.ToString();
-            }
-            else
-            {
-                result += "0" + TimeStart.Minute;
-            }
-
-            result += ":";
-
-            if (TimeStart.Second > 9)
-            {
-                result += TimeStart.Second.ToString();
-            }
-            else
-            {
-                result += "0" + TimeStart.Second;
-            }
-            result += "  \r\n";
-
-            result += " O: ";
-            result += Open.ToString(new CultureInfo("ru-RU"));
-            result += " H: ";
-            result += High.ToString(new CultureInfo("ru-RU"));
-            result += " L: ";
-            result += Low.ToString(new CultureInfo("ru-RU"));
-            result += " C: ";
-            result += Close.ToString(new CultureInfo("ru-RU"));
-
-            return result;
         }
 
         private string _stringToSave;
@@ -254,4 +259,27 @@ namespace OsEngine.Entity
         /// </summary>
         None
     }
+
+    public class HorizontalVolumeLine
+    {
+        public decimal Volume;
+
+        public decimal Price;
+
+    }
+
+    public class HorizontalVolume
+    {
+        public List<HorizontalVolumeLine> Lines = new List<HorizontalVolumeLine>();
+
+        public DateTime Time;
+
+        public void SetVolume(List<Trade> trades)
+        {
+
+        }
+
+    }
+
+
 }

@@ -45,7 +45,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -53,6 +53,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>Images\OsLogo.ico</ApplicationIcon>
@@ -365,9 +366,6 @@
     <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexSecurity.cs" />
     <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexTrades.cs" />
     <Compile Include="Market\Servers\BitMex\BitMexServer.cs" />
-    <Compile Include="Market\Servers\BitMex\BitMexServerUi.xaml.cs">
-      <DependentUpon>BitMexServerUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Market\Servers\BitStamp\BitStampServer.cs" />
     <Compile Include="Market\Servers\BitStamp\BitStampClient.cs" />
     <Compile Include="Market\Servers\BitStamp\BitStampEntity\RequestAuthenticator.cs" />
@@ -903,10 +901,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Market\Servers\BitMex\BitMexServerUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Market\Servers\BitStamp\BitStampServerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -1279,18 +1273,6 @@
     <None Include="Resources\Bird.wav" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\pickDown.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\pickDownSmall.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\pickUp.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\pickUpSmall.png" />
-  </ItemGroup>
-  <ItemGroup>
     <COMReference Include="SmartCOM4Lib">
       <Guid>{D12929CB-4569-46B7-99CE-FFF546E41866}</Guid>
       <VersionMajor>1</VersionMajor>
@@ -1312,6 +1294,38 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\MainWIndow\Trading.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\pickDownSize1.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\pickDownSize4.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\pickUpSize1.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\pickUpSize4.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\pickDownSize2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\pickDownSize3.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\pickUpSize2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\pickUpSize3.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

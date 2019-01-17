@@ -580,6 +580,33 @@
             </Setter>
         </Style>
 
+        <Style x:Key="TextBoxRectangular" TargetType="{x:Type TextBox}">
+            <Setter Property="Background" Value="{StaticResource ControlBackgroundNormal}" />
+            <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="{StaticResource ControlForegroundWhite}" />
+            <Setter Property="CaretBrush" Value="{StaticResource ControlBackgroundOver}"/>
+            <Setter Property="AllowDrop" Value="True"/>
+            <Setter Property="Height" Value="23"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TextBox}">
+
+                        <Grid>
+                            <Border x:Name="txb_mouseOver2" Background="{TemplateBinding Background}" Opacity="0" CornerRadius="0" />
+                            <Border x:Name="txb_mouseOver1" Background="{StaticResource ControlBackgroundLine}" Opacity="0" CornerRadius="0" />
+                            <Border x:Name="txb_border" Background="{TemplateBinding Background}" CornerRadius="0" 
+                                    BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                <ScrollViewer x:Name="PART_ContentHost" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                            </Border>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+
         <!-- CheckBox -->
         <Style TargetType="{x:Type CheckBox}">
             <Setter Property="Background" Value="{StaticResource ControlBackgroundNormal}" />
@@ -1792,14 +1819,22 @@
                             <ContentPresenter />
                         </Grid>
                         <ControlTemplate.Triggers>
+                            <Trigger Property="IsVisible" Value="True">
+                                <Setter TargetName="PART_border" Property="Background" Value="#FFF" />
+                                <Setter TargetName="PART_border" Property="Opacity" Value="0." />
+                                <Setter Property="Foreground" Value="#F3F3F3"/>
+                            </Trigger>
+
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="PART_border" Property="Background" Value="#FFF" />
                                 <Setter TargetName="PART_border" Property="Opacity" Value="0." />
+                                <Setter Property="Foreground" Value="#ff5500"/>
                             </Trigger>
+
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="PART_border" Property="Background" Value="{StaticResource WindowBorderBrush}"/>
+                                <Setter TargetName="PART_border" Property="Background" Value="#ff5500"/>
                                 <Setter TargetName="PART_border" Property="Opacity" Value="1" />
-                                <Setter Property="Foreground" Value="#FFF"/>
+                                <Setter Property="Foreground" Value="#F3F3F3"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -2031,6 +2066,7 @@
                             Height="Auto"
                             Background="#EFEFF2"
                             BorderBrush="{StaticResource WindowBorderBrush}"
+                            
                             BorderThickness="2"
                             Padding="0">
                                     <DockPanel
@@ -2056,6 +2092,7 @@
                                             x:Name="Icon"
                                             Grid.Column="0"
                                             Source="{Binding Path=Icon, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" 
+                                               
                                             HorizontalAlignment="Right"
                                             Margin="4,0,0,0"
                                             Width="24"

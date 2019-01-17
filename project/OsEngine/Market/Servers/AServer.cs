@@ -19,7 +19,8 @@ namespace OsEngine.Market.Servers
         {
             set
             {
-                _serverRealization = value;
+                _serverConnectStatus = ServerConnectStatus.Disconnect;
+               _serverRealization = value;
                 _serverRealization.NewTradesEvent += ServerRealization_NewTradesEvent;
                 _serverRealization.ConnectEvent += _serverRealization_Connected;
                 _serverRealization.DisconnectEvent += _serverRealization_Disconnected;

@@ -35,8 +35,7 @@ namespace OsEngine.Charts.ColorKeeper
         public ChartMasterColorKeeper(string name) 
         {
             _name = name;
-            _pointType = PointType.Circle;
-            _pointSize = 6;
+            _pointType = PointType.Cross;
             Load();
         }
 
@@ -67,14 +66,13 @@ namespace OsEngine.Charts.ColorKeeper
                         ColorBackCursor = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
                         ColorText = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
                         Enum.TryParse(reader.ReadLine(), true, out _pointType);
-                        _pointSize = Convert.ToInt32(reader.ReadLine());
                         Enum.TryParse(reader.ReadLine(), true, out _colorScheme);
                     }
                 }
                 else
                 {
-                    ColorUpBodyCandle = Color.FromArgb(83, 83, 130);
-                    ColorUpBorderCandle = Color.FromArgb(83, 83, 130);
+                    ColorUpBodyCandle = Color.FromArgb(57, 157, 54);
+                    ColorUpBorderCandle = Color.FromArgb(57, 157, 54);
 
                     ColorDownBodyCandle = Color.FromArgb(17, 18, 23);
                     ColorDownBorderCandle = Color.FromArgb(255, 83, 0);
@@ -114,7 +112,6 @@ namespace OsEngine.Charts.ColorKeeper
                     writer.WriteLine(ColorText.ToArgb());
 
                     writer.WriteLine(_pointType);
-                    writer.WriteLine(_pointSize);
 
                     writer.WriteLine(_colorScheme);
                 }
@@ -170,8 +167,8 @@ namespace OsEngine.Charts.ColorKeeper
         /// </summary>
         public void SetBlackScheme()
         {
-            ColorUpBodyCandle = Color.FromArgb(149, 159, 176);
-            ColorUpBorderCandle = Color.FromArgb(149, 159, 176);
+            ColorUpBodyCandle = Color.FromArgb(57, 157, 54);
+            ColorUpBorderCandle = Color.FromArgb(57, 157, 54);
 
             ColorDownBodyCandle = Color.FromArgb(17, 18, 23);
             ColorDownBorderCandle = Color.FromArgb(255, 83, 0);
@@ -244,20 +241,7 @@ namespace OsEngine.Charts.ColorKeeper
         /// <summary>
         /// размер для точки обозначающей позицию
         /// </summary>
-        public int PointsSize
-        {
-            get { return _pointSize; }
-            set
-            {
-                if (_pointSize <= 0 || _pointSize > 40)
-                {
-                    return;
-                }
-                _pointSize = value;
-                Save();
-            }
-        }
-        private int _pointSize;
+        public ChartPositionTradeSize PointsSize;
 
         /// <summary>
         /// тип точки
@@ -307,6 +291,11 @@ namespace OsEngine.Charts.ColorKeeper
     public enum PointType
     {
         /// <summary>
+        /// перекрестие
+        /// </summary>
+        Cross,
+
+        /// <summary>
         /// круг
         /// </summary>
         Circle,
@@ -339,5 +328,19 @@ namespace OsEngine.Charts.ColorKeeper
         /// тёмная
         /// </summary>
         Dark,
+    }
+
+    /// <summary>
+    /// Размер точки данных на чарте для трейда. 1 - самая маленькая
+    /// </summary>
+    public enum ChartPositionTradeSize
+    {
+        Size1,
+
+        Size2,
+
+        Size3,
+
+        Size4
     }
 }
