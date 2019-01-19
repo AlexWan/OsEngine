@@ -27,7 +27,7 @@ namespace OsEngine.Charts.CandleChart
     /// <summary>
     /// Мастер прорисовки свечного графика
     /// </summary>
-    public class ChartPainter
+    public class ChartCandlePainter
     {
 
 // сервис
@@ -37,7 +37,7 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         /// <param name="name">имя робота, которому принадлежит чарт</param>
         /// <param name="startProgram">программа создающая объект класса</param>
-        public ChartPainter(string name,StartProgram startProgram)
+        public ChartCandlePainter(string name,StartProgram startProgram)
         {
             try
             {
@@ -227,7 +227,7 @@ namespace OsEngine.Charts.CandleChart
                     neadToBackChild = true;
                 }
 
-                Series oldcandleSeries = FundSeriesByNameSafe("SeriesCandle");
+                Series oldcandleSeries = FindSeriesByNameSafe("SeriesCandle");
                 if (oldcandleSeries.Points.Count != 0)
                 {
                     oldcandleSeries.Points.Clear();
@@ -235,9 +235,9 @@ namespace OsEngine.Charts.CandleChart
                     
                 //_chartElements = new List<IChartElement>();
 
-                if (FundSeriesByNameSafe("Deal_" + "BuySell") != null)
+                if (FindSeriesByNameSafe("Deal_" + "BuySell") != null)
                 {
-                    _chart.Series.Remove(FundSeriesByNameSafe("Deal_" + "BuySell"));
+                    _chart.Series.Remove(FindSeriesByNameSafe("Deal_" + "BuySell"));
                 }
 
                 for (int i = 0; _chart.Series != null && i < _chart.Series.Count; i++)
@@ -415,7 +415,7 @@ namespace OsEngine.Charts.CandleChart
                     }
                 }
 
-                Series candleSeries = FundSeriesByNameSafe("SeriesCandle");
+                Series candleSeries = FindSeriesByNameSafe("SeriesCandle");
 
                 if (candleSeries == null)
                 {
@@ -535,7 +535,7 @@ namespace OsEngine.Charts.CandleChart
         {
             try
             {
-                ChartArea area = FundAreaByNameSafe(nameArea);
+                ChartArea area = FindAreaByNameSafe(nameArea);
 
                 if (area != null)
                 {
@@ -550,7 +550,7 @@ namespace OsEngine.Charts.CandleChart
 
                 // 1 уже созданные области надо подвинуть.
 
-                ChartArea primeArea = FundAreaByNameSafe("Prime");
+                ChartArea primeArea = FindAreaByNameSafe("Prime");
                 if (primeArea == null)
                 {
                     return null;
@@ -670,7 +670,7 @@ namespace OsEngine.Charts.CandleChart
         /// <returns>возвращается область данных или null</returns>
         public ChartArea GetChartArea(string name)
         {
-            return FundAreaByNameSafe(name);
+            return FindAreaByNameSafe(name);
         }
 
         /// <summary>
@@ -693,7 +693,7 @@ namespace OsEngine.Charts.CandleChart
 
                 for (int i = 0; i < 20; i++)
                 {
-                    Series mySeries = FundSeriesByNameSafe(indicator.Name + i);
+                    Series mySeries = FindSeriesByNameSafe(indicator.Name + i);
 
                     if (mySeries != null)
                     {
@@ -702,7 +702,7 @@ namespace OsEngine.Charts.CandleChart
                             ClearLabelOnY2(mySeries.Name + "Label", mySeries.ChartArea, mySeries.Points[0].Color);
                         }
                         mySeries.Points.Clear();
-                        _chart.Series.Remove(FundSeriesByNameSafe(indicator.Name + i));
+                        _chart.Series.Remove(FindSeriesByNameSafe(indicator.Name + i));
 
                         if (_labelSeries != null)
                         {
@@ -723,7 +723,7 @@ namespace OsEngine.Charts.CandleChart
                 {
                     return;
                 }
-                ChartArea area = FundAreaByNameSafe(indicator.NameArea);
+                ChartArea area = FindAreaByNameSafe(indicator.NameArea);
 
                 if (area == null)
                 {
@@ -746,7 +746,7 @@ namespace OsEngine.Charts.CandleChart
                 {
                     return;
                 }
-                _chart.ChartAreas.Remove(FundAreaByNameSafe(indicator.NameArea));
+                _chart.ChartAreas.Remove(FindAreaByNameSafe(indicator.NameArea));
                 ShowAreaOnChart();
 
                 _areaPositions = new List<ChartAreaPosition>();
@@ -802,7 +802,7 @@ namespace OsEngine.Charts.CandleChart
             {
                 for (int i = 0; i < _chart.ChartAreas.Count; i++)
                 {
-                    if (FundAreaByNameSafe(name) != null)
+                    if (FindAreaByNameSafe(name) != null)
                     {
                         return true;
                     }
@@ -1082,12 +1082,12 @@ namespace OsEngine.Charts.CandleChart
                     _myCandles = history;
                 }
 
-                Series oldcandleSeries = FundSeriesByNameSafe("SeriesCandle");
+                Series oldcandleSeries = FindSeriesByNameSafe("SeriesCandle");
 
                 if (oldcandleSeries == null)
                 {
                     CreateChart();
-                    oldcandleSeries = FundSeriesByNameSafe("SeriesCandle");
+                    oldcandleSeries = FindSeriesByNameSafe("SeriesCandle");
                 }
 
                 if (oldcandleSeries == null)
@@ -1178,7 +1178,7 @@ namespace OsEngine.Charts.CandleChart
                 _chart.Invoke(new Action<List<Candle>, int>(RePaintToIndex), history, index);
                 return;
             }
-            Series candleSeries = FundSeriesByNameSafe("SeriesCandle");
+            Series candleSeries = FindSeriesByNameSafe("SeriesCandle");
 
             if (candleSeries == null)
             {
@@ -1214,7 +1214,7 @@ namespace OsEngine.Charts.CandleChart
 
                 candleSeries.Points[index].ToolTip = history[index].ToolTip;
 
-                ChartArea candleArea = FundAreaByNameSafe("Prime");
+                ChartArea candleArea = FindAreaByNameSafe("Prime");
                 if (candleArea != null && candleArea.AxisX.ScrollBar.IsVisible &&
                     candleArea.AxisX.ScaleView.Position + candleArea.AxisX.ScaleView.Size + 3 >= candleSeries.Points.Count)
                 //если уже выбран какой-то диапазон
@@ -1239,7 +1239,7 @@ namespace OsEngine.Charts.CandleChart
         /// <param name="history">свечи</param>
         private void AddCandleInArray(List<Candle> history, int index)
         {
-            Series candleSeries = FundSeriesByNameSafe("SeriesCandle");
+            Series candleSeries = FindSeriesByNameSafe("SeriesCandle");
 
             if (candleSeries == null)
             {
@@ -1265,7 +1265,7 @@ namespace OsEngine.Charts.CandleChart
 
             // candleSeries.Points[candleSeries.Points.Count - 1].AxisLabel = history[lastIndex].TimeStart.ToString(_culture);
 
-            ChartArea candleArea = FundAreaByNameSafe("Prime");
+            ChartArea candleArea = FindAreaByNameSafe("Prime");
             if (candleArea != null && candleArea.AxisX.ScrollBar.IsVisible &&
                 candleArea.AxisX.ScaleView.Position + candleArea.AxisX.ScaleView.Size + 3 >= candleSeries.Points.Count)
                 //если уже выбран какой-то диапазон
@@ -1320,7 +1320,7 @@ namespace OsEngine.Charts.CandleChart
                 // candleSeries.Points[candleSeries.Points.Count - 1].AxisLabel = history[i].TimeStart.ToString(new CultureInfo("ru-RU"));
             }
 
-            ChartArea candleArea = FundAreaByNameSafe("Prime");
+            ChartArea candleArea = FindAreaByNameSafe("Prime");
             if (candleArea != null && candleArea.AxisX.ScrollBar.IsVisible)
             //если уже выбран какой-то диапазон
             {
@@ -1328,9 +1328,9 @@ namespace OsEngine.Charts.CandleChart
                 candleArea.AxisX.ScaleView.Scroll(candleSeries.Points.Count + 1 - candleArea.AxisX.ScaleView.Size);
             }
 
-            if (FundSeriesByNameSafe("Cursor") != null)
+            if (FindSeriesByNameSafe("Cursor") != null)
             {
-                ReMoveSeriesSafe(FundSeriesByNameSafe("Cursor"));
+                ReMoveSeriesSafe(FindSeriesByNameSafe("Cursor"));
             }
 
             PaintSeriesSafe(candleSeries);
@@ -1352,7 +1352,7 @@ namespace OsEngine.Charts.CandleChart
             }
             try
             {
-                ChartArea tickArea = FundAreaByNameSafe("TradeArea");
+                ChartArea tickArea = FindAreaByNameSafe("TradeArea");
 
                 if (tickArea == null)
                 {
@@ -1400,7 +1400,7 @@ namespace OsEngine.Charts.CandleChart
         {
             try
             {
-                ChartArea tickArea = FundAreaByNameSafe("TradeArea");
+                ChartArea tickArea = FindAreaByNameSafe("TradeArea");
 
                 if (tickArea != null)
                 {
@@ -1423,7 +1423,7 @@ namespace OsEngine.Charts.CandleChart
         {
             try
             {
-                ChartArea tickArea = FundAreaByNameSafe("TradeArea");
+                ChartArea tickArea = FindAreaByNameSafe("TradeArea");
 
                 if (tickArea != null)
                 {
@@ -1918,13 +1918,13 @@ namespace OsEngine.Charts.CandleChart
 
                 // 1 прорисовываем сделки
 
-                if (FundSeriesByNameSafe(buySellSeries.Name) == null)
+                if (FindSeriesByNameSafe(buySellSeries.Name) == null)
                 {
                     _chart.Series.Add(buySellSeries);
                 }
                 else
                 {
-                    _chart.Series.Remove(FundSeriesByNameSafe(buySellSeries.Name));
+                    _chart.Series.Remove(FindSeriesByNameSafe(buySellSeries.Name));
                     _chart.Series.Add(buySellSeries);
                 }
 
@@ -2169,14 +2169,14 @@ namespace OsEngine.Charts.CandleChart
                 // если есть такая серия на графике - удаляем
                 if (_chart.Series != null && _chart.Series.Count != 0)
                 {
-                    Series mySeries = FundSeriesByNameSafe(element.UniqName);
+                    Series mySeries = FindSeriesByNameSafe(element.UniqName);
 
                     if (mySeries != null)
                     {
                         _chart.Series.Remove(mySeries);
                     }
 
-                    Series mySeriesPoint = FundSeriesByNameSafe(element.UniqName + "Point");
+                    Series mySeriesPoint = FindSeriesByNameSafe(element.UniqName + "Point");
 
                     if (mySeriesPoint != null)
                     {
@@ -2419,7 +2419,7 @@ namespace OsEngine.Charts.CandleChart
 
                 // ищем какое это время
 
-                Series candleSeries = FundSeriesByNameSafe("SeriesCandle");
+                Series candleSeries = FindSeriesByNameSafe("SeriesCandle");
 
                 if (candleSeries == null)
                 {
@@ -2503,7 +2503,7 @@ namespace OsEngine.Charts.CandleChart
 
                 for (int i = 0; i < _chartElements.Count; i++)
                 {
-                    Series point = FundSeriesByNameSafe(_chartElements[i].UniqName + "Point");
+                    Series point = FindSeriesByNameSafe(_chartElements[i].UniqName + "Point");
 
                     if (point == null)
                     {
@@ -2799,7 +2799,7 @@ namespace OsEngine.Charts.CandleChart
 
                     for (int i = 0; i < values.Count; i++)
                     {
-                        Series mySeries = FundSeriesByNameSafe(indicator.Name + i);
+                        Series mySeries = FindSeriesByNameSafe(indicator.Name + i);
 
                         if (mySeries != null && mySeries.Points.Count != 0)
                         {
@@ -2888,7 +2888,7 @@ namespace OsEngine.Charts.CandleChart
 
                 for (int i = 0; i < 10; i++)
                 {
-                    Series mySeries = FundSeriesByNameSafe(indicatorCandle.Name + i);
+                    Series mySeries = FindSeriesByNameSafe(indicatorCandle.Name + i);
                     if (mySeries != null)
                     {
                         mySeries.Points.Clear();
@@ -2936,11 +2936,11 @@ namespace OsEngine.Charts.CandleChart
             {
                 return;
             }
-            Series mySeries = FundSeriesByNameSafe(nameSeries);
+            Series mySeries = FindSeriesByNameSafe(nameSeries);
 
             if (mySeries == null)
             {
-                mySeries = FundSeriesByNameSafe(nameSeries);
+                mySeries = FindSeriesByNameSafe(nameSeries);
             }
 
             if (mySeries == null)
@@ -2948,7 +2948,7 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
 
-            ChartArea myArea = FundAreaByNameSafe(mySeries.ChartArea);
+            ChartArea myArea = FindAreaByNameSafe(mySeries.ChartArea);
 
             if (myArea == null)
             {
@@ -2998,7 +2998,7 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         private void PaintLikePointLast(List<decimal> values, string nameSeries)
         {
-            Series mySeries = FundSeriesByNameSafe(nameSeries);
+            Series mySeries = FindSeriesByNameSafe(nameSeries);
 
             decimal lastPoint = values[values.Count - 1];
             mySeries.Points.AddXY(values.Count - 1, lastPoint);
@@ -3010,7 +3010,7 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         private void RePaintLikePointLast(List<decimal> values, string nameSeries)
         {
-            Series mySeries = FundSeriesByNameSafe(nameSeries);
+            Series mySeries = FindSeriesByNameSafe(nameSeries);
             decimal point2 = Convert.ToDecimal(values[values.Count - 2]);
             mySeries.Points[mySeries.Points.Count - 1].YValues = new[] { Convert.ToDouble(point2) };
             mySeries.Points[mySeries.Points.Count - 1].ToolTip = point2.ToString();
@@ -3029,14 +3029,14 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
 
-            Series mySeries = FundSeriesByNameSafe(nameSeries);
+            Series mySeries = FindSeriesByNameSafe(nameSeries);
 
             if (mySeries == null)
             {
                 return;
             }
 
-            ChartArea myArea = FundAreaByNameSafe(mySeries.ChartArea);
+            ChartArea myArea = FindAreaByNameSafe(mySeries.ChartArea);
 
             if (myArea == null)
             {
@@ -3096,7 +3096,7 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         private void PaintLikeLineLast(List<decimal> values, string nameSeries)
         {
-            Series mySeries = FundSeriesByNameSafe(nameSeries);
+            Series mySeries = FindSeriesByNameSafe(nameSeries);
 
             decimal lastPoint = values[values.Count - 1];
             mySeries.Points.AddXY(mySeries.Points.Count, lastPoint);
@@ -3110,7 +3110,7 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         private void RePaintLikeLineLast(List<decimal> values, string nameSeries)
         {
-            Series mySeries = FundSeriesByNameSafe(nameSeries);
+            Series mySeries = FindSeriesByNameSafe(nameSeries);
 
             decimal lastPoint = Convert.ToDecimal(values[values.Count - 1]);
             mySeries.Points[mySeries.Points.Count - 1].YValues = new [] { Convert.ToDouble(lastPoint) };
@@ -3131,7 +3131,7 @@ namespace OsEngine.Charts.CandleChart
             {
                 return;
             }
-            Series mySeries = FundSeriesByNameSafe(nameSeries);
+            Series mySeries = FindSeriesByNameSafe(nameSeries);
 
             if (mySeries == null ||
                 values == null)
@@ -3139,7 +3139,7 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
 
-            ChartArea myArea = FundAreaByNameSafe(mySeries.ChartArea);
+            ChartArea myArea = FindAreaByNameSafe(mySeries.ChartArea);
 
             if (myArea == null)
             {
@@ -3213,7 +3213,7 @@ namespace OsEngine.Charts.CandleChart
         private void PaintLikeColumnLast(List<decimal> values, string nameSeries, Color colorUp, Color colorDown)
         {
 
-            Series mySeriesUp = FundSeriesByNameSafe(nameSeries);
+            Series mySeriesUp = FindSeriesByNameSafe(nameSeries);
             decimal lastPointUp = values[values.Count - 1];
             mySeriesUp.Points.AddXY(mySeriesUp.Points.Count, lastPointUp);
             mySeriesUp.Points[mySeriesUp.Points.Count - 1].ToolTip = lastPointUp.ToString();
@@ -3239,7 +3239,7 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         private void RePaintLikeColumnLast(List<decimal> values, string nameSeries, Color colorUp, Color colorDown)
         {
-            Series mySeriesUp = FundSeriesByNameSafe(nameSeries);
+            Series mySeriesUp = FindSeriesByNameSafe(nameSeries);
             decimal lastPoint = Convert.ToDecimal(values[values.Count - 1]);
             mySeriesUp.Points[mySeriesUp.Points.Count - 1].YValues = new[] { Convert.ToDouble(lastPoint) };
             mySeriesUp.Points[mySeriesUp.Points.Count - 1].ToolTip = lastPoint.ToString();
@@ -3276,7 +3276,7 @@ namespace OsEngine.Charts.CandleChart
                     _chart.Invoke(new Action<Series>(PaintSeriesSafe), series);
                     return;
                 }
-                if (FundSeriesByNameSafe(series.Name) == null)
+                if (FindSeriesByNameSafe(series.Name) == null)
                 {
                     _chart.Series.Add(series);
                 }
@@ -3286,7 +3286,7 @@ namespace OsEngine.Charts.CandleChart
                     {
                         if (series.Name == _chart.Series[i].Name)
                         {
-                            _chart.Series.Remove(FundSeriesByNameSafe(series.Name));
+                            _chart.Series.Remove(FindSeriesByNameSafe(series.Name));
                             _chart.Series.Insert(i, series);
                             break;
                         }
@@ -3312,7 +3312,7 @@ namespace OsEngine.Charts.CandleChart
                     _chart.Invoke(new Action<Series>(ReMoveSeriesSafe), series);
                     return;
                 }
-                if (FundSeriesByNameSafe(series.Name) == null)
+                if (FindSeriesByNameSafe(series.Name) == null)
                 {
                     return;
                 }
@@ -3330,7 +3330,7 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         /// <param name="name">имя серии</param>
         /// <returns>серия данных. Если такой нет, то null</returns>
-        private Series FundSeriesByNameSafe(string name)
+        private Series FindSeriesByNameSafe(string name)
         {
             Series mySeries;
             try
@@ -3358,7 +3358,7 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         /// <param name="name">имя области</param>
         /// <returns>область данных. Если такой нет, то null</returns>
-        private ChartArea FundAreaByNameSafe(string name)
+        private ChartArea FindAreaByNameSafe(string name)
         {
             ChartArea myArea;
             try
@@ -3447,7 +3447,7 @@ namespace OsEngine.Charts.CandleChart
 
             if (seriesName == "SeriesCandle")
             {
-                paintSeries = FundSeriesByNameSafe("SeriesCandle");
+                paintSeries = FindSeriesByNameSafe("SeriesCandle");
             }
             else
             {
@@ -4679,10 +4679,7 @@ namespace OsEngine.Charts.CandleChart
             }
         }
 
-        /// <summary>
-        /// взять минимальный шаг из серии свечей
-        /// </summary>
-        /// <param name="candles">свечи</param>
+        
         private int GetCandlesDecimal(List<Candle> candles)
         {
             if (candles == null)
@@ -5198,15 +5195,15 @@ namespace OsEngine.Charts.CandleChart
                     return;
                 }
 
-                ChartArea area = FundAreaByNameSafe(areaName);
+                ChartArea area = FindAreaByNameSafe(areaName);
 
                 if (area == null)
                 {
                     return;
                 }
 
-                Series candleSeries = FundSeriesByNameSafe("SeriesCandle"); // берём серию свечек с графика
-                ChartArea candleArea = FundAreaByNameSafe("Prime"); // берём область для свечек с графика
+                Series candleSeries = FindSeriesByNameSafe("SeriesCandle"); // берём серию свечек с графика
+                ChartArea candleArea = FindAreaByNameSafe("Prime"); // берём область для свечек с графика
 
                 if (candleArea == null ||
                     candleSeries == null)
@@ -5635,7 +5632,7 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         private void ResizeTickArea()
         {
-            ChartArea area = FundAreaByNameSafe("TradeArea");
+            ChartArea area = FindAreaByNameSafe("TradeArea");
 
             if (area == null)
             {
@@ -5652,7 +5649,7 @@ namespace OsEngine.Charts.CandleChart
             {
                 area.AxisX.ScaleView.Scroll(area.AxisX.Maximum + 1);
 
-                Series tickSeries = FundSeriesByNameSafe("trade");
+                Series tickSeries = FindSeriesByNameSafe("trade");
 
                 if (tickSeries == null)
                 {

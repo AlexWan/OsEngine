@@ -1,4 +1,4 @@
-﻿<Window x:Class="OsEngine.OsTrader.Panels.Tab.Internal.BotTabCandleSpreadUi"
+﻿<Window x:Class="OsEngine.OsTrader.Panels.Tab.BotTabIndexUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
        Title="Подключение потока данных для расчета индекса" Height="408.381" Width="615.069" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">

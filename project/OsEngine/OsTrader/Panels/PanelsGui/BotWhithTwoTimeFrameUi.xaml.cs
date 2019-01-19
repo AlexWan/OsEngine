@@ -8,14 +8,14 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
     /// </summary>
     public partial class BotWhithTwoTimeFrameUi : Window
     {
-        private ChartPainter _painter;
+        private ChartCandlePainter _painter;
 
         private BotWhithTwoTimeFrame _bot;
 
         public BotWhithTwoTimeFrameUi(BotWhithTwoTimeFrame bot)
         {
             InitializeComponent();
-            _painter = new ChartPainter("chart",bot.StartProgram);
+            _painter = new ChartCandlePainter("chart",bot.StartProgram);
             _painter.StartPaintPrimeChart(HostChart,Rectangle);
             _bot = bot;
         }

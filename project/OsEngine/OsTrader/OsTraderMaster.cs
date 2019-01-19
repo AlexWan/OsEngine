@@ -928,6 +928,11 @@ namespace OsEngine.OsTrader
                 {
                     ((BotTabIndex)_activPanel.ActivTab).ShowDialog();
                 }
+                else if (_activPanel.ActivTab != null &&
+                         _activPanel.ActivTab.GetType().Name == "BotTabCluster")
+                {
+                    ((BotTabCluster)_activPanel.ActivTab).ShowDialog();
+                }
                 else
                 {
                     MessageBox.Show("Данная функция у данной вкладки не доступна");

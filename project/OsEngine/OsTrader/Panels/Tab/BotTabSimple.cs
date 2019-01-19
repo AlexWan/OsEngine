@@ -11,7 +11,7 @@ using System.Windows.Controls;
 using System.Windows.Forms.Integration;
 using System.Windows.Shapes;
 using OsEngine.Alerts;
-using OsEngine.Charts;
+using OsEngine.Charts.CandleChart;
 using OsEngine.Charts.CandleChart.Elements;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
@@ -62,10 +62,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _journal.UserSelectActionEvent += _journal_UserSelectActionEvent;
                 _journal.LogMessageEvent += SetNewLogMessage;
 
-                _chartMaster = new ChartMaster(TabName, StartProgram);
+                _chartMaster = new ChartCandleMaster(TabName, StartProgram);
                 _chartMaster.LogMessageEvent += SetNewLogMessage;
                 _chartMaster.SetNewSecurity(_connector.NamePaper, _connector.TimeFrameBuilder, _connector.PortfolioName, _connector.ServerType);
                 _chartMaster.SetPosition(_journal.AllPosition);
+
+                
 
                 _alerts = new AlertMaster(TabName, _connector, _chartMaster);
                 _alerts.LogMessageEvent += SetNewLogMessage;
@@ -166,6 +168,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                ClearAceberg();
+                BuyAtStopCanсel();
+                SellAtStopCanсel();
                 _journal.Clear();
                 _chartMaster.Clear();
             }
@@ -322,7 +327,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// мастер прорисовки чарта
         /// </summary>
-        private ChartMaster _chartMaster;
+        private ChartCandleMaster _chartMaster;
 
         /// <summary>
         /// класс прорисовывающий движения стакана котировок
@@ -3469,7 +3474,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     CandleUpdateEvent(candles);
                 }
-                
+
             }
             catch (Exception error)
             {

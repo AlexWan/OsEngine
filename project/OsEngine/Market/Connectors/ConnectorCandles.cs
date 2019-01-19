@@ -678,6 +678,11 @@ namespace OsEngine.Market.Connectors
                     }
 
                     _subscrabler = null;
+
+                    if (SecuritySubscribeEvent != null)
+                    {
+                        SecuritySubscribeEvent(Security);
+                    }
                     return;
                 }
             }
@@ -1143,6 +1148,11 @@ namespace OsEngine.Market.Connectors
         /// коннектор начинает процедуру переподключения
         /// </summary>
         public event Action<string, TimeFrame, TimeSpan, string, ServerType> ConnectorStartedReconnectEvent;
+
+        /// <summary>
+        /// бумага для коннектора определена
+        /// </summary>
+        public event Action<Security> SecuritySubscribeEvent;
 
 // сообщения в лог 
 

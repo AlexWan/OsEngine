@@ -11,21 +11,20 @@ using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Forms.Integration;
 using System.Windows.Shapes;
 using OsEngine.Alerts;
-using OsEngine.Charts.CandleChart;
-using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Charts.CandleChart.Elements;
+using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Charts.ColorKeeper;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market;
 
-namespace OsEngine.Charts
+namespace OsEngine.Charts.CandleChart
 {
 
     /// <summary>
     /// Класс-менеджер, управляющий прорисовкой индикаторов, сделок, свечек на чарте.
     /// </summary>
-    public class ChartMaster
+    public class ChartCandleMaster
     {
 
 // сервис
@@ -35,11 +34,11 @@ namespace OsEngine.Charts
         /// </summary>
         /// <param name="nameBoss">Имя робота которому принадлежит чарт</param>
         /// <param name="startProgram">программа создавшая класс</param>
-        public ChartMaster(string nameBoss, StartProgram startProgram)
+        public ChartCandleMaster(string nameBoss, StartProgram startProgram)
         {
             _name = nameBoss + "ChartMaster";
             _startProgram = startProgram;
-            ChartCandle = new ChartPainter(nameBoss,startProgram);
+            ChartCandle = new ChartCandlePainter(nameBoss,startProgram);
             ChartCandle.GetChart().Click += ChartMasterOneSecurity_Click;
             ChartCandle.LogMessageEvent += NewLogMessage;
             ChartCandle.ClickToIndexEvent += _chartCandle_ClickToIndexEvent;
@@ -47,52 +46,6 @@ namespace OsEngine.Charts
             Load();
             _canSave = true;
         }
-
-        private void ChartCandle_SizeAxisXChangeEvent(int newSizeX)
-        {
-            if (_myPosition == null ||
-                _myPosition.Count == 0)
-            {
-                return;
-            }
-
-            if (_lastAbsoluteSizeX == newSizeX)
-            {
-                return;
-            }
-
-            if (_lastTipeSizeX != ChartPositionTradeSize.Size4 && newSizeX < 200)
-            {
-                _lastTipeSizeX = ChartPositionTradeSize.Size4;
-                ChartCandle.SetPointSize(ChartPositionTradeSize.Size4);
-                ChartCandle.ProcessPositions(_myPosition);
-            }
-
-            else if (_lastTipeSizeX != ChartPositionTradeSize.Size3 && newSizeX > 200 && newSizeX < 500)
-            {
-                _lastTipeSizeX = ChartPositionTradeSize.Size3;
-                ChartCandle.SetPointSize(ChartPositionTradeSize.Size3);
-                ChartCandle.ProcessPositions(_myPosition);
-            }
-            else if (_lastTipeSizeX != ChartPositionTradeSize.Size2 && newSizeX > 500 && newSizeX < 1300)
-            {
-                _lastTipeSizeX = ChartPositionTradeSize.Size2;
-                ChartCandle.SetPointSize(ChartPositionTradeSize.Size2);
-                ChartCandle.ProcessPositions(_myPosition);
-            }
-            else if (_lastTipeSizeX != ChartPositionTradeSize.Size1 && newSizeX > 1300)
-            {
-                _lastTipeSizeX = ChartPositionTradeSize.Size1;
-                ChartCandle.SetPointSize(ChartPositionTradeSize.Size1);
-                ChartCandle.ProcessPositions(_myPosition);
-            }
-
-            _lastAbsoluteSizeX = newSizeX;
-        }
-
-        private int _lastAbsoluteSizeX;
-
-        private ChartPositionTradeSize _lastTipeSizeX;
 
         /// <summary>
         /// Загрузить настройки из файла
@@ -395,7 +348,7 @@ namespace OsEngine.Charts
         /// <summary>
         /// чарт
         /// </summary>
-        public ChartPainter ChartCandle;
+        public ChartCandlePainter ChartCandle;
 
 // контекстное меню
 
@@ -633,7 +586,55 @@ namespace OsEngine.Charts
             }  
         }
 
-// управление индикаторами
+// работа по изменению точек сделок в зависимости от размера представления на оси Х
+
+        private void ChartCandle_SizeAxisXChangeEvent(int newSizeX)
+        {
+            if (_myPosition == null ||
+                _myPosition.Count == 0)
+            {
+                return;
+            }
+
+            if (_lastAbsoluteSizeX == newSizeX)
+            {
+                return;
+            }
+
+            if (_lastTipeSizeX != ChartPositionTradeSize.Size4 && newSizeX < 200)
+            {
+                _lastTipeSizeX = ChartPositionTradeSize.Size4;
+                ChartCandle.SetPointSize(ChartPositionTradeSize.Size4);
+                ChartCandle.ProcessPositions(_myPosition);
+            }
+
+            else if (_lastTipeSizeX != ChartPositionTradeSize.Size3 && newSizeX > 200 && newSizeX < 500)
+            {
+                _lastTipeSizeX = ChartPositionTradeSize.Size3;
+                ChartCandle.SetPointSize(ChartPositionTradeSize.Size3);
+                ChartCandle.ProcessPositions(_myPosition);
+            }
+            else if (_lastTipeSizeX != ChartPositionTradeSize.Size2 && newSizeX > 500 && newSizeX < 1300)
+            {
+                _lastTipeSizeX = ChartPositionTradeSize.Size2;
+                ChartCandle.SetPointSize(ChartPositionTradeSize.Size2);
+                ChartCandle.ProcessPositions(_myPosition);
+            }
+            else if (_lastTipeSizeX != ChartPositionTradeSize.Size1 && newSizeX > 1300)
+            {
+                _lastTipeSizeX = ChartPositionTradeSize.Size1;
+                ChartCandle.SetPointSize(ChartPositionTradeSize.Size1);
+                ChartCandle.ProcessPositions(_myPosition);
+            }
+
+            _lastAbsoluteSizeX = newSizeX;
+        }
+
+        private int _lastAbsoluteSizeX;
+
+        private ChartPositionTradeSize _lastTipeSizeX;
+
+ // управление индикаторами
 
         /// <summary>
         /// Индикаторы
@@ -1092,6 +1093,7 @@ namespace OsEngine.Charts
             ChartCandle.ProcessPositions(position);
         }
 
+
 // управление
 
         /// <summary>
@@ -1101,6 +1103,7 @@ namespace OsEngine.Charts
         {
             try
             {
+
                 ChartCandle.StartPaintPrimeChart(host, rectangle);
                 ChartCandle.ProcessPositions(_myPosition);
 
@@ -1110,7 +1113,7 @@ namespace OsEngine.Charts
                 {
                     ChartCandle.ProcessIndicator(_indicatorsCandles[i]);
                 }
-                
+
                 for (int i = 0; _chartElements != null && i < _chartElements.Count; i++)
                 {
                     ChartCandle.ProcessElem(_chartElements[i]);
@@ -1122,7 +1125,7 @@ namespace OsEngine.Charts
                 {
                     if (_alertArray[i].TypeAlert == AlertType.ChartAlert)
                     {
-                        ChartCandle.PaintAlert((AlertToChart)_alertArray[i]);
+                        ChartCandle.PaintAlert((AlertToChart) _alertArray[i]);
                     }
                 }
             }

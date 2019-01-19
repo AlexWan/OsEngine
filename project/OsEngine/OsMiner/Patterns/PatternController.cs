@@ -60,14 +60,14 @@ namespace OsEngine.OsMiner.Patterns
                 DataServer = new OsMinerServer(_name);
                 DataServer.CandleSeriesChangeEvent += _dataServer_CandleSeriesChangeEvent;
 
-                _chart = new ChartMaster(_name,StartProgram.IsOsMiner);
+                _chart = new ChartCandleMaster(_name,StartProgram.IsOsMiner);
                 _chart.ClickToIndexEvent += _chart_ClickToIndexEvent;
 
-                _chartTempPattern = new ChartPainter(_name + "TempPattern",StartProgram.IsOsMiner);
+                _chartTempPattern = new ChartCandlePainter(_name + "TempPattern",StartProgram.IsOsMiner);
                 _chartTempPattern.IsPatternChart = true;
-                _chartSingleOpenPattern = new ChartPainter(_name + "OpenSinglePattern", StartProgram.IsOsMiner);
+                _chartSingleOpenPattern = new ChartCandlePainter(_name + "OpenSinglePattern", StartProgram.IsOsMiner);
                 _chartSingleOpenPattern.IsPatternChart = true;
-                _chartSingleClosePattern = new ChartPainter(_name + "CloseSinglePattern", StartProgram.IsOsMiner);
+                _chartSingleClosePattern = new ChartCandlePainter(_name + "CloseSinglePattern", StartProgram.IsOsMiner);
                 _chartSingleClosePattern.IsPatternChart = true;
             }
         }
@@ -145,14 +145,14 @@ namespace OsEngine.OsMiner.Patterns
             DataServer = new OsMinerServer(Name);
             DataServer.CandleSeriesChangeEvent += _dataServer_CandleSeriesChangeEvent;
             
-            _chart = new ChartMaster(_name,StartProgram.IsOsMiner);
+            _chart = new ChartCandleMaster(_name,StartProgram.IsOsMiner);
             _chart.ClickToIndexEvent += _chart_ClickToIndexEvent;
 
-            _chartTempPattern = new ChartPainter(_name + "TempPattern", StartProgram.IsOsMiner);
+            _chartTempPattern = new ChartCandlePainter(_name + "TempPattern", StartProgram.IsOsMiner);
             _chartTempPattern.IsPatternChart = true;
-            _chartSingleOpenPattern = new ChartPainter(_name + "OpenSinglePattern", StartProgram.IsOsMiner);
+            _chartSingleOpenPattern = new ChartCandlePainter(_name + "OpenSinglePattern", StartProgram.IsOsMiner);
             _chartSingleOpenPattern.IsPatternChart = true;
-            _chartSingleClosePattern = new ChartPainter(_name + "CloseSinglePattern", StartProgram.IsOsMiner);
+            _chartSingleClosePattern = new ChartCandlePainter(_name + "CloseSinglePattern", StartProgram.IsOsMiner);
             _chartSingleClosePattern.IsPatternChart = true;
 
             if (PatternsToOpen.Count != 0)
@@ -1461,7 +1461,7 @@ namespace OsEngine.OsMiner.Patterns
         /// <summary>
         /// основной чарт с графиком
         /// </summary>
-        private ChartMaster _chart;
+        private ChartCandleMaster _chart;
 
         /// <summary>
         /// прямоугольник под чартом
@@ -1476,17 +1476,17 @@ namespace OsEngine.OsMiner.Patterns
         /// <summary>
         /// чарт для отрисовки временного паттерна
         /// </summary>
-        private ChartPainter _chartTempPattern;
+        private ChartCandlePainter _chartTempPattern;
 
         /// <summary>
         /// чарт для отрисовки одиночного паттерна на вход
         /// </summary>
-        private ChartPainter _chartSingleOpenPattern;
+        private ChartCandlePainter _chartSingleOpenPattern;
 
         /// <summary>
         /// чарт для отрисовки одиночного паттерна на выход
         /// </summary>
-        private ChartPainter _chartSingleClosePattern;
+        private ChartCandlePainter _chartSingleClosePattern;
 
         /// <summary>
         /// индикатор объём
@@ -1647,11 +1647,11 @@ namespace OsEngine.OsMiner.Patterns
         /// <summary>
         /// прорисовать паттерн на его индивидуальном чарте
         /// </summary>
-        private void PaintSinglePattern(IPattern pattern, ChartPainter chart)
+        private void PaintSinglePattern(IPattern pattern, ChartCandlePainter chart)
         {
             if (chart.GetChart().InvokeRequired)
             {
-                chart.GetChart().Invoke(new Action<IPattern, ChartPainter>(PaintSinglePattern), pattern, chart);
+                chart.GetChart().Invoke(new Action<IPattern, ChartCandlePainter>(PaintSinglePattern), pattern, chart);
                 return;
             }
             chart.ClearDataPointsAndSizeValue();

@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Forms.Integration;
 using OsEngine.Charts;
+using OsEngine.Charts.CandleChart;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Connectors;
@@ -30,7 +31,7 @@ namespace OsEngine.Alerts
         /// <param name="name">имя владельца хранилища алертов</param>
         /// <param name="connector">коннектор</param>
         /// <param name="chartMaster">чарт</param>
-        public AlertMaster(string name, ConnectorCandles connector, ChartMaster chartMaster) 
+        public AlertMaster(string name, ConnectorCandles connector, ChartCandleMaster chartMaster) 
         {
             _name = name;
             _connector = connector;
@@ -94,7 +95,7 @@ namespace OsEngine.Alerts
         /// <summary>
         /// мастер прорисовки графика
         /// </summary>
-        private ChartMaster _chartMaster;
+        private ChartCandleMaster _chartMaster;
 
         /// <summary>
         /// хост для прорисовки таблицы

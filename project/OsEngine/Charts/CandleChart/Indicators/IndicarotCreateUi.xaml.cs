@@ -28,13 +28,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <summary>
         /// класс менеджер индикаторов
         /// </summary>
-        private ChartMaster _chartMaster;
+        private ChartCandleMaster _chartMaster;
 
         /// <summary>
         /// конструктор
         /// </summary>
         /// <param name="chartMaster">класс менеджер индикаторов</param>
-        public IndicarotCreateUi(ChartMaster chartMaster)
+        public IndicarotCreateUi(ChartCandleMaster chartMaster)
         {
             InitializeComponent();
             _chartMaster = chartMaster;

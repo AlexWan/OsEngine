@@ -30,6 +30,7 @@ namespace OsEngine.OsTrader.Panels
             // публичные примеры
            
             result.Add("Engine");
+            result.Add("ClusterEngine");
             result.Add("PatternTrader");
             result.Add("HighFrequencyTrader");
             result.Add("MarketMakerBot");
@@ -99,6 +100,11 @@ namespace OsEngine.OsTrader.Panels
             {
                 bot = new StrategyEngineCandle(name, startProgram);
             }
+            if (nameClass == "ClusterEngine")
+            {
+                bot = new ClusterEngine(name, startProgram);
+            }
+            
             if (nameClass == "Williams Band")
             {
                 bot = new StrategyBillWilliams(name, startProgram);

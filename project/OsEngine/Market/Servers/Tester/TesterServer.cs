@@ -555,6 +555,16 @@ namespace OsEngine.Market.Servers.Tester
 
             for (int i = 0; i < bots.Count; i++)
             {
+                List<BotTabCluster> currentTabs = bots[i].TabsCluster;
+
+                for (int i2 = 0; currentTabs != null && i2 < currentTabs.Count; i2++)
+                {
+                    namesSecurity.Add(currentTabs[i2].CandleConnector.NamePaper);
+                }
+            }
+
+            for (int i = 0; i < bots.Count; i++)
+            {
                 List<BotTabIndex> currentTabsSpread = bots[i].TabsIndex;
 
                 for (int i2 = 0; currentTabsSpread != null && i2 < currentTabsSpread.Count; i2++)

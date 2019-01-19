@@ -292,12 +292,14 @@
     <Compile Include="Charts\CandleChart\Indicators\WilliamsRangeUi.xaml.cs">
       <DependentUpon>WilliamsRangeUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Charts\ClusterChart\ChartClusterMaster.cs" />
+    <Compile Include="Charts\ClusterChart\ChartClusterPainter.cs" />
     <Compile Include="Charts\ColorKeeper\ChartMasterColorKeeperUi.xaml.cs">
       <DependentUpon>ChartMasterColorKeeperUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Charts\CandleChart\ChartPainter.cs" />
+    <Compile Include="Charts\CandleChart\ChartCandlePainter.cs" />
     <Compile Include="Charts\ColorKeeper\ChartMasterColorKeeper.cs" />
-    <Compile Include="Charts\ChartMaster.cs" />
+    <Compile Include="Charts\CandleChart\ChartCandleMaster.cs" />
     <Compile Include="Charts\CandleChart\Indicators\IndicarotCreateUi.xaml.cs">
       <DependentUpon>IndicarotCreateUi.xaml</DependentUpon>
     </Compile>
@@ -306,6 +308,7 @@
     </Compile>
     <Compile Include="Entity\CandleConverter.cs" />
     <Compile Include="Entity\DataGridFactory.cs" />
+    <Compile Include="Entity\HorizontalVolume.cs" />
     <Compile Include="Entity\MarketDepthPainter.cs" />
     <Compile Include="Entity\ProxyHolder.cs" />
     <Compile Include="Entity\ProxyHolderAddUi.xaml.cs">
@@ -569,6 +572,7 @@
     <Compile Include="OsTrader\Panels\PanelsGui\BollingerOutburstUi.xaml.cs">
       <DependentUpon>BollingerOutburstUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="OsTrader\Panels\SingleRobots\ClusterEngine.cs" />
     <Compile Include="OsTrader\Panels\SingleRobots\StrategyBollingerUi.xaml.cs">
       <DependentUpon>StrategyBollingerUi.xaml</DependentUpon>
     </Compile>
@@ -644,12 +648,16 @@
       <DependentUpon>PatternTraderUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="OsTrader\Panels\SingleRobots\StrategyBollinger.cs" />
-    <Compile Include="OsTrader\Panels\Tab\Internal\BotTabCandleSpreadUi.xaml.cs">
-      <DependentUpon>BotTabCandleSpreadUi.xaml</DependentUpon>
+    <Compile Include="OsTrader\Panels\Tab\BotTabClusterUi.xaml.cs">
+      <DependentUpon>BotTabClusterUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\Tab\BotTabIndexUi.xaml.cs">
+      <DependentUpon>BotTabIndexUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Entity\StrategyParemetrsUi.xaml.cs">
       <DependentUpon>StrategyParemetrsUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="OsTrader\Panels\Tab\BotTabCluster.cs" />
     <Compile Include="OsTrader\RiskManager\RiskManagerUi.xaml.cs">
       <DependentUpon>RiskManagerUi.xaml</DependentUpon>
     </Compile>
@@ -1161,7 +1169,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="OsTrader\Panels\Tab\Internal\BotTabCandleSpreadUi.xaml">
+    <Page Include="OsTrader\Panels\Tab\BotTabClusterUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\Tab\BotTabIndexUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -1327,6 +1339,7 @@
   <ItemGroup>
     <Resource Include="Images\pickUpSize3.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -3,6 +3,8 @@
 */
 
 using System;
+using System.Windows.Forms.Integration;
+using System.Windows.Shapes;
 using OsEngine.Logging;
 
 namespace OsEngine.OsTrader.Panels.Tab
@@ -16,6 +18,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// удалить все связанные 
         /// </summary>
         void Delete();
+
+        /// <summary>
+        /// очистить
+        /// </summary>
+        void Clear();
 
         /// <summary>
         /// остановить прорисовку вкладки
