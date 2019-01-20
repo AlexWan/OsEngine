@@ -11,6 +11,7 @@ using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Forms.Integration;
 using System.Windows.Shapes;
 using OsEngine.Charts;
+using OsEngine.Charts.CandleChart;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market;
@@ -194,7 +195,7 @@ namespace OsEngine.OsData
             worker.IsBackground = true;
             worker.Start();
 
-            _chartMaster = new ChartMaster(nameUniq,StartProgram.IsOsData);
+            _chartMaster = new ChartCandleMaster(nameUniq,StartProgram.IsOsData);
             _chartMaster.StopPaint();
 
             _comboBoxSecurity = comboBoxSecurity;
@@ -1642,7 +1643,7 @@ namespace OsEngine.OsData
         /// <summary>
         /// мастер прорисовки чарта
         /// </summary>
-        private ChartMaster _chartMaster;
+        private ChartCandleMaster _chartMaster;
 
         /// <summary>
         /// меню выбора инструмента

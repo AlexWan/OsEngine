@@ -34,9 +34,9 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             CreateGridPatternsGrid(_gridPatternsToOpen, HostGridPatternsToOpen);
             CreateGridPatternsGrid(_gridPatternsToClose, HostGridPatternToClose);
 
-            _chartSingleOpenPattern = new ChartPainter("OpenSinglePattern", bot.StartProgram);
+            _chartSingleOpenPattern = new ChartCandlePainter("OpenSinglePattern", bot.StartProgram);
             _chartSingleOpenPattern.IsPatternChart = true;
-            _chartSingleClosePattern = new ChartPainter("CloseSinglePattern", bot.StartProgram);
+            _chartSingleClosePattern = new ChartCandlePainter("CloseSinglePattern", bot.StartProgram);
             _chartSingleClosePattern.IsPatternChart = true;
 
             _chartSingleOpenPattern.StartPaintPrimeChart(HostSinglePatternToOpen, new Rectangle());
@@ -468,12 +468,12 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         /// <summary>
         /// чарт для отрисовки одиночного паттерна на вход
         /// </summary>
-        private ChartPainter _chartSingleOpenPattern;
+        private ChartCandlePainter _chartSingleOpenPattern;
 
         /// <summary>
         /// чарт для отрисовки одиночного паттерна на выход
         /// </summary>
-        private ChartPainter _chartSingleClosePattern;
+        private ChartCandlePainter _chartSingleClosePattern;
 
         void CreateGridPatternsGrid(DataGridView grid, WindowsFormsHost host)
         {
@@ -690,11 +690,11 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         /// <summary>
         /// прорисовать паттерн на его индивидуальном чарте
         /// </summary>
-        private void PaintSinglePattern(IPattern pattern, ChartPainter chart)
+        private void PaintSinglePattern(IPattern pattern, ChartCandlePainter chart)
         {
             if (chart.GetChart().InvokeRequired)
             {
-                chart.GetChart().Invoke(new Action<IPattern, ChartPainter>(PaintSinglePattern), pattern, chart);
+                chart.GetChart().Invoke(new Action<IPattern, ChartCandlePainter>(PaintSinglePattern), pattern, chart);
                 return;
             }
             chart.ClearDataPointsAndSizeValue();

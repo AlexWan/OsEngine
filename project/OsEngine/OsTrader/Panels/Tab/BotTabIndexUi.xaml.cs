@@ -5,16 +5,16 @@
 using System.Windows;
 using System.Windows.Forms;
 
-namespace OsEngine.OsTrader.Panels.Tab.Internal
+namespace OsEngine.OsTrader.Panels.Tab
 {
 
     /// <summary>
-    /// Логика взаимодействия для BotTabCandleSpreadUi.xaml
+    /// Логика взаимодействия для BotTabIndexUi.xaml
     /// </summary>
-    public partial class BotTabCandleSpreadUi
+    public partial class BotTabIndexUi
     {
 
-        public BotTabCandleSpreadUi(BotTabIndex spread)
+        public BotTabIndexUi(BotTabIndex spread)
         {
             InitializeComponent();
             CreateTable();

@@ -10,6 +10,7 @@ using System.Windows;
 using System.Windows.Forms.Integration;
 using System.Windows.Shapes;
 using OsEngine.Charts;
+using OsEngine.Charts.CandleChart;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Logging;
@@ -21,7 +22,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 {
 
     /// <summary>
-    /// вкладка прорисовывающая спред двух свечных данных в виде свечного графика
+    /// вкладка прорисовывающая спред свечных данных в виде свечного графика
     /// </summary>
     public class BotTabIndex : IIBotTab
     {
@@ -33,7 +34,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             Tabs = new List<ConnectorCandles>();
             _valuesToFormula = new List<ValueSave>();
-            _chartMaster = new ChartMaster(TabName, _startProgram);
+            _chartMaster = new ChartCandleMaster(TabName, _startProgram);
 
             Load();
         }
@@ -47,7 +48,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// чарт для прорисовки
         /// </summary>
-        private ChartMaster _chartMaster;
+        private ChartCandleMaster _chartMaster;
 
         /// <summary>
         /// Массив для хранения списка интсрументов
@@ -61,7 +62,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void ShowDialog()
         {
-            BotTabCandleSpreadUi ui = new BotTabCandleSpreadUi(this);
+            BotTabIndexUi ui = new BotTabIndexUi(this);
             ui.ShowDialog();
 
             if (Tabs.Count != 0)

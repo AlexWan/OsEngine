@@ -650,7 +650,7 @@ namespace OsEngine.Market
     }
 
     /// <summary>
-    /// какая программа запустила мастер серверов
+    /// какая программа запустила класс
     /// </summary>
     public enum StartProgram
     {

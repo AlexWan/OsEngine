@@ -34,7 +34,13 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// индекс
         /// </summary>
-        Index
+        Index,
+
+        /// <summary>
+        /// кластеры
+        /// </summary>
+        Cluster
+
     }
 
     public abstract class BotPanel
@@ -281,19 +287,7 @@ namespace OsEngine.OsTrader.Panels
 
                 for (int i = 0; i < _botTabs.Count; i++)
                 {
-                    if (_botTabs[i].GetType().Name == "BotTabSimple")
-                    {
-                        BotTabSimple bot = (BotTabSimple)_botTabs[i];
-                        bot.ClearAceberg();
-                        bot.BuyAtStopCanсel();
-                        bot.SellAtStopCanсel();
-                        bot.Clear();
-                    }
-                    if (_botTabs[i].GetType().Name == "BotTabIndex")
-                    {
-                        BotTabIndex bot = (BotTabIndex)_botTabs[i];
-                        bot.Clear();
-                    }
+                    _botTabs[i].Clear();
                 }
             }
             catch (Exception error)
@@ -879,6 +873,35 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// вкладки с кластерными графиками
+        /// </summary>
+        public List<BotTabCluster> TabsCluster
+        {
+            get
+            {
+                try
+                {
+                    List<BotTabCluster> tabSpreads = new List<BotTabCluster>();
+
+                    for (int i = 0; _botTabs != null && i < _botTabs.Count; i++)
+                    {
+                        if (_botTabs[i].GetType().Name == "BotTabCluster")
+                        {
+                            tabSpreads.Add((BotTabCluster)_botTabs[i]);
+                        }
+                    }
+
+                    return tabSpreads;
+                }
+                catch (Exception error)
+                {
+                    SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                }
+                return null;
+            }
+        }
+
+        /// <summary>
         /// пользователь переключил вкладки
         /// </summary>
         void _tabBotTab_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -937,6 +960,10 @@ namespace OsEngine.OsTrader.Panels
                 else if (tabType == BotTabType.Index)
                 {
                     newTab = new BotTabIndex(nameTab, StartProgram);
+                }
+                else if (tabType == BotTabType.Cluster)
+                {
+                    newTab = new BotTabCluster(nameTab, StartProgram);
                 }
                 else
                 {
@@ -1025,8 +1052,10 @@ namespace OsEngine.OsTrader.Panels
                 {
                     ((BotTabIndex)ActivTab).StartPaint(_hostChart, _rectangle);
                 }
-
-                
+                else if (ActivTab.GetType().Name == "BotTabCluster")
+                {
+                    ((BotTabCluster)ActivTab).StartPaint(_hostChart, _rectangle);
+                }
             }
             catch (Exception error)
             {

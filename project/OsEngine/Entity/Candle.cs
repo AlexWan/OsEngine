@@ -16,7 +16,15 @@ namespace OsEngine.Entity
         /// <summary>
         /// время начала свечи
         /// </summary>
-        public DateTime TimeStart;
+        public DateTime TimeStart
+        {
+            get { return _timeStart; }
+            set
+            {
+                _timeStart = value;
+            }
+        }
+        private DateTime _timeStart;
 
         /// <summary>
         /// цена открытия
@@ -51,7 +59,16 @@ namespace OsEngine.Entity
         /// <summary>
         /// трейды составляющие эту свечу
         /// </summary>
-        public List<Trade> Trades;
+        public List<Trade> Trades
+        {
+            set
+            {
+                _trades = value;
+            }
+            get { return _trades; }
+        }
+
+        private List<Trade> _trades = new List<Trade>();
 
         /// <summary>
         /// растущая ли эта свеча
@@ -259,27 +276,4 @@ namespace OsEngine.Entity
         /// </summary>
         None
     }
-
-    public class HorizontalVolumeLine
-    {
-        public decimal Volume;
-
-        public decimal Price;
-
-    }
-
-    public class HorizontalVolume
-    {
-        public List<HorizontalVolumeLine> Lines = new List<HorizontalVolumeLine>();
-
-        public DateTime Time;
-
-        public void SetVolume(List<Trade> trades)
-        {
-
-        }
-
-    }
-
-
 }
