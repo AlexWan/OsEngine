@@ -157,12 +157,13 @@ namespace OsEngine.Market
                 _positionHost.Child.Refresh();
 
 
-                _gridOrders = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
+                _gridOrders = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders);
 
                 DataGridViewColumn colu = new DataGridViewColumn();
                 colu.CellTemplate = cell0;
                 colu.HeaderText = @"Время";
                 colu.ReadOnly = true;
+                colu.MinimumWidth = 120;
                 colu.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
                 _ordersHost = hostOrders;

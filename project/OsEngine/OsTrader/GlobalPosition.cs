@@ -175,7 +175,7 @@ namespace OsEngine.OsTrader
         {
             try
             {
-                DataGridView newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
+                DataGridView newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCells);
 
                 DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
                 cell0.Style = newGrid.DefaultCellStyle;
@@ -192,6 +192,7 @@ namespace OsEngine.OsTrader
                 colum01.HeaderText = @"Время";
                 colum01.ReadOnly = true;
                 colum01.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                colum01.MinimumWidth = 120;
                 newGrid.Columns.Add(colum01);
 
                 DataGridViewColumn colu = new DataGridViewColumn();

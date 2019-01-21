@@ -26,6 +26,7 @@ namespace OsEngine.Entity
             grid.ScrollBars = ScrollBars.None;
             grid.BackColor = Color.FromArgb(21, 26, 30);
             grid.BackgroundColor = Color.FromArgb(21, 26, 30);
+           
 
             grid.GridColor = Color.FromArgb(17, 18, 23);
             grid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
@@ -36,6 +37,7 @@ namespace OsEngine.Entity
             style.BackColor =  Color.FromArgb(21, 26, 30);
             style.SelectionBackColor = Color.FromArgb(17, 18, 23);
             style.ForeColor = Color.FromArgb(154, 156, 158);
+          
 
 
             grid.DefaultCellStyle = style;
