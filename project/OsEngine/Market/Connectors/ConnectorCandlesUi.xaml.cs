@@ -2,14 +2,15 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Windows;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Tester;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Windows;
+using System.Windows.Input;
 using MessageBox = System.Windows.MessageBox;
 
 namespace OsEngine.Market.Connectors
@@ -133,11 +134,53 @@ namespace OsEngine.Market.Connectors
                 ShowDopCandleSettings();
 
                 ComboBoxCandleCreateMethodType.SelectionChanged += ComboBoxCandleCreateMethodType_SelectionChanged;
+                ComboBoxSecurities.KeyDown += ComboBoxSecuritiesOnKeyDown;
             }
             catch (Exception error)
             {
                  MessageBox.Show("Ошибка в конструкторе " + error);
             }
+        }
+
+        /// <summary>
+        /// поиск инструментов по первой букве в названии
+        /// </summary>
+        private void ComboBoxSecuritiesOnKeyDown(object sender, KeyEventArgs e)
+        {
+            List<IServer> serversAll = ServerMaster.GetServers();
+
+            IServer server = serversAll.Find(server1 => server1.ServerType == _selectedType);
+
+            if (server == null)
+            {
+                return;
+            }
+
+            ComboBoxSecurities.Items.Clear();
+
+            // грузим инструменты подходящие под условия поиска
+
+            List<Security> needSecurities = null;
+
+            if (e.Key == Key.Back)
+            {
+                needSecurities = server.Securities;
+            }
+            else
+            {
+                needSecurities = server.Securities.FindAll(sec => sec.Name.StartsWith(e.Key.ToString(), StringComparison.CurrentCultureIgnoreCase));
+            }
+
+            for (int i = 0; i < needSecurities.Count; i++)
+            {
+                string classSec = needSecurities[i].NameClass;
+                if (ComboBoxClass.SelectedItem != null && classSec == ComboBoxClass.SelectedItem.ToString())
+                {
+                    ComboBoxSecurities.Items.Add(needSecurities[i].Name);
+                    ComboBoxSecurities.SelectedItem = needSecurities[i];
+                }
+            }
+
         }
 
         private void TextBoxReversCandlesPunktsBackMove_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
