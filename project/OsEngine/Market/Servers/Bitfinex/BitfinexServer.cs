@@ -1522,6 +1522,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         /// </summary>
         private void Bitfinex_UpdateOrder(Order myOrder)
         {
+            myOrder.ServerType = ServerType.Bitfinex;
            _ordersToSend.Enqueue(myOrder);
         }
 

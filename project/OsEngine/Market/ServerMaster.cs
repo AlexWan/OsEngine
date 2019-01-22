@@ -181,7 +181,7 @@ namespace OsEngine.Market
                 }
                 if (type == ServerType.BitMex)
                 {
-                    BitMexServer serv = new BitMexServer(neadLoadTicks);
+                    BitMexServer serv = new BitMexServer();
                     _servers.Add(serv);
 
                     if (ServerCreateEvent != null)

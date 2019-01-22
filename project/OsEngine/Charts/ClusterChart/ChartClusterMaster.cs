@@ -157,7 +157,10 @@ namespace OsEngine.Charts.ClusterChart
         {
             _chart.ClearDataPointsAndSizeValue();
             _chart.ClearSeries();
-            _chart.ProcessCluster(_cluster.VolumeClusterLines);
+            if (_cluster != null)
+            {
+                _chart.ProcessCluster(_cluster.VolumeClusterLines);
+            }
         }
 
 // работа с логом

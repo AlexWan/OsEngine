@@ -1619,6 +1619,7 @@ Connection conn, Listener listener, Message msg)
                                     if (action == 0)
                                     {
                                         order.State = OrderStateType.Cancel;
+                                        order.TimeCancel = order.TimeCallBack;
                                     }
                                     else if (action == 1)
                                     {

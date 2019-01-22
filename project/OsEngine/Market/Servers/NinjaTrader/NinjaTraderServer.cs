@@ -388,7 +388,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
                 _client.UpdateMarketDepth += UpdateMarketDepth;
                 _client.NewTradesEvent += NewTrades;
                 _client.MyTradeEvent += NewMyTrade;
-                _client.MyOrderEvent += BitMex_UpdateOrder;
+                _client.MyOrderEvent += UpdateOrder;
                 _client.LogMessageEvent += SendLogMessage;
             }
         }
@@ -459,7 +459,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
                 _client.UpdateMarketDepth -= UpdateMarketDepth;
                 _client.NewTradesEvent -= NewTrades;
                 _client.MyTradeEvent -= NewMyTrade;
-                _client.MyOrderEvent -= BitMex_UpdateOrder;
+                _client.MyOrderEvent -= UpdateOrder;
             }
 
             _client = null;
@@ -1215,8 +1215,9 @@ namespace OsEngine.Market.Servers.NinjaTrader
         /// <summary>
         /// входящий из системы ордер
         /// </summary>
-        private void BitMex_UpdateOrder(Order myOrder)
+        private void UpdateOrder(Order myOrder)
         {
+            myOrder.ServerType = ServerType.NinjaTrader;
             _ordersToSend.Enqueue(myOrder);
         }
 

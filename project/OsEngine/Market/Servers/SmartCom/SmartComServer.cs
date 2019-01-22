@@ -1956,6 +1956,7 @@ namespace OsEngine.Market.Servers.SmartCom
                 {
                     order.VolumeExecute = order.Volume;
                     order.TimeCallBack = datetime;
+                    order.TimeDone = datetime;
                     order.State = OrderStateType.Done;
                     _numsIncomeExecuteOrders.Add(cookie);
                 }

@@ -35,6 +35,7 @@ namespace OsEngine.OsTrader.Panels
             result.Add("HighFrequencyTrader");
             result.Add("MarketMakerBot");
             result.Add("PivotPointsRobot");
+            result.Add("ClusterCountertrend");
             result.Add("TwoLegArbitrage");
             result.Add("TwoTimeFrameBot");
             result.Add("Bollinger");
@@ -79,7 +80,11 @@ namespace OsEngine.OsTrader.Panels
 
             BotPanel bot = null;
             // примеры и бесплатные боты
-
+            
+            if (nameClass == "ClusterCountertrend")
+            {
+                bot = new ClusterCountertrend(name, startProgram);
+            }
             if (nameClass == "PatternTrader")
             {
                 bot = new PatternTrader(name, startProgram);

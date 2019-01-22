@@ -903,7 +903,7 @@ namespace OsEngine.Journal.Internal
         {
             try
             {
-                DataGridView newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
+                DataGridView newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders);
 
                 DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
                 cell0.Style = newGrid.DefaultCellStyle;
@@ -921,6 +921,7 @@ namespace OsEngine.Journal.Internal
                 colum01.HeaderText = @"Время открытия";
                 colum01.ReadOnly = true;
                 colum01.ToolTipText = @"Время совершения первой сделки по позиции";
+                colum01.MinimumWidth = 120;
                 newGrid.Columns.Add(colum01);
 
                 DataGridViewColumn colu = new DataGridViewColumn();

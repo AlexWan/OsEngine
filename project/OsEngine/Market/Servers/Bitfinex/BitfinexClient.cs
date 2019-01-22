@@ -202,7 +202,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                         newOsOrder.Side = newCreatedOrder.side == "buy" ? Side.Buy : Side.Sell;
                         newOsOrder.NumberMarket = newCreatedOrder.order_id.ToString();
                         newOsOrder.NumberUser = order.NumberUser;
-
+                        newOsOrder.ServerType = ServerType.Bitfinex;
                         newOsOrder.Price = Convert.ToDecimal(newCreatedOrder.price.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                         newOsOrder.Volume = Convert.ToDecimal(newCreatedOrder.original_amount.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                         newOsOrder.VolumeExecute = Convert.ToDecimal(newCreatedOrder.executed_amount.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
@@ -694,6 +694,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                                                 break;
 
                                             case "CANCELED":
+                                                order.TimeCancel = order.TimeCallBack;
                                                 order.State = OrderStateType.Cancel;
                                                 _osOrders.Remove(order.NumberMarket);
                                                 break;

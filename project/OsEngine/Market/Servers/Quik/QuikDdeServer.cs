@@ -73,7 +73,7 @@ namespace OsEngine.Market.Servers.Quik
             if (_serverDde != null && _serverDde.IsRegistered)
             {
                 _serverDde.StopDdeInQuik();
-                _serverDde = null;
+                //_serverDde = null;
             }
 
             try
@@ -172,18 +172,24 @@ namespace OsEngine.Market.Servers.Quik
                     _serverDde.UpdateTrade += _serverDde_UpdateTrade;
                     _serverDde.UpdateGlass += _serverDde_UpdateGlass;
                     _serverDde.LogMessageEvent += SendLogMessage;
+
+                    if (!_serverDde.IsRegistered)
+                    {
+                        _serverDde.StartServer();
+                    }
+                    else
+                    {
+                        _ddeStatus = ServerConnectStatus.Connect;
+                    }
+                }
+
+                if (_serverDde.IsRegistered)
+                {
+                    _ddeStatus = ServerConnectStatus.Connect;
                 }
 
                 Thread.Sleep(1000);
 
-                if (!_serverDde.IsRegistered)
-                {
-                    _serverDde.StartServer();
-                }
-                else
-                {
-                    _ddeStatus = ServerConnectStatus.Connect;
-                }
             }
             catch (Exception erorr)
             {
@@ -883,10 +889,12 @@ namespace OsEngine.Market.Servers.Quik
                 else if (nStatus == 2)
                 {
                     order.State = OrderStateType.Cancel;
+                    order.TimeCancel = order.TimeCallBack;
                 }
                 else
                 {
                     order.State = OrderStateType.Done;
+                    order.TimeDone = order.TimeCallBack;
                 }
 
                 SetOrder(order);

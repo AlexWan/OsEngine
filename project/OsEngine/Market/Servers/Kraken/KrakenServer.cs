@@ -491,7 +491,7 @@ namespace OsEngine.Market.Servers.Kraken
                 _krakenClient.LogMessageEvent += SendLogMessage;
                 _krakenClient.NewPortfolio += NewPortfolio;
                 _krakenClient.NewMyTradeEvent += _Client_NewMyTradeEvent;
-                _krakenClient.NewOrderEvent += _ibClient_NewOrderEvent;
+                _krakenClient.NewOrderEvent += _newOrderEvent;
                 _krakenClient.NewTradeEvent += AddTick;
                 _krakenClient.NewSecuritiesEvent += _krakenClient_NewSecuritiesEvent;
                 _krakenClient.NewMarketDepthEvent += _krakenClient_NewMarketDepthEvent;
@@ -563,7 +563,7 @@ namespace OsEngine.Market.Servers.Kraken
                 _krakenClient.LogMessageEvent -= SendLogMessage;
                 _krakenClient.NewPortfolio -= NewPortfolio;
                 _krakenClient.NewMyTradeEvent -= _Client_NewMyTradeEvent;
-                _krakenClient.NewOrderEvent -= _ibClient_NewOrderEvent;
+                _krakenClient.NewOrderEvent -= _newOrderEvent;
                 _krakenClient.NewTradeEvent -= AddTick;
                 _krakenClient.NewSecuritiesEvent -= _krakenClient_NewSecuritiesEvent;
                 _krakenClient.NewMarketDepthEvent -= _krakenClient_NewMarketDepthEvent;
@@ -1383,7 +1383,7 @@ namespace OsEngine.Market.Servers.Kraken
             _ordersToCansel.Enqueue(order);
         }
 
-        void _ibClient_NewOrderEvent(Order order)
+        void _newOrderEvent(Order order)
         {
             try
             {
@@ -1392,6 +1392,7 @@ namespace OsEngine.Market.Servers.Kraken
                     _orders = new List<Order>();
                 }
 
+                order.ServerType = ServerType.Kraken;
                 _ordersToSend.Enqueue(order);
             }
             catch (Exception error)

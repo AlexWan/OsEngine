@@ -534,6 +534,7 @@ namespace OsEngine.Market.Servers.Lmax
                     if (type == "4")
                     {
                         order.State = OrderStateType.Cancel;
+                        order.TimeCancel = order.TimeCallBack;
                         var oldNumUser = entity.GetFieldByTag((int)Tags.OrigClOrdID);
 
                         try

@@ -281,7 +281,7 @@ namespace OsEngine.Market.Servers.Oanda
                 newOrder.NumberUser = Convert.ToInt32(order.clientOrderID);
                 newOrder.State = OrderStateType.Cancel;
                 newOrder.TimeCallBack = DateTime.Parse(order.time);
-
+                newOrder.TimeCancel = newOrder.TimeCallBack;
                 if (NewOrderEvent != null)
                 {
                     NewOrderEvent(newOrder);

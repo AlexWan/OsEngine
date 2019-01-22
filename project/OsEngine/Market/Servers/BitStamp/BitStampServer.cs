@@ -1284,6 +1284,7 @@ namespace OsEngine.Market.Servers.BitStamp
         /// </summary>
         private void BitMex_UpdateOrder(Order myOrder)
         {
+            myOrder.ServerType = ServerType.BitStamp;
             _ordersToSend.Enqueue(myOrder);
         }
 

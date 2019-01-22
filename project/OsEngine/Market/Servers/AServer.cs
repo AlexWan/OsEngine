@@ -859,10 +859,18 @@ namespace OsEngine.Market.Servers
 
                 for (int i = 0; i < portf.Count; i++)
                 {
-                    if (_portfolios.Find(p => p.Number == portf[i].Number) == null)
+                    Portfolio curPortfolio = _portfolios.Find(p => p.Number == portf[i].Number);
+
+                    if (curPortfolio == null)
                     {
                         _portfolios.Add(portf[i]);
+                        curPortfolio = portf[i];
                     }
+
+                    curPortfolio.Profit = portf[i].Profit;
+                    curPortfolio.ValueBegin = portf[i].ValueBegin;
+                    curPortfolio.ValueCurrent = portf[i].ValueCurrent;
+                    curPortfolio.ValueBlocked = portf[i].ValueBlocked;
                 }
 
                 _portfolioToSend.Enqueue(_portfolios);
@@ -1329,6 +1337,23 @@ namespace OsEngine.Market.Servers
         /// </summary>
         void _serverRealization_MyOrderEvent(Order myOrder)
         {
+            if (myOrder.TimeCallBack == DateTime.MinValue)
+            {
+                myOrder.TimeCallBack = ServerTime;
+            }
+            if (myOrder.State == OrderStateType.Done &&
+                myOrder.TimeDone == DateTime.MinValue)
+            {
+                myOrder.TimeDone = myOrder.TimeCallBack;
+            }
+            if (myOrder.State == OrderStateType.Cancel &&
+                myOrder.TimeDone == DateTime.MinValue)
+            {
+                myOrder.TimeCancel = myOrder.TimeCallBack;
+            }
+
+            myOrder.ServerType = ServerType;
+
             _ordersToSend.Enqueue(myOrder);
         }
 
