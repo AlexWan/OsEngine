@@ -586,6 +586,7 @@ namespace OsEngine.Entity
                         }
                         else if (OpenVolume == 0)
                         {
+                            _openOrders[i].TimeDone = trade.Time;
                             State = PositionStateType.Done;
                         }
                     }
@@ -604,6 +605,7 @@ namespace OsEngine.Entity
                         if (OpenVolume == 0)
                         {
                             State = PositionStateType.Done;
+                            CloseOrders[i].TimeDone = trade.Time;
                         }
                         else if (OpenVolume < 0)
                         {

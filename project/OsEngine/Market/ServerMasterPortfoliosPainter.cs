@@ -593,7 +593,8 @@ namespace OsEngine.Market
 
                 for (int i = _orders.Count - 1; _orders != null && _orders.Count != 0 && i > -1; i--)
                 {
-                    if (_orders[i].State != OrderStateType.Activ
+                    if ((_orders[i].State != OrderStateType.Activ &&
+                        _orders[i].State != OrderStateType.Pending)
                       || _orders[i].Side == Side.None)
                     {
                         continue;
@@ -721,7 +722,8 @@ namespace OsEngine.Market
 
                 Order order = _orders[(_orders.Count - 1 - _gridOrders.CurrentCell.RowIndex)];
 
-                if (order.State == OrderStateType.Activ &&
+                if ((order.State == OrderStateType.Activ || order.State == OrderStateType.Pending)
+                    &&
                         !string.IsNullOrEmpty(order.PortfolioNumber))
                 {
                     IServer server = ServerMaster.GetServers().Find(server1 => server1.ServerType == order.ServerType);

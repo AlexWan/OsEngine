@@ -2467,6 +2467,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 else if (state == "W")
                 {
                     order.State = OrderStateType.Cancel;
+                    order.TimeCancel = time;
                 }
                 else
                 {

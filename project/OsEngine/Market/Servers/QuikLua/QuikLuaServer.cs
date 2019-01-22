@@ -1816,7 +1816,8 @@ namespace OsEngine.Market.Servers.QuikLua
                     order.VolumeExecute = qOrder.Quantity - qOrder.Balance;
                     order.PortfolioNumber = qOrder.Account;
                     order.TypeOrder = qOrder.Flags.ToString().Contains("IsLimit") ? OrderPriceType.Limit : OrderPriceType.Market;
-                    
+                    order.ServerType = ServerType.QuikLua;
+
                     if (qOrder.State == State.Active)
                     {
                         order.State = OrderStateType.Activ;
@@ -1828,6 +1829,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     {
                         order.State = OrderStateType.Done;
                         order.VolumeExecute = qOrder.Quantity;
+                        order.TimeDone = order.TimeCallBack;
                     }
                     else if (qOrder.State == State.Canceled)
                     {
@@ -1846,6 +1848,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     if (_ordersAllReadyCanseled.Find(o => o.NumberUser == qOrder.TransID) != null)
                     {
                         order.State = OrderStateType.Cancel;
+                        order.TimeCancel = order.TimeCallBack;
                     }
 
                     if (qOrder.Operation == Operation.Buy)

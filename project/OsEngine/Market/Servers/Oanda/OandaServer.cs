@@ -443,7 +443,7 @@ namespace OsEngine.Market.Servers.Oanda
                 _Client.ConnectionSucsess += _ibClient_ConnectionSucsess;
                 _Client.LogMessageEvent += SendLogMessage;
                 _Client.NewMyTradeEvent += _ibClient_NewMyTradeEvent;
-                _Client.NewOrderEvent += _ibClient_NewOrderEvent;
+                _Client.NewOrderEvent += NewOrderEvent;
                 _Client.NewTradeEvent += AddTick;
                 _Client.PortfolioChangeEvent += _Client_PortfolioChangeEvent;
                 _Client.NewSecurityEvent += _Client_NewSecurityEvent;
@@ -549,7 +549,7 @@ namespace OsEngine.Market.Servers.Oanda
                 _Client.ConnectionSucsess -= _ibClient_ConnectionSucsess;
                 _Client.LogMessageEvent -= SendLogMessage;
                 _Client.NewMyTradeEvent-= _ibClient_NewMyTradeEvent;
-                _Client.NewOrderEvent -= _ibClient_NewOrderEvent;
+                _Client.NewOrderEvent -= NewOrderEvent;
                 _Client.NewTradeEvent -= AddTick;
                 _Client.PortfolioChangeEvent -= _Client_PortfolioChangeEvent;
                 _Client.NewSecurityEvent -= _Client_NewSecurityEvent;
@@ -1175,9 +1175,6 @@ namespace OsEngine.Market.Servers.Oanda
         }
 
 
-        // СДЕЛАТЬ!!!!!!!!!!!!!!!!!!!!сохранение расширенных данных по трейду 
-
-
         /// <summary>
         /// прогрузить трейды данными стакана
         /// </summary>
@@ -1438,7 +1435,7 @@ namespace OsEngine.Market.Servers.Oanda
             _ordersToCansel.Enqueue(order);
         }
 
-        private void _ibClient_NewOrderEvent(Order order)
+        private void NewOrderEvent(Order order)
         {
             try
             {
@@ -1447,6 +1444,7 @@ namespace OsEngine.Market.Servers.Oanda
                     _orders = new List<Order>();
                 }
 
+                order.ServerType = ServerType.Oanda;
                 _ordersToSend.Enqueue(order);
             }
             catch (Exception error)

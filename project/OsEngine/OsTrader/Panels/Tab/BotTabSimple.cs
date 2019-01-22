@@ -3690,7 +3690,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="order">ордер</param>
         private void _connector_OrderChangeEvent(Order order)
         {
-            if (_journal.IsMyOrder(order) == false)
+            Order orderInJournal = _journal.IsMyOrder(order);
+
+            if (orderInJournal == null)
             {
                 return;
             }
@@ -3699,7 +3701,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             if (OrderUpdateEvent != null)
             {
-                OrderUpdateEvent(order);
+                OrderUpdateEvent(orderInJournal);
             }
         }
 

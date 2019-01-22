@@ -22,6 +22,7 @@ namespace OsEngine.Entity
             TimeCreate = DateTime.MinValue;
             TimeCallBack = DateTime.MinValue;
             TimeCancel = DateTime.MinValue;
+            TimeDone =  DateTime.MinValue;
             NumberMarket = "";
             Side = Side.None;
         }
@@ -125,17 +126,22 @@ namespace OsEngine.Entity
         public string Comment;
 
         /// <summary>
-        /// время выставления ордера на биржу
+        /// время первого отклика от биржи по ордеру. Время севрера.
         /// </summary>
         public DateTime TimeCallBack;
         
         /// <summary>
-        /// время снятия ордера из системы
+        /// время снятия ордера из системы. Время сервера
         /// </summary>
         public DateTime TimeCancel;
 
         /// <summary>
-        /// время создания ордера в OsApi
+        /// время исполнения ордера. Время сервера
+        /// </summary>
+        public DateTime TimeDone;
+
+        /// <summary>
+        /// время создания ордера в OsApi. Время сервера
         /// </summary>
         public DateTime TimeCreate;
 
@@ -326,6 +332,7 @@ namespace OsEngine.Entity
             result.Append(TimeCreate.ToString(new CultureInfo("ru-RU")) + "@");
             result.Append(TimeCancel.ToString(new CultureInfo("ru-RU")) + "@");
             result.Append(TimeCallBack.ToString(new CultureInfo("ru-RU")) + "@");
+            
             result.Append(LifeTime + "@");
         // сделки, которыми открывался ордер и рассчёт цены исполнения ордера
 
@@ -343,6 +350,8 @@ namespace OsEngine.Entity
             result.Append("@");
 
             result.Append(Comment);
+
+            result.Append(TimeDone.ToString(new CultureInfo("ru-RU")) + "@");
 
             return result;
         }
@@ -374,6 +383,7 @@ namespace OsEngine.Entity
             TimeCreate = Convert.ToDateTime(saveArray[13]);
             TimeCancel = Convert.ToDateTime(saveArray[14]);
             TimeCallBack = Convert.ToDateTime(saveArray[15]);
+
             TimeSpan.TryParse(saveArray[16], out LifeTime);
             // сделки, которыми открывался ордер и рассчёт цены исполнения ордера
 
@@ -394,6 +404,7 @@ namespace OsEngine.Entity
                 }
             }
             Comment = saveArray[18];
+            TimeDone = Convert.ToDateTime(saveArray[19]);
         }
     }
 
