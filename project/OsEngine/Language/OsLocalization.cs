@@ -151,5 +151,7 @@ namespace OsEngine.Language
         public static AlertsLocal Alerts = new AlertsLocal();
 
         public static ChartsLocal Charts = new ChartsLocal();
+
+        public static EntityLocal Entity = new EntityLocal();
     }
 }

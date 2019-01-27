@@ -161,12 +161,25 @@ namespace OsEngine
         /// </summary>
         private bool CheckWorkWithDirectory()
         {
-            File.Create("Engine\\checkFile.txt");
+            try
+            {
+                if (!Directory.Exists("Engine"))
+                {
+                    Directory.CreateDirectory("Engine");
+                }
 
-            if (File.Exists("Engine\\checkFile.txt") == false)
+                File.Create("Engine\\checkFile.txt");
+
+                if (File.Exists("Engine\\checkFile.txt") == false)
+                {
+                    return false;
+                }
+            }
+            catch
             {
                 return false;
             }
+
 
             return true;
         }

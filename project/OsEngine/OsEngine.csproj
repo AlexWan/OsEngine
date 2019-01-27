@@ -322,6 +322,7 @@
     </Compile>
     <Compile Include="Language\AlertsLocal.cs" />
     <Compile Include="Language\ChartsLocal.cs" />
+    <Compile Include="Language\EntityLocal.cs" />
     <Compile Include="Language\MainWIndowLocal.cs" />
     <Compile Include="Language\OsLocalization.cs" />
     <Compile Include="Language\PrimeSettingsMasterUiLocal.cs" />

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using OsEngine.Language;
 using OsEngine.Market.Servers;
 
 namespace OsEngine.Entity
@@ -26,6 +27,8 @@ namespace OsEngine.Entity
             PaintSecurities(server.Securities);
             server.SecuritiesChangeEvent += _server_SecuritiesChangeEvent;
             _server = server;
+
+            Title = OsLocalization.Entity.TitleSecuritiesUi;
         }
 
         /// <summary>
@@ -38,71 +41,10 @@ namespace OsEngine.Entity
         /// </summary>
         private void CreateTable()
         {
-            _grid = new DataGridView();
+            _grid = DataGridFactory.GetDataGridSecurities(DataGridViewSelectionMode.FullRowSelect,
+                DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders);
+
             HostSecurities.Child = _grid;
-
-            _grid.AllowUserToOrderColumns = false;
-            _grid.AllowUserToResizeRows = false;
-            _grid.AllowUserToDeleteRows = false;
-            _grid.AllowUserToAddRows = false;
-            _grid.RowHeadersVisible = false;
-            _grid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            _grid.MultiSelect = false;
-
-            DataGridViewCellStyle style = new DataGridViewCellStyle();
-            style.Alignment = DataGridViewContentAlignment.BottomRight;
-
-            DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = style;
-
-            DataGridViewColumn column0 = new DataGridViewColumn();
-            column0.CellTemplate = cell0;
-            column0.HeaderText = @"Название";
-            column0.ReadOnly = true;
-            column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-            _grid.Columns.Add(column0);
-
-            DataGridViewColumn column = new DataGridViewColumn();
-            column.CellTemplate = cell0;
-            column.HeaderText = @"Тип";
-            column.ReadOnly = true;
-            column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-            _grid.Columns.Add(column);
-
-            DataGridViewColumn column1 = new DataGridViewColumn();
-            column1.CellTemplate = cell0;
-            column1.HeaderText = @"Лот";
-            column1.ReadOnly = false;
-            column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-            _grid.Columns.Add(column1);
-
-            DataGridViewColumn column3 = new DataGridViewColumn();
-            column3.CellTemplate = cell0;
-            column3.HeaderText = @"Шаг цены";
-            column3.ReadOnly = false;
-            column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-            _grid.Columns.Add(column3);
-
-            DataGridViewColumn column4 = new DataGridViewColumn();
-            column4.CellTemplate = cell0;
-            column4.HeaderText = @"Цена шага цены";
-            column4.ReadOnly = false;
-            column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-            _grid.Columns.Add(column4);
-
-            DataGridViewColumn column8 = new DataGridViewColumn();
-            column8.CellTemplate = cell0;
-            column8.HeaderText = "";
-            column8.ReadOnly = true;
-            column8.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-            _grid.Columns.Add(column8);
-
             HostSecurities.Child.Show();
             HostSecurities.Child.Refresh();
             _grid.CellValueChanged += _grid_CellValueChanged;

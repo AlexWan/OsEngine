@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using OsEngine.Language;
 
 namespace OsEngine.Entity
 {
@@ -30,6 +31,8 @@ namespace OsEngine.Entity
             Proxy.UserPassword = TextBoxPassword.Text;
 
             Close();
+            ButtonSave.Content = OsLocalization.Entity.ProxiesLabel3;
+            Title = OsLocalization.Entity.TitleProxyAddUi;
         }
 
         public ProxyHolder Proxy;
