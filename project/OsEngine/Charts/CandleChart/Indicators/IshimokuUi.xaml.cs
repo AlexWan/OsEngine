@@ -6,6 +6,7 @@
 using System;
 using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Language;
 using MessageBox = System.Windows.MessageBox;
 using TextBox = System.Windows.Forms.TextBox;
 
@@ -59,6 +60,16 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
 
             CheckBoxPaintOnOff.IsChecked = _ishimoku.PaintOn;
+
+            CheckBoxPaintOnOff.Content = OsLocalization.Charts.LabelPaintIntdicatorIsVisible;
+            ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
+            ButtonEtalonLine.Content = OsLocalization.Charts.LabelButtonIndicatorColor;
+            ButtonLineLate.Content = OsLocalization.Charts.LabelButtonIndicatorColor;
+            ButtonLineRounded.Content = OsLocalization.Charts.LabelButtonIndicatorColor;
+            ButtonFirst.Content = OsLocalization.Charts.LabelButtonIndicatorColor;
+            ButtonSecond.Content = OsLocalization.Charts.LabelButtonIndicatorColor;
+            LabelIndicatorDeviation.Content = OsLocalization.Charts.LabelIndicatorDeviation;
+            
         }
 
         /// <summary>

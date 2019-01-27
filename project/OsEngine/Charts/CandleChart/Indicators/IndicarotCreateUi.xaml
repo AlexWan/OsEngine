@@ -5,9 +5,8 @@
     <Grid>
         <Rectangle Margin="5,5,5,37">
         </Rectangle>
-        <TextBlock x:Name="TextBlockDescription" Margin="195,10,10,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="135" Foreground="#FF7212"/>
-        <WindowsFormsHost Name ="HostNames"  HorizontalAlignment="Left" Margin="10,10,0,50" Width="180"/>
-        <WindowsFormsHost Name="HostArea" Margin="195,150,10,50"/>
-        <Button x:Name ="ButtonAccept" Content="Принять" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="150" Click="ButtonAccept_Click" />
+        <WindowsFormsHost Name ="HostNames"  HorizontalAlignment="Left" Margin="10,10,0,50" Width="201"/>
+        <WindowsFormsHost Name="HostArea" Margin="216,10,10,50"/>
+        <Button x:Name ="ButtonAccept" Content="Accept" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="150" Click="ButtonAccept_Click" />
     </Grid>
 </Window>

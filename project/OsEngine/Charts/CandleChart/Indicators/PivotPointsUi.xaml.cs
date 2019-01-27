@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 using TextBox = System.Windows.Forms.TextBox;
 
@@ -42,6 +43,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             HostS3.Child = new TextBox();
             HostS3.Child.BackColor = _pivotPoints.ColorS3;
+
+            CheckBoxPaintOnOff.Content = OsLocalization.Charts.LabelPaintIntdicatorIsVisible;
+            ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
 
         }
 

@@ -4,6 +4,7 @@
 
 using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Language;
 using TextBox = System.Windows.Forms.TextBox;
 
 namespace OsEngine.Charts.CandleChart.Indicators
@@ -34,6 +35,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
             HostColorBase.Child = new TextBox();
             HostColorBase.Child.BackColor = _ad.ColorBase;
             CheckBoxPaintOnOff.IsChecked = _ad.PaintOn;
+
+            ButtonColorAdx.Content = OsLocalization.Charts.LabelButtonIndicatorColor;
+            CheckBoxPaintOnOff.Content = OsLocalization.Charts.LabelPaintIntdicatorIsVisible;
+            ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
         }
 
         /// <summary>

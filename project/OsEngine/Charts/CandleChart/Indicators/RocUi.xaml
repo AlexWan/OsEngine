@@ -4,13 +4,13 @@
         Title="ROC" Height="214.384" Width="322" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleNoResize}"  ResizeMode="NoResize" Icon="/Images/OsLogo.ico" Topmost="True">
     <Grid>
         <Rectangle  Margin="5,5,5,37"/>
-        <Button x:Name ="ButtonAccept"  Content="Принять" HorizontalAlignment="Right" Margin="0,0,5,10" VerticalAlignment="Bottom" Width="115" Click="ButtonAccept_Click"/>
+        <Button x:Name ="ButtonAccept"  Content="Accept" HorizontalAlignment="Right" Margin="0,0,5,10" VerticalAlignment="Bottom" Width="115" Click="ButtonAccept_Click"/>
         <TextBox x:Name ="TextBoxLenght" Margin="154,20,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Длина периода" HorizontalAlignment="Left" Margin="22,20,0,0" VerticalAlignment="Top" />
-        <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовывать" HorizontalAlignment="Left" Margin="154,110,0,0" VerticalAlignment="Top" />
-        <Button x:Name="ButtonColorAdx" Content="Цвет" HorizontalAlignment="Left" Margin="22,80,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"  />
+        <Label Name="LabelIndicatorPeriod" Content="Period" HorizontalAlignment="Left" Margin="22,20,0,0" VerticalAlignment="Top" />
+        <CheckBox Name="CheckBoxPaintOnOff" Content="Is visible" HorizontalAlignment="Left" Margin="154,110,0,0" VerticalAlignment="Top" />
+        <Button x:Name="ButtonColor" Content="Color" HorizontalAlignment="Left" Margin="22,80,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"  />
         <WindowsFormsHost x:Name="HostColorBase" Height="25" Margin="154,80,20,0" VerticalAlignment="Top"/>
-        <Label Content="Тип свечи " HorizontalAlignment="Left" Margin="22,50,0,0" VerticalAlignment="Top"></Label>
+        <Label Name="LabelIndicatorCandleType" Content="Candle type" HorizontalAlignment="Left" Margin="22,50,0,0" VerticalAlignment="Top"></Label>
         <ComboBox x:Name="CandleBox" Margin="154,50,20,0" VerticalAlignment="Top"/>
 
     </Grid>

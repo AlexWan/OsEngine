@@ -4,11 +4,11 @@
         Title="Kaufman Efficiency Ratio" Height="183" Width="316" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico" Topmost="True">
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
-        <Button x:Name ="ButtonAccept" Height="22" Content="Принять" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="112" Click="ButtonAccept_Click"/>
+        <Button x:Name ="ButtonAccept" Height="22" Content="Accept" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="112" Click="ButtonAccept_Click"/>
         <TextBox x:Name ="TextBoxLenght" Margin="151,21,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Длина" HorizontalAlignment="Left" Margin="86,21,0,0" VerticalAlignment="Top"/>
-        <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовывать" HorizontalAlignment="Left" Margin="151,75,0,0" VerticalAlignment="Top"/>
-        <Button x:Name="ButtonColorAdx" Content="Цвет" HorizontalAlignment="Left" Margin="19,48,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"  />
+        <Label Name="LabelIndicatorPeriod" Content="Period" HorizontalAlignment="Left" Margin="86,21,0,0" VerticalAlignment="Top"/>
+        <CheckBox Name="CheckBoxPaintOnOff" Content="Is visible" HorizontalAlignment="Left" Margin="151,75,0,0" VerticalAlignment="Top"/>
+        <Button x:Name="ButtonColor" Content="Color" HorizontalAlignment="Left" Margin="19,48,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"  />
         <WindowsFormsHost x:Name="HostColorBase" Height="22" Margin="151,48,20,0" VerticalAlignment="Top"/>
     </Grid>
 </Window>

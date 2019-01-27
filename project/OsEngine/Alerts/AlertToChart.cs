@@ -11,6 +11,7 @@ using System.IO;
 using System.Threading;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Properties;
 
 namespace OsEngine.Alerts
@@ -408,7 +409,7 @@ namespace OsEngine.Alerts
             }
             else
             {
-                AlertMessageSimpleUi ui = new AlertMessageSimpleUi("Сработал алерт " + Label);
+                AlertMessageSimpleUi ui = new AlertMessageSimpleUi(OsLocalization.Alerts.Message2 + Label);
                 ui.Show();
             }
         }

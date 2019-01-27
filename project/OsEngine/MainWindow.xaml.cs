@@ -3,20 +3,27 @@
 */
 
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Threading;
 using Microsoft.Win32;
 using OsEngine.Alerts;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.OsConverter;
 using OsEngine.OsData;
 using OsEngine.OsMiner;
 using OsEngine.OsOptimizer;
 using OsEngine.OsTrader.Gui;
+using OsEngine.PrimeSettings;
+using Localization = System.Windows.Localization;
 
 namespace OsEngine
 {
@@ -38,7 +45,6 @@ namespace OsEngine
         /// работает ли приложение или закрывается
         /// </summary>
         public static bool ProccesIsWorked;
-
 
         public MainWindow()
         {
@@ -62,6 +68,13 @@ namespace OsEngine
                 {
                     Close();
                 }
+
+                if (!CheckWorkWithDirectory())
+                {
+                    MessageBox.Show(
+                        "Ваша оперативная система не даёт программе сохранять данные. Перезапустите её из под администратора.");
+                    Close();
+                }
             }
             catch (Exception)
             {
@@ -76,6 +89,31 @@ namespace OsEngine
             _window = this;
 
             ServerMaster.ActivateLogging();
+
+            Thread worker = new Thread(ThreadAreaGreeting);
+            worker.Name = "MainWindowGreetingThread";
+            worker.IsBackground = true;
+            worker.Start();
+
+
+
+            ChangeText();
+            OsLocalization.LocalizationTypeChangeEvent += ChangeText;
+        }
+
+        private void ChangeText()
+        {
+            Title = OsLocalization.MainWindow.Title;
+            BlockDataLabel.Content = OsLocalization.MainWindow.BlockDataLabel;
+            BlockTestingLabel.Content = OsLocalization.MainWindow.BlockTestingLabel;
+            BlockTradingLabel.Content = OsLocalization.MainWindow.BlockTradingLabel;
+            ButtonData.Content = OsLocalization.MainWindow.OsDataName;
+            ButtonConverter.Content = OsLocalization.MainWindow.OsConverter;
+            ButtonTester.Content = OsLocalization.MainWindow.OsTesterName;
+            ButtonOptimizer.Content = OsLocalization.MainWindow.OsOptimizerName;
+            ButtonMiner.Content = OsLocalization.MainWindow.OsMinerName;
+
+            ButtonRobot.Content = OsLocalization.MainWindow.OsBotStationName;
         }
 
         /// <summary>
@@ -116,6 +154,21 @@ namespace OsEngine
 
                 return false;
             }
+        }
+
+        /// <summary>
+        /// проверяем разрешение программы создавать файлы в директории
+        /// </summary>
+        private bool CheckWorkWithDirectory()
+        {
+            File.Create("Engine\\checkFile.txt");
+
+            if (File.Exists("Engine\\checkFile.txt") == false)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
@@ -238,5 +291,57 @@ namespace OsEngine
             }
             Process.GetCurrentProcess().Kill();
         }
+
+        private void ThreadAreaGreeting()
+        {
+            Thread.Sleep(1000);
+            double angle = 5;
+
+            for (int i = 0; i < 7; i++)
+            {
+                RotatePic(angle);
+                Thread.Sleep(50);
+                angle += 10;
+            }
+
+            for (int i = 0; i < 7; i++)
+            {
+                RotatePic(angle);
+                Thread.Sleep(100);
+                angle += 10;
+            }
+
+            Thread.Sleep(100);
+            RotatePic(angle);
+
+        }
+
+        private void RotatePic(double angle)
+        {
+            if (ImageGear.Dispatcher.CheckAccess() == false)
+            {
+                ImageGear.Dispatcher.Invoke(new Action<double>(RotatePic), angle);
+                return;
+            }
+
+            ImageGear.RenderTransform = new RotateTransform(angle,12,12);
+
+        }
+
+        private void ButtonSettings_Click(object sender, RoutedEventArgs e)
+        {
+            if (_settingsUi == null)
+            {
+                _settingsUi = new PrimeSettingsMasterUi();
+                _settingsUi.Show();
+                _settingsUi.Closing += delegate(object o, CancelEventArgs args) { _settingsUi = null; };
+            }
+            else
+            {
+                _settingsUi.Activate();
+            }
+        }
+
+        private PrimeSettingsMasterUi _settingsUi;
     }
 }

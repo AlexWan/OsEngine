@@ -39,19 +39,11 @@ namespace OsEngine.Entity
         /// <returns>таблица для прорисовки на ней позиций</returns>
         private void CreateMainTable()
         {
-            DataGridView newGrid = new DataGridView();
-
-            newGrid.AllowUserToOrderColumns = false;
-            newGrid.AllowUserToResizeRows = false;
-            newGrid.AllowUserToDeleteRows = false;
-            newGrid.AllowUserToAddRows = false;
-            newGrid.RowHeadersVisible = false;
-            newGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            newGrid.MultiSelect = false;
+            DataGridView newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
+                DataGridViewAutoSizeRowsMode.AllCells);
 
 
-            DataGridViewCellStyle style = new DataGridViewCellStyle();
-            style.Alignment = DataGridViewContentAlignment.BottomRight;
+            DataGridViewCellStyle style = newGrid.DefaultCellStyle;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = style;
@@ -207,19 +199,6 @@ namespace OsEngine.Entity
                 return null;
             }
 
-            DataGridViewCellStyle styleDefolt = new DataGridViewCellStyle();
-
-
-            if (position.ProfitPortfolioPunkt > 0)
-            {
-                styleDefolt.BackColor = Color.SeaGreen;
-                styleDefolt.SelectionBackColor = Color.SeaGreen;
-            }
-            else if (position.ProfitPortfolioPunkt < 0)
-            {
-                styleDefolt.BackColor = Color.Salmon;
-                styleDefolt.SelectionBackColor = Color.Salmon;
-            }
 
             DataGridViewCellStyle styleSide = new DataGridViewCellStyle();
 
@@ -235,8 +214,6 @@ namespace OsEngine.Entity
             }
 
             DataGridViewRow nRow = new DataGridViewRow();
-
-            nRow.DefaultCellStyle = styleDefolt;
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[0].Value = position.Number;
@@ -322,21 +299,11 @@ namespace OsEngine.Entity
         /// </summary>
         private  DataGridView CreateOrderTable()
         {
-            DataGridView newGrid = new DataGridView();
-
-            newGrid.AllowUserToOrderColumns = false;
-            newGrid.AllowUserToResizeRows = false;
-            newGrid.AllowUserToDeleteRows = false;
-            newGrid.AllowUserToAddRows = false;
-            newGrid.RowHeadersVisible = false;
-            newGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            newGrid.MultiSelect = false;
-
-            DataGridViewCellStyle style = new DataGridViewCellStyle();
-            style.Alignment = DataGridViewContentAlignment.BottomRight;
-
+            DataGridView newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
+                DataGridViewAutoSizeRowsMode.AllCells);
+            
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = style;
+            cell0.Style = newGrid.DefaultCellStyle;
 
             DataGridViewColumn colum0 = new DataGridViewColumn();
             colum0.CellTemplate = cell0;
@@ -422,6 +389,7 @@ namespace OsEngine.Entity
             colum7.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             newGrid.Columns.Add(colum7);
 
+            newGrid.AutoResizeColumnHeadersHeight();
             return newGrid;
         }
 
@@ -435,14 +403,8 @@ namespace OsEngine.Entity
                 return null;
             }
 
-            DataGridViewCellStyle styleDefolt = new DataGridViewCellStyle();
-
-            styleDefolt.BackColor = Color.WhiteSmoke;
-            styleDefolt.SelectionBackColor = Color.WhiteSmoke;
-            styleDefolt.SelectionForeColor = Color.Black;
-
             DataGridViewRow nRow = new DataGridViewRow();
-            nRow.DefaultCellStyle = styleDefolt;
+
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[0].Value = order.NumberUser;
@@ -518,21 +480,12 @@ namespace OsEngine.Entity
         /// </summary>
         private DataGridView CreateTradeTable()
         {
-            DataGridView newGrid = new DataGridView();
+            DataGridView newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
+                DataGridViewAutoSizeRowsMode.AllCells);
 
-            newGrid.AllowUserToOrderColumns = false;
-            newGrid.AllowUserToResizeRows = false;
-            newGrid.AllowUserToDeleteRows = false;
-            newGrid.AllowUserToAddRows = false;
-            newGrid.RowHeadersVisible = false;
-            newGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            newGrid.MultiSelect = false;
-
-            DataGridViewCellStyle style = new DataGridViewCellStyle();
-            style.Alignment = DataGridViewContentAlignment.BottomRight;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = style;
+            cell0.Style = newGrid.DefaultCellStyle;
 
             DataGridViewColumn colum0 = new DataGridViewColumn();
             colum0.CellTemplate = cell0;
@@ -596,14 +549,7 @@ namespace OsEngine.Entity
                 return null;
             }
 
-            DataGridViewCellStyle styleDefolt = new DataGridViewCellStyle();
-
-            styleDefolt.BackColor = Color.WhiteSmoke;
-            styleDefolt.SelectionBackColor = Color.WhiteSmoke;
-            styleDefolt.SelectionForeColor = Color.Black;
-
             DataGridViewRow nRow = new DataGridViewRow();
-            nRow.DefaultCellStyle = styleDefolt;
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[0].Value = trade.NumberTrade;

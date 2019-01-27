@@ -1,24 +1,24 @@
 ﻿<Window x:Class="OsEngine.Charts.CandleChart.Indicators.MovingAverageUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Moving Average" Height="237" Width="469" WindowStartupLocation="CenterScreen" Topmost="True" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico">
+        Title="Moving Average" Height="237" Width="490" WindowStartupLocation="CenterScreen" Topmost="True" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico">
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
-        <Button x:Name ="ButtonAccept"  Content="Принять" Height="22" FontSize="14" FontFamily="Calibri"  HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="152" Click="ButtonAccept_Click"/>
+        <Button x:Name ="ButtonAccept"  Content="Accept" Height="22" FontSize="14" FontFamily="Calibri"  HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="152" Click="ButtonAccept_Click"/>
         <TextBox x:Name ="TextBoxLenght" HorizontalAlignment="Left" Height="23" Margin="152,17,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <Label Content="Длина индикатора" HorizontalAlignment="Left" Margin="19,17,0,0" VerticalAlignment="Top"/>
-        <Button x:Name="ButtonColor" Content="Цвет" Height="22" FontSize="14" FontFamily="Calibri"  HorizontalAlignment="Left" Margin="19,45,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"/>
+        <Label Name="LabelIndicatorPeriod" Content="Period" HorizontalAlignment="Left" Margin="19,17,0,0" VerticalAlignment="Top"/>
+        <Button x:Name="ButtonColor" Content="Color" Height="22" FontSize="14" FontFamily="Calibri"  HorizontalAlignment="Left" Margin="19,45,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"/>
         <WindowsFormsHost x:Name="HostColor" HorizontalAlignment="Left" Height="22" Margin="152,45,0,0" VerticalAlignment="Top" Width="120"/>
         <ComboBox Name="ComboBoxMovingType" HorizontalAlignment="Left" Margin="152,72,0,0" VerticalAlignment="Top" Width="120"/>
-        <Label Content="Метод расчёта" HorizontalAlignment="Left" Margin="19,72,0,0" VerticalAlignment="Top"/>
-        <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовывать" HorizontalAlignment="Left" Margin="152,134,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelIndicatorMethod" Content="Calculation method" HorizontalAlignment="Left" Margin="19,72,0,0" VerticalAlignment="Top"/>
+        <CheckBox Name="CheckBoxPaintOnOff" Content="Is visible" HorizontalAlignment="Left" Margin="152,134,0,0" VerticalAlignment="Top"/>
         <ComboBox x:Name="ComboBoxPriceField" HorizontalAlignment="Left" Margin="152,103,0,0" VerticalAlignment="Top" Width="120"/>
-        <Label Content="Поле цены (свечи)" HorizontalAlignment="Left" Margin="19,103,0,0" VerticalAlignment="Top"/>
-        <Label Content="Адаптивная Кауфмана" HorizontalAlignment="Left" Margin="290,30,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name ="TextBoxKaufmanSlow" Height="23" Margin="374,61,27,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Медленная" HorizontalAlignment="Left" Margin="290,62,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name ="TextBoxKaufmanFast" Height="23" Margin="374,92,27,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Быстрая" HorizontalAlignment="Left" Margin="290,92,0,0" VerticalAlignment="Top" />
+        <Label Name="LabelIndicatorCandleType" Content="Candle type" HorizontalAlignment="Left" Margin="19,103,0,0" VerticalAlignment="Top"/>
+        <Label Content="Adaptive Kaufman" HorizontalAlignment="Left" Margin="324,17,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name ="TextBoxKaufmanSlow" Height="23" Margin="389,61,27,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <Label Name="LabelIndicatorShortPeriod" Content="Short Period" HorizontalAlignment="Left" Margin="290,62,0,0" VerticalAlignment="Top" />
+        <TextBox x:Name ="TextBoxKaufmanFast" Height="23" Margin="389,92,27,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <Label Name="LabelIndicatorLongPeriod" Content="Long Period" HorizontalAlignment="Left" Margin="290,92,0,0" VerticalAlignment="Top" />
 
     </Grid>
 </Window>

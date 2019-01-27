@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Media;
@@ -21,6 +22,7 @@ using OsEngine.OsMiner;
 using OsEngine.OsOptimizer;
 using OsEngine.OsTrader;
 using OsEngine.OsTrader.Panels;
+using OsEngine.PrimeSettings;
 
 namespace OsEngine.Logging
 {
@@ -556,22 +558,23 @@ namespace OsEngine.Logging
             row.Cells[2].Value = message.Message;
             _gridErrorLog.Rows.Insert(0, row);
 
-            if (_logErrorUi == null)
+            if (PrimeSettingsMaster.ErrorLogMessageBoxIsActiv)
             {
-                _logErrorUi = new LogErrorUi(_gridErrorLog);
-                _logErrorUi.Closing += _logErrorUi_Closing;
-                _logErrorUi.Show();
+                if (_logErrorUi == null)
+                {
+                    _logErrorUi = new LogErrorUi(_gridErrorLog);
+                    _logErrorUi.Closing += delegate (object sender, CancelEventArgs args)
+                    {
+                        _logErrorUi = null;
+                    };
+                    _logErrorUi.Show();
+                }
             }
 
-            SystemSounds.Beep.Play();
-        }
-
-        /// <summary>
-        /// окно лога закрылось
-        /// </summary>
-        static void _logErrorUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            _logErrorUi = null;
+            if (PrimeSettingsMaster.ErrorLogBeepIsActiv)
+            {
+                SystemSounds.Beep.Play();
+            }
         }
     }
 

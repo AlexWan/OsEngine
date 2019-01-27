@@ -9,9 +9,9 @@ using System.IO;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Forms.Integration;
-using OsEngine.Charts;
 using OsEngine.Charts.CandleChart;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Connectors;
 using MessageBox = System.Windows.MessageBox;
@@ -38,17 +38,28 @@ namespace OsEngine.Alerts
             _chartMaster = chartMaster;
             chartMaster.GetChart().Click += AlertMaster_Click;
 
-            
             Load();
 
-            GridViewBox = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,DataGridViewAutoSizeRowsMode.AllCells);
+            CreateGrid();
+            PaintGridBox();
+
+            OsLocalization.LocalizationTypeChangeEvent += delegate 
+            {
+                CreateGrid();
+                PaintGridBox();
+            };
+        }
+
+        private void CreateGrid()
+        {
+            GridViewBox = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCells);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = GridViewBox.DefaultCellStyle;
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;
-            column0.HeaderText = @"Номер";
+            column0.HeaderText = OsLocalization.Alerts.GridHeader0;
             column0.ReadOnly = true;
             column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             //column0.Width = 150;
@@ -57,7 +68,7 @@ namespace OsEngine.Alerts
 
             DataGridViewColumn column = new DataGridViewColumn();
             column.CellTemplate = cell0;
-            column.HeaderText = @"Тип";
+            column.HeaderText = OsLocalization.Alerts.GridHeader1;
             column.ReadOnly = true;
             column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             // column.Width = 150;
@@ -68,13 +79,12 @@ namespace OsEngine.Alerts
             column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             column1.ReadOnly = true;
             // column1.Width = 150;
-            column1.HeaderText = @"Статус";
+            column1.HeaderText = OsLocalization.Alerts.GridHeader2;
             GridViewBox.Columns.Add(column1);
 
             GridViewBox.Rows.Add(null, null);
-            GridViewBox.Click +=GridViewBox_Click;
+            GridViewBox.Click += GridViewBox_Click;
             GridViewBox.DoubleClick += GridViewBox_DoubleClick;
-            PaintGridBox();
         }
 
         /// <summary>
@@ -352,7 +362,7 @@ namespace OsEngine.Alerts
                 {
                     if (_alertChartUi != null)
                     {
-                        MessageBox.Show("Одно меню создания алерта уже открыто!");
+                        MessageBox.Show(OsLocalization.Alerts.Message1);
                         return;
                     }
 
@@ -397,7 +407,7 @@ namespace OsEngine.Alerts
             {
                 if (_alertChartUi != null)
                 {
-                    MessageBox.Show("Одно меня создания алерта уже открыто!");
+                    MessageBox.Show(OsLocalization.Alerts.Message1);
                     return;
                 }
 
@@ -500,16 +510,16 @@ namespace OsEngine.Alerts
             MenuItem[] items = new MenuItem[4];
 
             items[0] = new MenuItem();
-            items[0].Text = @"Удалить";
+            items[0].Text = OsLocalization.Alerts.ContextMenu1;
             items[0].Click += AlertDelete_Click;
 
-            items[1] = new MenuItem() { Text = @"Редактировать" };
+            items[1] = new MenuItem() { Text = OsLocalization.Alerts.ContextMenu2 };
             items[1].Click += AlertRedact_Click;
 
-            items[2] = new MenuItem() { Text = @"Добавить Алерт на чарт" };
+            items[2] = new MenuItem() { Text = OsLocalization.Alerts.ContextMenu3 };
             items[2].Click += AlertChartCreate_Click;
 
-            items[3] = new MenuItem() { Text = @"Добавить Алерт по цене" };
+            items[3] = new MenuItem() { Text = OsLocalization.Alerts.ContextMenu4 };
             items[3].Click += AlertPriceCreate_Click;
 
             ContextMenu menu = new ContextMenu(items);

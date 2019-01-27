@@ -4,10 +4,10 @@
          Title="AD" Height="163" Width="310" WindowStartupLocation="CenterScreen"  Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico" Topmost="True">
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
-        <Button x:Name ="ButtonAccept"  Content="Принять" HorizontalAlignment="Right" Margin="0,0,5,7" VerticalAlignment="Bottom" Width="100" Click="ButtonAccept_Click"/>
-        <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовывать" HorizontalAlignment="Left" Margin="163,66,0,0" VerticalAlignment="Top"/>
-        <Button x:Name="ButtonColorAdx" Content="Цвет" HorizontalAlignment="Left" Margin="20,27,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click" RenderTransformOrigin="0.658,-1.136"  />
-        <WindowsFormsHost x:Name="HostColorBase" HorizontalAlignment="Left" Height="22" Margin="163,27,0,0" VerticalAlignment="Top" Width="120" RenderTransformOrigin="0.492,-1.5"/>
+        <Button x:Name ="ButtonAccept"  Content="Accept" HorizontalAlignment="Right" Margin="0,0,5,7" VerticalAlignment="Bottom" Width="100" Click="ButtonAccept_Click"/>
+        <CheckBox Name="CheckBoxPaintOnOff" Content="Is Visible" HorizontalAlignment="Right" Margin="0,59,23,0" VerticalAlignment="Top"/>
+        <Button x:Name="ButtonColorAdx" Content="Color" HorizontalAlignment="Left" Margin="20,27,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click" RenderTransformOrigin="0.658,-1.136"  />
+        <WindowsFormsHost x:Name="HostColorBase" HorizontalAlignment="Right" Height="22" Margin="0,27,23,0" VerticalAlignment="Top" Width="120" RenderTransformOrigin="0.492,-1.5"/>
 
     </Grid>
 </Window>

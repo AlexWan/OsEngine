@@ -4,14 +4,14 @@
         Title="MACD Line" Height="244" Width="314" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico" Topmost="True">
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
-        <Button x:Name ="ButtonAccept"  Content="Принять" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="115" Click="ButtonAccept_Click"/>
-        <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовывать" HorizontalAlignment="Left" Margin="154,73,0,0" VerticalAlignment="Top"/>
-        <Button x:Name="ButtonColorMacd" Content="Цвет Macd" HorizontalAlignment="Left" Margin="22,19,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorMacd_Click"  />
+        <Button x:Name ="ButtonAccept"  Content="Accept" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="115" Click="ButtonAccept_Click"/>
+        <CheckBox Name="CheckBoxPaintOnOff" Content="Is visible" HorizontalAlignment="Left" Margin="154,73,0,0" VerticalAlignment="Top"/>
+        <Button x:Name="ButtonColorMacd" Content="Color up" HorizontalAlignment="Left" Margin="22,19,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorMacd_Click"  />
         <WindowsFormsHost x:Name="HostColorUp" Height="22" Margin="154,19,21,0" VerticalAlignment="Top"/>
         <Button x:Name="ButtonMaShort" Content="MaShort" HorizontalAlignment="Left" Margin="22,95,0,0" VerticalAlignment="Top" Width="120" Click="ButtonMaShort_Click" />
         <Button x:Name="ButtonMaLong" Content="MaLong" Margin="154,95,21,0" VerticalAlignment="Top" Click="ButtonMaLong_Click" />
         <Button x:Name="ButtonMaSignal" Content="MaSignal" HorizontalAlignment="Left" Margin="88,131,0,0" VerticalAlignment="Top" Width="120" Click="ButtonMaSignal_Click" />
-        <Button x:Name="ButtonColorSignalLine" Content="Цвет Signal Line" HorizontalAlignment="Left" Margin="22,46,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorSignalLine_Click"  />
+        <Button x:Name="ButtonColorSignalLine" Content="Color down" HorizontalAlignment="Left" Margin="22,46,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorSignalLine_Click"  />
         <WindowsFormsHost x:Name="HostColorDown" Height="22" Margin="154,46,21,0" VerticalAlignment="Top"/>
 
     </Grid>

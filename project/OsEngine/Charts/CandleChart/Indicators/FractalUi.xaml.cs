@@ -4,6 +4,7 @@
 
 using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Language;
 
 namespace OsEngine.Charts.CandleChart.Indicators
 {
@@ -36,6 +37,12 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             HostColorDown.Child = new TextBox();
             HostColorDown.Child.BackColor = _fractail.ColorDown;
+
+            ButtonColorUp.Content = OsLocalization.Charts.LabelButtonIndicatorColorUp;
+            ButtonColorDown.Content = OsLocalization.Charts.LabelButtonIndicatorColorDown;
+            ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
+
+
         }
 
         /// <summary>

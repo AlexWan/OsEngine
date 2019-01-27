@@ -4,6 +4,7 @@
 
 using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Language;
 
 namespace OsEngine.Alerts
 {
@@ -17,6 +18,9 @@ namespace OsEngine.Alerts
             InitializeComponent();
             HostAlerts.Child = grid;
             HostAlerts.Child.Show();
+            Title = OsLocalization.Alerts.TitleAlertMessageFullUi;
+
+            OsLocalization.LocalizationTypeChangeEvent += delegate { Title = OsLocalization.Alerts.TitleAlertMessageFullUi; };
         }
     }
 }

@@ -275,8 +275,10 @@ namespace OsEngine.OsData
                 {
                     row1.Cells[1].Value = "Connect";
                     DataGridViewCellStyle style = new DataGridViewCellStyle();
-                    style.BackColor = Color.DarkSeaGreen;
-                    style.SelectionBackColor = Color.SeaGreen;
+                    style.BackColor = Color.MediumSeaGreen;
+                    style.SelectionBackColor = Color.Green;
+                    style.ForeColor = Color.Black;
+                    style.SelectionForeColor = Color.Black;
                     row1.Cells[1].Style = style;
                     row1.Cells[0].Style = style;
                 }
@@ -284,8 +286,10 @@ namespace OsEngine.OsData
                 {
                     row1.Cells[1].Value = "Disconnect";
                     DataGridViewCellStyle style = new DataGridViewCellStyle();
-                    style.BackColor = Color.FloralWhite;
-                    style.SelectionBackColor = Color.DarkSalmon;
+                    style.BackColor = Color.Coral;
+                    style.SelectionBackColor = Color.Chocolate;
+                    style.ForeColor = Color.Black;
+                    style.SelectionForeColor = Color.Black;
                     row1.Cells[1].Style = style;
                     row1.Cells[0].Style = style;
                 }
@@ -399,8 +403,10 @@ namespace OsEngine.OsData
                     if (_sets[i].Regime == DataSetState.On)
                     {
                         DataGridViewCellStyle style = new DataGridViewCellStyle();
-                        style.BackColor = Color.DarkSeaGreen;
-                        style.SelectionBackColor = Color.SeaGreen;
+                        style.BackColor = Color.MediumSeaGreen;
+                        style.SelectionBackColor = Color.Green;
+                        style.ForeColor = Color.Black;
+                        style.SelectionForeColor = Color.Black;
                         nRow.Cells[1].Style = style;
                         nRow.Cells[0].Style = style;
                     }

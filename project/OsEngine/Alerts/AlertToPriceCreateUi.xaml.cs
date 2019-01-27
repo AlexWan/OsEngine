@@ -6,6 +6,7 @@ using System;
 using System.Globalization;
 using System.Windows;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Alerts
 {
@@ -55,6 +56,28 @@ namespace OsEngine.Alerts
             ComboBoxMusic.SelectedItem = MyAlert.MusicType;
 
             LabelOsa.MouseDown += LabelOsa_MouseDown;
+            ChangeText();
+            OsLocalization.LocalizationTypeChangeEvent += ChangeText;
+
+            LabelOsa.MouseDown += LabelOsa_MouseDown;
+        }
+
+        private void ChangeText()
+        {
+            Title = OsLocalization.Alerts.TitleAlertToChartCreateUi;
+            CheckBoxOnOff.Content = OsLocalization.Alerts.Label1;
+            LabelActivation.Content = OsLocalization.Alerts.Label18;
+
+            LabelTrade.Content = OsLocalization.Alerts.Label3;
+            LabelReactionType.Content = OsLocalization.Alerts.Label4;
+            LabelOrderType.Content = OsLocalization.Alerts.Label5;
+            LabelVolume.Content = OsLocalization.Alerts.Label6;
+            LabelSlippage.Content = OsLocalization.Alerts.Label7;
+            LabelNumClosedPos.Content = OsLocalization.Alerts.Label8;
+            LabelFireworks.Content = OsLocalization.Alerts.Label9;
+            CheckBoxMusicAlert.Content = OsLocalization.Alerts.Label10;
+            CheckBoxWindow.Content = OsLocalization.Alerts.Label16;
+            ButtonSave.Content = OsLocalization.Alerts.Label17;
         }
 
         void LabelOsa_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)

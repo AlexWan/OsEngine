@@ -4,14 +4,14 @@
        Title="Price Oscillator" Height="213" Width="314" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico" Topmost="True">
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
-        <Button x:Name ="ButtonAccept"  Content="Принять" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="117" Click="ButtonAccept_Click"/>
-        <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовывать" HorizontalAlignment="Left" Margin="154,104,0,0" VerticalAlignment="Top" />
-        <Button x:Name="ButtonColorAdx" Content="Цвет"  HorizontalAlignment="Left" Margin="22,19,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorAdx_Click"  />
+        <Button x:Name ="ButtonAccept"  Content="Accept" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="117" Click="ButtonAccept_Click"/>
+        <CheckBox Name="CheckBoxPaintOnOff" Content="Is visible" HorizontalAlignment="Left" Margin="154,104,0,0" VerticalAlignment="Top" />
+        <Button x:Name="ButtonColor" Content="Color"  HorizontalAlignment="Left" Margin="22,19,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorAdx_Click"  />
         <WindowsFormsHost x:Name="HostColorBase" Height="22" Margin="154,19,20,0" VerticalAlignment="Top"/>
         <Button x:Name="ButtonMa1" Content="MaShort" HorizontalAlignment="Left" Margin="22,77,0,0" VerticalAlignment="Top" Width="120" Click="ButtonMa1_Click" />
         <Button x:Name="ButtonMa2" Content="MaLong" Margin="154,77,20,0" VerticalAlignment="Top" Click="ButtonMa2_Click" />
         <ComboBox Name="ComboBoxTypeSerch" Margin="154,46,20,0" VerticalAlignment="Top"/>
-        <Label Content="Тип расчёта" HorizontalAlignment="Left" Margin="22,46,0,0" VerticalAlignment="Top" Width="88"/>
+        <Label Name="LabelIndicatorType" Content="Indicator type" HorizontalAlignment="Left" Margin="22,46,0,0" VerticalAlignment="Top" Width="88"/>
 
     </Grid>
 </Window>
