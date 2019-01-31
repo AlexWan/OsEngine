@@ -9,6 +9,7 @@ using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
 using ComboBox = System.Windows.Controls.ComboBox;
@@ -206,7 +207,7 @@ namespace OsEngine.OsConverter
             if (_worker != null &&
                 _worker.IsAlive)
             {
-                SendNewLogMessage("Процедура конвертации не может быть запущена т.к. поток уже запущен", LogMessageType.System);
+                SendNewLogMessage(OsLocalization.Converter.Message1, LogMessageType.System);
                 return;
             }
 
@@ -227,12 +228,12 @@ namespace OsEngine.OsConverter
         {
             if (string.IsNullOrWhiteSpace(_sourceFile))
             {
-                SendNewLogMessage(" Процедура конвертации не может быть запущеана. Не указан файл с исходными данными", LogMessageType.System);
+                SendNewLogMessage(OsLocalization.Converter.Message2, LogMessageType.System);
                 return;
             }
             else if (string.IsNullOrWhiteSpace(_exitFile))
             {
-                SendNewLogMessage("Процедура конвертации не может быть запущеана. Не указан файл с выходными данными", LogMessageType.System);
+                SendNewLogMessage(OsLocalization.Converter.Message3, LogMessageType.System);
                 return;
             }
 
@@ -243,9 +244,9 @@ namespace OsEngine.OsConverter
 
             StreamReader reader = new StreamReader(_sourceFile);
 
-            SendNewLogMessage("Процедура конвертации начата", LogMessageType.System);
+            SendNewLogMessage(OsLocalization.Converter.Message4, LogMessageType.System);
 
-            SendNewLogMessage("Загружаем тики из файла", LogMessageType.System);
+            SendNewLogMessage(OsLocalization.Converter.Message5, LogMessageType.System);
 
             List<Trade> trades = new List<Trade>();
 
@@ -280,14 +281,18 @@ namespace OsEngine.OsConverter
                     if (currentWeek == 0)
                     {
 
-                        SendNewLogMessage("Грузим неделю № " + partMonth + " Месяц " + trade.Time.Month, LogMessageType.System);
+                        SendNewLogMessage(
+                            OsLocalization.Converter.Message6 + partMonth +
+                            OsLocalization.Converter.Message7 + trade.Time.Month, LogMessageType.System);
                         currentWeek = partMonth;
                     }
 
 
                     if (partMonth != currentWeek || reader.EndOfStream)
                     {
-                        SendNewLogMessage("Неделя " + currentWeek + " Месяц " + trade.Time.Month + " подгружен. Создаём серии свечек", LogMessageType.System);
+                        SendNewLogMessage(OsLocalization.Converter.Message6 + currentWeek +
+                                          OsLocalization.Converter.Message7 + trade.Time.Month +
+                                          OsLocalization.Converter.Message8, LogMessageType.System);
 
                         TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder();
                         timeFrameBuilder.TimeFrame = TimeFrame;
@@ -314,7 +319,7 @@ namespace OsEngine.OsConverter
 
                         writer.Close();
 
-                        SendNewLogMessage("Сохранение завершено", LogMessageType.System);
+                        SendNewLogMessage(OsLocalization.Converter.Message9, LogMessageType.System);
 
                         isNotFirstTime = true;
 
@@ -323,7 +328,8 @@ namespace OsEngine.OsConverter
 
                         currentWeek = partMonth;
 
-                        SendNewLogMessage("Грузим неделю № " + partMonth + " Месяц " + trade.Time.Month, LogMessageType.System);
+                        SendNewLogMessage(OsLocalization.Converter.Message6 + partMonth +
+                                          OsLocalization.Converter.Message7 + trade.Time.Month, LogMessageType.System);
                     }
                     else
                     {
@@ -333,7 +339,7 @@ namespace OsEngine.OsConverter
             }
             catch (Exception error)
             {
-                SendNewLogMessage("Скачивание прервано. В файле данных не верный формат", LogMessageType.System);
+                SendNewLogMessage(OsLocalization.Converter.Message10, LogMessageType.System);
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
                 reader.Close();
                 return;
@@ -343,7 +349,7 @@ namespace OsEngine.OsConverter
 
 
 
-            SendNewLogMessage("Сохранение завершено", LogMessageType.System);
+            SendNewLogMessage(OsLocalization.Converter.Message9, LogMessageType.System);
         }
 
 // логирование

@@ -146,12 +146,27 @@ namespace OsEngine.Language
 
         public static MainWindowLocal MainWindow = new MainWindowLocal();
 
-        public static PrimeSettingsMasterUiLocal PrimeSettingsMasterUi = new PrimeSettingsMasterUiLocal();
+        public static PrimeSettingsMasterUiLocal PrimeSettings = new PrimeSettingsMasterUiLocal();
 
         public static AlertsLocal Alerts = new AlertsLocal();
 
         public static ChartsLocal Charts = new ChartsLocal();
 
         public static EntityLocal Entity = new EntityLocal();
+
+        public static JournalLocal Journal = new JournalLocal();
+
+        public static LoggingLocal Logging = new LoggingLocal();
+
+        public static MarketLocal Market = new MarketLocal();
+
+        public static ConverterLocal Converter = new ConverterLocal();
+
+        public static DataLocal Data = new DataLocal();
+
+        public static MinerLocal Miner = new MinerLocal();
+
+        public static OptimizerLocal Optimizer = new OptimizerLocal();
+
     }
 }

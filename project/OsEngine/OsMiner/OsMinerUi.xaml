@@ -1,7 +1,7 @@
 ﻿<Window x:Class="OsEngine.OsMiner.OsMinerUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Os.Miner" Height="700" Width="1000" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" MinWidth="1070" MinHeight="500" Icon="/Images/OsLogo.ico">
+        Title="Miner" Height="700" Width="1000" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" MinWidth="1070" MinHeight="500" Icon="/Images/OsLogo.ico">
     <Grid Name="GridPrime">
         <Grid.RowDefinitions>
             <RowDefinition Height="466*"/>
@@ -14,16 +14,16 @@
             <Button Name="ButtonGoLeft" Content="&lt; &lt; &lt;" HorizontalAlignment="Right" Margin="0,0,428,-24" VerticalAlignment="Bottom" Width="105" Click="ButtonGoLeft_Click"/>
         </Grid>
         <Grid x:Name="GreedLog" Margin="10,0,0,5" Height="185" VerticalAlignment="Bottom" Grid.Row="1">
-            <TabControl Margin="0,-17,5,5" x:Name="TabControlPrime" BorderThickness="0" Foreground="Black">
-                <TabItem Header="Сеты" Width="100" Foreground="Black" >
+            <TabControl Margin="0,-17,5,5" x:Name="TabControlPrime" BorderThickness="0" >
+                <TabItem Name="Label5" Header="Sets" Width="100"  >
                     <Grid >
                         <WindowsFormsHost Name="HostSets" Margin="13,25,706,5"/>
                         <WindowsFormsHost x:Name="HostPatternSets" Margin="0,25,5,5" HorizontalAlignment="Right" Width="696"/>
-                        <Label Content="Группы паттернов в сете"  FontSize="16" Margin="0,0,528,0" VerticalAlignment="Top" HorizontalAlignment="Right" />
-                        <Label Content="Сеты" HorizontalAlignment="Left" Margin="10,0,0,0" FontSize="16" VerticalAlignment="Top"/>
+                        <Label Name="Label7" Content="Groups of patterns in the set"  FontSize="16" Margin="0,0,491,0" VerticalAlignment="Top" HorizontalAlignment="Right" />
+                        <Label Name="Label52" Content="Sets" HorizontalAlignment="Left" Margin="10,0,0,0" FontSize="16" VerticalAlignment="Top"/>
                     </Grid>
                 </TabItem>
-                <TabItem Header="Лог" Width="100" Foreground="Black" >
+                <TabItem Name="Label6" Header="Log" Width="100" >
                     <Grid >
                         <WindowsFormsHost x:Name="HostLog" Margin="10,0,0,0"/>
                     </Grid>

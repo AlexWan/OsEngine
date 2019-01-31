@@ -4,6 +4,7 @@
 
 using System;
 using System.Windows;
+using OsEngine.Language;
 using OsEngine.Logging;
 
 namespace OsEngine.Market.Servers.Finam
@@ -24,6 +25,10 @@ namespace OsEngine.Market.Servers.Finam
             LabelStatus.Content = _server.ServerStatus;
             _server.ConnectStatusChangeEvent += _server_ConnectStatusChangeEvent;
             log.StartPaint(Host);
+            Label41.Content = OsLocalization.Market.Label41;
+            Label21.Content = OsLocalization.Market.Label21;
+            ButtonConnect.Content = OsLocalization.Market.ButtonConnect;
+            ButtonAbort.Content = OsLocalization.Market.ButtonDisconnect;
         }
 
         void _server_ConnectStatusChangeEvent(string state)

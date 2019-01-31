@@ -9,6 +9,7 @@ using System.IO;
 using System.Threading;
 using OsEngine.Alerts;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Tester;
@@ -158,8 +159,7 @@ namespace OsEngine.Market.Connectors
                 if (ServerMaster.GetServers() == null||
                     ServerMaster.GetServers().Count == 0)
                 {
-                    AlertMessageSimpleUi uiMessage = new AlertMessageSimpleUi("Ни одного соединения с биржей не найдено! " +
-                                                        " Нажмите на кнопку ^Сервер^ ");
+                    AlertMessageSimpleUi uiMessage = new AlertMessageSimpleUi(OsLocalization.Market.Message1);
                     uiMessage.Show();
                     return;
                 }
@@ -1045,7 +1045,7 @@ namespace OsEngine.Market.Connectors
 
                 if (_myServer.ServerStatus == ServerConnectStatus.Disconnect)
                 {
-                    SendNewLogMessage("Попытка выставить ордер при выключенном соединении",LogMessageType.Error);
+                    SendNewLogMessage(OsLocalization.Market.Message2,LogMessageType.Error);
                     return;
                 }
 

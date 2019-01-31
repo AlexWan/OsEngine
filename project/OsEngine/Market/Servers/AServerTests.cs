@@ -24,7 +24,7 @@ namespace OsEngine.Market.Servers
         /// Вводится только из кода. 
         /// У пользователей должна быть выключена, т.к. тормозит работу серверов
         /// </summary>
-        private bool _isWorking = true;
+        private bool _isWorking = false;
 
         /// <summary>
         /// начать прослушку сервера

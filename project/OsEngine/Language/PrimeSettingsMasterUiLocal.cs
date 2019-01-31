@@ -11,11 +11,11 @@
             "_Ru:Язык_");
 
         public string ShowExtraLogWindowLabel => OsLocalization.ConvertToLocString(
-            "Eng:Show extra log window_"+
+            "Eng:Show emergency log window_" +
             "Ru:Показывать окно экстренного лога_");
 
         public string ExtraLogSoundLabel => OsLocalization.ConvertToLocString(
-            "Eng:Extra log sound_"+
+            "Eng:Emergency log sound_" +
             "Ru:Звук экстренного лога_");
 
         public string TransactionSoundLabel => OsLocalization.ConvertToLocString(

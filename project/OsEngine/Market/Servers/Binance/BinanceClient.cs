@@ -987,6 +987,7 @@ namespace OsEngine.Market.Servers.Binance
                                     trade.Volume = Convert.ToDecimal(order.l.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                                     trade.Price = Convert.ToDecimal(order.L.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                                     trade.SecurityNameCode = order.s;
+                                    trade.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
 
                                     if (MyTradeEvent != null)
                                     {

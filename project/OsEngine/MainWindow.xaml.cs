@@ -33,7 +33,7 @@ namespace OsEngine
     /// </summary>
     public partial class MainWindow
     {
-
+        
         private static MainWindow _window;
 
         public static Dispatcher GetDispatcher
@@ -60,8 +60,7 @@ namespace OsEngine
                 int winVersion = Environment.OSVersion.Version.Major;
                 if (winVersion < 6)
                 {
-                    MessageBox.Show(
-                        "Ваша оперативная система не соответствуют рабочим параметрам робота. Нужно использовать минимум Windows 7");
+                    MessageBox.Show(OsLocalization.MainWindow.Message1);
                     Close();
                 }
                 if (!CheckDotNetVersion())
@@ -71,14 +70,13 @@ namespace OsEngine
 
                 if (!CheckWorkWithDirectory())
                 {
-                    MessageBox.Show(
-                        "Ваша оперативная система не даёт программе сохранять данные. Перезапустите её из под администратора.");
+                    MessageBox.Show(OsLocalization.MainWindow.Message2);
                     Close();
                 }
             }
             catch (Exception)
             {
-                MessageBox.Show("Ошибка при попытке проверить версию Windows. Программа закрыта. Опишите систему в которой вы пытаетесь запустить программу и напишите разработчику");
+                MessageBox.Show(OsLocalization.MainWindow.Message3);
                 Close();
             }
 
@@ -146,11 +144,11 @@ namespace OsEngine
                 }
                 if ((releaseKey >= 378389))
                 {
-                    MessageBox.Show("Ваша версия .Net 4.5 or later. Робот не будет работать в Вашей системе. С.м. в инструкции главу: Требования к Windows и .Net");
+                    MessageBox.Show(OsLocalization.MainWindow.Message4);
                     return false;
                 }
 
-                MessageBox.Show("Ваша версия старше .Net 4.5. Робот не будет работать в Вашей системе. С.м. в инструкции главу: Требования к Windows и .Net");
+                MessageBox.Show(OsLocalization.MainWindow.Message4);
 
                 return false;
             }
@@ -186,13 +184,7 @@ namespace OsEngine
 
         void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            string message = "ВСЁ ПРОПАЛО!!! Произошло не обработанное исключение. Сейчас нужно сделать следущее: \r ";
-            message += "1) Сохранить изображение этого окна, нажав PrintScrin на клавиатуре и вставить изображение в Paint  \r ";
-            message += "2) Написать подробности произошедшего инцидента. При каких обстоятельствах программа упала  \r ";
-            message += "3) Выслать изображение этого окна и описание ситуации на адрес: alexey@o-s-a.net \r ";
-            message += "4) Если ситуация повториться, вероятно будет нужно очистить папку Engine и QuikTrades что рядом с роботом  \r ";
-            message += "5) Возможно придётся удалить процесс Os.Engine из диспетчера задач руками.  \r ";
-            message += "6) Ошибка:  " + e.ExceptionObject;
+            string message = OsLocalization.MainWindow.Message5 + e.ExceptionObject;
 
             MessageBox.Show(message);
         }

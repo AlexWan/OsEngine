@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using System.Windows.Forms;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.OsData
 {
@@ -38,6 +39,11 @@ namespace OsEngine.OsData
             CreateTable();
             ReloadSecurityTable();
             ComboBoxClass.SelectionChanged += ComboBoxClass_SelectionChanged;
+
+            Title = OsLocalization.Data.TitleNewSecurity;
+            Label1.Content = OsLocalization.Data.Label1;
+            ButtonAccept.Content = OsLocalization.Data.ButtonAccept;
+
         }
 
         /// <summary>
@@ -59,14 +65,14 @@ namespace OsEngine.OsData
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;
-            column0.HeaderText = @"Код бумаги";
+            column0.HeaderText = OsLocalization.Data.Label2;
             column0.ReadOnly = true;
             column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(column0);
 
             DataGridViewColumn column1 = new DataGridViewColumn();
             column1.CellTemplate = cell0;
-            column1.HeaderText = @"Название";
+            column1.HeaderText = OsLocalization.Data.Label3;
             column1.ReadOnly = true;
             column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(column1);

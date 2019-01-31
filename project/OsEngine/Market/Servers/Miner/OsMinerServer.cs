@@ -8,11 +8,11 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
-using OsEngine.Market;
 using OsEngine.Market.Servers.Tester;
 
-namespace OsEngine.OsMiner
+namespace OsEngine.Market.Servers.Miner
 {
     /// <summary>
     /// класс реализующий  предоставление данных для Майнера
@@ -171,7 +171,7 @@ namespace OsEngine.OsMiner
 
             if (folders.Length == 0)
             {
-                SendLogMessage("В папке Data не обнаружено ни одного сета. Тестовый сервер не будет работать",
+                SendLogMessage(OsLocalization.Market.Message25,
                     LogMessageType.System);
             }
 
@@ -182,13 +182,13 @@ namespace OsEngine.OsMiner
                 if (folders[i].Split('_').Length == 2)
                 {
                     sets.Add(folders[i].Split('_')[1]);
-                    SendLogMessage("Найден сет: " + folders[i].Split('_')[1], LogMessageType.System);
+                    SendLogMessage(OsLocalization.Market.Message26 + folders[i].Split('_')[1], LogMessageType.System);
                 }
             }
 
             if (sets.Count == 0)
             {
-                SendLogMessage("В папке Data не обнаружено ни одного сета. Тестовый сервер не будет работать",
+                SendLogMessage(OsLocalization.Market.Message25,
                     LogMessageType.System);
             }
             Sets = sets;
@@ -206,7 +206,7 @@ namespace OsEngine.OsMiner
                 return;
             }
 
-            SendLogMessage("Подключаем новый сет данных: " + setName, LogMessageType.System);
+            SendLogMessage(OsLocalization.Market.Message27 + setName, LogMessageType.System);
             _activSet = newSet;
 
             if (_sourceDataType == TesterSourceDataType.Set)
@@ -350,7 +350,6 @@ namespace OsEngine.OsMiner
                 }
                 catch (Exception error)
                 {
-                    SendLogMessage("Ошибка в основном потоке", LogMessageType.Error);
                     SendLogMessage(error.ToString(), LogMessageType.Error);
                     Thread.Sleep(1000);
                 }
@@ -379,7 +378,7 @@ namespace OsEngine.OsMiner
 
                 if (directories.Length == 0)
                 {
-                    SendLogMessage("Загрузка бумаг прервана. В указанном сете нет загруженных инструментов.",
+                    SendLogMessage(OsLocalization.Market.Message28,
                         LogMessageType.System);
                     return;
                 }
@@ -398,7 +397,7 @@ namespace OsEngine.OsMiner
 
                 if (files.Length == 0)
                 {
-                    SendLogMessage("Загрузка бумаг прервана. В указанной папке не содержиться ни одного файла.",
+                    SendLogMessage(OsLocalization.Market.Message49,
                         LogMessageType.Error);
                 }
 

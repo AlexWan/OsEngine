@@ -96,9 +96,10 @@ namespace OsEngine.Entity
             return grid;
         }
 
-        public static DataGridView GetDataGridPosition(DataGridViewSelectionMode selectionMode, DataGridViewAutoSizeRowsMode rowsSizeMode)
+        public static DataGridView GetDataGridPosition()
         {
-            DataGridView newGrid = GetDataGridView(selectionMode, rowsSizeMode);
+            DataGridView newGrid = GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
+                DataGridViewAutoSizeRowsMode.AllCells);
             newGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             DataGridViewCellStyle style = newGrid.DefaultCellStyle;
 
@@ -242,9 +243,11 @@ namespace OsEngine.Entity
             return newGrid;
         }
 
-        public static DataGridView GetDataGridOrder(DataGridViewSelectionMode selectionMode, DataGridViewAutoSizeRowsMode rowsSizeMode)
+        public static DataGridView GetDataGridOrder()
         {
-            DataGridView newGrid = GetDataGridView(selectionMode, rowsSizeMode);
+            DataGridView newGrid = GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
+                DataGridViewAutoSizeRowsMode.AllCells);
+
             newGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = newGrid.DefaultCellStyle;
@@ -336,9 +339,10 @@ namespace OsEngine.Entity
             return newGrid;
         }
 
-        public static DataGridView GetDataGridMyTrade(DataGridViewSelectionMode selectionMode, DataGridViewAutoSizeRowsMode rowsSizeMode)
+        public static DataGridView GetDataGridMyTrade()
         {
-            DataGridView newGrid = GetDataGridView(selectionMode, rowsSizeMode);
+            DataGridView newGrid = GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
+                DataGridViewAutoSizeRowsMode.AllCells);
             newGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = newGrid.DefaultCellStyle;
@@ -395,7 +399,7 @@ namespace OsEngine.Entity
             return newGrid;
         }
 
-        public static DataGridView GetDataGridProxies(DataGridViewSelectionMode selectionMode, DataGridViewAutoSizeRowsMode rowsSizeMode)
+        public static DataGridView GetDataGridProxies()
         {
             DataGridView newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
                 DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders);
@@ -429,9 +433,10 @@ namespace OsEngine.Entity
             return newGrid;
         }
 
-        public static DataGridView GetDataGridSecurities(DataGridViewSelectionMode selectionMode, DataGridViewAutoSizeRowsMode rowsSizeMode)
+        public static DataGridView GetDataGridSecurities()
         {
-            DataGridView grid = GetDataGridView(selectionMode, rowsSizeMode);
+            DataGridView grid = GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
+                DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = grid.DefaultCellStyle;
@@ -487,7 +492,160 @@ namespace OsEngine.Entity
             return grid;
         }
 
+        public static DataGridView GetDataGridPortfolios()
+        {
+            DataGridView _gridPosition = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
 
+            DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
+            cell0.Style = _gridPosition.DefaultCellStyle;
+
+            DataGridViewColumn column0 = new DataGridViewColumn();
+            column0.CellTemplate = cell0;
+            column0.HeaderText = OsLocalization.Entity.ColumnPortfolio1;
+            column0.ReadOnly = true;
+            column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+            _gridPosition.Columns.Add(column0);
+
+            DataGridViewColumn column = new DataGridViewColumn();
+            column.CellTemplate = cell0;
+            column.HeaderText = OsLocalization.Entity.ColumnPortfolio2;
+            column.ReadOnly = true;
+            column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+            _gridPosition.Columns.Add(column);
+
+            DataGridViewColumn column1 = new DataGridViewColumn();
+            column1.CellTemplate = cell0;
+            column1.HeaderText = OsLocalization.Entity.ColumnPortfolio3;
+            column1.ReadOnly = true;
+            column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+            _gridPosition.Columns.Add(column1);
+
+            DataGridViewColumn column3 = new DataGridViewColumn();
+            column3.CellTemplate = cell0;
+            column3.HeaderText = OsLocalization.Entity.ColumnPortfolio4;
+            column3.ReadOnly = true;
+            column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+            _gridPosition.Columns.Add(column3);
+
+            DataGridViewColumn column4 = new DataGridViewColumn();
+            column4.CellTemplate = cell0;
+            column4.HeaderText = OsLocalization.Entity.ColumnPortfolio5;
+            column4.ReadOnly = true;
+            column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+            _gridPosition.Columns.Add(column4);
+
+            DataGridViewColumn column5 = new DataGridViewColumn();
+            column5.CellTemplate = cell0;
+            column5.HeaderText = OsLocalization.Entity.ColumnPortfolio6;
+            column5.ReadOnly = true;
+            column5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+            _gridPosition.Columns.Add(column5);
+
+            DataGridViewColumn column6 = new DataGridViewColumn();
+            column6.CellTemplate = cell0;
+            column6.HeaderText = OsLocalization.Entity.ColumnPortfolio7;
+            column6.ReadOnly = true;
+            column6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+            _gridPosition.Columns.Add(column6);
+
+            DataGridViewColumn column7 = new DataGridViewColumn();
+            column7.CellTemplate = cell0;
+            column7.HeaderText = OsLocalization.Entity.ColumnPortfolio8;
+            column7.ReadOnly = true;
+            column7.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridPosition.Columns.Add(column7);
+
+            return _gridPosition;
+        }
+
+        public static DataGridView GetDataGridServers()
+        {
+            DataGridView newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
+
+            DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
+            cell0.Style = newGrid.DefaultCellStyle;
+
+            DataGridViewColumn colum0 = new DataGridViewColumn();
+            colum0.CellTemplate = cell0;
+            colum0.HeaderText = OsLocalization.Entity.ColumnServers1;
+            colum0.ReadOnly = true;
+            colum0.Width = 100;
+            newGrid.Columns.Add(colum0);
+
+            DataGridViewColumn colu = new DataGridViewColumn();
+            colu.CellTemplate = cell0;
+            colu.HeaderText = OsLocalization.Entity.ColumnServers2;
+            colu.ReadOnly = true;
+            colu.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            newGrid.Columns.Add(colu);
+
+            return newGrid;
+        }
+
+        public static DataGridView GetDataGridDataSource()
+        {
+            DataGridView myGridView = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
+
+            DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
+            cell0.Style = myGridView.DefaultCellStyle;
+
+            DataGridViewColumn column2 = new DataGridViewColumn();
+            column2.CellTemplate = cell0;
+            column2.HeaderText = OsLocalization.Entity.ColumnDataSource1;
+            column2.ReadOnly = true;
+            column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+            myGridView.Columns.Add(column2);
+
+            DataGridViewColumn column0 = new DataGridViewColumn();
+            column0.CellTemplate = cell0;
+            column0.HeaderText = OsLocalization.Entity.ColumnDataSource2;
+            column0.ReadOnly = true;
+            column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+            myGridView.Columns.Add(column0);
+
+            DataGridViewColumn column = new DataGridViewColumn();
+            column.CellTemplate = cell0;
+            column.HeaderText = OsLocalization.Entity.ColumnDataSource3;
+            column.ReadOnly = true;
+            column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+            myGridView.Columns.Add(column);
+
+            DataGridViewColumn column1 = new DataGridViewColumn();
+            column1.CellTemplate = cell0;
+            column1.HeaderText = OsLocalization.Entity.ColumnDataSource4;
+            column1.ReadOnly = true;
+            column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+            myGridView.Columns.Add(column1);
+
+            DataGridViewColumn column3 = new DataGridViewColumn();
+            column3.CellTemplate = cell0;
+            column3.HeaderText = OsLocalization.Entity.ColumnDataSource5;
+            column3.ReadOnly = true;
+            column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+            myGridView.Columns.Add(column3);
+
+            DataGridViewColumn column4 = new DataGridViewColumn();
+            column4.CellTemplate = cell0;
+            column4.HeaderText = OsLocalization.Entity.ColumnDataSource6;
+            column4.ReadOnly = true;
+            column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+            myGridView.Columns.Add(column4);
+
+            return myGridView;
+        }
 
     }
 }

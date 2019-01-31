@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Tester;
 
@@ -70,7 +71,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 }
                 catch (Exception error)
                 {
-                    SendLogMessage("Ошибка в основном потоке", LogMessageType.Error);
+                    SendLogMessage(error.ToString(), LogMessageType.Error);
                     SendLogMessage(error.ToString(), LogMessageType.Error);
                     Thread.Sleep(1000);
                 }
@@ -196,7 +197,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
             if (folders.Length == 0)
             {
-                SendLogMessage("В папке Data не обнаружено ни одного сета. Тестовый сервер не будет работать", LogMessageType.System);
+                SendLogMessage(OsLocalization.Market.Message25, LogMessageType.System);
             }
 
             List<string> sets = new List<string>();
@@ -206,13 +207,13 @@ namespace OsEngine.Market.Servers.Optimizer
                 if (folders[i].Split('_').Length == 2)
                 {
                     sets.Add(folders[i].Split('_')[1]);
-                    SendLogMessage("Найден сет: " + folders[i].Split('_')[1], LogMessageType.System);
+                    SendLogMessage(OsLocalization.Market.Message26 + folders[i].Split('_')[1], LogMessageType.System);
                 }
             }
 
             if (sets.Count == 0)
             {
-                SendLogMessage("В папке Data не обнаружено ни одного сета. Тестовый сервер не будет работать", LogMessageType.System);
+                SendLogMessage(OsLocalization.Market.Message25, LogMessageType.System);
             }
             Sets = sets;
         }
@@ -229,7 +230,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 return;
             }
 
-            SendLogMessage("Подключаем новый сет данных: " + setName, LogMessageType.System);
+            SendLogMessage(OsLocalization.Market.Message27 + setName, LogMessageType.System);
             _activSet = newSet;
 
             if (_sourceDataType == TesterSourceDataType.Set)
@@ -362,7 +363,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                 if (directories.Length == 0)
                 {
-                    SendLogMessage("Загрузка бумаг прервана. В указанном сете нет загруженных инструментов.", LogMessageType.System);
+                    SendLogMessage(OsLocalization.Market.Message28, LogMessageType.System);
                     return;
                 }
 
@@ -379,7 +380,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                 if (files.Length == 0)
                 {
-                    SendLogMessage("Загрузка бумаг прервана. В указанной папке не содержиться ни одного файла.", LogMessageType.Error);
+                    SendLogMessage(OsLocalization.Market.Message28, LogMessageType.Error);
                 }
                 if (TypeTesterData == TesterDataType.Candle)
                 {
@@ -1480,7 +1481,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                     if (storage == null)
                     {
-                        SendLogMessage("В хранилище не найдены соответствующие данные. Бумага: " + security.Name + " Тип данных: " + _typeTesterData, LogMessageType.Error);
+                        SendLogMessage(OsLocalization.Market.Message29 + security.Name + OsLocalization.Market.Message30 + _typeTesterData, LogMessageType.Error);
                         return null;
                     }
 
@@ -1501,7 +1502,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                     if (storage == null)
                     {
-                        SendLogMessage("В хранилище не найдены соответствующие данные. Бумага: " + security.Name + " Тип данных: " + _typeTesterData, LogMessageType.Error);
+                        SendLogMessage(OsLocalization.Market.Message29 + security.Name + OsLocalization.Market.Message30 + _typeTesterData, LogMessageType.Error);
                         return null;
                     }
 
@@ -1522,7 +1523,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                     if (storage == null)
                     {
-                        SendLogMessage("В хранилище не найдены соответствующие данные. Бумага: " + security.Name + " Тип данных: " + _typeTesterData, LogMessageType.Error);
+                        SendLogMessage(OsLocalization.Market.Message29 + security.Name + OsLocalization.Market.Message30 + _typeTesterData, LogMessageType.Error);
                         return null;
                     }
 
@@ -1530,7 +1531,7 @@ namespace OsEngine.Market.Servers.Optimizer
                     return storage;
                 }
 
-                SendLogMessage("В хранилище не найдены соответствующие данные. Бумага: " + security.Name + " Тип данных: " + _typeTesterData, LogMessageType.Error);
+                SendLogMessage(OsLocalization.Market.Message29 + security.Name + OsLocalization.Market.Message30 + _typeTesterData, LogMessageType.Error);
                 return null;
             }
         }
@@ -1565,7 +1566,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 }
                 catch
                 {
-                    SendLogMessage("Ошибка в формате данных внутри файла с данными " + sec.FileAdress, LogMessageType.Error);
+                    SendLogMessage(OsLocalization.Market.Message31 + sec.FileAdress, LogMessageType.Error);
                     break;
                 }
                 if (candle.TimeStart < timeStart)
@@ -1581,8 +1582,9 @@ namespace OsEngine.Market.Servers.Optimizer
 
             if (candles.Count == 0)
             {
-                SendLogMessage("За период не найдено ни одной свечи. Начало периода: " + timeStart.ToShortDateString() + 
-                    " конец периода: " + timeEnd.ToShortDateString() + " Бумага: " + security.Name, LogMessageType.Error);
+                SendLogMessage(OsLocalization.Market.Message32 + timeStart.ToShortDateString() +
+                               OsLocalization.Market.Message33 + timeEnd.ToShortDateString() +
+                               OsLocalization.Market.Message14 + security.Name, LogMessageType.Error);
             }
 
             DataStorage storage = new DataStorage();
@@ -1621,7 +1623,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 }
                 catch
                 {
-                    SendLogMessage("Ошибка в формате данных внутри файла с данными " + sec.FileAdress, LogMessageType.Error);
+                    SendLogMessage(OsLocalization.Market.Message31 + sec.FileAdress, LogMessageType.Error);
                     break;
                 }
                 if (trade.Time < timeStart)
@@ -1637,8 +1639,8 @@ namespace OsEngine.Market.Servers.Optimizer
 
             if (trades.Count == 0)
             {
-                SendLogMessage("За период не найдено ни одного трейда. Начало периода: " + timeStart.ToShortDateString() +
-                    " конец периода: " + timeEnd.ToShortDateString() + " Бумага: " + security.Name, LogMessageType.Error);
+                SendLogMessage(OsLocalization.Market.Message34 + timeStart.ToShortDateString() +
+                               OsLocalization.Market.Message33 + timeEnd.ToShortDateString() + OsLocalization.Market.Message14 + security.Name, LogMessageType.Error);
             }
 
             DataStorage storage = new DataStorage();
@@ -1677,7 +1679,7 @@ DateTime timeEnd)
                 }
                 catch
                 {
-                    SendLogMessage("Ошибка в формате данных внутри файла с данными " + sec.FileAdress, LogMessageType.Error);
+                    SendLogMessage(OsLocalization.Market.Message31 + sec.FileAdress, LogMessageType.Error);
                     break;
                 }
                 if (depth.Time < timeStart)
@@ -1693,8 +1695,8 @@ DateTime timeEnd)
 
             if (marketDepths.Count == 0)
             {
-                SendLogMessage("За период не найдено ни одного трейда. Начало периода: " + timeStart.ToShortDateString() +
-                    " конец периода: " + timeEnd.ToShortDateString() + " Бумага: " + security.Name, LogMessageType.Error);
+                SendLogMessage(OsLocalization.Market.Message34 + timeStart.ToShortDateString() +
+                               OsLocalization.Market.Message33 + timeEnd.ToShortDateString() + " Бумага: " + security.Name, LogMessageType.Error);
             }
 
             DataStorage storage = new DataStorage();

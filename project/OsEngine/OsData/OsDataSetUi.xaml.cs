@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Market;
 
 namespace OsEngine.OsData
@@ -112,6 +113,19 @@ namespace OsEngine.OsData
             CreateSecuritiesTable();
             ReloadSecuritiesOnTable();
             CheckButtons();
+            Title = OsLocalization.Data.TitleDataSet;
+            Label3.Content = OsLocalization.Data.Label3;
+            Label4.Content = OsLocalization.Data.Label4;
+            Label15.Content = OsLocalization.Data.Label15;
+            Label16.Content = OsLocalization.Data.Label16;
+            Label17.Content = OsLocalization.Data.Label17;
+            Label18.Content = OsLocalization.Data.Label18;
+            Label19.Content = OsLocalization.Data.Label19;
+            Label20.Content = OsLocalization.Data.Label20;
+            ButtonAccept.Content = OsLocalization.Data.ButtonAccept;
+            CheckBoxNeadToLoadDataInServers.Content = OsLocalization.Data.Label21;
+            CheckBoxNeadToUpDate.Content = OsLocalization.Data.Label22;
+
         }
 
         /// <summary>
@@ -314,7 +328,7 @@ namespace OsEngine.OsData
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;
-            column0.HeaderText = @"Код бумаги";
+            column0.HeaderText = OsLocalization.Data.Label14;
             column0.ReadOnly = true;
             column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(column0);
@@ -365,7 +379,7 @@ namespace OsEngine.OsData
         {
             if (TextBoxFolderName.Text == "")
             {
-                MessageBox.Show(@"Сохранение прервано. Сету необходимо задать имя");
+                MessageBox.Show(OsLocalization.Data.Label23);
                 return;
             }
 

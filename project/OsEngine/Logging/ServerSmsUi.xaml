@@ -2,16 +2,16 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:system="clr-namespace:System;assembly=mscorlib"
-        Title="Рассылка Sms сообщений" Height="243" Width="331" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico" Topmost="True">
+        Title="Sms server" Height="243" Width="331" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico" Topmost="True">
     <Grid>
-        <Button x:Name="ButtonAccept" Content="Применить" Margin="0,0,5,10" Click="buttonAccept_Click" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="101"/>
+        <Button x:Name="ButtonAccept" Content="Accept" Margin="0,0,5,10" Click="buttonAccept_Click" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="101"/>
         <Rectangle Margin="5,5,5,37"/>
         <TextBox x:Name="TextBoxMyLogin" Height="23" Margin="107,20,19,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
         <TextBox x:Name="TextBoxPassword" Height="23" Margin="107,48,19,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
         <TextBox x:Name="TextBoxFones" Margin="107,76,19,40" TextWrapping="Wrap" Height="Auto"/>
-        <Label Content="Логин" HorizontalAlignment="Left" Margin="21,20,0,0" VerticalAlignment="Top" Width="81"/>
-        <Label Content="Пароль" HorizontalAlignment="Left" Margin="21,48,0,0" VerticalAlignment="Top" Width="67"/>
-        <Label Content="Адресаты" HorizontalAlignment="Left" Margin="21,76,0,0" VerticalAlignment="Top" Width="81"/>
+        <Label Name="Label15" Content="Login" HorizontalAlignment="Left" Margin="21,20,0,0" VerticalAlignment="Top" Width="81"/>
+        <Label Name="Label12" Content="Password" HorizontalAlignment="Left" Margin="21,48,0,0" VerticalAlignment="Top" Width="67"/>
+        <Label Name="Label14" Content="Addressees" HorizontalAlignment="Left" Margin="21,76,0,0" VerticalAlignment="Top" Width="81"/>
 
     </Grid>
 </Window>

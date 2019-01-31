@@ -10,6 +10,7 @@ using System.Windows.Forms.Integration;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using System.Drawing;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.OsMiner.Patterns;
 
@@ -75,7 +76,7 @@ namespace OsEngine.OsMiner
 
             if (Sets.Find(s => s.Name == set.Name) != null)
             {
-                SendNewLogMessage("Сет с таким именем уже создан",LogMessageType.Error);
+                SendNewLogMessage(OsLocalization.Miner.Message1,LogMessageType.Error);
                 return;
             }
 
@@ -89,7 +90,7 @@ namespace OsEngine.OsMiner
                 set.Name.IndexOf(';') > -1
                 )
             {
-                SendNewLogMessage("Символы # * ? % ^ ; запрещены в названиях", LogMessageType.Error);
+                SendNewLogMessage(OsLocalization.Miner.Message2, LogMessageType.Error);
                 return;
             }
 
@@ -121,7 +122,7 @@ namespace OsEngine.OsMiner
                 return;
             }
 
-            AcceptDialogUi ui = new AcceptDialogUi("Вы собираетесь удалить сет паттернов?");
+            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Miner.Message3);
             ui.ShowDialog();
 
             if (ui.UserAcceptActioin == false)
@@ -308,7 +309,7 @@ namespace OsEngine.OsMiner
 
             DataGridViewColumn column1 = new DataGridViewColumn();
             column1.CellTemplate = cell0;
-            column1.HeaderText = @"Название";
+            column1.HeaderText = OsLocalization.Miner.Message4;
             column1.ReadOnly = true;
             column1.Width = 150;
 
@@ -316,7 +317,7 @@ namespace OsEngine.OsMiner
 
             DataGridViewColumn column = new DataGridViewColumn();
             column.CellTemplate = cell0;
-            column.HeaderText = @"Паттернов";
+            column.HeaderText = OsLocalization.Miner.Message5;
             column.ReadOnly = true;
             column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridSets.Columns.Add(column);
@@ -342,10 +343,10 @@ namespace OsEngine.OsMiner
             {
                 MenuItem[] items = new MenuItem[2];
 
-                items[0] = new MenuItem { Text = @"Добавить" };
+                items[0] = new MenuItem { Text = OsLocalization.Miner.Message6 };
                 items[0].Click += OsMinerMasterAdd_Click;
 
-                items[1] = new MenuItem { Text = @"Удалить" };
+                items[1] = new MenuItem { Text = OsLocalization.Miner.Message7 };
                 items[1].Click += OsMinerMasterRemove_Click;
 
                 ContextMenu menu = new ContextMenu(items);

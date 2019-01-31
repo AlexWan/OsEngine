@@ -53,8 +53,7 @@ namespace OsEngine.Entity
                 return;
             }
 
-            _gridErrorLog = DataGridFactory.GetDataGridProxies(DataGridViewSelectionMode.FullRowSelect,
-                DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders);
+            _gridErrorLog = DataGridFactory.GetDataGridProxies();
 
             Host.Child = _gridErrorLog;
         }

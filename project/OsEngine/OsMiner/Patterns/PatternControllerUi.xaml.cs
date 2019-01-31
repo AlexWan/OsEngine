@@ -7,10 +7,11 @@ using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using System.Windows.Input;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
+using OsEngine.Market.Servers.Miner;
 using OsEngine.Market.Servers.Tester;
 using ContextMenu = System.Windows.Forms.ContextMenu;
-using DataGrid = System.Windows.Controls.DataGrid;
 using MenuItem = System.Windows.Forms.MenuItem;
 using MouseEventArgs = System.Windows.Forms.MouseEventArgs;
 
@@ -51,9 +52,67 @@ namespace OsEngine.OsMiner.Patterns
             InitializeTabPatternsSearch();
 
             InitializeMiningTab();
+
+            Local();
         }
 
-// Авто поиск паттернов
+        private void Local()
+        {
+            Title = OsLocalization.Miner.Label27;
+            ButtonReload.Content = OsLocalization.Miner.Label28;
+            ButtonReload.ToolTip = OsLocalization.Miner.Label29;
+            Label30.Content = OsLocalization.Miner.Label30;
+            Label31.Content = OsLocalization.Miner.Label31;
+            ButtonTempPatternJournal.Content = OsLocalization.Miner.Label32;
+            ButtonTempPatternJournal.ToolTip = OsLocalization.Miner.Label33;
+            TabItemData.Header = OsLocalization.Miner.Label34;
+            Label35.Content = OsLocalization.Miner.Label35;
+            ComboBoxDataSourseType.ToolTip = OsLocalization.Miner.Label36;
+            Label37.Content = OsLocalization.Miner.Label37;
+            ButtonSetDataFromPath.Content = OsLocalization.Miner.Label38;
+            TabItemOpenPos.Header = OsLocalization.Miner.Label39;
+            Label40.Content = OsLocalization.Miner.Label40;
+            Label41.Content = OsLocalization.Miner.Label41;
+            ComboBoxSideInter.ToolTip = OsLocalization.Miner.Label42;
+            Label43.Content = OsLocalization.Miner.Label43;
+            TextBoxWeigthToInter.ToolTip = OsLocalization.Miner.Label44;
+            TabItemClosePos.Header = OsLocalization.Miner.Label45;
+            CheckBoxStopOrderIsOn.Content = OsLocalization.Miner.Label46;
+            CheckBoxProfitOrderIsOn.Content = OsLocalization.Miner.Label47;
+            CheckBoxExitFromSomeCandlesIsOn.Content = OsLocalization.Miner.Label48;
+            CheckBoxTrailingStopIsOn.Content = OsLocalization.Miner.Label49;
+            Label402.Content = OsLocalization.Miner.Label40;
+            Label50.Content = OsLocalization.Miner.Label50;
+            TabItemSearch.Header = OsLocalization.Miner.Label52;
+            Label53.Content = OsLocalization.Miner.Label53;
+            Label54.Content = OsLocalization.Miner.Label54;
+            Label55.Content = OsLocalization.Miner.Label55;
+            ButtonReloadTempPattern.Content = OsLocalization.Miner.Label28;
+            ButtonSaveTempPattern.Content = OsLocalization.Miner.Label56;
+            Label57.Content = OsLocalization.Miner.Label57;
+            Label58.Content = OsLocalization.Miner.Label58;
+
+            Label59.Content = OsLocalization.Miner.Label59;
+            Label60.Content = OsLocalization.Miner.Label60;
+            Label61.Content = OsLocalization.Miner.Label61;
+            ButtonJournals.Content = OsLocalization.Miner.Label62;
+            TabItemCandlePatterns.Header = OsLocalization.Miner.Label63;
+            TabItemVolumePatterns.Header = OsLocalization.Miner.Label64;
+            TabItemTimePattern.Header = OsLocalization.Miner.Label65;
+            TabItemIndicatorPatterns.Header = OsLocalization.Miner.Label66;
+            Label67.Content = OsLocalization.Miner.Label67;
+            Label68.Content = OsLocalization.Miner.Label68;
+            Label67_2.Content = OsLocalization.Miner.Label67;
+            Label69.Content = OsLocalization.Miner.Label69;
+            Label70.Content = OsLocalization.Miner.Label70;
+            Label71.Content = OsLocalization.Miner.Label71;
+            Label72.Content = OsLocalization.Miner.Label72;
+            Label67_3.Content = OsLocalization.Miner.Label67;
+            Label68_2.Content = OsLocalization.Miner.Label68;
+        }
+
+        
+        // Авто поиск паттернов
 
         private void InitializeMiningTab()
         {
@@ -508,21 +567,21 @@ namespace OsEngine.OsMiner.Patterns
 
             DataGridViewColumn column1 = new DataGridViewColumn();
             column1.CellTemplate = cell0;
-            column1.HeaderText = @"Тип";
+            column1.HeaderText = OsLocalization.Miner.Label73;
             column1.ReadOnly = true;
             column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             grid.Columns.Add(column1);
 
             DataGridViewColumn column2 = new DataGridViewColumn();
             column2.CellTemplate = cell0;
-            column2.HeaderText = @"Вес";
+            column2.HeaderText = OsLocalization.Miner.Label54;
             column2.ReadOnly = false;
             column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             grid.Columns.Add(column2);
 
             DataGridViewColumn column4 = new DataGridViewColumn();
             column4.CellTemplate = cell0;
-            column4.HeaderText = @"Узнаваемость";
+            column4.HeaderText  = OsLocalization.Miner.Label55;
             column4.ReadOnly = false;
             column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             grid.Columns.Add(column4);
@@ -603,10 +662,10 @@ namespace OsEngine.OsMiner.Patterns
             {
                 MenuItem[] items = new MenuItem[2];
 
-                items[0] = new MenuItem { Text = @"Добавить" };
+                items[0] = new MenuItem { Text = OsLocalization.Miner.Message6};
                 items[0].Click += GridPatternsToOpenAdd_Click;
 
-                items[1] = new MenuItem { Text = @"Удалить" };
+                items[1] = new MenuItem { Text = OsLocalization.Miner.Message7};
                 items[1].Click += GridPatternsToOpenRemove_Click;
 
                 ContextMenu menu = new ContextMenu(items);
@@ -857,10 +916,10 @@ namespace OsEngine.OsMiner.Patterns
             {
                 MenuItem[] items = new MenuItem[2];
 
-                items[0] = new MenuItem { Text = @"Добавить" };
+                items[0] = new MenuItem { Text = OsLocalization.Miner.Message6 };
                 items[0].Click += GridPatternsToCloseAdd_Click;
 
-                items[1] = new MenuItem { Text = @"Удалить" };
+                items[1] = new MenuItem { Text = OsLocalization.Miner.Message7 };
                 items[1].Click += GridPatternsToCloseRemove_Click;
 
                 ContextMenu menu = new ContextMenu(items);
@@ -965,61 +1024,10 @@ namespace OsEngine.OsMiner.Patterns
         /// </summary>
         private void CreateGridDataServer()
         {
-            _myGridView = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
-
-            DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = _myGridView.DefaultCellStyle;
+            _myGridView = DataGridFactory.GetDataGridDataSource();
 
             HostSecurities.Child = _myGridView;
             HostSecurities.Child.Show();
-
-            DataGridViewColumn column2 = new DataGridViewColumn();
-            column2.CellTemplate = cell0;
-            column2.HeaderText = @"Файл";
-            column2.ReadOnly = true;
-            column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-            _myGridView.Columns.Add(column2);
-
-            DataGridViewColumn column0 = new DataGridViewColumn();
-            column0.CellTemplate = cell0;
-            column0.HeaderText = @"Бумага";
-            column0.ReadOnly = true;
-            column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-            _myGridView.Columns.Add(column0);
-
-            DataGridViewColumn column = new DataGridViewColumn();
-            column.CellTemplate = cell0;
-            column.HeaderText = @"Таймфрейм";
-            column.ReadOnly = true;
-            column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-            _myGridView.Columns.Add(column);
-
-            DataGridViewColumn column1 = new DataGridViewColumn();
-            column1.CellTemplate = cell0;
-            column1.HeaderText = @"Шаг цены";
-            column1.ReadOnly = true;
-            column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-            _myGridView.Columns.Add(column1);
-
-            DataGridViewColumn column3 = new DataGridViewColumn();
-            column3.CellTemplate = cell0;
-            column3.HeaderText = @"Дата начала";
-            column3.ReadOnly = true;
-            column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-            _myGridView.Columns.Add(column3);
-
-            DataGridViewColumn column4 = new DataGridViewColumn();
-            column4.CellTemplate = cell0;
-            column4.HeaderText = @"Дата конца";
-            column4.ReadOnly = true;
-            column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-            _myGridView.Columns.Add(column4);
 
             _myGridView.Rows.Add();
         }

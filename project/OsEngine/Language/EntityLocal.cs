@@ -14,6 +14,10 @@
             "Eng:Add proxy_" +
             "Ru:Добавление прокси адреса_");
 
+        public string TitleAcceptDialog => OsLocalization.ConvertToLocString(
+            "Eng:Confirmation window_" +
+            "Ru:Окно подтверждения_");
+
         public string ProxiesLabel1 => OsLocalization.ConvertToLocString(
             "Eng:Add_" +
             "Ru:Добавить_");
@@ -37,7 +41,6 @@
         public string ProxiesColumn3 => OsLocalization.ConvertToLocString(
             "Eng:Password_" +
             "Ru:Пароль_");
-
 
         public string PositionLabel1 => OsLocalization.ConvertToLocString(
             "Eng:Opening_" +
@@ -231,6 +234,26 @@
             "Eng:Accept_" +
             "Ru:Принять_");
 
+        public string ButtonCancel1 => OsLocalization.ConvertToLocString(
+            "Eng:Think again_" +
+            "Ru:Ещё подумать_");
+
+        public string ButtonCancel2 => OsLocalization.ConvertToLocString(
+            "Eng:Earn more_" +
+            "Ru:Дальше зарабатывать_");
+
+        public string ButtonCancel3 => OsLocalization.ConvertToLocString(
+            "Eng:No!_" +
+            "Ru:Нет!_");
+
+        public string ButtonCancel4 => OsLocalization.ConvertToLocString(
+            "Eng:Stop!_" +
+            "Ru:Остановится!_");
+
+        public string ButtonCancel5 => OsLocalization.ConvertToLocString(
+            "Eng:Don't do it_" +
+            "Ru:Не нужно так_");
+
         public string ErrorSave => OsLocalization.ConvertToLocString(
             "Eng:The saving process is interrupted. One of the fields does not have a valid value_" +
             "Ru:Процесс сохранения прерван. В одном из полей не допустимое значение_");
@@ -246,5 +269,69 @@
         public string ParametersColumn2 => OsLocalization.ConvertToLocString(
             "Eng:Current value_" +
             "Ru:Текущее значение_");
+
+        public string ColumnPortfolio1 => OsLocalization.ConvertToLocString(
+            "Eng:Portfolio_" +
+            "Ru:Портфель_");
+
+        public string ColumnPortfolio2 => OsLocalization.ConvertToLocString(
+            "Eng:Incoming funds_" +
+            "Ru:Средства входящие_");
+
+        public string ColumnPortfolio3 => OsLocalization.ConvertToLocString(
+            "Eng:Funds now_" +
+            "Ru:Средства сейчас_");
+
+        public string ColumnPortfolio4 => OsLocalization.ConvertToLocString(
+            "Eng:Funds block_" +
+            "Ru:Средства блок._");
+
+        public string ColumnPortfolio5 => OsLocalization.ConvertToLocString(
+            "Eng:Security_" +
+            "Ru:Инструмент_");
+
+        public string ColumnPortfolio6 => OsLocalization.ConvertToLocString(
+            "Eng:Incoming volume_" +
+            "Ru:Обьём входящий_");
+
+        public string ColumnPortfolio7 => OsLocalization.ConvertToLocString(
+            "Eng:Volume now_" +
+            "Ru:Объём сейчас_");
+
+        public string ColumnPortfolio8 => OsLocalization.ConvertToLocString(
+            "Eng:Volume block_" +
+            "Ru:Объём блокирован_");
+
+        public string ColumnServers1 => OsLocalization.ConvertToLocString(
+            "Eng:Source_" +
+            "Ru:Источник_");
+
+        public string ColumnServers2 => OsLocalization.ConvertToLocString(
+            "Eng:State_" +
+            "Ru:Статус_");
+
+        public string ColumnDataSource1 => OsLocalization.ConvertToLocString(
+            "Eng:File_" +
+            "Ru:Файл_");
+
+        public string ColumnDataSource2 => OsLocalization.ConvertToLocString(
+            "Eng:Security_" +
+            "Ru:Бумага_");
+
+        public string ColumnDataSource3 => OsLocalization.ConvertToLocString(
+            "Eng:TimeFrame_" +
+            "Ru:Таймфрейм_");
+
+        public string ColumnDataSource4 => OsLocalization.ConvertToLocString(
+            "Eng:Price step_" +
+            "Ru:Шаг цены_");
+
+        public string ColumnDataSource5 => OsLocalization.ConvertToLocString(
+            "Eng:Start time_" +
+            "Ru:Дата начала_");
+
+        public string ColumnDataSource6 => OsLocalization.ConvertToLocString(
+            "Eng:End time_" +
+            "Ru:Дата конца_");
     }
 }

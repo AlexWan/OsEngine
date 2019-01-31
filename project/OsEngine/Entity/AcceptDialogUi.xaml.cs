@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using OsEngine.Language;
 
 
 namespace OsEngine.Entity
@@ -37,25 +38,27 @@ namespace OsEngine.Entity
 
             if (_numMessage == 0)
             {
-                ButtonCancel.Content = "Ещё подумать";
+                ButtonCancel.Content = OsLocalization.Entity.ButtonCancel1;
             }
             else if (_numMessage == 1)
             {
-                ButtonCancel.Content = "Дальше зарабатывать";
+                ButtonCancel.Content = OsLocalization.Entity.ButtonCancel2;
             }
             else if (_numMessage == 2)
             {
-                ButtonCancel.Content = "Нет!";
+                ButtonCancel.Content = OsLocalization.Entity.ButtonCancel3;
             }
             else if (_numMessage == 3)
             {
-                ButtonCancel.Content = "Остановится!";
+                ButtonCancel.Content = OsLocalization.Entity.ButtonCancel4;
             }
             else if (_numMessage == 4)
             {
-                ButtonCancel.Content = "Не нужно так";
+                ButtonCancel.Content = OsLocalization.Entity.ButtonCancel5;
             }
 
+            Title = OsLocalization.Entity.TitleAcceptDialog;
+            ButtonAccept.Content = OsLocalization.Entity.ButtonAccept;
 
         }
 

@@ -1,23 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+﻿using System.Windows;
+using OsEngine.Language;
 
 namespace OsEngine.OsMiner
 {
     /// <summary>
     /// Логика взаимодействия для OsMinerSetUi.xaml
     /// </summary>
-    public partial class OsMinerSetUi : Window
+    public partial class OsMinerSetUi
     {
         public OsMinerSetUi(int numSet, OsMinerSet set)
         {
@@ -26,13 +15,17 @@ namespace OsEngine.OsMiner
 
             if (string.IsNullOrEmpty(_set.Name))
             {
-                TextBoxSetName.Text = "Набор паттернов №" + (numSet);
+                TextBoxSetName.Text = OsLocalization.Miner.Label1 + (numSet);
             }
             else
             {
                 TextBoxSetName.Text = set.Name;
             }
             TextBoxSetName.Focus();
+
+            Title = OsLocalization.Miner.Title1;
+            Label3.Content = OsLocalization.Miner.Label3;
+            ButtonAccept.Content = OsLocalization.Miner.Button1;
         }
 
         public bool IsActivate;
@@ -43,7 +36,7 @@ namespace OsEngine.OsMiner
         {
             if (string.IsNullOrEmpty(TextBoxSetName.Text))
             {
-                MessageBox.Show("Имя сета не может быть пустым.");
+                MessageBox.Show(OsLocalization.Miner.Label2);
                 return;
             }
             IsActivate = true;

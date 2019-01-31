@@ -13,8 +13,10 @@ using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
+using OsEngine.Market.Servers.Miner;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.OsConverter;
 using OsEngine.OsData;
@@ -113,7 +115,7 @@ namespace OsEngine.Logging
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;
-            column0.HeaderText = @"Время";
+            column0.HeaderText = OsLocalization.Logging.Column1;
             column0.ReadOnly = true;
             column0.Width = 170;
             
@@ -121,7 +123,7 @@ namespace OsEngine.Logging
 
             DataGridViewColumn column1 = new DataGridViewColumn();
             column1.CellTemplate = cell0;
-            column1.HeaderText = @"Тип";
+            column1.HeaderText = OsLocalization.Logging.Column2;
             column1.ReadOnly = true;
             column1.Width = 100;
 
@@ -129,7 +131,7 @@ namespace OsEngine.Logging
 
             DataGridViewColumn column = new DataGridViewColumn();
             column.CellTemplate = cell0;
-            column.HeaderText = @"Сообщение";
+            column.HeaderText = OsLocalization.Logging.Column3;
             column.ReadOnly = true;
             column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(column);
@@ -513,7 +515,7 @@ namespace OsEngine.Logging
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;
-            column0.HeaderText = @"Время";
+            column0.HeaderText = OsLocalization.Logging.Column1;
             column0.ReadOnly = true;
             column0.Width = 170;
 
@@ -521,7 +523,7 @@ namespace OsEngine.Logging
 
             DataGridViewColumn column1 = new DataGridViewColumn();
             column1.CellTemplate = cell0;
-            column1.HeaderText = @"Тип";
+            column1.HeaderText = OsLocalization.Logging.Column2;
             column1.ReadOnly = true;
             column1.Width = 100;
 
@@ -529,7 +531,7 @@ namespace OsEngine.Logging
 
             DataGridViewColumn column = new DataGridViewColumn();
             column.CellTemplate = cell0;
-            column.HeaderText = @"Сообщение";
+            column.HeaderText = OsLocalization.Logging.Column3;
             column.ReadOnly = true;
             column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridErrorLog.Columns.Add(column);

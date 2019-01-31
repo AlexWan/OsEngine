@@ -1,7 +1,7 @@
 ﻿<Window x:Class="OsEngine.Entity.ProxyHolderAddUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Добавление Прокси адреса" Height="211.884" Width="408.494" MinHeight="200" Topmost="True" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+        Title="Add proxy" Height="211.884" Width="408.494" MinHeight="200" Topmost="True" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
         <Button Name="ButtonSave" Content="Save" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="120" Click="ButtonSave_Click"/>

@@ -322,8 +322,15 @@
     </Compile>
     <Compile Include="Language\AlertsLocal.cs" />
     <Compile Include="Language\ChartsLocal.cs" />
+    <Compile Include="Language\ConverterLocal.cs" />
+    <Compile Include="Language\DataLocal.cs" />
     <Compile Include="Language\EntityLocal.cs" />
+    <Compile Include="Language\JournalLocal.cs" />
+    <Compile Include="Language\LoggingLocal.cs" />
     <Compile Include="Language\MainWIndowLocal.cs" />
+    <Compile Include="Language\MarketLocal.cs" />
+    <Compile Include="Language\MinerLocal.cs" />
+    <Compile Include="Language\OptimizerLocal.cs" />
     <Compile Include="Language\OsLocalization.cs" />
     <Compile Include="Language\PrimeSettingsMasterUiLocal.cs" />
     <Compile Include="Logging\LogErrorUi.xaml.cs">
@@ -503,7 +510,7 @@
     </Compile>
     <Compile Include="Journal\Internal\DealStaticticGenerator.cs" />
     <Compile Include="Market\Servers\Quik\QuikDdeServer.cs" />
-    <Compile Include="OsMiner\OsMinerServer.cs" />
+    <Compile Include="Market\Servers\Miner\OsMinerServer.cs" />
     <Compile Include="OsMiner\OsMinerMaster.cs" />
     <Compile Include="OsMiner\OsMinerSet.cs" />
     <Compile Include="OsMiner\OsMinerSetUi.xaml.cs">

@@ -20,7 +20,7 @@ namespace OsEngine.Entity
                 string.IsNullOrWhiteSpace(TextBoxName.Text) ||
                 string.IsNullOrWhiteSpace(TextBoxPassword.Text))
             {
-                MessageBox.Show("Не все данные заполнены");
+                MessageBox.Show(OsLocalization.Entity.ErrorSave);
                 return;
             }
 

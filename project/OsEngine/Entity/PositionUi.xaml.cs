@@ -46,8 +46,7 @@ namespace OsEngine.Entity
         /// <returns>таблица для прорисовки на ней позиций</returns>
         private void CreateMainTable()
         {
-            DataGridView newGrid = DataGridFactory.GetDataGridPosition(DataGridViewSelectionMode.FullRowSelect,
-                DataGridViewAutoSizeRowsMode.AllCells);
+            DataGridView newGrid = DataGridFactory.GetDataGridPosition();
 
             newGrid.Rows.Add(GetRow(_position));
 
@@ -166,8 +165,7 @@ namespace OsEngine.Entity
         /// </summary>
         private  DataGridView CreateOrderTable()
         {
-            DataGridView newGrid = DataGridFactory.GetDataGridOrder(DataGridViewSelectionMode.FullRowSelect,
-                DataGridViewAutoSizeRowsMode.AllCells);
+            DataGridView newGrid = DataGridFactory.GetDataGridOrder();
 
             newGrid.AutoResizeColumnHeadersHeight();
             return newGrid;
@@ -260,8 +258,7 @@ namespace OsEngine.Entity
         /// </summary>
         private DataGridView CreateTradeTable()
         {
-            DataGridView newGrid = DataGridFactory.GetDataGridMyTrade(DataGridViewSelectionMode.FullRowSelect,
-                DataGridViewAutoSizeRowsMode.AllCells);
+            DataGridView newGrid = DataGridFactory.GetDataGridMyTrade();
 
             return newGrid;
         }

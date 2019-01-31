@@ -90,26 +90,6 @@ namespace OsEngine.Logging
             send_sms(Phones, message, 0, "", 0, 0, "", "", null);
         }
 
-        // Метод отправки SMS
-        //
-        // обязательные параметры:
-        //
-        // phones - список телефонов через запятую или точку с запятой
-        // message - отправляемое сообщение
-        //
-        // необязательные параметры:
-        //
-        // translit - переводить или нет в транслит
-        // time - необходимое время доставки в виде строки (DDMMYYhhmm, h1-h2, 0ts, +m)
-        // id - идентификатор сообщения. Представляет собой 32-битное число в диапазоне от 1 до 2147483647.
-        // format - формат сообщения (0 - обычное sms, 1 - flash-sms, 2 - wap-push, 3 - hlr, 4 - bin, 5 - bin-hex, 6 - ping-sms, 7 - mms, 8 - mail, 9 - call)
-        // sender - имя отправителя (Sender ID). Для отключения Sender ID по умолчанию необходимо в качестве имени
-        // передать пустую строку или точку.
-        // query - строка дополнительных параметров, добавляемая в URL-запрос ("valid=01:00&maxsms=3")
-        //
-        // возвращает массив строк (<id>, <количество sms>, <стоимость>, <баланс>) в случае успешной отправки
-        // либо массив строк (<id>, -<код ошибки>) в случае ошибки
-
         private string[] send_sms(string phones, string message, int translit = 0, string time = "", int id = 0, int format = 0, string sender = "", string query = "", string[] files = null)
         {
             if (files != null)
@@ -133,145 +113,14 @@ namespace OsEngine.Logging
 
             if (SmscDebug) 
             {
-                if (Convert.ToInt32(m[1]) > 0)
-                    _print_debug("Сообщение отправлено успешно. ID: " + m[0] + ", всего SMS: " + m[1] + ", стоимость: " + m[2] + ", баланс: " + m[3]);
-                else
-                    _print_debug("Ошибка №" + m[1].Substring(1, 1) + (m[0] != "0" ? ", ID: " + m[0] : ""));
+                if (Convert.ToInt32(m[1]) <= 0)
+                    //_print_debug("Сообщение отправлено успешно. ID: " + m[0] + ", всего SMS: " + m[1] + ", стоимость: " + m[2] + ", баланс: " + m[3]);
+                    _print_debug("Send SMS Error №" + m[1].Substring(1, 1) + (m[0] != "0" ? ", ID: " + m[0] : ""));
             }
 
             return m;
         }
 
-        // Метод получения стоимости SMS
-        //
-        // обязательные параметры:
-        //
-        // phones - список телефонов через запятую или точку с запятой
-        // message - отправляемое сообщение 
-        //
-        // необязательные параметры:
-        //
-        // translit - переводить или нет в транслит
-        // format - формат сообщения (0 - обычное sms, 1 - flash-sms, 2 - wap-push, 3 - hlr, 4 - bin, 5 - bin-hex, 6 - ping-sms, 7 - mms, 8 - mail, 9 - call)
-        // sender - имя отправителя (Sender ID)
-        // query - строка дополнительных параметров, добавляемая в URL-запрос ("list=79999999999:Ваш пароль: 123\n78888888888:Ваш пароль: 456")
-        //
-        // возвращает массив (<стоимость>, <количество sms>) либо массив (0, -<код ошибки>) в случае ошибки
-
-        public string[] get_sms_cost(string phones, string message, int translit = 0, int format = 0, string sender = "", string query = "")
-        {
-            string[] formats = {"flash=1", "push=1", "hlr=1", "bin=1", "bin=2", "ping=1", "mms=1", "mail=1", "call=1"};
-
-            string[] m = _smsc_send_cmd("send", "cost=1&phones=" + _urlencode(phones)
-                                                + "&mes=" + _urlencode(message) + translit.ToString() + (format > 0 ? "&" + formats[format-1] : "")
-                                                + (sender != "" ? "&sender=" + _urlencode(sender) : "") + (query != "" ? "&query" : ""));
-
-            // (cost, cnt) или (0, -error)
-
-            if (SmscDebug) {
-                if (Convert.ToInt32(m[1]) > 0)
-                    _print_debug("Стоимость рассылки: " + m[0] + ". Всего SMS: " + m[1]);
-                else
-                    _print_debug("Ошибка №" + m[1].Substring(1, 1));
-            }
-
-            return m;
-        }
-
-        // Метод проверки статуса отправленного SMS или HLR-запроса
-        //
-        // id - ID cообщения или список ID через запятую
-        // phone - номер телефона или список номеров через запятую
-        // all - вернуть все данные отправленного SMS, включая текст сообщения (0,1 или 2)
-        //
-        // возвращает массив (для множественного запроса возвращается массив с единственным элементом, равным 1. В этом случае статусы сохраняются в
-        //					двумерном динамическом массиве класса D2Res):
-        //
-        // для одиночного SMS-сообщения:
-        // (<статус>, <время изменения>, <код ошибки доставки>)
-        //
-        // для HLR-запроса:
-        // (<статус>, <время изменения>, <код ошибки sms>, <код IMSI SIM-карты>, <номер сервис-центра>, <код страны регистрации>, <код оператора>,
-        // <название страны регистрации>, <название оператора>, <название роуминговой страны>, <название роумингового оператора>)
-        //
-        // при all = 1 дополнительно возвращаются элементы в конце массива:
-        // (<время отправки>, <номер телефона>, <стоимость>, <sender id>, <название статуса>, <текст сообщения>)
-        //
-        // при all = 2 дополнительно возвращаются элементы <страна>, <оператор> и <регион>
-        //
-        // при множественном запросе (данные по статусам сохраняются в двумерном массиве D2Res):
-        // если all = 0, то для каждого сообщения или HLR-запроса дополнительно возвращается <ID сообщения> и <номер телефона>
-        //
-        // если all = 1 или all = 2, то в ответ добавляется <ID сообщения>
-        //
-        // либо массив (0, -<код ошибки>) в случае ошибки
-
-        public string[] get_status(string id, string phone, int all = 0)
-        {
-            string[] m = _smsc_send_cmd("status", "phone=" + _urlencode(phone) + "&id=" + _urlencode(id) + "&all=" + all.ToString());
-
-            // (status, time, err, ...) или (0, -error)
-
-            if (id.IndexOf(',') == -1)
-            {
-                if (SmscDebug)
-                {
-                    if (m[1] != "" && Convert.ToInt32(m[1]) >= 0)
-                    {
-                        int timestamp = Convert.ToInt32(m[1]);
-                        DateTime offset = new DateTime(1970, 1, 1, 0, 0, 0, 0);
-                        DateTime date = offset.AddSeconds(timestamp);
-
-                        _print_debug("Статус SMS = " + m[0] + (timestamp > 0 ? ", время изменения статуса - " + date.ToLocalTime() : ""));
-                    }
-                    else
-                        _print_debug("Ошибка №" + m[1].Substring(1, 1));
-                }
-
-                int idx = all == 1 ? 9 : 12;
-
-                if (all > 0 && m.Length > idx && (m.Length < idx + 5 || m[idx + 5] != "HLR"))
-                    m = String.Join(",", m).Split(",".ToCharArray(), idx);
-            }
-            else
-            {
-                if (m.Length == 1 && m[0].IndexOf('-') == 2)
-                    return m[0].Split(',');
-
-                Array.Resize(ref D2Res, 0);
-                Array.Resize(ref D2Res, m.Length);
-
-                for (int i = 0; i < D2Res.Length; i++)
-                    D2Res[i] = m[i].Split(',');
-
-                Array.Resize(ref m, 1);
-                m[0] = "1";
-            }
-
-            return m;
-        }
-
-        // Метод получения баланса
-        //
-        // без параметров
-        //
-        // возвращает баланс в виде строки или пустую строку в случае ошибки
-
-        public string get_balance()
-        {
-            string[] m = _smsc_send_cmd("balance", ""); // (balance) или (0, -error)
-
-            if (SmscDebug) {
-                if (m.Length == 1)
-                    _print_debug("Сумма на счете: " + m[0]);
-                else
-                    _print_debug("Ошибка №" + m[1].Substring(1, 1));
-            }
-
-            return m.Length == 1 ? m[0] : "";
-        }
-
-        // ПРИВАТНЫЕ МЕТОДЫ
 
         // Метод вызова запроса. Формирует URL и делает 3 попытки чтения
 
@@ -449,15 +298,3 @@ namespace OsEngine.Logging
         }
     }
 }
-
-// Examples:
-// SMSC smsc = new SMSC();
-// string[] r = smsc.send_sms("79999999999", "Ваш пароль: 123", 2);
-// string[] r = smsc.send_sms("79999999999", "http://smsc.ru\nSMSC.RU", 0, "", 0, 0, "", "maxsms=3");
-// string[] r = smsc.send_sms("79999999999", "0605040B8423F0DC0601AE02056A0045C60C036D79736974652E72750001036D7973697465000101", 0, "", 0, 5);
-// string[] r = smsc.send_sms("79999999999", "", 0, "", 0, 3);
-// string[] r = smsc.send_sms("dest@mysite.com", "Ваш пароль: 123", 0, 0, 0, 8, "source@mysite.com", "subj=Confirmation");
-// string[] r = smsc.get_sms_cost("79999999999", "Вы успешно зарегистрированы!");
-// smsc.send_sms_mail("79999999999", "Ваш пароль: 123", 0, "0101121000");
-// string[] r = smsc.get_status(12345, "79999999999");
-// string balance = smsc.get_balance();

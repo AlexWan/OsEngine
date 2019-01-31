@@ -47,12 +47,12 @@ namespace OsEngine.PrimeSettings
 
         private void ChangeText()
         {
-            Title = OsLocalization.PrimeSettingsMasterUi.Title;
-            LanguageLabel.Content = OsLocalization.PrimeSettingsMasterUi.LanguageLabel;
-            ShowExtraLogWindowLabel.Content = OsLocalization.PrimeSettingsMasterUi.ShowExtraLogWindowLabel;
-            ExtraLogSound.Content = OsLocalization.PrimeSettingsMasterUi.ExtraLogSoundLabel;
-            TransactionSoundLabel.Content = OsLocalization.PrimeSettingsMasterUi.TransactionSoundLabel;
-            TextBoxMessageToUsers.Text = OsLocalization.PrimeSettingsMasterUi.TextBoxMessageToUsers;
+            Title = OsLocalization.PrimeSettings.Title;
+            LanguageLabel.Content = OsLocalization.PrimeSettings.LanguageLabel;
+            ShowExtraLogWindowLabel.Content = OsLocalization.PrimeSettings.ShowExtraLogWindowLabel;
+            ExtraLogSound.Content = OsLocalization.PrimeSettings.ExtraLogSoundLabel;
+            TransactionSoundLabel.Content = OsLocalization.PrimeSettings.TransactionSoundLabel;
+            TextBoxMessageToUsers.Text = OsLocalization.PrimeSettings.TextBoxMessageToUsers;
         }
 
         private void CheckBoxTransactionSound_Click(object sender, RoutedEventArgs e)

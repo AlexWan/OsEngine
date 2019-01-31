@@ -41,8 +41,7 @@ namespace OsEngine.Entity
         /// </summary>
         private void CreateTable()
         {
-            _grid = DataGridFactory.GetDataGridSecurities(DataGridViewSelectionMode.FullRowSelect,
-                DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders);
+            _grid = DataGridFactory.GetDataGridSecurities();
 
             HostSecurities.Child = _grid;
             HostSecurities.Child.Show();

@@ -1,7 +1,7 @@
 ﻿<Window x:Class="OsEngine.Journal.JournalUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Общий журнал" Height="730" Width="1350" MinWidth="400" MinHeight="300" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
+        Title="Journal" Height="730" Width="1350" MinWidth="400" MinHeight="300" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
     <Grid>
         <TabControl Grid.Row="0" x:Name="TabBots"  Margin="28,0,10,0" VerticalAlignment="Top">
             <TabItem Header="Empty" >
@@ -15,38 +15,38 @@
                 </TabItem>
             </TabControl>
             <TabControl Margin="24,0,0,10" BorderThickness="0" x:Name="TabControlPrime" TabStripPlacement="Bottom">
-                <TabItem Header="Эквити" Width="140">
+                <TabItem Name="TabItem1" Header="Equity" Width="140">
                     <Grid>
                         <WindowsFormsHost x:Name="HostEquity" Foreground="Black" Margin="10,5,5,47" />
                         <Rectangle Fill="White"  HorizontalAlignment="Left" Height="25" Margin="70,0,0,10" Stroke="Black" VerticalAlignment="Bottom" Width="38"/>
-                        <Label Content="Общая прибыль" HorizontalAlignment="Left" Margin="123,0,0,10" VerticalAlignment="Bottom"/>
+                        <Label Name="Label1" Content="Total profit" HorizontalAlignment="Left" Margin="123,0,0,10" VerticalAlignment="Bottom"/>
                         <Rectangle Fill="DeepSkyBlue"  HorizontalAlignment="Left" Height="25" Margin="336,0,0,10" Stroke="Black" VerticalAlignment="Bottom" Width="38"/>
-                        <Label Content="Лонг" HorizontalAlignment="Left" Margin="389,0,0,10" VerticalAlignment="Bottom"/>
+                        <Label Name="Label2" Content="Long" HorizontalAlignment="Left" Margin="389,0,0,10" VerticalAlignment="Bottom"/>
                         <Rectangle Fill="DarkOrange"  HorizontalAlignment="Left" Height="25" Margin="604,0,0,10" Stroke="Black" VerticalAlignment="Bottom" Width="38"/>
-                        <Label Content="Шорт" HorizontalAlignment="Left" Margin="657,0,0,10" VerticalAlignment="Bottom"/>
+                        <Label Name="Label3" Content="Short" HorizontalAlignment="Left" Margin="657,0,0,10" VerticalAlignment="Bottom"/>
                     </Grid>
                 </TabItem>
-                <TabItem Header="Статистика" Width="140">
+                <TabItem Name="TabItem2" Header="Statistics" Width="140">
                     <Grid >
                         <WindowsFormsHost x:Name="HostStatistics" Foreground="Black" Margin="250,10" RenderTransformOrigin="0.5,0.5"/>
                     </Grid>
                 </TabItem>
-                <TabItem Header="Просадка" Width="140">
+                <TabItem Name="TabItem3" Header="Drawdown" Width="140">
                     <Grid >
                         <WindowsFormsHost x:Name="HostDrawdown" Foreground="Black" Margin="10"/>
                     </Grid>
                 </TabItem>
-                <TabItem Header="Объем" Width="140">
+                <TabItem Name="TabItem4" Header="Volume" Width="140">
                     <Grid>
                         <WindowsFormsHost x:Name="HostVolume" Foreground="Black" Margin="10"/>
                     </Grid>
                 </TabItem>
-                <TabItem Header="Открытые позиции" Width="140" >
+                <TabItem Name="TabItem5" Header="Open positions" Width="140" >
                     <Grid>
                         <WindowsFormsHost x:Name="HostOpenPosition" Foreground="Black" Margin="10"/>
                     </Grid>
                 </TabItem>
-                <TabItem Header="Закрытые позиции" Width="140" >
+                <TabItem Name="TabItem6" Header="Closed positions" Width="140" >
                     <Grid>
                         <WindowsFormsHost x:Name="HostClosePosition" Foreground="Black" Margin="10"/>
                     </Grid>

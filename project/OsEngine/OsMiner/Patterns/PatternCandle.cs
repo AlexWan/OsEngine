@@ -153,7 +153,7 @@ namespace OsEngine.OsMiner.Patterns
 
             return true;
         }
-
+        
         /// <summary>
         /// установить паттерн с текущих данных
         /// </summary>
