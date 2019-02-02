@@ -5,6 +5,7 @@
 using System;
 using System.Globalization;
 using System.Windows;
+using OsEngine.Language;
 
 namespace OsEngine.OsTrader.Panels.PanelsGui
 {
@@ -33,6 +34,15 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
             TextBoxprocHeightTake.Text = _strategy.ProcHeightTake.ToString(new CultureInfo("ru-RU"));
             TextBoxprocHeightStop.Text = _strategy.ProcHeightStop.ToString(new CultureInfo("ru-RU"));
 
+            LabelRegime.Content = OsLocalization.Trader.Label115;
+            LabelVolume.Content = OsLocalization.Trader.Label30;
+            LabelSlippage.Content = OsLocalization.Trader.Label92;
+            ButtonAccept.Content = OsLocalization.Trader.Label132;
+            LabelPatternHeight.Content = OsLocalization.Trader.Label152;
+            LabelCandleHeigth.Content = OsLocalization.Trader.Label153;
+            LabelProfit.Content = OsLocalization.Trader.Label87 + " %";
+            LabelStop.Content = OsLocalization.Trader.Label86 + " %";
+
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -51,7 +61,7 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
             }
             catch (Exception)
             {
-                MessageBox.Show("В одном из полей недопустимые значения. Процесс сохранения прерван");
+                MessageBox.Show(OsLocalization.Trader.Label13);
                 return;
             }
             Enum.TryParse(ComboBoxRegime.Text, true, out _strategy.Regime);

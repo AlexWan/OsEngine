@@ -63,6 +63,25 @@ namespace OsEngine.PrimeSettings
 
         private static bool _transactionBeepIsActiv;
 
+        public static bool ServerTestingIsActive
+        {
+            get
+            {
+                if (_isLoad == false)
+                {
+                    Load();
+                }
+                return _serverTestingIsActiv;
+            }
+            set
+            {
+                _serverTestingIsActiv = value;
+                Save();
+            }
+        }
+
+        private static bool _serverTestingIsActiv;
+
         /// <summary>
         /// сохранить настройки
         /// </summary>
@@ -76,6 +95,7 @@ namespace OsEngine.PrimeSettings
                     writer.WriteLine(_transactionBeepIsActiv);
                     writer.WriteLine(_errorLogBeepIsActiv);
                     writer.WriteLine(_errorLogMessageBoxIsActiv);
+                    writer.WriteLine(_serverTestingIsActiv);
                     writer.Close();
                 }
             }
@@ -101,9 +121,11 @@ namespace OsEngine.PrimeSettings
             {
                 using (StreamReader reader = new StreamReader(@"Engine\PrimeSettings.txt"))
                 {
-                    Enum.TryParse(reader.ReadLine(), true, out _transactionBeepIsActiv);
-                    Enum.TryParse(reader.ReadLine(), true, out _errorLogBeepIsActiv);
-                    Enum.TryParse(reader.ReadLine(), true, out _errorLogMessageBoxIsActiv);
+                    _transactionBeepIsActiv = Convert.ToBoolean(reader.ReadLine());
+                    _errorLogBeepIsActiv = Convert.ToBoolean(reader.ReadLine());
+                    _errorLogMessageBoxIsActiv = Convert.ToBoolean(reader.ReadLine());
+                    _serverTestingIsActiv = Convert.ToBoolean(reader.ReadLine());
+
                     reader.Close();
                 }
             }

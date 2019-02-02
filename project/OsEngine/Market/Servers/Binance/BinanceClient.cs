@@ -880,11 +880,6 @@ namespace OsEngine.Market.Servers.Binance
             {
                 try
                 {
-                    if (_isDisposed)
-                    {
-                        return;
-                    }
-
                     if (!_newUserDataMessage.IsEmpty)
                     {
                         string mes;
@@ -1030,13 +1025,21 @@ namespace OsEngine.Market.Servers.Binance
                             }
                         }
                     }
+                    else
+                    {
+                        if (_isDisposed)
+                        {
+                            return;
+                        }
+                        Thread.Sleep(1);
+                    }
                 }
 
                 catch (Exception exception)
                 {
                     SendLogMessage(exception.ToString(), LogMessageType.Error);
                 }
-                Thread.Sleep(1);
+                
             }
         }
 
@@ -1049,11 +1052,6 @@ namespace OsEngine.Market.Servers.Binance
             {
                 try
                 {
-                    if (_isDisposed)
-                    {
-                        return;
-                    }
-
                     if (!_newMessage.IsEmpty)
                     {
                         string mes;
@@ -1088,13 +1086,20 @@ namespace OsEngine.Market.Servers.Binance
                             }
                         }
                     }
+                    else
+                    {
+                        if (_isDisposed)
+                        {
+                            return;
+                        }
+                        Thread.Sleep(1);
+                    }
                 }
 
                 catch (Exception exception)
                 {
                     SendLogMessage(exception.ToString(), LogMessageType.Error);
                 }
-                Thread.Sleep(1);
             }
         }
 

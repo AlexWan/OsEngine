@@ -33,6 +33,7 @@ namespace OsEngine.PrimeSettings
                 }
             };
 
+            CheckBoxServerTestingIsActive.IsChecked = PrimeSettingsMaster.ServerTestingIsActive;
             CheckBoxExtraLogWindow.IsChecked = PrimeSettingsMaster.ErrorLogMessageBoxIsActiv;
             CheckBoxExtraLogSound.IsChecked = PrimeSettingsMaster.ErrorLogBeepIsActiv;
             CheckBoxTransactionSound.IsChecked = PrimeSettingsMaster.TransactionBeepIsActiv;
@@ -40,6 +41,7 @@ namespace OsEngine.PrimeSettings
             CheckBoxExtraLogWindow.Click += CheckBoxExtraLogWindow_Click;
             CheckBoxExtraLogSound.Click += CheckBoxExtraLogSound_Click;
             CheckBoxTransactionSound.Click += CheckBoxTransactionSound_Click;
+            CheckBoxServerTestingIsActive.Click += CheckBoxServerTestingIsActive_Click;
 
             ChangeText();
             OsLocalization.LocalizationTypeChangeEvent += ChangeText;
@@ -53,6 +55,16 @@ namespace OsEngine.PrimeSettings
             ExtraLogSound.Content = OsLocalization.PrimeSettings.ExtraLogSoundLabel;
             TransactionSoundLabel.Content = OsLocalization.PrimeSettings.TransactionSoundLabel;
             TextBoxMessageToUsers.Text = OsLocalization.PrimeSettings.TextBoxMessageToUsers;
+            LabelServerTestingIsActive.Content = OsLocalization.PrimeSettings.LabelServerTestingIsActive;
+            LabelServerTestingIsActive.ToolTip = OsLocalization.PrimeSettings.LabelServerTestingToopTip;
+            CheckBoxServerTestingIsActive.ToolTip = OsLocalization.PrimeSettings.LabelServerTestingToopTip;
+        }
+
+        private void CheckBoxServerTestingIsActive_Click(object sender, RoutedEventArgs e)
+        {
+            if (CheckBoxServerTestingIsActive.IsChecked != null)
+                PrimeSettingsMaster.ServerTestingIsActive = CheckBoxServerTestingIsActive.IsChecked.Value;
+
         }
 
         private void CheckBoxTransactionSound_Click(object sender, RoutedEventArgs e)

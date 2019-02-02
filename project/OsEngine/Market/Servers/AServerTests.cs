@@ -19,22 +19,12 @@ namespace OsEngine.Market.Servers
     /// </summary>
     public class AServerTests
     {
-        /// <summary>
-        /// Переменная включающая автоматические тесты
-        /// Вводится только из кода. 
-        /// У пользователей должна быть выключена, т.к. тормозит работу серверов
-        /// </summary>
-        private bool _isWorking = false;
 
         /// <summary>
         /// начать прослушку сервера
         /// </summary>
         public void Listen(AServer server)
         {
-            if (_isWorking == false)
-            {
-                return;
-            }
             // стандартные события IServer которые отправляются на верх
             server.ConnectStatusChangeEvent += server_ConnectStatusChangeEvent;
             server.NeadToReconnectEvent += server_NeadToReconnectEvent;

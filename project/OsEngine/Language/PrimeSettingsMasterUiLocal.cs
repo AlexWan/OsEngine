@@ -26,5 +26,13 @@
             "Eng: We apologize for any inconvenience with the translation. \nSupport our Open Source project and it will become better. \nOur bitcoin wallet \n13QyxgsGrMtTB3SggPx7hqjW3yHi68Qeyz"
             +
             "_Ru:Помогите нам стать лучше! Напишите на наш форум если нашли ошибку. А лучше переведите разработчикам немного биткойнов.\nКошелёк \n13QyxgsGrMtTB3SggPx7hqjW3yHi68Qeyz_");
+
+        public string LabelServerTestingIsActive => OsLocalization.ConvertToLocString(
+            "Eng:Server Testing Is Active_" +
+            "Ru:Включить тестирование серверов_");
+
+        public string LabelServerTestingToopTip => OsLocalization.ConvertToLocString(
+            "Eng:This will significantly slow down the application, but it may help to find errors in the trade server. Do not turn on during daily trading_" +
+            "Ru:Это существенно замедлит работу приложения но возможно поможет найти ошибки в работе сервера. Не включайте во время ежедневной торговли_");
     }
 }

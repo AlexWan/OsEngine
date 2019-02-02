@@ -15,6 +15,7 @@ using System.Windows.Shapes;
 using OsEngine.Alerts;
 using OsEngine.Entity;
 using OsEngine.Journal;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Connectors;
@@ -102,7 +103,7 @@ namespace OsEngine.OsTrader
             _log.Listen(this);
             _hostLogPrime = hostLogPrime;
 
-            SendNewLogMessage("Запуск OsTraderMaster. Включение программы.",LogMessageType.User);
+            SendNewLogMessage(OsLocalization.Trader.Label1,LogMessageType.User);
 
             Load();
             _tabBotNames.SelectionChanged += _tabBotControl_SelectionChanged;
@@ -185,7 +186,7 @@ namespace OsEngine.OsTrader
                     {
                         _panelsArray.Add(bot);
                         _tabBotNames.Items.Add(" " +_panelsArray[botIterator].NameStrategyUniq + " ");
-                        SendNewLogMessage("Создан новый бот " + _panelsArray[botIterator].NameStrategyUniq,
+                        SendNewLogMessage(OsLocalization.Trader.Label2 + _panelsArray[botIterator].NameStrategyUniq,
                             LogMessageType.System);
                         botIterator++;
                     }
@@ -444,7 +445,7 @@ namespace OsEngine.OsTrader
                     return;
                 }
 
-                AlertMessageSimpleUi ui = new AlertMessageSimpleUi("Риск менеджер предупреждает о превышении дневного лимита убытков!");
+                AlertMessageSimpleUi ui = new AlertMessageSimpleUi(OsLocalization.Trader.Label3);
                 ui.Show();
             }
             catch (Exception error)
@@ -717,7 +718,7 @@ namespace OsEngine.OsTrader
                     return;
                 }
 
-                AcceptDialogUi ui = new AcceptDialogUi("Вы собираетесь удалить робота. Вы уверены?");
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label4);
                 ui.ShowDialog();
 
                 if (ui.UserAcceptActioin == false)
@@ -732,7 +733,7 @@ namespace OsEngine.OsTrader
 
                 // 2 удаляем
 
-                SendNewLogMessage("Бот удалён " + _activPanel.NameStrategyUniq, LogMessageType.System);
+                SendNewLogMessage(OsLocalization.Trader.Label5 + _activPanel.NameStrategyUniq, LogMessageType.System);
 
                 _panelsArray.Remove(_activPanel);
 
@@ -785,12 +786,12 @@ namespace OsEngine.OsTrader
                 {
                     if (ui.NameBot.Split('h').Length != 1)
                     {
-                        MessageBox.Show("Невозможно завершить создание робота. Символ h зарезервирован для ситсемы");
+                        MessageBox.Show(OsLocalization.Trader.Label6);
                         return;
                     }
                     if (ui.NameBot.Split('l').Length != 1)
                     {
-                        MessageBox.Show("Невозможно завершить создание робота. Символ l зарезервирован для ситсемы");
+                        MessageBox.Show(OsLocalization.Trader.Label7);
                         return;
                     }
                 }
@@ -807,7 +808,7 @@ namespace OsEngine.OsTrader
 
                             if (str[0] == ui.NameBot)
                             {
-                                MessageBox.Show("Не возможно завершить создание робота. Робот с таким именем уже существует.");
+                                MessageBox.Show(OsLocalization.Trader.Label8);
                                 return;
                             }
                         }
@@ -824,7 +825,7 @@ namespace OsEngine.OsTrader
 
                             if (str[0] == ui.NameBot)
                             {
-                                MessageBox.Show("Не возможно завершить создание робота. Робот с таким именем уже существует.");
+                                MessageBox.Show(OsLocalization.Trader.Label8);
                                 return;
                             }
                         }
@@ -841,7 +842,7 @@ namespace OsEngine.OsTrader
                 }
                 _panelsArray.Add(newRobot);
 
-                SendNewLogMessage("Создан новый бот " + newRobot.NameStrategyUniq, LogMessageType.System);
+                SendNewLogMessage(OsLocalization.Trader.Label9 + newRobot.NameStrategyUniq, LogMessageType.System);
 
                 ReloadActivBot(newRobot);
                 Save();
@@ -866,7 +867,7 @@ namespace OsEngine.OsTrader
             {
                 if (_activPanel == null)
                 {
-                    MessageBox.Show("Операция не может быть завершена, т.к. бот не активен");
+                    MessageBox.Show(OsLocalization.Trader.Label10);
                     return;
                 }
 
@@ -877,7 +878,7 @@ namespace OsEngine.OsTrader
                 }
                 else
                 {
-                    MessageBox.Show("Данная функция доступна только у вкладки с инструментом для торговли");
+                    MessageBox.Show(OsLocalization.Trader.Label11);
                 }
             }
             catch (Exception error)
@@ -895,7 +896,7 @@ namespace OsEngine.OsTrader
             {
                 if (_activPanel == null)
                 {
-                    MessageBox.Show("Операция не может быть завершена, т.к. бот не активен");
+                    MessageBox.Show(OsLocalization.Trader.Label10);
                     return;
                 }
                 _activPanel.ShowIndividualSettingsDialog();
@@ -915,7 +916,7 @@ namespace OsEngine.OsTrader
             {
                 if (_activPanel == null)
                 {
-                    MessageBox.Show("Операция не может быть завершена, т.к. бот не активен");
+                    MessageBox.Show(OsLocalization.Trader.Label10);
                     return;
                 }
                 if (_activPanel.ActivTab != null &&
@@ -935,7 +936,7 @@ namespace OsEngine.OsTrader
                 }
                 else
                 {
-                    MessageBox.Show("Данная функция у данной вкладки не доступна");
+                    MessageBox.Show(OsLocalization.Trader.Label11);
                 }
             }
             catch (Exception error)
@@ -953,7 +954,7 @@ namespace OsEngine.OsTrader
             {
                 if (_activPanel == null)
                 {
-                    MessageBox.Show("Операция не может быть завершена, т.к. бот не активен");
+                    MessageBox.Show(OsLocalization.Trader.Label10);
                     return;
                 }
                 _activPanel.ShowPanelRiskManagerDialog();
@@ -973,7 +974,7 @@ namespace OsEngine.OsTrader
             {
                 if (_activPanel == null)
                 {
-                    MessageBox.Show("Операция не может быть завершена, т.к. бот не активен");
+                    MessageBox.Show(OsLocalization.Trader.Label10);
                     return;
                 }
                 _activPanel.ShowParametrDialog();
@@ -1107,7 +1108,7 @@ namespace OsEngine.OsTrader
         {
             if (_activPanel == null)
             {
-                MessageBox.Show("Операция не может быть завершена, т.к. бот не активен");
+                MessageBox.Show(OsLocalization.Trader.Label10);
                 return false;
             }
             return true;

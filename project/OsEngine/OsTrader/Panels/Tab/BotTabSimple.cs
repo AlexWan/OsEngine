@@ -15,6 +15,7 @@ using OsEngine.Charts.CandleChart;
 using OsEngine.Charts.CandleChart.Elements;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Connectors;
@@ -704,6 +705,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if (Securiti == null ||
+                    _connector.IsConnected == false)
+                {
+                    return;
+                }
+
                 PositionOpenUi ui = new PositionOpenUi(_connector.BestBid, Securiti.Name);
                 ui.ShowDialog();
 
@@ -929,7 +936,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                PositionStopUi ui = new PositionStopUi(position, _connector.BestBid, "Стоп для позиции");
+                PositionStopUi ui = new PositionStopUi(position, _connector.BestBid, OsLocalization.Trader.Label107);
                 ui.ShowDialog();
 
                 if (ui.IsAccept == false)
@@ -958,7 +965,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                PositionStopUi ui = new PositionStopUi(position, _connector.BestBid, "Профит для позиции");
+                PositionStopUi ui = new PositionStopUi(position, _connector.BestBid, OsLocalization.Trader.Label110);
                 ui.ShowDialog();
 
                 if (ui.IsAccept == false)
@@ -1001,7 +1008,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage("Не возможно открыть сделку! Коннектор не активен!", LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label62, LogMessageType.System);
                     return null;
                 }
 
@@ -1107,19 +1114,19 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (volume == 0)
                 {
-                    SetNewLogMessage("Не возможно открыть сделку! Объём не может быть равен нулю!", LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label63, LogMessageType.System);
                     return null;
                 }
 
                 if (price == 0)
                 {
-                    SetNewLogMessage("Не возможно открыть сделку! Коннектор не активен!", LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label62, LogMessageType.System);
                     return null;
                 }
 
                 if (Securiti == null || Portfolio == null)
                 {
-                    SetNewLogMessage("Не возможно открыть сделку! Нет портфеля или бумаги!", LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
                     return null;
                 }
 
@@ -1249,7 +1256,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 if (position.Direction == Side.Sell)
                 {
-                    SetNewLogMessage("Робот " + TabName + " попытка добавить в шорт ордер лонг. Блокировано", LogMessageType.Error);
+                    SetNewLogMessage(TabName + OsLocalization.Trader.Label65, LogMessageType.Error);
                     return;
                 }
 
@@ -1272,7 +1279,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 if (position.Direction == Side.Sell)
                 {
-                    SetNewLogMessage("Робот " + TabName + " попытка добавить в шорт ордер лонг. Блокировано", LogMessageType.Error);
+                    SetNewLogMessage(TabName + OsLocalization.Trader.Label65, LogMessageType.Error);
 
                     return;
                 }
@@ -1281,7 +1288,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage("Не возможно открыть сделку! Коннектор не активен!", LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label62, LogMessageType.System);
                     return;
                 }
 
@@ -1335,19 +1342,19 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (volume == 0)
                 {
-                    SetNewLogMessage("Не возможно открыть сделку! Объём не может быть равен нулю!", LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label63, LogMessageType.System);
                     return;
                 }
 
                 if (price == 0)
                 {
-                    SetNewLogMessage("Не возможно открыть сделку! Коннектор не активен!", LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label62, LogMessageType.System);
                     return;
                 }
 
                 if (Securiti == null || Portfolio == null)
                 {
-                    SetNewLogMessage("Не возможно открыть сделку! Нет портфеля или бумаги!", LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
                     return;
                 }
 
@@ -1429,7 +1436,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage("Не возможно открыть сделку! Коннектор не активен!", LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label62, LogMessageType.System);
                     return null;
                 }
 
@@ -1526,19 +1533,19 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (volume == 0)
                 {
-                    SetNewLogMessage("Не возможно открыть сделку! Объём не может быть равен нулю!", LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label63, LogMessageType.System);
                     return null;
                 }
 
                 if (price == 0)
                 {
-                    SetNewLogMessage("Не возможно открыть сделку! Коннектор не активен!", LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label62, LogMessageType.System);
                     return null;
                 }
 
                 if (Securiti == null || Portfolio == null)
                 {
-                    SetNewLogMessage("Не возможно открыть сделку! Нет портфеля или бумаги!", LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
                     return null;
                 }
 
@@ -1667,7 +1674,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 if (position.Direction == Side.Buy)
                 {
-                    SetNewLogMessage("Робот " + TabName + " попытка добавить в лонг ордер шорт. Блокировано", LogMessageType.Error);
+                    SetNewLogMessage( TabName + OsLocalization.Trader.Label66, LogMessageType.Error);
 
                     return;
                 }
@@ -1691,7 +1698,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 if (position.Direction == Side.Buy)
                 {
-                    SetNewLogMessage("Робот " + TabName + " попытка добавить в лонг ордер шорт. Блокировано", LogMessageType.Error);
+                    SetNewLogMessage(TabName + OsLocalization.Trader.Label66, LogMessageType.Error);
 
                     return;
                 }
@@ -1700,7 +1707,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage("Робот " + TabName + " Не возможно открыть сделку! Коннектор не активен!", LogMessageType.Error);
+                    SetNewLogMessage(TabName + OsLocalization.Trader.Label66, LogMessageType.Error);
                     return;
                 }
 
@@ -1753,19 +1760,19 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (volume == 0)
                 {
-                    SetNewLogMessage("Не возможно открыть сделку! Объём не может быть равен нулю!", LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label63, LogMessageType.System);
                     return;
                 }
 
                 if (price == 0)
                 {
-                    SetNewLogMessage("Не возможно открыть сделку! Коннектор не активен!", LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label62, LogMessageType.System);
                     return;
                 }
 
                 if (Securiti == null || Portfolio == null)
                 {
-                    SetNewLogMessage("Не возможно открыть сделку! Нет портфеля или бумаги!", LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
                     return;
                 }
 
@@ -1884,7 +1891,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage("Не возможно открыть сделку! Коннектор не активен!", LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label62, LogMessageType.System);
                     return;
                 }
 
@@ -2170,20 +2177,20 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (volume == 0)
                 {
-                    SetNewLogMessage("Не возможно открыть сделку! Объём не может быть равен нулю!",
+                    SetNewLogMessage(OsLocalization.Trader.Label63,
                         LogMessageType.System);
                     return null;
                 }
 
                 if (price == 0)
                 {
-                    SetNewLogMessage("Не возможно открыть сделку! Коннектор не активен!", LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label62, LogMessageType.System);
                     return null;
                 }
 
                 if (Securiti == null || Portfolio == null)
                 {
-                    SetNewLogMessage("Не возможно открыть сделку! Нет портфеля или бумаги!", LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
                     return null;
                 }
 
@@ -2224,19 +2231,19 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 if (volume == 0)
                 {
-                    SetNewLogMessage("Не возможно открыть сделку! Объём не может быть равен нулю!", LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label63, LogMessageType.System);
                     return;
                 }
 
                 if (price == 0)
                 {
-                    SetNewLogMessage("Не возможно открыть сделку! Коннектор не активен!", LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label62, LogMessageType.System);
                     return;
                 }
 
                 if (Securiti == null || Portfolio == null)
                 {
-                    SetNewLogMessage("Не возможно открыть сделку! Нет портфеля или бумаги!", LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
                     return;
                 }
 
@@ -2294,19 +2301,19 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (volume == 0)
                 {
-                    SetNewLogMessage("Не возможно открыть сделку! Объём не может быть равен нулю!", LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label63, LogMessageType.System);
                     return null;
                 }
 
                 if (price == 0)
                 {  
-                    SetNewLogMessage("Не возможно открыть сделку! Коннектор не активен!", LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label62, LogMessageType.System);
                     return null;
                 }
 
                 if (Securiti == null || Portfolio == null)
                 {
-                    SetNewLogMessage("Не возможно открыть сделку! Нет портфеля или бумаги!", LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
                     return null;
                 }
 
@@ -2348,19 +2355,19 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 if (volume == 0)
                 {
-                    SetNewLogMessage("Не возможно открыть сделку! Объём не может быть равен нулю!", LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label63, LogMessageType.System);
                     return;
                 }
 
                 if (price == 0)
                 {
-                    SetNewLogMessage("Не возможно открыть сделку! Коннектор не активен!", LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label62, LogMessageType.System);
                     return;
                 }
 
                 if (Securiti == null || Portfolio == null)
                 {
-                    SetNewLogMessage("Не возможно открыть сделку! Нет портфеля или бумаги!", LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
                     return;
                 }
 
@@ -2388,8 +2395,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 newOrder.IsStopOrProfit = isStopOrProfit;
                 newOrder.LifeTime = timeLife;
                 position.AddNewOpenOrder(newOrder);
-
-                SetNewLogMessage(Securiti.Name + "модификация позиции шорт", LogMessageType.Trade);
 
                 _connector.OrderExecute(newOrder);
             }
@@ -2910,7 +2915,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     // пришёл сигнал закрыть все позиции
 
-                    SetNewLogMessage(Securiti.Name + " Алерт кроем все позиции." + " Цена" +
+                    SetNewLogMessage(Securiti.Name + OsLocalization.Trader.Label67 +
                                         _connector.BestBid, LogMessageType.Signal);
 
                     CloseAllAtMarket();
@@ -2927,7 +2932,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         return;
                     }
 
-                    SetNewLogMessage(Securiti.Name + " Алерт кроем позицию." + " Цена" +
+                    SetNewLogMessage(Securiti.Name + OsLocalization.Trader.Label67 +
                                         _connector.BestBid, LogMessageType.Signal);
 
                     if (signal.PriceType == OrderPriceType.Market)
@@ -2953,7 +2958,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 // проверить объём
                 if (signal.SignalType == SignalType.Buy)
                 {
-                    SetNewLogMessage(Securiti.Name + "Алерт Сигнал Лонг " + " Цена" + _connector.BestBid, LogMessageType.Signal);
+                    SetNewLogMessage(Securiti.Name + OsLocalization.Trader.Label69 + _connector.BestBid, LogMessageType.Signal);
 
                     if (signal.PriceType == OrderPriceType.Market)
                     {
@@ -2966,7 +2971,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 else if (signal.SignalType == SignalType.Sell)
                 {
-                    SetNewLogMessage(Securiti.Name + "Алерт Сигнал Шорт " + " Цена" + _connector.BestBid, LogMessageType.Signal);
+                    SetNewLogMessage(Securiti.Name + OsLocalization.Trader.Label68 + _connector.BestBid, LogMessageType.Signal);
 
                     if (signal.PriceType == OrderPriceType.Market)
                     {
@@ -3296,7 +3301,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 _connector.OrderCancel(order);
 
-                SetNewLogMessage("Робот " + TabName + " Отозвали ордер по времени, номер " + order.NumberMarket,
+                SetNewLogMessage(TabName + OsLocalization.Trader.Label70+ order.NumberMarket,
                     LogMessageType.Trade);
 
                 for (int i = 0; deal.CloseOrders != null && i < deal.CloseOrders.Count; i++)
@@ -3332,8 +3337,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     if (StartProgram == StartProgram.IsOsTrader)
                     {
-                        SetNewLogMessage("Робот " + TabName + " Закрытие сделки номер " + position.Number + ". Инструмент: " +
-                                   Securiti.Name + "Закрытый объём: " + position.MaxVolume, LogMessageType.Trade);
+                        SetNewLogMessage(TabName + OsLocalization.Trader.Label71 + position.Number, LogMessageType.Trade);
                     }
 
                     else if (StartProgram == StartProgram.IsTester)
@@ -3351,7 +3355,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 else if (position.State == PositionStateType.OpeningFail)
                 { // ОШИБКА НА ОТКРЫТИИ
-                    SetNewLogMessage("Робот " + TabName + " Сделка не открылась номер " + position.Number, LogMessageType.System);
+                    SetNewLogMessage(TabName + OsLocalization.Trader.Label72 + position.Number, LogMessageType.System);
 
                     if (PositionOpeningFailEvent != null)
                     {
@@ -3360,8 +3364,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 else if (position.State == PositionStateType.Open)
                 {
-                    SetNewLogMessage("Робот " + TabName + " Открытие сделки номер " + position.Number + ". Инструмент: " +
-                        Securiti.Name + "Объём: " + position.MaxVolume, LogMessageType.Trade);
+                    SetNewLogMessage(TabName + OsLocalization.Trader.Label73 + position.Number, LogMessageType.Trade);
                     if (PositionOpeningSuccesEvent != null)
                     {
                         PositionOpeningSuccesEvent(position);
@@ -3372,7 +3375,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 { // ОШИБКА НА ЗАКРЫТИИ
                     if (StartProgram == StartProgram.IsOsTrader)
                     {
-                        SetNewLogMessage("Робот " + TabName + " Сделка не закрылась номер " + position.Number, LogMessageType.System);
+                        SetNewLogMessage(TabName + OsLocalization.Trader.Label74 + position.Number, LogMessageType.System);
                     }
 
                     if (_manualControl.DoubleExitIsOn &&
@@ -3493,7 +3496,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 if (signalType == SignalType.CloseAll)
                 {
-                    SetNewLogMessage("Робот " + TabName + " Пользователь заказал закрытие всех сделок", LogMessageType.User);
+                    SetNewLogMessage(TabName + OsLocalization.Trader.Label75, LogMessageType.User);
 
                     CloseAllAtMarket();
                 }

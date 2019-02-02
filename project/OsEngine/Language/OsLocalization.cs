@@ -168,5 +168,7 @@ namespace OsEngine.Language
 
         public static OptimizerLocal Optimizer = new OptimizerLocal();
 
+        public static TraderLocal Trader = new TraderLocal();
+
     }
 }

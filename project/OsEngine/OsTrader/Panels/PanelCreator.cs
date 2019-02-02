@@ -11,6 +11,7 @@ using System.Threading;
 using OsEngine.Charts.CandleChart.Elements;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels.PanelsGui;
@@ -65,13 +66,7 @@ namespace OsEngine.OsTrader.Panels
             result.Add("PriceChannelVolatility");
             result.Add("RsiContrtrend");
             result.Add("PairTraderSpreadSma");
-            // роботы с инструкцией по созданию
 
-            result.Add("Robot");
-            result.Add("FirstBot");
-
-            
-                
             return result;
         }
 
@@ -196,14 +191,6 @@ namespace OsEngine.OsTrader.Panels
             {
                 bot = new PairRsiTrade(name, startProgram);
             }
-            if (nameClass == "Robot")
-            {
-                bot = new Robot(name, startProgram);
-            }
-            if (nameClass == "FirstBot")
-            {
-                bot = new FirstBot(name, startProgram);
-            }
 
             if (nameClass == "TwoLegArbitrage")
             {
@@ -250,14 +237,6 @@ namespace OsEngine.OsTrader.Panels
     /// </summary>
     public class HighFrequencyTrader : BotPanel // бывший MarketDepthJuggler
     {
-        
-        //выставляем заявки над самыми толстыми покупками и продажами. 
-        //не далее чем в пяти тиков от центра стакана. По две заявки.
-        //Когда одна заявка отрабатывает, снимаем все ордера из системы.
-        //Выставляем профит в 10 пунктов и стоп в 5ть.
-
-        //На нашем Ютуб канале есть видео о том как я делаю этого бота:https://www.youtube.com/playlist?list=PL76DtREkiCATe28yPbAT_5em1JqA4xEiB
-        //Однако там не всё сделано, т.к. я кое-что доработал для реальной торговли
 
         public HighFrequencyTrader(string name, StartProgram startProgram)
             : base(name, startProgram)
@@ -607,7 +586,7 @@ namespace OsEngine.OsTrader.Panels
         /// </summary>
         public override void ShowIndividualSettingsDialog()
         {
-            MessageBox.Show("Это трендовый робот оснванный на стратегии Билла Вильямса");
+            MessageBox.Show(OsLocalization.Trader.Label55);
         }
 
         /// <summary>
@@ -939,8 +918,7 @@ namespace OsEngine.OsTrader.Panels
         public override void ShowIndividualSettingsDialog()
         {
             MessageBox.Show(
-                "Трендовая стратегия описанная в книге Эдвина Лафевра: Воспоминания биржевого спекулянта. Подробнее: " +
-                "http://o-s-a.net/posts/34-bad-quant-edvin-lefevr-vospominanija-birzhevogo-spekuljanta.html");
+                OsLocalization.Trader.Label56);
         }
 
         private BotTabSimple _tab;
@@ -1607,134 +1585,6 @@ namespace OsEngine.OsTrader.Panels
     }
 
     # endregion
-
-    # region роботы из инструкций с пошаговым созданием на нашем канале ютуб https://www.youtube.com/channel/UCLmOUsdFs48mo37hgXmIJTQ
-
-    public class Robot : BotPanel
-    {
-        private BotTabSimple _tab;
-        private Bollinger _bol;
-        public decimal Volume;
-
-        public override string GetNameStrategyType()
-        {
-            return "Robot";
-        }
-
-        public override void ShowIndividualSettingsDialog()
-        {
-            RobotUi ui = new RobotUi(this);
-            ui.ShowDialog();
-        }
-
-        public Robot(string name, StartProgram startProgram)
-            : base(name, startProgram)
-        {
-            TabCreate(BotTabType.Simple);
-            _tab = TabsSimple[0];
-
-            _bol = new Bollinger(false);
-            _bol = (Bollinger)_tab.CreateCandleIndicator(_bol, "Prime");
-
-            _bol.Save();
-
-            _tab.CandleFinishedEvent += TradeLogic;
-
-            Volume = 1;
-        }
-
-        private decimal _lastPrice;
-        private decimal _lastBolUp;
-        private decimal _lastBolDown;
-        private void TradeLogic(List<Candle> candles)
-        {
-            _lastPrice = candles[candles.Count - 1].Close;
-            _lastBolUp = _bol.ValuesUp[_bol.ValuesUp.Count - 1];
-            _lastBolDown = _bol.ValuesDown[_bol.ValuesDown.Count - 1];
-
-           
-
-            if (_bol.ValuesUp == null)
-            {
-                return;
-            }
-            if (_bol.ValuesUp.Count < _bol.Lenght + 5)
-            {
-                return;
-            }
-
-            if (_tab.PositionsOpenAll != null && _tab.PositionsOpenAll.Count != 0)
-            {
-                if (_lastPrice < _lastBolDown)
-                {
-                    _tab.CloseAllAtMarket();
-                }
-                return;
-            }
-
-            if (_lastPrice > _lastBolUp)
-            {
-                _tab.SellAtMarket(Volume);
-
-            }
-        }
-
-    }
-
-    public class FirstBot : BotPanel
-    {
-        public override string GetNameStrategyType()
-        {
-            return "FirstBot";
-        }
-
-        public override void ShowIndividualSettingsDialog()
-        {
-            MessageBox.Show("У данной стратегии пока нет настроек");
-        }
-
-        public FirstBot(string name, StartProgram startProgram)
-            : base(name, startProgram)
-        {
-            TabCreate(BotTabType.Simple);
-            _tab = TabsSimple[0];
-
-            _tab.CandleFinishedEvent += TradeLogic;
-
-        }
-
-        private BotTabSimple _tab;
-
-        private void TradeLogic(List<Candle> candles)
-        {
-            // 1. если свечей меньше чем 5 - выходим из метода.
-            if (candles.Count < 5)
-            {
-                return;
-            }
-
-            // 2. если уже есть открытые позиции – закрываем и выходим.
-            if (_tab.PositionsOpenAll != null && _tab.PositionsOpenAll.Count != 0)
-            {
-                _tab.CloseAllAtMarket();
-                return;
-            }
-
-            // 3. если закрытие последней свечи выше закрытия предыдущей – покупаем. 
-            if (candles[candles.Count - 1].Close > candles[candles.Count - 2].Close)
-            {
-                _tab.BuyAtMarket(1);
-            }
-
-            // 4. если закрытие последней свечи ниже закрытия предыдущей, продаем. 
-            if (candles[candles.Count - 1].Close < candles[candles.Count - 2].Close)
-            {
-                _tab.SellAtMarket(1);
-            }
-        }
-    }
-
-    # endregion 
 
     # region готовые роботы
 
@@ -3494,7 +3344,7 @@ namespace OsEngine.OsTrader.Panels
         /// </summary>
         public override void ShowIndividualSettingsDialog()
         {
-            MessageBox.Show("У данной стратегии нет настроек. Это ж привод и сам он ничего не делает.");
+            MessageBox.Show(OsLocalization.Trader.Label57);
         }
     }
 

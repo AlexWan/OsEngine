@@ -1113,47 +1113,50 @@ namespace OsEngine.Journal.Internal
                 nRow.Cells[1].Value = position.TimeOpen;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[2].Value = position.NameBot;
+                nRow.Cells[2].Value = position.TimeClose;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[3].Value = position.SecurityName;
+                nRow.Cells[3].Value = position.NameBot;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[4].Value = position.Direction;
+                nRow.Cells[4].Value = position.SecurityName;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[5].Value = position.State;
+                nRow.Cells[5].Value = position.Direction;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[6].Value = position.MaxVolume;
+                nRow.Cells[6].Value = position.State;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[7].Value = position.OpenVolume;
+                nRow.Cells[7].Value = position.MaxVolume;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[8].Value = position.WaitVolume;
+                nRow.Cells[8].Value = position.OpenVolume;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[9].Value = position.EntryPrice;
+                nRow.Cells[9].Value = position.WaitVolume;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[10].Value = position.ClosePrice;
+                nRow.Cells[10].Value = position.EntryPrice;
+
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+                nRow.Cells[11].Value = position.ClosePrice;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 
-                nRow.Cells[11].Value = position.ProfitPortfolioPunkt;
+                nRow.Cells[12].Value = position.ProfitPortfolioPunkt;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[12].Value = position.StopOrderRedLine;
+                nRow.Cells[13].Value = position.StopOrderRedLine;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[13].Value = position.StopOrderPrice;
+                nRow.Cells[14].Value = position.StopOrderPrice;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[14].Value = position.ProfitOrderRedLine;
+                nRow.Cells[15].Value = position.ProfitOrderRedLine;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[15].Value = position.ProfitOrderPrice;
+                nRow.Cells[16].Value = position.ProfitOrderPrice;
 
                 return nRow;
             }

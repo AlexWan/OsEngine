@@ -488,22 +488,9 @@ namespace OsEngine.Logging
             {
                 return;
             }
-            _gridErrorLog = new DataGridView();
 
-            _gridErrorLog = new DataGridView();
-
-            _gridErrorLog.AllowUserToOrderColumns = true;
-            _gridErrorLog.AllowUserToResizeRows = true;
-            _gridErrorLog.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-            _gridErrorLog.AllowUserToDeleteRows = false;
-            _gridErrorLog.AllowUserToAddRows = false;
-            _gridErrorLog.RowHeadersVisible = false;
-            _gridErrorLog.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            _gridErrorLog.MultiSelect = false;
-
-            _gridErrorLog.BackColor = Color.FromArgb(17, 18, 23);
-            _gridErrorLog.BackgroundColor = Color.FromArgb(17, 18, 23);
-            _gridErrorLog.GridColor = Color.FromArgb(17, 18, 23);
+            _gridErrorLog = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
+                DataGridViewAutoSizeRowsMode.AllCells);
 
             DataGridViewCellStyle style = new DataGridViewCellStyle();
             style.Alignment = DataGridViewContentAlignment.TopLeft;
@@ -535,7 +522,6 @@ namespace OsEngine.Logging
             column.ReadOnly = true;
             column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridErrorLog.Columns.Add(column);
-
         }
 
         /// <summary>

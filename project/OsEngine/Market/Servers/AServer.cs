@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Media;
 using System.Threading;
 using OsEngine.Entity;
 using OsEngine.Language;
@@ -74,9 +75,17 @@ namespace OsEngine.Market.Servers
                 threadDataSender.Name = "ServerThreadDataSender" + _serverRealization.ServerType;
                 threadDataSender.Start();
 
-                AServerTests tester = new AServerTests();
-                tester.Listen(this);
-                tester.LogMessageEvent += SendLogMessage;
+                if (PrimeSettings.PrimeSettingsMaster.ServerTestingIsActive)
+                {
+                    AServerTests tester = new AServerTests();
+                    tester.Listen(this);
+                    tester.LogMessageEvent += SendLogMessage;
+                }
+
+                Thread beepThread = new Thread(MyTradesBeepThread);
+                beepThread.IsBackground = true;
+                beepThread.Name = "AserverBeepThread" + _serverRealization.ServerType;
+                beepThread.Start();
 
                 _serverIsStart = true;
 
@@ -1276,12 +1285,40 @@ namespace OsEngine.Market.Servers
             
             _myTradesToSend.Enqueue(trade);
             _myTrades.Add(trade);
+            _neadToBeepOnTrade = true;
         }
 
         /// <summary>
         /// изменилась моя сделка
         /// </summary>
         public event Action<MyTrade> NewMyTradeEvent;
+
+        private bool _neadToBeepOnTrade;
+
+        private void MyTradesBeepThread()
+        {
+            while (true)
+            {
+                Thread.Sleep(2000);
+                if (MainWindow.ProccesIsWorked == false)
+                {
+                    return;
+                }
+
+                if (_neadToBeepOnTrade == false)
+                {
+                    continue;
+                }
+
+                if (PrimeSettings.PrimeSettingsMaster.TransactionBeepIsActiv == false)
+                {
+                    continue;
+                }
+
+                _neadToBeepOnTrade = false;
+                SystemSounds.Asterisk.Play();
+            }
+        }
 
         // работа с ордерами
 

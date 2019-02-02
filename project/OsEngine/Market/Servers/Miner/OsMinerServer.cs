@@ -332,6 +332,8 @@ namespace OsEngine.Market.Servers.Miner
                         return;
                     }
 
+                  
+
                     if (_neadToStopThread)
                     {
                         return;

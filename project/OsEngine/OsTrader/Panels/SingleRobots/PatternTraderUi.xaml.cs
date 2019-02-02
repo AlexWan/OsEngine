@@ -8,6 +8,7 @@ using System.Windows.Forms.Integration;
 using System.Windows.Shapes;
 using OsEngine.Charts.CandleChart;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.OsMiner.Patterns;
 
 namespace OsEngine.OsTrader.Panels.SingleRobots
@@ -50,6 +51,35 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             PaintGridPatternsToClose();
             PaintClosePattern(0);
             PaintOpenPattern(0);
+
+            Title = OsLocalization.Trader.Label114;
+            LabelRegime.Content = OsLocalization.Trader.Label115;
+            LabelSet.Content = OsLocalization.Trader.Label116;
+            LabelPatternGroup.Content = OsLocalization.Trader.Label117;
+            LabelMaximumPositions.Content = OsLocalization.Trader.Label118;
+            LabelVolume.Content = OsLocalization.Trader.Label30;
+            TabItemOpeningPosition.Header = OsLocalization.Trader.Label119;
+            LabelPatterns.Content = OsLocalization.Trader.Label120;
+            LabelSide.Content = OsLocalization.Trader.Label121;
+            LabelEntryWeight.Content = OsLocalization.Trader.Label122;
+            LabelSlippage.Content = OsLocalization.Trader.Label92;
+            TabItemClosePosition.Header = OsLocalization.Trader.Label100;
+            CheckBoxStopOrderIsOn.Content = OsLocalization.Trader.Label123;
+            CheckBoxProfitOrderIsOn.Content = OsLocalization.Trader.Label124;
+            CheckBoxExitFromSomeCandlesIsOn.Content = OsLocalization.Trader.Label125;
+            CheckBoxTrailingStopIsOn.Content = OsLocalization.Trader.Label126;
+
+            LabelSlippage1.Content = OsLocalization.Trader.Label92;
+            LabelSlippage2.Content = OsLocalization.Trader.Label92;
+            LabelSlippage3.Content = OsLocalization.Trader.Label92;
+            LabelSlippage4.Content = OsLocalization.Trader.Label92;
+            LabelSlippageExitByPatterns.Content = OsLocalization.Trader.Label127;
+            LabelWeightForExit.Content = OsLocalization.Trader.Label128;
+
+
+
+
+
         }
 
         private PatternTrader _bot;

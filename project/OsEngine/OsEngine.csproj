@@ -333,6 +333,7 @@
     <Compile Include="Language\OptimizerLocal.cs" />
     <Compile Include="Language\OsLocalization.cs" />
     <Compile Include="Language\PrimeSettingsMasterUiLocal.cs" />
+    <Compile Include="Language\TraderLocal.cs" />
     <Compile Include="Logging\LogErrorUi.xaml.cs">
       <DependentUpon>LogErrorUi.xaml</DependentUpon>
     </Compile>
@@ -627,9 +628,6 @@
     </Compile>
     <Compile Include="OsTrader\Panels\PanelsGui\PriceChannelVolatilityUi.xaml.cs">
       <DependentUpon>PriceChannelVolatilityUi.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="OsTrader\Panels\PanelsGui\RobotUi.xaml.cs">
-      <DependentUpon>RobotUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="OsTrader\Panels\PanelsGui\RsiContrtrendUi.xaml.cs">
       <DependentUpon>RsiContrtrendUi.xaml</DependentUpon>
@@ -1139,10 +1137,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="OsTrader\Panels\PanelsGui\RobotUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="OsTrader\Panels\PanelsGui\RsiContrtrendUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -1261,6 +1255,7 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

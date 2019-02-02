@@ -1,40 +1,40 @@
 ﻿<Window x:Class="OsEngine.OsTrader.Panels.Tab.Internal.BotManualControlUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Настройки сопровождения позиций" Height="360" Width="610" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+        Title="Position Tracking Settings" Height="360" Width="610" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid>
         <Rectangle Margin="5,129,0,5" HorizontalAlignment="Left" Width="285"/>
         <Rectangle  Margin="5,5,0,0" Height="119" VerticalAlignment="Top" HorizontalAlignment="Left" Width="285" />
-        <Label Content="Стоп" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,11,0,0" Height="29"  FontWeight="Bold"/>
-        <CheckBox x:Name ="CheckBoxStopIsOn" Content="Включить" HorizontalAlignment="Left" Margin="159,23,0,0" VerticalAlignment="Top" />
-        <Label Content="От входа до Стопа" HorizontalAlignment="Left" Margin="22,45,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.132,0.346" Foreground="#FFE2E3E8" OpacityMask="#FFDEB1B1"/>
-        <TextBox x:Name="TextBoxStopPercentLenght" HorizontalAlignment="Left" Height="23" Margin="159,48,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <Label Content="Проскальзывание" HorizontalAlignment="Left" Margin="22,76,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.132,0.346" Foreground="#FFE2E3E8" OpacityMask="#FFDEB1B1"/>
+        <Label Name="LabelStop" Content="Stop" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,11,0,0" Height="29"  FontWeight="Bold"/>
+        <CheckBox Name ="CheckBoxStopIsOn" Content="On/Off" HorizontalAlignment="Left" Margin="159,23,0,0" VerticalAlignment="Top" />
+        <Label Name="LabelFromEntryToStop" Content="From entry to stop" HorizontalAlignment="Left" Margin="22,45,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.132,0.346" Foreground="#FFE2E3E8" OpacityMask="#FFDEB1B1"/>
+        <TextBox Name="TextBoxStopPercentLenght" HorizontalAlignment="Left" Height="23" Margin="159,48,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <Label Name="LabelSlippage2" Content="Slippage" HorizontalAlignment="Left" Margin="22,76,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.132,0.346" Foreground="#FFE2E3E8" OpacityMask="#FFDEB1B1"/>
         <Rectangle Margin="295,5,5,0" Height="119" VerticalAlignment="Top" />
-        <TextBox x:Name="TextBoxSlipageStop" HorizontalAlignment="Left" Height="23" Margin="159,76,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <Label Content="Профит" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="310,11,0,0" Height="29" FontWeight="Bold"/>
-        <CheckBox x:Name ="CheckBoxProfitIsOn" Content="Включить" HorizontalAlignment="Left" Margin="449,23,0,0" VerticalAlignment="Top" />
-        <Label Content="От входа до Профита" HorizontalAlignment="Left" Margin="312,48,0,0" VerticalAlignment="Top" Foreground="#FFE2E3E8" OpacityMask="#FFDEB1B1" />
-        <TextBox x:Name="TextBoxProfitPercentLenght" Height="23" Margin="449,48,25,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Проскальзывание" HorizontalAlignment="Left" Margin="312,76,0,0" VerticalAlignment="Top" Foreground="#FFE2E3E8" OpacityMask="#FFDEB1B1" />
-        <TextBox x:Name="TextBoxSlipageProfit" Height="23" Margin="449,76,25,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxSlipageStop" HorizontalAlignment="Left" Height="23" Margin="159,76,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <Label Name="LabelProfit" Content="Profit" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="310,11,0,0" Height="29" FontWeight="Bold"/>
+        <CheckBox Name ="CheckBoxProfitIsOn" Content="On/Off" HorizontalAlignment="Left" Margin="449,23,0,0" VerticalAlignment="Top" />
+        <Label Name="LabelFromEntryToProfit" Content="From entry to profit" HorizontalAlignment="Left" Margin="312,48,0,0" VerticalAlignment="Top" Foreground="#FFE2E3E8" OpacityMask="#FFDEB1B1" />
+        <TextBox Name="TextBoxProfitPercentLenght" Height="23" Margin="449,48,25,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <Label Name="LabelSlippage1" Content="Slippage" HorizontalAlignment="Left" Margin="312,76,0,0" VerticalAlignment="Top" Foreground="#FFE2E3E8" OpacityMask="#FFDEB1B1" />
+        <TextBox Name="TextBoxSlipageProfit" Height="23" Margin="449,76,25,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <Rectangle Margin="295,129,5,94" StrokeThickness="0"/>
-        <Button x:Name="ButtonAccept" Content="Принять" Margin="455,0,5,67" Click="ButtonAccept_Click" VerticalAlignment="Bottom"/>
-        <Label Content="Открытие позиции" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="301,133,0,0"  FontWeight="Bold"/>
-        <TextBox x:Name="TextBoxSecondToOpen" Height="23" Margin="449,162,25,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <CheckBox Name="CheckBoxSecondToOpenIsOn" Content="Секунд на открытие" HorizontalAlignment="Left" Margin="310,162,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="TextBoxSecondToClose" HorizontalAlignment="Left" Height="23" Margin="159,162,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <CheckBox Name="CheckBoxSecondToCloseIsOn" Content="Секунд на закрытие" HorizontalAlignment="Left" Margin="22,162,0,0" VerticalAlignment="Top" />
-        <Label Content="Ордер на закрытие отозван" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Bold" Margin="20,221,0,0" />
-        <ComboBox x:Name="ComboBoxTypeDoubleExitOrder" HorizontalAlignment="Left" Margin="159,245,0,0" VerticalAlignment="Top" Width="120"/>
-        <CheckBox Name="CheckBoxDoubleExitIsOnIsOn" Content="Реакция" HorizontalAlignment="Left" Margin="22,245,0,0" VerticalAlignment="Top" Checked="CheckBox_Checked" />
-        <Label Content="Закрытие позиции" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,133,0,0" Width="142" FontWeight="Bold"/>
-        <TextBox x:Name="TextBoxSetbackToClose" HorizontalAlignment="Left" Height="23" Margin="159,190,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <CheckBox Name="CheckBoxSetbackToCloseIsOn" Content="Макс откат цены" HorizontalAlignment="Left" Margin="22,190,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="TextBoxSetbackToOpen" Height="23" Margin="449,190,25,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <CheckBox Name="CheckBoxSetbackToOpenIsOn" Content="Макс откат цены" HorizontalAlignment="Left" Margin="310,190,0,0" VerticalAlignment="Top" />
-        <Label Content="Проскальзывание" HorizontalAlignment="Left" Margin="22,273,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.132,0.346" OpacityMask="#FFDEB1B1" Foreground="#FFDFE1E6" />
-        <TextBox x:Name="TextBoxSlipageDoubleExit" HorizontalAlignment="Left" Height="23" Margin="159,273,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <Button Name="ButtonAccept" Content="Accept" Margin="455,0,5,67" Click="ButtonAccept_Click" VerticalAlignment="Bottom"/>
+        <Label Name="LabelPositionOpening" Content="Position opening" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="301,133,0,0"  FontWeight="Bold"/>
+        <TextBox Name="TextBoxSecondToOpen" Height="23" Margin="449,162,25,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <CheckBox Name="CheckBoxSecondToOpenIsOn" Content="Seconds to open" HorizontalAlignment="Left" Margin="310,162,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxSecondToClose" HorizontalAlignment="Left" Height="23" Margin="159,162,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <CheckBox Name="CheckBoxSecondToCloseIsOn" Content="Seconds to close" HorizontalAlignment="Left" Margin="22,162,0,0" VerticalAlignment="Top" />
+        <Label Name="LabelCloseOrderReject" Content="Close order reject" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Bold" Margin="20,221,0,0" />
+        <ComboBox Name="ComboBoxTypeDoubleExitOrder" HorizontalAlignment="Left" Margin="159,245,0,0" VerticalAlignment="Top" Width="120"/>
+        <CheckBox Name="CheckBoxDoubleExitIsOnIsOn" Content="Reaction" HorizontalAlignment="Left" Margin="22,245,0,0" VerticalAlignment="Top" Checked="CheckBox_Checked" />
+        <Label Name="LabelPositionClosing" Content="Position closing" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,133,0,0" Width="142" FontWeight="Bold"/>
+        <TextBox Name="TextBoxSetbackToClose" HorizontalAlignment="Left" Height="23" Margin="159,190,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <CheckBox Name="CheckBoxSetbackToCloseIsOn" Content="Max price rollback" HorizontalAlignment="Left" Margin="22,190,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxSetbackToOpen" Height="23" Margin="449,190,25,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <CheckBox Name="CheckBoxSetbackToOpenIsOn" Content="Max price rollback" HorizontalAlignment="Left" Margin="310,190,0,0" VerticalAlignment="Top" />
+        <Label Name="LabelSlippage3" Content="Slippage" HorizontalAlignment="Left" Margin="22,273,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.132,0.346" OpacityMask="#FFDEB1B1" Foreground="#FFDFE1E6" />
+        <TextBox Name="TextBoxSlipageDoubleExit" HorizontalAlignment="Left" Height="23" Margin="159,273,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
 
     </Grid>
 </Window>

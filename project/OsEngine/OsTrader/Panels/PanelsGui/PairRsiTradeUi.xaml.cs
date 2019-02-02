@@ -4,6 +4,7 @@
 using System;
 using System.Globalization;
 using System.Windows;
+using OsEngine.Language;
 
 namespace OsEngine.OsTrader.Panels.PanelsGui
 {
@@ -23,14 +24,16 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
 
             Spread.Text = _strategy.RsiSpread.ToString(new CultureInfo("ru-RU"));
 
-            
+            LabelVolume1.Content = OsLocalization.Trader.Label30+1;
+            LabelVolume2.Content = OsLocalization.Trader.Label30+2;
+            LabelRsiDifference.Content = OsLocalization.Trader.Label138;
+            ButtonAccept.Content = OsLocalization.Trader.Label132;
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-
                 if (Convert.ToDecimal(TextBoxVolumeOne.Text) <= 0 ||
                     Convert.ToDecimal(TextBoxVolumeTwo.Text) <= 0 ||
                     Convert.ToInt32(Spread.Text) <=0
@@ -42,7 +45,7 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
             }
             catch (Exception)
             {
-                MessageBox.Show("В одном из полей недопустимые значения. Процесс сохранения прерван");
+                MessageBox.Show(OsLocalization.Trader.Label13);
                 return;
             }
 
