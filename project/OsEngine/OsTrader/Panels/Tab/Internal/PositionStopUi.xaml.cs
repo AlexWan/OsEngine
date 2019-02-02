@@ -6,6 +6,7 @@ using System;
 using System.Globalization;
 using System.Windows;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.OsTrader.Panels.Tab.Internal
 {
@@ -30,6 +31,13 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             TextBoxSecurity.Text = position.OpenOrders[0].SecurityNameCode;
             TextBoxPositionNumber.Text = position.Number.ToString(new CultureInfo("ru-RU"));
             TextBoxVolume.Text = position.OpenVolume.ToString(new CultureInfo("ru-RU"));
+
+            LabelPositionNumber.Content = OsLocalization.Trader.Label101;
+            LabelSecurity.Content = OsLocalization.Trader.Label102;
+            LabelVolume.Content = OsLocalization.Trader.Label30;
+            ButtonAccept.Content = OsLocalization.Trader.Label17;
+            LabelActivationPrice.Content = OsLocalization.Trader.Label108;
+            LabelOrderPrice.Content = OsLocalization.Trader.Label109;
         }
 
 // результаты 
@@ -62,7 +70,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
             catch
             {
-                MessageBox.Show("В одном из полей недопустимые значения. Процесс не завершён");
+                MessageBox.Show(OsLocalization.Trader.Label13);
                 return;
             }
             Close();

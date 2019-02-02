@@ -5,6 +5,7 @@
 using System;
 using System.Globalization;
 using System.Windows;
+using OsEngine.Language;
 
 namespace OsEngine.OsTrader.RiskManager
 {
@@ -29,6 +30,13 @@ namespace OsEngine.OsTrader.RiskManager
             {
                 MessageBox.Show(error.ToString());
             }
+
+            Title = OsLocalization.Trader.Label12;
+            LabelMaxRisk.Content = OsLocalization.Trader.Label14;
+            LabelMaxLossReactioin.Content = OsLocalization.Trader.Label15;
+            CheckBoxIsOn.Content = OsLocalization.Trader.Label16;
+            ButtonAccept.Content = OsLocalization.Trader.Label17;
+
         }
 
         /// <summary>
@@ -44,7 +52,7 @@ namespace OsEngine.OsTrader.RiskManager
             ComboBoxReaction.Items.Add(RiskManagerReactionType.None);
 
             ComboBoxReaction.Text = _riskManager.ReactionType.ToString();
-
+            
         }
 
         /// <summary>
@@ -58,7 +66,7 @@ namespace OsEngine.OsTrader.RiskManager
             }
             catch (Exception)
             {
-                MessageBox.Show("В одном из полей недопустимые значения. Процесс сохранения прерван");
+                MessageBox.Show(OsLocalization.Trader.Label13);
                 return;
             }
 

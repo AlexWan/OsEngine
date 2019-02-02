@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Windows;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers.Optimizer;
@@ -38,13 +39,13 @@ namespace OsEngine.OsOptimizer
         {
             if (_primeThreadWorker != null)
             {
-                SendLogMessage("Процесс оптимизации уже запущен. ", LogMessageType.System);
+                SendLogMessage(OsLocalization.Optimizer.Message1, LogMessageType.System);
                 return false;
             }
             _parametersOn = parametersOn;
             _parameters = parameters;
 
-            SendLogMessage("Запущен процесс оптимизации. ", LogMessageType.System);
+            SendLogMessage(OsLocalization.Optimizer.Message2, LogMessageType.System);
 
             _neadToStop = false;
             _servers = new List<OptimizerServer>();
@@ -74,7 +75,7 @@ namespace OsEngine.OsOptimizer
         public void Stop()
         {
             _neadToStop = true;
-            SendLogMessage("Запрошено экстренное завершение завершение оптимизации. Ждите остановки процессов.", LogMessageType.System);
+            SendLogMessage(OsLocalization.Optimizer.Message3, LogMessageType.System);
         }
 
         /// <summary>
@@ -203,7 +204,7 @@ namespace OsEngine.OsOptimizer
 
             _countAllServersMax = countBots;
 
-            SendLogMessage("Количество ботов для обхода: " + countBots, LogMessageType.System);
+            SendLogMessage(OsLocalization.Optimizer.Message4 + countBots, LogMessageType.System);
 
 // 2 проходим первую фазу, когда нужно обойти все варианты
 
@@ -344,7 +345,7 @@ namespace OsEngine.OsOptimizer
                 botsInFaze[i].Delete();
             }
 
-            SendLogMessage("InSample этап закончен. Фильтруем данные...", LogMessageType.System);
+            SendLogMessage(OsLocalization.Optimizer.Message5, LogMessageType.System);
 
 // 3 фильтруем 
 
@@ -354,7 +355,7 @@ namespace OsEngine.OsOptimizer
 
 // 4 делаем форварды
 
-            SendLogMessage("Фильтрация окончена. Делаем форвардные тесты...", LogMessageType.System);
+            SendLogMessage(OsLocalization.Optimizer.Message6, LogMessageType.System);
 
             List<BotPanel> botsOutOfSample = new List<BotPanel>();
 
@@ -405,7 +406,7 @@ namespace OsEngine.OsOptimizer
                 botsOutOfSample[i].Delete();
             }
 
-            SendLogMessage("Оптимизация закончена.", LogMessageType.System);
+            SendLogMessage(OsLocalization.Optimizer.Message7, LogMessageType.System);
 
             if (TestReadyEvent != null)
             {
@@ -518,13 +519,13 @@ namespace OsEngine.OsOptimizer
 
             if (botsToOutOfSample.Count == 0)
             {
-                SendLogMessage("К сожалению все боты были отфильтрованы. Поставьте более щадящие настройки для выбраковки результатов", LogMessageType.System);
-                MessageBox.Show("К сожалению все боты были отфильтрованы. Поставьте более щадящие настройки для выбраковки результатов");
+                SendLogMessage(OsLocalization.Optimizer.Message8, LogMessageType.System);
+                MessageBox.Show(OsLocalization.Optimizer.Message8);
                 NeadToMoveUiToEvent(NeadToMoveUiTo.TabsAndTimeFrames);
             }
             else if (startCount != botsToOutOfSample.Count)
             {
-                SendLogMessage("Отфильтрованно ботов: " + (startCount - botsToOutOfSample.Count), LogMessageType.System);
+                SendLogMessage(OsLocalization.Optimizer.Message9 + (startCount - botsToOutOfSample.Count), LogMessageType.System);
             }
 
         }
@@ -663,7 +664,7 @@ namespace OsEngine.OsOptimizer
                 {
 
                     SendLogMessage(
-                        "Слишком долгое ожидание подклчючения робота к серверу данных. Что-то пошло не так!",
+                        OsLocalization.Optimizer.Message10,
                         LogMessageType.Error);
                     return;
                 }
@@ -784,6 +785,3 @@ namespace OsEngine.OsOptimizer
         public event Action<string, LogMessageType> LogMessageEvent;
     }
 }
-
-
-

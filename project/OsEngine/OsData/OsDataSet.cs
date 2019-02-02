@@ -13,6 +13,7 @@ using System.Windows.Shapes;
 using OsEngine.Charts;
 using OsEngine.Charts.CandleChart;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
@@ -26,7 +27,7 @@ namespace OsEngine.OsData
     public class OsDataSet
     {
         // регулируемые настройки
-
+        
         /// <summary>
         /// включен ли к сохранению 1 секундный ТаймФрейм
         /// </summary>
@@ -395,7 +396,7 @@ namespace OsEngine.OsData
             {
                 if (NewLogMessageEvent != null)
                 {
-                    NewLogMessageEvent("Источник не настроен", LogMessageType.System);
+                    NewLogMessageEvent(OsLocalization.Data.Label12, LogMessageType.System);
                 }
 
                 return;
@@ -408,7 +409,7 @@ namespace OsEngine.OsData
             {
                 if (NewLogMessageEvent != null)
                 {
-                    NewLogMessageEvent("В источнике нет доступных бумаг", LogMessageType.System);
+                    NewLogMessageEvent(OsLocalization.Data.Label13, LogMessageType.System);
                 }
                 return;
             }

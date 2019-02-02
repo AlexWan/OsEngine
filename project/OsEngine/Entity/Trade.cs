@@ -125,6 +125,15 @@ namespace OsEngine.Entity
 
             string[] sIn = In.Split(',');
 
+            if (sIn[5] == "C")
+            {
+                // загружаем данные из IqFeed
+                // 2019-01-01 18:00:00.038 ,1.15330,1,1.15330,1.15330,C,110,3974594,01,
+
+
+                return;
+            }
+
             int year = Convert.ToInt32(sIn[0].Substring(0, 4));
             int month = Convert.ToInt32(sIn[0].Substring(4, 2)); 
             int day = Convert.ToInt32(sIn[0].Substring(6, 2));
@@ -134,7 +143,7 @@ namespace OsEngine.Entity
             int second = Convert.ToInt32(sIn[1].Substring(4, 2));
 
             Time = new DateTime(year, month, day, hour, minute, second);
-
+            
             Price = Convert.ToDecimal(sIn[2].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
 
             Volume = Convert.ToDecimal(sIn[3].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);

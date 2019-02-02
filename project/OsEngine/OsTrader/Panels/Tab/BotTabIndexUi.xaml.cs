@@ -4,6 +4,7 @@
 
 using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Language;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -13,7 +14,7 @@ namespace OsEngine.OsTrader.Panels.Tab
     /// </summary>
     public partial class BotTabIndexUi
     {
-
+        
         public BotTabIndexUi(BotTabIndex spread)
         {
             InitializeComponent();
@@ -21,6 +22,12 @@ namespace OsEngine.OsTrader.Panels.Tab
             _spread = spread;
             ReloadSecurityTable();
             TextboxUserFormula.Text = _spread.UserFormula;
+
+            Title = OsLocalization.Trader.Label81;
+            ButtonAccept.Content = OsLocalization.Trader.Label17;
+
+
+
         }
 
         private BotTabIndex _spread;
@@ -52,14 +59,14 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             DataGridViewColumn fcolumn0 = new DataGridViewColumn();
             fcolumn0.CellTemplate = fcell0;
-            fcolumn0.HeaderText = @"Номер индекса";
+            fcolumn0.HeaderText = OsLocalization.Trader.Label82;
             fcolumn0.ReadOnly = true;
             fcolumn0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid1.Columns.Add(fcolumn0);
 
             DataGridViewColumn fcolumn1 = new DataGridViewColumn();
             fcolumn1.CellTemplate = fcell0;
-            fcolumn1.HeaderText = @"Код бумаги";
+            fcolumn1.HeaderText = OsLocalization.Trader.Label83;
             fcolumn1.ReadOnly = true;
             fcolumn1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid1.Columns.Add(fcolumn1);
@@ -95,7 +102,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 row.Cells.Add(new DataGridViewTextBoxCell());
                 if (string.IsNullOrWhiteSpace(_spread.Tabs[i].NamePaper))
                 {
-                    row.Cells[1].Value = "Пусто";
+                    row.Cells[1].Value = OsLocalization.Trader.Label84;
 
                 }
                 else

@@ -15,6 +15,7 @@ using OsEngine.Charts.CandleChart.Elements;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Charts.ColorKeeper;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
 
@@ -26,7 +27,7 @@ namespace OsEngine.Charts.CandleChart
     /// </summary>
     public class ChartCandleMaster
     {
-
+        
 // сервис
 
         /// <summary>
@@ -412,10 +413,18 @@ namespace OsEngine.Charts.CandleChart
                 List<MenuItem> items;
 
                 items = new List<MenuItem>();
-                items.Add(new MenuItem("Отрисовка чарта", 
+                items.Add(new MenuItem(OsLocalization.Charts.ChartMenuItem1, 
                     new MenuItem[] 
-                {new MenuItem("Цветовая схема", new MenuItem[]{new MenuItem("Тёмная"),new MenuItem("Светлая")}),
-                new MenuItem("Фигура сделки", new MenuItem[]{ new MenuItem("Перекрестие"), new MenuItem("Ромб"),new MenuItem("Кружок"),new MenuItem("Треугольник(тормозит при дебаггинге)")})}
+                {new MenuItem(OsLocalization.Charts.ChartMenuItem2,
+                        new MenuItem[]{new MenuItem(OsLocalization.Charts.ChartMenuItem3),
+                            new MenuItem(OsLocalization.Charts.ChartMenuItem4)}),
+
+                new MenuItem(OsLocalization.Charts.ChartMenuItem5, 
+                    new MenuItem[]{
+                        new MenuItem(OsLocalization.Charts.ChartMenuItem6),
+                        new MenuItem(OsLocalization.Charts.ChartMenuItem7),
+                        new MenuItem(OsLocalization.Charts.ChartMenuItem8),
+                        new MenuItem(OsLocalization.Charts.ChartMenuItem9)})}
                 
                 ));
 
@@ -427,19 +436,19 @@ namespace OsEngine.Charts.CandleChart
                 items[items.Count - 1].MenuItems[1].MenuItems[2].Click += ChartCircleToPosition_Click;
                 items[items.Count - 1].MenuItems[1].MenuItems[3].Click += ChartTriangleToPosition_Click;
 
-                items.Add(new MenuItem("Скрыть области"));
+                items.Add(new MenuItem(OsLocalization.Charts.ChartMenuItem10));
                 items[items.Count - 1].Click += ChartHideIndicators_Click;
 
-                items.Add(new MenuItem("Показать области"));
+                items.Add(new MenuItem(OsLocalization.Charts.ChartMenuItem11));
                 items[items.Count - 1].Click += ChartShowIndicators_Click;
 
                 if (menuRedact != null)
                 {
-                    items.Add(new MenuItem("Редактировать индикаторы", menuRedact.ToArray()));
-                    items.Add(new MenuItem("Удалить индикатор", menuDelete.ToArray()));
+                    items.Add(new MenuItem(OsLocalization.Charts.ChartMenuItem12, menuRedact.ToArray()));
+                    items.Add(new MenuItem(OsLocalization.Charts.ChartMenuItem13, menuDelete.ToArray()));
                 }
 
-                items.Add(new MenuItem("Добавить индикатор"));
+                items.Add(new MenuItem(OsLocalization.Charts.ChartMenuItem14));
                 items[items.Count - 1].Click += CreateIndicators_Click;
 
                 ContextMenu menu = new ContextMenu(items.ToArray());

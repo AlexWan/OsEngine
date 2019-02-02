@@ -239,9 +239,6 @@ namespace OsEngine.Entity
                 string result = "";
                 result += TimeStart.ToString("yyyyMMdd,HHmmss") + ",";
 
-               // result += TimeStart.Date.ToString("yyyyMMdd") + ",";
-                //result += TimeStart.TimeOfDay.ToString("HHmmss") + ",";
-
                 result += Open.ToString(CultureInfo.InvariantCulture) + ",";
                 result += High.ToString(CultureInfo.InvariantCulture) + ",";
                 result += Low.ToString(CultureInfo.InvariantCulture) + ",";

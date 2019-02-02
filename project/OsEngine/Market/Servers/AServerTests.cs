@@ -19,22 +19,12 @@ namespace OsEngine.Market.Servers
     /// </summary>
     public class AServerTests
     {
-        /// <summary>
-        /// Переменная включающая автоматические тесты
-        /// Вводится только из кода. 
-        /// У пользователей должна быть выключена, т.к. тормозит работу серверов
-        /// </summary>
-        private bool _isWorking = false;
 
         /// <summary>
         /// начать прослушку сервера
         /// </summary>
         public void Listen(AServer server)
         {
-            if (_isWorking == false)
-            {
-                return;
-            }
             // стандартные события IServer которые отправляются на верх
             server.ConnectStatusChangeEvent += server_ConnectStatusChangeEvent;
             server.NeadToReconnectEvent += server_NeadToReconnectEvent;
@@ -93,12 +83,12 @@ namespace OsEngine.Market.Servers
 
         void server_UserSetOrderOnExecute(Order order)
         {
-            
+            _lastTimeUserSetOrderToExecute = DateTime.Now;
         }
 
         void server_UserSetOrderOnCancel(Order order)
         {
-            
+            _lastTimeUserSetOrderToCansel = DateTime.Now;
         }
 
 // стандартные события
@@ -243,11 +233,35 @@ namespace OsEngine.Market.Servers
 
         private ConcurrentQueue<Order> _orders = new ConcurrentQueue<Order>();
 
+        private DateTime _lastTimeExecuteOrder = DateTime.MinValue;
+
+        private DateTime _lastTimeIncomeOrder = DateTime.MinValue;
+
+        private DateTime _lastTimeUserSetOrderToExecute = DateTime.MinValue;
+
+        private DateTime _lastTimeUserSetOrderToCansel = DateTime.MinValue;
+
         private void CheckOrders()
         {
             while (true)
             {
                 Thread.Sleep(1000);
+
+                if (_lastTimeUserSetOrderToCansel != DateTime.MinValue &&
+                    _lastTimeUserSetOrderToCansel.AddSeconds(30) > DateTime.Now &&
+                    _lastTimeUserSetOrderToCansel.AddSeconds(20) < DateTime.Now &&
+                    _lastTimeIncomeOrder.AddSeconds(20) < _lastTimeUserSetOrderToCansel)
+                { // ордер выставлен в сервер, но ответной реакции нет
+                    SendLogMessage("Order Error. No server reaction on cansel order. ", LogMessageType.Error);
+                }
+
+                if (_lastTimeUserSetOrderToExecute != DateTime.MinValue &&
+                    _lastTimeUserSetOrderToExecute.AddSeconds(30) > DateTime.Now &&
+                    _lastTimeUserSetOrderToExecute.AddSeconds(20) < DateTime.Now &&
+                    _lastTimeIncomeOrder.AddSeconds(20) < _lastTimeUserSetOrderToExecute)
+                { // ордер выставлен в сервер, но ответной реакции нет
+                    SendLogMessage("Order Error. No server reaction on execute order. ", LogMessageType.Error);
+                }
 
                 if (_orders.IsEmpty)
                 {
@@ -262,6 +276,13 @@ namespace OsEngine.Market.Servers
                 {
                     Thread.Sleep(1000);
                     continue;
+                }
+
+                _lastTimeIncomeOrder = DateTime.Now;
+
+                if (order.State == OrderStateType.Done)
+                {
+                    _lastTimeExecuteOrder = DateTime.Now;
                 }
 
                 if (string.IsNullOrEmpty(order.SecurityNameCode))
@@ -660,12 +681,24 @@ namespace OsEngine.Market.Servers
 
 // валидация портфелей
 
+        private DateTime _lastTimeChangePortfolio = DateTime.MinValue;
+
         private ConcurrentQueue<Portfolio> _portfolios = new ConcurrentQueue<Portfolio>(); 
 
         private void CheckPortfolio()
         {
             while (true)
             {
+                Thread.Sleep(1000);
+
+                if (_lastTimeExecuteOrder != DateTime.MinValue &&
+                    _lastTimeExecuteOrder.AddSeconds(20) > DateTime.Now &&
+                    _lastTimeExecuteOrder.AddSeconds(10) < DateTime.Now&&
+                    _lastTimeChangePortfolio.AddSeconds(10) < _lastTimeExecuteOrder)
+                { // ордер исполнился, портфель не поменялся.
+                    SendLogMessage("Portfolio Error. No reaction or change position after execute order. ", LogMessageType.Error);
+                }
+
                 if (_portfolios.IsEmpty)
                 {
                     Thread.Sleep(1000);
@@ -687,6 +720,7 @@ namespace OsEngine.Market.Servers
                     continue;
                 }
 
+                _lastTimeChangePortfolio = DateTime.Now;
 
                 if ((portfolio.ValueBegin != 0 || portfolio.ValueBlocked != 0) 
                     &&

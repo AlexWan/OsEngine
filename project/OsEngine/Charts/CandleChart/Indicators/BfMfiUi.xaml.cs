@@ -4,6 +4,7 @@
 
 using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Language;
 using TextBox = System.Windows.Forms.TextBox;
 
 namespace OsEngine.Charts.CandleChart.Indicators
@@ -19,6 +20,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
             InitializeComponent();
             _mfi = mfi;
             ShowSettingsOnForm();
+
+            ButtonColor.Content = OsLocalization.Charts.LabelButtonIndicatorColor;
+            CheckBoxPaintOnOff.Content = OsLocalization.Charts.LabelPaintIntdicatorIsVisible;
+            ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
+
         }
 
         private void ShowSettingsOnForm()// выгрузить настройки на форму

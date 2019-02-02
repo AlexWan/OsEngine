@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Windows.Forms.Integration;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.AstsBridge;
@@ -231,10 +232,9 @@ namespace OsEngine.Market
                             ServerCreateEvent(serv);
                         }
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
-                        MessageBox.Show(
-                            "Произошла ошибка создания сервера СмартКом. Вероятно у Вас не установлена соответствующая программа. SmartCOM_Setup_3.0.146.msi ");
+                        MessageBox.Show(e.ToString());
                         throw;
                     }
                 }
@@ -249,10 +249,9 @@ namespace OsEngine.Market
                             ServerCreateEvent(serv);
                         }
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
-                        MessageBox.Show(
-                            "Произошла ошибка создания сервера Плаза. Вероятно у Вас не установлено соответствующее программное обеспечение.");
+                        MessageBox.Show(e.ToString());
                         throw;
                     }
 
@@ -269,10 +268,9 @@ namespace OsEngine.Market
                             ServerCreateEvent(serv);
                         }
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
-                        MessageBox.Show(
-                            "Произошла ошибка создания сервера ASTS Bridge. Вероятно у Вас не установлено соответствующее программное обеспечение.");
+                        MessageBox.Show(e.ToString());
                         throw;
                     }
 
@@ -289,10 +287,9 @@ namespace OsEngine.Market
                             ServerCreateEvent(serv);
                         }
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
-                        MessageBox.Show(
-                            "Произошла ошибка создания тестового сервера.");
+                        MessageBox.Show(e.ToString());
                         throw;
                     }
 
@@ -309,17 +306,16 @@ namespace OsEngine.Market
                             ServerCreateEvent(serv);
                         }
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
-                        MessageBox.Show(
-                            "Произошла ошибка создания тестера финам.");
+                        MessageBox.Show(e.ToString());
                         throw ;
                     }
 
 
                 }
 
-                SendNewLogMessage("Создан сервер: " + _servers[_servers.Count - 1].ServerType, LogMessageType.System);
+                SendNewLogMessage(OsLocalization.Market.Message3 + _servers[_servers.Count - 1].ServerType, LogMessageType.System);
             }
             catch (Exception error)
             {

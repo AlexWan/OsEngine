@@ -4,13 +4,13 @@
         Title="Bulls Power" Height="228.75" Width="310" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico" Topmost="True">
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
-        <Button x:Name ="ButtonAccept"  Content="Принять" HorizontalAlignment="Right" Margin="0,0,5,7" VerticalAlignment="Bottom" Width="113" Click="ButtonAccept_Click"/>
+        <Button x:Name ="ButtonAccept"  Content="Accept" HorizontalAlignment="Right" Margin="0,0,5,7" VerticalAlignment="Bottom" Width="113" Click="ButtonAccept_Click"/>
         <TextBox x:Name ="TextBoxLenght" Margin="154,20,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Длина периода" HorizontalAlignment="Left" Margin="21,20,0,0" VerticalAlignment="Top"/>
-        <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовывать" HorizontalAlignment="Left" Margin="154,108,0,0" VerticalAlignment="Top"/>
-        <Button x:Name="ButtonColorUp" Content="Цвет вверх" HorizontalAlignment="Left" Margin="21,48,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"  />
+        <Label Name="LabelIndicatorPeriod" Content="Period" HorizontalAlignment="Right" Margin="0,20,165,0" VerticalAlignment="Top"/>
+        <CheckBox Name="CheckBoxPaintOnOff" Content="Is visible" Margin="154,108,41,0" VerticalAlignment="Top"/>
+        <Button x:Name="ButtonColorUp" Content="Color up" HorizontalAlignment="Left" Margin="21,48,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"  />
         <WindowsFormsHost x:Name="HostColorUp" Height="25" Margin="154,48,20,0" VerticalAlignment="Top"/>
-        <Button x:Name="ButtonColorDown" Content="Цвет вниз" HorizontalAlignment="Left" Margin="21,78,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorDown_Click" />
+        <Button x:Name="ButtonColorDown" Content="Color down" HorizontalAlignment="Left" Margin="21,78,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorDown_Click" />
         <WindowsFormsHost x:Name="HostColorDown" Height="25" Margin="154,78,20,0" VerticalAlignment="Top"/>
 
     </Grid>

@@ -5,6 +5,7 @@ using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Language;
 using MessageBox = System.Windows.MessageBox;
 using TextBox = System.Windows.Forms.TextBox;
 
@@ -40,6 +41,14 @@ namespace OsEngine.Charts.CandleChart.Indicators
             HostColorDown.Child.BackColor = _envelops.ColorDown;
             TextBoxDeviation.Text = _envelops.Deviation.ToString(new CultureInfo("ru-RU"));
             CheckBoxPaintOnOff.IsChecked = _envelops.PaintOn;
+
+            ButtonColorUp.Content = OsLocalization.Charts.LabelButtonIndicatorColorUp;
+            ButtonColorDown.Content = OsLocalization.Charts.LabelButtonIndicatorColorDown;
+            CheckBoxPaintOnOff.Content = OsLocalization.Charts.LabelPaintIntdicatorIsVisible;
+            ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
+            LabelIndicatorDeviation.Content = OsLocalization.Charts.LabelIndicatorDeviation;
+            ButtonMa.Content = OsLocalization.Charts.LabelIndicatorSettingsSma;
+
         }
 
         /// <summary>

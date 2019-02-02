@@ -4,6 +4,7 @@
 
 using OsEngine.Entity;
 using System.Windows;
+using OsEngine.Language;
 
 namespace OsEngine.OsData
 {
@@ -21,6 +22,11 @@ namespace OsEngine.OsData
             CheckBoxPaintOnOff.Click += CheckBoxPaintOnOff_Click;
             LabelOsa.Content = "V_" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
             Closing += OsDataUi_Closing;
+            Label4.Content = OsLocalization.Data.Label4;
+            Label24.Content = OsLocalization.Data.Label24;
+            CheckBoxPaintOnOff.Content = OsLocalization.Data.Label25;
+            Label26.Header = OsLocalization.Data.Label26;
+
         }
 
         void CheckBoxPaintOnOff_Click(object sender, RoutedEventArgs e)
@@ -40,7 +46,7 @@ namespace OsEngine.OsData
 
         void OsDataUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            AcceptDialogUi ui = new AcceptDialogUi("Вы собираетесь закрыть программу. Вы уверены?");
+            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Data.Label27);
             ui.ShowDialog();
 
             if (ui.UserAcceptActioin == false)

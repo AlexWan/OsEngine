@@ -2,20 +2,18 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:system="clr-namespace:System;assembly=mscorlib" x:Class="OsEngine.Logging.ServerMailDeliveryUi"
-        Title="Рассылка почтовых сообщений" Height="254" Width="323" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico" Topmost="True">
+        Title="Email server" Height="254" Width="323" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico" Topmost="True">
     <Grid>
-        <Button x:Name="ButtonAccept" Content="Применить" Margin="0,0,5,10" Click="buttonAccept_Click" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="101"/>
+        <Button x:Name="ButtonAccept" Content="Accept" Margin="0,0,5,10" Click="buttonAccept_Click" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="101"/>
         <Rectangle Margin="5,5,5,37"/>
         <TextBox x:Name="TextBoxMyAdress" Height="23" Margin="105,18,19,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
         <TextBox x:Name="TextBoxPassword" Height="23" Margin="105,46,19,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
         <TextBox x:Name="TextBoxAdress" Margin="105,102,19,40" TextWrapping="Wrap"  Height="Auto"/>
-        <Label Content="Моя почта" HorizontalAlignment="Left" Margin="19,18,0,0" VerticalAlignment="Top" Width="81" />
-        <Label Content="Пароль" HorizontalAlignment="Left" Margin="19,46,0,0" VerticalAlignment="Top" Width="67" />
-        <Label Content="Адресаты" HorizontalAlignment="Left" Margin="19,102,0,0" VerticalAlignment="Top" Width="81" />
-        <Label Content="Почтовик" HorizontalAlignment="Left" Margin="19,74,0,0" VerticalAlignment="Top" Width="81" />
+        <Label Name="Label11" Content="My email" HorizontalAlignment="Left" Margin="19,18,0,0" VerticalAlignment="Top" Width="81" />
+        <Label Name="Label12" Content="Password" HorizontalAlignment="Left" Margin="19,46,0,0" VerticalAlignment="Top" Width="67" />
+        <Label Name="Label14" Content="Addressees" HorizontalAlignment="Left" Margin="19,102,0,0" VerticalAlignment="Top" Width="81" />
+        <Label Name="Label13" Content="Service" HorizontalAlignment="Left" Margin="19,74,0,0" VerticalAlignment="Top" Width="81" />
         <ComboBox x:Name="ComboBoxMyMaster" Margin="105,74,19,0" VerticalAlignment="Top">
-            <system:String>Яндекс</system:String>
-            <system:String>Гугл</system:String>
         </ComboBox>
 
     </Grid>

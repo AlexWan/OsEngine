@@ -4,15 +4,15 @@
         Title="AC" Height="257" Width="310" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico" Topmost="True">
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
-        <Button x:Name ="ButtonAccept"  Content="Принять" HorizontalAlignment="Right" Margin="5,5,5,10" VerticalAlignment="Bottom" Width="100" Click="ButtonAccept_Click"/>
+        <Button x:Name ="ButtonAccept"  Content="Accept" HorizontalAlignment="Right" Margin="5,5,5,10" VerticalAlignment="Bottom" Width="100" Click="ButtonAccept_Click"/>
         <TextBox x:Name ="TextBoxLenght" Margin="154,20,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Длинная" HorizontalAlignment='Left' Margin="21,20,0,0" VerticalAlignment="Top"/>
-        <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовывать" HorizontalAlignment="Left" Margin="154,147,0,0" VerticalAlignment="Top"/>
-        <Button x:Name="ButtonColorUp" Content="Цвет вверх" HorizontalAlignment="Left" Margin="21,80,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"  />
+        <Label Name="LabelIndicatorLongPeriod" Content="Long period" HorizontalAlignment='Right' Margin="0,20,165,0" VerticalAlignment="Top"/>
+        <CheckBox Name="CheckBoxPaintOnOff" Content="Is visible" HorizontalAlignment="Right" Margin="0,148,20,0" VerticalAlignment="Top"/>
+        <Button x:Name="ButtonColorUp" Content="Color Up" HorizontalAlignment="Left" Margin="21,80,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"  />
         <WindowsFormsHost x:Name="HostColorUp" Height="25" Margin="154,80,20,0" VerticalAlignment="Top"/>
         <TextBox x:Name ="TextBoxLenghtAverage" Margin="154,50,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Короткая" HorizontalAlignment="Left" Margin="21,50,0,0" VerticalAlignment="Top" />
-        <Button x:Name="ButtonColorDown" Content="Цвет вниз" HorizontalAlignment="Left" Margin="21,110,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorDown_Click" />
+        <Label Name="LabelIndicatorShortPeriod" Content="Short period" HorizontalAlignment="Right" Margin="0,50,165,0" VerticalAlignment="Top" />
+        <Button x:Name="ButtonColorDown" Content="Color down" HorizontalAlignment="Left" Margin="21,110,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorDown_Click" />
         <WindowsFormsHost x:Name="HostColorDown" Height="25" Margin="154,110,20,0" VerticalAlignment="Top"/>
     </Grid>
 </Window>

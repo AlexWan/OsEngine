@@ -333,14 +333,6 @@ namespace OsEngine.Charts.CandleChart
         private ChartMasterColorKeeper _colorKeeper; 
 
         /// <summary>
-        /// показать настройки цвета
-        /// </summary>
-        public void ShowColorDialog() 
-        {
-            _colorKeeper.ShowDialog();
-        }
-
-        /// <summary>
         /// установить тёмную схему для чарта
         /// </summary>
         public void SetBlackScheme()
@@ -524,7 +516,7 @@ namespace OsEngine.Charts.CandleChart
          * На областях, затем, можно создавать серии данных - Series
          * У Series в свою очередь есть точки данных(Point), через которые мы прорисовываем объекты
          */
-
+         
         /// <summary>
         /// создать область данных на чарте
         /// </summary>
@@ -566,11 +558,6 @@ namespace OsEngine.Charts.CandleChart
                     }
 
                     int totalLenght = 100 - allHeght - height;
-
-                    if (totalLenght <= 0)
-                    {
-                        throw new Exception("Значение высоты поля основного графика меньше нуля! Надо уменьшить высоту дополнительных полей!");
-                    }
 
                     primeArea.Position.Height = totalLenght;
                     primeArea.Position.Width = 100;
@@ -4178,7 +4165,7 @@ namespace OsEngine.Charts.CandleChart
                 }
             }
         }
-
+        
         void _chart_AxisViewChanging(object sender, ViewEventArgs e)
         {
             RePaintRightLebels();
@@ -5375,7 +5362,7 @@ namespace OsEngine.Charts.CandleChart
 
             RePaintPrimeLines(areaName);
         }
-
+        
         private List<SeriesYLength> _seriesYLengths = new List<SeriesYLength>();
 
         private SeriesYLength GetSeriesYLength(Series series, int start, int end, Series candleSeries)

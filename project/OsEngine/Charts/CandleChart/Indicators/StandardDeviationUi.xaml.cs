@@ -5,6 +5,7 @@
 using System;
 using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Language;
 using MessageBox = System.Windows.MessageBox;
 using TextBox = System.Windows.Forms.TextBox;
 
@@ -47,6 +48,12 @@ namespace OsEngine.Charts.CandleChart.Indicators
             ComboBoxPriceField.Items.Add(StandardDeviationTypePoints.Typical);
 
             ComboBoxPriceField.SelectedItem = _mA.TypePointsToSearch;
+
+            ButtonColor.Content = OsLocalization.Charts.LabelButtonIndicatorColor;
+            CheckBoxPaintOnOff.Content = OsLocalization.Charts.LabelPaintIntdicatorIsVisible;
+            ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
+            LabelIndicatorPeriod.Content = OsLocalization.Charts.LabelIndicatorPeriod;
+            LabelIndicatorCandlePriceType.Content = OsLocalization.Charts.LabelIndicatorCandlePriceType;
         }
 
 

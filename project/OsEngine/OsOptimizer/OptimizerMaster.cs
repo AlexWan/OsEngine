@@ -6,6 +6,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers.Optimizer;
@@ -48,7 +49,7 @@ namespace OsEngine.OsOptimizer
 
             _fazeCount = 1;
 
-            SendLogMessage("Начинаем проверку всех стратегий в системе на наличие параметров",LogMessageType.System);
+            SendLogMessage(OsLocalization.Optimizer.Message11,LogMessageType.System);
 
             for (int i = 0; i < 3; i++)
             {
@@ -93,8 +94,6 @@ namespace OsEngine.OsOptimizer
                     writer.WriteLine(_filterProfitFactorValue);
                     writer.WriteLine(_filterProfitFactorIsOn);
 
-                    writer.WriteLine(_typeOptimization);
-                    writer.WriteLine(_typeOptimizationFunction);
 
                     writer.WriteLine(_timeStart);
                     writer.WriteLine(_timeEnd);
@@ -137,9 +136,6 @@ namespace OsEngine.OsOptimizer
                     _filterProfitFactorValue = Convert.ToDecimal(reader.ReadLine());
                     _filterProfitFactorIsOn = Convert.ToBoolean(reader.ReadLine());
 
-                    Enum.TryParse(reader.ReadLine(), out _typeOptimization);
-                    Enum.TryParse(reader.ReadLine(), out  _typeOptimizationFunction);
-
                     _timeStart = Convert.ToDateTime(reader.ReadLine());
                     _timeEnd = Convert.ToDateTime(reader.ReadLine());
                     _fazeCount = Convert.ToInt32(reader.ReadLine());
@@ -150,7 +146,7 @@ namespace OsEngine.OsOptimizer
             }
             catch (Exception error)
             {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
+                //SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -522,34 +518,6 @@ namespace OsEngine.OsOptimizer
 
 // вкладка 4, оптимизация
 
-        /// <summary>
-        /// способ оптимизации
-        /// </summary>
-        public OptimizationType TypeOptimization
-        {
-            get { return _typeOptimization; }
-            set
-            {
-                _typeOptimization = value;
-                Save();
-            }
-        }
-        private OptimizationType _typeOptimization;
-
-        /// <summary>
-        /// выбранная функция на которую будет ориентироваться алгоритм
-        /// оптимизации при отсеивании не нужных к обходу веток
-        /// </summary>
-        public OptimizationFunctionType TypeOprimizationFunction
-        {
-            get { return _typeOptimizationFunction; }
-            set
-            {
-                _typeOptimizationFunction = value;
-                Save();
-            }
-        }
-        private OptimizationFunctionType _typeOptimizationFunction;
 
 // вкладка 5, фазы оптимизации
 
@@ -641,7 +609,7 @@ namespace OsEngine.OsOptimizer
 
             if (dayAll < 2)
             {
-                SendLogMessage("Число дней в истории слишком мало для оптимизации",LogMessageType.System);
+                SendLogMessage(OsLocalization.Optimizer.Message12,LogMessageType.System);
                 return;
             }
 
@@ -687,7 +655,7 @@ namespace OsEngine.OsOptimizer
                     }
                     if (i + 1 == fazesLenght.Count)
                     {
-                        SendLogMessage("Слишком малое кол-во дней для такого количества фаз",LogMessageType.System);
+                        SendLogMessage(OsLocalization.Optimizer.Message13,LogMessageType.System);
                         return;
                     }
                 }
@@ -827,8 +795,8 @@ namespace OsEngine.OsOptimizer
         {
             if (Fazes == null || Fazes.Count == 0)
             {
-                MessageBox.Show("Не возможно запустить оптимизацию. Не сформирована последовательность этапов.");
-                SendLogMessage("Не возможно запустить оптимизацию. Не сформирована последовательность этапов.", LogMessageType.System);
+                MessageBox.Show(OsLocalization.Optimizer.Message14);
+                SendLogMessage(OsLocalization.Optimizer.Message14, LogMessageType.System);
                 if (NeadToMoveUiToEvent != null)
                 {
                     NeadToMoveUiToEvent(NeadToMoveUiTo.Fazes);
@@ -840,8 +808,8 @@ namespace OsEngine.OsOptimizer
             if (TabsSimpleNamesAndTimeFrames == null ||
                 TabsSimpleNamesAndTimeFrames.Count == 0)
             {
-                MessageBox.Show("Не возможно запустить оптимизацию. Для текущего робота не выбраны бумаги и таймфремы во вкладки.");
-                SendLogMessage("Не возможно запустить оптимизацию. Для текущего робота не выбраны бумаги и таймфремы во вкладки.", LogMessageType.System);
+                MessageBox.Show(OsLocalization.Optimizer.Message15);
+                SendLogMessage(OsLocalization.Optimizer.Message15, LogMessageType.System);
                 if (NeadToMoveUiToEvent != null)
                 {
                     NeadToMoveUiToEvent(NeadToMoveUiTo.TabsAndTimeFrames);
@@ -853,8 +821,8 @@ namespace OsEngine.OsOptimizer
                 Storage.SecuritiesTester == null ||
                 Storage.SecuritiesTester.Count == 0)
             {
-                MessageBox.Show("Не возможно запустить оптимизацию. Не подключены данные для тестирования.");
-                SendLogMessage("Не возможно запустить оптимизацию. Не подключены данные для тестирования.",LogMessageType.System);
+                MessageBox.Show(OsLocalization.Optimizer.Message16);
+                SendLogMessage(OsLocalization.Optimizer.Message16, LogMessageType.System);
 
                 if (NeadToMoveUiToEvent != null)
                 {
@@ -865,8 +833,8 @@ namespace OsEngine.OsOptimizer
 
             if (string.IsNullOrEmpty(_strategyName))
             {
-                MessageBox.Show("Не возможно запустить оптимизацию. Не выбрана стратегия.");
-                SendLogMessage("Не возможно запустить оптимизацию. Не выбрана стратегия.", LogMessageType.System);
+                MessageBox.Show(OsLocalization.Optimizer.Message17);
+                SendLogMessage(OsLocalization.Optimizer.Message17, LogMessageType.System);
                 if (NeadToMoveUiToEvent != null)
                 {
                     NeadToMoveUiToEvent(NeadToMoveUiTo.NameStrategy);
@@ -887,8 +855,8 @@ namespace OsEngine.OsOptimizer
 
             if (onParamesReady == false)
             {
-                MessageBox.Show("Не возможно запустить оптимизацию. Т.к. не выбран ни один параметр оптимизации.");
-                SendLogMessage("Не возможно запустить оптимизацию. Т.к. не выбран ни один параметр оптимизации.", LogMessageType.System);
+                MessageBox.Show(OsLocalization.Optimizer.Message18);
+                SendLogMessage(OsLocalization.Optimizer.Message18, LogMessageType.System);
                 if (NeadToMoveUiToEvent != null)
                 {
                     NeadToMoveUiToEvent(NeadToMoveUiTo.Parametrs);

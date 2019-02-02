@@ -6,6 +6,7 @@
 using System;
 using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Language;
 using MessageBox = System.Windows.MessageBox;
 using TextBox = System.Windows.Forms.TextBox;
 
@@ -41,7 +42,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
             HostColorBase.Child.BackColor = _wr.ColorBase;
             CheckBoxPaintOnOff.IsChecked = _wr.PaintOn;
 
-
+            ButtonColor.Content = OsLocalization.Charts.LabelButtonIndicatorColor;
+            LabelIndicatorLongPeriod.Content = OsLocalization.Charts.LabelIndicatorLongPeriod;
+            ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
+            CheckBoxPaintOnOff.Content = OsLocalization.Charts.LabelPaintIntdicatorIsVisible;
         }
 
         /// <summary>

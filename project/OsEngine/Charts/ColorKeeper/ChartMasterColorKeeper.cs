@@ -15,7 +15,7 @@ namespace OsEngine.Charts.ColorKeeper
     /// </summary>
     public class ChartMasterColorKeeper
     {
-
+        
         /// <summary>
         /// имя
         /// </summary>
@@ -138,22 +138,6 @@ namespace OsEngine.Charts.ColorKeeper
                 {
                     File.Delete(@"Engine\Color\" + _name + "Color.txt");
                 }
-            }
-            catch (Exception error)
-            {
-                SendNewMessage(error.ToString(),LogMessageType.Error);
-            }
-        }
-
-        /// <summary>
-        /// показать окно настроек
-        /// </summary>
-        public void ShowDialog() 
-        {
-            try
-            {
-                ChartMasterColorKeeperUi ui = new ChartMasterColorKeeperUi(this);
-                ui.Show();
             }
             catch (Exception error)
             {

@@ -13,6 +13,7 @@ using System.Windows.Shapes;
 using OsEngine.Alerts;
 using OsEngine.Entity;
 using OsEngine.Journal.Internal;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels.Tab;
@@ -498,7 +499,7 @@ namespace OsEngine.OsTrader.Panels
             if (_parameters == null ||
                 _parameters.Count == 0)
             {
-                MessageBox.Show("У данной стратегии нет встроенных параметров для настройки");
+                MessageBox.Show(OsLocalization.Trader.Label51);
                 return;
             }
             ParemetrsUi ui = new ParemetrsUi(_parameters);
@@ -519,7 +520,7 @@ namespace OsEngine.OsTrader.Panels
 
             if (_parameters.Find(p => p.Name == name)!= null)
             {
-                throw new Exception("Ахтунг! Параметр с таким именем уже существует!");
+                throw new Exception(OsLocalization.Trader.Label52);
             }
 
             return (StrategyParameterDecimal)LoadParameterValues(newParameter);
@@ -539,7 +540,7 @@ namespace OsEngine.OsTrader.Panels
 
             if (_parameters.Find(p => p.Name == name) != null)
             {
-                throw new Exception("Ахтунг! Параметр с таким именем уже существует!");
+                throw new Exception(OsLocalization.Trader.Label52);
             }
 
             return (StrategyParameterInt)LoadParameterValues(newParameter);
@@ -557,7 +558,7 @@ namespace OsEngine.OsTrader.Panels
 
             if (_parameters.Find(p => p.Name == name) != null)
             {
-                throw new Exception("Ахтунг! Параметр с таким именем уже существует!");
+                throw new Exception(OsLocalization.Trader.Label52);
             }
 
             return (StrategyParameterString)LoadParameterValues(newParameter);
@@ -574,7 +575,7 @@ namespace OsEngine.OsTrader.Panels
 
             if (_parameters.Find(p => p.Name == name) != null)
             {
-                throw new Exception("Ахтунг! Параметр с таким именем уже существует!");
+                throw new Exception(OsLocalization.Trader.Label52);
             }
 
             return (StrategyParameterBool)LoadParameterValues(newParameter);
@@ -712,7 +713,7 @@ namespace OsEngine.OsTrader.Panels
                 }
                 else if (reactionType == RiskManagerReactionType.ShowDialog)
                 {
-                    string message = "Риск менеджер предупреждает о превышении дневного лимита убытков!";
+                    string message = OsLocalization.Trader.Label53;
                     ShowMessageInNewThread(message);
                 }
             }
@@ -751,7 +752,7 @@ namespace OsEngine.OsTrader.Panels
         {
             try
             {
-                string message = "Риск менеджер предупреждает о превышении дневного лимита убытков! Дальнейшие торги остановлены! Робот: " + NameStrategyUniq;
+                string message = OsLocalization.Trader.Label54 + NameStrategyUniq;
                 ShowMessageInNewThread(message);
 
                 for (int i = 0; i < _botTabs.Count; i++)

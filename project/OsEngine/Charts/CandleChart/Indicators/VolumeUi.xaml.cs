@@ -4,6 +4,7 @@
 
 using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Language;
 using TextBox = System.Windows.Forms.TextBox;
 
 namespace OsEngine.Charts.CandleChart.Indicators
@@ -19,6 +20,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
             InitializeComponent();
             _volume = fractail;
             ShowSettingsOnForm();
+
+            ButtonColorUp.Content = OsLocalization.Charts.LabelButtonIndicatorColorUp;
+            ButtonColorDown.Content = OsLocalization.Charts.LabelButtonIndicatorColorDown;
+            ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
         }
 
         private void ShowSettingsOnForm()// выгрузить настройки на форму

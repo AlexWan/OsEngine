@@ -4,17 +4,17 @@
         Title="AO" Height="265" Width="317" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico" Topmost="True">
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
-        <Button x:Name ="ButtonAccept" Content="Принять" Margin="0,0,10,10" Click="ButtonAccept_Click" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="125"/>
+        <Button x:Name ="ButtonAccept" Content="Accept" Margin="0,0,10,10" Click="ButtonAccept_Click" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="125"/>
         <TextBox x:Name ="TextBoxLenghtLong" Height="23" Margin="150,20,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Длинная скользящая" HorizontalAlignment="Left" Margin="17,20,0,0" VerticalAlignment="Top" />
-        <Button x:Name="ButtonColorUp" Content="Цвет верхней" HorizontalAlignment="Left" Margin="18,101,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorUp_Click" />
+        <Label Name="LabelIndicatorLongPeriod" Content="Long period" HorizontalAlignment="Right" Margin="0,20,163,0" VerticalAlignment="Top" />
+        <Button x:Name="ButtonColorUp" Content="Color Up" HorizontalAlignment="Left" Margin="18,101,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorUp_Click" />
         <WindowsFormsHost x:Name="HostColorUp" Height="22" Margin="150,101,20,0" VerticalAlignment="Top"/>
-        <Button x:Name="ButtonColorDown" Content="Цвет нижней" HorizontalAlignment="Left" Margin="18,128,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorDown_Click" />
+        <Button x:Name="ButtonColorDown" Content="Color down" HorizontalAlignment="Left" Margin="18,128,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorDown_Click" />
         <WindowsFormsHost x:Name="HostColorDown" Height="22" Margin="150,128,20,0" VerticalAlignment="Top"/>
-        <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовывать" HorizontalAlignment="Left" Margin="150,155,0,0" VerticalAlignment="Top"/>
+        <CheckBox Name="CheckBoxPaintOnOff" Content="Is visible" HorizontalAlignment="Right" Margin="0,155,20,0" VerticalAlignment="Top"/>
         <TextBox x:Name ="TextBoxLenghtShort" Height="23" Margin="150,46,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Короткая скользящая" HorizontalAlignment="Left" Margin="17,46,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelIndicatorShortPeriod" Content="Short period" HorizontalAlignment="Right" Margin="0,46,163,0" VerticalAlignment="Top"/>
         <ComboBox x:Name="ComboBoxMovingType" Margin="150,71,20,0" VerticalAlignment="Top"/>
-        <Label Content="Метод рассчёта" HorizontalAlignment="Left" Margin="17,71,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelIndicatorMethod" Content="Calculation method" HorizontalAlignment="Right" Margin="0,71,163,0" VerticalAlignment="Top"/>
     </Grid>
 </Window>

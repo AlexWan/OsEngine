@@ -5,6 +5,7 @@
 using System;
 using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Language;
 using MessageBox = System.Windows.MessageBox;
 
 namespace OsEngine.Charts.CandleChart.Indicators
@@ -36,6 +37,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
             TextBoxLenght.Text = _rsi.Lenght.ToString();
             HostColor.Child = new TextBox();
             HostColor.Child.BackColor = _rsi.ColorBase;
+
+            ButtonColor.Content = OsLocalization.Charts.LabelButtonIndicatorColor;
+            ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
+            LabelIndicatorPeriod.Content = OsLocalization.Charts.LabelIndicatorPeriod;
         }
 
         /// <summary>

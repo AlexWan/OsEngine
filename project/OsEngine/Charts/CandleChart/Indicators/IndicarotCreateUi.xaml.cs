@@ -5,6 +5,8 @@
 using System;
 using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Charts.CandleChart.Indicators
 {
@@ -39,20 +41,14 @@ namespace OsEngine.Charts.CandleChart.Indicators
             InitializeComponent();
             _chartMaster = chartMaster;
 
-            _gridViewIndicators = new DataGridView();
+            _gridViewIndicators = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
+                DataGridViewAutoSizeRowsMode.AllCells);
 
-            HostNames.Child = _gridViewIndicators;
-
-            _gridViewIndicators.AllowUserToOrderColumns = false;
-            _gridViewIndicators.AllowUserToDeleteRows = false;
-            _gridViewIndicators.AllowUserToAddRows = false;
-            _gridViewIndicators.AllowUserToResizeRows = false;
-            _gridViewIndicators.RowHeadersVisible = false;
             _gridViewIndicators.ReadOnly = true;
-            _gridViewIndicators.AllowUserToResizeColumns = false;
-
+            _gridViewIndicators.ScrollBars = ScrollBars.Vertical;
+            HostNames.Child = _gridViewIndicators;
             DataGridViewColumn column = new DataGridViewColumn();
-            column.HeaderText = @"Тип индикатора";
+            column.HeaderText = OsLocalization.Charts.LabelIndicatorType;
             column.CellTemplate = new DataGridViewTextBoxCell();
             column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridViewIndicators.Columns.Add(column);
@@ -106,23 +102,17 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 _gridViewIndicators.Rows.Add("Trades");
             }
 
-            _gridViewIndicators.SelectionChanged += gridViewIndicators_SelectionChanged;
 
-
-            _gridViewAreas = new DataGridView();
+            _gridViewAreas = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
+                DataGridViewAutoSizeRowsMode.AllCells);
 
             HostArea.Child = _gridViewAreas;
 
-            _gridViewAreas.AllowUserToOrderColumns = false;
-            _gridViewAreas.AllowUserToDeleteRows = false;
-            _gridViewAreas.AllowUserToAddRows = false;
-            _gridViewAreas.AllowUserToResizeRows = false;
-            _gridViewAreas.RowHeadersVisible = false;
             _gridViewAreas.ReadOnly = true;
-            _gridViewAreas.AllowUserToResizeColumns = false;
+
 
             DataGridViewColumn column1 = new DataGridViewColumn();
-            column1.HeaderText = @"Окна на графике";
+            column1.HeaderText = OsLocalization.Charts.LabelIndicatorAreasOnChart;
             column1.CellTemplate = new DataGridViewTextBoxCell();
             column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridViewAreas.Columns.Add(column1);
@@ -138,202 +128,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
 
             _gridViewAreas.Rows.Add("NewArea");
-        }
 
-        /// <summary>
-        /// пользователь сменил индикатор
-        /// </summary>
-        void gridViewIndicators_SelectionChanged(object sender, EventArgs e)
-        {
-
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "KalmanFilter")
-            {
-                TextBlockDescription.Text = " Эффективный рекурсивный фильтр, оценивающий вектор состояния динамической системы, используя ряд неполных и зашумленных измерений. Фильтр Калмана широко используется в инженерных и эконометрических приложениях";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Moving Average")
-            {
-                TextBlockDescription.Text = "Moving Average(Скользящая средняя) - линия, представляющая собой усреднённое значение цен закрытия свечек, за определённый период";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Bollinger")
-            {
-                TextBlockDescription.Text = "Bollinger(линии Боллинджера) - две линии, образующие канал с <нормальным> ценовым диапазоном. При построении учитывает волатильность.";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Alligator")
-            {
-                TextBlockDescription.Text = "Alligator(Генадий) - три скользящие средние призванные показывать тренд.";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "AO")
-            {
-                TextBlockDescription.Text = "AO(Awesome Oscillator) - осциллятор показывающий скорость изменения цены.";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Fractal" ||
-                _gridViewIndicators.SelectedCells[0].Value.ToString() == "Fractal")
-            {
-                TextBlockDescription.Text = "Fractal(Фрактал) - точки, обозначающие уровни поддержки и сопротивлений";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "AccumulationDistribution")
-            {
-                TextBlockDescription.Text = "AccumulationDistribution A/D Индикатор Накопления/Распределения ";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "ADX")
-            {
-                TextBlockDescription.Text = "ADX(Average Directional Movement Index) - три линии, показывающие скорость изменения цены. ";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "ATR")
-            {
-                TextBlockDescription.Text = "ATR(Average true range — Средний истинный диапазон) - индикатор волатильности";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "CMO")
-            {
-                TextBlockDescription.Text = "Chande Momentum Oscillator, CMO - осциллятор скорости изменения цены ";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Force Index")
-            {
-                TextBlockDescription.Text = "Elder Force Oscillator - используется для измерения силы быков при росте цены и силу медведей при падении.";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "OnBalanceVolume")
-            {
-                TextBlockDescription.Text = "OnBalanceVolume OBV";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "StochasticOscillator")
-            {
-                TextBlockDescription.Text = "StochasticOscillator - Стохастический осциллятор - это индикатор, который показывает отношение текущей цены закрытия к максимуму/минимуму за установленный период.";
-            }
-
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "RSI")
-            {
-                TextBlockDescription.Text = "RSI(Индекс относительной силы. relative strength index) - осциллятор,  определяющий силу тренда.";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "ROC")
-            {
-                TextBlockDescription.Text = "ROC -Индикатор Rate of Change рассчитывается, как сравнение текущей цены с ценой прошлого периода, отстоящего от текущего на N периодов. ";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "RVI")
-            {
-                TextBlockDescription.Text = "Relative Vigor Index. «Индекс относительной бодрости» от Джона Элреса.";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "BFMFI")
-            {
-                TextBlockDescription.Text = "Индекс Облегчения Рынка (Market Facilitation Index, BW MFI)  показывает изменение цены, приходящееся на один тик. Создан Билом Вильямсом";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "BullsPower")
-            {
-                TextBlockDescription.Text = "Bulls Power - Элдер разработал Bulls Power как разницу между максимальной ценой и 13-периодной экспоненциальной скользящей средней";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "BearsPower")
-            {
-                TextBlockDescription.Text = "Bears Power - Элдер разработал Bears Power как разницу между минимальной ценой и 13-периодной экспоненциальной скользящей средней";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Volume Power")
-            {
-                TextBlockDescription.Text = "Две линии отражающие суммарный объём направленных сделок за определённое время";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Volume")
-            {
-                TextBlockDescription.Text = "Volume - суммарный объём операций.";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Trades")
-            {
-                TextBlockDescription.Text = "Trades - последние 500 тиков по инструменту";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Price Channel")
-            {
-                TextBlockDescription.Text = "Канал, построенный по максимумам и минимумам свечей за определённый канал";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Price Oscillator")
-            {
-                TextBlockDescription.Text = "Разница между двумя скользящими средними, выраженная в процентах или в пунктах";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Price Oscillator")
-            {
-                TextBlockDescription.Text = "Разница между двумя скользящими средними, выраженная в процентах или в пунктах";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "MACD Histogram")
-            {
-                TextBlockDescription.Text = "MACD Histogram (Moving Average Convergence-Divergence) Индикатор ковергенции-дивергенции скользящих средних. Приведённый к Гистограмме";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "MACD Line")
-            {
-                TextBlockDescription.Text = "MACD (Moving Average Convergence-Divergence) Индикатор ковергенции-дивергенции скользящих средних";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Momentum")
-            {
-                TextBlockDescription.Text = "Momentum - показывает скорость изменения цен";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "MoneyFlowIndex")
-            {
-                TextBlockDescription.Text = "MFI - Технический Индикатор Индекс Денежных Потоков (Money Flow Index, MFI) показывает интенсивность, с которой деньги вкладываются в ценную бумагу или выводятся из нее.";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Envelops")
-            {
-                TextBlockDescription.Text = "Envelops. Канал построенный как отклонение от скользящей средней. ";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Efficiency Ratio")
-            {
-                TextBlockDescription.Text = "Kaufman Efficiency Ratio. Индикатор волатильности. Обобщенная фрактальная эффективностьна основе книги Кауфмана «Умный Трейдинг»";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Adaptive Look Back")
-            {
-                TextBlockDescription.Text = "Adaptive Look Back. Индикатор волатильности от Gene Geren.";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "IvashovRange")
-            {
-                TextBlockDescription.Text = "Индикатор волатильности рассчитывающий сглаженное отклонение от простой скользящей средней";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Ichimoku")
-            {
-                TextBlockDescription.Text = "Ишимоку - индикатор состоящий из группы линий";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "CCI")
-            {
-                TextBlockDescription.Text = "CCI(Commodity Channel Index) индикатор индекс товарного канала - линия, представляющая собой отклонение значения цены по (H+L+C)/3 от средней за период 9";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Parabolic SAR")
-            {
-                TextBlockDescription.Text = "Parabolic SAR(Stop and Reverse)";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Standard Deviation")
-            {
-                TextBlockDescription.Text = "Standard Deviation(Среднеквадратическое отклонение) - линия, представляющая собой cреднеквадратическое отклонение значение цен закрытия свечек, за определённый период";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Volume Oscillator")
-            {
-                TextBlockDescription.Text = "Volume Oscillator (Осциллятор объема) представляет из себя разность двух МА объема сделок по инструменту";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "AC")
-            {
-                TextBlockDescription.Text = "AC (Acceleration/Deceleration, AC)  измеряет ускорение и замедление цены. Индикатор разработан Билом Вильямсом.";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "VerticalHorizontalFilter")
-            {
-                TextBlockDescription.Text = "VerticalHorizontalFilter Вертикальный горизонтальный фильтр (VHF) показывает, в какой фазе находится рынок: в фазе направленного движения или застоя.";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "WilliamsRange")
-            {
-                TextBlockDescription.Text = "Williams Percent Range.  Индикатор перекупленности либо перепроданности. ";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Trix")
-            {
-                TextBlockDescription.Text = "Triple Exponential Moving Average. Индикатор импульса, предназначенный для фильтрации трендового движения цены актива от рыночного шума в части большого тренда.";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Unk")
-            {
-                TextBlockDescription.Text = "";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "TradeThread")
-            {
-                TextBlockDescription.Text = "TradeThread. Объемно-тиковый осциллятор потока контрактов. ";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Pivot")
-            {
-                TextBlockDescription.Text = "Pivot Camarilla. Индикатор рассчитывающий уровни поддержки и сопротивления. ";
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Pivot Points")
-            {
-                TextBlockDescription.Text = "Pivot Points. Индикатор рассчитывающий уровни поддержки и сопротивления на основании High, Low, Close предидущего торгового дня ";
-            }
-
-
+            Title = OsLocalization.Charts.TitleIndicatorCreateUi;
+            ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
         }
 
         public IIndicatorCandle IndicatorCandle;

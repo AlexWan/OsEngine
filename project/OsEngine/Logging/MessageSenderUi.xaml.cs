@@ -3,6 +3,7 @@
 */
 
 using System.Windows;
+using OsEngine.Language;
 
 namespace OsEngine.Logging
 {
@@ -18,17 +19,43 @@ namespace OsEngine.Logging
             _sender = sender;
             InitializeComponent();
             LoadDateOnForm();
+
+            Title = OsLocalization.Logging.TitleMessageSenderUi;
+
+            Label3.Content = OsLocalization.Logging.Label3;
+            Label4.Content = OsLocalization.Logging.Label4;
+            Label5.Content = OsLocalization.Logging.Label5;
+            Label52.Content = OsLocalization.Logging.Label5;
+            ButtonAccept.Content = OsLocalization.Logging.Button1;
+            ButtonSmsGlobeSet.Content = OsLocalization.Logging.Button2;
+            ButtonMailGlobeSet.Content = OsLocalization.Logging.Button2;
+
+            CheckBoxSmsSignal.Content = OsLocalization.Logging.Label6;
+            CheckBoxSmsTrade.Content = OsLocalization.Logging.Label7;
+            CheckBoxSmsError.Content = OsLocalization.Logging.Label8;
+            CheckBoxSmsSystem.Content = OsLocalization.Logging.Label9;
+            CheckBoxSmsConnect.Content = OsLocalization.Logging.Label10;
+
+            CheckBoxMailSignal.Content = OsLocalization.Logging.Label6;
+            CheckBoxMailTrade.Content = OsLocalization.Logging.Label7;
+            CheckBoxMailError.Content = OsLocalization.Logging.Label8;
+            CheckBoxMailSystem.Content = OsLocalization.Logging.Label9;
+            CheckBoxMailConnect.Content = OsLocalization.Logging.Label10;
+
         }
 
         private void LoadDateOnForm() // выгрузить настройки на форму
         {
+            ComboBoxModeMail.Items.Add(OsLocalization.Logging.Label1);
+            ComboBoxModeMail.Items.Add(OsLocalization.Logging.Label2);
+
             if (_sender.MailSendOn)
             {
-                ComboBoxModeMail.Text = "Включен";
+                ComboBoxModeMail.Text = OsLocalization.Logging.Label1;
             }
             else
             {
-                ComboBoxModeMail.Text = "Отключен";
+                ComboBoxModeMail.Text = OsLocalization.Logging.Label2;
             }
 
             CheckBoxMailSignal.IsChecked = _sender.MailSignalSendOn;
@@ -38,14 +65,16 @@ namespace OsEngine.Logging
             CheckBoxMailConnect.IsChecked = _sender.MailConnectSendOn;
 
 
+            ComboBoxModeSms.Items.Add(OsLocalization.Logging.Label1);
+            ComboBoxModeSms.Items.Add(OsLocalization.Logging.Label2);
 
             if (_sender.SmsSendOn)
             {
-                ComboBoxModeSms.Text = "Включен";
+                ComboBoxModeSms.Text = OsLocalization.Logging.Label1;
             }
             else
             {
-                ComboBoxModeSms.Text = "Отключен";
+                ComboBoxModeSms.Text = OsLocalization.Logging.Label2;
             }
 
             CheckBoxSmsSignal.IsChecked = _sender.SmsSignalSendOn;
@@ -57,7 +86,7 @@ namespace OsEngine.Logging
 
         private void Save() // сохранить
         {
-            if (ComboBoxModeMail.Text == "Включен")
+            if (ComboBoxModeMail.Text == OsLocalization.Logging.Label1)
             {
                 _sender.MailSendOn = true;
             }
@@ -72,7 +101,7 @@ namespace OsEngine.Logging
            _sender.MailSystemSendOn = CheckBoxMailSystem.IsChecked.Value;
            _sender.MailConnectSendOn = CheckBoxMailConnect.IsChecked.Value;
 
-            if (ComboBoxModeSms.Text == "Включен" )
+            if (ComboBoxModeSms.Text == OsLocalization.Logging.Label1)
             {
                 _sender.SmsSendOn = true;
             }

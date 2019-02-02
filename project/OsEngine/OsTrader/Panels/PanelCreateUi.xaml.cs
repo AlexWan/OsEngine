@@ -3,6 +3,7 @@
 */
 
 using System.Windows;
+using OsEngine.Language;
 
 namespace OsEngine.OsTrader.Panels
 {
@@ -17,8 +18,13 @@ namespace OsEngine.OsTrader.Panels
 
             ComboBoxStrategyType.ItemsSource = PanelCreator.GetNamesStrategy();
             ComboBoxStrategyType.SelectedIndex = 0;
-
             TextBoxName.Text = "MyNewBot";
+
+            Title = OsLocalization.Trader.Label59;
+            LabelStrategyType.Content = OsLocalization.Trader.Label60;
+            LabelName.Content = OsLocalization.Trader.Label61;
+            ButtonAccept.Content = OsLocalization.Trader.Label17;
+
         }
 
         public bool IsAccepted;
@@ -31,7 +37,7 @@ namespace OsEngine.OsTrader.Panels
         {
             if(string.IsNullOrWhiteSpace(TextBoxName.Text))
             {
-                MessageBox.Show("Не верное имя. Не возможно продолжить процесс создания бота.");
+                MessageBox.Show(OsLocalization.Trader.Label58);
                 return;
             }
 

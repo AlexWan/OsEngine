@@ -4,11 +4,11 @@
         Title="Adaptive Look Back" Height="184" Width="324" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico" Topmost="True">
     <Grid>
         <Rectangle  Margin="5,5,5,37"/>
-        <Button x:Name ="ButtonAccept"  Content="Принять" Margin="0,0,5,7" VerticalAlignment="Bottom" Click="ButtonAccept_Click" RenderTransformOrigin="0.5,0.5" FontWeight="Bold" BorderThickness="0" HorizontalAlignment="Right" Width="137"/>
+        <Button x:Name ="ButtonAccept"  Content="Accept" Margin="0,0,5,7" VerticalAlignment="Bottom" Click="ButtonAccept_Click" RenderTransformOrigin="0.5,0.5" HorizontalAlignment="Right" Width="137"/>
         <TextBox x:Name ="TextBoxLenght" HorizontalAlignment="Right" Height="23" Margin="0,20,19,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="135" SelectionOpacity="0"/>
-        <Label Content="Длинна" HorizontalAlignment="Left" Margin="82,20,0,0" VerticalAlignment="Top" />
-        <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовывать" HorizontalAlignment="Right" Margin="0,74,30,0" VerticalAlignment="Top" />
-        <Button x:Name="ButtonColorAdx" Content="Цвет" HorizontalAlignment="Left" Margin="15,47,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"  />
+        <Label Name="LabelIndicatorPeriod" Content="Period" Margin="0,20,185,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="45" />
+        <CheckBox Name="CheckBoxPaintOnOff" Content="Is visible" HorizontalAlignment="Right" Margin="0,74,19,0" VerticalAlignment="Top" />
+        <Button x:Name="ButtonColorAdx" Content="Color" HorizontalAlignment="Left" Margin="15,47,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"  />
         <WindowsFormsHost x:Name="HostColorBase" HorizontalAlignment="Right" Height="22" Margin="0,47,19,0" VerticalAlignment="Top" Width="135"/>
 
     </Grid>

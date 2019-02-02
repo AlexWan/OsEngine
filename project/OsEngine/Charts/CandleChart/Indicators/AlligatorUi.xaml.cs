@@ -5,6 +5,7 @@
 using System;
 using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Language;
 using MessageBox = System.Windows.MessageBox;
 using TextBox = System.Windows.Forms.TextBox;
 
@@ -58,6 +59,22 @@ namespace OsEngine.Charts.CandleChart.Indicators
             ComboBoxMovingType.Items.Add(MovingAverageTypeCalculation.Weighted);
 
             ComboBoxMovingType.SelectedItem = _alligator.TypeCalculationAverage;
+
+            ButtonColorUp.Content = OsLocalization.Charts.LabelButtonIndicatorColor;
+            ButtonColorBase.Content = OsLocalization.Charts.LabelButtonIndicatorColor;
+            ButtonColorDown.Content = OsLocalization.Charts.LabelButtonIndicatorColor;
+            CheckBoxPaintOnOff.Content = OsLocalization.Charts.LabelPaintIntdicatorIsVisible;
+            ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
+            LabelIndicatorPeriod1.Content = OsLocalization.Charts.LabelIndicatorPeriod;
+            LabelIndicatorPeriod2.Content = OsLocalization.Charts.LabelIndicatorPeriod;
+            LabelIndicatorPeriod3.Content = OsLocalization.Charts.LabelIndicatorPeriod;
+            LabelIndicatorMethod.Content = OsLocalization.Charts.LabelIndicatorMethod;
+            LabelIndicatorAlligator1.Content = OsLocalization.Charts.LabelIndicatorAlligator1;
+            LabelIndicatorAlligator2.Content = OsLocalization.Charts.LabelIndicatorAlligator2;
+            LabelIndicatorAlligator3.Content = OsLocalization.Charts.LabelIndicatorAlligator3;
+            LabelIndicatorShift1.Content = OsLocalization.Charts.LabelIndicatorShift;
+            LabelIndicatorShift2.Content = OsLocalization.Charts.LabelIndicatorShift;
+            LabelIndicatorShift3.Content = OsLocalization.Charts.LabelIndicatorShift;
         }
 
         /// <summary>

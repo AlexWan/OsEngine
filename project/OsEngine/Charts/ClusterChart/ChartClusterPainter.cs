@@ -23,7 +23,7 @@ namespace OsEngine.Charts.ClusterChart
     public class ChartClusterPainter
     {
         // сервис
-
+        
         /// <summary>
         /// конструктор
         /// </summary>

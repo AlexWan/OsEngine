@@ -294,9 +294,6 @@
     </Compile>
     <Compile Include="Charts\ClusterChart\ChartClusterMaster.cs" />
     <Compile Include="Charts\ClusterChart\ChartClusterPainter.cs" />
-    <Compile Include="Charts\ColorKeeper\ChartMasterColorKeeperUi.xaml.cs">
-      <DependentUpon>ChartMasterColorKeeperUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Charts\CandleChart\ChartCandlePainter.cs" />
     <Compile Include="Charts\ColorKeeper\ChartMasterColorKeeper.cs" />
     <Compile Include="Charts\CandleChart\ChartCandleMaster.cs" />
@@ -323,7 +320,20 @@
     <Compile Include="Journal\JournalUi.xaml.cs">
       <DependentUpon>JournalUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Language\ITraderLanguage.cs" />
+    <Compile Include="Language\AlertsLocal.cs" />
+    <Compile Include="Language\ChartsLocal.cs" />
+    <Compile Include="Language\ConverterLocal.cs" />
+    <Compile Include="Language\DataLocal.cs" />
+    <Compile Include="Language\EntityLocal.cs" />
+    <Compile Include="Language\JournalLocal.cs" />
+    <Compile Include="Language\LoggingLocal.cs" />
+    <Compile Include="Language\MainWIndowLocal.cs" />
+    <Compile Include="Language\MarketLocal.cs" />
+    <Compile Include="Language\MinerLocal.cs" />
+    <Compile Include="Language\OptimizerLocal.cs" />
+    <Compile Include="Language\OsLocalization.cs" />
+    <Compile Include="Language\PrimeSettingsMasterUiLocal.cs" />
+    <Compile Include="Language\TraderLocal.cs" />
     <Compile Include="Logging\LogErrorUi.xaml.cs">
       <DependentUpon>LogErrorUi.xaml</DependentUpon>
     </Compile>
@@ -501,7 +511,7 @@
     </Compile>
     <Compile Include="Journal\Internal\DealStaticticGenerator.cs" />
     <Compile Include="Market\Servers\Quik\QuikDdeServer.cs" />
-    <Compile Include="OsMiner\OsMinerServer.cs" />
+    <Compile Include="Market\Servers\Miner\OsMinerServer.cs" />
     <Compile Include="OsMiner\OsMinerMaster.cs" />
     <Compile Include="OsMiner\OsMinerSet.cs" />
     <Compile Include="OsMiner\OsMinerSetUi.xaml.cs">
@@ -618,9 +628,6 @@
     </Compile>
     <Compile Include="OsTrader\Panels\PanelsGui\PriceChannelVolatilityUi.xaml.cs">
       <DependentUpon>PriceChannelVolatilityUi.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="OsTrader\Panels\PanelsGui\RobotUi.xaml.cs">
-      <DependentUpon>RobotUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="OsTrader\Panels\PanelsGui\RsiContrtrendUi.xaml.cs">
       <DependentUpon>RsiContrtrendUi.xaml</DependentUpon>
@@ -867,10 +874,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Charts\CandleChart\Indicators\WilliamsRangeUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Charts\ColorKeeper\ChartMasterColorKeeperUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -1134,10 +1137,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="OsTrader\Panels\PanelsGui\RobotUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="OsTrader\Panels\PanelsGui\RsiContrtrendUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -1230,8 +1229,16 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="PrimeSettings\PrimeSettingsMasterUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PrimeSettings\PrimeSettingsMaster.cs" />
+    <Compile Include="PrimeSettings\PrimeSettingsMasterUi.xaml.cs">
+      <DependentUpon>PrimeSettingsMasterUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -1248,6 +1255,7 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -1339,6 +1347,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\pickUpSize3.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\MainWIndow\gear.png" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using OsEngine.Charts.CandleChart;
+using OsEngine.Language;
 
 namespace OsEngine.OsTrader.Panels.PanelsGui
 {
@@ -18,6 +19,7 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
             _painter = new ChartCandlePainter("chart",bot.StartProgram);
             _painter.StartPaintPrimeChart(HostChart,Rectangle);
             _bot = bot;
+            ButtonPaint.Content = OsLocalization.Trader.Label133;
         }
 
         private void ButtonPaint_Click(object sender, RoutedEventArgs e)

@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
+using OsEngine.Language;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -26,6 +27,13 @@ namespace OsEngine.OsTrader.Panels.Tab
             ComboBoxChartType.Items.Add(ClusterType.SellVolume.ToString());
             ComboBoxChartType.Items.Add(ClusterType.DeltaVolume.ToString());
             ComboBoxChartType.SelectedItem = tab.ChartType.ToString();
+
+            Title = OsLocalization.Trader.Label77;
+            ButtonConnectorDialog.Content = OsLocalization.Trader.Label78;
+            LabelShowType.Content = OsLocalization.Trader.Label79;
+            LabelLinesStep.Content = OsLocalization.Trader.Label80;
+            ButtonAccept.Content = OsLocalization.Trader.Label17;
+
 
         }
 

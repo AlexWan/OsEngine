@@ -4,6 +4,7 @@
 using System;
 using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Language;
 using MessageBox = System.Windows.MessageBox;
 using TextBox = System.Windows.Forms.TextBox;
 
@@ -53,6 +54,19 @@ namespace OsEngine.Charts.CandleChart.Indicators
             Movingbox.SelectedItem = _so.TypeCalculationAverage;
 
             Movingbox.SelectedItem = _so.TypeIndicator;
+
+            ButtonColor1.Content = OsLocalization.Charts.LabelButtonIndicatorColor + " 1";
+            ButtonColor2.Content = OsLocalization.Charts.LabelButtonIndicatorColor + " 2";
+
+            CheckBoxPaintOnOff.Content = OsLocalization.Charts.LabelPaintIntdicatorIsVisible;
+            ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
+
+            LabelIndicatorPeriod1.Content = OsLocalization.Charts.LabelIndicatorPeriod + " 1";
+            LabelIndicatorPeriod2.Content = OsLocalization.Charts.LabelIndicatorPeriod + " 2";
+            LabelIndicatorPeriod3.Content = OsLocalization.Charts.LabelIndicatorPeriod + " 3";
+
+            LabelIndicatorSmaType.Content = OsLocalization.Charts.LabelIndicatorSmaType;
+
         }
 
         /// <summary>

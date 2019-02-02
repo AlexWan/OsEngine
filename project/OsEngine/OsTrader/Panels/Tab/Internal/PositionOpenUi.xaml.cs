@@ -6,6 +6,7 @@ using System;
 using System.Globalization;
 using System.Windows;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.OsTrader.Panels.Tab.Internal
 {
@@ -33,6 +34,14 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             ComboBoxOrderType.SelectedItem = PositionOpenType.Limit;
             ComboBoxOrderType.SelectionChanged += ComboBoxOrderType_SelectionChanged;
 
+            Title = OsLocalization.Trader.Label89;
+            LabelSecurity.Content = OsLocalization.Trader.Label102;
+            LabelVolume.Content = OsLocalization.Trader.Label30;
+            LabelPrice.Content = OsLocalization.Trader.Label31;
+            LabelOrderType.Content = OsLocalization.Trader.Label103;
+            LabelOrdersToIceberg.Content = OsLocalization.Trader.Label104;
+            ButtonAccept.Content = OsLocalization.Trader.Label17;
+            LabelSide.Content = OsLocalization.Trader.Label106;
         }
 
         /// <summary>
@@ -126,7 +135,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
             catch (Exception)
             {
-                MessageBox.Show("В одном из полей недопустимое значение. Операция прервана.");
+                MessageBox.Show(OsLocalization.Trader.Label13);
                 return;
             }
 
@@ -138,7 +147,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 }
                 catch (Exception)
                 {
-                    MessageBox.Show("В одном из полей недопустимое значение. Операция прервана.");
+                    MessageBox.Show(OsLocalization.Trader.Label13);
                     return;
                 }
             }

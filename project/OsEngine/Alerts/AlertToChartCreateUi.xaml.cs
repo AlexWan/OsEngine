@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Media;
 using OsEngine.Entity;
+using OsEngine.Language;
 using MessageBox = System.Windows.MessageBox;
 
 namespace OsEngine.Alerts
@@ -63,7 +64,7 @@ namespace OsEngine.Alerts
                 new SolidColorBrush(Color.FromArgb(red.A, red.R, red.G, red.B));
 
             CheckBoxWindow.IsChecked = false;
-            TextBoxAlertMessage.Text = "Алерт Сработал!";
+            TextBoxAlertMessage.Text = OsLocalization.Alerts.Message2;
 
 // торговые настойки по умолчанию
             TextBoxVolumeReaction.Text = "1";
@@ -108,7 +109,37 @@ namespace OsEngine.Alerts
             ComboBoxOrderType.SelectionChanged += ComboBoxOrderType_SelectionChanged;
             HideTradeButton();
 
+            ChangeText();
+            OsLocalization.LocalizationTypeChangeEvent += ChangeText;
+
+
             LabelOsa.MouseDown += LabelOsa_MouseDown;
+        }
+
+        private void ChangeText()
+        {
+            Title = OsLocalization.Alerts.TitleAlertToChartCreateUi;
+            CheckBoxOnOff.Content = OsLocalization.Alerts.Label1;
+            ButtonSendFirst.Content = OsLocalization.Alerts.Label2;
+            LabelTrade.Content = OsLocalization.Alerts.Label3;
+            LabelReactionType.Content = OsLocalization.Alerts.Label4;
+            LabelOrderType.Content = OsLocalization.Alerts.Label5;
+            LabelVolume.Content = OsLocalization.Alerts.Label6;
+            LabelSlippage.Content = OsLocalization.Alerts.Label7;
+            LabelNumClosedPos.Content = OsLocalization.Alerts.Label8;
+            LabelFireworks.Content = OsLocalization.Alerts.Label9;
+
+
+            CheckBoxMusicAlert.Content = OsLocalization.Alerts.Label10;
+            LabelLineWidth.Content = OsLocalization.Alerts.Label11;
+            LabelToopTipText.Content = OsLocalization.Alerts.Label12;
+            LabelToolTipColor.Content = OsLocalization.Alerts.Label13;
+            LabelLineColor.Content = OsLocalization.Alerts.Label14;
+            ButtonColorLabel.Content = OsLocalization.Alerts.Label15;
+            ButtonColorLine.Content = OsLocalization.Alerts.Label15;
+            CheckBoxWindow.Content = OsLocalization.Alerts.Label16;
+            ButtonSave.Content = OsLocalization.Alerts.Label17;
+
         }
 
         void LabelOsa_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -472,7 +503,7 @@ namespace OsEngine.Alerts
             }
             catch (Exception)
             {
-                MessageBox.Show("В одном из полей не допустимые значения");
+                MessageBox.Show(OsLocalization.Alerts.Message3);
             }
 
             if (MyAlert == null)

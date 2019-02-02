@@ -5,6 +5,7 @@
 using System;
 using System.Globalization;
 using System.Windows;
+using OsEngine.Language;
 
 namespace OsEngine.OsTrader.Panels.PanelsGui
 {
@@ -31,6 +32,14 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
             TextBoxVolumeOne.Text = _strategy.VolumeFix.ToString();
             RsiUp.Text = _strategy.Upline.Value.ToString(new CultureInfo("ru-RU"));
             RsiDown.Text = _strategy.Downline.Value.ToString(new CultureInfo("ru-RU"));
+
+            LabelRegime.Content = OsLocalization.Trader.Label115;
+            LabelVolume.Content = OsLocalization.Trader.Label30;
+            LabelSlippage.Content = OsLocalization.Trader.Label92;
+            ButtonAccept.Content = OsLocalization.Trader.Label132;
+            LabelRsiOverbought.Content = OsLocalization.Trader.Label141;
+            LabelRsiOversold.Content = OsLocalization.Trader.Label142;
+
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -49,7 +58,7 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
             }
             catch (Exception)
             {
-                MessageBox.Show("В одном из полей недопустимые значения. Процесс сохранения прерван");
+                MessageBox.Show(OsLocalization.Trader.Label13);
                 return;
             }
 

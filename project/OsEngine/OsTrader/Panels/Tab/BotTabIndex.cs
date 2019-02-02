@@ -13,6 +13,7 @@ using OsEngine.Charts;
 using OsEngine.Charts.CandleChart;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Connectors;
@@ -392,7 +393,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     && formula[i] !=  '2' && formula[i] !=  '3' && formula[i] !=  '4' && formula[i] !=  '5'
                     && formula[i] !=  '6' && formula[i] !=  '7' && formula[i] !=  '8' && formula[i] !=  '9')
                 { // непонятные символы
-                    SendNewLogMessage("Не удалось форматировать строку, т.к. в ней запрещённые символы",LogMessageType.Error);
+                    SendNewLogMessage(OsLocalization.Trader.Label76,LogMessageType.Error);
                     return "";
                 }
             }
@@ -402,7 +403,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 if ((formula[i] == '/' || formula[i] == '*' || formula[i] == '+' || formula[i] == '-') &&
                     (formula[i - 1] == '/' || formula[i - 1] == '*' || formula[i - 1] == '+' || formula[i - 1] == '-'))
                 { // два знака подряд
-                    SendNewLogMessage("Не удалось форматировать строку, т.к. в ней запрещённые символы",
+                    SendNewLogMessage(OsLocalization.Trader.Label76,
                         LogMessageType.Error);
                     return "";
                 }

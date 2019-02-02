@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Media;
 using System.Windows.Forms;
+using OsEngine.Language;
 
 namespace OsEngine.Alerts
 {
@@ -110,7 +111,7 @@ namespace OsEngine.Alerts
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;
-            column0.HeaderText = @"Время";
+            column0.HeaderText = OsLocalization.Alerts.GridHeader3;
             column0.ReadOnly = true;
             column0.Width = 80;
 
@@ -118,7 +119,7 @@ namespace OsEngine.Alerts
 
             DataGridViewColumn column = new DataGridViewColumn();
             column.CellTemplate = cell0;
-            column.HeaderText = @"Бот";
+            column.HeaderText = OsLocalization.Alerts.GridHeader4;
             column.ReadOnly = true;
             column.Width = 80;
             _grid.Columns.Add(column);
@@ -127,7 +128,7 @@ namespace OsEngine.Alerts
 
             DataGridViewColumn column1 = new DataGridViewColumn();
             column1.CellTemplate = cell0;
-            column1.HeaderText = @"Сообщение";
+            column1.HeaderText = OsLocalization.Alerts.GridHeader5;
             column1.ReadOnly = true;
             column1.Width = 400;
             _grid.Columns.Add(column1);

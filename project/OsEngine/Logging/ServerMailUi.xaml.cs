@@ -3,6 +3,7 @@
 */
 
 using System.Windows;
+using OsEngine.Language;
 
 namespace OsEngine.Logging
 {
@@ -29,14 +30,24 @@ namespace OsEngine.Logging
                 }
             }
 
+            ComboBoxMyMaster.Items.Add("Yandex");
+            ComboBoxMyMaster.Items.Add("Google");
+
             if (serverMail.Smtp == "smtp.yandex.ru")
             {
-                ComboBoxMyMaster.SelectedItem = "Яндекс";
+                ComboBoxMyMaster.SelectedItem = "Yandex";
             }
             else
             {
-                ComboBoxMyMaster.SelectedItem = "Гугл";
+                ComboBoxMyMaster.SelectedItem = "Google";
             }
+
+            Title = OsLocalization.Logging.TitleEmailServer;
+            ButtonAccept.Content = OsLocalization.Logging.Button1;
+            Label11.Content = OsLocalization.Logging.Label11;
+            Label12.Content = OsLocalization.Logging.Label12;
+            Label13.Content = OsLocalization.Logging.Label13;
+            Label14.Content = OsLocalization.Logging.Label14;
         }
 
         private void buttonAccept_Click(object sender, RoutedEventArgs e) // принять
@@ -82,7 +93,7 @@ namespace OsEngine.Logging
 
             serverMail.Adress = lockal2;
 
-            if (ComboBoxMyMaster.SelectedItem.ToString() == "Яндекс")
+            if (ComboBoxMyMaster.SelectedItem.ToString() == "Yandex")
             {
                 serverMail.Smtp = "smtp.yandex.ru";
             }

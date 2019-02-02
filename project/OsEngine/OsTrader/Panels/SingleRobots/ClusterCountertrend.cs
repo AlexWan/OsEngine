@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Windows;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels.Tab;
 
@@ -62,8 +63,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         /// </summary>
         public override void ShowIndividualSettingsDialog()
         {
-            MessageBox.Show("У данной стратегии настройки в виде параметров. Покупаем если находимся под самым большим объёмом на продажу за последние N кластеров. " + 
-                            "Продаём если находимся над самым большим объёмом на покупку за последние N кластеров");
+            MessageBox.Show(OsLocalization.Trader.Label111);
 
         }
 

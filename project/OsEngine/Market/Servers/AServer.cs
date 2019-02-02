@@ -3,8 +3,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Media;
 using System.Threading;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 
@@ -31,12 +33,12 @@ namespace OsEngine.Market.Servers
                 _serverRealization.SecurityEvent += _serverRealization_SecurityEvent;
                 _serverRealization.LogMessageEvent += SendLogMessage;
 
-                CreateParameterBoolean("Сохранять историю", true);
+                CreateParameterBoolean(OsLocalization.Market.ServerParam1, true);
                 _neadToSaveTicksParam = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
                 _neadToSaveTicksParam.ValueChange += SaveHistoryParam_ValueChange;
 
 
-                CreateParameterInt("Дней подгружать", 5);
+                CreateParameterInt(OsLocalization.Market.ServerParam2, 5);
                 _neadToSaveTicksDaysCountParam = (ServerParameterInt)ServerParameters[ServerParameters.Count - 1];
                 _neadToSaveTicksDaysCountParam.ValueChange += _neadToSaveTicksDaysCountParam_ValueChange;
 
@@ -73,9 +75,17 @@ namespace OsEngine.Market.Servers
                 threadDataSender.Name = "ServerThreadDataSender" + _serverRealization.ServerType;
                 threadDataSender.Start();
 
-                AServerTests tester = new AServerTests();
-                tester.Listen(this);
-                tester.LogMessageEvent += SendLogMessage;
+                if (PrimeSettings.PrimeSettingsMaster.ServerTestingIsActive)
+                {
+                    AServerTests tester = new AServerTests();
+                    tester.Listen(this);
+                    tester.LogMessageEvent += SendLogMessage;
+                }
+
+                Thread beepThread = new Thread(MyTradesBeepThread);
+                beepThread.IsBackground = true;
+                beepThread.Name = "AserverBeepThread" + _serverRealization.ServerType;
+                beepThread.Start();
 
                 _serverIsStart = true;
 
@@ -439,7 +449,7 @@ namespace OsEngine.Market.Servers
         /// </summary>
         void _serverRealization_Connected()
         {
-            SendLogMessage("Соединение установлено", LogMessageType.System);
+            SendLogMessage(OsLocalization.Market.Message6, LogMessageType.System);
             ServerStatus = ServerConnectStatus.Connect;
         }
 
@@ -456,7 +466,7 @@ namespace OsEngine.Market.Servers
                 if (value != _serverConnectStatus)
                 {
                     _serverConnectStatus = value;
-                    SendLogMessage(_serverConnectStatus + " Изменилось состояние соединения", LogMessageType.Connect);
+                    SendLogMessage(_serverConnectStatus + OsLocalization.Market.Message7, LogMessageType.Connect);
                     if (ConnectStatusChangeEvent != null)
                     {
                         ConnectStatusChangeEvent(_serverConnectStatus.ToString());
@@ -499,7 +509,7 @@ namespace OsEngine.Market.Servers
                         && _serverStatusNead == ServerConnectStatus.Connect &&
                         _lastStartServerTime.AddSeconds(60) < DateTime.Now)
                     {
-                        SendLogMessage("Запущена процедура активации подключения", LogMessageType.System);
+                        SendLogMessage(OsLocalization.Market.Message8, LogMessageType.System);
                         ServerRealization.Dispose();
                         _candleManager = null;
                         ServerRealization.Connect();
@@ -509,7 +519,7 @@ namespace OsEngine.Market.Servers
 
                     if (ServerRealization.ServerStatus == ServerConnectStatus.Connect && _serverStatusNead == ServerConnectStatus.Disconnect)
                     {
-                        SendLogMessage("Запущена процедура отключения подключения", LogMessageType.System);
+                        SendLogMessage(OsLocalization.Market.Message9, LogMessageType.System);
                         ServerRealization.Dispose();
                         _candleManager = null;
                         continue;
@@ -522,7 +532,7 @@ namespace OsEngine.Market.Servers
 
                     if (_candleManager == null)
                     {
-                        SendLogMessage("Создаём менеджер свечей", LogMessageType.System);
+                        SendLogMessage(OsLocalization.Market.Message10, LogMessageType.System);
                         StartCandleManager();
                         continue;
                     }
@@ -539,7 +549,7 @@ namespace OsEngine.Market.Servers
                 }
                 catch (Exception error)
                 {
-                    SendLogMessage("КРИТИЧЕСКАЯ ОШИБКА. Реконнект", LogMessageType.Error);
+                    SendLogMessage(OsLocalization.Market.Message11, LogMessageType.Error);
                     SendLogMessage(error.ToString(), LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
                     ServerRealization.Dispose();
@@ -572,7 +582,7 @@ namespace OsEngine.Market.Servers
         /// </summary>
         void _serverRealization_Disconnected()
         {
-            SendLogMessage("Соединение разорвано", LogMessageType.System);
+            SendLogMessage(OsLocalization.Market.Message12, LogMessageType.System);
             ServerStatus = ServerConnectStatus.Disconnect;
 
             if (NeadToReconnectEvent != null)
@@ -922,7 +932,7 @@ namespace OsEngine.Market.Servers
             {
                 if (securities[i].NameId == null)
                 {
-                    SendLogMessage("Во входящих из реализации бумагах, отсутствуют NameId",LogMessageType.Error);
+                    SendLogMessage(OsLocalization.Market.Message13,LogMessageType.Error);
                     return;
                 }
                 if (_securities.Find(s => s.NameId == securities[i].NameId) == null)
@@ -1022,8 +1032,9 @@ namespace OsEngine.Market.Servers
 
                     _candleManager.StartSeries(series);
 
-                    SendLogMessage("Инструмент " + series.Security.Name + "ТаймФрейм" + series.TimeFrame +
-                                   " успешно подключен на получение данных и прослушивание свечек", LogMessageType.System);
+                    SendLogMessage(OsLocalization.Market.Message14 + series.Security.Name + 
+                                   OsLocalization.Market.Message15 + series.TimeFrame +
+                                   OsLocalization.Market.Message16, LogMessageType.System);
 
                     if (_tickStorage != null)
                     {
@@ -1274,12 +1285,40 @@ namespace OsEngine.Market.Servers
             
             _myTradesToSend.Enqueue(trade);
             _myTrades.Add(trade);
+            _neadToBeepOnTrade = true;
         }
 
         /// <summary>
         /// изменилась моя сделка
         /// </summary>
         public event Action<MyTrade> NewMyTradeEvent;
+
+        private bool _neadToBeepOnTrade;
+
+        private void MyTradesBeepThread()
+        {
+            while (true)
+            {
+                Thread.Sleep(2000);
+                if (MainWindow.ProccesIsWorked == false)
+                {
+                    return;
+                }
+
+                if (_neadToBeepOnTrade == false)
+                {
+                    continue;
+                }
+
+                if (PrimeSettings.PrimeSettingsMaster.TransactionBeepIsActiv == false)
+                {
+                    continue;
+                }
+
+                _neadToBeepOnTrade = false;
+                SystemSounds.Asterisk.Play();
+            }
+        }
 
         // работа с ордерами
 
@@ -1372,16 +1411,19 @@ namespace OsEngine.Market.Servers
                 order.State = OrderStateType.Fail;
                 _ordersToSend.Enqueue(order);
 
-                SendLogMessage("Ордер № " + order.NumberUser +
-                    " не может быть выставлен, т.к. с времени предыдущего включения сервера прошло менее одной минуты", LogMessageType.Error);
+                SendLogMessage(OsLocalization.Market.Message17 + order.NumberUser +
+                               OsLocalization.Market.Message18, LogMessageType.Error);
                 return;
             }
 
             order.TimeCreate = ServerTime;
             _ordersToExecute.Enqueue(order);
 
-            SendLogMessage("Выставлен ордер, цена: " + order.Price + " Сторона: " + order.Side + ", Объём: " + order.Volume +
-            ", Инструмент: " + order.SecurityNameCode + "Номер " + order.NumberUser, LogMessageType.System);
+            SendLogMessage(OsLocalization.Market.Message19 + order.Price + 
+                           OsLocalization.Market.Message20 + order.Side +
+                           OsLocalization.Market.Message21 + order.Volume +
+                           OsLocalization.Market.Message22 + order.SecurityNameCode +
+                           OsLocalization.Market.Message23 + order.NumberUser, LogMessageType.System);
         }
 
         /// <summary>
@@ -1395,7 +1437,7 @@ namespace OsEngine.Market.Servers
                 UserSetOrderOnCancel(order);
             }
             _ordersToCansel.Enqueue(order);
-            SendLogMessage("Отзываем ордер: " + order.NumberUser, LogMessageType.System);
+            SendLogMessage(OsLocalization.Market.Message24 + order.NumberUser, LogMessageType.System);
         }
 
         /// <summary>

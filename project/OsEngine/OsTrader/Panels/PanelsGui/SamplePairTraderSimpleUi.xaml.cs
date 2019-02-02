@@ -5,6 +5,7 @@
 using System;
 using System.Globalization;
 using System.Windows;
+using OsEngine.Language;
 
 namespace OsEngine.OsTrader.Panels.PanelsGui
 {
@@ -38,6 +39,18 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
 
             TextBoxLoss1.Text = _strategy.Loss.ToString(culture);
             TextBoxProfit1.Text = _strategy.Profit.ToString(culture);
+
+            LabelRegime.Content = OsLocalization.Trader.Label115;
+            ButtonAccept.Content = OsLocalization.Trader.Label132;
+            LabelVolume1.Content = OsLocalization.Trader.Label30 +1;
+            LabelSlippage1.Content = OsLocalization.Trader.Label92 +1;
+            LabelVolume1.Content = OsLocalization.Trader.Label30 + 2;
+            LabelSlippage1.Content = OsLocalization.Trader.Label92 + 2;
+            LabelCandlesCount.Content = OsLocalization.Trader.Label143;
+            LabelSpreadExpansion.Content = OsLocalization.Trader.Label144;
+            LabelProfit.Content = OsLocalization.Trader.Label145;
+            LabelLoss.Content = OsLocalization.Trader.Label146;
+
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -56,7 +69,7 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
             }
             catch (Exception)
             {
-                MessageBox.Show("Операция прервана, т.к. в одном из полей недопустимое значение.");
+                MessageBox.Show(OsLocalization.Trader.Label13);
                 return;
             }
 
@@ -80,11 +93,7 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
 
         private void ButtonAbout_Click(object sender, RoutedEventArgs e)
         {
-            string str = "";
-            str += "Когда за определённое кол-во свечек спред расширяется на определённую величину, то мы покупаем спред. ";
-            str += "Из позиции выходим когда спред сужается или увеличивается на определённый процент";
-            str += "Из позиции выходим когда спред сужается или увеличивается на определённый процент";
-            MessageBox.Show(str);
+            MessageBox.Show(OsLocalization.Trader.Label147);
         }
     }
 }

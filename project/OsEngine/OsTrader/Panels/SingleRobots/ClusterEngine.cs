@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using OsEngine.Language;
 using OsEngine.Market;
 
 namespace OsEngine.OsTrader.Panels.SingleRobots
@@ -34,7 +35,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         /// </summary>
         public override void ShowIndividualSettingsDialog()
         {
-            MessageBox.Show("У данной стратегии нет настроек. Это ж привод и сам он ничего не делает.");
+            MessageBox.Show(OsLocalization.Trader.Label112);
         }
     }
 }

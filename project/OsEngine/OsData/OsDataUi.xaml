@@ -10,10 +10,10 @@
 
         <Grid Margin="0,5,5,172" HorizontalAlignment="Right" Width="305" Grid.RowSpan="2">
             <Rectangle/>
-            <Label Content="Источники" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="ExtraBlack" Margin="10,0,0,0" FontSize="18" Height="31" />
+            <Label Name="Label4" Content="Source" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="ExtraBlack" Margin="10,0,0,0" FontSize="18" Height="31" />
             <WindowsFormsHost Name="HostSource" Height="155" Margin="5,31,5,0" VerticalAlignment="Top"/>
-            <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовка графика" HorizontalAlignment="Left" Margin="10,218,0,0" VerticalAlignment="Top"/>
-            <Label Content="Сеты" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="ExtraBlack" Margin="10,188,0,0" FontSize="18" />
+            <CheckBox Name="CheckBoxPaintOnOff" Content="Chart is paining" HorizontalAlignment="Left" Margin="10,218,0,0" VerticalAlignment="Top"/>
+            <Label Name="Label24" Content="Sets" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="ExtraBlack" Margin="10,188,0,0" FontSize="18" />
             <WindowsFormsHost Name="HostSet" FontWeight="Bold" HorizontalAlignment="Right" Margin="0,246,7,5" Width="293"/>
 
         </Grid>
@@ -24,7 +24,7 @@
         <Grid x:Name="GreedLog" Margin="0,0,0,5" Height="167" VerticalAlignment="Bottom" Grid.Row="1">
 
             <TabControl Margin="22,-20,5,5" x:Name="TabControlPrime" BorderThickness="0" Foreground="Black">
-                <TabItem Header="Лог" Width="140" Foreground="Black" >
+                <TabItem Name="Label26" Header="Log" Width="140" Foreground="Black" >
                     <Grid >
                         <WindowsFormsHost x:Name="HostLog"/>
                     </Grid>

@@ -3,6 +3,8 @@
 */
 
 
+using OsEngine.Language;
+
 namespace OsEngine.Alerts
 {
     /// <summary>
@@ -19,6 +21,8 @@ namespace OsEngine.Alerts
         {
             InitializeComponent();
             TextBoxMessage.Text = message;
+
+            Title = OsLocalization.Alerts.TitleAlertMessageSimpleUi;
         }
     }
 }

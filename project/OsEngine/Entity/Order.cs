@@ -349,7 +349,7 @@ namespace OsEngine.Entity
             }
             result.Append("@");
 
-            result.Append(Comment);
+            result.Append(Comment + "@");
 
             result.Append(TimeDone.ToString(new CultureInfo("ru-RU")) + "@");
 

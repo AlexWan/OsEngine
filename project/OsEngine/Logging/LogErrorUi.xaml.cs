@@ -3,6 +3,7 @@
 */
 
 using System.Windows.Forms;
+using OsEngine.Language;
 
 namespace OsEngine.Logging
 {
@@ -15,6 +16,7 @@ namespace OsEngine.Logging
         {
             InitializeComponent();
             HostLog.Child = gridErrorLog;
+            Title = OsLocalization.Logging.TitleExtraLog;
         }
     }
 }

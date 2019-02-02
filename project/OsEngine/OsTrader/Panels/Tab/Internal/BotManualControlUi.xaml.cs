@@ -5,6 +5,7 @@ using System;
 using System.Globalization;
 using System.Windows;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.OsTrader.Panels.Tab.Internal
 {
@@ -64,6 +65,28 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 CheckBoxSetbackToOpenIsOn.IsChecked = _strategySettings.SetbackToOpenIsOn;
                 TextBoxSetbackToOpen.Text = _strategySettings.SetbackToOpenPosition.ToString();
 
+
+                Title = OsLocalization.Trader.Label85;
+                LabelStop.Content = OsLocalization.Trader.Label86;
+                LabelProfit.Content = OsLocalization.Trader.Label87;
+                LabelPositionClosing.Content = OsLocalization.Trader.Label88;
+                LabelPositionOpening.Content = OsLocalization.Trader.Label89;
+                LabelCloseOrderReject.Content = OsLocalization.Trader.Label90;
+                CheckBoxStopIsOn.Content = OsLocalization.Trader.Label91;
+                CheckBoxProfitIsOn.Content = OsLocalization.Trader.Label91;
+                LabelSlippage1.Content = OsLocalization.Trader.Label92;
+                LabelSlippage2.Content = OsLocalization.Trader.Label92;
+                LabelSlippage3.Content = OsLocalization.Trader.Label92;
+                LabelFromEntryToStop.Content = OsLocalization.Trader.Label93;
+                LabelFromEntryToProfit.Content = OsLocalization.Trader.Label94;
+                CheckBoxSecondToCloseIsOn.Content = OsLocalization.Trader.Label95;
+                CheckBoxSetbackToCloseIsOn.Content = OsLocalization.Trader.Label96;
+                CheckBoxSetbackToOpenIsOn.Content = OsLocalization.Trader.Label96;
+                CheckBoxSecondToOpenIsOn.Content = OsLocalization.Trader.Label97;
+                ButtonAccept.Content = OsLocalization.Trader.Label17;
+                CheckBoxDoubleExitIsOnIsOn.Content = OsLocalization.Trader.Label99;
+
+
             }
             catch (Exception error)
             {
@@ -94,7 +117,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
             catch (Exception)
             {
-                MessageBox.Show("В одном из полей недопустимые значения. Процесс сохранения прерван.");
+                MessageBox.Show(OsLocalization.Trader.Label13);
                 return;
             }
 

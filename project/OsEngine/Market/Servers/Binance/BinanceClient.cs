@@ -880,11 +880,6 @@ namespace OsEngine.Market.Servers.Binance
             {
                 try
                 {
-                    if (_isDisposed)
-                    {
-                        return;
-                    }
-
                     if (!_newUserDataMessage.IsEmpty)
                     {
                         string mes;
@@ -987,6 +982,7 @@ namespace OsEngine.Market.Servers.Binance
                                     trade.Volume = Convert.ToDecimal(order.l.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                                     trade.Price = Convert.ToDecimal(order.L.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                                     trade.SecurityNameCode = order.s;
+                                    trade.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
 
                                     if (MyTradeEvent != null)
                                     {
@@ -1029,13 +1025,21 @@ namespace OsEngine.Market.Servers.Binance
                             }
                         }
                     }
+                    else
+                    {
+                        if (_isDisposed)
+                        {
+                            return;
+                        }
+                        Thread.Sleep(1);
+                    }
                 }
 
                 catch (Exception exception)
                 {
                     SendLogMessage(exception.ToString(), LogMessageType.Error);
                 }
-                Thread.Sleep(1);
+                
             }
         }
 
@@ -1048,11 +1052,6 @@ namespace OsEngine.Market.Servers.Binance
             {
                 try
                 {
-                    if (_isDisposed)
-                    {
-                        return;
-                    }
-
                     if (!_newMessage.IsEmpty)
                     {
                         string mes;
@@ -1087,13 +1086,20 @@ namespace OsEngine.Market.Servers.Binance
                             }
                         }
                     }
+                    else
+                    {
+                        if (_isDisposed)
+                        {
+                            return;
+                        }
+                        Thread.Sleep(1);
+                    }
                 }
 
                 catch (Exception exception)
                 {
                     SendLogMessage(exception.ToString(), LogMessageType.Error);
                 }
-                Thread.Sleep(1);
             }
         }
 
