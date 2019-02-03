@@ -58,24 +58,29 @@ namespace OsEngine.OsOptimizer
             CheckBoxFilterMiddleProfitIsOn.IsChecked = _master.FilterMiddleProfitIsOn;
             CheckBoxFilterWinPositonIsOn.IsChecked = _master.FilterWinPositionIsOn;
             CheckBoxFilterProfitFactorIsOn.IsChecked = _master.FilterProfitFactorIsOn;
+            CheckBoxFilterDealsCount.IsChecked = _master.FilterDealsCountIsOn;
 
             CheckBoxFilterProfitIsOn.Click += CheckBoxFilterIsOn_Click;
             CheckBoxFilterMaxDrowDownIsOn.Click += CheckBoxFilterIsOn_Click;
             CheckBoxFilterMiddleProfitIsOn.Click += CheckBoxFilterIsOn_Click;
             CheckBoxFilterWinPositonIsOn.Click += CheckBoxFilterIsOn_Click;
             CheckBoxFilterProfitFactorIsOn.Click += CheckBoxFilterIsOn_Click;
+            CheckBoxFilterDealsCount.Click += CheckBoxFilterIsOn_Click;
 
             TextBoxFilterProfitValue.Text = _master.FilterProfitFactorValue.ToString();
             TextBoxMaxDrowDownValue.Text = _master.FilterMaxDrowDownValue.ToString();
             TextBoxFilterMiddleProfitValue.Text = _master.FilterMiddleProfitValue.ToString();
             TextBoxFilterWinPositionValue.Text = _master.FilterWinPositionValue.ToString();
             TextBoxFilterProfitFactorValue.Text = _master.FilterProfitFactorValue.ToString();
+            TextBoxFilterDealsCount.Text = _master.FilterDealsCountValue.ToString();
 
             TextBoxFilterProfitValue.TextChanged += TextBoxFiltertValue_TextChanged;
             TextBoxMaxDrowDownValue.TextChanged += TextBoxFiltertValue_TextChanged;
             TextBoxFilterMiddleProfitValue.TextChanged += TextBoxFiltertValue_TextChanged;
             TextBoxFilterWinPositionValue.TextChanged += TextBoxFiltertValue_TextChanged;
             TextBoxFilterProfitFactorValue.TextChanged += TextBoxFiltertValue_TextChanged;
+            TextBoxFilterDealsCount.TextChanged += TextBoxFiltertValue_TextChanged;
+
 
             // Этапы
 
@@ -119,8 +124,10 @@ namespace OsEngine.OsOptimizer
             TabItemResults.Header= OsLocalization.Optimizer.Label29;
             Label30.Content = OsLocalization.Optimizer.Label30;
             Label31.Content = OsLocalization.Optimizer.Label31;
-
+            CheckBoxFilterDealsCount.Content = OsLocalization.Optimizer.Label34;
         }
+
+
 
         /// <summary>
         /// объект хранящий в себе данные для оптимизации
@@ -409,6 +416,7 @@ namespace OsEngine.OsOptimizer
                 _master.FilterMiddleProfitValue = Convert.ToDecimal(TextBoxFilterMiddleProfitValue.Text);
                 _master.FilterWinPositionValue = Convert.ToDecimal(TextBoxFilterWinPositionValue.Text);
                 _master.FilterProfitFactorValue = Convert.ToDecimal(TextBoxFilterProfitFactorValue.Text);
+                _master.FilterDealsCountValue = Convert.ToInt32(TextBoxFilterDealsCount.Text);
             }
             catch
             {
@@ -417,9 +425,10 @@ namespace OsEngine.OsOptimizer
                 TextBoxFilterMiddleProfitValue.Text = _master.FilterMiddleProfitValue.ToString();
                 TextBoxFilterWinPositionValue.Text = _master.FilterWinPositionValue.ToString();
                 TextBoxFilterProfitFactorValue.Text = _master.FilterProfitFactorValue.ToString();
+                TextBoxFilterDealsCount.Text = _master.FilterDealsCountValue.ToString();
             }
         }
-
+        
         void CheckBoxFilterIsOn_Click(object sender, RoutedEventArgs e)
         {
             _master.FilterProfitIsOn = CheckBoxFilterProfitIsOn.IsChecked.Value;
@@ -427,6 +436,7 @@ namespace OsEngine.OsOptimizer
             _master.FilterMiddleProfitIsOn = CheckBoxFilterMiddleProfitIsOn.IsChecked.Value;
             _master.FilterWinPositionIsOn = CheckBoxFilterWinPositonIsOn.IsChecked.Value;
             _master.FilterProfitFactorIsOn = CheckBoxFilterProfitFactorIsOn.IsChecked.Value;
+            _master.FilterDealsCountIsOn = CheckBoxFilterDealsCount.IsChecked.Value;
         }
 
         void _master_NewSecurityEvent(List<Security> securities)

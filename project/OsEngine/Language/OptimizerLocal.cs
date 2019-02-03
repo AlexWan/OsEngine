@@ -306,5 +306,11 @@ namespace OsEngine.Language
         public string Label33 => OsLocalization.ConvertToLocString(
             "Eng:Previous data will be destroyed!_" +
             "Ru:Предыдущие данные будут уничтожены!_");
+
+        public string Label34 => OsLocalization.ConvertToLocString(
+            "Eng:Position count >_" +
+            "Ru:Количество сделок >_");
+
+
     }
 }

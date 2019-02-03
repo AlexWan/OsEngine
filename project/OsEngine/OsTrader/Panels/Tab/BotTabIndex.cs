@@ -290,7 +290,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     Candles = val.ValueCandles;
 
-                    if (Candles[Candles.Count - 1].TimeStart == Candles[Candles.Count - 2].TimeStart)
+                    if (Candles.Count > 1 && 
+                        Candles[Candles.Count - 1].TimeStart == Candles[Candles.Count - 2].TimeStart)
                     {
                         Candles.RemoveAt(Candles.Count - 1);
                     }
@@ -808,21 +809,16 @@ namespace OsEngine.OsTrader.Panels.Tab
                 int indexStartFirst = 0;
                 int indexStartSecond = 0;
 
-                for (int i1 = candlesOne.Count - 1, i2 = candlesTwo.Count - 1; exitCandles.Count != 0 && i1 > -1 && i2 > -1; i2--, i1--)
+                exitVal.ValueCandles = new List<Candle>();
+
+                for (int i = 0; i < candlesOne.Count; i++)
                 {
-                    if (candlesOne[i1].TimeStart <= exitCandles[exitCandles.Count - 1].TimeStart &&
-                        indexStartFirst == 0)
+                    int index2 = candlesTwo.FindIndex(c => c.TimeStart == candlesOne[i].TimeStart);
+
+                    if (index2 >= 0)
                     {
-                        indexStartFirst = i1+1;
-                    }
-                    if (candlesTwo[i2].TimeStart <= exitCandles[exitCandles.Count - 1].TimeStart &&
-                        indexStartSecond == 0)
-                    {
-                        indexStartSecond = i2+1;
-                    }
-                    if (indexStartSecond != 0 &&
-                        indexStartFirst != 0)
-                    {
+                        indexStartFirst = i;
+                        indexStartSecond = index2;
                         break;
                     }
                 }

@@ -125,11 +125,15 @@ namespace OsEngine.Entity
 
             string[] sIn = In.Split(',');
 
-            if (sIn[5] == "C")
+            if (sIn.Length >= 6 && (sIn[5] == "C" || sIn[5] == "S"))
             {
                 // загружаем данные из IqFeed
-                // 2019-01-01 18:00:00.038 ,1.15330,1,1.15330,1.15330,C,110,3974594,01,
-
+                Time = Convert.ToDateTime(sIn[0]);
+                Price = Convert.ToDecimal(sIn[1].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                Volume = Convert.ToDecimal(sIn[2].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                Bid = Convert.ToDecimal(sIn[3].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                Ask = Convert.ToDecimal(sIn[4].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                Side = GetSideIqFeed();
 
                 return;
             }
@@ -170,6 +174,30 @@ namespace OsEngine.Entity
                 BidsVolume = Convert.ToInt32(sIn[9]);
                 AsksVolume = Convert.ToInt32(sIn[10]);
             }
+
+
+        }
+
+        private Random _rand = null;
+        private Side GetSideIqFeed()
+        {
+            if (Bid == Price && Bid != Ask) // сделка была на продажу
+            {
+                return Side.Sell;
+            }
+            else if (Ask == Price && Bid != Ask) // сделка была на покупку
+            {
+                return Side.Buy;
+            }
+            //if (Bid == Ask && Ask == Price) // в остальных случаях указываем случайное направление
+            if (_rand == null)
+                _rand = new Random();
+
+            int randValue = _rand.Next(100);
+            if (randValue % 2 == 0)
+                return Side.Buy;
+            else
+                return Side.Sell;
         }
     }
 }

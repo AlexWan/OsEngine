@@ -469,7 +469,7 @@ namespace OsEngine.Charts.CandleChart
                 ChartArea prime = new ChartArea("Prime")
                 {
                     CursorX = { IsUserSelectionEnabled = false, IsUserEnabled = true },
-                    CursorY = { AxisType = AxisType.Secondary, IsUserEnabled = true, IntervalType = DateTimeIntervalType.Auto, Interval = 0.00001 },
+                    CursorY = { AxisType = AxisType.Secondary, IsUserEnabled = true, IntervalType = DateTimeIntervalType.Auto, Interval = 0.00000001 },
                     AxisX2 = { IsMarginVisible = false, Enabled = AxisEnabled.False},
                     BorderDashStyle = ChartDashStyle.Solid,
                     BorderWidth = 2,
@@ -3827,7 +3827,9 @@ namespace OsEngine.Charts.CandleChart
             double min = Convert.ToDouble(positionOnY);
 
             double max = Convert.ToDouble(positionOnY + Convert.ToDecimal(area.AxisY2.Interval) / 20);
-         
+
+            label = Convert.ToDecimal(Convert.ToDouble(label)).ToString();
+
             if (_labels == null)
             {
                 _labels = new List<ChartYLabels>();
@@ -3845,10 +3847,10 @@ namespace OsEngine.Charts.CandleChart
                         {
                             area.AxisY2.CustomLabels[i].FromPosition = min;
                             area.AxisY2.CustomLabels[i].ToPosition = max;
-                            area.AxisY2.CustomLabels[i].Text = Convert.ToDouble(label).ToString(_culture);
+                            area.AxisY2.CustomLabels[i].Text = label;
                             area.AxisY2.CustomLabels[i].ForeColor = color;
                             area.AxisY2.CustomLabels[i].MarkColor = color;
-                            oldlabel.Price = Convert.ToDouble(label).ToString(_culture);
+                            oldlabel.Price = label;
                             oldlabel.Color = color;
                             return;
                         }
@@ -3910,7 +3912,7 @@ namespace OsEngine.Charts.CandleChart
 
             _labels.Remove(oldlabel);
 
-            string positon = Convert.ToDouble(oldlabel.Price).ToString(_culture);
+            string positon = Convert.ToDecimal(oldlabel.Price).ToString(_culture);
             for (int i = 0; i < area.AxisY2.CustomLabels.Count; i++)
             {
                 if (area.AxisY2.CustomLabels[i].Text == positon && area.AxisY2.CustomLabels[i].ForeColor == color)
@@ -4758,19 +4760,19 @@ namespace OsEngine.Charts.CandleChart
                     }
                     if (lenght == 8 && minPriceStep > 0.00000001m)
                     {
-                        minPriceStep = 0.0000001m;
+                        minPriceStep = 0.00000001m;
                     }
                     if (lenght == 9 && minPriceStep > 0.000000001m)
                     {
-                        minPriceStep = 0.0000001m;
+                        minPriceStep = 0.000000001m;
                     }
                     if (lenght == 10 && minPriceStep > 0.0000000001m)
                     {
-                        minPriceStep = 0.0000001m;
+                        minPriceStep = 0.0000000001m;
                     }
                     if (lenght == 11 && minPriceStep > 0.00000000001m)
                     {
-                        minPriceStep = 0.0000001m;
+                        minPriceStep = 0.00000000001m;
                     }
                 }
                 else

@@ -676,6 +676,11 @@ namespace OsEngine.Market.Servers
                     SendLogMessage("Trade Error. No Side. " + trade.SecurityNameCode, LogMessageType.Error);
                     continue;
                 }
+                if (trade.Ask == 0 || trade.Bid == 0)
+                {
+                    SendLogMessage("Trade Error. No Level 1 data " + trade.SecurityNameCode, LogMessageType.Error);
+                    continue;
+                }
             }
         }
 
