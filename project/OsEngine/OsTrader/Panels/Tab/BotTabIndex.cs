@@ -809,18 +809,26 @@ namespace OsEngine.OsTrader.Panels.Tab
                 int indexStartFirst = 0;
                 int indexStartSecond = 0;
 
-                exitVal.ValueCandles = new List<Candle>();
+                exitCandles = new List<Candle>();
 
-                for (int i = 0; i < candlesOne.Count; i++)
+                for (int i = 1; i < candlesOne.Count; i++)
                 {
-                    int index2 = candlesTwo.FindIndex(c => c.TimeStart == candlesOne[i].TimeStart);
-
-                    if (index2 >= 0)
+                    for (int i2 = 0; i2 < candlesTwo.Count; i2++)
                     {
-                        indexStartFirst = i;
-                        indexStartSecond = index2;
+                        if (candlesTwo[i2].TimeStart >= candlesOne[i].TimeStart)
+                        {
+                            indexStartFirst = i;
+                            indexStartSecond = i2;
+                            break;
+                        }
+
+                    }
+
+                    if (indexStartSecond != 0)
+                    {
                         break;
                     }
+
                 }
 
                 for (int i1 = indexStartFirst, i2 = indexStartSecond; i1 < candlesOne.Count && i2 < candlesTwo.Count; i2++, i1++)
