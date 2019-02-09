@@ -489,6 +489,40 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
+        /// <summary>
+        /// количество позиций у вкладок робота
+        /// </summary>
+        public int PositionsCount
+        {
+            get
+            {
+                List<Journal.Journal> journals = GetJournals();
+
+                if (journals == null ||
+                    journals.Count == 0)
+                {
+                    return 0;
+                }
+
+                decimal winPoses = 0;
+
+                decimal allPoses = 0;
+
+                List<Position> pos = new List<Position>();
+
+                for (int i = 0; i < journals.Count; i++)
+                {
+                    if (journals[i].AllPosition == null ||
+                        journals[i].AllPosition.Count == 0)
+                    {
+                        continue;
+                    }
+                    pos.AddRange(journals[i].AllPosition);
+                }
+                return pos.Count;
+            }
+        }
+
 // работа с параметрами стратегии
 
         /// <summary>

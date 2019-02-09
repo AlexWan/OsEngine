@@ -57,14 +57,16 @@
                         <Label Name="Label22" Content="If the test results do not pass under the conditions, the run will be excluded from the general results." HorizontalAlignment="Left" Margin="149,10,0,0" VerticalAlignment="Top"/>
                         <CheckBox Name="CheckBoxFilterProfitIsOn" Content="Profit in % of the deposit >" HorizontalAlignment="Left" Margin="281,88,0,0" VerticalAlignment="Top"/>
                         <CheckBox Name="CheckBoxFilterMaxDrowDownIsOn" Content="Maximum drawDown % >" HorizontalAlignment="Left" Margin="281,116,0,0" VerticalAlignment="Top"/>
-                        <CheckBox Name="CheckBoxFilterMiddleProfitIsOn" Content="Average profit in % >" HorizontalAlignment="Left" Margin="281,148,0,0" VerticalAlignment="Top" />
-                        <CheckBox Name="CheckBoxFilterWinPositonIsOn" Content="Profit deals in % >" HorizontalAlignment="Left" Margin="281,176,0,0" VerticalAlignment="Top"/>
+                        <CheckBox Name="CheckBoxFilterMiddleProfitIsOn" Content="Average profit in % >" HorizontalAlignment="Left" Margin="281,144,0,0" VerticalAlignment="Top" />
+                        <CheckBox Name="CheckBoxFilterWinPositonIsOn" Content="Profit deals in % >" HorizontalAlignment="Left" Margin="281,172,0,0" VerticalAlignment="Top"/>
                         <CheckBox Name="CheckBoxFilterProfitFactorIsOn" Content="Profit factor >" HorizontalAlignment="Left" Margin="281,200,0,0" VerticalAlignment="Top"/>
                         <TextBox Name="TextBoxFilterProfitValue" HorizontalAlignment="Left" Height="23" Margin="491,88,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
                         <TextBox Name="TextBoxMaxDrowDownValue" HorizontalAlignment="Left" Height="23" Margin="491,116,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
                         <TextBox Name="TextBoxFilterMiddleProfitValue" HorizontalAlignment="Left" Height="23" Margin="491,144,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
                         <TextBox Name="TextBoxFilterWinPositionValue" HorizontalAlignment="Left" Height="23" Margin="491,172,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
                         <TextBox Name="TextBoxFilterProfitFactorValue" HorizontalAlignment="Left" Height="23" Margin="491,200,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
+                        <CheckBox Name="CheckBoxFilterDealsCount" Content="Position count &gt;" HorizontalAlignment="Left" Margin="281,228,0,0" VerticalAlignment="Top"/>
+                        <TextBox Name="TextBoxFilterDealsCount" HorizontalAlignment="Left" Height="23" Margin="491,228,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItemResults" Header="Results" FontSize="14"  Width="120">

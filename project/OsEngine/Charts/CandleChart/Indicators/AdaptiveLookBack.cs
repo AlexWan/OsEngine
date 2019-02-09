@@ -367,7 +367,14 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 }
                 else
                 {
-                    _swingBarArray[_swingBarArray.Count-1] = index;
+                    if (_swingBarArray.Count > 1)
+                    {
+                        _swingBarArray[_swingBarArray.Count - 1] = index;
+                    }
+                    else
+                    {
+                        _swingBarArray.Add(index);
+                    }
                 }
                 
                 

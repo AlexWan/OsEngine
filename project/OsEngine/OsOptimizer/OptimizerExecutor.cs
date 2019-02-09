@@ -510,6 +510,11 @@ namespace OsEngine.OsOptimizer
                 {
 
                 }
+                else if (_master.FilterDealsCountIsOn &&
+                         bots[i].PositionsCount < _master.FilterDealsCountValue)
+                {
+
+                }
                 else
                 {
                     botsToOutOfSample.Add(bots[i]);

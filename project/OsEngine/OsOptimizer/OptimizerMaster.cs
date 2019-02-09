@@ -100,6 +100,9 @@ namespace OsEngine.OsOptimizer
                     writer.WriteLine(_fazeCount);
                     writer.WriteLine(_percentOnFilration);
 
+                    writer.WriteLine(_filterDealsCountValue);
+                    writer.WriteLine(_filterDealsCountIsOn);
+
                     writer.Close();
                 }
             }
@@ -141,6 +144,8 @@ namespace OsEngine.OsOptimizer
                     _fazeCount = Convert.ToInt32(reader.ReadLine());
                     _percentOnFilration = Convert.ToDecimal(reader.ReadLine());
 
+                    _filterDealsCountValue = Convert.ToInt32(reader.ReadLine());
+                    _filterDealsCountIsOn = Convert.ToBoolean(reader.ReadLine());
                     reader.Close();
                 }
             }
@@ -516,10 +521,38 @@ namespace OsEngine.OsOptimizer
         }
         private bool _filterProfitFactorIsOn;
 
-// вкладка 4, оптимизация
+        /// <summary>
+        /// значение фильтра по количеству сделок
+        /// </summary>
+        public int FilterDealsCountValue
+        {
+            get { return _filterDealsCountValue; }
+            set
+            {
+                _filterDealsCountValue = value;
+                Save();
+            }
+        }
+        private int _filterDealsCountValue;
+
+        /// <summary>
+        /// включен ли фильтр по количеству сделок
+        /// </summary>
+        public bool FilterDealsCountIsOn
+        {
+            get { return _filterDealsCountIsOn; }
+            set
+            {
+                _filterDealsCountIsOn = value;
+                Save();
+            }
+        }
+        private bool _filterDealsCountIsOn;
+
+        // вкладка 4, оптимизация
 
 
-// вкладка 5, фазы оптимизации
+        // вкладка 5, фазы оптимизации
 
         /// <summary>
         /// фазы оптимизации

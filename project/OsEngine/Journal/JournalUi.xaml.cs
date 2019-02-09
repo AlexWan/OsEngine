@@ -759,7 +759,7 @@ namespace OsEngine.Journal
                     }
                     else
                     {
-                        profitBar.Points[profitBar.Points.Count - 1].Color = Color.DarkOrange;
+                        profitBar.Points[profitBar.Points.Count - 1].Color = Color.DarkRed;
                     }
 
                 }

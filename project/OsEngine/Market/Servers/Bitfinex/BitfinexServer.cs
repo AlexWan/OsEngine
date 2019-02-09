@@ -1441,7 +1441,22 @@ namespace OsEngine.Market.Servers.Bitfinex
                         }
 
                     }
-                    
+
+                    if (needDepth.Asks.Count < 2 ||
+                        needDepth.Bids.Count < 2)
+                    {
+                        return;
+                    }
+
+                    if (needDepth.Asks[0].Price > needDepth.Asks[1].Price)
+                    {
+                        needDepth.Asks.RemoveAt(0);
+                    }
+                    if (needDepth.Bids[0].Price < needDepth.Bids[1].Price)
+                    {
+                        needDepth.Asks.RemoveAt(0);
+                    }
+
                     if (NewMarketDepthEvent != null)
                     {
                         if (needDepth.Asks[0].Price < needDepth.Bids[0].Price)
@@ -1462,8 +1477,8 @@ namespace OsEngine.Market.Servers.Bitfinex
                         {
                             _bidAskToSend.Enqueue(new BidAskSender
                             {
-                                Ask = needDepth.Bids[0].Price,
-                                Bid = needDepth.Asks[0].Price,
+                                Ask = needDepth.Asks[0].Price,
+                                Bid = needDepth.Bids[0].Price,
                                 Security = nameSecurity != null ? GetSecurityForName(nameSecurity) : null
                             });
                         }
@@ -1811,7 +1826,13 @@ namespace OsEngine.Market.Servers.Bitfinex
                     newCandles.Add(newCandle);
                     count = 0;
                 }
-            }            
+            }
+
+            if (newCandles.Count > 1)
+            {
+                newCandles.RemoveAt(0);
+            }
+
             return newCandles;
         }
 
