@@ -78,6 +78,7 @@ namespace OsEngine.OsData
 
                 servers[i].ConnectStatusChangeEvent += ServerStatusChangeEvent;
                 servers[i].LogMessageEvent += OsDataMaster_LogMessageEvent;
+
             }
             RePaintSourceGrid();
         }
@@ -246,11 +247,7 @@ namespace OsEngine.OsData
 
             _gridSources.Rows.Clear();
 
-            List<ServerType> servers = new ServerType[]
-            {
-               ServerType.Finam, ServerType.QuikDde, ServerType.QuikLua, ServerType.SmartCom, ServerType.Plaza, 
-                ServerType.Oanda, ServerType.BitMex, ServerType.Kraken ,ServerType.Binance,ServerType.BitStamp,ServerType.NinjaTrader
-            }.ToList();
+            List<ServerType> servers = ServerMaster.ServersTypes;
 
             List<IServer> serversCreate = ServerMaster.GetServers();
 

@@ -45,6 +45,38 @@ namespace OsEngine.Market
         private static List<IServer> _servers;
 
         /// <summary>
+        /// взять типы торговых серверов в системе
+        /// </summary>
+        public static List<ServerType> ServersTypes
+        {
+            get
+            {
+                List<ServerType> serverTypes = new List<ServerType>();
+
+                serverTypes.Add(ServerType.QuikDde);
+                serverTypes.Add(ServerType.QuikLua);
+                serverTypes.Add(ServerType.SmartCom);
+                serverTypes.Add(ServerType.Plaza);
+
+                serverTypes.Add(ServerType.Binance);
+                serverTypes.Add(ServerType.BitMex);
+                serverTypes.Add(ServerType.BitStamp);
+                serverTypes.Add(ServerType.Bitfinex);
+                serverTypes.Add(ServerType.Kraken);
+
+                serverTypes.Add(ServerType.InteractivBrokers);
+                serverTypes.Add(ServerType.NinjaTrader);
+                serverTypes.Add(ServerType.Lmax);
+                serverTypes.Add(ServerType.Oanda);
+
+                serverTypes.Add(ServerType.Finam);
+                serverTypes.Add(ServerType.AstsBridge);
+
+                return serverTypes;
+            }
+        }
+
+        /// <summary>
         /// отключить все сервера
         /// </summary>
         public static void AbortAll()
@@ -109,210 +141,83 @@ namespace OsEngine.Market
                     return;
                 }
 
+                IServer newServer = null;
+
                 if (type == ServerType.Lmax)
                 {
-                    LmaxServer serv = new LmaxServer();
-                    _servers.Add(serv);
-
-                    if (ServerCreateEvent != null)
-                    {
-                        ServerCreateEvent(serv);
-                    }
+                    newServer = new LmaxServer();
                 }
-
                 if (type == ServerType.Bitfinex)
                 {
-                    BitfinexServer serv = new BitfinexServer(neadLoadTicks);
-                    _servers.Add(serv);
-
-                    if (ServerCreateEvent != null)
-                    {
-                        ServerCreateEvent(serv);
-                    }
+                    newServer = new BitfinexServer(neadLoadTicks);
                 }
                 if (type == ServerType.Binance)
                 {
-                    BinanceServer serv = new BinanceServer();
-                    _servers.Add(serv);
-
-                    if (ServerCreateEvent != null)
-                    {
-                        ServerCreateEvent(serv);
-                    }
+                    newServer = new BinanceServer();
                 }
                 if (type == ServerType.NinjaTrader)
                 {
-                    NinjaTraderServer serv = new NinjaTraderServer(neadLoadTicks);
-                    _servers.Add(serv);
-
-                    if (ServerCreateEvent != null)
-                    {
-                        ServerCreateEvent(serv);
-                    }
+                    newServer = new NinjaTraderServer(neadLoadTicks);
                 }
                 if (type == ServerType.BitStamp)
                 {
-                    BitStampServer serv = new BitStampServer(neadLoadTicks);
-                    _servers.Add(serv);
-
-                    if (ServerCreateEvent != null)
-                    {
-                        ServerCreateEvent(serv);
-                    }
+                    newServer = new BitStampServer(neadLoadTicks);
                 }
                 if (type == ServerType.Kraken)
                 {
-                    KrakenServer serv = new KrakenServer(neadLoadTicks);
-                    _servers.Add(serv);
-
-                    if (ServerCreateEvent != null)
-                    {
-                        ServerCreateEvent(serv);
-                    }
+                    newServer = new KrakenServer(neadLoadTicks);
                 }
                 if (type == ServerType.Oanda)
                 {
-                    OandaServer serv = new OandaServer(neadLoadTicks);
-                    _servers.Add(serv);
-
-                    if (ServerCreateEvent != null)
-                    {
-                        ServerCreateEvent(serv);
-                    }
+                    newServer = new OandaServer(neadLoadTicks);
                 }
                 if (type == ServerType.BitMex)
                 {
-                    BitMexServer serv = new BitMexServer();
-                    _servers.Add(serv);
-
-                    if (ServerCreateEvent != null)
-                    {
-                        ServerCreateEvent(serv);
-                    }
+                    newServer = new BitMexServer();
                 }
                 if (type == ServerType.QuikLua)
                 {
-                    QuikLuaServer serv = new QuikLuaServer(neadLoadTicks);
-                    _servers.Add(serv);
-
-                    if (ServerCreateEvent != null)
-                    {
-                        ServerCreateEvent(serv);
-                    }
+                    newServer = new QuikLuaServer(neadLoadTicks);
                 }
-
                 if (type == ServerType.QuikDde)
                 {
-                    QuikServer serv = new QuikServer();
-                    _servers.Add(serv);
-
-                    if (ServerCreateEvent != null)
-                    {
-                        ServerCreateEvent(serv);
-                    }
+                    newServer = new QuikServer();
                 }
                 if (type == ServerType.InteractivBrokers)
                 {
-                    InteractivBrokersServer serv = new InteractivBrokersServer();
-                    _servers.Add(serv);
-
-                    if (ServerCreateEvent != null)
-                    {
-                        ServerCreateEvent(serv);
-                    }
+                    newServer = new InteractivBrokersServer();
                 }
                 else if (type == ServerType.SmartCom)
                 {
-                    try
-                    {
-                        SmartComServer serv = new SmartComServer();
-                        _servers.Add(serv);
-                        if (ServerCreateEvent != null)
-                        {
-                            ServerCreateEvent(serv);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        MessageBox.Show(e.ToString());
-                        throw;
-                    }
+                    newServer = new SmartComServer();
                 }
                 else if (type == ServerType.Plaza)
                 {
-                    try
-                    {
-                        PlazaServer serv = new PlazaServer(neadLoadTicks);
-                        _servers.Add(serv);
-                        if (ServerCreateEvent != null)
-                        {
-                            ServerCreateEvent(serv);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        MessageBox.Show(e.ToString());
-                        throw;
-                    }
-
-
+                    newServer = new PlazaServer(neadLoadTicks);
                 }
                 else if (type == ServerType.AstsBridge)
                 {
-                    try
-                    {
-                        AstsBridgeServer serv = new AstsBridgeServer(neadLoadTicks);
-                        _servers.Add(serv);
-                        if (ServerCreateEvent != null)
-                        {
-                            ServerCreateEvent(serv);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        MessageBox.Show(e.ToString());
-                        throw;
-                    }
-
-
+                    newServer = new AstsBridgeServer(neadLoadTicks);
                 }
                 else if (type == ServerType.Tester)
                 {
-                    try
-                    {
-                        TesterServer serv = new TesterServer();
-                        _servers.Add(serv);
-                        if (ServerCreateEvent != null)
-                        {
-                            ServerCreateEvent(serv);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        MessageBox.Show(e.ToString());
-                        throw;
-                    }
-
-
+                    newServer = new TesterServer();
                 }
                 else if (type == ServerType.Finam)
                 {
-                    try
-                    {
-                        FinamServer serv = new FinamServer();
-                        _servers.Add(serv);
-                        if (ServerCreateEvent != null)
-                        {
-                            ServerCreateEvent(serv);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        MessageBox.Show(e.ToString());
-                        throw ;
-                    }
+                    newServer = new FinamServer();
+                }
 
+                if (newServer == null)
+                {
+                    return;
+                }
 
+                _servers.Add(newServer);
+
+                if (ServerCreateEvent != null)
+                {
+                    ServerCreateEvent(newServer);
                 }
 
                 SendNewLogMessage(OsLocalization.Market.Message3 + _servers[_servers.Count - 1].ServerType, LogMessageType.System);
