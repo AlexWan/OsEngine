@@ -1,6 +1,7 @@
 ﻿/*
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
  * safdsfdsafdsaf231dsfdsa
+ * sadfdsf2134edsfdsa
 */
 
 using System;
