@@ -901,10 +901,61 @@ namespace OsEngine.Market.Servers.Finam
             return null;
         }
 
+        void series_СandleFinishedEvent(CandleSeries series)
+        {
+            _candleSeriesToSend.Enqueue(series);
+
+            List<Candle> candles = series.CandlesAll;
+
+            if (candles == null || candles.Count == 0)
+            {
+                return;
+            }
+
+            MarketDepth depth = new MarketDepth();
+            depth.SecurityNameCode = series.Security.Name;
+            MarketDepthLevel ask = new MarketDepthLevel();
+            ask.Bid = 10;
+            ask.Price = candles[candles.Count - 1].Close;
+
+            depth.Bids = new List<MarketDepthLevel>();
+            depth.Bids.Add(ask);
+
+
+            MarketDepthLevel bid = new MarketDepthLevel();
+            bid.Ask = 10;
+            bid.Price = candles[candles.Count - 1].Close;
+
+            depth.Asks = new List<MarketDepthLevel>();
+            depth.Asks.Add(bid);
+
+            _marketDepthsToSend.Enqueue(depth);
+
+            Trade newtTrade = new Trade();
+            newtTrade.Id = "0";
+            newtTrade.Price = candles[candles.Count - 1].Close;
+            newtTrade.Time = candles[candles.Count - 1].TimeStart.Add(series.TimeFrameSpan);
+            newtTrade.SecurityNameCode = series.Security.NameFull;
+
+            List<Trade> tradeList = new List<Trade>();
+            tradeList.Add(newtTrade);
+
+            TradesUpdateEvent(tradeList);
+
+            ServerTime = newtTrade.Time;
+
+            BidAskSender bidAskSender = new BidAskSender();
+            bidAskSender.Ask = ask.Price;
+            bidAskSender.Bid = bid.Price;
+            bidAskSender.Security = series.Security;
+
+            _bidAskToSend.Enqueue(bidAskSender);
+        }
+
         /// <summary>
         /// Начать выгрузку данных по инструменту. 
         /// </summary>
-        /// <param name="securityId">айди бумаги</param>
+        /// <param name="namePaper">айди бумаги</param>
         /// <param name="timeFrameBuilder">объект несущий в себе данные по таймФреймам</param>
         /// <param name="startTime">время начала загрузки</param>
         /// <param name="endTime">время завершения работы</param>
@@ -912,7 +963,7 @@ namespace OsEngine.Market.Servers.Finam
         /// <param name="neadToUpdate">нужно ли автоматически обновлять</param>
         /// <returns>В случае удачи возвращает CandleSeries
         /// в случае неудачи null</returns>
-        public CandleSeries StartThisSecurity(string securityId, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdate)
+        public CandleSeries GetCandleDataToSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdate)
         {
             try
             {
@@ -924,7 +975,7 @@ namespace OsEngine.Market.Servers.Finam
                 // дальше по одному
                 lock (_lockerStarter)
                 {
-                    if (securityId == null)
+                    if (namePaper == null)
                     {
                         return null;
                     }
@@ -950,7 +1001,7 @@ namespace OsEngine.Market.Servers.Finam
 
                     for (int i = 0; _securities != null && i < _securities.Count; i++)
                     {
-                        if (_securities[i].NameId == securityId)
+                        if (_securities[i].NameId == namePaper)
                         {
                             security = _securities[i];
                             break;
@@ -1008,58 +1059,11 @@ namespace OsEngine.Market.Servers.Finam
             }
         }
 
-        void series_СandleFinishedEvent(CandleSeries series)
-        {
-            _candleSeriesToSend.Enqueue(series);
-
-            List<Candle> candles = series.CandlesAll;
-
-            if (candles == null || candles.Count == 0)
-            {
-                return;
-            }
-
-            MarketDepth depth = new MarketDepth();
-            depth.SecurityNameCode = series.Security.Name;
-            MarketDepthLevel ask = new MarketDepthLevel();
-            ask.Bid = 10;
-            ask.Price = candles[candles.Count - 1].Close;
-
-            depth.Bids = new List<MarketDepthLevel>();
-            depth.Bids.Add(ask);
-
-
-            MarketDepthLevel bid = new MarketDepthLevel();
-            bid.Ask = 10;
-            bid.Price = candles[candles.Count - 1].Close;
-
-            depth.Asks = new List<MarketDepthLevel>();
-            depth.Asks.Add(bid);
-
-            _marketDepthsToSend.Enqueue(depth);
-
-            Trade newtTrade = new Trade();
-            newtTrade.Id = "0";
-            newtTrade.Price = candles[candles.Count - 1].Close;
-            newtTrade.Time = candles[candles.Count - 1].TimeStart.Add(series.TimeFrameSpan);
-            newtTrade.SecurityNameCode = series.Security.NameFull;
-
-            List<Trade> tradeList = new List<Trade>();
-            tradeList.Add(newtTrade);
-
-            TradesUpdateEvent(tradeList);
-
-            ServerTime = newtTrade.Time;
-
-            BidAskSender bidAskSender = new BidAskSender();
-            bidAskSender.Ask = ask.Price;
-            bidAskSender.Bid = bid.Price;
-            bidAskSender.Security = series.Security;
-
-            _bidAskToSend.Enqueue(bidAskSender);
-        }
-
-        public bool StartTickToSecurity(string id, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdete)
+        /// <summary>
+        /// взять тиковые данные по инструменту за определённый период
+        /// </summary>
+        /// <returns></returns>
+        public bool GetTickDataToSecurity(string namePaper, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdete)
         {
             try
             {
@@ -1071,7 +1075,7 @@ namespace OsEngine.Market.Servers.Finam
                 // дальше по одному
                 lock (_lockerStarter)
                 {
-                    if (id == null)
+                    if (namePaper == null)
                     {
                         return false;
                     }
@@ -1098,7 +1102,7 @@ namespace OsEngine.Market.Servers.Finam
 
                     for (int i = 0; _securities != null && i < _securities.Count; i++)
                     {
-                        if (_securities[i].NameId == id)
+                        if (_securities[i].NameId == namePaper)
                         {
                             security = _securities[i];
                             break;
@@ -1146,6 +1150,15 @@ namespace OsEngine.Market.Servers.Finam
                 SendLogMessage(error.ToString(), LogMessageType.Error);
                 return false;
             }
+        }
+
+        /// <summary>
+        /// запустить скачивание стакана по инструменту
+        /// </summary>
+        /// <returns></returns>
+        public bool StartMarketDepthDataToSecurity(string namePaper)
+        {
+            return true;
         }
 
         /// <summary>

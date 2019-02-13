@@ -23,7 +23,7 @@ namespace OsEngine.Entity
             grid.RowHeadersVisible = false;
             grid.SelectionMode = selectionMode;
             grid.MultiSelect = false;
-            grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             grid.ScrollBars = ScrollBars.None;
             grid.BackColor = Color.FromArgb(21, 26, 30);
             grid.BackgroundColor = Color.FromArgb(21, 26, 30);

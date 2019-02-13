@@ -514,6 +514,9 @@ namespace OsEngine.Market.Servers
                         _candleManager = null;
                         ServerRealization.Connect();
                         _lastStartServerTime = DateTime.Now;
+
+                        NeadToReconnectEvent?.Invoke();
+
                         continue;
                     }
 
@@ -1075,6 +1078,170 @@ namespace OsEngine.Market.Servers
         /// необходимо перезаказать данные у сервера
         /// </summary>
         public event Action NeadToReconnectEvent;
+
+        /// <summary>
+        /// взять историю свечей за период
+        /// </summary>
+        public CandleSeries GetCandleDataToSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder, DateTime startTime,
+            DateTime endTime, DateTime actualTime, bool neadToUpdate)
+        {
+            if (Portfolios == null || Securities == null)
+            {
+                return null;
+            }
+
+            if (_lastStartServerTime != DateTime.MinValue &&
+                _lastStartServerTime.AddSeconds(15) > DateTime.Now)
+            {
+                return null;
+            }
+
+            if (ServerStatus != ServerConnectStatus.Connect)
+            {
+                return null;
+            }
+
+            if (_candleManager == null)
+            {
+                return null;
+            }
+
+            Security security = null;
+
+            for (int i = 0; _securities != null && i < _securities.Count; i++)
+            {
+                if (_securities[i].Name == namePaper ||
+                    _securities[i].NameId == namePaper)
+                {
+                    security = _securities[i];
+                    break;
+                }
+            }
+
+            if (security == null)
+            {
+                return null;
+            }
+
+            CandleSeries series = new CandleSeries(timeFrameBuilder, security, StartProgram.IsOsTrader);
+
+            ServerRealization.Subscrible(security);
+
+            if (timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Simple)
+            {
+                series.CandlesAll =
+                    ServerRealization.GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime,
+                        actualTime);
+            }
+
+            if (series.CandlesAll == null)
+            {
+                List<Trade> trades = ServerRealization.GetTickDataToSecurity(security, startTime, endTime, actualTime);
+                if (trades != null &&
+                    trades.Count != 0)
+                {
+                    series.PreLoad(trades);
+                }
+            }
+
+            if (series.CandlesAll != null &&
+                series.CandlesAll.Count != 0)
+            {
+                series.IsStarted = true;
+            }
+
+            _candleManager.StartSeries(series);
+
+            return series;
+        }
+
+        /// <summary>
+        /// взять тиковые данные за период
+        /// </summary>
+        public bool GetTickDataToSecurity(string namePaper, DateTime startTime, DateTime endTime, DateTime actualTime,
+            bool neadToUpdete)
+        {
+            if (Portfolios == null || Securities == null)
+            {
+                return false;
+            }
+
+            if (_lastStartServerTime != DateTime.MinValue &&
+                _lastStartServerTime.AddSeconds(15) > DateTime.Now)
+            {
+                return false;
+            }
+
+            if (actualTime == DateTime.MinValue)
+            {
+                actualTime = startTime;
+            }
+
+            if (ServerStatus != ServerConnectStatus.Connect)
+            {
+                return false;
+            }
+
+            if (_candleManager == null)
+            {
+                return false;
+            }
+
+            Security security = null;
+
+            for (int i = 0; _securities != null && i < _securities.Count; i++)
+            {
+                if (_securities[i].Name == namePaper)
+                {
+                    security = _securities[i];
+                    break;
+                }
+            }
+
+            if (security == null)
+            {
+                return false;
+            }
+
+            List<Trade> trades = ServerRealization.GetTickDataToSecurity(security, startTime, endTime, actualTime);
+
+            if (trades == null ||
+                trades.Count == 0)
+            {
+                return false;
+            }
+
+            if (_allTrades == null)
+            {
+                _allTrades = new List<Trade>[1];
+                _allTrades[0] = trades;
+                return true;
+            }
+
+            for (int i = 0; i < _allTrades.Length; i++)
+            {
+                if (_allTrades[i] != null && _allTrades[i].Count != 0 &&
+                    _allTrades[i][0].SecurityNameCode == security.Name)
+                {
+                    _allTrades[i] = trades;
+                    return true;
+                }
+            }
+
+            // хранилища для инструмента нет
+            List<Trade>[] allTradesNew = new List<Trade>[_allTrades.Length + 1];
+
+            for (int i = 0; i < _allTrades.Length; i++)
+            {
+                allTradesNew[i] = _allTrades[i];
+            }
+            allTradesNew[allTradesNew.Length - 1] = trades;
+
+            _allTrades = allTradesNew;
+
+
+            return true;
+        }
 
         /// <summary>
         /// новые свечи
