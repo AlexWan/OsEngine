@@ -277,6 +277,71 @@ namespace OsEngine.Market.Servers.BitMex
             SubcribeDepthTradeOrder(security.Name);
         }
 
+        /// <summary>
+        /// взять историю свечек за период
+        /// </summary>
+        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
+            DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+           return GetBitMexCandleHistory(security.Name, timeFrameBuilder.TimeFrameTimeSpan);
+        }
+
+        /// <summary>
+        /// взять тиковые данные по инструменту за определённый период
+        /// </summary>
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime lastDate)
+        {
+            List<Trade> lastTrades = new List<Trade>();
+
+            while (lastDate < endTime)
+            {
+                lastDate = TimeZoneInfo.ConvertTimeToUtc(lastDate);
+
+                List<Trade> trades = GetTickHistoryToSecurity(security, startTime, endTime, lastDate);
+
+                if (trades == null ||
+                    trades.Count == 0)
+                {
+                    lastDate = lastDate.AddSeconds(1);
+                    Thread.Sleep(2000);
+                    continue;
+                }
+
+                for (int i2 = 0; i2 < trades.Count; i2++)
+                {
+                    Trade ft = lastTrades.Find(x => x.Id == trades[i2].Id);
+
+                    if (ft != null)
+                    {
+                        trades.RemoveAt(i2);
+                    }
+                }
+
+                if (trades.Count == 0)
+                {
+                    lastDate = lastDate.AddSeconds(1);
+                    continue;
+                }
+
+                DateTime uniTime = trades[trades.Count - 1].Time.ToUniversalTime();
+
+                if (trades.Count != 0 && lastDate < uniTime)
+                {
+                    lastDate = trades[trades.Count - 1].Time;
+                }
+                else
+                {
+                    lastDate = lastDate.AddSeconds(1);
+                }
+
+                lastTrades.AddRange(trades);
+
+                Thread.Sleep(2000);
+            }
+
+            return lastTrades;
+        }
+
         private bool _portfolioStarted = false; // уже подписались на портфели
 
         /// <summary>
@@ -304,7 +369,7 @@ namespace OsEngine.Market.Servers.BitMex
             _client.GetSecurities();
         }
 
-        // Подпись на данные
+// Подпись на данные
 
         /// <summary>
         /// мастер загрузки свечек
@@ -623,7 +688,61 @@ namespace OsEngine.Market.Servers.BitMex
             return candlestf;
         }
 
-// реализация событий
+        public List<Trade> GetTickHistoryToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            try
+            {
+                lock (_lockerStarter)
+                {
+                    List<Trade> trades = new List<Trade>();
+                    if (startTime < endTime)
+                    {
+                        if (startTime < actualTime)
+                        {
+                            startTime = actualTime;
+                        }
+
+                        Dictionary<string, string> param = new Dictionary<string, string>();
+
+                        string start = startTime.ToString("yyyy-MM-dd HH:mm:ss");
+                        string end = startTime.AddMinutes(1).ToString("yyyy-MM-dd HH:mm:ss");
+
+                        param["symbol"] = security.Name;
+                        param["count"] = 500.ToString();
+                        param["start"] = 0.ToString();
+                        param["reverse"] = true.ToString();
+                        param["startTime"] = start;
+                        param["endTime"] = end;
+
+                        var res = _client.CreateQuery("GET", "/trade", param);
+
+                        List<TradeBitMex> tradeHistory = JsonConvert.DeserializeAnonymousType(res, new List<TradeBitMex>());
+
+                        tradeHistory.Reverse();
+
+                        foreach (var oneTrade in tradeHistory)
+                        {
+                            Trade trade = new Trade();
+                            trade.SecurityNameCode = oneTrade.symbol;
+                            trade.Id = oneTrade.trdMatchID;
+                            trade.Time = Convert.ToDateTime(oneTrade.timestamp);
+                            trade.Price = oneTrade.price;
+                            trade.Volume = oneTrade.size;
+                            trade.Side = oneTrade.side == "Sell" ? Side.Sell : Side.Buy;
+                            trades.Add(trade);
+                        }
+                    }
+                    return trades;
+                }
+            }
+            catch (Exception error)
+            {
+                _client_SendLogMessage(error.ToString(), LogMessageType.Error);
+                return null;
+            }
+        }
+
+        // реализация событий
 
         /// <summary>
         /// клиент подключился

@@ -17,6 +17,11 @@ namespace OsEngine.Market.Servers
         ServerType ServerType { get;}
 
         /// <summary>
+        /// состояние сервера
+        /// </summary>
+        ServerConnectStatus ServerStatus { get; set; }
+
+        /// <summary>
         /// параметры стратегии
         /// </summary>
         List<IServerParameter> ServerParameters { get; set; }
@@ -27,15 +32,15 @@ namespace OsEngine.Market.Servers
         DateTime ServerTime { get; set; }
 
         /// <summary>
-        /// освободить ресурсы АПИ
-        /// </summary>
-        void Dispose();
-
-        /// <summary>
         /// запрос подключения к источнику.
         /// гарантированно вызывается не чаще чем в 60 секунд
         /// </summary>
         void Connect();
+
+        /// <summary>
+        /// освободить ресурсы АПИ
+        /// </summary>
+        void Dispose();
 
         /// <summary>
         /// запросить бумаги
@@ -63,14 +68,20 @@ namespace OsEngine.Market.Servers
         void Subscrible(Security security);
 
         /// <summary>
+        /// взять историю свечей за период
+        /// </summary>
+        List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
+            DateTime startTime, DateTime endTime, DateTime actualTime);
+
+        /// <summary>
+        /// взять тиковые данные за период
+        /// </summary>
+        List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime);
+
+        /// <summary>
         /// взять текущие состояния ордеров
         /// </summary>
         void GetOrdersState(List<Order> orders);
-
-        /// <summary>
-        /// состояние сервера
-        /// </summary>
-        ServerConnectStatus ServerStatus { get; set; }
 
         /// <summary>
         /// новые мои ордера

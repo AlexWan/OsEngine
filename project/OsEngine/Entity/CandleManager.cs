@@ -195,7 +195,7 @@ namespace OsEngine.Entity
                     {
                         CandleSeries series = _candleSeriesNeadToStart.Dequeue();
 
-                        if (series == null)
+                        if (series == null || series.IsStarted)
                         {
                             continue;
                         }

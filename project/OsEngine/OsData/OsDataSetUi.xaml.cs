@@ -71,20 +71,13 @@ namespace OsEngine.OsData
 
             CheckBoxNeadToLoadDataInServers.IsChecked = set.NeadToLoadDataInServers;
 
+            List < ServerType > serverTypes = ServerMaster.ServersTypes;
             ComboBoxSource.Items.Add(ServerType.None);
-            ComboBoxSource.Items.Add(ServerType.Finam);
-            ComboBoxSource.Items.Add(ServerType.InteractivBrokers);
-            ComboBoxSource.Items.Add(ServerType.Plaza);
-            ComboBoxSource.Items.Add(ServerType.QuikDde);
-            ComboBoxSource.Items.Add(ServerType.QuikLua);
-            ComboBoxSource.Items.Add(ServerType.BitMex);
-            ComboBoxSource.Items.Add(ServerType.Kraken);
-            ComboBoxSource.Items.Add(ServerType.Binance);
-            ComboBoxSource.Items.Add(ServerType.BitStamp);
-            ComboBoxSource.Items.Add(ServerType.NinjaTrader);
-            ComboBoxSource.Items.Add(ServerType.SmartCom);
-            ComboBoxSource.Items.Add(ServerType.Oanda);
 
+            for (int i = 0; i < serverTypes.Count; i++)
+            {
+                ComboBoxSource.Items.Add(serverTypes[i]);
+            }
 
             ComboBoxSource.SelectedItem = _set.Source;
             ComboBoxSource.SelectionChanged += ComboBoxSource_SelectionChanged;
@@ -161,7 +154,8 @@ namespace OsEngine.OsData
             else
             {
                 EnableControls();
-                if (ComboBoxSource.SelectedItem.ToString() == "Finam")
+                if (ComboBoxSource.SelectedItem != null && 
+                    ComboBoxSource.SelectedItem.ToString() == "Finam")
                 {
                     CheckBoxTf2HourIsOn.IsEnabled = false;
                     CheckBoxTf2HourIsOn.IsChecked = false;

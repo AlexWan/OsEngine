@@ -111,10 +111,26 @@ namespace OsEngine.Market.Servers.Bitfinex
             try
             {
                 var res = CreateQuery(_baseUrlV1, Method.GET, "symbols_details", null);
-
                 var parsSecurities = JsonConvert.DeserializeAnonymousType(res, new List<BitfinexSecurity>());
-
                 return parsSecurities;
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.Message, LogMessageType.Error);
+                return null;
+            }
+        }
+
+        public BitfinexTickerTradeInfo GetTradeInfo(string symbol)
+        {
+            try
+            {
+                var res = CreateQuery(_baseUrlV1, Method.GET, "pubticker/" + symbol.ToLower(), null);
+
+                var pars = JsonConvert.DeserializeObject(res, typeof(BitfinexTickerTradeInfo));
+
+                return (BitfinexTickerTradeInfo)pars;
+
             }
             catch (Exception ex)
             {
@@ -933,11 +949,6 @@ namespace OsEngine.Market.Servers.Bitfinex
         /// обновились портфели
         /// </summary>
         public event Action<List<WalletUpdateWalletUpdate>> UpdatePortfolio;
-
-        /// <summary>
-        /// новые бумаги в системе
-        /// </summary>
-        public event Action<SecurityResponce> UpdatePairs;
 
         /// <summary>
         /// обновился стакан

@@ -814,12 +814,19 @@ namespace OsEngine.OsData
                     StartThis(SecuritiesNames[i], TimeFrame.Hour2);
                 }
             }
-            if (TfTickIsOn && _myServer != null && _myServer.ServerType == ServerType.Finam)
+            if (TfMarketDepthIsOn)
+            {
+                for (int i = 0; i < SecuritiesNames.Count; i++)
+                {
+                    StartThis(SecuritiesNames[i], TimeFrame.Hour1);
+                }
+            }
+            if (TfTickIsOn && _myServer != null)
             {
                 for (int i = 0; i < SecuritiesNames.Count; i++)
                 {
                     while (
-                        ((FinamServer) _myServer).StartTickToSecurity(SecuritiesNames[i].Id, TimeStart, TimeEnd,
+                        (_myServer).GetTickDataToSecurity(SecuritiesNames[i].Id, TimeStart, TimeEnd,
                             GetActualTimeToTrade("Data\\" + SetName + "\\" + SecuritiesNames[i].Name.Replace("/", "") + "\\Tick"), NeadToUpdate) == false)
                     {
                         Thread.Sleep(5000);
@@ -843,15 +850,8 @@ namespace OsEngine.OsData
                 TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder();
                 timeFrameBuilder.TimeFrame = timeFrame;
 
-                if (_myServer.ServerType == ServerType.Finam)
-                {
-                    series = ((FinamServer)_myServer).StartThisSecurity(loadSec.Id, timeFrameBuilder, TimeStart,
+                series = _myServer.GetCandleDataToSecurity(loadSec.Id, timeFrameBuilder, TimeStart,
                         TimeEnd, GetActualTimeToCandle("Data\\" + SetName + "\\" + loadSec.Name.Replace("/", "") + "\\" + timeFrame), NeadToUpdate);
-                }
-                else
-                {
-                    series = _myServer.StartThisSecurity(loadSec.Name, timeFrameBuilder);
-                }
 
                 Thread.Sleep(10);
             }

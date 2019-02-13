@@ -149,7 +149,7 @@ namespace OsEngine.Market
                 }
                 if (type == ServerType.Bitfinex)
                 {
-                    newServer = new BitfinexServer(neadLoadTicks);
+                    newServer = new BitfinexServer();
                 }
                 if (type == ServerType.Binance)
                 {
@@ -157,11 +157,11 @@ namespace OsEngine.Market
                 }
                 if (type == ServerType.NinjaTrader)
                 {
-                    newServer = new NinjaTraderServer(neadLoadTicks);
+                    newServer = new NinjaTraderServer();
                 }
                 if (type == ServerType.BitStamp)
                 {
-                    newServer = new BitStampServer(neadLoadTicks);
+                    newServer = new BitStampServer();
                 }
                 if (type == ServerType.Kraken)
                 {
@@ -169,7 +169,7 @@ namespace OsEngine.Market
                 }
                 if (type == ServerType.Oanda)
                 {
-                    newServer = new OandaServer(neadLoadTicks);
+                    newServer = new OandaServer();
                 }
                 if (type == ServerType.BitMex)
                 {
