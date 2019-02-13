@@ -114,6 +114,20 @@ namespace OsEngine.Market.Servers
         /// </summary>
         event Action NeadToReconnectEvent;
 
+// Запрос данных на выкачивание
+
+        /// <summary>
+        /// Начать выгрузку данных по инструменту
+        /// </summary>
+        CandleSeries GetCandleDataToSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder,
+            DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdate);
+
+        /// <summary>
+        /// взять тиковые данные по инструменту за определённый период
+        /// </summary>
+        bool GetTickDataToSecurity(string namePaper, DateTime startTime, DateTime endTime, DateTime actualTime,
+            bool neadToUpdete);
+
 // свечи
 
         /// <summary>

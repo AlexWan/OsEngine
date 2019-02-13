@@ -175,6 +175,23 @@ namespace OsEngine.Market.Servers.Lmax
         }
 
         /// <summary>
+        /// взять историю свечек за период
+        /// </summary>
+        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
+            DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// взять тиковые данные по инструменту за определённый период
+        /// </summary>
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            return null;
+        }
+
+        /// <summary>
         /// запросить статус ордеров
         /// </summary>
         /// <param name="orders">список ордеров</param>

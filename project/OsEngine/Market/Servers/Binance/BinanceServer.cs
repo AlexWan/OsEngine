@@ -45,6 +45,9 @@ namespace OsEngine.Market.Servers.Binance
             get { return ServerType.Binance; }
         }
 
+        /// <summary>
+        /// параметры сервера
+        /// </summary>
         public List<IServerParameter> ServerParameters { get; set; }
 
         /// <summary>
@@ -58,8 +61,6 @@ namespace OsEngine.Market.Servers.Binance
         /// binance client
         /// </summary>
         private BinanceClient _client;
-
-        private DateTime _lastStartServerTime;
 
         /// <summary>
         /// освободить апи
@@ -106,8 +107,6 @@ namespace OsEngine.Market.Servers.Binance
                 _client.LogMessageEvent += SendLogMessage;
             }
 
-            _lastStartServerTime = DateTime.Now;
-
             _client.Connect();
         }
 
@@ -149,6 +148,23 @@ namespace OsEngine.Market.Servers.Binance
         public void Subscrible(Security security)
         {
             _client.SubscribleTradesAndDepths(security);
+        }
+
+        /// <summary>
+        /// взять историю свечек за период
+        /// </summary>
+        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
+            DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// взять тиковые данные по инструменту за период
+        /// </summary>
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            return null;
         }
 
         /// <summary>

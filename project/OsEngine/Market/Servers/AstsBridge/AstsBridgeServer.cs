@@ -13,6 +13,7 @@ using System.Windows.Forms;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
+using OsEngine.OsMiner.Patterns;
 
 namespace OsEngine.Market.Servers.AstsBridge
 {
@@ -1123,6 +1124,18 @@ namespace OsEngine.Market.Servers.AstsBridge
         private void _candleManager_CandleUpdateEvent(CandleSeries series)
         {
             _candleSeriesToSend.Enqueue(series);
+        }
+
+        public CandleSeries GetCandleDataToSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder, DateTime startTime,
+            DateTime endTime, DateTime actualTime, bool neadToUpdate)
+        {
+            return StartThisSecurity(namePaper, timeFrameBuilder);
+        }
+
+        public bool GetTickDataToSecurity(string namePaper, DateTime startTime, DateTime endTime, DateTime actualTime,
+            bool neadToUpdete)
+        {
+            return true;
         }
 
         /// <summary>

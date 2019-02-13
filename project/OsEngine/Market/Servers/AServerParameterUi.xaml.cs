@@ -239,6 +239,11 @@ namespace OsEngine.Market.Servers
 
             for (int i = 0; i < param.Count; i++)
             {
+                if (_newGrid.Rows[i].Cells[1].Value == null)
+                {
+                    _newGrid.Rows[i].Cells[1].Value = "";
+                }
+
                 if (param[i].Type == ServerParameterType.String)
                 {
                     ((ServerParameterString) param[i]).Value = _newGrid.Rows[i].Cells[1].Value.ToString();
@@ -265,6 +270,10 @@ namespace OsEngine.Market.Servers
                 }
                 else if (param[i].Type == ServerParameterType.Decimal)
                 {
+                    if (_newGrid.Rows[i].Cells[1].Value.ToString() == "")
+                    {
+                        _newGrid.Rows[i].Cells[1].Value = "0";
+                    }
                     string str = _newGrid.Rows[i].Cells[1].Value.ToString();
                     ((ServerParameterDecimal) param[i]).Value =
                         Convert.ToDecimal(str.Replace(".",
@@ -273,6 +282,11 @@ namespace OsEngine.Market.Servers
                 }
                 else if (param[i].Type == ServerParameterType.Int)
                 {
+                    if (_newGrid.Rows[i].Cells[1].Value.ToString() == "")
+                    {
+                        _newGrid.Rows[i].Cells[1].Value = "0";
+                    }
+
                     string str = _newGrid.Rows[i].Cells[1].Value.ToString();
                     ((ServerParameterInt) param[i]).Value = Convert.ToInt32(str);
                 }
