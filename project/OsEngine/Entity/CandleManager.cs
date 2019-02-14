@@ -17,6 +17,7 @@ using OsEngine.Market.Servers.Kraken;
 using OsEngine.Market.Servers.QuikLua;
 using OsEngine.Market.Servers.SmartCom;
 using OsEngine.Market.Servers.Tester;
+using OsEngine.Market.Servers.Transaq;
 
 namespace OsEngine.Entity
 {
@@ -367,6 +368,24 @@ namespace OsEngine.Entity
                             }
                             series.UpdateAllCandles();
                             series.IsStarted = true;
+                        }
+                        else if (serverType == ServerType.Transaq)
+                        {
+                            TransaqServer transaq = (TransaqServer)_server;
+
+                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
+                                series.TimeFrameSpan.TotalMinutes < 1)
+                            {
+                                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
+
+                                series.PreLoad(allTrades);
+                                series.UpdateAllCandles();
+                                series.IsStarted = true;
+                            }
+                            else
+                            {
+                                transaq.GetCandleHistory(series);
+                            }
                         }
                     }
                 }
