@@ -428,12 +428,9 @@
     <Compile Include="Market\Servers\Optimizer\OptimizerDataStorageUi.xaml.cs">
       <DependentUpon>OptimizerDataStorageUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Market\Servers\Plaza\Internal\PlazaController.cs" />
+    <Compile Include="Market\Servers\Plaza\Internal\PlazaClient.cs" />
     <Compile Include="Market\Servers\Plaza\Internal\PlazaMarketDepthCreator.cs" />
     <Compile Include="Market\Servers\Plaza\PlazaServer.cs" />
-    <Compile Include="Market\Servers\Plaza\PlazaServerUi.xaml.cs">
-      <DependentUpon>PlazaServerUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Market\Servers\QuikLua\QuikLuaServer.cs" />
     <Compile Include="Market\Servers\QuikLua\QuikLuaServerUi.xaml.cs">
       <DependentUpon>QuikLuaServerUi.xaml</DependentUpon>
@@ -443,6 +440,7 @@
     <Compile Include="Market\Servers\Services\MarshalUTF8.cs" />
     <Compile Include="Market\Servers\Services\ServerWorkingTimeSettings.cs" />
     <Compile Include="Market\Servers\Services\TimeManager.cs" />
+    <Compile Include="Market\Servers\SmartCom\SmartComServer.cs" />
     <Compile Include="Market\Servers\Tester\TesterServer.cs" />
     <Compile Include="Market\Servers\Tester\TesterServerUi.xaml.cs">
       <DependentUpon>TesterServerUi.xaml</DependentUpon>
@@ -457,10 +455,6 @@
     <Compile Include="Market\ServerMaster.cs" />
     <Compile Include="Market\ServerMasterUi.xaml.cs">
       <DependentUpon>ServerMasterUi.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Market\Servers\SmartCom\SmartComServer.cs" />
-    <Compile Include="Market\Servers\SmartCom\SmartComServerUi.xaml.cs">
-      <DependentUpon>SmartComServerUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Entity\CandleManager.cs" />
     <Compile Include="Entity\Candle.cs" />
@@ -928,10 +922,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Market\Servers\Plaza\PlazaServerUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Market\Connectors\ConnectorCandlesUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -961,10 +951,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Charts\CandleChart\Indicators\RsiUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Market\Servers\SmartCom\SmartComServerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

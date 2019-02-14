@@ -4,7 +4,7 @@
     {
         public long OrderId { get; set; }
         public string Symbol { get; set; }
-        public decimal Price { get; set; }
+        public string Price { get; set; }
         public decimal AverageExecutionPrice { get; set; }
         public string Side { get; set; }
         public string Type { get; set; }

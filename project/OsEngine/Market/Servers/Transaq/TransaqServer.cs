@@ -21,8 +21,6 @@ namespace OsEngine.Market.Servers.Transaq
 {
     public class TransaqServer : AServer
     {
-        public ServerWorkingTimeSettings WorkingTimeSettings;
-
         public TransaqServer()
         {
             WorkingTimeSettings = new ServerWorkingTimeSettings()
@@ -38,15 +36,15 @@ namespace OsEngine.Market.Servers.Transaq
             CreateParameterString("Логин", "");
             CreateParameterPassword("Старый пароль", "");
             CreateParameterString("IP адрес сервера", "213.247.141.133");
-            CreateParameterString("Номер порта сервера", "3900");            
+            CreateParameterString("Номер порта сервера", "3900");
         }
 
-
+        public ServerWorkingTimeSettings WorkingTimeSettings;
 
         /// <summary>
         /// переопределяем метод отдающий состояние сервера
         /// </summary>
-        public override bool ServerInWork
+        public override bool IsTimeToServerWork
         {
             get { return ((TransaqServerRealization)ServerRealization).ServerInWork; }
         }
@@ -59,7 +57,6 @@ namespace OsEngine.Market.Servers.Transaq
             ((TransaqServerRealization)ServerRealization).GetCandleHistory(series);
         }
     }
-
 
     public class TransaqServerRealization : IServerRealization
     {
@@ -80,7 +77,6 @@ namespace OsEngine.Market.Servers.Transaq
                 dirInfo.Create();
             }
         }
-
 
         /// <summary>
         /// тип сервера
@@ -107,8 +103,6 @@ namespace OsEngine.Market.Servers.Transaq
         public event Action<Trade> NewTradesEvent;
         public event Action ConnectEvent;
         public event Action DisconnectEvent;
-
-
 
         TransaqClient _client;
 
@@ -674,7 +668,6 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         #endregion
-
 
         #region разбор входящих данных
 

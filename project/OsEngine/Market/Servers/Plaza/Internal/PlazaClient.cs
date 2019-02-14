@@ -15,12 +15,12 @@ namespace OsEngine.Market.Servers.Plaza.Internal
     /// <summary>
     /// класс реализующий взаимодействие с Роутером Плаза 2 CGate
     /// </summary>
-    public class PlazaController
+    public class PlazaClient
     {
         /// <summary>
         /// конструктор
         /// </summary>
-        public PlazaController(string key)
+        public PlazaClient(string key)
         {
             _depthCreator = new PlazaMarketDepthCreator();
             _statusNeeded = ServerConnectStatus.Disconnect;
@@ -938,8 +938,8 @@ namespace OsEngine.Market.Servers.Plaza.Internal
 
                                     positionOnBoard.SecurityNameCode = replmsg["isin_id"].asInt().ToString();
                                     positionOnBoard.PortfolioName = replmsg["client_code"].asString();
-                                    positionOnBoard.ValueBegin = replmsg["open_qty"].asInt();
-                                    positionOnBoard.ValueCurrent = replmsg["pos"].asInt();
+                                    positionOnBoard.ValueBegin = replmsg["xopen_qty"].asInt();
+                                    positionOnBoard.ValueCurrent = replmsg["xpos"].asInt();
                                     positionOnBoard.ValueBlocked = positionOnBoard.ValueCurrent;
 
                                     if (UpdatePosition != null)
@@ -1181,7 +1181,7 @@ Connection conn, Listener listener, Message msg)
                                     trade.Id = replmsg["id_deal"].asLong().ToString();
                                     trade.SecurityNameCode = replmsg["isin_id"].asInt().ToString();
                                     trade.Time = replmsg["moment"].asDateTime();
-                                    trade.Volume = replmsg["amount"].asInt();
+                                    trade.Volume = replmsg["xamount"].asInt();
 
                                     long numberBuyOrder = replmsg["id_ord_buy"].asLong();
                                     long numberSellOrder = replmsg["id_ord_sell"].asLong();
@@ -1560,7 +1560,7 @@ Connection conn, Listener listener, Message msg)
                                     trade.NumberTrade = replmsg["id_deal"].asLong().ToString();
                                     trade.SecurityNameCode = replmsg["isin_id"].asInt().ToString();
                                     trade.Time = replmsg["moment"].asDateTime();
-                                    trade.Volume = replmsg["amount"].asInt();
+                                    trade.Volume = replmsg["xamount"].asInt();
 
 
                                     string portfolioBuy = replmsg["code_buy"].asString();
@@ -1604,9 +1604,9 @@ Connection conn, Listener listener, Message msg)
                                     order.NumberMarket = replmsg["id_ord"].asLong().ToString();
                                     order.NumberUser = replmsg["ext_id"].asInt();
 
-                                    order.Volume = 0;
+                                    order.Volume = replmsg["xamount"].asInt();
                                     //order.VolumeExecute = 0;
-                                    order.VolumeExecute = replmsg["amount_rest"].asInt(); // это у нас оставшееся в заявке
+                                    order.VolumeExecute = replmsg["xamount_rest"].asInt(); // это у нас оставшееся в заявке
 
                                     order.Price = Convert.ToDecimal(replmsg["price"].asDecimal());
                                     order.PortfolioNumber = replmsg["client_code"].asString();
@@ -1624,7 +1624,7 @@ Connection conn, Listener listener, Message msg)
                                     else if (action == 1)
                                     {
                                         order.State = OrderStateType.Activ;
-                                        int status = replmsg["status"].asInt();
+                                        int status = replmsg["xstatus"].asInt();
                                         if (status == 1025)
                                         {
                                             return 0;
