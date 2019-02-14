@@ -440,6 +440,9 @@
     </Compile>
     <Compile Include="Market\ServerMasterPortfoliosPainter.cs" />
     <Compile Include="Market\Servers\ServerTickStorage.cs" />
+    <Compile Include="Market\Servers\Services\MarshalUTF8.cs" />
+    <Compile Include="Market\Servers\Services\ServerWorkingTimeSettings.cs" />
+    <Compile Include="Market\Servers\Services\TimeManager.cs" />
     <Compile Include="Market\Servers\Tester\TesterServer.cs" />
     <Compile Include="Market\Servers\Tester\TesterServerUi.xaml.cs">
       <DependentUpon>TesterServerUi.xaml</DependentUpon>
@@ -501,6 +504,13 @@
     <Compile Include="Journal\Internal\DealStaticticGenerator.cs" />
     <Compile Include="Market\Servers\Quik\QuikDdeServer.cs" />
     <Compile Include="Market\Servers\Miner\OsMinerServer.cs" />
+    <Compile Include="Market\Servers\Transaq\ChangeTransaqPassword.xaml.cs">
+      <DependentUpon>ChangeTransaqPassword.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Market\Servers\Transaq\TransaqClient.cs" />
+    <Compile Include="Market\Servers\Transaq\TransaqEntity\TransaqEntities.cs" />
+    <Compile Include="Market\Servers\Transaq\TransaqEntity\TransaqPortfolio.cs" />
+    <Compile Include="Market\Servers\Transaq\TransaqServer.cs" />
     <Compile Include="OsMiner\OsMinerMaster.cs" />
     <Compile Include="OsMiner\OsMinerSet.cs" />
     <Compile Include="OsMiner\OsMinerSetUi.xaml.cs">
@@ -991,6 +1001,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Logging\ServerSmsUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\Transaq\ChangeTransaqPassword.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -481,7 +481,15 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public event Action<string> ConnectStatusChangeEvent;
 
-        // работа основного потока !!!!!!
+// работа основного потока !!!!!!
+
+        /// <summary>
+        /// true - сервер готов к работе
+        /// </summary>
+        public virtual bool ServerInWork
+        {
+            get { return true; }
+        }
 
         /// <summary>
         /// основной поток, следящий за подключением, загрузкой портфелей и бумаг, пересылкой данных на верх
@@ -501,6 +509,11 @@ namespace OsEngine.Market.Servers
                 try
                 {
                     if (ServerRealization == null)
+                    {
+                        continue;
+                    }
+
+                    if (!ServerInWork)
                     {
                         continue;
                     }
