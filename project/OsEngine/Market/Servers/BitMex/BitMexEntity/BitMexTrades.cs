@@ -38,7 +38,7 @@ namespace OsEngine.Market.Servers.BitMex.BitMexEntity
         public string symbol { get; set; }
         public string side { get; set; }
         public int size { get; set; }
-        public decimal price { get; set; }
+        public string price { get; set; }
         public string tickDirection { get; set; }
         public string trdMatchID { get; set; }
 

@@ -3547,7 +3547,7 @@ namespace OsEngine.Market.Servers.Tester
             }
 
             if (LastTrade != null &&
-                LastTrade.Time > now)
+                LastTrade.Time.AddMilliseconds(-LastTrade.Time.Millisecond) > now)
             {
                 return;
             }
@@ -3563,13 +3563,13 @@ namespace OsEngine.Market.Servers.Tester
             }
 
             while (!_reader.EndOfStream &&
-                   LastTrade.Time < now)
+                   LastTrade.Time.AddMilliseconds(-LastTrade.Time.Millisecond) < now)
             {
                 _lastString = _reader.ReadLine();
                 LastTrade.SetTradeFromString(_lastString);
             }
 
-            if (LastTrade.Time > now)
+            if (LastTrade.Time.AddMilliseconds(-LastTrade.Time.Millisecond) > now)
             {
                 return;
             }
@@ -3588,7 +3588,7 @@ namespace OsEngine.Market.Servers.Tester
                 Trade tradeN = new Trade() { SecurityNameCode = Security.Name };
                 tradeN.SetTradeFromString(_lastString);
                 
-                if (tradeN.Time == now)
+                if (tradeN.Time.AddMilliseconds(-tradeN.Time.Millisecond) <= now)
                 {
                     lastTradesSeries.Add(tradeN);
                 }

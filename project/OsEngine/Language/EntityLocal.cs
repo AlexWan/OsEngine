@@ -333,5 +333,17 @@
         public string ColumnDataSource6 => OsLocalization.ConvertToLocString(
             "Eng:End time_" +
             "Ru:Дата конца_");
+
+        public string ColumnMarketDepth1 => OsLocalization.ConvertToLocString(
+            "Eng:Summ_" +
+            "Ru:Сумма_");
+
+        public string ColumnMarketDepth2 => OsLocalization.ConvertToLocString(
+            "Eng:Price_" +
+            "Ru:Цена_");
+
+        public string ColumnMarketDepth3 => OsLocalization.ConvertToLocString(
+            "Eng:Volume_" +
+            "Ru:Объём_");
     }
 }

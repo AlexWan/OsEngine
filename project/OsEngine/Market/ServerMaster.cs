@@ -199,7 +199,7 @@ namespace OsEngine.Market
                 }
                 else if (type == ServerType.Plaza)
                 {
-                    newServer = new PlazaServer(neadLoadTicks);
+                    newServer = new PlazaServer();
                 }
                 else if (type == ServerType.AstsBridge)
                 {
