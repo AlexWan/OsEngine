@@ -432,9 +432,6 @@
     <Compile Include="Market\Servers\Plaza\Internal\PlazaMarketDepthCreator.cs" />
     <Compile Include="Market\Servers\Plaza\PlazaServer.cs" />
     <Compile Include="Market\Servers\QuikLua\QuikLuaServer.cs" />
-    <Compile Include="Market\Servers\QuikLua\QuikLuaServerUi.xaml.cs">
-      <DependentUpon>QuikLuaServerUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Market\ServerMasterPortfoliosPainter.cs" />
     <Compile Include="Market\Servers\ServerTickStorage.cs" />
     <Compile Include="Market\Servers\Services\MarshalUTF8.cs" />
@@ -923,10 +920,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Market\Connectors\ConnectorCandlesUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Market\Servers\QuikLua\QuikLuaServerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

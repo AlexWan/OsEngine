@@ -1574,6 +1574,14 @@ namespace OsEngine.Market.Servers
             myOrder.ServerType = ServerType;
 
             _ordersToSend.Enqueue(myOrder);
+
+            for (int i = 0; i < _myTrades.Count; i++)
+            {
+                if (_myTrades[i].NumberOrderParent == myOrder.NumberMarket)
+                {
+                    _myTradesToSend.Enqueue(_myTrades[i]);
+                }
+            }
         }
 
         /// <summary>

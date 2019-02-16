@@ -26,7 +26,7 @@ namespace OsEngine.Market.Servers.Finam
     /// </summary>
     public class FinamServer : IServer
     {
-
+        
         /// <summary>
         /// конструктор
         /// </summary>
