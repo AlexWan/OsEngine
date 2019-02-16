@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.BitStamp.BitStampEntity;
 using OsEngine.Market.Servers.Entity;
@@ -18,12 +19,12 @@ namespace OsEngine.Market.Servers.BitStamp
             BitStampServerRealization realization = new BitStampServerRealization();
             ServerRealization = realization;
 
-            CreateParameterString("Идентификатор", "");
-            CreateParameterString("Публичный ключ", "");
-            CreateParameterPassword("Секретный ключ", "");
+            CreateParameterString(OsLocalization.Market.ServerParamId, "");
+            CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
+            CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
         }
     }
-
+    
     public class BitStampServerRealization : IServerRealization
     {
         public BitStampServerRealization()

@@ -183,7 +183,7 @@ namespace OsEngine.Market
                 }
                 if (type == ServerType.QuikLua)
                 {
-                    newServer = new QuikLuaServer(neadLoadTicks);
+                    newServer = new QuikLuaServer();
                 }
                 if (type == ServerType.QuikDde)
                 {

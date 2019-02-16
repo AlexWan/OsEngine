@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
+using System.Threading.Tasks;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
@@ -15,14 +16,6 @@ namespace OsEngine.Market.Servers.SmartCom
     {
         public SmartComServer()
         {
-            WorkingTimeSettings = new ServerWorkingTimeSettings()
-            {
-                StartSessionTime = new TimeSpan(9, 55, 0),
-                EndSessionTime = new TimeSpan(23, 50, 0),
-                WorkingAtWeekend = false,
-                ServerTimeZone = "Russian Standard Time",
-            };
-
             SmartComServerRealization realization = new SmartComServerRealization();
             ServerRealization = realization;
 
@@ -35,16 +28,6 @@ namespace OsEngine.Market.Servers.SmartCom
         public List<Candle> GetSmartComCandleHistory(string security, TimeSpan timeSpan, int count)
         {
             return ((SmartComServerRealization)ServerRealization).GetSmartComCandleHistory(security, timeSpan, count);
-        }
-
-        public ServerWorkingTimeSettings WorkingTimeSettings;
-
-        /// <summary>
-        /// переопределяем метод отдающий состояние сервера
-        /// </summary>
-        public override bool IsTimeToServerWork
-        {
-            get { return ((TransaqServerRealization)ServerRealization).ServerInWork; }
         }
     }
 
