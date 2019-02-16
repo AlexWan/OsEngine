@@ -275,6 +275,15 @@ namespace OsEngine.Market.Servers.Transaq.TransaqEntity
         [XmlElement(ElementName = "text")]
         public string Text { get; set; }
     }
+
+    [XmlRoot(ElementName = "result")]
+    public class Result
+    {
+        [XmlAttribute(AttributeName = "success")]
+        public string Success { get; set; }
+        [XmlAttribute(AttributeName = "transactionid")]
+        public string Transactionid { get; set; }
+    }
 }
 
 

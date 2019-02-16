@@ -1,21 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
-using OsEngine.Entity;
+﻿using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using OsEngine.Market.Servers.Services;
 using OsEngine.Market.Servers.Transaq.TransaqEntity;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Xml.Serialization;
 using Candle = OsEngine.Entity.Candle;
+using Order = OsEngine.Entity.Order;
 using Security = OsEngine.Entity.Security;
 using Trade = OsEngine.Entity.Trade;
-using Order = OsEngine.Entity.Order;
 
 namespace OsEngine.Market.Servers.Transaq
 {
@@ -346,10 +345,12 @@ namespace OsEngine.Market.Servers.Transaq
             string side = order.Side == Side.Buy ? "B" : "S";
 
             var needSec = _securities.Find(s => s.Name == order.SecurityNameCode);
-
+                
             string cmd = "<command id=\"neworder\">";
-            cmd += "<secid>" + needSec.NameId + "</secid>";
-
+            cmd += "<security>";
+            cmd += "<board>" + needSec.NameClass + "</board>";
+            cmd += "<seccode>" + needSec.Name + "</seccode>";
+            cmd += "</security>";
             cmd += "<union>" + _clients[0].Union + "</union>";
             cmd += "<price>" + order.Price + "</price>";
             cmd += "<quantity>" + order.Volume + "</quantity>";
@@ -362,11 +363,26 @@ namespace OsEngine.Market.Servers.Transaq
             // отправка команды
             string res = _client.ConnectorSendCommand(cmd);
 
-            //<result success="true" transactionid="12445626"/>
-            if (!res.StartsWith("<result success=\"true\""))
+            Result data;
+            var formatter = new XmlSerializer(typeof(Result));
+            using (StringReader fs = new StringReader(res))
             {
-                SendLogMessage(res, LogMessageType.Error);
+                data = (Result)formatter.Deserialize(fs);
             }
+            
+            //<result success="true" transactionid="12445626"/>
+            if (data.Success != "true")
+            {
+                order.State = OrderStateType.Fail;                
+            }
+            else
+            {                            
+                order.NumberUser = int.Parse(data.Transactionid);
+                order.State = OrderStateType.Pending;                
+            }
+            order.TimeCallBack = ServerTime;
+
+            MyOrderEvent?.Invoke(order);
         }
 
         /// <summary>
@@ -374,16 +390,8 @@ namespace OsEngine.Market.Servers.Transaq
         /// </summary>
         public void CanselOrder(Order order)
         {
-            if (!_ordersExchNoTransId.ContainsKey(order.NumberMarket))
-            {
-                SendLogMessage("Попытка отменить не активный ордер", LogMessageType.Error);
-                return;
-            }
-
-            string transactionId = _ordersExchNoTransId[order.NumberMarket];
-
             string cmd = "<command id=\"cancelorder\">";
-            cmd += "<transactionid>" + transactionId + "</transactionid>";
+            cmd += "<transactionid>" + order.NumberUser + "</transactionid>";
             cmd += "</command>";
 
             // отправка команды
@@ -403,10 +411,16 @@ namespace OsEngine.Market.Servers.Transaq
         {
             string cmd = "<command id=\"subscribe\">";
             cmd += "<alltrades>";
-            cmd += "<secid>" + security.NameId + "</secid>";
+            cmd += "<security>";
+            cmd += "<board>" + security.NameClass + "</board>";
+            cmd += "<seccode>" + security.Name + "</seccode>";
+            cmd += "</security>";
             cmd += "</alltrades>";
             cmd += "<quotes>";
-            cmd += "<secid>" + security.NameId + "</secid>";
+            cmd += "<security>";
+            cmd += "<board>" + security.NameClass + "</board>";
+            cmd += "<seccode>" + security.Name + "</seccode>";
+            cmd += "</security>";
             cmd += "</quotes>";
             cmd += "</command>";
 
@@ -941,22 +955,6 @@ namespace OsEngine.Market.Servers.Transaq
                             _depths.Add(needDepth);
                         }
 
-                        //needDepth.Asks.Sort((a, b) =>
-                        //{
-                        //    if (a.Price > b.Price)
-                        //    {
-                        //        return 1;
-                        //    }
-                        //    else if (a.Price < b.Price)
-                        //    {
-                        //        return -1;
-                        //    }
-                        //    else
-                        //    {
-                        //        return 0;
-                        //    }
-                        //});
-
                         for (int i = 0; i < sortedQuote.Value.Count; i++)
                         {
                             if (sortedQuote.Value[i].Buy == -1 && sortedQuote.Value[i].Sell == -1)
@@ -965,13 +963,6 @@ namespace OsEngine.Market.Servers.Transaq
                             }
                             if (sortedQuote.Value[i].Buy > 0)
                             {
-                                var needLevel3 = needDepth.Asks.Find(level => level.Price == sortedQuote.Value[i].Price);
-                                if (needLevel3 != null)
-                                {
-
-                                }
-
-
                                 var needLevel = needDepth.Bids.Find(level => level.Price == sortedQuote.Value[i].Price);
                                 if (needLevel != null)
                                 {
@@ -1004,12 +995,6 @@ namespace OsEngine.Market.Servers.Transaq
                             }
                             if (sortedQuote.Value[i].Sell > 0)
                             {
-                                var needLevel3 = needDepth.Bids.Find(level => level.Price == sortedQuote.Value[i].Price);
-                                if (needLevel3 != null)
-                                {
-
-                                }
-
                                 var needLevel = needDepth.Asks.Find(level => level.Price == sortedQuote.Value[i].Price);
                                 if (needLevel != null)
                                 {
@@ -1073,11 +1058,6 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         /// <summary>
-        /// сведения о номере ордера на бирже и его transactionId
-        /// </summary>
-        private Dictionary<string, string> _ordersExchNoTransId = new Dictionary<string, string>();
-
-        /// <summary>
         /// пришла информация об ордерах
         /// </summary>
         private void ClientOnMyOrderEvent(List<TransaqEntity.Order> orders)
@@ -1086,14 +1066,14 @@ namespace OsEngine.Market.Servers.Transaq
             {
                 try
                 {
-                    Order newOrder = new Order();
-                    newOrder.SecurityNameCode = order.Seccode;
-
-                    if (!int.TryParse(order.Brokerref, out int numUser))
+                    if (order.Orderno == "0")
                     {
                         continue;
                     }
-                    newOrder.NumberUser = numUser;
+                
+                    Order newOrder = new Order();
+                    newOrder.SecurityNameCode = order.Seccode;
+                    newOrder.NumberUser = Convert.ToInt32(order.Transactionid);
                     newOrder.NumberMarket = order.Orderno;
                     newOrder.TimeCallBack = order.Time != null ? DateTime.Parse(order.Time) : ServerTime;
                     newOrder.Side = order.Buysell == "B" ? Side.Buy : Side.Sell;
@@ -1104,11 +1084,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                     if (order.Status == "active")
                     {
-                        newOrder.State = OrderStateType.Activ;
-                        if (!_ordersExchNoTransId.ContainsKey(order.Orderno))
-                        {
-                            _ordersExchNoTransId.Add(order.Orderno, order.Transactionid);
-                        }
+                        newOrder.State = OrderStateType.Activ;                       
                     }
                     else if (order.Status == "cancelled" ||
                              order.Status == "expired" ||
@@ -1116,10 +1092,6 @@ namespace OsEngine.Market.Servers.Transaq
                              order.Status == "removed")
                     {
                         newOrder.State = OrderStateType.Cancel;
-                        if (_ordersExchNoTransId.ContainsKey(order.Orderno))
-                        {
-                            _ordersExchNoTransId.Remove(order.Orderno);
-                        }
                     }
                     else if (order.Status == "matched")
                     {
@@ -1137,12 +1109,8 @@ namespace OsEngine.Market.Servers.Transaq
                              order.Status == "watching")
                     {
                         newOrder.State = OrderStateType.Pending;
-                        if (!_ordersExchNoTransId.ContainsKey(order.Orderno))
-                        {
-                            _ordersExchNoTransId.Add(order.Orderno, order.Transactionid);
-                        }
                     }
-                    else if (order.Status == "inactive")
+                    else
                     {
                         newOrder.State = OrderStateType.None;
                     }
