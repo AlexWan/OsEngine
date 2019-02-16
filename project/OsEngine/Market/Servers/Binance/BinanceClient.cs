@@ -338,6 +338,115 @@ namespace OsEngine.Market.Servers.Binance
             }
         }
 
+        public List<Candle> GetCandlesForTimes(string nameSec, TimeSpan tf, DateTime timeStart, DateTime timeEnd)
+        {
+            DateTime yearBegin = new DateTime(1970, 1, 1);
+
+            var timeStampStart = timeStart - yearBegin;
+            var r = timeStampStart.TotalMilliseconds;
+            string startTime = Convert.ToInt64(r).ToString();
+
+            var timeStampEnd = timeEnd - yearBegin;
+            var rEnd = timeStampEnd.TotalMilliseconds;
+            string endTime = Convert.ToInt64(rEnd).ToString();
+
+
+            string needTf = "";
+
+            switch ((int)tf.TotalMinutes)
+            {
+                case 1:
+                    needTf = "1m";
+                    break;
+                case 2:
+                    needTf = "2m";
+                    break;
+                case 3:
+                    needTf = "3m";
+                    break;
+                case 5:
+                    needTf = "5m";
+                    break;
+                case 10:
+                    needTf = "10m";
+                    break;
+                case 15:
+                    needTf = "15m";
+                    break;
+                case 20:
+                    needTf = "20m";
+                    break;
+                case 30:
+                    needTf = "30m";
+                    break;
+                case 45:
+                    needTf = "45m";
+                    break;
+                case 60:
+                    needTf = "1h";
+                    break;
+                case 120:
+                    needTf = "2h";
+                    break;
+            }
+
+            string endPoint = "api/v1/klines";
+
+            if (needTf != "2m" && needTf != "10m" && needTf != "20m" && needTf != "45m")
+            {
+                var param = new Dictionary<string, string>();
+                param.Add("symbol=" + nameSec.ToUpper(), "&interval=" + needTf + "&startTime=" + startTime + "&endTime=" + endTime);
+
+                var res = CreateQuery(Method.GET, endPoint, param, false);
+
+                var candles = _deserializeCandles(res);
+                return candles;
+
+            }
+            else
+            {
+                if (needTf == "2m")
+                {
+                    var param = new Dictionary<string, string>();
+                    param.Add("symbol=" + nameSec.ToUpper(), "&interval=1m" + "&startTime=" + startTime + "&endTime=" + endTime);
+                    var res = CreateQuery(Method.GET, endPoint, param, false);
+                    var candles = _deserializeCandles(res);
+
+                    var newCandles = BuildCandles(candles, 2, 1);
+                    return newCandles;
+                }
+                else if (needTf == "10m")
+                {
+                    var param = new Dictionary<string, string>();
+                    param.Add("symbol=" + nameSec.ToUpper(), "&interval=5m" + "&startTime=" + startTime + "&endTime=" + endTime);
+                    var res = CreateQuery(Method.GET, endPoint, param, false);
+                    var candles = _deserializeCandles(res);
+                    var newCandles = BuildCandles(candles, 10, 5);
+                    return newCandles;
+                }
+                else if (needTf == "20m")
+                {
+                    var param = new Dictionary<string, string>();
+                    param.Add("symbol=" + nameSec.ToUpper(), "&interval=5m" + "&startTime=" + startTime + "&endTime=" + endTime);
+                    var res = CreateQuery(Method.GET, endPoint, param, false);
+                    var candles = _deserializeCandles(res);
+                    var newCandles = BuildCandles(candles, 20, 5);
+                    return newCandles;
+                }
+                else if (needTf == "45m")
+                {
+                    var param = new Dictionary<string, string>();
+                    param.Add("symbol=" + nameSec.ToUpper(), "&interval=15m" + "&startTime=" + startTime + "&endTime=" + endTime);
+                    var res = CreateQuery(Method.GET, endPoint, param, false);
+                    var candles = _deserializeCandles(res);
+                    var newCandles = BuildCandles(candles, 45, 15);
+                    return newCandles;
+                }
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// взять свечи
         /// </summary>
@@ -565,7 +674,6 @@ namespace OsEngine.Market.Servers.Binance
                 return null;
             }
         }
-
 
         #region Аутентификация запроса
 

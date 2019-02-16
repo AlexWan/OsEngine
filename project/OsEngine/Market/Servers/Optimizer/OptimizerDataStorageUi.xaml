@@ -13,7 +13,7 @@
                 <Grid >
                     <WindowsFormsHost x:Name="HostSecurities" Foreground="Black" Margin="0,125,0,0"/>
                     <ComboBox x:Name="ComboBoxSets" Margin="365,5,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="255"/>
-                    <Label Name="Label28" Content="Cеты" HorizontalAlignment="Left" Margin="323,5,0,0" VerticalAlignment="Top" />
+                    <Label Name="Label28" Content="Sets" HorizontalAlignment="Left" Margin="323,5,0,0" VerticalAlignment="Top" />
                     <ComboBox x:Name="ComboBoxDataType" HorizontalAlignment="Left" Margin="114,35,0,0" VerticalAlignment="Top" Width="178"/>
                     <Label Name="Label25" Content="Translation type" HorizontalAlignment="Left" Margin="9,35,0,0" VerticalAlignment="Top"/>
                     <Button x:Name="ButtonSetDataFromPath" Content="Find in folder" Margin="626,4,10,0" VerticalAlignment="Top" Click="ButtonSetDataFromPath_Click"/>

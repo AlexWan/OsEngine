@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Threading;
 using Newtonsoft.Json;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.BitMex.BitMexEntity;
 using OsEngine.Market.Servers.Entity;
@@ -21,11 +22,11 @@ namespace OsEngine.Market.Servers.BitMex
             BitMexServerRealization realization = new BitMexServerRealization();
             ServerRealization = realization;
 
-            CreateParameterString("Идентификатор: ", "");
-            CreateParameterPassword("Секретный ключ", "");
+            CreateParameterString(OsLocalization.Market.ServerParamId, "");
+            CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
             CreateParameterBoolean("IsDemo", false);
         }
-
+        
         public List<Candle> GetBitMexCandleHistory(string nameSec, TimeSpan tf)
         {
             return ((BitMexServerRealization)ServerRealization).GetBitMexCandleHistory(nameSec, tf);
@@ -1302,13 +1303,10 @@ namespace OsEngine.Market.Servers.BitMex
             { // останавливаемся на минуту
                 //LastSystemOverload = DateTime.Now;
             }
-            if (error == "{\"error\":{\"message\":\"Executing at order price would lead to immediate liquidation\",\"name\":\"ValidationError\"}}")
-            {
-                _client_SendLogMessage("Цена ликвидации при таком объме выше чем текущая цена ордера. Уменьшите объём", LogMessageType.Error);
-            }
+
+
             if (error == "{\"error\":{\"message\":\"This key is disabled.\",\"name\":\"HTTPError\"}}")
             {
-                _client_SendLogMessage("Биржа заблокировала Ваши ключи.", LogMessageType.System);
                 //_serverStatusNead = ServerConnectStatus.Disconnect;
                 Thread.Sleep(2500);
             }
@@ -1502,14 +1500,6 @@ namespace OsEngine.Market.Servers.BitMex
                                 MyOrderEvent(_ordersToCheck[i]);
                             }
 
-                            SendLogMessage(
-                              "Отчёта об ордере небыло больше пяти минут. Признаём его без вести пропавшим, а позицию по нему не открытой. Номер ордера: "
-                               + _ordersToCheck[i].NumberUser, LogMessageType.Error);
-                            SendLogMessage(
-                              "После предыдущей ошибки, существует всё же шанс что биржа просто зависла забыв про нас и через несколько минут или десятков" +
-                              " минут роботу придёт оповещение " +
-                            "о том что ордер таки исполнился. Проверте НЕТТО позицию через личный кабинет руками!!!", LogMessageType.Error);
-
                             if (MyOrderEvent != null)
                             {
                                 MyOrderEvent(_ordersToCheck[i]);
@@ -1529,9 +1519,7 @@ namespace OsEngine.Market.Servers.BitMex
 
                         if (osOrder.State == OrderStateType.Cancel)
                         {
-                            SendLogMessage(
-                                "Апи. Доп проверка. Ордер отозван. Номер ордера: " + _ordersToCheck[i].NumberUser,
-                                LogMessageType.System);
+
                             _ordersToCheck[i].State = OrderStateType.Cancel;
                             if (MyOrderEvent != null)
                             {
@@ -1542,9 +1530,6 @@ namespace OsEngine.Market.Servers.BitMex
                         }
                         else if (osOrder.State == OrderStateType.Done)
                         {
-                            SendLogMessage(
-                                "Апи. Доп проверка. Ордер исполнен. Номер ордера: " + _ordersToCheck[i].NumberUser,
-                                LogMessageType.System);
                             _ordersToCheck[i].State = OrderStateType.Done;
                             _ordersToCheck[i].TimeCallBack = ServerTime;
                             _ordersToCheck[i].VolumeExecute = _ordersToCheck[i].Volume;
@@ -1582,9 +1567,6 @@ namespace OsEngine.Market.Servers.BitMex
 
                             if (_ordersCanseled.Find(o => o.NumberUser == osOrder.NumberUser) != null)
                             {
-                                SendLogMessage(
-                                    "Обнаружили что ранее снятый ордер всё ещё активен. Отзываем ещё раз. Номер ордера: " +
-                                    osOrder.NumberUser, LogMessageType.Error);
                                 _ordersToCansel.Enqueue(osOrder);
                             }
                             // отчёт об ордере пришёл. Удаляем ордер из ордеров нужных к проверке
@@ -1771,14 +1753,12 @@ namespace OsEngine.Market.Servers.BitMex
                                 if (myOrder.data[i].ordStatus == "Canceled")
                                 {
                                     needOrder.State = OrderStateType.Cancel;
-                                    SendLogMessage("Апи. Ордер отозван. Номер " + needOrder.NumberUser, LogMessageType.System);
                                 }
 
                                 if (myOrder.data[i].ordStatus == "Rejected")
                                 {
                                     needOrder.State = OrderStateType.Fail;
                                     needOrder.VolumeExecute = 0;
-                                    SendLogMessage("Апи. Ордер отозван. Номер " + needOrder.NumberUser, LogMessageType.System);
                                 }
 
                                 if (myOrder.data[i].ordStatus == "PartiallyFilled")
@@ -1791,8 +1771,7 @@ namespace OsEngine.Market.Servers.BitMex
                                             CultureInfo.InvariantCulture);
                                     }
 
-                                    SendLogMessage("Апи. Ордер частично исполнен. Номер " + needOrder.NumberUser, LogMessageType.System);
-                                }
+                                 }
 
                                 if (myOrder.data[i].ordStatus == "Filled")
                                 {
@@ -1803,7 +1782,6 @@ namespace OsEngine.Market.Servers.BitMex
                                                 CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
                                             CultureInfo.InvariantCulture);
                                     }
-                                    SendLogMessage("Апи. Ордер исполнен. Номер " + needOrder.NumberUser, LogMessageType.System);
                                 }
                                 if (_myTrades != null &&
                                     _myTrades.Count != 0)
@@ -1971,12 +1949,5 @@ namespace OsEngine.Market.Servers.BitMex
         public decimal low { get; set; }
         public decimal close { get; set; }
         public int volume { get; set; }
-
-        //public int trades { get; set; }
-        //public double? vwap { get; set; }
-        //public int? lastSize { get; set; }
-        //public object turnover { get; set; }
-        //public double homeNotional { get; set; }
-        //public int foreignNotional { get; set; }
     }
 }

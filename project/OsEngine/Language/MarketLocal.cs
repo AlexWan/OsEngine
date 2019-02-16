@@ -131,14 +131,6 @@ namespace OsEngine.Language
 
         // Servers
 
-        public string ServerParam1 => OsLocalization.ConvertToLocString(
-            "Eng:Keep history_" +
-            "Ru:Сохранять историю_");
-
-        public string ServerParam2 => OsLocalization.ConvertToLocString(
-            "Eng:Days to load_" +
-            "Ru:Дней подгружать_");
-
         public string Message6 => OsLocalization.ConvertToLocString(
             "Eng:Connection established_" +
             "Ru:Соединение установлено_");
@@ -385,12 +377,29 @@ namespace OsEngine.Language
             "Eng:Update data on candles for security _" +
             "Ru:Обновляем данные по свечам для бумаги _");
 
+        public string Message59 => OsLocalization.ConvertToLocString(
+            "Eng:Adress_" +
+            "Ru:Адрес_");
 
+        public string Message60 => OsLocalization.ConvertToLocString(
+            "Eng:ServerName_" +
+            "Ru:Имя сервера_");
 
+        public string Message61 => OsLocalization.ConvertToLocString(
+            "Eng:Service name_" +
+            "Ru:Имя сервиса_");
 
+        public string Message62 => OsLocalization.ConvertToLocString(
+            "Eng:Place_" +
+            "Ru:Расположение_");
 
+        public string Message63 => OsLocalization.ConvertToLocString(
+            "Eng:User name_" +
+            "Ru:Имя пользователя_");
 
-
+        public string Message64 => OsLocalization.ConvertToLocString(
+            "Eng:Password_" +
+            "Ru:Пароль_");
 
 
         public string TitleTester => OsLocalization.ConvertToLocString(
@@ -490,5 +499,65 @@ namespace OsEngine.Language
         public string Label41 => OsLocalization.ConvertToLocString(
             "Eng:Server address_" +
             "Ru:Адрес сервера_");
+
+        public string Label42 => OsLocalization.ConvertToLocString(
+            "Eng:Base active_" +
+            "Ru:Базовый актив_");
+
+        public string Label43 => OsLocalization.ConvertToLocString(
+            "Eng:Market_" +
+            "Ru:Биржа_");
+
+        public string Label44 => OsLocalization.ConvertToLocString(
+            "Eng:Security Type_" +
+            "Ru:Тип инструмента_");
+
+        public string Label45 => OsLocalization.ConvertToLocString(
+            "Eng:Symbol_" +
+            "Ru:Символ_");
+
+        public string Label46 => OsLocalization.ConvertToLocString(
+            "Eng:Prime market_" +
+            "Ru:Биржа основная_");
+
+        public string Label47 => OsLocalization.ConvertToLocString(
+            "Eng:Delete_" +
+            "Ru:Удалить_");
+
+        public string Label48 => OsLocalization.ConvertToLocString(
+            "Eng:Add_" +
+            "Ru:Добавить_");
+
+
+        public string ServerParam1 => OsLocalization.ConvertToLocString(
+            "Eng:Keep history_" +
+            "Ru:Сохранять историю_");
+
+        public string ServerParam2 => OsLocalization.ConvertToLocString(
+            "Eng:Days to load_" +
+            "Ru:Дней подгружать_");
+
+        public string ServerParamPublicKey => OsLocalization.ConvertToLocString(
+            "Eng:Public key_" +
+            "Ru:Публичный ключ_");
+
+        public string ServerParamSecretKey => OsLocalization.ConvertToLocString(
+            "Eng:Secret key_" +
+            "Ru:Секретный ключ_");
+
+        public string ServerParamId => OsLocalization.ConvertToLocString(
+            "Eng:Id_" +
+            "Ru:Идентификатор_");
+
+
+
+
+
+
+
+
+
+
+
     }
 }

@@ -95,13 +95,46 @@ namespace OsEngine.Market.Servers.Transaq
 
         public ServerConnectStatus ServerStatus { get; set; }
 
+        // исходящие события
+
+        /// <summary>
+        /// вызывается когда изменился ордер
+        /// </summary>
         public event Action<Order> MyOrderEvent;
+
+        /// <summary>
+        /// вызывается когда изменился мой трейд
+        /// </summary>
         public event Action<MyTrade> MyTradeEvent;
+
+        /// <summary>
+        /// появились новые портфели
+        /// </summary>
         public event Action<List<Portfolio>> PortfolioEvent;
+
+        /// <summary>
+        /// новые бумаги
+        /// </summary>
         public event Action<List<Security>> SecurityEvent;
+
+        /// <summary>
+        /// новый стакан
+        /// </summary>
         public event Action<MarketDepth> MarketDepthEvent;
+
+        /// <summary>
+        /// новый трейд
+        /// </summary>
         public event Action<Trade> NewTradesEvent;
+
+        /// <summary>
+        /// соединение с API установлено
+        /// </summary>
         public event Action ConnectEvent;
+
+        /// <summary>
+        /// соединение с API разорвано
+        /// </summary>
         public event Action DisconnectEvent;
 
         TransaqClient _client;
