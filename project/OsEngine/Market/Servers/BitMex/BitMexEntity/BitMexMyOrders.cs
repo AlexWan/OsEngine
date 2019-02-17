@@ -21,7 +21,7 @@ namespace OsEngine.Market.Servers.BitMex.BitMexEntity
         /// <summary>
         /// цена сделки
         /// </summary>
-        public decimal price { get; set; }
+        public string price { get; set; }
 
         /// <summary>
         /// инструмент, по которому совершена сделка
