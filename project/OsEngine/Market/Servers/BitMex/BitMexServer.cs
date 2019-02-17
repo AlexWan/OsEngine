@@ -1181,7 +1181,7 @@ namespace OsEngine.Market.Servers.BitMex
                     {
                         Trade trade = new Trade();
                         trade.SecurityNameCode = trades.data[j].symbol;
-                        trade.Price = Convert.ToDecimal(trades.data[j].price);
+                        trade.Price = Convert.ToDecimal(trades.data[j].price.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberGroupSeparator), CultureInfo.InvariantCulture);
                         trade.Id = trades.data[j].trdMatchID;
                         trade.Time = Convert.ToDateTime(trades.data[j].timestamp);
                         trade.Volume = trades.data[j].size;
