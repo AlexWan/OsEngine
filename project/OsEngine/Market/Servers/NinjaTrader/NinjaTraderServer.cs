@@ -19,7 +19,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
             CreateParameterPassword("Port", "11000");
         }
     }
-
+    
     public class NinjaTraderServerRealization : IServerRealization
     {
         public NinjaTraderServerRealization()
@@ -116,7 +116,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
 
         public void GetOrdersState(List<Order> orders)
         {
-            return;
+       
         }
 
         // разбор входящих данных

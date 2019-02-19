@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using OsEngine.Language;
 
 namespace OsEngine.Market.Servers.Lmax
 {
@@ -131,7 +132,7 @@ namespace OsEngine.Market.Servers.Lmax
             }
             else
             {
-                SendLogMessage("Не удалось начать подключение, отсутствует один или несколько обязательных параметров", LogMessageType.Error);
+                SendLogMessage(OsLocalization.Market.Label56, LogMessageType.Error);
             }
         }
 

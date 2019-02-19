@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
 using OsEngine.Entity;
+using OsEngine.Language;
 using ru.micexrts.cgate;
 using ru.micexrts.cgate.message;
 
@@ -15,12 +16,12 @@ namespace OsEngine.Market.Servers.Plaza.Internal
     /// <summary>
     /// класс реализующий взаимодействие с Роутером Плаза 2 CGate
     /// </summary>
-    public class PlazaController
+    public class PlazaClient
     {
         /// <summary>
         /// конструктор
         /// </summary>
-        public PlazaController(string key)
+        public PlazaClient(string key)
         {
             _depthCreator = new PlazaMarketDepthCreator();
             _statusNeeded = ServerConnectStatus.Disconnect;
@@ -116,7 +117,6 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                 {
                     return;
                 }
-                SendLogMessage("Новый статус сервера: " + value);
                 _serverConnectStatus = value;
 
                 if (ConnectStatusChangeEvent != null)
@@ -172,7 +172,6 @@ namespace OsEngine.Market.Servers.Plaza.Internal
 
             if (_threadPrime != null)
             {
-                SendLogMessage("Перехвачена попытка повторного запуска сервера Плаза 2.");
                 return;
             }
             try
@@ -202,12 +201,9 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                 _threadOrderExecutor.CurrentCulture = new CultureInfo("ru-RU");
                 _threadOrderExecutor.IsBackground = true;
                 _threadOrderExecutor.Start();
-
-                SendLogMessage("Активирован запуск сервера Плаза 2");
             }
             catch (Exception error)
             {
-                SendLogMessage("Критическая ошибка на старте.");
                 SendLogMessage(error.ToString());
             }
         }
@@ -217,7 +213,6 @@ namespace OsEngine.Market.Servers.Plaza.Internal
         /// </summary>
         public void Stop()
         {
-            SendLogMessage("Запущена процедура отключения сервера Плаза 2 от Роутера");
             Thread worker = new Thread(Dispose);
             worker.CurrentCulture = new CultureInfo("ru-RU");
             worker.IsBackground = true;
@@ -234,7 +229,6 @@ namespace OsEngine.Market.Servers.Plaza.Internal
         {
             _statusNeeded = ServerConnectStatus.Disconnect;
             Thread.Sleep(1000);
-            SendLogMessage("Запущена процедура очищения объектов, ответственных за соединение с Роутером Плаза 2");
 
             // отключаем поток следящий за основным потоком
             if (_threadNanny != null)
@@ -481,7 +475,6 @@ namespace OsEngine.Market.Servers.Plaza.Internal
         private void Reconnect()
         {
             Status = ServerConnectStatus.Disconnect;
-            SendLogMessage("ВНИМАНИЕ! Активирована процедура полного перезапуска сервера Плаза 2.");
             _lastMoveTime = DateTime.Now; // отмечаем флаг нахождения нового потока
             Stop();
             Dispose();
@@ -505,7 +498,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                 if (_lastMoveTime != DateTime.MinValue &&
                     _lastMoveTime.AddMinutes(1) < DateTime.Now)
                 {
-                    SendLogMessage("ВНИМАНИЕ! Основной поток не отвечает минуты!");
+                    SendLogMessage(OsLocalization.Market.Message78);
                     // авария у нас. Рабочий поток потерялся и не выходит на связь три минуты
                     Thread worker = new Thread(Reconnect);
                     worker.CurrentCulture = new CultureInfo("ru-RU");
@@ -546,9 +539,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                             catch (Exception error)
                             {
                                 // не получилось подключиться
-                                SendLogMessage(
-                                    "ВНИМАНИЕ! КРИТИЧЕСКАЯ ОШИБКА! Если это сообщение повториться несколько раз, необходимо отключать приложение и смотреть что с Роутером.");
-                                SendLogMessage(error.ToString());
+                               SendLogMessage(error.ToString());
                                 Thread.Sleep(10000);
                                 try
                                 {
@@ -620,7 +611,6 @@ namespace OsEngine.Market.Servers.Plaza.Internal
             }
             catch (Exception error)
             {
-                SendLogMessage("Основной поток отлючён");
                 SendLogMessage(error.ToString());
                 // назначаем время последнего отзыва от основного потока - четырем минуты назад
                 // после этого поток следящий за основным потоком начинает процедуру переподключения
@@ -938,8 +928,8 @@ namespace OsEngine.Market.Servers.Plaza.Internal
 
                                     positionOnBoard.SecurityNameCode = replmsg["isin_id"].asInt().ToString();
                                     positionOnBoard.PortfolioName = replmsg["client_code"].asString();
-                                    positionOnBoard.ValueBegin = replmsg["open_qty"].asInt();
-                                    positionOnBoard.ValueCurrent = replmsg["pos"].asInt();
+                                    positionOnBoard.ValueBegin = replmsg["xopen_qty"].asInt();
+                                    positionOnBoard.ValueCurrent = replmsg["xpos"].asInt();
                                     positionOnBoard.ValueBlocked = positionOnBoard.ValueCurrent;
 
                                     if (UpdatePosition != null)
@@ -1121,7 +1111,7 @@ Connection conn, Listener listener, Message msg)
                     {
                         //_listenerTrade.Open("mode=online");
                         _listenerTrade.Open("mode=snapshot+online");
-                        SendLogMessage("Включена загрузка тиков. Если это произошло впервые после загрузки программы, это может занять несколько минут.");
+                        SendLogMessage(OsLocalization.Market.Message79);
                     }
                     else
                     {
@@ -1181,7 +1171,7 @@ Connection conn, Listener listener, Message msg)
                                     trade.Id = replmsg["id_deal"].asLong().ToString();
                                     trade.SecurityNameCode = replmsg["isin_id"].asInt().ToString();
                                     trade.Time = replmsg["moment"].asDateTime();
-                                    trade.Volume = replmsg["amount"].asInt();
+                                    trade.Volume = replmsg["xamount"].asInt();
 
                                     long numberBuyOrder = replmsg["id_ord_buy"].asLong();
                                     long numberSellOrder = replmsg["id_ord_sell"].asLong();
@@ -1211,7 +1201,7 @@ Connection conn, Listener listener, Message msg)
 
                     case MessageType.MsgP2ReplOnline:
                         {
-                            SendLogMessage("Тики полностью загрузились. Сервер Активирован для дальнейшей работы. ");
+                            SendLogMessage(OsLocalization.Market.Message80);
                             // дальше данные идут ОнЛайн
                             _dealsOnLine = true;
                             // меняем статус сервера, чтобы можно было к нему подцеплять ботов
@@ -1560,7 +1550,7 @@ Connection conn, Listener listener, Message msg)
                                     trade.NumberTrade = replmsg["id_deal"].asLong().ToString();
                                     trade.SecurityNameCode = replmsg["isin_id"].asInt().ToString();
                                     trade.Time = replmsg["moment"].asDateTime();
-                                    trade.Volume = replmsg["amount"].asInt();
+                                    trade.Volume = replmsg["xamount"].asInt();
 
 
                                     string portfolioBuy = replmsg["code_buy"].asString();
@@ -1604,9 +1594,9 @@ Connection conn, Listener listener, Message msg)
                                     order.NumberMarket = replmsg["id_ord"].asLong().ToString();
                                     order.NumberUser = replmsg["ext_id"].asInt();
 
-                                    order.Volume = 0;
+                                    order.Volume = replmsg["xamount"].asInt();
                                     //order.VolumeExecute = 0;
-                                    order.VolumeExecute = replmsg["amount_rest"].asInt(); // это у нас оставшееся в заявке
+                                    order.VolumeExecute = replmsg["xamount_rest"].asInt(); // это у нас оставшееся в заявке
 
                                     order.Price = Convert.ToDecimal(replmsg["price"].asDecimal());
                                     order.PortfolioNumber = replmsg["client_code"].asString();
@@ -1624,7 +1614,7 @@ Connection conn, Listener listener, Message msg)
                                     else if (action == 1)
                                     {
                                         order.State = OrderStateType.Activ;
-                                        int status = replmsg["status"].asInt();
+                                        int status = replmsg["xstatus"].asInt();
                                         if (status == 1025)
                                         {
                                             return 0;
@@ -1872,12 +1862,10 @@ Connection conn, Listener listener, Message msg)
                                     if (code == 0)
                                     {
                                         order.State = OrderStateType.Activ;
-                                        SendLogMessage(order.NumberUser + " Заявка зарегистрированна на бирже " + msgData);
                                     }
                                     else
                                     {
                                         order.State = OrderStateType.Fail;
-                                        SendLogMessage(order.NumberUser + " Заявка не прошла " + msgData);
                                     }
 
                                     if (NewMyOrderEvent != null)
@@ -1897,12 +1885,10 @@ Connection conn, Listener listener, Message msg)
 
                                     if (code == 0 || code == 14)
                                     {
-                                        SendLogMessage(order.NumberUser + " Попытка закрыть заявку не удалась " + msgData);
                                         order.State = OrderStateType.Cancel;
                                     }
                                     else
                                     {
-                                        SendLogMessage(order.NumberUser + " Заявка не закрылась " + msgData);
                                         return 0;
                                     }
 
@@ -1913,12 +1899,12 @@ Connection conn, Listener listener, Message msg)
                                 }
                                 else if (msgData.MsgId == 99)
                                 {
-                                    SendLogMessage("Превышение ФЛУД контроля! ШТРАФЫ! Слишком много заявок! " + msgData);
+                                    SendLogMessage(OsLocalization.Market.Message81 + msgData);
                                     return 0;
                                 }
                                 else if (msgData.MsgId == 100)
                                 {
-                                    SendLogMessage("Системная Ошибка! Перезагружаемся! " + msgData);
+                                    SendLogMessage(msgData.ToString());
                                     Thread worker = new Thread(Reconnect);
                                     worker.IsBackground = true;
                                     worker.CurrentCulture = new CultureInfo("ru-RU");
@@ -1958,7 +1944,6 @@ Connection conn, Listener listener, Message msg)
         /// </summary>
         public void ExecuteOrder(Order order)
         {
-            SendLogMessage("сохранили в очередь на отправку" + DateTime.Now.ToString() + DateTime.Now.Millisecond);
             _ordersToExecute.Enqueue(order);
         }
 
@@ -2031,7 +2016,6 @@ Connection conn, Listener listener, Message msg)
                         _thisSecond = DateTime.Now;
                         _countActionInThisSecond = 0;
                     }
-                    SendLogMessage("берём ордер из массива" +DateTime.Now.ToString() + DateTime.Now.Millisecond);
                     try
                     {
                         Order order = _ordersToExecute.Dequeue();

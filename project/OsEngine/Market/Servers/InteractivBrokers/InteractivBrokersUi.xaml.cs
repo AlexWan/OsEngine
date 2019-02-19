@@ -4,6 +4,7 @@
 
 using System;
 using System.Windows;
+using OsEngine.Language;
 using OsEngine.Logging;
 
 namespace OsEngine.Market.Servers.InteractivBrokers
@@ -30,6 +31,12 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             TextBoxHost.Text = _server.Host;
             TextBoxPort.Text = _server.Port.ToString();
             TextBoxId.Text = _server.ClientIdInSystem.ToString();
+
+            LabelDaysToLoad.Content = OsLocalization.Market.ServerParam2;
+            ButtonConnect.Content = OsLocalization.Market.ButtonConnect;
+            ButtonAbort.Content = OsLocalization.Market.ButtonDisconnect;
+            CheckBoxNeadToSaveTrade.Content = OsLocalization.Market.ServerParam1;
+            ButtonSecurities.Content = OsLocalization.Market.Message50;
         }
 
         void TextBoxCountDaysSave_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
@@ -75,7 +82,6 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         {
             if (string.IsNullOrWhiteSpace(TextBoxHost.Text) )
             {
-                MessageBox.Show("Не хватает данных чтобы запустить сервер!");
                 return;
             }
 
@@ -89,7 +95,6 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             }
             catch (Exception)
             {
-                MessageBox.Show("Не правильные данные. Запуск сервера прерван");
                 return;
             }
 

@@ -178,7 +178,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         /// <summary>
         /// исполнить ордер
         /// </summary>
-        public void ExecuteOrder(Order order)
+        public void ExecuteOrder(Order order, bool isMarginTrading)
         {
             lock (_lockOrder)
             {
@@ -191,7 +191,15 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                     NewOrderPayload newOrder = new NewOrderPayload();
 
-                    newOrder.type = "exchange limit";
+                    if (isMarginTrading == false)
+                    {
+                        newOrder.type = "exchange limit";
+                    }
+                    else// if (isMarginTrading)
+                    {
+                        newOrder.type = "limit";
+                    }
+                    
                     newOrder.exchange = "bitfinex";
                     newOrder.request = "/v1/order/new";
                     newOrder.side = order.Side == Side.Buy ? "buy" : "sell";

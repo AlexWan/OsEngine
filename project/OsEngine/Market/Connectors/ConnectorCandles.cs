@@ -1052,6 +1052,7 @@ namespace OsEngine.Market.Connectors
                 order.SecurityNameCode = NamePaper;
                 order.PortfolioNumber = PortfolioName;
                 order.ServerType = ServerType;
+                order.TimeCreate = MarketTime;
 
                 if (EmulatorIsOn || _myServer.ServerType == ServerType.Finam)
                 {

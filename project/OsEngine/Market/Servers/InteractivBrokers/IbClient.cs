@@ -46,7 +46,6 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         {
             if (_isConnected)
             {
-                SendLogMessage("Запрошен повторный запуск клиента IB со статусом Connect", LogMessageType.Error);
                 return;
             }
             try
@@ -60,9 +59,9 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                     TcpWrite(63);
                     TcpSendMessage();
                 }
-                catch (IOException)
+                catch (IOException error)
                 {
-                    SendLogMessage("Не получилось подключиться к серверу! ", LogMessageType.Error);
+                    SendLogMessage(error.ToString(), LogMessageType.Error);
                     throw;
 
                 }

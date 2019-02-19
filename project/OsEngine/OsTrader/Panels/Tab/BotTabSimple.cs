@@ -3301,9 +3301,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 _connector.OrderCancel(order);
 
-                SetNewLogMessage(TabName + OsLocalization.Trader.Label70+ order.NumberMarket,
-                    LogMessageType.Trade);
-
                 for (int i = 0; deal.CloseOrders != null && i < deal.CloseOrders.Count; i++)
                 {
                     if (order.NumberUser == deal.CloseOrders[i].NumberUser && _manualControl.DoubleExitIsOn)

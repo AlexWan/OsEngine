@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace OsEngine.Language
 {
     public class MarketLocal
@@ -130,14 +125,6 @@ namespace OsEngine.Language
 
 
         // Servers
-
-        public string ServerParam1 => OsLocalization.ConvertToLocString(
-            "Eng:Keep history_" +
-            "Ru:Сохранять историю_");
-
-        public string ServerParam2 => OsLocalization.ConvertToLocString(
-            "Eng:Days to load_" +
-            "Ru:Дней подгружать_");
 
         public string Message6 => OsLocalization.ConvertToLocString(
             "Eng:Connection established_" +
@@ -385,18 +372,161 @@ namespace OsEngine.Language
             "Eng:Update data on candles for security _" +
             "Ru:Обновляем данные по свечам для бумаги _");
 
+        public string Message59 => OsLocalization.ConvertToLocString(
+            "Eng:Adress_" +
+            "Ru:Адрес_");
 
+        public string Message60 => OsLocalization.ConvertToLocString(
+            "Eng:ServerName_" +
+            "Ru:Имя сервера_");
 
+        public string Message61 => OsLocalization.ConvertToLocString(
+            "Eng:Service name_" +
+            "Ru:Имя сервиса_");
 
+        public string Message62 => OsLocalization.ConvertToLocString(
+            "Eng:Place_" +
+            "Ru:Расположение_");
 
+        public string Message63 => OsLocalization.ConvertToLocString(
+            "Eng:User name_" +
+            "Ru:Имя пользователя_");
 
+        public string Message64 => OsLocalization.ConvertToLocString(
+            "Eng:Password_" +
+            "Ru:Пароль_");
 
+        public string Message65 => OsLocalization.ConvertToLocString(
+            "Eng:No key specified. Connection terminated_" +
+            "Ru:Не указан ключ.  Подключение прервано_");
 
+        public string Message66 => OsLocalization.ConvertToLocString(
+            "Eng:Error subscribing to account info_" +
+            "Ru:Ошибка подписки на аккаунт инфо_");
+
+        public string Message67 => OsLocalization.ConvertToLocString(
+            "Eng:Signed up to receive candles_" +
+            "Ru:Подписались на получение свечей_");
+
+        public string Message68 => OsLocalization.ConvertToLocString(
+            "Eng:Error subscription candles_" +
+            "Ru:Ошибка подписки на получение свечей_");
+
+        public string Message69 => OsLocalization.ConvertToLocString(
+            "Eng:Successful portfolio request_" +
+            "Ru:Успешный запрос портфелей_");
+
+        public string Message70 => OsLocalization.ConvertToLocString(
+            "Eng:Portfolios request error_" +
+            "Ru:Ошибка запроса портфелей_");
+
+        public string Message71 => OsLocalization.ConvertToLocString(
+            "Eng:Securities request error_" +
+            "Ru:Ошибка запроса инструментов_");
+
+        public string Message72 => OsLocalization.ConvertToLocString(
+            "Eng:The tool request was successful_" +
+            "Ru:Запрос инструментов прошел успешно_");
+
+        public string Message73 => OsLocalization.ConvertToLocString(
+            "Eng:Subscribe to the marketdepth_" +
+            "Ru:Подписались на стакан_");
+
+        public string Message74 => OsLocalization.ConvertToLocString(
+            "Eng:MarketDepth subscription error_" +
+            "Ru:Ошибка подписки на стакан_");
+
+        public string Message75 => OsLocalization.ConvertToLocString(
+            "Eng:Error canceling order. Reason_" +
+            "Ru:Ошибка отмены ордера. Причина _");
+
+        public string Message76 => OsLocalization.ConvertToLocString(
+            "Eng:Ninja not responding. Probably you have not active script OsEngineConnect in Ninja_" +
+            "Ru:Ninja не отвечает. Вероятно у Вас не активен скрипт OsEngineConnect в Ninja _");
+
+        public string Message77 => OsLocalization.ConvertToLocString(
+            "Eng:The token cannot be empty! Get a unique access key at_" +
+            "Ru:Токен не может быть пустым! Получите уникальный ключ доступа по адресу _");
+
+        public string Message78 => OsLocalization.ConvertToLocString(
+            "Eng:Attention! The main stream does not respond for more than a minute!_" +
+            "Ru:ВНИМАНИЕ! Основной поток не отвечает больше минуты!_");
+
+        public string Message79 => OsLocalization.ConvertToLocString(
+            "Eng:Trades loading started. If this happens for the first time after downloading the program, it may take a few minutes._" +
+            "Ru:Включена загрузка тиков. Если это произошло впервые после загрузки программы, это может занять несколько минут._");
+
+        public string Message80 => OsLocalization.ConvertToLocString(
+            "Eng:Trades is fully loaded. The server is Activated for further work_" +
+            "Ru:Тики полностью загрузились. Сервер Активирован для дальнейшей работы_");
+
+        public string Message81 => OsLocalization.ConvertToLocString(
+            "Eng:The excess of the FLOOD control! PENALTIES! Too many requests!_" +
+            "Ru:Превышение ФЛУД контроля! ШТРАФЫ! Слишком много заявок!_");
+
+        public string Message82 => OsLocalization.ConvertToLocString(
+            "Eng:Path to Quik_" +
+            "Ru:Путь к Квик_");
+
+        public string Message83 => OsLocalization.ConvertToLocString(
+            "Eng:Error. You must specify the location of the Quik_" +
+            "Ru:Ошибка. Необходимо указать местоположение Quik_");
+
+        public string Message84 => OsLocalization.ConvertToLocString(
+            "Eng:Error. Trans2Quik does not want to connect_" +
+            "Ru:Ошибка. Trans2Quik не хочет подключаться _");
+
+        public string Message85 => OsLocalization.ConvertToLocString(
+            "Eng:Transe2Quik status change_" +
+            "Ru:Transe2Quik изменение статуса _");
+
+        public string Message86 => OsLocalization.ConvertToLocString(
+            "Eng:Broker connection status change_" +
+            "Ru:Сервер Брокера изменил статус _");
+
+        public string Message87 => OsLocalization.ConvertToLocString(
+            "Eng:DDE Server status change_" +
+            "Ru:DDE Server изменение статуса_");
+
+        public string Message88 => OsLocalization.ConvertToLocString(
+            "Eng:Recorded crossing of trades in the online broadcast._" +
+            "Ru:Зафиксирован переход тиков в онЛайн трансляцию._");
+
+        public string Message89 => OsLocalization.ConvertToLocString(
+            "Eng: Order execute error _" +
+            "Ru: Ошибка выставления заявки_");
+
+        public string Message90 => OsLocalization.ConvertToLocString(
+            "Eng:Port_" +
+            "Ru:Порт_");
+
+        public string Message91 => OsLocalization.ConvertToLocString(
+            "Eng: Order reject successfully_" +
+            "Ru: Ордер отозван успешно_");
+
+        public string Message92 => OsLocalization.ConvertToLocString(
+            "Eng: Order reject error_" +
+            "Ru: Ошибка при отзыве ордера_");
+
+        public string Message93 => OsLocalization.ConvertToLocString(
+            "Eng: The loss of order is find. Re_" +
+            "Ru: Зафиксирована пропажа ордера. Переподключаемся_");
+
+        public string Message94 => OsLocalization.ConvertToLocString(
+            "Eng: Your password has expired. You must change your password_" +
+            "Ru: Время действия Вашего пароля истекло. Необходимо изменить пароль_");
+
+        public string Message95 => OsLocalization.ConvertToLocString(
+            "Eng: Failed to get the candles. Security _" +
+            "Ru: Не удалось получить свечи по инструменту_");
+
+        public string Message96 => OsLocalization.ConvertToLocString(
+            "Eng: Incorrect data entered _" +
+            "Ru: Введены не верные данные_");
 
         public string TitleTester => OsLocalization.ConvertToLocString(
             "Eng:Exchange emulator_" +
             "Ru:Эмулятор биржи_");
-
 
         public string Label22 => OsLocalization.ConvertToLocString(
             "Eng:Broadcast data_" +
@@ -462,7 +592,6 @@ namespace OsEngine.Language
             "Eng:Order execution_" +
             "Ru:Исполнение ордеров_");
 
-
         public string Label35 => OsLocalization.ConvertToLocString(
             "Eng:Disabled_" +
             "Ru:Отключено_");
@@ -490,5 +619,108 @@ namespace OsEngine.Language
         public string Label41 => OsLocalization.ConvertToLocString(
             "Eng:Server address_" +
             "Ru:Адрес сервера_");
+
+        public string Label42 => OsLocalization.ConvertToLocString(
+            "Eng:Base active_" +
+            "Ru:Базовый актив_");
+
+        public string Label43 => OsLocalization.ConvertToLocString(
+            "Eng:Market_" +
+            "Ru:Биржа_");
+
+        public string Label44 => OsLocalization.ConvertToLocString(
+            "Eng:Security Type_" +
+            "Ru:Тип инструмента_");
+
+        public string Label45 => OsLocalization.ConvertToLocString(
+            "Eng:Symbol_" +
+            "Ru:Символ_");
+
+        public string Label46 => OsLocalization.ConvertToLocString(
+            "Eng:Prime market_" +
+            "Ru:Биржа основная_");
+
+        public string Label47 => OsLocalization.ConvertToLocString(
+            "Eng:Delete_" +
+            "Ru:Удалить_");
+
+        public string Label48 => OsLocalization.ConvertToLocString(
+            "Eng:Add_" +
+            "Ru:Добавить_");
+
+        public string Label49 => OsLocalization.ConvertToLocString(
+            "Eng:The host cannot be empty. Connection terminated_" +
+            "Ru:Хост не может быть пустым. Подключение прервано_");
+
+        public string Label50 => OsLocalization.ConvertToLocString(
+            "Eng:The port value is not a valid value. Connection terminated_" +
+            "Ru:В значении порт не верное значение. Подключение прервано_");
+
+        public string Label51 => OsLocalization.ConvertToLocString(
+            "Eng:The value Id number is not a valid value. Connection terminated_" +
+            "Ru:В значении номер Id не верное значение. Подключение прервано_");
+
+        public string Label52 => OsLocalization.ConvertToLocString(
+            "Eng:There are no securities to download. The connection was stopped. Specify the securities in the appropriate window_" +
+            "Ru:Не указаны инструменты которые надо скачать. Подключение остановлено. Укажите инструменты в соответствующем окне_");
+
+        public string Label53 => OsLocalization.ConvertToLocString(
+            "Eng:Portfolio created _" +
+            "Ru:Создан портфель _");
+
+
+        public string Label55 => OsLocalization.ConvertToLocString(
+            "Eng:Not enough data to start the server_" +
+            "Ru:Не хватает данных чтобы запустить сервер_");
+
+        public string Label56 => OsLocalization.ConvertToLocString(
+            "Eng:Connection failed. The server is not responding_" +
+            "Ru:Подключение не удалось. Сервер не отвечает_");
+
+        public string Label57 => OsLocalization.ConvertToLocString(
+            "Eng:Failed to start connection, missing one or more required parameters_" +
+            "Ru:Не удалось начать подключение, отсутствует один или несколько обязательных параметров_");
+
+        public string Label58 => OsLocalization.ConvertToLocString(
+            "Eng:Login failed_" +
+            "Ru:Ошибка входа в систему_");
+
+
+        public string ServerParam1 => OsLocalization.ConvertToLocString(
+            "Eng:Keep history_" +
+            "Ru:Сохранять историю_");
+
+        public string ServerParam2 => OsLocalization.ConvertToLocString(
+            "Eng:Days to load_" +
+            "Ru:Дней подгружать_");
+
+        public string ServerParamPublicKey => OsLocalization.ConvertToLocString(
+            "Eng:Public key_" +
+            "Ru:Публичный ключ_");
+
+        public string ServerParamSecretKey => OsLocalization.ConvertToLocString(
+            "Eng:Secret key_" +
+            "Ru:Секретный ключ_");
+
+        public string ServerParamId => OsLocalization.ConvertToLocString(
+            "Eng:Id_" +
+            "Ru:Идентификатор_");
+
+        public string ServerParamProxy => OsLocalization.ConvertToLocString(
+            "Eng:Proxy_" +
+            "Ru:Прокси_");
+
+        public string ServerParamLeverage => OsLocalization.ConvertToLocString(
+            "Eng:Leverage_" +
+            "Ru:Плечо_");
+
+        public string ServerParam3 => OsLocalization.ConvertToLocString(
+            "Eng:Load data type_" +
+            "Ru:Скачиваем_");
+
+        public string ServerParam4 => OsLocalization.ConvertToLocString(
+            "Eng:Is margin trading_" +
+            "Ru:Маржинальная торговля_");
+
     }
 }

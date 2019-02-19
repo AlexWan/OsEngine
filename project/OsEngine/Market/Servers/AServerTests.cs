@@ -69,6 +69,11 @@ namespace OsEngine.Market.Servers
             Thread bidAskCheker = new Thread(CheckBidAsk);
             bidAskCheker.IsBackground = true;
             bidAskCheker.Start();
+
+            if (server.ServerStatus == ServerConnectStatus.Connect)
+            {
+                SendLogMessage("Server Tests Error. Server create with Connect status ", LogMessageType.Error);
+            }
         }
 
         void server_UserWhantDisconnect()
