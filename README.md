@@ -10,7 +10,7 @@
 
 This is a full range of programs required to automate trading on the stock exchange.
 
-![default](https://user-images.githubusercontent.com/26077466/42362896-01b3e74a-80fe-11e8-8f36-3db24cb7522c.png)
+![algotasks](https://user-images.githubusercontent.com/26077466/53003898-e9a84a00-3427-11e9-9582-53dd1a18271a.png)
 
 It includes:
 
@@ -65,6 +65,10 @@ The layer for creating robots is similar to the Wealth-Lab script and Ninja Scri
 Forum http://o-s-a.net/eng/forum
 
 
+
+![oslogo250](https://cloud.githubusercontent.com/assets/26077466/23395381/5545b688-fd9f-11e6-8db9-c8e8944a8cc2.png)
+
+# Open Source Algo Trading Platform
 
 
 ## Что такое OsEngine?
