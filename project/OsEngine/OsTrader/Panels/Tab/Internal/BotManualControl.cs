@@ -8,6 +8,7 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
 
@@ -394,6 +395,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                         if (SecondToOpenIsOn &&
                             openOrder.TimeCreate.Add(openOrder.LifeTime) < ServerTime)
                         {
+                            SendNewLogMessage(OsLocalization.Trader.Label70 + openOrder.NumberMarket,
+                                LogMessageType.Trade);
                             SendOrderToClose(openOrder, openDeals[i]);
                         }
 
@@ -404,6 +407,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
                             if (Math.Abs(_botTab.PriceBestBid - openOrder.Price) > maxSpread)
                             {
+                                SendNewLogMessage(OsLocalization.Trader.Label157 + openOrder.NumberMarket,
+                                    LogMessageType.Trade);
                                 SendOrderToClose(openOrder, openDeals[i]);
                             }
                         }
@@ -415,6 +420,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
                             if (Math.Abs(_botTab.PriceBestAsk - openOrder.Price) > maxSpread)
                             {
+                                SendNewLogMessage(OsLocalization.Trader.Label157 + openOrder.NumberMarket,
+                                    LogMessageType.Trade);
                                 SendOrderToClose(openOrder, openDeals[i]);
                             }
                         }
@@ -435,6 +442,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                         if (SecondToCloseIsOn &&
                             closeOrder.TimeCreate.Add(closeOrder.LifeTime) < ServerTime)
                         {
+                            SendNewLogMessage(OsLocalization.Trader.Label70 + closeOrder.NumberMarket,
+                                LogMessageType.Trade);
                             SendOrderToClose(closeOrder, openDeals[i]);
                         }
 
@@ -446,6 +455,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
                             if (_botTab.PriceBestBid <= priceRedLine)
                             {
+                                SendNewLogMessage(OsLocalization.Trader.Label157 + closeOrder.NumberMarket,
+                                    LogMessageType.Trade);
                                 SendOrderToClose(closeOrder, openDeals[i]);
                             }
                         }
@@ -458,6 +469,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
                             if (_botTab.PriceBestAsk >= priceRedLine)
                             {
+                                SendNewLogMessage(OsLocalization.Trader.Label157 + closeOrder.NumberMarket,
+                                    LogMessageType.Trade);
                                 SendOrderToClose(closeOrder, openDeals[i]);
                             }
                         }

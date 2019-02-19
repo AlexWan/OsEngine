@@ -428,18 +428,16 @@
     <Compile Include="Market\Servers\Optimizer\OptimizerDataStorageUi.xaml.cs">
       <DependentUpon>OptimizerDataStorageUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Market\Servers\Plaza\Internal\PlazaController.cs" />
+    <Compile Include="Market\Servers\Plaza\Internal\PlazaClient.cs" />
     <Compile Include="Market\Servers\Plaza\Internal\PlazaMarketDepthCreator.cs" />
     <Compile Include="Market\Servers\Plaza\PlazaServer.cs" />
-    <Compile Include="Market\Servers\Plaza\PlazaServerUi.xaml.cs">
-      <DependentUpon>PlazaServerUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Market\Servers\QuikLua\QuikLuaServer.cs" />
-    <Compile Include="Market\Servers\QuikLua\QuikLuaServerUi.xaml.cs">
-      <DependentUpon>QuikLuaServerUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Market\ServerMasterPortfoliosPainter.cs" />
     <Compile Include="Market\Servers\ServerTickStorage.cs" />
+    <Compile Include="Market\Servers\Entity\MarshalUTF8.cs" />
+    <Compile Include="Market\Servers\Entity\ServerWorkingTimeSettings.cs" />
+    <Compile Include="Market\Servers\Entity\TimeManager.cs" />
+    <Compile Include="Market\Servers\SmartCom\SmartComServer.cs" />
     <Compile Include="Market\Servers\Tester\TesterServer.cs" />
     <Compile Include="Market\Servers\Tester\TesterServerUi.xaml.cs">
       <DependentUpon>TesterServerUi.xaml</DependentUpon>
@@ -454,10 +452,6 @@
     <Compile Include="Market\ServerMaster.cs" />
     <Compile Include="Market\ServerMasterUi.xaml.cs">
       <DependentUpon>ServerMasterUi.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Market\Servers\SmartCom\SmartComServer.cs" />
-    <Compile Include="Market\Servers\SmartCom\SmartComServerUi.xaml.cs">
-      <DependentUpon>SmartComServerUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Entity\CandleManager.cs" />
     <Compile Include="Entity\Candle.cs" />
@@ -501,6 +495,13 @@
     <Compile Include="Journal\Internal\DealStaticticGenerator.cs" />
     <Compile Include="Market\Servers\Quik\QuikDdeServer.cs" />
     <Compile Include="Market\Servers\Miner\OsMinerServer.cs" />
+    <Compile Include="Market\Servers\Transaq\ChangeTransaqPassword.xaml.cs">
+      <DependentUpon>ChangeTransaqPassword.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Market\Servers\Transaq\TransaqClient.cs" />
+    <Compile Include="Market\Servers\Transaq\TransaqEntity\TransaqEntities.cs" />
+    <Compile Include="Market\Servers\Transaq\TransaqEntity\TransaqPortfolio.cs" />
+    <Compile Include="Market\Servers\Transaq\TransaqServer.cs" />
     <Compile Include="OsMiner\OsMinerMaster.cs" />
     <Compile Include="OsMiner\OsMinerSet.cs" />
     <Compile Include="OsMiner\OsMinerSetUi.xaml.cs">
@@ -918,15 +919,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Market\Servers\Plaza\PlazaServerUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Market\Connectors\ConnectorCandlesUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Market\Servers\QuikLua\QuikLuaServerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -951,10 +944,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Charts\CandleChart\Indicators\RsiUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Market\Servers\SmartCom\SmartComServerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -991,6 +980,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Logging\ServerSmsUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\Transaq\ChangeTransaqPassword.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

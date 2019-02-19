@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 
@@ -17,10 +18,10 @@ namespace OsEngine.Market.Servers.Binance
             BinanceServerRealization realization = new BinanceServerRealization();
             ServerRealization = realization;
 
-            CreateParameterString("Публичный ключ","");
-            CreateParameterPassword("Секретный ключ", "");
+            CreateParameterString(OsLocalization.Market.ServerParamPublicKey,"");
+            CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
         }
-
+        
         /// <summary>
         /// запрос истории по инструменту
         /// </summary>
@@ -156,7 +157,45 @@ namespace OsEngine.Market.Servers.Binance
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
             DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-            return null;
+            List<Candle> candles = new List<Candle>();
+
+            actualTime = startTime;
+
+            while (actualTime < endTime)
+            {
+                List<Candle> newCandles = _client.GetCandlesForTimes(security.Name, 
+                    timeFrameBuilder.TimeFrameTimeSpan,
+                    actualTime, endTime);
+
+                if (candles.Count != 0 && newCandles.Count != 0)
+                {
+                    for (int i = 0; i < newCandles.Count; i++)
+                    {
+                        if (candles[candles.Count - 1].TimeStart >= newCandles[i].TimeStart)
+                        {
+                            newCandles.RemoveAt(i);
+                            i--;
+                        }
+
+                    }
+                }
+
+                if (newCandles.Count == 0)
+                {
+                    return candles;
+                }
+
+                candles.AddRange(newCandles);
+
+                actualTime = candles[candles.Count - 1].TimeStart;
+            }
+
+            if (candles.Count == 0)
+            {
+                return null;
+            }
+
+            return candles;
         }
 
         /// <summary>

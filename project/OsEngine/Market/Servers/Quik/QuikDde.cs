@@ -401,7 +401,7 @@ namespace OsEngine.Market.Servers.Quik
                 }
             }
         }
-
+        
         private void PortfolioSpotNumberUpdated(long id, object[,] table)
         {
             int countElem = table.GetLength(0);

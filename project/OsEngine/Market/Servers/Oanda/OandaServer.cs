@@ -22,7 +22,7 @@ namespace OsEngine.Market.Servers.Oanda
             CreateParameterBoolean("IsDemo", false);
         }
     }
-
+    
     public class OandaServerRealization : IServerRealization
     {
         public OandaServerRealization()

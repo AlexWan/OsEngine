@@ -632,5 +632,9 @@ namespace OsEngine.Language
             "Eng:WilliamsR lower limit_" +
             "Ru:WilliamsR нижний предел_");
 
+        public string Label157 => OsLocalization.ConvertToLocString(
+            "Eng: Withdrew the order on the rollback of the price in the marketDepth from the order price_" +
+            "Ru: Отозвали ордер по откату цены в стакане от цены ордера, номер _");
+
     }
 }

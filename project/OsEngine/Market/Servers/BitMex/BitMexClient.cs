@@ -24,7 +24,7 @@ namespace OsEngine.Market.Servers.BitMex
     /// </summary>
     public class BitMexClient
     {
-
+        
         private ClientWebSocket _ws;
 
         private string _serverAdress;

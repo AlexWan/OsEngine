@@ -12,7 +12,7 @@ using OsEngine.Market.Servers.Entity;
 
 namespace OsEngine.Market.Servers
 {
-    public abstract class AServer: IServer
+    public abstract class AServer : IServer
     {
         /// <summary>
         /// реализация подключения к API
@@ -22,7 +22,7 @@ namespace OsEngine.Market.Servers
             set
             {
                 _serverConnectStatus = ServerConnectStatus.Disconnect;
-               _serverRealization = value;
+                _serverRealization = value;
                 _serverRealization.NewTradesEvent += ServerRealization_NewTradesEvent;
                 _serverRealization.ConnectEvent += _serverRealization_Connected;
                 _serverRealization.DisconnectEvent += _serverRealization_Disconnected;
@@ -50,7 +50,7 @@ namespace OsEngine.Market.Servers
                 _tickStorage.TickLoadedEvent += _tickStorage_TickLoadedEvent;
                 _tickStorage.LogMessageEvent += SendLogMessage;
                 _tickStorage.LoadTick();
-                
+
 
                 Thread ordersExecutor = new Thread(ExecutorOrdersThreadArea);
                 ordersExecutor.CurrentCulture = CultureInfo.InvariantCulture;
@@ -242,9 +242,9 @@ namespace OsEngine.Market.Servers
             }
             else
             {
-                ServerParameters.Add( newParam);
+                ServerParameters.Add(newParam);
             }
-            
+
 
             newParam.ValueChange += newParam_ValueChange;
         }
@@ -314,7 +314,7 @@ namespace OsEngine.Market.Servers
                     {
                         writer.WriteLine(ServerParameters[i].GetStringToSave());
                     }
-                    
+
                     writer.Close();
                 }
             }
@@ -333,7 +333,7 @@ namespace OsEngine.Market.Servers
             {
                 if (ServerType == ServerType.Binance)
                 {
-                    
+
                 }
             }
             catch (Exception)
@@ -350,7 +350,7 @@ namespace OsEngine.Market.Servers
             {
                 using (StreamReader reader = new StreamReader(@"Engine\" + ServerType + @"Params.txt"))
                 {
-                    while(reader.EndOfStream == false)
+                    while (reader.EndOfStream == false)
                     {
                         string save = reader.ReadLine();
 
@@ -401,13 +401,13 @@ namespace OsEngine.Market.Servers
                     }
 
                     return param;
-                    
+
 
                 }
             }
             catch (Exception error)
             {
-               SendLogMessage(error.ToString(),LogMessageType.Error);
+                SendLogMessage(error.ToString(), LogMessageType.Error);
             }
             return param;
         }
@@ -429,6 +429,14 @@ namespace OsEngine.Market.Servers
             {
                 UserWhantConnect();
             }
+
+            if (_serverStatusNead == ServerConnectStatus.Connect)
+            {
+                return;
+            }
+
+            _lastStartServerTime = DateTime.Now.AddMinutes(-5);
+
             _serverStatusNead = ServerConnectStatus.Connect;
         }
 
@@ -484,6 +492,14 @@ namespace OsEngine.Market.Servers
         // работа основного потока !!!!!!
 
         /// <summary>
+        /// true - сервер готов к работе
+        /// </summary>
+        public virtual bool IsTimeToServerWork
+        {
+            get { return true; }
+        }
+
+        /// <summary>
         /// основной поток, следящий за подключением, загрузкой портфелей и бумаг, пересылкой данных на верх
         /// </summary>
         private Thread _threadPrime;
@@ -505,9 +521,14 @@ namespace OsEngine.Market.Servers
                         continue;
                     }
 
+                    if (!IsTimeToServerWork)
+                    {
+                        continue;
+                    }
+
                     if ((ServerRealization.ServerStatus != ServerConnectStatus.Connect)
                         && _serverStatusNead == ServerConnectStatus.Connect &&
-                        _lastStartServerTime.AddSeconds(60) < DateTime.Now)
+                       _lastStartServerTime.AddSeconds(300) < DateTime.Now)
                     {
                         SendLogMessage(OsLocalization.Market.Message8, LogMessageType.System);
                         ServerRealization.Dispose();
@@ -545,7 +566,7 @@ namespace OsEngine.Market.Servers
                         ServerRealization.GetPortfolios();
                     }
 
-                    if (_securities== null || Securities.Count == 0)
+                    if (_securities == null || Securities.Count == 0)
                     {
                         ServerRealization.GetSecurities();
                     }
@@ -935,7 +956,7 @@ namespace OsEngine.Market.Servers
             {
                 if (securities[i].NameId == null)
                 {
-                    SendLogMessage(OsLocalization.Market.Message13,LogMessageType.Error);
+                    SendLogMessage(OsLocalization.Market.Message13, LogMessageType.Error);
                     return;
                 }
                 if (_securities.Find(s => s.NameId == securities[i].NameId) == null)
@@ -1035,7 +1056,7 @@ namespace OsEngine.Market.Servers
 
                     _candleManager.StartSeries(series);
 
-                    SendLogMessage(OsLocalization.Market.Message14 + series.Security.Name + 
+                    SendLogMessage(OsLocalization.Market.Message14 + series.Security.Name +
                                    OsLocalization.Market.Message15 + series.TimeFrame +
                                    OsLocalization.Market.Message16, LogMessageType.System);
 
@@ -1449,7 +1470,7 @@ namespace OsEngine.Market.Servers
             {
                 trade.Time = ServerTime;
             }
-            
+
             _myTradesToSend.Enqueue(trade);
             _myTrades.Add(trade);
             _neadToBeepOnTrade = true;
@@ -1561,6 +1582,14 @@ namespace OsEngine.Market.Servers
             myOrder.ServerType = ServerType;
 
             _ordersToSend.Enqueue(myOrder);
+
+            for (int i = 0; i < _myTrades.Count; i++)
+            {
+                if (_myTrades[i].NumberOrderParent == myOrder.NumberMarket)
+                {
+                    _myTradesToSend.Enqueue(_myTrades[i]);
+                }
+            }
         }
 
         /// <summary>
@@ -1586,7 +1615,7 @@ namespace OsEngine.Market.Servers
             order.TimeCreate = ServerTime;
             _ordersToExecute.Enqueue(order);
 
-            SendLogMessage(OsLocalization.Market.Message19 + order.Price + 
+            SendLogMessage(OsLocalization.Market.Message19 + order.Price +
                            OsLocalization.Market.Message20 + order.Side +
                            OsLocalization.Market.Message21 + order.Volume +
                            OsLocalization.Market.Message22 + order.SecurityNameCode +

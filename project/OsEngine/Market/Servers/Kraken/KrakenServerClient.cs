@@ -11,6 +11,7 @@ using Jayrock.Json;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Kraken.KrakenEntity;
 
@@ -62,7 +63,6 @@ namespace OsEngine.Market.Servers.Kraken
         {
             if (_isConnected)
             {
-                SendLogMessage("Запрошен повторный запуск клиента Kraken со статусом Connect", LogMessageType.Error);
                 return;
             }
             try
@@ -76,7 +76,7 @@ namespace OsEngine.Market.Servers.Kraken
 
                 if (_kraken.GetServerTime() == null)
                 {
-                    SendLogMessage("Подключение не удалось. Сервер не отвечает", LogMessageType.Error);
+                    SendLogMessage(OsLocalization.Market.Label56, LogMessageType.Error);
                     return;
                 }
 

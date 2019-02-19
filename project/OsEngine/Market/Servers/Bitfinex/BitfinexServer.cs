@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Bitfinex.BitfitnexEntity;
 using OsEngine.Market.Servers.Entity;
@@ -19,10 +20,11 @@ namespace OsEngine.Market.Servers.Bitfinex
             IServerRealization realization = new BitfinexServerRealization();
             ServerRealization = realization;
 
-            CreateParameterString("Публичный ключ", "");
-            CreateParameterPassword("Секретный ключ", "");
+            CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
+            CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
+            CreateParameterBoolean(OsLocalization.Market.ServerParam4, false);
         }
-
+        
         /// <summary>
         /// взять свечи по инструменту
         /// </summary>
@@ -278,7 +280,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         /// </summary>
         public void SendOrder(Order order)
         {
-            _client.ExecuteOrder(order);
+            _client.ExecuteOrder(order, ((ServerParameterBool)ServerParameters[2]).Value);
         }
 
         /// <summary>
@@ -840,7 +842,7 @@ namespace OsEngine.Market.Servers.Bitfinex
             }
             catch (Exception e)
             {
-                SendLogMessage("Ошибка в методе разбора свечей", LogMessageType.Error);
+                SendLogMessage(e.ToString(), LogMessageType.Error);
                 return null;
             }
         }

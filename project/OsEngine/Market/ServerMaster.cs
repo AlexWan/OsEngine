@@ -27,6 +27,7 @@ using OsEngine.Market.Servers.Quik;
 using OsEngine.Market.Servers.QuikLua;
 using OsEngine.Market.Servers.SmartCom;
 using OsEngine.Market.Servers.Tester;
+using OsEngine.Market.Servers.Transaq;
 using MessageBox = System.Windows.MessageBox;
 
 namespace OsEngine.Market
@@ -57,6 +58,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.QuikLua);
                 serverTypes.Add(ServerType.SmartCom);
                 serverTypes.Add(ServerType.Plaza);
+                serverTypes.Add(ServerType.Transaq);
 
                 serverTypes.Add(ServerType.Binance);
                 serverTypes.Add(ServerType.BitMex);
@@ -143,6 +145,10 @@ namespace OsEngine.Market
 
                 IServer newServer = null;
 
+                if (type == ServerType.Transaq)
+                {
+                    newServer = new TransaqServer();
+                }
                 if (type == ServerType.Lmax)
                 {
                     newServer = new LmaxServer();
@@ -177,7 +183,7 @@ namespace OsEngine.Market
                 }
                 if (type == ServerType.QuikLua)
                 {
-                    newServer = new QuikLuaServer(neadLoadTicks);
+                    newServer = new QuikLuaServer();
                 }
                 if (type == ServerType.QuikDde)
                 {
@@ -193,7 +199,7 @@ namespace OsEngine.Market
                 }
                 else if (type == ServerType.Plaza)
                 {
-                    newServer = new PlazaServer(neadLoadTicks);
+                    newServer = new PlazaServer();
                 }
                 else if (type == ServerType.AstsBridge)
                 {
@@ -595,6 +601,11 @@ namespace OsEngine.Market
         /// Тип сервера не назначен
         /// </summary>
         None,
+
+        /// <summary>
+        /// транзак
+        /// </summary>
+        Transaq,
 
         /// <summary>
         /// биржа LMax
