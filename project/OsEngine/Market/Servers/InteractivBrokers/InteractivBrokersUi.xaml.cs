@@ -33,7 +33,10 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             TextBoxId.Text = _server.ClientIdInSystem.ToString();
 
             LabelDaysToLoad.Content = OsLocalization.Market.ServerParam2;
-
+            ButtonConnect.Content = OsLocalization.Market.ButtonConnect;
+            ButtonAbort.Content = OsLocalization.Market.ButtonDisconnect;
+            CheckBoxNeadToSaveTrade.Content = OsLocalization.Market.ServerParam1;
+            ButtonSecurities.Content = OsLocalization.Market.Message50;
         }
 
         void TextBoxCountDaysSave_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)

@@ -429,6 +429,14 @@ namespace OsEngine.Market.Servers
             {
                 UserWhantConnect();
             }
+
+            if (_serverStatusNead == ServerConnectStatus.Connect)
+            {
+                return;
+            }
+
+            _lastStartServerTime = DateTime.Now.AddMinutes(-5);
+
             _serverStatusNead = ServerConnectStatus.Connect;
         }
 

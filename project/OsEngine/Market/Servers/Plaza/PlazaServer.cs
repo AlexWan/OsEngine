@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using OsEngine.Market.Servers.Plaza.Internal;
@@ -16,7 +17,7 @@ namespace OsEngine.Market.Servers.Plaza
             PlazaServerRealization realization = new PlazaServerRealization();
             ServerRealization = realization;
 
-            CreateParameterString("Ключ", "");
+            CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "12345");
         }
     }
 

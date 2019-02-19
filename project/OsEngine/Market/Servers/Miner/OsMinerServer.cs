@@ -940,8 +940,5 @@ namespace OsEngine.Market.Servers.Miner
         public event Action<string> LogMessageEvent;
 
     }
-
-
-
 }
 

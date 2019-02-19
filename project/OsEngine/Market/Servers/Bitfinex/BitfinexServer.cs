@@ -22,6 +22,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
+            CreateParameterBoolean(OsLocalization.Market.ServerParam4, false);
         }
         
         /// <summary>
@@ -279,7 +280,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         /// </summary>
         public void SendOrder(Order order)
         {
-            _client.ExecuteOrder(order);
+            _client.ExecuteOrder(order, ((ServerParameterBool)ServerParameters[2]).Value);
         }
 
         /// <summary>

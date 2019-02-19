@@ -434,9 +434,9 @@
     <Compile Include="Market\Servers\QuikLua\QuikLuaServer.cs" />
     <Compile Include="Market\ServerMasterPortfoliosPainter.cs" />
     <Compile Include="Market\Servers\ServerTickStorage.cs" />
-    <Compile Include="Market\Servers\Services\MarshalUTF8.cs" />
-    <Compile Include="Market\Servers\Services\ServerWorkingTimeSettings.cs" />
-    <Compile Include="Market\Servers\Services\TimeManager.cs" />
+    <Compile Include="Market\Servers\Entity\MarshalUTF8.cs" />
+    <Compile Include="Market\Servers\Entity\ServerWorkingTimeSettings.cs" />
+    <Compile Include="Market\Servers\Entity\TimeManager.cs" />
     <Compile Include="Market\Servers\SmartCom\SmartComServer.cs" />
     <Compile Include="Market\Servers\Tester\TesterServer.cs" />
     <Compile Include="Market\Servers\Tester\TesterServerUi.xaml.cs">

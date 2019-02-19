@@ -13,7 +13,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
 {
     public class PlazaMarketDepthCreator
     {
-
+        
         private List<MarketDepth> _marketDepths;
 
         private List<RevisionInfo> _marketDepthsRevisions;

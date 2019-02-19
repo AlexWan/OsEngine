@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace OsEngine.Market.Servers.Services
+namespace OsEngine.Market.Servers.Entity
 {
     public static class TimeManager
     {

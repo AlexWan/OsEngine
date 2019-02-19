@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using OsEngine.Language;
 
 namespace OsEngine.Market.Servers.Transaq
 {
@@ -20,7 +21,7 @@ namespace OsEngine.Market.Servers.Transaq
         {
             if (string.IsNullOrWhiteSpace(NewPassword.Text) || NewPassword.Text.Length > 19)
             {
-                MessageBox.Show("Введены не верные данные");
+                MessageBox.Show(OsLocalization.Market.Message96);
             }
             else
             {

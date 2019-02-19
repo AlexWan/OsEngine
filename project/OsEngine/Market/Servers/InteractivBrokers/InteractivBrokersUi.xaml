@@ -13,11 +13,11 @@
         <TextBox x:Name="TextBoxPort" HorizontalAlignment="Right" Height="23" Margin="0,12,10,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="138"/>
         <Label Content="Port: " HorizontalAlignment="Right" Margin="0,12,155,0" VerticalAlignment="Top"/>
         <CheckBox Name="CheckBoxNeadToSaveTrade" Content="Keep history" HorizontalAlignment="Right" Margin="0,37,292,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="TextBoxCountDaysSave" HorizontalAlignment="Left" Height="23" Margin="139,37,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="76"/>
+        <TextBox Name="TextBoxCountDaysSave" HorizontalAlignment="Left" Height="23" Margin="139,37,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="76"/>
         <Label Name="LabelDaysToLoad" Content="Days to load" HorizontalAlignment="Left" Margin="16,37,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="TextBoxId" HorizontalAlignment="Right" Height="23" Margin="0,12,226,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="131"/>
+        <TextBox Name="TextBoxId" HorizontalAlignment="Right" Height="23" Margin="0,12,226,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="131"/>
         <Label Content="Client Id: " HorizontalAlignment="Right" Margin="0,12,362,0" VerticalAlignment="Top" />
-        <Button x:Name="ButtonSecurities" Content="Securities" Margin="10,0,0,10" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="120" Click="ButtonSecurities_Click"/>
+        <Button Name="ButtonSecurities" Content="Securities" Margin="10,0,0,10" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="120" Click="ButtonSecurities_Click"/>
 
     </Grid>
 </Window>

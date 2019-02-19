@@ -1,5 +1,4 @@
 ﻿using OsEngine.Logging;
-using OsEngine.Market.Servers.Services;
 using OsEngine.Market.Servers.Transaq.TransaqEntity;
 using RestSharp;
 using RestSharp.Deserializers;
@@ -11,6 +10,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Xml.Serialization;
+using OsEngine.Market.Servers.Entity;
 using Order = OsEngine.Market.Servers.Transaq.TransaqEntity.Order;
 
 
@@ -324,7 +324,7 @@ namespace OsEngine.Market.Servers.Transaq
             }
             return newData;
         }
-
+        
         #region Исходящие события
 
         /// <summary>
