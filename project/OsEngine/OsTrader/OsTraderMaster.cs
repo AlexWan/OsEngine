@@ -334,7 +334,7 @@ namespace OsEngine.OsTrader
                 {
                     for (int i = 0; i < _panelsArray.Count; i++)
                     {
-                        if (_panelsArray[i].NameStrategyUniq == newBotName.Replace(" ",""))
+                        if (_panelsArray[i].NameStrategyUniq.Replace(" ", "") == newBotName.Replace(" ",""))
                         {
                             ReloadActivBot(_panelsArray[i]);
                             return;
