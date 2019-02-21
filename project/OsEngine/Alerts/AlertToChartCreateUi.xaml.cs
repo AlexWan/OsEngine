@@ -1,4 +1,5 @@
 ﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
  *Ваши права на использования кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -16,15 +17,17 @@ namespace OsEngine.Alerts
 {
 
     /// <summary>
+    /// Alert creation and editing window
     /// Окно создания и редактирования алерта
     /// </summary>
     public partial class AlertToChartCreateUi
     {
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="alert">алерт для редактирования, если null будет создан новый</param>
-        /// <param name="keeper">хранилище алертов</param>
+        /// <param name="alert">alert for editing, if null will be created new/алерт для редактирования, если null будет создан новый</param>
+        /// <param name="keeper">alert storage/хранилище алертов</param>
         public AlertToChartCreateUi(AlertToChart alert, AlertMaster keeper) 
         {
             InitializeComponent();
@@ -46,8 +49,8 @@ namespace OsEngine.Alerts
             ComboBoxType.SelectedItem = ChartAlertType.Line;
 
             ComboBoxType.Text = ChartAlertType.Line.ToString();
-
-// фейерверки по умолчанию
+            // default fireworks
+            // фейерверки по умолчанию
             CheckBoxOnOff.IsChecked = false;
             CheckBoxMusicAlert.IsChecked = false;
             CheckBoxWindow.IsChecked = false;
@@ -65,8 +68,8 @@ namespace OsEngine.Alerts
 
             CheckBoxWindow.IsChecked = false;
             TextBoxAlertMessage.Text = OsLocalization.Alerts.Message2;
-
-// торговые настойки по умолчанию
+            // default trade settings
+            // торговые настойки по умолчанию
             TextBoxVolumeReaction.Text = "1";
 
             ComboBoxSignalType.Items.Add((SignalType.Buy));
@@ -149,6 +152,7 @@ namespace OsEngine.Alerts
 
 
         /// <summary>
+        /// hide unnecessary controls for trading
         /// спрятать ненужные контролы для торговли
         /// </summary>
         private void HideTradeButton()
@@ -209,21 +213,25 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// alert storage
         /// хранилище Алертов
         /// </summary>
-        private readonly AlertMaster _keeper; 
+        private readonly AlertMaster _keeper;
 
         /// <summary>
+        /// current alert
         /// текущий Алерт
         /// </summary>
         public AlertToChart MyAlert;
 
         /// <summary>
+        /// whether you need to save Alert after closing window
         /// нужно ли сохранять Алерт после закрытия окна
         /// </summary>
         public bool NeadToSave;
 
         /// <summary>
+        /// upload Alert's settings to form
         /// загрузить настройки Алерта на форму
         /// </summary>
         private void LoadFromAlert()
@@ -257,10 +265,11 @@ namespace OsEngine.Alerts
             ComboBoxOrderType.SelectedItem = MyAlert.OrderPriceType;
             ComboBoxSignalType.SelectedItem = MyAlert.SignalType;
         }
-
-//перехват изменения контролов
+        //Interception of control changes
+        //перехват изменения контролов
 
         /// <summary>
+        /// user switched order type
         /// пользователь переключил тип ордера
         /// </summary>
         void ComboBoxOrderType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -269,6 +278,7 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// user changed signal type
         /// ползователь изменил тип сигнала
         /// </summary>
         void ComboBoxSignalType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -277,6 +287,7 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// click on tick on / off
         /// клик на галочке вкл/выкл
         /// </summary>
         void CheckBoxOnOff_Click(object sender, RoutedEventArgs e)
@@ -285,6 +296,7 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// alert signature text
         /// тексе подписи алерта
         /// </summary>
         void TextBoxAlertMessage_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
@@ -293,16 +305,18 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// line thickness changed
         /// толщина линии изменена
         /// </summary>
         void ComboBoxFatLine_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             SaveAlert();
         }
-
+        // slider work
         //работа со слайдером
 
         /// <summary>
+        /// slider's position has changed.
         /// изменилось положение слайдера
         /// </summary>
         private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -320,67 +334,78 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// latest incoming data
         ///  последние входящие данные 
         /// </summary>
         private List<Candle> _arrayCandles;
-
+        // waiting for incoming data
         // ожидание входящих данных
 
         /// <summary>
+        /// waiting for click on chart to draw horizontal line
         /// ждём клика по чарту чтобы прорисовать горизонтальную линию
         /// </summary>
         private bool _waitHorisont;
 
         /// <summary>
+        /// waiting for click on chart to draw horizontal line
         /// ждём клика по чарту чтобы прорисовать горизонтальную линию
         /// </summary>
         private bool _waitOne;
 
         /// <summary>
+        /// waiting for click on chart to draw horizontal line
         /// ждём клика по чарту чтобы прорисовать горизонтальную линию
         /// </summary>
         private bool _waitTwo;
-
+        // points
         //точки
 
         /// <summary>
+        /// first point index
         /// индекс первой точки
         /// </summary>
         private int _candleOneNumber;
 
         /// <summary>
+        /// time of first point
         /// время первой точки
         /// </summary>
         private DateTime _candleOneTime;
 
         /// <summary>
+        /// first point value
         /// значение первой точки
         /// </summary>
         private decimal _candleOneValue;
 
         /// <summary>
+        /// second point index
         /// индекс второй точки
         /// </summary>
         private int _candleTwoNumber;
 
         /// <summary>
+        /// second point time
         /// время второй точки
         /// </summary>
         private DateTime _candleTwoTime;
 
         /// <summary>
+        /// second point value
         /// значение второй точки
         /// </summary>
         private decimal _candleTwoValue;
-
+        // creating alerts
         // создание алертов
 
         /// <summary>
+        /// load new data point from chart
         /// загрузить с чарта новую точку с данными
         /// </summary>
-        /// <param name="arrayCandles">массив свечек</param>
-        /// <param name="numberCandle">индекс свечи</param>
-        /// <param name="valueY">значение игрик</param>
+        /// <param name="arrayCandles">array of candles/массив свечек</param>
+        /// <param name="numberCandle">candle index/индекс свечи</param>
+        /// <param name="valueY">igrick value/значение игрик</param>
         public void SetFormChart(List<Candle> arrayCandles, int numberCandle, decimal valueY)
         {
             _arrayCandles = arrayCandles;
@@ -398,7 +423,7 @@ namespace OsEngine.Alerts
             {
                 return;
             }
-
+            // find candle, which stuck
             // находим свечку, в которую ткнули
 
             Candle candle = arrayCandles[numberCandle];
@@ -454,6 +479,7 @@ namespace OsEngine.Alerts
 
             if (_candleOneTime != DateTime.MinValue && _candleTwoTime != DateTime.MinValue)
             {
+                // swap points if they are not in correct order
                 //меняем местами точки, если они установлены не в правильном порядке
                 if (_candleOneNumber > _candleTwoNumber)
                 {
@@ -475,6 +501,7 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// save alert
         /// сохранить Алерт
         /// </summary>
         private void SaveAlert() 
@@ -493,6 +520,7 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// upload to Alert new settings from form
         /// загрузить в Алерт новые настройки, с формы
         /// </summary>
         private void SetSettingsForomWindow()
@@ -546,6 +574,7 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// convert previously specified values to alert
         /// преобразуем указанные ранее значения в Алерт
         /// </summary>
         /// <param name="candles">массив свечек</param>
@@ -556,7 +585,7 @@ namespace OsEngine.Alerts
             {
                 return;
             }
-
+            // create new alert
             // создаём новый алерт
             AlertToChart alert = new AlertToChart(_keeper.HostAllert);
             alert.Name = null;
@@ -573,10 +602,11 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// take Lines for Alert
         /// взять Линии для Алерта
         /// </summary>
-        /// <param name="candles">массив свечек</param>
-        /// <returns>линии алерта</returns>
+        /// <param name="candles">array of candles/массив свечек</param>
+        /// <returns>alert lines/линии алерта</returns>
         private ChartAlertLine[] GetAlertLines(List<Candle> candles)
         {
             if (ComboBoxType.Text == ChartAlertType.Line.ToString() ||
@@ -606,15 +636,18 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// take Line for Alert type SpeedLine
         /// взять Линии для Алерта типа SpeedLine
         /// </summary>
-        /// <param name="candles">свечки</param>
-        /// <returns>линии</returns>
+        /// <param name="candles">candles/свечки</param>
+        /// <returns>lines/линии</returns>
         private ChartAlertLine[] GetSpeedAlertLines(List<Candle> candles)
         {
-            //1) Указываем первую точку
-            //2) Указываем вторую точку
-            //3) Между точками строиться прямоугольник
+
+            //1) Specify first point/Указываем первую точку
+            //2) Specify second point/Указываем вторую точку
+            //3) Rectangle built between points/Между точками строиться прямоугольник
+            //4) Vertical catheter is overlaid with three dots. At same time, on ascending movement, countdown from bottom to top: proportion 0.382______ 0.487_______ 0.618. We draw three lines through them.
             //4) По вертикальному катету накладываем три точки. При этом на восходящем движении отсчет идет снизу вверх: пропорция 0.382______ 0.487_______ 0.618. Проводим через них три линии.
 
             decimal valueOneClick = _candleOneValue;
@@ -624,7 +657,7 @@ namespace OsEngine.Alerts
             decimal devider = Convert.ToDecimal(Slider.Value - 100);
 
             valueTwoClick = _candleTwoValue + _candleTwoValue * Convert.ToDecimal(devider / 1000);
-
+            // 1 if points are pressed on one straight line
             // 1 если нажаты точки на одной прямой
             if (valueTwoClick == valueOneClick)
             {
@@ -636,7 +669,7 @@ namespace OsEngine.Alerts
                 ChartAlertLine[] lines = { AlertLineCreate(valueOne, valueTwo, numberOne, numberTwo, candles) };
                 return lines;
             }
-
+            // 2 find the height of cathetus
             // 2 находим высоту катета
 
             decimal highKatet;
@@ -653,7 +686,7 @@ namespace OsEngine.Alerts
                 isUpSpeedLine = false;
                 highKatet = valueOneClick - valueTwoClick;
             }
-
+            // declare points for three lines
             // объявляем точки для трёх линий
 
             decimal firstValueToAllLine = _candleOneValue;
@@ -694,10 +727,11 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// take alert's lines, like chanal
         /// взять Линии для Алерта типа Chanal
         /// </summary>
-        /// <param name="candles">свечи</param>
-        /// <returns>линии</returns>
+        /// <param name="candles">candles/свечи</param>
+        /// <returns>lines/линии</returns>
         private ChartAlertLine[] GetChanalLines(List<Candle> candles)
         {
             if (Slider.Value == 100)
@@ -710,14 +744,14 @@ namespace OsEngine.Alerts
                 ChartAlertLine[] lines = { AlertLineCreate(valueOne, valueTwo, numberOne, numberTwo, candles) };
                 return lines;
             }
-
+            // 1 we take points.
             // 1 берём точки
 
             decimal onePoint = _candleOneValue;
-            int oneNumber = _candleOneNumber; // первая точка линии
+            int oneNumber = _candleOneNumber; //first point of line // первая точка линии
 
             decimal twoPoint = _candleTwoValue;
-            int twoPNumber = _candleTwoNumber; // вторая точка линии
+            int twoPNumber = _candleTwoNumber; //second point of line // вторая точка линии
 
             decimal l023value1;
             decimal l023value2;
@@ -811,14 +845,14 @@ namespace OsEngine.Alerts
                 l0423value1 = onePoint - devider * onePoint * 4.23m;
                 l0423value2 = twoPoint - devider * twoPoint * 4.23m;
             }
-            
-            
-            
-                
-            
-          
 
-            // 2 расс
+
+
+
+
+
+
+            // 2 alerts
 
 
             ChartAlertLine oneLine = AlertLineCreate(onePoint, twoPoint, oneNumber, twoPNumber, candles);
@@ -853,22 +887,24 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// Create line of points
         /// Создать линию из точек
         /// </summary>
-        /// <param name="valueOne">значение первой точки</param>
-        /// <param name="valueTwo">значение второй точки</param>
-        /// <param name="numberOne">номер первой точки</param>
-        /// <param name="numberTwo">номер второй точки</param>
-        /// <param name="candles">свечи</param>
-        /// <returns>алерт</returns>
+        /// <param name="valueOne">first point value/значение первой точки</param>
+        /// <param name="valueTwo">second point value/значение второй точки</param>
+        /// <param name="numberOne">first point number/номер первой точки</param>
+        /// <param name="numberTwo">second point number/номер второй точки</param>
+        /// <param name="candles">candles/свечи</param>
+        /// <returns>alerts/алерт</returns>
         private ChartAlertLine AlertLineCreate(decimal valueOne, decimal valueTwo, int numberOne, int numberTwo, List<Candle> candles)
         {
+            // 2 calculate indicator movement per candlestick on this TF
             // 2 рассчитываем движение индикатора за свечу на данном ТФ
 
-            decimal stepCorner; // сколько наша линия проходит за свечку
+            decimal stepCorner; // how long our line goes by candle //сколько наша линия проходит за свечку
 
             stepCorner = (valueTwo - valueOne) / (numberTwo - numberOne + 1);
-
+            // 3 now build an array of line values parallel to candlestick array
             // 3 теперь строим массив значений линии параллельный свечному массиву
 
             decimal[] lineDecimals = new decimal[candles.Count];
@@ -876,18 +912,22 @@ namespace OsEngine.Alerts
             lineDecimals[numberOne] = point;
 
             for (int i = numberOne + 1; i < lineDecimals.Length; i++)
-            { // бежим вперёд по массиву
+            {
+                // running ahead of array.
+                // бежим вперёд по массиву
                 lineDecimals[i] = point;
                 point += stepCorner;
             }
 
             point = valueOne;
             for (int i = numberOne - 1; i > -1; i--)
-            { // бежим назад по массиву
+            {
+                // running backwards through array.
+                // бежим назад по массиву
                 lineDecimals[i] = point;
                 point -= stepCorner;
             }
-
+            // 4 find nearest one from the beginning of hour and the next one after it.
             // 4 находим ближайший от начала час  и следующий за ним
 
             int firstHourCandle = -1;
@@ -913,10 +953,10 @@ namespace OsEngine.Alerts
                     }
                 }
             }
-
+            // 6 calculate real position of alert. In hours.
             // 6 рассчитываем реальное положение алерта. В часах.
 
-            if(secondHourCandle <0 ||
+            if (secondHourCandle <0 ||
                 firstHourCandle <0)
             {
                 return null;
@@ -927,7 +967,7 @@ namespace OsEngine.Alerts
 
             decimal startPoint = lineDecimals[secondHourCandle];
             decimal endPoint = lineDecimals[firstHourCandle];
-
+            // 5 Then calculate line value of first and second hour
             // 5 далее рассчитываем значение линии на первом и втором часе
 
             ChartAlertLine line = new ChartAlertLine();
@@ -941,6 +981,7 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// save button
         /// кнопка сохранить
         /// </summary>
         private void ButtonSave_Click(object sender, RoutedEventArgs e)
@@ -951,6 +992,7 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// signature color button
         /// кнопка цвет подписи
         /// </summary>
         private void ButtonColorLabel_Click(object sender, RoutedEventArgs e)
@@ -970,6 +1012,7 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// line color button
         /// кнопка цвет линии
         /// </summary>
         private void ButtonColorLine_Click(object sender, RoutedEventArgs e)
@@ -988,6 +1031,7 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// button to specify a slant line
         /// кнопка указать наклонную линию
         /// </summary>
         private void ButtonSendFirst_Click(object sender, RoutedEventArgs e)
