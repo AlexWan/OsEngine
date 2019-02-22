@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -16,18 +17,22 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 {
 
     /// <summary>
+    /// manual position support settings /
     /// ручный настройки сопровождения сделки
     /// </summary>
     public class BotManualControl
     {
-        // статическая часть с работой потока проверяющего не нужно ли чего отзывать
+        // работа потока
+        // thread work part
 
         /// <summary>
+        /// revocation thread
         /// поток отзывающий ордера
         /// </summary>
         public static Thread Watcher;
 
         /// <summary>
+        /// tabs that need to be checked
         /// вкладки которые нужно проверять
         /// </summary>
         public static List<BotManualControl> TabsToCheck = new List<BotManualControl>();
@@ -35,6 +40,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         private static object _activatorLocker = new object();
 
         /// <summary>
+        /// activate stream to view deals
         /// активировать поток для просмотра сделок
         /// </summary>
         public static void Activate()
@@ -54,6 +60,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         }
 
         /// <summary>
+        /// place of work thread that monitors the execution of transactions
         /// место работы потока который следит за исполнением сделок
         /// </summary>
         public static void WatcherHome()
@@ -74,16 +81,12 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
         }
 
-        // объект 
-
         private string _name;
 
         public BotManualControl(string name, BotTabSimple botTab,StartProgram startProgram)
         {
             _name = name;
             _startProgram = startProgram;
-
-            // грузим настройки по умолчанию
 
             StopIsOn = false;
             StopDistance = 30;
@@ -108,8 +111,6 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             SetbackToClosePosition = 10;
 
-            // грузим настройки из файла
-
             if (Load() == false)
             {
                 Save();
@@ -128,6 +129,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         }
 
         /// <summary>
+        /// load
         /// загрузить
         /// </summary>
         private bool Load()
@@ -168,12 +170,13 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
             return true;
         }
 
         /// <summary>
+        /// save
         /// сохранить
         /// </summary>
         public void Save()
@@ -208,11 +211,12 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// delete
         /// удалить
         /// </summary>
         public void Delete()
@@ -231,6 +235,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         }
 
         /// <summary>
+        /// show settings
         /// показать настройки
         /// </summary>
         public void ShowDialog()
@@ -240,107 +245,115 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         }
 
         /// <summary>
+        /// program that created the robot
         /// программа создавшая робота 
         /// </summary>
         private StartProgram _startProgram;
 
-        // стоп
         /// <summary>
+        /// stop is enabled /
         /// включен ли стоп
         /// </summary>
         public bool StopIsOn;
 
         /// <summary>
+        /// distance from entry to stop /
         /// расстояние от входа до стопа
         /// </summary>
         public int StopDistance;
 
         /// <summary>
+        /// slippage for stop /
         /// проскальзывание для стопа
         /// </summary>
         public int StopSlipage;
 
-        // профит
-
         /// <summary>
+        /// profit is enabled /
         /// вклюичен ли профит
         /// </summary>
         public bool ProfitIsOn;
 
         /// <summary>
+        /// distance from trade entry to order profit /
         /// расстояние от входа в сделку до Профит ордера
         /// </summary>
         public int ProfitDistance;
 
         /// <summary>
+        /// slippage /
         /// проскальзывание
         /// </summary>
         public int ProfitSlipage;
 
-        // время на вход / выход
-
         /// <summary>
+        /// open orders life time is enabled /
         /// включен ли отзыв заявки на открытие по времени
         /// </summary>
         public bool SecondToOpenIsOn;
 
         /// <summary>
+        /// time to open a position in seconds, after which the order will be recalled / 
         /// время на открытие позиции в секундах, после чего ордер будет отозван
         /// </summary>
         public TimeSpan SecondToOpen;
 
         /// <summary>
+        /// closed orders life time is enabled /
         /// включен ли отзыв заявки на закрытие по времени
         /// </summary>
         public bool SecondToCloseIsOn;
 
         /// <summary>
-        /// время на закрытие позиции в секундах, после чего ордер будет отозван, а позиция докроется по рынку
+        /// time to close a position in seconds, after which the order will be recalled / 
+        /// время на закрытие позиции в секундах, после чего ордер будет отозван
         /// </summary>
         public TimeSpan SecondToClose;
 
-        // реакция на отмену заявки на закрытие
-
         /// <summary>
+        /// whether re-issuance of the request for closure is included if the first has been withdrawn /
         /// включено ли повторное выставление заявки на закрытие, если первая была отозвана 
         /// </summary>
         public bool DoubleExitIsOn;
 
         /// <summary>
+        /// type of re-request for closure /
         /// тип повторной заявки на закрытие
         /// </summary>
         public OrderPriceType TypeDoubleExitOrder;
 
         /// <summary>
+        /// slip to re-close /
         /// проскальзывание для повторного закрытия
         /// </summary>
         public int DoubleExitSlipage;
 
-        // отход от цены для отмены заявки 
-
         /// <summary>
+        /// is revocation of orders for opening on price rollback included / 
         /// включен ли отзыв ордеров на открытие по откату цены
         /// </summary>
         public bool SetbackToOpenIsOn;
 
         /// <summary>
-        /// максимальный откат от цены ордера при открытии позиции, после чего ордер будет отозван
+        /// maximum rollback from order price when opening a position /
+        /// максимальный откат от цены ордера при открытии позиции
         /// </summary>
         public int SetbackToOpenPosition;
 
         /// <summary>
+        /// whether revocation of orders for closing on price rollback is included / 
         /// включен ли отзыв ордеров на закрытие по откату цены
         /// </summary>
         public bool SetbackToCloseIsOn;
 
         /// <summary>
-        /// максимальный откат от цены ордера при открытии позиции, после чего ордер будет отозван
+        /// maximum rollback from order price when opening a position / 
+        /// максимальный откат от цены ордера при открытии позиции
         /// </summary>
         public int SetbackToClosePosition;
 
-        // отзыв ордеров
-
         /// <summary>
+        /// journal /
         /// журнал
         /// </summary>
         private BotTabSimple _botTab;
@@ -348,6 +361,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         public DateTime ServerTime = DateTime.MinValue;
 
         /// <summary>
+        /// the method in which the thread monitors the execution of orders / 
         /// метод, в котором работает поток следящий за исполнением заявок
         /// </summary>
         private void CheckPositions()
@@ -383,7 +397,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
                     for (int i2 = 0; position.OpenOrders != null && i2 < position.OpenOrders.Count; i2++)
                     {
-                        // ОТКРЫВАЮЩИЕ ОРДЕРА
+                        // open orders / ОТКРЫВАЮЩИЕ ОРДЕРА
                         Order openOrder = position.OpenOrders[i2];
 
                         if (openOrder.State != OrderStateType.Activ &&
@@ -430,7 +444,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
                     for (int i2 = 0; position.CloseOrders != null && i2 < position.CloseOrders.Count; i2++)
                     {
-                        // ЗАКРЫВАЮЩИЕ ОРДЕРА
+                        // close orders / ЗАКРЫВАЮЩИЕ ОРДЕРА
                         Order closeOrder = position.CloseOrders[i2];
 
                         if ((closeOrder.State != OrderStateType.Activ &&
@@ -486,15 +500,17 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         }
 
         /// <summary>
+        /// orders already sent for closure
         /// ордера, уже высланные на закрытие
         /// </summary>
         private Order[] _ordersToClose;
 
         /// <summary>
+        /// send a review order /
         /// выслать ордер на отзыв
         /// </summary>
-        /// <param name="order">ордер</param>
-        /// <param name="deal">позиция которой ордер принадлежит</param>
+        /// <param name="order">order / ордер</param>
+        /// <param name="deal">position of which order belongs / позиция которой ордер принадлежит</param>
         private void SendOrderToClose(Order order, Position deal)
         {
             if (IsInArray(order))
@@ -511,6 +527,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         }
 
         /// <summary>
+        /// Is this order already sent for review? /
         /// этот ордер уже выслан на отзыв?
         /// </summary>
         private bool IsInArray(Order order)
@@ -532,6 +549,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         }
 
         /// <summary>
+        /// add order to the array of revoked orders / 
         /// добавить ордер в массив отзываемых ордеров
         /// </summary>
         private void SetInArray(Order order)
@@ -557,13 +575,15 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         }
 
         /// <summary>
+        /// new order for withdrawal event / 
         /// новый ордер для отзыва
         /// </summary>
         public event Action<Order, Position> DontOpenOrderDetectedEvent;
 
-        // сообщения в лог 
+        // log / сообщения в лог 
 
         /// <summary>
+        /// send a new log message 
         /// выслать новое сообщение на верх
         /// </summary>
         private void SendNewLogMessage(string message, LogMessageType type)
@@ -575,6 +595,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         }
 
         /// <summary>
+        /// outgoing message for log / 
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;

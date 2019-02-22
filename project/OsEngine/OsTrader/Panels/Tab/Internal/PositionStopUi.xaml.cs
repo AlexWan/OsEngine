@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -10,17 +11,8 @@ using OsEngine.Language;
 
 namespace OsEngine.OsTrader.Panels.Tab.Internal
 {
-    /// <summary>
-    /// Логика взаимодействия для PositionStopDialog.xaml
-    /// </summary>
     public partial class PositionStopUi
     {
-        /// <summary>
-        /// создать окно для смены стопа / профита по сделке
-        /// </summary>
-        /// <param name="position">позиция для которой меняем стоп/профит</param>
-        /// <param name="lastSecurityPrice">последняя цена по бумаге</param>
-        /// <param name="title">название окна</param>
         public PositionStopUi(Position position, decimal lastSecurityPrice, string title)
         {
             InitializeComponent();
@@ -40,26 +32,12 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             LabelOrderPrice.Content = OsLocalization.Trader.Label109;
         }
 
-// результаты 
-
-        /// <summary>
-        /// нужно ли выставлять стоп после закрытия окна
-        /// </summary>
         public bool IsAccept;
 
-        /// <summary>
-        /// цена после которой будет выставлен ордер на закрытие позиции
-        /// </summary>
         public decimal PriceOrder;
 
-        /// <summary>
-        /// цена ордера для закрытия позиции
-        /// </summary>
         public decimal PriceActivate;
 
-        /// <summary>
-        /// кнопка Принять
-        /// </summary>
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             try

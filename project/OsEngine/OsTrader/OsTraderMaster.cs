@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -28,27 +29,29 @@ namespace OsEngine.OsTrader
 {
 
     /// <summary>
+    /// class manager for robots
     /// класс менеджер управления для роботов
     /// </summary>
     public class OsTraderMaster
     {
         /// <summary>
+        /// create a robot manager
         /// создать менеджера роботов
         /// </summary>
-        /// <param name="hostChart">область для чарта</param>
-        /// <param name="hostGlass">область для стакана</param>
-        /// <param name="hostOpenDeals">область для таблицы открытых сделок</param>
-        /// <param name="hostCloseDeals">область для таблицы закрытых сделок</param>
-        /// <param name="hostAllDeals">область всех сделок</param>
-        /// <param name="hostLogBot">область для бот лога</param>
-        /// <param name="hostLogPrime">область для прайм лога</param>
-        /// <param name="rectangleAroundChart">квадрат за чартом</param>
-        /// <param name="hostAlerts">область для алертов</param>
-        /// <param name="tabPanel">панель с роботами</param>
-        /// <param name="tabBotTab">панель робота с вкладками инструментов</param>
-        /// <param name="textBoxLimitPrice">текстБокс с ценой лимитника при вводе заявки</param>
-        /// <param name="gridChartControlPanel">грид для панели управления чартом</param>
-        /// <param name="startProgram">тип программы который запросил создание класса</param>
+        /// <param name="hostChart">chart area / область для чарта</param>
+        /// <param name="hostGlass">market depth area / область для стакана</param>
+        /// <param name="hostOpenDeals">open positions table area / область для таблицы открытых сделок</param>
+        /// <param name="hostCloseDeals">closed positions table area / область для таблицы закрытых сделок</param>
+        /// <param name="hostAllDeals">area of all positions / область всех сделок</param>
+        /// <param name="hostLogBot">bot log area / область для бот лога</param>
+        /// <param name="hostLogPrime">prime log area / область для прайм лога</param>
+        /// <param name="rectangleAroundChart">square by chart / квадрат за чартом</param>
+        /// <param name="hostAlerts">area for alerts / область для алертов</param>
+        /// <param name="tabPanel">bots tabControl / панель с роботами</param>
+        /// <param name="tabBotTab">toolbar robot panel / панель робота с вкладками инструментов</param>
+        /// <param name="textBoxLimitPrice">Textbox with limit price when entering an position / текстБокс с ценой лимитника при вводе заявки</param>
+        /// <param name="gridChartControlPanel">grid for chart control panel / грид для панели управления чартом</param>
+        /// <param name="startProgram">type of program that requested class creation / тип программы который запросил создание класса</param>
         public OsTraderMaster(WindowsFormsHost hostChart, WindowsFormsHost hostGlass, WindowsFormsHost hostOpenDeals,
             WindowsFormsHost hostCloseDeals, WindowsFormsHost hostAllDeals, WindowsFormsHost hostLogBot, WindowsFormsHost hostLogPrime, Rectangle rectangleAroundChart, 
             WindowsFormsHost hostAlerts,
@@ -127,37 +130,39 @@ namespace OsEngine.OsTrader
         private Grid _gridChartControlPanel;
 
         /// <summary>
+        /// type of program that requested class creation
         /// какая программа запустила класс
         /// </summary>
         private StartProgram _startProgram;
 
         /// <summary>
+        /// bots array
         /// массив роботов
         /// </summary>
         private List<BotPanel> _panelsArray;
 
         /// <summary>
+        /// the bot to which the interface is currently connected
         /// бот, к которому сейчас подключен интерфейс
         /// </summary>
         private BotPanel _activPanel;
 
         /// <summary>
+        /// load robots with saved names
         /// загрузить роботов по сохранённым именам
         /// </summary>
         private void Load() 
         {
             if (!File.Exists(@"Engine\Settings"+ _typeWorkKeeper+"Keeper.txt"))
-            { // если нет нужного нам файла. Просто выходим
+            { // if there is no file we need. Just go out
+              // если нет нужного нам файла. Просто выходим
                 return;
             }
 
-            //try
-            //{
-            // 1 считаем кол-во сохранённых ботов
+
             int botCount = 0;
             using (StreamReader reader = new StreamReader(@"Engine\Settings" + _typeWorkKeeper + "Keeper.txt"))
-            {// если файл есть. Подключаемся к нему и качаем данные
-                // индикаторы
+            {
                 while (!reader.EndOfStream)
                 {
                     if (!string.IsNullOrWhiteSpace(reader.ReadLine()))
@@ -171,13 +176,12 @@ namespace OsEngine.OsTrader
             {
                 return;
             }
-            // создаём массив и роботов
+
             _panelsArray = new List<BotPanel>();
 
             int botIterator = 0;
             using (StreamReader reader = new StreamReader(@"Engine\Settings" + _typeWorkKeeper + "Keeper.txt"))
-            {// если файл есть. Подключаемся к нему и качаем данные
-                // индикаторы
+            {
                 while (!reader.EndOfStream)
                 {
                     string[] names = reader.ReadLine().Split('@');
@@ -197,18 +201,10 @@ namespace OsEngine.OsTrader
             {
                 ReloadActivBot(_panelsArray[0]);
             }
-            
-
-            // }
-            // catch
-            // {
-            // ignored
-            // }
-
-
         }
 
         /// <summary>
+        /// save robots names
         /// сохранить имена роботов
         /// </summary>
         private void Save()
@@ -216,7 +212,7 @@ namespace OsEngine.OsTrader
             try
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\Settings" + _typeWorkKeeper + "Keeper.txt", false))
-                { // создаём файл и записываем в него данные настроек
+                {
 
                     for (int i = 0; _panelsArray != null && i < _panelsArray.Count; i++)
                     {
@@ -233,6 +229,7 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// changed selected item
         /// изменился выделенный элемент
         /// </summary>
         void _tabBotControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -262,6 +259,7 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// the method allows to touch the tabs with the names of robots, after redrawing the window with candles
         /// метод разрешающий трогать вкладки с именами роботов, после перерисовки окна со свечками
         /// </summary>
         private void TabEnadler()
@@ -287,6 +285,7 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// assign draw new active bot
         /// назначить прорисовать нового активного бота
         /// </summary>
         private void ReloadActivBot(BotPanel newActivBot)
@@ -324,6 +323,7 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// interface for changing the active bot from the form
         /// интерфейс для смены активного бота с формы
         /// </summary>
         private void SetNewActivBotFromName(string newBotName)
@@ -348,14 +348,17 @@ namespace OsEngine.OsTrader
             }
         }
 
+// Global Risk Manager
 // Глобальный Риск Менеджер
 
         /// <summary>
+        /// risk Manager
         /// риск менеджер
         /// </summary>
         private RiskManager.RiskManager _riskManager;
 
         /// <summary>
+        /// risk manager threw the message
         /// риск менеджер выбросил сообщение
         /// </summary>
         void _riskManager_RiskManagerAlarmEvent(RiskManagerReactionType reactionType)
@@ -379,6 +382,7 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// reload risk manager logs
         /// перезагрузить риск менеджеру журналы
         /// </summary>
         private void ReloadRiskJournals()
@@ -410,6 +414,7 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// close all positions and turn off the robot
         /// закрыть все позиции и выключить робота
         /// </summary>
         private void RiskManagerCloseAndOff()
@@ -433,6 +438,7 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// throw a window with an alert risk manager
         /// выбросить окно с оповещением риск менеджера
         /// </summary>
         private void ShowRiskManagerAlert()
@@ -455,6 +461,7 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// show risk manager settings
         /// показать настройки риск менеджера
         /// </summary>
         public void ShowRiskManagerDialog()
@@ -469,19 +476,21 @@ namespace OsEngine.OsTrader
             }
         }
 
-// Общая позиция по ботам
+// Common position on bots / Общая позиция по ботам
 
         /// <summary>
+        /// general robot position manager
         /// менеджер общей позиции роботов
         /// </summary>
         private GlobalPosition _globalController;
 
         /// <summary>
-        /// окно журнала
+        /// journal window
         /// </summary>
         private JournalUi _journalUi;
 
         /// <summary>
+        /// show journal for all robots
         /// показать журнал по всем роботам
         /// </summary>
         public void ShowCommunityJournal()
@@ -543,14 +552,16 @@ namespace OsEngine.OsTrader
             _journalUi = null;
         }
 
-// Логироавние работы
+// log / логироавние
 
         /// <summary>
+        /// log
         /// лог
         /// </summary>
         private Log _log;
 
         /// <summary>
+        /// send a new message 
         /// выслать новое сообщение на верх
         /// </summary>
         private void SendNewLogMessage(string message, LogMessageType type)
@@ -560,24 +571,27 @@ namespace OsEngine.OsTrader
                 LogMessageEvent(message, type);
             }
             else if (type == LogMessageType.Error)
-            { // если на нас никто не подписан и в логе ошибка
+            {
                 MessageBox.Show(message);
             }
         }
 
         /// <summary>
+        /// outgoing message for log
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
-// Дополнительные события из тестового сервера
+// events from the test server / события из тестового сервера
 
         /// <summary>
+        /// is rewind enabled in the tester
         /// включена ли перемотка в тестере
         /// </summary>
         private bool _fastRegimeOn;
 
         /// <summary>
+        /// a signal came from the tester that the user wants to speed up the testing process
         /// из тестера пришёл сигнал что пользователь хочет ускорить процесс тестирования
         /// </summary>
         void StrategyKeeper_TestingFastEvent()
@@ -593,6 +607,7 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// from the tester came the signal that everything should be cleaned
         /// из тестера пришёл сигнал что надо всё зачистить
         /// </summary>
         void StrategyKeeper_TestingStartEvent()
@@ -635,9 +650,10 @@ namespace OsEngine.OsTrader
             StartPaint();
         }
 
-// Отключение / включение интерфейса
+// Disable/Enable Interface / Отключение/включение интерфейса
 
         /// <summary>
+        /// stop drawing the interface
         /// остановить прорисовку интерфейса
         /// </summary>
         public void StopPaint()
@@ -668,7 +684,8 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
-        /// вкллючить прорисовку интерфейса
+        /// enable interface drawing
+        /// включить прорисовку интерфейса
         /// </summary>
         public void StartPaint()
         {
@@ -703,9 +720,10 @@ namespace OsEngine.OsTrader
             }
         }
 
-// Управление хранилищем
+// Storage Management / Управление хранилищем
 
         /// <summary>
+        /// remove active bot
         /// удалить активного бота
         /// </summary>
         public void DeleteActiv()
@@ -726,12 +744,9 @@ namespace OsEngine.OsTrader
                     return;
                 }
 
-                // 1 отменяем прорисовку текущего бота
                 _activPanel.StopPaint();
 
                 _activPanel.Delete();
-
-                // 2 удаляем
 
                 SendNewLogMessage(OsLocalization.Trader.Label5 + _activPanel.NameStrategyUniq, LogMessageType.System);
 
@@ -739,13 +754,9 @@ namespace OsEngine.OsTrader
 
                 _activPanel = null;
 
-                // 3 сохраняем
-
                 Save();
 
                 _tabBotNames.Items.Clear();
-
-                // 4 если массив с роботами не пустой. Назначаем нового активного бота
 
                 if (_panelsArray != null && _panelsArray.Count != 0)
                 {
@@ -757,7 +768,6 @@ namespace OsEngine.OsTrader
                     ReloadActivBot(_panelsArray[0]);
                 }
 
-                // перегружаем риск менеджер
                 ReloadRiskJournals();
             }
             catch (Exception error)
@@ -767,13 +777,13 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// create bot
         /// создать бота
         /// </summary>
         public void CreateNewBot()
         {
             try
             {
-                // 1 вызываем диалог для выбора имени робота
                 PanelCreateUi ui = new PanelCreateUi();
                 ui.ShowDialog();
 
@@ -795,8 +805,6 @@ namespace OsEngine.OsTrader
                         return;
                     }
                 }
-
-                // 2 проверяем, что имя робота не нарушает никаких правил
 
                 if (File.Exists(@"Engine\" + @"SettingsRealKeeper.txt"))
                 {
@@ -832,8 +840,6 @@ namespace OsEngine.OsTrader
                     }
                 }
 
-                // 3 создаём робота и сохраняем
-
                 BotPanel newRobot = PanelCreator.GetStrategyForName(ui.NameStrategy, ui.NameBot, _startProgram);
 
                 if (_panelsArray == null)
@@ -847,7 +853,6 @@ namespace OsEngine.OsTrader
                 ReloadActivBot(newRobot);
                 Save();
 
-                // перегружаем риск менеджер
                 ReloadRiskJournals();
             }
             catch (Exception error)
@@ -856,9 +861,10 @@ namespace OsEngine.OsTrader
             }
         }
 
-// Управление роботом
+// Robot control / Управление роботом
 
         /// <summary>
+        /// show the position tracking settings for the robot
         /// показать настройки сопровождения позиции для робота
         /// </summary>
         public void BotManualSettingsDialog()
@@ -888,6 +894,7 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// show individual robot settings
         /// показать индивидуальные настройки робота
         /// </summary>
         public void BotIndividualSettings()
@@ -908,6 +915,7 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// show the tool connection settings for the robot
         /// показать настройки подключения инструмента для робота
         /// </summary>
         public void BotTabConnectorDialog()
@@ -946,6 +954,7 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// show the risk manager settings for the robot
         /// показать настройки риск менеджера для робота
         /// </summary>
         public void BotShowRiskManager()
@@ -966,6 +975,7 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// show the settings window for the robot
         /// показать окно настроек параметров для робота
         /// </summary>
         public void BotShowParametrsDialog()
@@ -986,9 +996,10 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// buy on the market, for active bot
         /// купить по маркету, для активного бота
         /// </summary>
-        /// <param name="volume">объём</param>
+        /// <param name="volume">volume / объём</param>
         public void BotBuyMarket(decimal volume)
         {
             try
@@ -1009,9 +1020,10 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// sell on the market, for active bot
         /// продать по маркету, для активного бота
         /// </summary>
-        /// <param name="volume">объём</param>
+        /// <param name="volume">volume / объём</param>
         public void BotSellMarket(decimal volume)
         {
             try
@@ -1032,10 +1044,11 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// buy limit for active bot
         /// купить лимитом, для активного бота
         /// </summary>
-        /// <param name="volume">объём</param>
-        /// <param name="price">цена</param>
+        /// <param name="volume">volume / объём</param>
+        /// <param name="price">price / цена</param>
         public void BotBuyLimit(decimal volume,decimal price)
         {
             try
@@ -1056,10 +1069,11 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// sell limit for active bot
         /// продать лимитом, для активного бота
         /// </summary>
-        /// <param name="volume">объём</param>
-        /// <param name="price">цена</param>
+        /// <param name="volume">volume / объём</param>
+        /// <param name="price">price / цена</param>
         public void BotSellLimit(decimal volume,decimal price)
         {
             try
@@ -1080,6 +1094,7 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// withdraw all active orders
         /// отозвать все активные ордера
         /// </summary>
         public void CancelLimits()
@@ -1102,6 +1117,7 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// is there an actin bot now
         /// есть ли актвиный бот сейчас
         /// </summary>
         private bool IsActiv()

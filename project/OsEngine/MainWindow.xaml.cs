@@ -1,10 +1,9 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -23,12 +22,12 @@ using OsEngine.OsMiner;
 using OsEngine.OsOptimizer;
 using OsEngine.OsTrader.Gui;
 using OsEngine.PrimeSettings;
-using Localization = System.Windows.Localization;
 
 namespace OsEngine
 {
 
     /// <summary>
+    /// Application start screen
     /// Стартовое окно приложения
     /// </summary>
     public partial class MainWindow
@@ -42,6 +41,7 @@ namespace OsEngine
         }
 
         /// <summary>
+        ///  is application running
         /// работает ли приложение или закрывается
         /// </summary>
         public static bool ProccesIsWorked;
@@ -80,7 +80,6 @@ namespace OsEngine
                 Close();
             }
 
-            // передаём в менеджер сообщений объект центарльного потока
             AlertMessageManager.TextBoxFromStaThread = new TextBox();
 
             ProccesIsWorked = true;
@@ -115,6 +114,7 @@ namespace OsEngine
         }
 
         /// <summary>
+        /// check the version of dotnet
         /// проверить версию дотНет
         /// </summary>
         private bool CheckDotNetVersion()
@@ -155,6 +155,7 @@ namespace OsEngine
         }
 
         /// <summary>
+        /// check the permission of the program to create files in the directory
         /// проверяем разрешение программы создавать файлы в директории
         /// </summary>
         private bool CheckWorkWithDirectory()
@@ -339,7 +340,7 @@ namespace OsEngine
             {
                 _settingsUi = new PrimeSettingsMasterUi();
                 _settingsUi.Show();
-                _settingsUi.Closing += delegate(object o, CancelEventArgs args) { _settingsUi = null; };
+                _settingsUi.Closing += delegate { _settingsUi = null; };
             }
             else
             {

@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 using System;
 using System.Globalization;
@@ -8,9 +9,6 @@ using OsEngine.Language;
 
 namespace OsEngine.OsTrader.Panels.PanelsGui
 {
-    /// <summary>
-    /// Логика взаимодействия для PairTraderSpreadSmaUi.xaml
-    /// </summary>
     public partial class PairTraderSpreadSmaUi
     {
         private PairTraderSpreadSma _strategy;
@@ -68,7 +66,6 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
 
             _strategy.Save();
             Close();
-
         }
 
         private void ButtonAbout_Click_1(object sender, RoutedEventArgs e)

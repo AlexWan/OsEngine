@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using OsEngine.Charts.CandleChart.Indicators;
@@ -8,15 +13,9 @@ using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.OsTrader.Panels.SingleRobots
 {
-    /// <summary>
-    /// стратегия основанная на линиях боллинджера
-    /// </summary>
+
     public class StrategyBollinger : BotPanel
     {
-
-        /// <summary>
-        /// конструктор
-        /// </summary>
         public StrategyBollinger(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
@@ -33,7 +32,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
 
             _tab.CandleFinishedEvent += Bot_CandleFinishedEvent;
 
-            Slipage = 0;
+            Slippage = 0;
             Volume = 1;
             Regime = BotTradeRegime.On;
 
@@ -43,7 +42,8 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         }
 
         /// <summary>
-        /// взять уникальное имя стратегии
+        /// take the name of the strategy
+        /// взять имя стратегии
         /// </summary>
         public override string GetNameStrategyType()
         {
@@ -51,6 +51,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         }
 
         /// <summary>
+        /// show settings window
         /// показать окно настроек
         /// </summary>
         public override void ShowIndividualSettingsDialog()
@@ -60,40 +61,47 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         }
 
         /// <summary>
+        /// tab through which trade is conducted
         /// вкладка через которую ведётся торговля
         /// </summary>
         private BotTabSimple _tab;
 
-        // индикаторы
+        // indicators индикаторы
 
         /// <summary>
-        /// боллиндер
+        /// bollinger
+        /// боллинжер
         /// </summary>
         private Bollinger _bollinger;
 
         /// <summary>
+        /// MA
         /// мувинг
         /// </summary>
         private MovingAverage _moving;
 
-        // настройки публичные
+        // public settings / настройки публичные
 
         /// <summary>
+        /// slippage
         /// проскальзывание
         /// </summary>
-        public decimal Slipage;
+        public decimal Slippage;
 
         /// <summary>
+        /// volume
         /// объём входа
         /// </summary>
         public decimal Volume;
 
         /// <summary>
+        /// regime
         /// режим работы
         /// </summary>
         public BotTradeRegime Regime;
 
         /// <summary>
+        /// save settings
         /// сохранить настройки
         /// </summary>
         public void Save()
@@ -103,7 +111,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt", false)
                     )
                 {
-                    writer.WriteLine(Slipage);
+                    writer.WriteLine(Slippage);
                     writer.WriteLine(Volume);
                     writer.WriteLine(Regime);
                     writer.Close();
@@ -111,11 +119,12 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// load settings
         /// загрузить настройки
         /// </summary>
         private void Load()
@@ -128,7 +137,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             {
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
-                    Slipage = Convert.ToDecimal(reader.ReadLine());
+                    Slippage = Convert.ToDecimal(reader.ReadLine());
                     Volume = Convert.ToDecimal(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
                     reader.Close();
@@ -136,11 +145,12 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// delete file with save
         /// удаление файла с сохранением
         /// </summary>
         void Strategy_DeleteEvent()
@@ -151,15 +161,15 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             }
         }
 
-        // логика
+        // logic / логика
 
         /// <summary>
+        /// candle completion event
         /// событие завершения свечи
         /// </summary>
         private void Bot_CandleFinishedEvent(List<Candle> candles)
         {
 
-            // берём значения из инидикаторов.
             if (Regime == BotTradeRegime.Off)
             {
                 return;
@@ -178,8 +188,6 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             {
                 return;
             }
-
-            // распределяем логику в зависимости от текущей позиции
 
             List<Position> openPosition = _tab.PositionsOpenAll;
 
@@ -206,9 +214,9 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         }
 
         /// <summary>
+        /// position opening logic
         /// логика открытия позиции
         /// </summary>
-        /// <param name="candles"></param>
         private void LogicOpenPosition(List<Candle> candles)
         {
             decimal bollingerUpLast = _bollinger.ValuesUp[_bollinger.ValuesUp.Count - 1];
@@ -226,17 +234,18 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             if (close > bollingerUpLast
                 && Regime != BotTradeRegime.OnlyLong)
             {
-                _tab.SellAtLimit(Volume, close - Slipage);
+                _tab.SellAtLimit(Volume, close - Slippage);
             }
 
             if (close < bollingerDownLast
                 && Regime != BotTradeRegime.OnlyShort)
             {
-                _tab.BuyAtLimit(Volume, close + Slipage);
+                _tab.BuyAtLimit(Volume, close + Slippage);
             }
         }
 
         /// <summary>
+        /// position closing logic
         /// логика закрытия позиции
         /// </summary>
         private void LogicClosePosition(Position position, List<Candle> candles)
@@ -253,7 +262,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             {
                 if (lastClose > moving)
                 {
-                    _tab.CloseAtLimit(position, lastClose - Slipage, position.OpenVolume);
+                    _tab.CloseAtLimit(position, lastClose - Slippage, position.OpenVolume);
                 }
             }
 
@@ -261,7 +270,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             {
                 if (lastClose < moving)
                 {
-                    _tab.CloseAtLimit(position, lastClose + Slipage, position.OpenVolume);
+                    _tab.CloseAtLimit(position, lastClose + Slippage, position.OpenVolume);
                 }
             }
         }

@@ -9,10 +9,10 @@
                     <WindowsFormsHost x:Name="HostGridPatternsToOpen" Margin="14,65,233,5"/>
                     <Label Name="LabelPatterns" Content="Patterns" HorizontalAlignment="Left" Margin="14,37,0,0" VerticalAlignment="Top"/>
                     <WindowsFormsHost x:Name="HostSinglePatternToOpen" HorizontalAlignment="Right" Margin="0,65,5,5" Width="223"/>
-                    <TextBox Name="TextBoxWeigthToInter" ToolTip="Общий вес найденных на текущей свече паттернов, необходимых для входа в позицию" Height="23" Margin="0,10,24,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="156"/>
+                    <TextBox Name="TextBoxWeigthToInter"  Height="23" Margin="0,10,24,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="156"/>
                     <Label Name="LabelEntryWeight" Content="Entry Weight"  Margin="0,10,201,0" HorizontalAlignment="Right" VerticalAlignment="Top" />
                     <Label Name="LabelSide" Content="Side" HorizontalAlignment="Left" Margin="118,10,0,0" VerticalAlignment="Top" />
-                    <ComboBox Name="ComboBoxSideInter" ToolTip="Что будем делать когда наёдём нужные паттерны для входа. Покупать или продавать" HorizontalAlignment="Left" Margin="181,10,0,0"   VerticalAlignment="Top" Width="151"/>
+                    <ComboBox Name="ComboBoxSideInter" HorizontalAlignment="Left" Margin="181,10,0,0"   VerticalAlignment="Top" Width="151"/>
                     <TextBox Name="TextBoxInterToPatternSleepage" Height="23" Margin="0,38,24,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="156"/>
                     <Label Name="LabelSlippage" Content="Slippage"  Margin="0,38,201,0" HorizontalAlignment="Right" VerticalAlignment="Top" />
                 </Grid>

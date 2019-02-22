@@ -1,4 +1,9 @@
-﻿using System.Runtime.InteropServices;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Forms.DataVisualization.Charting;
 using OsEngine.Charts;
@@ -6,9 +11,6 @@ using OsEngine.Charts.CandleChart;
 
 namespace OsEngine.OsTrader.Panels
 {
-    /// <summary>
-    /// Логика взаимодействия для BotPanelChartUI.xaml
-    /// </summary>
     public partial class BotPanelChartUi
     {
         public BotPanelChartUi(BotPanel panel)
@@ -95,8 +97,6 @@ namespace OsEngine.OsTrader.Panels
                     _chart.ProcessIndicator(_panel.TabsIndex[tabNum].Indicators[i]);
                 }
             }
-
-            
         }
     }
 }

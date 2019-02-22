@@ -1,4 +1,9 @@
-﻿using System.Collections.Generic;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System.Collections.Generic;
 using System.Windows;
 using OsEngine.Entity;
 using OsEngine.Language;
@@ -7,19 +12,19 @@ using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.OsTrader.Panels.SingleRobots
 {
-    class ClusterCountertrend : BotPanel
+    public class ClusterCountertrend : BotPanel
     {
-        /// <summary>
-        /// конструктор
-        /// </summary>
+
         public ClusterCountertrend(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
-            //создание вкладку для торговли
+            //create a tab for trading
+            //создаём вкладку для торговли
             TabCreate(BotTabType.Simple);
             _tabToTrade = TabsSimple[0];
             _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
 
+            // create a tab for the cluster
             // создаём вкдалку для кластера
             TabCreate(BotTabType.Cluster);
             _tabCluster = TabsCluster[0];
@@ -31,16 +36,19 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         }
 
         /// <summary>
+        /// volume
         /// объём 
         /// </summary>
         public StrategyParameterDecimal Volume;
 
         /// <summary>
+        /// how many clusters are back we look at the maximum amount
         /// сколько кластеров назад мы смотрим на максимальный объём
         /// </summary>
         public StrategyParameterInt BackLook;
 
         /// <summary>
+        /// regime
         /// режим работы
         /// </summary>
         public StrategyParameterString Regime;
@@ -50,15 +58,16 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         private BotTabCluster _tabCluster;
 
         /// <summary>
+        /// strategy name
         /// униальное имя стратегии
         /// </summary>
-        /// <returns></returns>
         public override string GetNameStrategyType()
         {
             return "ClusterCountertrend";
         }
 
         /// <summary>
+        /// show settings
         /// показать настройки
         /// </summary>
         public override void ShowIndividualSettingsDialog()
@@ -69,6 +78,8 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
 
         private void _tabToTrade_CandleFinishedEvent(List<Candle> candles)
         {
+            // we buy if we are under the largest volume for sale in the last 10 candles
+            // sell if we are above the largest purchase volume for the last 10 candles
             // покупаем если находимся под самым большим объёма на продажу за последние 10 свечек
             // продаём если находимся над самым большим объёма на покупку за последние 10 свечек
 
@@ -85,7 +96,8 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             HorizontalVolumeCluster maxBuyCluster =
                 _tabCluster.FindMaxVolumeCluster(candles.Count - BackLook.ValueInt, candles.Count, ClusterType.BuyVolume);
             if (candles[candles.Count - 1].Close > maxBuyCluster.MaxBuyVolumeLine.Price)
-            { // продаём и выходим из позиции лонг
+            { // sell and exit long positions
+              // продаём и выходим из позиции лонг
 
                 List<Position> myPosShort = _tabToTrade.PositionOpenShort;
 
@@ -107,7 +119,8 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
                 _tabCluster.FindMaxVolumeCluster(candles.Count - BackLook.ValueInt, candles.Count, ClusterType.SellVolume);
 
             if (candles[candles.Count - 1].Close < maxSellCluster.MaxSellVolumeLine.Price)
-            { // покупаем и выходим из позиции шорт
+            { // buy and exit short
+              // покупаем и выходим из позиции шорт
 
                 List<Position> myPosLong = _tabToTrade.PositionOpenLong;
                 if (myPosLong.Count == 0)
@@ -122,8 +135,6 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
                     _tabToTrade.CloseAtMarket(myPosShort[0], myPosShort[0].OpenVolume);
                 }
             }
-
-
         }
     }
 }

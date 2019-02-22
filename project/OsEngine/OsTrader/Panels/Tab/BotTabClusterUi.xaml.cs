@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
@@ -6,9 +11,6 @@ using OsEngine.Language;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
-    /// <summary>
-    /// Логика взаимодействия для BotTabClusterUi.xaml
-    /// </summary>
     public partial class BotTabClusterUi
     {
         private BotTabCluster _tab;
