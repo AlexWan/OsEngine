@@ -186,34 +186,22 @@ namespace OsEngine.Market.Servers.BitStamp
         {
             order.ServerType = ServerType.BitStamp;
 
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(order);
-            }
+            MyOrderEvent?.Invoke(order);
         }
 
         private void ClientOnMyTradeEvent(MyTrade trade)
         {
-            if (MyTradeEvent != null)
-            {
-                MyTradeEvent(trade);
-            }
+            MyTradeEvent?.Invoke(trade);
         }
 
         private void ClientOnNewTradesEvent(Trade trade)
         {
-            if (NewTradesEvent != null)
-            {
-                NewTradesEvent(trade);
-            }
+            NewTradesEvent?.Invoke(trade);
         }
 
         private void ClientOnUpdateMarketDepth(MarketDepth marketDepth)
         {
-            if (MarketDepthEvent != null)
-            {
-                MarketDepthEvent(marketDepth);
-            }
+            MarketDepthEvent?.Invoke(marketDepth);
         }
 
         private List<Portfolio> _portfolios;
@@ -270,10 +258,7 @@ namespace OsEngine.Market.Servers.BitStamp
                 osPortBtc.ValueBegin = Convert.ToDecimal(portf.btc_balance.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                 osPortBtc.ValueBlocked = Convert.ToDecimal(portf.btc_reserved.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
 
-                if (PortfolioEvent != null)
-                {
-                    PortfolioEvent(_portfolios);
-                }
+                PortfolioEvent?.Invoke(_portfolios);
             }
             catch (Exception error)
             {
@@ -316,26 +301,17 @@ namespace OsEngine.Market.Servers.BitStamp
 
             }
 
-            if (SecurityEvent != null)
-            {
-                SecurityEvent(_securities);
-            }
+            SecurityEvent?.Invoke(_securities);
         }
 
         private void ClientOnConnected()
         {
-            if (ConnectEvent != null)
-            {
-                ConnectEvent();
-            }
+            ConnectEvent?.Invoke();
         }
 
         private void ClientOnDisconnected()
         {
-            if (DisconnectEvent != null)
-            {
-                DisconnectEvent();
-            }
+            DisconnectEvent?.Invoke();
         }
 
         // исходящие события
@@ -390,10 +366,7 @@ namespace OsEngine.Market.Servers.BitStamp
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>

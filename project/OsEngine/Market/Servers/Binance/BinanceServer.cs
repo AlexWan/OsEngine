@@ -231,18 +231,12 @@ namespace OsEngine.Market.Servers.Binance
 
         void _client_MyOrderEvent(Order order)
         {
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(order);
-            }
+            MyOrderEvent?.Invoke(order);
         }
 
         void _client_MyTradeEvent(MyTrade myTrade)
         {
-            if (MyTradeEvent != null)
-            {
-                MyTradeEvent(myTrade);
-            }
+            MyTradeEvent?.Invoke(myTrade);
         }
 
         /// <summary>
@@ -272,10 +266,7 @@ namespace OsEngine.Market.Servers.Binance
                         CultureInfo.InvariantCulture);
                 trade.Side = trades.data.m == true ? Side.Sell : Side.Buy;
 
-                if (NewTradesEvent != null)
-                {
-                    NewTradesEvent(trade);
-                }
+                NewTradesEvent?.Invoke(trade);
             }
         }
 
@@ -346,10 +337,7 @@ namespace OsEngine.Market.Servers.Binance
                         return;
                     }
 
-                    if (MarketDepthEvent != null)
-                    {
-                        MarketDepthEvent(needDepth.GetCopy());
-                    }
+                    MarketDepthEvent?.Invoke(needDepth.GetCopy());
                 }
             }
             catch (Exception error)
@@ -392,10 +380,7 @@ namespace OsEngine.Market.Servers.Binance
                     neeedPortf.ValueBlocked = Convert.ToDecimal(onePortf.l.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                 }
 
-                if (PortfolioEvent != null)
-                {
-                    PortfolioEvent(_portfolios);
-                }
+                PortfolioEvent?.Invoke(_portfolios);
             }
             catch (Exception error)
             {
@@ -432,10 +417,7 @@ namespace OsEngine.Market.Servers.Binance
                     _portfolios.Add(newPortf);
                 }
 
-                if (PortfolioEvent != null)
-                {
-                    PortfolioEvent(_portfolios);
-                }
+                PortfolioEvent?.Invoke(_portfolios);
             }
             catch (Exception error)
             {
@@ -445,10 +427,7 @@ namespace OsEngine.Market.Servers.Binance
 
         void _client_Disconnected()
         {
-            if (DisconnectEvent != null)
-            {
-                DisconnectEvent();
-            }
+            DisconnectEvent?.Invoke();
             ServerStatus = ServerConnectStatus.Disconnect;
         }
 
@@ -491,18 +470,12 @@ namespace OsEngine.Market.Servers.Binance
                 _securities.Add(security);
             }
 
-            if (SecurityEvent != null)
-            {
-                SecurityEvent(_securities);
-            }
+            SecurityEvent?.Invoke(_securities);
         }
 
         void _client_Connected()
         {
-            if(ConnectEvent != null)
-            {
-                ConnectEvent();
-            }
+            ConnectEvent?.Invoke();
             ServerStatus = ServerConnectStatus.Connect;
         }
 
@@ -555,10 +528,7 @@ namespace OsEngine.Market.Servers.Binance
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>

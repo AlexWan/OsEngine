@@ -1530,18 +1530,12 @@ namespace OsEngine.Entity
             {
                 return;
             }
-            if (СandleUpdeteEvent != null)
-            {
-                СandleUpdeteEvent(this);
-            }
+            СandleUpdeteEvent?.Invoke(this);
         }
 
         private void UpdateFinishCandle()
         {
-            if (СandleFinishedEvent != null)
-            {
-                СandleFinishedEvent(this);
-            }
+            СandleFinishedEvent?.Invoke(this);
         }
 
         /// <summary>

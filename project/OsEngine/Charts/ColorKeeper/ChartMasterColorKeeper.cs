@@ -117,10 +117,7 @@ namespace OsEngine.Charts.ColorKeeper
                     writer.WriteLine(_colorScheme);
                 }
 
-                if (NeedToRePaintFormEvent != null)
-                {
-                    NeedToRePaintFormEvent();
-                }
+                NeedToRePaintFormEvent?.Invoke();
             }
             catch (Exception error)
             {
@@ -168,10 +165,7 @@ namespace OsEngine.Charts.ColorKeeper
 
             Save();
 
-            if (NeedToRePaintFormEvent != null)
-            {
-                NeedToRePaintFormEvent();
-            }
+            NeedToRePaintFormEvent?.Invoke();
         }
 
         /// <summary>
@@ -197,10 +191,7 @@ namespace OsEngine.Charts.ColorKeeper
 
             Save();
 
-            if (NeedToRePaintFormEvent != null)
-            {
-                NeedToRePaintFormEvent();
-            }
+            NeedToRePaintFormEvent?.Invoke();
         }
 
  // цвета

@@ -19,10 +19,7 @@ namespace OsEngine.Market.Servers.Entity
         public void Go()
         {
             Thread.Sleep(5000);
-            if (TimeSendPortfolio != null)
-            {
-                TimeSendPortfolio(PositionOnBoard);
-            }
+            TimeSendPortfolio?.Invoke(PositionOnBoard);
         }
 
         public event Action<PositionOnBoard> TimeSendPortfolio;

@@ -52,10 +52,7 @@ namespace OsEngine.Market.Connectors
             newOrder.TypeOrder = order.TypeOrder;
             newOrder.TimeCallBack = _serverTime;
 
-            if (OrderChangeEvent != null)
-            {
-                OrderChangeEvent(newOrder);
-            }
+            OrderChangeEvent?.Invoke(newOrder);
         }
 
         /// <summary>
@@ -149,10 +146,7 @@ namespace OsEngine.Market.Connectors
             newOrder.Side = order.Side;
             newOrder.SecurityNameCode = order.SecurityNameCode;
 
-            if (OrderChangeEvent != null)
-            {
-                OrderChangeEvent(newOrder);
-            }
+            OrderChangeEvent?.Invoke(newOrder);
 
             MyTrade trade = new MyTrade();
             trade.Volume = order.Volume;
@@ -163,10 +157,7 @@ namespace OsEngine.Market.Connectors
             trade.Side = order.Side;
             trade.NumberOrderParent = newOrder.NumberMarket;
 
-            if (MyTradeEvent != null)
-            {
-                MyTradeEvent(trade);
-            }
+            MyTradeEvent?.Invoke(trade);
 
         }
 
@@ -187,10 +178,7 @@ namespace OsEngine.Market.Connectors
             newOrder.Side = order.Side;
             newOrder.SecurityNameCode = order.SecurityNameCode;
 
-            if (OrderChangeEvent != null)
-            {
-                OrderChangeEvent(newOrder);
-            }
+            OrderChangeEvent?.Invoke(newOrder);
         }
 
 // сервер нужно прогружать новыми данными, чтобы исполнялись стопы и профиты

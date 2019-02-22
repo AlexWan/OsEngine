@@ -110,10 +110,7 @@ namespace OsEngine.Market.Servers.Transaq
             {
                 IsConnected = false;
 
-                if (Disconnected != null)
-                {
-                    Disconnected();
-                }
+                Disconnected?.Invoke();
 
                 _isDisposed = true;
             }
@@ -391,10 +388,7 @@ namespace OsEngine.Market.Servers.Transaq
         /// </summary>
         void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>

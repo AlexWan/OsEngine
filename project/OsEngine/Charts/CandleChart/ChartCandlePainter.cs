@@ -2606,10 +2606,7 @@ namespace OsEngine.Charts.CandleChart
             }
             catch (Exception error)
             {
-                if (LogMessageEvent != null)
-                {
-                    LogMessageEvent(error.ToString(), LogMessageType.Error);
-                }
+                LogMessageEvent?.Invoke(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -3598,10 +3595,7 @@ namespace OsEngine.Charts.CandleChart
                     index = 0;
                 }
 
-                if (ClickToIndexEvent != null)
-                {
-                    ClickToIndexEvent(index);
-                }
+                ClickToIndexEvent?.Invoke(index);
 
                 List<Series> series = new List<Series>();
 
@@ -5272,10 +5266,7 @@ namespace OsEngine.Charts.CandleChart
                     return;
                 }
 
-                if (SizeAxisXChangeEvent != null)
-                {
-                    SizeAxisXChangeEvent(lastX - firstX);
-                }
+                SizeAxisXChangeEvent?.Invoke(lastX - firstX);
 
                 double max = double.MinValue;
                 double min = double.MaxValue;

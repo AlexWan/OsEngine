@@ -81,10 +81,12 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             get
             {
-                List<List<decimal>> list = new List<List<decimal>>();
-                list.Add(ValuesUp);
-                list.Add(Values);
-                list.Add(ValuesDown);
+                List<List<decimal>> list = new List<List<decimal>>
+                {
+                    ValuesUp,
+                    Values,
+                    ValuesDown
+                };
                 return list;
             }
         }
@@ -96,10 +98,12 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             get
             {
-                List<Color> colors = new List<Color>();
-                colors.Add(ColorUp);
-                colors.Add(ColorBase);
-                colors.Add(ColorDown);
+                List<Color> colors = new List<Color>
+                {
+                    ColorUp,
+                    ColorBase,
+                    ColorDown
+                };
                 return colors;
             }
 
@@ -367,10 +371,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
             ProcessAll(_myCandles);
 
-            if (NeadToReloadEvent != null)
-            {
-                NeadToReloadEvent(this);
-            }
+            NeadToReloadEvent?.Invoke(this);
         }
 
         /// <summary>

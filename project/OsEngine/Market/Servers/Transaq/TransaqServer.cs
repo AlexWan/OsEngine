@@ -1041,10 +1041,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                         needDepth.Time = ServerTime == DateTime.MinValue ? TimeManager.GetExchangeTime("Russian Standard Time") : ServerTime;
 
-                        if (MarketDepthEvent != null)
-                        {
-                            MarketDepthEvent(needDepth.GetCopy());
-                        }
+                        MarketDepthEvent?.Invoke(needDepth.GetCopy());
                     }
                 }
             }
@@ -1112,10 +1109,7 @@ namespace OsEngine.Market.Servers.Transaq
                         newOrder.State = OrderStateType.None;
                     }
 
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(newOrder);
-                    }
+                    MyOrderEvent?.Invoke(newOrder);
                 }
                 catch (Exception e)
                 {
@@ -1141,10 +1135,7 @@ namespace OsEngine.Market.Servers.Transaq
                 myTrade.SecurityNameCode = trade.Seccode;
                 myTrade.Side = trade.Buysell == "B" ? Side.Buy : Side.Sell;
 
-                if (MyTradeEvent != null)
-                {
-                    MyTradeEvent(myTrade);
-                }
+                MyTradeEvent?.Invoke(myTrade);
             }
         }
 
@@ -1165,10 +1156,7 @@ namespace OsEngine.Market.Servers.Transaq
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>

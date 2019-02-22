@@ -56,8 +56,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             get
             {
-                List<List<decimal>> list = new List<List<decimal>>();
-                list.Add(Values);
+                List<List<decimal>> list = new List<List<decimal>>
+                {
+                    Values
+                };
                 return list;
             }
         }
@@ -69,9 +71,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             get
             {
-                List<Color> colors = new List<Color>();
-                colors.Add(ColorUp);
-                colors.Add(ColorDown);
+                List<Color> colors = new List<Color>
+                {
+                    ColorUp,
+                    ColorDown
+                };
                 return colors;
             }
 
@@ -213,10 +217,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             if (ui.IsChange)
             {
-                if (NeadToReloadEvent != null)
-                {
-                    NeadToReloadEvent(this);
-                }
+                NeadToReloadEvent?.Invoke(this);
             }
         }
 
@@ -255,8 +256,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             if (Values == null)
             {
-                Values = new List<decimal>();
-                Values.Add(candles[candles.Count-1].Volume);
+                Values = new List<decimal>
+                {
+                    candles[candles.Count - 1].Volume
+                };
             }
             else
             {

@@ -128,10 +128,7 @@ namespace OsEngine.Entity
                     return;
                 }
                 _valueInt = value;
-                if (ValueChange != null)
-                {
-                    ValueChange();
-                }
+                ValueChange?.Invoke();
             }
         }
         private int _valueInt;
@@ -281,10 +278,7 @@ namespace OsEngine.Entity
                     return;
                 }
                 _valueDecimal = value;
-                if (ValueChange != null)
-                {
-                    ValueChange();
-                }
+                ValueChange?.Invoke();
             }
         }
         private decimal _valueDecimal;
@@ -416,10 +410,7 @@ namespace OsEngine.Entity
                     return;
                 }
                 _valueBool = value;
-                if (ValueChange != null)
-                {
-                    ValueChange();
-                }
+                ValueChange?.Invoke();
             }
         }
         private bool _valueBool;
@@ -523,10 +514,7 @@ namespace OsEngine.Entity
                     return;
                 }
                 _valueString = value;
-                if (ValueChange != null)
-                {
-                    ValueChange();
-                }
+                ValueChange?.Invoke();
             }
         }
         private string _valueString;

@@ -513,18 +513,12 @@ namespace OsEngine.Entity
         /// <param name="series">серия по которой прошло обновление</param>
         void series_СandleUpdeteEvent(CandleSeries series)
         {
-            if (CandleUpdateEvent != null)
-            {
-                CandleUpdateEvent( series);
-            }
+            CandleUpdateEvent?.Invoke(series);
         }
 
         void series_СandleFinishedEvent(CandleSeries series)
         {
-            if (CandleUpdateEvent != null)
-            {
-                CandleUpdateEvent(series);
-            }
+            CandleUpdateEvent?.Invoke(series);
         }
 
         /// <summary>

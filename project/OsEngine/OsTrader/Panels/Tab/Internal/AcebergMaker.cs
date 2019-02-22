@@ -52,10 +52,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// </summary>
         private void newAceberg_newOrderNeadToExecute(Order order)
         {
-            if (NewOrderNeadToExecute != null)
-            {
-                NewOrderNeadToExecute(order);
-            }
+            NewOrderNeadToExecute?.Invoke(order);
         }
 
         /// <summary>
@@ -63,10 +60,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// </summary>
         private void newAceberg_newOrderNeadToCansel(Order order)
         {
-            if (NewOrderNeadToCansel != null)
-            {
-                NewOrderNeadToCansel(order);
-            }
+            NewOrderNeadToCansel?.Invoke(order);
         }
 
         /// <summary>
@@ -481,10 +475,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                     }
                 }
 
-                if (NewOrderNeadToExecute != null)
-                {
-                    NewOrderNeadToExecute(_ordersInSystem);
-                }
+                NewOrderNeadToExecute?.Invoke(_ordersInSystem);
             }
         }
 

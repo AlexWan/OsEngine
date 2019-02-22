@@ -270,10 +270,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 {
                     _serverConnectStatus = value;
                     SendLogMessage(_serverConnectStatus + OsLocalization.Market.Message7, LogMessageType.Connect);
-                    if (ConnectStatusChangeEvent != null)
-                    {
-                        ConnectStatusChangeEvent(_serverConnectStatus.ToString());
-                    }
+                    ConnectStatusChangeEvent?.Invoke(_serverConnectStatus.ToString());
                 }
             }
         }
@@ -429,10 +426,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                         _threadPrime.IsBackground = true;
                         _threadPrime.Start();
 
-                        if (NeadToReconnectEvent != null)
-                        {
-                            NeadToReconnectEvent();
-                        }
+                        NeadToReconnectEvent?.Invoke();
 
                         return;
                     }
@@ -653,10 +647,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                         Order order;
                         if (_ordersToSend.TryDequeue(out order))
                         {
-                            if (NewOrderIncomeEvent != null)
-                            {
-                                NewOrderIncomeEvent(order);
-                            }
+                            NewOrderIncomeEvent?.Invoke(order);
                         }
                     }
                     else if (!_myTradesToSend.IsEmpty &&
@@ -666,10 +657,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
                         if (_myTradesToSend.TryDequeue(out myTrade))
                         {
-                            if (NewMyTradeEvent != null)
-                            {
-                                NewMyTradeEvent(myTrade);
-                            }
+                            NewMyTradeEvent?.Invoke(myTrade);
                         }
                     }
                     else if (!_tradesToSend.IsEmpty)
@@ -678,10 +666,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
                         if (_tradesToSend.TryDequeue(out trades))
                         {
-                            if (NewTradeEvent != null)
-                            {
-                                NewTradeEvent(trades);
-                            }
+                            NewTradeEvent?.Invoke(trades);
                         }
                     }
 
@@ -691,10 +676,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
                         if (_portfolioToSend.TryDequeue(out portfolio))
                         {
-                            if (PortfoliosChangeEvent != null)
-                            {
-                                PortfoliosChangeEvent(portfolio);
-                            }
+                            PortfoliosChangeEvent?.Invoke(portfolio);
                         }
                     }
 
@@ -704,10 +686,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
                         if (_securitiesToSend.TryDequeue(out security))
                         {
-                            if (SecuritiesChangeEvent != null)
-                            {
-                                SecuritiesChangeEvent(security);
-                            }
+                            SecuritiesChangeEvent?.Invoke(security);
                         }
                     }
                     else if (!_newServerTime.IsEmpty)
@@ -716,10 +695,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
                         if (_newServerTime.TryDequeue(out time))
                         {
-                            if (TimeServerChangeEvent != null)
-                            {
-                                TimeServerChangeEvent(_serverTime);
-                            }
+                            TimeServerChangeEvent?.Invoke(_serverTime);
                         }
                     }
 
@@ -729,10 +705,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
                         if (_candleSeriesToSend.TryDequeue(out series))
                         {
-                            if (NewCandleIncomeEvent != null)
-                            {
-                                NewCandleIncomeEvent(series);
-                            }
+                            NewCandleIncomeEvent?.Invoke(series);
                         }
                     }
 
@@ -742,10 +715,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
                         if (_marketDepthsToSend.TryDequeue(out depth))
                         {
-                            if (NewMarketDepthEvent != null)
-                            {
-                                NewMarketDepthEvent(depth);
-                            }
+                            NewMarketDepthEvent?.Invoke(depth);
                         }
                     }
                     else if (!_bidAskToSend.IsEmpty)
@@ -754,10 +724,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
                         if (_bidAskToSend.TryDequeue(out bidAsk))
                         {
-                            if (NewBidAscIncomeEvent != null)
-                            {
-                                NewBidAscIncomeEvent(bidAsk.Bid, bidAsk.Ask, bidAsk.Security);
-                            }
+                            NewBidAscIncomeEvent?.Invoke(bidAsk.Bid, bidAsk.Ask, bidAsk.Security);
                         }
                     }
                     else if (!_tradesTableToSend.IsEmpty)
@@ -766,10 +733,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
                         if (_tradesTableToSend.TryDequeue(out trades))
                         {
-                            if (AllTradesTableChangeEvent != null)
-                            {
-                                AllTradesTableChangeEvent(trades);
-                            }
+                            AllTradesTableChangeEvent?.Invoke(trades);
                         }
                     }
                     else if (!_levelOneToSend.IsEmpty)
@@ -778,10 +742,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
                         if (_levelOneToSend.TryDequeue(out levelOne))
                         {
-                            if (SecurityLevelOneChange != null)
-                            {
-                                SecurityLevelOneChange(levelOne);
-                            }
+                            SecurityLevelOneChange?.Invoke(levelOne);
                         }
                     }
                     else
@@ -1256,8 +1217,10 @@ namespace OsEngine.Market.Servers.AstsBridge
                             {
                                 allTradesNew[i] = _allTrades[i];
                             }
-                            allTradesNew[allTradesNew.Length - 1] = new List<Trade>();
-                            allTradesNew[allTradesNew.Length - 1].Add(trade);
+                            allTradesNew[allTradesNew.Length - 1] = new List<Trade>
+                            {
+                                trade
+                            };
                             myList = allTradesNew[allTradesNew.Length - 1];
                             _allTrades = allTradesNew;
                         }
@@ -1433,10 +1396,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>

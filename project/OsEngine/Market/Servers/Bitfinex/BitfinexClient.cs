@@ -235,18 +235,12 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                         newOsOrder.State = OrderStateType.Activ;
 
-                        if (MyOrderEvent != null)
-                        {
-                            MyOrderEvent(newOsOrder);
-                        }
+                        MyOrderEvent?.Invoke(newOsOrder);
                     }
                     else
                     {
                          order.State = OrderStateType.Fail;
-                         if (MyOrderEvent != null)
-                         {
-                             MyOrderEvent(order);
-                         }
+                        MyOrderEvent?.Invoke(order);
                     }
                 }
                 catch (Exception ex)
@@ -449,10 +443,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>
@@ -557,10 +548,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         {
             IsConnected = true;
 
-            if (Connected != null)
-            {
-                Connected();
-            }
+            Connected?.Invoke();
 
             SendLogMessage("Соединение через вебсокет успешно установлено", LogMessageType.System);
         }
@@ -578,10 +566,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                 SendLogMessage("Соединение через вебсокет разорвано", LogMessageType.System);
 
-                if (Disconnected != null)
-                {
-                    Disconnected();
-                }
+                Disconnected?.Invoke();
             }
         }
 
@@ -658,10 +643,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                                     {
                                         SendLogMessage("остановка/перезапуск сервера Websocket", LogMessageType.Error);
 
-                                        if (Disconnected != null)
-                                        {
-                                            Disconnected();
-                                        }
+                                        Disconnected?.Invoke();
                                     }
                                 }
                             }
@@ -728,10 +710,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                                                 break;
                                         }
                                     }
-                                    if (MyOrderEvent != null)
-                                    {
-                                        MyOrderEvent(order);
-                                    }
+                                    MyOrderEvent?.Invoke(order);
                                 }
                             }
                             else if (mes.Contains("[0,\"tu\",[")) // новая моя сделка
@@ -752,10 +731,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                                     myTrade.Time = new DateTime(1970, 01, 01) + TimeSpan.FromSeconds(Convert.ToDouble(valuesMyTrade[3]));
                                     myTrade.NumberOrderParent = valuesMyTrade[4];
 
-                                    if (MyTradeEvent != null)
-                                    {
-                                        MyTradeEvent(myTrade);
-                                    }
+                                    MyTradeEvent?.Invoke(myTrade);
                                 }
                             }
                             else if (mes.Contains("\"ws\"")) // снимок портфелей
@@ -764,10 +740,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                                 {
                                     var res = Walets.FromJson(mes)[2].AllWallets;
 
-                                    if (NewPortfolio != null)
-                                    {
-                                        NewPortfolio(res);
-                                    }
+                                    NewPortfolio?.Invoke(res);
                                 }
                             }
                             else if (mes.Contains("\"wu\"")) // обновление портфеля
@@ -776,10 +749,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                                 {
                                     var res = WalletUpdate.FromJson(mes)[2].UpdatedWallet; ;
 
-                                    if (UpdatePortfolio != null)
-                                    {
-                                        UpdatePortfolio(res);
-                                    }
+                                    UpdatePortfolio?.Invoke(res);
                                 }
                             }
                             else if (mes.Contains("[0,\"ps\",[")) // снимок позиций
@@ -827,10 +797,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                                         _subscribedTradesSecurity.FirstOrDefault(
                                             dic => dic.Value == Convert.ToInt32(bitfinexTick[0].Double));
 
-                                    if (NewTradesEvent != null)
-                                    {
-                                        NewTradesEvent(bitfinexTick, namePair.Key);
-                                    }
+                                    NewTradesEvent?.Invoke(bitfinexTick, namePair.Key);
                                 }
                             }
                             else if (mes.Contains("[["))
@@ -850,10 +817,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                                             _subscribedBooksSecurity.FirstOrDefault(
                                                 dic => dic.Value == Convert.ToInt32(orderBook[0].IdChanel));
 
-                                        if (NewMarketDepth != null)
-                                        {
-                                            NewMarketDepth(orderBook, namePair.Key);
-                                        }
+                                        NewMarketDepth?.Invoke(orderBook, namePair.Key);
                                     }
                                 }
                             }
@@ -872,10 +836,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                                         _subscribedBooksSecurity.FirstOrDefault(
                                             dic => dic.Value == Convert.ToInt32(bitfinexChangeOrderBook[0].Double));
 
-                                    if (UpdateMarketDepth != null)
-                                    {
-                                        UpdateMarketDepth(bitfinexChangeOrderBook, namePair.Key);
-                                    }
+                                    UpdateMarketDepth?.Invoke(bitfinexChangeOrderBook, namePair.Key);
                                 }
                             }
                         }

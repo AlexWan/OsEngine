@@ -167,10 +167,7 @@ namespace OsEngine.Market.Servers.Finam
                 {
                     _serverConnectStatus = value;
                     SendLogMessage(_serverConnectStatus + OsLocalization.Market.Message7, LogMessageType.Connect);
-                    if (ConnectStatusChangeEvent != null)
-                    {
-                        ConnectStatusChangeEvent(_serverConnectStatus.ToString());
-                    }
+                    ConnectStatusChangeEvent?.Invoke(_serverConnectStatus.ToString());
                 }
             }
         }
@@ -277,10 +274,7 @@ namespace OsEngine.Market.Servers.Finam
                     _threadPrime.IsBackground = true;
                     _threadPrime.Start();
 
-                    if (NeadToReconnectEvent != null)
-                    {
-                        NeadToReconnectEvent();
-                    }
+                    NeadToReconnectEvent?.Invoke();
 
                     return;
                 }
@@ -725,10 +719,7 @@ namespace OsEngine.Market.Servers.Finam
 
                         if (_tradesToSend.TryDequeue(out trades))
                         {
-                            if (NewTradeEvent != null)
-                            {
-                                NewTradeEvent(trades);
-                            }
+                            NewTradeEvent?.Invoke(trades);
                         }
                     }
                     else if (_securitiesToSend != null && _securitiesToSend.Count != 0)
@@ -737,10 +728,7 @@ namespace OsEngine.Market.Servers.Finam
 
                         if (_securitiesToSend.TryDequeue(out security))
                         {
-                            if (SecuritiesChangeEvent != null)
-                            {
-                                SecuritiesChangeEvent(security);
-                            }
+                            SecuritiesChangeEvent?.Invoke(security);
                         }
                     }
                     else if (_candleSeriesToSend != null && _candleSeriesToSend.Count != 0)
@@ -749,10 +737,7 @@ namespace OsEngine.Market.Servers.Finam
 
                         if (_candleSeriesToSend.TryDequeue(out series))
                         {
-                            if (NewCandleIncomeEvent != null)
-                            {
-                                NewCandleIncomeEvent(series);
-                            }
+                            NewCandleIncomeEvent?.Invoke(series);
                         }
                     }
                     else if (_marketDepthsToSend != null && _marketDepthsToSend.Count != 0)
@@ -761,10 +746,7 @@ namespace OsEngine.Market.Servers.Finam
 
                         if (_marketDepthsToSend.TryDequeue(out depth))
                         {
-                            if (NewMarketDepthEvent != null)
-                            {
-                                NewMarketDepthEvent(depth);
-                            }
+                            NewMarketDepthEvent?.Invoke(depth);
                         }
                     }
                     else if (_portfolioToSend != null && _portfolioToSend.Count != 0)
@@ -773,10 +755,7 @@ namespace OsEngine.Market.Servers.Finam
 
                         if (_portfolioToSend.TryDequeue(out portfolio))
                         {
-                            if (PortfoliosChangeEvent != null)
-                            {
-                                PortfoliosChangeEvent(portfolio);
-                            }
+                            PortfoliosChangeEvent?.Invoke(portfolio);
                         }
                     }
                     else if (_bidAskToSend != null && _bidAskToSend.Count != 0)
@@ -785,10 +764,7 @@ namespace OsEngine.Market.Servers.Finam
 
                         if (_bidAskToSend.TryDequeue(out bidAsk))
                         {
-                            if (NewBidAscIncomeEvent != null)
-                            {
-                                NewBidAscIncomeEvent(bidAsk.Bid, bidAsk.Ask, bidAsk.Security);
-                            }
+                            NewBidAscIncomeEvent?.Invoke(bidAsk.Bid, bidAsk.Ask, bidAsk.Security);
                         }
                     }
                     else
@@ -918,16 +894,20 @@ namespace OsEngine.Market.Servers.Finam
             ask.Bid = 10;
             ask.Price = candles[candles.Count - 1].Close;
 
-            depth.Bids = new List<MarketDepthLevel>();
-            depth.Bids.Add(ask);
+            depth.Bids = new List<MarketDepthLevel>
+            {
+                ask
+            };
 
 
             MarketDepthLevel bid = new MarketDepthLevel();
             bid.Ask = 10;
             bid.Price = candles[candles.Count - 1].Close;
 
-            depth.Asks = new List<MarketDepthLevel>();
-            depth.Asks.Add(bid);
+            depth.Asks = new List<MarketDepthLevel>
+            {
+                bid
+            };
 
             _marketDepthsToSend.Enqueue(depth);
 
@@ -937,8 +917,10 @@ namespace OsEngine.Market.Servers.Finam
             newtTrade.Time = candles[candles.Count - 1].TimeStart.Add(series.TimeFrameSpan);
             newtTrade.SecurityNameCode = series.Security.NameFull;
 
-            List<Trade> tradeList = new List<Trade>();
-            tradeList.Add(newtTrade);
+            List<Trade> tradeList = new List<Trade>
+            {
+                newtTrade
+            };
 
             TradesUpdateEvent(tradeList);
 
@@ -1304,8 +1286,10 @@ namespace OsEngine.Market.Servers.Finam
                         {
                             allTradesNew[i] = _allTrades[i];
                         }
-                        allTradesNew[allTradesNew.Length - 1] = new List<Trade>();
-                        allTradesNew[allTradesNew.Length - 1].Add(trade);
+                        allTradesNew[allTradesNew.Length - 1] = new List<Trade>
+                        {
+                            trade
+                        };
                         _allTrades = allTradesNew;
                     }
                 }
@@ -1378,10 +1362,7 @@ namespace OsEngine.Market.Servers.Finam
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>
@@ -1663,19 +1644,13 @@ namespace OsEngine.Market.Servers.Finam
                         }
                     }
 
-                    if (CandleUpdateEvent != null)
-                    {
-                        CandleUpdateEvent(Series);
-                    }
+                    CandleUpdateEvent?.Invoke(Series);
                 }
                 else //if (IsTick == true)
                 {
                     List<string> trades = GetTrades();
 
-                    if (TradesUpdateEvent != null)
-                    {
-                        TradesUpdateEvent(trades);
-                    }
+                    TradesUpdateEvent?.Invoke(trades);
                 }
             }
             catch (Exception error)

@@ -504,10 +504,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             SetInArray(order);
 
-            if (DontOpenOrderDetectedEvent != null)
-            {
-                DontOpenOrderDetectedEvent(order, deal);
-            }
+            DontOpenOrderDetectedEvent?.Invoke(order, deal);
         }
 
         /// <summary>
@@ -568,10 +565,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// </summary>
         private void SendNewLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>

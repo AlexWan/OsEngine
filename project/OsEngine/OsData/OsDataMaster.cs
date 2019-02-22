@@ -188,10 +188,7 @@ namespace OsEngine.OsData
         /// </summary>
         void SendNewLogMessage(string message, LogMessageType type)
         {
-            if (NewLogMessageEvent != null)
-            {
-                NewLogMessageEvent(message, type);
-            }
+            NewLogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>

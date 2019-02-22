@@ -76,10 +76,7 @@ namespace OsEngine.OsMiner
         /// </summary>
         void pattern_NeadToSaveEvent()
         {
-            if (NeadToSaveEvent != null)
-            {
-                NeadToSaveEvent();
-            }
+            NeadToSaveEvent?.Invoke();
         }
         public event Action NeadToSaveEvent;
 

@@ -214,10 +214,7 @@ namespace OsEngine.Market.Servers.Tester
 
             SendLogMessage(OsLocalization.Market.Message35, LogMessageType.System);
 
-            if (TestingStartEvent != null)
-            {
-                TestingStartEvent();
-            }
+            TestingStartEvent?.Invoke();
 
             if (_candleSeriesTesterActivate != null)
             {
@@ -283,10 +280,7 @@ namespace OsEngine.Market.Servers.Tester
             {
                 return;
             }
-            if (TestingFastEvent != null)
-            {
-                TestingFastEvent();
-            }
+            TestingFastEvent?.Invoke();
             _testerRegime = TesterRegime.Play;
         }
 
@@ -440,10 +434,7 @@ namespace OsEngine.Market.Servers.Tester
             
             _needToReloadSecurities = true;
 
-            if (NeadToReconnectEvent != null)
-            {
-                NeadToReconnectEvent();
-            }
+            NeadToReconnectEvent?.Invoke();
         }
 
         /// <summary>
@@ -1126,10 +1117,7 @@ namespace OsEngine.Market.Servers.Tester
                 }
             }
 
-            if (TestingNewSecurityEvent != null)
-            {
-                TestingNewSecurityEvent();
-            }
+            TestingNewSecurityEvent?.Invoke();
         }
 
         private void LoadTickFromFolder(string folderName)
@@ -1361,10 +1349,7 @@ namespace OsEngine.Market.Servers.Tester
                 }
             }
 
-            if (TestingNewSecurityEvent != null)
-            {
-                TestingNewSecurityEvent();
-            }
+            TestingNewSecurityEvent?.Invoke();
         }
 
         private void LoadMarketDepthFromFolder(string folderName)
@@ -1601,10 +1586,7 @@ namespace OsEngine.Market.Servers.Tester
                 }
             }
 
-            if (TestingNewSecurityEvent != null)
-            {
-                TestingNewSecurityEvent();
-            }
+            TestingNewSecurityEvent?.Invoke();
         }
 
         /// <summary>
@@ -1621,10 +1603,7 @@ namespace OsEngine.Market.Servers.Tester
                 _testerRegime = TesterRegime.Pause;
 
                 SendLogMessage(OsLocalization.Market.Message37, LogMessageType.System);
-                if (TestingEndEvent != null)
-                {
-                    TestingEndEvent();
-                }
+                TestingEndEvent?.Invoke();
                 return;
             }
 
@@ -1635,10 +1614,7 @@ namespace OsEngine.Market.Servers.Tester
 
                 SendLogMessage(OsLocalization.Market.Message38,
                     LogMessageType.System);
-                if (TestingEndEvent != null)
-                {
-                    TestingEndEvent();
-                }
+                TestingEndEvent?.Invoke();
                 return;
             }
 
@@ -2332,10 +2308,7 @@ namespace OsEngine.Market.Servers.Tester
                 // отправить в лог
             }
 
-            if (NeadToReconnectEvent != null)
-            {
-                NeadToReconnectEvent();
-            }
+            NeadToReconnectEvent?.Invoke();
         }
 
 // статус сервера
@@ -2354,10 +2327,7 @@ namespace OsEngine.Market.Servers.Tester
                 {
                     _serverConnectStatus = value;
                     SendLogMessage(_serverConnectStatus + OsLocalization.Market.Message7, LogMessageType.Connect);
-                    if (ConnectStatusChangeEvent != null)
-                    {
-                        ConnectStatusChangeEvent(_serverConnectStatus.ToString());
-                    }
+                    ConnectStatusChangeEvent?.Invoke(_serverConnectStatus.ToString());
                 }
             }
         }
@@ -2429,10 +2399,7 @@ namespace OsEngine.Market.Servers.Tester
             _portfolios[0].ValueCurrent += profit;
             ProfitArray.Add(_portfolios[0].ValueCurrent);
 
-            if (NewCurrentValue != null)
-            {
-                NewCurrentValue(_portfolios[0].ValueCurrent);
-            }
+            NewCurrentValue?.Invoke(_portfolios[0].ValueCurrent);
         }
 
         public event Action<decimal> NewCurrentValue; 
@@ -2485,10 +2452,7 @@ namespace OsEngine.Market.Servers.Tester
 
             _portfolios[0].SetNewPosition(myPositioin);
 
-            if (PortfoliosChangeEvent != null)
-            {
-                PortfoliosChangeEvent(_portfolios);
-            }
+            PortfoliosChangeEvent?.Invoke(_portfolios);
         }
 
         /// <summary>
@@ -2499,10 +2463,7 @@ namespace OsEngine.Market.Servers.Tester
 
            _portfolios = portfoliosNew;
 
-            if (PortfoliosChangeEvent != null)
-            {
-                PortfoliosChangeEvent(_portfolios);
-            }
+            PortfoliosChangeEvent?.Invoke(_portfolios);
         }
 
         /// <summary>
@@ -2561,10 +2522,7 @@ namespace OsEngine.Market.Servers.Tester
             // перегружаем последним временем тика время сервера
             ServerTime = series.CandlesAll[series.CandlesAll.Count - 1].TimeStart;
 
-            if (NewCandleIncomeEvent != null)
-            {
-                NewCandleIncomeEvent(series);
-            }
+            NewCandleIncomeEvent?.Invoke(series);
         }
 
         /// <summary>
@@ -2924,10 +2882,7 @@ namespace OsEngine.Market.Servers.Tester
                 _dataIsActive = true;
             }
 
-            if (NewBidAscIncomeEvent != null)
-            {
-                NewBidAscIncomeEvent(candle.Close, candle.Close,GetSecurityForName(nameSecurity));
-            }
+            NewBidAscIncomeEvent?.Invoke(candle.Close, candle.Close, GetSecurityForName(nameSecurity));
 
             _candleManager.SetNewCandleInSeries(candle, nameSecurity, timeFrame);
         }
@@ -2952,11 +2907,8 @@ namespace OsEngine.Market.Servers.Tester
             {
                 _dataIsActive = true;  
             }
-            
-            if (NewMarketDepthEvent != null)
-            {
-                NewMarketDepthEvent(marketDepth);
-            }
+
+            NewMarketDepthEvent?.Invoke(marketDepth);
         }
 
         /// <summary>
@@ -3019,9 +2971,11 @@ namespace OsEngine.Market.Servers.Tester
                        {
                            allTradesNew[i] = _allTrades[i];
                        }
-                       allTradesNew[allTradesNew.Length - 1] = new List<Trade>();
-                       allTradesNew[allTradesNew.Length - 1].Add(trade);
-                       _allTrades = allTradesNew;
+                        allTradesNew[allTradesNew.Length - 1] = new List<Trade>
+                        {
+                            trade
+                        };
+                        _allTrades = allTradesNew;
                    }
                 }
             }
@@ -3041,10 +2995,7 @@ namespace OsEngine.Market.Servers.Tester
                 }
             }
 
-            if (NewBidAscIncomeEvent != null)
-            {
-                NewBidAscIncomeEvent(tradesNew[tradesNew.Count - 1].Price, tradesNew[tradesNew.Count - 1].Price, GetSecurityForName(tradesNew[tradesNew.Count - 1].SecurityNameCode));
-            }
+            NewBidAscIncomeEvent?.Invoke(tradesNew[tradesNew.Count - 1].Price, tradesNew[tradesNew.Count - 1].Price, GetSecurityForName(tradesNew[tradesNew.Count - 1].SecurityNameCode));
         }
 
         /// <summary>
@@ -3082,10 +3033,7 @@ namespace OsEngine.Market.Servers.Tester
 
             _myTrades.Add(trade);
 
-            if (NewMyTradeEvent != null)
-            {
-                NewMyTradeEvent(trade);
-            }
+            NewMyTradeEvent?.Invoke(trade);
         }
 
         private List<MyTrade> _myTrades;
@@ -3195,10 +3143,7 @@ namespace OsEngine.Market.Servers.Tester
 
             OrdersActiv.Add(orderOnBoard);
 
-            if (NewOrderIncomeEvent != null)
-            {
-                NewOrderIncomeEvent(orderOnBoard);
-            }
+            NewOrderIncomeEvent?.Invoke(orderOnBoard);
 
             if (SecuritiesTester[0].DataType == SecurityTesterDataType.Tick)
             {
@@ -3283,10 +3228,7 @@ namespace OsEngine.Market.Servers.Tester
 
             orderToClose.State = OrderStateType.Cancel;
 
-            if (NewOrderIncomeEvent != null)
-            {
-                NewOrderIncomeEvent(orderToClose);
-            }
+            NewOrderIncomeEvent?.Invoke(orderToClose);
         }
 
         /// <summary>
@@ -3308,10 +3250,7 @@ namespace OsEngine.Market.Servers.Tester
             orderOnBoard.Volume = order.Volume;
             orderOnBoard.Comment = order.Comment;
 
-            if (NewOrderIncomeEvent != null)
-            {
-                NewOrderIncomeEvent(orderOnBoard);
-            }
+            NewOrderIncomeEvent?.Invoke(orderOnBoard);
         }
         
         /// <summary>
@@ -3365,10 +3304,7 @@ namespace OsEngine.Market.Servers.Tester
             order.State = OrderStateType.Done;
             order.Price = realPrice;
 
-            if (NewOrderIncomeEvent != null)
-            {
-                NewOrderIncomeEvent(order);
-            }
+            NewOrderIncomeEvent?.Invoke(order);
 
             ChangePosition(order);
         }
@@ -3388,10 +3324,7 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>
@@ -3601,10 +3534,7 @@ namespace OsEngine.Market.Servers.Tester
 
             LastTradeSeries = lastTradesSeries;
 
-            if (NewTradesEvent != null)
-            {
-                NewTradesEvent(lastTradesSeries);
-            }
+            NewTradesEvent?.Invoke(lastTradesSeries);
         }
 
 // разбор свечных файлов
@@ -3644,22 +3574,17 @@ namespace OsEngine.Market.Servers.Tester
             if (LastCandle != null &&
                 LastCandle.TimeStart == now)
             {
-                List<Trade> lastTradesSeries = new List<Trade>();
-
-                lastTradesSeries.Add(new Trade() { Price = LastCandle.Open, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name });
-                lastTradesSeries.Add(new Trade() { Price = LastCandle.High, Volume = 1, Side = Side.Buy, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name });
-                lastTradesSeries.Add(new Trade() { Price = LastCandle.Low, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name });
-                lastTradesSeries.Add(new Trade() { Price = LastCandle.Close, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name });
-
-                if (NewTradesEvent != null)
+                List<Trade> lastTradesSeries = new List<Trade>
                 {
-                    NewTradesEvent(lastTradesSeries);
-                }
+                    new Trade() { Price = LastCandle.Open, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name },
+                    new Trade() { Price = LastCandle.High, Volume = 1, Side = Side.Buy, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name },
+                    new Trade() { Price = LastCandle.Low, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name },
+                    new Trade() { Price = LastCandle.Close, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name }
+                };
 
-                if (NewCandleEvent != null)
-                {
-                    NewCandleEvent(LastCandle,Security.Name, TimeFrameSpan);
-                }
+                NewTradesEvent?.Invoke(lastTradesSeries);
+
+                NewCandleEvent?.Invoke(LastCandle, Security.Name, TimeFrameSpan);
                 return;
             }
 
@@ -3674,23 +3599,18 @@ namespace OsEngine.Market.Servers.Tester
 
             if (LastCandle.TimeStart <= now)
             {
-                List<Trade> lastTradesSeries = new List<Trade>();
-
-                lastTradesSeries.Add(new Trade() { Price = LastCandle.Open, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name });
-                lastTradesSeries.Add(new Trade() { Price = LastCandle.High, Volume = 1, Side = Side.Buy, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name });
-                lastTradesSeries.Add(new Trade() { Price = LastCandle.Low, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name });
-                lastTradesSeries.Add(new Trade() { Price = LastCandle.Close, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name });
-
-                if (NewTradesEvent != null)
+                List<Trade> lastTradesSeries = new List<Trade>
                 {
-                    NewTradesEvent(lastTradesSeries);
-                }
+                    new Trade() { Price = LastCandle.Open, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name },
+                    new Trade() { Price = LastCandle.High, Volume = 1, Side = Side.Buy, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name },
+                    new Trade() { Price = LastCandle.Low, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name },
+                    new Trade() { Price = LastCandle.Close, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name }
+                };
 
-                if (NewCandleEvent != null)
-                {
-                    NewCandleEvent(LastCandle, Security.Name,TimeFrameSpan);
-                }
-                
+                NewTradesEvent?.Invoke(lastTradesSeries);
+
+                NewCandleEvent?.Invoke(LastCandle, Security.Name, TimeFrameSpan);
+
             }
         }
 
@@ -3757,10 +3677,7 @@ namespace OsEngine.Market.Servers.Tester
                 return;
             }
 
-            if (NewMarketDepthEvent != null)
-            {
-                NewMarketDepthEvent(LastMarketDepth);
-            }
+            NewMarketDepthEvent?.Invoke(LastMarketDepth);
         }
 
 
@@ -3772,10 +3689,7 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         private void SendLogMessage(string message)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message);
-            }
+            LogMessageEvent?.Invoke(message);
         }
 
         /// <summary>

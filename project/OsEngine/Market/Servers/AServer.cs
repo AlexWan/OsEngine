@@ -356,8 +356,7 @@ namespace OsEngine.Market.Servers
 
                         string[] saveAr = save.Split('^');
 
-                        ServerParameterType type;
-                        Enum.TryParse(saveAr[0], out type);
+                        Enum.TryParse(saveAr[0], out ServerParameterType type);
 
                         IServerParameter oldParam = null;
 
@@ -425,10 +424,7 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public void StartServer()
         {
-            if (UserWhantConnect != null)
-            {
-                UserWhantConnect();
-            }
+            UserWhantConnect?.Invoke();
 
             if (_serverStatusNead == ServerConnectStatus.Connect)
             {
@@ -445,10 +441,7 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public void StopServer()
         {
-            if (UserWhantDisconnect != null)
-            {
-                UserWhantDisconnect();
-            }
+            UserWhantDisconnect?.Invoke();
             _serverStatusNead = ServerConnectStatus.Disconnect;
         }
 
@@ -475,10 +468,7 @@ namespace OsEngine.Market.Servers
                 {
                     _serverConnectStatus = value;
                     SendLogMessage(_serverConnectStatus + OsLocalization.Market.Message7, LogMessageType.Connect);
-                    if (ConnectStatusChangeEvent != null)
-                    {
-                        ConnectStatusChangeEvent(_serverConnectStatus.ToString());
-                    }
+                    ConnectStatusChangeEvent?.Invoke(_serverConnectStatus.ToString());
                 }
             }
         }
@@ -586,10 +576,7 @@ namespace OsEngine.Market.Servers
                     _threadPrime.IsBackground = true;
                     _threadPrime.Start();
 
-                    if (NeadToReconnectEvent != null)
-                    {
-                        NeadToReconnectEvent();
-                    }
+                    NeadToReconnectEvent?.Invoke();
 
                     return;
                 }
@@ -609,10 +596,7 @@ namespace OsEngine.Market.Servers
             SendLogMessage(OsLocalization.Market.Message12, LogMessageType.System);
             ServerStatus = ServerConnectStatus.Disconnect;
 
-            if (NeadToReconnectEvent != null)
-            {
-                NeadToReconnectEvent();
-            }
+            NeadToReconnectEvent?.Invoke();
         }
 
         /// <summary>
@@ -686,115 +670,78 @@ namespace OsEngine.Market.Servers
                 {
                     if (!_ordersToSend.IsEmpty)
                     {
-                        Order order;
-                        if (_ordersToSend.TryDequeue(out order))
+                        if (_ordersToSend.TryDequeue(out Order order))
                         {
-                            if (NewOrderIncomeEvent != null)
-                            {
-                                NewOrderIncomeEvent(order);
-                            }
+                            NewOrderIncomeEvent?.Invoke(order);
                         }
                     }
                     else if (!_myTradesToSend.IsEmpty &&
                              (_ordersToSend.IsEmpty))
                     {
-                        MyTrade myTrade;
 
-                        if (_myTradesToSend.TryDequeue(out myTrade))
+                        if (_myTradesToSend.TryDequeue(out MyTrade myTrade))
                         {
-                            if (NewMyTradeEvent != null)
-                            {
-                                NewMyTradeEvent(myTrade);
-                            }
+                            NewMyTradeEvent?.Invoke(myTrade);
                         }
                     }
                     else if (!_tradesToSend.IsEmpty)
                     {
-                        List<Trade> trades;
-
-                        if (_tradesToSend.TryDequeue(out trades))
+                        if (_tradesToSend.TryDequeue(out List<Trade> trades))
                         {
-                            if (NewTradeEvent != null)
-                            {
-                                NewTradeEvent(trades);
-                            }
+                            NewTradeEvent?.Invoke(trades);
                         }
                     }
 
                     else if (!_portfolioToSend.IsEmpty)
                     {
-                        List<Portfolio> portfolio;
 
-                        if (_portfolioToSend.TryDequeue(out portfolio))
+                        if (_portfolioToSend.TryDequeue(out List<Portfolio> portfolio))
                         {
-                            if (PortfoliosChangeEvent != null)
-                            {
-                                PortfoliosChangeEvent(portfolio);
-                            }
+                            PortfoliosChangeEvent?.Invoke(portfolio);
                         }
                     }
 
                     else if (!_securitiesToSend.IsEmpty)
                     {
-                        List<Security> security;
 
-                        if (_securitiesToSend.TryDequeue(out security))
+                        if (_securitiesToSend.TryDequeue(out List<Security> security))
                         {
-                            if (SecuritiesChangeEvent != null)
-                            {
-                                SecuritiesChangeEvent(security);
-                            }
+                            SecuritiesChangeEvent?.Invoke(security);
                         }
                     }
                     else if (!_newServerTime.IsEmpty)
                     {
-                        DateTime time;
 
-                        if (_newServerTime.TryDequeue(out time))
+                        if (_newServerTime.TryDequeue(out DateTime time))
                         {
-                            if (TimeServerChangeEvent != null)
-                            {
-                                TimeServerChangeEvent(_serverTime);
-                            }
+                            TimeServerChangeEvent?.Invoke(_serverTime);
                         }
                     }
 
                     else if (!_candleSeriesToSend.IsEmpty)
                     {
-                        CandleSeries series;
 
-                        if (_candleSeriesToSend.TryDequeue(out series))
+                        if (_candleSeriesToSend.TryDequeue(out CandleSeries series))
                         {
-                            if (NewCandleIncomeEvent != null)
-                            {
-                                NewCandleIncomeEvent(series);
-                            }
+                            NewCandleIncomeEvent?.Invoke(series);
                         }
                     }
 
                     else if (!_marketDepthsToSend.IsEmpty)
                     {
-                        MarketDepth depth;
 
-                        if (_marketDepthsToSend.TryDequeue(out depth))
+                        if (_marketDepthsToSend.TryDequeue(out MarketDepth depth))
                         {
-                            if (NewMarketDepthEvent != null)
-                            {
-                                NewMarketDepthEvent(depth);
-                            }
+                            NewMarketDepthEvent?.Invoke(depth);
                         }
                     }
 
                     else if (!_bidAskToSend.IsEmpty)
                     {
-                        BidAskSender bidAsk;
 
-                        if (_bidAskToSend.TryDequeue(out bidAsk))
+                        if (_bidAskToSend.TryDequeue(out BidAskSender bidAsk))
                         {
-                            if (NewBidAscIncomeEvent != null)
-                            {
-                                NewBidAscIncomeEvent(bidAsk.Bid, bidAsk.Ask, bidAsk.Security);
-                            }
+                            NewBidAscIncomeEvent?.Invoke(bidAsk.Bid, bidAsk.Ask, bidAsk.Security);
                         }
                     }
                     else
@@ -1232,33 +1179,33 @@ namespace OsEngine.Market.Servers
                 return false;
             }
 
-            if (_allTrades == null)
+            if (AllTrades == null)
             {
-                _allTrades = new List<Trade>[1];
-                _allTrades[0] = trades;
+                AllTrades = new List<Trade>[1];
+                AllTrades[0] = trades;
                 return true;
             }
 
-            for (int i = 0; i < _allTrades.Length; i++)
+            for (int i = 0; i < AllTrades.Length; i++)
             {
-                if (_allTrades[i] != null && _allTrades[i].Count != 0 &&
-                    _allTrades[i][0].SecurityNameCode == security.Name)
+                if (AllTrades[i] != null && AllTrades[i].Count != 0 &&
+                    AllTrades[i][0].SecurityNameCode == security.Name)
                 {
-                    _allTrades[i] = trades;
+                    AllTrades[i] = trades;
                     return true;
                 }
             }
 
             // хранилища для инструмента нет
-            List<Trade>[] allTradesNew = new List<Trade>[_allTrades.Length + 1];
+            List<Trade>[] allTradesNew = new List<Trade>[AllTrades.Length + 1];
 
-            for (int i = 0; i < _allTrades.Length; i++)
+            for (int i = 0; i < AllTrades.Length; i++)
             {
-                allTradesNew[i] = _allTrades[i];
+                allTradesNew[i] = AllTrades[i];
             }
             allTradesNew[allTradesNew.Length - 1] = trades;
 
-            _allTrades = allTradesNew;
+            AllTrades = allTradesNew;
 
 
             return true;
@@ -1336,13 +1283,8 @@ namespace OsEngine.Market.Servers
         /// <param name="trades"></param>
         void _tickStorage_TickLoadedEvent(List<Trade>[] trades)
         {
-            _allTrades = trades;
+            AllTrades = trades;
         }
-
-        /// <summary>
-        /// все тики
-        /// </summary>
-        private List<Trade>[] _allTrades;
 
         /// <summary>
         /// взять историю тиков по инструменту
@@ -1353,18 +1295,18 @@ namespace OsEngine.Market.Servers
         {
             try
             {
-                if (_allTrades == null)
+                if (AllTrades == null)
                 {
                     return null;
                 }
                 List<Trade> trades = new List<Trade>();
 
-                for (int i = 0; i < _allTrades.Length; i++)
+                for (int i = 0; i < AllTrades.Length; i++)
                 {
-                    if (_allTrades[i] != null && _allTrades[i].Count != 0 &&
-                        _allTrades[i][0].SecurityNameCode == security.Name)
+                    if (AllTrades[i] != null && AllTrades[i].Count != 0 &&
+                        AllTrades[i][0].SecurityNameCode == security.Name)
                     {
-                        return _allTrades[i];
+                        return AllTrades[i];
                     }
                 }
 
@@ -1380,68 +1322,63 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// все тики имеющиеся у сервера
         /// </summary>
-        public List<Trade>[] AllTrades { get { return _allTrades; } }
+        public List<Trade>[] AllTrades { get; private set; }
 
         /// <summary>
         /// пришли новые тики
         /// </summary>
         void ServerRealization_NewTradesEvent(Trade trade)
         {
-            try
+            if (AllTrades == null)
             {
-                // сохраняем
-                if (_allTrades == null)
+                AllTrades = new List<Trade>[1];
+                AllTrades[0] = new List<Trade> { trade };
+                _tradesToSend.Enqueue(AllTrades[0]);
+            }
+            else
+            {
+                // сортируем сделки по хранилищам
+                List<Trade> myList = null;
+                bool isSave = false;
+                for (int i = 0; i < AllTrades.Length; i++)
                 {
-                    _allTrades = new List<Trade>[1];
-                    _allTrades[0] = new List<Trade> { trade };
-                }
-                else
-                {
-                    // сортируем сделки по хранилищам
-                    List<Trade> myList = null;
-                    bool isSave = false;
-                    for (int i = 0; i < _allTrades.Length; i++)
+                    if (AllTrades[i].Count != 0 &&
+                        AllTrades[i][0].SecurityNameCode == trade.SecurityNameCode)
                     {
-                        if (_allTrades[i] != null && _allTrades[i].Count != 0 &&
-                            _allTrades[i][0].SecurityNameCode == trade.SecurityNameCode)
+                        // если для этого инструметна уже есть хранилище, сохраняем и всё
+                        if (trade.Time < AllTrades[i][AllTrades[i].Count - 1].Time)
                         {
-                            // если для этого инструметна уже есть хранилище, сохраняем и всё
-                            if (trade.Time < _allTrades[i][_allTrades[i].Count - 1].Time)
-                            {
-                                return;
-                            }
-
-                            _allTrades[i].Add(trade);
-                            myList = _allTrades[i];
-                            isSave = true;
-                            break;
+                            return;
                         }
-                    }
 
-                    if (isSave == false)
-                    {
-                        // хранилища для инструмента нет
-                        List<Trade>[] allTradesNew = new List<Trade>[_allTrades.Length + 1];
-                        for (int i = 0; i < _allTrades.Length; i++)
-                        {
-                            allTradesNew[i] = _allTrades[i];
-                        }
-                        allTradesNew[allTradesNew.Length - 1] = new List<Trade>();
-                        allTradesNew[allTradesNew.Length - 1].Add(trade);
-                        myList = allTradesNew[allTradesNew.Length - 1];
-                        _allTrades = allTradesNew;
+                        AllTrades[i].Add(trade);
+                        myList = AllTrades[i];
+                        isSave = true;
+                        break;
                     }
-
-                    _tradesToSend.Enqueue(myList);
                 }
 
-                // перегружаем последним временем тика время сервера
-                ServerTime = trade.Time;
+                if (isSave == false)
+                {
+                    // хранилища для инструмента нет
+                    List<Trade>[] allTradesNew = new List<Trade>[AllTrades.Length + 1];
+                    for (int i = 0; i < AllTrades.Length; i++)
+                    {
+                        allTradesNew[i] = AllTrades[i];
+                    }
+                    allTradesNew[allTradesNew.Length - 1] = new List<Trade>
+                    {
+                        trade
+                    };
+                    myList = allTradesNew[allTradesNew.Length - 1];
+                    AllTrades = allTradesNew;
+                }
+
+                _tradesToSend.Enqueue(myList);
             }
-            catch (Exception error)
-            {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
-            }
+
+            // перегружаем последним временем тика время сервера
+            ServerTime = trade.Time;
         }
 
         /// <summary>
@@ -1527,16 +1464,14 @@ namespace OsEngine.Market.Servers
                     Thread.Sleep(20);
                     if (_ordersToExecute != null && _ordersToExecute.Count != 0)
                     {
-                        Order order;
-                        if (_ordersToExecute.TryDequeue(out order))
+                        if (_ordersToExecute.TryDequeue(out Order order))
                         {
                             ServerRealization.SendOrder(order);
                         }
                     }
                     else if (_ordersToCansel != null && _ordersToCansel.Count != 0)
                     {
-                        Order order;
-                        if (_ordersToCansel.TryDequeue(out order))
+                        if (_ordersToCansel.TryDequeue(out Order order))
                         {
                             ServerRealization.CanselOrder(order);
                         }
@@ -1598,10 +1533,7 @@ namespace OsEngine.Market.Servers
         /// <param name="order">ордер</param>
         public void ExecuteOrder(Order order)
         {
-            if (UserSetOrderOnExecute != null)
-            {
-                UserSetOrderOnExecute(order);
-            }
+            UserSetOrderOnExecute?.Invoke(order);
             if (_lastStartServerTime.AddMinutes(1) > DateTime.Now)
             {
                 order.State = OrderStateType.Fail;
@@ -1628,10 +1560,7 @@ namespace OsEngine.Market.Servers
         /// <param name="order">ордер</param>
         public void CanselOrder(Order order)
         {
-            if (UserSetOrderOnCancel != null)
-            {
-                UserSetOrderOnCancel(order);
-            }
+            UserSetOrderOnCancel?.Invoke(order);
             _ordersToCansel.Enqueue(order);
             SendLogMessage(OsLocalization.Market.Message24 + order.NumberUser, LogMessageType.System);
         }
@@ -1648,10 +1577,7 @@ namespace OsEngine.Market.Servers
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>

@@ -55,10 +55,7 @@ namespace OsEngine.Market.Servers.Entity
                     return;
                 }
                 _value = value.Replace("^", "");
-                if (ValueChange != null)
-                {
-                    ValueChange();
-                }
+                ValueChange?.Invoke();
             }
         }
 
@@ -107,10 +104,7 @@ namespace OsEngine.Market.Servers.Entity
                     return;
                 }
                 _value = value;
-                if (ValueChange != null)
-                {
-                    ValueChange();
-                }
+                ValueChange?.Invoke();
             }
         }
 
@@ -159,10 +153,7 @@ namespace OsEngine.Market.Servers.Entity
                     return;
                 }
                 _value = value;
-                if (ValueChange != null)
-                {
-                    ValueChange();
-                }
+                ValueChange?.Invoke();
             }
         }
 
@@ -211,10 +202,7 @@ namespace OsEngine.Market.Servers.Entity
                     return;
                 }
                 _value = value;
-                if (ValueChange != null)
-                {
-                    ValueChange();
-                }
+                ValueChange?.Invoke();
             }
         }
 
@@ -263,10 +251,7 @@ namespace OsEngine.Market.Servers.Entity
                     return;
                 }
                 _value = value.Replace("^", "");
-                if (ValueChange != null)
-                {
-                    ValueChange();
-                }
+                ValueChange?.Invoke();
             }
         }
 
@@ -318,10 +303,7 @@ namespace OsEngine.Market.Servers.Entity
                     return;
                 }
                 _value = value.Replace("^", "");
-                if (ValueChange != null)
-                {
-                    ValueChange();
-                }
+                ValueChange?.Invoke();
             }
         }
 

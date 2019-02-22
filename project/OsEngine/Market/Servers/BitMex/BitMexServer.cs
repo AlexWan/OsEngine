@@ -192,13 +192,15 @@ namespace OsEngine.Market.Servers.BitMex
 
             for (int i = 0; i < namesSec.Count; i++)
             {
-                Dictionary<string, string> param = new Dictionary<string, string>();
-                param["symbol"] = namesSec[i];
-                //param["filter"] = "{\"open\":true}";
-                //param["columns"] = "";
-                param["count"] = 30.ToString();
-                //param["start"] = 0.ToString();
-                param["reverse"] = true.ToString();
+                Dictionary<string, string> param = new Dictionary<string, string>
+                {
+                    ["symbol"] = namesSec[i],
+                    //param["filter"] = "{\"open\":true}";
+                    //param["columns"] = "";
+                    ["count"] = 30.ToString(),
+                    //param["start"] = 0.ToString();
+                    ["reverse"] = true.ToString()
+                };
                 //param["startTime"] = "";
                 //param["endTime"] = "";
 
@@ -239,10 +241,7 @@ namespace OsEngine.Market.Servers.BitMex
                     trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(myOrder.timestamp));
                     trade.Side = oldOpenOrders[i].Side;
 
-                    if (MyTradeEvent != null)
-                    {
-                        MyTradeEvent(trade);
-                    }
+                    MyTradeEvent?.Invoke(trade);
                 }
                 else //if (myOrder.ordStatus == "Canceled")
                 {
@@ -260,10 +259,7 @@ namespace OsEngine.Market.Servers.BitMex
                     newOrder.ServerType = ServerType.BitMex;
                     newOrder.PortfolioNumber = oldOpenOrders[i].PortfolioNumber;
 
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(newOrder);
-                    }
+                    MyOrderEvent?.Invoke(newOrder);
                 }
             }
 
@@ -519,14 +515,16 @@ namespace OsEngine.Market.Servers.BitMex
                         string end = endTime.ToString("yyyy-MM-dd HH:mm");
                         string start = startTime.ToString("yyyy-MM-dd HH:mm");
 
-                        var param = new Dictionary<string, string>();
-                        param["symbol"] = security;
-                        param["count"] = 500.ToString();
-                        param["binSize"] = tf;
-                        param["reverse"] = true.ToString();
-                        param["startTime"] = start;
-                        param["endTime"] = end;
-                        param["partial"] = true.ToString();
+                        var param = new Dictionary<string, string>
+                        {
+                            ["symbol"] = security,
+                            ["count"] = 500.ToString(),
+                            ["binSize"] = tf,
+                            ["reverse"] = true.ToString(),
+                            ["startTime"] = start,
+                            ["endTime"] = end,
+                            ["partial"] = true.ToString()
+                        };
 
                         try
                         {
@@ -750,10 +748,7 @@ namespace OsEngine.Market.Servers.BitMex
         /// </summary>
         void _client_Connected()
         {
-            if (ConnectEvent != null)
-            {
-                ConnectEvent();
-            }
+            ConnectEvent?.Invoke();
             ServerStatus = ServerConnectStatus.Connect;
         }
 
@@ -762,10 +757,7 @@ namespace OsEngine.Market.Servers.BitMex
         /// </summary>
         void _client_Disconnected()
         {
-            if (DisconnectEvent != null)
-            {
-                DisconnectEvent();
-            }
+            DisconnectEvent?.Invoke();
             ServerStatus = ServerConnectStatus.Disconnect;
         }
 
@@ -808,10 +800,7 @@ namespace OsEngine.Market.Servers.BitMex
                     osPortf.Profit = portf.data[0].unrealisedPnl;
                 }
 
-                if (PortfolioEvent != null)
-                {
-                    PortfolioEvent(_portfolios);
-                }
+                PortfolioEvent?.Invoke(_portfolios);
             }
             catch (Exception error)
             {
@@ -839,10 +828,7 @@ namespace OsEngine.Market.Servers.BitMex
                     needPortfolio.SetNewPosition(newPos);
                 }
 
-                if (PortfolioEvent != null)
-                {
-                    PortfolioEvent(_portfolios);
-                }
+                PortfolioEvent?.Invoke(_portfolios);
             }
         }
 
@@ -1154,10 +1140,7 @@ namespace OsEngine.Market.Servers.BitMex
 
                     _depth.Time = ServerTime;
 
-                    if (MarketDepthEvent != null)
-                    {
-                        MarketDepthEvent(_depth.GetCopy());
-                    }
+                    MarketDepthEvent?.Invoke(_depth.GetCopy());
                 }
             }
             catch (Exception error)
@@ -1189,10 +1172,7 @@ namespace OsEngine.Market.Servers.BitMex
 
                         ServerTime = trade.Time;
 
-                        if (NewTradesEvent != null)
-                        {
-                            NewTradesEvent(trade);
-                        }
+                        NewTradesEvent?.Invoke(trade);
                     }
                 }
             }
@@ -1236,10 +1216,7 @@ namespace OsEngine.Market.Servers.BitMex
                         }
                         _myTrades.Add(trade);
 
-                        if (MyTradeEvent != null)
-                        {
-                            MyTradeEvent(trade);
-                        }
+                        MyTradeEvent?.Invoke(trade);
                     }
                 }
             }
@@ -1285,10 +1262,7 @@ namespace OsEngine.Market.Servers.BitMex
                 _securities.Add(security);
             }
 
-            if (SecurityEvent != null)
-            {
-                SecurityEvent(_securities);
-            }
+            SecurityEvent?.Invoke(_securities);
         }
 
         /// <summary>
@@ -1336,16 +1310,17 @@ namespace OsEngine.Market.Servers.BitMex
                         Order order;
                         if (_ordersToExecute.TryDequeue(out order))
                         {
-                            Dictionary<string, string> param = new Dictionary<string, string>();
+                            Dictionary<string, string> param = new Dictionary<string, string>
+                            {
+                                ["symbol"] = order.SecurityNameCode,
+                                ["price"] = order.Price.ToString().Replace(",", "."),
+                                ["side"] = order.Side == Side.Buy ? "Buy" : "Sell",
+                                //param["orderIDs"] = order.NumberUser.ToString();
+                                ["orderQty"] = order.Volume.ToString(),
+                                ["clOrdID"] = order.NumberUser.ToString(),
 
-                            param["symbol"] = order.SecurityNameCode;
-                            param["price"] = order.Price.ToString().Replace(",", ".");
-                            param["side"] = order.Side == Side.Buy ? "Buy" : "Sell";
-                            //param["orderIDs"] = order.NumberUser.ToString();
-                            param["orderQty"] = order.Volume.ToString();
-                            param["clOrdID"] = order.NumberUser.ToString();
-
-                            param["ordType"] = order.TypeOrder == OrderPriceType.Limit ? "Limit" : "Market";
+                                ["ordType"] = order.TypeOrder == OrderPriceType.Limit ? "Limit" : "Market"
+                            };
 
                             var res = _client.CreateQuery("POST", "/order", param, true);
 
@@ -1362,18 +1337,17 @@ namespace OsEngine.Market.Servers.BitMex
                         Order order;
                         if (_ordersToCansel.TryDequeue(out order))
                         {
-                            Dictionary<string, string> param = new Dictionary<string, string>();
-                            //param["clOrdID"] = order.NumberUser.ToString();
-                            param["orderID"] = order.NumberMarket;
+                            Dictionary<string, string> param = new Dictionary<string, string>
+                            {
+                                //param["clOrdID"] = order.NumberUser.ToString();
+                                ["orderID"] = order.NumberMarket
+                            };
 
                             var res = _client.CreateQuery("DELETE", "/order", param, true);
 
                             order.State = OrderStateType.Cancel;
                             _ordersToCheck.Remove(order);
-                            if (MyOrderEvent != null)
-                            {
-                                MyOrderEvent(order);
-                            }
+                            MyOrderEvent?.Invoke(order);
                         }
                     }
 
@@ -1403,13 +1377,15 @@ namespace OsEngine.Market.Servers.BitMex
                     return;
                 }
 
-                var param = new Dictionary<string, string>();
-                param["symbol"] = security;
-                //param["filter"] = "{\"open\":true}";
-                //param["columns"] = "";
-                param["count"] = 30.ToString();
-                //param["start"] = 0.ToString();
-                param["reverse"] = true.ToString();
+                var param = new Dictionary<string, string>
+                {
+                    ["symbol"] = security,
+                    //param["filter"] = "{\"open\":true}";
+                    //param["columns"] = "";
+                    ["count"] = 30.ToString(),
+                    //param["start"] = 0.ToString();
+                    ["reverse"] = true.ToString()
+                };
                 //param["startTime"] = "";
                 //param["endTime"] = "";
 
@@ -1495,15 +1471,9 @@ namespace OsEngine.Market.Servers.BitMex
                         {
                             _ordersToCheck[i].State = OrderStateType.Cancel;
 
-                            if (MyOrderEvent != null)
-                            {
-                                MyOrderEvent(_ordersToCheck[i]);
-                            }
+                            MyOrderEvent?.Invoke(_ordersToCheck[i]);
 
-                            if (MyOrderEvent != null)
-                            {
-                                MyOrderEvent(_ordersToCheck[i]);
-                            }
+                            MyOrderEvent?.Invoke(_ordersToCheck[i]);
                             CanselOrder(_ordersToCheck[i]);
                             _ordersToCheck.RemoveAt(i);
 
@@ -1521,10 +1491,7 @@ namespace OsEngine.Market.Servers.BitMex
                         {
 
                             _ordersToCheck[i].State = OrderStateType.Cancel;
-                            if (MyOrderEvent != null)
-                            {
-                                MyOrderEvent(_ordersToCheck[i]);
-                            }
+                            MyOrderEvent?.Invoke(_ordersToCheck[i]);
                             _ordersToCheck.RemoveAt(i);
                             i--;
                         }
@@ -1534,10 +1501,7 @@ namespace OsEngine.Market.Servers.BitMex
                             _ordersToCheck[i].TimeCallBack = ServerTime;
                             _ordersToCheck[i].VolumeExecute = _ordersToCheck[i].Volume;
 
-                            if (MyOrderEvent != null)
-                            {
-                                MyOrderEvent(_ordersToCheck[i]);
-                            }
+                            MyOrderEvent?.Invoke(_ordersToCheck[i]);
 
                             if (_myTrades != null &&
                                 _myTrades.Count != 0)
@@ -1547,10 +1511,7 @@ namespace OsEngine.Market.Servers.BitMex
 
                                 for (int tradeNum = 0; tradeNum < myTrade.Count; tradeNum++)
                                 {
-                                    if (MyTradeEvent != null)
-                                    {
-                                        MyTradeEvent(myTrade[tradeNum]);
-                                    }
+                                    MyTradeEvent?.Invoke(myTrade[tradeNum]);
                                 }
                             }
 
@@ -1560,10 +1521,7 @@ namespace OsEngine.Market.Servers.BitMex
                         else if (osOrder.State == OrderStateType.Activ)
                         {
                             _ordersToCheck[i].State = OrderStateType.Activ;
-                            if (MyOrderEvent != null)
-                            {
-                                MyOrderEvent(_ordersToCheck[i]);
-                            }
+                            MyOrderEvent?.Invoke(_ordersToCheck[i]);
 
                             if (_ordersCanseled.Find(o => o.NumberUser == osOrder.NumberUser) != null)
                             {
@@ -1791,10 +1749,7 @@ namespace OsEngine.Market.Servers.BitMex
 
                                     for (int tradeNum = 0; tradeNum < myTrade.Count; tradeNum++)
                                     {
-                                        if (MyTradeEvent != null)
-                                        {
-                                            MyTradeEvent(myTrade[tradeNum]);
-                                        }
+                                        MyTradeEvent?.Invoke(myTrade[tradeNum]);
                                     }
                                 }
 
@@ -1812,10 +1767,7 @@ namespace OsEngine.Market.Servers.BitMex
                                     }
                                 }
 
-                                if (MyOrderEvent != null)
-                                {
-                                    MyOrderEvent(needOrder);
-                                }
+                                MyOrderEvent?.Invoke(needOrder);
                             }
                         }
 
@@ -1895,10 +1847,7 @@ namespace OsEngine.Market.Servers.BitMex
 
         private void _client_SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         // работа с логом
@@ -1908,10 +1857,7 @@ namespace OsEngine.Market.Servers.BitMex
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>

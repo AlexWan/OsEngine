@@ -59,8 +59,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             get
             {
-                List<List<decimal>> list = new List<List<decimal>>();
-                list.Add(Values);
+                List<List<decimal>> list = new List<List<decimal>>
+                {
+                    Values
+                };
                 return list;
             }
         }
@@ -72,8 +74,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             get
             {
-                List<Color> colors = new List<Color>();
-                colors.Add(ColorBase);
+                List<Color> colors = new List<Color>
+                {
+                    ColorBase
+                };
                 return colors;
             }
 

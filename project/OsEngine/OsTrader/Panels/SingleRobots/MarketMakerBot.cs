@@ -211,11 +211,13 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         /// </summary>
         private void ReloadLines(List<Candle> candles)
         {
-            _lines = new List<decimal>();
+            _lines = new List<decimal>
+            {
 
-            // клоз это линия номер ноль и по 30 штук вверх и вниз
+                // клоз это линия номер ноль и по 30 штук вверх и вниз
 
-            _lines.Add(candles[candles.Count - 1].Close);
+                candles[candles.Count - 1].Close
+            };
 
             decimal concateValue = candles[candles.Count - 1].Close / 100 * PersentToSpreadLines;
 

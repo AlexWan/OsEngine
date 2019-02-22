@@ -189,10 +189,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
             SendLogMessage(OsLocalization.Market.Message35, LogMessageType.System);
 
-            if (TestingStartEvent != null)
-            {
-                TestingStartEvent();
-            }
+            TestingStartEvent?.Invoke();
 
             if (_candleSeriesTesterActivate != null)
             {
@@ -416,10 +413,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 _testerRegime = TesterRegime.Pause;
 
                 SendLogMessage(OsLocalization.Market.Message37, LogMessageType.System);
-                if (TestingEndEvent != null)
-                {
-                    TestingEndEvent(NumberServer);
-                }
+                TestingEndEvent?.Invoke(NumberServer);
                 return;
             }
 
@@ -430,10 +424,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                 SendLogMessage(OsLocalization.Market.Message38,
                     LogMessageType.System);
-                if (TestingEndEvent != null)
-                {
-                    TestingEndEvent(NumberServer);
-                }
+                TestingEndEvent?.Invoke(NumberServer);
                 return;
             }
 
@@ -942,10 +933,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 {
                     _serverConnectStatus = value;
                     SendLogMessage(_serverConnectStatus + OsLocalization.Market.Message7, LogMessageType.Connect);
-                    if (ConnectStatusChangeEvent != null)
-                    {
-                        ConnectStatusChangeEvent(_serverConnectStatus.ToString());
-                    }
+                    ConnectStatusChangeEvent?.Invoke(_serverConnectStatus.ToString());
                 }
             }
         }
@@ -1007,10 +995,7 @@ namespace OsEngine.Market.Servers.Optimizer
             Portfolios[0].ValueCurrent += profit;
             ProfitArray.Add(Portfolios[0].ValueCurrent);
 
-            if (NewCurrentValue != null)
-            {
-                NewCurrentValue(Portfolios[0].ValueCurrent);
-            }
+            NewCurrentValue?.Invoke(Portfolios[0].ValueCurrent);
         }
 
         /// <summary>
@@ -1090,10 +1075,7 @@ namespace OsEngine.Market.Servers.Optimizer
             // перегружаем последним временем тика время сервера
             ServerTime = series.CandlesAll[series.CandlesAll.Count - 1].TimeStart;
 
-            if (NewCandleIncomeEvent != null)
-            {
-                NewCandleIncomeEvent(series);
-            }
+            NewCandleIncomeEvent?.Invoke(series);
         }
 
         /// <summary>
@@ -1321,10 +1303,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 _dataIsActive = true;
             }
 
-            if (NewBidAscIncomeEvent != null)
-            {
-                NewBidAscIncomeEvent(candle.Close, candle.Close,GetSecurityForName(nameSecurity));
-            }
+            NewBidAscIncomeEvent?.Invoke(candle.Close, candle.Close, GetSecurityForName(nameSecurity));
 
             _candleManager.SetNewCandleInSeries(candle, nameSecurity, timeFrame);
 
@@ -1362,11 +1341,8 @@ namespace OsEngine.Market.Servers.Optimizer
             {
                 _dataIsActive = true;  
             }
-            
-            if (NewMarketDepthEvent != null)
-            {
-                NewMarketDepthEvent(marketDepth);
-            }
+
+            NewMarketDepthEvent?.Invoke(marketDepth);
 
             if (TestintProgressChangeEvent != null && _lastTimeCountChange.AddMilliseconds(300) < DateTime.Now)
             {
@@ -1440,9 +1416,11 @@ namespace OsEngine.Market.Servers.Optimizer
                        {
                            allTradesNew[i] = _allTrades[i];
                        }
-                       allTradesNew[allTradesNew.Length - 1] = new List<Trade>();
-                       allTradesNew[allTradesNew.Length - 1].Add(trade);
-                       _allTrades = allTradesNew;
+                        allTradesNew[allTradesNew.Length - 1] = new List<Trade>
+                        {
+                            trade
+                        };
+                        _allTrades = allTradesNew;
                    }
                 }
             }
@@ -1473,10 +1451,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 TestintProgressChangeEvent(lastCount, maxCount, NumberServer);
             }
 
-            if (NewBidAscIncomeEvent != null)
-            {
-                NewBidAscIncomeEvent(tradesNew[tradesNew.Count - 1].Price, tradesNew[tradesNew.Count - 1].Price, GetSecurityForName(tradesNew[tradesNew.Count - 1].SecurityNameCode));
-            }
+            NewBidAscIncomeEvent?.Invoke(tradesNew[tradesNew.Count - 1].Price, tradesNew[tradesNew.Count - 1].Price, GetSecurityForName(tradesNew[tradesNew.Count - 1].SecurityNameCode));
         }
 
         /// <summary>
@@ -1514,10 +1489,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
             _myTrades.Add(trade);
 
-            if (NewMyTradeEvent != null)
-            {
-                NewMyTradeEvent(trade);
-            }
+            NewMyTradeEvent?.Invoke(trade);
         }
 
         /// <summary>
@@ -1625,10 +1597,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
             OrdersActiv.Add(orderOnBoard);
 
-            if (NewOrderIncomeEvent != null)
-            {
-                NewOrderIncomeEvent(orderOnBoard);
-            }
+            NewOrderIncomeEvent?.Invoke(orderOnBoard);
 
             if (_candleSeriesTesterActivate[0].DataType == SecurityTesterDataType.Tick)
             {
@@ -1710,10 +1679,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
             orderToClose.State = OrderStateType.Cancel;
 
-            if (NewOrderIncomeEvent != null)
-            {
-                NewOrderIncomeEvent(orderToClose);
-            }
+            NewOrderIncomeEvent?.Invoke(orderToClose);
         }
 
         /// <summary>
@@ -1735,10 +1701,7 @@ namespace OsEngine.Market.Servers.Optimizer
             orderOnBoard.Volume = order.Volume;
             orderOnBoard.Comment = order.Comment;
 
-            if (NewOrderIncomeEvent != null)
-            {
-                NewOrderIncomeEvent(orderOnBoard);
-            }
+            NewOrderIncomeEvent?.Invoke(orderOnBoard);
         }
         
         /// <summary>
@@ -1792,10 +1755,7 @@ namespace OsEngine.Market.Servers.Optimizer
             order.State = OrderStateType.Done;
             order.Price = realPrice;
 
-            if (NewOrderIncomeEvent != null)
-            {
-                NewOrderIncomeEvent(order);
-            }
+            NewOrderIncomeEvent?.Invoke(order);
         }
 
 // работа с логами
@@ -1805,10 +1765,7 @@ namespace OsEngine.Market.Servers.Optimizer
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>
@@ -2028,10 +1985,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
             LastTradeSeries = lastTradesSeries;
 
-            if (NewTradesEvent != null)
-            {
-                NewTradesEvent(lastTradesSeries, _lastTradeIndex, Trades.Count);
-            }
+            NewTradesEvent?.Invoke(lastTradesSeries, _lastTradeIndex, Trades.Count);
         }
 
         // разбор свечных файлов
@@ -2076,24 +2030,19 @@ namespace OsEngine.Market.Servers.Optimizer
             if (LastCandle != null &&
                 LastCandle.TimeStart == now)
             {
-                List<Trade> lastTradesSeries = new List<Trade>();
-
-                lastTradesSeries.Add(new Trade() { Price = LastCandle.Open, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name });
-                lastTradesSeries.Add(new Trade() { Price = LastCandle.High, Volume = 1, Side = Side.Buy, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name });
-                lastTradesSeries.Add(new Trade() { Price = LastCandle.Low, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name });
-                lastTradesSeries.Add(new Trade() { Price = LastCandle.Close, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name });
-
-                if (NewTradesEvent != null)
+                List<Trade> lastTradesSeries = new List<Trade>
                 {
-                    NewTradesEvent(lastTradesSeries,0,0);
-                }
+                    new Trade() { Price = LastCandle.Open, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name },
+                    new Trade() { Price = LastCandle.High, Volume = 1, Side = Side.Buy, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name },
+                    new Trade() { Price = LastCandle.Low, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name },
+                    new Trade() { Price = LastCandle.Close, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name }
+                };
+
+                NewTradesEvent?.Invoke(lastTradesSeries, 0, 0);
 
                 LastCandle.State = CandleState.Finished;
 
-                if (NewCandleEvent != null)
-                {
-                    NewCandleEvent(LastCandle, Security.Name, TimeFrameSpan, _lastCandleIndex,Candles.Count);
-                }
+                NewCandleEvent?.Invoke(LastCandle, Security.Name, TimeFrameSpan, _lastCandleIndex, Candles.Count);
                 return;
             }
 
@@ -2107,24 +2056,19 @@ namespace OsEngine.Market.Servers.Optimizer
 
             if (LastCandle.TimeStart == now)
             {
-                List<Trade> lastTradesSeries = new List<Trade>();
-
-                lastTradesSeries.Add(new Trade() { Price = LastCandle.Open, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name });
-                lastTradesSeries.Add(new Trade() { Price = LastCandle.High, Volume = 1, Side = Side.Buy, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name });
-                lastTradesSeries.Add(new Trade() { Price = LastCandle.Low, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name });
-                lastTradesSeries.Add(new Trade() { Price = LastCandle.Close, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name });
-
-                if (NewTradesEvent != null)
+                List<Trade> lastTradesSeries = new List<Trade>
                 {
-                    NewTradesEvent(lastTradesSeries,0,0);
-                }
+                    new Trade() { Price = LastCandle.Open, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name },
+                    new Trade() { Price = LastCandle.High, Volume = 1, Side = Side.Buy, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name },
+                    new Trade() { Price = LastCandle.Low, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name },
+                    new Trade() { Price = LastCandle.Close, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name }
+                };
+
+                NewTradesEvent?.Invoke(lastTradesSeries, 0, 0);
 
                 LastCandle.State = CandleState.Finished;
 
-                if (NewCandleEvent != null)
-                {
-                    NewCandleEvent(LastCandle, Security.Name, TimeFrameSpan, _lastCandleIndex, Candles.Count);
-                }
+                NewCandleEvent?.Invoke(LastCandle, Security.Name, TimeFrameSpan, _lastCandleIndex, Candles.Count);
 
             }
         }
@@ -2200,10 +2144,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 return;
             }
 
-            if (NewMarketDepthEvent != null)
-            {
-                NewMarketDepthEvent(LastMarketDepth,_lastMarketDepthIndex,MarketDepths.Count);
-            }
+            NewMarketDepthEvent?.Invoke(LastMarketDepth, _lastMarketDepthIndex, MarketDepths.Count);
         }
 
         // работа с логами
@@ -2213,10 +2154,7 @@ namespace OsEngine.Market.Servers.Optimizer
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message,type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>

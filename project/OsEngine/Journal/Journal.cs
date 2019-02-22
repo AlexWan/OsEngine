@@ -306,10 +306,7 @@ namespace OsEngine.Journal
         {
             try
             {
-                if (PositionStateChangeEvent != null)
-                {
-                    PositionStateChangeEvent(position);
-                }
+                PositionStateChangeEvent?.Invoke(position);
             }
             catch (Exception error)
             {
@@ -321,10 +318,7 @@ namespace OsEngine.Journal
         {
             try
             {
-                if (PositionNetVolumeChangeEvent != null)
-                {
-                    PositionNetVolumeChangeEvent(position);
-                }
+                PositionNetVolumeChangeEvent?.Invoke(position);
             }
             catch (Exception error)
             {
@@ -341,10 +335,7 @@ namespace OsEngine.Journal
         {
             try
             {
-                if (UserSelectActionEvent != null)
-                {
-                    UserSelectActionEvent(pos, signal);
-                }
+                UserSelectActionEvent?.Invoke(pos, signal);
             }
             catch (Exception error)
             {

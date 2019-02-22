@@ -298,10 +298,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     _chartMaster.SetCandles(Candles);
 
-                    if (SpreadChangeEvent != null)
-                    {
-                        SpreadChangeEvent(Candles);
-                    }
+                    SpreadChangeEvent?.Invoke(Candles);
                 }
             }
         }
@@ -351,10 +348,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                         _chartMaster.SetCandles(Candles);
 
-                        if (SpreadChangeEvent != null)
-                        {
-                            SpreadChangeEvent(Candles);
-                        }
+                        SpreadChangeEvent?.Invoke(Candles);
                     }
                 }
             }

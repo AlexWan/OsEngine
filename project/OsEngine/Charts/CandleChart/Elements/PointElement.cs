@@ -59,10 +59,7 @@ namespace OsEngine.Charts.CandleChart.Elements
         /// </summary>
         public void Refresh()
         {
-            if (UpdeteEvent != null)
-            {
-                UpdeteEvent(this);
-            }
+            UpdeteEvent?.Invoke(this);
         }
 
         /// <summary>
@@ -71,10 +68,7 @@ namespace OsEngine.Charts.CandleChart.Elements
         /// </summary>
         public void Delete()
         {
-            if (DeleteEvent != null)
-            {
-                DeleteEvent(this);
-            }
+            DeleteEvent?.Invoke(this);
         }
 
         /// <summary>
@@ -83,10 +77,7 @@ namespace OsEngine.Charts.CandleChart.Elements
         /// </summary>
         public void ShowDialog()
         {
-            if (NeadToShowDialog != null)
-            {
-                NeadToShowDialog(UniqName.Split('&')[0]);
-            }
+            NeadToShowDialog?.Invoke(UniqName.Split('&')[0]);
         }
 
         /// <summary>
@@ -154,10 +145,7 @@ namespace OsEngine.Charts.CandleChart.Elements
         {
             Y = value;
 
-            if (ChangeOnChartEvent != null)
-            {
-                ChangeOnChartEvent(this);
-            }
+            ChangeOnChartEvent?.Invoke(this);
         }
     }
 }

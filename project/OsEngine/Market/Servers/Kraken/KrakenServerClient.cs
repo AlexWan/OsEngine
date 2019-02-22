@@ -82,10 +82,7 @@ namespace OsEngine.Market.Servers.Kraken
 
                 _isConnected = true;
 
-                if (ConnectionSucsess != null)
-                {
-                    ConnectionSucsess();
-                }
+                ConnectionSucsess?.Invoke();
             }
             catch (Exception error)
             {
@@ -110,10 +107,7 @@ namespace OsEngine.Market.Servers.Kraken
                 }
             }
 
-            if (ConnectionFail != null)
-            {
-                ConnectionFail();
-            }
+            ConnectionFail?.Invoke();
         }
 
 // Работа потока запрашивающего данные
@@ -315,10 +309,7 @@ namespace OsEngine.Market.Servers.Kraken
                 newPortfolio.ValueBegin = ret.Result.TradeBalance;
                 newPortfolio.ValueBlocked = ret.Result.MarginAmount;
 
-                if (NewPortfolio != null)
-                {
-                    NewPortfolio(newPortfolio);
-                }
+                NewPortfolio?.Invoke(newPortfolio);
             }
             catch (Exception error)
             {
@@ -372,10 +363,7 @@ namespace OsEngine.Market.Servers.Kraken
                     securities.Add(sec);
                 }
 
-                if (NewSecuritiesEvent != null)
-                {
-                    NewSecuritiesEvent(securities);
-                }
+                NewSecuritiesEvent?.Invoke(securities);
             }
             catch (Exception error)
             {
@@ -419,10 +407,7 @@ namespace OsEngine.Market.Servers.Kraken
                         newOrder.Side = osOrder.Side;
                         newOrder.State = OrderStateType.Cancel;
 
-                        if (NewOrderEvent != null)
-                        {
-                            NewOrderEvent(newOrder);
-                        }
+                        NewOrderEvent?.Invoke(newOrder);
                     }
                 }
             }
@@ -454,10 +439,7 @@ namespace OsEngine.Market.Servers.Kraken
             newTrade.Volume = order.Volume;
             newTrade.SecurityNameCode = osOrder.SecurityNameCode;
 
-            if (NewMyTradeEvent != null)
-            {
-                NewMyTradeEvent(newTrade);
-            }
+            NewMyTradeEvent?.Invoke(newTrade);
         }
 
         /// <summary>
@@ -516,10 +498,7 @@ namespace OsEngine.Market.Servers.Kraken
                         return;
                     }
 
-                    if (NewMarketDepthEvent != null)
-                    {
-                        NewMarketDepthEvent(newDepth);
-                    }
+                    NewMarketDepthEvent?.Invoke(newDepth);
                 }
             }
 
@@ -623,10 +602,7 @@ namespace OsEngine.Market.Servers.Kraken
                             newTrade.Side = Side.Buy;
                         }
 
-                        if (NewTradeEvent != null)
-                        {
-                            NewTradeEvent(newTrade);
-                        }
+                        NewTradeEvent?.Invoke(newTrade);
 
                         myTimeTrades.Time = trades.Last;
 
@@ -639,10 +615,7 @@ namespace OsEngine.Market.Servers.Kraken
 
                             newDepth.Time = newTrade.Time;
 
-                            if (NewMarketDepthEvent != null)
-                            {
-                                NewMarketDepthEvent(newDepth);
-                            }
+                            NewMarketDepthEvent?.Invoke(newDepth);
                         }
                     }
                 }
@@ -702,10 +675,7 @@ namespace OsEngine.Market.Servers.Kraken
                         newOrder.State = OrderStateType.Activ;
                         newOrder.TimeCallBack = time;
 
-                        if (NewOrderEvent != null)
-                        {
-                            NewOrderEvent(newOrder);
-                        }
+                        NewOrderEvent?.Invoke(newOrder);
                     }
                     else
                     {
@@ -716,10 +686,7 @@ namespace OsEngine.Market.Servers.Kraken
                         newOrder.Side = osOrder.Side;
                         newOrder.State = OrderStateType.Fail;
 
-                        if (NewOrderEvent != null)
-                        {
-                            NewOrderEvent(newOrder);
-                        }
+                        NewOrderEvent?.Invoke(newOrder);
                     }
                 }
                 catch (Exception error)
@@ -962,10 +929,7 @@ namespace OsEngine.Market.Servers.Kraken
             newOrder.Side = order.Side;
             newOrder.State = OrderStateType.Cancel;
 
-            if (NewOrderEvent != null)
-            {
-                NewOrderEvent(newOrder);
-            }
+            NewOrderEvent?.Invoke(newOrder);
         }
 
         /// <summary>
@@ -1022,10 +986,7 @@ namespace OsEngine.Market.Servers.Kraken
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>

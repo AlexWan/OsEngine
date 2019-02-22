@@ -207,8 +207,10 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                 // уровни покупок
                 if (bids == null || bids.Count == 0)
                 {
-                    bids = new List<MarketDepthLevel>();
-                    bids.Add(depthLevel);
+                    bids = new List<MarketDepthLevel>
+                    {
+                        depthLevel
+                    };
                 }
                 else
                 {
@@ -277,8 +279,10 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                 // уровни продажи
                 if (asks == null || asks.Count == 0)
                 {
-                    asks = new List<MarketDepthLevel>();
-                    asks.Add(depthLevel);
+                    asks = new List<MarketDepthLevel>
+                    {
+                        depthLevel
+                    };
                 }
                 else
                 {

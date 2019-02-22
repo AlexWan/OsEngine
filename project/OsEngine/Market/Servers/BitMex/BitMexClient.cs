@@ -156,10 +156,7 @@ namespace OsEngine.Market.Servers.BitMex
 
         private void ReconnectArea()
         {
-            if (Disconnected != null)
-            {
-                Disconnected();
-            }
+            Disconnected?.Invoke();
         }
 
         /// <summary>
@@ -214,19 +211,13 @@ namespace OsEngine.Market.Servers.BitMex
                     var res11 = CreateQuery("GET", "/instrument/active");
                     List<BitMexSecurity> listSec = JsonConvert.DeserializeObject<List<BitMexSecurity>>(res11);
 
-                    if (UpdateSecurity != null)
-                    {
-                        UpdateSecurity(listSec);
-                    }
+                    UpdateSecurity?.Invoke(listSec);
 
                     return listSec;
                 }
                 catch (Exception ex)
                 {
-                    if (BitMexLogMessageEvent != null)
-                    {
-                        BitMexLogMessageEvent(ex.ToString(), LogMessageType.Error);
-                    }
+                    BitMexLogMessageEvent?.Invoke(ex.ToString(), LogMessageType.Error);
 
                     return null;
                 }
@@ -287,10 +278,7 @@ namespace OsEngine.Market.Servers.BitMex
                 }
                 catch (Exception exception)
                 {
-                    if (BitMexLogMessageEvent != null)
-                    {
-                        BitMexLogMessageEvent(exception.ToString(), LogMessageType.Error);
-                    }
+                    BitMexLogMessageEvent?.Invoke(exception.ToString(), LogMessageType.Error);
                 }
 
             }
@@ -339,10 +327,7 @@ namespace OsEngine.Market.Servers.BitMex
                             {
                                 var order = JsonConvert.DeserializeAnonymousType(mes, new BitMexOrder());
 
-                                if (MyOrderEvent != null)
-                                {
-                                    MyOrderEvent(order);
-                                }
+                                MyOrderEvent?.Invoke(order);
                                 continue;
                             }
 
@@ -350,10 +335,7 @@ namespace OsEngine.Market.Servers.BitMex
                             {
                                 var portf = JsonConvert.DeserializeAnonymousType(mes, new BitMexPortfolio());
 
-                                if (UpdatePortfolio != null)
-                                {
-                                    UpdatePortfolio(portf);
-                                }
+                                UpdatePortfolio?.Invoke(portf);
                                 continue;
                             }
 
@@ -361,10 +343,7 @@ namespace OsEngine.Market.Servers.BitMex
                             {
                                 var pos = JsonConvert.DeserializeAnonymousType(mes, new BitMexPosition());
 
-                                if (UpdatePosition != null)
-                                {
-                                    UpdatePosition(pos);
-                                }
+                                UpdatePosition?.Invoke(pos);
                                 continue;
                             }
 
@@ -383,19 +362,13 @@ namespace OsEngine.Market.Servers.BitMex
                             {
                                 var trade = JsonConvert.DeserializeAnonymousType(mes, new BitMexTrades());
 
-                                if (NewTradesEvent != null)
-                                {
-                                    NewTradesEvent(trade);
-                                }
+                                NewTradesEvent?.Invoke(trade);
                                 continue;
                             }
 
                             if (mes.Contains("error"))
                             {
-                                if (ErrorEvent != null)
-                                {
-                                    ErrorEvent(mes);
-                                }
+                                ErrorEvent?.Invoke(mes);
                             }
                         }
 
@@ -407,10 +380,7 @@ namespace OsEngine.Market.Servers.BitMex
                 }
                 catch (Exception exception)
                 {
-                    if (BitMexLogMessageEvent != null)
-                    {
-                        BitMexLogMessageEvent(exception.ToString(), LogMessageType.Error);
-                    }
+                    BitMexLogMessageEvent?.Invoke(exception.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -548,10 +518,7 @@ namespace OsEngine.Market.Servers.BitMex
                             {
                                 string error = sr.ReadToEnd();
 
-                                if (ErrorEvent != null)
-                                {
-                                    ErrorEvent(error);
-                                }
+                                ErrorEvent?.Invoke(error);
                                 return sr.ReadToEnd();
                             }
                         }

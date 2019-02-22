@@ -18,10 +18,7 @@ namespace OsEngine.Market.Servers.Entity
         public void Sand()
         {
             Thread.Sleep(30000);
-            if (UpdeteOrderEvent != null)
-            {
-                UpdeteOrderEvent(Order);
-            }
+            UpdeteOrderEvent?.Invoke(Order);
         }
 
         public event Action<Order> UpdeteOrderEvent;

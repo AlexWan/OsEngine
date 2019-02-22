@@ -108,10 +108,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 {
                     Dispose();
 
-                    if (DisconnectEvent != null)
-                    {
-                        DisconnectEvent();
-                    }
+                    DisconnectEvent?.Invoke();
                     lastServerTimeChange = DateTime.Now;
                     Thread.Sleep(60000);
                 }
@@ -209,10 +206,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                     securitiisOsa.Add(security);
                 }
 
-                if (SecurityEvent != null)
-                {
-                    SecurityEvent(securitiisOsa);
-                }
+                SecurityEvent?.Invoke(securitiisOsa);
             }
             catch (Exception error)
             {
@@ -332,10 +326,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         /// </summary>
         private void ClientOnLogMessageEvent(string message, LogMessageType logType)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, logType);
-            }
+            LogMessageEvent?.Invoke(message, logType);
         }
 
         /// <summary>
@@ -345,10 +336,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         {
             myOrder.ServerType = ServerType.Bitfinex;
 
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(myOrder);
-            }
+            MyOrderEvent?.Invoke(myOrder);
         }
 
         /// <summary>
@@ -356,10 +344,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         /// </summary>
         private void ClientOnMyTradeEvent(MyTrade trade)
         {
-            if (MyTradeEvent != null)
-            {
-                MyTradeEvent(trade);
-            }
+            MyTradeEvent?.Invoke(trade);
         }
 
         /// <summary>
@@ -388,10 +373,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 // перегружаем последним временем тика время сервера
                 ServerTime = trade.Time;
 
-                if (NewTradesEvent != null)
-                {
-                    NewTradesEvent(trade);
-                }
+                NewTradesEvent?.Invoke(trade);
             }
             catch (Exception error)
             {
@@ -461,10 +443,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                     needDepth.Bids = bids;
                     needDepth.Time = ServerTime;
 
-                    if (MarketDepthEvent != null)
-                    {
-                        MarketDepthEvent(needDepth.GetCopy());
-                    }
+                    MarketDepthEvent?.Invoke(needDepth.GetCopy());
                 }
             }
             catch (Exception error)
@@ -593,10 +572,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                         }
                     }
 
-                    if (MarketDepthEvent != null)
-                    {
-                        MarketDepthEvent(needDepth.GetCopy());
-                    }
+                    MarketDepthEvent?.Invoke(needDepth.GetCopy());
                 }
             }
             catch (Exception error)
@@ -644,10 +620,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                     }
                 }
 
-                if (PortfolioEvent != null)
-                {
-                    PortfolioEvent(_portfolios);
-                }
+                PortfolioEvent?.Invoke(_portfolios);
             }
             catch (Exception error)
             {
@@ -686,10 +659,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                     needPortfolio.ValueBlocked = Convert.ToDecimal(walletUpdateWalletUpdates[3].Double);
                 }
 
-                if (PortfolioEvent != null)
-                {
-                    PortfolioEvent(_portfolios);
-                }
+                PortfolioEvent?.Invoke(_portfolios);
             }
             catch (Exception error)
             {
@@ -703,10 +673,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         private void ClientOnDisconnected()
         {
             ServerStatus = ServerConnectStatus.Disconnect;
-            if (DisconnectEvent != null)
-            {
-                DisconnectEvent();
-            }
+            DisconnectEvent?.Invoke();
         }
 
         /// <summary>
@@ -715,10 +682,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         private void ClientOnConnected()
         {
             ServerStatus = ServerConnectStatus.Connect;
-            if (ConnectEvent != null)
-            {
-                ConnectEvent();
-            }
+            ConnectEvent?.Invoke();
         }
 
         /// <summary>
@@ -826,8 +790,10 @@ namespace OsEngine.Market.Servers.Bitfinex
             try
             {
                 Thread.Sleep(8000);
-                Dictionary<string, string> param = new Dictionary<string, string>();
-                param.Add("trade:" + tf, ":t" + security + "/hist" + "?limit=" + count);
+                Dictionary<string, string> param = new Dictionary<string, string>
+                {
+                    { "trade:" + tf, ":t" + security + "/hist" + "?limit=" + count }
+                };
                 var candles = _client.GetCandles(param);
                 var candleHist = Candles.FromJson(candles);
 
@@ -949,10 +915,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;

@@ -311,10 +311,7 @@ namespace OsEngine.Market.Servers.Kraken
                 {
                     _serverConnectStatus = value;
                     SendLogMessage(_serverConnectStatus + OsLocalization.Market.Message7, LogMessageType.Connect);
-                    if (ConnectStatusChangeEvent != null)
-                    {
-                        ConnectStatusChangeEvent(_serverConnectStatus.ToString());
-                    }
+                    ConnectStatusChangeEvent?.Invoke(_serverConnectStatus.ToString());
                 }
             }
         }
@@ -373,10 +370,7 @@ namespace OsEngine.Market.Servers.Kraken
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
 
-                if (NeadToReconnectEvent != null)
-                {
-                    NeadToReconnectEvent();
-                }
+                NeadToReconnectEvent?.Invoke();
             }
             catch (Exception error)
             {
@@ -648,10 +642,7 @@ namespace OsEngine.Market.Servers.Kraken
                         Order order;
                         if (_ordersToSend.TryDequeue(out order))
                         {
-                            if (NewOrderIncomeEvent != null)
-                            {
-                                NewOrderIncomeEvent(order);
-                            }
+                            NewOrderIncomeEvent?.Invoke(order);
                         }
                     }
                     else if (!_myTradesToSend.IsEmpty &&
@@ -661,10 +652,7 @@ namespace OsEngine.Market.Servers.Kraken
 
                         if (_myTradesToSend.TryDequeue(out myTrade))
                         {
-                            if (NewMyTradeEvent != null)
-                            {
-                                NewMyTradeEvent(myTrade);
-                            }
+                            NewMyTradeEvent?.Invoke(myTrade);
                         }
                     }
                     else if (!_tradesToSend.IsEmpty)
@@ -673,10 +661,7 @@ namespace OsEngine.Market.Servers.Kraken
 
                         if (_tradesToSend.TryDequeue(out trades))
                         {
-                            if (NewTradeEvent != null)
-                            {
-                                NewTradeEvent(trades);
-                            }
+                            NewTradeEvent?.Invoke(trades);
                         }
                     }
 
@@ -686,10 +671,7 @@ namespace OsEngine.Market.Servers.Kraken
 
                         if (_portfolioToSend.TryDequeue(out portfolio))
                         {
-                            if (PortfoliosChangeEvent != null)
-                            {
-                                PortfoliosChangeEvent(portfolio);
-                            }
+                            PortfoliosChangeEvent?.Invoke(portfolio);
                         }
                     }
 
@@ -699,10 +681,7 @@ namespace OsEngine.Market.Servers.Kraken
 
                         if (_securitiesToSend.TryDequeue(out security))
                         {
-                            if (SecuritiesChangeEvent != null)
-                            {
-                                SecuritiesChangeEvent(security);
-                            }
+                            SecuritiesChangeEvent?.Invoke(security);
                         }
                     }
                     else if (!_newServerTime.IsEmpty)
@@ -721,10 +700,7 @@ namespace OsEngine.Market.Servers.Kraken
 
                         if (_candleSeriesToSend.TryDequeue(out series))
                         {
-                            if (NewCandleIncomeEvent != null)
-                            {
-                                NewCandleIncomeEvent(series);
-                            }
+                            NewCandleIncomeEvent?.Invoke(series);
                         }
                     }
 
@@ -734,10 +710,7 @@ namespace OsEngine.Market.Servers.Kraken
 
                         if (_marketDepthsToSend.TryDequeue(out depth))
                         {
-                            if (NewMarketDepthEvent != null)
-                            {
-                                NewMarketDepthEvent(depth);
-                            }
+                            NewMarketDepthEvent?.Invoke(depth);
                         }
                     }
                     else if (!_bidAskToSend.IsEmpty)
@@ -746,10 +719,7 @@ namespace OsEngine.Market.Servers.Kraken
 
                         if (_bidAskToSend.TryDequeue(out bidAsk))
                         {
-                            if (NewBidAscIncomeEvent != null)
-                            {
-                                NewBidAscIncomeEvent(bidAsk.Bid, bidAsk.Ask, bidAsk.Security);
-                            }
+                            NewBidAscIncomeEvent?.Invoke(bidAsk.Bid, bidAsk.Ask, bidAsk.Security);
                         }
                     }
                     else
@@ -1216,8 +1186,10 @@ namespace OsEngine.Market.Servers.Kraken
                         {
                             allTradesNew[i] = _allTrades[i];
                         }
-                        allTradesNew[allTradesNew.Length - 1] = new List<OsEngine.Entity.Trade>();
-                        allTradesNew[allTradesNew.Length - 1].Add(trade);
+                        allTradesNew[allTradesNew.Length - 1] = new List<OsEngine.Entity.Trade>
+                        {
+                            trade
+                        };
                         myList = allTradesNew[allTradesNew.Length - 1];
                         _allTrades = allTradesNew;
                     }
@@ -1428,10 +1400,7 @@ namespace OsEngine.Market.Servers.Kraken
         /// </summary>
         private void SendLogMessage(string message,LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>

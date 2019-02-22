@@ -314,8 +314,10 @@ namespace OsEngine.Journal.Internal
 
             if (_deals == null)
             {
-                _deals = new List<Position>();
-                _deals.Add(newPosition);
+                _deals = new List<Position>
+                {
+                    newPosition
+                };
             }
             else
             {
@@ -1224,10 +1226,7 @@ namespace OsEngine.Journal.Internal
         {
             try
             {
-                if (UserSelectActionEvent != null)
-                {
-                    UserSelectActionEvent(null, SignalType.OpenNew);
-                }
+                UserSelectActionEvent?.Invoke(null, SignalType.OpenNew);
             }
             catch (Exception error)
             {
@@ -1247,10 +1246,7 @@ namespace OsEngine.Journal.Internal
                     return;
                 }
 
-                if (UserSelectActionEvent != null)
-                {
-                    UserSelectActionEvent(null, SignalType.CloseAll);
-                }
+                UserSelectActionEvent?.Invoke(null, SignalType.CloseAll);
             }
             catch (Exception error)
             {
@@ -1276,10 +1272,7 @@ namespace OsEngine.Journal.Internal
                 }
 
 
-                if (UserSelectActionEvent != null)
-                {
-                    UserSelectActionEvent(GetPositionForNumber(number), SignalType.CloseOne);
-                }
+                UserSelectActionEvent?.Invoke(GetPositionForNumber(number), SignalType.CloseOne);
             }
             catch (Exception error)
             {
@@ -1305,10 +1298,7 @@ namespace OsEngine.Journal.Internal
                 }
 
 
-                if (UserSelectActionEvent != null)
-                {
-                    UserSelectActionEvent(GetPositionForNumber(number), SignalType.Modificate);
-                }
+                UserSelectActionEvent?.Invoke(GetPositionForNumber(number), SignalType.Modificate);
             }
             catch (Exception error)
             {
@@ -1333,10 +1323,7 @@ namespace OsEngine.Journal.Internal
                     return;
                 }
 
-                if (UserSelectActionEvent != null)
-                {
-                    UserSelectActionEvent(GetPositionForNumber(number), SignalType.ReloadStop);
-                }
+                UserSelectActionEvent?.Invoke(GetPositionForNumber(number), SignalType.ReloadStop);
             }
             catch (Exception error)
             {
@@ -1361,10 +1348,7 @@ namespace OsEngine.Journal.Internal
                     return;
                 }
 
-                if (UserSelectActionEvent != null)
-                {
-                    UserSelectActionEvent(GetPositionForNumber(number), SignalType.ReloadProfit);
-                }
+                UserSelectActionEvent?.Invoke(GetPositionForNumber(number), SignalType.ReloadProfit);
             }
             catch (Exception error)
             {
@@ -1389,10 +1373,7 @@ namespace OsEngine.Journal.Internal
                     return;
                 }
 
-                if (UserSelectActionEvent != null)
-                {
-                    UserSelectActionEvent(GetPositionForNumber(number), SignalType.DeletePos);
-                }
+                UserSelectActionEvent?.Invoke(GetPositionForNumber(number), SignalType.DeletePos);
             }
             catch (Exception error)
             {

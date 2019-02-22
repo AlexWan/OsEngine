@@ -128,66 +128,42 @@ namespace OsEngine.Market.Servers.NinjaTrader
 
         private void ClientOnMyOrderEvent(Order order)
         {
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(order);
-            }
+            MyOrderEvent?.Invoke(order);
         }
 
         private void ClientOnMyTradeEvent(MyTrade myTrade)
         {
-            if (MyTradeEvent != null)
-            {
-                MyTradeEvent(myTrade);
-            }
+            MyTradeEvent?.Invoke(myTrade);
         }
 
         private void ClientOnNewTradesEvent(Trade trade)
         {
-            if (NewTradesEvent != null)
-            {
-                NewTradesEvent(trade);
-            }
+            NewTradesEvent?.Invoke(trade);
         }
 
         private void ClientOnUpdateMarketDepth(MarketDepth marketDepth)
         {
-            if (MarketDepthEvent != null)
-            {
-                MarketDepthEvent(marketDepth);
-            }
+            MarketDepthEvent?.Invoke(marketDepth);
         }
 
         private void ClientOnUpdatePortfolio(List<Portfolio> portfolios)
         {
-            if (PortfolioEvent != null)
-            {
-                PortfolioEvent(portfolios);
-            }
+            PortfolioEvent?.Invoke(portfolios);
         }
 
         private void ClientOnDisconnected()
         {
-            if (DisconnectEvent != null)
-            {
-                DisconnectEvent();
-            }
+            DisconnectEvent?.Invoke();
         }
 
         private void ClientOnUpdateSecuritiesEvent(List<Security> securities)
         {
-            if (SecurityEvent != null)
-            {
-                SecurityEvent(securities);
-            }
+            SecurityEvent?.Invoke(securities);
         }
 
         private void ClientOnConnected()
         {
-            if (ConnectEvent != null)
-            {
-                ConnectEvent();
-            }
+            ConnectEvent?.Invoke();
         }
 
         // исходящие события
@@ -239,10 +215,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>

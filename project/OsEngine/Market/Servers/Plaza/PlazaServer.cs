@@ -120,10 +120,7 @@ namespace OsEngine.Market.Servers.Plaza
 
             trade.SecurityNameCode = security.Name;
 
-            if (NewTradesEvent != null)
-            {
-                NewTradesEvent(trade);
-            }
+            NewTradesEvent?.Invoke(trade);
         }
 
         private List<Security> _securities;
@@ -139,10 +136,7 @@ namespace OsEngine.Market.Servers.Plaza
             {
                 _securities.Add(security);
 
-                if (SecurityEvent != null)
-                {
-                    SecurityEvent(_securities);
-                }
+                SecurityEvent?.Invoke(_securities);
             }
         }
 
@@ -159,10 +153,7 @@ namespace OsEngine.Market.Servers.Plaza
             {
                 _portfolios.Add(portfolio);
 
-                if (PortfolioEvent != null)
-                {
-                    PortfolioEvent(_portfolios);
-                }
+                PortfolioEvent?.Invoke(_portfolios);
             }
         }
 
@@ -218,10 +209,7 @@ namespace OsEngine.Market.Servers.Plaza
 
                 myPortfolio.SetNewPosition(positionOnBoard);
 
-                if (PortfolioEvent != null)
-                {
-                    PortfolioEvent(_portfolios);
-                }
+                PortfolioEvent?.Invoke(_portfolios);
             }
         }
 
@@ -283,10 +271,7 @@ namespace OsEngine.Market.Servers.Plaza
                     order.SecurityNameCode = security.Name;
                 }
 
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(order);
-                }
+                MyOrderEvent?.Invoke(order);
             }
         }
 
@@ -306,20 +291,14 @@ namespace OsEngine.Market.Servers.Plaza
 
             myTrade.SecurityNameCode = security.Name;
 
-            if (MyTradeEvent != null)
-            {
-                MyTradeEvent(myTrade);
-            }
+            MyTradeEvent?.Invoke(myTrade);
         }
 
         private void PlazaControllerOnMarketDepthChangeEvent(MarketDepth depth)
         {
             depth.Time = DateTime.Now;
 
-            if (MarketDepthEvent != null)
-            {
-                MarketDepthEvent(depth);
-            }
+            MarketDepthEvent?.Invoke(depth);
         }
 
         private void PlazaControllerOnConnectStatusChangeEvent(ServerConnectStatus status)
@@ -393,10 +372,7 @@ namespace OsEngine.Market.Servers.Plaza
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>

@@ -356,10 +356,7 @@ namespace OsEngine.OsMiner
             }
             catch (Exception error)
             {
-                if (LogMessageEvent != null)
-                {
-                    LogMessageEvent(error.ToString(), LogMessageType.Error);
-                }
+                LogMessageEvent?.Invoke(error.ToString(), LogMessageType.Error);
             }
         }
 

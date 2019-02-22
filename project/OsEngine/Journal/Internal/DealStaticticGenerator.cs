@@ -36,70 +36,72 @@ namespace OsEngine.Journal.Internal
 
             Position[] deals = positionsNew.ToArray();
 
-            List<string> report = new List<string>();
-            /*
-                 Чистый П\У
-                 Чистый П\У %
-                 Количество сделок
+            List<string> report = new List<string>
+            {
+                /*
+                     Чистый П\У
+                     Чистый П\У %
+                     Количество сделок
 
-                 Сред. П\У по сделке
-                 Сред. П\У % по сделке
-                 Сред. П\У на капитал
-                 Сред. П\У % на капитал
+                     Сред. П\У по сделке
+                     Сред. П\У % по сделке
+                     Сред. П\У на капитал
+                     Сред. П\У % на капитал
 
-                 Прибыльных  сделок
-                 Прибыльных %
-                 Сред. П\У по сделке
-                 Сред. П\У % по сделке
-                 Сред. П\У на капитал
-                 Сред. П\У % на капитал
-                 Максимум подряд
+                     Прибыльных  сделок
+                     Прибыльных %
+                     Сред. П\У по сделке
+                     Сред. П\У % по сделке
+                     Сред. П\У на капитал
+                     Сред. П\У % на капитал
+                     Максимум подряд
 
-                 Убыточных сделок
-                 Убыточных  %
-                 Сред. П\У по сделке
-                 Сред. П\У % по сделке
-                 Сред. П\У на капитал
-                 Сред. П\У % на капитал
-                 Максимум подряд
+                     Убыточных сделок
+                     Убыточных  %
+                     Сред. П\У по сделке
+                     Сред. П\У % по сделке
+                     Сред. П\У на капитал
+                     Сред. П\У % на капитал
+                     Максимум подряд
 
-                 Макс просадка %
-            */
+                     Макс просадка %
+                */
 
 
-            report.Add(Convert.ToDouble(GetAllProfitInPunkt(deals)).ToString(new CultureInfo("ru-RU"))); //Чистый Профит
-            report.Add(Math.Round(GetAllProfitPersent(deals), 6).ToString(new CultureInfo("ru-RU")));//Чистый Профит %
-            report.Add(deals.Length.ToString(new CultureInfo("ru-RU")));//Количество сделок
-            report.Add(Math.Round(GetProfitFactor(deals), 6).ToString(new CultureInfo("ru-RU")));   //Profit Factor
-            report.Add(Math.Round(GetRecovery(deals), 6).ToString(new CultureInfo("ru-RU")));   // Recovery
-            report.Add("");
+                Convert.ToDouble(GetAllProfitInPunkt(deals)).ToString(new CultureInfo("ru-RU")), //Чистый Профит
+                Math.Round(GetAllProfitPersent(deals), 6).ToString(new CultureInfo("ru-RU")),//Чистый Профит %
+                deals.Length.ToString(new CultureInfo("ru-RU")),//Количество сделок
+                Math.Round(GetProfitFactor(deals), 6).ToString(new CultureInfo("ru-RU")),   //Profit Factor
+                Math.Round(GetRecovery(deals), 6).ToString(new CultureInfo("ru-RU")),   // Recovery
+                "",
 
-            report.Add(Convert.ToDouble(GetMidleProfitInPunkt(deals)).ToString(new CultureInfo("ru-RU"))); //средний профит
-            report.Add(Math.Round(GetMidleProfitInPersent(deals), 6).ToString(new CultureInfo("ru-RU"))); //средний профит в %
-            report.Add(Convert.ToDouble(GetMidleProfitInPunktToDepozit(deals)).ToString(new CultureInfo("ru-RU"))); //средний профит
-            report.Add(Math.Round(GetMidleProfitInPersentToDepozit(deals), 6).ToString(new CultureInfo("ru-RU"))); //средний профит в %
+                Convert.ToDouble(GetMidleProfitInPunkt(deals)).ToString(new CultureInfo("ru-RU")), //средний профит
+                Math.Round(GetMidleProfitInPersent(deals), 6).ToString(new CultureInfo("ru-RU")), //средний профит в %
+                Convert.ToDouble(GetMidleProfitInPunktToDepozit(deals)).ToString(new CultureInfo("ru-RU")), //средний профит
+                Math.Round(GetMidleProfitInPersentToDepozit(deals), 6).ToString(new CultureInfo("ru-RU")), //средний профит в %
 
-            report.Add(""); // 11
-            report.Add(GetProfitDial(deals).ToString(new CultureInfo("ru-RU"))); //выигрышных сделок
-            report.Add(Math.Round(GetProfitDialPersent(deals), 6).ToString(new CultureInfo("ru-RU")));//выигрышных сделок в %
-            //report += Convert.ToDouble(GetAllProfitInProfitInPunkt(deals)).ToString(new CultureInfo("ru-RU")) + "\r\n"; //общий профит выигрышных сделок
-            report.Add(Convert.ToDouble(GetAllMidleProfitInProfitInPunkt(deals)).ToString(new CultureInfo("ru-RU"))); //средний профит в выигрышных сделках
-            report.Add(Math.Round(GetAllMidleProfitInProfitInPersent(deals), 6).ToString(new CultureInfo("ru-RU"))); //средний профит в процентах в выигрышных сделках
-            report.Add(Convert.ToDouble(GetAllMidleProfitInProfitInPunktOnDepozit(deals)).ToString(new CultureInfo("ru-RU"))); //средний профит в выигрышных сделках
-            report.Add(Math.Round(GetAllMidleProfitInProfitInPersentOnDepozit(deals), 6).ToString(new CultureInfo("ru-RU")));//средний профит в процентах в выигрышных сделках
-            report.Add(GetMaxProfitSeries(deals).ToString(new CultureInfo("ru-RU"))); //максимальная серия выигрышных сделок
+                "", // 11
+                GetProfitDial(deals).ToString(new CultureInfo("ru-RU")), //выигрышных сделок
+                Math.Round(GetProfitDialPersent(deals), 6).ToString(new CultureInfo("ru-RU")),//выигрышных сделок в %
+                                                                                              //report += Convert.ToDouble(GetAllProfitInProfitInPunkt(deals)).ToString(new CultureInfo("ru-RU")) + "\r\n"; //общий профит выигрышных сделок
+                Convert.ToDouble(GetAllMidleProfitInProfitInPunkt(deals)).ToString(new CultureInfo("ru-RU")), //средний профит в выигрышных сделках
+                Math.Round(GetAllMidleProfitInProfitInPersent(deals), 6).ToString(new CultureInfo("ru-RU")), //средний профит в процентах в выигрышных сделках
+                Convert.ToDouble(GetAllMidleProfitInProfitInPunktOnDepozit(deals)).ToString(new CultureInfo("ru-RU")), //средний профит в выигрышных сделках
+                Math.Round(GetAllMidleProfitInProfitInPersentOnDepozit(deals), 6).ToString(new CultureInfo("ru-RU")),//средний профит в процентах в выигрышных сделках
+                GetMaxProfitSeries(deals).ToString(new CultureInfo("ru-RU")), //максимальная серия выигрышных сделок
 
-            report.Add("");
-            report.Add(GetLossDial(deals).ToString(new CultureInfo("ru-RU"))); //проигрышных сделок
-            report.Add(Math.Round(GetLossDialPersent(deals), 6).ToString(new CultureInfo("ru-RU"))); //проигрышных сделок в %
-            //report += Convert.ToDouble(GetAllLossInLossInPunkt(deals)).ToString(new CultureInfo("ru-RU")) + "\r\n"; //общий профит проигрышных сделок
-            report.Add(Convert.ToDouble(GetAllMidleLossInLossInPunkt(deals)).ToString(new CultureInfo("ru-RU")));//средний профит в проигрышных сделках
-            report.Add(Math.Round(GetAllMidleLossInLossInPersent(deals), 6).ToString(new CultureInfo("ru-RU")));//средний профит в процентах в проигрышных сделках
-            report.Add(Convert.ToDouble(GetAllMidleLossInLossInPunktOnDepozit(deals)).ToString(new CultureInfo("ru-RU"))); //средний профит в выигрышных сделках
-            report.Add(Math.Round(GetAllMidleLossInLossInPersentOnDepozit(deals), 6).ToString(new CultureInfo("ru-RU")));//средний профит в процентах в выигрышных сделках
-            report.Add(GetMaxLossSeries(deals).ToString(new CultureInfo("ru-RU")));//максимальная серия выигрышных сделок
-            report.Add("");
-            report.Add(Math.Round(GetMaxDownPersent(deals), 6).ToString(new CultureInfo("ru-RU"))); //максимальная просадка в процентах
+                "",
+                GetLossDial(deals).ToString(new CultureInfo("ru-RU")), //проигрышных сделок
+                Math.Round(GetLossDialPersent(deals), 6).ToString(new CultureInfo("ru-RU")), //проигрышных сделок в %
+                                                                                             //report += Convert.ToDouble(GetAllLossInLossInPunkt(deals)).ToString(new CultureInfo("ru-RU")) + "\r\n"; //общий профит проигрышных сделок
+                Convert.ToDouble(GetAllMidleLossInLossInPunkt(deals)).ToString(new CultureInfo("ru-RU")),//средний профит в проигрышных сделках
+                Math.Round(GetAllMidleLossInLossInPersent(deals), 6).ToString(new CultureInfo("ru-RU")),//средний профит в процентах в проигрышных сделках
+                Convert.ToDouble(GetAllMidleLossInLossInPunktOnDepozit(deals)).ToString(new CultureInfo("ru-RU")), //средний профит в выигрышных сделках
+                Math.Round(GetAllMidleLossInLossInPersentOnDepozit(deals), 6).ToString(new CultureInfo("ru-RU")),//средний профит в процентах в выигрышных сделках
+                GetMaxLossSeries(deals).ToString(new CultureInfo("ru-RU")),//максимальная серия выигрышных сделок
+                "",
+                Math.Round(GetMaxDownPersent(deals), 6).ToString(new CultureInfo("ru-RU")) //максимальная просадка в процентах
+            };
 
             /*report += Math.Round(GetSharp(), 2).ToString(new CultureInfo("ru-RU"));
             */

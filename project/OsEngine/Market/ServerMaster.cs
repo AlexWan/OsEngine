@@ -52,27 +52,28 @@ namespace OsEngine.Market
         {
             get
             {
-                List<ServerType> serverTypes = new List<ServerType>();
+                List<ServerType> serverTypes = new List<ServerType>
+                {
+                    ServerType.QuikDde,
+                    ServerType.QuikLua,
+                    ServerType.SmartCom,
+                    ServerType.Plaza,
+                    ServerType.Transaq,
 
-                serverTypes.Add(ServerType.QuikDde);
-                serverTypes.Add(ServerType.QuikLua);
-                serverTypes.Add(ServerType.SmartCom);
-                serverTypes.Add(ServerType.Plaza);
-                serverTypes.Add(ServerType.Transaq);
+                    ServerType.Binance,
+                    ServerType.BitMex,
+                    ServerType.BitStamp,
+                    ServerType.Bitfinex,
+                    ServerType.Kraken,
 
-                serverTypes.Add(ServerType.Binance);
-                serverTypes.Add(ServerType.BitMex);
-                serverTypes.Add(ServerType.BitStamp);
-                serverTypes.Add(ServerType.Bitfinex);
-                serverTypes.Add(ServerType.Kraken);
+                    ServerType.InteractivBrokers,
+                    ServerType.NinjaTrader,
+                    ServerType.Lmax,
+                    ServerType.Oanda,
 
-                serverTypes.Add(ServerType.InteractivBrokers);
-                serverTypes.Add(ServerType.NinjaTrader);
-                serverTypes.Add(ServerType.Lmax);
-                serverTypes.Add(ServerType.Oanda);
-
-                serverTypes.Add(ServerType.Finam);
-                serverTypes.Add(ServerType.AstsBridge);
+                    ServerType.Finam,
+                    ServerType.AstsBridge
+                };
 
                 return serverTypes;
             }
@@ -221,10 +222,7 @@ namespace OsEngine.Market
 
                 _servers.Add(newServer);
 
-                if (ServerCreateEvent != null)
-                {
-                    ServerCreateEvent(newServer);
-                }
+                ServerCreateEvent?.Invoke(newServer);
 
                 SendNewLogMessage(OsLocalization.Market.Message3 + _servers[_servers.Count - 1].ServerType, LogMessageType.System);
             }
@@ -261,11 +259,8 @@ namespace OsEngine.Market
             {
                 _servers.Add(serv);
             }
-            
-            if (ServerCreateEvent != null)
-            {
-                ServerCreateEvent(serv);
-            }
+
+            ServerCreateEvent?.Invoke(serv);
             return serv;
         }
 
@@ -288,23 +283,24 @@ namespace OsEngine.Market
         /// <returns></returns>
         public static List<ServerType> GetServerTypes()
         {
-            List < ServerType > types = new List<ServerType>();
-
-            types.Add(ServerType.AstsBridge);
-            types.Add(ServerType.Binance);
-            types.Add(ServerType.BitMex);
-            types.Add(ServerType.BitStamp);
-            types.Add(ServerType.Bitfinex);
-            types.Add(ServerType.Finam);
-            types.Add(ServerType.InteractivBrokers);
-            types.Add(ServerType.Kraken);
-            types.Add(ServerType.Lmax);
-            types.Add(ServerType.NinjaTrader);
-            types.Add(ServerType.Oanda);
-            types.Add(ServerType.Plaza);
-            types.Add(ServerType.QuikDde);
-            types.Add(ServerType.QuikLua);
-            types.Add(ServerType.SmartCom);
+            List<ServerType> types = new List<ServerType>
+            {
+                ServerType.AstsBridge,
+                ServerType.Binance,
+                ServerType.BitMex,
+                ServerType.BitStamp,
+                ServerType.Bitfinex,
+                ServerType.Finam,
+                ServerType.InteractivBrokers,
+                ServerType.Kraken,
+                ServerType.Lmax,
+                ServerType.NinjaTrader,
+                ServerType.Oanda,
+                ServerType.Plaza,
+                ServerType.QuikDde,
+                ServerType.QuikLua,
+                ServerType.SmartCom
+            };
 
             return types;
         }

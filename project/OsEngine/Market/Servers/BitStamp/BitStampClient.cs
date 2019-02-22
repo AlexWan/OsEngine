@@ -94,12 +94,9 @@ namespace OsEngine.Market.Servers.BitStamp
 
             IsConnected = true;
 
-            if (Connected != null)
-            {
-                Connected();
-            }
+            Connected?.Invoke();
 
-// запускаем потоковые данные через WebSocket
+            // запускаем потоковые данные через WebSocket
 
             if (_pusher != null)
             {
@@ -129,10 +126,7 @@ namespace OsEngine.Market.Servers.BitStamp
                 _pusher.Disconnect();
             }
 
-            if (Disconnected != null)
-            {
-                Disconnected();
-            }
+            Disconnected?.Invoke();
 
             _isDisposed = true;
         }
@@ -253,10 +247,7 @@ namespace OsEngine.Market.Servers.BitStamp
         {
             SendLogMessage(error.ToString(), LogMessageType.Error);
 
-            if (NeadReconnectEvent != null)
-            {
-                NeadReconnectEvent();
-            }
+            NeadReconnectEvent?.Invoke();
         }
 
         public event Action NeadReconnectEvent;
@@ -266,10 +257,7 @@ namespace OsEngine.Market.Servers.BitStamp
         /// </summary>
         private void _pusher_ConnectionStateChanged(object sender, ConnectionState state)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent("Состояние сервера потоковых данных, " + state, LogMessageType.System);
-            }
+            LogMessageEvent?.Invoke("Состояние сервера потоковых данных, " + state, LogMessageType.System);
         }
 
         /// <summary>
@@ -299,10 +287,7 @@ namespace OsEngine.Market.Servers.BitStamp
                     depth.Bids.Add(bid);
                 }
 
-                if (UpdateMarketDepth != null)
-                {
-                    UpdateMarketDepth(depth);
-                }
+                UpdateMarketDepth?.Invoke(depth);
             }
             catch (Exception error)
             {
@@ -340,10 +325,7 @@ namespace OsEngine.Market.Servers.BitStamp
                     trade.Side = Side.Sell;
                 }
 
-                if (NewTradesEvent != null)
-                {
-                    NewTradesEvent(trade);
-                }
+                NewTradesEvent?.Invoke(trade);
             }
             catch (Exception error)
             {
@@ -417,10 +399,7 @@ namespace OsEngine.Market.Servers.BitStamp
                 }
                 catch (Exception error)
                 {
-                    if (LogMessageEvent != null)
-                    {
-                        LogMessageEvent(error.ToString(), LogMessageType.Error);
-                    }
+                    LogMessageEvent?.Invoke(error.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -437,10 +416,7 @@ namespace OsEngine.Market.Servers.BitStamp
                     var request = GetAuthenticatedRequest(Method.POST);
                     var response = new RestClient("https://www.bitstamp.net/api/v2/balance/").Execute(request);
 
-                    if (UpdatePortfolio != null)
-                    {
-                        UpdatePortfolio(JsonConvert.DeserializeObject<BalanceResponse>(response.Content));
-                    }
+                    UpdatePortfolio?.Invoke(JsonConvert.DeserializeObject<BalanceResponse>(response.Content));
 
                     return JsonConvert.DeserializeObject<BalanceResponse>(response.Content);
                 }
@@ -481,10 +457,7 @@ namespace OsEngine.Market.Servers.BitStamp
                     _osEngineOrders.RemoveAt(i);
                     i--;
 
-                    if (MyTradeEvent != null)
-                    {
-                        MyTradeEvent(trade);
-                    }
+                    MyTradeEvent?.Invoke(trade);
                 }
                 else if (response.status == "Finished" || response.status == null)
                 {
@@ -496,10 +469,7 @@ namespace OsEngine.Market.Servers.BitStamp
                     newOrder.Side = order.Side;
                     newOrder.State = OrderStateType.Cancel;
 
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(newOrder);
-                    }
+                    MyOrderEvent?.Invoke(newOrder);
 
                     _osEngineOrders.RemoveAt(i);
                     i--;
@@ -546,20 +516,14 @@ namespace OsEngine.Market.Servers.BitStamp
                     var request = GetAuthenticatedRequest(Method.GET);
                     var response = new RestClient("https://www.bitstamp.net/api/v2/trading-pairs-info/").Execute(request);
 
-                    if (UpdatePairs != null)
-                    {
-                        UpdatePairs(JsonConvert.DeserializeObject<List<PairInfoResponse>>(response.Content));
-                    }
+                    UpdatePairs?.Invoke(JsonConvert.DeserializeObject<List<PairInfoResponse>>(response.Content));
 
                     return JsonConvert.DeserializeObject<List<PairInfoResponse>>(response.Content);
                 }
                 catch (Exception ex)
                 {
-                    if (LogMessageEvent != null)
-                    {
-                        LogMessageEvent(ex.ToString(), LogMessageType.Error);
-                    }
-                    
+                    LogMessageEvent?.Invoke(ex.ToString(), LogMessageType.Error);
+
                     return null;
                 }
             }
@@ -671,11 +635,8 @@ namespace OsEngine.Market.Servers.BitStamp
                 newOrder.Side = order.Side;
                 newOrder.State = OrderStateType.Activ;
 
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(newOrder);
-                }
-                
+                MyOrderEvent?.Invoke(newOrder);
+
             }
             else
             {
@@ -686,10 +647,7 @@ namespace OsEngine.Market.Servers.BitStamp
                 newOrder.Side = order.Side;
                 newOrder.State = OrderStateType.Fail;
 
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(newOrder);
-                }
+                MyOrderEvent?.Invoke(newOrder);
             }
         }
 
@@ -779,10 +737,7 @@ namespace OsEngine.Market.Servers.BitStamp
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>

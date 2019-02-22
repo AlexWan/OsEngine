@@ -119,10 +119,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                 }
                 _serverConnectStatus = value;
 
-                if (ConnectStatusChangeEvent != null)
-                {
-                    ConnectStatusChangeEvent(_serverConnectStatus);
-                }
+                ConnectStatusChangeEvent?.Invoke(_serverConnectStatus);
             }
         }
 
@@ -727,10 +724,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
 
                                     security.NameClass = "FORTS";
 
-                                    if (UpdateSecurity != null)
-                                    {
-                                        UpdateSecurity(security);
-                                    }
+                                    UpdateSecurity?.Invoke(security);
                                 }
 
                                 catch (Exception error)
@@ -932,10 +926,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                                     positionOnBoard.ValueCurrent = replmsg["xpos"].asInt();
                                     positionOnBoard.ValueBlocked = positionOnBoard.ValueCurrent;
 
-                                    if (UpdatePosition != null)
-                                    {
-                                        UpdatePosition(positionOnBoard);
-                                    }
+                                    UpdatePosition?.Invoke(positionOnBoard);
                                 }
 
                                 catch (Exception error)
@@ -1004,10 +995,7 @@ Connection conn, Listener listener, Message msg)
                                     portfolio.ValueCurrent = Convert.ToDecimal(replmsg["money_amount"].asDecimal());
                                     portfolio.ValueBlocked = Convert.ToDecimal(replmsg["money_blocked"].asDecimal());
 
-                                    if (UpdatePortfolio != null)
-                                    {
-                                        UpdatePortfolio(portfolio);
-                                    }
+                                    UpdatePortfolio?.Invoke(portfolio);
                                 }
 
                                 catch (Exception error)
@@ -1186,10 +1174,7 @@ Connection conn, Listener listener, Message msg)
                                     }
 
 
-                                    if (NewTradeEvent != null)
-                                    {
-                                        NewTradeEvent(trade, _dealsOnLine);
-                                    }
+                                    NewTradeEvent?.Invoke(trade, _dealsOnLine);
                                 }
                                 catch (Exception error)
                                 {
@@ -1575,10 +1560,7 @@ Connection conn, Listener listener, Message msg)
                                         }
                                     }
 
-                                    if (NewMyTradeEvent != null)
-                                    {
-                                        NewMyTradeEvent(trade);
-                                    }
+                                    NewMyTradeEvent?.Invoke(trade);
                                 }
                                 catch (Exception error)
                                 {
@@ -1640,10 +1622,7 @@ Connection conn, Listener listener, Message msg)
                                         order.Side = Side.Sell;
                                     }
 
-                                    if (NewMyOrderEvent != null)
-                                    {
-                                        NewMyOrderEvent(order);
-                                    }
+                                    NewMyOrderEvent?.Invoke(order);
                                 }
                                 catch (Exception error)
                                 {
@@ -1868,10 +1847,7 @@ Connection conn, Listener listener, Message msg)
                                         order.State = OrderStateType.Fail;
                                     }
 
-                                    if (NewMyOrderEvent != null)
-                                    {
-                                        NewMyOrderEvent(order);
-                                    }
+                                    NewMyOrderEvent?.Invoke(order);
                                 }
                                 else if (msgData.MsgId == 102)
                                 {
@@ -1892,10 +1868,7 @@ Connection conn, Listener listener, Message msg)
                                         return 0;
                                     }
 
-                                    if (NewMyOrderEvent != null)
-                                    {
-                                        NewMyOrderEvent(order);
-                                    }
+                                    NewMyOrderEvent?.Invoke(order);
                                 }
                                 else if (msgData.MsgId == 99)
                                 {
@@ -2169,10 +2142,7 @@ Connection conn, Listener listener, Message msg)
         /// </summary>
         private void SendLogMessage(string message)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message);
-            }
+            LogMessageEvent?.Invoke(message);
         }
 
         /// <summary>

@@ -228,10 +228,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 {
                     _serverConnectStatus = value;
                     SendLogMessage(_serverConnectStatus + OsLocalization.Market.Message7, LogMessageType.Connect);
-                    if (ConnectStatusChangeEvent != null)
-                    {
-                        ConnectStatusChangeEvent(_serverConnectStatus.ToString());
-                    }
+                    ConnectStatusChangeEvent?.Invoke(_serverConnectStatus.ToString());
                 }
             }
         }
@@ -654,10 +651,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                         Order order;
                         if (_ordersToSend.TryDequeue(out order))
                         {
-                            if (NewOrderIncomeEvent != null)
-                            {
-                                NewOrderIncomeEvent(order);
-                            }
+                            NewOrderIncomeEvent?.Invoke(order);
                         }
                     }
                     else if (!_myTradesToSend.IsEmpty &&
@@ -667,10 +661,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
 
                         if (_myTradesToSend.TryDequeue(out myTrade))
                         {
-                            if (NewMyTradeEvent != null)
-                            {
-                                NewMyTradeEvent(myTrade);
-                            }
+                            NewMyTradeEvent?.Invoke(myTrade);
                         }
                     }
                     else if (!_tradesToSend.IsEmpty)
@@ -679,10 +670,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
 
                         if (_tradesToSend.TryDequeue(out trades))
                         {
-                            if (NewTradeEvent != null)
-                            {
-                                NewTradeEvent(trades);
-                            }
+                            NewTradeEvent?.Invoke(trades);
                         }
                     }
 
@@ -692,10 +680,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
 
                         if (_portfolioToSend.TryDequeue(out portfolio))
                         {
-                            if (PortfoliosChangeEvent != null)
-                            {
-                                PortfoliosChangeEvent(portfolio);
-                            }
+                            PortfoliosChangeEvent?.Invoke(portfolio);
                         }
                     }
 
@@ -705,10 +690,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
 
                         if (_securitiesToSend.TryDequeue(out security))
                         {
-                            if (SecuritiesChangeEvent != null)
-                            {
-                                SecuritiesChangeEvent(security);
-                            }
+                            SecuritiesChangeEvent?.Invoke(security);
                         }
                     }
                     else if (!_newServerTime.IsEmpty)
@@ -727,10 +709,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
 
                         if (_candleSeriesToSend.TryDequeue(out series))
                         {
-                            if (NewCandleIncomeEvent != null)
-                            {
-                                NewCandleIncomeEvent(series);
-                            }
+                            NewCandleIncomeEvent?.Invoke(series);
                         }
                     }
 
@@ -740,10 +719,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
 
                         if (_marketDepthsToSend.TryDequeue(out depth))
                         {
-                            if (NewMarketDepthEvent != null)
-                            {
-                                NewMarketDepthEvent(depth);
-                            }
+                            NewMarketDepthEvent?.Invoke(depth);
                         }
                     }
                     else
@@ -1566,8 +1542,10 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                         {
                             allTradesNew[i] = _allTrades[i];
                         }
-                        allTradesNew[allTradesNew.Length - 1] = new List<Trade>();
-                        allTradesNew[allTradesNew.Length - 1].Add(trade);
+                        allTradesNew[allTradesNew.Length - 1] = new List<Trade>
+                        {
+                            trade
+                        };
                         myList = allTradesNew[allTradesNew.Length - 1];
                         _allTrades = allTradesNew;
                     }
@@ -1812,10 +1790,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// </summary>
         private void SendLogMessage(string message,LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>

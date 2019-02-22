@@ -228,10 +228,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 _securities = new List<Security>();
                 _securities = securities;
 
-                if (SecurityEvent != null)
-                {
-                    SecurityEvent(_securities);
-                }
+                SecurityEvent?.Invoke(_securities);
             }
             catch (Exception error)
             {
@@ -325,10 +322,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     }
 
 
-                    if (PortfolioEvent != null)
-                    {
-                        PortfolioEvent(_portfolios);
-                    }
+                    PortfolioEvent?.Invoke(_portfolios);
 
                 }
             }
@@ -380,10 +374,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     }
                 }
 
-                if (PortfolioEvent != null)
-                {
-                    PortfolioEvent(_portfolios);
-                }
+                PortfolioEvent?.Invoke(_portfolios);
             }
         }
 
@@ -407,19 +398,13 @@ namespace OsEngine.Market.Servers.QuikLua
                 {
                     order.NumberUser = Convert.ToInt32(res);
 
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(order);
-                    }
+                    MyOrderEvent?.Invoke(order);
                 }
 
                 if (res < 0)
                 {
                     order.State = OrderStateType.Fail;
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(order);
-                    }
+                    MyOrderEvent?.Invoke(order);
                 }
 
             }
@@ -630,11 +615,8 @@ namespace OsEngine.Market.Servers.QuikLua
                     trade.Side = Convert.ToInt32(allTrade.Flags) == 1 ? Side.Sell : Side.Buy;
                     trade.Time = new DateTime(allTrade.Datetime.year, allTrade.Datetime.month, allTrade.Datetime.day,
                                               allTrade.Datetime.hour, allTrade.Datetime.min, allTrade.Datetime.sec);
-                    if (NewTradesEvent != null)
-                    {
-                        NewTradesEvent(trade);
-                    }
-                    
+                    NewTradesEvent?.Invoke(trade);
+
                     // перегружаем последним временем тика время сервера
                     ServerTime = trade.Time;
 
@@ -661,10 +643,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     needPortf.ValueBlocked = Convert.ToDecimal(futLimit.CbpLUsedForOrders + futLimit.CbpLUsedForPositions);
                     needPortf.Profit = Convert.ToDecimal(futLimit.VarMargin);
 
-                    if (PortfolioEvent != null)
-                    {
-                        PortfolioEvent(_portfolios);
-                    }
+                    PortfolioEvent?.Invoke(_portfolios);
                 }
             }
         }
@@ -689,10 +668,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
                     needPortfolio.SetNewPosition(newPos);
 
-                    if (PortfolioEvent != null)
-                    {
-                        PortfolioEvent(_portfolios);
-                    }
+                    PortfolioEvent?.Invoke(_portfolios);
                 }
 
             }
@@ -744,10 +720,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     });
                 }
 
-                if (MarketDepthEvent != null)
-                {
-                    MarketDepthEvent(myDepth);
-                }
+                MarketDepthEvent?.Invoke(myDepth);
             }
         }
 
@@ -818,10 +791,7 @@ namespace OsEngine.Market.Servers.QuikLua
                         order.Side = Side.Sell;
                     }
 
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(order);
-                    }
+                    MyOrderEvent?.Invoke(order);
                 }
                 catch (Exception error)
                 {
@@ -850,10 +820,7 @@ namespace OsEngine.Market.Servers.QuikLua
                         qTrade.QuikDateTime.min, qTrade.QuikDateTime.sec);
                     trade.Side = qTrade.Flags == OrderTradeFlags.IsSell ? Side.Sell : Side.Buy;
 
-                    if (MyTradeEvent != null)
-                    {
-                        MyTradeEvent(trade);
-                    }
+                    MyTradeEvent?.Invoke(trade);
                 }
                 catch (Exception error)
                 {
@@ -937,10 +904,7 @@ namespace OsEngine.Market.Servers.QuikLua
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>

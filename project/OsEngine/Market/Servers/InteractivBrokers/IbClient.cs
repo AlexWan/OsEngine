@@ -88,10 +88,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                     _listenThread.Start();
                 }
 
-                if (ConnectionSucsess != null)
-                {
-                    ConnectionSucsess();
-                }
+                ConnectionSucsess?.Invoke();
             }
             catch (Exception error)
             {
@@ -141,10 +138,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                     // ignore
                 }
             }
-            if (ConnectionFail != null)
-            {
-                ConnectionFail();
-            }
+            ConnectionFail?.Invoke();
 
         }
 
@@ -1062,10 +1056,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
 
             //int id, int position, int operation, int side, double price, int size
 
-            if (NewMarketDepth != null)
-            {
-                NewMarketDepth(requestId, position, operation, side, price, size);
-            }
+            NewMarketDepth?.Invoke(requestId, position, operation, side, price, size);
         }
 
         /// <summary>
@@ -1126,10 +1117,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 accountName = TcpReadString();
             }
 
-            if (NewPortfolioPosition != null)
-            {
-                NewPortfolioPosition(contract, accountName, position);
-            }
+            NewPortfolioPosition?.Invoke(contract, accountName, position);
         }
 
         /// <summary>
@@ -1160,10 +1148,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             if (msgVersion >= 3)
                 TcpReadDouble();
 
-            if (NewPortfolioPosition != null)
-            {
-                NewPortfolioPosition(contract, account, pos);
-            }
+            NewPortfolioPosition?.Invoke(contract, account, pos);
         }
 
         /// <summary>
@@ -1224,10 +1209,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             trade.Time = DateTime.Now;
             trade.SecurityNameCode = security.Symbol + "_" + security.SecType + "_" + security.Exchange;
 
-            if (NewTradeEvent != null)
-            {
-                NewTradeEvent(trade);
-            }
+            NewTradeEvent?.Invoke(trade);
         }
 
         /// <summary>
@@ -1371,16 +1353,10 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 trade.Volume = volume;
                 trade.Side = osOrder.Side;
 
-                if (NewMyTradeEvent != null)
-                {
-                    NewMyTradeEvent(trade);
-                }
+                NewMyTradeEvent?.Invoke(trade);
             }
 
-            if (NewOrderEvent != null)
-            {
-                NewOrderEvent(newOsOrder);
-            }
+            NewOrderEvent?.Invoke(newOsOrder);
         }
 
         /// <summary>
@@ -1471,10 +1447,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
 
             _serverSecurities.Add(contract);
 
-            if (NewContractEvent != null)
-            {
-                NewContractEvent(contract);
-            }
+            NewContractEvent?.Invoke(contract);
         }
 
         /// <summary>
@@ -1752,10 +1725,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>

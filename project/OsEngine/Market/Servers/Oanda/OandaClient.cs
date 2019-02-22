@@ -54,10 +54,7 @@ namespace OsEngine.Market.Servers.Oanda
 
                 _isConnected = true;
 
-                if (ConnectionSucsess != null)
-                {
-                    ConnectionSucsess();
-                }
+                ConnectionSucsess?.Invoke();
             }
 
         }
@@ -67,10 +64,7 @@ namespace OsEngine.Market.Servers.Oanda
         /// </summary>
         public void Disconnect()
         {
-            if (ConnectionFail != null)
-            {
-                ConnectionFail();
-            }
+            ConnectionFail?.Invoke();
         }
 
 // Портфели
@@ -100,10 +94,7 @@ namespace OsEngine.Market.Servers.Oanda
                     newPortfolio.ValueBegin = Convert.ToDecimal(account.balance);
                     newPortfolio.ValueCurrent = Convert.ToDecimal(account.balance);
 
-                    if (PortfolioChangeEvent != null)
-                    {
-                        PortfolioChangeEvent(newPortfolio);
-                    }
+                    PortfolioChangeEvent?.Invoke(newPortfolio);
                 }
             }
             catch (Exception error)
@@ -155,10 +146,7 @@ namespace OsEngine.Market.Servers.Oanda
                 _securities.Add(newSecurity);
             }
 
-            if (NewSecurityEvent != null)
-            {
-                NewSecurityEvent(_securities);
-            }
+            NewSecurityEvent?.Invoke(_securities);
         }
 
         public event Action<List<Security>> NewSecurityEvent;
@@ -205,10 +193,7 @@ namespace OsEngine.Market.Servers.Oanda
                 newOrder.TimeCallBack = DateTime.Parse(order.time);
                 newOrder.State = OrderStateType.Activ;
 
-                if (NewOrderEvent != null)
-                {
-                    NewOrderEvent(newOrder);
-                }
+                NewOrderEvent?.Invoke(newOrder);
             }
             else if (data.transaction.type == "LIMIT_ORDER_REJECT")
             {
@@ -222,10 +207,7 @@ namespace OsEngine.Market.Servers.Oanda
                 newOrder.State = OrderStateType.Fail;
                 newOrder.TimeCallBack = DateTime.Parse(order.time);
 
-                if (NewOrderEvent != null)
-                {
-                    NewOrderEvent(newOrder);
-                }
+                NewOrderEvent?.Invoke(newOrder);
             }
             else if (data.transaction.type == "ORDER_FILL")
             {
@@ -256,10 +238,7 @@ namespace OsEngine.Market.Servers.Oanda
                     trade.Side = Side.Sell;
                 }
 
-                if (NewMyTradeEvent != null)
-                {
-                    NewMyTradeEvent(trade);
-                }
+                NewMyTradeEvent?.Invoke(trade);
             }
             else if (data.transaction.type == "SystemOrderReject")
             {
@@ -267,10 +246,7 @@ namespace OsEngine.Market.Servers.Oanda
                // newOrder.NumberUser = order.NumberUser;
                 newOrder.State = OrderStateType.Fail;
                 //trade.Time = DateTime.Parse(order.time);
-                if (NewOrderEvent != null)
-                {
-                    NewOrderEvent(newOrder);
-                }
+                NewOrderEvent?.Invoke(newOrder);
             }
             else if (data.transaction.type == "ORDER_CANCEL")
             {
@@ -281,10 +257,7 @@ namespace OsEngine.Market.Servers.Oanda
                 newOrder.State = OrderStateType.Cancel;
                 newOrder.TimeCallBack = DateTime.Parse(order.time);
                 newOrder.TimeCancel = newOrder.TimeCallBack;
-                if (NewOrderEvent != null)
-                {
-                    NewOrderEvent(newOrder);
-                }
+                NewOrderEvent?.Invoke(newOrder);
             }
         }
 
@@ -323,10 +296,7 @@ namespace OsEngine.Market.Servers.Oanda
             }
 
 
-            if (MarketDepthChangeEvent != null)
-            {
-                MarketDepthChangeEvent(depth);
-            }
+            MarketDepthChangeEvent?.Invoke(depth);
         }
 
 // работа с ордерами
@@ -611,10 +581,7 @@ namespace OsEngine.Market.Servers.Oanda
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>

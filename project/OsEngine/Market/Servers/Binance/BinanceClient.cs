@@ -56,10 +56,7 @@ namespace OsEngine.Market.Servers.Binance
 
             IsConnected = true;
 
-            if (Connected != null)
-            {
-                Connected();
-            }
+            Connected?.Invoke();
 
             Thread converter = new Thread(Converter);
             converter.CurrentCulture = new CultureInfo("ru-RU");
@@ -134,10 +131,7 @@ namespace OsEngine.Market.Servers.Binance
             }
             IsConnected = false;
 
-            if (Disconnected != null)
-            {
-                Disconnected();
-            }
+            Disconnected?.Invoke();
 
             _isDisposed = true;
         }
@@ -223,10 +217,7 @@ namespace OsEngine.Market.Servers.Binance
                     }
 
                     AccountResponse resp = JsonConvert.DeserializeAnonymousType(res, new AccountResponse());
-                    if (NewPortfolio != null)
-                    {
-                        NewPortfolio(resp);
-                    }
+                    NewPortfolio?.Invoke(resp);
                     return resp;
                 }
                 catch (Exception ex)
@@ -250,19 +241,13 @@ namespace OsEngine.Market.Servers.Binance
 
                     SecurityResponce secResp = JsonConvert.DeserializeAnonymousType(res, new SecurityResponce());
 
-                    if (UpdatePairs != null)
-                    {
-                        UpdatePairs(secResp);
-                    }
+                    UpdatePairs?.Invoke(secResp);
 
                     return secResp;
                 }
                 catch (Exception ex)
                 {
-                    if (LogMessageEvent != null)
-                    {
-                        LogMessageEvent(ex.ToString(), LogMessageType.Error);
-                    }
+                    LogMessageEvent?.Invoke(ex.ToString(), LogMessageType.Error);
 
                     return null;
                 }
@@ -394,8 +379,10 @@ namespace OsEngine.Market.Servers.Binance
 
             if (needTf != "2m" && needTf != "10m" && needTf != "20m" && needTf != "45m")
             {
-                var param = new Dictionary<string, string>();
-                param.Add("symbol=" + nameSec.ToUpper(), "&interval=" + needTf + "&startTime=" + startTime + "&endTime=" + endTime);
+                var param = new Dictionary<string, string>
+                {
+                    { "symbol=" + nameSec.ToUpper(), "&interval=" + needTf + "&startTime=" + startTime + "&endTime=" + endTime }
+                };
 
                 var res = CreateQuery(Method.GET, endPoint, param, false);
 
@@ -407,8 +394,10 @@ namespace OsEngine.Market.Servers.Binance
             {
                 if (needTf == "2m")
                 {
-                    var param = new Dictionary<string, string>();
-                    param.Add("symbol=" + nameSec.ToUpper(), "&interval=1m" + "&startTime=" + startTime + "&endTime=" + endTime);
+                    var param = new Dictionary<string, string>
+                    {
+                        { "symbol=" + nameSec.ToUpper(), "&interval=1m" + "&startTime=" + startTime + "&endTime=" + endTime }
+                    };
                     var res = CreateQuery(Method.GET, endPoint, param, false);
                     var candles = _deserializeCandles(res);
 
@@ -417,8 +406,10 @@ namespace OsEngine.Market.Servers.Binance
                 }
                 else if (needTf == "10m")
                 {
-                    var param = new Dictionary<string, string>();
-                    param.Add("symbol=" + nameSec.ToUpper(), "&interval=5m" + "&startTime=" + startTime + "&endTime=" + endTime);
+                    var param = new Dictionary<string, string>
+                    {
+                        { "symbol=" + nameSec.ToUpper(), "&interval=5m" + "&startTime=" + startTime + "&endTime=" + endTime }
+                    };
                     var res = CreateQuery(Method.GET, endPoint, param, false);
                     var candles = _deserializeCandles(res);
                     var newCandles = BuildCandles(candles, 10, 5);
@@ -426,8 +417,10 @@ namespace OsEngine.Market.Servers.Binance
                 }
                 else if (needTf == "20m")
                 {
-                    var param = new Dictionary<string, string>();
-                    param.Add("symbol=" + nameSec.ToUpper(), "&interval=5m" + "&startTime=" + startTime + "&endTime=" + endTime);
+                    var param = new Dictionary<string, string>
+                    {
+                        { "symbol=" + nameSec.ToUpper(), "&interval=5m" + "&startTime=" + startTime + "&endTime=" + endTime }
+                    };
                     var res = CreateQuery(Method.GET, endPoint, param, false);
                     var candles = _deserializeCandles(res);
                     var newCandles = BuildCandles(candles, 20, 5);
@@ -435,8 +428,10 @@ namespace OsEngine.Market.Servers.Binance
                 }
                 else if (needTf == "45m")
                 {
-                    var param = new Dictionary<string, string>();
-                    param.Add("symbol=" + nameSec.ToUpper(), "&interval=15m" + "&startTime=" + startTime + "&endTime=" + endTime);
+                    var param = new Dictionary<string, string>
+                    {
+                        { "symbol=" + nameSec.ToUpper(), "&interval=15m" + "&startTime=" + startTime + "&endTime=" + endTime }
+                    };
                     var res = CreateQuery(Method.GET, endPoint, param, false);
                     var candles = _deserializeCandles(res);
                     var newCandles = BuildCandles(candles, 45, 15);
@@ -496,9 +491,11 @@ namespace OsEngine.Market.Servers.Binance
 
             if (needTf != "2m" && needTf != "10m" && needTf != "20m" && needTf != "45m")
             {
-                var param = new Dictionary<string, string>();
-                param.Add("symbol=" + nameSec.ToUpper(), "&interval=" + needTf);
-               
+                var param = new Dictionary<string, string>
+                {
+                    { "symbol=" + nameSec.ToUpper(), "&interval=" + needTf }
+                };
+
                 var res = CreateQuery(Method.GET, endPoint, param, false);
 
                 var candles = _deserializeCandles(res);
@@ -509,8 +506,10 @@ namespace OsEngine.Market.Servers.Binance
             {
                 if (needTf == "2m")
                 {
-                    var param = new Dictionary<string, string>();
-                    param.Add("symbol=" + nameSec.ToUpper(), "&interval=1m");
+                    var param = new Dictionary<string, string>
+                    {
+                        { "symbol=" + nameSec.ToUpper(), "&interval=1m" }
+                    };
                     var res = CreateQuery(Method.GET, endPoint, param, false);
                     var candles = _deserializeCandles(res);
 
@@ -519,8 +518,10 @@ namespace OsEngine.Market.Servers.Binance
                 }
                 else if (needTf == "10m")
                 {
-                    var param = new Dictionary<string, string>();
-                    param.Add("symbol=" + nameSec.ToUpper(), "&interval=5m");
+                    var param = new Dictionary<string, string>
+                    {
+                        { "symbol=" + nameSec.ToUpper(), "&interval=5m" }
+                    };
                     var res = CreateQuery(Method.GET, endPoint, param, false);
                     var candles = _deserializeCandles(res);
                     var newCandles = BuildCandles(candles, 10, 5);
@@ -528,8 +529,10 @@ namespace OsEngine.Market.Servers.Binance
                 }
                 else if (needTf == "20m")
                 {
-                    var param = new Dictionary<string, string>();
-                    param.Add("symbol=" + nameSec.ToUpper(), "&interval=5m");
+                    var param = new Dictionary<string, string>
+                    {
+                        { "symbol=" + nameSec.ToUpper(), "&interval=5m" }
+                    };
                     var res = CreateQuery(Method.GET, endPoint, param, false);
                     var candles = _deserializeCandles(res);
                     var newCandles = BuildCandles(candles, 20, 5);
@@ -537,8 +540,10 @@ namespace OsEngine.Market.Servers.Binance
                 }
                 else if (needTf == "45m")
                 {
-                    var param = new Dictionary<string, string>();
-                    param.Add("symbol=" + nameSec.ToUpper(), "&interval=15m");
+                    var param = new Dictionary<string, string>
+                    {
+                        { "symbol=" + nameSec.ToUpper(), "&interval=15m" }
+                    };
                     var res = CreateQuery(Method.GET, endPoint, param, false);
                     var candles = _deserializeCandles(res);
                     var newCandles = BuildCandles(candles, 45, 15);
@@ -730,19 +735,24 @@ namespace OsEngine.Market.Servers.Binance
                         return;
                     }
 
-                    Dictionary<string, string> param = new Dictionary<string, string>();
-
-                    param.Add("symbol=", order.SecurityNameCode.ToUpper());
-                    param.Add("&side=", order.Side == Side.Buy ? "BUY" : "SELL");
-                    param.Add("&type=", "LIMIT");
-                    param.Add("&timeInForce=", "GTC");
-                    param.Add("&newClientOrderId=", order.NumberUser.ToString());
-                    param.Add("&quantity=",
-                        order.Volume.ToString(CultureInfo.InvariantCulture)
-                            .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
-                    param.Add("&price=",
-                        order.Price.ToString(CultureInfo.InvariantCulture)
-                            .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
+                    Dictionary<string, string> param = new Dictionary<string, string>
+                    {
+                        { "symbol=", order.SecurityNameCode.ToUpper() },
+                        { "&side=", order.Side == Side.Buy ? "BUY" : "SELL" },
+                        { "&type=", "LIMIT" },
+                        { "&timeInForce=", "GTC" },
+                        { "&newClientOrderId=", order.NumberUser.ToString() },
+                        {
+                            "&quantity=",
+                            order.Volume.ToString(CultureInfo.InvariantCulture)
+                            .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, ".")
+                        },
+                        {
+                            "&price=",
+                            order.Price.ToString(CultureInfo.InvariantCulture)
+                            .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, ".")
+                        }
+                    };
 
                     var res = CreateQuery(Method.POST, "api/v3/order", param, true);
 
@@ -753,10 +763,7 @@ namespace OsEngine.Market.Servers.Binance
                     else
                     {
                         order.State = OrderStateType.Fail;
-                        if (MyOrderEvent != null)
-                        {
-                            MyOrderEvent(order);
-                        }
+                        MyOrderEvent?.Invoke(order);
                     }
                 }
                 catch (Exception ex)
@@ -777,10 +784,11 @@ namespace OsEngine.Market.Servers.Binance
             {
                 try
                 {
-                    Dictionary<string, string> param = new Dictionary<string, string>();
-
-                    param.Add("symbol=", order.SecurityNameCode.ToUpper());
-                    param.Add("&orderId=", order.NumberMarket);
+                    Dictionary<string, string> param = new Dictionary<string, string>
+                    {
+                        { "symbol=", order.SecurityNameCode.ToUpper() },
+                        { "&orderId=", order.NumberMarket }
+                    };
 
                     var res = CreateQuery(Method.DELETE, "api/v3/order", param, true);
                 }
@@ -814,11 +822,13 @@ namespace OsEngine.Market.Servers.Binance
 
             for (int i = 0; i < namesSec.Count; i++)
             {
-                var param = new Dictionary<string, string>();
-                param.Add("symbol=", namesSec[i].ToUpper());
-                //param.Add("&recvWindow=" , "100");
-                //param.Add("&limit=", GetNonce());
-                param.Add("&limit=", "500");
+                var param = new Dictionary<string, string>
+                {
+                    { "symbol=", namesSec[i].ToUpper() },
+                    //param.Add("&recvWindow=" , "100");
+                    //param.Add("&limit=", GetNonce());
+                    { "&limit=", "500" }
+                };
                 //"symbol={symbol.ToUpper()}&recvWindow={recvWindow}"
 
                 var res = CreateQuery(Method.GET, endPoint, param, true);
@@ -855,11 +865,8 @@ namespace OsEngine.Market.Servers.Binance
                     trade.SecurityNameCode = oldOpenOrders[i].SecurityNameCode;
                     trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(myOrder.updateTime));
                     trade.Side = oldOpenOrders[i].Side;
-                    
-                    if (MyTradeEvent != null)
-                    {
-                        MyTradeEvent(trade);
-                    }
+
+                    MyTradeEvent?.Invoke(trade);
                 }
                 else
                 {
@@ -878,10 +885,7 @@ namespace OsEngine.Market.Servers.Binance
                     newOrder.ServerType = ServerType.Binance;
                     newOrder.PortfolioNumber = oldOpenOrders[i].PortfolioNumber;
 
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(newOrder);
-                    }
+                    MyOrderEvent?.Invoke(newOrder);
                 }
             }
             return true;
@@ -926,10 +930,7 @@ namespace OsEngine.Market.Servers.Binance
 
                 _wsStreams.Clear();
 
-                if (Disconnected != null)
-                {
-                    Disconnected();
-                }
+                Disconnected?.Invoke();
             }
         }
 
@@ -1036,10 +1037,7 @@ namespace OsEngine.Market.Servers.Binance
                                     newOrder.ServerType = ServerType.Binance;
                                     newOrder.PortfolioNumber = newOrder.SecurityNameCode;
 
-                                    if (MyOrderEvent != null)
-                                    {
-                                        MyOrderEvent(newOrder);
-                                    }
+                                    MyOrderEvent?.Invoke(newOrder);
                                 }
                                 else if (order.x == "CANCELED")
                                 {
@@ -1056,10 +1054,7 @@ namespace OsEngine.Market.Servers.Binance
                                     newOrder.ServerType = ServerType.Binance;
                                     newOrder.PortfolioNumber = newOrder.SecurityNameCode;
 
-                                    if (MyOrderEvent != null)
-                                    {
-                                        MyOrderEvent(newOrder);
-                                    }
+                                    MyOrderEvent?.Invoke(newOrder);
                                 }
                                 else if (order.x == "REJECTED")
                                 {
@@ -1075,10 +1070,7 @@ namespace OsEngine.Market.Servers.Binance
                                     newOrder.ServerType = ServerType.Binance;
                                     newOrder.PortfolioNumber = newOrder.SecurityNameCode;
 
-                                    if (MyOrderEvent != null)
-                                    {
-                                        MyOrderEvent(newOrder);
-                                    }
+                                    MyOrderEvent?.Invoke(newOrder);
                                 }
                                 else if (order.x == "TRADE")
                                 {
@@ -1092,10 +1084,7 @@ namespace OsEngine.Market.Servers.Binance
                                     trade.SecurityNameCode = order.s;
                                     trade.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
 
-                                    if (MyTradeEvent != null)
-                                    {
-                                        MyTradeEvent(trade);
-                                    }
+                                    MyTradeEvent?.Invoke(trade);
                                 }
                                 else if (order.x == "EXPIRED")
                                 {
@@ -1112,10 +1101,7 @@ namespace OsEngine.Market.Servers.Binance
                                     newOrder.ServerType = ServerType.Binance;
                                     newOrder.PortfolioNumber = newOrder.SecurityNameCode;
 
-                                    if (MyOrderEvent != null)
-                                    {
-                                        MyOrderEvent(newOrder);
-                                    }
+                                    MyOrderEvent?.Invoke(newOrder);
                                 }
 
                                 continue;
@@ -1125,10 +1111,7 @@ namespace OsEngine.Market.Servers.Binance
                             {
                                 var portfolios = JsonConvert.DeserializeAnonymousType(mes, new OutboundAccountInfo());
 
-                                if (UpdatePortfolio != null)
-                                {
-                                    UpdatePortfolio(portfolios);
-                                }
+                                UpdatePortfolio?.Invoke(portfolios);
                                 continue;
                             }
                         }
@@ -1175,10 +1158,7 @@ namespace OsEngine.Market.Servers.Binance
                             {
                                 var quotes = JsonConvert.DeserializeAnonymousType(mes, new TradeResponse());
 
-                                if (NewTradesEvent != null)
-                                {
-                                    NewTradesEvent(quotes);
-                                }
+                                NewTradesEvent?.Invoke(quotes);
                                 continue;
                             }
 
@@ -1186,10 +1166,7 @@ namespace OsEngine.Market.Servers.Binance
                             {
                                 var quotes = JsonConvert.DeserializeAnonymousType(mes, new DepthResponse());
 
-                                if (UpdateMarketDepth != null)
-                                {
-                                    UpdateMarketDepth(quotes);
-                                }
+                                UpdateMarketDepth?.Invoke(quotes);
                                 continue;
                             }
                         }
@@ -1267,10 +1244,7 @@ namespace OsEngine.Market.Servers.Binance
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>

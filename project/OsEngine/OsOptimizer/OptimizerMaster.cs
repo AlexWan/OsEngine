@@ -191,11 +191,8 @@ namespace OsEngine.OsOptimizer
                 bot.Delete();
             }
 
-            if (StrategyNamesReadyEvent != null)
-            {
 
-                StrategyNamesReadyEvent(_namesWhithParams);
-            }
+            StrategyNamesReadyEvent?.Invoke(_namesWhithParams);
         }
 
         /// <summary>
@@ -225,10 +222,7 @@ namespace OsEngine.OsOptimizer
         void _optimizerExecutor_TestReadyEvent(List<BotPanel> bots, List<BotPanel> botsOutOfSample)
         {
             PrimeProgressBarStatus.CurrentValue = PrimeProgressBarStatus.MaxValue;
-            if (TestReadyEvent != null)
-            {
-                TestReadyEvent(bots,botsOutOfSample);
-            }
+            TestReadyEvent?.Invoke(bots, botsOutOfSample);
         }
 
         /// <summary>
@@ -301,10 +295,7 @@ namespace OsEngine.OsOptimizer
         /// <param name="securities">новый список бумаг</param>
         void _storage_SecuritiesChangeEvent(List<Security> securities)
         {
-            if (NewSecurityEvent != null)
-            {
-                NewSecurityEvent(securities);
-            }
+            NewSecurityEvent?.Invoke(securities);
 
             TimeStart = Storage.TimeStart;
             TimeEnd = Storage.TimeEnd;
@@ -570,10 +561,7 @@ namespace OsEngine.OsOptimizer
                 _timeStart = value;
                 Save();
 
-                if (DateTimeStartEndChange != null)
-                {
-                    DateTimeStartEndChange();
-                }
+                DateTimeStartEndChange?.Invoke();
             }
         }
         private DateTime _timeStart;
@@ -588,10 +576,7 @@ namespace OsEngine.OsOptimizer
             {
                 _timeEnd = value; 
                 Save();
-                if (DateTimeStartEndChange != null)
-                {
-                    DateTimeStartEndChange();
-                }
+                DateTimeStartEndChange?.Invoke();
             }
         }
         private DateTime _timeEnd;
@@ -830,10 +815,7 @@ namespace OsEngine.OsOptimizer
             {
                 MessageBox.Show(OsLocalization.Optimizer.Message14);
                 SendLogMessage(OsLocalization.Optimizer.Message14, LogMessageType.System);
-                if (NeadToMoveUiToEvent != null)
-                {
-                    NeadToMoveUiToEvent(NeadToMoveUiTo.Fazes);
-                }
+                NeadToMoveUiToEvent?.Invoke(NeadToMoveUiTo.Fazes);
                 return false;
             }
 
@@ -843,10 +825,7 @@ namespace OsEngine.OsOptimizer
             {
                 MessageBox.Show(OsLocalization.Optimizer.Message15);
                 SendLogMessage(OsLocalization.Optimizer.Message15, LogMessageType.System);
-                if (NeadToMoveUiToEvent != null)
-                {
-                    NeadToMoveUiToEvent(NeadToMoveUiTo.TabsAndTimeFrames);
-                }
+                NeadToMoveUiToEvent?.Invoke(NeadToMoveUiTo.TabsAndTimeFrames);
                 return false;
             }
 
@@ -857,10 +836,7 @@ namespace OsEngine.OsOptimizer
                 MessageBox.Show(OsLocalization.Optimizer.Message16);
                 SendLogMessage(OsLocalization.Optimizer.Message16, LogMessageType.System);
 
-                if (NeadToMoveUiToEvent != null)
-                {
-                    NeadToMoveUiToEvent(NeadToMoveUiTo.Storage);
-                }
+                NeadToMoveUiToEvent?.Invoke(NeadToMoveUiTo.Storage);
                 return false;
             }
 
@@ -868,10 +844,7 @@ namespace OsEngine.OsOptimizer
             {
                 MessageBox.Show(OsLocalization.Optimizer.Message17);
                 SendLogMessage(OsLocalization.Optimizer.Message17, LogMessageType.System);
-                if (NeadToMoveUiToEvent != null)
-                {
-                    NeadToMoveUiToEvent(NeadToMoveUiTo.NameStrategy);
-                }
+                NeadToMoveUiToEvent?.Invoke(NeadToMoveUiTo.NameStrategy);
                 return false;
             }
 
@@ -890,10 +863,7 @@ namespace OsEngine.OsOptimizer
             {
                 MessageBox.Show(OsLocalization.Optimizer.Message18);
                 SendLogMessage(OsLocalization.Optimizer.Message18, LogMessageType.System);
-                if (NeadToMoveUiToEvent != null)
-                {
-                    NeadToMoveUiToEvent(NeadToMoveUiTo.Parametrs);
-                }
+                NeadToMoveUiToEvent?.Invoke(NeadToMoveUiTo.Parametrs);
                 return false;
             }
 
@@ -907,10 +877,7 @@ namespace OsEngine.OsOptimizer
         /// <param name="moveUiTo">место для перемещения</param>
         void _optimizerExecutor_NeadToMoveUiToEvent(NeadToMoveUiTo moveUiTo)
         {
-            if (NeadToMoveUiToEvent != null)
-            {
-                NeadToMoveUiToEvent(moveUiTo);
-            }
+            NeadToMoveUiToEvent?.Invoke(moveUiTo);
         }
 
         /// <summary>
@@ -940,10 +907,7 @@ namespace OsEngine.OsOptimizer
         /// <param name="type">тип сообщения</param>
         public void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message,type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>

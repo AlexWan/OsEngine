@@ -321,10 +321,7 @@ namespace OsEngine.OsTrader.Panels
 
                 _log.Delete();
 
-                if (DeleteEvent != null)
-                {
-                    DeleteEvent();
-                }
+                DeleteEvent?.Invoke();
             }
             catch (Exception error)
             {
@@ -684,11 +681,8 @@ namespace OsEngine.OsTrader.Panels
             {
                 SaveParametrs();
             }
-            
-            if (ParametrsChangeByUser != null)
-            {
-                ParametrsChangeByUser();
-            }
+
+            ParametrsChangeByUser?.Invoke();
         }
 
         /// <summary>

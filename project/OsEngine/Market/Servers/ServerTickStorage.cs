@@ -161,23 +161,11 @@ namespace OsEngine.Market.Servers
                         }
 
                         int lastSecond = allTrades[i1][tradeInfo.LastSaveIndex].Time.Second;
-                        int lastMillisecond = allTrades[i1][tradeInfo.LastSaveIndex].MicroSeconds;
 
                         StreamWriter writer =
                             new StreamWriter(_pathName + @"\" + allTrades[i1][0].SecurityNameCode + ".txt", true);
                         for (int i = tradeInfo.LastSaveIndex; i < allTrades[i1].Count - 1; i++)
                         {
-                            if (allTrades[i1][i].MicroSeconds == 0)
-                            { // генерим какое-то время микросекунд, если нам коннектор их не выдал
-                                if (lastSecond != allTrades[i1][i].Time.Second)
-                                {
-                                    lastMillisecond = 0;
-                                    lastSecond = allTrades[i1][i].Time.Second;
-                                }
-
-                                allTrades[i1][i].MicroSeconds = lastMillisecond += 10;
-                            }
-
                             writer.WriteLine(allTrades[i1][i].GetSaveString());
                         }
                         tradeInfo.LastSaveIndex = allTrades[i1].Count - 1;
@@ -302,10 +290,7 @@ namespace OsEngine.Market.Servers
                     reader.Close();
                 }
 
-                if (TickLoadedEvent != null)
-                {
-                    TickLoadedEvent(allTrades);
-                }
+                TickLoadedEvent?.Invoke(allTrades);
             }
             catch (Exception error)
             {

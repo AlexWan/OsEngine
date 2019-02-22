@@ -23,10 +23,11 @@ namespace OsEngine.Language
 
         public static List<OsLocalType> GetExistLocalizationTypes()
         {
-            List<OsLocalType> localizations = new List<OsLocalType>();
-
-            localizations.Add(OsLocalType.Eng);
-            localizations.Add(OsLocalType.Ru);
+            List<OsLocalType> localizations = new List<OsLocalType>
+            {
+                OsLocalType.Eng,
+                OsLocalType.Ru
+            };
 
             return localizations;
         }

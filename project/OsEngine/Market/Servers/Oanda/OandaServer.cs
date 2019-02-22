@@ -184,18 +184,12 @@ namespace OsEngine.Market.Servers.Oanda
 
         private void ClientOnMarketDepthChangeEvent(MarketDepth marketDepth)
         {
-            if (MarketDepthEvent != null)
-            {
-                MarketDepthEvent(marketDepth);
-            }
+            MarketDepthEvent?.Invoke(marketDepth);
         }
 
         private void ClientOnNewSecurityEvent(List<Security> securities)
         {
-            if (SecurityEvent != null)
-            {
-                SecurityEvent(securities);
-            }
+            SecurityEvent?.Invoke(securities);
         }
 
         private List<Portfolio> _portfolios;
@@ -217,34 +211,22 @@ namespace OsEngine.Market.Servers.Oanda
                 _portfolios.Add(portfolio);
             }
 
-            if (PortfolioEvent != null)
-            {
-                PortfolioEvent(_portfolios);
-            }
+            PortfolioEvent?.Invoke(_portfolios);
         }
 
         private void ClientOnNewTradeEvent(Trade trade)
         {
-            if (NewTradesEvent != null)
-            {
-                NewTradesEvent(trade);
-            }
+            NewTradesEvent?.Invoke(trade);
         }
 
         private void ClientOnNewOrderEvent(Order order)
         {
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(order);
-            }
+            MyOrderEvent?.Invoke(order);
         }
 
         private void ClientOnNewMyTradeEvent(MyTrade myTrade)
         {
-            if (MyTradeEvent != null)
-            {
-                MyTradeEvent(myTrade);
-            }
+            MyTradeEvent?.Invoke(myTrade);
         }
 
         private void ClientOnLogMessageEvent(string message, LogMessageType type)
@@ -254,18 +236,12 @@ namespace OsEngine.Market.Servers.Oanda
 
         private void ClientOnConnectionSucsess()
         {
-            if (ConnectEvent != null)
-            {
-                ConnectEvent();
-            }
+            ConnectEvent?.Invoke();
         }
 
         private void ClientOnConnectionFail()
         {
-            if (DisconnectEvent != null)
-            {
-                DisconnectEvent();
-            }
+            DisconnectEvent?.Invoke();
         }
 
         // исходящие события
@@ -317,10 +293,7 @@ namespace OsEngine.Market.Servers.Oanda
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>

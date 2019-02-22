@@ -274,10 +274,7 @@ namespace OsEngine.OsTrader.RiskManager
                 {
                     IsActiv = false;
 
-                    if (RiskManagerAlarmEvent != null)
-                    {
-                        RiskManagerAlarmEvent(ReactionType);
-                    }
+                    RiskManagerAlarmEvent?.Invoke(ReactionType);
                 }
             }
             catch (Exception error)

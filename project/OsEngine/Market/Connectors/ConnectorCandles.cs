@@ -135,15 +135,15 @@ namespace OsEngine.Market.Connectors
                 _mySeries.Stop();
             }
 
-            if (_myServer != null)
+            if (MyServer != null)
             {
-                _myServer.NewBidAscIncomeEvent -= ConnectorBotNewBidAscIncomeEvent;
-                _myServer.NewMyTradeEvent -= ConnectorBot_NewMyTradeEvent;
-                _myServer.NewOrderIncomeEvent -= ConnectorBot_NewOrderIncomeEvent;
-                _myServer.NewMarketDepthEvent -= ConnectorBot_NewMarketDepthEvent;
-                _myServer.NewTradeEvent -= ConnectorBot_NewTradeEvent;
-                _myServer.TimeServerChangeEvent -= myServer_TimeServerChangeEvent;
-                _myServer.NeadToReconnectEvent -= _myServer_NeadToReconnectEvent;
+                MyServer.NewBidAscIncomeEvent -= ConnectorBotNewBidAscIncomeEvent;
+                MyServer.NewMyTradeEvent -= ConnectorBot_NewMyTradeEvent;
+                MyServer.NewOrderIncomeEvent -= ConnectorBot_NewOrderIncomeEvent;
+                MyServer.NewMarketDepthEvent -= ConnectorBot_NewMarketDepthEvent;
+                MyServer.NewTradeEvent -= ConnectorBot_NewTradeEvent;
+                MyServer.TimeServerChangeEvent -= myServer_TimeServerChangeEvent;
+                MyServer.NeadToReconnectEvent -= _myServer_NeadToReconnectEvent;
             }
 
             _neadToStopThread = true;
@@ -198,9 +198,9 @@ namespace OsEngine.Market.Connectors
             {
                 try
                 {
-                    if (_myServer != null)
+                    if (MyServer != null)
                     {
-                        return _myServer.GetPortfolioForName(PortfolioName);
+                        return MyServer.GetPortfolioForName(PortfolioName);
                     }
                     return null;
                 }
@@ -240,9 +240,9 @@ namespace OsEngine.Market.Connectors
             {
                 try
                 {
-                    if (_myServer != null)
+                    if (MyServer != null)
                     {
-                        return _myServer.GetSecurityForName(_namePaper);
+                        return MyServer.GetSecurityForName(_namePaper);
                     }
                 }
                 catch (Exception error)
@@ -433,11 +433,7 @@ namespace OsEngine.Market.Connectors
         /// <summary>
         /// сервер через который идёт торговля
         /// </summary>
-        public IServer MyServer
-        {
-            get { return _myServer; }
-        }
-        private IServer _myServer;
+        public IServer MyServer { get; private set; }
 
         /// <summary>
         /// включено ли исполнение сделок в режиме эмуляции
@@ -533,10 +529,7 @@ namespace OsEngine.Market.Connectors
 
                 Save();
 
-                if (ConnectorStartedReconnectEvent != null)
-                {
-                    ConnectorStartedReconnectEvent(NamePaper, TimeFrame, TimeFrameTimeSpan, PortfolioName, ServerType);
-                }
+                ConnectorStartedReconnectEvent?.Invoke(NamePaper, TimeFrame, TimeFrameTimeSpan, PortfolioName, ServerType);
 
 
                 if (_subscrabler == null)
@@ -547,10 +540,7 @@ namespace OsEngine.Market.Connectors
                     _subscrabler.Name = "ConnectorSubscrableThread_" + UniqName; 
                     _subscrabler.Start();
 
-                    if (NewCandlesChangeEvent != null)
-                    {
-                        NewCandlesChangeEvent(null);
-                    }
+                    NewCandlesChangeEvent?.Invoke(null);
                 }
             }
             catch (Exception error)
@@ -606,7 +596,7 @@ namespace OsEngine.Market.Connectors
 
                     try
                     {
-                        _myServer = servers.Find(server => server.ServerType == ServerType);
+                        MyServer = servers.Find(server => server.ServerType == ServerType);
                     }
                     catch
                     {
@@ -614,7 +604,7 @@ namespace OsEngine.Market.Connectors
                         continue;
                     }
 
-                    if (_myServer == null)
+                    if (MyServer == null)
                     {
                         if (ServerType != ServerType.None)
                         {
@@ -624,32 +614,32 @@ namespace OsEngine.Market.Connectors
                     }
                     else
                     {
-                        _myServer.NewBidAscIncomeEvent -= ConnectorBotNewBidAscIncomeEvent;
-                        _myServer.NewMyTradeEvent -= ConnectorBot_NewMyTradeEvent;
-                        _myServer.NewOrderIncomeEvent -= ConnectorBot_NewOrderIncomeEvent;
-                        _myServer.NewMarketDepthEvent -= ConnectorBot_NewMarketDepthEvent;
-                        _myServer.NewTradeEvent -= ConnectorBot_NewTradeEvent;
-                        _myServer.TimeServerChangeEvent -= myServer_TimeServerChangeEvent;
-                        _myServer.NeadToReconnectEvent -= _myServer_NeadToReconnectEvent;
+                        MyServer.NewBidAscIncomeEvent -= ConnectorBotNewBidAscIncomeEvent;
+                        MyServer.NewMyTradeEvent -= ConnectorBot_NewMyTradeEvent;
+                        MyServer.NewOrderIncomeEvent -= ConnectorBot_NewOrderIncomeEvent;
+                        MyServer.NewMarketDepthEvent -= ConnectorBot_NewMarketDepthEvent;
+                        MyServer.NewTradeEvent -= ConnectorBot_NewTradeEvent;
+                        MyServer.TimeServerChangeEvent -= myServer_TimeServerChangeEvent;
+                        MyServer.NeadToReconnectEvent -= _myServer_NeadToReconnectEvent;
 
-                        _myServer.NewBidAscIncomeEvent += ConnectorBotNewBidAscIncomeEvent;
-                        _myServer.NewMyTradeEvent += ConnectorBot_NewMyTradeEvent;
-                        _myServer.NewOrderIncomeEvent += ConnectorBot_NewOrderIncomeEvent;
-                        _myServer.NewMarketDepthEvent += ConnectorBot_NewMarketDepthEvent;
-                        _myServer.NewTradeEvent += ConnectorBot_NewTradeEvent;
-                        _myServer.TimeServerChangeEvent += myServer_TimeServerChangeEvent;
-                        _myServer.NeadToReconnectEvent += _myServer_NeadToReconnectEvent;
+                        MyServer.NewBidAscIncomeEvent += ConnectorBotNewBidAscIncomeEvent;
+                        MyServer.NewMyTradeEvent += ConnectorBot_NewMyTradeEvent;
+                        MyServer.NewOrderIncomeEvent += ConnectorBot_NewOrderIncomeEvent;
+                        MyServer.NewMarketDepthEvent += ConnectorBot_NewMarketDepthEvent;
+                        MyServer.NewTradeEvent += ConnectorBot_NewTradeEvent;
+                        MyServer.TimeServerChangeEvent += myServer_TimeServerChangeEvent;
+                        MyServer.NeadToReconnectEvent += _myServer_NeadToReconnectEvent;
 
-                        if (_myServer.ServerType == ServerType.Tester)
+                        if (MyServer.ServerType == ServerType.Tester)
                         {
-                            ((TesterServer)_myServer).TestingEndEvent -= ConnectorReal_TestingEndEvent;
-                            ((TesterServer)_myServer).TestingEndEvent += ConnectorReal_TestingEndEvent;
+                            ((TesterServer)MyServer).TestingEndEvent -= ConnectorReal_TestingEndEvent;
+                            ((TesterServer)MyServer).TestingEndEvent += ConnectorReal_TestingEndEvent;
                         }
                     }
 
                     Thread.Sleep(50);
 
-                    ServerConnectStatus stat = _myServer.ServerStatus;
+                    ServerConnectStatus stat = MyServer.ServerStatus;
 
                     if (stat != ServerConnectStatus.Connect)
                     {
@@ -667,7 +657,7 @@ namespace OsEngine.Market.Connectors
                                 }
 
                                 Thread.Sleep(100);
-                                _mySeries = _myServer.StartThisSecurity(_namePaper, TimeFrameBuilder);
+                                _mySeries = MyServer.StartThisSecurity(_namePaper, TimeFrameBuilder);
                             }
 
 
@@ -679,10 +669,7 @@ namespace OsEngine.Market.Connectors
 
                     _subscrabler = null;
 
-                    if (SecuritySubscribeEvent != null)
-                    {
-                        SecuritySubscribeEvent(Security);
-                    }
+                    SecuritySubscribeEvent?.Invoke(Security);
                     return;
                 }
             }
@@ -707,10 +694,7 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
-                if (TestOverEvent != null)
-                {
-                    TestOverEvent();
-                }
+                TestOverEvent?.Invoke();
             }
             catch (Exception error)
             {
@@ -725,10 +709,7 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
-                if (NewCandlesChangeEvent != null)
-                {
-                    NewCandlesChangeEvent(Candles(true));
-                }
+                NewCandlesChangeEvent?.Invoke(Candles(true));
             }
             catch (Exception error)
             {
@@ -743,10 +724,7 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
-                if (LastCandlesChangeEvent != null)
-                {
-                    LastCandlesChangeEvent(Candles(false));
-                }
+                LastCandlesChangeEvent?.Invoke(Candles(false));
             }
             catch (Exception error)
             {
@@ -761,10 +739,7 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
-                if (OrderChangeEvent != null)
-                {
-                    OrderChangeEvent(order);
-                }
+                OrderChangeEvent?.Invoke(order);
             }
             catch (Exception error)
             {
@@ -777,16 +752,13 @@ namespace OsEngine.Market.Connectors
         /// </summary>
         void ConnectorBot_NewMyTradeEvent(MyTrade trade)
         {
-            if (_myServer.ServerStatus != ServerConnectStatus.Connect)
+            if (MyServer.ServerStatus != ServerConnectStatus.Connect)
             {
                 return;
             }
             try
             {
-                if (MyTradeEvent != null)
-                {
-                    MyTradeEvent(trade);
-                } 
+                MyTradeEvent?.Invoke(trade);
             }
             catch (Exception error)
             {
@@ -815,10 +787,7 @@ namespace OsEngine.Market.Connectors
                     _emulator.ProcessBidAsc(_bestBid, _bestAsk, MarketTime);
                 }
 
-                if (BestBidAskChangeEvent != null)
-                {
-                    BestBidAskChangeEvent(bestBid, bestAsk);
-                }
+                BestBidAskChangeEvent?.Invoke(bestBid, bestAsk);
             }
             catch (Exception error)
             {
@@ -838,10 +807,7 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
 
-                if (GlassChangeEvent != null)
-                {
-                    GlassChangeEvent(glass);
-                }
+                GlassChangeEvent?.Invoke(glass);
 
                 if (glass.Bids.Count == 0 ||
                     glass.Asks.Count == 0)
@@ -868,32 +834,9 @@ namespace OsEngine.Market.Connectors
         /// </summary>
         void ConnectorBot_NewTradeEvent(List<Trade> tradesList)
         {
-            try
+            if (NamePaper != null && tradesList[tradesList.Count - 1].SecurityNameCode == NamePaper)
             {
-                if (NamePaper == null ||
-                    tradesList == null ||
-                    tradesList.Count == 0 ||
-                    tradesList[tradesList.Count - 1] == null ||
-                    tradesList[tradesList.Count - 1].SecurityNameCode != NamePaper)
-                {
-                    return;
-                }
-            }
-            catch
-            {
-                // ошибка сдесь трудноуловимая. Кто поймёт что не так - молодец
-            }
-
-            try
-            {
-                if (TickChangeEvent != null)
-                {
-                    TickChangeEvent(tradesList);
-                }
-            }
-            catch (Exception error)
-             {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                TickChangeEvent?.Invoke(tradesList);
             }
         }
 
@@ -904,10 +847,7 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
-                if (TimeChangeEvent != null)
-                {
-                    TimeChangeEvent(time);
-                }
+                TimeChangeEvent?.Invoke(time);
             }
             catch (Exception error)
             {
@@ -939,9 +879,9 @@ namespace OsEngine.Market.Connectors
             {
                 try
                 {
-                    if (_myServer != null)
+                    if (MyServer != null)
                     {
-                        return _myServer.GetAllTradesToSecurity(_myServer.GetSecurityForName(NamePaper));
+                        return MyServer.GetAllTradesToSecurity(MyServer.GetSecurityForName(NamePaper));
                     }
                 }
                 catch (Exception error)
@@ -1015,11 +955,11 @@ namespace OsEngine.Market.Connectors
             {
                 try
                 {
-                    if (_myServer == null)
+                    if (MyServer == null)
                     {
                         return DateTime.Now;
                     }
-                    return _myServer.ServerTime;
+                    return MyServer.ServerTime;
                 }
                 catch (Exception error)
                 {
@@ -1038,12 +978,12 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
-                if (_myServer == null)
+                if (MyServer == null)
                 {
                     return;
                 }
 
-                if (_myServer.ServerStatus == ServerConnectStatus.Disconnect)
+                if (MyServer.ServerStatus == ServerConnectStatus.Disconnect)
                 {
                     SendNewLogMessage(OsLocalization.Market.Message2,LogMessageType.Error);
                     return;
@@ -1054,13 +994,13 @@ namespace OsEngine.Market.Connectors
                 order.ServerType = ServerType;
                 order.TimeCreate = MarketTime;
 
-                if (EmulatorIsOn || _myServer.ServerType == ServerType.Finam)
+                if (EmulatorIsOn || MyServer.ServerType == ServerType.Finam)
                 {
                     _emulator.OrderExecute(order);
                 }
                 else
                 {
-                    _myServer.ExecuteOrder(order);
+                    MyServer.ExecuteOrder(order);
                 }
             }
             catch (Exception error)
@@ -1076,20 +1016,20 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
-                if (_myServer == null)
+                if (MyServer == null)
                 {
                     return;
                 }
                 order.SecurityNameCode = NamePaper;
                 order.PortfolioNumber = PortfolioName;
 
-                if (EmulatorIsOn || _myServer.ServerType == ServerType.Finam)
+                if (EmulatorIsOn || MyServer.ServerType == ServerType.Finam)
                 {
                     _emulator.OrderCancel(order);
                 }
                 else
                 {
-                    _myServer.CanselOrder(order);
+                    MyServer.CanselOrder(order);
                 }
             }
             catch (Exception error)

@@ -26,46 +26,48 @@ namespace OsEngine.OsTrader.Panels
     {
         public static List<string> GetNamesStrategy()
         {
-            List<string> result = new List<string>();
+            List<string> result = new List<string>
+            {
 
-            // публичные примеры
-           
-            result.Add("Engine");
-            result.Add("ClusterEngine");
-            result.Add("PatternTrader");
-            result.Add("HighFrequencyTrader");
-            result.Add("MarketMakerBot");
-            result.Add("PivotPointsRobot");
-            result.Add("ClusterCountertrend");
-            result.Add("TwoLegArbitrage");
-            result.Add("TwoTimeFrameBot");
-            result.Add("Bollinger");
-            result.Add("Williams Band");
-            result.Add("Levermor");
-            result.Add("PairTraderSimple");
-            result.Add("RsiTrade");
-            result.Add("StochasticTrade");
-            result.Add("BollingerTrade");
-            result.Add("TRIXTrade");
-            result.Add("CCITrade");
-            result.Add("ParabolicSarTrade");
-            result.Add("PriceChannelTrade");
-            result.Add("MACDTrade");
-            result.Add("BBPowerTrade");
-            result.Add("RviTrade");
-            result.Add("WilliamsRangeTrade");
-            result.Add("MacdTrail");
-            result.Add("SmaStochastic");
-            result.Add("MomentumMACD");
-            result.Add("PinBarTrade");
-            result.Add("PairRsiTrade");
-            result.Add("OneLegArbitration");
-            result.Add("ThreeSoldier");
-            result.Add("BollingerOutburst");
-            result.Add("PriceChannelBreak");
-            result.Add("PriceChannelVolatility");
-            result.Add("RsiContrtrend");
-            result.Add("PairTraderSpreadSma");
+                // публичные примеры
+
+                "Engine",
+                "ClusterEngine",
+                "PatternTrader",
+                "HighFrequencyTrader",
+                "MarketMakerBot",
+                "PivotPointsRobot",
+                "ClusterCountertrend",
+                "TwoLegArbitrage",
+                "TwoTimeFrameBot",
+                "Bollinger",
+                "Williams Band",
+                "Levermor",
+                "PairTraderSimple",
+                "RsiTrade",
+                "StochasticTrade",
+                "BollingerTrade",
+                "TRIXTrade",
+                "CCITrade",
+                "ParabolicSarTrade",
+                "PriceChannelTrade",
+                "MACDTrade",
+                "BBPowerTrade",
+                "RviTrade",
+                "WilliamsRangeTrade",
+                "MacdTrail",
+                "SmaStochastic",
+                "MomentumMACD",
+                "PinBarTrade",
+                "PairRsiTrade",
+                "OneLegArbitration",
+                "ThreeSoldier",
+                "BollingerOutburst",
+                "PriceChannelBreak",
+                "PriceChannelVolatility",
+                "RsiContrtrend",
+                "PairTraderSpreadSma"
+            };
 
             return result;
         }

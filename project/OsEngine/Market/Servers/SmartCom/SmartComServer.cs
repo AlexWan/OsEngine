@@ -367,10 +367,7 @@ namespace OsEngine.Market.Servers.SmartCom
                     order.TypeOrder = OrderPriceType.Market;
                 }
 
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(order);
-                }
+                MyOrderEvent?.Invoke(order);
 
             }
             catch (Exception error)
@@ -391,10 +388,7 @@ namespace OsEngine.Market.Servers.SmartCom
 
                 SendLogMessage(order.NumberUser + OsLocalization.Market.Message89 + reason, LogMessageType.Error);
 
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(order);
-                }
+                MyOrderEvent?.Invoke(order);
             }
             catch (Exception error)
             {
@@ -659,10 +653,7 @@ namespace OsEngine.Market.Servers.SmartCom
 
                     myPortfolio.SetNewPosition(position);
 
-                    if (PortfolioEvent != null)
-                    {
-                        PortfolioEvent(_portfolios);
-                    }
+                    PortfolioEvent?.Invoke(_portfolios);
                 }
                 catch (Exception error)
                 {
@@ -739,10 +730,7 @@ namespace OsEngine.Market.Servers.SmartCom
                         }
                     }
 
-                    if (PortfolioEvent != null)
-                    {
-                        PortfolioEvent(_portfolios);
-                    }
+                    PortfolioEvent?.Invoke(_portfolios);
                 }
                 catch (Exception error)
                 {
@@ -767,10 +755,7 @@ namespace OsEngine.Market.Servers.SmartCom
 
                 }
 
-                if (PortfolioEvent != null)
-                {
-                    PortfolioEvent(_portfolios);
-                }
+                PortfolioEvent?.Invoke(_portfolios);
             }
             catch (Exception error)
             {
@@ -826,10 +811,7 @@ namespace OsEngine.Market.Servers.SmartCom
             asks[row] = askOs;
             bids[row] = bidOs;
 
-            if (MarketDepthEvent != null)
-            {
-                MarketDepthEvent(myDepth.GetCopy());
-            }
+            MarketDepthEvent?.Invoke(myDepth.GetCopy());
 
         }
 
@@ -855,10 +837,7 @@ namespace OsEngine.Market.Servers.SmartCom
 
                 trade.Time = datetime;
 
-                if (MyTradeEvent != null)
-                {
-                    MyTradeEvent(trade);
-                }
+                MyTradeEvent?.Invoke(trade);
             }
             catch (Exception error)
             {
@@ -888,10 +867,7 @@ namespace OsEngine.Market.Servers.SmartCom
 
             ServerTime = trade.Time;
 
-            if (NewTradesEvent != null)
-            {
-                NewTradesEvent(trade);
-            }
+            NewTradesEvent?.Invoke(trade);
         }
 
         private List<Security> _securities = new List<Security>();
@@ -965,10 +941,7 @@ namespace OsEngine.Market.Servers.SmartCom
                     return;
                 }
 
-                if (SecurityEvent != null)
-                {
-                    SecurityEvent(_securities);
-                }
+                SecurityEvent?.Invoke(_securities);
             }
             catch (Exception error)
             {
@@ -978,20 +951,14 @@ namespace OsEngine.Market.Servers.SmartCom
 
         private void SmartServerOnDisconnected(string reason)
         {
-            if (DisconnectEvent != null)
-            {
-                DisconnectEvent();
-            }
+            DisconnectEvent?.Invoke();
             SendLogMessage("SmartCom disconnect " +reason,LogMessageType.Error);
             ServerStatus = ServerConnectStatus.Disconnect;
         }
 
         private void SmartServerOnConnected()
         {
-            if (ConnectEvent != null)
-            {
-                ConnectEvent();
-            }
+            ConnectEvent?.Invoke();
 
             ServerStatus = ServerConnectStatus.Connect;
         }
@@ -1046,10 +1013,7 @@ namespace OsEngine.Market.Servers.SmartCom
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>
@@ -1069,10 +1033,7 @@ namespace OsEngine.Market.Servers.SmartCom
         public void Sand()
         {
             Thread.Sleep(5000);
-            if (PositionEvent != null)
-            {
-                PositionEvent(Portfolio, Symbol, Avprice, Amount, Planned);
-            }
+            PositionEvent?.Invoke(Portfolio, Symbol, Avprice, Amount, Planned);
         }
 
         public event Action<string, string, double, double, double> PositionEvent;
@@ -1089,10 +1050,7 @@ namespace OsEngine.Market.Servers.SmartCom
         public void Sand()
         {
             Thread.Sleep(5000);
-            if (PortfolioEvent != null)
-            {
-                PortfolioEvent(Portfolio, Cash, Leverage, Comission, Saldo, 0, 0, 0);
-            }
+            PortfolioEvent?.Invoke(Portfolio, Cash, Leverage, Comission, Saldo, 0, 0, 0);
         }
 
         public event Action<string, double, double, double, double, double, double, double> PortfolioEvent;

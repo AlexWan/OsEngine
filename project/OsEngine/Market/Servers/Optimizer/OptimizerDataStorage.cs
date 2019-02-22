@@ -397,15 +397,9 @@ namespace OsEngine.Market.Servers.Optimizer
                 
             }
 
-            if (SecuritiesChangeEvent != null)
-            {
-                SecuritiesChangeEvent(Securities);
-            }
+            SecuritiesChangeEvent?.Invoke(Securities);
 
-            if (TimeChangeEvent != null)
-            {
-                TimeChangeEvent(TimeStart, TimeEnd);
-            }
+            TimeChangeEvent?.Invoke(TimeStart, TimeEnd);
         }
 
         /// <summary>
@@ -1716,10 +1710,7 @@ DateTime timeEnd)
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>

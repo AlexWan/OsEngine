@@ -406,10 +406,7 @@ namespace OsEngine.Market.Servers.Miner
                 LoadCandleFromFolder(_pathToFolder);
             }
 
-            if (CandleSeriesChangeEvent != null)
-            {
-                CandleSeriesChangeEvent(SecuritiesTester);
-            }
+            CandleSeriesChangeEvent?.Invoke(SecuritiesTester);
 
         }
 
@@ -835,10 +832,7 @@ namespace OsEngine.Market.Servers.Miner
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>
@@ -928,10 +922,7 @@ namespace OsEngine.Market.Servers.Miner
         /// </summary>
         private void SendLogMessage(string message)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message);
-            }
+            LogMessageEvent?.Invoke(message);
         }
 
         /// <summary>

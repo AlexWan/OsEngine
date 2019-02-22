@@ -319,10 +319,7 @@ namespace OsEngine.OsOptimizer
                     {
                         botsInFaze[i].Delete();
                     }
-                    if (TestReadyEvent != null)
-                    {
-                        TestReadyEvent(botsInFaze, null);
-                    }
+                    TestReadyEvent?.Invoke(botsInFaze, null);
                     _primeThreadWorker = null;
                     return;
                 }
@@ -380,10 +377,7 @@ namespace OsEngine.OsOptimizer
                     {
                         botsOutOfSample[i2].Delete();
                     }
-                    if (TestReadyEvent != null)
-                    {
-                        TestReadyEvent(botsToOutOfSample, botsOutOfSample);
-                    }
+                    TestReadyEvent?.Invoke(botsToOutOfSample, botsOutOfSample);
                     _primeThreadWorker = null;
                     return;
                 }
@@ -408,10 +402,7 @@ namespace OsEngine.OsOptimizer
 
             SendLogMessage(OsLocalization.Optimizer.Message7, LogMessageType.System);
 
-            if (TestReadyEvent != null)
-            {
-                TestReadyEvent(botsInFaze, botsOutOfSample);
-            }
+            TestReadyEvent?.Invoke(botsInFaze, botsOutOfSample);
             _primeThreadWorker = null;
         }
 
@@ -720,15 +711,9 @@ namespace OsEngine.OsOptimizer
         /// <param name="serverNum">номер сервера</param>
         private void server_TestingEndEvent(int serverNum)
         {
-            if (TestingProgressChangeEvent != null)
-            {
-                TestingProgressChangeEvent(100, 100, serverNum);
-            }
+            TestingProgressChangeEvent?.Invoke(100, 100, serverNum);
 
-            if (PrimeProgressChangeEvent != null)
-            {
-                PrimeProgressChangeEvent(serverNum, _countAllServersMax);
-            }
+            PrimeProgressChangeEvent?.Invoke(serverNum, _countAllServersMax);
 
             lock (_serverRemoveLocker)
             {
@@ -757,10 +742,7 @@ namespace OsEngine.OsOptimizer
         /// <param name="numServer">номер сервера</param>
         private void server_TestintProgressChangeEvent(int curVal, int maxVal, int numServer)
         {
-            if (TestingProgressChangeEvent != null)
-            {
-                TestingProgressChangeEvent(curVal, maxVal, numServer);
-            }
+            TestingProgressChangeEvent?.Invoke(curVal, maxVal, numServer);
         }
 
 
@@ -778,10 +760,7 @@ namespace OsEngine.OsOptimizer
         /// <param name="type">тип сообщения</param>
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>

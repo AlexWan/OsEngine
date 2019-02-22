@@ -94,10 +94,7 @@ namespace OsEngine.OsMiner.Patterns
                 return;
             }
 
-            if (UserClickOnNewPattern != null)
-            {
-                UserClickOnNewPattern(_testResults[_grid.SelectedCells[0].RowIndex]);
-            }
+            UserClickOnNewPattern?.Invoke(_testResults[_grid.SelectedCells[0].RowIndex]);
         }
 
         void PaintTable()

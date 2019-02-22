@@ -78,12 +78,14 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             get
             {
-                List<List<decimal>> list = new List<List<decimal>>();
-                list.Add(ValuesEtalonLine_Kejun_sen);
-                list.Add(ValuesLineRounded_Teken_sen);
-                list.Add(ValuesLineLate_Chinkou_span);
-                list.Add(ValuesLineFirst_Senkkou_span_A);
-                list.Add(ValuesLineSecond_Senkou_span_B);
+                List<List<decimal>> list = new List<List<decimal>>
+                {
+                    ValuesEtalonLine_Kejun_sen,
+                    ValuesLineRounded_Teken_sen,
+                    ValuesLineLate_Chinkou_span,
+                    ValuesLineFirst_Senkkou_span_A,
+                    ValuesLineSecond_Senkou_span_B
+                };
 
                 return list;
             }
@@ -96,12 +98,14 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             get
             {
-                List<Color> colors = new List<Color>();
-                colors.Add(ColorEtalonLine);
-                colors.Add(ColorLineRounded);
-                colors.Add(ColorLineLate);
-                colors.Add(ColorLineFirst);
-                colors.Add(ColorLineSecond);
+                List<Color> colors = new List<Color>
+                {
+                    ColorEtalonLine,
+                    ColorLineRounded,
+                    ColorLineLate,
+                    ColorLineFirst,
+                    ColorLineSecond
+                };
 
                 return colors;
             }
@@ -347,10 +351,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
             ProcessAll(_myCandles);
 
-            if (NeadToReloadEvent != null)
-            {
-                NeadToReloadEvent(this);
-            }
+            NeadToReloadEvent?.Invoke(this);
         }
 
         /// <summary>

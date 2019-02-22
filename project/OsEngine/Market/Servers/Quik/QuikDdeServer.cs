@@ -142,10 +142,7 @@ namespace OsEngine.Market.Servers.Quik
                 SendLogMessage(erorr.ToString(), LogMessageType.Error);
             }
 
-            if (DisconnectEvent != null)
-            {
-                DisconnectEvent();
-            }
+            DisconnectEvent?.Invoke();
         }
 
         /// <summary>
@@ -275,10 +272,7 @@ namespace OsEngine.Market.Servers.Quik
                     }
                     _status = ServerConnectStatus.Connect;
 
-                    if (ConnectEvent != null)
-                    {
-                        ConnectEvent();
-                    }
+                    ConnectEvent?.Invoke();
                 }
 
                 if ((_ddeStatus == ServerConnectStatus.Disconnect ||
@@ -288,10 +282,7 @@ namespace OsEngine.Market.Servers.Quik
                     _status == ServerConnectStatus.Connect)
                 {
                     _status = ServerConnectStatus.Disconnect;
-                    if (DisconnectEvent != null)
-                    {
-                        DisconnectEvent();
-                    }
+                    DisconnectEvent?.Invoke();
                 }
 
             }
@@ -402,10 +393,7 @@ namespace OsEngine.Market.Servers.Quik
         {
             _portfolios = portfolios;
 
-            if (PortfolioEvent != null)
-            {
-                PortfolioEvent(portfolios);
-            }
+            PortfolioEvent?.Invoke(portfolios);
         }
 
 // трейды
@@ -419,13 +407,9 @@ namespace OsEngine.Market.Servers.Quik
             {
                 return;
             }
-
-            if (NewTradesEvent != null)
+            for (int i = 0; i < tradesNew.Count; i++)
             {
-                for (int i = 0; i < tradesNew.Count; i++)
-                {
-                    NewTradesEvent(tradesNew[i]);
-                }
+                NewTradesEvent?.Invoke(tradesNew[i]);
             }
 
             if (_tradesStatus == ServerConnectStatus.Disconnect &&
@@ -492,10 +476,7 @@ namespace OsEngine.Market.Servers.Quik
                 depth.Asks.Add(new MarketDepthLevel() { Ask = 1, Price = bestAsk });
                 depth.Bids.Add(new MarketDepthLevel() { Bid = 1, Price = bestBid });
 
-                if (MarketDepthEvent != null)
-                {
-                    MarketDepthEvent(depth);
-                }
+                MarketDepthEvent?.Invoke(depth);
             }
         }
 
@@ -512,10 +493,7 @@ namespace OsEngine.Market.Servers.Quik
             }
             marketDepth.Time = ServerTime;
 
-            if (MarketDepthEvent != null)
-            {
-                MarketDepthEvent(marketDepth);
-            }
+            MarketDepthEvent?.Invoke(marketDepth);
 
             // грузим стаканы в хранилище
             for (int i = 0; i < _marketDepths.Count; i++)
@@ -603,10 +581,7 @@ namespace OsEngine.Market.Servers.Quik
                 Order newOrder = new Order();
                 newOrder.NumberUser = order.NumberUser;
                 newOrder.State = OrderStateType.Fail;
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(newOrder);
-                }
+                MyOrderEvent?.Invoke(newOrder);
                 return;
             }
 
@@ -835,10 +810,7 @@ namespace OsEngine.Market.Servers.Quik
 
                 _myTrades.Add(trade);
 
-                if (MyTradeEvent != null)
-                {
-                    MyTradeEvent(trade);
-                }
+                MyTradeEvent?.Invoke(trade);
             }
             catch (Exception error)
             {
@@ -878,10 +850,7 @@ namespace OsEngine.Market.Servers.Quik
 
                     SendLogMessage(dwTransId + OsLocalization.Market.Message89 + transactionReplyMessage, LogMessageType.System);
 
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(order);
-                    }
+                    MyOrderEvent?.Invoke(order);
                 }
                 else
                 {
@@ -890,10 +859,7 @@ namespace OsEngine.Market.Servers.Quik
                         return;
                     }
                     order.State = OrderStateType.Activ;
-                    if (MyOrderEvent  != null)
-                    {
-                        MyOrderEvent(order);
-                    }
+                    MyOrderEvent?.Invoke(order);
                 }
             }
             catch (Exception erorr)
@@ -968,10 +934,7 @@ namespace OsEngine.Market.Servers.Quik
 
                 SetOrder(order);
 
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(order);
-                }
+                MyOrderEvent?.Invoke(order);
 
                 if (_myTrades != null &&
                         _myTrades.Count != 0)
@@ -981,10 +944,7 @@ namespace OsEngine.Market.Servers.Quik
 
                     for (int tradeNum = 0; tradeNum < myTrade.Count; tradeNum++)
                     {
-                        if (MyTradeEvent != null)
-                        {
-                            MyTradeEvent(myTrade[tradeNum]);
-                        }
+                        MyTradeEvent?.Invoke(myTrade[tradeNum]);
                     }
                 }
             }
@@ -1084,10 +1044,7 @@ namespace OsEngine.Market.Servers.Quik
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>

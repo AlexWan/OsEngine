@@ -92,10 +92,7 @@ namespace OsEngine.Market.Servers.Quik
                 DdeServerStatus state;
                 Enum.TryParse(messageType.Split('_')[1], out state);
 
-                if (StatusChangeEvent != null)
-                {
-                    StatusChangeEvent(state);
-                }
+                StatusChangeEvent?.Invoke(state);
 
             }
         }
@@ -184,11 +181,8 @@ namespace OsEngine.Market.Servers.Quik
                             {
                                 DateTime time = Convert.ToDateTime(table[i, 10].ToString());
 
-                                if (UpdateTimeSecurity != null)
-                                {
-                                    UpdateTimeSecurity(time);
-                                }
-                            }
+                            UpdateTimeSecurity?.Invoke(time);
+                        }
                         }
                         catch (Exception error)
                         {
@@ -244,11 +238,8 @@ namespace OsEngine.Market.Servers.Quik
                     securities[i].PriceLimitHigh = 0;
                     securities[i].PriceLimitLow = 0;
 
-                    if (UpdateSecurity != null)
-                    {
-                        UpdateSecurity(securities[i], bestBid, bestAsk);
-                    }
-                }
+                UpdateSecurity?.Invoke(securities[i], bestBid, bestAsk);
+            }
         }
 
         public event Action<Security,decimal,decimal> UpdateSecurity;
@@ -313,10 +304,7 @@ namespace OsEngine.Market.Servers.Quik
 
                 List<Trade> newTrade = new List<Trade>(trades);
 
-                if (UpdateTrade != null)
-                {
-                    UpdateTrade(newTrade);
-                }
+                UpdateTrade?.Invoke(newTrade);
             }
             catch (Exception error)
             {
@@ -395,10 +383,7 @@ namespace OsEngine.Market.Servers.Quik
                 myPortfolio.ValueBlocked = valueBlock;
                 myPortfolio.Profit = profitLoss;
 
-                if (UpdatePortfolios != null)
-                {
-                    UpdatePortfolios(_portfolios);
-                }
+                UpdatePortfolios?.Invoke(_portfolios);
             }
         }
         
@@ -436,10 +421,7 @@ namespace OsEngine.Market.Servers.Quik
                     _portfoliosQuik.Add(data);
                 }
 
-                if (UpdatePortfolios != null)
-                {
-                    UpdatePortfolios(_portfolios);
-                }
+                UpdatePortfolios?.Invoke(_portfolios);
             }
         }
 
@@ -474,10 +456,7 @@ namespace OsEngine.Market.Servers.Quik
                 myPortfolio.ValueBlocked = valueBlock;
                 myPortfolio.Profit = profitLoss;
 
-                if (UpdatePortfolios != null)
-                {
-                    UpdatePortfolios(_portfolios);
-                }
+                UpdatePortfolios?.Invoke(_portfolios);
             }
         }
 
@@ -555,10 +534,7 @@ namespace OsEngine.Market.Servers.Quik
 
                 myPortfolio.SetNewPosition(position);
 
-                if (UpdatePortfolios != null)
-                {
-                    UpdatePortfolios(_portfolios);
-                }
+                UpdatePortfolios?.Invoke(_portfolios);
             }
         }
 
@@ -626,10 +602,7 @@ namespace OsEngine.Market.Servers.Quik
             glass.Asks = bids;
             glass.SecurityNameCode = nameSecurity;
 
-            if (UpdateGlass != null)
-            {
-                UpdateGlass(glass);
-            }
+            UpdateGlass?.Invoke(glass);
         }
 
         public event Action<MarketDepth> UpdateGlass;
@@ -651,10 +624,7 @@ namespace OsEngine.Market.Servers.Quik
 
         private void SendLogMessage(string message,LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message,type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>
@@ -703,10 +673,7 @@ namespace OsEngine.Market.Servers.Quik
         {
             Thread.Sleep(3000);
 
-            if (PortfolioUpdate != null)
-            {
-                PortfolioUpdate(Long, Objects);
-            }
+            PortfolioUpdate?.Invoke(Long, Objects);
         }
 
         public event Action<long, object[,]> PortfolioUpdate;

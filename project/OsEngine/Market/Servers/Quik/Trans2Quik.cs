@@ -247,13 +247,10 @@ namespace OsEngine.Market.Servers.Quik
             int nExtendedErrorCode,
             IntPtr lpcstrInfoMessage)
         {
-            if (connection_status_callback != null)
-            {
-                connection_status_callback(
-                    nConnectionEvent,
-                    nExtendedErrorCode,
-                    Marshal.PtrToStringAnsi(lpcstrInfoMessage));
-            }
+            connection_status_callback?.Invoke(
+    nConnectionEvent,
+    nExtendedErrorCode,
+    Marshal.PtrToStringAnsi(lpcstrInfoMessage));
         }
 
         private static void transaction_reply_callback_impl(
@@ -265,17 +262,14 @@ namespace OsEngine.Market.Servers.Quik
             string transactionReplyMessage,
             IntPtr pTransReplyDescriptor)
         {
-            if (transaction_reply_callback != null)
-            {
-                transaction_reply_callback(
-                    nTransactionResult,
-                    nTransactionExtendedErrorCode,
-                    nTransactionReplyCode,
-                    dwTransId,
-                    dOrderNum,
-                    transactionReplyMessage,
-                    pTransReplyDescriptor);
-            }
+            transaction_reply_callback?.Invoke(
+    nTransactionResult,
+    nTransactionExtendedErrorCode,
+    nTransactionReplyCode,
+    dwTransId,
+    dOrderNum,
+    transactionReplyMessage,
+    pTransReplyDescriptor);
         }
 
         private static void order_status_callback_impl(
@@ -291,21 +285,18 @@ namespace OsEngine.Market.Servers.Quik
             int nStatus,
             IntPtr i)
         {
-            if (order_status_callback != null)
-            {
-                order_status_callback(
-                    nMode,
-                    dwTransID,
-                    d,
-                    Marshal.PtrToStringAnsi(ClassCode),
-                    Marshal.PtrToStringAnsi(SecCode),
-                    dPrice,
-                    nBalance,
-                    dValue,
-                    nIsSell,
-                    nStatus,
-                    i);
-            }
+            order_status_callback?.Invoke(
+    nMode,
+    dwTransID,
+    d,
+    Marshal.PtrToStringAnsi(ClassCode),
+    Marshal.PtrToStringAnsi(SecCode),
+    dPrice,
+    nBalance,
+    dValue,
+    nIsSell,
+    nStatus,
+    i);
         }
 
         private static void trade_status_callback_impl(
@@ -320,20 +311,17 @@ namespace OsEngine.Market.Servers.Quik
             int nIsSell,
             IntPtr nTradeDescriptor)
         {
-            if (trade_status_callback != null)
-            {
-                trade_status_callback(
-                    nMode,
-                    dNumber,
-                    dOrderNumber,
-                    classCode,
-                    secCode,
-                    dPrice,
-                    nQty,
-                    dValue,
-                    nIsSell,
-                    nTradeDescriptor);
-            }
+            trade_status_callback?.Invoke(
+    nMode,
+    dNumber,
+    dOrderNumber,
+    classCode,
+    secCode,
+    dPrice,
+    nQty,
+    dValue,
+    nIsSell,
+    nTradeDescriptor);
         }
 
         private static CONNECTION_STATUS_CALLBACK connection_status_callback;

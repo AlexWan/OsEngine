@@ -82,10 +82,7 @@ namespace OsEngine.Charts.CandleChart.Elements
         /// </summary>
         public void Refresh()
         {
-            if (UpdeteEvent != null)
-            {
-                UpdeteEvent(this);
-            }
+            UpdeteEvent?.Invoke(this);
         }
 
         /// <summary>
@@ -94,10 +91,7 @@ namespace OsEngine.Charts.CandleChart.Elements
         /// </summary>
         public void Delete()
         {
-            if (DeleteEvent != null)
-            {
-                DeleteEvent(this);
-            }
+            DeleteEvent?.Invoke(this);
         }
 
         /// <summary>
@@ -109,10 +103,7 @@ namespace OsEngine.Charts.CandleChart.Elements
         {
             Value = value;
 
-            if (ChangeOnChartEvent != null)
-            {
-                ChangeOnChartEvent(this);
-            }
+            ChangeOnChartEvent?.Invoke(this);
         }
 
         /// <summary>
@@ -121,10 +112,7 @@ namespace OsEngine.Charts.CandleChart.Elements
         /// </summary>
         public void ShowDialog(decimal x, decimal y)
         {
-            if (NeadToShowDialog != null)
-            {
-                NeadToShowDialog(this, x, y);
-            }
+            NeadToShowDialog?.Invoke(this, x, y);
         }
         // line items only
         // элементы только линии

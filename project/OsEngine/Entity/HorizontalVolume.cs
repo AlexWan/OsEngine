@@ -974,10 +974,7 @@ namespace OsEngine.Entity
                                 _lines.Add(curLine);
                             }
 
-                            if (NewLineCreateEvent != null)
-                            {
-                                NewLineCreateEvent(curLine);
-                            }
+                            NewLineCreateEvent?.Invoke(curLine);
                         }
 
                         curLine.TimeLastTrade = _tradesNew[i].Time;

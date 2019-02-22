@@ -394,10 +394,7 @@ namespace OsEngine.OsData
 
             if (myServer == null)
             {
-                if (NewLogMessageEvent != null)
-                {
-                    NewLogMessageEvent(OsLocalization.Data.Label12, LogMessageType.System);
-                }
+                NewLogMessageEvent?.Invoke(OsLocalization.Data.Label12, LogMessageType.System);
 
                 return;
             }
@@ -407,10 +404,7 @@ namespace OsEngine.OsData
             if (securities == null || securities.Count
                 == 0)
             {
-                if (NewLogMessageEvent != null)
-                {
-                    NewLogMessageEvent(OsLocalization.Data.Label13, LogMessageType.System);
-                }
+                NewLogMessageEvent?.Invoke(OsLocalization.Data.Label13, LogMessageType.System);
                 return;
             }
 
@@ -646,10 +640,7 @@ namespace OsEngine.OsData
                 }
                 catch (Exception error)
                 {
-                    if (NewLogMessageEvent != null)
-                    {
-                        NewLogMessageEvent(error.ToString(), LogMessageType.Error);
-                    }
+                    NewLogMessageEvent?.Invoke(error.ToString(), LogMessageType.Error);
                 }
             }
             candleSaveInfo.LoadNewCandles(candles);
@@ -1107,10 +1098,7 @@ namespace OsEngine.OsData
                 }
                 catch (Exception error)
                 {
-                    if (NewLogMessageEvent != null)
-                    {
-                        NewLogMessageEvent(error.ToString(), LogMessageType.Error);
-                    }
+                    NewLogMessageEvent?.Invoke(error.ToString(), LogMessageType.Error);
                 }
             }
 
@@ -1154,10 +1142,7 @@ namespace OsEngine.OsData
                 }
                 catch (Exception error)
                 {
-                    if (NewLogMessageEvent != null)
-                    {
-                        NewLogMessageEvent(error.ToString(), LogMessageType.Error);
-                    }
+                    NewLogMessageEvent?.Invoke(error.ToString(), LogMessageType.Error);
                 }
             }
 
@@ -1236,10 +1221,7 @@ namespace OsEngine.OsData
                     }
                     catch (Exception error)
                     {
-                        if (NewLogMessageEvent != null)
-                        {
-                            NewLogMessageEvent(error.ToString(), LogMessageType.Error);
-                        }
+                        NewLogMessageEvent?.Invoke(error.ToString(), LogMessageType.Error);
                     }
                 }
             }
@@ -1283,10 +1265,7 @@ namespace OsEngine.OsData
             }
             catch (Exception error)
             {
-                if (NewLogMessageEvent != null)
-                {
-                    NewLogMessageEvent(error.ToString(), LogMessageType.Error);
-                }
+                NewLogMessageEvent?.Invoke(error.ToString(), LogMessageType.Error);
             }
 
             candleSaveInfo.LastSaveObjectTime = candles[candles.Count - 1].TimeStart;
@@ -1363,10 +1342,7 @@ namespace OsEngine.OsData
                     }
                     catch (Exception error)
                     {
-                        if (NewLogMessageEvent != null)
-                        {
-                            NewLogMessageEvent(error.ToString(), LogMessageType.Error);
-                        }
+                        NewLogMessageEvent?.Invoke(error.ToString(), LogMessageType.Error);
 
                         return;
                     }
@@ -1406,10 +1382,7 @@ namespace OsEngine.OsData
             }
             catch (Exception error)
             {
-                if (NewLogMessageEvent != null)
-                {
-                    NewLogMessageEvent(error.ToString(), LogMessageType.Error);
-                }
+                NewLogMessageEvent?.Invoke(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1544,10 +1517,7 @@ namespace OsEngine.OsData
                     }
                     catch (Exception error)
                     {
-                        if (NewLogMessageEvent != null)
-                        {
-                            NewLogMessageEvent(error.ToString(), LogMessageType.Error);
-                        }
+                        NewLogMessageEvent?.Invoke(error.ToString(), LogMessageType.Error);
                     }
                 }
             }
@@ -1590,10 +1560,7 @@ namespace OsEngine.OsData
             }
             catch (Exception error)
             {
-                if (NewLogMessageEvent != null)
-                {
-                    NewLogMessageEvent(error.ToString(), LogMessageType.Error);
-                }
+                NewLogMessageEvent?.Invoke(error.ToString(), LogMessageType.Error);
             }
         }
 

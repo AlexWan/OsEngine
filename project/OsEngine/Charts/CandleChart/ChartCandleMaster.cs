@@ -413,21 +413,23 @@ namespace OsEngine.Charts.CandleChart
 
                 List<MenuItem> items;
 
-                items = new List<MenuItem>();
-                items.Add(new MenuItem(OsLocalization.Charts.ChartMenuItem1, 
-                    new MenuItem[] 
+                items = new List<MenuItem>
+                {
+                    new MenuItem(OsLocalization.Charts.ChartMenuItem1,
+                    new MenuItem[]
                 {new MenuItem(OsLocalization.Charts.ChartMenuItem2,
                         new MenuItem[]{new MenuItem(OsLocalization.Charts.ChartMenuItem3),
                             new MenuItem(OsLocalization.Charts.ChartMenuItem4)}),
 
-                new MenuItem(OsLocalization.Charts.ChartMenuItem5, 
+                new MenuItem(OsLocalization.Charts.ChartMenuItem5,
                     new MenuItem[]{
                         new MenuItem(OsLocalization.Charts.ChartMenuItem6),
                         new MenuItem(OsLocalization.Charts.ChartMenuItem7),
                         new MenuItem(OsLocalization.Charts.ChartMenuItem8),
                         new MenuItem(OsLocalization.Charts.ChartMenuItem9)})}
-                
-                ));
+
+                )
+                };
 
                 items[items.Count - 1].MenuItems[0].MenuItems[0].Click += ChartBlackColor_Click;
                 items[items.Count - 1].MenuItems[0].MenuItems[1].Click += ChartWhiteColor_Click;
@@ -714,8 +716,10 @@ namespace OsEngine.Charts.CandleChart
 
                 if (_indicatorsCandles == null)
                 {
-                    _indicatorsCandles = new List<IIndicatorCandle>();
-                    _indicatorsCandles.Add(indicator);
+                    _indicatorsCandles = new List<IIndicatorCandle>
+                    {
+                        indicator
+                    };
                 }
                 else
                 {
@@ -954,10 +958,7 @@ namespace OsEngine.Charts.CandleChart
             }
             catch (Exception error)
             {
-                if (LogMessageEvent != null)
-                {
-                    LogMessageEvent(error.ToString(), LogMessageType.Error);
-                }
+                LogMessageEvent?.Invoke(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1072,14 +1073,7 @@ namespace OsEngine.Charts.CandleChart
         /// <param name="trades">тики</param>
         public void SetTick(List<Trade> trades)
         {
-            try
-            {
-                ChartCandle.ProcessTrades(trades);
-            }
-            catch (Exception error)
-            {
-                SendErrorMessage(error);
-            }
+            ChartCandle.ProcessTrades(trades);
         }
 
 // прорисовка позиций
@@ -1352,10 +1346,7 @@ namespace OsEngine.Charts.CandleChart
 
         void _chartCandle_ClickToIndexEvent(int index)
         {
-            if (ClickToIndexEvent != null)
-            {
-                ClickToIndexEvent(index);
-            }
+            ClickToIndexEvent?.Invoke(index);
         }
 
         public event Action<int> ClickToIndexEvent;

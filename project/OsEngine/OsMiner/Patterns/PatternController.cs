@@ -210,10 +210,7 @@ namespace OsEngine.OsMiner.Patterns
         /// </summary>
         public void Save()
         {
-            if (NeadToSaveEvent != null)
-            {
-                NeadToSaveEvent();
-            }
+            NeadToSaveEvent?.Invoke();
         }
 
         /// <summary>
@@ -498,12 +495,16 @@ namespace OsEngine.OsMiner.Patterns
             BotTabJournal botTabJournal = new BotTabJournal();
             botTabJournal.Journal = journal;
 
-            botPanelJournal._Tabs= new List<BotTabJournal>();
-            botPanelJournal._Tabs.Add(botTabJournal);
+            botPanelJournal._Tabs = new List<BotTabJournal>
+            {
+                botTabJournal
+            };
             botPanelJournal.BotName = "";
 
-            List<BotPanelJournal> list = new List<BotPanelJournal>();
-            list.Add(botPanelJournal);
+            List<BotPanelJournal> list = new List<BotPanelJournal>
+            {
+                botPanelJournal
+            };
 
             JournalUi ui = new JournalUi(list,StartProgram.IsOsMiner);
             ui.ShowDialog();
@@ -539,10 +540,7 @@ namespace OsEngine.OsMiner.Patterns
                     _chart.SetPosition(PositionsInTrades);
                 }
 
-                if (BackTestEndEvent != null)
-                {
-                    BackTestEndEvent(GetShortReport());
-                }
+                BackTestEndEvent?.Invoke(GetShortReport());
             }
             catch (Exception error)
             {
@@ -1220,10 +1218,7 @@ namespace OsEngine.OsMiner.Patterns
                 _chart.SetPosition(PositionsInTrades);
             }
             PaintPatternsColorSeries();
-            if (BackTestEndEvent != null)
-            {
-                BackTestEndEvent(GetShortReport());
-            }
+            BackTestEndEvent?.Invoke(GetShortReport());
             _neadToStopMining = false;
         }
 
@@ -1262,10 +1257,7 @@ namespace OsEngine.OsMiner.Patterns
                 }
             }
             PaintTempPattern();
-            if (BackTestEndEvent != null)
-            {
-                BackTestEndEvent(GetShortReport());
-            }
+            BackTestEndEvent?.Invoke(GetShortReport());
         }
 
 // поиск нового паттернов
@@ -1433,10 +1425,7 @@ namespace OsEngine.OsMiner.Patterns
                     PatternsToClose.Remove(pattern);
                 }
 
-                if (BackTestEndEvent != null)
-                {
-                    BackTestEndEvent(GetShortReport());
-                }
+                BackTestEndEvent?.Invoke(GetShortReport());
 
                 if (neadToPaint)
                 {

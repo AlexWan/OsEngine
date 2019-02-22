@@ -138,10 +138,7 @@ namespace OsEngine.Market.Servers.Lmax
 
         private void ClientOnDisconnected()
         {
-            if (DisconnectEvent != null)
-            {
-                DisconnectEvent();
-            }
+            DisconnectEvent?.Invoke();
             ServerStatus = ServerConnectStatus.Disconnect;
         }
 
@@ -358,10 +355,7 @@ namespace OsEngine.Market.Servers.Lmax
                         return;
                     }
 
-                    if (MarketDepthEvent != null)
-                    {
-                        MarketDepthEvent(needDepth.GetCopy());
-                    }
+                    MarketDepthEvent?.Invoke(needDepth.GetCopy());
 
                     if (data.LastTradedPrice != Decimal.MinValue)
                     {
@@ -370,10 +364,7 @@ namespace OsEngine.Market.Servers.Lmax
                         trade.Price = data.LastTradedPrice;
                         trade.Time = needDepth.Time;
 
-                        if (NewTradesEvent != null)
-                        {
-                            NewTradesEvent(trade);
-                        }
+                        NewTradesEvent?.Invoke(trade);
                     }
                 }
             }
@@ -401,10 +392,7 @@ namespace OsEngine.Market.Servers.Lmax
                 order.SecurityNameCode = _securities.Find(s => s.NameId == order.SecurityNameCode).Name;
             }
 
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(order);
-            }
+            MyOrderEvent?.Invoke(order);
         }
 
         /// <summary>
@@ -414,10 +402,7 @@ namespace OsEngine.Market.Servers.Lmax
         {
             myTrade.SecurityNameCode = _securities.Find(s => s.NameId == myTrade.SecurityNameCode).Name;
 
-            if (MyTradeEvent != null)
-            {
-                MyTradeEvent(myTrade);
-            }
+            MyTradeEvent?.Invoke(myTrade);
         }
 
 
