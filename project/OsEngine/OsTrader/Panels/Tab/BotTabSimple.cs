@@ -3563,12 +3563,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     FirstTickToDayEvent(trade);
                 }
             }
-
-            if (_lastTickIndex == 0)
-            {
-                _lastTickIndex = trades.Count - 1;
-                return;
-            }
+            
 
             int curCount = trades.Count;
 
