@@ -12,22 +12,26 @@ using TextBox = System.Windows.Forms.TextBox;
 namespace OsEngine.Charts.CandleChart.Indicators
 {
     /// <summary>
+    /// Interaction logic for AcUi.xaml
     /// Логика взаимодействия для AcUi.xaml
     /// </summary>
     public partial class AcUi
     { 
         
         /// <summary>
+        /// indocator
         /// индикатор
         /// </summary>
         private Ac _ac;
 
         /// <summary>
+        /// whether indicator settings have been changed
         /// изменялись ли настройки индикатора
         /// </summary>
         public bool IsChange;
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
         public AcUi(Ac ac)
@@ -54,6 +58,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// accept button
         /// кнопка принять
         /// </summary>
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
@@ -85,6 +90,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// color setting button
         /// кнопка настроить цвет
         /// </summary>
         private void ButtonColor_Click(object sender, RoutedEventArgs e)

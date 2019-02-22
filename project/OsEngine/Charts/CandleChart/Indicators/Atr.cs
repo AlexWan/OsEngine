@@ -13,16 +13,18 @@ namespace OsEngine.Charts.CandleChart.Indicators
 {
 
     /// <summary>
+    /// Indicator ATR. Average True Range
     /// индикатор ATR. Average True Range
     /// </summary>
     public class Atr : IIndicatorCandle
     {
 
         /// <summary>
-        /// конструктор с параметрами. Индикатор будет сохраняться
+        /// constructor
+        /// конструктор
         /// </summary>
-        /// <param name="uniqName">уникальное имя</param>
-        /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
+        /// <param name="uniqName">unique name/уникальное имя</param>
+        /// <param name="canDelete">whether user can remove indicator from chart manually/можно ли пользователю удалить индикатор с графика вручную</param>
         public Atr(string uniqName, bool canDelete)
         {
             Name = uniqName;
@@ -36,11 +38,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
-        /// конструктор без параметров. Индикатор не будет сохраняться
-        /// используется ТОЛЬКО для создания составных индикаторов
-        /// не используйте его из слоя создания роботов!
+        /// constructor without parameters.Indicator will not saved/конструктор без параметров. Индикатор не будет сохраняться
+        /// used ONLY to create composite indicators/используется ТОЛЬКО для создания составных индикаторов
+        /// Don't use it from robot creation layer/не используйте его из слоя создания роботов!
         /// </summary>
-        /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
+        /// <param name="canDelete">whether user can remove indicator from chart manually/можно ли пользователю удалить индикатор с графика вручную</param>
         public Atr(bool canDelete)
         {
             Name = Guid.NewGuid().ToString();
@@ -54,6 +56,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// all indicator values
         /// все значения индикатора
         /// </summary>
         List<List<decimal>> IIndicatorCandle.ValuesToChart
@@ -67,6 +70,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// indicator colors
         /// цвета для индикатора
         /// </summary>
         List<Color> IIndicatorCandle.Colors
@@ -81,27 +85,31 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
-        /// можно ли удалить индикатор с графика. Это нужно для того чтобы у роботов нельзя было удалить 
-        /// индикаторы которые ему нужны в торговле
+        /// whether indicator can be removed from chart. This is necessary so that robots can't be removed /можно ли удалить индикатор с графика. Это нужно для того чтобы у роботов нельзя было удалить 
+        /// indicators he needs in trading/индикаторы которые ему нужны в торговле
         /// </summary>
         public bool CanDelete { get; set; }
 
         /// <summary>
+        /// indicator drawing type
         /// тип прорисовки индикатора
         /// </summary>
         public IndicatorOneCandleChartType TypeIndicator { get; set; }
 
         /// <summary>
+        /// type of moving average for indicator calculation
         /// тип скользящей средней для рассчёта индикатора
         /// </summary>
         public MovingAverageTypeCalculation TypeCalculationAverage;
 
         /// <summary>
+        /// name of data series on which indicator will be drawn
         /// имя серии данных на которой будет прорисован индикатор
         /// </summary>
         public string NameSeries { get; set; }
 
         /// <summary>
+        /// name of data area where indicator will be drawn
         /// имя области данных на которой будет прорисовываться индикатор
         /// </summary>
         public string NameArea { get; set; }
@@ -113,26 +121,31 @@ namespace OsEngine.Charts.CandleChart.Indicators
         { get; set; }
 
         /// <summary>
+        /// unique indicator name
         /// уникальное имя индикатора
         /// </summary>
         public string Name { get; set; }
 
         /// <summary>
+        /// color of central data series (ATR)
         /// цвет центрально серии данных (ATR)
         /// </summary>
         public Color ColorBase { get; set; }
 
         /// <summary>
+        /// period length to calculate indicator
         /// длинна периода для рассчёта индикатора
         /// </summary>
         public int Lenght;
 
         /// <summary>
+        /// is indicator tracing enabled
         /// включена ли прорисовка индикатора
         /// </summary>
         public bool PaintOn { get; set; }
 
         /// <summary>
+        /// save settings to file
         /// сохранить настройки в файл
         /// </summary>
         public void Save()
@@ -155,11 +168,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
             catch (Exception)
             {
+                // send to log
                 // отправить в лог
             }
         }
 
         /// <summary>
+        /// upload settings from file
         /// загрузить настройки из файла
         /// </summary>
         public void Load()
@@ -186,11 +201,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
             catch (Exception)
             {
+                // send to log
                 // отправить в лог
             }
         }
 
         /// <summary>
+        /// delete file with settings
         /// удалить файл с настройками
         /// </summary>
         public void Delete()
@@ -202,6 +219,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// delete data
         /// удалить данные
         /// </summary>
         public void Clear()
@@ -214,6 +232,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// display settings window
         /// показать окно с настройками
         /// </summary>
         public void ShowDialog()
@@ -228,6 +247,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// reload indicator
         /// перезагрузить индикатор
         /// </summary>
         public void Reload()
@@ -245,14 +265,16 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// candles to calculate indicator
         /// свечи для рассчёта индикатора
         /// </summary>
         private List<Candle> _myCandles;
 
         /// <summary>
+        /// calculate indicator
         /// рассчитать индикатор
         /// </summary>
-        /// <param name="candles">свечи</param>
+        /// <param name="candles">candles/свечи</param>
         public void Process(List<Candle> candles)
         {
             _myCandles = candles;
@@ -274,11 +296,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// indicator needs to be redrawn
         /// индикатор нужно перерисовать
         /// </summary>
         public event Action<IIndicatorCandle> NeadToReloadEvent;
 
         /// <summary>
+        /// load only last candle
         /// прогрузить только последнюю свечку
         /// </summary>
         private void ProcessOne(List<Candle> candles)
@@ -299,6 +323,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// to upload from the beginning
         /// прогрузить с самого начала
         /// </summary>
         private void ProcessAll(List<Candle> candles)
@@ -316,6 +341,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// overload last value
         /// перегрузить последнее значение
         /// </summary>
         private void ProcessLast(List<Candle> candles)
@@ -328,11 +354,12 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// take indicator value by index
         /// взять значение индикатора по индексу
         /// </summary>
-        /// <param name="candles">свечи</param>
-        /// <param name="index">индекс</param>
-        /// <returns>значение индикатора по индексу</returns>
+        /// <param name="candles">candles/свечи</param>
+        /// <param name="index">index/индекс</param>
+        /// <returns>index value/значение индикатора по индексу</returns>
         private decimal GetValue(List<Candle> candles,int index)
         {
             TrueRangeReload(candles, index);
@@ -341,19 +368,20 @@ namespace OsEngine.Charts.CandleChart.Indicators
             return Math.Round(_moving[_moving.Count-1],6);
         }
 
-        private List<decimal> _moving; 
+        private List<decimal> _moving;
 
         /// <summary>
+        /// true range
         /// истинный диапазон
         /// </summary>
         private List<decimal> _trueRange;
 
         private void TrueRangeReload(List<Candle> candles, int index)
         {
-            //Истинный диапазон (True Range) есть наибольшая из следующих трех величин:
-            //разность между текущими максимумом и минимумом;
-            //разность между предыдущей ценой закрытия и текущим максимумом;
-            //разность между предыдущей ценой закрытия и текущим минимумом.
+            //True Range is the largest of following three:/Истинный диапазон (True Range) есть наибольшая из следующих трех величин:
+            //difference between current maximum and minimum;/разность между текущими максимумом и минимумом;
+            //difference between previous closing price and current maximum;/разность между предыдущей ценой закрытия и текущим максимумом;
+            //difference between previous closing price and current minimum./разность между предыдущей ценой закрытия и текущим минимумом.
 
             if (index == 0)
             {
@@ -385,7 +413,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 }
             }
             else if (length == valuesSeries.Count)
-            { // это первое значение. Рассчитываем как простую машку
+            {
+                // it's first value. Calculate as MA
+                // это первое значение. Рассчитываем как простую машку
 
                 decimal lastMoving = 0;
 
@@ -439,7 +469,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 }
             }
             else if (length == valuesSeries.Count)
-            { // это первое значение. Рассчитываем как простую машку
+            {
+                // it's first value. Calculate as MA
+                // это первое значение. Рассчитываем как простую машку
 
                 decimal lastMoving = 0;
 

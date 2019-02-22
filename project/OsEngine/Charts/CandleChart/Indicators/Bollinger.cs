@@ -13,15 +13,16 @@ namespace OsEngine.Charts.CandleChart.Indicators
 {
 
     /// <summary>
-    /// Bollinger. Индикатор Боллинджер
+    /// Bollinger. Bollinger indicator/Индикатор Боллинджер
     /// </summary>
     public class Bollinger: IIndicatorCandle
     {
         /// <summary>
-        /// конструктор с параметром. Индикатор будет сохраняться
+        /// constructor
+        /// конструктор
         /// </summary>
-        /// <param name="uniqName">уникальное имя индикатора</param>
-        /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
+        /// <param name="uniqName">unique name/уникальное имя</param>
+        /// <param name="canDelete">whether user can remove indicator from chart manually/можно ли пользователю удалить индикатор с графика вручную</param>
         public Bollinger(string uniqName,bool canDelete)
         {
             Name = uniqName;
@@ -37,11 +38,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
-        /// конструктор без параметров. Индикатор не будет сохраняться
-        /// используется ТОЛЬКО для создания составных индикаторов
-        /// не используйте его из слоя создания роботов!
+        /// constructor without parameters.Indicator will not saved/конструктор без параметров. Индикатор не будет сохраняться
+        /// used ONLY to create composite indicators/используется ТОЛЬКО для создания составных индикаторов
+        /// Don't use it from robot creation layer/не используйте его из слоя создания роботов!
         /// </summary>
-        /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
+        /// <param name="canDelete">whether user can remove indicator from chart manually/можно ли пользователю удалить индикатор с графика вручную</param>
         public Bollinger(bool canDelete)
         {
             Name = Guid.NewGuid().ToString();
@@ -55,6 +56,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// all indicator values
         /// все значения индикатора
         /// </summary>
         List<List<decimal>> IIndicatorCandle.ValuesToChart
@@ -69,6 +71,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// indicator colors
         /// цвета для индикатора
         /// </summary>
         List<Color> IIndicatorCandle.Colors
@@ -84,78 +87,90 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
-        /// можно ли удалить индикатор с графика. Это нужно для того чтобы у роботов нельзя было удалить 
-        /// индикаторы которые ему нужны в торговле
+        /// whether indicator can be removed from chart. This is necessary so that robots can't be removed /можно ли удалить индикатор с графика. Это нужно для того чтобы у роботов нельзя было удалить 
+        /// indicators he needs in trading/индикаторы которые ему нужны в торговле
         /// </summary>
         public bool CanDelete { get; set; }
 
         /// <summary>
+        /// indicator type
         /// тип индикатора
         /// </summary>
         public IndicatorOneCandleChartType TypeIndicator
         { get; set; }
 
         /// <summary>
-        /// имя серии данных на которой индикатор будет прорисовываться
+        /// name of data series on which indicator will be drawn
+        /// имя серии данных на которой будет прорисован индикатор
         /// </summary>
         public string NameSeries
         { get; set; }
 
         /// <summary>
-        /// имя области данных на которой индикатор будет прорисовываться
+        /// name of data area where indicator will be drawn
+        /// имя области данных на которой будет прорисовываться индикатор
         /// </summary>
         public string NameArea
         { get; set; }
 
         /// <summary>
+        /// top bollinger line
         /// верхняя линия боллинжера
         /// </summary>
         public List<decimal> ValuesUp
         { get; set; }
 
         /// <summary>
+        /// bottom line of bollinger
         /// нижняя линия боллинджера
         /// </summary>
         public List<decimal> ValuesDown
         { get; set; }
 
         /// <summary>
+        /// unique indicator name
         /// уникальное имя индикатора
         /// </summary>
         public string Name
         { get; set; }
 
         /// <summary>
+        /// period length to calculate indicator
         /// длина расчёта индикатора
         /// </summary>
         public int Lenght
         { get; set; }
 
         /// <summary>
+        /// deviation
         /// отклонение
         /// </summary>
         public decimal Deviation
         { get; set; }
 
         /// <summary>
+        /// color of upper data series
         /// цвет верхней серии данных
         /// </summary>
         public Color ColorUp
         { get; set; }
 
         /// <summary>
+        /// color of lower data series
         /// цвет нижней серии данных
         /// </summary>
         public Color ColorDown
         { get; set; }
 
         /// <summary>
+        /// is indicator tracing enabled
         /// включена ли прорисовка индикатора
         /// </summary>
         public bool PaintOn
         { get; set; }
 
         /// <summary>
+        /// upload settings from file
         /// загрузить настройки из файла
         /// </summary>
         public void Load()
@@ -178,11 +193,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
             catch (Exception)
             {
+                // send to log
                 // отправить в лог
             }
         }
 
         /// <summary>
+        /// save settings to file
         /// сохранить настройки в файл
         /// </summary>
         public void Save()
@@ -201,11 +218,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
             catch (Exception)
             {
+                // send to log
                 // отправить в лог
             }
         }
 
         /// <summary>
+        /// delete file with settings
         /// удалить файл настроек
         /// </summary>
         public void Delete()
@@ -217,6 +236,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// delete data
         /// удалить данные
         /// </summary>
         public void Clear()
@@ -230,6 +250,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// display settings window
         /// показать окно настроек
         /// </summary>
         public void ShowDialog()
@@ -244,6 +265,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// reload indicator
         /// перезагрузить индикатор
         /// </summary>
         public void Reload()
@@ -261,6 +283,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// to upload new candles
         /// прогрузить новыми свечками
         /// </summary>
         public void Process(List<Candle> candles)
@@ -283,16 +306,19 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// it's necessary to redraw indicator
         /// необходимо перерисовать индикатор
         /// </summary>
         public event Action<IIndicatorCandle> NeadToReloadEvent;
 
         /// <summary>
+        /// candles used to build indicator
         /// свечи по которым строиться индикатор
         /// </summary>
         private List<Candle> _myCandles;
 
         /// <summary>
+        /// load only last candle
         /// прогрузить только последнюю свечку
         /// </summary>
         private void ProcessOne(List<Candle> candles)
@@ -321,6 +347,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// to upload from the beginning
         /// прогрузить с самого начала
         /// </summary>
         private void ProcessAll(List<Candle> candles)
@@ -351,6 +378,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// overload last value
         /// перегрузить последнюю ячейку
         /// </summary>
         private void ProcessLast(List<Candle> candles)
@@ -365,6 +393,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// take indicator value by index
         /// взять значение индикатора по индексу
         /// </summary>
         private decimal[] GetValueSimple(List<Candle> candles, int index)
@@ -375,34 +404,37 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
 
             decimal [] bollinger = new decimal[2];
-
+// 1 count SMA
 // 1 считаем СМА
 
             decimal valueSma = 0;
 
             for (int i = index - Lenght + 1; i < index + 1; i++)
-            {// бежим по прошлым периодам и собираем значения
+            {
+                // running through past periods and collecting values
+                // бежим по прошлым периодам и собираем значения
                 valueSma += candles[i].Close;
             }
 
             valueSma = valueSma / Lenght;
-
-// 2 считаем среднее отклонение
-
+            // 2 count average deviation
+            // 2 считаем среднее отклонение
+            // find an array of deviations from mean
             // находим массив отклонений от средней
             decimal[] valueDev = new decimal[Lenght];
             for (int i = index - Lenght + 1, i2 = 0; i < index + 1; i++, i2++)
             {
+                // running through past periods and collecting values
                 // бежим по прошлым периодам и собираем значения
                 valueDev[i2] = candles[i].Close - valueSma;
             }
-
+            // square this array
             // возводим этот массив в квадрат
             for (int i = 0; i < valueDev.Length; i++)
             {
                 valueDev[i] = Convert.ToDecimal(Math.Pow(Convert.ToDouble(valueDev[i]), 2));
             }
-
+            // folding up
             // складываем
 
             double summ = 0;
@@ -411,7 +443,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 summ += Convert.ToDouble(valueDev[i]);
             }
-
+            // divide amount by number of elements in sample( if on n-1,so if n> 30) 
             //делим полученную сумму на количество элементов в выборке (или на n-1, если n>30)
             if (Lenght > 30)
             {
@@ -421,11 +453,12 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 summ = summ/Lenght;
             }
+            // calculating root.
             // вычисляем корень
 
             summ = Math.Sqrt(summ);
-
-// 3 считаем линии боллинжера
+            // 3 count bollinger lines
+            // 3 считаем линии боллинжера
 
             bollinger[0] = Math.Round(valueSma + Convert.ToDecimal(summ) * Deviation,6);
 

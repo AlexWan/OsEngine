@@ -13,24 +13,28 @@ using TextBox = System.Windows.Forms.TextBox;
 namespace OsEngine.Charts.CandleChart.Indicators
 {
     /// <summary>
+    /// Interaction logic  for AwesomeOscillatorUi.xaml
     /// Логика взаимодействия для AwesomeOscillatorUi.xaml
     /// </summary>
     public partial class AwesomeOscillatorUi 
     {
         /// <summary>
+        /// indicator
         /// индикатор
         /// </summary>
         private AwesomeOscillator _awesomeOscillatoro;
 
         /// <summary>
+        /// whether indicator settings have been changed
         /// изменяли ли настройки индикатора
         /// </summary>
         public bool IsChange;
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="awesomeOscillator">индикатор который будем настраивать</param>
+        /// <param name="awesomeOscillator">configuration indicator/индикатор который будем настраивать</param>
         public AwesomeOscillatorUi(AwesomeOscillator awesomeOscillator)
         {
             InitializeComponent();
@@ -63,6 +67,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// accept button
         /// кнопка принять
         /// </summary>
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
@@ -103,6 +108,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// top line color button
         /// кнопка цвет верхней линии
         /// </summary>
         private void ButtonColorUp_Click(object sender, RoutedEventArgs e)
@@ -114,6 +120,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// bottom line color button
         /// кнопка цвет нижней линии
         /// </summary>
         private void ButtonColorDown_Click(object sender, RoutedEventArgs e)
