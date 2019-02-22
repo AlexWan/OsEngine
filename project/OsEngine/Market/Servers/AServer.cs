@@ -1394,6 +1394,7 @@ namespace OsEngine.Market.Servers
                 {
                     _allTrades = new List<Trade>[1];
                     _allTrades[0] = new List<Trade> { trade };
+                    _tradesToSend.Enqueue(_allTrades[0]);
                 }
                 else
                 {
@@ -1402,7 +1403,7 @@ namespace OsEngine.Market.Servers
                     bool isSave = false;
                     for (int i = 0; i < _allTrades.Length; i++)
                     {
-                        if (_allTrades[i] != null && _allTrades[i].Count != 0 &&
+                        if (_allTrades[i].Count != 0 &&
                             _allTrades[i][0].SecurityNameCode == trade.SecurityNameCode)
                         {
                             // если для этого инструметна уже есть хранилище, сохраняем и всё

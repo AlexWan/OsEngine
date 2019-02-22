@@ -3625,12 +3625,6 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void _connector_TickChangeEvent(List<Trade> trades)
         {
-            if (trades == null || 
-                trades.Count == 0)
-            {
-                return;
-            }
-
             if (_chartMaster == null)
             {
                 return;
@@ -3650,12 +3644,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
 
-            if (_lastTickIndex == 0)
-            {
-                _lastTickIndex = trades.Count - 1;
-                return;
-            }
-
             int curCount = trades.Count;
 
             List<Position> openPositions = _journal.OpenPositions;
@@ -3664,7 +3652,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 for (int i = 0; i < openPositions.Count; i++)
                 {
-                    for (int i2 = _lastTickIndex; i < openPositions.Count && i2 < curCount && trades[i2] != null; i2++)
+                    for (int i2 = _lastTickIndex; i < openPositions.Count && i2 < curCount; i2++)
                     {
                         if (CheckStop(openPositions[i], trades[i2].Price))
                         {
@@ -3678,13 +3666,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
 
-            for (int i2 = _lastTickIndex; i2 < curCount && trades[i2] != null; i2++)
+            for (int i2 = _lastTickIndex; i2 < curCount; i2++)
             {
-                if (trades[i2] == null)
-                {
-                    trades.RemoveAt(i2);
-                    return;
-                }
                 CheckStopOpener(trades[i2].Price);
 
                 if (NewTickEvent != null)
@@ -3701,7 +3684,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
 
-            _lastTickIndex = curCount-1;
+            _lastTickIndex = curCount;
 
             if (StartProgram == StartProgram.IsOsTrader)
             {

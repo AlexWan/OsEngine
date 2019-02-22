@@ -870,33 +870,20 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
-                if (NamePaper == null ||
-                    tradesList == null ||
-                    tradesList.Count == 0 ||
-                    tradesList[tradesList.Count - 1] == null ||
-                    tradesList[tradesList.Count - 1].SecurityNameCode != NamePaper)
+                if (NamePaper != null && tradesList[tradesList.Count - 1].SecurityNameCode == NamePaper)
                 {
-                    return;
-                }
-            }
-            catch
-            {
-                // ошибка сдесь трудноуловимая. Кто поймёт что не так - молодец
-            }
-
-            try
-            {
-                if (TickChangeEvent != null)
-                {
-                    TickChangeEvent(tradesList);
+                    if (TickChangeEvent != null)
+                    {
+                        TickChangeEvent(tradesList);
+                    }
                 }
             }
             catch (Exception error)
-             {
+            {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-
+           
         /// <summary>
         /// входящее новое время сервера
         /// </summary>

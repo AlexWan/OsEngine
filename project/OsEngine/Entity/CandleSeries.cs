@@ -231,10 +231,6 @@ namespace OsEngine.Entity
             // обновилось неизвесное кол-во тиков
             for (int i = _lastTradeIndex; i < trades.Count; i++)
             {
-                if (trades[i] == null)
-                {
-                    continue;
-                }
                 UpDateCandle(trades[i].Time, trades[i].Price, trades[i].Volume, true, trades[i].Side);
 
                 if (_startProgram == StartProgram.IsOsData)
@@ -242,11 +238,7 @@ namespace OsEngine.Entity
                     continue;
                 }
 
-                List<Trade> tradesInCandle = CandlesAll[CandlesAll.Count - 1].Trades;
-
-                tradesInCandle.Add(trades[i]);
-
-                CandlesAll[CandlesAll.Count - 1].Trades = tradesInCandle;
+                CandlesAll[CandlesAll.Count - 1].Trades.Add(trades[i]);
             }
 
             _lastTradeIndex = trades.Count;
@@ -272,11 +264,7 @@ namespace OsEngine.Entity
             {
                 UpDateCandle(trades[i].Time, trades[i].Price, trades[i].Volume, false, trades[i].Side);
 
-                List<Trade> tradesInCandle = CandlesAll[CandlesAll.Count - 1].Trades;
-
-                tradesInCandle.Add(trades[i]);
-
-                CandlesAll[CandlesAll.Count - 1].Trades = tradesInCandle;
+                CandlesAll[CandlesAll.Count - 1].Trades.Add(trades[i]);
             }
             UpdateChangeCandle();
 
