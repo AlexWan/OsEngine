@@ -13,15 +13,17 @@ namespace OsEngine.Charts.CandleChart.Indicators
 {
 
     /// <summary>
+    /// Indicator Alligator. Bill Williams
     /// Индикатор Alligator. Билла Вильямса
     /// </summary>
     public class Alligator: IIndicatorCandle
     {
         /// <summary>
-        /// конструктор с параметром. Сохраняется
+        /// constructor with parameters.Indicator will be saved
+        /// конструктор с параметрами. Индикатор будет сохраняться
         /// </summary>
-        /// <param name="uniqName">уникальное имя</param>
-        /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
+        /// <param name="uniqName">unique name/уникальное имя</param>
+        /// <param name="canDelete">whether user can remove indicator from chart manually/можно ли пользователю удалить индикатор с графика вручную</param>
         public Alligator(string uniqName, bool canDelete)
         {
             Name = uniqName;
@@ -44,13 +46,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
             CanDelete = canDelete;
             Load();
         }
-        
+
         /// <summary>
-        /// конструктор без параметра. Не сохраняется
-        /// используется ТОЛЬКО для создания составных индикаторов
-        /// не используйте его из слоя создания роботов!
+        /// constructor without parameters.Indicator will not saved/конструктор без параметров. Индикатор не будет сохраняться
+        /// used ONLY to create composite indicators/используется ТОЛЬКО для создания составных индикаторов
+        /// Don't use it from robot creation layer/не используйте его из слоя создания роботов!
         /// </summary>
-        /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
+        /// <param name="canDelete">whether user can remove indicator from chart manually/можно ли пользователю удалить индикатор с графика вручную</param>
         public Alligator(bool canDelete)
         {
             Name = Guid.NewGuid().ToString();
@@ -75,6 +77,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// all indicator values
         /// все значения индикатора
         /// </summary>
         List<List<decimal>> IIndicatorCandle.ValuesToChart
@@ -90,6 +93,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// indicator colors
         /// цвета для индикатора
         /// </summary>
         List<Color> IIndicatorCandle.Colors
@@ -106,22 +110,25 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
-        /// можно ли удалить индикатор с графика. Это нужно для того чтобы у роботов нельзя было удалить 
-        /// индикаторы которые ему нужны в торговле
+        /// whether indicator can be removed from chart. This is necessary so that robots can't be removed /можно ли удалить индикатор с графика. Это нужно для того чтобы у роботов нельзя было удалить 
+        /// indicators he needs in trading/индикаторы которые ему нужны в торговле
         /// </summary>
         public bool CanDelete { get; set; }
 
         /// <summary>
+        /// indicator drawing type
         /// тип прорисовки индикатора
         /// </summary>
         public IndicatorOneCandleChartType TypeIndicator { get; set; }
 
         /// <summary>
+        /// type of moving average for indicator calculation
         /// тип скользящей средней для рассчёта индикатора
         /// </summary>
         private MovingAverageTypeCalculation _typeCalculationAverage;
 
         /// <summary>
+        /// type of moving average for indicator calculation
         /// тип скользящей средней для рассчёта индикатора
         /// </summary>
         public MovingAverageTypeCalculation TypeCalculationAverage
@@ -154,89 +161,106 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// series name on chart to draw indicator
         /// имя серии на графике для прорисовки индикатора
         /// </summary>
         public string NameSeries { get; set; }
 
         /// <summary>
+        /// area name on chart for drawing indicator
         /// имя области на графике для прорисовки индикатора
         /// </summary>
         public string NameArea { get; set; }
 
         /// <summary>
+        /// middle line. Teeth
         /// средняя линия. Зубы
         /// </summary>
         public List<decimal> Values
         { get; set; }
 
         /// <summary>
+        /// fast line. Lips
         /// быстрая линия. Губы
         /// </summary>
         public List<decimal> ValuesUp 
         { get; set; }
 
         /// <summary>
+        /// slow line. Jaw
         /// медленная линия. Челюсть
         /// </summary>
         public List<decimal> ValuesDown 
         { get; set; }
 
         /// <summary>
+        /// unique indicator name
         /// уникальное имя
         /// </summary>
         public string Name { get; set; }
 
         /// <summary>
+        /// bottom line color
         /// цвет нижней линии
         /// </summary>
         public Color ColorDown { get; set; }
 
         /// <summary>
+        /// headline color
         /// цвет верхней линии
         /// </summary>
         public Color ColorUp { get; set; }
 
         /// <summary>
+        /// centerline colour
         /// цвет центральной линии
         /// </summary>
         public Color ColorBase { get; set; }
 
         /// <summary>
+        /// speed line length
         /// длинна скоростной линии
         /// </summary>
         public int LenghtUp;
 
         /// <summary>
+        /// centerline length
         /// длинна центральной линии
         /// </summary>
         public int LenghtBase;
 
         /// <summary>
+        /// slow line length
         /// длинна медленной линии
         /// </summary>
         public int LenghtDown;
 
         /// <summary>
+        /// topline shift
         /// сдвиг верхней линии
         /// </summary>
         public int ShiftUp;
 
         /// <summary>
+        /// centerline shift
         /// сдвиг центральной линии
         /// </summary>
         public int ShiftBase;
 
         /// <summary>
+        /// bottom line shift
         /// сдвиг нижней линии
         /// </summary>
         public int ShiftDown;
 
         /// <summary>
+        /// whether indicator repainting on chart enabled
         /// вкллючена ли прорисовка индикатора на графике
         /// </summary>
         public bool PaintOn { get; set; }
 
         /// <summary>
+        /// save settings to file
         /// сохранить настройки в файл
         /// </summary>
         public void Save()
@@ -270,11 +294,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
             catch (Exception)
             {
+                // send to log
                 // отправить в лог
             }
         }
 
         /// <summary>
+        /// upload settings from file
         /// загрузить настройки из файла
         /// </summary>
         public void Load()
@@ -313,11 +339,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
             catch (Exception)
             {
+                // send to log
                 // отправить в лог
             }
         }
 
         /// <summary>
+        /// delete file with settings
         /// удалить файл с настройками
         /// </summary>
         public void Delete()
@@ -329,6 +357,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// delete data
         /// удалить данные
         /// </summary>
         public void Clear()
@@ -343,6 +372,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// display settings window
         /// показать окно настроек
         /// </summary>
         public void ShowDialog()
@@ -357,6 +387,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// reload indicator
         /// перезагрузить индикатор
         /// </summary>
         public void Reload()
@@ -374,14 +405,16 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// candles to calculate indicator
         /// свечи для рассчёта индикатора
         /// </summary>
         private List<Candle> _myCandles;
 
         /// <summary>
+        /// calculate indicator
         /// рассчитать индикатор
         /// </summary>
-        /// <param name="candles">свечи</param>
+        /// <param name="candles">candles/свечи</param>
         public void Process(List<Candle> candles)
         {
             _myCandles = candles;
@@ -403,11 +436,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// indicator needs to be redrawn
         /// индикатор нужно перерисовать
         /// </summary>
         public event Action<IIndicatorCandle> NeadToReloadEvent;
 
         /// <summary>
+        /// load only last candle
         /// прогрузить только последнюю свечку
         /// </summary>
         private void ProcessOne(List<Candle> candles)
@@ -429,6 +464,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// to upload from the beginning
         /// прогрузить с самого начала
         /// </summary>
         private void ProcessAll(List<Candle> candles)
@@ -454,6 +490,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// overload last value
         /// перегрузить последнее значение
         /// </summary>
         private void ProcessLast(List<Candle> candles)
@@ -468,26 +505,30 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// upper MA
         /// верхняя машка
         /// </summary>
         private MovingAverage _maUp;
 
         /// <summary>
+        /// central MA
         /// центральная
         /// </summary>
         private MovingAverage _maBase;
 
         /// <summary>
+        /// bottom MA
         /// нижняя
         /// </summary>
         private MovingAverage _maDown;
 
         /// <summary>
+        /// take upper value
         /// взять значение верхнее
         /// </summary>
-        /// <param name="candles">свечи</param>
-        /// <param name="index">индекс</param>
-        /// <returns>верхняя линия аллигатора по индексу</returns>
+        /// <param name="candles">candles/свечи</param>
+        /// <param name="index">index/индекс</param>
+        /// <returns>alligator top line by index/верхняя линия аллигатора по индексу</returns>
         private decimal GetValueUp(List<Candle> candles, int index)
         {
             if (index == 0)
@@ -512,11 +553,12 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// take center value
         /// взять значение центральное
         /// </summary>
-        /// <param name="candles">свечи</param>
-        /// <param name="index">индекс</param>
-        /// <returns>центальная линия аллигатора по индексу</returns>
+        /// <param name="candles">canldles/свечи</param>
+        /// <param name="index">index/индекс</param>
+        /// <returns>alligator centerline by index/центальная линия аллигатора по индексу</returns>
         private decimal GetValueBase(List<Candle> candles,int index)
         {
             if (index == 0)
@@ -540,11 +582,12 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// take lower value
         /// взять значение нижнее
         /// </summary>
-        /// <param name="candles">свечи</param>
-        /// <param name="index">индекс</param>
-        /// <returns>нижняя линия аллигатора по индексу</returns>
+        /// <param name="candles">candles/свечи</param>
+        /// <param name="index">index/индекс</param>
+        /// <returns>alligator bottom line/нижняя линия аллигатора по индексу</returns>
         private decimal GetValueDown(List<Candle> candles, int index)
         {
             if (index == 0)

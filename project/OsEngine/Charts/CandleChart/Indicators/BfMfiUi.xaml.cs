@@ -11,12 +11,13 @@ using TextBox = System.Windows.Forms.TextBox;
 namespace OsEngine.Charts.CandleChart.Indicators
 {
     /// <summary>
+    /// Interaction logic  for  BfMfiUi.xaml
     /// Логика взаимодействия для BfMfiUi.xaml
     /// </summary>
     public partial class BfMfiUi
     {
         private BfMfi _mfi;
-        public BfMfiUi(BfMfi mfi) // конструктор
+        public BfMfiUi(BfMfi mfi) //constructor/конструктор
         {
             InitializeComponent();
             _mfi = mfi;
@@ -28,14 +29,14 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
         }
 
-        private void ShowSettingsOnForm()// выгрузить настройки на форму
+        private void ShowSettingsOnForm()// upload settings to form/выгрузить настройки на форму
         {
             HostColorUp.Child = new TextBox();
             HostColorUp.Child.BackColor = _mfi.ColorBase;
 
         }
 
-        private void ButtonAccept_Click(object sender, RoutedEventArgs e) // принять
+        private void ButtonAccept_Click(object sender, RoutedEventArgs e) // accept/принять
         {
             _mfi.ColorBase = HostColorUp.Child.BackColor;
             if (CheckBoxPaintOnOff.IsChecked.HasValue)
