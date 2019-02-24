@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -9,9 +10,6 @@ using OsEngine.Language;
 
 namespace OsEngine.OsTrader.Panels.PanelsGui
 {
-    /// <summary>
-    /// Логика взаимодействия для MomentumMacdUi.xaml
-    /// </summary>
     public partial class MomentumMacdUi
     {
         private MomentumMacd _strategy;
@@ -23,8 +21,6 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
             TextBoxVolumeOne.Text = _strategy.VolumeFix.ToString();
 
             TextBoxSlipage.Text = _strategy.Slipage.ToString(new CultureInfo("ru-RU"));
-
-
             ComboBoxRegime.Items.Add(BotTradeRegime.Off);
             ComboBoxRegime.Items.Add(BotTradeRegime.On);
             ComboBoxRegime.Items.Add(BotTradeRegime.OnlyClosePosition);
@@ -58,8 +54,6 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
 
             _strategy.VolumeFix = Convert.ToDecimal(TextBoxVolumeOne.Text);
             _strategy.Slipage = Convert.ToDecimal(TextBoxSlipage.Text);
-
-
             Enum.TryParse(ComboBoxRegime.Text, true, out _strategy.Regime);
 
             _strategy.Save();

@@ -1,4 +1,5 @@
 ﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
  *Ваши права на использования кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -12,24 +13,28 @@ using TextBox = System.Windows.Forms.TextBox;
 namespace OsEngine.Charts.CandleChart.Indicators
 {
     /// <summary>
+    /// Interaction logic  for BollingerUi.xaml
     /// Логика взаимодействия для BollingerUi.xaml
     /// </summary>
     public partial class BollingerUi
     {
         /// <summary>
+        /// indicator
         /// индикатор который мы настраиваем
         /// </summary>
         private Bollinger _bollinger;
 
         /// <summary>
+        /// whether indicator settings have been changed
         /// изменились ли настройки
         /// </summary>
         public bool IsChange;
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="bollinger">индикатор который мы будем настраивать</param>
+        /// <param name="bollinger">configuration indicator/индикатор который мы будем настраивать</param>
         public BollingerUi(Bollinger bollinger)
         {
             InitializeComponent();
@@ -55,6 +60,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// accept button
         /// кнопка принять
         /// </summary>
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
@@ -90,6 +96,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// top line color button
         /// кнопка цвет верхней линии
         /// </summary>
         private void ButtonColorUp_Click(object sender, RoutedEventArgs e)
@@ -101,6 +108,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// bottom line color button
         /// кнопка цвет нижней линии
         /// </summary>
         private void ButtonColorDown_Click(object sender, RoutedEventArgs e)

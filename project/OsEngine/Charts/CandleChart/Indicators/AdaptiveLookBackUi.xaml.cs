@@ -1,4 +1,5 @@
 ﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
  *Ваши права на использования кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -12,24 +13,28 @@ using TextBox = System.Windows.Forms.TextBox;
 namespace OsEngine.Charts.CandleChart.Indicators
 {
     /// <summary>
+    /// Interaction logic  for AdaptiveLookBackUi.xaml
     /// Логика взаимодействия для AdaptiveLookBackUi.xaml
     /// </summary>
     public partial class AdaptiveLookBackUi
     {
-       /// <summary>
+        /// <summary>
+        /// indicator
         /// индикатор
         /// </summary>
-        private AdaptiveLookBack _alb; 
-         
+        private AdaptiveLookBack _alb;
+
         /// <summary>
+        /// whether indicator settings have been changed
         /// изменялись ли настройки индикатора
         /// </summary>
         public bool IsChange;
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="alb">индикатор для настроек</param>
+        /// <param name="alb">configuration indicator/индикатор для настроек</param>
         public AdaptiveLookBackUi(AdaptiveLookBack alb)
         {
             InitializeComponent();
@@ -48,6 +53,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// accept button
         /// кнопка принять
         /// </summary>
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
@@ -76,6 +82,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// color setting button
         /// кнопка настроить цвет
         /// </summary>
         private void ButtonColor_Click(object sender, RoutedEventArgs e)

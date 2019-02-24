@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -631,6 +636,10 @@ namespace OsEngine.Language
         public string Label156 => OsLocalization.ConvertToLocString(
             "Eng:WilliamsR lower limit_" +
             "Ru:WilliamsR нижний предел_");
+
+        public string Label157 => OsLocalization.ConvertToLocString(
+            "Eng: Withdrew the order on the rollback of the price in the marketDepth from the order price_" +
+            "Ru: Отозвали ордер по откату цены в стакане от цены ордера, номер _");
 
     }
 }

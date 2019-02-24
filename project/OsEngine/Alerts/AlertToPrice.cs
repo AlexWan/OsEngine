@@ -1,4 +1,5 @@
 ﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
  *Ваши права на использования кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -106,7 +107,7 @@ namespace OsEngine.Alerts
                 return null;
             }
 
-
+            // 3 run along allert lines and check triggering
             // 3 бежим по линиям аллерта и проверяем срабатывание
 
             if (TypeActivation == PriceAlertTypeActivation.PriceLowerOrEqual &&
@@ -138,8 +139,8 @@ namespace OsEngine.Alerts
 
             return null;
         }
-
-// индивидуальные настройки
+        // custom settings
+        // индивидуальные настройки
 
         public PriceAlertTypeActivation TypeActivation;
 
@@ -148,36 +149,43 @@ namespace OsEngine.Alerts
         public SignalType SignalType;
 
         /// <summary>
+        /// execution volume
         /// объём для исполнения
         /// </summary>
         public int VolumeReaction;
 
         /// <summary>
+        /// slippage
         /// проскальзывание
         /// </summary>
         public decimal Slippage;
 
         /// <summary>
+        /// position number that will be closed
         /// номер позиции которая будет закрыта
         /// </summary>
         public int NumberClosePosition;
 
         /// <summary>
+        /// order type 
         /// тип ордера 
         /// </summary>
         public OrderPriceType OrderPriceType;
 
         /// <summary>
+        /// whether ejecting is enabled Message windows
         /// влкючено ли выбрасывание Окна сообщения
         /// </summary>
         public bool MessageIsOn;
 
         /// <summary>
+        /// text of message thrown out when alert triggered
         /// текст сообщения, выбрасываемый при срабатывании Алерта
         /// </summary>
         public string Message;
 
         /// <summary>
+        /// path to music file
         /// путь к файлу с музыкой
         /// </summary>
         public AlertMusic MusicType;
@@ -185,16 +193,19 @@ namespace OsEngine.Alerts
     }
 
     /// <summary>
+    /// Price condition for activation of Alert
     /// условие активации Алерта по цене
     /// </summary>
     public enum PriceAlertTypeActivation
     {
         /// <summary>
+        /// price higher or equal to value
         /// цена выше или равна значению
         /// </summary>
         PriceHigherOrEqual,
 
         /// <summary>
+        /// Price lower or equal to
         /// цена ниже или равна значению
         /// </summary>
         PriceLowerOrEqual

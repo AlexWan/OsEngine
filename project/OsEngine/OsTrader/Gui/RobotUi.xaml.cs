@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -13,6 +14,7 @@ namespace OsEngine.OsTrader.Gui
 {
 
     /// <summary>
+    /// Gui robotStation
     /// ГУИ робота
     /// </summary>
     public partial class RobotUi
@@ -37,6 +39,7 @@ namespace OsEngine.OsTrader.Gui
         }
 
         /// <summary>
+        /// changed the size of the tabControl with the names of robots
         /// изменился размер табБокса с именами роботов
         /// </summary>
         void TabControlBotsName_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -120,6 +123,7 @@ namespace OsEngine.OsTrader.Gui
 
         private OsTraderMaster _strategyKeeper;
 
+// main menu
 // главное меню 
 
         private void ButtonServer_Click(object sender, RoutedEventArgs e)
@@ -137,12 +141,14 @@ namespace OsEngine.OsTrader.Gui
             _strategyKeeper.DeleteActiv();
         }
 
+// the management of the individual bot
 // управление отдельным ботом
         private void buttonStrategManualSettings_Click(object sender, RoutedEventArgs e)
         {
             _strategyKeeper.BotManualSettingsDialog();
         }
 
+// scalp trade engine
 // привод
 
         private void buttonBuyFast_Click_1(object sender, RoutedEventArgs e)
@@ -175,7 +181,7 @@ namespace OsEngine.OsTrader.Gui
             _strategyKeeper.BotSellMarket(volume);
         }
 
-
+// manual control of the position
 // ручное управление позицией
 
         private void ButtonStrategIndividualSettings_Click(object sender, RoutedEventArgs e)

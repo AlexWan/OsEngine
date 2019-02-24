@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -10,9 +11,6 @@ using OsEngine.Language;
 
 namespace OsEngine.OsTrader.Panels.Tab.Internal
 {
-    /// <summary>
-    /// Логика взаимодействия для PositionCloseDialog.xaml
-    /// </summary>
     public partial class ClosePositionUi
     {
         public ClosePositionUi(Position position, decimal lastSecurityPrice)
@@ -43,9 +41,6 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             ButtonAccept.Content = OsLocalization.Trader.Label17;
         }
 
-        /// <summary>
-        /// пользователь сменил тип ордера
-        /// </summary>
         void ComboBoxOrderType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             try
@@ -84,31 +79,14 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
         }
 
-// результаты 
-
-        /// <summary>
-        /// нужно ли сохранять данные после закрытия формы
-        /// </summary>
         public bool IsAccept;
 
-        /// <summary>
-        /// цена ордера
-        /// </summary>
         public decimal Price;
 
-        /// <summary>
-        /// кол-во ордеров в айсберге
-        /// </summary>
         public int CountAcebertOrder;
 
-        /// <summary>
-        /// тип открытия сделки
-        /// </summary>
         public PositionOpenType OpenType;
 
-        /// <summary>
-        /// кнопка принять
-        /// </summary>
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             try

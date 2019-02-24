@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -9,9 +10,7 @@ using OsEngine.Language;
 
 namespace OsEngine.OsTrader.Panels.PanelsGui
 {
-    /// <summary>
-    /// Логика взаимодействия для BBPowerTradeUi.xaml
-    /// </summary>
+
     public partial class BbPowerTradeUi
     {
         private BbPowerTrade _strategy;
@@ -24,8 +23,6 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
             Step.Text = _strategy.Step.ToString();
             TextBoxSlipage.Text = _strategy.Slipage.ToString(new CultureInfo("ru-RU"));
 
-
-
             ComboBoxRegime.Items.Add(BotTradeRegime.Off);
             ComboBoxRegime.Items.Add(BotTradeRegime.On);
             ComboBoxRegime.Items.Add(BotTradeRegime.OnlyClosePosition);
@@ -37,15 +34,12 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
             LabelVolume.Content = OsLocalization.Trader.Label30;
             LabelSlippage.Content = OsLocalization.Trader.Label92;
             ButtonAccept.Content = OsLocalization.Trader.Label132;
-
-
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-
                 if (Convert.ToDecimal(TextBoxVolumeOne.Text) <= 0 ||
                     Convert.ToDecimal(Step.Text) <= 0 ||
                     Convert.ToDecimal(TextBoxSlipage.Text) < 0)

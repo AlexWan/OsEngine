@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -11,9 +12,6 @@ using OsEngine.Market;
 
 namespace OsEngine.OsTrader.Gui
 {
-    /// <summary>
-    /// Логика взаимодействия для TesterOneSecurityDialog.xaml
-    /// </summary>
     public partial class TesterUi
     {
         public TesterUi()
@@ -83,6 +81,7 @@ namespace OsEngine.OsTrader.Gui
         }
 
         /// <summary>
+        /// changed the size of tabbox with the names of robots
         /// изменился размер табБокса с именами роботов
         /// </summary>
         void TabControlBotsName_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -106,7 +105,7 @@ namespace OsEngine.OsTrader.Gui
         private OsTraderMaster _strategyKeeper;
 
 
- // кнопки с говорящими названиями
+// buttons with talking names / кнопки с говорящими названиями
 
         private void buttonBuyFast_Click_1(object sender, RoutedEventArgs e)
         {
@@ -260,6 +259,5 @@ namespace OsEngine.OsTrader.Gui
         {
             _strategyKeeper.BotShowParametrsDialog();
         }
-
     }
 }

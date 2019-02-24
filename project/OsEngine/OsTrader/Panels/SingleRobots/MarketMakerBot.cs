@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using OsEngine.Charts.CandleChart.Elements;
@@ -8,14 +13,9 @@ using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.OsTrader.Panels.SingleRobots
 {
-    /// <summary>
-    /// стратегия реализующая набор котртрендовой позиции по линиям
-    /// </summary>
+
     public class MarketMakerBot : BotPanel
     {
-        /// <summary>
-        /// конструктор
-        /// </summary>
         public MarketMakerBot(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
@@ -34,15 +34,16 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         }
 
         /// <summary>
-        /// переопределённый метод, позволяющий менеджеру ботов определять что за робот перед ним
+        /// strategy name /
+        /// имя стратегии
         /// </summary>
-        /// <returns>название стратегии</returns>
         public override string GetNameStrategyType()
         {
             return "MarketMakerBot";
         }
 
         /// <summary>
+        /// show settings /
         /// показать окно настроек
         /// </summary>
         public override void ShowIndividualSettingsDialog()
@@ -52,35 +53,37 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         }
 
         /// <summary>
+        /// tab through which trade is conducted / 
         /// вкладка через которую ведётся торговля
         /// </summary>
         private BotTabSimple _tab;
 
-        // настройки стандартные
+        // default settings / настройки стандартные
 
         /// <summary>
+        /// robot mode /
         /// режим работы робота
         /// </summary>
         public BotTradeRegime Regime;
 
         /// <summary>
+        /// volume executed in a single transaction /
         /// объём исполняемый в одной сделке
         /// </summary>
         public decimal Volume;
 
         /// <summary>
+        /// distance between lines in% /
         /// расстояние между линиями в %
         /// </summary>
         public decimal PersentToSpreadLines;
 
         /// <summary>
+        /// do I need to draw lines /
         /// нужно ли прорисовывать линии
         /// </summary>
         public bool PaintOn;
 
-        /// <summary>
-        /// сохранить публичные настройки
-        /// </summary>
         public void Save()
         {
             try
@@ -97,13 +100,10 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
-        /// <summary>
-        /// загрузить публичные настройки из файла
-        /// </summary>
         private void Load()
         {
             if (!File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
@@ -123,11 +123,12 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// delete file with save / 
         /// удаление файла с сохранением
         /// </summary>
         void Strategy_DeleteEvent()
@@ -138,7 +139,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             }
         }
 
-        // переменные, нужные для торговли
+        //variables needed for trading / переменные, нужные для торговли
 
         private DateTime _lastReloadLineTime = DateTime.MinValue;
 
@@ -146,9 +147,10 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
 
         private List<LineHorisontal> _lineElements;
 
-        // логика
+        // logic / логика
 
         /// <summary>
+        /// candle completion event /
         /// событие завершения свечи
         /// </summary>
         private void Strateg_CandleFinishedEvent(List<Candle> candles)
@@ -164,13 +166,11 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
                 return;
             }
 
-            // распределяем логику в зависимости от текущей позиции
-
             List<Position> openPosition = _tab.PositionsOpenAll;
 
             if (candles[candles.Count - 1].TimeStart.DayOfWeek == DayOfWeek.Friday &&
              candles[candles.Count - 1].TimeStart.Hour >= 18)
-            {// если у нас пятница вечер
+            {//if we have friday evening  если у нас пятница вечер
                 if (openPosition != null && openPosition.Count != 0)
                 {
                     _tab.CloseAllAtMarket();
@@ -182,7 +182,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
                 candles[candles.Count - 1].TimeStart.DayOfWeek == DayOfWeek.Monday &&
                 candles[candles.Count - 1].TimeStart.Hour < 11 &&
                 _lastReloadLineTime.Day != candles[candles.Count - 1].TimeStart.Day)
-            {// если у нас понедельник утро
+            {//if we have monday morning если у нас понедельник утро
                 _lastReloadLineTime = candles[candles.Count - 1].TimeStart;
                 ReloadLines(candles);
             }
@@ -198,6 +198,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
 
             if (Regime == BotTradeRegime.OnlyClosePosition)
             {
+                // if the bot has the "close only" mode enabled
                 // если у бота включен режим "только закрытие"
                 return;
             }
@@ -207,26 +208,21 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         }
 
         /// <summary>
+        /// reload lines /
         /// перезагрузить линии
         /// </summary>
         private void ReloadLines(List<Candle> candles)
         {
             _lines = new List<decimal>();
 
-            // клоз это линия номер ноль и по 30 штук вверх и вниз
-
             _lines.Add(candles[candles.Count - 1].Close);
 
             decimal concateValue = candles[candles.Count - 1].Close / 100 * PersentToSpreadLines;
-
-            // считаем 30 вниз
 
             for (int i = 1; i < 21; i++)
             {
                 _lines.Add(candles[candles.Count - 1].Close - concateValue * i);
             }
-
-            // считаем 30 вверх
 
             for (int i = 1; i < 21; i++)
             {
@@ -235,13 +231,14 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         }
 
         /// <summary>
+        /// redraw lines /
         /// перерисовать линии
         /// </summary>
         private void RepaintLines()
         {
             if (_lineElements == null ||
                 _lines.Count != _lineElements.Count)
-            { // нужно полностью перерисовать
+            { 
                 _lineElements = new List<LineHorisontal>();
 
                 for (int i = 0; i < _lines.Count; i++)
@@ -251,7 +248,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
                 }
             }
             else
-            { // надо проверить уровни линиий, и несовпадающие перерисовать
+            { 
                 for (int i = 0; i < _lineElements.Count; i++)
                 {
                     if (_lineElements[i].Value != _lines[i])
@@ -264,6 +261,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         }
 
         /// <summary>
+        /// clear lines from the chart /
         /// очистить линии с графика
         /// </summary>
         private void ClearLines()
@@ -281,6 +279,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         }
 
         /// <summary>
+        /// trade logic / 
         /// логика торговли
         /// </summary>
         /// <param name="candles"></param>
@@ -291,6 +290,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             {
                 return;
             }
+            // 1 find out how much and in what direction we need to go
             // 1 выясняем каким объёмом и в какую сторону нам надо заходить
             decimal totalDeal = 0;
 
@@ -301,13 +301,13 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             {
                 if (lastPrice < _lines[i] &&
                     nowPrice > _lines[i])
-                { // пробой снизу вверх
+                { 
                     totalDeal--;
                 }
 
                 if (lastPrice > _lines[i] &&
                     nowPrice < _lines[i])
-                { // пробой сверху вниз
+                { 
                     totalDeal++;
                 }
             }
@@ -317,10 +317,11 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
                 return;
             }
 
+            // 2 go in the right direction
             // 2 заходим в нужную сторону
 
             if (totalDeal > 0)
-            { // нужно лонговать
+            { 
                 List<Position> positionsShort = _tab.PositionOpenShort;
 
                 if (positionsShort != null && positionsShort.Count != 0)
@@ -354,7 +355,6 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
 
             if (totalDeal < 0)
             {
-                // нужно шортить
                 totalDeal = Math.Abs(totalDeal);
 
                 List<Position> positionsLong = _tab.PositionOpenLong;

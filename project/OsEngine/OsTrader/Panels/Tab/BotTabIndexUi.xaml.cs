@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System.Windows;
@@ -8,10 +9,7 @@ using OsEngine.Language;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
-
-    /// <summary>
-    /// Логика взаимодействия для BotTabIndexUi.xaml
-    /// </summary>
+    
     public partial class BotTabIndexUi
     {
         
@@ -25,9 +23,6 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             Title = OsLocalization.Trader.Label81;
             ButtonAccept.Content = OsLocalization.Trader.Label17;
-
-
-
         }
 
         private BotTabIndex _spread;
@@ -36,7 +31,6 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void CreateTable()
         {
-            //создание первой табицы
             _grid1 = new DataGridView();
             _grid1.CellContentDoubleClick += Grid1CellValueChangeClick;
 
@@ -72,7 +66,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             _grid1.Columns.Add(fcolumn1);
 
             HostSecurity1.Child = _grid1;
-
         }
 
         void Grid1CellValueChangeClick(object sender, DataGridViewCellEventArgs e)

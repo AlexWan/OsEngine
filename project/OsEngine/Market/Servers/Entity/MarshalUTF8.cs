@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace OsEngine.Market.Servers.Services
+namespace OsEngine.Market.Servers.Entity
 {
     static class MarshalUtf8
     {

@@ -4,9 +4,9 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
-using OsEngine.Market.Servers.Services;
 using OsEngine.Market.Servers.Transaq;
 using SmartCOM4Lib;
 
@@ -19,10 +19,10 @@ namespace OsEngine.Market.Servers.SmartCom
             SmartComServerRealization realization = new SmartComServerRealization();
             ServerRealization = realization;
 
-            CreateParameterString("Адрес", "mxdemo.ittrade.ru");
-            CreateParameterString("Порт", "8443");
-            CreateParameterString("Имя пользователя", "");
-            CreateParameterPassword("Пароль", "");
+            CreateParameterString(OsLocalization.Market.Message59, "mxdemo.ittrade.ru");
+            CreateParameterString(OsLocalization.Market.Message90, "8443");
+            CreateParameterString(OsLocalization.Market.Message63, "");
+            CreateParameterPassword(OsLocalization.Market.Message64, "");
         }
 
         public List<Candle> GetSmartComCandleHistory(string security, TimeSpan timeSpan, int count)
@@ -389,7 +389,7 @@ namespace OsEngine.Market.Servers.SmartCom
                 order.State = OrderStateType.Fail;
                 order.ServerType = ServerType.SmartCom;
 
-                SendLogMessage(order.NumberUser + " Ошибка при отправке ордера " + reason, LogMessageType.Error);
+                SendLogMessage(order.NumberUser + OsLocalization.Market.Message89 + reason, LogMessageType.Error);
 
                 if (MyOrderEvent != null)
                 {
@@ -404,17 +404,17 @@ namespace OsEngine.Market.Servers.SmartCom
 
         private void SmartServerOnOrderCancelSucceeded(string orderid)
         {
-            SendLogMessage(orderid + " Ордер отозван успешно", LogMessageType.System);
+            SendLogMessage(orderid + OsLocalization.Market.Message91, LogMessageType.System);
         }
 
         private void SmartServerOnOrderCancelFailed(string orderid)
         {
-            SendLogMessage(orderid + " Ошибка при отзыве ордера", LogMessageType.Error);
+            SendLogMessage(orderid + OsLocalization.Market.Message92, LogMessageType.Error);
         }
 
         private void SmartServerOnOrderSucceeded(int cookie, string orderid)
         {
-            SendLogMessage(cookie + " Ордер выставлен успешно", LogMessageType.System);
+            //SendLogMessage(cookie + " Ордер выставлен успешно", LogMessageType.System);
         }
 
         private List<Order> _ordersWhithId = new List<Order>();
@@ -458,7 +458,7 @@ namespace OsEngine.Market.Servers.SmartCom
                         if (isInArray == false)
                         { // не нашли ответа на транзакцию
                             SendLogMessage(
-                                "Зафиксирована пропажа ордера на открытие. Переподписывамся на обновление портфеля",
+                                OsLocalization.Market.Message93,
                                 LogMessageType.System);
                             Dispose();
                         }
@@ -489,7 +489,7 @@ namespace OsEngine.Market.Servers.SmartCom
                         if (isInArray == false)
                         {
                             SendLogMessage(
-                                "Зафиксирована пропажа отзывающего ордера. Переподписывамся на обновление портфеля",
+                                OsLocalization.Market.Message93,
                                 LogMessageType.System);
                             Dispose();
                         }

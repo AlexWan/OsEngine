@@ -1,4 +1,5 @@
 ﻿/*
+ *Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -20,17 +21,19 @@ using MouseEventArgs = System.Windows.Forms.MouseEventArgs;
 namespace OsEngine.Alerts
 {
     /// <summary>
+    /// Aletrs
     /// Хранилище Алертов
     /// </summary>
     public class AlertMaster
     {
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="name">имя владельца хранилища алертов</param>
-        /// <param name="connector">коннектор</param>
-        /// <param name="chartMaster">чарт</param>
+        /// <param name="name">name of owner of alerts repository/имя владельца хранилища алертов</param>
+        /// <param name="connector">connector/коннектор</param>
+        /// <param name="chartMaster">chart/чарт</param>
         public AlertMaster(string name, ConnectorCandles connector, ChartCandleMaster chartMaster) 
         {
             _name = name;
@@ -88,42 +91,50 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// storage name
         /// имя хранилища
         /// </summary>
         private readonly string _name;
 
         /// <summary>
+        /// alerts array
         /// массив Алертов
         /// </summary>
         private List<IIAlert> _alertArray; 
 
         /// <summary>
+        /// connector
         /// коннектор
         /// </summary>
-        private ConnectorCandles _connector; 
+        private ConnectorCandles _connector;
 
         /// <summary>
+        /// graphical master
         /// мастер прорисовки графика
         /// </summary>
         private ChartCandleMaster _chartMaster;
 
         /// <summary>
+        /// spreadsheet host
         /// хост для прорисовки таблицы
         /// </summary>
         public WindowsFormsHost HostAllert;
 
         /// <summary>
+        /// alert table
         /// таблица алертов
         /// </summary>
         public DataGridView GridViewBox;
 
         /// <summary>
+        /// load settings from file
         /// загрузить настройки из файла
         /// </summary>
         private void Load() 
         {
             if (!File.Exists(@"Engine\" + _name + "AlertKeeper.txt"))
             {
+                // if there is no file we need. Just go out
                 // если нет нужного нам файла. Просто выходим
                 return;
             }
@@ -133,7 +144,9 @@ namespace OsEngine.Alerts
 
                 using (StreamReader reader = new StreamReader(@"Engine\" + _name + "AlertKeeper.txt"))
                 {
+                    // if there is file. Connect to it and download data
                     // если файл есть. Подключаемся к нему и качаем данные
+                    // indicators
                     // индикаторы
                     while (!reader.EndOfStream)
                     {
@@ -165,16 +178,18 @@ namespace OsEngine.Alerts
                         }
                     }
                 }
+                // create array and robots
                 // создаём массив и роботов
-                
+
             }
-            catch(Exception error)
+            catch (Exception error)
             {
                 SendNewMessage(error.ToString(),LogMessageType.Error);
             }
         }
 
         /// <summary>
+        /// save settings to file
         /// сохранить настройки в файл
         /// </summary>
         private void Save()
@@ -183,6 +198,7 @@ namespace OsEngine.Alerts
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + _name + "AlertKeeper.txt", false))
                 {
+                    // create file and write settings data to it
                     // создаём файл и записываем в него данные настроек
 
                     for (int i = 0; _alertArray != null && i < _alertArray.Count; i++)
@@ -203,10 +219,11 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
-        /// выслать на верх новое сообщение для лога
+        /// send new log message to top
+        /// выслать наверх новое сообщение для лога
         /// </summary>
-        /// <param name="message">сообщение</param>
-        /// <param name="type">тип сообщения</param>
+        /// <param name="message">message/сообщение</param>
+        /// <param name="type">message type/тип сообщения</param>
         private void SendNewMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
@@ -214,17 +231,21 @@ namespace OsEngine.Alerts
                 LogMessageEvent(message, type);
             }
             else if (type == LogMessageType.Error)
-            { // если никто на нас не подписан и происходит ошибка
+            {
+                // if no one's subscribed to us and there's mistake
+                // если никто на нас не подписан и происходит ошибка
                 MessageBox.Show(message);
             }
         }
 
         /// <summary>
+        /// outgoing message for log
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
         /// <summary>
+        /// purge everything
         /// удалить всё
         /// </summary>
         public void DeleteAll()
@@ -254,9 +275,10 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// delete alert by number
         /// удалить алерт по номеру
         /// </summary>
-        /// <param name="number">номер алерта</param>
+        /// <param name="number">alert number/номер алерта</param>
         public void DeleteFromNumber(int number) 
         {
             try
@@ -271,7 +293,7 @@ namespace OsEngine.Alerts
                 IIAlert activAlert = _alertArray[number];
 
                 activAlert.Delete();
-
+                // 2 delete
                 // 2 удаляем
 
                 _alertArray.Remove(activAlert);
@@ -287,9 +309,10 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// delete alert
         ///  удалить Алерт
         /// </summary>
-        /// <param name="alert">алерт</param>
+        /// <param name="alert">alert/алерт</param>
         public void Delete(IIAlert alert)
         {
             try
@@ -315,9 +338,10 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// save in storage new Alert
         /// сохранить в хранилище новый Алерт
         /// </summary>
-        /// <param name="newAlert">новый алерт</param>
+        /// <param name="newAlert">new alert/новый алерт</param>
         public void SetNewAlert(IIAlert newAlert) 
         {
             try
@@ -347,11 +371,13 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// open window to create Alert
         /// открытое окно создания Алерта
         /// </summary>
         private AlertToChartCreateUi _alertChartUi;
 
         /// <summary>
+        /// create new Alert
         /// вызвать создание нового Алерта
         /// </summary>
         public void ShowAlertNewDialog(AlertType type)
@@ -398,6 +424,7 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// call up old alert settings by number
         /// вызвать насройки старого алерта по номеру
         /// </summary>
         /// <param name="number">номер</param>
@@ -434,6 +461,7 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// alert settings window close
         /// закрывается окно настроек Алерта
         /// </summary>
         void _ChartAertUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -456,9 +484,10 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// check alert for triggers
         /// проверить Алерт на срабатывание
         /// </summary>
-        /// <returns>сигнал</returns>
+        /// <returns>signal/сигнал</returns>
         public AlertSignal CheckAlerts()
         {
             try
@@ -495,6 +524,7 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// user clicked on table
         /// пользователь кликнул по таблице
         /// </summary>
         void GridViewBox_Click(object sender, EventArgs e)
@@ -505,6 +535,7 @@ namespace OsEngine.Alerts
                 return;
             }
 
+            // shortcut menu creation
             // cоздание контекстного меню
 
             MenuItem[] items = new MenuItem[4];
@@ -540,6 +571,7 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        ///  user has chosen to remove alert
         /// позователь выбрал удалить алерт
         /// </summary>
         void AlertDelete_Click(object sender, EventArgs e)
@@ -553,6 +585,7 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// user pressed edit alert
         /// пользователь нажал редактировать алерт
         /// </summary>
         void AlertRedact_Click(object sender, EventArgs e)
@@ -568,6 +601,7 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// user clicked to create an alert
         /// пользователь нажал создать алерт
         /// </summary>
         void AlertChartCreate_Click(object sender, EventArgs e)
@@ -576,6 +610,7 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// user clicked to create an alert
         /// пользователь нажал создать алерт
         /// </summary>
         void AlertPriceCreate_Click(object sender, EventArgs e)
@@ -584,14 +619,18 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// cursor position on chart has changed
         /// изменилась позиция курсора на чарте
         /// </summary>
         void AlertMaster_Click(object sender, EventArgs e)
         {
-            CheckAlert(); // проверить, не надо ли сейчас загрузить информацию с курсора в окно Алерта
+            // check to see if you need to download information from cursor to alert window
+            // проверить, не надо ли сейчас загрузить информацию с курсора в окно Алерта
+            CheckAlert(); 
         }
 
         /// <summary>
+        /// check if alert is currently being edited
         /// проверить, не редактируется ли сейчас Алерт
         /// </summary>
         private void CheckAlert()
@@ -605,8 +644,9 @@ namespace OsEngine.Alerts
 
                 int numberCandle = 0;
                 decimal pricePoint;
-
-                try // костыль не всегда помогает
+                // crutch does not always help
+                // костыль не всегда помогает
+                try 
                 {
                     ChartArea candleArea = _chartMaster.GetChartArea("Prime");
 
@@ -629,6 +669,7 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// start drawing alerts
         /// начать прорисовку Алертов
         /// </summary>
         public void StartPaint(WindowsFormsHost alertDataGrid) 
@@ -657,6 +698,7 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// stop alert's drawing
         /// остановить прорисовку Алертов
         /// </summary>
         public void StopPaint()
@@ -688,6 +730,7 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// draw alerts
         /// прорисовать Алерты
         /// </summary>
         private void Paint()
@@ -715,11 +758,13 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        /// drawing elements enabled
         /// включена ли прорисовка элементов
         /// </summary>
-        private bool _isPaint;  
+        private bool _isPaint;
 
         /// <summary>
+        /// draw all available alerts
         /// прорисовать все имеющиеся алерты
         /// </summary>
         private void PaintGridBox()
@@ -765,6 +810,7 @@ namespace OsEngine.Alerts
         }
 
         /// <summary>
+        ///  draw all alerts on chart
         /// прорисовать все алерты на чарте
         /// </summary>
         private void PaintAlertOnChart()
@@ -774,16 +820,19 @@ namespace OsEngine.Alerts
     }
 
     /// <summary>
+    /// alert type
     /// тип алерта
     /// </summary>
     public enum AlertType
     {
         /// <summary>
+        /// alert for charts
         /// алерт для чарта
         /// </summary>
         ChartAlert,
 
         /// <summary>
+        /// alert price
         /// алерт достижения цены
         /// </summary>
         PriceAlert
@@ -791,19 +840,23 @@ namespace OsEngine.Alerts
     }
 
     /// <summary>
+    /// type of alert for Alert
     /// тип оповещения для Алерта
     /// </summary>
     public enum AlertMusic
     {
         /// <summary>
+        /// duck
         /// утка
         /// </summary>
         Duck,
         /// <summary>
+        /// bird
         /// птица
         /// </summary>
         Bird,
         /// <summary>
+        /// wolf
         /// волк
         /// </summary>
         Wolf

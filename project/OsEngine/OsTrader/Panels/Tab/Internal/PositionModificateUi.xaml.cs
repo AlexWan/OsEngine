@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -10,9 +11,6 @@ using OsEngine.Language;
 
 namespace OsEngine.OsTrader.Panels.Tab.Internal
 {
-    /// <summary>
-    /// Логика взаимодействия для PositionModificateUi.xaml
-    /// </summary>
     public partial class PositionModificateUi
     {
         public PositionModificateUi(decimal lastPrice, string nameSecurity)
@@ -48,9 +46,6 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
         }
 
-        /// <summary>
-        /// пользователь переключил тип открытия сделки
-        /// </summary>
         void ComboBoxOrderType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             PositionOpenType type;
@@ -82,41 +77,18 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
         }
 
-// результат
-
-        /// <summary>
-        /// нужно ли модифицировать позицию после закрытия окна
-        /// </summary>
         public bool IsAccept;
 
-        /// <summary>
-        /// цена ордера
-        /// </summary>
         public decimal Price;
 
-        /// <summary>
-        /// объём
-        /// </summary>
         public decimal Volume;
 
-        /// <summary>
-        /// тип модификации позиции
-        /// </summary>
         public PositionOpenType OpenType;
 
-        /// <summary>
-        /// сторона ордера
-        /// </summary>
         public Side Side;
 
-        /// <summary>
-        /// кол-во ордеров в сделке
-        /// </summary>
         public int CountAcebertOrder;
 
-        /// <summary>
-        /// кнопка принять
-        /// </summary>
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             try

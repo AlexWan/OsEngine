@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using OsEngine.Entity;
@@ -10,12 +15,12 @@ using OsEngine.OsTrader.Panels.Tab;
 namespace OsEngine.OsTrader.Panels.SingleRobots
 {
     /// <summary>
+    /// pattern trading robot
     /// робот для торговли паттернами
     /// </summary>
     public class PatternTrader : BotPanel
     {
 
-// сервис
         public PatternTrader(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
@@ -55,6 +60,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         }
 
         /// <summary>
+        /// incoming message from the pattern store
         /// входящее сообщение из хранилища паттернов
         /// </summary>
         void _minerMaster_LogMessageEvent(string message, Logging.LogMessageType messageType)
@@ -63,11 +69,13 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         }
 
         /// <summary>
+        /// pattern store
         /// хранилище паттернов
         /// </summary>
         private OsMinerMaster _minerMaster;
 
         /// <summary>
+        /// take the name of the robot
         /// взять название робота
         /// </summary>
         /// <returns></returns>
@@ -77,6 +85,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         }
 
         /// <summary>
+        /// open settings window
         /// открыть окно настроек
         /// </summary>
         public override void ShowIndividualSettingsDialog()
@@ -86,6 +95,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         }
 
         /// <summary>
+        /// update patterns
         /// обновить паттерны
         /// </summary>
         public void GetPatterns()
@@ -95,16 +105,16 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         }
 
         /// <summary>
+        /// take list of pattern groups from storage
         /// взять список групп паттернов из хранилища
         /// </summary>
-        /// <param name="nameSet"></param>
-        /// <returns></returns>
         public List<string> GetListPatternsNames(string nameSet)
         {
             return _minerMaster.GetListPatternsNames(nameSet);
         }
 
         /// <summary>
+        /// take a list of set names
         /// взять список названий сетов
         /// </summary>
         /// <returns></returns>
@@ -119,122 +129,145 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             return names;
         }
 
-// настройки
+// settings / настройки
 
         /// <summary>
+        /// regime
         /// режим работы
         /// </summary>
         public BotTradeRegime Regime;
 
         /// <summary>
+        /// side to inter
         /// сторона входа для паттерна
         /// </summary>
         public Side SideInter;
 
         /// <summary>
+        /// total weight of single entry patterns
         /// общий вес одиночных паттернов для входа
         /// </summary>
         public decimal WeigthToInter;
 
         /// <summary>
+        /// total weight of single patterns to exit a position
         /// общий вес одиночных паттернов для выхода из позиции
         /// </summary>
         public decimal WeigthToExit;
 
         /// <summary>
+        /// is the stop order included for exit
         /// включен ли стоп ордер для выхода
         /// </summary>
         public bool StopOrderIsOn;
 
         /// <summary>
+        /// value of the stop order
         /// величина стопОрдера
         /// </summary>
         public decimal StopOrderValue;
 
         /// <summary>
+        /// slippage for stop order
         /// проскальзывание для стопОрдера
         /// </summary>
         public int StopOrderSleepage;
 
         /// <summary>
+        /// Is profit order activate?
         /// включен ли профит ордер для выхода
         /// </summary>
         public bool ProfitOrderIsOn;
 
         /// <summary>
+        /// order profit value
         /// величина профит ордера
         /// </summary>
         public decimal ProfitOrderValue;
 
         /// <summary>
+        /// slippage for profit order
         /// просальзывание для профитОрдера
         /// </summary>
         public int ProfitOrderSleepage;
 
         /// <summary>
+        /// is the output enabled via N candles
         /// включен ли выход через N свечек
         /// </summary>
         public bool ExitFromSomeCandlesIsOn;
 
         /// <summary>
+        /// the number of candles after which the output through N candles will work
         /// количество свечек после которого сработает выход через N свечек
         /// </summary>
         public int ExitFromSomeCandlesValue;
 
         /// <summary>
+        /// slippage to exit through N candles
         /// проскальзывание для выхода через N свечек
         /// </summary>
         public int ExitFromSomeCandlesSleepage;
 
         /// <summary>
+        /// is trailing stop enabled for exit
         /// включен ли трейлинг стоп для выхода
         /// </summary>
         public bool TrailingStopIsOn;
 
         /// <summary>
+        /// trailing stop value
         /// величина трейлинг стопа
         /// </summary>
         public decimal TreilingStopValue;
 
         /// <summary>
+        /// slippage for trailing stop
         /// проскальзывание для трейлинг стопа
         /// </summary>
         public int TreilingStopSleepage;
 
         /// <summary>
+        /// name of the group of patterns that this robot trades
         /// название группы  паттернов которые торгует данный робот
         /// </summary>
         public string NameGroupPatternsToTrade;
 
         /// <summary>
+        /// set name
         /// имя сета 
         /// </summary>
         public string NameSetToTrade;
 
         /// <summary>
+        /// slipping to enter by pattern
         /// проскальзывание для входа по паттернам
         /// </summary>
         public int InterToPatternSleepage;
 
         /// <summary>
+        /// slipping to exit by pattern
         /// проскальзывание для выхода по паттернам
         /// </summary>
         public int ExitToPatternsSleepage;
 
         /// <summary>
+        /// Maximum positions
         /// Максимум позиций
         /// </summary>
         public int MaxPosition;
 
         /// <summary>
+        /// opening volume
         /// объём для открытия
         /// </summary>
         public decimal OpenVolume;
 
 
-// работа с файловой системой
+// work with file system / работа с файловой системой
 
         /// <summary>
+        /// save settings
         /// сохранить настройки
         /// </summary>
         public void Save()
@@ -272,11 +305,12 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// load settings
         /// загрузить настройки
         /// </summary>
         private void Load()
@@ -318,11 +352,12 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// delete file with save
         /// удаление файла с сохранением
         /// </summary>
         void Strategy_DeleteEvent()
@@ -333,24 +368,28 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             }
         }
 
-// торговая логика
+//trading logic /  торговая логика
 
         /// <summary>
+        /// trading tab
         /// вкладка для торговли
         /// </summary>
         private BotTabSimple _tab;
 
         /// <summary>
+        /// entry patterns
         /// одиночные паттерны для входа в позицию
         /// </summary>
         public List<IPattern> PatternsToOpen = new List<IPattern>();
 
         /// <summary>
+        /// exit patterns
         /// одиночные паттерны для входа в позицию
         /// </summary>
         public List<IPattern> PatternsToClose = new List<IPattern>();
 
         /// <summary>
+        /// candle completion event
         /// событие завершения свечи
         /// </summary>
         void _tab_CandleFinishedEvent(List<Candle> candles)
@@ -391,9 +430,9 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         }
 
         /// <summary>
+        /// enter position
         /// войти в позицию
         /// </summary>
-        /// <param name="price"></param>
         private void InterInNewPosition(decimal price)
         {
             if (SideInter == Side.Buy)
@@ -407,6 +446,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         }
 
         /// <summary>
+        /// event of opening a new position
         /// событие открытия новой позиции
         /// </summary>
         void _tab_PositionOpeningSuccesEvent(Position position)
@@ -446,6 +486,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         }
 
         /// <summary>
+        /// check patterns at entry
         /// проверить паттерны на вход в позицию
         /// </summary>
         private bool CheckInter(List<IPattern> patterns, List<Candle> series, int index, decimal weigthToInterOrExit)
@@ -473,12 +514,13 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         }
 
         /// <summary>
+        /// check out of position
         /// проверить выход из позиции
         /// </summary>
         private decimal CheckExit(Position position, List<IPattern> patterns, List<Candle> candles, int index, decimal price)
         {
             if (CheckInter(patterns, candles, index, WeigthToExit))
-            { // если выходим по паттернам
+            {
                 return GetPriceExit(position,price,ExitToPatternsSleepage);
             }
 
@@ -496,8 +538,6 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
                 }
             }
 
-            // проверить выход по времени
-
             if (ExitFromSomeCandlesIsOn)
             {
                 if (GetIndexInter(position.TimeOpen, candles) + ExitFromSomeCandlesValue <= index)
@@ -510,6 +550,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         }
 
         /// <summary>
+        /// take the candle index by time
         /// взять индекс свечи по времени
         /// </summary>
         private int GetIndexInter(DateTime time, List<Candle> candles)
@@ -526,6 +567,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         }
 
         /// <summary>
+        /// take the exit price
         /// взять цену выхода из позиции
         /// </summary>
         private decimal GetPriceExit(Position position, decimal price, int sleepage)

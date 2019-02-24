@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -12,18 +13,17 @@ using OsEngine.Market;
 namespace OsEngine.OsTrader.RiskManager
 {
     /// <summary>
+    /// Risk Manager
     /// Риск Мэнеджер
     /// </summary>
     public class RiskManager
     {
-        // статическая часть с работой потока
+        // static part with work flow / статическая часть с работой потока
 
-        /// <summary>
-        /// поток 
-        /// </summary>
         public static Thread Watcher;
 
         /// <summary>
+        /// risk managers who need to be serviced
         /// риск менеджеры которые нужно обслуживать
         /// </summary>
         public static List<RiskManager> RiskManagersToCheck = new List<RiskManager>();
@@ -31,6 +31,7 @@ namespace OsEngine.OsTrader.RiskManager
         private static object _activatorLocker = new object();
 
         /// <summary>
+        /// activate flow
         /// активировать поток
         /// </summary>
         public static void Activate()
@@ -49,6 +50,7 @@ namespace OsEngine.OsTrader.RiskManager
         }
 
         /// <summary>
+        /// place of work thread
         /// место работы потока
         /// </summary>
         public static void WatcherHome()
@@ -69,13 +71,14 @@ namespace OsEngine.OsTrader.RiskManager
             }
         }
 
-// сервис
+        // service / сервис
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
         /// <param name="nameBot">uid / имя робота</param>
-        /// <param name="startProgram">программа которая запустила класс</param>
+        /// <param name="startProgram">the program that launched the class / программа которая запустила класс</param>
         public RiskManager(string nameBot, StartProgram startProgram)
         {
             _startProgram = startProgram;
@@ -91,31 +94,36 @@ namespace OsEngine.OsTrader.RiskManager
         }
 
         /// <summary>
+        /// the program that launched the class
         /// какая программа запустила класс
         /// </summary>
         private StartProgram _startProgram;
 
         /// <summary>
-        /// имя 
+        /// name / имя 
         /// </summary>
         private string _name;
 
         /// <summary>
+        /// maximum drawdown per day
         /// максимальная просадка на день
         /// </summary>
         public decimal MaxDrowDownToDayPersent;
 
         /// <summary>
+        /// type of reaction
         /// тип реакции
         /// </summary>
         public RiskManagerReactionType ReactionType;
 
         /// <summary>
+        /// is the manager included
         /// включен ли менеджер
         /// </summary>
         public bool IsActiv;
 
         /// <summary>
+        /// clear previously loaded jorunals
         /// очистить от ранее загруженых журналов
         /// </summary>
         public void ClearJournals()
@@ -124,9 +132,9 @@ namespace OsEngine.OsTrader.RiskManager
         }
 
         /// <summary>
+        /// load in Risk Manager
         /// подгрузить в Риск Менеджер журнал
         /// </summary>
-        /// <param name="newJournal">новый журнал</param>
         public void SetNewJournal(Journal.Journal newJournal)
         {
             try
@@ -155,11 +163,13 @@ namespace OsEngine.OsTrader.RiskManager
         }
 
         /// <summary>
+        /// risk manager journals
         /// журналы риск менеджера
         /// </summary>
         private List<Journal.Journal> _journals;
 
         /// <summary>
+        /// save
         /// сохранить
         /// </summary>
         private void Load()
@@ -186,6 +196,7 @@ namespace OsEngine.OsTrader.RiskManager
         }
 
         /// <summary>
+        /// load
         /// загрузить
         /// </summary>
         public void Save()
@@ -208,6 +219,7 @@ namespace OsEngine.OsTrader.RiskManager
         }
 
         /// <summary>
+        /// delete
         /// удалить
         /// </summary>
         public void Delete()
@@ -226,6 +238,7 @@ namespace OsEngine.OsTrader.RiskManager
         }
 
         /// <summary>
+        /// show
         /// показать
         /// </summary>
         public void ShowDialog()
@@ -242,6 +255,7 @@ namespace OsEngine.OsTrader.RiskManager
         }
 
         /// <summary>
+        /// method in which we review logs for excess of allowable losses
         /// метод, в котором мы просматриваем журналы на превышение допустимых  норм убытков
         /// </summary>
         private void CheckJournals()
@@ -286,10 +300,11 @@ namespace OsEngine.OsTrader.RiskManager
             }
         }
 
-        // сообщения в лог 
+        // logging / сообщения в лог 
 
         /// <summary>
-        /// выслать новое сообщение на верх
+        /// send new message
+        /// выслать новое сообщение
         /// </summary>
         private void SendNewLogMessage(string message, LogMessageType type)
         {
@@ -298,17 +313,19 @@ namespace OsEngine.OsTrader.RiskManager
                 LogMessageEvent(message, type);
             }
             else if (type == LogMessageType.Error)
-            { // если на нас никто не подписан и в логе ошибка
+            {
                 System.Windows.MessageBox.Show(message);
             }
         }
 
         /// <summary>
+        /// outgoing message for log
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
         /// <summary>
+        /// send excess loss alert
         /// выслать оповещение о превышении убытков
         /// </summary>
         public event Action<RiskManagerReactionType> RiskManagerAlarmEvent;
@@ -316,21 +333,25 @@ namespace OsEngine.OsTrader.RiskManager
     }
 
     /// <summary>
+    /// manager's risk response reaction to too much loss
     /// реакция риск менеджера на слишком большой убыток
     /// </summary>
     public enum RiskManagerReactionType
     {
         /// <summary>
+        /// pop up a window
         /// выдать всплывающее окно
         /// </summary>
         ShowDialog,
 
         /// <summary>
+        /// close all positions and disable the robot
         /// закрыть все позиции и отключить робота
         /// </summary>
         CloseAndOff,
 
         /// <summary>
+        /// none
         /// никакой
         /// </summary>
         None

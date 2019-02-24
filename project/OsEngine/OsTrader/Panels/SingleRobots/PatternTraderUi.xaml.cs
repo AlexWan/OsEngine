@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Windows;
@@ -13,9 +18,6 @@ using OsEngine.OsMiner.Patterns;
 
 namespace OsEngine.OsTrader.Panels.SingleRobots
 {
-    /// <summary>
-    /// Логика взаимодействия для PatternTraderUi.xaml
-    /// </summary>
     public partial class PatternTraderUi
     {
         public PatternTraderUi(PatternTrader bot)
@@ -75,16 +77,11 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             LabelSlippage4.Content = OsLocalization.Trader.Label92;
             LabelSlippageExitByPatterns.Content = OsLocalization.Trader.Label127;
             LabelWeightForExit.Content = OsLocalization.Trader.Label128;
-
-
-
-
-
         }
 
         private PatternTrader _bot;
 
-// выбор паттерна и базовые настройки
+// pattern selection and basic settings выбор паттерна и базовые настройки
 
         private void InitializePrimeSettings()
         {
@@ -191,7 +188,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             ComboBoxPatternsGroups.SelectedItem = _bot.NameGroupPatternsToTrade;
         }
 
-// работа с первой вкладкой
+// work with the first tab работа с первой вкладкой
 
         private void InitializePattarnsToOpenTab()
         {
@@ -246,7 +243,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             _bot.Save();
         }
 
-// работа со второй вкладкой
+//work with the second tab  работа со второй вкладкой
 
 
         void InitializeTabClosePosition()
@@ -491,16 +488,18 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             _bot.Save();
         }
 
-        // РАБОТА С ГРИДАМИ
+//WORK WITH GRID РАБОТА С ГРИДАМИ
 
         private DataGridView _gridPatternsToOpen;
 
         /// <summary>
+        /// chart for drawing a single entry pattern
         /// чарт для отрисовки одиночного паттерна на вход
         /// </summary>
         private ChartCandlePainter _chartSingleOpenPattern;
 
         /// <summary>
+        /// chart for drawing a single exit pattern
         /// чарт для отрисовки одиночного паттерна на выход
         /// </summary>
         private ChartCandlePainter _chartSingleClosePattern;
@@ -687,6 +686,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         }
 
         /// <summary>
+        /// draw a pattern on the opening on his individual charts
         /// прорисовать паттерн на открытие на его индивидуальном чарте
         /// </summary>
         public void PaintOpenPattern(int index)
@@ -703,6 +703,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         }
 
         /// <summary>
+        /// draw a closing pattern on its individual chart
         /// прорисовать паттерн на закрытие на его индивидуальном чарте
         /// </summary>
         public void PaintClosePattern(int index)
@@ -718,6 +719,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         }
 
         /// <summary>
+        /// draw a pattern on his individual chart
         /// прорисовать паттерн на его индивидуальном чарте
         /// </summary>
         private void PaintSinglePattern(IPattern pattern, ChartCandlePainter chart)
@@ -741,8 +743,6 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             if (pattern.Type == PatternType.Indicators)
             {
                 PatternIndicators pat = (PatternIndicators)pattern;
-
-
 
                 for (int i = 0; pat.Indicators != null && i < pat.Indicators.Count; i++)
                 {

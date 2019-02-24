@@ -1,28 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
 using System.Windows;
 using OsEngine.Language;
 using OsEngine.Market;
 
 namespace OsEngine.OsTrader.Panels.SingleRobots
 {
-    class ClusterEngine : BotPanel
+    public class ClusterEngine : BotPanel
     {
-        /// <summary>
-        /// конструктор
-        /// </summary>
+
         public ClusterEngine(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
-            //создание вкладки
             TabCreate(BotTabType.Cluster);
         }
 
         /// <summary>
-        /// униальное имя стратегии
+        /// strategy name 
+        /// имя стратегии
         /// </summary>
         /// <returns></returns>
         public override string GetNameStrategyType()
@@ -31,6 +29,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
         }
 
         /// <summary>
+        /// show settings
         /// показать настройки
         /// </summary>
         public override void ShowIndividualSettingsDialog()

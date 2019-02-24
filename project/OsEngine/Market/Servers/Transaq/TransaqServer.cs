@@ -1,7 +1,6 @@
 ﻿using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
-using OsEngine.Market.Servers.Services;
 using OsEngine.Market.Servers.Transaq.TransaqEntity;
 using System;
 using System.Collections.Generic;
@@ -11,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Xml.Serialization;
+using OsEngine.Language;
 using Candle = OsEngine.Entity.Candle;
 using Order = OsEngine.Entity.Order;
 using Security = OsEngine.Entity.Security;
@@ -32,10 +32,10 @@ namespace OsEngine.Market.Servers.Transaq
 
             ServerRealization = new TransaqServerRealization(WorkingTimeSettings);
 
-            CreateParameterString("Логин", "");
-            CreateParameterPassword("Старый пароль", "");
-            CreateParameterString("IP адрес сервера", "213.247.141.133");
-            CreateParameterString("Номер порта сервера", "3900");
+            CreateParameterString(OsLocalization.Market.Message63, "");
+            CreateParameterPassword(OsLocalization.Market.Message64, "");
+            CreateParameterString(OsLocalization.Market.Label41, "213.247.141.133");
+            CreateParameterString(OsLocalization.Market.Message90, "3900");
         }
 
         public ServerWorkingTimeSettings WorkingTimeSettings;
@@ -137,7 +137,7 @@ namespace OsEngine.Market.Servers.Transaq
         public event Action DisconnectEvent;
 
         TransaqClient _client;
-
+        
         #region запросы
 
         private CancellationTokenSource _cancellationTokenSource;
@@ -185,10 +185,7 @@ namespace OsEngine.Market.Servers.Transaq
         private void NeedChangePassword()
         {
             Application.Current.Dispatcher.Invoke((Action)delegate {
-                string message = "Время действия Вашего пароля истекло \n" +
-                                 " необходимо изменить пароль. \n" +
-                                 " До изменения пароля невозможно проведение транзакций \n" +
-                                 "(выставление/изменение/снятие заявок).";
+                string message = OsLocalization.Market.Message94;
 
                 ChangeTransaqPassword changeTransaqPasswordWindow = new ChangeTransaqPassword(message, this);
                 changeTransaqPasswordWindow.ShowDialog();
@@ -509,7 +506,7 @@ namespace OsEngine.Market.Servers.Transaq
                 Thread.Sleep(1000);
             }
 
-            SendLogMessage($"Не удалось получить свечи по инструменту {security.Name}", LogMessageType.Error);
+            SendLogMessage( OsLocalization.Market.Message95 + security.Name, LogMessageType.Error);
         }
 
         private List<Candle> ParseCandles(Candles candles)
@@ -872,7 +869,7 @@ namespace OsEngine.Market.Servers.Transaq
                 }
                 catch (Exception e)
                 {
-                    SendLogMessage("Ошибка при обновлении инструмента " + e.Message, LogMessageType.Error);
+                    SendLogMessage(e.Message, LogMessageType.Error);
                 }
             }
             SecurityEvent?.Invoke(_securities);

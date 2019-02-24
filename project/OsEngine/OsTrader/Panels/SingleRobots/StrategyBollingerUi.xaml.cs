@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -9,9 +10,6 @@ using OsEngine.Language;
 
 namespace OsEngine.OsTrader.Panels.SingleRobots
 {
-    /// <summary>
-    /// Логика взаимодействия для BollingerUi.xaml
-    /// </summary>
     public partial class StrategyBollingerUi
     {
         private StrategyBollinger _strategy;
@@ -22,7 +20,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             _strategy = strategy;
 
             TextBoxVolumeOne.Text = _strategy.Volume.ToString();
-            TextBoxSlipage.Text = _strategy.Slipage.ToString(new CultureInfo("ru-RU"));
+            TextBoxSlipage.Text = _strategy.Slippage.ToString(new CultureInfo("ru-RU"));
 
             ComboBoxRegime.Items.Add(BotTradeRegime.Off);
             ComboBoxRegime.Items.Add(BotTradeRegime.On);
@@ -55,7 +53,7 @@ namespace OsEngine.OsTrader.Panels.SingleRobots
             }
 
             _strategy.Volume = Convert.ToDecimal(TextBoxVolumeOne.Text);
-            _strategy.Slipage = Convert.ToDecimal(TextBoxSlipage.Text);
+            _strategy.Slippage = Convert.ToDecimal(TextBoxSlipage.Text);
 
             Enum.TryParse(ComboBoxRegime.Text, true, out _strategy.Regime);
 

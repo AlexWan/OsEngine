@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -9,9 +10,7 @@ using OsEngine.Language;
 
 namespace OsEngine.OsTrader.Panels.PanelsGui
 {
-    /// <summary>
-    /// Логика взаимодействия для WilliamsRangeUi.xaml
-    /// </summary>
+
     public partial class WilliamsRangeTradeUi
     {
         private WilliamsRangeTrade _strategy;
@@ -23,7 +22,6 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
             TextBoxVolumeOne.Text = _strategy.VolumeFix.ToString();
 
             TextBoxSlipage.Text = _strategy.Slipage.ToString(new CultureInfo("ru-RU"));
-
 
             ComboBoxRegime.Items.Add(BotTradeRegime.Off);
             ComboBoxRegime.Items.Add(BotTradeRegime.On);
@@ -47,7 +45,6 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
         {
             try
             {
-
                 if (Convert.ToDecimal(TextBoxVolumeOne.Text) <= 0 ||
                     Convert.ToDecimal(WillUp.Text) >= 0 ||
                     Convert.ToDecimal(WillDown.Text) >= 0 ||
@@ -55,7 +52,6 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
                 {
                     throw new Exception("");
                 }
-                
             }
             catch (Exception)
             {
@@ -65,8 +61,6 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
 
             _strategy.VolumeFix = Convert.ToDecimal(TextBoxVolumeOne.Text);
             _strategy.Slipage = Convert.ToDecimal(TextBoxSlipage.Text);
-
-
             _strategy.Upline.Value = Convert.ToDecimal(WillUp.Text);
             _strategy.Downline.Value = Convert.ToDecimal(WillDown.Text);
 

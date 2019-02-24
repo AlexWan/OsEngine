@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -10,11 +11,13 @@ using OsEngine.Language;
 namespace OsEngine.OsTrader.RiskManager
 {
     /// <summary>
+    /// Risk Manager window
     /// Окно Риск Менеджера
     /// </summary>
     public partial class RiskManagerUi
     {
         /// <summary>
+        /// risk manager
         /// риск менеджер
         /// </summary>
         private RiskManager _riskManager;
@@ -40,6 +43,7 @@ namespace OsEngine.OsTrader.RiskManager
         }
 
         /// <summary>
+        /// upload data to the form
         /// загрузить данные на форму
         /// </summary>
         private void LoadDateOnForm()
@@ -56,6 +60,7 @@ namespace OsEngine.OsTrader.RiskManager
         }
 
         /// <summary>
+        /// clicked accept
         /// нажали кнопку принять
         /// </summary>
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
