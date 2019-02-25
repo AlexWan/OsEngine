@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OsEngine.PrimeSettings
 {
@@ -83,6 +84,7 @@ namespace OsEngine.PrimeSettings
         private static bool _serverTestingIsActiv;
 
         /// <summary>
+        /// save settings
         /// сохранить настройки
         /// </summary>
         public static void Save()
@@ -101,13 +103,14 @@ namespace OsEngine.PrimeSettings
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         private static bool _isLoad;
 
         /// <summary>
+        /// load settings
         /// загрузить настройки
         /// </summary>
         private static void Load()
@@ -131,7 +134,7 @@ namespace OsEngine.PrimeSettings
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
     }

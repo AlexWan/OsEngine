@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -9,9 +10,6 @@ using OsEngine.Language;
 
 namespace OsEngine.OsTrader.Panels.PanelsGui
 {
-    /// <summary>
-    /// Логика взаимодействия для StochasticTradeUi.xaml
-    /// </summary>
     public partial class StochasticTradeUi
     {
         private StochasticTrade _strategy;
@@ -24,7 +22,6 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
 
             TextBoxSlipage.Text = _strategy.Slipage.ToString(new CultureInfo("ru-RU"));
 
-
             ComboBoxRegime.Items.Add(BotTradeRegime.Off);
             ComboBoxRegime.Items.Add(BotTradeRegime.On);
             ComboBoxRegime.Items.Add(BotTradeRegime.OnlyClosePosition);
@@ -34,7 +31,6 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
 
             StochUp.Text = _strategy.Upline.Value.ToString(new CultureInfo("ru-RU"));
             StochDown.Text = _strategy.Downline.Value.ToString(new CultureInfo("ru-RU"));
-
 
             LabelRegime.Content = OsLocalization.Trader.Label115;
             LabelVolume.Content = OsLocalization.Trader.Label30;
@@ -65,7 +61,6 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
 
             _strategy.VolumeFix = Convert.ToDecimal(TextBoxVolumeOne.Text);
             _strategy.Slipage = Convert.ToDecimal(TextBoxSlipage.Text);
-
 
             _strategy.Upline.Value = Convert.ToDecimal(StochUp.Text);
             _strategy.Downline.Value = Convert.ToDecimal(StochDown.Text);

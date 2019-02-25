@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -14,18 +15,18 @@ using OsEngine.Market;
 namespace OsEngine.OsTrader
 {
     /// <summary>
+    /// class responsible for drawing the global position of all robots in the main window
     /// класс отвечающий за прорисовку глобальной позиции всех роботов в главном окне
     /// </summary>
     public class GlobalPosition
     {
 
-// сервис
-
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="allPositionHost">хост на который будем рисовать дата грид</param>
-        /// <param name="startProgram">программа запустившая класс</param>
+        /// <param name="allPositionHost">the host on which we will draw the date grid / хост на который будем рисовать дата грид</param>
+        /// <param name="startProgram">program running class / программа запустившая класс</param>
         public GlobalPosition(WindowsFormsHost allPositionHost, StartProgram startProgram)
         {
             _startProgram = startProgram;
@@ -47,9 +48,10 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// add another magazine to the collection to draw his deals
         /// добавить ещё один журнал в коллекцию для прорисовки его сделок
         /// </summary>
-        /// <param name="journal">новый журнал</param>
+        /// <param name="journal">new journal / новый журнал</param>
         public void SetJournal(Journal.Journal journal)
         {
             try
@@ -79,6 +81,7 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// clear previously loaded journals
         /// очистить от ранее загруженых журналов
         /// </summary>
         public void ClearJournals()
@@ -92,7 +95,7 @@ namespace OsEngine.OsTrader
                 }
 
                 for (int i = 0; _journals != null && i < _journals.Count; i++)
-                { // отписываемся от обновления позиции
+                {
                     _journals[i].PositionStateChangeEvent -= journal_PositionChangeEvent;
                 }
 
@@ -106,11 +109,13 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// journals we follow
         /// журналы за которыми мы следим
         /// </summary>
         private List<Journal.Journal> _journals;
 
         /// <summary>
+        /// the host on which the table is displayed
         /// хост на котором отображаем таблицу
         /// </summary>
         private WindowsFormsHost _host;
@@ -121,13 +126,15 @@ namespace OsEngine.OsTrader
         private DataGridView _grid;
 
         /// <summary>
+        /// table for drawing positions
         /// программа запустившая класс
         /// </summary>
         private StartProgram _startProgram;
 
-//прорисовка
+//drawing / прорисовка
 
         /// <summary>
+        /// stop drawing elements
         /// остановить прорисовку элементов 
         /// </summary>
         public void StopPaint()
@@ -148,6 +155,7 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// start drawing elements
         /// запустить прорисовку элементов
         /// </summary>
         public void StartPaint()
@@ -168,9 +176,9 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// create a table
         /// создать таблицу
         /// </summary>
-        /// <returns>таблица для прорисовки на ней позиций</returns>
         private DataGridView CreateNewTable()
         {
             try
@@ -187,13 +195,12 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// position has changed in the journals
         /// в журнале изменилась позиция
         /// </summary>
-        /// <param name="position">позиция</param>
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void journal_PositionChangeEvent(Position position)
         {
-            // В ТЕСТЕРЕ позиции прорисоываются по очереди, В реале, в методе ThreadWatcher()
             if (_startProgram != StartProgram.IsTester)
             {
                 return;
@@ -209,7 +216,7 @@ namespace OsEngine.OsTrader
 
                 if (position.State != PositionStateType.Open && position.State != PositionStateType.Opening &&
                     position.State != PositionStateType.Closing && position.State != PositionStateType.ClosingFail)
-                {// сделка была удалена. Надо её удалить отовсюду
+                {
                     for (int i = 0; i < _grid.Rows.Count; i++)
                     {
                         if ((int)_grid.Rows[i].Cells[0].Value == position.Number)
@@ -220,8 +227,7 @@ namespace OsEngine.OsTrader
                     }
                 }
                 else
-                { // сделкка должна быть прорисована в таблице
-
+                { 
                     for (int i = 0; i < _grid.Rows.Count; i++)
                     {
                         if ((int)_grid.Rows[i].Cells[0].Value == position.Number)
@@ -250,10 +256,9 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// take a row for the table representing the position
         /// взять строку для таблицы представляющую позицию
         /// </summary>
-        /// <param name="position">позиция</param>
-        /// <returns>строка для таблицы</returns>
         private DataGridViewRow GetRow(Position position)
         {
             if (position == null)
@@ -326,11 +331,13 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// Thread
         /// поток 
         /// </summary>
         private Thread Watcher;
 
         /// <summary>
+        /// place of work that keeps logs
         /// место работы потока который сохраняет логи
         /// </summary>
         private void WatcherHome()
@@ -355,6 +362,7 @@ namespace OsEngine.OsTrader
 
 
         /// <summary>
+        /// check the position on the correctness of drawing
         /// проверить позиции на правильность прорисовки
         /// </summary>
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptions]
@@ -420,9 +428,10 @@ namespace OsEngine.OsTrader
             }
         }
 
-// сообщения в лог 
+// messages in log / сообщения в лог 
 
         /// <summary>
+        /// send a new message to the top
         /// выслать новое сообщение на верх
         /// </summary>
         private void SendNewLogMessage(string message, LogMessageType type)
@@ -438,6 +447,7 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// outgoing message for log
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;

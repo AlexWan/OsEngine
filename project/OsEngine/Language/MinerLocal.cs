@@ -1,5 +1,5 @@
 ﻿/*
- * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -123,16 +123,16 @@ namespace OsEngine.Language
             "Ru:По паттерну небыло сделок_");
 
         public string Label17 => OsLocalization.ConvertToLocString(
-            "Eng:Total profit -_" +
-            "Ru:Общий профит -_");
+            "Eng:Total profit _" +
+            "Ru:Общий профит _");
 
         public string Label18 => OsLocalization.ConvertToLocString(
-            "Eng:Number of deals -_" +
-            "Ru:Количество входов -_");
+            "Eng:Number of deals _" +
+            "Ru:Количество входов _");
 
         public string Label19 => OsLocalization.ConvertToLocString(
-            "Eng:Profit from deal -_" +
-            "Ru:Прибыль со сделки -_");
+            "Eng:Profit from deal _" +
+            "Ru:Прибыль со сделки _");
 
         public string Label20 => OsLocalization.ConvertToLocString(
             "Eng:Pattern search completed. We checked all the data_" +
@@ -144,7 +144,7 @@ namespace OsEngine.Language
 
         public string Label22 => OsLocalization.ConvertToLocString(
             "Eng:Weight can not be zero_" +
-            "Ru:Вес не может быть нулевым_"); 
+            "Ru:Вес не может быть нулевым_");
 
         public string Label23 => OsLocalization.ConvertToLocString(
             "Eng:It is impossible to set a pattern for closing positions at that moment when there is not a single pattern for opening!_" +
@@ -169,7 +169,7 @@ namespace OsEngine.Language
         public string Label28 => OsLocalization.ConvertToLocString(
             "Eng:Test_" +
             "Ru:Пересчитать_");
-        
+
         public string Label29 => OsLocalization.ConvertToLocString(
             "Eng:Tests the current configuration of patterns without a pattern in the search tab_" +
             "Ru:Тестирует текущую конфигурацию паттернов без учёта паттерна во вкладке поиска_");
@@ -197,7 +197,7 @@ namespace OsEngine.Language
         public string Label35 => OsLocalization.ConvertToLocString(
             "Eng:Source_" +
             "Ru:Источник_");
-        
+
         public string Label36 => OsLocalization.ConvertToLocString(
             "Eng:Folder - data folder. Set - data set downloaded with OsData_" +
             "Ru:Folder - папка с данными.Set - сет данных скаченный при помощи OsData_");

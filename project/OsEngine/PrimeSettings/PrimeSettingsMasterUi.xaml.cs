@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Windows;
 using OsEngine.Language;
@@ -6,9 +11,6 @@ using OsEngine.Language;
 
 namespace OsEngine.PrimeSettings
 {
-    /// <summary>
-    /// Логика взаимодействия для PrimeSettingsMasterUi.xaml
-    /// </summary>
     public partial class PrimeSettingsMasterUi
     {
         public PrimeSettingsMasterUi()
