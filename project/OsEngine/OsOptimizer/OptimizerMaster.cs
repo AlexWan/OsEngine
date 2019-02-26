@@ -16,6 +16,7 @@ using OsEngine.OsTrader.Panels;
 namespace OsEngine.OsOptimizer
 {
     /// <summary>
+    /// class that stores and provides settings for optimization
     /// класс хранящий и предоставляющий в себе настройки для оптимизации
     /// </summary>
     public class OptimizerMaster
@@ -70,6 +71,7 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// save settings
         /// сохранить настройки
         /// </summary>
         private void Save()
@@ -113,6 +115,7 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// load settings
         /// загрузить настройки
         /// </summary>
         private void Load()
@@ -155,14 +158,16 @@ namespace OsEngine.OsOptimizer
             }
         }
 
-// проверка стратегий на наличие параметров
+//checking strategies for parameters/ проверка стратегий на наличие параметров
 
         /// <summary>
+        /// all strategies with parameters that are in the platform
         /// все стратегии с параметрами которые есть в платформе
         /// </summary>
         private List<string> _namesWhithParams = new List<string>();
 
         /// <summary>
+        /// take all the strategies with parameters that are in the platform
         /// взять все стратегии с параметрами которые есть в платформе
         /// </summary>
         public void GetNamesStrategyToOptimization()
@@ -177,11 +182,11 @@ namespace OsEngine.OsOptimizer
                 if (bot.Parameters == null ||
                     bot.Parameters.Count == 0)
                 {
-                    //SendLogMessage("Не оптимизируем. Без параметров: " + bot.GetNameStrategyType(), LogMessageType.System);
+                    //SendLogMessage("We are not optimizing. Without parameters/Не оптимизируем. Без параметров: " + bot.GetNameStrategyType(), LogMessageType.System);
                 }
                 else
                 {
-                    // SendLogMessage("С параметрами: " + bot.GetNameStrategyType(), LogMessageType.System);
+                    // SendLogMessage("With parameters/С параметрами: " + bot.GetNameStrategyType(), LogMessageType.System);
                     _namesWhithParams.Add(names[i]);
                 }
                 if (numThread == 2)
@@ -199,18 +204,20 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// changed the list of strategies with parameters that are in the system
         /// изменился список стратегий с параметрами которые есть в системе
         /// </summary>
         public event Action<List<string>> StrategyNamesReadyEvent;
 
 
-// работа с прогрессом процесса оптимизации
+// work with the progress of the optimization process/работа с прогрессом процесса оптимизации
 
         /// <summary>
+        /// inbound event: the main optimization progress has changed
         /// входящее событие: изменился основной прогресс оптимизации
         /// </summary>
-        /// <param name="curVal">текущее значение прогрессБара</param>
-        /// <param name="maxVal">максимальное значение прогрессБара</param>
+        /// <param name="curVal">the current value of the progress bar/текущее значение прогрессБара</param>
+        /// <param name="maxVal">maximum progress bar/максимальное значение прогрессБара</param>
         void _optimizerExecutor_PrimeProgressChangeEvent(int curVal, int maxVal)
         {
             PrimeProgressBarStatus.CurrentValue = curVal;
@@ -218,9 +225,10 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// inbound event: optimization completed
         /// входящее событие: оптимизация завершилась
         /// </summary>
-        /// <param name="bots">роботы InSample</param>
+        /// <param name="bots">InSample robots/роботы InSample</param>
         /// <param name="botsOutOfSample">OutOfSample</param>
         void _optimizerExecutor_TestReadyEvent(List<BotPanel> bots, List<BotPanel> botsOutOfSample)
         {
@@ -232,16 +240,18 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// event: testing ended
         /// событие: тестирование завершилось
         /// </summary>
-        public event Action<List<BotPanel>, List<BotPanel>> TestReadyEvent; 
+        public event Action<List<BotPanel>, List<BotPanel>> TestReadyEvent;
 
         /// <summary>
+        /// Progress on a specific robot has changed
         /// изменился прогресс по определённому роботу
         /// </summary>
-        /// <param name="curVal">текущее значение для прогрессБара</param>
-        /// <param name="maxVal">максимальное значение для прогрессБара</param>
-        /// <param name="numServer">номер сервера</param>
+        /// <param name="curVal">current value for progress bar/текущее значение для прогрессБара</param>
+        /// <param name="maxVal">maximum value for progress bar/максимальное значение для прогрессБара</param>
+        /// <param name="numServer">server number/номер сервера</param>
         void _optimizerExecutor_TestingProgressChangeEvent(int curVal, int maxVal, int numServer)
         {
             ProgressBarStatus status = ProgressBarStatuses.Find(st => st.Num == numServer);
@@ -258,18 +268,21 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// values for drawing progressBars of individual bots
         /// значения для прорисовки прогрессБаров отдельных ботов
         /// </summary>
         public List<ProgressBarStatus> ProgressBarStatuses;
 
         /// <summary>
+        /// value of progress for main progressBar
         /// значение прогресса для главного прогрессБара
         /// </summary>
         public ProgressBarStatus PrimeProgressBarStatus;
 
-// хранилище данных
+// data store/хранилище данных
 
         /// <summary>
+        /// show data storage settings
         /// показать настройки хранилища данных
         /// </summary>
         public void ShowDataStorageDialog()
@@ -278,16 +291,19 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// data store
         /// хранилище данных
         /// </summary>
         public OptimizerDataStorage Storage;
 
         /// <summary>
+        /// the start and end times have changed in the repository.
+        /// Means the set has been reset
         /// в хранилище изменилось время старта и завершения.
         /// Означает что сет был перезагружен
         /// </summary>
-        /// <param name="timeStart">время начала данных</param>
-        /// <param name="timeEnd">время завершения данных</param>
+        /// <param name="timeStart">start time/время начала данных</param>
+        /// <param name="timeEnd">data completion time/время завершения данных</param>
         void _storage_TimeChangeEvent(DateTime timeStart, DateTime timeEnd)
         {
             TimeStart = timeStart;
@@ -295,10 +311,12 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// in the repository has changed the composition of the papers.
+        /// Means the set has been reset
         /// в хранилище изменился состав бумаг.
         /// Означает что сет был перезагружен
         /// </summary>
-        /// <param name="securities">новый список бумаг</param>
+        /// <param name="securities">new list of papers/новый список бумаг</param>
         void _storage_SecuritiesChangeEvent(List<Security> securities)
         {
             if (NewSecurityEvent != null)
@@ -311,13 +329,15 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// event: changed the list of securities in the repository
         /// событие: изменился список бумаг в хранилище
         /// </summary>
         public event Action<List<Security>> NewSecurityEvent;
 
-// управление 1 вкладка
+// Management 1 tab/управление 1 вкладка
 
         /// <summary>
+        /// number of threads that will simultaneously work on optimization
         /// кол-во потоков которые будут одновременно работать над оптимизацией
         /// </summary>
         public int ThreadsCount
@@ -332,6 +352,7 @@ namespace OsEngine.OsOptimizer
         private int _threadsCount;
 
         /// <summary>
+        /// the name of the strategy that we will optimize
         /// имя стратегии которую мы будем оптимизировать
         /// </summary>
         public string StrategyName
@@ -348,6 +369,7 @@ namespace OsEngine.OsOptimizer
         private string _strategyName;
 
         /// <summary>
+        /// initial deposit
         /// начальный депозит
         /// </summary>
         public decimal StartDepozit
@@ -362,26 +384,30 @@ namespace OsEngine.OsOptimizer
         private decimal _startDepozit;
 
         /// <summary>
+        /// connection settings for robot usual tabs
         /// настройки подключения для обычных вкладок робота
         /// </summary>
         public List<TabSimpleEndTimeFrame> TabsSimpleNamesAndTimeFrames;
 
         /// <summary>
+        /// connection settings for index tabs on the robot
         /// настройки подключения для вкладок индексов у робота
         /// </summary>
-        public List<TabIndexEndTimeFrame> TabsIndexNamesAndTimeFrames; 
+        public List<TabIndexEndTimeFrame> TabsIndexNamesAndTimeFrames;
 
         /// <summary>
+        /// list of papers available in the vault
         /// список бумаг доступных в хранилище
         /// </summary>
         public List<SecurityTester> SecurityTester
         {
             get { return Storage.SecuritiesTester; }
-        } 
+        }
 
-// вкладка 3, фильтры
+// tab 3, filters/вкладка 3, фильтры
 
         /// <summary>
+        /// profit filter value
         /// значение фильтра по профиту
         /// </summary>
         public decimal FilterProfitValue
@@ -396,6 +422,7 @@ namespace OsEngine.OsOptimizer
         private decimal _filterProfitValue;
 
         /// <summary>
+        /// is profit filtering enabled
         /// включен ли фильтр по профиту
         /// </summary>
         public bool FilterProfitIsOn
@@ -410,6 +437,7 @@ namespace OsEngine.OsOptimizer
         private bool _filterProfitIsOn;
 
         /// <summary>
+        /// maximum drawdown filter value
         /// значение фильтра максимальной просадки
         /// </summary>
         public decimal FilterMaxDrowDownValue
@@ -424,6 +452,7 @@ namespace OsEngine.OsOptimizer
         private decimal _filterMaxDrowDownValue;
 
         /// <summary>
+        /// is the maximum drawdown filter enabled
         /// включен ли фильтр максимальной просадки
         /// </summary>
         public bool FilterMaxDrowDownIsOn
@@ -438,6 +467,7 @@ namespace OsEngine.OsOptimizer
         private bool _filterMaxDrowDownIsOn;
 
         /// <summary>
+        /// value of the average profit filter from the transaction
         /// значение фильтра среднего профита со сделки
         /// </summary>
         public decimal FilterMiddleProfitValue
@@ -452,6 +482,7 @@ namespace OsEngine.OsOptimizer
         private decimal _filterMiddleProfitValue;
 
         /// <summary>
+        /// Is the average profit filter included in the transaction?
         /// включен ли фильтр среднего профита со сделки
         /// </summary>
         public bool FilterMiddleProfitIsOn
@@ -466,6 +497,7 @@ namespace OsEngine.OsOptimizer
         private bool _filterMiddleProfitIsOn;
 
         /// <summary>
+        /// value of the percentage of transactions won filter
         /// значение фильтра процента выигранных сделок
         /// </summary>
         public decimal FilterWinPositionValue
@@ -480,6 +512,7 @@ namespace OsEngine.OsOptimizer
         private decimal _filterWinPositionValue;
 
         /// <summary>
+        /// whether the percentage of transactions won filter is enabled
         /// включен ли фильтр процента выигранных сделок
         /// </summary>
         public bool FilterWinPositionIsOn
@@ -494,6 +527,7 @@ namespace OsEngine.OsOptimizer
         private bool _filterWinPositionIsOn;
 
         /// <summary>
+        /// filter value by profit factor
         /// значение фильтра по профит фактору
         /// </summary>
         public decimal FilterProfitFactorValue
@@ -508,6 +542,7 @@ namespace OsEngine.OsOptimizer
         private decimal _filterProfitFactorValue;
 
         /// <summary>
+        /// is the filter by profit factor included
         /// включен ли фильтр по профит фактору
         /// </summary>
         public bool FilterProfitFactorIsOn
@@ -522,6 +557,7 @@ namespace OsEngine.OsOptimizer
         private bool _filterProfitFactorIsOn;
 
         /// <summary>
+        /// value of the filter by the number of transactions
         /// значение фильтра по количеству сделок
         /// </summary>
         public int FilterDealsCountValue
@@ -536,6 +572,7 @@ namespace OsEngine.OsOptimizer
         private int _filterDealsCountValue;
 
         /// <summary>
+        /// Is the number of deals filter enabled
         /// включен ли фильтр по количеству сделок
         /// </summary>
         public bool FilterDealsCountIsOn
@@ -549,17 +586,19 @@ namespace OsEngine.OsOptimizer
         }
         private bool _filterDealsCountIsOn;
 
-        // вкладка 4, оптимизация
+        // tab 4, optimization/вкладка 4, оптимизация
 
 
-        // вкладка 5, фазы оптимизации
+        // tab 5, optimization phases/вкладка 5, фазы оптимизации
 
         /// <summary>
+        /// optimization phases
         /// фазы оптимизации
         /// </summary>
         public List<OptimizerFaze> Fazes;
 
         /// <summary>
+        /// history time to start optimization
         /// время истории для старта оптимизации
         /// </summary>
         public DateTime TimeStart
@@ -579,6 +618,7 @@ namespace OsEngine.OsOptimizer
         private DateTime _timeStart;
 
         /// <summary>
+        /// history time to complete optimization
         /// время истории для завершения оптимизации
         /// </summary>
         public DateTime TimeEnd
@@ -597,6 +637,7 @@ namespace OsEngine.OsOptimizer
         private DateTime _timeEnd;
 
         /// <summary>
+        /// number of optimization phases
         /// количество фаз оптимизации
         /// </summary>
         public int FazeCount
@@ -611,6 +652,7 @@ namespace OsEngine.OsOptimizer
         private int _fazeCount;
 
         /// <summary>
+        /// percentage of time on outofsample
         /// процент времени на OutOfSample
         /// </summary>
         public decimal PercentOnFilration
@@ -625,6 +667,7 @@ namespace OsEngine.OsOptimizer
         private decimal _percentOnFilration;
 
         /// <summary>
+        /// break the total time into phases
         /// разбить общее время на фазы
         /// </summary>
         public void ReloadFazes()
@@ -726,13 +769,16 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// start time of history for optimization has changed
         /// время старта времени истории для оптимизации изменилось
         /// </summary>
         public event Action DateTimeStartEndChange;
 
-// параметры оптимизации
+// optimization options/параметры оптимизации
 
         /// <summary>
+        /// actually used parameters for optimization.
+        /// available to change in the interface
         /// реально применяемые параметры для оптимизации.
         /// доступны для изменения в интерфейсе
         /// </summary>
@@ -766,6 +812,7 @@ namespace OsEngine.OsOptimizer
         private List<IIStrategyParameter> _parameters;
 
         /// <summary>
+        /// list of parameters that are included in the optimization
         /// список параметров которые включены в оптимизацию
         /// </summary>
         public List<bool> ParametersOn
@@ -783,20 +830,22 @@ namespace OsEngine.OsOptimizer
                 return _paramOn;
             }
         }
-        private List<bool> _paramOn; 
+        private List<bool> _paramOn;
 
 
-// работа запуска алгоритма оптимизации
+// job startup optimization algorithm/работа запуска алгоритма оптимизации
 
         /// <summary>
+        /// the object that optimizes
         /// объект который производит оптимизацию
         /// </summary>
         private OptimizerExecutor _optimizerExecutor;
 
         /// <summary>
+        /// run optimization
         /// запустить оптимизацию
         /// </summary>
-        /// <returns>true - если запуск прошёл успешно</returns>
+        /// <returns>true - if the launch was successful/true - если запуск прошёл успешно</returns>
         public bool Start()
         {
             if (CheckReadyData() == false)
@@ -813,6 +862,7 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// stop the optimization process
         /// остановить процесс оптимизации
         /// </summary>
         public void Stop()
@@ -821,9 +871,10 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// check if everything is ready to start testing
         /// проверить, всё ли готово для старта тестирования
         /// </summary>
-        /// <returns>true - всё готово</returns>
+        /// <returns>true - everything is ready/true - всё готово</returns>
         private bool CheckReadyData()
         {
             if (Fazes == null || Fazes.Count == 0)
@@ -902,9 +953,10 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// incoming event: you need to move GUI to a certain place
         /// входящее событие: нужно переместить ГУИ в определённое место
         /// </summary>
-        /// <param name="moveUiTo">место для перемещения</param>
+        /// <param name="moveUiTo">place to move/место для перемещения</param>
         void _optimizerExecutor_NeadToMoveUiToEvent(NeadToMoveUiTo moveUiTo)
         {
             if (NeadToMoveUiToEvent != null)
@@ -914,18 +966,21 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// event: you need to move GUI to a certain place
         /// событие: нужно переместить ГУИ в определённое место
         /// </summary>
         public event Action<NeadToMoveUiTo> NeadToMoveUiToEvent;
 
-// логирование
+// logging/логирование
 
         /// <summary>
+        /// log
         /// лог
         /// </summary>
         private Log _log;
 
         /// <summary>
+        /// start drawing log
         /// начать прорисовку лога
         /// </summary>
         public void StartPaintLog(WindowsFormsHost logHost)
@@ -934,10 +989,11 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// send new message to log
         /// отправить новое сообщение в лог
         /// </summary>
-        /// <param name="message">сообщение</param>
-        /// <param name="type">тип сообщения</param>
+        /// <param name="message">message/сообщение</param>
+        /// <param name="type">message type/тип сообщения</param>
         public void SendLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
@@ -947,6 +1003,7 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// event: new message
         /// событие: новое сообщение
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
@@ -954,90 +1011,108 @@ namespace OsEngine.OsOptimizer
     }
 
     /// <summary>
+    /// an object that holds values for drawing progress
+    /// in the ProgressBar
     /// объект хранящий в себе значения для прорисовки прогресса
     /// в ProgressBar
     /// </summary>
     public class ProgressBarStatus
     {
         /// <summary>
+        /// present value
         /// текущее значение
         /// </summary>
         public int CurrentValue;
 
         /// <summary>
+        /// maximum value
         /// максимальное значение
         /// </summary>
         public int MaxValue;
 
         /// <summary>
+        /// server / robot number
         /// номер сервера / робота
         /// </summary>
         public int Num;
     }
 
     /// <summary>
+    /// what parameter is the optimization
     /// по какому параметру проходит оптимизация
     /// </summary>
     public enum OptimizationFunctionType
     {
         /// <summary>
+        /// Total profit
         /// Итоговый профит
         /// </summary>
         EndProfit,
 
         /// <summary>
+        /// The average profit from the transaction
         /// Средний профит со сделки
         /// </summary>
         MiddleProfitFromPosition,
 
         /// <summary>
+        /// Max drawdown
         /// Максимальная просадка
         /// </summary>
         MaxDrowDown,
 
         /// <summary>
+        /// Profit factor
         /// Профит фактор
         /// </summary>
         ProfitFactor
     }
 
     /// <summary>
+    /// optimization method
     /// способ оптимизации
     /// </summary>
     public enum OptimizationType
     {
         /// <summary>
+        /// Annealing imitation
         /// Имитация отжига
         /// </summary>
         SimulatedAnnealing,
 
         /// <summary>
+        /// Genetic algorithm
         /// Генетический алгоритм
         /// </summary>
         GeneticАlgorithm
     }
 
     /// <summary>
+    /// Optimization phase
     /// Фаза оптимизации
     /// </summary>
     public class OptimizerFaze
     {
         /// <summary>
+        /// type of phase. What we do
         /// тип фазы. Что делаем
         /// </summary>
         public OptimizerFazeType TypeFaze;
 
         /// <summary>
+        /// start time
         /// время начала
         /// </summary>
         public DateTime TimeStart;
 
         /// <summary>
+        /// completion time
         /// время завершения
         /// </summary>
         public DateTime TimeEnd;
 
         /// <summary>
+        /// days per phase
         /// дней на фазу
         /// </summary>
         public int Days;
@@ -1045,63 +1120,75 @@ namespace OsEngine.OsOptimizer
     }
 
     /// <summary>
+    /// Phase type optimization
     /// Тип фазы оптимизации
     /// </summary>
     public enum OptimizerFazeType
     {
         /// <summary>
+        /// optimization
         /// оптимизация
         /// </summary>
         InSample,
 
         /// <summary>
+        /// filtration
         /// фильтрация
         /// </summary>
         OutOfSample
     }
 
     /// <summary>
+    /// tool specification for launching a regular tab
     /// спецификация инструмента для запуска обычной вкладки
     /// </summary>
     public class TabSimpleEndTimeFrame
     {
         /// <summary>
+        /// tab number
         /// номер вкладки
         /// </summary>
         public int NumberOfTab;
 
         /// <summary>
+        /// paper name
         /// название бумаги
         /// </summary>
         public string NameSecurity;
 
         /// <summary>
+        /// timeframe
         /// таймфрейм
         /// </summary>
         public TimeFrame TimeFrame;
     }
 
     /// <summary>
+    /// tool specification for launching index tab
     /// спецификация инструмента для запуска вкладки индекса
     /// </summary>
     public class TabIndexEndTimeFrame
     {
         /// <summary>
+        /// tab number
         /// номер вкладки
         /// </summary>
         public int NumberOfTab;
 
         /// <summary>
+        /// list of papers at the tab
         /// список бумаг у вкладки
         /// </summary>
         public List<string> NamesSecurity;
 
         /// <summary>
+        /// tab timeframe
         /// таймфрейм бумаг в вкладки
         /// </summary>
         public TimeFrame TimeFrame;
 
         /// <summary>
+        /// index calculation formula
         /// формула для рассчёта индекса
         /// </summary>
         public string Formula;
@@ -1110,31 +1197,38 @@ namespace OsEngine.OsOptimizer
 
 
     /// <summary>
+    /// a message about where to move the interface so that the user sees that he has not yet configured to launch the optimizer
     /// сообщение о том куда нужно сместить интерфейс, чтобы пользователь увидел что он ещё не настроил для запуска оптимизатора
     /// </summary>
     public enum NeadToMoveUiTo
     {
         /// <summary>
+        /// strategy name
         /// название стратегии
         /// </summary>
         NameStrategy,
         /// <summary>
+        /// optimization phases
         /// фазы оптимизации
         /// </summary>
         Fazes,
         /// <summary>
+        /// storage
         /// хранилище
         /// </summary>
         Storage,
         /// <summary>
+        /// table of time frames and papers for tabs
         /// таблица таймфреймов и бумаг для вкладок
         /// </summary>
         TabsAndTimeFrames,
         /// <summary>
+        /// parameter table
         /// таблица параметров
         /// </summary>
         Parametrs,
         /// <summary>
+        /// Filters
         /// Фильтры
         /// </summary>
         Filters

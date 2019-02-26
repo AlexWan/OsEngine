@@ -8,6 +8,7 @@ using OsEngine.Language;
 namespace OsEngine.OsMiner.Patterns
 {
     /// <summary>
+    /// Interaction Logic for AutoTestResultsUi.xaml
     /// Логика взаимодействия для AutoTestResultsUi.xaml
     /// </summary>
     public partial class AutoTestResultsUi

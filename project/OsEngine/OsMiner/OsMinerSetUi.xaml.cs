@@ -4,6 +4,7 @@ using OsEngine.Language;
 namespace OsEngine.OsMiner
 {
     /// <summary>
+    /// Interaction Logic for OsMinerSetUi.xaml
     /// Логика взаимодействия для OsMinerSetUi.xaml
     /// </summary>
     public partial class OsMinerSetUi

@@ -5,6 +5,7 @@ using OsEngine.Language;
 namespace OsEngine.OsMiner.Patterns
 {
     /// <summary>
+    /// Interaction Logic for PatternsCreateChangeUi.xaml
     /// Логика взаимодействия для PatternsCreateChangeUi.xaml
     /// </summary>
     public partial class PatternsCreateUi : Window

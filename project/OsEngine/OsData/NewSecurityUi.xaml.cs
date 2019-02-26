@@ -1,6 +1,6 @@
 ﻿/*
- * Если вы не покупали лицензии, то Ваши права на использования кода ограничены не коммерческим использованием и 
- * регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System.Collections.Generic;
@@ -12,24 +12,24 @@ namespace OsEngine.OsData
 {
 
     /// <summary>
-    /// Логика взаимодействия для NewSecurityDialog.xaml
+    /// Interaction Logic for NewSecurityDialog.xaml/Логика взаимодействия для NewSecurityDialog.xaml
     /// </summary>
     public partial class NewSecurityUi
     {
         /// <summary>
-        /// бумаги которые есть в сервере
+        /// papers that are in the server/бумаги которые есть в сервере
         /// </summary>
         private List<Security> _securities;
 
         /// <summary>
-        /// выбранная бумага
+        /// selected paper/выбранная бумага
         /// </summary>
         public Security SelectedSecurity;
 
         /// <summary>
-        /// конструктор
+        /// constructor/конструктор
         /// </summary>
-        /// <param name="securities">бумаги доступные к выбору</param>
+        /// <param name="securities">papers available for selection/бумаги доступные к выбору</param>
         public NewSecurityUi(List<Security> securities)
         {
             InitializeComponent();
@@ -47,12 +47,12 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// тублица для бумаг
+        /// paper table/таблица для бумаг
         /// </summary>
         private DataGridView _grid;
 
         /// <summary>
-        /// создать таблицу для бумаг
+        /// create a table for papers/создать таблицу для бумаг
         /// </summary>
         private void CreateTable()
         {
@@ -81,7 +81,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// выгрузить все доступные классы в меню выбора классов
+        /// unload all available classes in the class selection menu/выгрузить все доступные классы в меню выбора классов
         /// </summary>
         private void GetClasses()
         {
@@ -108,12 +108,12 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// отображаемые на текущий момент бумаги
+        /// currently displayed papers/отображаемые на текущий момент бумаги
         /// </summary>
-        private List<Security> _securitiesInBox = new List<Security>(); 
+        private List<Security> _securitiesInBox = new List<Security>();
 
         /// <summary>
-        /// перезагрузить меню выбора инструментов
+        /// reload tool selection menu/перезагрузить меню выбора инструментов
         /// </summary>
         private void ReloadSecurityTable()
         {
@@ -156,7 +156,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// изменился выбранный элемент в меню выбора классов
+        /// the selected item in the class selection menu has changed/изменился выбранный элемент в меню выбора классов
         /// </summary>
         void ComboBoxClass_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
@@ -164,7 +164,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// нажата кнопка "Принять"
+        /// "Accept" button pressed/нажата кнопка "Принять"
         /// </summary>
         private void ButtonAccept_Click(object sender, System.Windows.RoutedEventArgs e)
         {

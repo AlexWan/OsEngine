@@ -18,6 +18,7 @@ using MouseEventArgs = System.Windows.Forms.MouseEventArgs;
 namespace OsEngine.OsMiner.Patterns
 {
     /// <summary>
+    /// Interaction Logic for PatternControllerUi.xaml
     /// Логика взаимодействия для PatternControllerUi.xaml
     /// </summary>
     public partial class PatternControllerUi
@@ -111,8 +112,9 @@ namespace OsEngine.OsMiner.Patterns
             Label68_2.Content = OsLocalization.Miner.Label68;
         }
 
-        
-        // Авто поиск паттернов
+
+// Auto pattern search
+// Авто поиск паттернов
 
         private void InitializeMiningTab()
         {
@@ -182,6 +184,7 @@ namespace OsEngine.OsMiner.Patterns
             _pattern.ShowTestResults();
         }
 
+// pattern search tab
 // вкладка поиска паттернов
 
         void InitializeTabPatternsSearch()
@@ -287,6 +290,7 @@ namespace OsEngine.OsMiner.Patterns
             PaintGridPatternsToClose();
         }
 
+// individual tabs patterns
 // индивидуальные вкладки паттернов
 
         void TabControlTypePatternsToFind_MouseUp(object sender, MouseButtonEventArgs e)
@@ -451,7 +455,7 @@ namespace OsEngine.OsMiner.Patterns
             _pattern.GetPatternToIndex();
             _pattern.Save();
         }
-
+// tab opening position VARIABLES
 // вкладка открытие позиции ПЕРЕМЕННЫЕ
 
         void InitializeTabOpenPosition()
@@ -544,6 +548,7 @@ namespace OsEngine.OsMiner.Patterns
             _pattern.Save();
         }
 
+// tab opening position WORK WITH GRID
 // вкладка открытие позиции РАБОТА С ГРИДАМИ
 
         private DataGridView _gridPatternsToOpen;
@@ -695,8 +700,8 @@ namespace OsEngine.OsMiner.Patterns
             PaintGridPatternsToOpen();
         }
 
-
-//вкладка закрытие позиции ПЕРЕМЕННЫЕ
+// tab position closing variable
+// вкладка закрытие позиции ПЕРЕМЕННЫЕ
 
         void InitializeTabClosePosition()
         {
@@ -857,7 +862,7 @@ namespace OsEngine.OsMiner.Patterns
             _pattern.Save();
         }
 
-
+// tab position closing WORKS WITH GRIDES
 // вкладка закрытие позиции РАБОТА С ГРИДАМИ
 
         private DataGridView _gridPatternsToClose;
@@ -949,6 +954,7 @@ namespace OsEngine.OsMiner.Patterns
             PaintGridPatternsToClose();
         }
 
+// DATE tab
 // вкладка ДАТА
 
         void InitializeTabDataSeries()
@@ -991,6 +997,7 @@ namespace OsEngine.OsMiner.Patterns
         }
 
         /// <summary>
+        /// data source has changed. Folder or Seth
         /// источник данных изменился. Папка или Сет 
         /// </summary>
         void ComboBoxDataSourseType_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1001,6 +1008,7 @@ namespace OsEngine.OsMiner.Patterns
         }
 
         /// <summary>
+        /// data set has changed
         /// сет данных изменился
         /// </summary>
         void ComboBoxSets_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1010,16 +1018,19 @@ namespace OsEngine.OsMiner.Patterns
         }
 
         /// <summary>
+        /// test server
         /// тестовый сервер
         /// </summary>
         private OsMinerServer _dataServer;
 
         /// <summary>
+        /// tool table
         /// таблица с инструментами
         /// </summary>
         private DataGridView _myGridView;
 
         /// <summary>
+        /// create a table with tools
         /// создать таблицу с инструментами
         /// </summary>
         private void CreateGridDataServer()
@@ -1033,6 +1044,7 @@ namespace OsEngine.OsMiner.Patterns
         }
 
         /// <summary>
+        /// draw a table with tools
         /// прорисовать таблицу с инструментами
         /// </summary>
         private void PaintGridDataSeries()

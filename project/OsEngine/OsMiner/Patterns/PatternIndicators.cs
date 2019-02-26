@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -12,6 +13,7 @@ using OsEngine.Entity;
 namespace OsEngine.OsMiner.Patterns
 {
     /// <summary>
+    /// pattern on indicators
     /// паттерн на индикаторах
     /// </summary>
     public class PatternIndicators : IPattern
@@ -26,51 +28,60 @@ namespace OsEngine.OsMiner.Patterns
         }
 
         /// <summary>
+        /// pattern weight while searching for entry and exit
         /// вес паттерна во время поиска входа и выхода
         /// </summary>
         public decimal Weigth { get; set; }
 
         /// <summary>
+        /// pattern recognition. 100% - maximum
         /// узнаваемость паттерна.  100  % - максимальная
         /// </summary>
         public decimal Expand { get; set; }
 
         /// <summary>
+        /// pattern type
         /// тип паттерна
         /// </summary>
         public PatternType Type { get; set; }
 
         /// <summary>
+        /// identification pattern identification type
         /// тип идентификации индикаторного паттерна
         /// </summary>
         public PatternIndicatorSearchType SearchType;
 
         /// <summary>
+        /// pattern length
         /// длина паттерна
         /// </summary>
         public int Length;
 
         /// <summary>
+        /// pattern points
         /// точки паттерна
         /// </summary>
         public decimal[][] Sequence;
 
         /// <summary>
+        /// candle arrangement
         /// расположение свечи
         /// </summary>
         public decimal[][] SequenceCandlePosition;
 
         /// <summary>
+        /// indicators moving averages, representing pattern lines
         /// индикаторы скользящие средние, представляющие линии паттерна
         /// </summary>
         public List<IIndicatorCandle> Indicators;
 
         /// <summary>
+        /// is the current formation our pattern
         /// является ли текущая формация нашим паттерном
         /// </summary>
-        /// <param name="candles">свечи</param>
-        /// <param name="indicators">индикаторы</param>
-        /// <param name="numberPattern">индекс по которому мы смотрим паттерн</param>
+        /// <param name="candles">candles/свечи</param>
+        /// <param name="indicators">indicators/индикаторы</param>
+        /// <param name="numberPattern">the index on which we watch the pattern/индекс по которому мы смотрим паттерн</param>
         public bool ThisIsIt(List<Candle> candles, List<IIndicatorCandle> indicators, int numberPattern)
         {
             if (indicators == null ||
@@ -146,11 +157,12 @@ namespace OsEngine.OsMiner.Patterns
         }
 
         /// <summary>
+        /// set pattern with current data
         /// установить паттерн с текущих данных
         /// </summary>
-        /// <param name="candles">свечи</param>
-        /// <param name="indicators">индикаторы</param>
-        /// <param name="numberPattern">индекс по которому мы с мотрим паттерн</param>
+        /// <param name="candles">candles/свечи</param>
+        /// <param name="indicators">indicators/индикаторы</param>
+        /// <param name="numberPattern">the index on which we watch the pattern/индекс по которому мы с мотрим паттерн</param>
         public void SetFromIndex(List<Candle> candles, List<IIndicatorCandle> indicators, int numberPattern)
         {
             if (indicators == null ||
@@ -213,10 +225,11 @@ namespace OsEngine.OsMiner.Patterns
 
             Indicators = new List<IIndicatorCandle>();
 
-            //Активация переменных
+            //Variable activation/Активация переменных
             decimal thisExpand = (100 - Expand)/100;
             decimal divider = valuesToChart[0][numberPattern]/100;
-                // делитель, применяется во всём вычислении, измеряется один раз. Показывает сколько весит один процент первого входа
+            // divider, applied in the whole calculation, measured once. Shows how much one percent of the first entry weighs.
+            // делитель, применяется во всём вычислении, измеряется один раз. Показывает сколько весит один процент первого входа
 
             if (divider == 0)
             {
@@ -245,6 +258,7 @@ namespace OsEngine.OsMiner.Patterns
         }
 
         /// <summary>
+        /// load pattern from save line
         /// загрузить паттерн из строки сохранения
         /// </summary>
         public void Load(string saveString)
@@ -281,10 +295,12 @@ namespace OsEngine.OsMiner.Patterns
         }
 
         /// <summary>
+        /// take a string to save the pattern
         /// взять строку для сохранения паттерна
         /// </summary>
         public string GetSaveString()
         {
+            // delimiters on previous levels: # *? %
             // разделители на предыдущих уровнях: # * ? %
 
             string saveStr = PatternType.Indicators + "^";
@@ -306,17 +322,18 @@ namespace OsEngine.OsMiner.Patterns
 
         private string GetSequenceString(decimal[][] sequence)
         {
+            // delimiters on previous levels: # *? %
             // разделители на предыдущих уровнях: # * ? % ^
             string saveStr = "";
 
-            for (int i = 0; i < sequence.Length; i++) //бежим по первому измирению
+            for (int i = 0; i < sequence.Length; i++) //we run on the first imitation/бежим по первому измирению
             {
                 if (i != 0)
                 {
                     saveStr += ")";
                 }
 
-                for (int ii = 0; ii < sequence[i].Length; ii++) // бежим по второму
+                for (int ii = 0; ii < sequence[i].Length; ii++) // run on the second/бежим по второму
                 {
                     saveStr += Convert.ToString(sequence[i][ii], CultureInfo.InvariantCulture);
                     saveStr += ";";
@@ -348,6 +365,7 @@ namespace OsEngine.OsMiner.Patterns
         }
 
         /// <summary>
+        /// take a copy
         /// взять копию
         /// </summary>
         public IPattern GetCopy()
@@ -362,16 +380,19 @@ namespace OsEngine.OsMiner.Patterns
     }
 
     /// <summary>
+    /// indicator pattern recognition types
     /// типы распознавания индикаторного паттерна
     /// </summary>
     public enum PatternIndicatorSearchType
     {
         /// <summary>
+        /// angle of indicators
         /// угол индикаторов
         /// </summary>
         IndicatorsAngle,
 
         /// <summary>
+        /// position of the last candle relative to the indicator
         /// позиция последней свечи относительно индикатора
         /// </summary>
         CandlePosition
