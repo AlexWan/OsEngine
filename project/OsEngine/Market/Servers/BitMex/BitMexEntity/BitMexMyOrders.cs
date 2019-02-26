@@ -1,4 +1,5 @@
 ﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -9,56 +10,67 @@ namespace OsEngine.Market.Servers.BitMex.BitMexEntity
     public class DatumMyOrder
     {
         /// <summary>
+        /// trade number in the system
         /// номер сделки в системе
         /// </summary>
         public string execID { get; set; }
 
         /// <summary>
+        /// parent's order number
         /// номер ордера родителя
         /// </summary>
         public string orderID { get; set; }
 
         /// <summary>
+        /// trade price
         /// цена сделки
         /// </summary>
         public string price { get; set; }
 
         /// <summary>
+        /// trade instrument
         /// инструмент, по которому совершена сделка
         /// </summary>
         public string symbol { get; set; }
 
         /// <summary>
+        /// trade side 
         /// направление сделки
         /// </summary>
         public string side { get; set; }
 
         /// <summary>
+        /// trade volume
         /// объем сделки
         /// </summary>
         public int? lastQty { get; set; }
 
         /// <summary>
+        /// trade time
         /// время сделки
         /// </summary>
         public string transactTime { get; set; }
 
         /// <summary>
+        /// trade state
         /// статус сделки
         /// </summary>
         public string execType { get; set; }
 
         /// <summary>
+        /// parent's order state
         /// статус ордера родителя
         /// </summary>
         public string ordStatus { get; set; }
 
         /// <summary>
+        /// order number in the robot
         /// номер ордера в роботе
         /// </summary>
         public string clOrdID { get; set; }
 
         /// <summary>
+        /// real execution price
         /// реальная цена исполнения
         /// </summary>
         public string avgPx { get; set; }

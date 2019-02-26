@@ -1,4 +1,5 @@
 ﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -20,6 +21,7 @@ using OsEngine.Market.Servers.BitMex.BitMexEntity;
 namespace OsEngine.Market.Servers.BitMex
 {
     /// <summary>
+    /// class-client that handles sending requests and receiving information from BitMEX API
     /// класс - клиент, обрабатывающий посылку запросов и прием информации с BitMEX API
     /// </summary>
     public class BitMexClient
@@ -30,6 +32,7 @@ namespace OsEngine.Market.Servers.BitMex
         private string _serverAdress;
 
         /// <summary>
+        /// websocket server address
         /// адрес сервера для подключения через websocket
         /// </summary>
         public string ServerAdres
@@ -41,6 +44,7 @@ namespace OsEngine.Market.Servers.BitMex
         private string _secKey;
 
         /// <summary>
+        /// user secret key
         /// секретный ключ пользователя
         /// </summary>
         public string SecKey
@@ -52,6 +56,7 @@ namespace OsEngine.Market.Servers.BitMex
         private string _id;
 
         /// <summary>
+        /// user public key
         /// публичный ключ пользователя
         /// </summary>
         public string Id
@@ -63,6 +68,7 @@ namespace OsEngine.Market.Servers.BitMex
         public bool IsConnected;
 
         /// <summary>
+        /// connect to server
         /// установить соединение с сервером
         /// </summary>
         public void Connect()
@@ -105,6 +111,7 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// disconnection
         /// отключение
         /// </summary>
         public void Disconnect()
@@ -123,11 +130,13 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// flag to stop all threads when disconnect
         /// флаг того что нужно все потоки остановить при дисконнекте
         /// </summary>
         private bool _neadToStopAllThreads;
 
         /// <summary>
+        /// connection check
         /// проверка соединения
         /// </summary>
         private void _pinger()
@@ -163,6 +172,7 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// register key on the exchange for access to private data
         /// регистрируем ключ на бирже для доступа к закрытым данным
         /// </summary>
         /// <param name="id"></param>
@@ -184,11 +194,13 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// subscriber access locker
         /// блокиратор доступа к подписчику
         /// </summary>
         private object _queryLocker = new object();
 
         /// <summary>
+        /// subscribe to data with using websocket
         /// подписаться на данные через websocket
         /// </summary>
         public void SendQuery(string que)
@@ -234,14 +246,16 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// queue of new messages from the exchange server
         /// очередь новых сообщений, пришедших с сервера биржи
         /// </summary>
         private ConcurrentQueue<string> _newMessage = new ConcurrentQueue<string>();
 
         /// <summary>
+        /// method that, in a separate thread, receives all new messages from the exchange and puts them in a common queue
         /// метод, который в отдельном потоке принимает все новые сообщения от биржи и кладет их в общую очередь
         /// </summary>
-        /// <param name="clientWebSocket">вебсокет клиент</param>
+        /// <param name="clientWebSocket">client web-socket / вебсокет клиент</param>
         private void GetRes(object clientWebSocket)
         {
             ClientWebSocket ws = (ClientWebSocket)clientWebSocket;
@@ -297,6 +311,7 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// method for convetring JSON to C# classes and sending to up
         /// метод конвертирует JSON в классы C# и отправляет на верх
         /// </summary>
         private void Converter()
@@ -415,61 +430,73 @@ namespace OsEngine.Market.Servers.BitMex
             }
         }
         /// <summary>
+        /// send exeptions
         /// отправляет исключения
         /// </summary>
         public event Action<string, LogMessageType> BitMexLogMessageEvent;
 
         /// <summary>
+        /// my new orders
         /// новые мои ордера
         /// </summary>
         public event Action<BitMexOrder> MyOrderEvent;
 
         /// <summary>
+        /// my new trades
         /// новые мои сделки
         /// </summary>
         public event Action<BitMexMyOrders> MyTradeEvent;
 
         /// <summary>
+        /// portfolio update event
         /// событие обновления портфеля
         /// </summary>
         public event Action<BitMexPortfolio> UpdatePortfolio;
 
         /// <summary>
+        /// instrument update event
         /// событие обновления инструментов
         /// </summary>
         public event Action<List<BitMexSecurity>> UpdateSecurity;
 
         /// <summary>
+        /// position update event
         /// событие обновления позиций
         /// </summary>
         public event Action<BitMexPosition> UpdatePosition;
 
         /// <summary>
+        /// depth update event
         /// обновился стакан
         /// </summary>
         public event Action<BitMexQuotes> UpdateMarketDepth;
 
         /// <summary>
+        /// ticks update event
         /// обновились тики
         /// </summary>
         public event Action<BitMexTrades> NewTradesEvent;
 
         /// <summary>
+        /// error in http-request or web-socket
         /// ошибка http запроса или websocket
         /// </summary>
         public event Action<string> ErrorEvent;
 
         /// <summary>
+        /// connection with BitMEX API established
         /// соединение с BitMEX API установлено
         /// </summary>
         public event Action Connected;
 
         /// <summary>
+        /// connection with BitMEX API lost
         /// соединение с BitMEX API разорвано
         /// </summary>
         public event Action Disconnected;
 
         /// <summary>
+        /// multi-threaded access locker to http-requests
         /// блокиратор многопоточного доступа к http запросам
         /// </summary>
         private object _queryHttpLocker = new object();
@@ -477,6 +504,7 @@ namespace OsEngine.Market.Servers.BitMex
         private string _domain;
 
         /// <summary>
+        /// request address
         /// адрес для отправки запросов
         /// </summary>
         public string Domain
@@ -486,12 +514,13 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// method sends a request and returns a response from the server
         /// метод отправляет запрос и возвращает ответ от сервера
         /// </summary>
-        /// <param name="method">метод запроса</param>
+        /// <param name="method">request method / метод запроса</param>
         /// <param name="function"></param>
-        /// <param name="param">коллекция параметров</param>
-        /// <param name="auth">нужна ли аутентификация для этого запроса</param>
+        /// <param name="param">parameter collection / коллекция параметров</param>
+        /// <param name="auth">do you need authentication for this request / нужна ли аутентификация для этого запроса</param>
         /// <returns></returns>
         public string CreateQuery(string method, string function, Dictionary<string, string> param = null, bool auth = false)
         {
@@ -561,6 +590,7 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// convert parameter collection to query string
         /// преобразовать коллекцию параметров в строку запроса
         /// </summary>
         /// <param name="param"></param>
@@ -579,6 +609,7 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// take a unique number
         /// взять уникальный номер
         /// </summary>
         /// <returns></returns>

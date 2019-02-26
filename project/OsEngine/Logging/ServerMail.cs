@@ -1,4 +1,5 @@
 ﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -11,14 +12,17 @@ using System.Threading;
 namespace OsEngine.Logging
 {
     /// <summary>
+    /// mailing server
     /// сервер почтновой рассылки
     /// </summary>
     public class ServerMail
     {
+// singleton
 // синглетон
-        private static ServerMail _server; // сервер рассылки
+        private static ServerMail _server; // mailing server / сервер рассылки
 
         /// <summary>
+        /// get access to server
         /// получить доступ к серверу 
         /// </summary>
         /// <returns></returns>
@@ -31,43 +35,50 @@ namespace OsEngine.Logging
             return _server;
         }
 
-        private ServerMail() // конструктор
+        private ServerMail() // constructor / конструктор
         {
             Smtp = "smtp.yandex.ru";
             Load();
         }
 
         /// <summary>
+        /// e-mail address to send out
         /// адрес почты с которой будет происходить рассылка
         /// </summary>
         public string MyAdress;
 
         /// <summary>
+        /// password from the e-mail to send out
         /// пароль от почты с которой будет происходить рассылка
         /// </summary>
         public string MyPassword;
 
         /// <summary>
+        /// sender's SMTP protocol
         /// протокол SMTP почты отправителя
         /// </summary>
         public string Smtp; // "smtp.yandex.ru" "smtp.gmail.com"
 
         /// <summary>
+        /// mailing list
         /// список адресатов
         /// </summary>
         public string[] Adress;
 
         /// <summary>
+        /// shows whether the server is ready to work
         /// готов ли сервер к работе
         /// </summary>
         public static bool IsReady;
 
         /// <summary>
+        /// locker of multithreading access to server
         /// локер многопоточного доступа к серверу
         /// </summary>
         public object LokerMessanger = new object();
 
         /// <summary>
+        /// upload
         /// загрузить
         /// </summary>
         public void Load()
@@ -117,6 +128,7 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// save
         /// сохранить
         /// </summary>
         public void Save()
@@ -138,6 +150,7 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// show settings window
         /// показать окно настроек
         /// </summary>
         public void ShowDialog()
@@ -147,10 +160,11 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// Send message. If the distribution server is configured, the message will be sent
         /// Отправить сообщение. Если сервер рассылки настроен, сообщение будет отправлено
         /// </summary>
-        /// <param name="message"> сообщение </param>
-        /// <param name="nameBot">имя робота, отправившего сообщение</param>
+        /// <param name="message"> message / сообщение </param>
+        /// <param name="nameBot"> name of bot that sent the message / имя робота, отправившего сообщение </param>
         public void Send(LogMessage message, string nameBot)
         {
             if (!IsReady)
@@ -169,21 +183,25 @@ namespace OsEngine.Logging
     }
 
     /// <summary>
+    /// message sender
     /// отправщик сообщений
     /// </summary>
     public class MailThreadSaveSender
     {
         /// <summary>
+        /// letter
         /// письмо
         /// </summary>
         public string Letter;
 
         /// <summary>
+        /// bot
         /// бот
         /// </summary>
         public string NameBot;
 
         /// <summary>
+        /// send
         /// отправить
         /// </summary>
         public void Send()
@@ -198,10 +216,11 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// send
         /// отправить 
         /// </summary>
-        /// <param name="letter">письмо</param>
-        /// <param name="nameBot">имя бота</param>
+        /// <param name="letter"> letter / письмо </param>
+        /// <param name="nameBot"> bot name / имя бота</param>
         /// <param name="adress">адрес</param>
         public void Send(string letter, string nameBot, string adress)
         {

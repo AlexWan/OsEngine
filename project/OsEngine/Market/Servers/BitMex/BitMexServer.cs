@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
@@ -13,6 +18,7 @@ using OsEngine.Market.Servers.Entity;
 namespace OsEngine.Market.Servers.BitMex
 {
     /// <summary>
+    /// Bitmex server
     /// сервер Bitmex
     /// </summary>
     public class BitMexServer : AServer
@@ -46,11 +52,13 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// server status
         /// статус сервера
         /// </summary>
         public ServerConnectStatus ServerStatus { get; set; }
 
         /// <summary>
+        /// server type
         /// тип сервера
         /// </summary>
         public ServerType ServerType
@@ -59,11 +67,13 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// server parameters for server
         /// параметры подключения для сервера
         /// </summary>
         public List<IServerParameter> ServerParameters { get; set; }
 
         /// <summary>
+        /// sever time
         /// время сервера
         /// </summary>
         public DateTime ServerTime { get; set; }
@@ -74,31 +84,37 @@ namespace OsEngine.Market.Servers.BitMex
         private BitMexClient _client;
 
         /// <summary>
+        /// last start server time
         /// время последнего старта сервера
         /// </summary>
         private DateTime _lastStartServerTime;
 
         /// <summary>
+        /// securities
         /// бумаги
         /// </summary>
         private List<Security> _securities;
 
         /// <summary>
+        /// portfolios
         /// портфели
         /// </summary>
         private List<Portfolio> _portfolios;
 
         /// <summary>
+        /// candles
         /// свечи
         /// </summary>
         private List<Candle> _candles;
 
         /// <summary>
+        /// depth
         /// стакан
         /// </summary>
         private MarketDepth _depth;
 
         /// <summary>
+        /// connection
         /// подключение
         /// </summary>
         public void Connect()
@@ -138,6 +154,7 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// dispose API
         /// осыободить апи
         /// </summary>
         public void Dispose()
@@ -163,6 +180,7 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// take current state of orders
         /// взять текущие состояни ордеров
         /// </summary>
         public void GetOrdersState(List<Order> orders)
@@ -171,6 +189,7 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// check order state
         /// проверить ордера на состояние
         /// </summary>
         /// <param name="oldOpenOrders"></param>
@@ -271,6 +290,7 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// subscribe to candles, all trades
         /// подписаться на свечи, все сделки 
         /// </summary>
         public void Subscrible(Security security)
@@ -279,6 +299,7 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// take candle history for period
         /// взять историю свечек за период
         /// </summary>
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
@@ -288,6 +309,7 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// take tick data on instrument for period
         /// взять тиковые данные по инструменту за определённый период
         /// </summary>
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime lastDate)
@@ -343,9 +365,10 @@ namespace OsEngine.Market.Servers.BitMex
             return lastTrades;
         }
 
-        private bool _portfolioStarted = false; // уже подписались на портфели
+        private bool _portfolioStarted = false; // already subscribed to portfolios / уже подписались на портфели
 
         /// <summary>
+        /// request portfolios
         /// запросить портфели
         /// </summary>
         public void GetPortfolios()
@@ -363,6 +386,7 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// get instruments
         /// получить инструменты
         /// </summary>
         public void GetSecurities()
@@ -370,28 +394,33 @@ namespace OsEngine.Market.Servers.BitMex
             _client.GetSecurities();
         }
 
+// data subscription
 // Подпись на данные
 
         /// <summary>
+        /// downloading candle master
         /// мастер загрузки свечек
         /// </summary>
         private CandleManager _candleManager;
 
         /// <summary>
+        /// securities already subscribed to data updates
         /// бумаги уже подписанные на обновления данных
         /// </summary>
         private List<string> _subscribedSec = new List<string>();
 
         /// <summary>
+        /// multi-threaded access locker in StartThisSecurity
         /// объект блокирующий многопоточный доступ в StartThisSecurity
         /// </summary>
         private object _lockerStarter = new object();
 
         /// <summary>
+        /// start downloading instrument data
         /// начать выкачивать данный иснтрументн
         /// </summary>
-        /// <param name="namePaper"> название инструмента</param>
-        /// <returns>в случае успешного запуска возвращает CandleSeries, объект генерирующий свечи</returns>
+        /// <param name="namePaper"> instrument name / название инструмента</param>
+        /// <returns> in the case of a successful launch returns CandleSeries, the object generating candles / в случае успешного запуска возвращает CandleSeries, объект генерирующий свечи</returns>
         public void SubcribeDepthTradeOrder(string namePaper)
         {
             try
@@ -407,7 +436,7 @@ namespace OsEngine.Market.Servers.BitMex
                     {
                         return;
                     }
-                    // надо запустить сервер если он ещё отключен
+                    // need to start the server if it is still disabled / надо запустить сервер если он ещё отключен
                     if (ServerStatus != ServerConnectStatus.Connect)
                     {
                         //MessageBox.Show("Сервер не запущен. Скачивание данных прервано. Инструмент: " + namePaper);
@@ -483,6 +512,7 @@ namespace OsEngine.Market.Servers.BitMex
         private object _getCandles = new object();
 
         /// <summary>
+        /// take candle history
         /// взять историю свечек
         /// </summary>
         /// <param name="security"></param>
@@ -573,16 +603,18 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// multi-threaded access locker to GetBitMexCandleHistory
         /// блокиратор многопоточного доступа к GetBitMexCandleHistory
         /// </summary>
         private readonly object _getCandlesLocker = new object();
 
         /// <summary>
+        /// take instrument candle
         /// взять свечи по инструменту
         /// </summary>
-        /// <param name="security"> короткое название бумаги</param>
-        /// <param name="timeSpan">таймФрейм</param>
-        /// <returns>в случае неудачи вернётся null</returns>
+        /// <param name="security"> short security name / короткое название бумаги</param>
+        /// <param name="timeSpan"> timeframe / таймФрейм</param>
+        /// <returns>failure will return null / в случае неудачи вернётся null</returns>
         public List<Candle> GetBitMexCandleHistory(string security, TimeSpan timeSpan)
         {
             try
@@ -621,6 +653,7 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// method returns candles of a larger timeframe made from smaller
         /// метод возврящает свечи большего таймфрейма, сделанные из меньшего
         /// </summary>
         /// <param name="security"></param>
@@ -743,9 +776,11 @@ namespace OsEngine.Market.Servers.BitMex
             }
         }
 
+        // event implementation
         // реализация событий
 
         /// <summary>
+        /// client connected
         /// клиент подключился
         /// </summary>
         void _client_Connected()
@@ -758,6 +793,7 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// client disconnected
         /// клиент отключился
         /// </summary>
         void _client_Disconnected()
@@ -770,6 +806,7 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// portfolios updated
         /// обновились портфели
         /// </summary>
         void _client_UpdatePortfolio(BitMexPortfolio portf)
@@ -820,6 +857,7 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// positions updated
         /// обновились позиции
         /// </summary>
         private void _client_UpdatePosition(BitMexPosition pos)
@@ -849,6 +887,7 @@ namespace OsEngine.Market.Servers.BitMex
         private object _quoteLock = new object();
 
         /// <summary>
+        /// updated depth came
         /// пришел обновленный стакан
         /// </summary>
         void _client_UpdateMarketDepth(BitMexQuotes quotes)
@@ -1169,6 +1208,7 @@ namespace OsEngine.Market.Servers.BitMex
         private readonly object _newTradesLoker = new object();
 
         /// <summary>
+        /// trades updated
         /// обновились трейды 
         /// </summary>
         void _client_NewTrades(BitMexTrades trades)
@@ -1207,6 +1247,7 @@ namespace OsEngine.Market.Servers.BitMex
         private List<MyTrade> _myTrades;
 
         /// <summary>
+        /// my trades updated
         /// обновились мои трейды
         /// </summary>
         void _client_NewMyTrades(BitMexMyOrders order)
@@ -1250,6 +1291,7 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// securities updated
         /// обновились бумаги
         /// </summary>
         void _client_UpdateSecurity(List<BitMexSecurity> bitmexSecurities)
@@ -1292,6 +1334,7 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// client error
         /// ошибка в клиенте
         /// </summary>
         private void _client_ErrorEvent(string error)
@@ -1300,7 +1343,7 @@ namespace OsEngine.Market.Servers.BitMex
 
             if (error ==
              "{\"error\":{\"message\":\"The system is currently overloaded. Please try again later.\",\"name\":\"HTTPError\"}}")
-            { // останавливаемся на минуту
+            { // stop for a minute / останавливаемся на минуту
                 //LastSystemOverload = DateTime.Now;
             }
 
@@ -1312,9 +1355,11 @@ namespace OsEngine.Market.Servers.BitMex
             }
         }
 
-// работа с ордерами
+        // work with orders
+        // работа с ордерами
 
         /// <summary>
+        /// place of work thread on the queues of order execution and cancellation
         /// место работы потока на очередях исполнения заявок и их отмены
         /// </summary>
         private void ExecutorOrdersThreadArea()
@@ -1569,7 +1614,7 @@ namespace OsEngine.Market.Servers.BitMex
                             {
                                 _ordersToCansel.Enqueue(osOrder);
                             }
-                            // отчёт об ордере пришёл. Удаляем ордер из ордеров нужных к проверке
+                            // report about the order came. Delete order from orders needed to be checked / отчёт об ордере пришёл. Удаляем ордер из ордеров нужных к проверке
                             _ordersToCheck.RemoveAt(i);
                             i--;
                         }
@@ -1579,21 +1624,25 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// queue of orders for placing in the system
         /// очередь ордеров для выставления в систему
         /// </summary>
         private ConcurrentQueue<Order> _ordersToExecute = new ConcurrentQueue<Order>();
 
         /// <summary>
+        /// queue of orders for canceling in the system
         /// очередь ордеров для отмены в системе
         /// </summary>
         private ConcurrentQueue<Order> _ordersToCansel = new ConcurrentQueue<Order>();
 
         /// <summary>
+        /// needed check orders
         /// ордера которые нужно проверить
         /// </summary>
         private List<Order> _ordersToCheck = new List<Order>();
 
         /// <summary>
+        /// waiting for registration orders
         /// ордера, ожидающие регистрации
         /// </summary>
         private List<Order> _newOrders = new List<Order>();
@@ -1606,6 +1655,7 @@ namespace OsEngine.Market.Servers.BitMex
         private object _orderLocker = new object();
 
         /// <summary>
+        /// incoming from system orders
         /// входящий из системы ордер
         /// </summary>
         private void _client_MyOrderEvent(BitMexOrder myOrder)
@@ -1830,9 +1880,10 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// sent order to execution in the trading systme
         /// выслать ордер на исполнение в торговую систему
         /// </summary>
-        /// <param name="order">ордер</param>
+        /// <param name="order">order / ордер</param>
         public void SendOrder(Order order)
         {
             order.TimeCreate = ServerTime;
@@ -1842,53 +1893,63 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// cancel orders from the trading system
         /// отозвать ордер из торговой системы
         /// </summary>
-        /// <param name="order">ордер</param>
+        /// <param name="order">order/ордер</param>
         public void CanselOrder(Order order)
         {
             _ordersToCansel.Enqueue(order);
             _ordersCanseled.Add(order);
         }
 
+        // outgoing events
         // исходящие события
 
         /// <summary>
+        /// API connection established
         /// соединение с API установлено
         /// </summary>
         public event Action ConnectEvent;
 
         /// <summary>
+        /// API connection lost
         /// соединение с API разорвано
         /// </summary>
         public event Action DisconnectEvent;
 
         /// <summary>
+        /// called when order changed
         /// вызывается когда изменился ордер
         /// </summary>
         public event Action<Order> MyOrderEvent;
 
         /// <summary>
+        /// called when my trade changed
         /// вызывается когда изменился мой трейд
         /// </summary>
         public event Action<MyTrade> MyTradeEvent;
 
         /// <summary>
+        /// appear a new portfolio
         /// появились новые портфели
         /// </summary>
         public event Action<List<Portfolio>> PortfolioEvent;
 
         /// <summary>
+        /// new securities
         /// новые бумаги
         /// </summary>
         public event Action<List<Security>> SecurityEvent;
 
         /// <summary>
+        /// new depth
         /// новый стакан
         /// </summary>
         public event Action<MarketDepth> MarketDepthEvent;
 
         /// <summary>
+        /// new trade
         /// новый трейд
         /// </summary>
         public event Action<Trade> NewTradesEvent;
@@ -1901,9 +1962,11 @@ namespace OsEngine.Market.Servers.BitMex
             }
         }
 
+        // work with log
         // работа с логом
 
         /// <summary>
+        /// send a new message to up
         /// выслать новое сообщение на верх
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
@@ -1915,12 +1978,14 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         /// <summary>
+        /// outgoing log message
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
     }
 
     /// <summary>
+    /// one BitMex tick
     /// один тик BitMex
     /// </summary>
     public class TradeBitMex
@@ -1938,6 +2003,7 @@ namespace OsEngine.Market.Servers.BitMex
     }
 
     /// <summary>
+    /// BitMex candle
     /// свеча BitMex
     /// </summary>
     public class BitMexCandle

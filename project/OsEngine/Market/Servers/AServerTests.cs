@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,12 +20,14 @@ using Trade = OsEngine.Entity.Trade;
 namespace OsEngine.Market.Servers
 {
     /// <summary>
+    /// automatic tests for servers implemented with AServer
     /// Автоматические тесты для серверов реализованных через AServer
     /// </summary>
     public class AServerTests
     {
 
         /// <summary>
+        /// start listening to the server
         /// начать прослушку сервера
         /// </summary>
         public void Listen(AServer server)
@@ -96,6 +103,7 @@ namespace OsEngine.Market.Servers
             _lastTimeUserSetOrderToCansel = DateTime.Now;
         }
 
+// standard events
 // стандартные события
 
         void server_NewBidAscIncomeEvent(decimal bid, decimal ask, Security security)
@@ -182,6 +190,7 @@ namespace OsEngine.Market.Servers
 
         #region Валидация простых данных
 
+// bid/ask validation
 // валидация бида с аском
 
         private BidAskSender _bidAsk = new BidAskSender();
@@ -234,6 +243,7 @@ namespace OsEngine.Market.Servers
 
         }
 
+// orders validation
 // валидация ордеров
 
         private ConcurrentQueue<Order> _orders = new ConcurrentQueue<Order>();
@@ -256,7 +266,7 @@ namespace OsEngine.Market.Servers
                     _lastTimeUserSetOrderToCansel.AddSeconds(30) > DateTime.Now &&
                     _lastTimeUserSetOrderToCansel.AddSeconds(20) < DateTime.Now &&
                     _lastTimeIncomeOrder.AddSeconds(20) < _lastTimeUserSetOrderToCansel)
-                { // ордер выставлен в сервер, но ответной реакции нет
+                { // order placed on server but no response / ордер выставлен в сервер, но ответной реакции нет
                     SendLogMessage("Order Error. No server reaction on cansel order. ", LogMessageType.Error);
                 }
 
@@ -264,7 +274,7 @@ namespace OsEngine.Market.Servers
                     _lastTimeUserSetOrderToExecute.AddSeconds(30) > DateTime.Now &&
                     _lastTimeUserSetOrderToExecute.AddSeconds(20) < DateTime.Now &&
                     _lastTimeIncomeOrder.AddSeconds(20) < _lastTimeUserSetOrderToExecute)
-                { // ордер выставлен в сервер, но ответной реакции нет
+                { // order placed on server but no response / ордер выставлен в сервер, но ответной реакции нет
                     SendLogMessage("Order Error. No server reaction on execute order. ", LogMessageType.Error);
                 }
 
@@ -346,6 +356,7 @@ namespace OsEngine.Market.Servers
             }
         }
 
+// MyTrade validation
 // валидация сделок MyTrade
 
         private ConcurrentQueue<MyTrade> _myTrades = new ConcurrentQueue<MyTrade>();
@@ -415,6 +426,7 @@ namespace OsEngine.Market.Servers
             }
         }
 
+// market depth data validation
 // валидация данных стакана
 
         private MarketDepth _marketDepthToCheck;
@@ -543,6 +555,7 @@ namespace OsEngine.Market.Servers
             }
         }
 
+// security data validation
 // валидация данных по бумагам
 
         private ConcurrentQueue<Security> _securitiesToCheck = new ConcurrentQueue<Security>();  
@@ -632,6 +645,7 @@ namespace OsEngine.Market.Servers
             }
         }
 
+// anonymous trade table validation
 // валидация таблицы обезличенных сделок
 
         private ConcurrentQueue<Trade> _trades = new ConcurrentQueue<Trade>(); 
@@ -689,6 +703,7 @@ namespace OsEngine.Market.Servers
             }
         }
 
+// portfolios validation
 // валидация портфелей
 
         private DateTime _lastTimeChangePortfolio = DateTime.MinValue;
@@ -705,7 +720,7 @@ namespace OsEngine.Market.Servers
                     _lastTimeExecuteOrder.AddSeconds(20) > DateTime.Now &&
                     _lastTimeExecuteOrder.AddSeconds(10) < DateTime.Now&&
                     _lastTimeChangePortfolio.AddSeconds(10) < _lastTimeExecuteOrder)
-                { // ордер исполнился, портфель не поменялся.
+                { // order executed, the portfolio has not changed / ордер исполнился, портфель не поменялся.
                     SendLogMessage("Portfolio Error. No reaction or change position after execute order. ", LogMessageType.Error);
                 }
 
@@ -744,9 +759,11 @@ namespace OsEngine.Market.Servers
 
         #endregion
 
+        // logging
         // логирование
 
         /// <summary>
+        /// add new message to log
         /// добавить в лог новое сообщение
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
@@ -758,6 +775,7 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// outgoing message for log
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;

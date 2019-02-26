@@ -1,4 +1,5 @@
 ﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -11,6 +12,7 @@ namespace OsEngine.Market.Connectors
 {
 
     /// <summary>
+    /// emulator execution of exchange orders. It's used in real trading to emulate trading
     /// Эмулятор исполнения заявок биржи. Используется при реальных торгах, для эмуляции торговли 
     /// </summary>
     public class OrderExecutionEmulator
@@ -20,9 +22,11 @@ namespace OsEngine.Market.Connectors
             ordersOnBoard = new List<Order>();
         }
 
+// order management
 // менеджмент ордеров
 
         /// <summary>
+        /// place order to the exchange
         /// выставить ордер на биржу
         /// </summary>
         public void OrderExecute(Order order) 
@@ -36,6 +40,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// cancel order from the exchange
         /// отозвать ордер с биржи
         /// </summary>
         public void OrderCancel(Order order)
@@ -59,15 +64,17 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// my orders placed on the exchange
         /// мои ордера выставленные на бирже
         /// </summary>
         private List<Order> ordersOnBoard;
 
         /// <summary>
+        /// check whether any orders are executed 
         /// проверить исполнился ли какой-нибудь ордер
         /// </summary>
-        /// <param name="isFirstTime">когда проверяем ордер. если true, то проверяем исполнение сразу после выставления</param>
-        /// <param name="order">проверяемый на исполнение ордер</param>
+        /// <param name="isFirstTime"> if value == true then we check the execution immediately after placing / когда проверяем ордер. если true, то проверяем исполнение сразу после выставления </param>
+        /// <param name="order"> execution order / проверяемый на исполнение ордер </param>
         private bool CheckExecution(bool isFirstTime, Order order)
         {
             if (order.TypeOrder == OrderPriceType.Market)
@@ -132,10 +139,11 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// send up the order execution notification on exchange 
         /// выслать наверх оповещение об исполнении ордера на бирже
         /// </summary>
-        /// <param name="order">ордер</param>
-        /// <param name="price">цена исполнения</param>
+        /// <param name="order"> order / ордер </param>
+        /// <param name="price"> execution price / цена исполнения </param>
         private void ExecuteSimple(Order order, decimal price)
         {
             Order newOrder = new Order();
@@ -171,9 +179,10 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// send up the order execution notification on exchange
         /// выслать наверх оповещение о выставлении ордера на биржу
         /// </summary>
-        /// <param name="order">ордер</param>
+        /// <param name="order"> order / ордер </param>
         private void ActivateSimple(Order order)
         {
             Order newOrder = new Order();
@@ -193,29 +202,34 @@ namespace OsEngine.Market.Connectors
             }
         }
 
+// server needs to be loaded with new data to execute stop- and profit-orders
 // сервер нужно прогружать новыми данными, чтобы исполнялись стопы и профиты
 
         /// <summary>
+        /// buy price
         /// цена покупки
         /// </summary>
         private decimal _bestBuy;
 
         /// <summary>
+        /// sell price
         /// цена продажи
         /// </summary>
         private decimal _bestSell;
 
         /// <summary>
+        /// server time
         /// время сервера
         /// </summary>
         private DateTime _serverTime;
 
         /// <summary>
+        /// get new last prices
         /// провести новые последние цены
         /// </summary>
-        /// <param name="sell">лучшая цена продажи</param>
-        /// <param name="buy">лучшая цена покупки</param>
-        /// <param name="time">время</param>
+        /// <param name="sell"> best sell price / лучшая цена продажи </param>
+        /// <param name="buy"> best buy price / лучшая цена покупки </param>
+        /// <param name="time"> time / время </param>
         public void ProcessBidAsc(decimal sell, decimal buy, DateTime time)
         {
             _bestBuy = buy;
@@ -232,11 +246,13 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// my trades are changed
         /// изменились мои сделки
         /// </summary>
         public event Action<MyTrade> MyTradeEvent;
 
         /// <summary>
+        /// orders are changed
         /// изменились ордера
         /// </summary>
         public event Action<Order> OrderChangeEvent;

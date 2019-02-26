@@ -11,6 +11,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 {
 
     /// <summary>
+    /// Bitfinex server
     /// сервер Bitfinex
     /// </summary>
     public class BitfinexServer:AServer
@@ -26,6 +27,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
         
         /// <summary>
+        /// take candles by instrument
         /// взять свечи по инструменту
         /// </summary>
         /// <param name="securityName"></param>
@@ -38,6 +40,7 @@ namespace OsEngine.Market.Servers.Bitfinex
     }
 
     /// <summary>
+    /// implementation of Bitfinex server
     /// реализация сервера битфайнекс
     /// </summary>
     public class BitfinexServerRealization : IServerRealization
@@ -53,6 +56,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         /// <summary>
+        /// server type
         /// тип сервера
         /// </summary>
         public ServerType ServerType
@@ -61,21 +65,25 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         /// <summary>
+        /// server status
         /// статус сервера
         /// </summary>
         public ServerConnectStatus ServerStatus { get; set; }
 
         /// <summary>
+        /// parameters
         /// параметры
         /// </summary>
         public List<IServerParameter> ServerParameters { get; set; }
 
         /// <summary>
+        /// server time
         /// время сервера
         /// </summary>
         public DateTime ServerTime { get; set; }
 
         /// <summary>
+        /// thread checking that data reception did not break
         /// поток проверяющий чтобы приём данных не сломался
         /// </summary>
         private void ThreadCheckConnectionArea()
@@ -119,6 +127,7 @@ namespace OsEngine.Market.Servers.Bitfinex
             }
         }
 
+        // requests
         // запросы
 
         /// <summary>
@@ -127,11 +136,13 @@ namespace OsEngine.Market.Servers.Bitfinex
         private BitfinexClient _client;
 
         /// <summary>
+        /// last starting servet time
         /// время последнего запуска сервера
         /// </summary>
         private DateTime _lastStartServerTime;
 
         /// <summary>
+        /// dispose API
         /// освободить апи
         /// </summary>
         public void Dispose()
@@ -157,6 +168,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         /// <summary>
+        /// connecto to API
         /// подсоединиться к апи
         /// </summary>
         public void Connect()
@@ -182,6 +194,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         /// <summary>
+        /// request securities
         /// запросить бумаги
         /// </summary>
         public void GetSecurities()
@@ -221,13 +234,14 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         /// <summary>
+        /// find price accuracy for security
         /// найти точность цены для бумаги
         /// </summary>
         private void SetPriceStepInSecurity(Security security)
         {
            BitfinexTickerTradeInfo info = _client.GetTradeInfo(security.Name);
 
-            // находим самую длинную строку 
+            // find the longest string / находим самую длинную строку 
 
             string maxLengthStr = info.ask;
 
@@ -268,6 +282,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         /// <summary>
+        /// request portfolios
         /// запросить портфели
         /// </summary>
         public void GetPortfolios()
@@ -276,6 +291,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         /// <summary>
+        /// execute order
         /// исполнить ордер
         /// </summary>
         public void SendOrder(Order order)
@@ -284,6 +300,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         /// <summary>
+        /// cancel order
         /// отозвать ордер
         /// </summary>
         public void CanselOrder(Order order)
@@ -292,6 +309,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         /// <summary>
+        /// subscribe
         /// подписаться 
         /// </summary>
         public void Subscrible(Security security)
@@ -301,6 +319,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         /// <summary>
+        /// take candle history for period
         /// взять историю свечек за период
         /// </summary>
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime,
@@ -310,6 +329,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         /// <summary>
+        /// take ticks data on instrument for period
         /// взять тиковые данные по инструменту за период
         /// </summary>
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
@@ -318,6 +338,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         /// <summary>
+        /// request orders state
         /// запросить статус ордеров
         /// </summary>
         public void GetOrdersState(List<Order> orders)
@@ -325,9 +346,11 @@ namespace OsEngine.Market.Servers.Bitfinex
             
         }
 
+// parsing incoming data
 // разбор входящих данных
 
         /// <summary>
+        /// receive new message from client
         /// из клиента поступило новое сообщение
         /// </summary>
         private void ClientOnLogMessageEvent(string message, LogMessageType logType)
@@ -339,6 +362,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         /// <summary>
+        /// receive new order from client
         /// из клиента пришёл ордер
         /// </summary>
         private void ClientOnMyOrderEvent(Order myOrder)
@@ -352,6 +376,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         /// <summary>
+        /// receive new trade from client
         /// из клиента пришёл мой трейд
         /// </summary>
         private void ClientOnMyTradeEvent(MyTrade trade)
@@ -363,6 +388,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         /// <summary>
+        /// receive trades from client
         /// из клиента пришли трейды
         /// </summary>
         private void ClientOnNewTradesEvent(List<ChangedElement> trades, string secName)
@@ -385,7 +411,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 trade.Volume = Convert.ToDecimal(Math.Abs(amount));
                 trade.Side = amount > 0 ? Side.Buy : Side.Sell;
 
-                // перегружаем последним временем тика время сервера
+                // write the last tick time in server time / перегружаем последним временем тика время сервера
                 ServerTime = trade.Time;
 
                 if (NewTradesEvent != null)
@@ -400,16 +426,19 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         /// <summary>
+        /// depths
         /// стаканы
         /// </summary>
         private List<MarketDepth> _depths;
 
         /// <summary>
+        /// multi-threaded access locker to depths
         /// блокиратор многопоточного доступа к стаканам
         /// </summary>
         private readonly object _depthLocker = new object();
 
         /// <summary>
+        /// receive new depths from client
         /// из клиента пришли новые стаканы
         /// </summary>
         private void ClientOnNewMarketDepth(List<DataObject> newOrderBook, string nameSecurity)
@@ -438,7 +467,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                     foreach (var value in newOrderBook[1].Values)
                     {
-                        // value[2] - объем на уровне, если > 0 значит бид, иначе аск
+                        // value[2] - volume in the level, if > 0, then bid, else ask / value[2] - объем на уровне, если > 0 значит бид, иначе аск
                         if (value[2] > 0)
                         {
                             bids.Add(new MarketDepthLevel()
@@ -474,6 +503,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         /// <summary>
+        /// receive depth updates from client
         /// из клиента пришли обновления по стаканам
         /// </summary>
         private void ClientOnUpdateMarketDepth(List<ChangedElement> newData, string nameSecurity)
@@ -507,28 +537,28 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                     needDepth.Time = ServerTime;
 
-                    // если колл-во ореров равно 0, значит надо найти уровень этой цены и удалить его
+                    // if the number of orders is 0, then you need to find the level of this price and delete it / если колл-во ореров равно 0, значит надо найти уровень этой цены и удалить его
                     if (count == 0)
                     {
-                        // удаляем уровень
-                        if (amount < 0)  // удаляем из асков
+                        // delete level / удаляем уровень
+                        if (amount < 0)  // delete from asks / удаляем из асков
                         {
                             needDepth.Asks.Remove(needDepth.Asks.Find(level => level.Price == price));
                         }
 
-                        if (amount > 0)  // удаляем из бидов
+                        if (amount > 0)  // delete from bids / удаляем из бидов
                         {
                             needDepth.Bids.Remove(needDepth.Bids.Find(level => level.Price == price));
                         }
                         return;
                     }
 
-                    // если объем больше нуля, значит изменился какой-то бид, находим его и обновляем
+                    // if the volume is greater than zero, then some bid has changed, we find it and update / если объем больше нуля, значит изменился какой-то бид, находим его и обновляем
                     else if (amount > 0)
                     {
                         var needLevel = needDepth.Bids.Find(bid => bid.Price == price);
 
-                        if (needLevel == null)  // если такого уровня нет, добавляем его
+                        if (needLevel == null)  // if there is no such level, add it / если такого уровня нет, добавляем его
                         {
                             needDepth.Bids.Add(new MarketDepthLevel()
                             {
@@ -544,12 +574,12 @@ namespace OsEngine.Market.Servers.Bitfinex
                         }
 
                     }
-                    // если меньше, значит обновляем аск
+                    // if less, then update the ask / если меньше, значит обновляем аск
                     else if (amount < 0)
                     {
                         var needLevel = needDepth.Asks.Find(asc => asc.Price == price);
 
-                        if (needLevel == null)  // если такого уровня нет, добавляем его
+                        if (needLevel == null)  // if there is no such level, add it / если такого уровня нет, добавляем его
                         {
                             needDepth.Asks.Add(new MarketDepthLevel()
                             {
@@ -606,11 +636,13 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         /// <summary>
+        /// portfolios
         /// портфели
         /// </summary>
         private List<Portfolio> _portfolios;
 
         /// <summary>
+        /// receive new portfolios from client
         /// из клиента пришли новые портфели
         /// </summary>
         private void ClientOnNewPortfolio(List<List<WaletWalet>> portfolios)
@@ -656,6 +688,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         /// <summary>
+        /// receive updated portfolios from client
         /// из клиента пришли обновления портфелей
         /// </summary>
         private void ClientOnUpdatePortfolio(List<WalletUpdateWalletUpdate> walletUpdateWalletUpdates)
@@ -698,6 +731,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         /// <summary>
+        /// client lost connection
         /// клиент потерял соединение
         /// </summary>
         private void ClientOnDisconnected()
@@ -710,6 +744,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         /// <summary>
+        /// client connected to exchange
         /// клиент подключился к бирже
         /// </summary>
         private void ClientOnConnected()
@@ -722,6 +757,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         /// <summary>
+        /// convert timestamp in datetime
         /// преобразует timestamp в datetime
         /// </summary>
         /// <param name="timeStamp"></param>
@@ -743,6 +779,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         private readonly object _candlesLocker = new object();
 
         /// <summary>
+        /// take candles on instruments
         /// взять свечи по инструменту
         /// </summary>
         public List<Candle> GetCandleHistory(string securityName, TimeSpan seriesTimeFrameSpan, int count)
@@ -759,31 +796,31 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                     if (tf == 1 || tf == 2 || tf == 3)
                     {
-                        // строим свечи из минуток
+                        // building candles from 1 minute / строим свечи из минуток
                         var rawCandles = GetBitfinexCandles("1m", securityName, count);
                         newCandles = TransformCandles(1, tf, rawCandles);
                     }
                     else if (tf == 5 || tf == 10 || tf == 20)
                     {
-                        // строим свечи из 5минуток
+                        // building candles from 5 minutes / строим свечи из 5минуток
                         var rawCandles = GetBitfinexCandles("5m", securityName, count);
                         newCandles = TransformCandles(5, tf, rawCandles);
                     }
                     else if (tf == 15 || tf == 30 || tf == 45)
                     {
-                        // строим свечи из 15минуток
+                        // building candles from 15 minutes / строим свечи из 15минуток
                         var rawCandles = GetBitfinexCandles("15m", securityName, count);
                         newCandles = TransformCandles(15, tf, rawCandles);
                     }
                     else if (tf == 60 || tf == 120)
                     {
-                        // строим свечи из часовиков
+                        // building candles from 1 hour / строим свечи из часовиков
                         var rawCandles = GetBitfinexCandles("1h", securityName, count);
                         newCandles = TransformCandles(60, tf, rawCandles);
                     }
                     else if (tf == 1440)
                     {
-                        // строим свечи из дневок
+                        // building candles from 1 day / строим свечи из дневок
                         var rawCandles = GetBitfinexCandles("1D", securityName, count);
 
                         List<Candle> daily = new List<Candle>();
@@ -816,6 +853,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         /// <summary>
+        /// take candles from exchange with needed timeframe
         /// получить с биржи свечи нужного ТФ
         /// </summary>
         /// <param name="tf"></param>
@@ -848,11 +886,12 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         /// <summary>
+        /// transform candles
         /// преобразовать свечи
         /// </summary>
-        /// <param name="tf">пришедший таймфрейм</param>
-        /// <param name="needTf">тф который нужно получить</param>
-        /// <param name="rawCandles">заготовки для свечей</param>
+        /// <param name="tf">received timeframe / пришедший таймфрейм</param>
+        /// <param name="needTf">needed timeframe / тф который нужно получить</param>
+        /// <param name="rawCandles">raw candles / заготовки для свечей</param>
         /// <returns></returns>
         private List<Candle> TransformCandles(int tf, int needTf, List<List<double>> rawCandles)
         {
@@ -929,7 +968,7 @@ namespace OsEngine.Market.Servers.Bitfinex
             return newCandles;
         }
 
-        // исходящие события
+        // outgoing events / исходящие события
 
         public event Action<Order> MyOrderEvent;
 

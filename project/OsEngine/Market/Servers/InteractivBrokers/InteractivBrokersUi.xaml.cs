@@ -1,4 +1,5 @@
 ﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -10,6 +11,7 @@ using OsEngine.Logging;
 namespace OsEngine.Market.Servers.InteractivBrokers
 {
     /// <summary>
+    /// Interaction logic for InteractivBrokersUi.xaml
     /// Логика взаимодействия для InteractivBrokersUi.xaml
     /// </summary>
     public partial class InteractivBrokersUi
@@ -67,7 +69,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             }
         }
 
-        void server_ConnectChangeEvent(string status) // изменился статус сервера
+        void server_ConnectChangeEvent(string status) // changed server status / изменился статус сервера
         {
             if (!LabelStatus.CheckAccess())
             {
@@ -78,7 +80,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             LabelStatus.Content = status;
         }
 
-        private void ButtonConnect_Click(object sender, RoutedEventArgs e) // кнопка подключить сервер
+        private void ButtonConnect_Click(object sender, RoutedEventArgs e) // butthon connect to server / кнопка подключить сервер
         {
             if (string.IsNullOrWhiteSpace(TextBoxHost.Text) )
             {
@@ -105,7 +107,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             _server.StartServer();
         }
 
-        private void ButtonAbort_Click(object sender, RoutedEventArgs e) // кнопка остановить сервер
+        private void ButtonAbort_Click(object sender, RoutedEventArgs e) // button stop server / кнопка остановить сервер
         {
             _server.StopServer();
         }
