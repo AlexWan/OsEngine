@@ -1,0 +1,80 @@
+﻿<Window x:Class="OsEngine.Robots.Patterns.PatternTraderUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+     Title="Pattern trading setting" Height="433" MinHeight="475" Width="572" MinWidth="720" ResizeMode="CanResize" Style="{StaticResource WindowStyleNoResize}" Topmost="False" WindowStartupLocation="CenterScreen" Icon="/OsEngine;component/Images/OsLogo.ico">
+    <Grid>
+        <TabControl Name="TabControlPrime" Margin="5,76,2,2">
+            <TabItem Name="TabItemOpeningPosition" Header="Opening position"  >
+                <Grid >
+                    <WindowsFormsHost x:Name="HostGridPatternsToOpen" Margin="14,65,233,5"/>
+                    <Label Name="LabelPatterns" Content="Patterns" HorizontalAlignment="Left" Margin="14,37,0,0" VerticalAlignment="Top"/>
+                    <WindowsFormsHost x:Name="HostSinglePatternToOpen" HorizontalAlignment="Right" Margin="0,65,5,5" Width="223"/>
+                    <TextBox Name="TextBoxWeigthToInter"  Height="23" Margin="0,10,24,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="156"/>
+                    <Label Name="LabelEntryWeight" Content="Entry Weight"  Margin="0,10,201,0" HorizontalAlignment="Right" VerticalAlignment="Top" />
+                    <Label Name="LabelSide" Content="Side" HorizontalAlignment="Left" Margin="118,10,0,0" VerticalAlignment="Top" />
+                    <ComboBox Name="ComboBoxSideInter" HorizontalAlignment="Left" Margin="181,10,0,0"   VerticalAlignment="Top" Width="151"/>
+                    <TextBox Name="TextBoxInterToPatternSleepage" Height="23" Margin="0,38,24,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="156"/>
+                    <Label Name="LabelSlippage" Content="Slippage"  Margin="0,38,201,0" HorizontalAlignment="Right" VerticalAlignment="Top" />
+                </Grid>
+            </TabItem>
+            <TabItem Name="TabItemClosePosition" Header="Close position" >
+                <Grid >
+                    <CheckBox Name="CheckBoxProfitOrderIsOn" Content="Profit order %" HorizontalAlignment="Left" Margin="88,28,0,0" VerticalAlignment="Top"/>
+                    <CheckBox Name="CheckBoxStopOrderIsOn" Content="Stop order %" HorizontalAlignment="Left" Margin="88,0,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxStopOrderValue" HorizontalAlignment="Left" Height="23" Margin="204,0,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
+                    <TextBox Name="TextBoxProfitOrderValue"  HorizontalAlignment="Left" Height="23" Margin="204,28,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
+                    <TextBox Name="TextBoxExitFromSomeCandlesValue"  Height="23" Margin="204,56,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="141"/>
+                    <CheckBox Name="CheckBoxExitFromSomeCandlesIsOn"  Content="Through N candles" HorizontalAlignment="Left" Margin="88,57,0,0" VerticalAlignment="Top"/>
+                    <WindowsFormsHost Name="HostGridPatternToClose" Margin="14,140,233,10"/>
+                    <TextBox Name="TextBoxTreilingStopValue"  Height="23" Margin="204,84,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="141"/>
+                    <CheckBox Name="CheckBoxTrailingStopIsOn" Content="Trailing Stop %" HorizontalAlignment="Left" Margin="88,84,0,0" VerticalAlignment="Top"/>
+                    <WindowsFormsHost Name="HostSinglePatternToClose" HorizontalAlignment="Right" Margin="0,140,5,10" Width="223"/>
+                    <TextBox Name="TextBoxWeigthToExit" Height="23" Margin="0,112,10,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="92"/>
+                    <Label Name="LabelWeightForExit" Content="Weight for exit"  Margin="0,112,120,0" HorizontalAlignment="Right" VerticalAlignment="Top" />
+                    <TextBox Name="TextBoxStopOrderValueSleepage"  HorizontalAlignment="Right" Height="23" Margin="0,0,78,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
+                    <TextBox Name="TextBoxProfitOrderValueSleepage"  HorizontalAlignment="Right" Height="23" Margin="0,28,78,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
+                    <TextBox Name="TextBoxExitFromSomeCandlesValueSleepage"  Height="23" Margin="0,56,78,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="141"/>
+                    <TextBox Name="TextBoxTreilingStopValueSleepage"  Height="23" Margin="0,84,78,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="141"/>
+                    <Label Name="LabelSlippage1" Content="Slippage" HorizontalAlignment="Right" Margin="0,0,224,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelSlippage2" Content="Slippage" HorizontalAlignment="Right" Margin="0,28,224,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelSlippage3" Content="Slippage" HorizontalAlignment="Right" Margin="0,56,224,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelSlippage4" Content="Slippage" HorizontalAlignment="Right" Margin="0,84,224,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxStopExitToPatternsSleepage"  Height="23" Margin="347,112,233,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <Label Name="LabelSlippageExitByPatterns" Content="Slippage for exit by patterns" HorizontalAlignment="Left" Margin="76,112,0,0" VerticalAlignment="Top"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <Rectangle Fill="#FCEE21" Height="179" Stroke="Black" StrokeThickness="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="20" RenderTransformOrigin="0.5,0.5" Margin="1,0,0,0">
+            <Rectangle.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform AngleY="-44"/>
+                    <RotateTransform/>
+                    <TranslateTransform Y="-12.012"/>
+                </TransformGroup>
+            </Rectangle.RenderTransform>
+        </Rectangle>
+        <Label x:Name="LabelOsa" Content="O-S-A.NET" Foreground="Black" HorizontalAlignment="Left" Margin="-24,0,0,95" VerticalAlignment="Bottom" FontWeight="Bold" RenderTransformOrigin="0.5,0.5" FontSize="14">
+            <Label.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform/>
+                    <RotateTransform Angle="-90"/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </Label.RenderTransform>
+        </Label>
+        <Rectangle Height="71" Margin="5,5,5,0"  VerticalAlignment="Top"/>
+        <ComboBox Name="ComboBoxRegime" HorizontalAlignment="Left" Margin="106,10,0,0" VerticalAlignment="Top" Width="120"/>
+        <Label Name="LabelRegime" Content="Regime" HorizontalAlignment="Left" Margin="11,10,0,0" VerticalAlignment="Top"/>
+        <ComboBox Name="ComboBoxPatternsGroups" Margin="273,40,236,0" VerticalAlignment="Top"/>
+        <Label Name="LabelPatternGroup" Content="Pattern group" HorizontalAlignment="Left" Margin="178,40,0,0" VerticalAlignment="Top"/>
+        <ComboBox Name="ComboBoxSets" HorizontalAlignment="Right" Margin="0,10,236,0" VerticalAlignment="Top" Width="199"/>
+        <Label Name="LabelSet" Content="Set" HorizontalAlignment="Left" Margin="240,10,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxMaxPosition" Height="23" Margin="0,10,22,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="81"/>
+        <Label Name="LabelMaximumPositions" Content="Maximum positions" HorizontalAlignment="Right" Margin="0,10,103,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxOpenVolume" Height="23" Margin="0,40,22,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="81"/>
+        <Label Name="LabelVolume" Content="Volume" HorizontalAlignment="Right" Margin="0,40,103,0" VerticalAlignment="Top"/>
+    </Grid>
+</Window>
