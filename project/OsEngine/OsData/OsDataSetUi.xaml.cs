@@ -1,34 +1,40 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Market;
 
 namespace OsEngine.OsData
 {
     /// <summary>
+    /// Interaction Logic for OsDataSetUi.xaml
     /// Логика взаимодействия для OsDataSetUi.xaml
     /// </summary>
     public partial class OsDataSetUi
     {
         /// <summary>
+        /// set belonging to this window
         /// сет принадлежащий этому окну
         /// </summary>
         private OsDataSet _set;
 
         /// <summary>
+        /// is the set saved
         /// сохранён ли сет
         /// </summary>
         public bool IsSaved;
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="set">сет которым надо управлять</param>
+        /// <param name="set">set that needs to be managed/сет которым надо управлять</param>
         public OsDataSetUi(OsDataSet set)
         {
             InitializeComponent();
@@ -70,20 +76,13 @@ namespace OsEngine.OsData
 
             CheckBoxNeadToLoadDataInServers.IsChecked = set.NeadToLoadDataInServers;
 
+            List < ServerType > serverTypes = ServerMaster.ServersTypes;
             ComboBoxSource.Items.Add(ServerType.None);
-            ComboBoxSource.Items.Add(ServerType.Finam);
-            ComboBoxSource.Items.Add(ServerType.InteractivBrokers);
-            ComboBoxSource.Items.Add(ServerType.Plaza);
-            ComboBoxSource.Items.Add(ServerType.QuikDde);
-            ComboBoxSource.Items.Add(ServerType.QuikLua);
-            ComboBoxSource.Items.Add(ServerType.BitMex);
-            ComboBoxSource.Items.Add(ServerType.Kraken);
-            ComboBoxSource.Items.Add(ServerType.Binance);
-            ComboBoxSource.Items.Add(ServerType.BitStamp);
-            ComboBoxSource.Items.Add(ServerType.NinjaTrader);
-            ComboBoxSource.Items.Add(ServerType.SmartCom);
-            ComboBoxSource.Items.Add(ServerType.Oanda);
 
+            for (int i = 0; i < serverTypes.Count; i++)
+            {
+                ComboBoxSource.Items.Add(serverTypes[i]);
+            }
 
             ComboBoxSource.SelectedItem = _set.Source;
             ComboBoxSource.SelectionChanged += ComboBoxSource_SelectionChanged;
@@ -112,9 +111,23 @@ namespace OsEngine.OsData
             CreateSecuritiesTable();
             ReloadSecuritiesOnTable();
             CheckButtons();
+            Title = OsLocalization.Data.TitleDataSet;
+            Label3.Content = OsLocalization.Data.Label3;
+            Label4.Content = OsLocalization.Data.Label4;
+            Label15.Content = OsLocalization.Data.Label15;
+            Label16.Content = OsLocalization.Data.Label16;
+            Label17.Content = OsLocalization.Data.Label17;
+            Label18.Content = OsLocalization.Data.Label18;
+            Label19.Content = OsLocalization.Data.Label19;
+            Label20.Content = OsLocalization.Data.Label20;
+            ButtonAccept.Content = OsLocalization.Data.ButtonAccept;
+            CheckBoxNeadToLoadDataInServers.Content = OsLocalization.Data.Label21;
+            CheckBoxNeadToUpDate.Content = OsLocalization.Data.Label22;
+
         }
 
         /// <summary>
+        /// switched source
         /// переключили источник
         /// </summary>
         void ComboBoxSource_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -124,6 +137,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
+        /// set mode changed
         /// изменён режим работы сета
         /// </summary>
         void ComboBoxRegime_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -132,6 +146,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
+        /// check button activity
         /// проверить активность кнопок
         /// </summary>
         private void CheckButtons()
@@ -147,7 +162,8 @@ namespace OsEngine.OsData
             else
             {
                 EnableControls();
-                if (ComboBoxSource.SelectedItem.ToString() == "Finam")
+                if (ComboBoxSource.SelectedItem != null && 
+                    ComboBoxSource.SelectedItem.ToString() == "Finam")
                 {
                     CheckBoxTf2HourIsOn.IsEnabled = false;
                     CheckBoxTf2HourIsOn.IsChecked = false;
@@ -170,6 +186,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
+        /// prevent user from touching controls
         /// запретить пользователю трогать контролы
         /// </summary>
         private void DisableControls()
@@ -206,6 +223,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
+        /// allow user to touch controls
         /// разрешить пользователю трогать контролы
         /// </summary>
         private void EnableControls()
@@ -249,6 +267,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
+        /// save settings
         /// сохранить настройки
         /// </summary>
         private void SaveSettings()
@@ -295,14 +314,16 @@ namespace OsEngine.OsData
             _set.Save();
         }
 
-// работа с бумагами
+        // paperwork/работа с бумагами
 
         /// <summary>
+        /// Securities table
         /// таблица бумаг
         /// </summary>
         private DataGridView _grid;
 
         /// <summary>
+        /// create a securities storage table
         /// создать таблицу хранения бумаг
         /// </summary>
         private void CreateSecuritiesTable()
@@ -314,7 +335,7 @@ namespace OsEngine.OsData
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;
-            column0.HeaderText = @"Код бумаги";
+            column0.HeaderText = OsLocalization.Data.Label14;
             column0.ReadOnly = true;
             column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(column0);
@@ -323,6 +344,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
+        /// reload securities storage table
         /// перезагрузить таблицу хранения бумаг
         /// </summary>
         private void ReloadSecuritiesOnTable()
@@ -340,6 +362,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
+        /// User clicked on button to add new paper to set
         /// пользоваетль нажал на кнопку добавить новую бумагу к сету
         /// </summary>
         private void ButtonAddSecurity_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -349,6 +372,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
+        /// User is requesting paper removal from the set.
         /// пользователь запрашивает удаление бумаги из сета
         /// </summary>
         private void ButtonDelSecurity_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -365,7 +389,7 @@ namespace OsEngine.OsData
         {
             if (TextBoxFolderName.Text == "")
             {
-                MessageBox.Show(@"Сохранение прервано. Сету необходимо задать имя");
+                MessageBox.Show(OsLocalization.Data.Label23);
                 return;
             }
 

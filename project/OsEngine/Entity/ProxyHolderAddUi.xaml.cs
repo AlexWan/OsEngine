@@ -1,4 +1,10 @@
-﻿using System.Windows;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System.Windows;
+using OsEngine.Language;
 
 namespace OsEngine.Entity
 {
@@ -19,7 +25,7 @@ namespace OsEngine.Entity
                 string.IsNullOrWhiteSpace(TextBoxName.Text) ||
                 string.IsNullOrWhiteSpace(TextBoxPassword.Text))
             {
-                MessageBox.Show("Не все данные заполнены");
+                MessageBox.Show(OsLocalization.Entity.ErrorSave);
                 return;
             }
 
@@ -30,6 +36,8 @@ namespace OsEngine.Entity
             Proxy.UserPassword = TextBoxPassword.Text;
 
             Close();
+            ButtonSave.Content = OsLocalization.Entity.ProxiesLabel3;
+            Title = OsLocalization.Entity.TitleProxyAddUi;
         }
 
         public ProxyHolder Proxy;

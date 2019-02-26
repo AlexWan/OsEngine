@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Media;
@@ -12,8 +13,10 @@ using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
+using OsEngine.Market.Servers.Miner;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.OsConverter;
 using OsEngine.OsData;
@@ -21,6 +24,7 @@ using OsEngine.OsMiner;
 using OsEngine.OsOptimizer;
 using OsEngine.OsTrader;
 using OsEngine.OsTrader.Panels;
+using OsEngine.PrimeSettings;
 
 namespace OsEngine.Logging
 {
@@ -111,7 +115,7 @@ namespace OsEngine.Logging
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;
-            column0.HeaderText = @"Время";
+            column0.HeaderText = OsLocalization.Logging.Column1;
             column0.ReadOnly = true;
             column0.Width = 170;
             
@@ -119,7 +123,7 @@ namespace OsEngine.Logging
 
             DataGridViewColumn column1 = new DataGridViewColumn();
             column1.CellTemplate = cell0;
-            column1.HeaderText = @"Тип";
+            column1.HeaderText = OsLocalization.Logging.Column2;
             column1.ReadOnly = true;
             column1.Width = 100;
 
@@ -127,7 +131,7 @@ namespace OsEngine.Logging
 
             DataGridViewColumn column = new DataGridViewColumn();
             column.CellTemplate = cell0;
-            column.HeaderText = @"Сообщение";
+            column.HeaderText = OsLocalization.Logging.Column3;
             column.ReadOnly = true;
             column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(column);
@@ -484,22 +488,9 @@ namespace OsEngine.Logging
             {
                 return;
             }
-            _gridErrorLog = new DataGridView();
 
-            _gridErrorLog = new DataGridView();
-
-            _gridErrorLog.AllowUserToOrderColumns = true;
-            _gridErrorLog.AllowUserToResizeRows = true;
-            _gridErrorLog.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-            _gridErrorLog.AllowUserToDeleteRows = false;
-            _gridErrorLog.AllowUserToAddRows = false;
-            _gridErrorLog.RowHeadersVisible = false;
-            _gridErrorLog.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            _gridErrorLog.MultiSelect = false;
-
-            _gridErrorLog.BackColor = Color.FromArgb(17, 18, 23);
-            _gridErrorLog.BackgroundColor = Color.FromArgb(17, 18, 23);
-            _gridErrorLog.GridColor = Color.FromArgb(17, 18, 23);
+            _gridErrorLog = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
+                DataGridViewAutoSizeRowsMode.AllCells);
 
             DataGridViewCellStyle style = new DataGridViewCellStyle();
             style.Alignment = DataGridViewContentAlignment.TopLeft;
@@ -511,7 +502,7 @@ namespace OsEngine.Logging
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;
-            column0.HeaderText = @"Время";
+            column0.HeaderText = OsLocalization.Logging.Column1;
             column0.ReadOnly = true;
             column0.Width = 170;
 
@@ -519,7 +510,7 @@ namespace OsEngine.Logging
 
             DataGridViewColumn column1 = new DataGridViewColumn();
             column1.CellTemplate = cell0;
-            column1.HeaderText = @"Тип";
+            column1.HeaderText = OsLocalization.Logging.Column2;
             column1.ReadOnly = true;
             column1.Width = 100;
 
@@ -527,11 +518,10 @@ namespace OsEngine.Logging
 
             DataGridViewColumn column = new DataGridViewColumn();
             column.CellTemplate = cell0;
-            column.HeaderText = @"Сообщение";
+            column.HeaderText = OsLocalization.Logging.Column3;
             column.ReadOnly = true;
             column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridErrorLog.Columns.Add(column);
-
         }
 
         /// <summary>
@@ -556,22 +546,23 @@ namespace OsEngine.Logging
             row.Cells[2].Value = message.Message;
             _gridErrorLog.Rows.Insert(0, row);
 
-            if (_logErrorUi == null)
+            if (PrimeSettingsMaster.ErrorLogMessageBoxIsActiv)
             {
-                _logErrorUi = new LogErrorUi(_gridErrorLog);
-                _logErrorUi.Closing += _logErrorUi_Closing;
-                _logErrorUi.Show();
+                if (_logErrorUi == null)
+                {
+                    _logErrorUi = new LogErrorUi(_gridErrorLog);
+                    _logErrorUi.Closing += delegate (object sender, CancelEventArgs args)
+                    {
+                        _logErrorUi = null;
+                    };
+                    _logErrorUi.Show();
+                }
             }
 
-            SystemSounds.Beep.Play();
-        }
-
-        /// <summary>
-        /// окно лога закрылось
-        /// </summary>
-        static void _logErrorUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            _logErrorUi = null;
+            if (PrimeSettingsMaster.ErrorLogBeepIsActiv)
+            {
+                SystemSounds.Beep.Play();
+            }
         }
     }
 

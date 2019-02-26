@@ -4,6 +4,7 @@
 
 using System;
 using System.Windows;
+using OsEngine.Language;
 using OsEngine.Logging;
 
 namespace OsEngine.Market.Servers.AstsBridge
@@ -35,12 +36,21 @@ namespace OsEngine.Market.Servers.AstsBridge
             ComboBoxDislocation.Items.Add(AstsDislocation.Internet);
 
             ComboBoxDislocation.SelectedItem = server.Dislocation;
-            ComboBoxDislocation.ToolTip = "В не зоны колокации доступно не более 10 обновлений данных в секунду. Если в зоне интернет запросить данные чаще - последуют санкции";
-
+           
             CheckBoxNeadToSaveTrade.IsChecked = server.NeadToSaveTicks;
             TextBoxCountDaysSave.Text = server.CountDaysTickNeadToSave.ToString();
 
             TextBoxClientCode.Text = server.ClientCode;
+
+            LabelAdress.Content = OsLocalization.Market.Message59;
+            LabelServerName.Content = OsLocalization.Market.Message60;
+            LabelServiceName.Content = OsLocalization.Market.Message61;
+            LabelPlace.Content = OsLocalization.Market.Message62;
+            LabelUserName.Content = OsLocalization.Market.Message63;
+            LabelPassword.Content = OsLocalization.Market.Message64;
+            CheckBoxNeadToSaveTrade.Content = OsLocalization.Market.ServerParam1;
+            LabelDaysToLoad.Content = OsLocalization.Market.ServerParam2;
+
         }
 
         void _server_ConnectStatusChangeEvent(string state)

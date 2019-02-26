@@ -1,0 +1,25 @@
+﻿<Window x:Class="OsEngine.OsTrader.Panels.Tab.BotTabClusterUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OsEngine.OsTrader.Panels.Tab"
+        mc:Ignorable="d"
+        Title="Cluster Graphics Setup" Height="275.381" Width="424.069" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+    <Window.Background>
+        <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+            <GradientStop Color="#FF323234" Offset="1"/>
+            <GradientStop Color="#FFE0E0EA"/>
+        </LinearGradientBrush>
+    </Window.Background>
+    <Grid>
+        <Rectangle Name="Rectangle" Fill="#FF17171B" Margin="10,10,10,37" Stroke="Black" StrokeThickness="0"/>
+        <Button Name="ButtonAccept" Content="Accept" Margin="0,0,10,10" Height="22" FontSize="14" FontFamily="Calibri" Click="ButtonAccept_Click"  VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="130"/>
+        <Button Name="ButtonConnectorDialog" Content="Setting the source candles" Margin="89,29,89,0" VerticalAlignment="Top" Click="ButtonConnectorDialog_Click" />
+        <TextBox Name="TextBoxStep" Margin="182,129,89,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
+        <Label Name="LabelLinesStep" Content="Lines step" HorizontalAlignment="Left" Margin="104,129,0,0" VerticalAlignment="Top"/>
+        <ComboBox Name="ComboBoxChartType" Margin="182,82,89,0" VerticalAlignment="Top"/>
+        <Label Name="LabelShowType" Content="Show" HorizontalAlignment="Left" Margin="104,82,0,0" VerticalAlignment="Top"/>
+
+    </Grid>
+</Window>

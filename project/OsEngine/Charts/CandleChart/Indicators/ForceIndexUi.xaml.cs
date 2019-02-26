@@ -1,10 +1,12 @@
 ﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
 using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Language;
 using MessageBox = System.Windows.MessageBox;
 using TextBox = System.Windows.Forms.TextBox;
 
@@ -50,6 +52,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             CandleBox.SelectedItem = _forceindex.TypePoint;
             Movingbox.SelectedItem = _forceindex.TypeCalculationAverage;
+
+            ButtonColorAdx.Content = OsLocalization.Charts.LabelButtonIndicatorColor;
+            CheckBoxPaintOnOff.Content = OsLocalization.Charts.LabelPaintIntdicatorIsVisible;
+            ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
+            LabelIndicatorPeriod.Content = OsLocalization.Charts.LabelIndicatorPeriod;
+            LabelIndicatorCandleType.Content = OsLocalization.Charts.LabelIndicatorCandleType;
+            LabelIndicatorSmaType.Content = OsLocalization.Charts.LabelIndicatorSmaType;
         }
 
         /// <summary>

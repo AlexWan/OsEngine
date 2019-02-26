@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -9,6 +10,7 @@ using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
 using ComboBox = System.Windows.Controls.ComboBox;
@@ -23,12 +25,13 @@ namespace OsEngine.OsConverter
     {
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="textBoxSourceFile">контрол для источника тиков</param>
-        /// <param name="textBoxExitFile">контрол для исходящего файла</param>
-        /// <param name="comboBoxTimeFrame">контрол для таймФрейма создаваемых свечек</param>
-        /// <param name="logFormsHost">хост для лога</param>
+        /// <param name="textBoxSourceFile">control for tick source/контрол для источника тиков</param>
+        /// <param name="textBoxExitFile">control for outgoing file/контрол для исходящего файла</param>
+        /// <param name="comboBoxTimeFrame">control for timeframe created candles /контрол для таймФрейма создаваемых свечек</param>
+        /// <param name="logFormsHost">log host/хост для лога</param>
         public OsConverterMaster(TextBox textBoxSourceFile, TextBox textBoxExitFile, ComboBox comboBoxTimeFrame, WindowsFormsHost logFormsHost)
         {
             _textBoxSourceFile = textBoxSourceFile;
@@ -67,7 +70,7 @@ namespace OsEngine.OsConverter
         }
 
         /// <summary>
-        /// загрузить настройки из файла
+        /// load settings from file/загрузить настройки из файла
         /// </summary>
         public void Load()
         {
@@ -94,7 +97,7 @@ namespace OsEngine.OsConverter
         }
 
         /// <summary>
-        /// сохранить настройки в файл
+        /// save settings to file/сохранить настройки в файл
         /// </summary>
         public void Save()
         {
@@ -116,37 +119,37 @@ namespace OsEngine.OsConverter
         }
 
         /// <summary>
-        /// путь к исходному файлу из которого берём данные
+        /// the path to the source file from which we take the data/путь к исходному файлу из которого берём данные
         /// </summary>
         private string _sourceFile;
 
         /// <summary>
-        /// путь к исходящему файлу
+        /// outgoing file path/путь к исходящему файлу
         /// </summary>
         private string _exitFile;
 
         /// <summary>
-        /// таймФрейм формируемых свечей
+        /// timeframe molded candles/таймФрейм формируемых свечей
         /// </summary>
         public TimeFrame TimeFrame;
 
         /// <summary>
-        /// контрол для пути исходного файла
+        /// control for source file path/контрол для пути исходного файла
         /// </summary>
         private TextBox _textBoxSourceFile;
 
         /// <summary>
-        /// контрол для пути исходящего файла
+        /// control for outgoing file path/контрол для пути исходящего файла
         /// </summary>
         private TextBox _textBoxExitFile;
 
         /// <summary>
-        /// контрол с ТФ
+        /// control with tf/контрол с ТФ
         /// </summary>
         private ComboBox _comboBoxTimeFrame;
 
         /// <summary>
-        /// изменился ТФ
+        /// changed tf/изменился ТФ
         /// </summary>
         void _comboBoxTimeFrame_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
@@ -155,7 +158,7 @@ namespace OsEngine.OsConverter
         }
 
         /// <summary>
-        /// выбрать исходный файл
+        /// select source file/выбрать исходный файл
         /// </summary>
         public void SelectSourceFile()
         {
@@ -168,7 +171,7 @@ namespace OsEngine.OsConverter
 
             myDialog.ShowDialog();
 
-            if (myDialog.FileName != "") // если хоть что-то выбрано
+            if (myDialog.FileName != "") // if anything is selected/если хоть что-то выбрано
             {
                 _sourceFile = myDialog.FileName;
                 Save();
@@ -177,7 +180,7 @@ namespace OsEngine.OsConverter
         }
 
         /// <summary>
-        /// сохдать новый файл
+        /// create new file/сохдать новый файл
         /// </summary>
         public void CreateExitFile()
         {
@@ -190,7 +193,7 @@ namespace OsEngine.OsConverter
 
             myDialog.ShowDialog();
 
-            if (myDialog.FileName != "") // если хоть что-то выбрано
+            if (myDialog.FileName != "") //  if anything is selected/если хоть что-то выбрано
             {
                 _exitFile = myDialog.FileName;
                 Save();
@@ -199,14 +202,14 @@ namespace OsEngine.OsConverter
         }
 
         /// <summary>
-        /// включить конвертирование
+        /// enable conversion/включить конвертирование
         /// </summary>
         public void StartConvert()
         {
             if (_worker != null &&
                 _worker.IsAlive)
             {
-                SendNewLogMessage("Процедура конвертации не может быть запущена т.к. поток уже запущен", LogMessageType.System);
+                SendNewLogMessage(OsLocalization.Converter.Message1, LogMessageType.System);
                 return;
             }
 
@@ -216,23 +219,23 @@ namespace OsEngine.OsConverter
         }
 
         /// <summary>
-        /// поток занимающийся созданием нового файла
+        /// stream creating new file/поток занимающийся созданием нового файла
         /// </summary>
         private Thread _worker;
 
         /// <summary>
-        /// место работы потока создающего новый файл
+        /// place of work of the stream creating a new file/место работы потока создающего новый файл
         /// </summary>
         private void WorkerSpace()
         {
             if (string.IsNullOrWhiteSpace(_sourceFile))
             {
-                SendNewLogMessage(" Процедура конвертации не может быть запущеана. Не указан файл с исходными данными", LogMessageType.System);
+                SendNewLogMessage(OsLocalization.Converter.Message2, LogMessageType.System);
                 return;
             }
             else if (string.IsNullOrWhiteSpace(_exitFile))
             {
-                SendNewLogMessage("Процедура конвертации не может быть запущеана. Не указан файл с выходными данными", LogMessageType.System);
+                SendNewLogMessage(OsLocalization.Converter.Message3, LogMessageType.System);
                 return;
             }
 
@@ -243,9 +246,9 @@ namespace OsEngine.OsConverter
 
             StreamReader reader = new StreamReader(_sourceFile);
 
-            SendNewLogMessage("Процедура конвертации начата", LogMessageType.System);
+            SendNewLogMessage(OsLocalization.Converter.Message4, LogMessageType.System);
 
-            SendNewLogMessage("Загружаем тики из файла", LogMessageType.System);
+            SendNewLogMessage(OsLocalization.Converter.Message5, LogMessageType.System);
 
             List<Trade> trades = new List<Trade>();
 
@@ -280,14 +283,18 @@ namespace OsEngine.OsConverter
                     if (currentWeek == 0)
                     {
 
-                        SendNewLogMessage("Грузим неделю № " + partMonth + " Месяц " + trade.Time.Month, LogMessageType.System);
+                        SendNewLogMessage(
+                            OsLocalization.Converter.Message6 + partMonth +
+                            OsLocalization.Converter.Message7 + trade.Time.Month, LogMessageType.System);
                         currentWeek = partMonth;
                     }
 
 
                     if (partMonth != currentWeek || reader.EndOfStream)
                     {
-                        SendNewLogMessage("Неделя " + currentWeek + " Месяц " + trade.Time.Month + " подгружен. Создаём серии свечек", LogMessageType.System);
+                        SendNewLogMessage(OsLocalization.Converter.Message6 + currentWeek +
+                                          OsLocalization.Converter.Message7 + trade.Time.Month +
+                                          OsLocalization.Converter.Message8, LogMessageType.System);
 
                         TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder();
                         timeFrameBuilder.TimeFrame = TimeFrame;
@@ -314,7 +321,7 @@ namespace OsEngine.OsConverter
 
                         writer.Close();
 
-                        SendNewLogMessage("Сохранение завершено", LogMessageType.System);
+                        SendNewLogMessage(OsLocalization.Converter.Message9, LogMessageType.System);
 
                         isNotFirstTime = true;
 
@@ -323,7 +330,8 @@ namespace OsEngine.OsConverter
 
                         currentWeek = partMonth;
 
-                        SendNewLogMessage("Грузим неделю № " + partMonth + " Месяц " + trade.Time.Month, LogMessageType.System);
+                        SendNewLogMessage(OsLocalization.Converter.Message6 + partMonth +
+                                          OsLocalization.Converter.Message7 + trade.Time.Month, LogMessageType.System);
                     }
                     else
                     {
@@ -333,7 +341,7 @@ namespace OsEngine.OsConverter
             }
             catch (Exception error)
             {
-                SendNewLogMessage("Скачивание прервано. В файле данных не верный формат", LogMessageType.System);
+                SendNewLogMessage(OsLocalization.Converter.Message10, LogMessageType.System);
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
                 reader.Close();
                 return;
@@ -343,13 +351,13 @@ namespace OsEngine.OsConverter
 
 
 
-            SendNewLogMessage("Сохранение завершено", LogMessageType.System);
+            SendNewLogMessage(OsLocalization.Converter.Message9, LogMessageType.System);
         }
 
-// логирование
+        // logging/логирование
 
         /// <summary>
-        /// выслать новое сообщение в лог
+        /// send new message to log/выслать новое сообщение в лог
         /// </summary>
         void SendNewLogMessage(string message, LogMessageType type)
         {
@@ -360,7 +368,7 @@ namespace OsEngine.OsConverter
         }
 
         /// <summary>
-        /// событие нового сообщения в лог
+        /// new message event to log/событие нового сообщения в лог
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
     }

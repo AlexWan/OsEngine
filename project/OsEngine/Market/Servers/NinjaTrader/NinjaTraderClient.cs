@@ -11,6 +11,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 
 namespace OsEngine.Market.Servers.NinjaTrader
@@ -181,7 +182,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
             }
             catch (Exception)
             {
-                SendLogMessage("Ninja не отвечает. Вероятно у Вас не активен скрипт OsEngineConnect в Ninja",
+                SendLogMessage(OsLocalization.Market.Message76,
                     LogMessageType.Error);
                 Thread.Sleep(10000);
             }
@@ -259,7 +260,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
             }
             else if (tag == "error")
             {
-                SendLogMessage("Ошибка на стороне нинзи " + message, LogMessageType.Error);
+                SendLogMessage("Ninja script error " + message, LogMessageType.Error);
             }
             else if (tag == "orders")
             {
@@ -341,7 +342,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
                     MyOrderEvent(errorOrder);
                 }
 
-                SendLogMessage("Ордер № " + errorOrder.NumberUser + " не выставился. Ошибка: " + message, LogMessageType.Error);
+                SendLogMessage("Order # " + errorOrder.NumberUser + " dont execute. Error: " + message, LogMessageType.Error);
             }
             if (str[0] == "Accept")
             {
@@ -482,7 +483,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
                 }
             }
         }
-
+        
         private void AddBid(List<MarketDepthLevel> levels, MarketDepthLevel newLevel)
         { // уровни покупок.  с индексом ноль бОльшее значение 
             for (int i = 0; i < levels.Count; i++)
@@ -576,7 +577,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
                 }
             }
         }
-
+        
         private List<Portfolio> _portfolios;
 
         /// <summary>
@@ -620,7 +621,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
                 }
             }
         }
-
+        
         /// <summary>
         /// разбор входящих сообщений о трейдах
         /// </summary>
@@ -889,7 +890,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
         }
 
         // исходящие события
-
+        
         /// <summary>
         /// новые мои ордера
         /// </summary>

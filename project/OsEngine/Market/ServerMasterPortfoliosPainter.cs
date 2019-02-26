@@ -4,12 +4,14 @@ using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using Point = System.Drawing.Point;
 
 namespace OsEngine.Market
 {
+
     /// <summary>
     /// класс отвечающий за прорисовку всех портфелей
     /// и всех ордеров открытых за текущую сессию на развёрнутых серверах
@@ -81,143 +83,16 @@ namespace OsEngine.Market
         {
             try
             {
-                _gridPosition = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
-
-                DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-                cell0.Style = _gridPosition.DefaultCellStyle;
+                _gridPosition = DataGridFactory.GetDataGridPortfolios();
 
                 _positionHost = hostPortfolio;
                 _positionHost.Child = _gridPosition;
-
-                DataGridViewColumn column0 = new DataGridViewColumn();
-                column0.CellTemplate = cell0;
-                column0.HeaderText = @"Портфель";
-                column0.ReadOnly = true;
-                column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-                _gridPosition.Columns.Add(column0);
-
-                DataGridViewColumn column = new DataGridViewColumn();
-                column.CellTemplate = cell0;
-                column.HeaderText = @"Средства входящие";
-                column.ReadOnly = true;
-                column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-                _gridPosition.Columns.Add(column);
-
-                DataGridViewColumn column1 = new DataGridViewColumn();
-                column1.CellTemplate = cell0;
-                column1.HeaderText = @"Средства сейчас";
-                column1.ReadOnly = true;
-                column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-                _gridPosition.Columns.Add(column1);
-
-                DataGridViewColumn column3 = new DataGridViewColumn();
-                column3.CellTemplate = cell0;
-                column3.HeaderText = @"Средства блок.";
-                column3.ReadOnly = true;
-                column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-                _gridPosition.Columns.Add(column3);
-
-                DataGridViewColumn column4 = new DataGridViewColumn();
-                column4.CellTemplate = cell0;
-                column4.HeaderText = @"Инструмент";
-                column4.ReadOnly = true;
-                column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-                _gridPosition.Columns.Add(column4);
-
-                DataGridViewColumn column5 = new DataGridViewColumn();
-                column5.CellTemplate = cell0;
-                column5.HeaderText = @"Объём входящий";
-                column5.ReadOnly = true;
-                column5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-                _gridPosition.Columns.Add(column5);
-
-                DataGridViewColumn column6 = new DataGridViewColumn();
-                column6.CellTemplate = cell0;
-                column6.HeaderText = @"Объём сейчас";
-                column6.ReadOnly = true;
-                column6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-                _gridPosition.Columns.Add(column6);
-
-                DataGridViewColumn column7 = new DataGridViewColumn();
-                column7.CellTemplate = cell0;
-                column7.HeaderText = @"Объём блокирован";
-                column7.ReadOnly = true;
-                column7.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-                _gridPosition.Columns.Add(column7);
-
                 _positionHost.Child.Show();
                 _positionHost.Child.Refresh();
 
-
-                _gridOrders = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
-
-                DataGridViewColumn colu = new DataGridViewColumn();
-                colu.CellTemplate = cell0;
-                colu.HeaderText = @"Время";
-                colu.ReadOnly = true;
-                colu.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
+                _gridOrders = DataGridFactory.GetDataGridOrder();
                 _ordersHost = hostOrders;
                 _ordersHost.Child = _gridOrders;
-
-                _gridOrders.Columns.Add(colu);
-
-                DataGridViewColumn colum1 = new DataGridViewColumn();
-                colum1.CellTemplate = cell0;
-                colum1.HeaderText = @"Инструмент";
-                colum1.ReadOnly = true;
-                colum1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-                _gridOrders.Columns.Add(colum1);
-
-                DataGridViewColumn colum2 = new DataGridViewColumn();
-                colum2.CellTemplate = cell0;
-                colum2.HeaderText = @"Направление";
-                colum2.ReadOnly = true;
-                colum2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-                _gridOrders.Columns.Add(colum2);
-
-                DataGridViewColumn colum3 = new DataGridViewColumn();
-                colum3.CellTemplate = cell0;
-                colum3.HeaderText = @"Статус";
-                colum3.ReadOnly = true;
-                colum3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-                _gridOrders.Columns.Add(colum3);
-
-                DataGridViewColumn colum4 = new DataGridViewColumn();
-                colum4.CellTemplate = cell0;
-                colum4.HeaderText = @"Цена";
-                colum4.ReadOnly = true;
-                colum4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-                _gridOrders.Columns.Add(colum4);
-
-                DataGridViewColumn colum5 = new DataGridViewColumn();
-                colum5.CellTemplate = cell0;
-                colum5.HeaderText = @"Объём";
-                colum5.ReadOnly = true;
-                colum5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-                _gridOrders.Columns.Add(colum5);
-
-                DataGridViewColumn colum6 = new DataGridViewColumn();
-                colum6.CellTemplate = cell0;
-                colum6.HeaderText = @"Ожидает";
-                colum6.ReadOnly = true;
-                colum6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-                _gridOrders.Columns.Add(colum6);
-
                 _gridOrders.Click += _gridOrders_Click;
             }
             catch (Exception error)
@@ -592,7 +467,8 @@ namespace OsEngine.Market
 
                 for (int i = _orders.Count - 1; _orders != null && _orders.Count != 0 && i > -1; i--)
                 {
-                    if (_orders[i].State != OrderStateType.Activ
+                    if ((_orders[i].State != OrderStateType.Activ &&
+                        _orders[i].State != OrderStateType.Pending)
                       || _orders[i].Side == Side.None)
                     {
                         continue;
@@ -601,25 +477,40 @@ namespace OsEngine.Market
                     DataGridViewRow nRow = new DataGridViewRow();
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[0].Value = _orders[i].TimeCallBack;
+                    nRow.Cells[0].Value = _orders[i].NumberUser;
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[1].Value = _orders[i].SecurityNameCode;
+                    nRow.Cells[1].Value = _orders[i].NumberMarket;
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[2].Value = _orders[i].Side;
+                    nRow.Cells[2].Value = _orders[i].TimeCreate;
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[3].Value = _orders[i].State;
+                    nRow.Cells[3].Value = _orders[i].SecurityNameCode;
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[4].Value = _orders[i].Price;
+                    nRow.Cells[4].Value = _orders[i].PortfolioNumber;
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[5].Value = _orders[i].Volume;
+                    nRow.Cells[5].Value = _orders[i].Side;
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[6].Value = _orders[i].Volume - _orders[i].VolumeExecute;
+                    nRow.Cells[6].Value = _orders[i].State;
+
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[7].Value = _orders[i].Price;
+
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[8].Value = _orders[i].PriceReal;
+
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[9].Value = _orders[i].Volume;
+
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[10].Value = _orders[i].TypeOrder;
+
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[11].Value = _orders[i].TimeRoundTrip;
 
                     _gridOrders.Rows.Add(nRow);
                 }
@@ -631,7 +522,7 @@ namespace OsEngine.Market
                 //SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-
+        
 // пользователь кликает по всплывающему меню
 
         /// <summary>
@@ -649,11 +540,11 @@ namespace OsEngine.Market
 
                 MenuItem[] items = new MenuItem[2];
 
-                items[0] = new MenuItem { Text = @"Отозвать все активные заявки" };
+                items[0] = new MenuItem { Text = OsLocalization.Market.Message4 };
 
                 items[0].Click += OrdersCloseAll_Click;
 
-                items[1] = new MenuItem { Text = @"Отозвать текущую" };
+                items[1] = new MenuItem { Text = OsLocalization.Market.Message5 };
                 items[1].Click += PositionCloseForNumber_Click;
 
                 ContextMenu menu = new ContextMenu(items);
@@ -720,7 +611,8 @@ namespace OsEngine.Market
 
                 Order order = _orders[(_orders.Count - 1 - _gridOrders.CurrentCell.RowIndex)];
 
-                if (order.State == OrderStateType.Activ &&
+                if ((order.State == OrderStateType.Activ || order.State == OrderStateType.Pending)
+                    &&
                         !string.IsNullOrEmpty(order.PortfolioNumber))
                 {
                     IServer server = ServerMaster.GetServers().Find(server1 => server1.ServerType == order.ServerType);

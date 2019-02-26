@@ -4,10 +4,10 @@
         Title="Fractal" Height="157" Width="238" ResizeMode="NoResize" Style="{StaticResource WindowStyleNoResize}" WindowStartupLocation="CenterScreen" Topmost="True" Icon="/Images/OsLogo.ico">
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
-        <Button x:Name ="ButtonAccept"  Content="Принять" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="100" Click="ButtonAccept_Click"/>
-        <Button x:Name="ButtonColorUp" Content="Вверх" HorizontalAlignment="Left" Margin="21,20,0,0" VerticalAlignment="Top" Width="71" Click="ButtonColorUp_Click" />
+        <Button x:Name ="ButtonAccept"  Content="Accept" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="100" Click="ButtonAccept_Click"/>
+        <Button x:Name="ButtonColorUp" Content="Color up" HorizontalAlignment="Left" Margin="21,20,0,0" VerticalAlignment="Top" Width="71" Click="ButtonColorUp_Click" />
         <WindowsFormsHost x:Name="HostColorUp" Height="22" Margin="97,20,22,0" VerticalAlignment="Top"/>
-        <Button x:Name="ButtonColorDown" Content="Вниз" HorizontalAlignment="Left" Margin="21,47,0,0" VerticalAlignment="Top" Width="71" Click="ButtonColorDown_Click" />
+        <Button x:Name="ButtonColorDown" Content="Color down" HorizontalAlignment="Left" Margin="21,47,0,0" VerticalAlignment="Top" Width="71" Click="ButtonColorDown_Click" />
         <WindowsFormsHost x:Name="HostColorDown" Height="22" Margin="97,47,22,0" VerticalAlignment="Top"/>
 
     </Grid>

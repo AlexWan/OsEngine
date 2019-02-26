@@ -4,11 +4,11 @@
       Title="Kalman Filter" Height="229" Width="322" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico" Topmost="True">
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
-        <Button x:Name ="ButtonAccept"  Content="Принять" Margin="0,0,10,10" Click="ButtonAccept_Click" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="119"/>
+        <Button x:Name ="ButtonAccept"  Content="Accept" Margin="0,0,10,10" Click="ButtonAccept_Click" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="119"/>
         <TextBox x:Name ="TextBoxSharpness" Height="22"  Margin="154,24,23,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <Label Content="Sharpness" HorizontalAlignment="Left" Margin="76,21,0,0" VerticalAlignment="Top"/>
-        <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовывать" Margin="154,109,37,0" VerticalAlignment="Top" />
-        <Button x:Name="ButtonColorAdx" Content="Цвет" HorizontalAlignment="Left" Margin="22,82,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorAdx_Click"  />
+        <CheckBox Name="CheckBoxPaintOnOff" Content="Is visible" Margin="154,109,37,0" VerticalAlignment="Top" />
+        <Button x:Name="ButtonColorAdx" Content="Color" HorizontalAlignment="Left" Margin="22,82,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorAdx_Click"  />
         <WindowsFormsHost x:Name="HostColorBase" Height="22" Margin="154,82,23,0" VerticalAlignment="Top"/>
         <TextBox x:Name ="TextBoxK" Height="22"  Margin="154,51,23,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <Label Content="K" HorizontalAlignment="Left" Margin="127,51,0,0" VerticalAlignment="Top"/>

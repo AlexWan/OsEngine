@@ -1,22 +1,26 @@
 ﻿<Window x:Class="OsEngine.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-               Title="Главное меню" Style="{StaticResource WindowStyleNoResize}" Height="260" Width="625" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen" Icon="Images/OsLogo.ico">
+        Title="Main menu" Style="{StaticResource WindowStyleNoResize}" Height="315" Width="625" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen" Icon="Images/OsLogo.ico">
     <Grid>
-        <Rectangle Margin="429,7,10,7" />
-        <Rectangle Margin="222,7,202,7" />
-        <Rectangle Margin="10,7,409,7" />
-        <Button  x:Name="ButtonRobotCandleOne" Content="Терминал" Margin="448,171,0,0" VerticalAlignment="Top" Click="ButtonRobotCandleOne_Click" HorizontalAlignment="Left" Width="146" Height="28" />
-        <Button  x:Name="ButtonTesterCandleOne" Content="Тестер" Margin="246,105,0,0" VerticalAlignment="Top" Click="ButtonTesterCandleOne_Click" HorizontalAlignment="Left" Width="146" Height="28"   />
-        <Button  x:Name="ButtonData" Content="Дата" Margin="36,138,0,0" VerticalAlignment="Top" Click="ButtonData_Click" HorizontalAlignment="Left" Width="146" Height="28" />
-        <Button  x:Name="ButtonConverter" Content="Конвертер" Margin="35,171,0,0" VerticalAlignment="Top" Click="ButtonConverter_Click" Height="28" HorizontalAlignment="Left" Width="146" />
-        <Button  x:Name="ButtonOptimizer" Content="Оптимизатор" Margin="246,138,0,0" VerticalAlignment="Top" Click="ButtonOptimizer_Click" HorizontalAlignment="Left" Width="146" Height="28"  />
-        <Button  x:Name="ButtonMiner" Content="Майнер паттернов" Margin="246,171,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="146" Height="28" Click="ButtonMiner_Click"  />
-        <Label Content="    Работа &#xD;&#xA;с данными" HorizontalAlignment="Center"  Margin="35,56,432,0" VerticalAlignment="Top" Width="154" Height="66" FontSize="28" Foreground="#FFA7A8AA"/>
-        <Label Content="Тестирование" HorizontalAlignment="Center"  Margin="230,56,202,0" VerticalAlignment="Top" Width="189" FontSize="28" Foreground="#FFA7A8AA" Height="39"/>
-        <Label Content="Торговля" HorizontalAlignment="Center"  Margin="456,54,37,0" VerticalAlignment="Top"  FontSize="28" Foreground="#FFA7A8AA" Height="39" Width="128"/>
+        <Rectangle Margin="429,7,10,0" Height="205" VerticalAlignment="Top" />
+        <Rectangle Margin="222,7,202,0" Height="205" VerticalAlignment="Top" />
+        <Rectangle Margin="10,7,409,0" Height="205" VerticalAlignment="Top" />
+        <Button  x:Name="ButtonRobot" Content="Bot Station" Margin="448,171,0,0" VerticalAlignment="Top" Click="ButtonRobotCandleOne_Click" HorizontalAlignment="Left" Width="146" Height="28" />
+        <Button  x:Name="ButtonTester" Content="Tester" Margin="246,105,0,0" VerticalAlignment="Top" Click="ButtonTesterCandleOne_Click" HorizontalAlignment="Left" Width="146" Height="28"   />
+        <Button  x:Name="ButtonData" Content="Data" Margin="36,138,0,0" VerticalAlignment="Top" Click="ButtonData_Click" HorizontalAlignment="Left" Width="146" Height="28" />
+        <Button  x:Name="ButtonConverter" Content="Converter" Margin="35,171,0,0" VerticalAlignment="Top" Click="ButtonConverter_Click" Height="28" HorizontalAlignment="Left" Width="146" />
+        <Button  x:Name="ButtonOptimizer" Content="Optimizer" Margin="246,138,0,0" VerticalAlignment="Top" Click="ButtonOptimizer_Click" HorizontalAlignment="Left" Width="146" Height="28"  />
+        <Button  x:Name="ButtonMiner" Content="Miner" Margin="246,171,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="146" Height="28" Click="ButtonMiner_Click"  />
+        <Label Name="BlockDataLabel" Content="    Work &#xD;&#xA; with data" HorizontalAlignment="Center" HorizontalContentAlignment="Center"  Margin="10,56,409,0" VerticalAlignment="Top" Width="202" Height="82" FontSize="28" Foreground="#FFA7A8AA"/>
+        <Label Name="BlockTestingLabel" Content="Testing" HorizontalAlignment="Center" HorizontalContentAlignment="Center" Margin="222,56,202,0" VerticalAlignment="Top" Width="197" FontSize="28" Foreground="#FFA7A8AA" Height="49"/>
+        <Label Name="BlockTradingLabel" Content="Trading" HorizontalAlignment="Center" HorizontalContentAlignment="Center"  Margin="429,54,10,0" VerticalAlignment="Top"  FontSize="28" Foreground="#FFA7A8AA" Height="51" Width="182"/>
         <Image HorizontalAlignment="Left" Source="Images/MainWIndow/test.png" Height="60" Margin="292,7,0,0" VerticalAlignment="Top" Width="60"/>
         <Image HorizontalAlignment="Left" Source="Images/MainWIndow/data.png" Height="68" Margin="76,7,0,0" VerticalAlignment="Top" Width="68"/>
         <Image HorizontalAlignment="Left" Source="Images/MainWIndow/Trading.png" Height="85" Margin="484,0,0,0" VerticalAlignment="Top" Width="85"/>
+        <Rectangle Margin="10,220,10,10" />
+        <Button Name="ButtonSettings" HorizontalAlignment="Left" Margin="268,231,0,0" VerticalAlignment="Top" Width="100" Height="28" Click="ButtonSettings_Click">
+            <Image x:Name="ImageGear" HorizontalAlignment="Left" Source="Images/MainWIndow/gear.png" Width="24" Height="24"/>
+        </Button>
     </Grid>
 </Window>

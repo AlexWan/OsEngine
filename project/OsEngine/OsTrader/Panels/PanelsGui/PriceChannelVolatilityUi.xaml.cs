@@ -1,16 +1,15 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
 using System.Globalization;
 using System.Windows;
+using OsEngine.Language;
 
 namespace OsEngine.OsTrader.Panels.PanelsGui
 {
-    /// <summary>
-    /// Логика взаимодействия для BreakoutPCMoreEnter.xaml
-    /// </summary>
     public partial class PriceChannelVolatilityUi
     {
         private PriceChannelVolatility _strategy;
@@ -34,6 +33,15 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
             TextBoxKofAtr.Text = _strategy.KofAtr.ToString(new CultureInfo("ru-RU"));
             TextBoxPcUp.Text = _strategy.LengthUp.ToString(new CultureInfo("ru-RU"));
             TextBoxPcDown.Text = _strategy.LengthDown.ToString(new CultureInfo("ru-RU"));
+
+            LabelRegime.Content = OsLocalization.Trader.Label115;
+            LabelSlippage.Content = OsLocalization.Trader.Label92;
+            ButtonAccept.Content = OsLocalization.Trader.Label132;
+            LabelVolume1.Content = OsLocalization.Trader.Label30 + 1;
+            LabelVolume2.Content = OsLocalization.Trader.Label30 + 2;
+            LabelAtrPeriod.Content = OsLocalization.Trader.Label139;
+            LabelAtrCoefficient.Content = OsLocalization.Trader.Label140;
+            
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -53,7 +61,7 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
             }
             catch (Exception)
             {
-                MessageBox.Show("В одном из полей недопустимые значения. Процесс сохранения прерван");
+                MessageBox.Show(OsLocalization.Trader.Label13);
                 return;
             }
             Enum.TryParse(ComboBoxRegime.Text, true, out _strategy.Regime);

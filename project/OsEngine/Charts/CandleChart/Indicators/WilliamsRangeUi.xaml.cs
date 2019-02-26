@@ -1,11 +1,12 @@
 ﻿/*
- * Если вы не покупали лицензии, то Ваши права на использования кода ограничены не коммерческим использованием и 
- * регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
 using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Language;
 using MessageBox = System.Windows.MessageBox;
 using TextBox = System.Windows.Forms.TextBox;
 
@@ -41,7 +42,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
             HostColorBase.Child.BackColor = _wr.ColorBase;
             CheckBoxPaintOnOff.IsChecked = _wr.PaintOn;
 
-
+            ButtonColor.Content = OsLocalization.Charts.LabelButtonIndicatorColor;
+            LabelIndicatorLongPeriod.Content = OsLocalization.Charts.LabelIndicatorLongPeriod;
+            ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
+            CheckBoxPaintOnOff.Content = OsLocalization.Charts.LabelPaintIntdicatorIsVisible;
         }
 
         /// <summary>

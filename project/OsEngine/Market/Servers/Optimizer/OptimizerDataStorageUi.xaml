@@ -1,7 +1,7 @@
 ﻿<Window x:Class="OsEngine.Market.Servers.Optimizer.OptimizerDataStorageUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Эмулятор биржи" Height="501" Width="833" MinWidth="670" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Topmost="True" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+        Title="Exchange emulator" Height="501" Width="833" MinWidth="670" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Topmost="True" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid Width="825">
 
         <Grid.RowDefinitions>
@@ -9,17 +9,17 @@
         </Grid.RowDefinitions>
         <Rectangle Margin="5,5,5,5"/>
         <TabControl Margin="10,10,12,10">
-            <TabItem Header="Транслируемые данные" FontSize="14">
+            <TabItem Name="Label22" Header="Broadcast data" FontSize="14">
                 <Grid >
                     <WindowsFormsHost x:Name="HostSecurities" Foreground="Black" Margin="0,125,0,0"/>
                     <ComboBox x:Name="ComboBoxSets" Margin="365,5,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="255"/>
-                    <Label  Content="Cеты" HorizontalAlignment="Left" Margin="323,5,0,0" VerticalAlignment="Top" />
-                    <ComboBox x:Name="ComboBoxDataType" HorizontalAlignment="Left" Margin="95,35,0,0" VerticalAlignment="Top" Width="197"/>
-                    <Label  Content="Транслируем" HorizontalAlignment="Left" Margin="9,35,0,0" VerticalAlignment="Top"/>
-                    <Button x:Name="ButtonSetDataFromPath" Content="Указать в папке" Margin="626,4,10,0" VerticalAlignment="Top" Click="ButtonSetDataFromPath_Click"/>
+                    <Label Name="Label28" Content="Sets" HorizontalAlignment="Left" Margin="323,5,0,0" VerticalAlignment="Top" />
+                    <ComboBox x:Name="ComboBoxDataType" HorizontalAlignment="Left" Margin="114,35,0,0" VerticalAlignment="Top" Width="178"/>
+                    <Label Name="Label25" Content="Translation type" HorizontalAlignment="Left" Margin="9,35,0,0" VerticalAlignment="Top"/>
+                    <Button x:Name="ButtonSetDataFromPath" Content="Find in folder" Margin="626,4,10,0" VerticalAlignment="Top" Click="ButtonSetDataFromPath_Click"/>
                     <TextBox x:Name="TextBoxDataPath" Margin="323,35,9,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
                     <ComboBox x:Name="ComboBoxDataSourseType" HorizontalAlignment="Left" Margin="95,5,0,0" VerticalAlignment="Top" Width="197"/>
-                    <Label  Content="Источник" HorizontalAlignment="Left" Margin="10,4,0,0" VerticalAlignment="Top"  />
+                    <Label Name="Label24" Content="Source" HorizontalAlignment="Left" Margin="10,4,0,0" VerticalAlignment="Top"  />
                     <Slider x:Name="SliderFrom" Margin="267,65,10,0" VerticalAlignment="Top" Height="22"/>
                     <Slider x:Name="SliderTo" Margin="267,95,12,0" VerticalAlignment="Top" Height="22" RenderTransformOrigin="0.5,0.5">
                         <Slider.RenderTransform>
@@ -34,11 +34,11 @@
 
                     <TextBox x:Name="TextBoxFrom" HorizontalAlignment="Left"  Margin="95,65,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="148"/>
                     <TextBox x:Name="TextBoxTo" HorizontalAlignment="Left" Margin="95,95,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="148"/>
-                    <Label x:Name="LabelFrom"  Content="От" HorizontalAlignment="Left" Margin="10,65,0,0" VerticalAlignment="Top" FontFamily="Calibri" Width="23"/>
-                    <Label x:Name="LabelTo"  Content="До" HorizontalAlignment="Left" Margin="10,95,0,0" VerticalAlignment="Top" FontFamily="Calibri" Width="24"/>
+                    <Label x:Name="LabelFrom"  Content="From" HorizontalAlignment="Left" Margin="10,65,0,0" VerticalAlignment="Top" FontFamily="Calibri" />
+                    <Label x:Name="LabelTo"  Content="To" HorizontalAlignment="Left" Margin="10,95,0,0" VerticalAlignment="Top" FontFamily="Calibri" />
                 </Grid>
             </TabItem>
-            <TabItem Header="Лог" FontSize="14">
+            <TabItem Name="Label23" Header="Logging" FontSize="14">
                 <Grid >
                     <WindowsFormsHost x:Name="Host" Foreground="Black" Margin="0,10,0,0" />
                 </Grid>

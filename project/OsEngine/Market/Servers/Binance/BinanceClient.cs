@@ -303,11 +303,11 @@ namespace OsEngine.Market.Servers.Binance
 
                             newCandle = new Candle();
                             newCandle.TimeStart = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(param[0]));
-                            newCandle.Low = Convert.ToDecimal(param[3].Replace(".", ",").Trim(new char[] { '"', '"' }));
-                            newCandle.High = Convert.ToDecimal(param[2].Replace(".", ",").Trim(new char[] { '"', '"' }));
-                            newCandle.Open = Convert.ToDecimal(param[1].Replace(".", ",").Trim(new char[] { '"', '"' }));
-                            newCandle.Close = Convert.ToDecimal(param[4].Replace(".", ",").Trim(new char[] { '"', '"' }));
-                            newCandle.Volume = Convert.ToDecimal(param[5].Replace(".", ",").Trim(new char[] { '"', '"' }));
+                            newCandle.Low = Convert.ToDecimal(param[3].Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator).Trim(new char[] { '"', '"' }), CultureInfo.InvariantCulture);
+                            newCandle.High = Convert.ToDecimal(param[2].Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator).Trim(new char[] { '"', '"' }), CultureInfo.InvariantCulture);
+                            newCandle.Open = Convert.ToDecimal(param[1].Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator).Trim(new char[] { '"', '"' }), CultureInfo.InvariantCulture);
+                            newCandle.Close = Convert.ToDecimal(param[4].Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator).Trim(new char[] { '"', '"' }), CultureInfo.InvariantCulture);
+                            newCandle.Volume = Convert.ToDecimal(param[5].Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator).Trim(new char[] { '"', '"' }), CultureInfo.InvariantCulture);
 
                             _candles.Add(newCandle);
                         }
@@ -317,11 +317,11 @@ namespace OsEngine.Market.Servers.Binance
 
                             newCandle = new Candle();
                             newCandle.TimeStart = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(param[0]));
-                            newCandle.Low = Convert.ToDecimal(param[3].Replace(".", ",").Trim(new char[] { '"', '"' }));
-                            newCandle.High = Convert.ToDecimal(param[2].Replace(".", ",").Trim(new char[] { '"', '"' }));
-                            newCandle.Open = Convert.ToDecimal(param[1].Replace(".", ",").Trim(new char[] { '"', '"' }));
-                            newCandle.Close = Convert.ToDecimal(param[4].Replace(".", ",").Trim(new char[] { '"', '"' }));
-                            newCandle.Volume = Convert.ToDecimal(param[5].Replace(".", ",").Trim(new char[] { '"', '"' }));
+                            newCandle.Low = Convert.ToDecimal(param[3].Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator).Trim(new char[] { '"', '"' }), CultureInfo.InvariantCulture);
+                            newCandle.High = Convert.ToDecimal(param[2].Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator).Trim(new char[] { '"', '"' }), CultureInfo.InvariantCulture);
+                            newCandle.Open = Convert.ToDecimal(param[1].Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator).Trim(new char[] { '"', '"' }), CultureInfo.InvariantCulture);
+                            newCandle.Close = Convert.ToDecimal(param[4].Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator).Trim(new char[] { '"', '"' }), CultureInfo.InvariantCulture);
+                            newCandle.Volume = Convert.ToDecimal(param[5].Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator).Trim(new char[] { '"', '"' }), CultureInfo.InvariantCulture);
 
                             _candles.Add(newCandle);
                         }
@@ -336,6 +336,115 @@ namespace OsEngine.Market.Servers.Binance
                 SendLogMessage(error.ToString(), LogMessageType.Error);
                 return null;
             }
+        }
+
+        public List<Candle> GetCandlesForTimes(string nameSec, TimeSpan tf, DateTime timeStart, DateTime timeEnd)
+        {
+            DateTime yearBegin = new DateTime(1970, 1, 1);
+
+            var timeStampStart = timeStart - yearBegin;
+            var r = timeStampStart.TotalMilliseconds;
+            string startTime = Convert.ToInt64(r).ToString();
+
+            var timeStampEnd = timeEnd - yearBegin;
+            var rEnd = timeStampEnd.TotalMilliseconds;
+            string endTime = Convert.ToInt64(rEnd).ToString();
+
+
+            string needTf = "";
+
+            switch ((int)tf.TotalMinutes)
+            {
+                case 1:
+                    needTf = "1m";
+                    break;
+                case 2:
+                    needTf = "2m";
+                    break;
+                case 3:
+                    needTf = "3m";
+                    break;
+                case 5:
+                    needTf = "5m";
+                    break;
+                case 10:
+                    needTf = "10m";
+                    break;
+                case 15:
+                    needTf = "15m";
+                    break;
+                case 20:
+                    needTf = "20m";
+                    break;
+                case 30:
+                    needTf = "30m";
+                    break;
+                case 45:
+                    needTf = "45m";
+                    break;
+                case 60:
+                    needTf = "1h";
+                    break;
+                case 120:
+                    needTf = "2h";
+                    break;
+            }
+
+            string endPoint = "api/v1/klines";
+
+            if (needTf != "2m" && needTf != "10m" && needTf != "20m" && needTf != "45m")
+            {
+                var param = new Dictionary<string, string>();
+                param.Add("symbol=" + nameSec.ToUpper(), "&interval=" + needTf + "&startTime=" + startTime + "&endTime=" + endTime);
+
+                var res = CreateQuery(Method.GET, endPoint, param, false);
+
+                var candles = _deserializeCandles(res);
+                return candles;
+
+            }
+            else
+            {
+                if (needTf == "2m")
+                {
+                    var param = new Dictionary<string, string>();
+                    param.Add("symbol=" + nameSec.ToUpper(), "&interval=1m" + "&startTime=" + startTime + "&endTime=" + endTime);
+                    var res = CreateQuery(Method.GET, endPoint, param, false);
+                    var candles = _deserializeCandles(res);
+
+                    var newCandles = BuildCandles(candles, 2, 1);
+                    return newCandles;
+                }
+                else if (needTf == "10m")
+                {
+                    var param = new Dictionary<string, string>();
+                    param.Add("symbol=" + nameSec.ToUpper(), "&interval=5m" + "&startTime=" + startTime + "&endTime=" + endTime);
+                    var res = CreateQuery(Method.GET, endPoint, param, false);
+                    var candles = _deserializeCandles(res);
+                    var newCandles = BuildCandles(candles, 10, 5);
+                    return newCandles;
+                }
+                else if (needTf == "20m")
+                {
+                    var param = new Dictionary<string, string>();
+                    param.Add("symbol=" + nameSec.ToUpper(), "&interval=5m" + "&startTime=" + startTime + "&endTime=" + endTime);
+                    var res = CreateQuery(Method.GET, endPoint, param, false);
+                    var candles = _deserializeCandles(res);
+                    var newCandles = BuildCandles(candles, 20, 5);
+                    return newCandles;
+                }
+                else if (needTf == "45m")
+                {
+                    var param = new Dictionary<string, string>();
+                    param.Add("symbol=" + nameSec.ToUpper(), "&interval=15m" + "&startTime=" + startTime + "&endTime=" + endTime);
+                    var res = CreateQuery(Method.GET, endPoint, param, false);
+                    var candles = _deserializeCandles(res);
+                    var newCandles = BuildCandles(candles, 45, 15);
+                    return newCandles;
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -566,7 +675,6 @@ namespace OsEngine.Market.Servers.Binance
             }
         }
 
-
         #region Аутентификация запроса
 
         private string GetNonce()
@@ -760,11 +868,13 @@ namespace OsEngine.Market.Servers.Binance
                     newOrder.NumberUser = oldOpenOrders[i].NumberUser;
                     newOrder.SecurityNameCode = oldOpenOrders[i].SecurityNameCode;
                     newOrder.State = OrderStateType.Cancel;
+                   
                     newOrder.Volume = oldOpenOrders[i].Volume;
                     newOrder.VolumeExecute = oldOpenOrders[i].VolumeExecute;
                     newOrder.Price = oldOpenOrders[i].Price;
                     newOrder.TypeOrder = oldOpenOrders[i].TypeOrder;
                     newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(myOrder.updateTime));
+                    newOrder.TimeCancel = newOrder.TimeCallBack;
                     newOrder.ServerType = ServerType.Binance;
                     newOrder.PortfolioNumber = oldOpenOrders[i].PortfolioNumber;
 
@@ -878,11 +988,6 @@ namespace OsEngine.Market.Servers.Binance
             {
                 try
                 {
-                    if (_isDisposed)
-                    {
-                        return;
-                    }
-
                     if (!_newUserDataMessage.IsEmpty)
                     {
                         string mes;
@@ -941,6 +1046,7 @@ namespace OsEngine.Market.Servers.Binance
                                     Order newOrder = new Order();
                                     newOrder.SecurityNameCode = order.s;
                                     newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.E));
+                                    newOrder.TimeCancel = newOrder.TimeCallBack;
                                     newOrder.NumberUser = Convert.ToInt32(orderNumUser);
                                     newOrder.NumberMarket = order.i.ToString();
                                     newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
@@ -984,6 +1090,7 @@ namespace OsEngine.Market.Servers.Binance
                                     trade.Volume = Convert.ToDecimal(order.l.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                                     trade.Price = Convert.ToDecimal(order.L.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                                     trade.SecurityNameCode = order.s;
+                                    trade.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
 
                                     if (MyTradeEvent != null)
                                     {
@@ -995,6 +1102,7 @@ namespace OsEngine.Market.Servers.Binance
                                     Order newOrder = new Order();
                                     newOrder.SecurityNameCode = order.s;
                                     newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.E));
+                                    newOrder.TimeCancel = newOrder.TimeCallBack;
                                     newOrder.NumberUser = Convert.ToInt32(orderNumUser);
                                     newOrder.NumberMarket = order.i.ToString();
                                     newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
@@ -1025,13 +1133,21 @@ namespace OsEngine.Market.Servers.Binance
                             }
                         }
                     }
+                    else
+                    {
+                        if (_isDisposed)
+                        {
+                            return;
+                        }
+                        Thread.Sleep(1);
+                    }
                 }
 
                 catch (Exception exception)
                 {
                     SendLogMessage(exception.ToString(), LogMessageType.Error);
                 }
-                Thread.Sleep(1);
+                
             }
         }
 
@@ -1044,11 +1160,6 @@ namespace OsEngine.Market.Servers.Binance
             {
                 try
                 {
-                    if (_isDisposed)
-                    {
-                        return;
-                    }
-
                     if (!_newMessage.IsEmpty)
                     {
                         string mes;
@@ -1083,13 +1194,20 @@ namespace OsEngine.Market.Servers.Binance
                             }
                         }
                     }
+                    else
+                    {
+                        if (_isDisposed)
+                        {
+                            return;
+                        }
+                        Thread.Sleep(1);
+                    }
                 }
 
                 catch (Exception exception)
                 {
                     SendLogMessage(exception.ToString(), LogMessageType.Error);
                 }
-                Thread.Sleep(1);
             }
         }
 

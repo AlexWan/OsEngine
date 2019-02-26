@@ -1,17 +1,16 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
 using System.Globalization;
 using System.Windows;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.OsTrader.Panels.Tab.Internal
 {
-    /// <summary>
-    /// Логика взаимодействия для PositionOpenDialog.xaml
-    /// </summary>
     public partial class PositionOpenUi
     {
         public PositionOpenUi(decimal lastPrice, string nameSecurity)
@@ -33,11 +32,16 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             ComboBoxOrderType.SelectedItem = PositionOpenType.Limit;
             ComboBoxOrderType.SelectionChanged += ComboBoxOrderType_SelectionChanged;
 
+            Title = OsLocalization.Trader.Label89;
+            LabelSecurity.Content = OsLocalization.Trader.Label102;
+            LabelVolume.Content = OsLocalization.Trader.Label30;
+            LabelPrice.Content = OsLocalization.Trader.Label31;
+            LabelOrderType.Content = OsLocalization.Trader.Label103;
+            LabelOrdersToIceberg.Content = OsLocalization.Trader.Label104;
+            ButtonAccept.Content = OsLocalization.Trader.Label17;
+            LabelSide.Content = OsLocalization.Trader.Label106;
         }
 
-        /// <summary>
-        /// пользователь изменил тип открытия позиции
-        /// </summary>
         void ComboBoxOrderType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             PositionOpenType type;
@@ -71,41 +75,19 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 
         }
 
-// результат
 
-        /// <summary>
-        /// нужно ли открывать позицию после закрытия окна
-        /// </summary>
         public bool IsAccept;
 
-        /// <summary>
-        /// цена
-        /// </summary>
         public decimal Price;
 
-        /// <summary>
-        /// объём
-        /// </summary>
         public decimal Volume;
         
-        /// <summary>
-        /// тип открытия позиции
-        /// </summary>
         public PositionOpenType OpenType;
 
-        /// <summary>
-        /// направление
-        /// </summary>
         public Side Side;
 
-        /// <summary>
-        /// количество ордеров для айсберга
-        /// </summary>
         public int CountAcebertOrder;
 
-        /// <summary>
-        /// кнопка принять
-        /// </summary>
         private void Button_Click(object sender, RoutedEventArgs e)
         {
 
@@ -126,7 +108,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
             catch (Exception)
             {
-                MessageBox.Show("В одном из полей недопустимое значение. Операция прервана.");
+                MessageBox.Show(OsLocalization.Trader.Label13);
                 return;
             }
 
@@ -138,11 +120,10 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 }
                 catch (Exception)
                 {
-                    MessageBox.Show("В одном из полей недопустимое значение. Операция прервана.");
+                    MessageBox.Show(OsLocalization.Trader.Label13);
                     return;
                 }
             }
-
 
             Close();
         }

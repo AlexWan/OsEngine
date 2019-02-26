@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Forms;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Market.Servers.Tester;
 using MessageBox = System.Windows.MessageBox;
 
@@ -10,6 +11,7 @@ namespace OsEngine.OsOptimizer
 {
 
     /// <summary>
+    /// Interaction logic for TabIndexOptimizerUi.xaml
     /// Логика взаимодействия для TabIndexOptimizerUi.xaml
     /// </summary>
     public partial class TabIndexOptimizerUi
@@ -76,7 +78,14 @@ namespace OsEngine.OsOptimizer
             {
                 Index = new TabIndexEndTimeFrame();
             }
-            
+
+            Title = OsLocalization.Optimizer.Title1;
+            Label1.Content = OsLocalization.Optimizer.Label1;
+            Label2.Content = OsLocalization.Optimizer.Label2;
+            Label3.Content = OsLocalization.Optimizer.Label3;
+            ButtonAddSecurity.Content = OsLocalization.Optimizer.Label4;
+            ButtonDeleteSecurity.Content = OsLocalization.Optimizer.Label5;
+            ButtonAccept.Content = OsLocalization.Optimizer.Label6;
         }
 
         private List<SecurityTester> _securities;
@@ -86,6 +95,7 @@ namespace OsEngine.OsOptimizer
         public bool NeadToSave;
 
         /// <summary>
+        /// table with optimization steps
         /// таблица с этапами оптимизации
         /// </summary>
         private DataGridView _securitiesNamesGrid;

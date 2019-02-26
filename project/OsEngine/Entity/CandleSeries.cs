@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -241,10 +242,11 @@ namespace OsEngine.Entity
                     continue;
                 }
 
-                if (CandlesAll[CandlesAll.Count - 1].Trades == null)
-                { CandlesAll[CandlesAll.Count - 1].Trades = new List<Trade>(); }
+                List<Trade> tradesInCandle = CandlesAll[CandlesAll.Count - 1].Trades;
 
-                CandlesAll[CandlesAll.Count - 1].Trades.Add(trades[i]);
+                tradesInCandle.Add(trades[i]);
+
+                CandlesAll[CandlesAll.Count - 1].Trades = tradesInCandle;
             }
 
             _lastTradeIndex = trades.Count;
@@ -270,11 +272,11 @@ namespace OsEngine.Entity
             {
                 UpDateCandle(trades[i].Time, trades[i].Price, trades[i].Volume, false, trades[i].Side);
 
-                if (CandlesAll[CandlesAll.Count - 1].Trades == null)
-                {
-                    CandlesAll[CandlesAll.Count-1].Trades = new List<Trade>();
-                }
-                CandlesAll[CandlesAll.Count-1].Trades.Add(trades[i]);
+                List<Trade> tradesInCandle = CandlesAll[CandlesAll.Count - 1].Trades;
+
+                tradesInCandle.Add(trades[i]);
+
+                CandlesAll[CandlesAll.Count - 1].Trades = tradesInCandle;
             }
             UpdateChangeCandle();
 

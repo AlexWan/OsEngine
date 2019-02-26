@@ -11,11 +11,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using OsEngine.Language;
 
 
 namespace OsEngine.Market.Servers.Lmax
@@ -69,7 +69,7 @@ namespace OsEngine.Market.Servers.Lmax
                 string.IsNullOrEmpty(uiUrl) ||
                 port <= 0)
             {
-                SendLogMessage("Не удалось начать подключение, отсутствует один или несколько обязательных параметров", LogMessageType.Error);
+                SendLogMessage(OsLocalization.Market.Label57, LogMessageType.Error);
                 return;
             }
 
@@ -115,7 +115,7 @@ namespace OsEngine.Market.Servers.Lmax
         {
             LoginRequest loginRequest = new LoginRequest(_userName, _password, _isDemo ? ProductType.CFD_DEMO : ProductType.CFD_LIVE);
 
-            _lmaxApi.Login(loginRequest, LoginCallback, FailureCallback("ошибка входа в систему"));
+            _lmaxApi.Login(loginRequest, LoginCallback, FailureCallback(OsLocalization.Market.Label58));
 
             IPAddress ipAddress = IPAddress.Parse(_fixTradingIp);
 
@@ -129,7 +129,7 @@ namespace OsEngine.Market.Servers.Lmax
             }
             catch (Exception e)
             {
-                SendLogMessage("Не удалось установить соединение с биржей", LogMessageType.Error);
+                SendLogMessage(OsLocalization.Market.Label56, LogMessageType.Error);
                 Disconnected?.Invoke();
                 return;
             }
@@ -169,11 +169,11 @@ namespace OsEngine.Market.Servers.Lmax
                 _helperSessionIsReady = true;
                 CheckConnectorState();
             },
-                FailureCallback("Ошибка подписки на аккаунт инфо"));
+                FailureCallback(OsLocalization.Market.Message66));
 
             _session.Subscribe(new HistoricMarketDataSubscriptionRequest(),
-                () => SendLogMessage("Подписались на получение свечей", LogMessageType.System),
-                FailureCallback("Ошибка подписки на получение свечей"));
+                () => SendLogMessage(OsLocalization.Market.Message67, LogMessageType.System),
+                FailureCallback(OsLocalization.Market.Message68));
 
             _session.EventStreamSessionDisconnected += SessionOnEventStreamSessionDisconnected;
 
@@ -213,8 +213,8 @@ namespace OsEngine.Market.Servers.Lmax
         public void GetPortfolios()
         {
             _session.RequestAccountState(new AccountStateRequest(),
-                () => SendLogMessage("Успешный запрос портфелей", LogMessageType.Error),
-                FailureCallback("Ошибка запроса портфелей"));
+                () => SendLogMessage(OsLocalization.Market.Message69, LogMessageType.Error),
+                FailureCallback(OsLocalization.Market.Message70));
         }
 
         /// <summary>
@@ -226,7 +226,7 @@ namespace OsEngine.Market.Servers.Lmax
             long offsetInstrumentId = 0;
 
             _session.SearchInstruments(new SearchRequest(query, offsetInstrumentId), SearchCallback,
-                FailureCallback("Ошибка запроса инструментов"));
+                FailureCallback(OsLocalization.Market.Message71));
         }
 
         /// <summary>
@@ -238,13 +238,13 @@ namespace OsEngine.Market.Servers.Lmax
         {
             UpdatedSecurities?.Invoke(instruments);
 
-            SendLogMessage("Запрос инструментов прошел успешно", LogMessageType.System);
+            SendLogMessage(OsLocalization.Market.Message72, LogMessageType.System);
 
             if (hasMoreResults)
             {
                 string query = "CURRENCY";
                 _session.SearchInstruments(new SearchRequest(query, instruments.Count - 1), SearchCallback,
-                    FailureCallback("Ошибка запроса инструментов"));
+                    FailureCallback(OsLocalization.Market.Message71));
             }
         }
 
@@ -254,8 +254,8 @@ namespace OsEngine.Market.Servers.Lmax
         public void SubscribeToPaper(string securityId)
         {
             _session.Subscribe(new OrderBookSubscriptionRequest(Convert.ToInt64(securityId)),
-                () => SendLogMessage("Подписались на стакан", LogMessageType.System),
-                FailureCallback("Ошибка подписки на стакан"));
+                () => SendLogMessage(OsLocalization.Market.Message73, LogMessageType.System),
+                FailureCallback(OsLocalization.Market.Message74));
 
         }
 
@@ -329,7 +329,7 @@ namespace OsEngine.Market.Servers.Lmax
                 }
                 catch (Exception e)
                 {
-                    SendLogMessage("Ошибка чтения данных из потока: " + e.Message, LogMessageType.Error);
+                    SendLogMessage(e.Message, LogMessageType.Error);
                     Dispose(false);
                     Disconnected?.Invoke();
                     return;
@@ -523,7 +523,7 @@ namespace OsEngine.Market.Servers.Lmax
                         string rej = entity.GetFieldByTag((int)Tags.OrdRejReason);
 
                         SendLogMessage(
-                            "Ошибка выставления ордера: " + _errorDictionary.OrdRejReason[rej] + "-" +
+                           _errorDictionary.OrdRejReason[rej] + "-" +
                             entity.GetFieldByTag((int)Tags.Text), LogMessageType.System);
 
                         MyOrderEvent?.Invoke(order);
@@ -534,6 +534,7 @@ namespace OsEngine.Market.Servers.Lmax
                     if (type == "4")
                     {
                         order.State = OrderStateType.Cancel;
+                        order.TimeCancel = order.TimeCallBack;
                         var oldNumUser = entity.GetFieldByTag((int)Tags.OrigClOrdID);
 
                         try
@@ -618,7 +619,7 @@ namespace OsEngine.Market.Servers.Lmax
                     MyOrderEvent?.Invoke(order);
                     return;
                 }
-                SendLogMessage("Ошибка отмены ордера. Причина: " + _errorDictionary.CxlRejReason[rej] + "-" + entity.GetFieldByTag((int)Tags.Text), LogMessageType.Trade);
+                SendLogMessage(OsLocalization.Market.Message75 + _errorDictionary.CxlRejReason[rej] + "-" + entity.GetFieldByTag((int)Tags.Text), LogMessageType.Trade);
             }
             catch (ArgumentException e)
             {

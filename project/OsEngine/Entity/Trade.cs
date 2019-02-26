@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -125,6 +126,19 @@ namespace OsEngine.Entity
 
             string[] sIn = In.Split(',');
 
+            if (sIn.Length >= 6 && (sIn[5] == "C" || sIn[5] == "S"))
+            {
+                // загружаем данные из IqFeed
+                Time = Convert.ToDateTime(sIn[0]);
+                Price = Convert.ToDecimal(sIn[1].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                Volume = Convert.ToDecimal(sIn[2].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                Bid = Convert.ToDecimal(sIn[3].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                Ask = Convert.ToDecimal(sIn[4].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                Side = GetSideIqFeed();
+
+                return;
+            }
+
             int year = Convert.ToInt32(sIn[0].Substring(0, 4));
             int month = Convert.ToInt32(sIn[0].Substring(4, 2)); 
             int day = Convert.ToInt32(sIn[0].Substring(6, 2));
@@ -134,7 +148,7 @@ namespace OsEngine.Entity
             int second = Convert.ToInt32(sIn[1].Substring(4, 2));
 
             Time = new DateTime(year, month, day, hour, minute, second);
-
+            
             Price = Convert.ToDecimal(sIn[2].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
 
             Volume = Convert.ToDecimal(sIn[3].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
@@ -161,6 +175,30 @@ namespace OsEngine.Entity
                 BidsVolume = Convert.ToInt32(sIn[9]);
                 AsksVolume = Convert.ToInt32(sIn[10]);
             }
+
+
+        }
+
+        private Random _rand = null;
+        private Side GetSideIqFeed()
+        {
+            if (Bid == Price && Bid != Ask) // сделка была на продажу
+            {
+                return Side.Sell;
+            }
+            else if (Ask == Price && Bid != Ask) // сделка была на покупку
+            {
+                return Side.Buy;
+            }
+            //if (Bid == Ask && Ask == Price) // в остальных случаях указываем случайное направление
+            if (_rand == null)
+                _rand = new Random();
+
+            int randValue = _rand.Next(100);
+            if (randValue % 2 == 0)
+                return Side.Buy;
+            else
+                return Side.Sell;
         }
     }
 }

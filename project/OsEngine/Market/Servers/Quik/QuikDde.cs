@@ -273,15 +273,32 @@ namespace OsEngine.Market.Servers.Quik
                 {
                     trades[i] = new Trade();
                     trades[i].Id = table[i, 0].ToString();
-
-                    string[] date = DateTime.Parse(table[i, 1].ToString()).ToString("dd.MM.yyyy").Split('.');
                     string[] time = DateTime.Parse(table[i, 2].ToString()).ToString("HH:mm:ss").Split(':');
 
-                    trades[i].Time = new DateTime(Convert.ToInt32(date[2]),
-                        Convert.ToInt32(date[1]), Convert.ToInt32(date[0]),
-                        Convert.ToInt32(time[0]), Convert.ToInt32(time[1]),
-                        Convert.ToInt32(time[2])
+                    string[] date = table[i, 1].ToString().Split('.');
+
+
+                    if (date.Length == 1)
+                    {
+                        date = table[i, 1].ToString().Split('/');
+                        trades[i].Time = new DateTime(Convert.ToInt32(date[2]),
+                            Convert.ToInt32(date[0]), Convert.ToInt32(date[1]),
+                            Convert.ToInt32(time[0]), Convert.ToInt32(time[1]),
+                            Convert.ToInt32(time[2])
                         );
+                    }
+                    else
+                    {
+                        trades[i].Time = new DateTime(Convert.ToInt32(date[2]),
+                            Convert.ToInt32(date[1]), Convert.ToInt32(date[0]),
+                            Convert.ToInt32(time[0]), Convert.ToInt32(time[1]),
+                            Convert.ToInt32(time[2])
+                        );
+                    }
+
+                    
+
+
 
                     trades[i].SecurityNameCode = table[i, 3].ToString();
                     trades[i].Price = ToDecimal(table[i, 4]);
@@ -401,7 +418,7 @@ namespace OsEngine.Market.Servers.Quik
                 }
             }
         }
-
+        
         private void PortfolioSpotNumberUpdated(long id, object[,] table)
         {
             int countElem = table.GetLength(0);

@@ -1,16 +1,15 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
 using System.Globalization;
 using System.Windows;
+using OsEngine.Language;
 
 namespace OsEngine.OsTrader.Panels.PanelsGui
 {
-    /// <summary>
-    /// Логика взаимодействия для CCITrade.xaml
-    /// </summary>
     public partial class CciTradeUi
     {
         private CciTrade _strategy;
@@ -23,7 +22,6 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
 
             TextBoxSlipage.Text = _strategy.Slipage.ToString(new CultureInfo("ru-RU"));
 
-
             ComboBoxRegime.Items.Add(BotTradeRegime.Off);
             ComboBoxRegime.Items.Add(BotTradeRegime.On);
             ComboBoxRegime.Items.Add(BotTradeRegime.OnlyClosePosition);
@@ -34,6 +32,12 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
             CciUp.Text = _strategy.Upline.Value.ToString(new CultureInfo("ru-RU"));
             CciDown.Text = _strategy.Downline.Value.ToString(new CultureInfo("ru-RU"));
 
+            LabelRegime.Content = OsLocalization.Trader.Label115;
+            LabelVolume.Content = OsLocalization.Trader.Label30;
+            LabelSlippage.Content = OsLocalization.Trader.Label92;
+            ButtonAccept.Content = OsLocalization.Trader.Label132;
+            LabelUpperLimit.Content = OsLocalization.Trader.Label134;
+            LabelLowerLimit.Content = OsLocalization.Trader.Label135;
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -51,14 +55,12 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
             }
             catch (Exception)
             {
-                MessageBox.Show("В одном из полей недопустимые значения. Процесс сохранения прерван");
+                MessageBox.Show(OsLocalization.Trader.Label13);
                 return;
             }
 
             _strategy.VolumeFix = Convert.ToDecimal(TextBoxVolumeOne.Text);
             _strategy.Slipage = Convert.ToDecimal(TextBoxSlipage.Text);
-
-
             _strategy.Upline.Value = Convert.ToDecimal(CciUp.Text);
             _strategy.Downline.Value = Convert.ToDecimal(CciDown.Text);
 

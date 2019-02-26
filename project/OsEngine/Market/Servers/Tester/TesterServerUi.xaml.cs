@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using Color = System.Drawing.Color;
 
@@ -167,8 +168,35 @@ namespace OsEngine.Market.Servers.Tester
             ComboBoxDataSourseType.Items.Add(TesterSourceDataType.Set);
             ComboBoxDataSourseType.SelectedItem = _server.SourceDataType;
             ComboBoxDataSourseType.SelectionChanged += ComboBoxDataSourseType_SelectionChanged;
-        }
 
+            ButtonSinhronazer.Content = OsLocalization.Market.Button1;
+            Title = OsLocalization.Market.TitleTester;
+            Label21.Content = OsLocalization.Market.Label21;
+            ButtonStartTest.Content = OsLocalization.Market.Button2;
+            Label29.Header = OsLocalization.Market.Label29;
+            Label30.Header = OsLocalization.Market.Label30;
+            Label31.Header = OsLocalization.Market.Label31;
+            Label23.Header = OsLocalization.Market.Label23;
+            Label24.Content = OsLocalization.Market.Label24;
+            Label25.Content = OsLocalization.Market.Label25;
+            LabelFrom.Content = OsLocalization.Market.Label26;
+            LabelTo.Content = OsLocalization.Market.Label27;
+            Label28.Content = OsLocalization.Market.Label28;
+            ButtonSetDataFromPath.Content = OsLocalization.Market.ButtonSetFolder;
+            Label32.Content = OsLocalization.Market.Label32;
+            Label33.Content = OsLocalization.Market.Label33;
+            Label34.Content = OsLocalization.Market.Label34;
+            CheckBoxSlipageLimitOff.Content = OsLocalization.Market.Label35;
+            CheckBoxSlipageStopOff.Content = OsLocalization.Market.Label35;
+            CheckBoxSlipageLimitOn.Content = OsLocalization.Market.Label36;
+            CheckBoxSlipageStopOn.Content = OsLocalization.Market.Label36;
+            CheckBoxExecutionOrderIntersection.Content = OsLocalization.Market.Label37;
+            CheckBoxExecutionOrderTuch.Content = OsLocalization.Market.Label38;
+            CheckBoxOnOffMarketPortfolio.Content = OsLocalization.Market.Label39;
+            Label40.Content = OsLocalization.Market.Label40;
+
+        }
+        
         /// <summary>
         /// окно закрывается
         /// </summary>
@@ -346,6 +374,15 @@ namespace OsEngine.Market.Servers.Tester
         private void buttonPausePlay_Click(object sender, RoutedEventArgs e)
         {
             _server.TestingPausePlay();
+
+            if (ButtonPausePlay.Content.ToString() == "| |")
+            {
+                ButtonPausePlay.Content = ">";
+            }
+            else
+            {
+                ButtonPausePlay.Content = "| |";
+            }
         }
 
         private void buttonNextCandle_Click(object sender, RoutedEventArgs e)
@@ -359,6 +396,7 @@ namespace OsEngine.Market.Servers.Tester
             worker.CurrentCulture = new CultureInfo("ru-RU");
             worker.IsBackground = true;
             worker.Start();
+            ButtonPausePlay.Content = "| |";
         }
 
         private void ButtonSinhronazer_Click(object sender, RoutedEventArgs e)
@@ -671,64 +709,11 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         private void CreateGrid()
         {
-            _myGridView = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
-
-            DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = _myGridView.DefaultCellStyle;
+            _myGridView = DataGridFactory.GetDataGridDataSource();
 
             _myGridView.DoubleClick += _myGridView_DoubleClick;
-            
             HostSecurities.Child = _myGridView;
             HostSecurities.Child.Show();
-
-            DataGridViewColumn column2 = new DataGridViewColumn();
-            column2.CellTemplate = cell0;
-            column2.HeaderText = @"Файл";
-            column2.ReadOnly = true;
-            column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-            _myGridView.Columns.Add(column2);
-
-            DataGridViewColumn column0 = new DataGridViewColumn();
-            column0.CellTemplate = cell0;
-            column0.HeaderText = @"Бумага";
-            column0.ReadOnly = true;
-            column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-            _myGridView.Columns.Add(column0);
-
-            DataGridViewColumn column = new DataGridViewColumn();
-            column.CellTemplate = cell0;
-            column.HeaderText = @"Таймфрейм";
-            column.ReadOnly = true;
-            column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-            _myGridView.Columns.Add(column);
-
-            DataGridViewColumn column1 = new DataGridViewColumn();
-            column1.CellTemplate = cell0;
-            column1.HeaderText = @"Шаг цены";
-            column1.ReadOnly = true;
-            column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-            _myGridView.Columns.Add(column1);
-
-            DataGridViewColumn column3 = new DataGridViewColumn();
-            column3.CellTemplate = cell0;
-            column3.HeaderText = @"Дата начала";
-            column3.ReadOnly = true;
-            column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-            _myGridView.Columns.Add(column3);
-
-            DataGridViewColumn column4 = new DataGridViewColumn();
-            column4.CellTemplate = cell0;
-            column4.HeaderText = @"Дата конца";
-            column4.ReadOnly = true;
-            column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-            _myGridView.Columns.Add(column4);
-
             _myGridView.Rows.Add();
         }
 

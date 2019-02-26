@@ -1,164 +1,164 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Windows.Forms.DataVisualization.Charting;
-using System.Windows.Forms.Integration;
-using System.Windows.Shapes;
-using OsEngine.Charts;
+using OsEngine.Charts.CandleChart;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Finam;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading;
+using System.Windows.Forms.Integration;
+using System.Windows.Shapes;
 
 namespace OsEngine.OsData
 {
     /// <summary>
-    /// сет хранения данных
+    /// data storage set/сет хранения данных
     /// </summary>
     public class OsDataSet
     {
-        // регулируемые настройки
+        // adjustable settings/регулируемые настройки
 
         /// <summary>
-        /// включен ли к сохранению 1 секундный ТаймФрейм
+        /// is 1 second timeframe enabled for saving/включен ли к сохранению 1 секундный ТаймФрейм
         /// </summary>
         public bool Tf1SecondIsOn;
 
         /// <summary>
-        /// включен ли к сохранению 2ух секундный ТаймФрейм
+        /// is the 2 second timeframe enabled for saving/включен ли к сохранению 2ух секундный ТаймФрейм
         /// </summary>
         public bool Tf2SecondIsOn;
 
         /// <summary>
-        /// включен ли к сохранению пяти секундный ТаймФрейм
+        /// is the five second timeframe enabled for saving/включен ли к сохранению пяти секундный ТаймФрейм
         /// </summary>
         public bool Tf5SecondIsOn;
 
         /// <summary>
-        /// включен ли к сохранению 10 секундный ТаймФрейм
+        /// is the 10 second timeframe enabled for saving/включен ли к сохранению 10 секундный ТаймФрейм
         /// </summary>
         public bool Tf10SecondIsOn;
 
         /// <summary>
-        /// включен ли к сохранению 15 секундный ТаймФрейм
+        /// is the 15 second timeframe enabled for saving/включен ли к сохранению 15 секундный ТаймФрейм
         /// </summary>
         public bool Tf15SecondIsOn;
 
         /// <summary>
-        /// включен ли к сохранению 20 секундный ТаймФрейм
+        /// is the 20 second timeframe enabled for saving/включен ли к сохранению 20 секундный ТаймФрейм
         /// </summary>
         public bool Tf20SecondIsOn;
 
         /// <summary>
-        /// включен ли к сохранению 30 секундный ТаймФрейм
+        /// is the 30 second timeframe enabled for saving/включен ли к сохранению 30 секундный ТаймФрейм
         /// </summary>
         public bool Tf30SecondIsOn;
 
         /// <summary>
-        /// включен ли к сохранению 1 минутный ТаймФрейм
+        /// is 1 minute Timeframe enabled for saving/включен ли к сохранению 1 минутный ТаймФрейм
         /// </summary>
         public bool Tf1MinuteIsOn;
 
         /// <summary>
-        /// включен ли к сохранению 2  минутный ТаймФрейм
+        /// is a 2 minute timeframe enabled for saving/включен ли к сохранению 2  минутный ТаймФрейм
         /// </summary>
         public bool Tf2MinuteIsOn;
 
         /// <summary>
-        /// включен ли к сохранению 5  минутный ТаймФрейм
+        /// is the 5 minute timeframe enabled for saving/включен ли к сохранению 5  минутный ТаймФрейм
         /// </summary>
         public bool Tf5MinuteIsOn;
 
         /// <summary>
-        /// включен ли к сохранению 10 минутный ТаймФрейм
+        /// is the 10 minute Timeframe enabled for saving/включен ли к сохранению 10 минутный ТаймФрейм
         /// </summary>
         public bool Tf10MinuteIsOn;
 
         /// <summary>
-        /// включен ли к сохранению 15 минутный ТаймФрейм
+        /// is the 15 minute timeframe enabled for saving/включен ли к сохранению 15 минутный ТаймФрейм
         /// </summary>
         public bool Tf15MinuteIsOn;
 
         /// <summary>
-        /// включен ли к сохранению 30 минутный ТаймФрейм
+        /// is the 30 minute timeframe enabled for saving/включен ли к сохранению 30 минутный ТаймФрейм
         /// </summary>
         public bool Tf30MinuteIsOn;
 
         /// <summary>
-        /// включен ли к сохранению 1 часовой ТаймФрейм
+        /// is 1 hour timeframe enabled for saving/включен ли к сохранению 1 часовой ТаймФрейм
         /// </summary>
         public bool Tf1HourIsOn;
 
         /// <summary>
-        /// включен ли к сохранению 2 часовой ТаймФрейм
+        /// is the 2 hour timeframe enabled for saving/включен ли к сохранению 2 часовой ТаймФрейм
         /// </summary>
         public bool Tf2HourIsOn;
 
         /// <summary>
-        /// включен ли к сохранению тиковый ТаймФрейм
+        /// is tick timeframe enabled for saving/включен ли к сохранению тиковый ТаймФрейм
         /// </summary>
         public bool TfTickIsOn;
 
         /// <summary>
-        /// включен ли к сохранению стакан
+        /// is MarketDepth included in conservation/включен ли к сохранению стакан
         /// </summary>
         public bool TfMarketDepthIsOn;
 
         /// <summary>
-        /// глубина сохранения стакана
+        /// cup retention depth/глубина сохранения стакана
         /// </summary>
         public int MarketDepthDepth;
 
         /// <summary>
-        /// тип создания свечек - из стакана или из тиков
+        /// type of candle making - from MarketDepth or from ticks/тип создания свечек - из стакана или из тиков
         /// </summary>
         public CandleMarketDataType CandleCreateType;
 
         /// <summary>
-        /// уникальное имя сета
+        /// unique set name/уникальное имя сета
         /// </summary>
         public string SetName;
 
         /// <summary>
-        /// источник сета
+        /// set source/источник сета
         /// </summary>
         public ServerType Source;
 
         /// <summary>
-        /// время старта скачивания
+        /// download start time/время старта скачивания
         /// </summary>
         public DateTime TimeStart;
 
         /// <summary>
-        /// время завершения 
+        /// completion time/время завершения 
         /// </summary>
         public DateTime TimeEnd;
 
         /// <summary>
-        /// имена бумаг на которые мы подписаны
+        /// paper names we are subscribed to/имена бумаг на которые мы подписаны
         /// </summary>
         public List<SecurityToLoad> SecuritiesNames;
 
         /// <summary>
-        /// нужно ли обновлять данные автоматически
+        /// whether to update data automatically/нужно ли обновлять данные автоматически
         /// </summary>
         public bool NeadToUpdate;
 
         /// <summary>
-        /// нужно ли загрузить данные в боевые сервера
+        /// whether you need to upload data to the combat server/нужно ли загрузить данные в боевые сервера
         /// </summary>
         public bool NeadToLoadDataInServers;
 
-        // сервис
+        // service/сервис
         /// <summary>
-        /// конструктор
+        /// constructor/конструктор
         /// </summary>
         public OsDataSet(string nameUniq, System.Windows.Controls.ComboBox comboBoxSecurity,
             System.Windows.Controls.ComboBox comboBoxTimeFrame)
@@ -194,7 +194,7 @@ namespace OsEngine.OsData
             worker.IsBackground = true;
             worker.Start();
 
-            _chartMaster = new ChartMaster(nameUniq,StartProgram.IsOsData);
+            _chartMaster = new ChartCandleMaster(nameUniq,StartProgram.IsOsData);
             _chartMaster.StopPaint();
 
             _comboBoxSecurity = comboBoxSecurity;
@@ -204,7 +204,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// сохранить настройки
+        /// save settings/сохранить настройки
         /// </summary>
         public void Save()
         {
@@ -270,7 +270,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// загрузить настройки
+        /// load settings/загрузить настройки
         /// </summary>
         private void Load()
         {
@@ -333,7 +333,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// удалить настройки
+        /// delete settings/удалить настройки
         /// </summary>
         public void Delete()
         {
@@ -356,7 +356,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// показать окно настроек
+        /// show settings window/показать окно настроек
         /// </summary>
         public bool ShowDialog()
         {
@@ -367,7 +367,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// режим работы 
+        /// operation mode/режим работы 
         /// </summary>
         public DataSetState Regime
         {
@@ -376,10 +376,10 @@ namespace OsEngine.OsData
         }
         private DataSetState _regime;
 
-        // управление
+        // control/управление
 
         /// <summary>
-        /// подключить новый инструмент
+        /// connect new Security/подключить новый инструмент
         /// </summary>
         public void AddNewSecurity()
         {
@@ -394,7 +394,7 @@ namespace OsEngine.OsData
             {
                 if (NewLogMessageEvent != null)
                 {
-                    NewLogMessageEvent("Источник не настроен", LogMessageType.System);
+                    NewLogMessageEvent(OsLocalization.Data.Label12, LogMessageType.System);
                 }
 
                 return;
@@ -407,7 +407,7 @@ namespace OsEngine.OsData
             {
                 if (NewLogMessageEvent != null)
                 {
-                    NewLogMessageEvent("В источнике нет доступных бумаг", LogMessageType.System);
+                    NewLogMessageEvent(OsLocalization.Data.Label13, LogMessageType.System);
                 }
                 return;
             }
@@ -436,9 +436,9 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// удалить инструмент для скачивания
+        /// remove Security/удалить инструмент для скачивания
         /// </summary>
-        /// <param name="index">индекс инструмента в массиве</param>
+        /// <param name="index">Security index in array/индекс инструмента в массиве</param>
         public void DeleteSecurity(int index)
         {
             if (SecuritiesNames == null ||
@@ -462,25 +462,25 @@ namespace OsEngine.OsData
             Save();
         }
 
-        // сохранение данных
+        // data storage/сохранение данных
 
         /// <summary>
-        /// серии свечек созданные для скачивания
+        /// series of candles created for download/серии свечек созданные для скачивания
         /// </summary>
         private List<CandleSeries> _mySeries;
 
         /// <summary>
-        /// выбранный сет
+        /// selected set/выбранный сет
         /// </summary>
         private bool _setIsActive;
 
         /// <summary>
-        /// сервер к которому подключен сет
+        /// server to which the set is connected/сервер к которому подключен сет
         /// </summary>
         private IServer _myServer;
 
         /// <summary>
-        /// работа основного потока
+        /// mainstream operation/работа основного потока
         /// </summary>
         private void WorkerArea()
         {
@@ -499,14 +499,14 @@ namespace OsEngine.OsData
                     if (_regime == DataSetState.Off &&
                         _setIsActive == false)
                     {
-                        // полностью выключены
+                        // completely off/полностью выключены
                         continue;
                     }
 
                     if (_regime == DataSetState.Off &&
                         _setIsActive == true)
                     {
-                        // пользователь запросил отключить скачивание
+                        // user requested to disable downloading/пользователь запросил отключить скачивание
                         _setIsActive = false;
                         StopSets();
                         continue;
@@ -515,7 +515,7 @@ namespace OsEngine.OsData
                     if (_regime == DataSetState.On &&
                         _setIsActive == false)
                     {
-                        // пользователь запросил включение
+                        // user requested enable/пользователь запросил включение
                         StartSets();
                         continue;
                     }
@@ -525,7 +525,7 @@ namespace OsEngine.OsData
                     if (_regime == DataSetState.On &&
                         _setIsActive == true)
                     {
-                        // тут по идее можно сохранять 
+                        // here, in theory, you can save/тут по идее можно сохранять 
                         SaveData();
                     }
                 }
@@ -659,12 +659,12 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// создать серии свечек и подписаться на данные
+        /// create a series of candles and subscribe to the data/создать серии свечек и подписаться на данные
         /// </summary>
         private void StartSets()
         {
 
-            // сначала сервер
+            // server first/сначала сервер
 
             if (_myServer != null)
             {
@@ -685,19 +685,19 @@ namespace OsEngine.OsData
 
             _myServer.NewMarketDepthEvent += _myServer_NewMarketDepthEvent;
 
-            // теперь свечи
+            // now candles/теперь свечи
 
             if (SecuritiesNames == null ||
                 SecuritiesNames.Count == 0)
             {
-                // проверяем бумаги
+                // check paper/проверяем бумаги
                 return;
             }
 
             if (_mySeries != null &&
                 _mySeries.Count != 0)
             {
-                // убираем старые серии
+                // we remove old series/убираем старые серии
                 for (int i = 0; i < _mySeries.Count; i++)
                 {
                     _mySeries[i].Stop();
@@ -812,12 +812,19 @@ namespace OsEngine.OsData
                     StartThis(SecuritiesNames[i], TimeFrame.Hour2);
                 }
             }
-            if (TfTickIsOn && _myServer != null && _myServer.ServerType == ServerType.Finam)
+            if (TfMarketDepthIsOn)
+            {
+                for (int i = 0; i < SecuritiesNames.Count; i++)
+                {
+                    StartThis(SecuritiesNames[i], TimeFrame.Hour1);
+                }
+            }
+            if (TfTickIsOn && _myServer != null)
             {
                 for (int i = 0; i < SecuritiesNames.Count; i++)
                 {
                     while (
-                        ((FinamServer) _myServer).StartTickToSecurity(SecuritiesNames[i].Id, TimeStart, TimeEnd,
+                        (_myServer).GetTickDataToSecurity(SecuritiesNames[i].Id, TimeStart, TimeEnd,
                             GetActualTimeToTrade("Data\\" + SetName + "\\" + SecuritiesNames[i].Name.Replace("/", "") + "\\Tick"), NeadToUpdate) == false)
                     {
                         Thread.Sleep(5000);
@@ -829,10 +836,10 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// запустить на скачивание
+        /// run on download/запустить на скачивание
         /// </summary>
-        /// <param name="name">название бумаги</param>
-        /// <param name="timeFrame">тайм фрейм</param>
+        /// <param name="name">paper name/название бумаги</param>
+        /// <param name="timeFrame">time frame/тайм фрейм</param>
         private void StartThis(SecurityToLoad loadSec, TimeFrame timeFrame)
         {
             CandleSeries series = null;
@@ -841,15 +848,8 @@ namespace OsEngine.OsData
                 TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder();
                 timeFrameBuilder.TimeFrame = timeFrame;
 
-                if (_myServer.ServerType == ServerType.Finam)
-                {
-                    series = ((FinamServer)_myServer).StartThisSecurity(loadSec.Id, timeFrameBuilder, TimeStart,
+                series = _myServer.GetCandleDataToSecurity(loadSec.Id, timeFrameBuilder, TimeStart,
                         TimeEnd, GetActualTimeToCandle("Data\\" + SetName + "\\" + loadSec.Name.Replace("/", "") + "\\" + timeFrame), NeadToUpdate);
-                }
-                else
-                {
-                    series = _myServer.StartThisSecurity(loadSec.Name, timeFrameBuilder);
-                }
 
                 Thread.Sleep(10);
             }
@@ -858,11 +858,11 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// остановить скачивание данных
+        /// stop downloading data/остановить скачивание данных
         /// </summary>
         private void StopSets()
         {
-            // сначала сервер
+            // server first/сначала сервер
 
             if (_myServer != null)
             {
@@ -879,12 +879,12 @@ namespace OsEngine.OsData
                 return;
             }
 
-            // теперь свечи
+            // now candles/теперь свечи
 
             if (_mySeries != null &&
                 _mySeries.Count != 0)
             {
-                // убираем старые серии
+                // remove old series/убираем старые серии
                 for (int i = 0; i < _mySeries.Count; i++)
                 {
                     _mySeries[i].Stop();
@@ -895,13 +895,13 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// сохранить данные
+        /// save data/сохранить данные
         /// </summary>
         private void SaveData()
         {
-            // создаём папки под все инструменты
+            // create folders for all tools/создаём папки под все инструменты
 
-            // Data\Имя сета\Имя бумаги
+            // Data\Set Name\PaperName (Data\Имя сета\Имя бумаги)
 
             if (!Directory.Exists("Data"))
             {
@@ -925,7 +925,7 @@ namespace OsEngine.OsData
 
             string pathToSet = "Data\\" + SetName + "\\";
 
-            // свечи
+            // candles/свечи
 
             for (int i = 0; i < _mySeries.Count; i++)
             {
@@ -941,7 +941,7 @@ namespace OsEngine.OsData
 
             Paint();
 
-            // тики
+            // trades/тики
             if (TfTickIsOn)
             {
                 for (int i = 0; i < SecuritiesNames.Count; i++)
@@ -966,7 +966,7 @@ namespace OsEngine.OsData
                         }
                     }
                     else
-                    { // Финам
+                    { // Finam/Финам
                         List<string> trades = ((FinamServer)_myServer).GetAllFilesWhithTradeToSecurity(SecuritiesNames[i].Name);
 
                          SaveThisTickFromFiles(trades,
@@ -976,7 +976,7 @@ namespace OsEngine.OsData
                 }
             }
 
-            // стаканы
+            // MarketDepth/стаканы
 
             if (TfMarketDepthIsOn)
             {
@@ -1071,9 +1071,9 @@ namespace OsEngine.OsData
 
 
         /// <summary>
-        /// взять актуальное время из файла
+        /// take current time from file/взять актуальное время из файла
         /// </summary>
-        /// <param name="pathToFile">путь к файлу</param>
+        /// <param name="pathToFile">the path to the file/путь к файлу</param>
         private DateTime GetActualTimeToCandle(string pathToFile)
         {
             if(!Directory.Exists(pathToFile))
@@ -1116,9 +1116,9 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// взять актуальное время из файла
+        /// take current time from file/взять актуальное время из файла
         /// </summary>
-        /// <param name="pathToFile">путь к файлу</param>
+        /// <param name="pathToFile">the path to the file/путь к файлу</param>
         private DateTime GetActualTimeToTrade(string pathToFile)
         {
             if (!Directory.Exists(pathToFile))
@@ -1162,20 +1162,20 @@ namespace OsEngine.OsData
             return DateTime.MinValue;
         }
 
-        // свечи
+        // candles/свечи
 
         /// <summary>
-        /// сервисная информация для сохранения свечек
+        /// service information to save candles/сервисная информация для сохранения свечек
         /// </summary>
         private List<CandleSaveInfo> _candleSaveInfo;
 
         /// <summary>
-        /// сохранить новые свечеки по инструменту
+        /// save new candles on the instrument/сохранить новые свечеки по инструменту
         /// </summary>
-        /// <param name="candles">свечи</param>
-        /// <param name="path">путь</param>
-        /// <param name="frame">таймфрейм</param>
-        /// <param name="securityName">название инструмента</param>
+        /// <param name="candles">candles/свечи</param>
+        /// <param name="path">path/путь</param>
+        /// <param name="frame">time frame/таймфрейм</param>
+        /// <param name="securityName">security Name/название инструмента</param>
         private void SaveThisCandles(List<Candle> candles, string path, TimeFrame frame, string securityName)
         {
             if (!Directory.Exists(path))
@@ -1188,7 +1188,7 @@ namespace OsEngine.OsData
                 _candleSaveInfo = new List<CandleSaveInfo>();
             }
 
-            // берём хранилище свечек
+            // take a vault of candles/берём хранилище свечек
 
             CandleSaveInfo candleSaveInfo =
                 _candleSaveInfo.Find(info => info.NameSecurity == securityName && info.Frame == frame);
@@ -1203,7 +1203,7 @@ namespace OsEngine.OsData
             if (candleSaveInfo == null)
             {
 
-                // если сохраняем эти свечи в первый раз, пробуем поднять их из файла
+                // if we save these candles for the first time, we try to pick them up from the file/если сохраняем эти свечи в первый раз, пробуем поднять их из файла
                 candleSaveInfo = new CandleSaveInfo();
                 candleSaveInfo.Frame = frame;
                 candleSaveInfo.NameSecurity = securityName;
@@ -1242,7 +1242,7 @@ namespace OsEngine.OsData
                 }
             }
 
-            // обновляем свечи в хранилище
+            // update candles in storage/обновляем свечи в хранилище
             candleSaveInfo.LoadNewCandles(candles);
 
             int firstCandle = 0;
@@ -1256,7 +1256,7 @@ namespace OsEngine.OsData
                 }
             }
 
-            // записываем
+            // write/записываем
 
             try
             {
@@ -1269,7 +1269,7 @@ namespace OsEngine.OsData
                             break;
                         }
                         if (candles[i].TimeStart == candleSaveInfo.LastSaveObjectTime)
-                        { // нужно перезаписать последнюю свечку
+                        { // need to overwrite the last candle/нужно перезаписать последнюю свечку
                             //writer.Write(candles[i].StringToSave, 1);
                         }
                         else
@@ -1290,19 +1290,19 @@ namespace OsEngine.OsData
             candleSaveInfo.LastSaveObjectTime = candles[candles.Count - 1].TimeStart;
         }
 
-        // тики
+        // trades/тики
 
         /// <summary>
-        /// сервисная информация для сохранения свечек
+        /// service information to save trades/сервисная информация для сохранения тиков
         /// </summary>
         private List<TradeSaveInfo> _tradeSaveInfo;
 
         /// <summary>
-        /// сохранить серию тиков
+        /// save trades series/сохранить серию тиков
         /// </summary>
-        /// <param name="tradeLast">тики</param>
-        /// <param name="pathToFolder">путь</param>
-        /// <param name="securityName">имя бумаги</param>
+        /// <param name="tradeLast">trades/тики</param>
+        /// <param name="pathToFolder">path/путь</param>
+        /// <param name="securityName">security Name/имя бумаги</param>
         private void SaveThisTick(Trade tradeLast, string pathToFolder, string securityName, StreamWriter writer, string pathToFile)
         {
             if (!Directory.Exists(pathToFolder))
@@ -1315,14 +1315,14 @@ namespace OsEngine.OsData
                 _tradeSaveInfo = new List<TradeSaveInfo>();
             }
 
-            // берём хранилище тиков
+            // take trades storage/берём хранилище тиков
 
             TradeSaveInfo tradeSaveInfo =
                 _tradeSaveInfo.Find(info => info.NameSecurity == securityName);
 
             if (tradeSaveInfo == null)
             {
-                // если сохраняем эти свечи в первый раз, пробуем поднять их из файла
+                // if we save these trades for the first time, we try to pick them up from the file/если сохраняем эти тики в первый раз, пробуем поднять их из файла
                 tradeSaveInfo = new TradeSaveInfo();
                 tradeSaveInfo.NameSecurity = securityName;
 
@@ -1376,14 +1376,14 @@ namespace OsEngine.OsData
                 (tradeLast.Id != null && tradeLast.Id == tradeSaveInfo.LastTradeId)
                 )
             {
-                // если у нас старые тики совпадают с новыми.
+                // if we have old trades coincide with new ones./если у нас старые тики совпадают с новыми.
                 return;
             }
 
 
             tradeSaveInfo.LastSaveObjectTime = tradeLast.Time;
             tradeSaveInfo.LastTradeId = tradeLast.Id;
-            // записываем
+            // write down/записываем
 
             try
             {
@@ -1430,7 +1430,7 @@ namespace OsEngine.OsData
                 if (_savedTradeFiles.Find(str => str == files[i]) != null &&
                     files.Count - 1 != i)
                 {
-                    // уже сохранили этот файл
+                    // already saved this file/уже сохранили этот файл
                     continue;
                 }
 
@@ -1476,17 +1476,17 @@ namespace OsEngine.OsData
             }
         }
 
-        private List<string> _savedTradeFiles = new List<string>(); 
+        private List<string> _savedTradeFiles = new List<string>();
 
-        // стаканы
+        // Market Depth/стаканы
 
         /// <summary>
-        /// сервисная информация для сохранения стаканов
+        /// service information for preserving Market Depth/сервисная информация для сохранения стаканов
         /// </summary>
         private List<MarketDepthSaveInfo> _marketDepthSaveInfo;
 
         /// <summary>
-        /// сохранить стаканы по инструменту
+        /// save Market Depth/сохранить стаканы по инструменту
         /// </summary>
         /// <param name="path">путь</param>
         /// <param name="securityName">название бумаги</param>
@@ -1511,7 +1511,7 @@ namespace OsEngine.OsData
 
             if (marketDepthSave == null)
             {
-                // если сохраняем эти свечи в первый раз, пробуем поднять их из файла
+                // if we save these  market Depth for the first time, we try to pick them up from the file/если сохраняем эти стаканы в первый раз, пробуем поднять их из файла
                 marketDepthSave = new MarketDepthSaveInfo();
                 marketDepthSave.NameSecurity = securityName;
                 _marketDepthSaveInfo.Add(marketDepthSave);
@@ -1559,7 +1559,7 @@ namespace OsEngine.OsData
                 depths.Count == 0 ||
                 marketDepthSave.LastSaveTime == depths[depths.Count - 1].Time)
             {
-                // если у нас старые тики совпадают с новыми.
+                // old market depth has come/если у нас старые тики совпадают с новыми.
                 return;
             }
 
@@ -1574,7 +1574,7 @@ namespace OsEngine.OsData
 
             marketDepthSave.LastSaveTime = depths[depths.Count - 1].Time;
 
-            // записываем
+            // write down/записываем
 
             try
             {
@@ -1596,7 +1596,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// из сервера пришёл новый стакан
+        /// a new glass came from the server/из сервера пришёл новый стакан
         /// </summary>
         /// <param name="depth"></param>
         private void _myServer_NewMarketDepthEvent(MarketDepth depth)
@@ -1627,40 +1627,40 @@ namespace OsEngine.OsData
             }
         }
 
-        // прорисовка графика
+        // drawing chart/прорисовка графика
 
         /// <summary>
-        /// выбранный таймфрейм
+        /// selected timeframe/выбранный таймфрейм
         /// </summary>
         private TimeFrame _selectedTf;
 
         /// <summary>
-        /// выбранный инструмент
+        /// selected Security/выбранный инструмент
         /// </summary>
         private string _selectedSecurity;
 
         /// <summary>
-        /// мастер прорисовки чарта
+        /// chart drawing master/мастер прорисовки чарта
         /// </summary>
-        private ChartMaster _chartMaster;
+        private ChartCandleMaster _chartMaster;
 
         /// <summary>
-        /// меню выбора инструмента
+        /// Security selection menu/меню выбора инструмента
         /// </summary>
         private System.Windows.Controls.ComboBox _comboBoxSecurity;
 
         /// <summary>
-        /// меню выбора таймфрейма
+        /// time frame selection menu/меню выбора таймфрейма
         /// </summary>
         private System.Windows.Controls.ComboBox _comboBoxTimeFrame;
 
         /// <summary>
-        /// выбран ли текущий сет для прорисовки
+        /// is the current set selected for drawing/выбран ли текущий сет для прорисовки
         /// </summary>
         private bool _isSelected;
 
         /// <summary>
-        /// событие изменения тайфрейма в меню его выбора
+        /// event of changing the timeframe in its menu/событие изменения тайфрейма в меню его выбора
         /// </summary>
         void _comboBoxTimeFrame_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
@@ -1682,7 +1682,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// событие изменения бумаги в меню его выбора
+        /// Security change event in its selection menu/событие изменения бумаги в меню его выбора
         /// </summary>
         void _comboBoxSecurity_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
@@ -1705,7 +1705,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// включить прорисовку этого сета
+        /// enable drawing of this set/включить прорисовку этого сета
         /// </summary>
         public void StartPaint(WindowsFormsHost hostChart, Rectangle rectangle)
         {
@@ -1732,7 +1732,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// остановить прорисовку этого сета
+        /// stop drawing this set/остановить прорисовку этого сета
         /// </summary>
         public void StopPaint()
         {
@@ -1741,7 +1741,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// перестроить меню выбора
+        /// rebuild selection menu/перестроить меню выбора
         /// </summary>
         private void ReBuildComboBox()
         {
@@ -1888,7 +1888,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// прорисовать выбранный инстрмент и ТФ на графике
+        /// draw the selected tool and TF on the chart/прорисовать выбранный инстрмент и ТФ на графике
         /// </summary>
         private void Paint()
         {
@@ -1934,10 +1934,10 @@ namespace OsEngine.OsData
             }
         }
 
-// сообщения в лог 
+// messages to log/сообщения в лог 
 
         /// <summary>
-        /// выслать новое сообщение на верх
+        /// send a new message to the top/выслать новое сообщение на верх
         /// </summary>
         private void SendNewLogMessage(string message, LogMessageType type)
         {
@@ -1952,54 +1952,54 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// выслать новое сообщение в лог
+        /// send new message to log/выслать новое сообщение в лог
         /// </summary>
         public event Action<string, LogMessageType> NewLogMessageEvent;
 
     }
 
     /// <summary>
-    /// статус серии данных
+    /// data series status/статус серии данных
     /// </summary>
     public enum DataSetState
     {
         /// <summary>
-        /// вкл
+        /// on/вкл
         /// </summary>
         On,
         /// <summary>
-        /// выкл
+        /// off/выкл
         /// </summary>
         Off
     }
 
     /// <summary>
-    /// информация для сохранения свечек
+    /// information to save candles/информация для сохранения свечек
     /// </summary>
     public class CandleSaveInfo
     {
         /// <summary>
-        /// имя бумаги
+        /// Security name/имя бумаги
         /// </summary>
         public string NameSecurity;
 
         /// <summary>
-        /// таймфрейм
+        /// timeframe/таймфрейм
         /// </summary>
         public TimeFrame Frame;
 
         /// <summary>
-        /// последнее время сохранения
+        /// last save time/последнее время сохранения
         /// </summary>
         public DateTime LastSaveObjectTime;
 
         /// <summary>
-        /// свечи инструмента
+        /// Candles/свечи инструмента
         /// </summary>
         public List<Candle> Candles;
 
         /// <summary>
-        /// добавить свечи
+        /// add candles/добавить свечи
         /// </summary>
         public void LoadNewCandles(List<Candle> candles)
         {
@@ -2051,48 +2051,48 @@ namespace OsEngine.OsData
     }
 
     /// <summary>
-    /// информация для сохранения тиков
+    /// information to save trades/информация для сохранения тиков
     /// </summary>
     public class TradeSaveInfo
     {
         /// <summary>
-        /// имя бумаги
+        /// Security name/имя бумаги
         /// </summary>
         public string NameSecurity;
 
         /// <summary>
-        /// последнее время сохранения
+        /// last save time/последнее время сохранения
         /// </summary>
         public DateTime LastSaveObjectTime;
 
         /// <summary>
-        /// последний Id трейда который мы сохранили
+        /// the last trade Id we saved/последний Id трейда который мы сохранили
         /// </summary>
         public string LastTradeId;
 
         /// <summary>
-        /// последнее сохранённый индекс
+        /// last stored index/последнее сохранённый индекс
         /// </summary>
         public int LastSaveIndex;
     }
 
     /// <summary>
-    /// информация для сохранения стаканов
+    /// information for the preservation of Market Depth/информация для сохранения стаканов
     /// </summary>
     public class MarketDepthSaveInfo
     {
         /// <summary>
-        /// название бумаги
+        /// Security name/название бумаги
         /// </summary>
         public string NameSecurity;
 
         /// <summary>
-        /// коллекция стаканов по инструменту
+        /// collection of Market Depth by instrument/коллекция стаканов по инструменту
         /// </summary>
         public List<MarketDepth> MarketDepths;
 
         /// <summary>
-        /// последнее время сохранения
+        /// last save time/последнее время сохранения
         /// </summary>
         public DateTime LastSaveTime;
     }

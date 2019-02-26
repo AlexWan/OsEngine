@@ -1,9 +1,11 @@
 ﻿/*
+ *Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
  *Ваши права на использования кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Language;
 using TextBox = System.Windows.Forms.TextBox;
 
 namespace OsEngine.Charts.CandleChart.Indicators
@@ -58,6 +60,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             HostS4.Child = new TextBox();
             HostS4.Child.BackColor = _pivot.ColorS4;
+
+            CheckBoxPaintOnOff.Content = OsLocalization.Charts.LabelPaintIntdicatorIsVisible;
+            ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
         }
 
         /// <summary>

@@ -1,7 +1,7 @@
 ﻿<Window x:Class="OsEngine.OsTrader.Gui.RobotUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Os.Trader" Height="800" Width="1350" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" MinWidth="700" MinHeight="500" Icon="/Images/OsLogo.ico">
+        Title="Bot Trader" Height="800" Width="1350" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" MinWidth="700" MinHeight="500" Icon="/Images/OsLogo.ico">
     <Grid Name="GridPrime">
         <Grid.RowDefinitions>
             <RowDefinition Height="466*"/>
@@ -9,40 +9,40 @@
         </Grid.RowDefinitions>
         <Grid x:Name="GreedTraderEngine" Margin="0,0,0,182" HorizontalAlignment="Right" Width="300" Grid.RowSpan="2">
             <TabControl HorizontalAlignment="Left" Width="300" BorderThickness="0" Margin="0,0,0,0">
-                <TabItem Header="Стакан" Width="90 ">
+                <TabItem Name="TabItemMarketDepth" Header="Market depth" Width="90 ">
                     <Grid >
-                        <Button x:Name="ButtonBuyFast" Content="  Купить &#xD;&#xA;по рынку" HorizontalAlignment="Left" Margin="10,0,0,82" VerticalAlignment="Bottom" Width="102" Click="buttonBuyFast_Click_1" Height="31" FontSize="11"  />
-                        <Button x:Name="ButtonSellFast" Content="           Продать &#xA;         по рынку" FontSize="11" Margin="164,0,10,82" VerticalAlignment="Bottom" Click="buttonSellFast_Click" Height="31" />
-                        <TextBox x:Name="TextBoxVolumeFast" TextAlignment="Center" BorderThickness="1,0,1,1" Height="18" Margin="100,0,100,82" TextWrapping="Wrap" Text="1" VerticalAlignment="Bottom"/>
+                        <Button Name="ButtonBuyFast" Content="   Buy &#xD;&#xA;at market" HorizontalAlignment="Left" Margin="10,0,0,82" VerticalAlignment="Bottom" Width="102" Click="buttonBuyFast_Click_1" Height="31" FontSize="11"  />
+                        <Button Name="ButtonSellFast" Content="           Sell &#xA;       at market" FontSize="11" Margin="164,0,10,82" VerticalAlignment="Bottom" Click="buttonSellFast_Click" Height="31" />
+                        <TextBox Name="TextBoxVolumeFast" Style="{StaticResource TextBoxRectangular}" TextAlignment="Center" BorderThickness="1,0,1,1" Height="18" Margin="100,0,100,82" TextWrapping="Wrap" Text="1" VerticalAlignment="Bottom"/>
                         <WindowsFormsHost x:Name="HostGlass" Margin="0,0,0,127" Foreground="#FF060606"/>
-                        <Button x:Name="ButtonBuyLimit" Content="Купить &#xD;&#xA;лимит" HorizontalAlignment="Left" FontSize="11" Margin="10,0,0,46" VerticalAlignment="Bottom" Width="102" Click="ButtonBuyLimit_Click" Height="31"/>
-                        <Button x:Name="ButtonSellLimit" Content="           Продать &#xA;             лимит" HorizontalAlignment="Left" FontSize="11" Margin="162,0,0,46" VerticalAlignment="Bottom" Width="118"  Click="ButtonSellLimit_Click" Height="31"/>
-                        <TextBox x:Name="TextBoxPrice" TextAlignment="Center" BorderThickness="1,0,1,1" Margin="100,0,100,46" TextWrapping="Wrap" VerticalAlignment="Bottom" Height="18"/>
-                        <Button x:Name="ButtonCloseLimit" Content="Отозвать лимиты" Margin="10,0,10,10" VerticalAlignment="Bottom" Click="ButtonCloseLimit_Click" Height="31" />
-                        <TextBox Height="13" BorderThickness="1,1,1,0" Margin="100,0,100,100" TextWrapping="Wrap" Text="         Объём" IsReadOnly="True" FontSize="10" VerticalAlignment="Bottom"/>
-                        <TextBox Height="13" BorderThickness="1,1,1,0" Margin="100,0,100,64" TextWrapping="Wrap" Text="           Цена" IsReadOnly="True" VerticalAlignment="Bottom" FontSize="10"/>
+                        <Button Name="ButtonBuyLimit" Content="Buy &#xD;&#xA;limit" HorizontalAlignment="Left" FontSize="11" Margin="10,0,0,46" VerticalAlignment="Bottom" Width="102" Click="ButtonBuyLimit_Click" Height="31"/>
+                        <Button Name="ButtonSellLimit" Content="           Sell &#xA;           limit" HorizontalAlignment="Left" FontSize="11" Margin="162,0,0,46" VerticalAlignment="Bottom" Width="118"  Click="ButtonSellLimit_Click" Height="31"/>
+                        <TextBox Name="TextBoxPrice" Style="{StaticResource TextBoxRectangular}" TextAlignment="Center" BorderThickness="1,0,1,1" Margin="100,0,100,46" TextWrapping="Wrap" VerticalAlignment="Bottom" Height="18"/>
+                        <Button Name="ButtonCloseLimit" Content="Revoke limits" Margin="10,0,10,10" VerticalAlignment="Bottom" Click="ButtonCloseLimit_Click" Height="31" />
+                        <TextBox Name="TextBoxVolumeInterText" Style="{StaticResource TextBoxRectangular}" Height="13" BorderThickness="1,1,1,0" HorizontalContentAlignment="Center" Margin="100,0,100,100" TextWrapping="Wrap" Text="Volume" IsReadOnly="True" FontSize="10" VerticalAlignment="Bottom"/>
+                        <TextBox Name="TextBoxPriceText" Height="13" BorderThickness="1,1,1,0" Style="{StaticResource TextBoxRectangular}" Margin="100,0,100,64" TextWrapping="Wrap" Text="Price" HorizontalContentAlignment="Center" IsReadOnly="True" VerticalAlignment="Bottom" FontSize="10"/>
                     </Grid>
                 </TabItem>
-                <TabItem Header="Алерты" Width="90">
+                <TabItem Name="TabItemAlerts" Header="Alerts" Width="90">
                     <Grid >
                         <WindowsFormsHost  x:Name="HostAllert"  Foreground="Black"/>
                     </Grid>
                 </TabItem>
-                <TabItem Header="Управление" Width="90" >
+                <TabItem Name="TabItemControl" Header="Control" Width="90" >
                     <Grid>
-                        <Label Content="Общие настройки" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,6,0,0" FontSize="18"/>
-                        <Button x:Name="ButtonServer" Content="Сервера подключения" HorizontalAlignment="Left" Margin="66,43,0,0" VerticalAlignment="Top" Width="161" Click="ButtonServer_Click"/>
-                        <Button x:Name="ButtonNewBot" Content="Добавить бота" HorizontalAlignment="Left" Margin="66,70,0,0" VerticalAlignment="Top" Width="106" Click="ButtonNewBot_Click"/>
-                        <Button x:Name="ButtonDeleteBot"  Content="Удалить" HorizontalAlignment="Left" Margin="172,70,0,0" VerticalAlignment="Top" Width="55" Click="ButtonDeleteBot_Click"/>
-                        <Label Content="Управление панелью" HorizontalAlignment="Left" Margin="10,190,0,0" VerticalAlignment="Top"  FontSize="18" Height="26"/>
-                        <Button x:Name="ButtonStrategSettings" Content="Сопровождение позиции"  HorizontalAlignment="Left" Margin="65,337,0,0" VerticalAlignment="Top" Width="161" Click="buttonStrategManualSettings_Click"/>
-                        <Button x:Name="ButtonStrategSettingsIndividual" Content="Настройки панели" HorizontalAlignment="Left" Margin="66,230,0,0" VerticalAlignment="Top" Width="161" Click="ButtonStrategIndividualSettings_Click" Height="24"/>
-                        <Button x:Name="ButtonRedactTab" Content="Настройки данных"  HorizontalAlignment="Left" Margin="66,256,0,0" VerticalAlignment="Top" Width="161" Click="ButtonRedactTab_Click"  />
-                        <Button x:Name="ButtonJournalCommunity" Content="Журнал" HorizontalAlignment="Left" Margin="66,97,0,0" VerticalAlignment="Top" Width="161" Click="ButtonJournalCommunity_Click"/>
-                        <Button x:Name="ButtonRiskManagerCommunity" Content="Общий риск-менеджер" HorizontalAlignment="Left" Margin="66,124,0,0" VerticalAlignment="Top" Width="161" Click="ButtonRiskManagerCommunity_Click" />
-                        <Button x:Name="ButtonStrategParametr" Content="Настройка параметров"  HorizontalAlignment="Left" Margin="65,283,0,0" VerticalAlignment="Top" Width="161" Click="ButtonStrategParametr_Click" />
-                        <Button x:Name="ButtonRiskManager" Content="Риск-менеджер" HorizontalAlignment="Left" Margin="65,310,0,0" VerticalAlignment="Top" Width="161" Click="ButtonRiskManager_Click" />
-                        <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовка интерфейса" HorizontalAlignment="Left" Margin="66,154,0,0" VerticalAlignment="Top"/>
+                        <Label Name="LabelGeneralSettings" Content="General settings" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,6,0,0" FontSize="18"/>
+                        <Button Name="ButtonServer" Content="Connection Servers" HorizontalAlignment="Left" Margin="66,43,0,0" VerticalAlignment="Top" Width="161" Click="ButtonServer_Click"/>
+                        <Button Name="ButtonNewBot" Content="Add bot" HorizontalAlignment="Left" Margin="66,70,0,0" VerticalAlignment="Top" Width="106" Click="ButtonNewBot_Click"/>
+                        <Button Name="ButtonDeleteBot"  Content="Delete" HorizontalAlignment="Left" Margin="172,70,0,0" VerticalAlignment="Top" Width="55" Click="ButtonDeleteBot_Click"/>
+                        <Label Name="LabelBotControl" Content="Bot control" HorizontalAlignment="Left" Margin="10,190,0,0" VerticalAlignment="Top"  FontSize="18" Height="26"/>
+                        <Button Name="ButtonStrategSettings" Content="Position support"  HorizontalAlignment="Left" Margin="65,337,0,0" VerticalAlignment="Top" Width="161" Click="buttonStrategManualSettings_Click"/>
+                        <Button Name="ButtonStrategSettingsIndividual" Content="Bot trade settings" HorizontalAlignment="Left" Margin="66,230,0,0" VerticalAlignment="Top" Width="161" Click="ButtonStrategIndividualSettings_Click" Height="24"/>
+                        <Button Name="ButtonRedactTab" Content="Data settings"  HorizontalAlignment="Left" Margin="66,283,0,0" VerticalAlignment="Top" Width="161" Click="ButtonRedactTab_Click"  />
+                        <Button Name="ButtonJournalCommunity" Content="Journal" HorizontalAlignment="Left" Margin="66,97,0,0" VerticalAlignment="Top" Width="161" Click="ButtonJournalCommunity_Click"/>
+                        <Button Name="ButtonRiskManagerCommunity" Content="General risk manager" HorizontalAlignment="Left" Margin="66,124,0,0" VerticalAlignment="Top" Width="161" Click="ButtonRiskManagerCommunity_Click" />
+                        <Button Name="ButtonStrategParametr" Content="Parameters"  HorizontalAlignment="Left" Margin="66,256,0,0" VerticalAlignment="Top" Width="161" Click="ButtonStrategParametr_Click" />
+                        <Button Name="ButtonRiskManager" Content="Risk manager" HorizontalAlignment="Left" Margin="65,310,0,0" VerticalAlignment="Top" Width="161" Click="ButtonRiskManager_Click" />
+                        <CheckBox Name="CheckBoxPaintOnOff" Content="Interface drawing" HorizontalAlignment="Left" Margin="66,154,0,0" VerticalAlignment="Top"/>
                     </Grid>
                 </TabItem>
             </TabControl>
@@ -51,37 +51,37 @@
 
         <Grid x:Name="GreedPozitonLogHost" Margin="25,0,10,10" Height="167" VerticalAlignment="Bottom" Grid.Row="1">
             <TabControl Margin="0,-23,0,0" x:Name="TabControlPrime" BorderThickness="0" >
-                <TabItem x:Name="TabPozition" Header="Позиции открытые" Width="140"  >
+                <TabItem Name="TabPozition" Header="Open positions" Width="140"  >
                     <Grid Margin="-5,-5,-5,-5">
                         <WindowsFormsHost x:Name="HostOpenPosition" Margin="0,0,0,0" Foreground="Black"/>
                     </Grid>
                 </TabItem>
-                <TabItem Header="Позиции закрытые" Width="140"  >
+                <TabItem Name="TabItemClosedPos" Header="Closed positions" Width="140"  >
                     <Grid Margin="-5,-5,-5,-5">
                         <WindowsFormsHost x:Name="HostClosePosition" Foreground="Black" />
                     </Grid>
                 </TabItem>
-                <TabItem Header="Все позиции" Width="140"  >
+                <TabItem Name="TabItemAllPos" Header="All positions" Width="140"  >
                     <Grid Margin="-5,-5,-5,-5">
                         <WindowsFormsHost x:Name="HostAllPosition" Foreground="Black" />
                     </Grid>
                 </TabItem>
-                <TabItem x:Name="TextBoxPositionBord" Header="Портфель" Width="140">
+                <TabItem Name="TextBoxPositionBord" Header="Portfolio" Width="140">
                     <Grid Margin="-5,-5,-5,-5">
                         <WindowsFormsHost x:Name="HostPositionOnBoard" Foreground="Black" />
                     </Grid>
                 </TabItem>
-                <TabItem x:Name="TextBoxPositionAllOrders" Header="Ордера" Width="140">
+                <TabItem Name="TextBoxPositionAllOrders" Header="Ordres" Width="140">
                     <Grid Margin="-5,-5,-5,-5">
                         <WindowsFormsHost x:Name="HostOrdersOnBoard"  Foreground="Black"/>
                     </Grid>
                 </TabItem>
-                <TabItem x:Name="TextBoxLogBot"  Header="Бот Лог" Width="140">
+                <TabItem Name="TabItemLogBot"  Header="Bot log" Width="140">
                     <Grid Margin="-5,-5,-5,-5">
                         <WindowsFormsHost Name ="HostBotLog" Foreground="Black" />
                     </Grid>
                 </TabItem>
-                <TabItem x:Name="TextBoxLogPrime"  Header="Прайм Лог" Width="140">
+                <TabItem x:Name="TabItemLogPrime"  Header="Prime Log" Width="140">
                     <Grid Margin="-5,-5,-5,-5">
                         <WindowsFormsHost Name ="HostBotLogPrime" Foreground="Black" />
                     </Grid>

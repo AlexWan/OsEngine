@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Windows;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers.Optimizer;
@@ -13,6 +14,7 @@ namespace OsEngine.OsOptimizer
 {
 
     /// <summary>
+    /// optimization class
     /// класс проводящий оптимизацию
     /// </summary>
     public class OptimizerExecutor
@@ -24,27 +26,29 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// object providing data for settings
         /// объект предоставляющий данные для настроек
         /// </summary>
         private OptimizerMaster _master;
 
         /// <summary>
+        /// start the optimization process
         /// запустить процесс оптимизации
         /// </summary>
-        /// <param name="parametersOn">список включенных в перебор параметров</param>
-        /// <param name="parameters">все параметры стратегии</param>
-        /// <returns>true если старт оптимизации закончился успешно</returns>
+        /// <param name="parametersOn">the list of included parameters/список включенных в перебор параметров</param>
+        /// <param name="parameters">all strategy parameters/все параметры стратегии</param>
+        /// <returns>true if optimization start is successful/true если старт оптимизации закончился успешно</returns>
         public bool Start(List<bool> parametersOn, List<IIStrategyParameter> parameters)
         {
             if (_primeThreadWorker != null)
             {
-                SendLogMessage("Процесс оптимизации уже запущен. ", LogMessageType.System);
+                SendLogMessage(OsLocalization.Optimizer.Message1, LogMessageType.System);
                 return false;
             }
             _parametersOn = parametersOn;
             _parameters = parameters;
 
-            SendLogMessage("Запущен процесс оптимизации. ", LogMessageType.System);
+            SendLogMessage(OsLocalization.Optimizer.Message2, LogMessageType.System);
 
             _neadToStop = false;
             _servers = new List<OptimizerServer>();
@@ -59,39 +63,47 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// the list of included parameters. If true, then the parameter with this number must be iterated.
         /// список включенных в перебор параметров. Если true, то параметр с таким номером нужно перебирать
         /// </summary>
         private List<bool> _parametersOn;
 
         /// <summary>
+        /// strategy parameters
         /// параметры стратегии
         /// </summary>
         private List<IIStrategyParameter> _parameters;
 
         /// <summary>
+        /// stop the optimization process
         /// остановить процесс оптимизации
         /// </summary>
         public void Stop()
         {
             _neadToStop = true;
-            SendLogMessage("Запрошено экстренное завершение завершение оптимизации. Ждите остановки процессов.", LogMessageType.System);
+            SendLogMessage(OsLocalization.Optimizer.Message3, LogMessageType.System);
         }
 
         /// <summary>
+        /// variable telling the thread to the optimization manager
+        /// on whether to continue launching new bots or
+        /// user requested to stop the process
         /// переменная сообщающая потоку управляющему процессом оптимизации 
         /// о том, нужно ли продолжать запускать новых ботов или 
         /// пользователь запросил остановку процесса
         /// </summary>
         private bool _neadToStop;
 
-// алгоритм оптимизации 
-        
+// optimization algorithm/алгоритм оптимизации 
+
         /// <summary>
+        /// main stream responsible for optimization
         /// основной поток отвечающий за оптимизацию
         /// </summary>
         private Thread _primeThreadWorker;
 
         /// <summary>
+        /// place of work flow responsible for optimization
         /// место работы потока отвечающего за оптимизацию
         /// </summary>
         private void PrimeThreadWorkerPlace()
@@ -113,7 +125,7 @@ namespace OsEngine.OsOptimizer
             List<bool> allOptimezedParam = _parametersOn;
 
 
-// 1 считаем сколько проходов нам нужно сделать в первой фазе
+// 1 consider how many passes we need to do in the first phase/1 считаем сколько проходов нам нужно сделать в первой фазе
 
             List<IIStrategyParameter> optimizedParamToCheckCount = new List<IIStrategyParameter>();
 
@@ -134,7 +146,7 @@ namespace OsEngine.OsOptimizer
 
             while (true)
             {
-                bool isAndOfFaze = false; // все параметры пройдены
+                bool isAndOfFaze = false; // all parameters passed/все параметры пройдены
 
                 for (int i2 = 0; i2 < optimizedParamToCheckCount.Count + 1; i2++)
                 {
@@ -157,12 +169,14 @@ namespace OsEngine.OsOptimizer
 
                         if (parameter.ValueInt < parameter.ValueIntStop)
                         {
+                            // the current index can increment the value
                             // по текущему индексу можно приращивать значение
                             parameter.ValueInt = parameter.ValueInt + parameter.ValueIntStep;
                             if (i2 > 0)
                             {
                                 for (int i3 = 0; i3 < i2; i3++)
                                 {
+                                    // reset all previous parameters to zero
                                     // сбрасываем все предыдущие параметры в ноль
                                     ReloadParam(optimizedParamToCheckCount[i3]);
                                 }
@@ -178,12 +192,14 @@ namespace OsEngine.OsOptimizer
 
                         if (parameter.ValueDecimal < parameter.ValueDecimalStop)
                         {
+                            // at the current index you can increment the value
                             // по текущему индексу можно приращивать значение
                             parameter.ValueDecimal = parameter.ValueDecimal + parameter.ValueDecimalStep;
                             if (i2 > 0)
                             {
                                 for (int i3 = 0; i3 < i2; i3++)
                                 {
+                                    // reset all previous parameters to zero
                                     // сбрасываем все предыдущие параметры в ноль
                                     ReloadParam(optimizedParamToCheckCount[i3]);
                                 }
@@ -203,8 +219,9 @@ namespace OsEngine.OsOptimizer
 
             _countAllServersMax = countBots;
 
-            SendLogMessage("Количество ботов для обхода: " + countBots, LogMessageType.System);
+            SendLogMessage(OsLocalization.Optimizer.Message4 + countBots, LogMessageType.System);
 
+// 2 pass the first phase when you need to bypass all the options
 // 2 проходим первую фазу, когда нужно обойти все варианты
 
             List<IIStrategyParameter> optimizedParam = new List<IIStrategyParameter>();
@@ -235,8 +252,8 @@ namespace OsEngine.OsOptimizer
 
             while (true)
             {
-                bool isAndOfFaze = false; // все параметры пройдены
-               
+                bool isAndOfFaze = false; // all parameters passed/все параметры пройдены
+
                 for (int i2 = 0; i2 < currentParam.Count+1; i2++)
                 {
                     if (i2 == currentParam.Count)
@@ -257,12 +274,14 @@ namespace OsEngine.OsOptimizer
 
                         if (parameter.ValueInt < parameter.ValueIntStop)
                         {
+                            // at the current index you can increment the value
                             // по текущему индексу можно приращивать значение
                             parameter.ValueInt = parameter.ValueInt + parameter.ValueIntStep;
                             if (i2 > 0)
                             {
                                 for (int i3 = 0; i3 < i2; i3++)
                                 {
+                                    // reset all previous parameters to zero
                                     // сбрасываем все предыдущие параметры в ноль
                                     ReloadParam(currentParam[i3]);
                                 }
@@ -278,12 +297,14 @@ namespace OsEngine.OsOptimizer
 
                         if (parameter.ValueDecimal < parameter.ValueDecimalStop)
                         {
+                            // at the current index you can increment the value
                             // по текущему индексу можно приращивать значение
                             parameter.ValueDecimal = parameter.ValueDecimal + parameter.ValueDecimalStep;
                             if (i2 > 0)
                             {
                                 for (int i3 = 0; i3 < i2; i3++)
                                 {
+                                    // reset all previous parameters to zero
                                     // сбрасываем все предыдущие параметры в ноль
                                     ReloadParam(currentParam[i3]);
                                 }
@@ -328,7 +349,7 @@ namespace OsEngine.OsOptimizer
 
                 StartNewBot(allParam, currentParam, fazes[0], botsInFaze, _serverNum.ToString() + " InSample");
 
-            } // while по перебору параметров
+            } // while enumerating parameters/while по перебору параметров
 
             while (true)
             {
@@ -344,17 +365,17 @@ namespace OsEngine.OsOptimizer
                 botsInFaze[i].Delete();
             }
 
-            SendLogMessage("InSample этап закончен. Фильтруем данные...", LogMessageType.System);
+            SendLogMessage(OsLocalization.Optimizer.Message5, LogMessageType.System);
 
-// 3 фильтруем 
+// 3 filter/3 фильтруем 
 
             List<BotPanel> botsToOutOfSample = new List<BotPanel>();
 
             EndOfFazeFiltration(botsInFaze, fazes[0], botsToOutOfSample);
 
-// 4 делаем форварды
+// 4 do forwards/4 делаем форварды
 
-            SendLogMessage("Фильтрация окончена. Делаем форвардные тесты...", LogMessageType.System);
+            SendLogMessage(OsLocalization.Optimizer.Message6, LogMessageType.System);
 
             List<BotPanel> botsOutOfSample = new List<BotPanel>();
 
@@ -405,7 +426,7 @@ namespace OsEngine.OsOptimizer
                 botsOutOfSample[i].Delete();
             }
 
-            SendLogMessage("Оптимизация закончена.", LogMessageType.System);
+            SendLogMessage(OsLocalization.Optimizer.Message7, LogMessageType.System);
 
             if (TestReadyEvent != null)
             {
@@ -415,9 +436,10 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// reset parameter to initial values
         /// сбросить параметр на начальные значения
         /// </summary>
-        /// <param name="param">параметр который нужно привести в исходное состояние</param>
+        /// <param name="param">the parameter to be reset/параметр который нужно привести в исходное состояние</param>
         private void ReloadParam(IIStrategyParameter param)
         {
             if (param.Type == StrategyParameterType.Int)
@@ -432,6 +454,7 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// copy parameter list
         /// копировать список параметров
         /// </summary>
         private List<IIStrategyParameter> CopyParameters(List<IIStrategyParameter> paramsToCopy)
@@ -476,6 +499,7 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// filtering results at the end of the current phase
         /// фильтрация результатов в конце текущей фазы
         /// </summary>
         private void EndOfFazeFiltration(List<BotPanel> bots, OptimizerFaze faze, List<BotPanel> botsToOutOfSample)
@@ -509,6 +533,11 @@ namespace OsEngine.OsOptimizer
                 {
 
                 }
+                else if (_master.FilterDealsCountIsOn &&
+                         bots[i].PositionsCount < _master.FilterDealsCountValue)
+                {
+
+                }
                 else
                 {
                     botsToOutOfSample.Add(bots[i]);
@@ -518,25 +547,26 @@ namespace OsEngine.OsOptimizer
 
             if (botsToOutOfSample.Count == 0)
             {
-                SendLogMessage("К сожалению все боты были отфильтрованы. Поставьте более щадящие настройки для выбраковки результатов", LogMessageType.System);
-                MessageBox.Show("К сожалению все боты были отфильтрованы. Поставьте более щадящие настройки для выбраковки результатов");
+                SendLogMessage(OsLocalization.Optimizer.Message8, LogMessageType.System);
+                MessageBox.Show(OsLocalization.Optimizer.Message8);
                 NeadToMoveUiToEvent(NeadToMoveUiTo.TabsAndTimeFrames);
             }
             else if (startCount != botsToOutOfSample.Count)
             {
-                SendLogMessage("Отфильтрованно ботов: " + (startCount - botsToOutOfSample.Count), LogMessageType.System);
+                SendLogMessage(OsLocalization.Optimizer.Message9 + (startCount - botsToOutOfSample.Count), LogMessageType.System);
             }
 
         }
 
         /// <summary>
+        /// launch another robot as part of optimization
         /// запустить ещё одного робота, в рамках оптимизации
         /// </summary>
-        /// <param name="parametrs">список всех параметров</param>
-        /// <param name="paramOptimized">параметры по которым осуществляется перебор</param>
-        /// <param name="faze">текущая фаза оптимизации</param>
-        /// <param name="botsInFaze">список ботов уже запущенный в текущей фазе</param>
-        /// <param name="botName">имя создаваемого робота</param>
+        /// <param name="parametrs">list of all parameters/список всех параметров</param>
+        /// <param name="paramOptimized">brute force options/параметры по которым осуществляется перебор</param>
+        /// <param name="faze">current optimization phase/текущая фаза оптимизации</param>
+        /// <param name="botsInFaze">list of bots already running in the current phase/список ботов уже запущенный в текущей фазе</param>
+        /// <param name="botName">the name of the created robot/имя создаваемого робота</param>
         private void StartNewBot(List<IIStrategyParameter> parametrs, List<IIStrategyParameter> paramOptimized,
             OptimizerFaze faze, List<BotPanel> botsInFaze, string botName)
         {
@@ -551,6 +581,7 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
+// 1. Create a new server for optimization. And one thread respectively
 // 1. создаём новый сервер для оптимизации. И один поток соответственно
             OptimizerServer server = ServerMaster.CreateNextOptimizerServer(_master.Storage, _serverNum,
             _master.StartDepozit);
@@ -570,6 +601,8 @@ namespace OsEngine.OsOptimizer
                 server.GetDataToSecurity(secToStart, _master.TabsSimpleNamesAndTimeFrames[i].TimeFrame, faze.TimeStart,
                     faze.TimeEnd);
             }
+
+// 2. create a new robot and upload it with the appropriate settings and parameters
 // 2. создаём нового робота и прогружаем его соответствующими настройками и параметрами
 
             BotPanel bot = PanelCreator.GetStrategyForName(_master.StrategyName, botName,StartProgram.IsOsOptimizer);
@@ -600,6 +633,8 @@ namespace OsEngine.OsOptimizer
                     ((StrategyParameterDecimal)bot.Parameters[i]).ValueDecimal = ((StrategyParameterDecimal)par).ValueDecimal;
                 }
             }
+
+// custom tabs
 // настраиваем вкладки
             for (int i = 0; i < _master.TabsSimpleNamesAndTimeFrames.Count; i++)
             {
@@ -651,6 +686,7 @@ namespace OsEngine.OsOptimizer
                 bot.TabsIndex[i].UserFormula = _master.TabsIndexNamesAndTimeFrames[i].Formula;
             }
 
+// wait for the robot to connect to its data server
 // ждём пока робот подключиться к своему серверу данных
 
             DateTime timeStartWaiting = DateTime.Now;
@@ -663,7 +699,7 @@ namespace OsEngine.OsOptimizer
                 {
 
                     SendLogMessage(
-                        "Слишком долгое ожидание подклчючения робота к серверу данных. Что-то пошло не так!",
+                        OsLocalization.Optimizer.Message10,
                         LogMessageType.Error);
                     return;
                 }
@@ -675,6 +711,9 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// changed the state of progress of optimization
+        /// first parameter: current progressBar value
+        /// second parameter: maximum progressBar value
         /// изменилось состояние прогресса оптимизации
         /// первый параметр: текущее значение progressBar
         /// второй параемтр: максимальное значение progressBar
@@ -682,36 +721,43 @@ namespace OsEngine.OsOptimizer
         public event Action<int,int> PrimeProgressChangeEvent;
 
         /// <summary>
+        /// the event that you need to move the interface to a certain place
         /// событие о том что нужно переместить интерфейс в определённое место
         /// </summary>
         public event Action<NeadToMoveUiTo> NeadToMoveUiToEvent;
 
+// server performing optimization
 // сервера проводящие оптимизацию
 
         /// <summary>
+        /// server optimization
         /// сервера оптимизации
         /// </summary>
         private List<OptimizerServer> _servers = new List<OptimizerServer>();
 
         /// <summary>
+        /// current server sequence number
         /// порядковый номер текущего сервера
         /// </summary>
         private int _serverNum;
 
         /// <summary>
+        /// maximum number of possible detours during the optimization process
         /// максимальное кол-во обходов возможных за процесс оптимизации
         /// </summary>
         private int _countAllServersMax;
 
         /// <summary>
+        /// Object that prevents multi-threaded access in server_TestingEndEvent
         /// объект препятствующий многопоточному доступу в server_TestingEndEvent
         /// </summary>
         private object _serverRemoveLocker = new object();
 
         /// <summary>
+        /// server completed testing
         /// сервер закончил тестирование
         /// </summary>
-        /// <param name="serverNum">номер сервера</param>
+        /// <param name="serverNum">server number/номер сервера</param>
         private void server_TestingEndEvent(int serverNum)
         {
             if (TestingProgressChangeEvent != null)
@@ -739,16 +785,18 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// event: optimization is over
         /// событие: оптимизация окончена
         /// </summary>
         public event Action<List<BotPanel>, List<BotPanel>> TestReadyEvent;
 
         /// <summary>
+        /// inbound event: testing progress state changed
         /// входящее событие: изменилось состояние прогресса тестирования
         /// </summary>
-        /// <param name="curVal">текущее значение для Прогрессбара</param>
-        /// <param name="maxVal">максимальное значение для прогрессБара</param>
-        /// <param name="numServer">номер сервера</param>
+        /// <param name="curVal">current value for Progressbar/текущее значение для Прогрессбара</param>
+        /// <param name="maxVal">maximum value for progress bar/максимальное значение для прогрессБара</param>
+        /// <param name="numServer">server number/номер сервера</param>
         private void server_TestintProgressChangeEvent(int curVal, int maxVal, int numServer)
         {
             if (TestingProgressChangeEvent != null)
@@ -759,17 +807,19 @@ namespace OsEngine.OsOptimizer
 
 
         /// <summary>
+        /// event: the state of progress has changed
         /// событие: изменилось состояние прогресса 
         /// </summary>
         public event Action<int, int, int> TestingProgressChangeEvent;
 
-// логирование
+        // logging/логирование
 
         /// <summary>
+        /// send up a new message
         /// выслать наверх новое сообщение
         /// </summary>
-        /// <param name="message">текст сообщения</param>
-        /// <param name="type">тип сообщения</param>
+        /// <param name="message">Message text/текст сообщения</param>
+        /// <param name="type">message type/тип сообщения</param>
         private void SendLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
@@ -779,11 +829,9 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// event: new message for log
         /// событие: новое сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
     }
 }
-
-
-

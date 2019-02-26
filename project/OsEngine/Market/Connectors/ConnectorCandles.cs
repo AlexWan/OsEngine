@@ -9,6 +9,7 @@ using System.IO;
 using System.Threading;
 using OsEngine.Alerts;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Tester;
@@ -158,8 +159,7 @@ namespace OsEngine.Market.Connectors
                 if (ServerMaster.GetServers() == null||
                     ServerMaster.GetServers().Count == 0)
                 {
-                    AlertMessageSimpleUi uiMessage = new AlertMessageSimpleUi("Ни одного соединения с биржей не найдено! " +
-                                                        " Нажмите на кнопку ^Сервер^ ");
+                    AlertMessageSimpleUi uiMessage = new AlertMessageSimpleUi(OsLocalization.Market.Message1);
                     uiMessage.Show();
                     return;
                 }
@@ -678,6 +678,11 @@ namespace OsEngine.Market.Connectors
                     }
 
                     _subscrabler = null;
+
+                    if (SecuritySubscribeEvent != null)
+                    {
+                        SecuritySubscribeEvent(Security);
+                    }
                     return;
                 }
             }
@@ -1040,13 +1045,14 @@ namespace OsEngine.Market.Connectors
 
                 if (_myServer.ServerStatus == ServerConnectStatus.Disconnect)
                 {
-                    SendNewLogMessage("Попытка выставить ордер при выключенном соединении",LogMessageType.Error);
+                    SendNewLogMessage(OsLocalization.Market.Message2,LogMessageType.Error);
                     return;
                 }
 
                 order.SecurityNameCode = NamePaper;
                 order.PortfolioNumber = PortfolioName;
                 order.ServerType = ServerType;
+                order.TimeCreate = MarketTime;
 
                 if (EmulatorIsOn || _myServer.ServerType == ServerType.Finam)
                 {
@@ -1143,6 +1149,11 @@ namespace OsEngine.Market.Connectors
         /// коннектор начинает процедуру переподключения
         /// </summary>
         public event Action<string, TimeFrame, TimeSpan, string, ServerType> ConnectorStartedReconnectEvent;
+
+        /// <summary>
+        /// бумага для коннектора определена
+        /// </summary>
+        public event Action<Security> SecuritySubscribeEvent;
 
 // сообщения в лог 
 

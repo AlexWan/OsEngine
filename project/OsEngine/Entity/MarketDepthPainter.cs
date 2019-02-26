@@ -1,4 +1,8 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
@@ -6,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
+using OsEngine.Language;
 using OsEngine.Logging;
 
 namespace OsEngine.Entity
@@ -144,7 +149,7 @@ namespace OsEngine.Entity
 
                 DataGridViewColumn column0 = new DataGridViewColumn();
                 column0.CellTemplate = cell0;
-                column0.HeaderText = @"Сумма";
+                column0.HeaderText = OsLocalization.Entity.ColumnMarketDepth1;
                 column0.ReadOnly = true;
                 column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
@@ -153,7 +158,7 @@ namespace OsEngine.Entity
                 DataGridViewTextBoxCell cell = new DataGridViewTextBoxCell();
                 DataGridViewColumn column = new DataGridViewColumn();
                 column.CellTemplate = cell;
-                column.HeaderText = @"Объём";
+                column.HeaderText = OsLocalization.Entity.ColumnMarketDepth3;
                 column.ReadOnly = true;
                 column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
@@ -162,7 +167,7 @@ namespace OsEngine.Entity
                 DataGridViewTextBoxCell cell2 = new DataGridViewTextBoxCell();
                 DataGridViewColumn column1 = new DataGridViewColumn();
                 column1.CellTemplate = cell2;
-                column1.HeaderText = @"Цена";
+                column1.HeaderText = OsLocalization.Entity.ColumnMarketDepth2;
                 column1.ReadOnly = true;
                 column1.Width = 90;
 
@@ -172,7 +177,7 @@ namespace OsEngine.Entity
                 DataGridViewTextBoxCell cell3 = new DataGridViewTextBoxCell();
                 DataGridViewColumn column3 = new DataGridViewColumn();
                 column3.CellTemplate = cell3;
-                column3.HeaderText = @"Объём";
+                column3.HeaderText = OsLocalization.Entity.ColumnMarketDepth3;
                 column3.ReadOnly = true;
                 column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 

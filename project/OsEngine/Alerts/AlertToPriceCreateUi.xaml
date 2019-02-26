@@ -7,24 +7,24 @@
         <Rectangle Margin="5,212,5,45" />
         <Rectangle Margin="5,85,5,0" Height="122" VerticalAlignment="Top"/>
         <Rectangle Margin="5,5,5,0" Height="75" VerticalAlignment="Top"/>
-        <Button x:Name="ButtonSave" Content="Принять" Margin="0,0,5,18" HorizontalAlignment="Right" Width="132" Height="22" VerticalAlignment="Bottom" Click="ButtonSave_Click" />
-        <CheckBox x:Name="CheckBoxOnOff" Content="Вкл / Выкл" HorizontalAlignment="Left" Margin="21,23,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
-        <CheckBox x:Name="CheckBoxWindow" Content="Всплывающее окно" HorizontalAlignment="Left" Margin="65,251,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name="TextBoxAlertMessage" HorizontalAlignment="Left" Height="75" Margin="232,233,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="232"/>
-        <Label Content="Тип реакции" HorizontalAlignment="Left" Margin="52,119,0,0" VerticalAlignment="Top" />
+        <Button x:Name="ButtonSave" Content="Accept" Margin="0,0,5,18" HorizontalAlignment="Right" Width="132" Height="22" VerticalAlignment="Bottom" Click="ButtonSave_Click" />
+        <CheckBox x:Name="CheckBoxOnOff" Content="On / Off" HorizontalAlignment="Left" Margin="21,23,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
+        <CheckBox x:Name="CheckBoxWindow" Content="Popup window" HorizontalAlignment="Left" Margin="52,251,0,0" VerticalAlignment="Top" />
+        <TextBox x:Name="TextBoxAlertMessage" Height="75" Margin="232,233,22,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <Label Name="LabelReactionType" Content="Reaction" HorizontalAlignment="Left" Margin="52,119,0,0" VerticalAlignment="Top" />
         <ComboBox x:Name="ComboBoxSignalType" HorizontalAlignment="Left" Margin="142,120,0,0" VerticalAlignment="Top" Width="103"/>
-        <TextBox x:Name="TextBoxVolumeReaction" HorizontalAlignment="Left" Height="23" Margin="363,119,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="101"/>
-        <Label Content="Объём" HorizontalAlignment="Left" Margin="312,119,0,0" VerticalAlignment="Top" />
+        <TextBox x:Name="TextBoxVolumeReaction" HorizontalAlignment="Right" Height="23" Margin="0,119,22,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="101"/>
+        <Label Name="LabelVolume" Content="Volume" HorizontalAlignment="Right" Margin="0,120,128,0" VerticalAlignment="Top" />
         <ComboBox x:Name="ComboBoxOrderType" HorizontalAlignment="Left" Margin="142,148,0,0" VerticalAlignment="Top" Width="103"/>
-        <Label Content="Тип ордера" HorizontalAlignment="Left" Margin="52,147,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name="TextBoxSlippage" HorizontalAlignment="Left" Height="23" Margin="363,147,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="101"/>
-        <Label Content="Проскальзывание" HorizontalAlignment="Left" Margin="246,147,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name="TextBoxClosePosition" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" VerticalAlignment="Top" Width="101" Margin="363,175,0,0"/>
-        <Label Content="Номер закрываемой позиции" HorizontalAlignment="Left" Margin="174,175,0,0" VerticalAlignment="Top" />
-        <Label Content="Торговля" HorizontalAlignment="Left" Margin="21,85,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
-        <Label Content="Фейерверки" HorizontalAlignment="Left" Margin="21,212,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
+        <Label Name="LabelOrderType" Content="Order Type" HorizontalAlignment="Left" Margin="52,147,0,0" VerticalAlignment="Top" />
+        <TextBox x:Name="TextBoxSlippage" HorizontalAlignment="Right" Height="23" Margin="0,147,22,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="101"/>
+        <Label Name="LabelSlippage" Content="Slippage" HorizontalAlignment="Right" Margin="0,148,128,0" VerticalAlignment="Top" RenderTransformOrigin="0.741,0.435" />
+        <TextBox x:Name="TextBoxClosePosition" HorizontalAlignment="Right" Height="23" TextWrapping="Wrap" VerticalAlignment="Top" Width="101" Margin="0,175,22,0"/>
+        <Label Name="LabelNumClosedPos" Content="Number of position to be closed" HorizontalAlignment="Right" Margin="0,175,128,0" VerticalAlignment="Top" />
+        <Label Name="LabelTrade" Content="Trading" HorizontalAlignment="Left" Margin="21,85,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
+        <Label Name="LabelFireworks" Content="Fireworks" HorizontalAlignment="Left" Margin="21,212,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
         <ComboBox x:Name="ComboBoxActivationType" HorizontalAlignment="Left" Margin="282,23,0,0" VerticalAlignment="Top" Width="182"/>
-        <Label Content="Активация" HorizontalAlignment="Left" Margin="195,23,0,0" VerticalAlignment="Top" />
+        <Label Name="LabelActivation" Content="Activation" HorizontalAlignment="Left" Margin="195,23,0,0" VerticalAlignment="Top" />
         <TextBox x:Name="TextBoxPriceActivation" HorizontalAlignment="Left" Height="23" Margin="347,54,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="117"/>
         <ComboBox x:Name="ComboBoxMusic" HorizontalAlignment="Left" Margin="111,282,0,0" VerticalAlignment="Top" Width="116"/>
         <Rectangle Fill="#FCEE21" Height="179" Stroke="Black" StrokeThickness="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="20" RenderTransformOrigin="0.5,0.5" Margin="3,0,0,-1">
@@ -37,7 +37,7 @@
                 </TransformGroup>
             </Rectangle.RenderTransform>
         </Rectangle>
-        <Label Content="Звук" HorizontalAlignment="Left" Margin="65,282,0,0" VerticalAlignment="Top"/>
+        <Label Name="CheckBoxMusicAlert" Content="Sound" HorizontalAlignment="Left" Margin="52,282,0,0" VerticalAlignment="Top"/>
         <Label x:Name="LabelOsa" Content="O-S-A.NET" Foreground="Black" HorizontalAlignment="Left" Margin="-26,271,0,0" VerticalAlignment="Top" FontWeight="Bold" RenderTransformOrigin="0.5,0.5" FontSize="14">
             <Label.RenderTransform>
                 <TransformGroup>

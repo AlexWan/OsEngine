@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading;
 using System.Windows;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using Action = System.Action;
@@ -25,7 +26,7 @@ namespace OsEngine.Market.Servers.Finam
     /// </summary>
     public class FinamServer : IServer
     {
-
+        
         /// <summary>
         /// конструктор
         /// </summary>
@@ -165,7 +166,7 @@ namespace OsEngine.Market.Servers.Finam
                 if (value != _serverConnectStatus)
                 {
                     _serverConnectStatus = value;
-                    SendLogMessage(_serverConnectStatus + " Изменилось состояние соединения", LogMessageType.Connect);
+                    SendLogMessage(_serverConnectStatus + OsLocalization.Market.Message7, LogMessageType.Connect);
                     if (ConnectStatusChangeEvent != null)
                     {
                         ConnectStatusChangeEvent(_serverConnectStatus.ToString());
@@ -192,7 +193,7 @@ namespace OsEngine.Market.Servers.Finam
         {
             if (ServerStatus == ServerConnectStatus.Connect)
             {
-                SendLogMessage("Перехвачена попытка запустить сервер, со статусом Connect", LogMessageType.System);
+                SendLogMessage(OsLocalization.Market.Message2, LogMessageType.System);
                 return;
             }
             _serverStatusNead = ServerConnectStatus.Connect;
@@ -203,11 +204,6 @@ namespace OsEngine.Market.Servers.Finam
         /// </summary>
         public void StopServer()
         {
-            if (ServerStatus == ServerConnectStatus.Disconnect)
-            {
-                SendLogMessage("Перехвачена попытка остановить сервер, со статусом Disconnect", LogMessageType.System);
-                return;
-            }
             _serverStatusNead = ServerConnectStatus.Disconnect;
         }
 
@@ -239,7 +235,7 @@ namespace OsEngine.Market.Servers.Finam
                     if (_serverStatusNead == ServerConnectStatus.Connect &&
                         _serverConnectStatus == ServerConnectStatus.Disconnect)
                     {
-                        SendLogMessage("Запущена процедура активации подключения", LogMessageType.System);
+                        SendLogMessage(OsLocalization.Market.Message8, LogMessageType.System);
                         CheckServer();
                         continue;
                     }
@@ -257,7 +253,7 @@ namespace OsEngine.Market.Servers.Finam
 
                     if (_getSecurities == false)
                     {
-                        SendLogMessage("Скачиваем бумаги", LogMessageType.System);
+                        SendLogMessage(OsLocalization.Market.Message50, LogMessageType.System);
                         GetSecurities();
                         CreatePortfolio();
                         _getSecurities = true;
@@ -271,7 +267,6 @@ namespace OsEngine.Market.Servers.Finam
                 }
                 catch (Exception error)
                 {
-                    SendLogMessage("КРИТИЧЕСКАЯ ОШИБКА. Реконнект", LogMessageType.Error);
                     SendLogMessage(error.ToString(), LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
 
@@ -314,7 +309,7 @@ namespace OsEngine.Market.Servers.Finam
             if (pingReply == null || pingReply.Status != IPStatus.Success ||
                 pingReply.RoundtripTime > 1000)
             { // если что-то не так - выходим
-                SendLogMessage("Ошибка доступа к серверу: ping is " + pingReply.Status + ". Не верный адрес или отсутствует интернет соединение", LogMessageType.Error);
+                SendLogMessage("Server response fail, ping is " + pingReply.Status + ". wrong address or internet fail", LogMessageType.Error);
                 return;
             }
 
@@ -332,7 +327,7 @@ namespace OsEngine.Market.Servers.Finam
 
             if (pageContent.Length == 0)
             { // если нет контента - выходим
-                SendLogMessage("Ошибка доступа к серверу. Не верный адрес или отсутствует интернет соединение", LogMessageType.Error);
+                SendLogMessage(OsLocalization.Market.Message51, LogMessageType.Error);
                 return;
             }
 
@@ -571,7 +566,7 @@ namespace OsEngine.Market.Servers.Finam
 
             _securitiesToSend.Enqueue(_securities);
 
-            SendLogMessage("Доступно " +  _securities.Count + " бумаг.", LogMessageType.System);
+            SendLogMessage(OsLocalization.Market.Message52 +  _securities.Count, LogMessageType.System);
         }
 
         private List<FinamSecurity> Ge3tCryptoSec()
@@ -678,7 +673,7 @@ namespace OsEngine.Market.Servers.Finam
             fakePortfolio.ValueBegin = 1000000;
             _portfolios.Add(fakePortfolio);
 
-            SendLogMessage("Создан портфель для торговли в эмуляторе " + fakePortfolio.Number, LogMessageType.System);
+            SendLogMessage(OsLocalization.Market.Message53 + fakePortfolio.Number, LogMessageType.System);
 
             _portfolioToSend.Enqueue(Portfolios);
         }
@@ -906,112 +901,6 @@ namespace OsEngine.Market.Servers.Finam
             return null;
         }
 
-        /// <summary>
-        /// Начать выгрузку данных по инструменту. 
-        /// </summary>
-        /// <param name="securityId">айди бумаги</param>
-        /// <param name="timeFrameBuilder">объект несущий в себе данные по таймФреймам</param>
-        /// <param name="startTime">время начала загрузки</param>
-        /// <param name="endTime">время завершения работы</param>
-        /// <param name="actualTime">время последней загрузки данных</param>
-        /// <param name="neadToUpdate">нужно ли автоматически обновлять</param>
-        /// <returns>В случае удачи возвращает CandleSeries
-        /// в случае неудачи null</returns>
-        public CandleSeries StartThisSecurity(string securityId, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdate)
-        {
-            try
-            {
-                if (_lastStartServerTime.AddSeconds(5) > DateTime.Now)
-                {
-                    return null;
-                }
-
-                // дальше по одному
-                lock (_lockerStarter)
-                {
-                    if (securityId == null)
-                    {
-                        return null;
-                    }
-                    // надо запустить сервер если он ещё отключен
-                    if (ServerStatus != ServerConnectStatus.Connect)
-                    {
-                        //MessageBox.Show("Сервер не запущен. Скачивание данных прервано. Инструмент: " + namePaper);
-                        return null;
-                    }
-
-                    if (_securities == null)
-                    {
-                        Thread.Sleep(5000);
-                        return null;
-                    }
-                    if (_lastStartServerTime != DateTime.MinValue &&
-                        _lastStartServerTime.AddSeconds(15) > DateTime.Now)
-                    {
-                        return null;
-                    }
-
-                    Security security = null;
-
-                    for (int i = 0; _securities != null && i < _securities.Count; i++)
-                    {
-                        if (_securities[i].NameId == securityId)
-                        {
-                            security = _securities[i];
-                            break;
-                        }
-                    }
-
-                    if (security == null)
-                    {
-                        return null;
-                    }
-
-                    _candles = null;
-
-                    CandleSeries series = new CandleSeries(timeFrameBuilder, security, StartProgram.IsOsData)
-                    {
-                        CandlesAll = _candles,
-                        IsStarted = true
-                    };
-
-                    FinamDataSeries finamDataSeries = new FinamDataSeries();
-
-                    finamDataSeries.ServerPrefics = "http://" + ServerAdress;
-                    finamDataSeries.TimeActual = actualTime;
-                    finamDataSeries.Security = security;
-                    finamDataSeries.SecurityFinam = _finamSecurities.Find(s => s.Id == security.NameId);
-                    finamDataSeries.Series = series;
-                    finamDataSeries.TimeEnd = endTime;
-                    finamDataSeries.TimeStart = startTime;
-                    finamDataSeries.TimeFrame = timeFrameBuilder.TimeFrame;
-                    finamDataSeries.LogMessageEvent += SendLogMessage;
-                    finamDataSeries.NeadToUpdeate = neadToUpdate;
-
-
-                    if (_finamDataSeries == null)
-                    {
-                        _finamDataSeries = new List<FinamDataSeries>();
-                    }
-
-                    _finamDataSeries.Add(finamDataSeries);
-
-                    Thread.Sleep(2000);
-
-                    SendLogMessage("Инструмент " + series.Security.Name + "ТаймФрейм" + series.TimeFrame +
-                                   " успешно подключен на получение данных и прослушивание свечек",
-                        LogMessageType.System);
-
-                    return series;
-                }
-            }
-            catch (Exception error)
-            {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
-                return null;
-            }
-        }
-
         void series_СandleFinishedEvent(CandleSeries series)
         {
             _candleSeriesToSend.Enqueue(series);
@@ -1063,7 +952,118 @@ namespace OsEngine.Market.Servers.Finam
             _bidAskToSend.Enqueue(bidAskSender);
         }
 
-        public bool StartTickToSecurity(string id, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdete)
+        /// <summary>
+        /// Начать выгрузку данных по инструменту. 
+        /// </summary>
+        /// <param name="namePaper">айди бумаги</param>
+        /// <param name="timeFrameBuilder">объект несущий в себе данные по таймФреймам</param>
+        /// <param name="startTime">время начала загрузки</param>
+        /// <param name="endTime">время завершения работы</param>
+        /// <param name="actualTime">время последней загрузки данных</param>
+        /// <param name="neadToUpdate">нужно ли автоматически обновлять</param>
+        /// <returns>В случае удачи возвращает CandleSeries
+        /// в случае неудачи null</returns>
+        public CandleSeries GetCandleDataToSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdate)
+        {
+            try
+            {
+                if (_lastStartServerTime.AddSeconds(5) > DateTime.Now)
+                {
+                    return null;
+                }
+
+                // дальше по одному
+                lock (_lockerStarter)
+                {
+                    if (namePaper == null)
+                    {
+                        return null;
+                    }
+                    // надо запустить сервер если он ещё отключен
+                    if (ServerStatus != ServerConnectStatus.Connect)
+                    {
+                        //MessageBox.Show("Сервер не запущен. Скачивание данных прервано. Инструмент: " + namePaper);
+                        return null;
+                    }
+
+                    if (_securities == null)
+                    {
+                        Thread.Sleep(5000);
+                        return null;
+                    }
+                    if (_lastStartServerTime != DateTime.MinValue &&
+                        _lastStartServerTime.AddSeconds(15) > DateTime.Now)
+                    {
+                        return null;
+                    }
+
+                    Security security = null;
+
+                    for (int i = 0; _securities != null && i < _securities.Count; i++)
+                    {
+                        if (_securities[i].NameId == namePaper)
+                        {
+                            security = _securities[i];
+                            break;
+                        }
+                    }
+
+                    if (security == null)
+                    {
+                        return null;
+                    }
+
+                    _candles = null;
+
+                    CandleSeries series = new CandleSeries(timeFrameBuilder, security, StartProgram.IsOsData)
+                    {
+                        CandlesAll = _candles,
+                        IsStarted = true
+                    };
+
+                    FinamDataSeries finamDataSeries = new FinamDataSeries();
+
+                    finamDataSeries.ServerPrefics = "http://" + ServerAdress;
+                    finamDataSeries.TimeActual = actualTime;
+                    finamDataSeries.Security = security;
+                    finamDataSeries.SecurityFinam = _finamSecurities.Find(s => s.Id == security.NameId);
+                    finamDataSeries.Series = series;
+                    finamDataSeries.TimeEnd = endTime;
+                    finamDataSeries.TimeStart = startTime;
+                    finamDataSeries.TimeFrame = timeFrameBuilder.TimeFrame;
+                    finamDataSeries.LogMessageEvent += SendLogMessage;
+                    finamDataSeries.NeadToUpdeate = neadToUpdate;
+
+
+                    if (_finamDataSeries == null)
+                    {
+                        _finamDataSeries = new List<FinamDataSeries>();
+                    }
+
+                    _finamDataSeries.Add(finamDataSeries);
+
+                    Thread.Sleep(2000);
+
+                    SendLogMessage(OsLocalization.Market.Label7 + series.Security.Name +
+                                   OsLocalization.Market.Label10 + series.TimeFrame +
+                                   OsLocalization.Market.Message16,
+                        LogMessageType.System);
+
+                    return series;
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// взять тиковые данные по инструменту за определённый период
+        /// </summary>
+        /// <returns></returns>
+        public bool GetTickDataToSecurity(string namePaper, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdete)
         {
             try
             {
@@ -1075,7 +1075,7 @@ namespace OsEngine.Market.Servers.Finam
                 // дальше по одному
                 lock (_lockerStarter)
                 {
-                    if (id == null)
+                    if (namePaper == null)
                     {
                         return false;
                     }
@@ -1102,7 +1102,7 @@ namespace OsEngine.Market.Servers.Finam
 
                     for (int i = 0; _securities != null && i < _securities.Count; i++)
                     {
-                        if (_securities[i].NameId == id)
+                        if (_securities[i].NameId == namePaper)
                         {
                             security = _securities[i];
                             break;
@@ -1137,8 +1137,9 @@ namespace OsEngine.Market.Servers.Finam
 
                     Thread.Sleep(2000);
 
-                    SendLogMessage("Инструмент " + security.Name + "ТаймФрейм Tick"+
-                                   " успешно подключен на получение данных и прослушивание свечек",
+                    SendLogMessage(OsLocalization.Market.Label7 + security.Name +
+                                   OsLocalization.Market.Label10 + " Tick" +
+                                   OsLocalization.Market.Message16,
                         LogMessageType.System);
 
                     return true;
@@ -1149,6 +1150,15 @@ namespace OsEngine.Market.Servers.Finam
                 SendLogMessage(error.ToString(), LogMessageType.Error);
                 return false;
             }
+        }
+
+        /// <summary>
+        /// запустить скачивание стакана по инструменту
+        /// </summary>
+        /// <returns></returns>
+        public bool StartMarketDepthDataToSecurity(string namePaper)
+        {
+            return true;
         }
 
         /// <summary>
@@ -1594,7 +1604,7 @@ namespace OsEngine.Market.Servers.Finam
 
                 LoadedOnce = true;
 
-                SendLogMessage(SecurityFinam.Name + " Старт скачивания данных. ТФ " + _timeFrame, LogMessageType.System);
+                SendLogMessage(SecurityFinam.Name + OsLocalization.Market.Message54 + _timeFrame, LogMessageType.System);
 
                 if (IsTick == false)
                 {
@@ -1672,7 +1682,7 @@ namespace OsEngine.Market.Servers.Finam
             {
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
-            SendLogMessage(SecurityFinam.Name + " Закончили скачивание данных. ТФ " + _timeFrame, LogMessageType.System);
+            SendLogMessage(SecurityFinam.Name + OsLocalization.Market.Message55 + _timeFrame, LogMessageType.System);
         }
 
         /// <summary>
@@ -1738,7 +1748,8 @@ namespace OsEngine.Market.Servers.Finam
         /// <returns></returns>
         private string GetTrades(DateTime timeStart, DateTime timeEnd)
         {
-            SendLogMessage("Обновляем данные по трейдам для бумаги " + SecurityFinam.Name + " за " + timeStart.Date, LogMessageType.System);
+            SendLogMessage(OsLocalization.Market.Message56 + SecurityFinam.Name +
+                           OsLocalization.Market.Message57 + timeStart.Date, LogMessageType.System);
             //http://195.128.78.52/GBPUSD_141201_141206.csv?market=5&em=86&code=GBPUSD&df=1&mf=11&yf=2014&from=01.12.2014&dt=6&mt=11&yt=2014&to=06.12.2014&
             //p=2&f=GBPUSD_141201_141206&e=.csv&cn=GBPUSD&dtf=1&tmf=3&MSOR=1&mstime=on&mstimever=1&sep=3&sep2=1&datf=5&at=1
 
@@ -1922,7 +1933,10 @@ namespace OsEngine.Market.Servers.Finam
         /// <returns></returns>
         private List<Candle> GetCandles(DateTime timeStart, DateTime timeEnd)
         {
-            SendLogMessage("Обновляем данные по свечам для бумаги " + SecurityFinam.Name + ". ТаймФрейм: " + TimeFrame + ". C " + timeStart.Date + " по " + timeEnd.Date, LogMessageType.System);
+            SendLogMessage(OsLocalization.Market.Message58 + SecurityFinam.Name +
+                           OsLocalization.Market.Label10 + TimeFrame +
+                           OsLocalization.Market.Label26 + timeStart.Date +
+                           OsLocalization.Market.Label27 + timeEnd.Date, LogMessageType.System);
             //http://195.128.78.52/GBPUSD_141201_141206.csv?market=5&em=86&code=GBPUSD&df=1&mf=11&yf=2014&from=01.12.2014&dt=6&mt=11&yt=2014&to=06.12.2014&
             //p=2&f=GBPUSD_141201_141206&e=.csv&cn=GBPUSD&dtf=1&tmf=3&MSOR=1&mstime=on&mstimever=1&sep=3&sep2=1&datf=5&at=1
 

@@ -3,6 +3,7 @@
 */
 
 using System.Windows;
+using OsEngine.Language;
 
 namespace OsEngine.Logging
 {
@@ -29,6 +30,12 @@ namespace OsEngine.Logging
                     TextBoxFones.Text += phones[i] + "\n";
                 }
             }
+
+            Title = OsLocalization.Logging.TitleSmsServer;
+            ButtonAccept.Content = OsLocalization.Logging.Button1;
+            Label15.Content = OsLocalization.Logging.Label15;
+            Label12.Content = OsLocalization.Logging.Label12;
+            Label14.Content = OsLocalization.Logging.Label14;
         }
 
         private void buttonAccept_Click(object sender, RoutedEventArgs e) // принять

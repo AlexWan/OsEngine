@@ -1,0 +1,20 @@
+﻿<Window x:Class="OsEngine.OsTrader.Panels.Tab.BotTabIndexUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+       Title="Connecting data flow to calculate the index" Height="408.381" Width="615.069" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+    <Window.Background>
+        <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+            <GradientStop Color="#FF323234" Offset="1"/>
+            <GradientStop Color="#FFE0E0EA"/>
+        </LinearGradientBrush>
+    </Window.Background>
+    <Grid>
+        <Rectangle Name="Rectangle" Fill="#FF17171B" Margin="10,10,10,37" Stroke="Black" StrokeThickness="0"/>
+        <Button Name="ButtonAccept" Content="Accept" Margin="0,0,10,10" Height="22" FontSize="14" FontFamily="Calibri" Click="ButtonAccept_Click"  VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="130"/>
+        <Button Name="ButtonSecurity1" Content="+"  Height="59" FontSize="14" FontFamily="Calibri" Margin="534,34,27,0" VerticalAlignment="Top" Click="ButtonAddSecurity_Click"/>
+        <Button Name="ButtonSecurity2" Content="-" Height="59" FontSize="14" FontFamily="Calibri" Margin="534,107,27,0" VerticalAlignment="Top" Click="ButtonDeleteSecurity_Click"/>
+        <WindowsFormsHost Name="HostSecurity1" HorizontalAlignment="Left" Margin="26,34,0,86" Width="488" />
+        <TextBox Name="TextboxUserFormula"  Margin="26,0,27,53" TextWrapping="Wrap" Text="" VerticalAlignment="Bottom" Height="28"/>
+
+    </Grid>
+</Window>

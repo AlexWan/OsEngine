@@ -1,10 +1,12 @@
 ﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
 using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Language;
 using MessageBox = System.Windows.MessageBox;
 using TextBox = System.Windows.Forms.TextBox;
 
@@ -60,6 +62,17 @@ namespace OsEngine.Charts.CandleChart.Indicators
             ComboBoxPriceField.Items.Add(PriceTypePoints.Typical);
 
             ComboBoxPriceField.SelectedItem = _mA.TypePointsToSearch;
+
+
+            ButtonColor.Content = OsLocalization.Charts.LabelButtonIndicatorColor;
+            CheckBoxPaintOnOff.Content = OsLocalization.Charts.LabelPaintIntdicatorIsVisible;
+            ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
+            LabelIndicatorPeriod.Content = OsLocalization.Charts.LabelIndicatorPeriod;
+            LabelIndicatorCandleType.Content = OsLocalization.Charts.LabelIndicatorCandleType;
+            LabelIndicatorMethod.Content = OsLocalization.Charts.LabelIndicatorMethod;
+            LabelIndicatorShortPeriod.Content = OsLocalization.Charts.LabelIndicatorShortPeriod;
+            LabelIndicatorLongPeriod.Content = OsLocalization.Charts.LabelIndicatorLongPeriod;
+
         }
 
         void ComboBoxMovingType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -67,7 +80,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             if (ComboBoxMovingType.SelectedItem.ToString() == MovingAverageTypeCalculation.Adaptive.ToString())
             {
-                Width = 460;
+                Width = 490;
             }
             else
             {

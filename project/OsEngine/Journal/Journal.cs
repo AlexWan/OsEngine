@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -354,13 +355,13 @@ namespace OsEngine.Journal
         /// <summary>
         /// узнать, храниться ли ордер в этом журнале
         /// </summary>
-        public bool IsMyOrder(Order order)
+        public Order IsMyOrder(Order order)
         {
             List<Position> positions = AllPosition;
 
             if (positions == null)
             {
-                return false;
+                return null;
             }
 
             for (int i = positions.Count - 1; i > -1; i--)
@@ -369,17 +370,17 @@ namespace OsEngine.Journal
 
                 if (openOrders != null && openOrders.Find(order1 => order1.NumberUser == order.NumberUser) != null)
                 {
-                    return true;
+                    return openOrders.Find(order1 => order1.NumberUser == order.NumberUser);
                 }
                 List<Order> closingOrders = positions[i].CloseOrders;
 
                 if (closingOrders != null && closingOrders.Find(order1 => order1.NumberUser == order.NumberUser) != null)
                 {
-                    return true;
+                    return closingOrders.Find(order1 => order1.NumberUser == order.NumberUser);
                 }
             }
 
-            return false;
+            return null;
         }
 
 // приём входящих данных

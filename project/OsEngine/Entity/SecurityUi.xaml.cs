@@ -1,10 +1,12 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
 using System.Globalization;
 using System.Windows;
+using OsEngine.Language;
 
 namespace OsEngine.Entity
 {
@@ -34,6 +36,14 @@ namespace OsEngine.Entity
             TextBoxLot.Text = security.Lot.ToString(culture);
             TextBoxStep.Text = security.PriceStep.ToString(culture);
             TextBoxStepCost.Text = security.PriceStepCost.ToString(culture);
+
+            Title = OsLocalization.Entity.TitleSecurityUi;
+            SecuritiesColumn3.Content = OsLocalization.Entity.SecuritiesColumn3;
+            SecuritiesColumn4.Content = OsLocalization.Entity.SecuritiesColumn4;
+            SecuritiesColumn5.Content = OsLocalization.Entity.SecuritiesColumn5;
+            SecuritiesColumn6.Content = OsLocalization.Entity.SecuritiesColumn6;
+            ButtonAccept.Content = OsLocalization.Entity.ButtonAccept;
+
         }
 
         /// <summary>
@@ -56,13 +66,13 @@ namespace OsEngine.Entity
             }
             catch (Exception)
             {
-                MessageBox.Show("Процесс сохранения прерван. В одном из полей не допустимое значение");
+                MessageBox.Show(OsLocalization.Entity.ErrorSave);
                 return;
             }
 
             if (go < 1 || go > 100)
             {
-                MessageBox.Show("Процесс сохранения прерван. ГО должно лежать в диапазоне от 1 до 100%");
+                MessageBox.Show(OsLocalization.Entity.ErrorSave);
                 return;
             }
 

@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -9,12 +10,14 @@ using OsEngine.Market;
 namespace OsEngine.OsTrader.Panels.Tab.Internal
 {
     /// <summary>
+    /// create position / 
     /// создатель сделок
     /// </summary>
     public class PositionCreator
     {
 
         /// <summary>
+        /// create position / 
         /// создать сделку
         /// </summary>
         public Position CreatePosition(string botName, Side direction, decimal priceOrder, decimal volume, OrderPriceType priceType, TimeSpan timeLife,
@@ -37,6 +40,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         }
 
         /// <summary>
+        /// create order / 
         /// создать ордер
         /// </summary>
         public Order CreateOrder(Side direction, decimal priceOrder, decimal volume, OrderPriceType priceType, TimeSpan timeLife, StartProgram startProgram)
@@ -53,7 +57,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         }
 
         /// <summary>
-        /// создать закрывающий ордер для сделки
+        /// create closing order / 
+        /// создать закрывающий ордер
         /// </summary>
         public Order CreateCloseOrderForDeal(Position deal, decimal price, OrderPriceType priceType, TimeSpan timeLife, StartProgram startProgram)
         {

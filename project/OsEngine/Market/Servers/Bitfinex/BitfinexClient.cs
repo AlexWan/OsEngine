@@ -111,10 +111,26 @@ namespace OsEngine.Market.Servers.Bitfinex
             try
             {
                 var res = CreateQuery(_baseUrlV1, Method.GET, "symbols_details", null);
-
                 var parsSecurities = JsonConvert.DeserializeAnonymousType(res, new List<BitfinexSecurity>());
-
                 return parsSecurities;
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.Message, LogMessageType.Error);
+                return null;
+            }
+        }
+
+        public BitfinexTickerTradeInfo GetTradeInfo(string symbol)
+        {
+            try
+            {
+                var res = CreateQuery(_baseUrlV1, Method.GET, "pubticker/" + symbol.ToLower(), null);
+
+                var pars = JsonConvert.DeserializeObject(res, typeof(BitfinexTickerTradeInfo));
+
+                return (BitfinexTickerTradeInfo)pars;
+
             }
             catch (Exception ex)
             {
@@ -162,7 +178,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         /// <summary>
         /// исполнить ордер
         /// </summary>
-        public void ExecuteOrder(Order order)
+        public void ExecuteOrder(Order order, bool isMarginTrading)
         {
             lock (_lockOrder)
             {
@@ -175,7 +191,15 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                     NewOrderPayload newOrder = new NewOrderPayload();
 
-                    newOrder.type = "exchange limit";
+                    if (isMarginTrading == false)
+                    {
+                        newOrder.type = "exchange limit";
+                    }
+                    else// if (isMarginTrading)
+                    {
+                        newOrder.type = "limit";
+                    }
+                    
                     newOrder.exchange = "bitfinex";
                     newOrder.request = "/v1/order/new";
                     newOrder.side = order.Side == Side.Buy ? "buy" : "sell";
@@ -202,7 +226,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                         newOsOrder.Side = newCreatedOrder.side == "buy" ? Side.Buy : Side.Sell;
                         newOsOrder.NumberMarket = newCreatedOrder.order_id.ToString();
                         newOsOrder.NumberUser = order.NumberUser;
-
+                        newOsOrder.ServerType = ServerType.Bitfinex;
                         newOsOrder.Price = Convert.ToDecimal(newCreatedOrder.price.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                         newOsOrder.Volume = Convert.ToDecimal(newCreatedOrder.original_amount.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                         newOsOrder.VolumeExecute = Convert.ToDecimal(newCreatedOrder.executed_amount.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
@@ -694,6 +718,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                                                 break;
 
                                             case "CANCELED":
+                                                order.TimeCancel = order.TimeCallBack;
                                                 order.State = OrderStateType.Cancel;
                                                 _osOrders.Remove(order.NumberMarket);
                                                 break;
@@ -932,11 +957,6 @@ namespace OsEngine.Market.Servers.Bitfinex
         /// обновились портфели
         /// </summary>
         public event Action<List<WalletUpdateWalletUpdate>> UpdatePortfolio;
-
-        /// <summary>
-        /// новые бумаги в системе
-        /// </summary>
-        public event Action<SecurityResponce> UpdatePairs;
 
         /// <summary>
         /// обновился стакан

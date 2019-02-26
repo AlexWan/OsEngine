@@ -9,6 +9,7 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using Order = OsEngine.Entity.Order;
 
@@ -20,7 +21,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
     /// </summary>
     public class InteractivBrokersServer : IServer
     {
-
+        
 //сервис. менеджмент первичных настроек
 
         /// <summary>
@@ -226,7 +227,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 if (value != _serverConnectStatus)
                 {
                     _serverConnectStatus = value;
-                    SendLogMessage(_serverConnectStatus + " Изменилось состояние соединения", LogMessageType.Connect);
+                    SendLogMessage(_serverConnectStatus + OsLocalization.Market.Message7, LogMessageType.Connect);
                     if (ConnectStatusChangeEvent != null)
                     {
                         ConnectStatusChangeEvent(_serverConnectStatus.ToString());
@@ -330,7 +331,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                         if (state == ServerConnectStatus.Disconnect
                             && _serverStatusNead == ServerConnectStatus.Connect)
                         {
-                            SendLogMessage("Запущена процедура активации подключения", LogMessageType.System);
+                            SendLogMessage(OsLocalization.Market.Message8, LogMessageType.System);
                             Connect();
                             continue;
                         }
@@ -338,7 +339,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                         if (state == ServerConnectStatus.Connect
                             && _serverStatusNead == ServerConnectStatus.Disconnect)
                         {
-                            SendLogMessage("Запущена процедура отключения подключения", LogMessageType.System);
+                            SendLogMessage(OsLocalization.Market.Message9, LogMessageType.System);
                             Disconnect();
                             _startListening = false;
                             continue;
@@ -351,23 +352,20 @@ namespace OsEngine.Market.Servers.InteractivBrokers
 
                         if (_candleManager == null)
                         {
-                            SendLogMessage("Создаём менеджер свечей", LogMessageType.System);
+                            SendLogMessage(OsLocalization.Market.Message10, LogMessageType.System);
                             StartCandleManager();
                             continue;
                         }
 
                         if (Portfolios == null)
                         {
-                            SendLogMessage("Портфели не найдены. Запрашиваем портфели", LogMessageType.System);
                             GetPortfolio();
-                            SendLogMessage("Подписываемся на обновление времени сервера", LogMessageType.System);
 
                             continue;
                         }
 
                         if (Securities == null)
                         {
-                            SendLogMessage("Бумаги не найдены. Запрашиваем бумаги", LogMessageType.System);
                             GetSecurities();
                             continue;
                         }
@@ -375,21 +373,18 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                         if (_neadToWatchSecurity)
                         {
                             _neadToWatchSecurity = false;
-                            SendLogMessage("Обновляем список бумаг", LogMessageType.System);
                             GetSecurities();
                             continue;
                         }
 
                         if (_startListening == false)
                         {
-                            SendLogMessage("Подписываемся на прослушивание данных", LogMessageType.System);
                             StartListeningPortfolios();
                             _startListening = true;
                         }
                     }
                     catch (Exception error)
                     {
-                        SendLogMessage("КРИТИЧЕСКАЯ ОШИБКА. Реконнект", LogMessageType.Error);
                         SendLogMessage(error.ToString(), LogMessageType.Error);
                         ServerStatus = ServerConnectStatus.Disconnect;
                         Dispose(); // очищаем данные о предыдущем коннекторе
@@ -439,19 +434,19 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         {
             if (string.IsNullOrWhiteSpace(Host))
             {
-                SendLogMessage("Хост не может быть пустым. Подключение прервано.", LogMessageType.Error);
+                SendLogMessage(OsLocalization.Market.Label49, LogMessageType.Error);
                 _serverStatusNead = ServerConnectStatus.Disconnect;
                 return;
             }
             if (Port <= 0)
             {
-                SendLogMessage("В значении порт не верное значение. Подключение прервано.", LogMessageType.Error);
+                SendLogMessage(OsLocalization.Market.Label50, LogMessageType.Error);
                 _serverStatusNead = ServerConnectStatus.Disconnect;
                 return;
             }
             if (ClientIdInSystem <= 0)
             {
-                SendLogMessage("В значении номер Id не верное значение. Подключение прервано.", LogMessageType.Error);
+                SendLogMessage(OsLocalization.Market.Label51, LogMessageType.Error);
                 _serverStatusNead = ServerConnectStatus.Disconnect;
                 return;
             }
@@ -509,7 +504,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             if (_secIB == null ||
                 _secIB.Count == 0)
             {
-                SendLogMessage("Не указаны инструменты которые надо скачать. Подключение остановлено. Укажите инструменты в соответствующем окне.", LogMessageType.System);
+                SendLogMessage(OsLocalization.Market.Label52, LogMessageType.System);
                 Thread.Sleep(15000);
                 return;
             }
@@ -848,7 +843,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                     _portfolios.Add(newpPortfolio);
                     myPortfolio = newpPortfolio;
                     myPortfolio.ValueBlocked = 0;
-                    SendLogMessage("Создан портфель " + account, LogMessageType.System);
+                    SendLogMessage(OsLocalization.Market.Label53+ account, LogMessageType.System);
                 }
 
                 myPortfolio.ValueCurrent = value;
@@ -1117,7 +1112,6 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                     _securities.Add(security);
 
                     _securitiesToSend.Enqueue(_securities);
-                    SendLogMessage("Подключен новый инструмент. " + name, LogMessageType.System);
                 }
             }
             catch (Exception error)
@@ -1243,8 +1237,8 @@ namespace OsEngine.Market.Servers.InteractivBrokers
 
                     _candleManager.StartSeries(series);
 
-                    SendLogMessage("Инструмент " + series.Security.Name + "ТаймФрейм " + series.TimeFrame +
-                                   " успешно подключен на получение данных и прослушивание свечек",
+                    SendLogMessage(OsLocalization.Market.Message14 + series.Security.Name + OsLocalization.Market.Message15 + series.TimeFrame +
+                                   OsLocalization.Market.Message16,
                         LogMessageType.System);
 
                     return series;
@@ -1257,6 +1251,24 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 return null;
             }
 
+        }
+
+        /// <summary>
+        /// Начать выгрузку данных по инструменту
+        /// </summary>
+        public CandleSeries GetCandleDataToSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder, DateTime startTime,
+            DateTime endTime, DateTime actualTime, bool neadToUpdate)
+        {
+            return StartThisSecurity(namePaper, timeFrameBuilder);
+        }
+
+        /// <summary>
+        /// взять тиковые данные по инструменту за определённый период
+        /// </summary>
+        public bool GetTickDataToSecurity(string namePaper, DateTime startTime, DateTime endTime, DateTime actualTime,
+            bool neadToUpdete)
+        {
+            return true;
         }
 
         /// <summary>
@@ -1487,7 +1499,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-
+        
         /// <summary>
         /// вызывается когда изменяется бид или аск по инструменту
         /// </summary>

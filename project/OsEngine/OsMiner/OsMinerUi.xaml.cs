@@ -1,7 +1,10 @@
 ﻿
+using OsEngine.Language;
+
 namespace OsEngine.OsMiner
 {
     /// <summary>
+    /// Interaction Logic for OsMinerUi.xaml
     /// Логика взаимодействия для OsMinerUi.xaml
     /// </summary>
     public partial class OsMinerUi
@@ -10,6 +13,11 @@ namespace OsEngine.OsMiner
         {
             InitializeComponent();
             _miner = new OsMinerMaster(HostLog, HostSets, HostPatternSets, HostChart,RectChart);
+
+            Label5.Header = OsLocalization.Miner.Label5;
+            Label6.Header = OsLocalization.Miner.Label6;
+            Label52.Content = OsLocalization.Miner.Label5;
+            Label7.Content = OsLocalization.Miner.Label7;
         }
 
         private OsMinerMaster _miner;

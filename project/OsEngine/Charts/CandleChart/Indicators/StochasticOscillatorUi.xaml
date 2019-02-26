@@ -4,19 +4,19 @@
    Title="Stochastic" Height="314.64" Width="326" WindowStartupLocation="CenterScreen"  Style="{StaticResource WindowStyleNoResize}"  ResizeMode="NoResize" Icon="/Images/OsLogo.ico" Topmost="True">
     <Grid>
         <Rectangle  Margin="5,5,5,37"/>
-        <Button x:Name ="ButtonAccept"  Content="Принять" HorizontalAlignment="Right" Margin="0,0,5,7" VerticalAlignment="Bottom" Width="119" Click="ButtonAccept_Click"/>
+        <Button x:Name ="ButtonAccept"  Content="Accept" HorizontalAlignment="Right" Margin="0,0,5,7" VerticalAlignment="Bottom" Width="119" Click="ButtonAccept_Click"/>
         <TextBox x:Name ="TextBoxLenght" Margin="154,20,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Период 1" HorizontalAlignment="Left" Margin="22,20,0,0" VerticalAlignment="Top"/>
-        <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовывать" HorizontalAlignment="Left" Margin="154,200,0,0" VerticalAlignment="Top"/>
-        <Button x:Name="ButtonColor1" Content="Цвет 1" HorizontalAlignment="Left" Margin="22,140,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"/>
+        <Label Name="LabelIndicatorPeriod1" Content="Period 1" HorizontalAlignment="Left" Margin="22,20,0,0" VerticalAlignment="Top"/>
+        <CheckBox Name="CheckBoxPaintOnOff" Content="Is visible" HorizontalAlignment="Left" Margin="154,200,0,0" VerticalAlignment="Top"/>
+        <Button x:Name="ButtonColor1" Content="Color 1" HorizontalAlignment="Left" Margin="22,140,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"/>
         <WindowsFormsHost x:Name="HostColor1" Height="25" Margin="154,140,20,0" VerticalAlignment="Top"/>
-        <Label Content="Тип средней " HorizontalAlignment="Left" Margin="22,110,0,0" VerticalAlignment="Top" ></Label>
+        <Label Name="LabelIndicatorSmaType" Content="Sma type " HorizontalAlignment="Left" Margin="22,110,0,0" VerticalAlignment="Top" ></Label>
         <ComboBox x:Name ="Movingbox" Margin="154,110,20,0" VerticalAlignment="Top"/>
         <TextBox x:Name ="TextBoxLenght2" Margin="154,50,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Период 2" HorizontalAlignment="Left" Margin="22,50,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelIndicatorPeriod2" Content="Period 2" HorizontalAlignment="Left" Margin="22,50,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name ="TextBoxLenght3" Margin="154,80,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Период 3" HorizontalAlignment="Left" Margin="22,80,0,0" VerticalAlignment="Top"/>
-        <Button x:Name="ButtonColor2" Content="Цвет 2" HorizontalAlignment="Left" Margin="22,170,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor2_Click"/>
+        <Label Name="LabelIndicatorPeriod3" Content="Period 3" HorizontalAlignment="Left" Margin="22,80,0,0" VerticalAlignment="Top"/>
+        <Button x:Name="ButtonColor2" Content="Color 2" HorizontalAlignment="Left" Margin="22,170,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor2_Click"/>
         <WindowsFormsHost x:Name="HostColor2" Height="25" Margin="154,170,20,0" VerticalAlignment="Top"/>
     </Grid>
 </Window>

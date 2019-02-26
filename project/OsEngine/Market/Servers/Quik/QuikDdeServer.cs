@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 
@@ -15,12 +16,22 @@ namespace OsEngine.Market.Servers.Quik
     /// </summary>
     public class QuikServer:AServer
     {
+
+
         public QuikServer()
         {
             QuikDdeServerRealization realization = new QuikDdeServerRealization();
             ServerRealization = realization;
 
-            CreateParameterPath("Путь к Квик");
+            CreateParameterPath(OsLocalization.Market.Message82);
+        }
+
+        /// <summary>
+        /// переопределяем метод отдающий состояние сервера
+        /// </summary>
+        public override bool IsTimeToServerWork
+        {
+            get { return ((QuikDdeServerRealization)ServerRealization).ServerInWork; }
         }
     }
 
@@ -43,6 +54,19 @@ namespace OsEngine.Market.Servers.Quik
             _ddeStatus = ServerConnectStatus.Disconnect;
             _transe2QuikStatus = ServerConnectStatus.Disconnect;
             _tradesStatus = ServerConnectStatus.Disconnect;
+
+            _workingTimeSettings = new ServerWorkingTimeSettings()
+            {
+                StartSessionTime = new TimeSpan(9, 55, 0),
+                EndSessionTime = new TimeSpan(23, 50, 0),
+                WorkingAtWeekend = false,
+                ServerTimeZone = "Russian Standard Time",
+            };
+
+            Thread timeHolder = new Thread(SessionTimeHandler);
+            timeHolder.IsBackground = true;
+            timeHolder.Name = ServerType + "timeManager";
+            timeHolder.Start();
         }
 
         /// <summary>
@@ -57,8 +81,39 @@ namespace OsEngine.Market.Servers.Quik
 
         public DateTime ServerTime { get; set; }
 
+        private readonly ServerWorkingTimeSettings _workingTimeSettings;
 
-// подключение / отключение
+        public bool ServerInWork = true;
+
+        private void SessionTimeHandler()
+        {
+            while (true)
+            {
+                if (MainWindow.ProccesIsWorked == false)
+                {
+                    return;
+                }
+
+                var serverCurrentTime = TimeManager.GetExchangeTime(_workingTimeSettings.ServerTimeZone);
+
+                if (serverCurrentTime.DayOfWeek == DayOfWeek.Saturday ||
+                    serverCurrentTime.DayOfWeek == DayOfWeek.Sunday ||
+                    serverCurrentTime.TimeOfDay < _workingTimeSettings.StartSessionTime ||
+                    serverCurrentTime.TimeOfDay > _workingTimeSettings.EndSessionTime)
+                {
+                    ServerInWork = false;
+                    ServerInWork = true;
+                }
+                else
+                {
+                    ServerInWork = true;
+                }
+
+                Thread.Sleep(15000);
+            }
+        }
+
+        // подключение / отключение
 
         /// <summary>
         /// время старта севрера
@@ -72,8 +127,8 @@ namespace OsEngine.Market.Servers.Quik
         {
             if (_serverDde != null && _serverDde.IsRegistered)
             {
-                _serverDde.StopDdeInQuik();
-                _serverDde = null;
+                //_serverDde.StopDdeInQuik();
+                //_serverDde = null;
             }
 
             try
@@ -106,13 +161,12 @@ namespace OsEngine.Market.Servers.Quik
 
                 if (string.IsNullOrWhiteSpace(((ServerParameterPath)ServerParameters[0]).Value))
                 {
-                    SendLogMessage("Ошибка. Необходимо указать местоположение Quik", LogMessageType.Error);
+                    SendLogMessage(OsLocalization.Market.Message83, LogMessageType.Error);
                     return;
                 }
 
                 if (ServerStatus == ServerConnectStatus.Connect)
                 {
-                    SendLogMessage("Ошибка. Соединение уже установлено", LogMessageType.Error);
                     return;
                 }
 
@@ -126,7 +180,7 @@ namespace OsEngine.Market.Servers.Quik
 
                     if (result != Trans2Quik.QuikResult.SUCCESS)
                     {
-                        SendLogMessage("Ошибка. Trans2Quik не хочет подключаться " + error, LogMessageType.Error);
+                        SendLogMessage(OsLocalization.Market.Message84 + error, LogMessageType.Error);
                         return;
                     }
 
@@ -134,7 +188,7 @@ namespace OsEngine.Market.Servers.Quik
 
                     if (result != Trans2Quik.QuikResult.SUCCESS && result != Trans2Quik.QuikResult.ALREADY_CONNECTED_TO_QUIK)
                     {
-                        SendLogMessage("Ошибка при попытке подклчиться через Transe2Quik." + msg, LogMessageType.Error);
+                        SendLogMessage(OsLocalization.Market.Message84 + msg, LogMessageType.Error);
                         return;
                     }
 
@@ -146,7 +200,6 @@ namespace OsEngine.Market.Servers.Quik
                     {
                         Thread.Sleep(5000);
                         result = Trans2Quik.SUBSCRIBE_ORDERS("", "");
-                        SendLogMessage("Повторно пытаемся включить поток сделок" + msg, LogMessageType.Error);
                     }
 
                     result = Trans2Quik.START_ORDERS((PfnOrderStatusCallback));
@@ -154,7 +207,6 @@ namespace OsEngine.Market.Servers.Quik
                     {
                         Thread.Sleep(5000);
                         result = Trans2Quik.START_ORDERS((PfnOrderStatusCallback));
-                        SendLogMessage("Повторно пытаемся включить поток сделок" + msg, LogMessageType.Error);
                     }
 
                     Trans2Quik.SUBSCRIBE_TRADES("", "");
@@ -172,18 +224,24 @@ namespace OsEngine.Market.Servers.Quik
                     _serverDde.UpdateTrade += _serverDde_UpdateTrade;
                     _serverDde.UpdateGlass += _serverDde_UpdateGlass;
                     _serverDde.LogMessageEvent += SendLogMessage;
+
+                    if (!_serverDde.IsRegistered)
+                    {
+                        _serverDde.StartServer();
+                    }
+                    else
+                    {
+                        _ddeStatus = ServerConnectStatus.Connect;
+                    }
+                }
+
+                if (_serverDde.IsRegistered)
+                {
+                    _ddeStatus = ServerConnectStatus.Connect;
                 }
 
                 Thread.Sleep(1000);
 
-                if (!_serverDde.IsRegistered)
-                {
-                    _serverDde.StartServer();
-                }
-                else
-                {
-                    _ddeStatus = ServerConnectStatus.Connect;
-                }
             }
             catch (Exception erorr)
             {
@@ -281,22 +339,22 @@ namespace OsEngine.Market.Servers.Quik
                 if (connectionEvent == Trans2Quik.QuikResult.DLL_CONNECTED)
                 {
                     _transe2QuikStatus = ServerConnectStatus.Connect;
-                    SendLogMessage("Transe2Quik изменение статуса " + _transe2QuikStatus, LogMessageType.System);
+                    SendLogMessage(OsLocalization.Market.Message85 + _transe2QuikStatus, LogMessageType.System);
                 }
                 if (connectionEvent == Trans2Quik.QuikResult.DLL_DISCONNECTED)
                 {
                     _transe2QuikStatus = ServerConnectStatus.Disconnect;
-                    SendLogMessage("Transe2Quik изменение статуса " + _transe2QuikStatus, LogMessageType.System);
+                    SendLogMessage(OsLocalization.Market.Message85 + _transe2QuikStatus, LogMessageType.System);
                 }
                 if (connectionEvent == Trans2Quik.QuikResult.QUIK_CONNECTED)
                 {
                     _connectToBrokerStatus = ServerConnectStatus.Connect;
-                    SendLogMessage("Соединение Квик с сервером брокера установлено. ", LogMessageType.System);
+                    SendLogMessage(OsLocalization.Market.Message86 + ServerConnectStatus.Connect, LogMessageType.System);
                 }
                 if (connectionEvent == Trans2Quik.QuikResult.QUIK_DISCONNECTED)
                 {
                     _connectToBrokerStatus = ServerConnectStatus.Disconnect;
-                    SendLogMessage("Соединение Квик с сервером брокера разорвано. ", LogMessageType.System);
+                    SendLogMessage(OsLocalization.Market.Message86 + ServerConnectStatus.Disconnect, LogMessageType.System);
                 }
             }
             catch (Exception erorr)
@@ -315,12 +373,12 @@ namespace OsEngine.Market.Servers.Quik
                 if (status == DdeServerStatus.Connected)
                 {
                     _ddeStatus = ServerConnectStatus.Connect;
-                    SendLogMessage("DDE Server изменение статуса " + _ddeStatus, LogMessageType.System);
+                    SendLogMessage(OsLocalization.Market.Message87 + _ddeStatus, LogMessageType.System);
                 }
                 if (status == DdeServerStatus.Disconnected)
                 {
                     _ddeStatus = ServerConnectStatus.Disconnect;
-                    SendLogMessage("DDE Server изменение статуса " + _ddeStatus, LogMessageType.System);
+                    SendLogMessage(OsLocalization.Market.Message87 + _ddeStatus, LogMessageType.System);
                 }
             }
             catch (Exception erorr)
@@ -374,7 +432,7 @@ namespace OsEngine.Market.Servers.Quik
             tradesNew[tradesNew.Count - 1].Time.AddSeconds(10) > ServerTime)
             {
                 _tradesStatus = ServerConnectStatus.Connect;
-                SendLogMessage("Зафиксирован переход тиков в онЛайн трансляцию. ", LogMessageType.System);
+                SendLogMessage(OsLocalization.Market.Message88, LogMessageType.System);
             }
         }
 
@@ -501,6 +559,23 @@ namespace OsEngine.Market.Servers.Quik
         public void Subscrible(Security security)
         {
 
+        }
+
+        /// <summary>
+        /// взять историю свечек за период
+        /// </summary>
+        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
+            DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// взять тиковые данные по инструменту за определённый период
+        /// </summary>
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            return null;
         }
 
         /// <summary>
@@ -801,7 +876,7 @@ namespace OsEngine.Market.Servers.Quik
                 {
                     order.State = OrderStateType.Fail;
 
-                    SendLogMessage(dwTransId + " Ошибка выставления заявки " + transactionReplyMessage, LogMessageType.System);
+                    SendLogMessage(dwTransId + OsLocalization.Market.Message89 + transactionReplyMessage, LogMessageType.System);
 
                     if (MyOrderEvent != null)
                     {
@@ -883,10 +958,12 @@ namespace OsEngine.Market.Servers.Quik
                 else if (nStatus == 2)
                 {
                     order.State = OrderStateType.Cancel;
+                    order.TimeCancel = order.TimeCallBack;
                 }
                 else
                 {
                     order.State = OrderStateType.Done;
+                    order.TimeDone = order.TimeCallBack;
                 }
 
                 SetOrder(order);

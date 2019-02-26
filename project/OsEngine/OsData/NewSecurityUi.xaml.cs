@@ -1,34 +1,35 @@
 ﻿/*
- * Если вы не покупали лицензии, то Ваши права на использования кода ограничены не коммерческим использованием и 
- * регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System.Collections.Generic;
 using System.Windows.Forms;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.OsData
 {
 
     /// <summary>
-    /// Логика взаимодействия для NewSecurityDialog.xaml
+    /// Interaction Logic for NewSecurityDialog.xaml/Логика взаимодействия для NewSecurityDialog.xaml
     /// </summary>
     public partial class NewSecurityUi
     {
         /// <summary>
-        /// бумаги которые есть в сервере
+        /// papers that are in the server/бумаги которые есть в сервере
         /// </summary>
         private List<Security> _securities;
 
         /// <summary>
-        /// выбранная бумага
+        /// selected paper/выбранная бумага
         /// </summary>
         public Security SelectedSecurity;
 
         /// <summary>
-        /// конструктор
+        /// constructor/конструктор
         /// </summary>
-        /// <param name="securities">бумаги доступные к выбору</param>
+        /// <param name="securities">papers available for selection/бумаги доступные к выбору</param>
         public NewSecurityUi(List<Security> securities)
         {
             InitializeComponent();
@@ -38,47 +39,40 @@ namespace OsEngine.OsData
             CreateTable();
             ReloadSecurityTable();
             ComboBoxClass.SelectionChanged += ComboBoxClass_SelectionChanged;
+
+            Title = OsLocalization.Data.TitleNewSecurity;
+            Label1.Content = OsLocalization.Data.Label1;
+            ButtonAccept.Content = OsLocalization.Data.ButtonAccept;
+
         }
 
         /// <summary>
-        /// тублица для бумаг
+        /// paper table/таблица для бумаг
         /// </summary>
         private DataGridView _grid;
 
         /// <summary>
-        /// создать таблицу для бумаг
+        /// create a table for papers/создать таблицу для бумаг
         /// </summary>
         private void CreateTable()
         {
-            _grid = new DataGridView();
+            _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
+                DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders);
 
-            _grid.AllowUserToOrderColumns = false;
-            _grid.AllowUserToResizeRows = false;
-            _grid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-            _grid.AllowUserToDeleteRows = false;
-            _grid.AllowUserToAddRows = false;
-            _grid.RowHeadersVisible = false;
-            _grid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            _grid.MultiSelect = false;
-
-            DataGridViewCellStyle style = new DataGridViewCellStyle();
-            style.Alignment = DataGridViewContentAlignment.TopLeft;
-            style.WrapMode = DataGridViewTriState.True;
-            _grid.DefaultCellStyle = style;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = style;
+            cell0.Style = _grid.DefaultCellStyle;
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;
-            column0.HeaderText = @"Код бумаги";
+            column0.HeaderText = OsLocalization.Data.Label2;
             column0.ReadOnly = true;
             column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(column0);
 
             DataGridViewColumn column1 = new DataGridViewColumn();
             column1.CellTemplate = cell0;
-            column1.HeaderText = @"Название";
+            column1.HeaderText = OsLocalization.Data.Label3;
             column1.ReadOnly = true;
             column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(column1);
@@ -87,7 +81,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// выгрузить все доступные классы в меню выбора классов
+        /// unload all available classes in the class selection menu/выгрузить все доступные классы в меню выбора классов
         /// </summary>
         private void GetClasses()
         {
@@ -114,12 +108,12 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// отображаемые на текущий момент бумаги
+        /// currently displayed papers/отображаемые на текущий момент бумаги
         /// </summary>
-        private List<Security> _securitiesInBox = new List<Security>(); 
+        private List<Security> _securitiesInBox = new List<Security>();
 
         /// <summary>
-        /// перезагрузить меню выбора инструментов
+        /// reload tool selection menu/перезагрузить меню выбора инструментов
         /// </summary>
         private void ReloadSecurityTable()
         {
@@ -162,7 +156,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// изменился выбранный элемент в меню выбора классов
+        /// the selected item in the class selection menu has changed/изменился выбранный элемент в меню выбора классов
         /// </summary>
         void ComboBoxClass_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
@@ -170,7 +164,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// нажата кнопка "Принять"
+        /// "Accept" button pressed/нажата кнопка "Принять"
         /// </summary>
         private void ButtonAccept_Click(object sender, System.Windows.RoutedEventArgs e)
         {

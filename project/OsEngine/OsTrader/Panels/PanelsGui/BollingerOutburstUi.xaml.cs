@@ -1,16 +1,15 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
 using System.Globalization;
 using System.Windows;
+using OsEngine.Language;
 
 namespace OsEngine.OsTrader.Panels.PanelsGui
 {
-    /// <summary>
-    /// Логика взаимодействия для BollingerOutburst.xaml
-    /// </summary>
     public partial class BollingerOutburstUi
     {
         private BollingerOutburst _strategy;
@@ -27,9 +26,13 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
             ComboBoxRegime.Items.Add(BotTradeRegime.OnlyShort);
             ComboBoxRegime.SelectedItem = _strategy.Regime;
 
-            TextBoxSlipage.Text = _strategy.Slipage.ToString(new CultureInfo("ru-RU"));
+            TextBoxSlipage.Text = _strategy.Slippage.ToString(new CultureInfo("ru-RU"));
             TextBoxVolumeOne.Text = _strategy.VolumeFix.ToString(new CultureInfo("ru-RU"));
 
+            LabelRegime.Content = OsLocalization.Trader.Label115;
+            LabelVolume.Content = OsLocalization.Trader.Label30;
+            LabelSlippage.Content = OsLocalization.Trader.Label92;
+            ButtonAccept.Content = OsLocalization.Trader.Label132;
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -45,11 +48,11 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
             }
             catch (Exception)
             {
-                MessageBox.Show("В одном из полей недопустимые значения. Процесс сохранения прерван");
+                MessageBox.Show(OsLocalization.Trader.Label13);
                 return;
             }
             Enum.TryParse(ComboBoxRegime.Text, true, out _strategy.Regime);
-            _strategy.Slipage = Convert.ToDecimal(TextBoxSlipage.Text);
+            _strategy.Slippage = Convert.ToDecimal(TextBoxSlipage.Text);
             _strategy.VolumeFix = Convert.ToDecimal(TextBoxVolumeOne.Text);
 
             _strategy.Save();

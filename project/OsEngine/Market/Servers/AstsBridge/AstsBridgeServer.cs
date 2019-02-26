@@ -11,8 +11,10 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
+using OsEngine.OsMiner.Patterns;
 
 namespace OsEngine.Market.Servers.AstsBridge
 {
@@ -267,7 +269,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 if (value != _serverConnectStatus)
                 {
                     _serverConnectStatus = value;
-                    SendLogMessage(_serverConnectStatus + " Изменилось состояние соединения", LogMessageType.Connect);
+                    SendLogMessage(_serverConnectStatus + OsLocalization.Market.Message7, LogMessageType.Connect);
                     if (ConnectStatusChangeEvent != null)
                     {
                         ConnectStatusChangeEvent(_serverConnectStatus.ToString());
@@ -311,7 +313,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         private void Disconnected(string reason)
         {
             ServerStatus = ServerConnectStatus.Disconnect;
-            SendLogMessage("Причина разрыва соединения " + reason, LogMessageType.System);
+            SendLogMessage( reason, LogMessageType.System);
         }
 
         /// <summary>
@@ -347,7 +349,6 @@ namespace OsEngine.Market.Servers.AstsBridge
                     {
                         if (AstsServer == null)
                         {
-                            SendLogMessage("Создаём коннектор Asts Bridge", LogMessageType.System);
                             CreateNewServer();
                             continue;
                         }
@@ -356,14 +357,14 @@ namespace OsEngine.Market.Servers.AstsBridge
 
                         if (stateIsActiv == false && _serverStatusNead == ServerConnectStatus.Connect)
                         {
-                            SendLogMessage("Запущена процедура активации подключения", LogMessageType.System);
+                            SendLogMessage(OsLocalization.Market.Message8, LogMessageType.System);
                             Connect();
                             continue;
                         }
 
                         if (stateIsActiv && _serverStatusNead == ServerConnectStatus.Disconnect)
                         {
-                            SendLogMessage("Запущена процедура отключения подключения", LogMessageType.System);
+                            SendLogMessage(OsLocalization.Market.Message9, LogMessageType.System);
                             Disconnect();
                             continue;
                         }
@@ -375,21 +376,18 @@ namespace OsEngine.Market.Servers.AstsBridge
 
                         if (_candleManager == null)
                         {
-                            SendLogMessage("Создаём менеджер свечей", LogMessageType.System);
                             StartCandleManager();
                             continue;
                         }
 
                         if (_metaDataIsExist == false)
                         {
-                            SendLogMessage("Запрашиваем схему данных у сервера", LogMessageType.System);
                             AstsServer.GetStructureData();
                             _metaDataIsExist = true;
                         }
 
                         if (_getPortfoliosAndSecurities == false)
                         {
-                            SendLogMessage("Скачиваем бумаги и портфели", LogMessageType.System);
                             AstsServer.OpenTablesInFirstTime();
                             _getPortfoliosAndSecurities = true;
                             continue;
@@ -397,10 +395,8 @@ namespace OsEngine.Market.Servers.AstsBridge
 
                         if (Portfolios == null || Securities == null)
                         {
-                            SendLogMessage("Бумаги или портфели по прежнему недоступны. Ошибка при открытии таблиц Asts Bridge", LogMessageType.System);
-                            _getPortfoliosAndSecurities = false;
+                          _getPortfoliosAndSecurities = false;
                             Thread.Sleep(10000);
-                            SendLogMessage("Запущена процедура отключения подключения", LogMessageType.System);
                             Disconnect();
                         }
                         if (Dislocation == AstsDislocation.Colo)
@@ -421,7 +417,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                     }
                     catch (Exception error)
                     {
-                        SendLogMessage("КРИТИЧЕСКАЯ ОШИБКА. Реконнект", LogMessageType.Error);
+
                         SendLogMessage(error.ToString(), LogMessageType.Error);
                         ServerStatus = ServerConnectStatus.Disconnect;
                         Dispose(); // очищаем данные о предыдущем коннекторе
@@ -912,7 +908,6 @@ namespace OsEngine.Market.Servers.AstsBridge
 
                 if (myPortfolio == null)
                 {
-                    SendLogMessage(portfolio.Number + "Содан новый портфель", LogMessageType.System);
                     _portfolios.Add(portfolio);
                     _portfolioToSend.Enqueue(_portfolios);
                 }
@@ -1092,10 +1087,6 @@ namespace OsEngine.Market.Servers.AstsBridge
 
                     _candleManager.StartSeries(series);
 
-                    SendLogMessage("Инструмент " + series.Security.Name + "ТаймФрейм" + series.TimeFrame +
-                                   " успешно подключен на получение данных и прослушивание свечек",
-                        LogMessageType.System);
-
                     return series;
                 }
             }
@@ -1123,6 +1114,18 @@ namespace OsEngine.Market.Servers.AstsBridge
         private void _candleManager_CandleUpdateEvent(CandleSeries series)
         {
             _candleSeriesToSend.Enqueue(series);
+        }
+
+        public CandleSeries GetCandleDataToSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder, DateTime startTime,
+            DateTime endTime, DateTime actualTime, bool neadToUpdate)
+        {
+            return StartThisSecurity(namePaper, timeFrameBuilder);
+        }
+
+        public bool GetTickDataToSecurity(string namePaper, DateTime startTime, DateTime endTime, DateTime actualTime,
+            bool neadToUpdete)
+        {
+            return true;
         }
 
         /// <summary>
@@ -1410,7 +1413,6 @@ namespace OsEngine.Market.Servers.AstsBridge
                 order.State = OrderStateType.Fail;
                 order.ServerType = ServerType.AstsBridge;
 
-                SendLogMessage(order.NumberUser + " Ошибка при отправке ордера " + reason, LogMessageType.Error);
                 _ordersToSend.Enqueue(order);
             }
             catch (Exception error)

@@ -9,6 +9,7 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using OsEngine.Market.Servers.Kraken.KrakenEntity;
@@ -309,7 +310,7 @@ namespace OsEngine.Market.Servers.Kraken
                 if (value != _serverConnectStatus)
                 {
                     _serverConnectStatus = value;
-                    SendLogMessage(_serverConnectStatus + " Изменилось состояние соединения", LogMessageType.Connect);
+                    SendLogMessage(_serverConnectStatus + OsLocalization.Market.Message7, LogMessageType.Connect);
                     if (ConnectStatusChangeEvent != null)
                     {
                         ConnectStatusChangeEvent(_serverConnectStatus.ToString());
@@ -417,7 +418,6 @@ namespace OsEngine.Market.Servers.Kraken
                     {
                         if (_krakenClient == null)
                         {
-                            SendLogMessage("Создаём коннектор", LogMessageType.System);
                             CreateNewServer();
                             continue;
                         }
@@ -427,7 +427,7 @@ namespace OsEngine.Market.Servers.Kraken
                         if (state == ServerConnectStatus.Disconnect
                             && _serverStatusNead == ServerConnectStatus.Connect)
                         {
-                            SendLogMessage("Запущена процедура активации подключения", LogMessageType.System);
+                            SendLogMessage(OsLocalization.Market.Message8, LogMessageType.System);
                             Connect();
                             continue;
                         }
@@ -435,7 +435,7 @@ namespace OsEngine.Market.Servers.Kraken
                         if (state == ServerConnectStatus.Connect
                             && _serverStatusNead == ServerConnectStatus.Disconnect)
                         {
-                            SendLogMessage("Запущена процедура отключения подключения", LogMessageType.System);
+                            SendLogMessage(OsLocalization.Market.Message9, LogMessageType.System);
                             Disconnect();
                             continue;
                         }
@@ -447,21 +447,19 @@ namespace OsEngine.Market.Servers.Kraken
 
                         if (_candleManager == null)
                         {
-                            SendLogMessage("Создаём менеджер свечей", LogMessageType.System);
+                            SendLogMessage(OsLocalization.Market.Message10, LogMessageType.System);
                             StartCandleManager();
                             continue;
                         }
 
                         if (Portfolios == null)
                         {
-                            SendLogMessage("Начинаем процедуру прослушивания сервера", LogMessageType.System);
                            _krakenClient.InizialazeListening();
                         }
 
                     }
                     catch (Exception error)
                     {
-                        SendLogMessage("КРИТИЧЕСКАЯ ОШИБКА. Реконнект", LogMessageType.Error);
                         SendLogMessage(error.ToString(), LogMessageType.Error);
                         ServerStatus = ServerConnectStatus.Disconnect;
                         Dispose(); // очищаем данные о предыдущем коннекторе
@@ -491,7 +489,7 @@ namespace OsEngine.Market.Servers.Kraken
                 _krakenClient.LogMessageEvent += SendLogMessage;
                 _krakenClient.NewPortfolio += NewPortfolio;
                 _krakenClient.NewMyTradeEvent += _Client_NewMyTradeEvent;
-                _krakenClient.NewOrderEvent += _ibClient_NewOrderEvent;
+                _krakenClient.NewOrderEvent += _newOrderEvent;
                 _krakenClient.NewTradeEvent += AddTick;
                 _krakenClient.NewSecuritiesEvent += _krakenClient_NewSecuritiesEvent;
                 _krakenClient.NewMarketDepthEvent += _krakenClient_NewMarketDepthEvent;
@@ -508,13 +506,13 @@ namespace OsEngine.Market.Servers.Kraken
         {
             if (string.IsNullOrWhiteSpace(PublicKey))
             {
-                SendLogMessage("Не указан публичный ключ.  Подключение прервано.", LogMessageType.Error);
+                SendLogMessage(OsLocalization.Market.Message65, LogMessageType.Error);
                 _serverStatusNead = ServerConnectStatus.Disconnect;
                 return;
             }
             if (string.IsNullOrEmpty(PrivateKey))
             {
-                SendLogMessage("Не указан приватный ключ. Подключение прервано.", LogMessageType.Error);
+                SendLogMessage(OsLocalization.Market.Message65, LogMessageType.Error);
                 _serverStatusNead = ServerConnectStatus.Disconnect;
                 return;
             }
@@ -563,7 +561,7 @@ namespace OsEngine.Market.Servers.Kraken
                 _krakenClient.LogMessageEvent -= SendLogMessage;
                 _krakenClient.NewPortfolio -= NewPortfolio;
                 _krakenClient.NewMyTradeEvent -= _Client_NewMyTradeEvent;
-                _krakenClient.NewOrderEvent -= _ibClient_NewOrderEvent;
+                _krakenClient.NewOrderEvent -= _newOrderEvent;
                 _krakenClient.NewTradeEvent -= AddTick;
                 _krakenClient.NewSecuritiesEvent -= _krakenClient_NewSecuritiesEvent;
                 _krakenClient.NewMarketDepthEvent -= _krakenClient_NewMarketDepthEvent;
@@ -852,7 +850,6 @@ namespace OsEngine.Market.Servers.Kraken
 
             if (_portfolios.Find(p => p.Number == portfolio.Number) == null)
             {
-                SendLogMessage("Доступен новый портфель. Номер: " + portfolio.Number, LogMessageType.System);
                 _portfolios.Add(portfolio);
             }
 
@@ -992,8 +989,8 @@ namespace OsEngine.Market.Servers.Kraken
 
                     _candleManager.StartSeries(series);
 
-                    SendLogMessage("Инструмент " + series.Security.Name + "ТаймФрейм " + series.TimeFrame +
-                                   " успешно подключен на получение данных и прослушивание свечек",
+                    SendLogMessage(OsLocalization.Market.Label7 + series.Security.Name + OsLocalization.Market.Label10 + series.TimeFrame +
+                                   OsLocalization.Market.Message16,
                         LogMessageType.System);
 
                     return series;
@@ -1005,6 +1002,24 @@ namespace OsEngine.Market.Servers.Kraken
                 SendLogMessage(error.ToString(), LogMessageType.Error);
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Начать выгрузку данных по инструменту
+        /// </summary>
+        public CandleSeries GetCandleDataToSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder, DateTime startTime,
+            DateTime endTime, DateTime actualTime, bool neadToUpdate)
+        {
+            return StartThisSecurity(namePaper, timeFrameBuilder);
+        }
+
+        /// <summary>
+        /// взять тиковые данные по инструменту за определённый период
+        /// </summary>
+        public bool GetTickDataToSecurity(string namePaper, DateTime startTime, DateTime endTime, DateTime actualTime,
+            bool neadToUpdete)
+        {
+            return true;
         }
 
         /// <summary>
@@ -1383,7 +1398,7 @@ namespace OsEngine.Market.Servers.Kraken
             _ordersToCansel.Enqueue(order);
         }
 
-        void _ibClient_NewOrderEvent(Order order)
+        void _newOrderEvent(Order order)
         {
             try
             {
@@ -1392,6 +1407,7 @@ namespace OsEngine.Market.Servers.Kraken
                     _orders = new List<Order>();
                 }
 
+                order.ServerType = ServerType.Kraken;
                 _ordersToSend.Enqueue(order);
             }
             catch (Exception error)

@@ -4,13 +4,13 @@
          Title="Volume Oscillator" Height="202" Width="286" WindowStartupLocation="CenterScreen" Topmost="True" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico">
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
-        <Button x:Name ="ButtonAccept"  Content="Принять" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="115" Click="ButtonAccept_Click"/>
+        <Button x:Name ="ButtonAccept"  Content="Accept" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="115" Click="ButtonAccept_Click"/>
         <TextBox x:Name ="TextBoxLenght1" Height="23" Margin="137,16,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Длинный период" HorizontalAlignment="Left" Margin="19,16,0,0" VerticalAlignment="Top"/>
-        <Button x:Name="ButtonColor" Content="Цвет" HorizontalAlignment="Left" Margin="19,72,0,0" VerticalAlignment="Top" Width="107" Click="ButtonColor_Click"/>
+        <Label Name="LabelIndicatorPeriod1" Content="Period 1" HorizontalAlignment="Left" Margin="19,16,0,0" VerticalAlignment="Top"/>
+        <Button x:Name="ButtonColor" Content="Color" HorizontalAlignment="Left" Margin="19,72,0,0" VerticalAlignment="Top" Width="107" Click="ButtonColor_Click"/>
         <WindowsFormsHost x:Name="HostColor" Height="22" Margin="137,72,20,0" VerticalAlignment="Top"/>
-        <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовывать" HorizontalAlignment="Left" Margin="137,99,0,0" VerticalAlignment="Top"/>
+        <CheckBox Name="CheckBoxPaintOnOff" Content="Is visible" HorizontalAlignment="Left" Margin="137,99,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name ="TextBoxLenght2" Height="23" Margin="137,44,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Content="Короткий период" HorizontalAlignment="Left" Margin="17,44,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelIndicatorPeriod2" Content="Period 2" HorizontalAlignment="Left" Margin="17,44,0,0" VerticalAlignment="Top"/>
     </Grid>
 </Window>

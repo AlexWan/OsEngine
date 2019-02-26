@@ -4,9 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Windows;
 using System.Windows.Forms;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Market.Servers;
 
 namespace OsEngine.Market
@@ -47,9 +49,6 @@ namespace OsEngine.Market
 
             CheckBoxServerAutoOpen.IsChecked = ServerMaster.NeadToConnectAuto;
             CheckBoxServerAutoOpen.Click += CheckBoxServerAutoOpen_Click;
-            CheckBoxServerAutoOpen.ToolTip = "При включении, мастер серверов будет пытаться автоматически развернуть " +
-                                             "\r" +
-                                             "сервера которые у него запрашивают роботы(панели). По одному разу на каждый сервер. ";
 
             ServerMaster.Log.StartPaint(HostLog);
 
@@ -57,6 +56,29 @@ namespace OsEngine.Market
             {
                 servers[i].ConnectStatusChangeEvent += ServerStatusChangeEvent;
             }
+
+            Title = OsLocalization.Market.TitleServerMasterUi;
+            TabItem1.Header = OsLocalization.Market.TabItem1;
+            TabItem2.Header = OsLocalization.Market.TabItem2;
+            CheckBoxServerAutoOpen.Content = OsLocalization.Market.Label20;
+
+            ServerMaster.ServerCreateEvent += ServerMasterOnServerCreateEvent;
+        }
+
+        private void ServerMasterOnServerCreateEvent(IServer newServer)
+        {
+            List<IServer> servers = ServerMaster.GetServers();
+
+            for (int i = 0; i < servers.Count; i++)
+            {
+                if (servers[i].ServerType == ServerType.Optimizer)
+                {
+                    continue;
+                }
+                servers[i].ConnectStatusChangeEvent -= ServerStatusChangeEvent;
+                servers[i].ConnectStatusChangeEvent += ServerStatusChangeEvent;
+            }
+            RePaintSourceGrid();
         }
 
         void CheckBoxServerAutoOpen_Click(object sender, RoutedEventArgs e)
@@ -78,24 +100,7 @@ namespace OsEngine.Market
         /// </summary>
         private void CreateSourceGrid()
         {
-            DataGridView newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
-
-            DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = newGrid.DefaultCellStyle;
-
-            DataGridViewColumn colum0 = new DataGridViewColumn();
-            colum0.CellTemplate = cell0;
-            colum0.HeaderText = @"Источник";
-            colum0.ReadOnly = true;
-            colum0.Width = 100;
-            newGrid.Columns.Add(colum0);
-
-            DataGridViewColumn colu = new DataGridViewColumn();
-            colu.CellTemplate = cell0;
-            colu.HeaderText = @"Статус";
-            colu.ReadOnly = true;
-            colu.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            newGrid.Columns.Add(colu);
+            DataGridView newGrid = DataGridFactory.GetDataGridServers();
 
             _gridSources = newGrid;
             _gridSources.DoubleClick += _gridSources_DoubleClick;
@@ -118,6 +123,8 @@ namespace OsEngine.Market
 
             List<IServer> servers = ServerMaster.GetServers();
 
+            List<ServerType> serverTypes = ServerMaster.ServersTypes;
+
             for (int i = 0; servers != null && i < servers.Count; i++)
             {
                 DataGridViewRow row1 = new DataGridViewRow();
@@ -126,223 +133,38 @@ namespace OsEngine.Market
                 row1.Cells.Add(new DataGridViewTextBoxCell());
                 row1.Cells[1].Value = servers[i].ServerStatus;
                 _gridSources.Rows.Add(row1);
-            }
 
-            bool lmaxIsOn = false;
-            bool bitfinex = false;
-            bool bitMexIsOn = false;
-            bool quikIsOn = false;
-            bool smartcomIsOn = false;
-            bool plazaIsOn = false;
-            bool ibIsOn = false;
-            bool astsIsOn = false;
-            bool quikLuaIsOn = false;
-            bool oandaIsOn = false;
-            bool krakenIsOn = false;
-            bool bitStampIsOn = false;
-            bool binanceIsOn = false;
-            bool ninjaIsOn = false;
+                serverTypes.Remove(serverTypes.Find(s => s == servers[i].ServerType));
 
-            for (int i = 0; i < _gridSources.Rows.Count; i++)
-            {
-                DataGridViewRow row1 =_gridSources.Rows[i];
-
-                ServerType type;
-
-                Enum.TryParse(row1.Cells[0].Value.ToString(), out type);
-
-                if (type == ServerType.Lmax)
+                if (servers[i].ServerStatus == ServerConnectStatus.Connect)
                 {
-                    lmaxIsOn = true;
+                    DataGridViewCellStyle style = new DataGridViewCellStyle();
+                    style.BackColor = Color.MediumSeaGreen;
+                    style.SelectionBackColor = Color.Green;
+                    style.ForeColor = Color.Black;
+                    style.SelectionForeColor = Color.Black;
+                    row1.Cells[1].Style = style;
+                    row1.Cells[0].Style = style;
                 }
-
-                if (type == ServerType.Bitfinex)
+                else
                 {
-                    bitfinex = true;
-                }
-
-                if (type == ServerType.Binance)
-                {
-                    binanceIsOn = true;
-                }
-
-                if (type == ServerType.NinjaTrader)
-                {
-                    ninjaIsOn = true;
-                }
-
-                if (type == ServerType.BitStamp)
-                {
-                    bitStampIsOn = true;
-                }
-
-                if (type == ServerType.BitMex)
-                {
-                    bitMexIsOn = true;
-                }
-
-                if (type == ServerType.Kraken)
-                {
-                    krakenIsOn = true;
-                }
-
-                if (type == ServerType.Oanda)
-                {
-                    oandaIsOn = true;
-                }
-
-                if (type == ServerType.QuikLua)
-                {
-                    quikLuaIsOn = true;
-                }
-
-                if (type == ServerType.QuikDde)
-                {
-                    quikIsOn = true;
-                }
-                if (type == ServerType.SmartCom)
-                {
-                    smartcomIsOn = true;
-                }
-                if (type == ServerType.Plaza)
-                {
-                    plazaIsOn = true;
-                }
-                if(type == ServerType.InteractivBrokers)
-                {
-                    ibIsOn = true;
-                }
-                if (type == ServerType.AstsBridge)
-                {
-                    astsIsOn = true;
+                    DataGridViewCellStyle style = new DataGridViewCellStyle();
+                    style.BackColor = Color.Coral;
+                    style.SelectionBackColor = Color.Chocolate;
+                    style.ForeColor = Color.Black;
+                    style.SelectionForeColor = Color.Black;
+                    row1.Cells[1].Style = style;
+                    row1.Cells[0].Style = style;
                 }
             }
 
-            if (lmaxIsOn == false)
+            for (int i = 0; i < serverTypes.Count; i++)
             {
                 DataGridViewRow row1 = new DataGridViewRow();
                 row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.Lmax;
+                row1.Cells[0].Value = serverTypes[i].ToString();
                 row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-            if (quikIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.QuikDde;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-            if (smartcomIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.SmartCom;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-            if (ninjaIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.NinjaTrader;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-            if (ibIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.InteractivBrokers;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-
-            if (binanceIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.Binance;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-            if (bitMexIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.BitMex;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-            if (bitfinex == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.Bitfinex;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-            if (krakenIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.Kraken;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-            if (bitStampIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.BitStamp;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-            if (plazaIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.Plaza;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-            if (quikLuaIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.QuikLua;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-            if (oandaIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.Oanda;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-            if (astsIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.AstsBridge;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
+                row1.Cells[1].Value = "Disabled";
                 _gridSources.Rows.Add(row1);
             }
         }
@@ -403,291 +225,5 @@ namespace OsEngine.Market
         {
             RePaintSourceGrid();
         }
-
-        /// <summary>
-        /// сохдать таблицу источников
-        /// </summary>
-        private void CreateSourceGridTestsBackGround()
-        {
-            DataGridView newGrid = new DataGridView();
-
-            newGrid.AllowUserToOrderColumns = false;
-            newGrid.AllowUserToResizeRows = false;
-            newGrid.AllowUserToDeleteRows = false;
-            newGrid.AllowUserToAddRows = false;
-            newGrid.RowHeadersVisible = false;
-            newGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            newGrid.MultiSelect = false;
-
-            DataGridViewCellStyle style = new DataGridViewCellStyle();
-            style.Alignment = DataGridViewContentAlignment.BottomRight;
-
-            DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = style;
-
-            DataGridViewColumn colum0 = new DataGridViewColumn();
-            colum0.CellTemplate = cell0;
-            colum0.HeaderText = @"Источник";
-            colum0.ReadOnly = true;
-            colum0.Width = 100;
-            newGrid.Columns.Add(colum0);
-
-            DataGridViewColumn colu = new DataGridViewColumn();
-            colu.CellTemplate = cell0;
-            colu.HeaderText = @"Статус";
-            colu.ReadOnly = true;
-            colu.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            newGrid.Columns.Add(colu);
-
-            _gridSources = newGrid;
-            _gridSources.DoubleClick += _gridSources_DoubleClick;
-            HostSource.Child = _gridSources;
-            HostSource.VerticalAlignment = VerticalAlignment.Top;
-        }
-
-        /// <summary>
-        /// перерисовать таблицу источников
-        /// </summary>
-        private void RePaintSourceGridTestsBackGround()
-        {
-            if (_gridSources.InvokeRequired)
-            {
-                _gridSources.Invoke(new Action(RePaintSourceGridTestsBackGround));
-                return;
-            }
-
-            _gridSources.Rows.Clear();
-
-            List<IServer> servers = ServerMaster.GetServers();
-
-            for (int i = 0; servers != null && i < servers.Count; i++)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = servers[i].ServerType;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = servers[i].ServerStatus;
-                _gridSources.Rows.Add(row1);
-            }
-
-            bool lmaxIsOn = false;
-            bool bitfinex = false;
-            bool bitMexIsOn = false;
-            bool quikIsOn = false;
-            bool smartcomIsOn = false;
-            bool plazaIsOn = false;
-            bool ibIsOn = false;
-            bool astsIsOn = false;
-            bool quikLuaIsOn = false;
-            bool oandaIsOn = false;
-            bool krakenIsOn = false;
-            bool bitStampIsOn = false;
-            bool binanceIsOn = false;
-            bool ninjaIsOn = false;
-
-            for (int i = 0; i < _gridSources.Rows.Count; i++)
-            {
-                DataGridViewRow row1 = _gridSources.Rows[i];
-
-                ServerType type;
-
-                Enum.TryParse(row1.Cells[0].Value.ToString(), out type);
-
-                if (type == ServerType.Lmax)
-                {
-                    lmaxIsOn = true;
-                }
-
-                if (type == ServerType.Bitfinex)
-                {
-                    bitfinex = true;
-                }
-
-                if (type == ServerType.Binance)
-                {
-                    binanceIsOn = true;
-                }
-
-                if (type == ServerType.NinjaTrader)
-                {
-                    ninjaIsOn = true;
-                }
-
-                if (type == ServerType.BitStamp)
-                {
-                    bitStampIsOn = true;
-                }
-
-                if (type == ServerType.BitMex)
-                {
-                    bitMexIsOn = true;
-                }
-
-                if (type == ServerType.Kraken)
-                {
-                    krakenIsOn = true;
-                }
-
-                if (type == ServerType.Oanda)
-                {
-                    oandaIsOn = true;
-                }
-
-                if (type == ServerType.QuikLua)
-                {
-                    quikLuaIsOn = true;
-                }
-
-                if (type == ServerType.QuikDde)
-                {
-                    quikIsOn = true;
-                }
-                if (type == ServerType.SmartCom)
-                {
-                    smartcomIsOn = true;
-                }
-                if (type == ServerType.Plaza)
-                {
-                    plazaIsOn = true;
-                }
-                if (type == ServerType.InteractivBrokers)
-                {
-                    ibIsOn = true;
-                }
-                if (type == ServerType.AstsBridge)
-                {
-                    astsIsOn = true;
-                }
-            }
-
-            if (lmaxIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.Lmax;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-            if (quikIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.QuikDde;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-            if (smartcomIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.SmartCom;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-            if (ninjaIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.NinjaTrader;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-            if (ibIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.InteractivBrokers;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-
-            if (binanceIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.Binance;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-            if (bitMexIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.BitMex;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-            if (bitfinex == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.Bitfinex;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-            if (krakenIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.Kraken;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-            if (bitStampIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.BitStamp;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-            if (plazaIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.Plaza;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-            if (quikLuaIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.QuikLua;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-            if (oandaIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.Oanda;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-            if (astsIsOn == false)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = ServerType.AstsBridge;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disconnect";
-                _gridSources.Rows.Add(row1);
-            }
-        }
-
     }
 }

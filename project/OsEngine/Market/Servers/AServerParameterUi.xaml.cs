@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Forms;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Market.Servers.Entity;
 using Color = System.Drawing.Color;
 
@@ -20,14 +21,19 @@ namespace OsEngine.Market.Servers
             InitializeComponent();
             _server = server;
 
-            Title += _server.ServerType;
-
             _server.Log.StartPaint(HostLog);
 
             CreateParamDataGrid();
             UpdateParamDataGrid();
             LabelStatus.Content = server.ServerStatus;
             server.ConnectStatusChangeEvent += Server_ConnectStatusChangeEvent;
+
+            Title = OsLocalization.Market.TitleAServerParametrUi + _server.ServerType;
+            TabItem3.Header = OsLocalization.Market.TabItem3;
+            TabItem4.Header = OsLocalization.Market.TabItem4;
+            Label21.Content = OsLocalization.Market.Label21;
+            ButtonConnect.Content = OsLocalization.Market.ButtonConnect;
+            ButtonAbort.Content = OsLocalization.Market.ButtonDisconnect;
         }
 
         private void Server_ConnectStatusChangeEvent(string s)
@@ -45,20 +51,20 @@ namespace OsEngine.Market.Servers
         public void CreateParamDataGrid()
         {
             _newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.None);
-
+            
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = _newGrid.DefaultCellStyle;
 
             DataGridViewColumn colum0 = new DataGridViewColumn();
             colum0.CellTemplate = cell0;
-            colum0.HeaderText = @"Название параметра";
+            colum0.HeaderText = OsLocalization.Market.GridColumn1;
             colum0.ReadOnly = true;
             colum0.Width = 200;
             _newGrid.Columns.Add(colum0);
 
             DataGridViewColumn colu = new DataGridViewColumn();
             colu.CellTemplate = cell0;
-            colu.HeaderText = @"Значение";
+            colu.HeaderText = OsLocalization.Market.GridColumn2;
             colu.ReadOnly = false;
             
             colu.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
@@ -78,7 +84,7 @@ namespace OsEngine.Market.Servers
 
             _newGrid.Click += _newGrid_Click;
         }
-
+        
         public void UpdateParamDataGrid()
         {
             List<IServerParameter> param = _server.ServerParameters;
@@ -233,6 +239,11 @@ namespace OsEngine.Market.Servers
 
             for (int i = 0; i < param.Count; i++)
             {
+                if (_newGrid.Rows[i].Cells[1].Value == null)
+                {
+                    _newGrid.Rows[i].Cells[1].Value = "";
+                }
+
                 if (param[i].Type == ServerParameterType.String)
                 {
                     ((ServerParameterString) param[i]).Value = _newGrid.Rows[i].Cells[1].Value.ToString();
@@ -259,6 +270,10 @@ namespace OsEngine.Market.Servers
                 }
                 else if (param[i].Type == ServerParameterType.Decimal)
                 {
+                    if (_newGrid.Rows[i].Cells[1].Value.ToString() == "")
+                    {
+                        _newGrid.Rows[i].Cells[1].Value = "0";
+                    }
                     string str = _newGrid.Rows[i].Cells[1].Value.ToString();
                     ((ServerParameterDecimal) param[i]).Value =
                         Convert.ToDecimal(str.Replace(".",
@@ -267,6 +282,11 @@ namespace OsEngine.Market.Servers
                 }
                 else if (param[i].Type == ServerParameterType.Int)
                 {
+                    if (_newGrid.Rows[i].Cells[1].Value.ToString() == "")
+                    {
+                        _newGrid.Rows[i].Cells[1].Value = "0";
+                    }
+
                     string str = _newGrid.Rows[i].Cells[1].Value.ToString();
                     ((ServerParameterInt) param[i]).Value = Convert.ToInt32(str);
                 }

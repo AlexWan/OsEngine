@@ -2,23 +2,23 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:system="clr-namespace:System;assembly=mscorlib"
-        Title="Настройки Алерта" Height="447" Width="555" ResizeMode="NoResize" Style="{StaticResource WindowStyleNoResize}" Topmost="True" WindowStartupLocation="CenterScreen" Icon="/OsEngine;component/Images/OsLogo.ico">
+        Title="Alert Settings" Height="447" Width="555" ResizeMode="NoResize" Style="{StaticResource WindowStyleNoResize}" Topmost="True" WindowStartupLocation="CenterScreen" Icon="/OsEngine;component/Images/OsLogo.ico">
     <Grid>
         <Rectangle   Margin="5,198,71,39"/>
         <Rectangle   Margin="5,61,71,0" Height="132" VerticalAlignment="Top"/>
         <Rectangle   Margin="5,5,5,0" Height="51" VerticalAlignment="Top"/>
         <Rectangle   Margin="0,10,5,10" HorizontalAlignment="Right" Width="61"/>
         <ComboBox x:Name="ComboBoxType" HorizontalAlignment="Left" Margin="194,26,0,0" VerticalAlignment="Top" Width="185"/>
-        <Button x:Name="ButtonSendFirst" Content="Указать" HorizontalAlignment="Left" Margin="394,26,0,0" VerticalAlignment="Top" Width="65" Click="ButtonSendFirst_Click"/>
-        <Button x:Name="ButtonSave" Content="Принять" Margin="0,0,71,12" VerticalAlignment="Bottom" Click="ButtonSave_Click" HorizontalAlignment="Right" Width="132"/>
-        <CheckBox x:Name="CheckBoxMusicAlert" Content="Звуковой Сигнал" HorizontalAlignment="Left" Margin="44,231,0,0" VerticalAlignment="Top"/>
-        <CheckBox x:Name="CheckBoxOnOff" Content="Вкл/выкл"  HorizontalAlignment="Left" Margin="29,22,0,0" VerticalAlignment="Top"  FontSize="18" FontWeight="Bold"/>
-        <Label Content="Текст подписи" HorizontalAlignment="Left" Margin="45,290,0,0" VerticalAlignment="Top" />
+        <Button x:Name="ButtonSendFirst" Content="Send" HorizontalAlignment="Left" Margin="394,26,0,0" VerticalAlignment="Top" Width="65" Click="ButtonSendFirst_Click"/>
+        <Button x:Name="ButtonSave" Content="Accept" Margin="0,0,71,12" VerticalAlignment="Bottom" Click="ButtonSave_Click" HorizontalAlignment="Right" Width="132"/>
+        <CheckBox x:Name="CheckBoxMusicAlert" Content="Sound" HorizontalAlignment="Left" Margin="44,231,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="CheckBoxOnOff" Content="On/Off"  HorizontalAlignment="Left" Margin="29,22,0,0" VerticalAlignment="Top"  FontSize="18" FontWeight="Bold"/>
+        <Label Name="LabelToopTipText" Content="ToolTip Text" HorizontalAlignment="Left" Margin="45,290,0,0" VerticalAlignment="Top" />
         <TextBox x:Name="TextBoxLabelAlert" HorizontalAlignment="Left" Height="45" Margin="52,312,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="193" />
-        <Label Content="Цвет линии" HorizontalAlignment="Left" Margin="267,259,0,0" VerticalAlignment="Top"/>
-        <Button  x:Name="ButtonColorLine" Content="Настроить" HorizontalAlignment="Left" Margin="358,259,0,0" VerticalAlignment="Top" Width="96" Click="ButtonColorLine_Click"/>
-        <CheckBox  x:Name="CheckBoxWindow" Content="Всплывающее окно" HorizontalAlignment="Left" Margin="261,290,0,0" VerticalAlignment="Top"/>
-        <Label Content="Ширина линии" HorizontalAlignment="Left" Margin="45,262,0,0" VerticalAlignment="Top" />
+        <Label Name="LabelLineColor" Content="Line Color" HorizontalAlignment="Right" Margin="0,259,195,0" VerticalAlignment="Top"/>
+        <Button  x:Name="ButtonColorLine" Content="Settings" HorizontalAlignment="Right" Margin="0,259,97,0" VerticalAlignment="Top" Width="96" Click="ButtonColorLine_Click"/>
+        <CheckBox Name="CheckBoxWindow" Content="Popup window" Margin="261,290,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="132"/>
+        <Label Name="LabelLineWidth" Content="Line width" HorizontalAlignment="Left" Margin="45,262,0,0" VerticalAlignment="Top" />
         <ComboBox x:Name="ComboBoxFatLine" HorizontalAlignment="Left" Margin="166,262,0,0" VerticalAlignment="Top" Width="79">
             <system:Int32>1</system:Int32>
             <system:Int32>2</system:Int32>
@@ -26,22 +26,22 @@
             <system:Int32>4</system:Int32>
             <system:Int32>5</system:Int32>
         </ComboBox>
-        <TextBox x:Name="TextBoxAlertMessage" HorizontalAlignment="Left" Height="45" Margin="261,312,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="193" />
-        <Label Content="Цвет подписи" HorizontalAlignment="Left" Margin="267,232,0,0" VerticalAlignment="Top"/>
-        <Button x:Name="ButtonColorLabel" Content="Настроить" HorizontalAlignment="Left" Margin="358,232,0,0" VerticalAlignment="Top" Width="96" Click="ButtonColorLabel_Click"/>
-        <Label Content="Тип реакции" HorizontalAlignment="Left" Margin="38,101,0,0" VerticalAlignment="Top" />
+        <TextBox x:Name="TextBoxAlertMessage" HorizontalAlignment="Right" Height="45" Margin="0,312,97,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="193" />
+        <Label Name="LabelToolTipColor" Content="ToolTip Color" HorizontalAlignment="Right" Margin="0,232,193,0" VerticalAlignment="Top"/>
+        <Button Name="ButtonColorLabel" Content="Settings" HorizontalAlignment="Right" Margin="0,232,97,0" VerticalAlignment="Top" Width="96" Click="ButtonColorLabel_Click"/>
+        <Label Name="LabelReactionType" Content="Reaction" HorizontalAlignment="Left" Margin="38,101,0,0" VerticalAlignment="Top" />
         <ComboBox x:Name="ComboBoxSignalType" HorizontalAlignment="Left" Margin="124,101,0,0" VerticalAlignment="Top" Width="103"/>
         <Slider x:Name="Slider" Margin="0,22,26,18" Maximum="200" SmallChange="1" Orientation="Vertical" Value="100" ValueChanged="Slider_ValueChanged" HorizontalAlignment="Right" Width="22"/>
-        <TextBox x:Name="TextBoxVolumeReaction" HorizontalAlignment="Left" Height="23" Margin="358,97,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="96"/>
-        <Label Content="Объём" HorizontalAlignment="Left" Margin="304,97,0,0" VerticalAlignment="Top" />
+        <TextBox x:Name="TextBoxVolumeReaction" HorizontalAlignment="Right" Height="23" Margin="0,97,97,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="96"/>
+        <Label Name="LabelVolume" Content="Volume" HorizontalAlignment="Right" Margin="0,97,195,0" VerticalAlignment="Top" />
         <ComboBox x:Name="ComboBoxOrderType" HorizontalAlignment="Left" Margin="124,129,0,0" VerticalAlignment="Top" Width="103" />
-        <Label Content="Тип ордера" HorizontalAlignment="Left" Margin="38,129,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name="TextBoxSlippage" HorizontalAlignment="Left" Height="23" Margin="358,125,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="96" />
-        <Label Content="Проскальзывание" HorizontalAlignment="Left" Margin="238,125,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name="TextBoxClosePosition" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" VerticalAlignment="Top" Width="96" Margin="358,153,0,0" />
-        <Label Content="Номер закрываемой позиции" HorizontalAlignment="Left" Margin="171,153,0,0" VerticalAlignment="Top"/>
-        <Label Content="Торговля" HorizontalAlignment="Left" Margin="29,66,0,0" VerticalAlignment="Top" FontSize="18" FontWeight="Bold"/>
-        <Label Content="Фейерверки" HorizontalAlignment="Left" Margin="29,198,0,0" VerticalAlignment="Top" FontSize="18" FontWeight="Bold"/>
+        <Label Name="LabelOrderType" Content="Order type" HorizontalAlignment="Left" Margin="38,129,0,0" VerticalAlignment="Top" />
+        <TextBox x:Name="TextBoxSlippage" HorizontalAlignment="Right" Height="23" Margin="0,125,97,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="96" />
+        <Label Name="LabelSlippage" Content="Slippage" HorizontalAlignment="Right" Margin="0,125,195,0" VerticalAlignment="Top" />
+        <TextBox x:Name="TextBoxClosePosition" HorizontalAlignment="Right" Height="23" TextWrapping="Wrap" VerticalAlignment="Top" Width="96" Margin="0,153,97,0" />
+        <Label Name="LabelNumClosedPos" Content="Number of position to be closed" HorizontalAlignment="Right" Margin="0,153,193,0" VerticalAlignment="Top"/>
+        <Label Name="LabelTrade" Content="Trading" HorizontalAlignment="Left" Margin="29,66,0,0" VerticalAlignment="Top" FontSize="18" FontWeight="Bold"/>
+        <Label Name="LabelFireworks" Content="Fireworks" HorizontalAlignment="Left" Margin="29,198,0,0" VerticalAlignment="Top" FontSize="18" FontWeight="Bold"/>
         <ComboBox x:Name="ComboBoxMusicType" HorizontalAlignment="Left" Margin="166,231,0,0" VerticalAlignment="Top" Width="79" ></ComboBox>
         <Rectangle Fill="#FCEE21" Height="179" Stroke="Black" StrokeThickness="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="20" RenderTransformOrigin="0.5,0.5" Margin="1,0,0,0">
             <Rectangle.RenderTransform>

@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -22,6 +23,7 @@ namespace OsEngine.Entity
             TimeCreate = DateTime.MinValue;
             TimeCallBack = DateTime.MinValue;
             TimeCancel = DateTime.MinValue;
+            TimeDone =  DateTime.MinValue;
             NumberMarket = "";
             Side = Side.None;
         }
@@ -125,17 +127,22 @@ namespace OsEngine.Entity
         public string Comment;
 
         /// <summary>
-        /// время выставления ордера на биржу
+        /// время первого отклика от биржи по ордеру. Время севрера.
         /// </summary>
         public DateTime TimeCallBack;
         
         /// <summary>
-        /// время снятия ордера из системы
+        /// время снятия ордера из системы. Время сервера
         /// </summary>
         public DateTime TimeCancel;
 
         /// <summary>
-        /// время создания ордера в OsApi
+        /// время исполнения ордера. Время сервера
+        /// </summary>
+        public DateTime TimeDone;
+
+        /// <summary>
+        /// время создания ордера в OsApi. Время сервера
         /// </summary>
         public DateTime TimeCreate;
 
@@ -326,6 +333,7 @@ namespace OsEngine.Entity
             result.Append(TimeCreate.ToString(new CultureInfo("ru-RU")) + "@");
             result.Append(TimeCancel.ToString(new CultureInfo("ru-RU")) + "@");
             result.Append(TimeCallBack.ToString(new CultureInfo("ru-RU")) + "@");
+            
             result.Append(LifeTime + "@");
         // сделки, которыми открывался ордер и рассчёт цены исполнения ордера
 
@@ -342,7 +350,9 @@ namespace OsEngine.Entity
             }
             result.Append("@");
 
-            result.Append(Comment);
+            result.Append(Comment + "@");
+
+            result.Append(TimeDone.ToString(new CultureInfo("ru-RU")) + "@");
 
             return result;
         }
@@ -363,7 +373,6 @@ namespace OsEngine.Entity
             Volume = Convert.ToDecimal(saveArray[6].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
             VolumeExecute = Convert.ToDecimal(saveArray[7].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
 
-
             Enum.TryParse(saveArray[8], true, out _state);
             Enum.TryParse(saveArray[9], true, out TypeOrder);
             TimeCallBack = Convert.ToDateTime(saveArray[10]);
@@ -375,6 +384,7 @@ namespace OsEngine.Entity
             TimeCreate = Convert.ToDateTime(saveArray[13]);
             TimeCancel = Convert.ToDateTime(saveArray[14]);
             TimeCallBack = Convert.ToDateTime(saveArray[15]);
+
             TimeSpan.TryParse(saveArray[16], out LifeTime);
             // сделки, которыми открывался ордер и рассчёт цены исполнения ордера
 
@@ -395,6 +405,7 @@ namespace OsEngine.Entity
                 }
             }
             Comment = saveArray[18];
+            TimeDone = Convert.ToDateTime(saveArray[19]);
         }
     }
 

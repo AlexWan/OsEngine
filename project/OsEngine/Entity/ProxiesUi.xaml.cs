@@ -1,6 +1,11 @@
-﻿using System.Collections.Generic;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Language;
 using OsEngine.Market.Servers.Kraken;
 
 namespace OsEngine.Entity
@@ -18,6 +23,10 @@ namespace OsEngine.Entity
             _server = server;
             CreateTable();
             ReloadTable();
+
+            Title = OsLocalization.Entity.TitleProxiesUi;
+            ButtonДобавить.Content = OsLocalization.Entity.ProxiesLabel1;
+            ButtonDelete.Content = OsLocalization.Entity.ProxiesLabel2;
         }
 
         private KrakenServer _server;
@@ -47,49 +56,8 @@ namespace OsEngine.Entity
             {
                 return;
             }
-            _gridErrorLog = new DataGridView();
 
-            _gridErrorLog = new DataGridView();
-
-            _gridErrorLog.AllowUserToOrderColumns = true;
-            _gridErrorLog.AllowUserToResizeRows = true;
-            _gridErrorLog.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-            _gridErrorLog.AllowUserToDeleteRows = false;
-            _gridErrorLog.AllowUserToAddRows = false;
-            _gridErrorLog.RowHeadersVisible = false;
-            _gridErrorLog.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            _gridErrorLog.MultiSelect = false;
-
-            DataGridViewCellStyle style = new DataGridViewCellStyle();
-            style.Alignment = DataGridViewContentAlignment.TopLeft;
-            style.WrapMode = DataGridViewTriState.True;
-            _gridErrorLog.DefaultCellStyle = style;
-
-            DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = style;
-
-            DataGridViewColumn column0 = new DataGridViewColumn();
-            column0.CellTemplate = cell0;
-            column0.HeaderText = @"IP";
-            column0.ReadOnly = true;
-            column0.Width = 170;
-
-            _gridErrorLog.Columns.Add(column0);
-
-            DataGridViewColumn column1 = new DataGridViewColumn();
-            column1.CellTemplate = cell0;
-            column1.HeaderText = @"Имя";
-            column1.ReadOnly = true;
-            column1.Width = 100;
-
-            _gridErrorLog.Columns.Add(column1);
-
-            DataGridViewColumn column = new DataGridViewColumn();
-            column.CellTemplate = cell0;
-            column.HeaderText = @"Пароль";
-            column.ReadOnly = true;
-            column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _gridErrorLog.Columns.Add(column);
+            _gridErrorLog = DataGridFactory.GetDataGridProxies();
 
             Host.Child = _gridErrorLog;
         }

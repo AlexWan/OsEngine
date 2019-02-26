@@ -12,6 +12,7 @@ using OkonkwoOandaV20.TradeLibrary.DataTypes.Order;
 using OkonkwoOandaV20.TradeLibrary.DataTypes.Transaction;
 using OkonkwoOandaV20.TradeLibrary.Primitives;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using Order = OsEngine.Entity.Order;
 
@@ -42,7 +43,7 @@ namespace OsEngine.Market.Servers.Oanda
             if (string.IsNullOrEmpty(token))
             {
 
-                SendLogMessage("Токен не может быть пустым! Получите уникальный ключ доступа по адресу: https://www.oanda.com/account/tpa/personal_token", LogMessageType.Error);
+                SendLogMessage(OsLocalization.Market.Message77 + " https://www.oanda.com/account/tpa/personal_token", LogMessageType.Error);
                 return;
             }
 
@@ -118,8 +119,6 @@ namespace OsEngine.Market.Servers.Oanda
         {
             if (portfolios == null || portfolios.Count == 0)
             {
-                SendLogMessage("Прервана попытка получить инструменты раньше авторизации аккаунта",
-                    LogMessageType.System);
                 return;
             }
 
@@ -281,7 +280,7 @@ namespace OsEngine.Market.Servers.Oanda
                 newOrder.NumberUser = Convert.ToInt32(order.clientOrderID);
                 newOrder.State = OrderStateType.Cancel;
                 newOrder.TimeCallBack = DateTime.Parse(order.time);
-
+                newOrder.TimeCancel = newOrder.TimeCallBack;
                 if (NewOrderEvent != null)
                 {
                     NewOrderEvent(newOrder);

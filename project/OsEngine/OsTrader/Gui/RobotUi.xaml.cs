@@ -1,17 +1,20 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
 using System.Windows;
 using OsEngine.Charts.CandleChart;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Market;
 
 namespace OsEngine.OsTrader.Gui
 {
 
     /// <summary>
+    /// Gui robotStation
     /// ГУИ робота
     /// </summary>
     public partial class RobotUi
@@ -32,9 +35,11 @@ namespace OsEngine.OsTrader.Gui
             LabelOsa.Content = "V_" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
 
             TabControlBotsName.SizeChanged += TabControlBotsName_SizeChanged;
+            Local();
         }
 
         /// <summary>
+        /// changed the size of the tabControl with the names of robots
         /// изменился размер табБокса с именами роботов
         /// </summary>
         void TabControlBotsName_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -68,9 +73,43 @@ namespace OsEngine.OsTrader.Gui
             WindowCoordinate.Y = Convert.ToDecimal(Top);
         }
 
+        private void Local()
+        {
+            TabPozition.Header = OsLocalization.Trader.Label18;
+            TabItemClosedPos.Header = OsLocalization.Trader.Label19;
+            TabItemAllPos.Header = OsLocalization.Trader.Label20;
+            TextBoxPositionBord.Header = OsLocalization.Trader.Label21;
+            TextBoxPositionAllOrders.Header = OsLocalization.Trader.Label22;
+            TabItemLogBot.Header = OsLocalization.Trader.Label23;
+            TabItemLogPrime.Header = OsLocalization.Trader.Label24;
+            TabItemMarketDepth.Header = OsLocalization.Trader.Label25;
+            TabItemAlerts.Header = OsLocalization.Trader.Label26;
+            TabItemControl.Header = OsLocalization.Trader.Label27;
+            ButtonBuyFast.Content = OsLocalization.Trader.Label28;
+            ButtonSellFast.Content = OsLocalization.Trader.Label29;
+            TextBoxVolumeInterText.Text = OsLocalization.Trader.Label30;
+            TextBoxPriceText.Text = OsLocalization.Trader.Label31;
+            ButtonBuyLimit.Content = OsLocalization.Trader.Label32;
+            ButtonSellLimit.Content = OsLocalization.Trader.Label33;
+            ButtonCloseLimit.Content = OsLocalization.Trader.Label34;
+            LabelGeneralSettings.Content = OsLocalization.Trader.Label35;
+            LabelBotControl.Content = OsLocalization.Trader.Label36;
+            ButtonServer.Content = OsLocalization.Trader.Label37;
+            ButtonNewBot.Content = OsLocalization.Trader.Label38;
+            ButtonDeleteBot.Content = OsLocalization.Trader.Label39;
+            ButtonJournalCommunity.Content = OsLocalization.Trader.Label40;
+            ButtonRiskManagerCommunity.Content = OsLocalization.Trader.Label41;
+            CheckBoxPaintOnOff.Content = OsLocalization.Trader.Label42;
+            ButtonStrategSettingsIndividual.Content = OsLocalization.Trader.Label43;
+            ButtonRedactTab.Content = OsLocalization.Trader.Label44;
+            ButtonStrategParametr.Content = OsLocalization.Trader.Label45;
+            ButtonRiskManager.Content = OsLocalization.Trader.Label46;
+            ButtonStrategSettings.Content = OsLocalization.Trader.Label47;
+        }
+
         void RobotUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            AcceptDialogUi ui = new AcceptDialogUi("Вы собираетесь закрыть программу. Вы уверены?");
+            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label48);
             ui.ShowDialog();
 
             if (ui.UserAcceptActioin == false)
@@ -84,6 +123,7 @@ namespace OsEngine.OsTrader.Gui
 
         private OsTraderMaster _strategyKeeper;
 
+// main menu
 // главное меню 
 
         private void ButtonServer_Click(object sender, RoutedEventArgs e)
@@ -101,12 +141,14 @@ namespace OsEngine.OsTrader.Gui
             _strategyKeeper.DeleteActiv();
         }
 
+// the management of the individual bot
 // управление отдельным ботом
         private void buttonStrategManualSettings_Click(object sender, RoutedEventArgs e)
         {
             _strategyKeeper.BotManualSettingsDialog();
         }
 
+// scalp trade engine
 // привод
 
         private void buttonBuyFast_Click_1(object sender, RoutedEventArgs e)
@@ -118,7 +160,7 @@ namespace OsEngine.OsTrader.Gui
             }
             catch (Exception)
             {
-                MessageBox.Show("В графе объём неправильное значение");
+                MessageBox.Show(OsLocalization.Trader.Label49);
                 return;
             }
             _strategyKeeper.BotBuyMarket(volume);
@@ -133,13 +175,13 @@ namespace OsEngine.OsTrader.Gui
             }
             catch (Exception)
             {
-                MessageBox.Show("В графе объём неправильное значение");
+                MessageBox.Show(OsLocalization.Trader.Label49);
                 return;
             }
             _strategyKeeper.BotSellMarket(volume);
         }
 
-
+// manual control of the position
 // ручное управление позицией
 
         private void ButtonStrategIndividualSettings_Click(object sender, RoutedEventArgs e)
@@ -156,7 +198,7 @@ namespace OsEngine.OsTrader.Gui
             }
             catch (Exception)
             {
-                MessageBox.Show("В графе объём не правильное значение");
+                MessageBox.Show(OsLocalization.Trader.Label49);
                 return;
             }
 
@@ -168,13 +210,13 @@ namespace OsEngine.OsTrader.Gui
             }
             catch (Exception)
             {
-                MessageBox.Show("В графе цена не правильное значение");
+                MessageBox.Show(OsLocalization.Trader.Label50);
                 return;
             }
 
             if (price == 0)
             {
-                MessageBox.Show("В графе цена не правильное значение");
+                MessageBox.Show(OsLocalization.Trader.Label50);
                 return;
             }
 
@@ -190,7 +232,7 @@ namespace OsEngine.OsTrader.Gui
             }
             catch (Exception)
             {
-                MessageBox.Show("В графе объём не правильное значение");
+                MessageBox.Show(OsLocalization.Trader.Label49);
                 return;
             }
 
@@ -202,13 +244,13 @@ namespace OsEngine.OsTrader.Gui
             }
             catch (Exception)
             {
-                MessageBox.Show("В графе цена не правильное значение");
+                MessageBox.Show(OsLocalization.Trader.Label50);
                 return;
             }
 
             if (price == 0)
             {
-                MessageBox.Show("В графе цена не правильное значение");
+                MessageBox.Show(OsLocalization.Trader.Label50);
                 return;
             }
 

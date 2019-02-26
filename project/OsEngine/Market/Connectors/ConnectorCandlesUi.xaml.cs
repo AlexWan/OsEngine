@@ -2,20 +2,22 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Windows;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Tester;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Windows;
+using System.Windows.Input;
+using OsEngine.Language;
 using MessageBox = System.Windows.MessageBox;
 
 namespace OsEngine.Market.Connectors
 {
     /// <summary>
-    /// Логика взаимодействия для ConnectorQuikUi.xaml
+    /// Логика взаимодействия для ConnectorCandlesUi
     /// </summary>
     public partial class ConnectorCandlesUi
     {
@@ -133,11 +135,76 @@ namespace OsEngine.Market.Connectors
                 ShowDopCandleSettings();
 
                 ComboBoxCandleCreateMethodType.SelectionChanged += ComboBoxCandleCreateMethodType_SelectionChanged;
+                ComboBoxSecurities.KeyDown += ComboBoxSecuritiesOnKeyDown;
+
+
+                Title = OsLocalization.Market.TitleConnectorCandle;
+                Label1.Content = OsLocalization.Market.Label1;
+                Label2.Content = OsLocalization.Market.Label2;
+                Label3.Content = OsLocalization.Market.Label3;
+                CheckBoxIsEmulator.Content = OsLocalization.Market.Label4;
+                Label5.Content = OsLocalization.Market.Label5;
+                Label6.Content = OsLocalization.Market.Label6;
+                Label7.Content = OsLocalization.Market.Label7;
+                Label8.Content = OsLocalization.Market.Label8;
+                Label9.Content = OsLocalization.Market.Label9;
+                LabelTimeFrame.Content = OsLocalization.Market.Label10;
+                LabelCountTradesInCandle.Content = OsLocalization.Market.Label11;
+                CheckBoxSetForeign.Content = OsLocalization.Market.Label12;
+                LabelDeltaPeriods.Content = OsLocalization.Market.Label13;
+                LabelVolumeToClose.Content = OsLocalization.Market.Label14;
+                LabelRencoPunkts.Content = OsLocalization.Market.Label15;
+                CheckBoxRencoIsBuildShadows.Content = OsLocalization.Market.Label16;
+                LabelRangeCandlesPunkts.Content = OsLocalization.Market.Label17;
+                LabelReversCandlesPunktsMinMove.Content = OsLocalization.Market.Label18;
+                LabelReversCandlesPunktsBackMove.Content = OsLocalization.Market.Label19;
+                ButtonAccept.Content = OsLocalization.Market.ButtonAccept;
             }
             catch (Exception error)
             {
-                 MessageBox.Show("Ошибка в конструкторе " + error);
+                 MessageBox.Show(error.ToString());
             }
+        }
+
+        /// <summary>
+        /// поиск инструментов по первой букве в названии
+        /// </summary>
+        private void ComboBoxSecuritiesOnKeyDown(object sender, KeyEventArgs e)
+        {
+            List<IServer> serversAll = ServerMaster.GetServers();
+
+            IServer server = serversAll.Find(server1 => server1.ServerType == _selectedType);
+
+            if (server == null)
+            {
+                return;
+            }
+
+            ComboBoxSecurities.Items.Clear();
+
+            // грузим инструменты подходящие под условия поиска
+
+            List<Security> needSecurities = null;
+
+            if (e.Key == Key.Back)
+            {
+                needSecurities = server.Securities;
+            }
+            else
+            {
+                needSecurities = server.Securities.FindAll(sec => sec.Name.StartsWith(e.Key.ToString(), StringComparison.CurrentCultureIgnoreCase));
+            }
+
+            for (int i = 0; i < needSecurities.Count; i++)
+            {
+                string classSec = needSecurities[i].NameClass;
+                if (ComboBoxClass.SelectedItem != null && classSec == ComboBoxClass.SelectedItem.ToString())
+                {
+                    ComboBoxSecurities.Items.Add(needSecurities[i].Name);
+                    ComboBoxSecurities.SelectedItem = needSecurities[i];
+                }
+            }
+
         }
 
         private void TextBoxReversCandlesPunktsBackMove_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)

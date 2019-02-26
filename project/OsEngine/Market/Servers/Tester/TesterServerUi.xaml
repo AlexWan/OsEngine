@@ -1,7 +1,7 @@
 ﻿<Window x:Class="OsEngine.Market.Servers.Tester.TesterServerUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Эмулятор биржи" Height="494" Width="835" MinWidth="670" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Topmost="True" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+        Title="Exchange emulator" Height="494" Width="835" MinWidth="670" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Topmost="True" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid>
 
         <Grid.RowDefinitions>
@@ -9,33 +9,29 @@
             <RowDefinition/>
         </Grid.RowDefinitions>
         <Rectangle Margin="5"  Grid.Row="1"/>
-        <Button Grid.Row="0" Grid.Column="0" Name="ButtonSinhronazer" Content="Дополнительно" HorizontalAlignment="Left" Margin="5,5,0,0" VerticalAlignment="Top" Width="129" Click="ButtonSinhronazer_Click" FontSize="14"/>
+        <Button Grid.Row="0" Grid.Column="0" Name="ButtonSinhronazer" Content="More settings" HorizontalAlignment="Left" Margin="5,5,0,0" VerticalAlignment="Top" Width="129" Click="ButtonSinhronazer_Click" FontSize="14"/>
         <Button Grid.Row="0" x:Name="ButtonFast" Content="&gt;&gt;&gt;&gt;&gt;" Margin="162,49,194,0" VerticalAlignment="Top" RenderTransformOrigin="0.333,1.5" Click="buttonFast_Click" IsEnabled="True"
                 Grid.Column="0" FontSize="14" />
         <Button Grid.Row="0" x:Name="ButtonNextCandle" Content="+ 1" Margin="0,49,5,0" VerticalAlignment="Top" IsEnabled="True" Click="buttonNextCandle_Click" HorizontalAlignment="Right" Width="90" FontSize="14"/>
         <Button Grid.Row="0" x:Name="ButtonPausePlay" Content="| |" Margin="0,49,100,0" VerticalAlignment="Top" IsEnabled="True" Click="buttonPausePlay_Click" HorizontalAlignment="Right" Width="89" FontSize="14"/>
-        <Button Grid.Row="0" Grid.Column="0" x:Name="ButtonStartTest" Content="Начать тест" HorizontalAlignment="Left" Margin="5,49,0,0" VerticalAlignment="Top" Width="152" RenderTransformOrigin="0.333,1.5" IsEnabled="True" Click="buttonStartTest_Click" FontSize="14"/>
+        <Button Grid.Row="0" Grid.Column="0" Name="ButtonStartTest" Content="Start test" HorizontalAlignment="Left" Margin="5,49,0,0" VerticalAlignment="Top" Width="152" RenderTransformOrigin="0.333,1.5" IsEnabled="True" Click="buttonStartTest_Click" FontSize="14"/>
         <ProgressBar Name="ProgressBar" Height="9" Margin="5,35,5,0" VerticalAlignment="Top" Grid.Row="0" Grid.Column="0" />
-        <Label Content="Статус сервера: " HorizontalAlignment="Right" Margin="0,6,112,0" VerticalAlignment="Top" Grid.Row="0" FontFamily="Calibri" Width="138" FontWeight="Bold" FontSize="16" />
-        <Label x:Name="LabelStatus" Content="Disconnect" Margin="0,6,5,0" VerticalAlignment="Top" Grid.Row="0" FontWeight="Bold" FontSize="16" HorizontalAlignment="Right" Width="102"/>
+        <Label Name="Label21" Content="Connection state " HorizontalAlignment="Right" Margin="0,6,112,0" VerticalAlignment="Top" Grid.Row="0" FontFamily="Calibri" Width="138" FontWeight="Bold" FontSize="16" />
+        <Label Name="LabelStatus" Content="Disconnect" Margin="0,6,5,0" VerticalAlignment="Top" Grid.Row="0" FontWeight="Bold" FontSize="16" HorizontalAlignment="Right" Width="102"/>
         <TabControl Margin="10,21,12,10" Grid.Row="1">
-            <TabItem Header=" Транслируемые данные " FontSize="14">
+            <TabItem Name="Label29" Header=" Broadcast data " FontSize="14">
                 <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="67*"/>
-                        <ColumnDefinition Width="730*"/>
-                    </Grid.ColumnDefinitions>
-                    <WindowsFormsHost x:Name="HostSecurities" Foreground="Black" Margin="0,125,0,0" Grid.ColumnSpan="2"/>
-                    <ComboBox x:Name="ComboBoxSets" Margin="299,5,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="255" Grid.Column="1"/>
-                    <Label  Content="Cеты" HorizontalAlignment="Left" Margin="257,5,0,0" VerticalAlignment="Top" Grid.Column="1" />
-                    <ComboBox x:Name="ComboBoxDataType" HorizontalAlignment="Left" Margin="29,35,0,0" VerticalAlignment="Top" Width="197" Grid.Column="1"/>
-                    <Label  Content="Транслируем" HorizontalAlignment="Left" Margin="9,35,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
-                    <Button x:Name="ButtonSetDataFromPath" Content="Указать в папке" Margin="560,4,10,0" VerticalAlignment="Top" Click="ButtonSetDataFromPath_Click" Grid.Column="1"/>
-                    <TextBox x:Name="TextBoxDataPath" Margin="257,35,9,0" TextWrapping="Wrap" VerticalAlignment="Top" Grid.Column="1"/>
-                    <ComboBox x:Name="ComboBoxDataSourseType" HorizontalAlignment="Left" Margin="29,5,0,0" VerticalAlignment="Top" Width="197" Grid.Column="1"/>
-                    <Label  Content="Источник" HorizontalAlignment="Left" Margin="9,5,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2"  />
-                    <Slider x:Name="SliderFrom" Margin="201,65,10,0" VerticalAlignment="Top" Height="22" Grid.Column="1"/>
-                    <Slider x:Name="SliderTo" Margin="201,95,12,0" VerticalAlignment="Top" Height="22" RenderTransformOrigin="0.5,0.5" Grid.Column="1">
+                    <WindowsFormsHost x:Name="HostSecurities" Foreground="Black" Margin="0,125,0,0"/>
+                    <ComboBox x:Name="ComboBoxSets" Margin="366,5,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="255"/>
+                    <Label Name="Label28" Content="Sets" HorizontalAlignment="Left" Margin="324,5,0,0" VerticalAlignment="Top" />
+                    <ComboBox x:Name="ComboBoxDataType" HorizontalAlignment="Left" Margin="109,35,0,0" VerticalAlignment="Top" Width="184"/>
+                    <Label Name="Label25" Content="Translation type" HorizontalAlignment="Left" Margin="9,35,0,0" VerticalAlignment="Top"/>
+                    <Button x:Name="ButtonSetDataFromPath" Content="Find in folder" Margin="627,4,10,0" VerticalAlignment="Top" Click="ButtonSetDataFromPath_Click"/>
+                    <TextBox x:Name="TextBoxDataPath" Margin="324,35,9,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <ComboBox x:Name="ComboBoxDataSourseType" HorizontalAlignment="Left" Margin="96,5,0,0" VerticalAlignment="Top" Width="197"/>
+                    <Label Name="Label24" Content="Source" HorizontalAlignment="Left" Margin="9,5,0,0" VerticalAlignment="Top"  />
+                    <Slider x:Name="SliderFrom" Margin="268,65,10,0" VerticalAlignment="Top" Height="22"/>
+                    <Slider x:Name="SliderTo" Margin="268,95,12,0" VerticalAlignment="Top" Height="22" RenderTransformOrigin="0.5,0.5">
                         <Slider.RenderTransform>
                             <TransformGroup>
                                 <ScaleTransform/>
@@ -46,37 +42,37 @@
                         </Slider.RenderTransform>
                     </Slider>
 
-                    <TextBox x:Name="TextBoxFrom" HorizontalAlignment="Left"  Margin="29,65,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="148" Grid.Column="1"/>
-                    <TextBox x:Name="TextBoxTo" HorizontalAlignment="Left" Margin="29,95,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="148" Grid.Column="1"/>
-                    <Label x:Name="LabelFrom"  Content="От" HorizontalAlignment="Left" Margin="9,65,0,0" VerticalAlignment="Top" FontFamily="Calibri" Width="23"/>
-                    <Label x:Name="LabelTo"  Content="До" HorizontalAlignment="Left" Margin="9,95,0,0" VerticalAlignment="Top" FontFamily="Calibri" Width="24"/>
+                    <TextBox Name="TextBoxFrom" HorizontalAlignment="Left"  Margin="96,65,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="148"/>
+                    <TextBox Name="TextBoxTo" HorizontalAlignment="Left" Margin="96,95,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="148"/>
+                    <Label Name="LabelFrom"  Content="From" HorizontalAlignment="Left" Margin="9,65,0,0" VerticalAlignment="Top" FontFamily="Calibri" />
+                    <Label Name="LabelTo"  Content="To" HorizontalAlignment="Left" Margin="9,95,0,0" VerticalAlignment="Top" FontFamily="Calibri" Width="24"/>
                 </Grid>
             </TabItem>
-            <TabItem Header=" Настройки исполнения " FontSize="14">
+            <TabItem Name="Label30" Header=" Performance settings " FontSize="14">
                 <Grid >
                     <TextBox x:Name="TextBoxSlipageSimpleOrder" Margin="126,159,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="116"/>
-                    <Label Content="Проскальзывание для лимитов" HorizontalAlignment="Left" Margin="49,84,0,0" VerticalAlignment="Top" FontSize="16" ToolTip="Проскальзывание(намеренное ухудшение цены) которое будет применено ко всем лимитным и маркет ордерам выставленным в не рамок Стоп приказов"/>
-                    <CheckBox Name="CheckBoxSlipageLimitOff" Content="Отключено" HorizontalAlignment="Left" Margin="49,125,0,0" VerticalAlignment="Top" Checked="CheckBoxSlipageLimitOff_Checked"/>
-                    <CheckBox Name="CheckBoxSlipageLimitOn" Content="В шагах" HorizontalAlignment="Left" Margin="49,159,0,0" VerticalAlignment="Top" Checked="CheckBoxSlipageLimitOn_Checked"/>
-                    <TextBox x:Name="TextBoxSlipageStop" Margin="398,159,283,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Center" Width="116"/>
-                    <Label Content="Проскальзывание для стопов" HorizontalAlignment="Center" Margin="306,84,261,0" VerticalAlignment="Top" FontSize="16" ToolTip="Проскальзывание(намеренное ухудшение цены) которое будет применено ко всем лимитным ордерам выставленным в рамках исполнения Стоп приказов"/>
-                    <CheckBox Name="CheckBoxSlipageStopOff" Content="Отключено" HorizontalAlignment="Center" Margin="306,129,393,0" VerticalAlignment="Top" Checked="CheckBoxSlipageStopOff_Checked"/>
-                    <CheckBox Name="CheckBoxSlipageStopOn" Content="В шагах" HorizontalAlignment="Center" Margin="306,159,418,0" VerticalAlignment="Top" Checked="CheckBoxSlipageStopOn_Checked"/>
-                    <Label Content="Исполнение ордеров" HorizontalAlignment="Right" Margin="0,84,79,0" VerticalAlignment="Top" FontSize="16" ToolTip="В какой момент лимитный ордер будет считаться исполненным"/>
-                    <CheckBox Name="CheckBoxExecutionOrderIntersection" Content="Прикосновение цены" HorizontalAlignment="Right" Margin="0,125,68,0" VerticalAlignment="Top" ToolTip="Самый щедящий для стратегии метод исполнения. Ордер исполняется при прикосновении цены инструмента к цене ордера" Checked="CheckBoxExecutionOrderIntersection_Checked"/>
-                    <CheckBox Name="CheckBoxExecutionOrderTuch" Content="Пересечение цены" HorizontalAlignment="Right" Margin="0,159,85,0" VerticalAlignment="Top" Cursor="" ToolTip="Самый суровый способ исполнения ордеров. Ордера исполняются только если цена инструмента пересекла цену ордера минимум на один пункт." Checked="CheckBoxExecutionOrderTuch_Checked"/>
-                    <CheckBox Name="CheckBoxExecutionOrderFiftyFifty" Content="50 / 50" HorizontalAlignment="Right" Margin="0,195,165,0" VerticalAlignment="Top" Cursor="" ToolTip="Оптимальный и самый близкий к реальности способ исполения ордеров. Половина всех ордеров будут исполнены по прикосновению цены инструмента к цене ордера. Половина по пересечению цены инструмента цены ордера." Checked="CheckBoxExecutionOrderFiftyFifty_Checked"/>
+                    <Label Name="Label32" Content="Limit slippage" HorizontalAlignment="Left" Margin="49,84,0,0" VerticalAlignment="Top" FontSize="16" ToolTip="Проскальзывание(намеренное ухудшение цены) которое будет применено ко всем лимитным и маркет ордерам выставленным в не рамок Стоп приказов"/>
+                    <CheckBox Name="CheckBoxSlipageLimitOff" Content="Disabled" HorizontalAlignment="Left" Margin="49,125,0,0" VerticalAlignment="Top" Checked="CheckBoxSlipageLimitOff_Checked"/>
+                    <CheckBox Name="CheckBoxSlipageLimitOn" Content="In steps" HorizontalAlignment="Left" Margin="49,159,0,0" VerticalAlignment="Top" Checked="CheckBoxSlipageLimitOn_Checked"/>
+                    <TextBox x:Name="TextBoxSlipageStop" Margin="398,159,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="116"/>
+                    <Label Name="Label33" Content="Stop slippage" HorizontalAlignment="Center" Margin="306,84,261,0" VerticalAlignment="Top" FontSize="16" ToolTip="Проскальзывание(намеренное ухудшение цены) которое будет применено ко всем лимитным ордерам выставленным в рамках исполнения Стоп приказов"/>
+                    <CheckBox Name="CheckBoxSlipageStopOff" Content="Disabled" HorizontalAlignment="Left" Margin="306,125,0,0" VerticalAlignment="Top" Checked="CheckBoxSlipageStopOff_Checked"/>
+                    <CheckBox Name="CheckBoxSlipageStopOn" Content="In steps" HorizontalAlignment="Left" Margin="306,159,0,0" VerticalAlignment="Top" Checked="CheckBoxSlipageStopOn_Checked"/>
+                    <Label Name="Label34" Content="Order execution" HorizontalAlignment="Right" Margin="0,84,79,0" VerticalAlignment="Top" FontSize="16" ToolTip="В какой момент лимитный ордер будет считаться исполненным"/>
+                    <CheckBox Name="CheckBoxExecutionOrderIntersection" Content="Price crossing" HorizontalAlignment="Left" Margin="566,125,0,0" VerticalAlignment="Top" ToolTip="Самый щедящий для стратегии метод исполнения. Ордер исполняется при прикосновении цены инструмента к цене ордера" Checked="CheckBoxExecutionOrderIntersection_Checked"/>
+                    <CheckBox Name="CheckBoxExecutionOrderTuch" Content="Price touch" HorizontalAlignment="Left" Margin="566,159,0,0" VerticalAlignment="Top" Cursor="" ToolTip="Самый суровый способ исполнения ордеров. Ордера исполняются только если цена инструмента пересекла цену ордера минимум на один пункт." Checked="CheckBoxExecutionOrderTuch_Checked"/>
+                    <CheckBox Name="CheckBoxExecutionOrderFiftyFifty" Content="50 / 50" HorizontalAlignment="Left" Margin="566,195,0,0" VerticalAlignment="Top" Cursor="" ToolTip="Оптимальный и самый близкий к реальности способ исполения ордеров. Половина всех ордеров будут исполнены по прикосновению цены инструмента к цене ордера. Половина по пересечению цены инструмента цены ордера." Checked="CheckBoxExecutionOrderFiftyFifty_Checked"/>
                 </Grid>
             </TabItem>
-            <TabItem Header=" Общий портфель " FontSize="14">
+            <TabItem Name="Label31" Header=" Portfolio " FontSize="14">
                 <Grid >
                     <WindowsFormsHost x:Name="HostPortfolio" Margin="0,32,0,0"/>
-                    <Label Content="Начальный депозит " Margin="266,4,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="129"/>
+                    <Label Name="Label40" Content="Initial deposit" Margin="266,4,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="129"/>
                     <TextBox x:Name="TextBoxStartDepozit" Margin="400,4,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="141"/>
-                    <CheckBox Name="CheckBoxOnOffMarketPortfolio" Content="Включить рассчёт портфеля" HorizontalAlignment="Left" Margin="10,4,0,0" VerticalAlignment="Top" ToolTip="Замедляет итоговое время тестирования. Но показывает динамику изменения портфеля." Click="CheckBoxOnOffMarketPortfolio_Checked"/>
+                    <CheckBox Name="CheckBoxOnOffMarketPortfolio" Content="Enable portfolio calculation" HorizontalAlignment="Left" Margin="10,4,0,0" VerticalAlignment="Top" ToolTip="Замедляет итоговое время тестирования. Но показывает динамику изменения портфеля." Click="CheckBoxOnOffMarketPortfolio_Checked"/>
                 </Grid>
             </TabItem>
-            <TabItem Header=" Лог " FontSize="14">
+            <TabItem Name="Label23" Header=" Logging " FontSize="14">
                 <Grid>
                     <WindowsFormsHost x:Name="Host" Foreground="Black" Margin="0,10,0,0" />
                 </Grid>

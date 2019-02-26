@@ -1,12 +1,12 @@
 ﻿<Window x:Class="OsEngine.OsMiner.Patterns.PatternsCreateUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-         Title="Создание группы паттернов" Height="178.713" Width="261.112" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico" Topmost="True">
+         Title="Creating a pattern group" Height="178.713" Width="261.112" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico" Topmost="True">
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
         <TextBox x:Name="TextBoxPatternName" Height="23" Margin="10,44,10,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
-        <Label Content="Имя" HorizontalAlignment="Left" Margin="10,19,0,0" VerticalAlignment="Top" />
-        <Button Name="ButtonAccept" Content="Принять" Margin="0,0,10,7" VerticalAlignment="Bottom" Click="ButtonAccept_Click" HorizontalAlignment="Right" Width="147"/>
+        <Label Name="LabelName" Content="Name" HorizontalAlignment="Left" Margin="10,19,0,0" VerticalAlignment="Top" />
+        <Button Name="ButtonAccept" Content="Accept" Margin="0,0,10,7" VerticalAlignment="Bottom" Click="ButtonAccept_Click" HorizontalAlignment="Right" Width="147"/>
 
     </Grid>
 </Window>

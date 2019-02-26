@@ -1,4 +1,5 @@
 ﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -16,7 +17,15 @@ namespace OsEngine.Entity
         /// <summary>
         /// время начала свечи
         /// </summary>
-        public DateTime TimeStart;
+        public DateTime TimeStart
+        {
+            get { return _timeStart; }
+            set
+            {
+                _timeStart = value;
+            }
+        }
+        private DateTime _timeStart;
 
         /// <summary>
         /// цена открытия
@@ -51,7 +60,16 @@ namespace OsEngine.Entity
         /// <summary>
         /// трейды составляющие эту свечу
         /// </summary>
-        public List<Trade> Trades;
+        public List<Trade> Trades
+        {
+            set
+            {
+                _trades = value;
+            }
+            get { return _trades; }
+        }
+
+        private List<Trade> _trades = new List<Trade>();
 
         /// <summary>
         /// растущая ли эта свеча
@@ -121,79 +139,84 @@ namespace OsEngine.Entity
         /// <summary>
         /// взять строку с подписями
         /// </summary>
-        public string GetBeautifulString()
+        public string ToolTip
         {
             //Date - 20131001 Time - 100000 
             // Open - 97.8000000 High - 97.9900000 Low - 97.7500000 Close - 97.9000000
-
-            string result = string.Empty;
-
-            if (TimeStart.Day > 9)
+            get
             {
-                result += TimeStart.Day.ToString();
-            }
-            else
-            {
-                result += "0" + TimeStart.Day;
-            }
 
-            result += ".";
+                string result = string.Empty;
 
-            if (TimeStart.Month > 9)
-            {
-                result += TimeStart.Month.ToString();
+                if (TimeStart.Day > 9)
+                {
+                    result += TimeStart.Day.ToString();
+                }
+                else
+                {
+                    result += "0" + TimeStart.Day;
+                }
+
+                result += ".";
+
+                if (TimeStart.Month > 9)
+                {
+                    result += TimeStart.Month.ToString();
+                }
+                else
+                {
+                    result += "0" + TimeStart.Month;
+                }
+
+                result += ".";
+                result += TimeStart.Year.ToString();
+
+                result += " ";
+
+                if (TimeStart.Hour > 9)
+                {
+                    result += TimeStart.Hour.ToString();
+                }
+                else
+                {
+                    result += "0" + TimeStart.Hour;
+                }
+
+                result += ":";
+
+                if (TimeStart.Minute > 9)
+                {
+                    result += TimeStart.Minute.ToString();
+                }
+                else
+                {
+                    result += "0" + TimeStart.Minute;
+                }
+
+                result += ":";
+
+                if (TimeStart.Second > 9)
+                {
+                    result += TimeStart.Second.ToString();
+                }
+                else
+                {
+                    result += "0" + TimeStart.Second;
+                }
+
+                result += "  \r\n";
+
+                result += " O: ";
+                result += Open.ToString(new CultureInfo("ru-RU"));
+                result += " H: ";
+                result += High.ToString(new CultureInfo("ru-RU"));
+                result += " L: ";
+                result += Low.ToString(new CultureInfo("ru-RU"));
+                result += " C: ";
+                result += Close.ToString(new CultureInfo("ru-RU"));
+
+                return result;
             }
-            else
-            {
-                result += "0" + TimeStart.Month;
-            }
-            result += ".";
-            result += TimeStart.Year.ToString();
-
-            result += " ";
-
-            if (TimeStart.Hour > 9)
-            {
-                result += TimeStart.Hour.ToString();
-            }
-            else
-            {
-                result += "0" + TimeStart.Hour;
-            }
-
-            result += ":";
-
-            if (TimeStart.Minute > 9)
-            {
-                result += TimeStart.Minute.ToString();
-            }
-            else
-            {
-                result += "0" + TimeStart.Minute;
-            }
-
-            result += ":";
-
-            if (TimeStart.Second > 9)
-            {
-                result += TimeStart.Second.ToString();
-            }
-            else
-            {
-                result += "0" + TimeStart.Second;
-            }
-            result += "  \r\n";
-
-            result += " O: ";
-            result += Open.ToString(new CultureInfo("ru-RU"));
-            result += " H: ";
-            result += High.ToString(new CultureInfo("ru-RU"));
-            result += " L: ";
-            result += Low.ToString(new CultureInfo("ru-RU"));
-            result += " C: ";
-            result += Close.ToString(new CultureInfo("ru-RU"));
-
-            return result;
         }
 
         private string _stringToSave;
@@ -216,9 +239,6 @@ namespace OsEngine.Entity
 
                 string result = "";
                 result += TimeStart.ToString("yyyyMMdd,HHmmss") + ",";
-
-               // result += TimeStart.Date.ToString("yyyyMMdd") + ",";
-                //result += TimeStart.TimeOfDay.ToString("HHmmss") + ",";
 
                 result += Open.ToString(CultureInfo.InvariantCulture) + ",";
                 result += High.ToString(CultureInfo.InvariantCulture) + ",";

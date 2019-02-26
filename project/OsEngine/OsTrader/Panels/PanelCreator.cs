@@ -1,43 +1,42 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Runtime.InteropServices;
-using System.Threading;
 using OsEngine.Charts.CandleChart.Elements;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels.PanelsGui;
-using OsEngine.OsTrader.Panels.SingleRobots;
 using OsEngine.OsTrader.Panels.Tab;
+using OsEngine.Robots.Trend;
 using MessageBox = System.Windows.MessageBox;
+
 
 namespace OsEngine.OsTrader.Panels
 {
 
     public class PanelCreator
     {
+        /// <summary>
+        /// list robots name / 
+        /// список доступных роботов
+        /// </summary>
         public static List<string> GetNamesStrategy()
         {
             List<string> result = new List<string>();
 
-            // публичные примеры
-           
             result.Add("Engine");
-            result.Add("PatternTrader");
-            result.Add("HighFrequencyTrader");
-            result.Add("MarketMakerBot");
-            result.Add("PivotPointsRobot");
-            result.Add("TwoLegArbitrage");
-            result.Add("TwoTimeFrameBot");
-            result.Add("Bollinger");
-            result.Add("Williams Band");
+            result.Add("ClusterEngine");
+
+            result.AddRange(OsEngine.Robots.BotFactory.GetNamesStrategy());
+
             result.Add("Levermor");
             result.Add("PairTraderSimple");
             result.Add("RsiTrade");
@@ -45,82 +44,53 @@ namespace OsEngine.OsTrader.Panels
             result.Add("BollingerTrade");
             result.Add("TRIXTrade");
             result.Add("CCITrade");
-            result.Add("ParabolicSarTrade");
-            result.Add("PriceChannelTrade");
             result.Add("MACDTrade");
             result.Add("BBPowerTrade");
             result.Add("RviTrade");
-            result.Add("WilliamsRangeTrade");
             result.Add("MacdTrail");
-            result.Add("SmaStochastic");
             result.Add("MomentumMACD");
-            result.Add("PinBarTrade");
             result.Add("PairRsiTrade");
             result.Add("OneLegArbitration");
-            result.Add("ThreeSoldier");
             result.Add("BollingerOutburst");
             result.Add("PriceChannelBreak");
             result.Add("PriceChannelVolatility");
-            result.Add("RsiContrtrend");
-            result.Add("PairTraderSpreadSma");
-            // роботы с инструкцией по созданию
 
-            result.Add("Robot");
-            result.Add("FirstBot");
-
-            
-                
             return result;
         }
 
+        /// <summary>
+        /// create robot
+        /// создать робота
+        /// </summary>
         public static BotPanel GetStrategyForName(string nameClass, string name, StartProgram startProgram)
         {
 
             BotPanel bot = null;
             // примеры и бесплатные боты
 
-            if (nameClass == "PatternTrader")
+            if (nameClass == "MomentumMACD")
             {
-                bot = new PatternTrader(name, startProgram);
+                bot = new MomentumMacd(name, startProgram);
             }
-            if (nameClass == "HighFrequencyTrader")
-            {
-                bot = new HighFrequencyTrader(name, startProgram);
-            }
-            if (nameClass == "TwoTimeFrameBot")
-            {
-                bot = new BotWhithTwoTimeFrame(name, startProgram);
-            }
-            if (nameClass == "PivotPointsRobot")
-            {
-                bot = new PivotPointsRobot(name, startProgram);
-            }
+
             if (nameClass == "Engine")
             {
                 bot = new StrategyEngineCandle(name, startProgram);
             }
-            if (nameClass == "Williams Band")
+            if (nameClass == "ClusterEngine")
             {
-                bot = new StrategyBillWilliams(name, startProgram);
+                bot = new ClusterEngine(name, startProgram);
             }
+            
             if (nameClass == "Levermor")
             {
                 bot = new StrategyLevermor(name, startProgram);
-            }
-            if (nameClass == "MarketMakerBot")
-            {
-                bot = new MarketMakerBot(name, startProgram);
-            }
-            if (nameClass == "Bollinger")
-            {
-                bot = new StrategyBollinger(name, startProgram);
             }
             if (nameClass == "PairTraderSimple")
             {
                 bot = new PairTraderSimple(name, startProgram);
             }
 
-// под релиз
             if (nameClass == "RsiTrade")
             {
                 bot = new RsiTrade(name, startProgram);
@@ -141,14 +111,6 @@ namespace OsEngine.OsTrader.Panels
             {
                 bot = new CciTrade(name, startProgram);
             }
-            if (nameClass == "ParabolicSarTrade")
-            {
-                bot = new ParabolicSarTrade(name, startProgram);
-            }
-            if (nameClass == "PriceChannelTrade")
-            {
-                bot = new PriceChannelTrade(name, startProgram);
-            }
             if (nameClass == "MACDTrade")
             {
                 bot = new MacdTrade(name, startProgram);
@@ -161,58 +123,22 @@ namespace OsEngine.OsTrader.Panels
             {
                 bot = new RviTrade(name, startProgram);
             }
-            if (nameClass == "WilliamsRangeTrade")
-            {
-                bot = new WilliamsRangeTrade(name, startProgram);
-            }
             if (nameClass == "MacdTrail")
             {
                 bot = new MacdTrail(name, startProgram);
-            }
-            if (nameClass == "SmaStochastic")
-            {
-                bot = new SmaStochastic(name, startProgram);
-            }
-            if (nameClass == "MomentumMACD")
-            {
-                bot = new MomentumMacd(name, startProgram);
-            }
-            if (nameClass == "PinBarTrade")
-            {
-                bot = new PinBarTrade(name, startProgram);
             }
             if (nameClass == "PairRsiTrade")
             {
                 bot = new PairRsiTrade(name, startProgram);
             }
-            if (nameClass == "Robot")
-            {
-                bot = new Robot(name, startProgram);
-            }
-            if (nameClass == "FirstBot")
-            {
-                bot = new FirstBot(name, startProgram);
-            }
 
-            if (nameClass == "TwoLegArbitrage")
-            {
-                bot = new TwoLegArbitrage(name, startProgram);
-            }
             if (nameClass == "OneLegArbitration")
             {
                 bot = new OneLegArbitration(name, startProgram);
             }
-            if (nameClass == "ThreeSoldier")
-            {
-                bot = new ThreeSoldier(name, startProgram);
-            }
             if (nameClass == "BollingerOutburst")
             {
                 bot = new BollingerOutburst(name, startProgram);
-            }
-            if (nameClass == "RsiContrtrend")
-            {
-                bot = new RsiContrtrend(name, startProgram);
             }
             if (nameClass == "PriceChannelVolatility")
             {
@@ -222,650 +148,24 @@ namespace OsEngine.OsTrader.Panels
             {
                 bot = new PriceChannelBreak(name, startProgram);
             }
-            if (nameClass == "PairTraderSpreadSma")
+
+            if(bot == null)
             {
-                bot = new PairTraderSpreadSma(name, startProgram);
+                return OsEngine.Robots.BotFactory.GetStrategyForName(nameClass, name, startProgram);
             }
-            
 
             return bot;
         }
     }
 
-    # region примеры роботов для оптимизации
+    # region examples of robots for optimization / примеры роботов для оптимизации
 
     /// <summary>
-    /// робот анализирующий плотность стакана для входа
-    /// </summary>
-    public class HighFrequencyTrader : BotPanel // бывший MarketDepthJuggler
-    {
-        
-        //выставляем заявки над самыми толстыми покупками и продажами. 
-        //не далее чем в пяти тиков от центра стакана. По две заявки.
-        //Когда одна заявка отрабатывает, снимаем все ордера из системы.
-        //Выставляем профит в 10 пунктов и стоп в 5ть.
-
-        //На нашем Ютуб канале есть видео о том как я делаю этого бота:https://www.youtube.com/playlist?list=PL76DtREkiCATe28yPbAT_5em1JqA4xEiB
-        //Однако там не всё сделано, т.к. я кое-что доработал для реальной торговли
-
-        public HighFrequencyTrader(string name, StartProgram startProgram)
-            : base(name, startProgram)
-        {
-            TabCreate(BotTabType.Simple);
-            _tab = TabsSimple[0];
-
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyClosePosition" });
-            Volume = CreateParameter("Volume", 1, 1.0m, 100, 2);
-            Stop = CreateParameter("Stop", 5, 5, 15, 1);
-            Profit = CreateParameter("Profit", 5, 5, 20, 1);
-
-            MaxLevelsInMarketDepth = CreateParameter("MaxLevelsInMarketDepth", 5, 3, 15, 1);
-
-            _tab.MarketDepthUpdateEvent += _tab_MarketDepthUpdateEvent;
-
-            _tab.PositionOpeningSuccesEvent += _tab_PositionOpeningSuccesEvent;
-            _tab.PositionClosingFailEvent += _tab_PositionClosingFailEvent;
-
-            // этот поток создан для того чтобы в реальной торговле отзывать заявки
-            // т.к. нужно ожидать когда у ордеров вернётся номер ордера на бирже
-            // а когда у нас каждую секунду переустанавливаются ордера, этого может не 
-            // успевать происходить. Особенно через наш любимый квик.
-
-            Thread closerThread = new Thread(ClosePositionThreadArea);
-            closerThread.IsBackground = true;
-            closerThread.Start();
-        }
-
-        /// <summary>
-        /// вкладка для торговли
-        /// </summary>
-        private BotTabSimple _tab;
-
-        /// <summary>
-        /// режим работы
-        /// </summary>
-        public StrategyParameterString Regime;
-
-        /// <summary>
-        /// объем
-        /// </summary>
-        public StrategyParameterDecimal Volume;
-
-        /// <summary>
-        /// глубина анализа стакана
-        /// </summary>
-        public StrategyParameterInt MaxLevelsInMarketDepth;
-
-        /// <summary>
-        /// длинна стопа
-        /// </summary>
-        public StrategyParameterInt Stop;
-
-        /// <summary>
-        /// длинна профита
-        /// </summary>
-        public StrategyParameterInt Profit;
-
-        public override string GetNameStrategyType()
-        {
-            return "HighFrequencyTrader";
-        }
-
-        public override void ShowIndividualSettingsDialog()
-        {
-
-        }
-
-// начало логики
-
-        /// <summary>
-        /// последнее время проверки стакана
-        /// </summary>
-        private DateTime _lastCheckTime = DateTime.MinValue;
-
-        /// <summary>
-        /// новый входящий стакан
-        /// </summary>
-        void _tab_MarketDepthUpdateEvent(MarketDepth marketDepth)
-        {
-            if (Regime.ValueString == "Off")
-            {
-                return;
-            }
-            if (marketDepth.Asks == null || marketDepth.Asks.Count == 0 ||
-                marketDepth.Bids == null || marketDepth.Bids.Count == 0)
-            {
-                return;
-            }
-
-            if (_tab.PositionsOpenAll.Find(pos => pos.State == PositionStateType.Open ||
-                pos.State == PositionStateType.Closing
-                ) != null)
-            {
-                return;
-            }
-
-            if (StartProgram == StartProgram.IsOsTrader &&
-                _lastCheckTime.AddSeconds(1) > DateTime.Now)
-            { // в реальной торговле, проверяем стакан раз в секунду
-                return;
-            }
-
-            _lastCheckTime = DateTime.Now;
-
-            Position positionBuy = _tab.PositionsOpenAll.Find(pos => pos.Direction == Side.Buy);
-            Position positionSell = _tab.PositionsOpenAll.Find(pos => pos.Direction == Side.Sell);
-
-            decimal buyPrice = 0;
-            int lastVolume = 0;
-
-            // проверка на покупку
-
-            for (int i = 0; i < marketDepth.Bids.Count && i < MaxLevelsInMarketDepth.ValueInt; i++)
-            {
-                if (marketDepth.Bids[i].Bid > lastVolume)
-                {
-                    buyPrice = marketDepth.Bids[i].Price + _tab.Securiti.PriceStep;
-                    lastVolume = Convert.ToInt32(marketDepth.Bids[i].Bid);
-                }
-            }
-
-            if (positionBuy != null &&
-                positionBuy.OpenOrders[0].Price != buyPrice &&
-                positionBuy.State != PositionStateType.Open &&
-                positionBuy.State != PositionStateType.Closing)
-            {
-                if (StartProgram == StartProgram.IsOsTrader)
-                { // в реальной торговле отправляем позицию на отзыв в массив, 
-                    // который обрабатывается отдельным потоком, ожидая когда у ордеров позиции
-                    // вернутся номера ордеров, прежде чем мы их будем пытаться отозвать
-                    _positionsToClose.Add(positionBuy);
-
-                }
-                else
-                { // в тестере, сразу отправляем позицию на отзыв
-                    _tab.CloseAllOrderToPosition(positionBuy);
-                }
-                _tab.BuyAtLimit(Volume.ValueDecimal, buyPrice);
-            }
-            if (positionBuy == null)
-            {
-                _tab.BuyAtLimit(Volume.ValueDecimal, buyPrice);
-            }
-
-            // проверка на продажу
-
-            decimal sellPrice = 0;
-            int lastVolumeInAsk = 0;
-
-            for (int i = 0; i < marketDepth.Asks.Count && i < MaxLevelsInMarketDepth.ValueInt; i++)
-            {
-                if (marketDepth.Asks[i].Ask > lastVolumeInAsk)
-                {
-                    sellPrice = marketDepth.Asks[i].Price - _tab.Securiti.PriceStep;
-                    lastVolumeInAsk = Convert.ToInt32(marketDepth.Asks[i].Ask);
-                }
-            }
-
-            if (positionSell != null &&
-                positionSell.OpenOrders[0].Price != sellPrice &&
-                positionSell.State != PositionStateType.Open &&
-                positionSell.State != PositionStateType.Closing)
-            {
-                if (StartProgram == StartProgram.IsOsTrader)
-                {
-                    _positionsToClose.Add(positionSell);
-                    // в реальной торговле отправляем позицию на отзыв в массив, 
-                    // который обрабатывается отдельным потоком, ожидая когда у ордеров позиции
-                    // вернутся номера ордеров, прежде чем мы их будем пытаться отозвать
-                }
-                else
-                {
-                    // в тестере, сразу отправляем позицию на отзыв
-                    _tab.CloseAllOrderToPosition(positionSell);
-                }
-
-                _tab.SellAtLimit(Volume.ValueDecimal, sellPrice);
-            }
-            if (positionSell == null)
-            {
-                _tab.SellAtLimit(Volume.ValueDecimal, sellPrice);
-            }
-        }
-
-        /// <summary>
-        /// успешное открытие позиции
-        /// </summary>
-        void _tab_PositionOpeningSuccesEvent(Position position)
-        {
-            if (position.Direction == Side.Buy)
-            {
-                _tab.CloseAtStop(position, position.EntryPrice - Stop.ValueInt * _tab.Securiti.PriceStep, position.EntryPrice - Stop.ValueInt * _tab.Securiti.PriceStep);
-                _tab.CloseAtProfit(position, position.EntryPrice + Profit.ValueInt * _tab.Securiti.PriceStep, position.EntryPrice + Profit.ValueInt * _tab.Securiti.PriceStep);
-            }
-            if (position.Direction == Side.Sell)
-            {
-                _tab.CloseAtStop(position, position.EntryPrice + Stop.ValueInt * _tab.Securiti.PriceStep, position.EntryPrice + Stop.ValueInt * _tab.Securiti.PriceStep);
-                _tab.CloseAtProfit(position, position.EntryPrice - Profit.ValueInt * _tab.Securiti.PriceStep, position.EntryPrice - Profit.ValueInt * _tab.Securiti.PriceStep);
-            }
-
-            List<Position> positions = _tab.PositionsOpenAll;
-
-            for (int i = 0; i < positions.Count; i++)
-            {
-                if (positions[i].Number == position.Number)
-                {
-                    continue;
-                }
-                if (StartProgram == StartProgram.IsOsTrader)
-                {
-                    // в реальной торговле отправляем позицию на отзыв в массив, 
-                    // который обрабатывается отдельным потоком, ожидая когда у ордеров позиции
-                    // вернутся номера ордеров, прежде чем мы их будем пытаться отозвать
-                    _positionsToClose.Add(positions[i]);
-                }
-                else
-                {
-                    // в тестере, сразу отправляем позицию на отзыв
-                    _tab.CloseAllOrderToPosition(positions[i]);
-                }
-            }
-        }
-
-        /// <summary>
-        /// позиция не закрылась и у неё отозваны ордера
-        /// </summary>
-        void _tab_PositionClosingFailEvent(Position position)
-        {
-            if (position.CloseActiv)
-            {
-                return;
-            }
-            _tab.CloseAtMarket(position, position.OpenVolume);
-        }
-
-// отзыв заявок в реальном подключении
-
-        /// <summary>
-        /// позиции которые нужно отозвать
-        /// </summary>
-        List<Position> _positionsToClose = new List<Position>();
-
-        /// <summary>
-        /// место работы потока где отзываются заявки в реальном подключении
-        /// </summary>
-        private void ClosePositionThreadArea()
-        {
-            while (true)
-            {
-                Thread.Sleep(1000);
-
-                if (MainWindow.ProccesIsWorked == false)
-                {
-                    return;
-                }
-
-                for (int i = 0; i < _positionsToClose.Count; i++)
-                {
-                    if (_positionsToClose[i].State != PositionStateType.Opening)
-                    {
-                        continue;
-                    }
-
-                    if (_positionsToClose[i].OpenOrders != null &&
-                        !string.IsNullOrWhiteSpace(_positionsToClose[i].OpenOrders[0].NumberMarket))
-                    {
-                        _tab.CloseAllOrderToPosition(_positionsToClose[i]);
-                        _positionsToClose.RemoveAt(i);
-                        i--;
-                    }
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// трендовая стратегия Билла Вильямса на Аллигаторе и фракталах
-    /// </summary>
-    public class StrategyBillWilliams : BotPanel
-    {
-        /// <summary>
-        /// конструктор
-        /// </summary>
-        public StrategyBillWilliams(string name, StartProgram startProgram)
-            : base(name, startProgram)
-        {
-            TabCreate(BotTabType.Simple);
-            _tab = TabsSimple[0];
-
-            _tab.CandleFinishedEvent += Bot_CandleFinishedEvent;
-
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
-            Slipage = CreateParameter("Slipage", 0, 0, 20, 1);
-            VolumeFirst = CreateParameter("FirstInterVolume", 3, 1.0m, 50, 1);
-            VolumeSecond = CreateParameter("SecondInterVolume", 1, 1.0m, 50, 1);
-            MaximumPositions = CreateParameter("MaxPoses", 1, 1, 10, 1);
-            AlligatorFastLineLength = CreateParameter("AlligatorFastLineLength", 3, 3, 30, 1);
-            AlligatorMiddleLineLength = CreateParameter("AlligatorMiddleLineLength", 10, 10, 70, 5);
-            AlligatorSlowLineLength = CreateParameter("AlligatorSlowLineLength", 40, 40, 150, 10);
-
-            _alligator = new Alligator(name + "Alligator", false);
-            _alligator = (Alligator)_tab.CreateCandleIndicator(_alligator, "Prime");
-            _alligator.Save();
-
-            _alligator.LenghtDown = AlligatorSlowLineLength.ValueInt;
-            _alligator.LenghtBase = AlligatorMiddleLineLength.ValueInt;
-            _alligator.LenghtUp = AlligatorFastLineLength.ValueInt;
-
-            _fractal = new Fractal(name + "Fractal", false);
-            _fractal = (Fractal)_tab.CreateCandleIndicator(_fractal, "Prime");
-
-            _aO = new AwesomeOscillator(name + "AO", false);
-            _aO = (AwesomeOscillator)_tab.CreateCandleIndicator(_aO, "AoArea");
-            _aO.Save();
-
-            ParametrsChangeByUser += StrategyBillWilliams_ParametrsChangeByUser;
-        }
-
-        /// <summary>
-        /// параметры изменены юзером
-        /// </summary>
-        void StrategyBillWilliams_ParametrsChangeByUser()
-        {
-            if (AlligatorSlowLineLength.ValueInt != _alligator.LenghtDown ||
-                AlligatorMiddleLineLength.ValueInt != _alligator.LenghtBase ||
-                AlligatorFastLineLength.ValueInt != _alligator.LenghtUp)
-            {
-                _alligator.LenghtDown = AlligatorSlowLineLength.ValueInt;
-                _alligator.LenghtBase = AlligatorMiddleLineLength.ValueInt;
-                _alligator.LenghtUp = AlligatorFastLineLength.ValueInt;
-                _alligator.Reload();
-            }
-        }
-
-        /// <summary>
-        /// взять уникальное имя
-        /// </summary>
-        public override string GetNameStrategyType()
-        {
-            return "Williams Band";
-        }
-
-        /// <summary>
-        /// показать окно настроек
-        /// </summary>
-        public override void ShowIndividualSettingsDialog()
-        {
-            MessageBox.Show("Это трендовый робот оснванный на стратегии Билла Вильямса");
-        }
-
-        /// <summary>
-        /// вкладка для торговли
-        /// </summary>
-        private BotTabSimple _tab;
-
-        // индикаторы
-
-        /// <summary>
-        /// аллигатор
-        /// </summary>
-        private Alligator _alligator;
-
-        /// <summary>
-        /// фрактал
-        /// </summary>
-        private Fractal _fractal;
-
-        /// <summary>
-        /// удивительный осциллятор
-        /// </summary>
-        private AwesomeOscillator _aO;
-
-// настройки публичные
-
-        /// <summary>
-        /// длинна быстрой линии аллигатора
-        /// </summary>
-        public StrategyParameterInt AlligatorFastLineLength;
-
-        /// <summary>
-        /// длинна средней линии аллигатора
-        /// </summary>
-        public StrategyParameterInt AlligatorMiddleLineLength;
-
-        /// <summary>
-        /// длинна медленной линии аллигатора
-        /// </summary>
-        public StrategyParameterInt AlligatorSlowLineLength;
-
-        /// <summary>
-        /// проскальзывание
-        /// </summary>
-        public StrategyParameterInt Slipage;
-
-        /// <summary>
-        /// объём для первого входа
-        /// </summary>
-        public StrategyParameterDecimal VolumeFirst;
-
-        /// <summary>
-        /// объём для последующих входов
-        /// </summary>
-        public StrategyParameterDecimal VolumeSecond;
-
-        /// <summary>
-        /// максимальная позиция
-        /// </summary>
-        public StrategyParameterInt MaximumPositions;
-
-        /// <summary>
-        /// режим работы
-        /// </summary>
-        public StrategyParameterString Regime;
-
-// переменные, нужные для торговли
-
-        private decimal _lastPrice;
-
-        private decimal _lastUpAlligator;
-
-        private decimal _lastMiddleAlligator;
-
-        private decimal _lastDownAlligator;
-
-        private decimal _lastFractalUp;
-
-        private decimal _lastFractalDown;
-
-        private decimal _lastAo;
-
-        private decimal _secondAo;
-
-        private decimal _thirdAo;
-
-        // логика
-
-        /// <summary>
-        /// собитие завершения свечи
-        /// </summary>
-        private void Bot_CandleFinishedEvent(List<Candle> candles)
-        {
-            // берём значения из инидикаторов.
-            if (Regime.ValueString == "Off")
-            {
-                return;
-            }
-
-            if (StartProgram == StartProgram.IsOsTrader
-                && DateTime.Now.Hour < 10)
-            {
-                return;
-            }
-
-            if (_alligator.ValuesUp == null ||
-                _alligator.Values == null ||
-                _alligator.ValuesDown == null ||
-                _fractal == null ||
-                _alligator.LenghtBase > candles.Count ||
-                _alligator.LenghtDown > candles.Count ||
-                _alligator.LenghtUp > candles.Count)
-            {
-                return;
-            }
-
-            _lastPrice = candles[candles.Count - 1].Close;
-            _lastUpAlligator = _alligator.ValuesUp[_alligator.ValuesUp.Count - 1];
-            _lastMiddleAlligator = _alligator.Values[_alligator.Values.Count - 1];
-            _lastDownAlligator = _alligator.ValuesDown[_alligator.ValuesDown.Count - 1];
-
-            for (int i = _fractal.ValuesUp.Count - 1; i > -1; i--)
-            {
-                if (_fractal.ValuesUp[i] != 0)
-                {
-                    _lastFractalUp = _fractal.ValuesUp[i];
-                    break;
-                }
-            }
-
-            for (int i = _fractal.ValuesDown.Count - 1; i > -1; i--)
-            {
-                if (_fractal.ValuesDown[i] != 0)
-                {
-                    _lastFractalDown = _fractal.ValuesDown[i];
-                    break;
-                }
-            }
-
-            _lastAo = _aO.Values[_aO.Values.Count - 1];
-
-            if (_aO.Values.Count > 3)
-            {
-                _secondAo = _aO.Values[_aO.Values.Count - 2];
-                _thirdAo = _aO.Values[_aO.Values.Count - 3];
-            }
-
-            if (_lastUpAlligator == 0 ||
-                _lastMiddleAlligator == 0 ||
-                _lastDownAlligator == 0)
-            {
-                return;
-            }
-
-
-            // распределяем логику в зависимости от текущей позиции
-
-            List<Position> openPosition = _tab.PositionsOpenAll;
-
-            if (openPosition != null && openPosition.Count != 0
-                && candles[candles.Count - 1].TimeStart.Hour <= 18)
-            {
-                for (int i = 0; i < openPosition.Count; i++)
-                {
-                    LogicClosePosition(openPosition[i], candles);
-                }
-            }
-
-            if (Regime.ValueString == "OnlyClosePosition")
-            {
-                return;
-            }
-
-            if (openPosition == null || openPosition.Count == 0
-                && candles[candles.Count - 1].TimeStart.Hour >= 11
-                && candles[candles.Count - 1].TimeStart.Hour <= 18)
-            {
-                LogicOpenPosition();
-            }
-            else if (openPosition.Count != 0 && openPosition.Count < MaximumPositions.ValueInt
-                     && candles[candles.Count - 1].TimeStart.Hour >= 11
-                     && candles[candles.Count - 1].TimeStart.Hour <= 18)
-            {
-                LogicOpenPositionSecondary(openPosition[0].Direction);
-            }
-
-
-        }
-
-        /// <summary>
-        /// логика открытия позиции
-        /// </summary>
-        private void LogicOpenPosition()
-        {
-            if (_lastPrice > _lastUpAlligator && _lastPrice > _lastMiddleAlligator && _lastPrice > _lastDownAlligator
-                && _lastPrice > _lastFractalUp
-                && Regime.ValueString != "OnlyShort")
-            {
-                _tab.BuyAtLimit(VolumeFirst.ValueDecimal, _lastPrice + Slipage.ValueInt * _tab.Securiti.PriceStep);
-            }
-            if (_lastPrice < _lastUpAlligator && _lastPrice < _lastMiddleAlligator && _lastPrice < _lastDownAlligator
-                && _lastPrice < _lastFractalDown
-                && Regime.ValueString != "OnlyLong")
-            {
-                _tab.SellAtLimit(VolumeFirst.ValueDecimal, _lastPrice - Slipage.ValueInt * _tab.Securiti.PriceStep);
-            }
-        }
-
-        /// <summary>
-        /// логика открытия позиции после первой 
-        /// </summary>
-        private void LogicOpenPositionSecondary(Side side)
-        {
-            if (side == Side.Buy && Regime.ValueString != "OnlyShort")
-            {
-                if (_secondAo < _lastAo &&
-                    _secondAo < _thirdAo)
-                {
-                    _tab.BuyAtLimit(VolumeSecond.ValueDecimal, _lastPrice + Slipage.ValueInt * _tab.Securiti.PriceStep);
-                }
-            }
-
-            if (side == Side.Sell && Regime.ValueString != "OnlyLong")
-            {
-                if (_secondAo > _lastAo &&
-                    _secondAo > _thirdAo)
-                {
-                    _tab.SellAtLimit(VolumeSecond.ValueDecimal, _lastPrice - Slipage.ValueInt * _tab.Securiti.PriceStep);
-                }
-            }
-        }
-
-        /// <summary>
-        /// логика закрытия позиции
-        /// </summary>
-        private void LogicClosePosition(Position position, List<Candle> candles)
-        {
-            if (position.State != PositionStateType.Open)
-            {
-                return;
-            }
-
-            if (position.Direction == Side.Buy)
-            {
-                if (_lastPrice < _lastMiddleAlligator)
-                {
-                    _tab.CloseAtLimit(position, _lastPrice - Slipage.ValueInt * _tab.Securiti.PriceStep, position.OpenVolume);
-                }
-            }
-
-            if (position.Direction == Side.Sell)
-            {
-                if (_lastPrice > _lastMiddleAlligator)
-                {
-                    _tab.CloseAtLimit(position, _lastPrice + Slipage.ValueInt * _tab.Securiti.PriceStep, position.OpenVolume);
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// трендовая стратегия Джесси Ливермора, на основе пробоя канала.
-    /// только большой ТФ
+    /// Jesse Livermore's trend strategy based on channel breakdown
+    /// трендовая стратегия Джесси Ливермора, на основе пробоя канала
     /// </summary>
     public class StrategyLevermor : BotPanel
     {
-        /// <summary>
-        /// конструктор
-        /// </summary>
         public StrategyLevermor(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
@@ -913,53 +213,57 @@ namespace OsEngine.OsTrader.Panels
             _smaTrenda.Reload();
         }
 
-        /// <summary>
-        /// переопределённый метод, позволяющий менеджеру ботов определять что за робот перед ним
-        /// </summary>
-        /// <returns>название стратегии</returns>
         public override string GetNameStrategyType()
         {
             return "Levermor";
         }
 
-        /// <summary>
-        /// показать окно настроек
-        /// </summary>
         public override void ShowIndividualSettingsDialog()
         {
             MessageBox.Show(
-                "Трендовая стратегия описанная в книге Эдвина Лафевра: Воспоминания биржевого спекулянта. Подробнее: " +
-                "http://o-s-a.net/posts/34-bad-quant-edvin-lefevr-vospominanija-birzhevogo-spekuljanta.html");
+                OsLocalization.Trader.Label56);
         }
 
+        /// <summary>
+        /// tab to trade
+        /// вкладка для торговли
+        /// </summary>
         private BotTabSimple _tab;
 
-        // индикаторы
+        // indicators / индикаторы
 
         /// <summary>
-        /// индикатор: скользящая средняя
+        /// MA
+        /// скользящая средняя
         /// </summary>
         private MovingAverage _smaTrenda;
 
         /// <summary>
+        /// ATR
         /// индикатор: Атр
         /// </summary>
         private PriceChannel _channel;
 
-        // настройки стандартные
+// settings / настройки стандартные
 
         /// <summary>
+        /// slippage
         /// проскальзывание
         /// </summary>
         public StrategyParameterInt Slipage;
+
         /// <summary>
+        /// regime
         /// режим работы робота
         /// </summary>
         public StrategyParameterString Regime;
+
         /// <summary>
-        /// объём исполняемый в одной сделке
+        /// volume
+        /// объём 
         /// </summary>
         public StrategyParameterDecimal Volume;
+
         public StrategyParameterInt MaximumPosition;
         public StrategyParameterDecimal PersentDopBuy;
         public StrategyParameterDecimal PersentDopSell;
@@ -971,6 +275,7 @@ namespace OsEngine.OsTrader.Panels
         public StrategyParameterString ExitType;
 
         /// <summary>
+        /// delete file with save data
         /// удаление файла с сохранением
         /// </summary>
         void Strategy_DeleteEvent()
@@ -981,12 +286,13 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
-        // логика
+        // logic логика
 
         /// <summary>
+        /// an event that occurs when a position is successfully opened
         /// событие, происходит когда позиция успешно открыта
         /// </summary>
-        /// <param name="position">открытая позиция</param>
+        /// <param name="position">opened position / открытая позиция</param>
         private void StrategyRutabaga_PositionOpeningSuccesEvent(Position position)
         {
             try
@@ -1000,7 +306,6 @@ namespace OsEngine.OsTrader.Panels
 
                 if (openPosition != null && openPosition.Count != 0)
                 {
-                    // есть открытая позиция, вызываем установку стопов
                     LogicClosePosition(openPosition, _tab.CandlesFinishedOnly);
                 }
             }
@@ -1011,6 +316,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// candle finished event
         /// событие завершения свечи
         /// </summary>
         private void Strateg_CandleFinishedEvent(List<Candle> candles)
@@ -1034,18 +340,17 @@ namespace OsEngine.OsTrader.Panels
             }
 
             // распределяем логику в зависимости от текущей позиции
+            // we distribute logic depending on the current position
 
             List<Position> openPosition = _tab.PositionsOpenAll;
 
             if (openPosition != null && openPosition.Count != 0)
             {
-                // есть открытая позиция, вызываем установку стопов
                 LogicClosePosition(openPosition, candles);
             }
 
             if (Regime.ValueString == "OnlyClosePosition")
             {
-                // если у бота включен режим "только закрытие"
                 return;
             }
 
@@ -1054,6 +359,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// position open logic
         /// логика открытия позиции
         /// </summary>
         private void LogicOpenPosition(List<Candle> candles)
@@ -1072,6 +378,7 @@ namespace OsEngine.OsTrader.Panels
             }
 
             // берём максимум и минимум за последние n баров
+            // take the maximum and minimum for the last n bars
 
             decimal maxToCandleSeries = _channel.ValuesUp[_channel.ValuesUp.Count - 1];
             decimal minToCandleSeries = _channel.ValuesDown[_channel.ValuesDown.Count - 1];
@@ -1082,7 +389,9 @@ namespace OsEngine.OsTrader.Panels
             {
                 if (positions != null && positions.Count != 0 &&
                     positions[0].Direction == Side.Buy)
-                { // если открыты лонги - добавляемся
+                { 
+                    // если открыты лонги - добавляемся
+                    //if longs are open - add more
                     if (positions.Count >= MaximumPosition.ValueInt)
                     {
                         return;
@@ -1098,8 +407,10 @@ namespace OsEngine.OsTrader.Panels
                     }
                 }
                 else if (positions == null || positions.Count == 0)
-                { // если ничего не открыто - ставим линии на пробой
-                    //BuyAtStop(0, Volume, maxToCandleSeries + Slipage, maxToCandleSeries, candles[candles.Count - 1].Close);
+                {
+                    // nothing open. Send lines to open
+                    // если ничего не открыто - ставим линии на пробой
+
                     _tab.SellAtStopCanсel();
                     _tab.BuyAtStopCanсel();
                     _tab.BuyAtStop(Volume.ValueDecimal, maxToCandleSeries + (Slipage.ValueInt * _tab.Securiti.PriceStep), maxToCandleSeries, StopActivateType.HigherOrEqual);
@@ -1110,7 +421,7 @@ namespace OsEngine.OsTrader.Panels
             {
                 if (positions != null && positions.Count != 0 &&
                          positions[0].Direction == Side.Sell)
-                { // если открыты шорты - добавляемся
+                {
                     if (positions.Count >= MaximumPosition.ValueInt)
                     {
                         return;
@@ -1119,17 +430,16 @@ namespace OsEngine.OsTrader.Panels
 
                     if (lastIntro - lastIntro * (PersentDopSell.ValueDecimal / 100) > lastPrice)
                     {
-                        //SellAtLimit(0, Volume, lastPrice - Slipage);
                         _tab.SellAtLimit(Volume.ValueDecimal, lastPrice - (Slipage.ValueInt * _tab.Securiti.PriceStep));
                     }
                 }
                 else if (positions == null || positions.Count == 0)
-                { // если ничего не открыто - ставим линии на пробой
+                {
                     if (positions != null && positions.Count >= MaximumPosition.ValueInt)
                     {
                         return;
                     }
-                    //SellAtStop(0, Volume, minToCandleSeries - Slipage, minToCandleSeries,candles[candles.Count - 1].Close);
+
                     _tab.SellAtStopCanсel();
                     _tab.BuyAtStopCanсel();
                     _tab.SellAtStop(Volume.ValueDecimal, minToCandleSeries - (Slipage.ValueInt * _tab.Securiti.PriceStep), minToCandleSeries, StopActivateType.LowerOrEqyal);
@@ -1138,6 +448,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// exit position logic
         /// логика выхода из позиции
         /// </summary>
         private void LogicClosePosition(List<Position> positions, List<Candle> candles)
@@ -1201,13 +512,11 @@ namespace OsEngine.OsTrader.Panels
     }
 
     /// <summary>
+    /// Trend strategy at the intersection of the indicator RVI
     /// Трендовая стратегия на пересечение индикатора RVI
     /// </summary>
     public class RviTrade : BotPanel
     {
-        /// <summary>
-        /// конструктор
-        /// </summary>
         public RviTrade(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
@@ -1217,7 +526,7 @@ namespace OsEngine.OsTrader.Panels
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
             RviLenght = CreateParameter("RviLength", 10, 10, 80, 3);
             Volume = CreateParameter("Volume", 3, 1.0m, 50, 4);
-            Slipage = CreateParameter("Slipage", 0, 0, 20, 1);
+            Slippage = CreateParameter("Slipage", 0, 0, 20, 1);
 
             _rvi = new Rvi(name + "RviArea", false);
             _rvi = (Rvi)_tab.CreateCandleIndicator(_rvi, "MacdArea");
@@ -1238,6 +547,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// strategy name
         /// взять уникальное имя
         /// </summary>
         public override string GetNameStrategyType()
@@ -1245,6 +555,7 @@ namespace OsEngine.OsTrader.Panels
             return "RviTrade";
         }
         /// <summary>
+        /// settings GUI
         /// показать окно настроек
         /// </summary>
         public override void ShowIndividualSettingsDialog()
@@ -1252,52 +563,53 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// tab to trade
         /// вкладка для торговли
         /// </summary>
         private BotTabSimple _tab;
 
-        //индикаторы
+//indicators индикаторы
 
-        /// <summary>
-        /// RVI индикатор
-        /// </summary>
         private Rvi _rvi;
 
-        //настройки публичные
+//settings настройки публичные
 
         /// <summary>
+        /// slippage
         /// проскальзывание
         /// </summary>
-        public StrategyParameterInt Slipage;
+        public StrategyParameterInt Slippage;
 
         /// <summary>
+        /// volume to inter
         /// фиксированный объем для входа
         /// </summary>
         public StrategyParameterDecimal Volume;
 
         /// <summary>
+        /// regime
         /// режим работы
         /// </summary>
         public StrategyParameterString Regime;
 
         /// <summary>
+        /// indicator length
         /// длинна индикатора
         /// </summary>
         public StrategyParameterInt RviLenght;
 
-
-        // переменные, нужные для торговли
         private decimal _lastPrice;
         private decimal _lastRviUp;
         private decimal _lastRviDown;
-        // логика
+
+        // logic / логика
 
         /// <summary>
+        /// candle finished event
         /// событие завершения свечи
         /// </summary>
         private void Strateg_CandleFinishedEvent(List<Candle> candles)
         {
-            // берём значения из инидикаторов.
             if (Regime.ValueString == "Off")
             {
                 return;
@@ -1311,8 +623,6 @@ namespace OsEngine.OsTrader.Panels
             _lastPrice = candles[candles.Count - 1].Close;
             _lastRviUp = _rvi.ValuesUp[_rvi.ValuesUp.Count - 1];
             _lastRviDown = _rvi.ValuesDown[_rvi.ValuesDown.Count - 1];
-
-            // распределяем логику в зависимости от текущей позиции
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
@@ -1336,23 +646,25 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
-        /// логика открытия первой позиции
+        /// open position logic
+        /// логика открытия позиции
         /// </summary>
         private void LogicOpenPosition(List<Candle> candles, List<Position> position)
         {
             if (_lastRviDown < 0 && _lastRviUp > _lastRviDown && Regime.ValueString != "OnlyShort")
             {
-                _tab.BuyAtLimit(Volume.ValueDecimal, _lastPrice + Slipage.ValueInt * _tab.Securiti.PriceStep);
+                _tab.BuyAtLimit(Volume.ValueDecimal, _lastPrice + Slippage.ValueInt * _tab.Securiti.PriceStep);
             }
 
             if (_lastRviDown > 0 && _lastRviUp < _lastRviDown && Regime.ValueString != "OnlyLong")
             {
-                _tab.SellAtLimit(Volume.ValueDecimal, _lastPrice - Slipage.ValueInt * _tab.Securiti.PriceStep);
+                _tab.SellAtLimit(Volume.ValueDecimal, _lastPrice - Slippage.ValueInt * _tab.Securiti.PriceStep);
             }
         }
 
         /// <summary>
-        /// логика зыкрытия позиции и открытие по реверсивной системе
+        /// logic close position
+        /// логика зыкрытия позиции
         /// </summary>
         private void LogicClosePosition(List<Candle> candles, Position position)
         {
@@ -1360,11 +672,11 @@ namespace OsEngine.OsTrader.Panels
             {
                 if (_lastRviDown > 0 && _lastRviUp < _lastRviDown)
                 {
-                    _tab.CloseAtLimit(position, _lastPrice - Slipage.ValueInt, position.OpenVolume);
+                    _tab.CloseAtLimit(position, _lastPrice - Slippage.ValueInt, position.OpenVolume);
 
                     if (Regime.ValueString != "OnlyLong" && Regime.ValueString != "OnlyClosePosition")
                     {
-                        _tab.SellAtLimit(Volume.ValueDecimal, _lastPrice - Slipage.ValueInt * _tab.Securiti.PriceStep);
+                        _tab.SellAtLimit(Volume.ValueDecimal, _lastPrice - Slippage.ValueInt * _tab.Securiti.PriceStep);
                     }
                 }
             }
@@ -1373,11 +685,11 @@ namespace OsEngine.OsTrader.Panels
             {
                 if (_lastRviDown < 0 && _lastRviUp > _lastRviDown)
                 {
-                    _tab.CloseAtLimit(position, _lastPrice + Slipage.ValueInt, position.OpenVolume);
+                    _tab.CloseAtLimit(position, _lastPrice + Slippage.ValueInt, position.OpenVolume);
 
                     if (Regime.ValueString != "OnlyShort" && Regime.ValueString != "OnlyClosePosition")
                     {
-                        _tab.BuyAtLimit(Volume.ValueDecimal, _lastPrice + Slipage.ValueInt*_tab.Securiti.PriceStep);
+                        _tab.BuyAtLimit(Volume.ValueDecimal, _lastPrice + Slippage.ValueInt*_tab.Securiti.PriceStep);
                     }
                 }
             }
@@ -1385,444 +697,45 @@ namespace OsEngine.OsTrader.Panels
 
     }
 
-    public class TwoLegArbitrage : BotPanel
+    #endregion
+
+    #region bots sample / готовые роботы
+
+    public class ClusterEngine : BotPanel
     {
-        /// <summary>
-        /// конструктор
-        /// </summary>
-        public TwoLegArbitrage(string name, StartProgram startProgram)
+
+        public ClusterEngine(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
-            TabCreate(BotTabType.Index);
-            _tab1 = TabsIndex[0];
-
-            TabCreate(BotTabType.Simple);
-            _tab2 = TabsSimple[0];
-            TabCreate(BotTabType.Simple);
-            _tab3 = TabsSimple[1];
-
-            _tab2.CandleFinishedEvent += Strateg_CandleFinishedEvent;
-            _tab3.CandleFinishedEvent += Strateg_CandleFinishedEvent;
-
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
-            Upline = CreateParameter("Upline", 10, 50, 80, 3);
-            Downline = CreateParameter("Downline", 10, 25, 50, 2);
-            Volume = CreateParameter("Volume", 3, 1, 50, 4);
-            Slipage = CreateParameter("Slipage", 0, 0, 20, 1);
-            RsiLength = CreateParameter("RsiLength", 10, 5, 150, 2);
-
-            _rsi = new Rsi(name + "RSI", false) { Lenght = 20, ColorBase = Color.Gold, };
-            _rsi = (Rsi)_tab1.CreateCandleIndicator(_rsi, "RsiArea");
-            _rsi.Lenght = RsiLength.ValueInt;
-            _rsi.Save();
-
-            ParametrsChangeByUser += TwoLegArbitrage_ParametrsChangeByUser;
+            TabCreate(BotTabType.Cluster);
         }
 
         /// <summary>
-        /// пользователь изменил параметр
+        /// strategy name 
+        /// имя стратегии
         /// </summary>
-        void TwoLegArbitrage_ParametrsChangeByUser()
-        {
-            if (_rsi.Lenght != RsiLength.ValueInt)
-            {
-                _rsi.Lenght = RsiLength.ValueInt;
-                _rsi.Reload();
-            }
-        }
-
-        /// <summary>
-        /// взять уникальное имя
-        /// </summary>
+        /// <returns></returns>
         public override string GetNameStrategyType()
         {
-            return "TwoLegArbitrage";
+            return "ClusterEngine";
         }
+
         /// <summary>
-        /// показать окно настроек
+        /// show settings
+        /// показать настройки
         /// </summary>
         public override void ShowIndividualSettingsDialog()
         {
-
-        }
-
-        /// <summary>
-        /// вкладка для формирования индекса
-        /// </summary>
-        private BotTabIndex _tab1;
-
-        /// <summary>
-        /// вкладка для торговли
-        /// </summary>
-        private BotTabSimple _tab2;
-
-        /// <summary>
-        /// вкладка для торговли
-        /// </summary>
-        private BotTabSimple _tab3;
-
-        //индикаторы
-
-        /// <summary>
-        /// RSI
-        /// </summary>
-        private Rsi _rsi;
-
-        //настройки публичные
-
-        /// <summary>
-        /// проскальзывание
-        /// </summary>
-        public StrategyParameterInt Slipage;
-        /// <summary>
-        /// режим работы робота
-        /// </summary>
-        public StrategyParameterString Regime;
-        /// <summary>
-        /// объём исполняемый в одной сделке
-        /// </summary>
-        public StrategyParameterInt Volume;
-
-        /// <summary>
-        /// верхняя граница для RSI для принятия решений
-        /// </summary>
-        public StrategyParameterInt Upline;
-
-        /// <summary>
-        /// верхняя граница для RSI для принятия решений
-        /// </summary>
-        public StrategyParameterInt Downline;
-
-        /// <summary>
-        /// длинна RSI
-        /// </summary>
-        public StrategyParameterInt RsiLength;
-
-// переменные, нужные для торговли
-
-        private decimal _lastRsi;
-
-// логика
-
-        /// <summary>
-        /// событие завершения свечи
-        /// </summary>
-        private void Strateg_CandleFinishedEvent(List<Candle> candles)
-        {
-            // берём значения из инидикаторов.
-            if (Regime.ValueString == "Off")
-            {
-                return;
-            }
-
-            if (_tab1.Candles.Count == 0 ||
-                _tab2.CandlesFinishedOnly.Count != _tab3.CandlesFinishedOnly.Count)
-            {
-                return;
-            }
-
-            if (_rsi.Values == null)
-            {
-                return;
-            }
-
-            _lastRsi = _rsi.Values[_rsi.Values.Count - 1];
-
-            if (_rsi.Values == null || _rsi.Values.Count < _rsi.Lenght + 5)
-            {
-                return;
-
-            }
-
-            // распределяем логику в зависимости от текущей позиции инструментов
-
-            for (int j = 0; TabsSimple.Count != 0 && j < TabsSimple.Count; j++)
-            {
-                List<Position> openPositions = TabsSimple[j].PositionsOpenAll;
-                if (openPositions != null && openPositions.Count != 0)
-                {
-                    for (int i = 0; i < openPositions.Count; i++)
-                    {
-                        LogicClosePosition(openPositions[i], TabsSimple[j]);
-                    }
-                }
-                if (Regime.ValueString == "OnlyClosePosition")
-                {
-                    return;
-                }
-                if (openPositions == null || openPositions.Count == 0)
-                {
-                    LogicOpenPosition(TabsSimple[j]);
-                }
-            }
-        }
-
-        /// <summary>
-        /// логика открытия первой позиции
-        /// </summary>
-        private void LogicOpenPosition(BotTabSimple tab)
-        {
-            if (_lastRsi > Upline.ValueInt && Regime.ValueString != "OnlyLong")
-            {
-                tab.SellAtLimit(Volume.ValueInt, tab.PriceBestBid - Slipage.ValueInt * tab.Securiti.PriceStep);
-            }
-            if (_lastRsi < Downline.ValueInt && Regime.ValueString != "OnlyShort")
-            {
-                tab.BuyAtLimit(Volume.ValueInt, tab.PriceBestAsk + Slipage.ValueInt * tab.Securiti.PriceStep);
-            }
-        }
-
-        /// <summary>
-        /// логика зыкрытия позиции и открытие по реверсивной системе
-        /// </summary>
-        private void LogicClosePosition(Position position, BotTabSimple tab)
-        {
-            if (position.Direction == Side.Buy)
-            {
-                if (_lastRsi > Upline.ValueInt)
-                {
-                    tab.CloseAtLimit(position, tab.PriceBestBid - Slipage.ValueInt * tab.Securiti.PriceStep, position.OpenVolume);
-                }
-            }
-            if (position.Direction == Side.Sell)
-            {
-                if (_lastRsi < Downline.ValueInt)
-                {
-                    tab.CloseAtLimit(position, tab.PriceBestAsk + Slipage.ValueInt * tab.Securiti.PriceStep, position.OpenVolume);
-                }
-            }
-        }
-
-    }
-
-    # endregion
-
-    # region роботы из инструкций с пошаговым созданием на нашем канале ютуб https://www.youtube.com/channel/UCLmOUsdFs48mo37hgXmIJTQ
-
-    public class Robot : BotPanel
-    {
-        private BotTabSimple _tab;
-        private Bollinger _bol;
-        public decimal Volume;
-
-        public override string GetNameStrategyType()
-        {
-            return "Robot";
-        }
-
-        public override void ShowIndividualSettingsDialog()
-        {
-            RobotUi ui = new RobotUi(this);
-            ui.ShowDialog();
-        }
-
-        public Robot(string name, StartProgram startProgram)
-            : base(name, startProgram)
-        {
-            TabCreate(BotTabType.Simple);
-            _tab = TabsSimple[0];
-
-            _bol = new Bollinger(false);
-            _bol = (Bollinger)_tab.CreateCandleIndicator(_bol, "Prime");
-
-            _bol.Save();
-
-            _tab.CandleFinishedEvent += TradeLogic;
-
-            Volume = 1;
-        }
-
-        private decimal _lastPrice;
-        private decimal _lastBolUp;
-        private decimal _lastBolDown;
-        private void TradeLogic(List<Candle> candles)
-        {
-            _lastPrice = candles[candles.Count - 1].Close;
-            _lastBolUp = _bol.ValuesUp[_bol.ValuesUp.Count - 1];
-            _lastBolDown = _bol.ValuesDown[_bol.ValuesDown.Count - 1];
-
-           
-
-            if (_bol.ValuesUp == null)
-            {
-                return;
-            }
-            if (_bol.ValuesUp.Count < _bol.Lenght + 5)
-            {
-                return;
-            }
-
-            if (_tab.PositionsOpenAll != null && _tab.PositionsOpenAll.Count != 0)
-            {
-                if (_lastPrice < _lastBolDown)
-                {
-                    _tab.CloseAllAtMarket();
-                }
-                return;
-            }
-
-            if (_lastPrice > _lastBolUp)
-            {
-                _tab.SellAtMarket(Volume);
-
-            }
-        }
-
-    }
-
-    public class FirstBot : BotPanel
-    {
-        public override string GetNameStrategyType()
-        {
-            return "FirstBot";
-        }
-
-        public override void ShowIndividualSettingsDialog()
-        {
-            MessageBox.Show("У данной стратегии пока нет настроек");
-        }
-
-        public FirstBot(string name, StartProgram startProgram)
-            : base(name, startProgram)
-        {
-            TabCreate(BotTabType.Simple);
-            _tab = TabsSimple[0];
-
-            _tab.CandleFinishedEvent += TradeLogic;
-
-        }
-
-        private BotTabSimple _tab;
-
-        private void TradeLogic(List<Candle> candles)
-        {
-            // 1. если свечей меньше чем 5 - выходим из метода.
-            if (candles.Count < 5)
-            {
-                return;
-            }
-
-            // 2. если уже есть открытые позиции – закрываем и выходим.
-            if (_tab.PositionsOpenAll != null && _tab.PositionsOpenAll.Count != 0)
-            {
-                _tab.CloseAllAtMarket();
-                return;
-            }
-
-            // 3. если закрытие последней свечи выше закрытия предыдущей – покупаем. 
-            if (candles[candles.Count - 1].Close > candles[candles.Count - 2].Close)
-            {
-                _tab.BuyAtMarket(1);
-            }
-
-            // 4. если закрытие последней свечи ниже закрытия предыдущей, продаем. 
-            if (candles[candles.Count - 1].Close < candles[candles.Count - 2].Close)
-            {
-                _tab.SellAtMarket(1);
-            }
-        }
-    }
-
-    # endregion 
-
-    # region готовые роботы
-
-    /// <summary>
-    /// Двуногий арбитраж. Торговля двумя инструменетами конттренд при уходе индекса в зону перекупленности/перепроданности по RSI
-    /// </summary>
-
-    public class BotWhithTwoTimeFrame : BotPanel
-    {
-        public BotWhithTwoTimeFrame(string name, StartProgram startProgram)
-            : base(name, startProgram)
-        {
-            TabCreate(BotTabType.Simple);
-            TabsSimple[0].CandleFinishedEvent += BotWhithTwoTimeFrame_CandleFinishedEvent;
-            TabsSimple[0].PositionOpeningSuccesEvent += BotWhithTwoTimeFrame_PositionOpeningSuccesEvent;
-
-            Moving = new MovingAverage("moving",false);
-            Moving.Lenght = 25;
-            Moving.TypeCalculationAverage = MovingAverageTypeCalculation.Exponential;
-        }
-
-        void BotWhithTwoTimeFrame_PositionOpeningSuccesEvent(Position position)
-        {
-
-            TabsSimple[0].CloseAtStop(position, position.EntryPrice - 20*TabsSimple[0].Securiti.PriceStep,
-                position.EntryPrice - 20*TabsSimple[0].Securiti.PriceStep);
-
-            TabsSimple[0].CloseAtProfit(position, position.EntryPrice + 20 * TabsSimple[0].Securiti.PriceStep,
-                position.EntryPrice + 20 * TabsSimple[0].Securiti.PriceStep);
-
-        }
-
-        /// <summary>
-        /// машка, которая рассчитывается по дополнительному ТаймФрейму
-        /// </summary>
-        public MovingAverage Moving;
-
-        public List<Candle> MergeCandles;
-
-        void BotWhithTwoTimeFrame_CandleFinishedEvent(List<Candle> candles)
-        {
-            // логика такая.
-            // на базовом ТФ последняя свеча растущая
-            // на сжатом ТФ закрытие свечи выше чем машка
-            // выход по стопу и профиту
-
-            if (candles.Count < 5)
-            {
-                CandleConverter.Clear();
-                return;
-            }
-
-            List<Position> positions = TabsSimple[0].PositionsOpenAll;
-
-            MergeCandles = CandleConverter.Merge(candles, 5);
-            Moving.Process(MergeCandles); // прогружаем индикатор вручную, схлопнутыми свечками
-
-            if (positions == null ||
-                positions.Count == 0)
-            {
-
-                if (MergeCandles.Count < Moving.Lenght)
-                {
-                    return;
-                }
-
-                if (candles[candles.Count - 1].IsUp &&
-                    MergeCandles[MergeCandles.Count - 1].Close >
-                    Moving.Values[Moving.Values.Count - 1])
-                {
-                    TabsSimple[0].BuyAtLimit(1, candles[candles.Count - 1].Close);
-                }
-            }
-        }
-
-        public override string GetNameStrategyType()
-        {
-
-            return "TwoTimeFrameBot";
-        }
-
-        public override void ShowIndividualSettingsDialog()
-        {
-            BotWhithTwoTimeFrameUi ui = new BotWhithTwoTimeFrameUi(this);
-            ui.ShowDialog();
+            MessageBox.Show(OsLocalization.Trader.Label112);
         }
     }
 
     /// <summary>
-    /// Торговый робот на индексе. Пересечение MA на индексе снизу вверх лонг торгового инст., при обратном пересечении шорт торг. инст.
+    /// Trading robot on the index. The intersection of MA on the index from the bottom up long, with the reverse intersection of shorts
+    /// Торговый робот на индексе. Пересечение MA на индексе снизу вверх лонг, при обратном пересечении шорт 
     /// </summary>
     public class OneLegArbitration : BotPanel
     {
-        /// <summary>
-        /// конструктор
-        /// </summary>
-        /// <param name="_ma">MovingAverage</param>
-        /// <param name="Slipage">Проскальзывание</param>
-        /// <param name="VolumeFix">Объем для первого входа</param>
         public OneLegArbitration(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
@@ -1849,6 +762,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// bot name
         /// взять уникальное имя
         /// </summary>
         public override string GetNameStrategyType()
@@ -1856,6 +770,7 @@ namespace OsEngine.OsTrader.Panels
             return "OneLegArbitration";
         }
         /// <summary>
+        /// settings UI
         /// показать окно настроек
         /// </summary>
         public override void ShowIndividualSettingsDialog()
@@ -1865,40 +780,41 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// index tab
         /// вкладка анализируемого индекса
         /// </summary>
         private BotTabIndex _tab1;
 
         /// <summary>
+        /// trade tab
         /// вкладка для торговли
         /// </summary>
         private BotTabSimple _tab2;
 
-        //индикаторы
-
-        /// <summary>
-        /// MovingAverage
-        /// </summary>
         private MovingAverage _ma;
 
-        //настройки публичные
+        //settings / настройки публичные
 
         /// <summary>
+        /// slippage
         /// проскальзывание
         /// </summary>
         public decimal Slipage;
 
         /// <summary>
+        /// volume
         /// фиксированный объем для входа позицию
         /// </summary>
         public decimal VolumeFix;
 
         /// <summary>
+        /// regime
         /// режим работы
         /// </summary>
         public BotTradeRegime Regime;
 
         /// <summary>
+        /// save settings
         /// сохранить настройки
         /// </summary>
         public void Save()
@@ -1916,11 +832,12 @@ namespace OsEngine.OsTrader.Panels
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// load settings
         /// загрузить настройки
         /// </summary>
         private void Load()
@@ -1941,11 +858,12 @@ namespace OsEngine.OsTrader.Panels
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// delete
         /// удаление файла с сохранением
         /// </summary>
         void Strategy_DeleteEvent()
@@ -1956,20 +874,18 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
-        // переменные, нужные для торговли
-
         private decimal _lastPrice;
         private decimal _lastIndex;
         private decimal _lastMa;
 
-        // логика
+        // logic логика
 
         /// <summary>
+        /// candle finished event
         /// событие завершения свечи
         /// </summary>
         private void Strateg_CandleFinishedEvent(List<Candle> candles)
         {
-            // берём значения из инидикаторов.
             if (Regime == BotTradeRegime.Off)
             {
                 return;
@@ -1983,8 +899,6 @@ namespace OsEngine.OsTrader.Panels
             _lastIndex = _tab1.Candles[_tab1.Candles.Count - 1].Close;
             _lastMa = _ma.Values[_ma.Values.Count - 1];
             _lastPrice = candles[candles.Count - 1].Close;
-
-            // распределяем логику в зависимости от текущей позиции
 
             List<Position> openPositions = _tab2.PositionsOpenAll;
             if (openPositions != null && openPositions.Count != 0)
@@ -2003,6 +917,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// open position logic
         /// логика открытия позиции
         /// </summary>
         private void LogicOpenPosition(List<Candle> candles, List<Position> position)
@@ -2010,7 +925,6 @@ namespace OsEngine.OsTrader.Panels
             List<Position> openPositions = _tab2.PositionsOpenAll;
             if (openPositions == null || openPositions.Count == 0)
             {
-                // открытие long
                 if (Regime != BotTradeRegime.OnlyShort)
                 {
                     if (_lastIndex > _lastMa)
@@ -2019,7 +933,6 @@ namespace OsEngine.OsTrader.Panels
                     }
                 }
 
-                // открытие Short
                 if (Regime != BotTradeRegime.OnlyLong)
                 {
                     if (_lastIndex < _lastMa)
@@ -2031,7 +944,10 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
-        // логика закрытия позиции
+        /// <summary>
+        /// close position logic
+        /// логика закрытия позиции
+        /// </summary>
         private void LogicClosePosition(List<Candle> candles, List<Position> position)
         {
             List<Position> openPositions = _tab2.PositionsOpenAll;
@@ -2075,279 +991,12 @@ namespace OsEngine.OsTrader.Panels
     }
 
     /// <summary>
-    /// Торговый робот ТриСрлдата. При формироваваниии паттерна из трех растущих/падующих свечей вход по в контртренд с фиксацией по тейку или по стопу
-    /// </summary>
-    public class ThreeSoldier : BotPanel
-    {
-        /// <summary>
-        /// конструктор
-        /// </summary>
-        /// <param name="Slipage">Проскальзывание</param>
-        /// <param name="VolumeFix">Объем для первого входа</param>
-        /// <param name="heightSoldiers">общая высота паттерна из трех свечей по телам</param>
-        /// <param name="minHeightSoldier">минимальный размер тела свечи в паттрене</param>
-        /// <param name="procHeightSto">процент от общей высоты паттрена на стоплос от точки входа</param>
-        /// <param name="procHeightTake">процент от общей высоты паттрена на тейкпрофит от точки входа</param>
-        public ThreeSoldier(string name, StartProgram startProgram)
-            : base(name, startProgram)
-        {
-            TabCreate(BotTabType.Simple);
-            _tab = TabsSimple[0];
-
-            _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
-            _tab.PositionOpeningSuccesEvent += Strateg_ClosePosition;
-
-            Slipage = 10;
-            VolumeFix = 1;
-            HeightSoldiers = 1;
-            MinHeightSoldier = 1;
-            ProcHeightTake = 30;
-            ProcHeightStop = 10;
-
-            Load();
-
-            DeleteEvent += Strategy_DeleteEvent;
-        }
-
-        /// <summary>
-        /// взять уникальное имя
-        /// </summary>
-        public override string GetNameStrategyType()
-        {
-            return "ThreeSoldier";
-        }
-        /// <summary>
-        /// показать окно настроек
-        /// </summary>
-        public override void ShowIndividualSettingsDialog()
-        {
-            ThreeSoldierUi ui = new ThreeSoldierUi(this);
-            ui.ShowDialog();
-        }
-        /// <summary>
-        /// вкладка для торговли
-        /// </summary>
-        private BotTabSimple _tab;
-
-        //настройки публичные
-
-        /// <summary>
-        /// общая высота паттрена
-        /// </summary>
-        public decimal HeightSoldiers;
-
-        /// <summary>
-        /// минимальная высота свечи в паттрене
-        /// </summary>
-        public decimal MinHeightSoldier;
-
-        /// <summary>
-        /// процент от высоты паттрена на закрытие по тейку
-        /// </summary>
-        public decimal ProcHeightTake;
-
-        /// <summary>
-        /// процент от высоты паттрена на закрытие по стопу
-        /// </summary>
-        public decimal ProcHeightStop;
-
-        /// <summary>
-        /// проскальзывание
-        /// </summary>
-        public decimal Slipage;
-
-        /// <summary>
-        /// фиксированный объем для входа позицию
-        /// </summary>
-        public decimal VolumeFix;
-
-        /// <summary>
-        /// режим работы
-        /// </summary>
-        public BotTradeRegime Regime;
-
-        /// <summary>
-        /// сохранить настройки
-        /// </summary>
-        public void Save()
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt", false)
-                    )
-                {
-                    writer.WriteLine(Regime);
-                    writer.WriteLine(Slipage);
-                    writer.WriteLine(VolumeFix);
-                    writer.WriteLine(HeightSoldiers);
-                    writer.WriteLine(MinHeightSoldier);
-                    writer.WriteLine(ProcHeightTake);
-                    writer.WriteLine(ProcHeightStop);
-
-                    writer.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // отправить в лог
-            }
-        }
-
-        /// <summary>
-        /// загрузить настройки
-        /// </summary>
-        private void Load()
-        {
-            if (!File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-            {
-                return;
-            }
-            try
-            {
-                using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-                {
-                    Enum.TryParse(reader.ReadLine(), true, out Regime);
-                    Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
-                    HeightSoldiers = Convert.ToInt32(reader.ReadLine());
-                    MinHeightSoldier = Convert.ToInt32(reader.ReadLine());
-                    ProcHeightTake = Convert.ToInt32(reader.ReadLine());
-                    ProcHeightStop = Convert.ToInt32(reader.ReadLine());
-
-                    reader.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // отправить в лог
-            }
-        }
-
-        /// <summary>
-        /// удаление файла с сохранением
-        /// </summary>
-        void Strategy_DeleteEvent()
-        {
-            if (File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-            {
-                File.Delete(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt");
-            }
-        }
-
-        // переменные, нужные для торговли
-
-        private decimal _lastPrice;
-
-        // логика
-
-        /// <summary>
-        /// событие завершения свечи
-        /// </summary>
-        private void Strateg_CandleFinishedEvent(List<Candle> candles)
-        {
-            // берём значения из инидикаторов.
-            if (Regime == BotTradeRegime.Off)
-            {
-                return;
-            }
-
-            if (candles.Count < 3)
-            {
-                return;
-            }
-
-            _lastPrice = candles[candles.Count - 1].Close;
-
-            // распределяем логику в зависимости от текущей позиции
-
-            List<Position> openPositions = _tab.PositionsOpenAll;
-
-            if (Regime == BotTradeRegime.OnlyClosePosition)
-            {
-                return;
-            }
-            if (openPositions == null || openPositions.Count == 0)
-            {
-                LogicOpenPosition(candles, openPositions);
-            }
-        }
-
-
-        /// <summary>
-        /// логика закрытия позиции trailing-stop
-        /// </summary>
-        private void Strateg_ClosePosition(Position position)
-        {
-            List<Position> openPositions = _tab.PositionsOpenAll;
-            for (int i = 0; openPositions != null && i < openPositions.Count; i++)
-            {
-                if (openPositions[i].Direction == Side.Buy)
-                {
-                    decimal heightPattern = Math.Abs(_tab.CandlesAll[_tab.CandlesAll.Count - 3].Open - _tab.CandlesAll[_tab.CandlesAll.Count - 1].Close);
-                    decimal priceStop = _lastPrice - (heightPattern * ProcHeightStop) / 100;
-                    decimal priceTake = _lastPrice + (heightPattern * ProcHeightTake) / 100;
-                    _tab.CloseAtStop(openPositions[i], priceStop, priceStop - Slipage);
-                    _tab.CloseAtProfit(openPositions[i], priceTake, priceTake - Slipage);
-                }
-                else
-                {
-                    decimal heightPattern = Math.Abs(_tab.CandlesAll[_tab.CandlesAll.Count - 1].Close - _tab.CandlesAll[_tab.CandlesAll.Count - 3].Open);
-                    decimal priceStop = _lastPrice + (heightPattern * ProcHeightStop) / 100;
-                    decimal priceTake = _lastPrice - (heightPattern * ProcHeightTake) / 100;
-                    _tab.CloseAtStop(openPositions[i], priceStop, priceStop + Slipage);
-                    _tab.CloseAtProfit(openPositions[i], priceTake, priceTake + Slipage);
-                }
-            }
-        }
-
-
-        /// <summary>
-        /// логика открытия позиции
-        /// </summary>
-        private void LogicOpenPosition(List<Candle> candles, List<Position> position)
-        {
-            List<Position> openPositions = _tab.PositionsOpenAll;
-            if (openPositions == null || openPositions.Count == 0)
-            {
-                if (Math.Abs(candles[candles.Count - 3].Open - candles[candles.Count - 1].Close) < HeightSoldiers) return;
-                if (Math.Abs(candles[candles.Count - 3].Open - candles[candles.Count - 3].Close) < MinHeightSoldier) return;
-                if (Math.Abs(candles[candles.Count - 2].Open - candles[candles.Count - 2].Close) < MinHeightSoldier) return;
-                if (Math.Abs(candles[candles.Count - 1].Open - candles[candles.Count - 1].Close) < MinHeightSoldier) return;
-
-                // открытие long
-                if (Regime != BotTradeRegime.OnlyShort)
-                {
-                    if (candles[candles.Count - 3].Open > candles[candles.Count - 3].Close && candles[candles.Count - 2].Open > candles[candles.Count - 2].Close && candles[candles.Count - 1].Open > candles[candles.Count - 1].Close)
-                    {
-                        _tab.BuyAtLimit(VolumeFix, _lastPrice + Slipage);
-                    }
-                }
-
-                // открытие Short
-                if (Regime != BotTradeRegime.OnlyLong)
-                {
-                    if (candles[candles.Count - 3].Open < candles[candles.Count - 3].Close && candles[candles.Count - 2].Open < candles[candles.Count - 2].Close && candles[candles.Count - 1].Open < candles[candles.Count - 1].Close)
-                    {
-                        _tab.SellAtLimit(VolumeFix, _lastPrice - Slipage);
-                    }
-                }
-                return;
-            }
-        }
-
-    }
-
-    /// <summary>
+    /// Bollinger Bands trading bargaining robot with pull-up Trailing-Stop through Bollinger Bands
     /// Робот торгующий прорыв Bollinger Bands с подтягивающимся Trailing-Stop по линии Bollinger Bands
     /// </summary>
     public class BollingerOutburst : BotPanel
     {
-        /// <summary>
-        /// конструктор
-        /// </summary>
-        /// <param name="_bollinger">BollingerBands</param>
-        /// <param name="Slipage">Проскальзывание</param>
-        /// <param name="VolumeFix">Объем для первого входа</param>
+
         public BollingerOutburst(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
@@ -2361,7 +1010,7 @@ namespace OsEngine.OsTrader.Panels
             _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
             _tab.PositionOpeningSuccesEvent += ReloadTrailingPosition;
 
-            Slipage = 10;
+            Slippage = 10;
             VolumeFix = 1;
 
             Load();
@@ -2371,13 +1020,16 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// uniq name
         /// взять уникальное имя
         /// </summary>
         public override string GetNameStrategyType()
         {
             return "BollingerOutburst";
         }
+
         /// <summary>
+        /// settings GUI
         /// показать окно настроек
         /// </summary>
         public override void ShowIndividualSettingsDialog()
@@ -2386,35 +1038,35 @@ namespace OsEngine.OsTrader.Panels
             ui.ShowDialog();
         }
         /// <summary>
+        /// trade tab
         /// вкладка для торговли
         /// </summary>
         private BotTabSimple _tab;
 
-        //индикаторы
-
-        /// <summary>
-        /// PriceChannel
-        /// </summary>
         private Bollinger _bollinger;
 
-        //настройки публичные
+        //settings настройки публичные
 
         /// <summary>
+        /// slippage
         /// проскальзывание
         /// </summary>
-        public decimal Slipage;
+        public decimal Slippage;
 
         /// <summary>
+        /// volume
         /// фиксированный объем для входа позицию
         /// </summary>
         public decimal VolumeFix;
 
         /// <summary>
+        /// regime
         /// режим работы
         /// </summary>
         public BotTradeRegime Regime;
 
         /// <summary>
+        /// save settings
         /// сохранить настройки
         /// </summary>
         public void Save()
@@ -2425,18 +1077,19 @@ namespace OsEngine.OsTrader.Panels
                     )
                 {
                     writer.WriteLine(Regime);
-                    writer.WriteLine(Slipage);
+                    writer.WriteLine(Slippage);
                     writer.WriteLine(VolumeFix);
                     writer.Close();
                 }
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// load settings
         /// загрузить настройки
         /// </summary>
         private void Load()
@@ -2450,18 +1103,19 @@ namespace OsEngine.OsTrader.Panels
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
-                    Slipage = Convert.ToDecimal(reader.ReadLine());
+                    Slippage = Convert.ToDecimal(reader.ReadLine());
                     VolumeFix = Convert.ToDecimal(reader.ReadLine());
                     reader.Close();
                 }
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// delete save file
         /// удаление файла с сохранением
         /// </summary>
         void Strategy_DeleteEvent()
@@ -2472,20 +1126,18 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
-        // переменные, нужные для торговли
-
         private decimal _lastPrice;
         private decimal _lastBbUp;
         private decimal _lastBbDown;
 
-        // логика
+        // logic логика
 
         /// <summary>
+        /// candle finished event
         /// событие завершения свечи
         /// </summary>
         private void Strateg_CandleFinishedEvent(List<Candle> candles)
         {
-            // берём значения из инидикаторов.
             if (Regime == BotTradeRegime.Off)
             {
                 return;
@@ -2504,8 +1156,6 @@ namespace OsEngine.OsTrader.Panels
             {
                 return;
             }
-
-            // распределяем логику в зависимости от текущей позиции
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
@@ -2526,7 +1176,8 @@ namespace OsEngine.OsTrader.Panels
 
 
         /// <summary>
-        /// логика закрытия позиции trailing-stop
+        /// logic close pos
+        /// логика закрытия позиции
         /// </summary>
         private void LogicClosePosition(List<Candle> candles, List<Position> position)
         {
@@ -2539,7 +1190,8 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
-        /// логика закрытия позиции trailing-stop
+        /// close one pos
+        /// логика закрытия позиции
         /// </summary>
         private void ReloadTrailingPosition(Position position)
         {
@@ -2549,17 +1201,18 @@ namespace OsEngine.OsTrader.Panels
             {
                 if (openPositions[i].Direction == Side.Buy)
                 {
-                    _tab.CloseAtTrailingStop(openPositions[i], _bollinger.ValuesDown[_bollinger.ValuesDown.Count - 1], _bollinger.ValuesDown[_bollinger.ValuesDown.Count - 1] - Slipage);
+                    _tab.CloseAtTrailingStop(openPositions[i], _bollinger.ValuesDown[_bollinger.ValuesDown.Count - 1], _bollinger.ValuesDown[_bollinger.ValuesDown.Count - 1] - Slippage);
                 }
                 else
                 {
-                    _tab.CloseAtTrailingStop(openPositions[i], _bollinger.ValuesUp[_bollinger.ValuesUp.Count - 1], _bollinger.ValuesUp[_bollinger.ValuesUp.Count - 1] + Slipage);
+                    _tab.CloseAtTrailingStop(openPositions[i], _bollinger.ValuesUp[_bollinger.ValuesUp.Count - 1], _bollinger.ValuesUp[_bollinger.ValuesUp.Count - 1] + Slippage);
                 }
             }
         }
 
 
         /// <summary>
+        /// open position logic
         /// логика открытия позиции
         /// </summary>
         private void LogicOpenPosition(List<Candle> candles, List<Position> position)
@@ -2567,21 +1220,21 @@ namespace OsEngine.OsTrader.Panels
             List<Position> openPositions = _tab.PositionsOpenAll;
             if (openPositions == null || openPositions.Count == 0)
             {
-                // открытие long
+                // long
                 if (Regime != BotTradeRegime.OnlyShort)
                 {
                     if (_lastPrice > _lastBbUp)
                     {
-                        _tab.BuyAtLimit(VolumeFix, _lastPrice + Slipage);
+                        _tab.BuyAtLimit(VolumeFix, _lastPrice + Slippage);
                     }
                 }
 
-                // открытие Short
+                // Short
                 if (Regime != BotTradeRegime.OnlyLong)
                 {
                     if (_lastPrice < _lastBbDown)
                     {
-                        _tab.SellAtLimit(VolumeFix, _lastPrice - Slipage);
+                        _tab.SellAtLimit(VolumeFix, _lastPrice - Slippage);
                     }
                 }
                 return;
@@ -2591,13 +1244,15 @@ namespace OsEngine.OsTrader.Panels
     }
 
     /// <summary>
-    /// При закрытии свечи вне канала PriceChannel входим в позицию , стоп-лосс за экстремум прошлойсвечи от свечи входа, тейкпрофит на величину канала от закрытия свечи на которой произошел вход
+    ///When the candle is closed outside the PriceChannel channel,
+    /// we enter the position, the stop loss is at the extremum of the last candle from the entry candle,
+    /// take profit by the channel size from the close of the candle at which the entry occurred
+    /// 
+    /// При закрытии свечи вне канала PriceChannel входим в позицию , стоп-лосс за экстремум прошлойсвечи от свечи входа,
+    /// тейкпрофит на величину канала от закрытия свечи на которой произошел вход
     /// </summary>
     public class PriceChannelBreak : BotPanel
     {
-        /// <summary>
-        /// конструктор
-        /// </summary>
         public PriceChannelBreak(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
@@ -2621,6 +1276,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// uniq name
         /// взять уникальное имя
         /// </summary>
         public override string GetNameStrategyType()
@@ -2629,6 +1285,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// settings GUI
         /// показать окно настроек
         /// </summary>
         public override void ShowIndividualSettingsDialog()
@@ -2637,35 +1294,36 @@ namespace OsEngine.OsTrader.Panels
             ui.ShowDialog();
         }
         /// <summary>
+        /// tab to trade
         /// вкладка для торговли
         /// </summary>
         private BotTabSimple _tab;
-
-        //индикаторы
 
         /// <summary>
         /// PriceChannel
         /// </summary>
         private PriceChannel _pc;
 
-        //настройки публичные
-
         /// <summary>
+        /// slippage
         /// проскальзывание
         /// </summary>
         public decimal Slipage;
 
         /// <summary>
+        /// volume
         /// фиксированный объем для входа позицию
         /// </summary>
         public decimal VolumeFix;
 
         /// <summary>
+        /// regime
         /// режим работы
         /// </summary>
         public BotTradeRegime Regime;
 
         /// <summary>
+        /// save settings
         /// сохранить настройки
         /// </summary>
         public void Save()
@@ -2683,11 +1341,12 @@ namespace OsEngine.OsTrader.Panels
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// load settings
         /// загрузить настройки
         /// </summary>
         private void Load()
@@ -2708,11 +1367,12 @@ namespace OsEngine.OsTrader.Panels
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// delete save file
         /// удаление файла с сохранением
         /// </summary>
         void Strategy_DeleteEvent()
@@ -2723,20 +1383,18 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
-        // переменные, нужные для торговли
-
         private decimal _lastPrice;
         private decimal _lastPcUp;
         private decimal _lastPcDown;
 
-        // логика
+        // logic логика
 
         /// <summary>
+        /// candle finished event
         /// событие завершения свечи
         /// </summary>
         private void Strateg_CandleFinishedEvent(List<Candle> candles)
         {
-            // берём значения из инидикаторов.
             if (Regime == BotTradeRegime.Off)
             {
                 return;
@@ -2756,7 +1414,6 @@ namespace OsEngine.OsTrader.Panels
                 return;
             }
 
-            // распределяем логику в зависимости от текущей позиции
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
@@ -2771,6 +1428,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// open position logic
         /// логика открытия позиции
         /// </summary>
         private void LogicOpenPosition(List<Candle> candles, List<Position> position)
@@ -2778,7 +1436,7 @@ namespace OsEngine.OsTrader.Panels
             List<Position> openPositions = _tab.PositionsOpenAll;
             if (openPositions == null || openPositions.Count == 0)
             {
-                // открытие long
+                // long
                 if (Regime != BotTradeRegime.OnlyShort)
                 {
                     if (_lastPrice > _lastPcUp)
@@ -2787,7 +1445,7 @@ namespace OsEngine.OsTrader.Panels
                     }
                 }
 
-                // открытие Short
+                // Short
                 if (Regime != BotTradeRegime.OnlyLong)
                 {
                     if (_lastPrice < _lastPcDown)
@@ -2799,6 +1457,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// set stop orders and profit orders
         /// выставление стоп-лосс и таке-профит
         /// </summary>
         private void Strateg_PositionOpen(Position position)
@@ -2826,13 +1485,16 @@ namespace OsEngine.OsTrader.Panels
     }
 
     /// <summary>
-    /// Прорыв канала постоенного по PriceChannel+-ATR*коэффициент , дополнительный вход при уходе цены ниже линии канала на ATR*коэффициент. Трейлинг стоп по нижней линии канала PriceChannel
+    ///Breakthrough of the channel built by PriceChannel + -ATR * coefficient,
+    /// additional input when the price leaves below the channel line by ATR * coefficient.
+    /// Trailing stop on the bottom line of the PriceChannel channel
+    /// 
+    /// Прорыв канала постоенного по PriceChannel+-ATR*коэффициент ,
+    /// дополнительный вход при уходе цены ниже линии канала на ATR*коэффициент.
+    /// Трейлинг стоп по нижней линии канала PriceChannel
     /// </summary>
     public class PriceChannelVolatility : BotPanel
     {
-        /// <summary>
-        /// конструктор
-        /// </summary>
         public PriceChannelVolatility(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
@@ -2863,13 +1525,16 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// uniq name
         /// взять уникальное имя
         /// </summary>
         public override string GetNameStrategyType()
         {
             return "PriceChannelVolatility";
         }
+
         /// <summary>
+        /// settings GUI
         /// показать окно настроек
         /// </summary>
         public override void ShowIndividualSettingsDialog()
@@ -2878,23 +1543,25 @@ namespace OsEngine.OsTrader.Panels
             ui.ShowDialog();
         }
         /// <summary>
+        /// trading tab
         /// вкладка для торговли
         /// </summary>
         private BotTabSimple _tab;
 
-        //индикаторы
-
         /// <summary>
+        /// Atr period
         /// период ATR
         /// </summary>
         public int LengthAtr;
 
         /// <summary>
+        /// PriceChannel up line length
         /// период PriceChannel Up
         /// </summary>
         public int LengthUp;
 
         /// <summary>
+        /// PriceChannel down line length
         /// период PriceChannel Down
         /// </summary>
         public int LengthDown;
@@ -2909,34 +1576,40 @@ namespace OsEngine.OsTrader.Panels
         /// </summary>
         private Atr _atr;
 
-        //настройки публичные
+//settings / настройки публичные
 
         /// <summary>
+        /// slippage
         /// проскальзывание
         /// </summary>
         public decimal Slipage;
 
         /// <summary>
+        /// volume first
         /// фиксированный объем для входа в первую позицию
         /// </summary>
         public decimal VolumeFix1;
 
         /// <summary>
+        /// volume next
         /// фиксированный объем для входа во вторую позицию
         /// </summary>
         public decimal VolumeFix2;
 
         /// <summary>
+        /// atr coef
         /// коэффициент ATR
         /// </summary>
         public decimal KofAtr;
 
         /// <summary>
+        /// regime
         /// режим работы
         /// </summary>
         public BotTradeRegime Regime;
 
         /// <summary>
+        /// save settings
         /// сохранить настройки
         /// </summary>
         public void Save()
@@ -2959,11 +1632,12 @@ namespace OsEngine.OsTrader.Panels
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// save settings
         /// загрузить настройки
         /// </summary>
         private void Load()
@@ -2990,11 +1664,12 @@ namespace OsEngine.OsTrader.Panels
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// delete save files
         /// удаление файла с сохранением
         /// </summary>
         void Strategy_DeleteEvent()
@@ -3005,20 +1680,18 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
-        // переменные, нужные для торговли
-
         private decimal _lastPcUp;
         private decimal _lastPcDown;
         private decimal _lastAtr;
 
-        // логика
+        // logic логика
 
         /// <summary>
+        /// candle finished event
         /// событие завершения свечи
         /// </summary>
         private void Strateg_CandleFinishedEvent(List<Candle> candles)
         {
-            // берём значения из инидикаторов.
             if (Regime == BotTradeRegime.Off)
             {
                 return;
@@ -3044,9 +1717,6 @@ namespace OsEngine.OsTrader.Panels
                 return;
             }
 
-
-            // распределяем логику в зависимости от текущей позиции
-
             List<Position> openPositions = _tab.PositionsOpenAll;
 
             if (openPositions != null && openPositions.Count != 0)
@@ -3065,6 +1735,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// logic open position
         /// логика открытия первой позиции и дополнительного входа
         /// </summary>
         private void LogicOpenPosition(List<Candle> candles )
@@ -3072,14 +1743,14 @@ namespace OsEngine.OsTrader.Panels
             List<Position> openPositions = _tab.PositionsOpenAll;
             if (openPositions == null || openPositions.Count == 0)
             {
-                // открытие long
+                // long
                 if (Regime != BotTradeRegime.OnlyShort)
                 {
                     decimal priceEnter = _lastPcUp + (_lastAtr * KofAtr);
                     _tab.BuyAtStop(VolumeFix1, priceEnter + Slipage, priceEnter, StopActivateType.HigherOrEqual);
                 }
 
-                // открытие Short
+                // Short
                 if (Regime != BotTradeRegime.OnlyLong)
                 {
                     decimal priceEnter = _lastPcDown - (_lastAtr * KofAtr);
@@ -3088,7 +1759,6 @@ namespace OsEngine.OsTrader.Panels
                 return;
             }
 
-            // дополнительный вход в позицию
             openPositions = _tab.PositionsOpenAll;
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
@@ -3118,11 +1788,11 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// logic close position
         /// логика зыкрытия позиции
         /// </summary>
         private void LogicClosePosition()
         {
-            // закрытие по стопу
             List<Position> openPositions = _tab.PositionsOpenAll;
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
@@ -3145,7 +1815,6 @@ namespace OsEngine.OsTrader.Panels
 
         }
 
-        // удаление стоп-ордера при входе в позицию
         private void Strateg_PositionOpen(Position position)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
@@ -3163,305 +1832,16 @@ namespace OsEngine.OsTrader.Panels
 
             }
         }
-
     }
 
-    /// <summary>
-    /// конттрендовая стратегия по перекупленности/перепроданности RSI с фильтром по тренду через MovingAverage
-    /// </summary>
-    public class RsiContrtrend : BotPanel
-    {
-        /// <summary>
-        /// конструктор
-        /// </summary>
-        /// <param name="upline">ур. линиии перекупленности</param>
-        /// <param name="downline">ур. линиии перепроданности</param>
-        /// <param name="_ma">MovingAverage</param>
-        /// <param name="_rsi">RSI</param>
-        /// <param name="Slipage">Проскальзывание</param>
-        /// <param name="VolumeFix">Объем для первого входа</param>
-        public RsiContrtrend(string name, StartProgram startProgram)
-            : base(name, startProgram)
-        {
-            TabCreate(BotTabType.Simple);
-            _tab = TabsSimple[0];
-
-            _ma = new MovingAverage(name + "MA", false) { Lenght = 50, ColorBase = Color.CornflowerBlue, };
-            _ma = (MovingAverage)_tab.CreateCandleIndicator(_ma, "Prime");
-
-            _rsi = new Rsi(name + "RSI", false) { Lenght = 20, ColorBase = Color.Gold, };
-            _rsi = (Rsi)_tab.CreateCandleIndicator(_rsi, "RsiArea");
-
-            Upline = new LineHorisontal("upline", "RsiArea", false)
-            {
-                Color = Color.Green,
-                Value = 0,
-
-
-            };
-            _tab.SetChartElement(Upline);
-
-            Downline = new LineHorisontal("downline", "RsiArea", false)
-            {
-                Color = Color.Yellow,
-                Value = 0
-
-            };
-            _tab.SetChartElement(Downline);
-
-            _rsi.Save();
-            _ma.Save();
-
-            _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
-
-            Slipage = 0;
-            VolumeFix = 1;
-            Upline.Value = 65;
-            Downline.Value = 35;
-
-
-            Load();
-
-            Upline.TimeEnd = DateTime.Now;
-            Downline.TimeEnd = DateTime.Now;
-
-            DeleteEvent += Strategy_DeleteEvent;
-        }
-
-        /// <summary>
-        /// взять уникальное имя
-        /// </summary>
-        public override string GetNameStrategyType()
-        {
-            return "RsiContrtrend";
-        }
-        /// <summary>
-        /// показать окно настроек
-        /// </summary>
-        public override void ShowIndividualSettingsDialog()
-        {
-            RsiContrtrendUi ui = new RsiContrtrendUi(this);
-            ui.ShowDialog();
-        }
-        /// <summary>
-        /// вкладка для торговли
-        /// </summary>
-        private BotTabSimple _tab;
-
-        //индикаторы
-
-        /// <summary>
-        /// MovingAverage
-        /// </summary>
-        private MovingAverage _ma;
-
-        /// <summary>
-        /// RSI
-        /// </summary>
-        private Rsi _rsi;
-
-        //настройки публичные
-
-        /// <summary>
-        /// проскальзывание
-        /// </summary>
-        public decimal Slipage;
-
-        /// <summary>
-        /// фиксированный объем для входа
-        /// </summary>
-        public decimal VolumeFix;
-
-        /// <summary>
-        /// режим работы
-        /// </summary>
-        public BotTradeRegime Regime;
-
-        /// <summary>
-        /// верхняя линия для отрисовки
-        /// </summary>
-        public LineHorisontal Upline;
-
-        /// <summary>
-        /// нижняя линия для отрисовки
-        /// </summary>
-        public LineHorisontal Downline;
-
-        /// <summary>
-        /// сохранить настройки
-        /// </summary>
-        public void Save()
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt", false)
-                    )
-                {
-                    writer.WriteLine(Regime);
-                    writer.WriteLine(Slipage);
-                    writer.WriteLine(VolumeFix);
-                    writer.WriteLine(Upline.Value);
-                    writer.WriteLine(Downline.Value);
-
-                    writer.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // отправить в лог
-            }
-        }
-
-        /// <summary>
-        /// загрузить настройки
-        /// </summary>
-        private void Load()
-        {
-            if (!File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-            {
-                return;
-            }
-            try
-            {
-                using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-                {
-                    Enum.TryParse(reader.ReadLine(), true, out Regime);
-                    Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
-                    Upline.Value = Convert.ToDecimal(reader.ReadLine());
-                    Downline.Value = Convert.ToDecimal(reader.ReadLine());
-                    reader.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // отправить в лог
-            }
-        }
-
-        /// <summary>
-        /// удаление файла с сохранением
-        /// </summary>
-        void Strategy_DeleteEvent()
-        {
-            if (File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-            {
-                File.Delete(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt");
-            }
-        }
-
-        // переменные, нужные для торговли
-
-        private decimal _lastPrice;
-        private decimal _lastMa;
-        private decimal _lastRsi;
-
-
-        // логика
-
-        /// <summary>
-        /// событие завершения свечи
-        /// </summary>
-        private void Strateg_CandleFinishedEvent(List<Candle> candles)
-        {
-            // берём значения из инидикаторов.
-            if (Regime == BotTradeRegime.Off)
-            {
-                return;
-            }
-
-            if (_ma.Values == null || _rsi.Values == null)
-            {
-                return;
-            }
-
-            _lastPrice = candles[candles.Count - 1].Close;
-            _lastMa = _ma.Values[_ma.Values.Count - 1];
-            _lastRsi = _rsi.Values[_rsi.Values.Count - 1];
-
-
-            if (_ma.Values.Count < _ma.Lenght + 1 || _rsi.Values == null || _rsi.Values.Count < _rsi.Lenght + 5)
-            {
-                return;
-
-            }
-
-
-            // распределяем логику в зависимости от текущей позиции
-
-            List<Position> openPositions = _tab.PositionsOpenAll;
-
-            if (openPositions != null && openPositions.Count != 0)
-            {
-                for (int i = 0; i < openPositions.Count; i++)
-                {
-                    LogicClosePosition(candles, openPositions[i]);
-
-                    Upline.Refresh();
-                    Downline.Refresh();
-                }
-            }
-
-            if (Regime == BotTradeRegime.OnlyClosePosition)
-            {
-                return;
-            }
-            if (openPositions == null || openPositions.Count == 0)
-            {
-                LogicOpenPosition(candles, openPositions);
-            }
-        }
-
-        /// <summary>
-        /// логика открытия первой позиции
-        /// </summary>
-        private void LogicOpenPosition(List<Candle> candles, List<Position> position)
-        {
-            decimal lastClose = candles[candles.Count - 1].Close;
-            if (_lastMa > lastClose && _lastRsi > Upline.Value && Regime != BotTradeRegime.OnlyLong)
-            {
-                _tab.SellAtLimit(VolumeFix, _lastPrice - Slipage);
-            }
-            if (_lastMa < lastClose && _lastRsi < Downline.Value && Regime != BotTradeRegime.OnlyShort)
-            {
-                _tab.BuyAtLimit(VolumeFix, _lastPrice + Slipage);
-            }
-        }
-
-        /// <summary>
-        /// логика зыкрытия позиции и открытие по реверсивной системе
-        /// </summary>
-        private void LogicClosePosition(List<Candle> candles, Position position)
-        {
-            decimal lastClose = candles[candles.Count - 1].Close;
-            if (position.Direction == Side.Buy)
-            {
-                if (lastClose < _lastMa || _lastRsi > Upline.Value)
-                {
-                    _tab.CloseAtLimit(position, _lastPrice - Slipage, position.OpenVolume);
-
-                }
-            }
-            if (position.Direction == Side.Sell)
-            {
-                if (lastClose > _lastMa || _lastRsi < Downline.Value)
-                {
-                    _tab.CloseAtLimit(position, _lastPrice + Slipage, position.OpenVolume);
-
-                }
-            }
-        }
-
-    }
 
     /// <summary>
+    /// blank strategy for manual trading
     /// пустая стратегия для ручной торговли
     /// </summary>
     public class StrategyEngineCandle : BotPanel
     {
-        /// <summary>
-        /// конструктор
-        /// </summary>
+
         public StrategyEngineCandle(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
@@ -3470,31 +1850,31 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// uniq name
         /// униальное имя стратегии
         /// </summary>
-        /// <returns></returns>
         public override string GetNameStrategyType()
         {
             return "Engine";
         }
 
         /// <summary>
+        /// show settings GUI
         /// показать настройки
         /// </summary>
         public override void ShowIndividualSettingsDialog()
         {
-            MessageBox.Show("У данной стратегии нет настроек. Это ж привод и сам он ничего не делает.");
+            MessageBox.Show(OsLocalization.Trader.Label57);
         }
     }
 
     /// <summary>
+    /// robot for pair trading. trading two papers based on their acceleration to each other by candle
     ///  робот для парного трейдинга. торговля двумя бумагами на основе их ускорения друг к другу по свечкам
     /// </summary>
     public class PairTraderSimple : BotPanel
     {
-        /// <summary>
-        /// конструктор
-        /// </summary>
+
         public PairTraderSimple(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
@@ -3524,6 +1904,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// uniq name
         /// взять уникальное имя стратегии
         /// </summary>
         public override string GetNameStrategyType()
@@ -3532,6 +1913,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// settings GUI
         /// показать индивидуальное окно настроек
         /// </summary>
         public override void ShowIndividualSettingsDialog()
@@ -3541,6 +1923,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// save settings
         /// сохранить публичные настройки
         /// </summary>
         public void Save()
@@ -3577,11 +1960,12 @@ namespace OsEngine.OsTrader.Panels
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// save settings
         /// загрузить публичные настройки из файла
         /// </summary>
         private void Load()
@@ -3630,11 +2014,12 @@ namespace OsEngine.OsTrader.Panels
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// delete save files
         /// удаление файла с сохранением
         /// </summary>
         void Strategy_DeleteEvent()
@@ -3645,19 +2030,22 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
-        // публичные настройки
+        //settings публичные настройки
 
         /// <summary>
+        /// regime
         /// режим работы робота
         /// </summary>
         public BotTradeRegime Regime;
 
         /// <summary>
+        /// candles count to backlook
         /// количество свечей смотрим назад 
         /// </summary>
         public int CountCandles;
 
         /// <summary>
+        /// discrepancy after which we start to gain a position
         /// расхождение после которого начинаем набирать позицию
         /// </summary>
         public decimal SpreadDeviation;
@@ -3676,29 +2064,34 @@ namespace OsEngine.OsTrader.Panels
 
         private List<PairDealStausSaver> _positionNumbers;
 
-        // торговля
+        // logic торговля
 
         /// <summary>
+        /// trade tab 1
         /// вкладка с первым инструметом
         /// </summary>
         private BotTabSimple _tab1;
 
         /// <summary>
+        /// trade tab 2
         /// вкладка со вторым инструментом
         /// </summary>
         private BotTabSimple _tab2;
 
         /// <summary>
+        /// ready candles tab1
         /// готовые свечи первого инструмента
         /// </summary>
         private List<Candle> _candles1;
 
         /// <summary>
+        /// ready candles tab2
         /// готовые свечи второго инструмента
         /// </summary>
         private List<Candle> _candles2;
 
         /// <summary>
+        /// new candles in tab1
         /// в первой вкладке новая свеча
         /// </summary>
         void _tab1_CandleFinishedEvent(List<Candle> candles)
@@ -3716,6 +2109,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// new candles tab2
         /// во второй вкладки новая свеча
         /// </summary>
         void _tab2_CandleFinishedEvent(List<Candle> candles)
@@ -3733,6 +2127,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// enter position logic
         /// логика входа в позицию
         /// </summary>
         private void Trade()
@@ -3741,12 +2136,6 @@ namespace OsEngine.OsTrader.Panels
             {
                 return;
             }
-            // сюда исполнение заходит только когда все свечи 
-            // готовы, синхронизированы и только что завершились
-
-            // логика
-            // 1 находим на какой процент двигались инструменты последние n свечей
-            // 2 если есть расхождение больше чем на установленный процент. покупаем спред
 
             if (_candles1.Count < 10)
             {
@@ -3768,7 +2157,6 @@ namespace OsEngine.OsTrader.Panels
             if (movePersent1 > movePersent2 &&
                 movePersent1 - movePersent2 > SpreadDeviation)
             {
-                // Первый инструмент улетел вверх
                 List<Position> positons1 = _tab1.PositionOpenShort;
 
                 if (positons1 == null || positons1.Count == 0)
@@ -3787,7 +2175,6 @@ namespace OsEngine.OsTrader.Panels
             if (movePersent2 > movePersent1 &&
                 movePersent2 - movePersent1 > SpreadDeviation)
             {
-                // Второй инструмент улетел вверх
                 List<Position> positons2 = _tab2.PositionOpenShort;
 
                 if (positons2 == null || positons2.Count == 0)
@@ -3805,12 +2192,11 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// exit position logic
         /// логика выхода из позиции
         /// </summary>
         private void CheckExit()
         {
-
-            // cчитаем текущий спред
             if (_candles1.Count - 1 - CountCandles < 0)
             {
                 return;
@@ -3823,8 +2209,6 @@ namespace OsEngine.OsTrader.Panels
                                    _candles2[_candles2.Count - 1].Close;
 
             decimal spredNow = Math.Abs(movePersent1 - movePersent2);
-
-            // смотрим есть ли у нас активные позиции
 
             for (int i = 0; _positionNumbers != null && i < _positionNumbers.Count; i++)
             {
@@ -3852,6 +2236,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// close position
         /// закрываем позицию по номеру
         /// </summary>
         private void NeadToClose(int positionNum)
@@ -3901,398 +2286,24 @@ namespace OsEngine.OsTrader.Panels
     public class PairDealStausSaver
     {
         /// <summary>
+        /// num position
         /// номера позиции
         /// </summary>
         public List<int> NumberPositions = new List<int>();
 
         /// <summary>
+        /// spread in time inter
         /// спред на момент входа
         /// </summary>
         public decimal Spred;
     }
 
     /// <summary>
-    /// робот для парного трейдинга строящий спред и торгующий на основе данных о пересечении машек на графике спреда
-    /// </summary>
-    public class PairTraderSpreadSma : BotPanel
-    {
-        /// <summary>
-        /// конструктор
-        /// </summary>
-        public PairTraderSpreadSma(string name, StartProgram startProgram)
-            : base(name, startProgram)
-        {
-            TabCreate(BotTabType.Simple);
-            _tab1 = TabsSimple[0];
-            _tab1.CandleFinishedEvent += _tab1_CandleFinishedEvent;
-
-            TabCreate(BotTabType.Simple);
-            _tab2 = TabsSimple[1];
-            _tab2.CandleFinishedEvent += _tab2_CandleFinishedEvent;
-
-            TabCreate(BotTabType.Index);
-            _tabSpread = TabsIndex[0];
-            _tabSpread.SpreadChangeEvent += _tabSpread_SpreadChangeEvent;
-
-            _smaLong = new MovingAverage(name + "MovingLong", false) { Lenght = 22, ColorBase = Color.DodgerBlue };
-            _smaLong = (MovingAverage)_tabSpread.CreateCandleIndicator(_smaLong, "Prime");
-            _smaLong.Save();
-
-            _smaShort = new MovingAverage(name + "MovingShort", false) { Lenght = 3, ColorBase = Color.DarkRed };
-            _smaShort = (MovingAverage)_tabSpread.CreateCandleIndicator(_smaShort, "Prime");
-            _smaShort.Save();
-
-            Volume1 = 1;
-            Volume2 = 1;
-
-            Slipage1 = 0;
-            Slipage2 = 0;
-
-            Load();
-
-            DeleteEvent += Strategy_DeleteEvent;
-        }
-
-        /// <summary>
-        /// взять уникальное имя стратегии
-        /// </summary>
-        /// <returns></returns>
-        public override string GetNameStrategyType()
-        {
-            return "PairTraderSpreadSma";
-        }
-
-        /// <summary>
-        /// показать окно настроек
-        /// </summary>
-        public override void ShowIndividualSettingsDialog()
-        {
-            PairTraderSpreadSmaUi ui = new PairTraderSpreadSmaUi(this);
-            ui.ShowDialog();
-        }
-
-        /// <summary>
-        /// сохранить публичные настройки
-        /// </summary>
-        public void Save()
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt", false)
-                    )
-                {
-                    writer.WriteLine(Regime);
-                    writer.WriteLine(Volume1);
-                    writer.WriteLine(Volume2);
-
-                    writer.WriteLine(Slipage1);
-                    writer.WriteLine(Slipage2);
-
-
-                    writer.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // отправить в лог
-            }
-        }
-
-        /// <summary>
-        /// загрузить публичные настройки из файла
-        /// </summary>
-        private void Load()
-        {
-            if (!File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-            {
-                return;
-            }
-            try
-            {
-                using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-                {
-                    Enum.TryParse(reader.ReadLine(), true, out Regime);
-                    Volume1 = Convert.ToDecimal(reader.ReadLine());
-                    Volume2 = Convert.ToDecimal(reader.ReadLine());
-
-                    Slipage1 = Convert.ToDecimal(reader.ReadLine());
-                    Slipage2 = Convert.ToDecimal(reader.ReadLine());
-
-
-                    reader.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // отправить в лог
-            }
-        }
-
-        /// <summary>
-        /// удаление файла с сохранением
-        /// </summary>
-        void Strategy_DeleteEvent()
-        {
-            if (File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-            {
-                File.Delete(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt");
-            }
-        }
-
-        // публичные настройки
-
-        /// <summary>
-        /// режим работы
-        /// </summary>
-        public BotTradeRegime Regime;
-
-        /// <summary>
-        /// объём первого инструмента
-        /// </summary>
-        public decimal Volume1;
-
-        /// <summary>
-        /// объём второго инструмента
-        /// </summary>
-        public decimal Volume2;
-
-        /// <summary>
-        /// проскальзоывание для первого инструмента
-        /// </summary>
-        public decimal Slipage1;
-
-        /// <summary>
-        /// проскальзывание для второго инструмента
-        /// </summary>
-        public decimal Slipage2;
-
-        // торговля
-
-        /// <summary>
-        /// вкладка с первым инструметом
-        /// </summary>
-        private BotTabSimple _tab1;
-
-        /// <summary>
-        /// вкладка со вторым инструментом
-        /// </summary>
-        private BotTabSimple _tab2;
-
-        /// <summary>
-        /// вкладка спреда
-        /// </summary>
-        private BotTabIndex _tabSpread;
-
-        /// <summary>
-        /// готовые свечи первого инструмента
-        /// </summary>
-        private List<Candle> _candles1;
-
-        /// <summary>
-        /// готовые свечи второго инструмента
-        /// </summary>
-        private List<Candle> _candles2;
-
-        /// <summary>
-        /// свечи спреда
-        /// </summary>
-        private List<Candle> _candlesSpread;
-
-        /// <summary>
-        /// индикатор: скользящая средняя длинная
-        /// </summary>
-        private MovingAverage _smaLong;
-
-        /// <summary>
-        /// индикатор: скользящая средняя короткая
-        /// </summary>
-        private MovingAverage _smaShort;
-
-        /// <summary>
-        /// в первой вкладке новая свеча
-        /// </summary>
-        void _tab1_CandleFinishedEvent(List<Candle> candles)
-        {
-            _candles1 = candles;
-
-            if (_candles2 == null || _candlesSpread == null ||
-                _candles2[_candles2.Count - 1].TimeStart != _candles1[_candles1.Count - 1].TimeStart ||
-                _candles1[_candles1.Count - 1].TimeStart != _candlesSpread[_candlesSpread.Count - 1].TimeStart)
-            {
-                return;
-            }
-
-            CheckExit();
-            Trade();
-        }
-
-        /// <summary>
-        /// во второй вкладки новая свеча
-        /// </summary>
-        void _tab2_CandleFinishedEvent(List<Candle> candles)
-        {
-            _candles2 = candles;
-
-            if (_candles1 == null || _candlesSpread == null ||
-                _candles2[_candles2.Count - 1].TimeStart != _candles1[_candles1.Count - 1].TimeStart ||
-                _candles2[_candles2.Count - 1].TimeStart != _candlesSpread[_candlesSpread.Count - 1].TimeStart)
-            {
-                return;
-            }
-
-            Trade();
-            CheckExit();
-        }
-
-        void _tabSpread_SpreadChangeEvent(List<Candle> candles)
-        {
-            _candlesSpread = candles;
-
-            if (_candles2 == null || _candles1 == null ||
-                _candlesSpread[_candlesSpread.Count - 1].TimeStart != _candles1[_candles1.Count - 1].TimeStart ||
-                _candlesSpread[_candlesSpread.Count - 1].TimeStart != _candles2[_candles2.Count - 1].TimeStart)
-            {
-                return;
-            }
-
-            CheckExit();
-            Trade();
-        }
-
-        /// <summary>
-        /// логика входа в позицию
-        /// </summary>
-        private void Trade()
-        {
-            // сюда исполнение заходит только когда все свечи 
-            // готовы, синхронизированы и только что завершились
-
-            // логика
-            // 1 если короткая машка на спреде пересекла длинную машку
-
-            if (_candles1.Count < 10)
-            {
-                return;
-            }
-
-            if (StartProgram == StartProgram.IsOsTrader && DateTime.Now.Hour < 10)
-            {
-                return;
-            }
-
-            List<Position> positions = _tab1.PositionsOpenAll;
-
-            if (positions != null && positions.Count != 0)
-            { // у нас может быть только одна позиция
-                return;
-            }
-
-            if (_smaShort.Values == null)
-            {
-                return;
-            }
-
-            decimal smaShortNow = _smaShort.Values[_smaShort.Values.Count - 1];
-            decimal smaShortLast = _smaShort.Values[_smaShort.Values.Count - 2];
-            decimal smaLong = _smaLong.Values[_smaLong.Values.Count - 1];
-            decimal smaLongLast = _smaLong.Values[_smaLong.Values.Count - 1];
-
-            if (smaShortNow == 0 || smaLong == 0
-                || smaShortLast == 0 || smaLongLast == 0)
-            {
-                return;
-            }
-
-            if (smaShortLast < smaLongLast &&
-                smaShortNow > smaLong)
-            {
-                // пересекли вверх
-                _tab1.SellAtLimit(Volume1, _candles1[_candles1.Count - 1].Close - Slipage1);
-                _tab2.BuyAtLimit(Volume2, _candles2[_candles2.Count - 1].Close + Slipage2);
-            }
-
-            if (smaShortLast > smaLongLast &&
-                smaShortNow < smaLong)
-            {
-                // пересекли вниз
-                _tab2.SellAtLimit(Volume2, _candles2[_candles2.Count - 1].Close - Slipage2);
-                _tab1.BuyAtLimit(Volume1, _candles1[_candles1.Count - 1].Close + Slipage1);
-            }
-        }
-
-        /// <summary>
-        /// проверить выходы из позиций
-        /// </summary>
-        private void CheckExit()
-        {
-            List<Position> positions = _tab1.PositionsOpenAll;
-
-            if (positions == null || positions.Count == 0)
-            { // у нас может быть только одна позиция
-                return;
-            }
-
-            decimal smaShortNow = _smaShort.Values[_smaShort.Values.Count - 1];
-            decimal smaShortLast = _smaShort.Values[_smaShort.Values.Count - 2];
-            decimal smaLong = _smaLong.Values[_smaLong.Values.Count - 1];
-            decimal smaLongLast = _smaLong.Values[_smaLong.Values.Count - 1];
-
-            if (smaShortNow == 0 || smaLong == 0
-                || smaShortLast == 0 || smaLongLast == 0)
-            {
-                return;
-            }
-
-            if (smaShortLast < smaLongLast &&
-                smaShortNow > smaLong)
-            {
-                // пересекли вверх
-                List<Position> positions1 = _tab1.PositionOpenLong;
-                List<Position> positions2 = _tab2.PositionOpenShort;
-
-                if (positions1 != null && positions1.Count != 0)
-                {
-                    Position pos1 = positions1[0];
-                    _tab1.CloseAtLimit(pos1, _tab1.PriceBestBid - Slipage1, pos1.OpenVolume);
-                }
-
-                if (positions2 != null && positions2.Count != 0)
-                {
-                    Position pos2 = positions2[0];
-                    _tab2.CloseAtLimit(pos2, _tab2.PriceBestAsk + Slipage1, pos2.OpenVolume);
-                }
-            }
-
-            if (smaShortLast > smaLongLast &&
-                smaShortNow < smaLong)
-            {
-                // пересекли вниз
-                List<Position> positions1 = _tab1.PositionOpenShort;
-                List<Position> positions2 = _tab2.PositionOpenLong;
-
-                if (positions1 != null && positions1.Count != 0)
-                {
-                    Position pos1 = positions1[0];
-                    _tab1.CloseAtLimit(pos1, _tab1.PriceBestAsk + Slipage1, pos1.OpenVolume);
-                }
-
-                if (positions2 != null && positions2.Count != 0)
-                {
-                    Position pos2 = positions2[0];
-                    _tab2.CloseAtLimit(pos2, _tab2.PriceBestBid - Slipage1, pos2.OpenVolume);
-                }
-            }
-        }
-    }
-
-    /// <summary>
+    /// RSI's concurrent overbought and oversold strategy
     /// конттрендовая стратегия RSI на перекупленность и перепроданность
     /// </summary>
     public class RsiTrade : BotPanel
     {
-        /// <summary>
-        /// конструктор
-        /// </summary>
         public RsiTrade(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
@@ -4339,13 +2350,16 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// uniq name
         /// взять уникальное имя
         /// </summary>
         public override string GetNameStrategyType()
         {
             return "RsiTrade";
         }
+
         /// <summary>
+        /// settings GUI
         /// показать окно настроек
         /// </summary>
         public override void ShowIndividualSettingsDialog()
@@ -4353,31 +2367,31 @@ namespace OsEngine.OsTrader.Panels
             RsiTradeUi ui = new RsiTradeUi(this);
             ui.ShowDialog();
         }
+
         /// <summary>
+        /// tab to trade
         /// вкладка для торговли
         /// </summary>
         private BotTabSimple _tab;
 
-        //индикаторы
-
-        /// <summary>
-        /// RSI
-        /// </summary>
         private Rsi _rsi;
 
-        //настройки публичные
+        //settings настройки публичные
 
         /// <summary>
+        /// slippage
         /// проскальзывание
         /// </summary>
         public decimal Slipage;
 
         /// <summary>
+        /// volume
         /// фиксированный объем для входа
         /// </summary>
         public decimal VolumeFix;
 
         /// <summary>
+        /// regime
         /// режим работы
         /// </summary>
         public BotTradeRegime Regime;
@@ -4393,6 +2407,7 @@ namespace OsEngine.OsTrader.Panels
         public LineHorisontal Downline;
 
         /// <summary>
+        /// save settings
         /// сохранить настройки
         /// </summary>
         public void Save()
@@ -4413,11 +2428,12 @@ namespace OsEngine.OsTrader.Panels
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// load settings
         /// загрузить настройки
         /// </summary>
         private void Load()
@@ -4440,11 +2456,12 @@ namespace OsEngine.OsTrader.Panels
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// delete save file
         /// удаление файла с сохранением
         /// </summary>
         void Strategy_DeleteEvent()
@@ -4455,21 +2472,19 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
-        // переменные, нужные для торговли
-
         private decimal _lastPrice;
         private decimal _firstLastRsi;
         private decimal _secondLastRsi;
 
 
-        // логика
+        //logic логика
 
         /// <summary>
+        /// candles finished event
         /// событие завершения свечи
         /// </summary>
         private void Strateg_CandleFinishedEvent(List<Candle> candles)
         {
-            // берём значения из инидикаторов.
             if (Regime == BotTradeRegime.Off)
             {
                 return;
@@ -4490,9 +2505,6 @@ namespace OsEngine.OsTrader.Panels
                 return;
 
             }
-
-
-            // распределяем логику в зависимости от текущей позиции
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
@@ -4518,6 +2530,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// logic open first position
         /// логика открытия первой позиции
         /// </summary>
         private void LogicOpenPosition(List<Candle> candles, List<Position> position)
@@ -4534,6 +2547,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// logic close position
         /// логика зыкрытия позиции и открытие по реверсивной системе
         /// </summary>
         private void LogicClosePosition(List<Candle> candles, Position position)
@@ -4574,13 +2588,11 @@ namespace OsEngine.OsTrader.Panels
     }
 
     /// <summary>
+    /// counter trend strategy stochastic
     /// конттрендовая стратегия Stochastic
     /// </summary>
     public class StochasticTrade : BotPanel
     {
-        /// <summary>
-        /// конструктор
-        /// </summary>
         public StochasticTrade(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
@@ -4625,6 +2637,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// uniq name
         /// взять уникальное имя
         /// </summary>
         public override string GetNameStrategyType()
@@ -4632,6 +2645,7 @@ namespace OsEngine.OsTrader.Panels
             return "StochasticTrade";
         }
         /// <summary>
+        /// settings GUI
         /// показать окно настроек
         /// </summary>
         public override void ShowIndividualSettingsDialog()
@@ -4640,28 +2654,16 @@ namespace OsEngine.OsTrader.Panels
             ui.ShowDialog();
         }
         /// <summary>
+        /// tab to trade
         /// вкладка для торговли
         /// </summary>
         private BotTabSimple _tab;
 
-        //индикаторы
-
-        /// <summary>
-        /// Стохастик
-        /// </summary>
         private StochasticOscillator _stoch;
 
-        /// <summary>
-        /// верхняя линия для отрисовки
-        /// </summary>
         public LineHorisontal Upline;
 
-        /// <summary>
-        /// нижняя линия для отрисовки
-        /// </summary>
         public LineHorisontal Downline;
-
-        //настройки публичные
 
         /// <summary>
         /// проскальзывание
@@ -4679,6 +2681,7 @@ namespace OsEngine.OsTrader.Panels
         public BotTradeRegime Regime;
 
         /// <summary>
+        /// save settings
         /// сохранить настройки
         /// </summary>
         public void Save()
@@ -4699,11 +2702,12 @@ namespace OsEngine.OsTrader.Panels
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// load settings
         /// загрузить настройки
         /// </summary>
         private void Load()
@@ -4726,11 +2730,12 @@ namespace OsEngine.OsTrader.Panels
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// delete settins file
         /// удаление файла с сохранением
         /// </summary>
         void Strategy_DeleteEvent()
@@ -4741,23 +2746,19 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
-        // переменные, нужные для торговли
-
         private decimal _lastPrice;
         private decimal _stocLastUp;
         private decimal _stocLastDown;
 
 
-        // логика
+        // logic логика
 
         /// <summary>
+        /// candle finished event
         /// событие завершения свечи
         /// </summary>
         private void Strateg_CandleFinishedEvent(List<Candle> candles)
         {
-
-
-            // берём значения из инидикаторов.
             if (Regime == BotTradeRegime.Off)
             {
                 return;
@@ -4771,10 +2772,6 @@ namespace OsEngine.OsTrader.Panels
             _lastPrice = candles[candles.Count - 1].Close;
             _stocLastUp = _stoch.ValuesUp[_stoch.ValuesUp.Count - 1];
             _stocLastDown = _stoch.ValuesDown[_stoch.ValuesDown.Count - 1];
-
-
-
-            // распределяем логику в зависимости от текущей позиции
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
@@ -4800,6 +2797,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// logic open position
         /// логика открытия первой позиции
         /// </summary>
         private void LogicOpenPosition(List<Candle> candles, List<Position> position)
@@ -4817,6 +2815,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// logic close position
         /// логика зыкрытия позиции и открытие по реверсивной системе
         /// </summary>
         private void LogicClosePosition(List<Candle> candles, Position position)
@@ -4852,13 +2851,11 @@ namespace OsEngine.OsTrader.Panels
     }
 
     /// <summary>
+    /// Trend Strategy Based on Breaking Bollinger Lines
     /// Трендовая стратегия на основе пробития линий болинджера
     /// </summary>
     public class BollingerTrade : BotPanel
     {
-        /// <summary>
-        /// конструктор
-        /// </summary>
         public BollingerTrade(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
@@ -4882,6 +2879,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// bot name
         /// взять уникальное имя
         /// </summary>
         public override string GetNameStrategyType()
@@ -4889,6 +2887,7 @@ namespace OsEngine.OsTrader.Panels
             return "BollingerTrade";
         }
         /// <summary>
+        /// strategy name
         /// показать окно настроек
         /// </summary>
         public override void ShowIndividualSettingsDialog()
@@ -4896,36 +2895,39 @@ namespace OsEngine.OsTrader.Panels
             BollingerTradeUi ui = new BollingerTradeUi(this);
             ui.ShowDialog();
         }
+
         /// <summary>
+        /// trade tab
         /// вкладка для торговли
         /// </summary>
         private BotTabSimple _tab;
 
-        //индикаторы
+        //indicators индикаторы
 
-        /// <summary>
-        /// Болинджер индикатор
-        /// </summary>
         private Bollinger _bol;
 
-        //настройки публичные
+        //settings настройки публичные
 
         /// <summary>
+        /// slippage
         /// проскальзывание
         /// </summary>
         public decimal Slipage;
 
         /// <summary>
+        /// volume
         /// фиксированный объем для входа
         /// </summary>
         public decimal VolumeFix;
 
         /// <summary>
+        /// regime
         /// режим работы
         /// </summary>
         public BotTradeRegime Regime;
 
         /// <summary>
+        /// save settings
         /// сохранить настройки
         /// </summary>
         public void Save()
@@ -4944,11 +2946,12 @@ namespace OsEngine.OsTrader.Panels
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// load settings
         /// загрузить настройки
         /// </summary>
         private void Load()
@@ -4970,11 +2973,12 @@ namespace OsEngine.OsTrader.Panels
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// delete save file
         /// удаление файла с сохранением
         /// </summary>
         void Strategy_DeleteEvent()
@@ -4985,20 +2989,18 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
-        // переменные, нужные для торговли
-
         private decimal _lastPrice;
         private decimal _bolLastUp;
         private decimal _bolLastDown;
 
-        // логика
+        // logic логика
 
         /// <summary>
+        /// candle finished event
         /// событие завершения свечи
         /// </summary>
         private void Strateg_CandleFinishedEvent(List<Candle> candles)
         {
-            // берём значения из инидикаторов.
             if (Regime == BotTradeRegime.Off)
             {
                 return;
@@ -5012,10 +3014,6 @@ namespace OsEngine.OsTrader.Panels
             _lastPrice = candles[candles.Count - 1].Close;
             _bolLastUp = _bol.ValuesUp[_bol.ValuesUp.Count - 1];
             _bolLastDown = _bol.ValuesDown[_bol.ValuesDown.Count - 1];
-
-
-
-            // распределяем логику в зависимости от текущей позиции
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
@@ -5038,6 +3036,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// logic open position
         /// логика открытия первой позиции
         /// </summary>
         private void LogicOpenPosition(List<Candle> candles, List<Position> position)
@@ -5055,6 +3054,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// logic close position
         /// логика зыкрытия позиции и открытие по реверсивной системе
         /// </summary>
         private void LogicClosePosition(List<Candle> candles, Position position)
@@ -5089,19 +3089,15 @@ namespace OsEngine.OsTrader.Panels
 
                 }
             }
-
         }
-
     }
 
     /// <summary>
+    /// Trend strategy based on the TRIX indicator
     /// Трендовая стратегия на основе индикатора TRIX
     /// </summary>
     public class TrixTrade : BotPanel
     {
-        /// <summary>
-        /// конструктор
-        /// </summary>
         public TrixTrade(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
@@ -5125,6 +3121,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// strategy name
         /// взять уникальное имя
         /// </summary>
         public override string GetNameStrategyType()
@@ -5132,6 +3129,7 @@ namespace OsEngine.OsTrader.Panels
             return "TRIXTrade";
         }
         /// <summary>
+        /// settings GUI
         /// показать окно настроек
         /// </summary>
         public override void ShowIndividualSettingsDialog()
@@ -5140,40 +3138,41 @@ namespace OsEngine.OsTrader.Panels
             ui.ShowDialog();
         }
         /// <summary>
+        /// trading tab
         /// вкладка для торговли
         /// </summary>
         private BotTabSimple _tab;
 
-        //индикаторы
-
-        /// <summary>
-        /// Trix индикатор
-        /// </summary>
         private Trix _trix;
 
-        //настройки публичные
+        //settings настройки публичные
 
         /// <summary>
+        /// slippage
         /// проскальзывание
         /// </summary>
         public decimal Slipage;
 
         /// <summary>
+        /// step from level zero
         /// Шаг от 0 - го уровня
         /// </summary>
         public decimal Step;
 
         /// <summary>
+        /// volume
         /// фиксированный объем для входа
         /// </summary>
         public decimal VolumeFix;
 
         /// <summary>
+        /// regime
         /// режим работы
         /// </summary>
         public BotTradeRegime Regime;
 
         /// <summary>
+        /// save settings
         /// сохранить настройки
         /// </summary>
         public void Save()
@@ -5193,11 +3192,12 @@ namespace OsEngine.OsTrader.Panels
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// load settings
         /// загрузить настройки
         /// </summary>
         private void Load()
@@ -5220,11 +3220,12 @@ namespace OsEngine.OsTrader.Panels
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// delete save file
         /// удаление файла с сохранением
         /// </summary>
         void Strategy_DeleteEvent()
@@ -5235,19 +3236,17 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
-        // переменные, нужные для торговли
-
         private decimal _lastPrice;
         private decimal _lastTrix;
 
-        // логика
+        // logic логика
 
         /// <summary>
+        /// candle finished event
         /// событие завершения свечи
         /// </summary>
         private void Strateg_CandleFinishedEvent(List<Candle> candles)
         {
-            // берём значения из инидикаторов.
             if (Regime == BotTradeRegime.Off)
             {
                 return;
@@ -5260,9 +3259,6 @@ namespace OsEngine.OsTrader.Panels
 
             _lastPrice = candles[candles.Count - 1].Close;
             _lastTrix = _trix.Values[_trix.Values.Count - 1];
-
-
-            // распределяем логику в зависимости от текущей позиции
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
@@ -5285,6 +3281,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// logic open position
         /// логика открытия первой позиции
         /// </summary>
         private void LogicOpenPosition(List<Candle> candles, List<Position> position)
@@ -5301,6 +3298,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// logic close position
         /// логика зыкрытия позиции и открытие по реверсивной системе
         /// </summary>
         private void LogicClosePosition(List<Candle> candles, Position position)
@@ -5319,7 +3317,6 @@ namespace OsEngine.OsTrader.Panels
                     {
                         _tab.SellAtLimit(VolumeFix, _lastPrice - Slipage);
                     }
-
                 }
             }
 
@@ -5333,21 +3330,17 @@ namespace OsEngine.OsTrader.Panels
                     {
                         _tab.BuyAtLimit(VolumeFix, _lastPrice + Slipage);
                     }
-
                 }
             }
         }
-
     }
 
     /// <summary>
+    /// Counter Trend Strategy Based on CCI Indicator
     /// Контртрендовая стратегия на основе индикатора CCI
     /// </summary>
     public class CciTrade : BotPanel
     {
-        /// <summary>
-        /// конструктор
-        /// </summary>
         public CciTrade(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
@@ -5387,9 +3380,8 @@ namespace OsEngine.OsTrader.Panels
             DeleteEvent += Strategy_DeleteEvent;
         }
 
-
-
         /// <summary>
+        /// strategy name
         /// взять уникальное имя
         /// </summary>
         public override string GetNameStrategyType()
@@ -5397,6 +3389,7 @@ namespace OsEngine.OsTrader.Panels
             return "CCITrade";
         }
         /// <summary>
+        /// settings GUI
         /// показать окно настроек
         /// </summary>
         public override void ShowIndividualSettingsDialog()
@@ -5405,45 +3398,47 @@ namespace OsEngine.OsTrader.Panels
             ui.ShowDialog();
         }
         /// <summary>
+        /// tab to trade
         /// вкладка для торговли
         /// </summary>
         private BotTabSimple _tab;
 
-        //индикаторы
-
-        /// <summary>
-        /// CCI индикатор
-        /// </summary>
         private Cci _cci;
 
-        //настройки публичные
+        //settings настройки публичные
 
         /// <summary>
+        /// slippage
         /// проскальзывание
         /// </summary>
         public decimal Slipage;
 
         /// <summary>
+        /// up line to trade
         /// верхняя линия для отрисовки
         /// </summary>
         public LineHorisontal Upline;
 
         /// <summary>
+        /// down line to trade
         /// нижняя линия для отрисовки
         /// </summary>
         public LineHorisontal Downline;
 
         /// <summary>
+        /// volume
         /// фиксированный объем для входа
         /// </summary>
         public decimal VolumeFix;
 
         /// <summary>
+        /// regime
         /// режим работы
         /// </summary>
         public BotTradeRegime Regime;
 
         /// <summary>
+        /// save settings
         /// сохранить настройки
         /// </summary>
         public void Save()
@@ -5464,11 +3459,12 @@ namespace OsEngine.OsTrader.Panels
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// load settings
         /// загрузить настройки
         /// </summary>
         private void Load()
@@ -5492,11 +3488,12 @@ namespace OsEngine.OsTrader.Panels
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// delete save file
         /// удаление файла с сохранением
         /// </summary>
         void Strategy_DeleteEvent()
@@ -5507,19 +3504,17 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
-        // переменные, нужные для торговли
-
         private decimal _lastPrice;
         private decimal _lastCci;
 
-        // логика
+        // logic логика
 
         /// <summary>
+        /// candle finished event
         /// событие завершения свечи
         /// </summary>
         private void Strateg_CandleFinishedEvent(List<Candle> candles)
         {
-            // берём значения из инидикаторов.
             if (Regime == BotTradeRegime.Off)
             {
                 return;
@@ -5532,9 +3527,6 @@ namespace OsEngine.OsTrader.Panels
 
             _lastPrice = candles[candles.Count - 1].Close;
             _lastCci = _cci.Values[_cci.Values.Count - 1];
-
-
-            // распределяем логику в зависимости от текущей позиции
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
@@ -5560,6 +3552,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// logic open position
         /// логика открытия первой позиции
         /// </summary>
         private void LogicOpenPosition(List<Candle> candles, List<Position> position)
@@ -5577,6 +3570,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// logic close position
         /// логика зыкрытия позиции и открытие по реверсивной системе
         /// </summary>
         private void LogicClosePosition(List<Candle> candles, Position position)
@@ -5612,500 +3606,11 @@ namespace OsEngine.OsTrader.Panels
     }
 
     /// <summary>
-    /// Трендовая стратегия на пересечение индикатора ParabolicSar
-    /// </summary>
-    public class ParabolicSarTrade : BotPanel
-    {
-        /// <summary>
-        /// конструктор
-        /// </summary>
-        public ParabolicSarTrade(string name, StartProgram startProgram)
-            : base(name, startProgram)
-        {
-            TabCreate(BotTabType.Simple);
-            _tab = TabsSimple[0];
-
-            _sar = new ParabolicSaR(name + "Prime", false);
-            _sar = (ParabolicSaR)_tab.CreateCandleIndicator(_sar, "Prime");
-
-
-
-            _sar.Save();
-
-            _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
-
-            Slipage = 0;
-            VolumeFix = 1;
-
-
-            Load();
-
-            DeleteEvent += Strategy_DeleteEvent;
-        }
-
-
-
-        /// <summary>
-        /// взять уникальное имя
-        /// </summary>
-        public override string GetNameStrategyType()
-        {
-            return "ParabolicSarTrade";
-        }
-        /// <summary>
-        /// показать окно настроек
-        /// </summary>
-        public override void ShowIndividualSettingsDialog()
-        {
-            ParabolicSarTradeUi ui = new ParabolicSarTradeUi(this);
-            ui.ShowDialog();
-        }
-        /// <summary>
-        /// вкладка для торговли
-        /// </summary>
-        private BotTabSimple _tab;
-
-        //индикаторы
-
-        /// <summary>
-        /// ParabolicSar индикатор
-        /// </summary>
-        private ParabolicSaR _sar;
-
-        //настройки публичные
-
-        /// <summary>
-        /// проскальзывание
-        /// </summary>
-        public decimal Slipage;
-
-        /// <summary>
-        /// фиксированный объем для входа
-        /// </summary>
-        public decimal VolumeFix;
-
-        /// <summary>
-        /// режим работы
-        /// </summary>
-        public BotTradeRegime Regime;
-
-        /// <summary>
-        /// сохранить настройки
-        /// </summary>
-        public void Save()
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt", false)
-                    )
-                {
-                    writer.WriteLine(Slipage);
-                    writer.WriteLine(VolumeFix);
-                    writer.WriteLine(Regime);
-
-
-                    writer.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // отправить в лог
-            }
-        }
-
-        /// <summary>
-        /// загрузить настройки
-        /// </summary>
-        private void Load()
-        {
-            if (!File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-            {
-                return;
-            }
-            try
-            {
-                using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-                {
-                    Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
-                    Enum.TryParse(reader.ReadLine(), true, out Regime);
-
-
-                    reader.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // отправить в лог
-            }
-        }
-
-        /// <summary>
-        /// удаление файла с сохранением
-        /// </summary>
-        void Strategy_DeleteEvent()
-        {
-            if (File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-            {
-                File.Delete(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt");
-            }
-        }
-
-        // переменные, нужные для торговли
-
-        private decimal _lastPrice;
-        private decimal _lastSar;
-
-        // логика
-
-        /// <summary>
-        /// событие завершения свечи
-        /// </summary>
-        private void Strateg_CandleFinishedEvent(List<Candle> candles)
-        {
-            // берём значения из инидикаторов.
-            if (Regime == BotTradeRegime.Off)
-            {
-                return;
-            }
-
-            if (_sar.Values == null)
-            {
-                return;
-            }
-
-            _lastPrice = candles[candles.Count - 1].Close;
-            _lastSar = _sar.Values[_sar.Values.Count - 1];
-
-
-            // распределяем логику в зависимости от текущей позиции
-
-            List<Position> openPositions = _tab.PositionsOpenAll;
-
-            if (openPositions != null && openPositions.Count != 0)
-            {
-                for (int i = 0; i < openPositions.Count; i++)
-                {
-                    LogicClosePosition(candles, openPositions[i]);
-
-                }
-            }
-
-            if (Regime == BotTradeRegime.OnlyClosePosition)
-            {
-                return;
-            }
-            if (openPositions == null || openPositions.Count == 0)
-            {
-                LogicOpenPosition(candles, openPositions);
-            }
-        }
-
-        /// <summary>
-        /// логика открытия первой позиции
-        /// </summary>
-        private void LogicOpenPosition(List<Candle> candles, List<Position> position)
-        {
-            if (_lastPrice > _lastSar && Regime != BotTradeRegime.OnlyShort)
-            {
-                _tab.BuyAtLimit(VolumeFix, _lastPrice + Slipage);
-            }
-
-            if (_lastPrice < _lastSar && Regime != BotTradeRegime.OnlyLong)
-            {
-                _tab.SellAtLimit(VolumeFix, _lastPrice - Slipage);
-            }
-
-        }
-
-        /// <summary>
-        /// логика зыкрытия позиции и открытие по реверсивной системе
-        /// </summary>
-        private void LogicClosePosition(List<Candle> candles, Position position)
-        {
-            if (position.Direction == Side.Buy)
-            {
-                if (_lastPrice < _lastSar)
-                {
-                    _tab.CloseAtLimit(position, _lastPrice - Slipage, position.OpenVolume);
-
-                    if (Regime != BotTradeRegime.OnlyLong && Regime != BotTradeRegime.OnlyClosePosition)
-                    {
-                        _tab.SellAtLimit(VolumeFix, _lastPrice - Slipage);
-                    }
-                }
-            }
-
-            if (position.Direction == Side.Sell)
-            {
-                if (_lastPrice > _lastSar)
-                {
-                    _tab.CloseAtLimit(position, _lastPrice + Slipage, position.OpenVolume);
-
-                    if (Regime != BotTradeRegime.OnlyShort && Regime != BotTradeRegime.OnlyClosePosition)
-                    {
-                        _tab.BuyAtLimit(VolumeFix, _lastPrice + Slipage);
-                    }
-
-                }
-            }
-        }
-
-    }
-
-    /// <summary>
-    /// Трендовая стратегия на пересечение индикатора PriceChannel
-    /// </summary>
-    public class PriceChannelTrade : BotPanel
-    {
-        /// <summary>
-        /// конструктор
-        /// </summary>
-        public PriceChannelTrade(string name, StartProgram startProgram)
-            : base(name, startProgram)
-        {
-            TabCreate(BotTabType.Simple);
-            _tab = TabsSimple[0];
-
-            _priceCh = new PriceChannel(name + "Prime", false);
-            _priceCh = (PriceChannel)_tab.CreateCandleIndicator(_priceCh, "Prime");
-
-
-
-            _priceCh.Save();
-
-            _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
-
-            Slipage = 0;
-            VolumeFix = 1;
-
-
-            Load();
-
-            DeleteEvent += Strategy_DeleteEvent;
-        }
-
-
-
-        /// <summary>
-        /// взять уникальное имя
-        /// </summary>
-        public override string GetNameStrategyType()
-        {
-            return "PriceChannelTrade";
-        }
-        /// <summary>
-        /// показать окно настроек
-        /// </summary>
-        public override void ShowIndividualSettingsDialog()
-        {
-            PriceChannelTradeUi ui = new PriceChannelTradeUi(this);
-            ui.ShowDialog();
-        }
-        /// <summary>
-        /// вкладка для торговли
-        /// </summary>
-        private BotTabSimple _tab;
-
-        //индикаторы
-
-        /// <summary>
-        /// PriceChannel индикатор
-        /// </summary>
-        private PriceChannel _priceCh;
-
-        //настройки публичные
-
-        /// <summary>
-        /// проскальзывание
-        /// </summary>
-        public decimal Slipage;
-
-        /// <summary>
-        /// фиксированный объем для входа
-        /// </summary>
-        public decimal VolumeFix;
-
-        /// <summary>
-        /// режим работы
-        /// </summary>
-        public BotTradeRegime Regime;
-
-        /// <summary>
-        /// сохранить настройки
-        /// </summary>
-        public void Save()
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt", false)
-                    )
-                {
-                    writer.WriteLine(Slipage);
-                    writer.WriteLine(VolumeFix);
-                    writer.WriteLine(Regime);
-
-                    writer.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // отправить в лог
-            }
-        }
-
-        /// <summary>
-        /// загрузить настройки
-        /// </summary>
-        private void Load()
-        {
-            if (!File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-            {
-                return;
-            }
-            try
-            {
-                using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-                {
-                    Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
-                    Enum.TryParse(reader.ReadLine(), true, out Regime);
-
-
-                    reader.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // отправить в лог
-            }
-        }
-
-        /// <summary>
-        /// удаление файла с сохранением
-        /// </summary>
-        void Strategy_DeleteEvent()
-        {
-            if (File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-            {
-                File.Delete(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt");
-            }
-        }
-
-        // переменные, нужные для торговли
-        private decimal _lastPriceC;
-        private decimal _lastPriceH;
-        private decimal _lastPriceL;
-        private decimal _lastPriceChUp;
-        private decimal _lastPriceChDown;
-        // логика
-
-        /// <summary>
-        /// событие завершения свечи
-        /// </summary>
-        private void Strateg_CandleFinishedEvent(List<Candle> candles)
-        {
-            // берём значения из инидикаторов.
-            if (Regime == BotTradeRegime.Off)
-            {
-                return;
-            }
-
-            if (_priceCh.ValuesUp == null || _priceCh.ValuesUp.Count < _priceCh.LenghtUpLine + 3
-                || _priceCh.ValuesDown.Count < _priceCh.LenghtDownLine + 3)
-            {
-                return;
-            }
-
-            _lastPriceC = candles[candles.Count - 1].Close;
-            _lastPriceH = candles[candles.Count - 1].High;
-            _lastPriceL = candles[candles.Count - 1].Low;
-            _lastPriceChUp = _priceCh.ValuesUp[_priceCh.ValuesUp.Count - 2];
-            _lastPriceChDown = _priceCh.ValuesDown[_priceCh.ValuesDown.Count - 2];
-
-            // распределяем логику в зависимости от текущей позиции
-
-            List<Position> openPositions = _tab.PositionsOpenAll;
-
-            if (openPositions != null && openPositions.Count != 0)
-            {
-                for (int i = 0; i < openPositions.Count; i++)
-                {
-                    LogicClosePosition(candles, openPositions[i]);
-
-                }
-            }
-
-            if (Regime == BotTradeRegime.OnlyClosePosition)
-            {
-                return;
-            }
-            if (openPositions == null || openPositions.Count == 0)
-            {
-                LogicOpenPosition(candles, openPositions);
-            }
-        }
-
-        /// <summary>
-        /// логика открытия первой позиции
-        /// </summary>
-        private void LogicOpenPosition(List<Candle> candles, List<Position> position)
-        {
-            if (_lastPriceH > _lastPriceChUp && Regime != BotTradeRegime.OnlyShort)
-            {
-                _tab.BuyAtLimit(VolumeFix, _lastPriceC + Slipage);
-            }
-
-            if (_lastPriceL < _lastPriceChDown && Regime != BotTradeRegime.OnlyLong)
-            {
-                _tab.SellAtLimit(VolumeFix, _lastPriceC - Slipage);
-            }
-        }
-
-        /// <summary>
-        /// логика зыкрытия позиции и открытие по реверсивной системе
-        /// </summary>
-        private void LogicClosePosition(List<Candle> candles, Position position)
-        {
-            if (position.Direction == Side.Buy)
-            {
-                if (_lastPriceL < _lastPriceChDown)
-                {
-                    _tab.CloseAtLimit(position, _lastPriceC - Slipage, position.OpenVolume);
-
-                    if (Regime != BotTradeRegime.OnlyLong && Regime != BotTradeRegime.OnlyClosePosition)
-                    {
-                        _tab.SellAtLimit(VolumeFix, _lastPriceC - Slipage);
-                    }
-                }
-            }
-
-            if (position.Direction == Side.Sell)
-            {
-                if (_lastPriceH > _lastPriceChUp)
-                {
-                    _tab.CloseAtLimit(position, _lastPriceC + Slipage, position.OpenVolume);
-
-                    if (Regime != BotTradeRegime.OnlyShort && Regime != BotTradeRegime.OnlyClosePosition)
-                    {
-                        _tab.BuyAtLimit(VolumeFix, _lastPriceC + Slipage);
-                    }
-
-                }
-            }
-
-        }
-
-    }
-
-    /// <summary>
+    /// Trend strategy based on two indicators BullsPower and BearsPower
     /// Трендовая стратегия на основе двух индикаторов BullsPower и BearsPower
     /// </summary>
     public class BbPowerTrade : BotPanel
     {
-        /// <summary>
-        /// конструктор
-        /// </summary>
         public BbPowerTrade(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
@@ -6134,6 +3639,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// uniq strategy name
         /// взять уникальное имя
         /// </summary>
         public override string GetNameStrategyType()
@@ -6141,6 +3647,7 @@ namespace OsEngine.OsTrader.Panels
             return "BBPowerTrade";
         }
         /// <summary>
+        /// settings GUI
         /// показать окно настроек
         /// </summary>
         public override void ShowIndividualSettingsDialog()
@@ -6149,45 +3656,45 @@ namespace OsEngine.OsTrader.Panels
             ui.ShowDialog();
         }
         /// <summary>
+        /// tab to trade
         /// вкладка для торговли
         /// </summary>
         private BotTabSimple _tab;
 
-        //индикаторы
+        // indicators индикаторы
 
-        /// <summary>
-        /// BullsPower индикатор
-        /// </summary>
         private BullsPower _bullsP;
 
-        /// <summary>
-        /// BearsPower индикатор
-        /// </summary>
         private BearsPower _bearsP;
 
-        //настройки публичные
+        //settings настройки публичные
 
         /// <summary>
+        /// slippage
         /// проскальзывание
         /// </summary>
         public decimal Slipage;
 
         /// <summary>
+        /// value to trade formula
         /// шаг от 0-го уровня
         /// </summary>
         public decimal Step;
 
         /// <summary>
+        /// volume
         /// фиксированный объем для входа
         /// </summary>
         public decimal VolumeFix;
 
         /// <summary>
+        /// regime
         /// режим работы
         /// </summary>
         public BotTradeRegime Regime;
 
         /// <summary>
+        /// save settings
         /// сохранить настройки
         /// </summary>
         public void Save()
@@ -6207,11 +3714,12 @@ namespace OsEngine.OsTrader.Panels
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// load settings
         /// загрузить настройки
         /// </summary>
         private void Load()
@@ -6235,11 +3743,12 @@ namespace OsEngine.OsTrader.Panels
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// delete save file
         /// удаление файла с сохранением
         /// </summary>
         void Strategy_DeleteEvent()
@@ -6250,19 +3759,18 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
-        // переменные, нужные для торговли
         private decimal _lastPrice;
         private decimal _lastBearsPrice;
         private decimal _lastBullsPrice;
 
-        // логика
+        // logic логика
 
         /// <summary>
+        /// candle finished event
         /// событие завершения свечи
         /// </summary>
         private void Strateg_CandleFinishedEvent(List<Candle> candles)
         {
-            // берём значения из инидикаторов.
             if (Regime == BotTradeRegime.Off)
             {
                 return;
@@ -6276,8 +3784,6 @@ namespace OsEngine.OsTrader.Panels
             _lastPrice = candles[candles.Count - 1].Close;
             _lastBearsPrice = _bearsP.Values[_bearsP.Values.Count - 1];
             _lastBullsPrice = _bullsP.Values[_bullsP.Values.Count - 1];
-
-            // распределяем логику в зависимости от текущей позиции
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
@@ -6300,6 +3806,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// logic open position
         /// логика открытия первой позиции
         /// </summary>
         private void LogicOpenPosition(List<Candle> candles, List<Position> position)
@@ -6317,6 +3824,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// logic close position
         /// логика зыкрытия позиции и открытие по реверсивной системе
         /// </summary>
         private void LogicClosePosition(List<Candle> candles, Position position)
@@ -6351,13 +3859,11 @@ namespace OsEngine.OsTrader.Panels
     }
 
     /// <summary>
+    /// Trend strategy at the intersection of the MACD indicator
     /// Трендовая стратегия на пересечение индикатора MACD
     /// </summary>
     public class MacdTrade : BotPanel
     {
-        /// <summary>
-        /// конструктор
-        /// </summary>
         public MacdTrade(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
@@ -6382,6 +3888,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// uniq strategy name
         /// взять уникальное имя
         /// </summary>
         public override string GetNameStrategyType()
@@ -6389,6 +3896,7 @@ namespace OsEngine.OsTrader.Panels
             return "MACDTrade";
         }
         /// <summary>
+        /// settings GUI
         /// показать окно настроек
         /// </summary>
         public override void ShowIndividualSettingsDialog()
@@ -6397,35 +3905,38 @@ namespace OsEngine.OsTrader.Panels
             ui.ShowDialog();
         }
         /// <summary>
+        /// tab to trade
         /// вкладка для торговли
         /// </summary>
         private BotTabSimple _tab;
 
-        //индикаторы
-
         /// <summary>
-        /// MACD индикатор
+        /// MACD 
         /// </summary>
         private MacdLine _macd;
 
-        //настройки публичные
+        //settings настройки публичные
 
         /// <summary>
+        /// slippage
         /// проскальзывание
         /// </summary>
         public decimal Slipage;
 
         /// <summary>
+        /// volume
         /// фиксированный объем для входа
         /// </summary>
         public decimal VolumeFix;
 
         /// <summary>
+        /// regime
         /// режим работы
         /// </summary>
         public BotTradeRegime Regime;
 
         /// <summary>
+        /// save settings
         /// сохранить настройки
         /// </summary>
         public void Save()
@@ -6444,11 +3955,12 @@ namespace OsEngine.OsTrader.Panels
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// load settings
         /// загрузить настройки
         /// </summary>
         private void Load()
@@ -6471,11 +3983,12 @@ namespace OsEngine.OsTrader.Panels
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// delete save file
         /// удаление файла с сохранением
         /// </summary>
         void Strategy_DeleteEvent()
@@ -6486,18 +3999,18 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
-        // переменные, нужные для торговли
         private decimal _lastPrice;
         private decimal _lastMacdUp;
         private decimal _lastMacdDown;
-        // логика
+
+        // logic логика
 
         /// <summary>
+        /// candle finished event
         /// событие завершения свечи
         /// </summary>
         private void Strateg_CandleFinishedEvent(List<Candle> candles)
         {
-            // берём значения из инидикаторов.
             if (Regime == BotTradeRegime.Off)
             {
                 return;
@@ -6511,8 +4024,6 @@ namespace OsEngine.OsTrader.Panels
             _lastPrice = candles[candles.Count - 1].Close;
             _lastMacdUp = _macd.ValuesUp[_macd.ValuesUp.Count - 1];
             _lastMacdDown = _macd.ValuesDown[_macd.ValuesDown.Count - 1];
-
-            // распределяем логику в зависимости от текущей позиции
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
@@ -6536,6 +4047,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// logic open position
         /// логика открытия первой позиции
         /// </summary>
         private void LogicOpenPosition(List<Candle> candles, List<Position> position)
@@ -6552,6 +4064,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// logic close position
         /// логика зыкрытия позиции и открытие по реверсивной системе
         /// </summary>
         private void LogicClosePosition(List<Candle> candles, Position position)
@@ -6587,284 +4100,11 @@ namespace OsEngine.OsTrader.Panels
     }
 
     /// <summary>
-    /// Контртрендовая стратегия на основе индикатора Willams %R
-    /// </summary>
-    public class WilliamsRangeTrade : BotPanel
-    {
-        /// <summary>
-        /// конструктор
-        /// </summary>
-        public WilliamsRangeTrade(string name, StartProgram startProgram)
-            : base(name, startProgram)
-        {
-            TabCreate(BotTabType.Simple);
-            _tab = TabsSimple[0];
-
-            _wr = new WilliamsRange(name + "WillamsRange", false);
-            _wr = (WilliamsRange)_tab.CreateCandleIndicator(_wr, "WilliamsArea");
-
-            Upline = new LineHorisontal("upline", "WilliamsArea", false)
-            {
-                Color = Color.Green,
-                Value = 0,
-
-
-            };
-            _tab.SetChartElement(Upline);
-
-            Downline = new LineHorisontal("downline", "WilliamsArea", false)
-            {
-                Color = Color.Yellow,
-                Value = 0
-
-            };
-            _tab.SetChartElement(Downline);
-
-            _wr.Save();
-
-            _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
-
-            Slipage = 0;
-            VolumeFix = 1;
-            Upline.Value = -20;
-            Downline.Value = -80;
-
-            Load();
-
-            Upline.TimeEnd = DateTime.Now;
-            Downline.TimeEnd = DateTime.Now;
-
-            DeleteEvent += Strategy_DeleteEvent;
-        }
-
-        /// <summary>
-        /// взять уникальное имя
-        /// </summary>
-        public override string GetNameStrategyType()
-        {
-            return "WilliamsRangeTrade";
-        }
-        /// <summary>
-        /// показать окно настроек
-        /// </summary>
-        public override void ShowIndividualSettingsDialog()
-        {
-            WilliamsRangeTradeUi ui = new WilliamsRangeTradeUi(this);
-            ui.ShowDialog();
-        }
-        /// <summary>
-        /// вкладка для торговли
-        /// </summary>
-        private BotTabSimple _tab;
-
-        //индикаторы
-
-        /// <summary>
-        /// WilliamsRange индикатор
-        /// </summary>
-        private WilliamsRange _wr;
-
-        /// <summary>
-        /// верхняя линия для отрисовки
-        /// </summary>
-        public LineHorisontal Upline;
-
-        /// <summary>
-        /// нижняя линия для отрисовки
-        /// </summary>
-        public LineHorisontal Downline;
-
-        //настройки публичные
-
-        /// <summary>
-        /// проскальзывание
-        /// </summary>
-        public decimal Slipage;
-
-        /// <summary>
-        /// фиксированный объем для входа
-        /// </summary>
-        public decimal VolumeFix;
-
-        /// <summary>
-        /// режим работы
-        /// </summary>
-        public BotTradeRegime Regime;
-
-        /// <summary>
-        /// сохранить настройки
-        /// </summary>
-        public void Save()
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt", false)
-                    )
-                {
-                    writer.WriteLine(Slipage);
-                    writer.WriteLine(VolumeFix);
-                    writer.WriteLine(Regime);
-                    writer.WriteLine(Upline.Value);
-                    writer.WriteLine(Downline.Value);
-
-                    writer.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // отправить в лог
-            }
-        }
-
-        /// <summary>
-        /// загрузить настройки
-        /// </summary>
-        private void Load()
-        {
-            if (!File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-            {
-                return;
-            }
-            try
-            {
-                using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-                {
-                    Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
-                    Enum.TryParse(reader.ReadLine(), true, out Regime);
-                    Upline.Value = Convert.ToDecimal(reader.ReadLine());
-                    Downline.Value = Convert.ToDecimal(reader.ReadLine());
-
-                    reader.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // отправить в лог
-            }
-        }
-
-        /// <summary>
-        /// удаление файла с сохранением
-        /// </summary>
-        void Strategy_DeleteEvent()
-        {
-            if (File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-            {
-                File.Delete(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt");
-            }
-        }
-
-        // переменные, нужные для торговли
-        private decimal _lastPrice;
-        private decimal _lastWr;
-
-        // логика
-
-        /// <summary>
-        /// событие завершения свечи
-        /// </summary>
-        private void Strateg_CandleFinishedEvent(List<Candle> candles)
-        {
-            // берём значения из инидикаторов.
-            if (Regime == BotTradeRegime.Off)
-            {
-                return;
-            }
-
-            if (_wr.Values == null || _wr.Values.Count < _wr.Nperiod + 2)
-            {
-                return;
-            }
-
-            _lastPrice = candles[candles.Count - 1].Close;
-            _lastWr = _wr.Values[_wr.Values.Count - 1];
-
-            // распределяем логику в зависимости от текущей позиции
-
-            List<Position> openPositions = _tab.PositionsOpenAll;
-
-            if (openPositions != null && openPositions.Count != 0)
-            {
-                for (int i = 0; i < openPositions.Count; i++)
-                {
-                    LogicClosePosition(candles, openPositions[i]);
-
-                    Upline.Refresh();
-                    Downline.Refresh();
-                }
-            }
-
-            if (Regime == BotTradeRegime.OnlyClosePosition)
-            {
-                return;
-            }
-            if (openPositions == null || openPositions.Count == 0)
-            {
-                LogicOpenPosition(candles, openPositions);
-            }
-        }
-
-        /// <summary>
-        /// логика открытия первой позиции
-        /// </summary>
-        private void LogicOpenPosition(List<Candle> candles, List<Position> position)
-        {
-            if (_lastWr < Downline.Value && Regime != BotTradeRegime.OnlyShort)
-            {
-                _tab.BuyAtLimit(VolumeFix, _lastPrice + Slipage);
-            }
-
-            if (_lastWr > Upline.Value && Regime != BotTradeRegime.OnlyLong)
-            {
-                _tab.SellAtLimit(VolumeFix, _lastPrice - Slipage);
-            }
-        }
-
-        /// <summary>
-        /// логика зыкрытия позиции и открытие по реверсивной системе
-        /// </summary>
-        private void LogicClosePosition(List<Candle> candles, Position position)
-        {
-            if (position.Direction == Side.Buy)
-            {
-                if (_lastWr > Upline.Value)
-                {
-                    _tab.CloseAtLimit(position, _lastPrice - Slipage, position.OpenVolume);
-
-                    if (Regime != BotTradeRegime.OnlyLong && Regime != BotTradeRegime.OnlyClosePosition)
-                    {
-                        _tab.SellAtLimit(VolumeFix, _lastPrice - Slipage);
-                    }
-
-                }
-            }
-
-            if (position.Direction == Side.Sell)
-            {
-                if (_lastWr < Downline.Value)
-                {
-                    _tab.CloseAtLimit(position, _lastPrice + Slipage, position.OpenVolume);
-
-                    if (Regime != BotTradeRegime.OnlyShort && Regime != BotTradeRegime.OnlyClosePosition)
-                    {
-                        _tab.BuyAtLimit(VolumeFix, _lastPrice + Slipage);
-                    }
-
-                }
-            }
-        }
-
-    }
-
-    /// <summary>
+    /// Trend strategy based on the Macd indicator and trail stop
     /// Трендовая стратегия на основе индикатора Macd и трейлстопа
     /// </summary>
     public class MacdTrail : BotPanel
     {
-        /// <summary>
-        /// конструктор
-        /// </summary>
         public MacdTrail(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
@@ -6892,6 +4132,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// uniq strategy name
         /// взять уникальное имя
         /// </summary>
         public override string GetNameStrategyType()
@@ -6899,6 +4140,7 @@ namespace OsEngine.OsTrader.Panels
             return "MacdTrail";
         }
         /// <summary>
+        /// settings GUI
         /// показать окно настроек
         /// </summary>
         public override void ShowIndividualSettingsDialog()
@@ -6907,47 +4149,50 @@ namespace OsEngine.OsTrader.Panels
             ui.ShowDialog();
         }
         /// <summary>
+        /// tab to trade
         /// вкладка для торговли
         /// </summary>
         private BotTabSimple _tab;
 
-        //индикаторы
-
         /// <summary>
-        /// Macd индикатор
+        /// Macd 
         /// </summary>
         private MacdLine _macd;
 
-
-        //настройки публичные
+        //settings настройки публичные
 
         /// <summary>
+        /// slippage
         /// проскальзывание
         /// </summary>
         public decimal Slipage;
 
         /// <summary>
+        /// Stop Order value
         /// Значение ТрейлСтоп
         /// </summary>
         public decimal TrailStop;
 
         /// <summary>
+        /// Stop Order step
         /// Шаг ТрейлСтоп
         /// </summary>
         public decimal Step;
 
         /// <summary>
+        /// volume
         /// фиксированный объем для входа
         /// </summary>
         public decimal VolumeFix;
 
-
         /// <summary>
+        /// regime
         /// режим работы
         /// </summary>
         public BotTradeRegime Regime;
 
         /// <summary>
+        /// save settings
         /// сохранить настройки
         /// </summary>
         public void Save()
@@ -6968,11 +4213,12 @@ namespace OsEngine.OsTrader.Panels
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// load settings
         /// загрузить настройки
         /// </summary>
         private void Load()
@@ -6996,11 +4242,12 @@ namespace OsEngine.OsTrader.Panels
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// deltete save file
         /// удаление файла с сохранением
         /// </summary>
         void Strategy_DeleteEvent()
@@ -7011,21 +4258,20 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
-        // переменные, нужные для торговли
         private decimal _lastClose;
         private decimal _lastLastClose;
         private decimal _lastMacdDown;
         private decimal _lastMacdUp;
         private decimal _awG;
 
-        // логика
+        // logic логика
 
         /// <summary>
+        /// candle finished event
         /// событие завершения свечи
         /// </summary>
         private void Strateg_CandleFinishedEvent(List<Candle> candles)
         {
-            // берём значения из инидикаторов.
             if (Regime == BotTradeRegime.Off)
             {
                 return;
@@ -7040,8 +4286,6 @@ namespace OsEngine.OsTrader.Panels
             _lastLastClose = candles[candles.Count - 2].Close;
             _lastMacdUp = _macd.ValuesUp[_macd.ValuesUp.Count - 1];
             _lastMacdDown = _macd.ValuesDown[_macd.ValuesDown.Count - 1];
-
-            // распределяем логику в зависимости от текущей позиции
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
@@ -7065,6 +4309,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// logic open position
         /// логика открытия первой позиции
         /// </summary>
         private void LogicOpenPosition(List<Candle> candles, List<Position> position)
@@ -7083,7 +4328,8 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
-        /// логика зыкрытия позиции и открытие по реверсивной системе
+        /// logic close position
+        /// логика зыкрытия позиции
         /// </summary>
         private void LogicClosePosition(List<Candle> candles, Position position)
         {
@@ -7111,778 +4357,11 @@ namespace OsEngine.OsTrader.Panels
     }
 
     /// <summary>
-    /// Трендовая стратегия на основе 2х индикаторов Sma и RSI
-    /// </summary>
-    public class SmaStochastic : BotPanel
-    {
-        /// <summary>
-        /// конструктор
-        /// </summary>
-        public SmaStochastic(string name, StartProgram startProgram)
-            : base(name, startProgram)
-        {
-            TabCreate(BotTabType.Simple);
-            _tab = TabsSimple[0];
-
-            _sma = new MovingAverage(name + "Sma", false);
-            _sma = (MovingAverage)_tab.CreateCandleIndicator(_sma, "Prime");
-            _sma.Save();
-
-            _stoc = new StochasticOscillator(name + "ST", false);
-            _stoc = (StochasticOscillator)_tab.CreateCandleIndicator(_stoc, "StocArea");
-            _stoc.Save();
-
-            _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
-
-            Slipage = 0;
-            VolumeFix = 1;
-            Step = 500;
-            Upline = 70;
-            Downline = 30;
-
-
-            Load();
-
-
-            DeleteEvent += Strategy_DeleteEvent;
-        }
-
-        /// <summary>
-        /// взять уникальное имя
-        /// </summary>
-        public override string GetNameStrategyType()
-        {
-            return "SmaStochastic";
-        }
-        /// <summary>
-        /// показать окно настроек
-        /// </summary>
-        public override void ShowIndividualSettingsDialog()
-        {
-            SmaStochasticUi ui = new SmaStochasticUi(this);
-            ui.ShowDialog();
-        }
-        /// <summary>
-        /// вкладка для торговли
-        /// </summary>
-        private BotTabSimple _tab;
-
-        //индикаторы
-
-        /// <summary>
-        /// MovingAverage индикатор
-        /// </summary>
-        private MovingAverage _sma;
-
-        /// <summary>
-        /// Stochastic индикатор
-        /// </summary>
-        private StochasticOscillator _stoc;
-
-        //настройки публичные
-
-        /// <summary>
-        /// верхняя граница стохастика
-        /// </summary>
-        public decimal Upline;
-
-        /// <summary>
-        /// нижняя граница стохастика
-        /// </summary>
-        public decimal Downline;
-
-        /// <summary>
-        /// проскальзывание
-        /// </summary>
-        public decimal Slipage;
-
-        /// <summary>
-        /// Шаг 
-        /// </summary>
-        public decimal Step;
-
-        /// <summary>
-        /// фиксированный объем для входа
-        /// </summary>
-        public decimal VolumeFix;
-
-
-        /// <summary>
-        /// режим работы
-        /// </summary>
-        public BotTradeRegime Regime;
-
-        /// <summary>
-        /// сохранить настройки
-        /// </summary>
-        public void Save()
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt", false)
-                    )
-                {
-                    writer.WriteLine(Slipage);
-                    writer.WriteLine(VolumeFix);
-                    writer.WriteLine(Regime);
-                    writer.WriteLine(Step);
-                    writer.WriteLine(Upline);
-                    writer.WriteLine(Downline);
-
-                    writer.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // отправить в лог
-            }
-        }
-
-        /// <summary>
-        /// загрузить настройки
-        /// </summary>
-        private void Load()
-        {
-            if (!File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-            {
-                return;
-            }
-            try
-            {
-                using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-                {
-                    Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
-                    Enum.TryParse(reader.ReadLine(), true, out Regime);
-                    Upline = Convert.ToDecimal(reader.ReadLine());
-                    Downline = Convert.ToDecimal(reader.ReadLine());
-
-                    reader.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // отправить в лог
-            }
-        }
-
-        /// <summary>
-        /// удаление файла с сохранением
-        /// </summary>
-        void Strategy_DeleteEvent()
-        {
-            if (File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-            {
-                File.Delete(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt");
-            }
-        }
-
-        // переменные, нужные для торговли
-        private decimal _lastClose;
-        private decimal _firstLastRsi;
-        private decimal _secondLastRsi;
-        private decimal _lastSma;
-
-        // логика
-
-        /// <summary>
-        /// событие завершения свечи
-        /// </summary>
-        private void Strateg_CandleFinishedEvent(List<Candle> candles)
-        {
-            // берём значения из инидикаторов.
-            if (Regime == BotTradeRegime.Off)
-            {
-                return;
-            }
-
-            if (_sma.Values == null || _stoc.ValuesUp == null ||
-                _sma.Lenght + 3 > _sma.Values.Count || _stoc.P1 + 3 > _stoc.ValuesUp.Count)
-            {
-                return;
-            }
-
-            _lastClose = candles[candles.Count - 1].Close;
-            _firstLastRsi = _stoc.ValuesUp[_stoc.ValuesUp.Count - 1];
-            _secondLastRsi = _stoc.ValuesUp[_stoc.ValuesUp.Count - 2];
-            _lastSma = _sma.Values[_sma.Values.Count - 1];
-
-
-            // распределяем логику в зависимости от текущей позиции
-
-            List<Position> openPositions = _tab.PositionsOpenAll;
-
-            if (openPositions != null && openPositions.Count != 0)
-            {
-                for (int i = 0; i < openPositions.Count; i++)
-                {
-                    LogicClosePosition(candles, openPositions[i]);
-
-                }
-            }
-
-            if (Regime == BotTradeRegime.OnlyClosePosition)
-            {
-                return;
-            }
-            if (openPositions == null || openPositions.Count == 0)
-            {
-                LogicOpenPosition(candles, openPositions);
-            }
-        }
-
-        /// <summary>
-        /// логика открытия первой позиции
-        /// </summary>
-        private void LogicOpenPosition(List<Candle> candles, List<Position> position)
-        {
-            if (_lastClose > _lastSma + Step && _secondLastRsi <= Downline && _firstLastRsi >= Downline &&
-                Regime != BotTradeRegime.OnlyShort)
-            {
-                _tab.BuyAtLimit(VolumeFix, _lastClose + Slipage);
-            }
-
-            if (_lastClose < _lastSma - Step && _secondLastRsi >= Upline && _firstLastRsi <= Upline &&
-                Regime != BotTradeRegime.OnlyLong)
-            {
-                _tab.SellAtLimit(VolumeFix, _lastClose - Slipage);
-            }
-        }
-
-        /// <summary>
-        /// логика зыкрытия позиции и открытие 
-        /// </summary>
-        private void LogicClosePosition(List<Candle> candles, Position position)
-        {
-            if (position.Direction == Side.Buy)
-            {
-                if (_lastClose < _lastSma - Step)
-                {
-                    _tab.CloseAtLimit(position, _lastClose - Slipage, position.OpenVolume);
-                }
-            }
-
-            if (position.Direction == Side.Sell)
-            {
-                if (_lastClose > _lastSma + Step)
-                {
-                    _tab.CloseAtLimit(position, _lastClose - Slipage, position.OpenVolume);
-                }
-            }
-        }
-
-    }
-
-    /// <summary>
-    /// Трендовая стратегия на основе 2х индикаторов Momentum и Macd
-    /// </summary>
-    public class MomentumMacd : BotPanel
-    {
-        /// <summary>
-        /// конструктор
-        /// </summary>
-        public MomentumMacd(string name, StartProgram startProgram)
-            : base(name, startProgram)
-        {
-            TabCreate(BotTabType.Simple);
-            _tab = TabsSimple[0];
-
-            _macd = new MacdLine(name + "Macd", false);
-            _macd = (MacdLine)_tab.CreateCandleIndicator(_macd, "MacdArea");
-            _macd.Save();
-
-            _mom = new Momentum(name + "Momentum", false);
-            _mom = (Momentum)_tab.CreateCandleIndicator(_mom, "Momentum");
-            _mom.Save();
-
-            _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
-
-            Slipage = 0;
-            VolumeFix = 1;
-
-            Load();
-
-
-            DeleteEvent += Strategy_DeleteEvent;
-        }
-
-        /// <summary>
-        /// взять уникальное имя
-        /// </summary>
-        public override string GetNameStrategyType()
-        {
-            return "MomentumMACD";
-        }
-
-        /// <summary>
-        /// показать окно настроек
-        /// </summary>
-        public override void ShowIndividualSettingsDialog()
-        {
-            MomentumMacdUi ui = new MomentumMacdUi(this);
-            ui.ShowDialog();
-        }
-
-        /// <summary>
-        /// вкладка для торговли
-        /// </summary>
-        private BotTabSimple _tab;
-
-        //индикаторы
-
-        /// <summary>
-        /// Macd индикатор
-        /// </summary>
-        private MacdLine _macd;
-
-        /// <summary>
-        /// Momentum индикатор
-        /// </summary>
-        private Momentum _mom;
-
-        //настройки публичные
-
-        /// <summary>
-        /// проскальзывание
-        /// </summary>
-        public decimal Slipage;
-
-
-        /// <summary>
-        /// фиксированный объем для входа
-        /// </summary>
-        public decimal VolumeFix;
-
-
-        /// <summary>
-        /// режим работы
-        /// </summary>
-        public BotTradeRegime Regime;
-
-        /// <summary>
-        /// сохранить настройки
-        /// </summary>
-        public void Save()
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt", false)
-                    )
-                {
-                    writer.WriteLine(Slipage);
-                    writer.WriteLine(VolumeFix);
-                    writer.WriteLine(Regime);
-
-                    writer.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // отправить в лог
-            }
-        }
-
-        /// <summary>
-        /// загрузить настройки
-        /// </summary>
-        private void Load()
-        {
-            if (!File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-            {
-                return;
-            }
-            try
-            {
-                using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-                {
-                    Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
-                    Enum.TryParse(reader.ReadLine(), true, out Regime);
-
-
-                    reader.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // отправить в лог
-            }
-        }
-
-        /// <summary>
-        /// удаление файла с сохранением
-        /// </summary>
-        private void Strategy_DeleteEvent()
-        {
-            if (File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-            {
-                File.Delete(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt");
-            }
-        }
-
-        // переменные, нужные для торговли
-        private decimal _lastClose;
-
-        private decimal _lastMacdUp;
-        private decimal _lastMacdDown;
-
-        private decimal _lastMom;
-
-        // логика
-
-        /// <summary>
-        /// событие завершения свечи
-        /// </summary>
-        private void Strateg_CandleFinishedEvent(List<Candle> candles)
-        {
-            // берём значения из инидикаторов.
-            if (Regime == BotTradeRegime.Off)
-            {
-                return;
-            }
-
-            if (_macd.ValuesUp == null || _macd.ValuesDown == null ||
-                _mom.Nperiod + 3 > _mom.Values.Count)
-            {
-                return;
-            }
-
-            _lastClose = candles[candles.Count - 1].Close;
-            _lastMacdUp = _macd.ValuesUp[_macd.ValuesUp.Count - 1];
-            _lastMacdDown = _macd.ValuesDown[_macd.ValuesDown.Count - 1];
-            _lastMom = _mom.Values[_mom.Values.Count - 1];
-
-
-            // распределяем логику в зависимости от текущей позиции
-
-            List<Position> openPositions = _tab.PositionsOpenAll;
-
-            if (openPositions != null && openPositions.Count != 0)
-            {
-                for (int i = 0; i < openPositions.Count; i++)
-                {
-                    LogicClosePosition(candles, openPositions[i]);
-
-                }
-            }
-
-            if (Regime == BotTradeRegime.OnlyClosePosition)
-            {
-                return;
-            }
-            if (openPositions == null || openPositions.Count == 0)
-            {
-                LogicOpenPosition(candles, openPositions);
-            }
-        }
-
-        /// <summary>
-        /// логика открытия первой позиции
-        /// </summary>
-        private void LogicOpenPosition(List<Candle> candles, List<Position> position)
-        {
-            if (_lastMacdUp > _lastMacdDown && _lastMom > 100 && Regime != BotTradeRegime.OnlyShort)
-            {
-                _tab.BuyAtLimit(VolumeFix, _lastClose + Slipage);
-            }
-            if (_lastMacdUp < _lastMacdDown && _lastMom < 100 && Regime != BotTradeRegime.OnlyLong)
-            {
-                _tab.SellAtLimit(VolumeFix, _lastClose - Slipage);
-            }
-        }
-
-        /// <summary>
-        /// логика зыкрытия позиции и открытие по реверсивной системе
-        /// </summary>
-        private void LogicClosePosition(List<Candle> candles, Position position)
-        {
-            if (position.Direction == Side.Buy)
-            {
-                if (_lastMacdUp < _lastMacdDown && _lastMom < 100)
-                {
-                    _tab.CloseAtLimit(position, _lastClose - Slipage, position.OpenVolume);
-
-                    if (Regime != BotTradeRegime.OnlyLong && Regime != BotTradeRegime.OnlyClosePosition)
-                    {
-                        _tab.SellAtLimit(VolumeFix, _lastClose - Slipage);
-                    }
-                }
-            }
-
-            if (position.Direction == Side.Sell)
-            {
-                if (_lastMacdUp > _lastMacdDown && _lastMom > 100)
-                {
-                    _tab.CloseAtLimit(position, _lastClose + Slipage, position.OpenVolume);
-
-                    if (Regime != BotTradeRegime.OnlyShort && Regime != BotTradeRegime.OnlyClosePosition)
-                    {
-                        _tab.BuyAtLimit(VolumeFix, _lastClose + Slipage);
-                    }
-                }
-            }
-
-        }
-    }
-
-    /// <summary>
-    /// Трендовая стратегия на основе свечной формации пинбара и пробития Sma
-    /// </summary>
-    public class PinBarTrade : BotPanel
-    {
-        /// <summary>
-        /// конструктор
-        /// </summary>
-        public PinBarTrade(string name, StartProgram startProgram)
-            : base(name, startProgram)
-        {
-            TabCreate(BotTabType.Simple);
-            _tab = TabsSimple[0];
-
-            Sma = new MovingAverage(name + "MA", false);
-            Sma = (MovingAverage)_tab.CreateCandleIndicator(Sma, "Prime");
-            Sma.Save();
-
-            _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
-
-            Slipage = 0;
-            VolumeFix = 1;
-
-            Load();
-
-
-            DeleteEvent += Strategy_DeleteEvent;
-        }
-
-        /// <summary>
-        /// взять уникальное имя
-        /// </summary>
-        public override string GetNameStrategyType()
-        {
-            return "PinBarTrade";
-        }
-
-        /// <summary>
-        /// показать окно настроек
-        /// </summary>
-        public override void ShowIndividualSettingsDialog()
-        {
-            PinBarTradeUi ui = new PinBarTradeUi(this);
-            ui.ShowDialog();
-        }
-
-        /// <summary>
-        /// вкладка для торговли
-        /// </summary>
-        private BotTabSimple _tab;
-
-        //индикаторы
-
-        public MovingAverage Sma;
-
-        //настройки публичные
-
-        /// <summary>
-        /// проскальзывание
-        /// </summary>
-        public decimal Slipage;
-
-
-        /// <summary>
-        /// фиксированный объем для входа
-        /// </summary>
-        public decimal VolumeFix;
-
-
-        /// <summary>
-        /// режим работы
-        /// </summary>
-        public BotTradeRegime Regime;
-
-        /// <summary>
-        /// сохранить настройки
-        /// </summary>
-        public void Save()
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt", false)
-                    )
-                {
-                    writer.WriteLine(Slipage);
-                    writer.WriteLine(VolumeFix);
-                    writer.WriteLine(Regime);
-
-                    writer.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // отправить в лог
-            }
-        }
-
-        /// <summary>
-        /// загрузить настройки
-        /// </summary>
-        private void Load()
-        {
-            if (!File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-            {
-                return;
-            }
-            try
-            {
-                using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-                {
-                    Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
-                    Enum.TryParse(reader.ReadLine(), true, out Regime);
-
-
-                    reader.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // отправить в лог
-            }
-        }
-
-        /// <summary>
-        /// удаление файла с сохранением
-        /// </summary>
-        private void Strategy_DeleteEvent()
-        {
-            if (File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-            {
-                File.Delete(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt");
-            }
-        }
-
-        // переменные, нужные для торговли
-        private decimal _lastClose;
-        private decimal _lastOpen;
-        private decimal _lastHigh;
-        private decimal _lastLow;
-
-        private decimal _lastSma;
-
-        // логика
-
-        /// <summary>
-        /// событие завершения свечи
-        /// </summary>
-        private void Strateg_CandleFinishedEvent(List<Candle> candles)
-        {
-            // берём значения из инидикаторов.
-            if (Regime == BotTradeRegime.Off)
-            {
-                return;
-            }
-
-            if (Sma.Values.Count < Sma.Lenght + 2)
-            {
-                return;
-            }
-
-
-            _lastClose = candles[candles.Count - 1].Close;
-            _lastOpen = candles[candles.Count - 1].Open;
-            _lastHigh = candles[candles.Count - 1].High;
-            _lastLow = candles[candles.Count - 1].Low;
-            _lastSma = Sma.Values[Sma.Values.Count - 1];
-
-
-            // распределяем логику в зависимости от текущей позиции
-
-            List<Position> openPositions = _tab.PositionsOpenAll;
-
-            if (openPositions != null && openPositions.Count != 0)
-            {
-                for (int i = 0; i < openPositions.Count; i++)
-                {
-                    LogicClosePosition(candles, openPositions[i]);
-
-                }
-            }
-
-            if (Regime == BotTradeRegime.OnlyClosePosition)
-            {
-                return;
-            }
-            if (openPositions == null || openPositions.Count == 0)
-            {
-                LogicOpenPosition(candles, openPositions);
-            }
-        }
-
-
-
-        /// <summary>
-        /// логика открытия первой позиции
-        /// </summary>
-        private void LogicOpenPosition(List<Candle> candles, List<Position> position)
-        {
-            if (_lastClose >= _lastHigh - ((_lastHigh - _lastLow) / 3) && _lastOpen >= _lastHigh - ((_lastHigh - _lastLow) / 3)
-                && _lastSma < _lastClose && Regime != BotTradeRegime.OnlyShort)
-            {
-                _tab.BuyAtLimit(VolumeFix, _lastClose + Slipage);
-            }
-            if (_lastClose <= _lastLow + ((_lastHigh - _lastLow) / 3) && _lastOpen <= _lastLow + ((_lastHigh - _lastLow) / 3)
-                && _lastSma > _lastClose && Regime != BotTradeRegime.OnlyLong)
-            {
-                _tab.SellAtLimit(VolumeFix, _lastClose + Slipage);
-
-            }
-
-        }
-
-        /// <summary>
-        /// логика зыкрытия позиции и открытие по реверсивной системе
-        /// </summary>
-        private void LogicClosePosition(List<Candle> candles, Position position)
-        {
-            if (position.Direction == Side.Buy)
-            {
-                if (_lastClose <= _lastLow + ((_lastHigh - _lastLow) / 3) && _lastOpen <= _lastLow + ((_lastHigh - _lastLow) / 3)
-                     && _lastSma > _lastClose)
-                {
-                    _tab.CloseAtLimit(position, _lastClose - Slipage, position.OpenVolume);
-
-                    if (Regime != BotTradeRegime.OnlyLong && Regime != BotTradeRegime.OnlyClosePosition)
-                    {
-                        _tab.SellAtLimit(VolumeFix, _lastClose - Slipage);
-                    }
-                }
-            }
-
-            if (position.Direction == Side.Sell)
-            {
-                if (_lastClose >= _lastHigh - ((_lastHigh - _lastLow) / 3) && _lastOpen >= _lastHigh - ((_lastHigh - _lastLow) / 3)
-                     && _lastSma < _lastClose)
-                {
-                    _tab.CloseAtLimit(position, _lastClose + Slipage, position.OpenVolume);
-
-                    if (Regime != BotTradeRegime.OnlyShort && Regime != BotTradeRegime.OnlyClosePosition)
-                    {
-                        _tab.BuyAtLimit(VolumeFix, _lastClose + Slipage);
-                    }
-
-                }
-            }
-
-        }
-    }
-
-    /// <summary>
+    /// Pair trading based on the RSI indicator
     /// Парная торговля на основе индикатора RSI
     /// </summary>
     public class PairRsiTrade : BotPanel
     {
-        /// <summary>
-        /// конструктор
-        /// </summary>
         public PairRsiTrade(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
@@ -7913,15 +4392,16 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// uniq strategy name
         /// взять уникальное имя стратегии
         /// </summary>
-        /// <returns></returns>
         public override string GetNameStrategyType()
         {
             return "PairRsiTrade";
         }
 
         /// <summary>
+        /// settings GUI
         /// показать окно настроек
         /// </summary>
         public override void ShowIndividualSettingsDialog()
@@ -7931,6 +4411,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// save settings
         /// сохранить публичные настройки
         /// </summary>
         public void Save()
@@ -7950,11 +4431,12 @@ namespace OsEngine.OsTrader.Panels
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// load settings
         /// загрузить публичные настройки из файла
         /// </summary>
         private void Load()
@@ -7977,11 +4459,12 @@ namespace OsEngine.OsTrader.Panels
             }
             catch (Exception)
             {
-                // отправить в лог
+                // ignore
             }
         }
 
         /// <summary>
+        /// delete save file
         /// удаление файла с сохранением
         /// </summary>
         void Strategy_DeleteEvent()
@@ -7992,51 +4475,52 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
-        // публичные настройки
+        // security публичные настройки
 
        /// <summary>
-        /// объём первого инструмента
+       /// spread to trade
+        /// спред для торговли
         /// </summary>
         public int RsiSpread;
 
         /// <summary>
+        /// volume to first security
         /// объём первого инструмента
         /// </summary>
         public decimal Volume1;
 
         /// <summary>
+        /// volume to second security
         /// объём второго инструмента
         /// </summary>
         public decimal Volume2;
 
         /// <summary>
+        /// tab to trade tab1
         /// вкладка с первым инструметом
         /// </summary>
         private BotTabSimple _tab1;
 
         /// <summary>
+        /// tab to trade tab2
         /// вкладка со вторым инструментом
         /// </summary>
         private BotTabSimple _tab2;
 
         /// <summary>
+        /// ready candles tab1
         /// готовые свечи первого инструмента
         /// </summary>
         private List<Candle> _candles1;
 
         /// <summary>
+        /// ready candles tab2
         /// готовые свечи второго инструмента
         /// </summary>
         private List<Candle> _candles2;
 
-        /// <summary>
-        /// индикатор: скользящая средняя длинная
-        /// </summary>
         private Rsi _rsi1;
 
-        /// <summary>
-        /// индикатор: скользящая средняя короткая
-        /// </summary>
         private Rsi _rsi2;
 
         void _tab1_CandleFinishedEvent(List<Candle> candles)
@@ -8053,9 +4537,6 @@ namespace OsEngine.OsTrader.Panels
             Trade();
         }
 
-        /// <summary>
-        /// во второй вкладки новая свеча
-        /// </summary>
         void _tab2_CandleFinishedEvent(List<Candle> candles)
         {
             _candles2 = candles;
@@ -8070,13 +4551,11 @@ namespace OsEngine.OsTrader.Panels
             Trade();
         }
 
+        /// <summary>
+        /// trade logic
+        /// </summary>
         private void Trade()
         {
-            // сюда исполнение заходит только когда все свечи 
-            // готовы, синхронизированы и только что завершились
-
-            // логика
-            // 
 
             if (_candles1.Count < 10 && _candles2.Count < 10)
             {
@@ -8087,7 +4566,7 @@ namespace OsEngine.OsTrader.Panels
             List<Position> pos2 = _tab2.PositionsOpenAll;
 
             if (pos1 != null && pos1.Count != 0 || pos2 != null && pos2.Count != 0)
-            { // у нас может быть только одна позиция
+            { 
                 return;
             }
 
@@ -8144,279 +4623,40 @@ namespace OsEngine.OsTrader.Panels
         }
     }
 
-    /// <summary>
-    /// торговля на основе индикатора Pivot Points
-    /// </summary>
-    public class PivotPointsRobot : BotPanel
-    {
-        /// <summary>
-        /// конструктор
-        /// </summary>
-        /// <param name="name"></param>
-        public PivotPointsRobot(string name, StartProgram startProgram)
-            : base(name, startProgram)
-        {
-            TabCreate(BotTabType.Simple);
-            _tab = TabsSimple[0];
-
-            _pivot = new PivotPoints(name + "Prime", false);
-            _pivot = (PivotPoints)_tab.CreateCandleIndicator(_pivot, "Prime");
-
-            _pivot.Save();
-
-            //_tab.CandleFinishedEvent += TradeLogic;
-            _tab.CandleFinishedEvent += TradeLogic;
-            Slipage = 0;
-            VolumeFix = 1;
-            Stop = 0.5m;
-            Load();
-
-            DeleteEvent += Strategy_DeleteEvent;
-        }
-
-        /// <summary>
-        /// взять уникальное имя
-        /// </summary>
-        public override string GetNameStrategyType()
-        {
-            return "PivotPointsRobot";
-        }
-        /// <summary>
-        /// показать окно настроек
-        /// </summary>
-        public override void ShowIndividualSettingsDialog()
-        {
-            //MessageBox.Show("Пусто");
-            PivotPointsRobotUi ui = new PivotPointsRobotUi(this);
-            ui.ShowDialog();
-        }
-
-        /// <summary>
-        /// вкладка с первым инструметом
-        /// </summary>
-        private BotTabSimple _tab;
-
-        /// <summary>
-        /// индикатор PivotPoints
-        /// </summary>
-        private PivotPoints _pivot;
-
-        //публичные настройки
-
-        /// <summary>
-        /// размер стопа в %
-        /// </summary>
-        public decimal Stop;
-
-        /// <summary>
-        ///  проскальзывание
-        /// </summary>
-        public decimal Slipage;
-
-        /// <summary>
-        /// фиксированный объем для входа
-        /// </summary>
-        public decimal VolumeFix;
-
-        /// <summary>
-        /// режим работы
-        /// </summary>
-        public BotTradeRegime Regime;
-
-        /// <summary>
-        /// сохранить настройки
-        /// </summary>
-        public void Save()
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt", false)
-                    )
-                {
-                    writer.WriteLine(Slipage);
-                    writer.WriteLine(VolumeFix);
-                    writer.WriteLine(Regime);
-                    writer.WriteLine(Stop);
-
-                    writer.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // отправить в лог
-            }
-        }
-
-        /// <summary>
-        /// загрузить настройки
-        /// </summary>
-        private void Load()
-        {
-            if (!File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-            {
-                return;
-            }
-            try
-            {
-                using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-                {
-                    Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
-                    Enum.TryParse(reader.ReadLine(), true, out Regime);
-                    Stop = Convert.ToDecimal(reader.ReadLine());
-
-                    reader.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // отправить в лог
-            }
-        }
-
-
-
-        /// <summary>
-        /// удаление файла с сохранением
-        /// </summary>
-        void Strategy_DeleteEvent()
-        {
-            if (File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-            {
-                File.Delete(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt");
-            }
-        }
-
-        // переменные, нужные для торговли
-        private decimal _lastPriceO;
-        private decimal _lastPriceC;
-        private decimal _pivotR1;
-        private decimal _pivotR3;
-        private decimal _pivotS1;
-        private decimal _pivotS3;
-
-        // логика
-        
-        /// <summary>
-        /// Метод-обработчик события завершения свечи
-        /// </summary>
-        /// <param name="candles"></param>
-        private void TradeLogic(List<Candle> candles)
-        {
-            if (Regime == BotTradeRegime.Off)
-            {
-                return;
-            }
-
-            _lastPriceO = candles[candles.Count - 1].Open;
-            _lastPriceC = candles[candles.Count - 1].Close;
-            _pivotR1 = _pivot.ValuesR1[_pivot.ValuesR1.Count - 1];
-            
-            _pivotS1 = _pivot.ValuesS1[_pivot.ValuesS1.Count - 1];
-            
-
-            List<Position> openPositions = _tab.PositionsOpenAll;
-
-            if (openPositions != null && openPositions.Count != 0)
-            {
-                for (int i = 0; i < openPositions.Count; i++)
-                {
-                    LogicClosePosition(candles, openPositions[i]);
-                }
-            }
-
-            if (Regime == BotTradeRegime.OnlyClosePosition)
-            {
-                return;
-            }
-
-            if (openPositions == null || openPositions.Count == 0)
-            {
-                LogicOpenPosition(candles, openPositions);
-            }
-
-        }
-
-        /// <summary>
-        /// логика открытия позиции
-        /// </summary>
-        /// <param name="candles"></param>
-        /// <param name="openPositions"></param>
-        private void LogicOpenPosition(List<Candle> candles, List<Position> openPositions)
-        {
-            if (_lastPriceC > _pivotR1 && _lastPriceO < _pivotR1 && Regime != BotTradeRegime.OnlyShort)
-            {
-                _tab.BuyAtLimit(VolumeFix, _lastPriceC + Slipage);
-                _pivotR3 = _pivot.ValuesR3[_pivot.ValuesR3.Count - 1];
-            }
-
-            if (_lastPriceC < _pivotS1 && _lastPriceO > _pivotS1 && Regime != BotTradeRegime.OnlyLong)
-            {
-                _tab.SellAtLimit(VolumeFix, _lastPriceC - Slipage);
-                _pivotS3 = _pivot.ValuesS3[_pivot.ValuesS3.Count - 1];
-            }
-        }
-
-        /// <summary>
-        /// логика закрытия позиции
-        /// </summary>
-        /// <param name="candles"></param>
-        /// <param name="openPosition"></param>
-        private void LogicClosePosition(List<Candle> candles, Position openPosition)
-        {
-            if (openPosition.Direction == Side.Buy)
-            {
-                if (_lastPriceC > _pivotR3)
-                {
-                    _tab.CloseAtLimit(openPosition, _lastPriceC - Slipage, openPosition.OpenVolume);
-                }
-                if (_lastPriceC < openPosition.EntryPrice - openPosition.EntryPrice / 100m * Stop)
-                {
-                    _tab.CloseAtMarket(openPosition, openPosition.OpenVolume);
-                }
-            }
-
-            if (openPosition.Direction == Side.Sell)
-            {
-                if (_lastPriceC < _pivotS3)
-                {
-                    _tab.CloseAtLimit(openPosition, _lastPriceC + Slipage, openPosition.OpenVolume);
-                }
-                if (_lastPriceC > openPosition.EntryPrice + openPosition.EntryPrice / 100m * Stop)
-                {
-                    _tab.CloseAtMarket(openPosition, openPosition.OpenVolume);
-                }
-            }
-        }
-    }
     #endregion
 
     /// <summary>
+    /// robot trade regime
     /// режим работы робота
     /// </summary>
     public enum BotTradeRegime
     {
         /// <summary>
+        /// is on
         /// включен
         /// </summary>
         On,
 
         /// <summary>
+        /// on only long position
         /// включен только лонг
         /// </summary>
         OnlyLong,
 
         /// <summary>
+        /// on only short position
         /// включен только шорт
         /// </summary>
         OnlyShort,
 
         /// <summary>
+        /// on only close position
         /// только закрытие позиции
         /// </summary>
         OnlyClosePosition,
 
         /// <summary>
+        /// robot is off
         /// выключен
         /// </summary>
         Off

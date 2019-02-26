@@ -1,16 +1,15 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
 using System.Globalization;
 using System.Windows;
+using OsEngine.Language;
 
 namespace OsEngine.OsTrader.Panels.PanelsGui
 {
-    /// <summary>
-    /// Логика взаимодействия для RsiTrade.xaml
-    /// </summary>
     public partial class RsiTradeUi
     {
         private RsiTrade _strategy;
@@ -23,7 +22,6 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
 
             TextBoxSlipage.Text = _strategy.Slipage.ToString(new CultureInfo("ru-RU"));
 
-
             ComboBoxRegime.Items.Add(BotTradeRegime.Off);
             ComboBoxRegime.Items.Add(BotTradeRegime.On);
             ComboBoxRegime.Items.Add(BotTradeRegime.OnlyClosePosition);
@@ -34,7 +32,12 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
             RsiUp.Text = _strategy.Upline.Value.ToString(new CultureInfo("ru-RU"));
             RsiDown.Text = _strategy.Downline.Value.ToString(new CultureInfo("ru-RU"));
 
-
+            LabelRegime.Content = OsLocalization.Trader.Label115;
+            LabelVolume.Content = OsLocalization.Trader.Label30;
+            LabelSlippage.Content = OsLocalization.Trader.Label92;
+            ButtonAccept.Content = OsLocalization.Trader.Label132;
+            LabelRsiOverbought.Content = OsLocalization.Trader.Label141;
+            LabelRsiOversold.Content = OsLocalization.Trader.Label142;
 
 
         }
@@ -43,7 +46,6 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
         {
             try
             {
-
                 if (Convert.ToDecimal(TextBoxVolumeOne.Text) <= 0 ||
                     Convert.ToInt32(RsiUp.Text) <= 0 ||
                     Convert.ToInt32(RsiDown.Text) <= 0 ||
@@ -55,13 +57,12 @@ namespace OsEngine.OsTrader.Panels.PanelsGui
             }
             catch (Exception)
             {
-                MessageBox.Show("В одном из полей недопустимые значения. Процесс сохранения прерван");
+                MessageBox.Show(OsLocalization.Trader.Label13);
                 return;
             }
 
             _strategy.VolumeFix = Convert.ToDecimal(TextBoxVolumeOne.Text);
             _strategy.Slipage = Convert.ToDecimal(TextBoxSlipage.Text);
-
 
             _strategy.Upline.Value = Convert.ToDecimal(RsiUp.Text);
             _strategy.Downline.Value = Convert.ToDecimal(RsiDown.Text);

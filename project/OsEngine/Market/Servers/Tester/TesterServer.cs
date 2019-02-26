@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Connectors;
 using OsEngine.OsTrader.Panels;
@@ -211,7 +212,7 @@ namespace OsEngine.Market.Servers.Tester
 
             ServerMaster.ClearOrders();
 
-            SendLogMessage("Включен процесс тестирования с самого начала", LogMessageType.System);
+            SendLogMessage(OsLocalization.Market.Message35, LogMessageType.System);
 
             if (TestingStartEvent != null)
             {
@@ -232,7 +233,7 @@ namespace OsEngine.Market.Servers.Tester
 
             if (TimeStart == DateTime.MinValue)
             {
-                SendLogMessage("Процесс тестирования прерван, т.к. не определена начальная дата тестирования", LogMessageType.System);
+                SendLogMessage(OsLocalization.Market.Message47, LogMessageType.System);
                 return;
             }
 
@@ -380,7 +381,7 @@ namespace OsEngine.Market.Servers.Tester
 
             if (folders.Length == 0)
             {
-                SendLogMessage("В папке Data не обнаружено ни одного сета. Тестовый сервер не будет работать", LogMessageType.System);
+                SendLogMessage(OsLocalization.Market.Message25, LogMessageType.System);
             }
 
             List<string> sets = new List<string>();
@@ -396,7 +397,7 @@ namespace OsEngine.Market.Servers.Tester
 
             if (sets.Count == 0)
             {
-                SendLogMessage("В папке Data не обнаружено ни одного сета. Тестовый сервер не будет работать", LogMessageType.System);
+                SendLogMessage(OsLocalization.Market.Message25, LogMessageType.System);
             }
             Sets = sets;
         }
@@ -413,7 +414,7 @@ namespace OsEngine.Market.Servers.Tester
                 return;
             }
 
-            SendLogMessage("Подключаем новый сет данных: " + setName, LogMessageType.System);
+            SendLogMessage(OsLocalization.Market.Message27 + setName, LogMessageType.System);
             _activSet = newSet;
 
             if (_sourceDataType == TesterSourceDataType.Set)
@@ -555,6 +556,16 @@ namespace OsEngine.Market.Servers.Tester
 
             for (int i = 0; i < bots.Count; i++)
             {
+                List<BotTabCluster> currentTabs = bots[i].TabsCluster;
+
+                for (int i2 = 0; currentTabs != null && i2 < currentTabs.Count; i2++)
+                {
+                    namesSecurity.Add(currentTabs[i2].CandleConnector.NamePaper);
+                }
+            }
+
+            for (int i = 0; i < bots.Count; i++)
+            {
                 List<BotTabIndex> currentTabsSpread = bots[i].TabsIndex;
 
                 for (int i2 = 0; currentTabsSpread != null && i2 < currentTabsSpread.Count; i2++)
@@ -677,7 +688,8 @@ namespace OsEngine.Market.Servers.Tester
 
                     if (!_dataIsReady)
                     {
-                        SendLogMessage("Тестирование остановлено. Не подключены данные", LogMessageType.System);
+                        
+                        SendLogMessage(OsLocalization.Market.Message48, LogMessageType.System);
                         _testerRegime = TesterRegime.Pause;
                         continue;
                     }
@@ -700,7 +712,6 @@ namespace OsEngine.Market.Servers.Tester
                 }
                 catch (Exception error)
                 {
-                    SendLogMessage("Ошибка в основном потоке", LogMessageType.Error);
                     SendLogMessage(error.ToString(), LogMessageType.Error);
                     Thread.Sleep(1000);
                 }
@@ -742,7 +753,7 @@ namespace OsEngine.Market.Servers.Tester
 
                 if (directories.Length == 0)
                 {
-                    SendLogMessage("Загрузка бумаг прервана. В указанном сете нет загруженных инструментов.", LogMessageType.System);
+                    SendLogMessage(OsLocalization.Market.Message28, LogMessageType.System);
                     return;
                 }
 
@@ -760,7 +771,7 @@ namespace OsEngine.Market.Servers.Tester
 
                 if (files.Length == 0)
                 {
-                    SendLogMessage("Загрузка бумаг прервана. В указанной папке не содержиться ни одного файла.", LogMessageType.Error);
+                    SendLogMessage(OsLocalization.Market.Message49, LogMessageType.Error);
                 }
 
                 LoadCandleFromFolder(_pathToFolder);
@@ -1609,7 +1620,7 @@ namespace OsEngine.Market.Servers.Tester
             {
                 _testerRegime = TesterRegime.Pause;
 
-                SendLogMessage("Тестирование завершилось т.к. время таймера подошло к концу ", LogMessageType.System);
+                SendLogMessage(OsLocalization.Market.Message37, LogMessageType.System);
                 if (TestingEndEvent != null)
                 {
                     TestingEndEvent();
@@ -1622,7 +1633,7 @@ namespace OsEngine.Market.Servers.Tester
             {
                 _testerRegime = TesterRegime.Pause;
 
-                SendLogMessage("Тестирование завершилось т.к. на инструменты сервера не подписан ни один бот ",
+                SendLogMessage(OsLocalization.Market.Message38,
                     LogMessageType.System);
                 if (TestingEndEvent != null)
                 {
@@ -2342,7 +2353,7 @@ namespace OsEngine.Market.Servers.Tester
                 if (value != _serverConnectStatus)
                 {
                     _serverConnectStatus = value;
-                    SendLogMessage(_serverConnectStatus + " Изменилось состояние соединения", LogMessageType.Connect);
+                    SendLogMessage(_serverConnectStatus + OsLocalization.Market.Message7, LogMessageType.Connect);
                     if (ConnectStatusChangeEvent != null)
                     {
                         ConnectStatusChangeEvent(_serverConnectStatus.ToString());
@@ -2706,11 +2717,30 @@ namespace OsEngine.Market.Servers.Tester
 
                 _candleManager.StartSeries(series);
 
-                SendLogMessage("Инструмент " + series.Security.Name + "ТаймФрейм " + series.TimeFrame +
-               " успешно подключен на получение данных и прослушивание свечек", LogMessageType.System);
+                SendLogMessage(OsLocalization.Market.Message14 + series.Security.Name +
+                               OsLocalization.Market.Message15 + series.TimeFrame +
+                               OsLocalization.Market.Message16, LogMessageType.System);
 
                 return series;
             }
+        }
+
+        /// <summary>
+        /// Начать выгрузку данных по инструменту
+        /// </summary>
+        public CandleSeries GetCandleDataToSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder, DateTime startTime,
+            DateTime endTime, DateTime actualTime, bool neadToUpdate)
+        {
+            return StartThisSecurity(namePaper, timeFrameBuilder);
+        }
+
+        /// <summary>
+        /// взять тиковые данные по инструменту за определённый период
+        /// </summary>
+        public bool GetTickDataToSecurity(string namePaper, DateTime startTime, DateTime endTime, DateTime actualTime,
+            bool neadToUpdete)
+        {
+            return true;
         }
 
         private TimeSpan GetTimeFremeInSpan(TimeFrame frame)
@@ -3105,7 +3135,7 @@ namespace OsEngine.Market.Servers.Tester
                 {
                     if (OrdersActiv[i].NumberUser == order.NumberUser)
                     {
-                        SendLogMessage("Ошибка в выставлении ордера. Ордер с таким номером уже есть в системе.", LogMessageType.Error);
+                        SendLogMessage(OsLocalization.Market.Message39, LogMessageType.Error);
                         FailedOperationOrder(order);
                         return;
                     }
@@ -3114,35 +3144,35 @@ namespace OsEngine.Market.Servers.Tester
 
             if (ServerStatus == ServerConnectStatus.Disconnect)
             {
-                SendLogMessage("Ошибка в выставлении ордера. Сервер не активен.", LogMessageType.Error);
+                SendLogMessage(OsLocalization.Market.Message40, LogMessageType.Error);
                 FailedOperationOrder(order);
                 return;
             }
 
             if (order.Price <= 0)
             {
-                SendLogMessage("Ошибка в выставлении ордера. Цена заявки находиться за пределами диапазона. order.Price = " + order.Price, LogMessageType.Error);
+                SendLogMessage(OsLocalization.Market.Message41 + order.Price, LogMessageType.Error);
                 FailedOperationOrder(order);
                 return;
             }
 
             if (order.Volume <= 0)
             {
-                SendLogMessage("Ошибка в выставлении ордера. Неправильный объём. order.Volume = " + order.Volume, LogMessageType.Error);
+                SendLogMessage(OsLocalization.Market.Message42 + order.Volume, LogMessageType.Error);
                 FailedOperationOrder(order);
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(order.PortfolioNumber))
             {
-                SendLogMessage("Ошибка в выставлении ордера. Не указан номер портфеля", LogMessageType.Error);
+                SendLogMessage(OsLocalization.Market.Message43, LogMessageType.Error);
                 FailedOperationOrder(order);
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(order.SecurityNameCode))
             {
-                SendLogMessage("Ошибка в выставлении ордера. Не указан инструмент", LogMessageType.Error);
+                SendLogMessage(OsLocalization.Market.Message44, LogMessageType.Error);
                 FailedOperationOrder(order);
                 return;
             }
@@ -3202,7 +3232,7 @@ namespace OsEngine.Market.Servers.Tester
         {
             if (ServerStatus == ServerConnectStatus.Disconnect)
             {
-                SendLogMessage("Ошибка в снятии ордера. Сервер не активен.", LogMessageType.Error);
+                SendLogMessage(OsLocalization.Market.Message45, LogMessageType.Error);
                 FailedOperationOrder(order);
                 return;
             }
@@ -3237,7 +3267,7 @@ namespace OsEngine.Market.Servers.Tester
 
             if (orderToClose == null)
             {
-                SendLogMessage("Ошибка в снятии ордера. Такого ордера нет в системе", LogMessageType.Error);
+                SendLogMessage(OsLocalization.Market.Message46, LogMessageType.Error);
                 FailedOperationOrder(order);
                 return;
             }
@@ -3517,7 +3547,7 @@ namespace OsEngine.Market.Servers.Tester
             }
 
             if (LastTrade != null &&
-                LastTrade.Time > now)
+                LastTrade.Time.AddMilliseconds(-LastTrade.Time.Millisecond) > now)
             {
                 return;
             }
@@ -3533,13 +3563,13 @@ namespace OsEngine.Market.Servers.Tester
             }
 
             while (!_reader.EndOfStream &&
-                   LastTrade.Time < now)
+                   LastTrade.Time.AddMilliseconds(-LastTrade.Time.Millisecond) < now)
             {
                 _lastString = _reader.ReadLine();
                 LastTrade.SetTradeFromString(_lastString);
             }
 
-            if (LastTrade.Time > now)
+            if (LastTrade.Time.AddMilliseconds(-LastTrade.Time.Millisecond) > now)
             {
                 return;
             }
@@ -3558,7 +3588,7 @@ namespace OsEngine.Market.Servers.Tester
                 Trade tradeN = new Trade() { SecurityNameCode = Security.Name };
                 tradeN.SetTradeFromString(_lastString);
                 
-                if (tradeN.Time == now)
+                if (tradeN.Time.AddMilliseconds(-tradeN.Time.Millisecond) <= now)
                 {
                     lastTradesSeries.Add(tradeN);
                 }

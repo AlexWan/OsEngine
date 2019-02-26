@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Forms;
 using OsEngine.Entity;
+using OsEngine.Language;
 using ContextMenu = System.Windows.Forms.ContextMenu;
 using MenuItem = System.Windows.Forms.MenuItem;
 using MouseEventArgs = System.Windows.Forms.MouseEventArgs;
@@ -32,7 +33,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;
-            column0.HeaderText = @"Базовый актив";
+            column0.HeaderText = OsLocalization.Market.Label42;
             column0.ReadOnly = false;
             column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
            // column0.Width = 150;
@@ -41,7 +42,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
 
             DataGridViewColumn column = new DataGridViewColumn();
             column.CellTemplate = cell0;
-            column.HeaderText = @"Биржа";
+            column.HeaderText = OsLocalization.Market.Label43;
             column.ReadOnly = false;
             column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
            // column.Width = 150;
@@ -52,7 +53,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             column1.ReadOnly = false;
            // column1.Width = 150;
-            column1.HeaderText = @"Тип Инструмента";
+            column1.HeaderText = OsLocalization.Market.Label44;
             _grid.Columns.Add(column1);
 
             DataGridViewColumn column3 = new DataGridViewColumn();
@@ -60,7 +61,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             column3.ReadOnly = false;
             // column1.Width = 150;
-            column3.HeaderText = @"Символ";
+            column3.HeaderText = OsLocalization.Market.Label45;
             _grid.Columns.Add(column3);
 
             DataGridViewColumn column4 = new DataGridViewColumn();
@@ -68,7 +69,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             column4.ReadOnly = false;
             // column1.Width = 150;
-            column4.HeaderText = @"Биржа основная";
+            column4.HeaderText = OsLocalization.Market.Label46;
             _grid.Columns.Add(column4);
 
 
@@ -146,11 +147,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             }
         }
 
-        private void ButtonAsk_Click(object sender, RoutedEventArgs e)
-        {
-            System.Windows.MessageBox.Show("Поскольку у IB очень много инструментов, Вам нужно указать какие именно типы инструментов Вы хотите подгрузить."+
-                " Типы Инструментов: FUT STK CASH BOND CFD FOP WAR FWD BAG IND BILL FUND FIXED SLB CMDTY BSK ICU ICS");
-        }
+
 
         void _grid_Click(object sender, EventArgs e)
         {
@@ -165,10 +162,10 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             MenuItem[] items = new MenuItem[2];
 
             items[0] = new MenuItem();
-            items[0].Text = @"Удалить";
+            items[0].Text = OsLocalization.Market.Label47;
             items[0].Click += AlertDelete_Click;
 
-            items[1] = new MenuItem() { Text = @"Добавить" };
+            items[1] = new MenuItem() { Text = OsLocalization.Market.Label48 };
             items[1].Click += AlertCreate_Click;
 
             ContextMenu menu = new ContextMenu(items);

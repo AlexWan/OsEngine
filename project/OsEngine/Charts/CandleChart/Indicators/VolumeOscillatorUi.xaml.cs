@@ -1,10 +1,12 @@
 ﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
 using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Language;
 using MessageBox = System.Windows.MessageBox;
 using TextBox = System.Windows.Forms.TextBox;
 
@@ -40,14 +42,12 @@ namespace OsEngine.Charts.CandleChart.Indicators
             HostColor.Child.BackColor = _mA.ColorBase;
 
             CheckBoxPaintOnOff.IsChecked = _mA.PaintOn;
-            //ComboBoxPriceField.Items.Add(StandardDeviationTypePoints.Open);
-            //ComboBoxPriceField.Items.Add(StandardDeviationTypePoints.High);
-            //ComboBoxPriceField.Items.Add(StandardDeviationTypePoints.Low);
-            //ComboBoxPriceField.Items.Add(StandardDeviationTypePoints.Close);
-            //ComboBoxPriceField.Items.Add(StandardDeviationTypePoints.Median);
-            //ComboBoxPriceField.Items.Add(StandardDeviationTypePoints.Typical);
 
-            //ComboBoxPriceField.SelectedItem = _mA.TypePointsToSearch;
+            ButtonColor.Content = OsLocalization.Charts.LabelButtonIndicatorColor;
+            CheckBoxPaintOnOff.Content = OsLocalization.Charts.LabelPaintIntdicatorIsVisible;
+            ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
+            LabelIndicatorPeriod1.Content = OsLocalization.Charts.LabelIndicatorPeriod + " 1";
+            LabelIndicatorPeriod2.Content = OsLocalization.Charts.LabelIndicatorPeriod + " 2";
         }
 
         /// <summary>
