@@ -13,30 +13,35 @@ namespace OsEngine.Charts.CandleChart.Indicators
 {
 
     /// <summary>
+    /// Interaction logic  for IndicarotCreateUi.xaml
     /// Логика взаимодействия для IndicarotCreateUi.xaml
     /// </summary>
     public partial class IndicarotCreateUi
     {
 
         /// <summary>
+        /// indicator drawing element
         /// элемент для прорисовки индикаторов
         /// </summary>
         private DataGridView _gridViewIndicators;
 
         /// <summary>
+        /// data area drawing element
         /// элемент для прорисовки областей данных
         /// </summary>
         private DataGridView _gridViewAreas;
 
         /// <summary>
+        /// class indicator manager
         /// класс менеджер индикаторов
         /// </summary>
         private ChartCandleMaster _chartMaster;
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="chartMaster">класс менеджер индикаторов</param>
+        /// <param name="chartMaster">class indicator manager/класс менеджер индикаторов</param>
         public IndicarotCreateUi(ChartCandleMaster chartMaster)
         {
             InitializeComponent();
@@ -137,6 +142,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public IIndicatorCandle IndicatorCandle;
 
         /// <summary>
+        /// accept button
         /// кнопка принять
         /// </summary>
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)

@@ -13,24 +13,28 @@ using TextBox = System.Windows.Forms.TextBox;
 namespace OsEngine.Charts.CandleChart.Indicators
 {
     /// <summary>
+    /// Interaction logic  for  MovingAverageUi.xaml
     /// Логика взаимодействия для MovingAverageUi.xaml
     /// </summary>
     public partial class CciUi
     {
         /// <summary>
+        /// indicator that we're setting up
         /// индикатор который мы настраиваем
         /// </summary>
         private Cci _mA;
 
         /// <summary>
+        /// whether indicator settings have been changed
         /// изменился ли индикатор
         /// </summary>
         public bool IsChange;
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="mA">индикатор для настройки</param>
+        /// <param name="mA">configuration indicator/индикатор для настройки</param>
         public CciUi(Cci mA)
         {
             InitializeComponent();
@@ -50,6 +54,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
 
         /// <summary>
+        /// accept button
         /// кнопка принять
         /// </summary>
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
@@ -79,6 +84,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// color setting button
         /// кнопка изменить цвет
         /// </summary>
         private void ButtonColor_Click(object sender, RoutedEventArgs e)

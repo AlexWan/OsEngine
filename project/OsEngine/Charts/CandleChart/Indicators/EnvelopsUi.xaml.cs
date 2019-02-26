@@ -13,21 +13,25 @@ using TextBox = System.Windows.Forms.TextBox;
 namespace OsEngine.Charts.CandleChart.Indicators
 {
     /// <summary>
+    /// Interaction logic  for EnvelopesUi.xaml
     /// Логика взаимодействия для EnvelopesUi.xaml
     /// </summary>
     public partial class EnvelopsUi
     {
         /// <summary>
+        /// indicator
         /// индикатор
         /// </summary>
-        private Envelops _envelops; 
-         
+        private Envelops _envelops;
+
         /// <summary>
+        /// whether indicator settings have been changed
         /// изменялись ли настройки индикатора
         /// </summary>
         public bool IsChange;
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
         public EnvelopsUi(Envelops envelops)
@@ -53,6 +57,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// accept button
         /// кнопка принять
         /// </summary>
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
@@ -82,6 +87,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// call up moving average settings
         /// вызвать настройки скользящей средней
         /// </summary>
         private void ButtonMa_Click(object sender, RoutedEventArgs e)
@@ -90,6 +96,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// top line color
         /// цвет верхней линии
         /// </summary>
         private void ButtonColorUp_Click(object sender, RoutedEventArgs e)
@@ -101,6 +108,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// bottom line color
         /// цвет нижней линии
         /// </summary>
         private void ButtonColorDown_Click(object sender, RoutedEventArgs e)
