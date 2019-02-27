@@ -13,24 +13,28 @@ using TextBox = System.Windows.Forms.TextBox;
 namespace OsEngine.Charts.CandleChart.Indicators
 {
     /// <summary>
+    /// Interaction logic  for VerticalHorizontalFilterUi.xaml
     /// Логика взаимодействия для VerticalHorizontalFilterUi.xaml
     /// </summary>
     public partial class VerticalHorizontalFilterUi
     {
         /// <summary>
+        /// indicator
         /// индикатор
         /// </summary>
         private VerticalHorizontalFilter _vhf;
 
         /// <summary>
+        /// whether indicator settings have been changed
         /// изменялись ли настройки индикатора
         /// </summary>
         public bool IsChange;
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="vhf">индикатор для настроек</param>
+        /// <param name="vhf">configuration indicator/индикатор для настроек</param>
         public VerticalHorizontalFilterUi(VerticalHorizontalFilter vhf)
         {
             InitializeComponent();
@@ -49,6 +53,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// accept button
         /// кнопка принять
         /// </summary>
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
@@ -79,6 +84,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// color setting button
         /// кнопка настроить цвет
         /// </summary>
         private void ButtonColor_Click(object sender, RoutedEventArgs e)

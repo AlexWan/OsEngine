@@ -13,24 +13,28 @@ using TextBox = System.Windows.Forms.TextBox;
 namespace OsEngine.Charts.CandleChart.Indicators
 {
     /// <summary>
+    /// Interaction logic  for MoneyFlowIndexUi.xaml
     /// Логика взаимодействия для MoneyFlowIndexUi.xaml
     /// </summary>
     public partial class MoneyFlowIndexUi
     {
         /// <summary>
+        /// indicator
         /// индикатор
         /// </summary>
         private MoneyFlowIndex _mfi;
 
         /// <summary>
+        /// whether indicator settings have been changed
         /// изменялись ли настройки индикатора
         /// </summary>
         public bool IsChange;
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="mfi">индикатор для настроек</param>
+        /// <param name="mfi">configuration indicator/индикатор для настроек</param>
         public MoneyFlowIndexUi(MoneyFlowIndex mfi)
         {
             InitializeComponent();
@@ -49,6 +53,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// accept button
         /// кнопка принять
         /// </summary>
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
@@ -78,6 +83,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// color setting button
         /// кнопка настроить цвет
         /// </summary>
         private void ButtonColor_Click(object sender, RoutedEventArgs e)

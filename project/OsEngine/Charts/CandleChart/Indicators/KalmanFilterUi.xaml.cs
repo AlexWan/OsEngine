@@ -13,24 +13,28 @@ using TextBox = System.Windows.Forms.TextBox;
 namespace OsEngine.Charts.CandleChart.Indicators
 {
     /// <summary>
+    /// Interaction logic  for  AdxUi.xaml
     /// Логика взаимодействия для AdxUi.xaml
     /// </summary>
     public partial class KalmanFilterUi
     {
         /// <summary>
+        /// indicator
         /// индикатор
         /// </summary>
         private KalmanFilter _indicator;
 
         /// <summary>
+        /// whether indicator settings have been changed
         /// изменялись ли настройки индикатора
         /// </summary>
         public bool IsChange;
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="indicator">индикатор который будем редактировать</param>
+        /// <param name="indicator">configuration indicator/индикатор который будем редактировать</param>
         public KalmanFilterUi(KalmanFilter indicator)
         {
             InitializeComponent();
@@ -50,6 +54,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// accept button
         /// кнопка принять
         /// </summary>
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
@@ -85,6 +90,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// color setting button
         /// нажата кнопка изменения цвета
         /// </summary>
         private void ButtonColorAdx_Click(object sender, RoutedEventArgs e)
