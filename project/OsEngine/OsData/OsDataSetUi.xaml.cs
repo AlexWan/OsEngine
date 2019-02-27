@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -12,24 +13,28 @@ using OsEngine.Market;
 namespace OsEngine.OsData
 {
     /// <summary>
+    /// Interaction Logic for OsDataSetUi.xaml
     /// Логика взаимодействия для OsDataSetUi.xaml
     /// </summary>
     public partial class OsDataSetUi
     {
         /// <summary>
+        /// set belonging to this window
         /// сет принадлежащий этому окну
         /// </summary>
         private OsDataSet _set;
 
         /// <summary>
+        /// is the set saved
         /// сохранён ли сет
         /// </summary>
         public bool IsSaved;
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="set">сет которым надо управлять</param>
+        /// <param name="set">set that needs to be managed/сет которым надо управлять</param>
         public OsDataSetUi(OsDataSet set)
         {
             InitializeComponent();
@@ -122,6 +127,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
+        /// switched source
         /// переключили источник
         /// </summary>
         void ComboBoxSource_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -131,6 +137,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
+        /// set mode changed
         /// изменён режим работы сета
         /// </summary>
         void ComboBoxRegime_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -139,6 +146,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
+        /// check button activity
         /// проверить активность кнопок
         /// </summary>
         private void CheckButtons()
@@ -178,6 +186,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
+        /// prevent user from touching controls
         /// запретить пользователю трогать контролы
         /// </summary>
         private void DisableControls()
@@ -214,6 +223,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
+        /// allow user to touch controls
         /// разрешить пользователю трогать контролы
         /// </summary>
         private void EnableControls()
@@ -257,6 +267,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
+        /// save settings
         /// сохранить настройки
         /// </summary>
         private void SaveSettings()
@@ -303,14 +314,16 @@ namespace OsEngine.OsData
             _set.Save();
         }
 
-// работа с бумагами
+        // paperwork/работа с бумагами
 
         /// <summary>
+        /// Securities table
         /// таблица бумаг
         /// </summary>
         private DataGridView _grid;
 
         /// <summary>
+        /// create a securities storage table
         /// создать таблицу хранения бумаг
         /// </summary>
         private void CreateSecuritiesTable()
@@ -331,6 +344,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
+        /// reload securities storage table
         /// перезагрузить таблицу хранения бумаг
         /// </summary>
         private void ReloadSecuritiesOnTable()
@@ -348,6 +362,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
+        /// User clicked on button to add new paper to set
         /// пользоваетль нажал на кнопку добавить новую бумагу к сету
         /// </summary>
         private void ButtonAddSecurity_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -357,6 +372,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
+        /// User is requesting paper removal from the set.
         /// пользователь запрашивает удаление бумаги из сета
         /// </summary>
         private void ButtonDelSecurity_Click(object sender, System.Windows.RoutedEventArgs e)

@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -13,6 +14,7 @@ namespace OsEngine.OsMiner.Patterns
     public class PatternVolume:IPattern
     {
         /// <summary>
+        /// volume search pattern
         /// паттерн для поиска по объёмам
         /// </summary>
         public PatternVolume()
@@ -24,31 +26,37 @@ namespace OsEngine.OsMiner.Patterns
         }
 
         /// <summary>
+        /// pattern weight while searching for entry and exit
         /// вес паттерна во время поиска входа и выхода
         /// </summary>
         public decimal Weigth { get; set; }
 
         /// <summary>
+        /// pattern recognition. 100% - maximum
         /// узнаваемость паттерна.  100  % - максимальная
         /// </summary>
         public decimal Expand { get; set; }
 
         /// <summary>
+        /// pattern type
         /// тип паттерна
         /// </summary>
         public PatternType Type { get; set; }
 
         /// <summary>
+        /// pattern length
         /// длинна паттерна
         /// </summary>
         public int Length;
 
         /// <summary>
+        /// pattern points
         /// точки паттерна
         /// </summary>
         public decimal[][] Sequence;
 
         /// <summary>
+        /// take a pattern in the form of candles
         /// взять паттерн в виде свечек
         /// </summary>
         public List<Candle> GetInCandle()
@@ -73,11 +81,12 @@ namespace OsEngine.OsMiner.Patterns
         }
 
         /// <summary>
+        /// is the current formation our pattern
         /// является ли текущая формация нашим паттерном
         /// </summary>
-        /// <param name="candles">свечи</param>
-        /// <param name="indicators">индикаторы</param>
-        /// <param name="numberPattern">индекс по которому мы смотрим паттерн</param>
+        /// <param name="candles">candles/свечи</param>
+        /// <param name="indicators">indicators/индикаторы</param>
+        /// <param name="numberPattern">the index on which we watch the pattern/индекс по которому мы смотрим паттерн</param>
         public bool ThisIsIt(List<Candle> candles, List<IIndicatorCandle> indicators, int numberPattern)
         {
             if (numberPattern - Length <= 0)
@@ -111,11 +120,12 @@ namespace OsEngine.OsMiner.Patterns
         }
 
         /// <summary>
+        /// set pattern with current data
         /// установить паттерн с текущих данных
         /// </summary>
-        /// <param name="candles">свечи</param>
-        /// <param name="indicators">индикаторы</param>
-        /// <param name="numberPattern">индекс по которому мы с мотрим паттерн</param>
+        /// <param name="candles">candles/свечи</param>
+        /// <param name="indicators">indicators/индикаторы</param>
+        /// <param name="numberPattern">the index on which we watch the pattern/индекс по которому мы с мотрим паттерн</param>
         public void SetFromIndex(List<Candle> candles, List<IIndicatorCandle> indicators, int numberPattern)
         {
             Sequence = new decimal[Length][];
@@ -125,7 +135,7 @@ namespace OsEngine.OsMiner.Patterns
                 Sequence[i] = new decimal[2];
             }
 
-            //Активация переменных
+            //Variable activation/Активация переменных
             decimal thisExpand = (100 - Expand) / 100;
             decimal divider = candles[numberPattern].Volume / 100;
             decimal lockal;
@@ -138,6 +148,7 @@ namespace OsEngine.OsMiner.Patterns
         }
 
         /// <summary>
+        /// load pattern from save line
         /// загрузить паттерн из строки сохранения
         /// </summary>
         public void Load(string saveString)
@@ -169,10 +180,12 @@ namespace OsEngine.OsMiner.Patterns
         }
 
         /// <summary>
+        /// take a string to save the pattern
         /// взять строку для сохранения паттерна
         /// </summary>
         public string GetSaveString()
         {
+            // delimiters on previous levels: # *? %
             // разделители на предыдущих уровнях: # * ? %
 
             string saveStr = PatternType.Volume+ "^";
@@ -183,14 +196,14 @@ namespace OsEngine.OsMiner.Patterns
 
             if (Sequence != null)
             {
-                for (int i = 0; i < Sequence.Length; i++) //бежим по первому измирению
+                for (int i = 0; i < Sequence.Length; i++) //we run on the first imitation/бежим по первому измирению
                 {
                     if (i != 0)
                     {
                         saveStr += "^";
                     }
 
-                    for (int ii = 0; ii < Sequence[i].Length; ii++)// бежим по второму
+                    for (int ii = 0; ii < Sequence[i].Length; ii++)// run on the second/бежим по второму
                     {
                         saveStr += Convert.ToString(Sequence[i][ii]);
                         saveStr += ";";
@@ -203,7 +216,7 @@ namespace OsEngine.OsMiner.Patterns
         }
 
         /// <summary>
-        /// взять копию
+        /// take a copy/взять копию
         /// </summary>
         public IPattern GetCopy()
         {

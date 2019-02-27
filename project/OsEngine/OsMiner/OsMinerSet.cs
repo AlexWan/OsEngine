@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -16,6 +17,7 @@ namespace OsEngine.OsMiner
 {
 
     /// <summary>
+    /// pattern set
     /// сет паттернов
     /// </summary>
     public class OsMinerSet
@@ -29,6 +31,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// set name
         /// имя сета
         /// </summary>
         public string Name {
@@ -40,6 +43,7 @@ namespace OsEngine.OsMiner
         private string _name;
 
         /// <summary>
+        /// load set from string
         /// загрузить  сет из строки
         /// </summary>
         /// <param name="saveStr"></param>
@@ -61,6 +65,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// delete all network information from the file system
         /// удалить всю информацию по сету из файловой системы
         /// </summary>
         public void Delete()
@@ -72,6 +77,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// There have been changes in the pattern. Preservation needed
         /// произошли изменения в паттерне. Необходимо сохранение
         /// </summary>
         void pattern_NeadToSaveEvent()
@@ -84,12 +90,14 @@ namespace OsEngine.OsMiner
         public event Action NeadToSaveEvent;
 
         /// <summary>
+        /// take the save string
         /// взять строку сохранения
         /// </summary>
         /// <returns></returns>
         public string GetSaveString()
         {
             string saveStr = Name;
+            // separators on previous levels: # 
             // разделители на предыдущих уровнях: #
             for (int i = 0; i < Patterns.Count; i++)
             {
@@ -100,6 +108,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// create a new pattern
         /// создать новый паттерн
         /// </summary>
         public void CreatePattern()
@@ -125,6 +134,7 @@ namespace OsEngine.OsMiner
                 return;
             }
 
+            // forbidden symbols: # * ? % ^;
             // запрещённые символы: # * ? % ^ ;
 
             if (ui.NamePattern.IndexOf('#') > -1 ||
@@ -151,6 +161,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// edit active pattern
         /// редактировать активный паттерн
         /// </summary>
         public void RedactPattern()
@@ -165,6 +176,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// remove active pattern
         /// удалить активный паттерн
         /// </summary>
         public void DeletePattern()
@@ -190,6 +202,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// go to the right on the chart, before the first pattern encountered
         /// перейти вправо на графике, до первого встречанного паттерна
         /// </summary>
         public void GoRight()
@@ -202,6 +215,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// go left on schedule to the first pattern encountered
         /// перейти влево по графику, до первого встречанного паттерна
         /// </summary>
         public void GoLeft()
@@ -214,16 +228,19 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// active pattern number
         /// номер активного паттерна
         /// </summary>
         private int _activPatternNum;
 
         /// <summary>
+        /// patterns in set
         /// паттерны в наборе
         /// </summary>
         public List<PatternController> Patterns;
 
         /// <summary>
+        /// take the names of the patterns
         /// взять имена паттернов
         /// </summary>
         public List<string> GetListPatternsNames()
@@ -261,9 +278,10 @@ namespace OsEngine.OsMiner
             return null;
         }
 
-// прорисовка сета
+// drawing a set/прорисовка сета
 
         /// <summary>
+        /// start drawing this set
         /// начать прорисовку данного сета
         /// </summary>
         public void Paint(WindowsFormsHost hostSet, WindowsFormsHost hostChart, System.Windows.Shapes.Rectangle rectChart)
@@ -278,6 +296,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// stop drawing the set
         /// остановить прорисовку сета
         /// </summary>
         public void StopPaint()
@@ -293,26 +312,31 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// pattern set table
         /// таблица сета паттернов
         /// </summary>
         private DataGridView _gridPatternsInSet;
 
         /// <summary>
+        /// table host
         /// хост для таблицы
         /// </summary>
         private WindowsFormsHost _hostPatternsInSet;
 
         /// <summary>
+        /// chart host
         /// хост для чарта
         /// </summary>
         private WindowsFormsHost _hostChart;
 
         /// <summary>
+        /// rectangle under the chart
         /// прямоугольник под чартом
         /// </summary>
         private System.Windows.Shapes.Rectangle _rectChart;
 
         /// <summary>
+        /// create a table for drawing a set
         /// создать таблицу для прорисовки сета
         /// </summary>
         private void CreatePatternGrid()
@@ -344,6 +368,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// user clicked on set table
         /// пользователь кликнул мышью по таблице сета
         /// </summary>
         void _gridPatternsInSet_MouseClick(object sender, MouseEventArgs mouse)
@@ -379,6 +404,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// the user wants to delete the active pattern from the set
         /// пользователь хочет удалить активный паттерн из сета
         /// </summary>
         void OsMinerSetDelete_Click(object sender, EventArgs e)
@@ -387,6 +413,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// the user wants to edit the active pattern
         /// пользователь хочет редактировать активный паттерн
         /// </summary>
         void OsMinerSetRedact_Click(object sender, EventArgs e)
@@ -395,6 +422,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// the user wants to add a new pattern to the set
         /// пользователь хочет добавить новый паттерн в сет
         /// </summary>
         void OsMinerSetAdd_Click(object sender, EventArgs e)
@@ -404,6 +432,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// user clicked on set table
         /// пользователь кликнул мышью по таблице сета
         /// </summary>
         void _gridPatternsInSet_Click(object sender, EventArgs e)
@@ -426,6 +455,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// user double clicked on set table
         /// пользователь дважды кликнул мышью по таблице сета
         /// </summary>
         void _gridPatternsInSet_DoubleClick(object sender, EventArgs e)
@@ -434,6 +464,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// draw this set in the main window
         /// прорисовать данный сет в главном окне
         /// </summary>
         private void PaintSet()
@@ -457,9 +488,10 @@ namespace OsEngine.OsMiner
             }
         }
 
-// логирование
+// logging/логирование
 
         /// <summary>
+        /// send a new message to the top
         /// выслать новое сообщение на верх
         /// </summary>
         private void SendNewLogMessage(string message, LogMessageType type)
@@ -475,6 +507,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// outgoing message for log
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;

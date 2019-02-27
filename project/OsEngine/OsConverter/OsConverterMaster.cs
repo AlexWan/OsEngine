@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -24,12 +25,13 @@ namespace OsEngine.OsConverter
     {
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="textBoxSourceFile">контрол для источника тиков</param>
-        /// <param name="textBoxExitFile">контрол для исходящего файла</param>
-        /// <param name="comboBoxTimeFrame">контрол для таймФрейма создаваемых свечек</param>
-        /// <param name="logFormsHost">хост для лога</param>
+        /// <param name="textBoxSourceFile">control for tick source/контрол для источника тиков</param>
+        /// <param name="textBoxExitFile">control for outgoing file/контрол для исходящего файла</param>
+        /// <param name="comboBoxTimeFrame">control for timeframe created candles /контрол для таймФрейма создаваемых свечек</param>
+        /// <param name="logFormsHost">log host/хост для лога</param>
         public OsConverterMaster(TextBox textBoxSourceFile, TextBox textBoxExitFile, ComboBox comboBoxTimeFrame, WindowsFormsHost logFormsHost)
         {
             _textBoxSourceFile = textBoxSourceFile;
@@ -68,7 +70,7 @@ namespace OsEngine.OsConverter
         }
 
         /// <summary>
-        /// загрузить настройки из файла
+        /// load settings from file/загрузить настройки из файла
         /// </summary>
         public void Load()
         {
@@ -95,7 +97,7 @@ namespace OsEngine.OsConverter
         }
 
         /// <summary>
-        /// сохранить настройки в файл
+        /// save settings to file/сохранить настройки в файл
         /// </summary>
         public void Save()
         {
@@ -117,37 +119,37 @@ namespace OsEngine.OsConverter
         }
 
         /// <summary>
-        /// путь к исходному файлу из которого берём данные
+        /// the path to the source file from which we take the data/путь к исходному файлу из которого берём данные
         /// </summary>
         private string _sourceFile;
 
         /// <summary>
-        /// путь к исходящему файлу
+        /// outgoing file path/путь к исходящему файлу
         /// </summary>
         private string _exitFile;
 
         /// <summary>
-        /// таймФрейм формируемых свечей
+        /// timeframe molded candles/таймФрейм формируемых свечей
         /// </summary>
         public TimeFrame TimeFrame;
 
         /// <summary>
-        /// контрол для пути исходного файла
+        /// control for source file path/контрол для пути исходного файла
         /// </summary>
         private TextBox _textBoxSourceFile;
 
         /// <summary>
-        /// контрол для пути исходящего файла
+        /// control for outgoing file path/контрол для пути исходящего файла
         /// </summary>
         private TextBox _textBoxExitFile;
 
         /// <summary>
-        /// контрол с ТФ
+        /// control with tf/контрол с ТФ
         /// </summary>
         private ComboBox _comboBoxTimeFrame;
 
         /// <summary>
-        /// изменился ТФ
+        /// changed tf/изменился ТФ
         /// </summary>
         void _comboBoxTimeFrame_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
@@ -156,7 +158,7 @@ namespace OsEngine.OsConverter
         }
 
         /// <summary>
-        /// выбрать исходный файл
+        /// select source file/выбрать исходный файл
         /// </summary>
         public void SelectSourceFile()
         {
@@ -169,7 +171,7 @@ namespace OsEngine.OsConverter
 
             myDialog.ShowDialog();
 
-            if (myDialog.FileName != "") // если хоть что-то выбрано
+            if (myDialog.FileName != "") // if anything is selected/если хоть что-то выбрано
             {
                 _sourceFile = myDialog.FileName;
                 Save();
@@ -178,7 +180,7 @@ namespace OsEngine.OsConverter
         }
 
         /// <summary>
-        /// сохдать новый файл
+        /// create new file/сохдать новый файл
         /// </summary>
         public void CreateExitFile()
         {
@@ -191,7 +193,7 @@ namespace OsEngine.OsConverter
 
             myDialog.ShowDialog();
 
-            if (myDialog.FileName != "") // если хоть что-то выбрано
+            if (myDialog.FileName != "") //  if anything is selected/если хоть что-то выбрано
             {
                 _exitFile = myDialog.FileName;
                 Save();
@@ -200,7 +202,7 @@ namespace OsEngine.OsConverter
         }
 
         /// <summary>
-        /// включить конвертирование
+        /// enable conversion/включить конвертирование
         /// </summary>
         public void StartConvert()
         {
@@ -217,12 +219,12 @@ namespace OsEngine.OsConverter
         }
 
         /// <summary>
-        /// поток занимающийся созданием нового файла
+        /// stream creating new file/поток занимающийся созданием нового файла
         /// </summary>
         private Thread _worker;
 
         /// <summary>
-        /// место работы потока создающего новый файл
+        /// place of work of the stream creating a new file/место работы потока создающего новый файл
         /// </summary>
         private void WorkerSpace()
         {
@@ -352,10 +354,10 @@ namespace OsEngine.OsConverter
             SendNewLogMessage(OsLocalization.Converter.Message9, LogMessageType.System);
         }
 
-// логирование
+        // logging/логирование
 
         /// <summary>
-        /// выслать новое сообщение в лог
+        /// send new message to log/выслать новое сообщение в лог
         /// </summary>
         void SendNewLogMessage(string message, LogMessageType type)
         {
@@ -366,7 +368,7 @@ namespace OsEngine.OsConverter
         }
 
         /// <summary>
-        /// событие нового сообщения в лог
+        /// new message event to log/событие нового сообщения в лог
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
     }

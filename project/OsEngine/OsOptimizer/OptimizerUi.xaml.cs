@@ -1,23 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Forms;
-using System.Windows.Media;
-using OsEngine.Entity;
+﻿using OsEngine.Entity;
 using OsEngine.Journal;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Forms;
 using MessageBox = System.Windows.MessageBox;
 using ProgressBar = System.Windows.Controls.ProgressBar;
 
 namespace OsEngine.OsOptimizer
 {
     /// <summary>
+    /// Interaction Logic for OptimizerUi.xaml
     /// Логика взаимодействия для OptimizerUi.xaml
     /// </summary>
     public partial class OptimizerUi
@@ -52,7 +52,7 @@ namespace OsEngine.OsOptimizer
             TextBoxStartPortfolio.Text = _master.StartDepozit.ToString();
             TextBoxStartPortfolio.TextChanged += TextBoxStartPortfolio_TextChanged;
 
-            // фильтры
+            // filters/фильтры
             CheckBoxFilterProfitIsOn.IsChecked = _master.FilterProfitIsOn;
             CheckBoxFilterMaxDrowDownIsOn.IsChecked = _master.FilterMaxDrowDownIsOn;
             CheckBoxFilterMiddleProfitIsOn.IsChecked = _master.FilterMiddleProfitIsOn;
@@ -82,7 +82,7 @@ namespace OsEngine.OsOptimizer
             TextBoxFilterDealsCount.TextChanged += TextBoxFiltertValue_TextChanged;
 
 
-            // Этапы
+            // Stages/Этапы
 
             DatePickerStart.DisplayDate = _master.TimeStart;
             DatePickerEnd.DisplayDate = _master.TimeEnd;
@@ -130,12 +130,15 @@ namespace OsEngine.OsOptimizer
 
 
         /// <summary>
+        /// an object containing data for optimization
+        /// and starting the optimization process
         /// объект хранящий в себе данные для оптимизации
         /// и запускающий процесс оптимизации
         /// </summary>
         private OptimizerMaster _master;
 
         /// <summary>
+        /// prevent the user from touching the interface
         /// запретить пользователю трогать интерфейс
         /// </summary>
         private void StopUserActivity()
@@ -146,6 +149,7 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// allow the user to touch the interface
         /// разрешить пользователю трогать интерфейс
         /// </summary>
         private void StartUserActivity()
@@ -163,6 +167,7 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// inbound event: optimization process completed
         /// входящее событие: завершился процесс оптимизации
         /// </summary>
         void _master_TestReadyEvent(List<BotPanel> botsEndFirstFaze, List<BotPanel> botsOutOfSample)
@@ -176,19 +181,23 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// robots with InSample results
         /// роботы с результатами InSample
         /// </summary>
         private List<BotPanel> _botsInSample;
 
         /// <summary>
+        /// OutOfSample robots
         /// роботы с результатами OutOfSample
         /// </summary>
         private List<BotPanel> _botsOutOfSample;
 
 
-// работа по рисованию прогрессБаров
+// work on drawing progress bars
+// работа по рисованию прогресс Баров
 
         /// <summary>
+        /// the user has changed the number of threads that will be optimized
         /// пользователь изменил кол-во потоков которым будет проходить оптимизация
         /// </summary>
         void ComboBoxThreadsCount_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -197,11 +206,13 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// progress bars showing progress of individual threads during optimization
         /// прогрессбары показывающие прогресс отдельных потоков во время оптимизации
         /// </summary>
         private List<ProgressBar> _progressBars;
 
         /// <summary>
+        /// create progress bars for stream optimization
         /// создать прогресс бары для потоков оптимизации
         /// </summary>
         private void CreateThradsProgressBars()
@@ -232,6 +243,7 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// place of work update stream progress on progress bars
         /// место работы потока обновляющего прогресс на прогрессБарах
         /// </summary>
         private void PainterProgressArea()
@@ -249,6 +261,7 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// update progress
         /// обновить прогресс
         /// </summary>
         private void PaintAllProgressBars()
@@ -295,6 +308,7 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// upgrade all progress bars to the final stage
         /// обновить все прогрессбары до завершающей стадии
         /// </summary>
         private void PaintEndOnAllProgressBars()
@@ -314,12 +328,14 @@ namespace OsEngine.OsOptimizer
             }
         }
 
-// передвижение экрана к нужному элементу интерфейса, если пользователь не успел всё настроить
+        // Moving the screen to the desired interface element, if the user has not managed to configure everything
+        // передвижение экрана к нужному элементу интерфейса, если пользователь не успел всё настроить
 
         /// <summary>
+        /// optimization can not start and you need to move the display to a place that is not configured
         /// оптимизация не может стартовать и нужно переместить отображение к месту которое не настроено
         /// </summary>
-        /// <param name="move">место куда нужно переместить ГУИ</param>
+        /// <param name="move">place to move GUI/место куда нужно переместить ГУИ</param>
         void _master_NeadToMoveUiToEvent(NeadToMoveUiTo move)
         {
             if (!TabControlPrime.Dispatcher.CheckAccess())
@@ -351,9 +367,10 @@ namespace OsEngine.OsOptimizer
         }
 
 
-// обработка контролов по нажатию их пользователем
+// processing controls by clicking on them by the user/обработка контролов по нажатию их пользователем
 
         /// <summary>
+        /// the user has clicked on the start and stop optimization button
         /// пользователь нажал на кнопку запускающую и останавливающую оптимизацию
         /// </summary>
         private void ButtonGo_Click(object sender, RoutedEventArgs e)
@@ -482,9 +499,11 @@ namespace OsEngine.OsOptimizer
             _master.ShowDataStorageDialog();
         }
 
+// events from the server
 // события из сервера
 
         /// <summary>
+        /// inbound event: changed the number of strategies available for optimization
         /// входящее событие: изменилось кол-во стратегий доступных для оптимизации
         /// </summary>
         private void _master_StrategyNamesReadyEvent(List<string> strategy)
@@ -521,6 +540,7 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// inbound event: the start or end time of the data in the server has changed
         /// входящее событие: изменилась начальная или конечное время данных в сервере
         /// </summary>
         void _master_DateTimeStartEndChange()
@@ -534,14 +554,17 @@ namespace OsEngine.OsOptimizer
             DatePickerEnd.SelectedDate = _master.TimeEnd;
         }
 
+// Table of Papers and Time Frames for ordinary tabs
 // таблица Бумаг и таймФреймов для обычных вкладок
 
         /// <summary>
+        /// table with settings entries for the usual tabs of the robot
         /// таблица с записями настроек для обычных вкладок у робота
         /// </summary>
         private DataGridView _gridTableTabsSimple;
 
         /// <summary>
+        /// create a table for regular tabs
         /// создать таблицу для обычных вкладок
         /// </summary>
         private void CreateTableTabsSimple()
@@ -582,6 +605,7 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// draw a table for regular tabs
         /// прорисовать таблицу для обычных вкладок
         /// </summary>
         private void PaintTableTabsSimple()
@@ -695,6 +719,7 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// the user has changed something in the table of the usual tabs of the robot
         /// пользователь поменял что-то в таблице обычных вкладок робота
         /// </summary>
         void _grid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
@@ -725,14 +750,17 @@ namespace OsEngine.OsOptimizer
             _master.TabsSimpleNamesAndTimeFrames = _tabs;
         }
 
+// table of papers and time frames for indexes
 // таблица Бумаг и таймФреймов для индексов
 
         /// <summary>
+        /// table with tab settings with indexes
         /// таблица с настройками вкладок с индексами
         /// </summary>
         private DataGridView _gridTableTabsIndex;
 
         /// <summary>
+        /// create a table with tab settings with indexes
         /// создать таблицу с настройками вкладок с индексами
         /// </summary>
         private void CreateTableTabsIndex()
@@ -763,6 +791,7 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// draw a table with tab settings with indexes
         /// прорисовать таблицу с настройками вкладок с индексами
         /// </summary>
         private void PaintTableTabsIndex()
@@ -830,6 +859,7 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// the user has changed the value in the table with the settings tabs with indexes
         /// пользователь изменил значение в таблице с настройками вкладок с индексами
         /// </summary>
         void _gridTableTabsIndex_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -853,9 +883,10 @@ namespace OsEngine.OsOptimizer
         }
 
 
-// таблица этапов тестирования
+// test phase table/таблица этапов тестирования
 
         /// <summary>
+        /// handler for clicking on the button for creating optimization steps
         /// обработчик для нажатия на кнопку создания этапов оптимизации
         /// </summary>
         private void ButtonCreateOptimizeFazes_Click(object sender, RoutedEventArgs e)
@@ -865,11 +896,13 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// table with optimization steps
         /// таблица с этапами оптимизации
         /// </summary>
         private DataGridView _gridFazes;
 
         /// <summary>
+        /// create a table with optimization phases
         /// создать таблицу с фазами оптимизации
         /// </summary>
         private void CreateTableOptimizeFazes()
@@ -922,6 +955,7 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// draw a table with optimization phases
         /// прорисовать таблицу с фазами оптимизации
         /// </summary>
         private void PaintTableOptimizeFazes()
@@ -969,24 +1003,28 @@ namespace OsEngine.OsOptimizer
             }
         }
 
-// таблица параметров
+// parameter table/таблица параметров
 
         /// <summary>
+        /// parameters for optimizing the current robot
         /// параметры для оптимизации текущего робота
         /// </summary>
         private List<IIStrategyParameter> _parameters;
 
         /// <summary>
+        /// list of included parameters
         /// список включенных параметров
         /// </summary>
-        private List<bool> _parametrsActiv; 
+        private List<bool> _parametrsActiv;
 
         /// <summary>
+        /// table with optimization parameters
         /// таблица с параметрами оптимизации
         /// </summary>
         private DataGridView _gridParametrs;
 
         /// <summary>
+        /// create parameter table
         /// создать таблицу параметров
         /// </summary>
         private void CreateTableParametrs()
@@ -1053,6 +1091,7 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// draw parameter table
         /// прорисовать таблицу параметров
         /// </summary>
         private void PaintTableParametrs()
@@ -1097,7 +1136,7 @@ namespace OsEngine.OsOptimizer
                 row.Cells.Add(new DataGridViewTextBoxCell());
                 row.Cells[2].Value = _parameters[i].Type;
 
-// значение по умолчанию. Для Булл и Стринг
+// default value. For bool and string/значение по умолчанию. Для Булл и Стринг
 
                 if (_parameters[i].Type == StrategyParameterType.Bool)
                 {
@@ -1130,7 +1169,7 @@ namespace OsEngine.OsOptimizer
                     row.Cells.Add(cell);
                 }
 
-// стартовое значение. Для Булл и Стринг единственное настрамое вручную! поле
+// starting value. For bool and String, the only one is manual! field/стартовое значение. Для Булл и Стринг единственное настрамое вручную! поле
                 if (_parameters[i].Type == StrategyParameterType.Bool)
                 {
                     DataGridViewTextBoxCell cell = new DataGridViewTextBoxCell();
@@ -1160,7 +1199,7 @@ namespace OsEngine.OsOptimizer
                     row.Cells.Add(cell);
                 }
 
-// значение для приращения. Для Булл и Стринг не доступно
+// value for increment. For bool and String is not available/значение для приращения. Для Булл и Стринг не доступно
 
                 if (_parameters[i].Type == StrategyParameterType.Bool)
                 {
@@ -1187,7 +1226,7 @@ namespace OsEngine.OsOptimizer
                     row.Cells.Add(cell);
                 }
 
-// значение для завершающего элемента коллекции. Для Булл и Стринг не доступно
+// value for the final element of the collection. For bool and String is not available/значение для завершающего элемента коллекции. Для Булл и Стринг не доступно
 
                 if (_parameters[i].Type == StrategyParameterType.Bool)
                 {
@@ -1221,6 +1260,7 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// save parameters taking for this value from the parameter table
         /// сохранить параметры взяв для этого значения из таблицы параметров
         /// </summary>
         private void SaveParamsFromTable()
@@ -1321,6 +1361,7 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// the user has changed something in the parameter table
         /// пользователь изменил что-то в таблице параметров
         /// </summary>
         void _gridParametrs_CellValueChanged(object sender, DataGridViewCellEventArgs e)
@@ -1328,14 +1369,16 @@ namespace OsEngine.OsOptimizer
             SaveParamsFromTable();
         }
 
-// таблица фаз для переключения после тестирования
+// phase table for switching after testing/таблица фаз для переключения после тестирования
 
         /// <summary>
+        /// table with optimization steps on the totals tab
         /// таблица с этапами оптимизации на вкладке итогов
         /// </summary>
         private DataGridView _gridFazesEnd;
 
         /// <summary>
+        /// create phase table on totals tabs
         /// создать таблицу фаз на вкладки итогов
         /// </summary>
         private void CreateTableFazes()
@@ -1390,6 +1433,7 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// draw phase table on totals tab
         /// прорисовать таблицу фаз на вкладке итогов
         /// </summary>
         private void PaintTableFazes()
@@ -1438,6 +1482,7 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// the user clicked on the phase table in the totals tab
         /// пользователь кликнул по таблице фаз на вкладке итогов
         /// </summary>
         /// <param name="sender"></param>
@@ -1447,15 +1492,17 @@ namespace OsEngine.OsOptimizer
             PaintTableResults();
         }
 
-        
-// таблица результатов оптимизации
+
+// optimization results table/таблица результатов оптимизации
 
         /// <summary>
+        /// table with optimization steps
         /// таблица с этапами оптимизации
         /// </summary>
         private DataGridView _gridResults;
 
         /// <summary>
+        /// create a table of results
         /// создать таблицу результатов
         /// </summary>
         private void CreateTableResults()
@@ -1515,6 +1562,7 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// draw a table of results
         /// прорисовать таблицу результатов
         /// </summary>
         private void PaintTableResults()
@@ -1611,6 +1659,7 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// user clicked results table
         /// пользователь кликнул по таблице результатов
         /// </summary>
         void _gridResults_SelectionChanged(object sender, EventArgs e)
@@ -1635,11 +1684,13 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// robot sorting type in the results table
         /// тип сортировки роботов в таблице результатов
         /// </summary>
         private SortBotsType _sortBotsType;
 
         /// <summary>
+        /// user clicked a button in the result table
         /// пользователь нажал на кнопку в таблице результатов
         /// </summary>
         void _gridResults_CellMouseClick(object sender, DataGridViewCellMouseEventArgs e)
@@ -1745,11 +1796,13 @@ namespace OsEngine.OsOptimizer
         }
 
         /// <summary>
+        /// GUI of the journal
         /// ГУИ журнала
         /// </summary>
         private JournalUi _journalUi;
 
         /// <summary>
+        /// inbound event: log closed by user
         /// входящее событие: журнал закрыт пользователем
         /// </summary>
         void _journalUi_Closed(object sender, EventArgs e)
@@ -1761,16 +1814,19 @@ namespace OsEngine.OsOptimizer
     }
 
     /// <summary>
+    /// sorting type in the result table
     /// тип сортировки в таблице результатов
     /// </summary>
     public enum SortBotsType
     {
         /// <summary>
+        /// by total profit
         /// по общему профиту
         /// </summary>
         TotalProfit,
 
         /// <summary>
+        /// on average profit from a single transaction
         /// по среднему профиту с одной сделки
         /// </summary>
         MiddleProfit

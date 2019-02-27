@@ -11,6 +11,7 @@ namespace OsEngine.OsOptimizer
 {
 
     /// <summary>
+    /// Interaction logic for TabIndexOptimizerUi.xaml
     /// Логика взаимодействия для TabIndexOptimizerUi.xaml
     /// </summary>
     public partial class TabIndexOptimizerUi
@@ -94,6 +95,7 @@ namespace OsEngine.OsOptimizer
         public bool NeadToSave;
 
         /// <summary>
+        /// table with optimization steps
         /// таблица с этапами оптимизации
         /// </summary>
         private DataGridView _securitiesNamesGrid;

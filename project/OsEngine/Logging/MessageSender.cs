@@ -1,4 +1,5 @@
 ﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -9,10 +10,12 @@ using OsEngine.Market;
 namespace OsEngine.Logging
 {
     /// <summary>
+    /// distribution manager
     /// менеджер рассылки
     /// </summary>
     public class MessageSender
     {
+ // distribution settings
  // настройки рассылки
         public bool MailSendOn;
 
@@ -32,9 +35,10 @@ namespace OsEngine.Logging
         public bool SmsTradeSendOn;
         public bool SmsNoNameSendOn;
 
-        private string _name; // имя
+        private string _name; // name / имя
 
         /// <summary>
+        /// program that created the object
         /// программа создавшая объект
         /// </summary>
         private StartProgram _startProgram;
@@ -47,6 +51,7 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// show settings window
         /// показать окно настроек
         /// </summary>
         public void ShowDialog()
@@ -56,6 +61,7 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// download
         /// загрузить
         /// </summary>
         private void Load() 
@@ -98,6 +104,7 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// save
         /// сохранить
         /// </summary>
         public void Save() 
@@ -133,6 +140,7 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// delete
         /// удалить
         /// </summary>
         public void Delete() 
@@ -144,6 +152,8 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// Send message. If this message type is subscribed and distribution servers are configured, the message will be sent
+        /// If test server is enabled, the message will not be sent
         /// Отправить сообщение. Если такой тип сообщений подписан на рассылку и сервера рассылки настроены, сообщение будет отправлено
         /// Если включен тестовый сервер - сообщение не будет отправленно
         /// </summary>

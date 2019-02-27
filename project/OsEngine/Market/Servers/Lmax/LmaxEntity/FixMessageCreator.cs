@@ -8,6 +8,7 @@ using OsEngine.Market.Servers.FixProtocolEntities;
 namespace OsEngine.Market.Servers.Lmax.LmaxEntity
 {
     /// <summary>
+	/// create messages for exchange 
     /// создает сообщения для биржи
     /// </summary>
     public class FixMessageCreator
@@ -22,6 +23,7 @@ namespace OsEngine.Market.Servers.Lmax.LmaxEntity
         private long _msgSeqNum;
 
         /// <summary>
+		/// heartbeat message
         /// сообщение пулься
         /// </summary>
         public string HeartbeatMsg(bool isTrading)
@@ -32,9 +34,10 @@ namespace OsEngine.Market.Servers.Lmax.LmaxEntity
         }
 
         /// <summary>
+		/// message for entering
         /// сообщение для входа
         /// </summary>
-        /// <param name="isTrading">true - если вход в торговую сессию, false для market data</param>
+        /// <param name="isTrading">true - if the entrance to the trading session, false for market data / true - если вход в торговую сессию, false для market data</param>
         /// <param name="heartbeatInterval"></param>
         /// <returns>сообщение в формате fix</returns>
         public string LogOnMsg(bool isTrading, int heartbeatInterval)
@@ -58,10 +61,11 @@ namespace OsEngine.Market.Servers.Lmax.LmaxEntity
         }
 
         /// <summary>
+		/// message for exit
         /// сообщение для выхода
         /// </summary>
-        /// <param name="isTrading">true - если выход из торговой сессии, false для market data</param>
-        /// <returns>сообщение в формате fix</returns>
+        /// <param name="isTrading">true - if the exit from the trading session, false for market data / true - если выход из торговой сессии, false для market data</param>
+        /// <returns>message in fix format / сообщение в формате fix</returns>
         public string LogOutMsg(bool isTrading)
         {
             var newMessage = new FixMessage(++_msgSeqNum, "5", isTrading, _settings);
@@ -72,6 +76,7 @@ namespace OsEngine.Market.Servers.Lmax.LmaxEntity
         }
 
         /// <summary>
+		/// create message for test request
         /// создать сообщение для тестового запроса
         /// </summary>
         /// <param name="reqId"></param>
@@ -91,6 +96,7 @@ namespace OsEngine.Market.Servers.Lmax.LmaxEntity
         }
 
         /// <summary>
+		/// create message for new order
         /// создать сообщение для нового ордера
         /// </summary>
         public string NewOrderSingleMsg(string clOrdId, string securityId, string side,
@@ -110,7 +116,7 @@ namespace OsEngine.Market.Servers.Lmax.LmaxEntity
                 new Field((int) Tags.OrdType, ordType)
             };
 
-            if (ordType == "2")// если лимитный
+            if (ordType == "2")// if limit order / если лимитный
             {
                 newOrder.Add(new Field((int)Tags.Price, price));
                 newOrder.Add(new Field((int)Tags.TimeInForce, "1"));
@@ -124,6 +130,7 @@ namespace OsEngine.Market.Servers.Lmax.LmaxEntity
         }
 
         /// <summary>
+		/// create message for cancelling order
         /// создать сообщение для отмены ордера
         /// </summary>
         public string OrderCancelRequestMsg(string origClOrdId, string clOrdId, string securityId)
@@ -148,11 +155,12 @@ namespace OsEngine.Market.Servers.Lmax.LmaxEntity
 
 
         /// <summary>
+		/// create a message for request status
         /// создать сообщение для запроса статуса ордера
         /// </summary>
-        /// <param name="clOrdId">номер ордера заданный пользователем при создании</param>
-        /// <param name="side">направление ордера</param>
-        /// <param name="securityId">id инструмента</param>
+        /// <param name="clOrdId">order number specified by the user when creating/номер ордера заданный пользователем при создании</param>
+        /// <param name="side">order side/направление ордера</param>
+        /// <param name="securityId">instrument id/id инструмента</param>
         public string OrderStatusRequestMsg(string clOrdId, string securityId, string side)
         {
             var newMessage = new FixMessage(++_msgSeqNum, "H", true, _settings);

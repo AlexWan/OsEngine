@@ -1,4 +1,5 @@
 ﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -15,6 +16,7 @@ using MouseEventArgs = System.Windows.Forms.MouseEventArgs;
 namespace OsEngine.Market.Servers.InteractivBrokers
 {
     /// <summary>
+    /// Interaction logic for IbContractStorageUi.xaml
     /// Логика взаимодействия для IbContractStorageUi.xaml
     /// </summary>
     public partial class IbContractStorageUi 
@@ -157,7 +159,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 return;
             }
 
-            // cоздание контекстного меню
+            // creating a context menu / cоздание контекстного меню
 
             MenuItem[] items = new MenuItem[2];
 

@@ -1,4 +1,5 @@
 ﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -33,19 +34,23 @@ using MessageBox = System.Windows.MessageBox;
 namespace OsEngine.Market
 {
     /// <summary>
+    /// class exchange server manager
     /// класс менеджер серверов подключения к бирже
     /// </summary>
     public class ServerMaster
     {
 
+// service
 // сервис
 
         /// <summary>
+        /// array of deployed servers
         /// массив развёрнутых серверов
         /// </summary>
         private static List<IServer> _servers;
 
         /// <summary>
+        /// take trade server typre from system
         /// взять типы торговых серверов в системе
         /// </summary>
         public static List<ServerType> ServersTypes
@@ -79,6 +84,7 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// disable all servers
         /// отключить все сервера
         /// </summary>
         public static void AbortAll()
@@ -97,6 +103,7 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// show settings
         /// показать настройки
         /// </summary>
         public static void ShowDialog(bool isTester)
@@ -125,10 +132,11 @@ namespace OsEngine.Market
         private static ServerMasterUi _ui;
 
         /// <summary>
+        /// create server
         /// создать сервер
         /// </summary>
-        /// <param name="type"> тип сервера</param>
-        /// <param name="neadLoadTicks">нужно ли подгружать тики из хранилища. Актуально в режиме робота для серверов Квик, Плаза 2</param>
+        /// <param name="type"> server type / тип сервера </param>
+        /// <param name="neadLoadTicks"> shows whether upload ticks from storage. this is need for bots with QUIK or Plaza2 servers / нужно ли подгружать тики из хранилища. Актуально в режиме робота для серверов Квик, Плаза 2 </param>
         public static void CreateServer(ServerType type, bool neadLoadTicks)
         {
             try
@@ -235,6 +243,7 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// create a new optimization server
         /// создать новый сервер оптимизации
         /// </summary>
         public static OptimizerServer CreateNextOptimizerServer(OptimizerDataStorage storage, int num, decimal portfolioStartVal)
@@ -270,6 +279,7 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// take the server
         /// взять сервер
         /// </summary>
         public static List<IServer> GetServers()
@@ -278,11 +288,13 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// new server created
         /// создан новый сервер
         /// </summary>
         public static event Action<IServer> ServerCreateEvent;
 
         /// <summary>
+        /// take the list of existing connections
         /// взять список существующих подключений
         /// </summary>
         /// <returns></returns>
@@ -309,9 +321,11 @@ namespace OsEngine.Market
             return types;
         }
 
+// creating servers automatically 
 // создание серверов автоматически
 
         /// <summary>
+        /// upload server settings
         /// загрузить настройки сервера
         /// </summary>
         public static void ActivateAutoConnection()
@@ -326,6 +340,7 @@ namespace OsEngine.Market
         private static ServerMasterPortfoliosPainter _painter;
 
         /// <summary>
+        /// save settings
         /// сохранить настройки
         /// </summary>
         public static void Save()
@@ -345,6 +360,7 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// upload settings
         /// загрузить настройки
         /// </summary>
         public static void Load()
@@ -368,11 +384,13 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// shows whether the server-master can be deployed in automatic mode  
         /// можно ли сервер мастеру разворачивать сервера в автоматическом режиме
         /// </summary>
         public static bool NeadToConnectAuto;
 
         /// <summary>
+        /// select a specific server type for connection
         /// заказать на подключение определённый тип сервера
         /// </summary>
         public static void SetNeedServer(ServerType type)
@@ -394,16 +412,19 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// selected bot servers
         /// сервера, которые заказали роботы
         /// </summary>
         private static List<ServerType> _needServerTypes;
 
         /// <summary>
+        /// servers that we have already treid to connect
         /// серверы которые мы уже пытались подключить
         /// </summary>
         private static List<ServerType> _tryActivateServerTypes;
 
         /// <summary>
+        /// work place of the thread that connects our servers in auto mode
         /// место работы потока который подключает наши сервера в авто режиме
         /// </summary>
         private static void ThreadStarterWorkArea()
@@ -442,6 +463,7 @@ namespace OsEngine.Market
         }
         
         /// <summary>
+        /// try running this server
         /// Попробовать запустить данный сервер
         /// </summary>
         private static void TryStartThisSevrverInAutoType(ServerType type)
@@ -457,14 +479,14 @@ namespace OsEngine.Market
             _tryActivateServerTypes.Add(type);
 
             if (GetServers() == null || GetServers().Find(server1 => server1.ServerType == type) == null)
-            { // если у нас нашего сервера нет - создаём его
+            { // if we don't have our server, create a new one / если у нас нашего сервера нет - создаём его
                 CreateServer(type,true);
             }
 
             List<IServer> servers = GetServers();
 
             if (servers == null)
-            { // что-то пошло не так
+            { // something went wrong / что-то пошло не так
                 return;
             }
 
@@ -481,9 +503,11 @@ namespace OsEngine.Market
             }
         }
 
+// access to the portfolio and its drawing
 // доступ к портфелю и его прорисовка
 
         /// <summary>
+        /// start to draw class controls
         /// начать прорисовывать контролы класса 
         /// </summary>
         public static void StartPaint()
@@ -492,6 +516,7 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// stop to draw class controls
         /// остановить прорисовку контролов класса 
         /// </summary>
         public static void StopPaint()
@@ -500,6 +525,7 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// clear the order list in the table
         /// очистить список ордеров в таблицах
         /// </summary>
         public static void ClearOrders()
@@ -512,6 +538,7 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// add items on which portfolios and orders will be drawn
         /// добавить элементы, на котором будут прорисовываться портфели и ордера
         /// </summary>
         public static void SetHostTable(WindowsFormsHost hostPortfolio, WindowsFormsHost hostOrders)
@@ -521,6 +548,7 @@ namespace OsEngine.Market
             _painter.SetHostTable(hostPortfolio, hostOrders);
         }
 
+// log messages
 // сообщения в лог
 
         public static void ActivateLogging()
@@ -535,6 +563,7 @@ namespace OsEngine.Market
         public static Log Log;
 
         /// <summary>
+        /// send new message to up
         /// выслать новое сообщение на верх
         /// </summary>
         private static void SendNewLogMessage(string message, LogMessageType type)
@@ -544,12 +573,13 @@ namespace OsEngine.Market
                 LogMessageEvent(message, type);
             }
             else if (type == LogMessageType.Error)
-            { // если на нас никто не подписан и в логе ошибка
+            { // if nobody is subscribled to us and there is a log error / если на нас никто не подписан и в логе ошибка
                 MessageBox.Show(message);
             }
         }
 
         /// <summary>
+        /// outgoing log message
         /// исходящее сообщение для лога
         /// </summary>
         public static event Action<string, LogMessageType> LogMessageEvent;
@@ -557,127 +587,152 @@ namespace OsEngine.Market
     }
 
     /// <summary>
+    /// what program start the class
     /// какая программа запустила класс
     /// </summary>
     public enum StartProgram
     {
         /// <summary>
+        /// tester
         /// тестер
         /// </summary>
         IsTester,
 
         /// <summary>
+        /// optimizator
         /// оптимизатор
         /// </summary>
         IsOsOptimizer,
 
         /// <summary>
+        /// data downloading
         /// качалка данных
         /// </summary>
         IsOsData,
 
         /// <summary>
+        /// terminal
         /// терминал
         /// </summary>
         IsOsTrader,
 
         /// <summary>
+        /// ticks to candles converter
         /// конвертер тиков в свечи
         /// </summary>
         IsOsConverter,
 
         /// <summary>
+        /// pattern miner
         /// майнер паттернов
         /// </summary>
         IsOsMiner
     }
 
     /// <summary>
+    /// type of connection to trading. Server type
     /// тип подключения к торгам. Тип сервера
     /// </summary>
     public enum ServerType
     {
         /// <summary>
+        /// server type not defined
         /// Тип сервера не назначен
         /// </summary>
         None,
 
         /// <summary>
+        /// transaq
         /// транзак
         /// </summary>
         Transaq,
 
         /// <summary>
+        /// LMax exchange
         /// биржа LMax
         /// </summary>
         Lmax,
 
         /// <summary>
+        /// cryptocurrency exchange Bitfinex
         /// биржа криптовалют Bitfinex
         /// </summary>
         Bitfinex,
 
         /// <summary>
+        /// cryptocurrency exchange Binance
         /// биржа криптовалют Binance
         /// </summary>
         Binance,
 
         /// <summary>
+        /// terminal Ninja Trader
         /// нинзя трейдер
         /// </summary>
         NinjaTrader,
 
         /// <summary>
+        /// cryptocurrency exchange Kraken
         /// биржа криптовалют Kraken
         /// </summary>
         Kraken,
 
         /// <summary>
+        /// forex broker Oanda
         /// форекс брокер Oanda
         /// </summary>
         Oanda,
 
         /// <summary>
+        /// cryptocurrency exchange BitMEX
         /// биржа криптовалют BitMEX
         /// </summary>
         BitMex,
 
         /// <summary>
+        /// cryptocurrency exchange BitStamp
         /// биржа криптовалют BitStamp
         /// </summary>
         BitStamp,
 
         /// <summary>
+        /// optimizer
         /// Оптимизатор
         /// </summary>
         Optimizer,
 
         /// <summary>
+        /// miner
         /// Майнер
         /// </summary>
         Miner,
 
         /// <summary>
+        /// connection to terminal Quik by LUA
         /// Квик луа
         /// </summary>
         QuikLua,
 
         /// <summary>
+        /// connection to terminal Quik by DDE
         /// Квик
         /// </summary>
         QuikDde,
 
         /// <summary>
+        /// SmartCom
         /// Смарт-Ком
         /// </summary>
         SmartCom,
 
         /// <summary>
+        /// Plaza 2
         /// Плаза 2
         /// </summary>
         Plaza,
 
         /// <summary>
+        /// Tester
         /// Тестер
         /// </summary>
         Tester,
@@ -688,11 +743,13 @@ namespace OsEngine.Market
         InteractivBrokers,
 
         /// <summary>
+        /// Finam
         /// Финам
         /// </summary>
         Finam,
 
         /// <summary>
+        /// AstsBridge, he is also the gateway or TEAP
         /// AstsBridge, он же ШЛЮЗ, он же TEAP 
         /// </summary>
         AstsBridge

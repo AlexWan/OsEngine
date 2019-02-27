@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -11,6 +12,7 @@ using OsEngine.Entity;
 namespace OsEngine.OsMiner.Patterns
 {
     /// <summary>
+    /// candle pattern
     /// свечной паттерн
     /// </summary>
     public class PatternCandle : IPattern
@@ -25,41 +27,48 @@ namespace OsEngine.OsMiner.Patterns
         }
 
         /// <summary>
+        /// pattern weight while searching for entry and exit
         /// вес паттерна во время поиска входа и выхода
         /// </summary>
         public decimal Weigth { get; set; }
 
         /// <summary>
+        /// pattern type
         /// тип паттерна
         /// </summary>
         public PatternType Type { get; set; }
 
         /// <summary>
+        /// pattern length
         /// длина паттерна
         /// </summary>
         public int Length;
 
         /// <summary>
+        /// pattern recognition. 100% - maximum
         /// узнаваемость паттерна.  100  % - максимальная
         /// </summary>
         public decimal Expand { get; set; }
 
         /// <summary>
+        /// Candle Pattern Identification Type
         /// тип идентификации свечного паттерна
         /// </summary>
         public TypeWatchCandlePattern TypeWatch;
 
         /// <summary>
+        /// pattern points
         /// точки паттерна
         /// </summary>
         public decimal[][] Sequence;
 
         /// <summary>
+        /// is the current formation our pattern
         /// является ли текущая формация нашим паттерном
         /// </summary>
-        /// <param name="candles">свечи</param>
-        /// <param name="indicators">индикаторы</param>
-        /// <param name="numberPattern">индекс по которому мы смотрим паттерн</param>
+        /// <param name="candles">candles/свечи</param>
+        /// <param name="indicators">indicators/индикаторы</param>
+        /// <param name="numberPattern">the index on which we watch the pattern/индекс по которому мы смотрим паттерн</param>
         public bool ThisIsIt(List<Candle> candles, List<IIndicatorCandle> indicators, int numberPattern)
         {
             if (numberPattern - Length <= 0)
@@ -111,7 +120,7 @@ namespace OsEngine.OsMiner.Patterns
             }
             else if (TypeWatch == TypeWatchCandlePattern.Body)
             {
-                for (int i = 0; i < Sequence.Length; i++) // здесь копать
+                for (int i = 0; i < Sequence.Length; i++) // dig here/здесь копать
                 {
                     /*if (Sequence[i][0] < researched.Sequence[i][0] || Sequence[i][1] > researched.Sequence[i][0] ||
                         // опен
@@ -132,7 +141,7 @@ namespace OsEngine.OsMiner.Patterns
 
             else if (TypeWatch == TypeWatchCandlePattern.Shadow)
             {
-                for (int i = 0; i < Sequence.Length; i++) // здесь копать
+                for (int i = 0; i < Sequence.Length; i++) // dig here/здесь копать
                 {
                     /*if (Sequence[i][2] < researched.Sequence[i][2] || Sequence[i][3] > researched.Sequence[i][2] ||
                         // хай
@@ -153,13 +162,14 @@ namespace OsEngine.OsMiner.Patterns
 
             return true;
         }
-        
+
         /// <summary>
+        /// set pattern with current data
         /// установить паттерн с текущих данных
         /// </summary>
-        /// <param name="candles">свечи</param>
-        /// <param name="indicators">индикаторы</param>
-        /// <param name="numberPattern">индекс по которому мы с мотрим паттерн</param>
+        /// <param name="candles">candles/свечи</param>
+        /// <param name="indicators">indicators/индикаторы</param>
+        /// <param name="numberPattern">index on which we pattern pattern/индекс по которому мы с мотрим паттерн</param>
         public void SetFromIndex(List<Candle> candles, List<IIndicatorCandle> indicators, int numberPattern)
         {
             if (numberPattern - Length + 1 < 0)
@@ -174,9 +184,9 @@ namespace OsEngine.OsMiner.Patterns
                 Sequence[i] = new decimal[8];
             }
 
-            //Активация переменных
+            //Variable activation/Активация переменных
             decimal thisExpand = (100-Expand) /100;
-            decimal divider = candles[numberPattern].Open / 100; // делитель, применяется во всём вычислении, измеряется один раз. Показывает сколько весит один процент первого входа
+            decimal divider = candles[numberPattern].Open / 100; // divider, applied in the whole calculation, measured once. Shows how much one percent of the first entry weighs./делитель, применяется во всём вычислении, измеряется один раз. Показывает сколько весит один процент первого входа
             decimal lockal;
             for (int i = 0; i < Length; i++)
             {
@@ -201,7 +211,7 @@ namespace OsEngine.OsMiner.Patterns
         }
 
         /// <summary>
-        /// взять паттерн в виде свечек
+        /// take a pattern in the form of candles/взять паттерн в виде свечек
         /// </summary>
         public List<Candle> GetInCandle()
         {
@@ -228,6 +238,7 @@ namespace OsEngine.OsMiner.Patterns
         }
 
         /// <summary>
+        /// load pattern from save line
         /// загрузить паттерн из строки сохранения
         /// </summary>
         public void Load(string saveString)
@@ -281,11 +292,14 @@ namespace OsEngine.OsMiner.Patterns
         }
 
         /// <summary>
+        /// take a string to save the pattern
         /// взять строку для сохранения паттерна
         /// </summary>
         public string GetSaveString()
         {
+            // delimiters on previous levels: # *? % ^;
             // разделители на предыдущих уровнях: # * ? % ^ ;
+
 
             string saveStr = PatternType.Candle + "^";
 
@@ -299,14 +313,14 @@ namespace OsEngine.OsMiner.Patterns
 
             if (Sequence != null)
             {
-                for (int i = 0; i < Sequence.Length; i++) //бежим по первому измирению
+                for (int i = 0; i < Sequence.Length; i++) //we run on the first imitation/бежим по первому измирению
                 {
                     if (i != 0)
                     {
                         saveStr += "^";
                     }
 
-                    for (int ii = 0; ii < Sequence[i].Length; ii++)// бежим по второму
+                    for (int ii = 0; ii < Sequence[i].Length; ii++)// run on the second/ бежим по второму
                     {
                         saveStr += Convert.ToString(Sequence[i][ii],CultureInfo.InvariantCulture);
                         saveStr += ";";
@@ -319,6 +333,7 @@ namespace OsEngine.OsMiner.Patterns
         }
 
         /// <summary>
+        /// take a copy
         /// взять копию
         /// </summary>
         public IPattern GetCopy()

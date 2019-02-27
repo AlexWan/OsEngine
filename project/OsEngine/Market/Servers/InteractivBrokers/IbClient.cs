@@ -1,4 +1,5 @@
 ﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -15,31 +16,36 @@ using OsEngine.Logging;
 namespace OsEngine.Market.Servers.InteractivBrokers
 {
     /// <summary>
+    /// class implements the client for TCP server TWS
     /// класс реализующий клиента для TCP сервера TWS
     /// </summary>
     public class IbClient
     {
 
         /// <summary>
+        /// client
         /// клиент
         /// </summary>
         private TcpClient _tcpClient;
 
         /// <summary>
+        /// class to read data from stream
         /// класс для чтения данных из потока
         /// </summary>
         private BinaryWriter _tcpWriter;
 
         /// <summary>
+        /// class to write data to stream
         /// класс для записи данных в поток
         /// </summary>
         private BinaryReader _tcpReader;
 
-// коннект
+// connect / коннект
 
         private bool _isConnected;
 
         /// <summary>
+        /// establish a connection to TCP server of TWS
         /// установить соединение с TСP сервером TWS
         /// </summary>
         public void Connect(string host, int port)
@@ -100,6 +106,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// disconnect from TCP server of TWS
         /// отключиться от TCP сервера TWS
         /// </summary>
         public void Disconnect()
@@ -148,9 +155,11 @@ namespace OsEngine.Market.Servers.InteractivBrokers
 
         }
 
-// Портфели
+        // portfolios
+        // Портфели
 
         /// <summary>
+        /// take portfolios
         /// взять портфели
         /// </summary>
         public void GetPortfolios()
@@ -178,6 +187,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// subcribe to change portfolios
         /// подписаться на изменения портфеля
         /// </summary>
         /// <param name="number"></param>
@@ -203,6 +213,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// take details of security
         /// взять детали по бумаге
         /// </summary>
         public void GetSecurityDetail(SecurityIb contract)
@@ -247,21 +258,25 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// all security with specification
         /// все бумаги по которым нам пришла спицификация
         /// </summary>
         private List<SecurityIb> _serverSecurities;
 
         /// <summary>
+        /// list of securities on which we have already subscribed to receive trades
         /// перечень бумаг по которым мы уже подписались на получение трейдов
         /// </summary>
         private List<string> _namesSecuritiesWhoOptOnTrades;
 
         /// <summary>
+        /// list of securities on which we have already subscribed to receive depths
         /// перечень бумаг по которым мы уже подписались на получение стаканов
         /// </summary>
         private List<string> _namesSecuritiesWhoOptOnMarketDepth;
 
         /// <summary>
+        /// subscribe to ticks
         /// подписываемся на тики
         /// </summary>
         public void GetMarketDataToSecurity(SecurityIb contract)
@@ -313,6 +328,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// subscribe to depths
         /// подписываемся на стаканы
         /// </summary>
         public void GetMarketDepthToSecurity(SecurityIb contract)
@@ -370,11 +386,13 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// the next right order number
         /// следующий правильный номер ордера
         /// </summary>
         private int _nextOrderNum;
 
         /// <summary>
+        /// execute order on the exchange
         /// исполнить ордер на бирже
         /// </summary>
         public void ExecuteOrder(Order order, SecurityIb contract)
@@ -542,6 +560,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// cancel order
         /// отозвать ордер
         /// </summary>
         public void CanselOrder(Order order)
@@ -560,19 +579,23 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             }
         }
 
-// грузим данные в поток
+        // load data into thread
+        // грузим данные в поток
 
         /// <summary>
+        /// sign of a complete message for the package
         /// признак завершения сообщения для пакета
         /// </summary>
         private readonly byte _endOfMessage = 0;
 
         /// <summary>
+        /// current message
         /// текущее сообщение
         /// </summary>
         private List<byte> _message;
 
         /// <summary>
+        /// write new data to message
         /// записать в сообщение новые данные
         /// </summary>
         private void TcpWrite(int value)
@@ -581,6 +604,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// write new data to message
         /// записать в сообщение новые данные
         /// </summary>
         private void TcpWrite(double value)
@@ -589,6 +613,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// write new data to message
         /// записать в сообщение новые данные
         /// </summary>
         private void TcpWrite(string str)
@@ -609,6 +634,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// write new data to message
         /// записать в сообщение новые данные
         /// </summary>
         private void TcpWrite(bool value)
@@ -624,6 +650,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// send a previously collected message to TCP server of TWS
         /// выслать ранее собранное сообщение TCP серверу TWS
         /// </summary>
         private void TcpSendMessage()
@@ -632,9 +659,11 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             _message = new List<byte>();
         }
 
-// достаём данные из потока
+        // getting data from the thread
+        // достаём данные из потока
 
         /// <summary>
+        /// read value from the thread
         /// прочитать значение из потока
         /// </summary>
         private double TcpReadDouble()
@@ -658,6 +687,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// read value from the thread
         /// прочитать значение из потока
         /// </summary>
         private decimal TcpReadDecimal()
@@ -681,6 +711,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// read value from the thread
         /// прочитать значение из потока
         /// </summary>
         public int TcpReadInt()
@@ -702,6 +733,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// read value from the thread
         /// прочитать значение из потока
         /// </summary>
         private string TcpReadString()
@@ -740,14 +772,17 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             }
         }
 
-// Прослушивание TCP на наличие в нём сообщений
+        // Listen to TCP for messages
+        // Прослушивание TCP на наличие в нём сообщений
 
         /// <summary>
+        /// stream reading data from TWS
         /// поток считывающий данные от TWS
         /// </summary>
         private Thread _listenThread;
 
         /// <summary>
+        /// method for working thread that listens TCP server of TWS
         /// метод в котором работает поток прослушивающий TCP сервер TWS
         /// </summary>
         private void ListenThreadSpace()
@@ -820,7 +855,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                     }
 
 
-// далее не нужная Os.Engine дата, от которой всё же поток нужно чистить
+                    // next, an unnecessary Os.Engine date from which the stream still needs to be cleaned / далее не нужная Os.Engine дата, от которой всё же поток нужно чистить
 
                     else if (typeMessage == 5)
                     { //OpenOrder
@@ -863,11 +898,15 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// skip unnecessary data
         /// пропустить не нужные данные
         /// </summary>
-        /// <param name="typeMessage">номер сообщения</param>
+        /// <param name="typeMessage">message number / номер сообщения</param>
         private bool SkipUnnecessaryData(int typeMessage)
         {
+            // list of all message numbers that may occur in the system
+            /* --- it is necessary for our API messages
+             * *** messages that we read and skip
             // cписок всех номеров сообщений, которые могут возникнуть в системе
             /* --- это нужные нашему Апи сообщения
              * *** сообщения которые мы считываем и пропускаем
@@ -1033,6 +1072,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// upload portfolios
         /// загрузить порфели
         /// </summary>
         private void LoadAccounts()
@@ -1042,6 +1082,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// upload depths
         /// загрузить стакан
         /// </summary>
         private void LoadMarketDepth(int numMessage)
@@ -1069,6 +1110,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// upload the next valid order ID
         /// загрузить следующий валидный ID для ордера
         /// </summary>
         private void LoadValidId()
@@ -1080,6 +1122,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// upload portfolio position
         /// загрузить позицию по портфелю
         /// </summary>
         private void LoadPortfolioPosition()
@@ -1133,6 +1176,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// upload portfolio position
         /// загрузить позицию по портфелю
         /// </summary>
         private void LoadPortfolioPosition2()
@@ -1167,6 +1211,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// upload portfolios
         /// загрузить портфели
         /// </summary>
         private void LoadAccount()
@@ -1185,6 +1230,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// upload trades
         /// загрузить трэйд
         /// </summary>
         private void LoadTrade()
@@ -1231,11 +1277,12 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// upload order
         /// загрузить ордер
         /// </summary>
         private void LoadOrder()
         {
-            // разбираем сообщение
+            // parse message / разбираем сообщение
             int msgVersion = TcpReadInt();
             int id = TcpReadInt();
             string status = TcpReadString();
@@ -1271,7 +1318,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
 
             // parent.Wrapper.orderStatus(id, status, filled, remaining, avgFillPrice, permId, parentId, lastFillPrice, clientId, whyHeld);
 
-            // комплектуем ордер
+            // complect order / комплектуем ордер
 
             if (_orders == null)
             {
@@ -1338,7 +1385,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             if (status == "Filled" &&
                 osOrder.VolumeExecute != newOsOrder.VolumeExecute)
             {
-                // надо сгенерить мои трейды
+                // need to generate my trades / надо сгенерить мои трейды
 
                 decimal volume = newOsOrder.VolumeExecute - osOrder.VolumeExecute;
 
@@ -1384,6 +1431,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// upload error
         /// загрузить ошибку
         /// </summary>
         private void LoadError()
@@ -1399,6 +1447,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// upload contract specification 
         /// загрузить спецификацию по контракту
         /// </summary>
         private void LoadContractData()
@@ -1478,6 +1527,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// clear message about the new opened order
         /// очистить сообщение о только что открытом ордере
         /// </summary>
         private void ClearOpenOrder()
@@ -1608,6 +1658,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// clear the message about execution
         /// очистить сообщение об исполнении 
         /// </summary>
         private void ClearExecutionData()
@@ -1676,6 +1727,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// clear the message about commissions
         /// очистить сообщение о комиссиях
         /// </summary>
         private void ClearCommissionReport()
@@ -1691,63 +1743,75 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// order list
         /// список ордеров
         /// </summary>
         private List<Order> _orders;
 
         /// <summary>
+        /// my trades list
         /// список созданных моих трейдов
         /// </summary>
         private List<MyTradeCreate> _myTradeCreate;
 
         /// <summary>
+        /// event row updates in depth
         /// событие обновления строки в стакане
         /// </summary>
         public event Action<int, int, int, int, decimal, int> NewMarketDepth;
 
         /// <summary>
+        /// new portfolio position
         /// новая позиция по портфелю
         /// </summary>
         public event Action<SecurityIb, string, int> NewPortfolioPosition;
 
         /// <summary>
+        /// new trade
         /// новый трейд
         /// </summary>
         public event Action<Trade> NewTradeEvent;
 
         /// <summary>
+        /// new order in the system
         /// новый ордер в системе
         /// </summary>
         public event Action<Order> NewOrderEvent;
 
         /// <summary>
+        /// my new trade in the system
         /// новая моя сделка в системе
         /// </summary>
         public event Action<MyTrade> NewMyTradeEvent;
 
         /// <summary>
+        /// new security in the system
         /// новая бумага в системе
         /// </summary>
         public event Action<SecurityIb> NewContractEvent;
 
         /// <summary>
+        /// new portfolio state
         /// новое состояние портфеля
         /// </summary>
         public event Action<string, decimal> NewAccauntValue;
 
         /// <summary>
+        /// successfully connected to TWS server
         /// успешно подключились к серверу TWS
         /// </summary>
         public event Action ConnectionSucsess;
 
         /// <summary>
+        /// connection to TWS server lost
         /// соединение с TWS разорвано
         /// </summary>
         public event Action ConnectionFail;
 
-// логирование работы
+// logging / логирование работы
 
         /// <summary>
+        /// add a new log message
         /// добавить в лог новое сообщение
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
@@ -1759,6 +1823,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
 
         /// <summary>
+        /// outgoing log message
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;

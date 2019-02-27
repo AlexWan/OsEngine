@@ -3,6 +3,7 @@
 namespace OsEngine.Market.Servers.Lmax.LmaxEntity
 {
     /// <summary>
+	/// dictionary of error
     /// словарь ошибок
     /// </summary>
     public class RejectReasons

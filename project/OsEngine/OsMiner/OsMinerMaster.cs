@@ -1,5 +1,6 @@
 ﻿/*
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -18,18 +19,20 @@ using OsEngine.OsMiner.Patterns;
 namespace OsEngine.OsMiner
 {
     /// <summary>
+    /// pattern set manager
     /// менеджер сетов паттернов
     /// </summary>
     public class OsMinerMaster
     {
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="hostLog">хост для лога</param>
-        /// <param name="hostSets">хост для сетов паттернов</param>
-        /// <param name="hostPatternsInSet">хост для паттернов  внутри сетов</param>
-        /// <param name="hostChart">хост для прорисовки чарта</param>
-        /// <param name="rectChart">обрамления для чарта</param>
+        /// <param name="hostLog">log host/хост для лога</param>
+        /// <param name="hostSets">pattern set host/хост для сетов паттернов</param>
+        /// <param name="hostPatternsInSet">host for patterns within sets/хост для паттернов  внутри сетов</param>
+        /// <param name="hostChart">chart drawing host/хост для прорисовки чарта</param>
+        /// <param name="rectChart">frames for charts/обрамления для чарта</param>
         public OsMinerMaster(
             WindowsFormsHost hostLog, 
             WindowsFormsHost hostSets,
@@ -60,6 +63,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// create a new set of patterns
         /// создать новый сет паттернов
         /// </summary>
         public void CreateSet()
@@ -80,7 +84,7 @@ namespace OsEngine.OsMiner
                 return;
             }
 
-            // запрещённые символы: # * ? % ^ ;
+            // forbidden symbols: # * ? % ^/запрещённые символы: # * ? % ^ ;
 
             if (set.Name.IndexOf('#') > -1 ||
                 set.Name.IndexOf('*') > -1 ||
@@ -105,6 +109,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// incoming event that you need to resave everything
         /// входящее событие о том что нужно всё пересохранить
         /// </summary>
         void set_NeadToSaveEvent()
@@ -113,6 +118,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// delete active pattern set
         /// удалить активный сет паттернов
         /// </summary>
         public void DeleteSet()
@@ -140,6 +146,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// move the graph to the right, to the first pattern encountered
         /// переместить график вправо, до первого встречанного паттерна
         /// </summary>
         public void GoRight()
@@ -153,6 +160,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// move the graph to the left, to the first pattern encountered
         /// переместить график влево, до первого встречанного паттерна
         /// </summary>
         public void GoLeft()
@@ -166,6 +174,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// load patterns from file system
         /// загрузить сеты паттернов из файловой системы
         /// </summary>
         private void Load()
@@ -203,11 +212,12 @@ namespace OsEngine.OsMiner
             }
             catch (Exception)
             {
-                // отправить в лог
+                // send to log
             }
         }
 
         /// <summary>
+        /// save patterns to file system
         /// сохранить сеты паттернов в  файловую ситему
         /// </summary>
         private void Save()
@@ -229,11 +239,12 @@ namespace OsEngine.OsMiner
             }
             catch (Exception)
             {
-                // отправить в лог
+                // send to log
             }
         }
 
         /// <summary>
+        /// pattern set
         /// набор сетов паттернов
         /// </summary>
         public List<OsMinerSet> Sets = new List<OsMinerSet>();
@@ -277,19 +288,22 @@ namespace OsEngine.OsMiner
             return names;
         }
 
-// прорисовка таблицы с сетами
+// drawing a table with sets/прорисовка таблицы с сетами
 
         /// <summary>
+        /// table with sets of patterns
         /// таблица с сетами паттернов
         /// </summary>
         private DataGridView _gridSets;
 
         /// <summary>
+        /// host for drawing pattern sets
         /// хост для прорисовки сетов паттернов
         /// </summary>
         private WindowsFormsHost _hostSets;
 
         /// <summary>
+        /// creating a pattern set table
         /// создание таблицы сетов паттернов
         /// </summary>
         private void CreateSetsDataGrid()
@@ -330,6 +344,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// user clicked the pattern set table
         /// пользователь кликнул по таблице сетов паттернов
         /// </summary>
         void _gridSets_MouseClick(object sender, MouseEventArgs mouse)
@@ -364,6 +379,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// the user wants to delete the selected set of patterns
         /// пользователь хочет удалить выделенный  сет паттернов
         /// </summary>
         void OsMinerMasterRemove_Click(object sender, EventArgs e)
@@ -372,6 +388,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// the user wants to add a new set of patterns
         /// пользователь хочет добавить новый сет паттернов
         /// </summary>
         void OsMinerMasterAdd_Click(object sender, EventArgs e)
@@ -380,6 +397,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// the user has clicked on the pattern set table and wants to change the active set
         /// пользователь кликнул по таблице сетов паттернов и хочет сменить активный сет
         /// </summary>
         void _gridSets_Click(object sender, EventArgs e)
@@ -401,6 +419,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// redraw the table with sets of patterns
         /// перерисовать таблицу с сетами паттернов
         /// </summary>
         private void PaintSetsDataGrid()
@@ -422,9 +441,10 @@ namespace OsEngine.OsMiner
             }
         }
 
-// прорисовка таблицы с паттернами сета
+// drawing a table with set patterns/прорисовка таблицы с паттернами сета
 
         /// <summary>
+        /// active pattern set number
         /// активный номер сета паттернов
         /// </summary>
         public int ActivSetNum
@@ -447,21 +467,25 @@ namespace OsEngine.OsMiner
         private int _activSetNumber;
 
         /// <summary>
+        /// host for drawing patterns in the set
         /// хост для прорисовки паттернов в сете
         /// </summary>
         private WindowsFormsHost _hostPatternsInSet;
 
         /// <summary>
+        /// chart drawing host
         /// хост для прорисовки чарта
         /// </summary>
         private WindowsFormsHost _hostChart;
 
         /// <summary>
+        /// rectangular area under the chart
         /// прямоугольная область под чартом
         /// </summary>
         private System.Windows.Shapes.Rectangle _rectChart;
 
         /// <summary>
+        /// draw an active set of patterns on GUI
         /// прорисовать на ГУЕ активный сет паттернов
         /// </summary>
         private void PaintActivSet()
@@ -479,9 +503,10 @@ namespace OsEngine.OsMiner
             Sets[ActivSetNum].Paint(_hostPatternsInSet, _hostChart, _rectChart);
         }
 
-// сообщения для лога
+// messages for log/сообщения для лога
 
         /// <summary>
+        /// send a new message to the top
         /// выслать новое сообщение на верх
         /// </summary>
         private void SendNewLogMessage(string message, LogMessageType type)
@@ -497,6 +522,7 @@ namespace OsEngine.OsMiner
         }
 
         /// <summary>
+        /// outgoing message for log
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
