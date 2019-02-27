@@ -11,22 +11,26 @@ using TextBox = System.Windows.Forms.TextBox;
 namespace OsEngine.Charts.CandleChart.Indicators
 {
     /// <summary>
+    /// Interaction logic  for PivotUi.xaml
     /// Логика взаимодействия для PivotUi.xaml
     /// </summary>
     public partial class PivotUi
     {
-      
+
         /// <summary>
+        /// indicator
         /// индикатор
         /// </summary>
         private Pivot _pivot;
 
         /// <summary>
+        /// whether indicator settings have been changed
         /// изменялись ли настройки индикатора
         /// </summary>
         public bool IsChange;
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
         public PivotUi(Pivot pivot)
@@ -66,6 +70,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// accept button
         /// кнопка принять
         /// </summary>
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)

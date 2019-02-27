@@ -12,24 +12,28 @@ using MessageBox = System.Windows.MessageBox;
 namespace OsEngine.Charts.CandleChart.Indicators
 {
     /// <summary>
+    /// Interaction logic for RsiUi.xaml
     /// Логика взаимодействия для RsiUi.xaml
     /// </summary>
     public partial class RsiUi 
     {
         /// <summary>
+        /// indicator that we're setting up
         /// индикатор который мы настраиваем
         /// </summary>
-        private Rsi _rsi; 
+        private Rsi _rsi;
 
         /// <summary>
+        /// whether indicator settings have been changed
         /// изменялись ли настройки
         /// </summary>
         public bool IsChange;
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="rsi">индикатор который будем настраивать</param>
+        /// <param name="rsi">configuration indicator/индикатор который будем настраивать</param>
         public RsiUi(Rsi rsi)
         {
             InitializeComponent();
@@ -45,6 +49,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// accept button
         /// кнопка принять
         /// </summary>
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
@@ -71,6 +76,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// color setting button
         /// кнопка далее выбор цвета
         /// </summary>
         private void ButtonColor_Click(object sender, RoutedEventArgs e)

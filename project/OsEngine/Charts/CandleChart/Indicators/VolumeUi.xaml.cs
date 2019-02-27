@@ -11,12 +11,13 @@ using TextBox = System.Windows.Forms.TextBox;
 namespace OsEngine.Charts.CandleChart.Indicators
 {
     /// <summary>
+    /// Interaction logic  for VolumeUi.xaml
     /// Логика взаимодействия для VolumeUi.xaml
     /// </summary>
     public partial class VolumeUi
     {
-        private Volume _volume; // фрактал
-      public VolumeUi(Volume fractail) // конструктор
+        private Volume _volume; // fractal//фрактал
+      public VolumeUi(Volume fractail) // constructor//конструктор
         {
             InitializeComponent();
             _volume = fractail;
@@ -27,7 +28,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
         }
 
-        private void ShowSettingsOnForm()// выгрузить настройки на форму
+        private void ShowSettingsOnForm()//upload the settings to form// выгрузить настройки на форму
         {
             HostColorUp.Child = new TextBox();
             HostColorUp.Child.BackColor = _volume.ColorUp;
@@ -36,7 +37,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             HostColorDown.Child.BackColor = _volume.ColorDown;
         }
 
-        private void ButtonAccept_Click(object sender, RoutedEventArgs e) // принять
+        private void ButtonAccept_Click(object sender, RoutedEventArgs e) //accept// принять
         {
             _volume.ColorUp = HostColorUp.Child.BackColor;
             _volume.ColorDown = HostColorDown.Child.BackColor;

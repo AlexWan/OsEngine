@@ -13,15 +13,18 @@ namespace OsEngine.Charts.CandleChart.Indicators
 {
 
     /// <summary>
-    /// MACD Histogram. Moving Average Convergence Divergence. Индикатор для анализа схождения-расхождения скользящих средних, в виде Гистограммы
+    /// MACD Histogram. Moving Average Convergence Divergence.
+    /// Indicator for analysis of convergence and divergence of moving averages in the form of Histogram
+    /// Индикатор для анализа схождения-расхождения скользящих средних, в виде Гистограммы
     /// </summary>
     public class MacdHistogram: IIndicatorCandle
     {
         /// <summary>
-        /// конструктор с уникальным именем. Индикатор будет сохраняться
+        /// constructor
+        /// конструктор
         /// </summary>
-        /// <param name="uniqName">уникальное имя</param>
-        /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
+        /// <param name="uniqName">unique name/уникальное имя</param>
+        /// <param name="canDelete">whether user can remove indicator from chart manually/можно ли пользователю удалить индикатор с графика вручную</param>
         public MacdHistogram(string uniqName,bool canDelete)
         {
             Name = uniqName;
@@ -47,15 +50,15 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
-        /// конструктор с уникальным именем. Индикатор не будет сохраняться
-        /// используется ТОЛЬКО для создания составных индикаторов
-        /// не используйте его из слоя создания роботов!
+        /// constructor without parameters.Indicator will not saved/конструктор без параметров. Индикатор не будет сохраняться
+        /// used ONLY to create composite indicators/используется ТОЛЬКО для создания составных индикаторов
+        /// Don't use it from robot creation layer/не используйте его из слоя создания роботов!
         /// </summary>
-        /// <param name="uniqName">уникальное имя</param>
-        /// <param name="movingShort">короткий мувинг</param>
-        /// <param name="movingLong">длинный мувинг</param>
-        /// <param name="movingSignal">сигнальный мувинг</param>
-        /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
+        /// <param name="uniqName">unique name/уникальное имя</param>
+        /// <param name="movingShort">short moving average/короткий мувинг</param>
+        /// <param name="movingLong">long moving average/длинный мувинг</param>
+        /// <param name="movingSignal">signal ma/сигнальный мувинг</param>
+        /// <param name="canDelete">whether user can remove indicator from chart manually/можно ли пользователю удалить индикатор с графика вручную</param>
         public MacdHistogram(string uniqName, MovingAverage movingShort, MovingAverage movingLong, MovingAverage movingSignal, bool canDelete)
         {
             Name = uniqName;
@@ -76,11 +79,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
-        /// конструктор без параметров. Индикатор не будет сохраняться
-        /// используется ТОЛЬКО для создания составных индикаторов
-        /// не используйте его из слоя создания роботов!
+        /// constructor without parameters.Indicator will not saved/конструктор без параметров. Индикатор не будет сохраняться
+        /// used ONLY to create composite indicators/используется ТОЛЬКО для создания составных индикаторов
+        /// Don't use it from robot creation layer/не используйте его из слоя создания роботов!
         /// </summary>
-        /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
+        /// <param name="canDelete">whether user can remove indicator from chart manually/можно ли пользователю удалить индикатор с графика вручную</param>
         public MacdHistogram(bool canDelete)
         {
             Name = Guid.NewGuid().ToString();
@@ -96,6 +99,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// all indicator values
         /// все значения индикатора
         /// </summary>
         List<List<decimal>> IIndicatorCandle.ValuesToChart
@@ -109,6 +113,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// indicator colors
         /// цвета для индикатора
         /// </summary>
         List<Color> IIndicatorCandle.Colors
@@ -124,22 +129,25 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
-        /// можно ли удалить индикатор с графика. Это нужно для того чтобы у роботов нельзя было удалить 
-        /// индикаторы которые ему нужны в торговле
+        /// whether indicator can be removed from chart. This is necessary so that robots can't be removed /можно ли удалить индикатор с графика. Это нужно для того чтобы у роботов нельзя было удалить 
+        /// indicators he needs in trading/индикаторы которые ему нужны в торговле
         /// </summary>
         public bool CanDelete { get; set; }
 
         /// <summary>
+        /// indicator drawing type
         /// тип прорисовки индикатора
         /// </summary>
         public IndicatorOneCandleChartType TypeIndicator { get; set; }
 
         /// <summary>
+        /// name of data series on which indicator will be drawn
         /// имя серии данных на которой будет прорисован индикатор
         /// </summary>
         public string NameSeries { get; set; }
 
         /// <summary>
+        /// name of data area where indicator will be drawn
         /// имя области данных на которой будет прорисовываться индикатор
         /// </summary>
         public string NameArea { get; set; }
@@ -150,26 +158,31 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public List<decimal> Values { get; set; }
 
         /// <summary>
+        /// unique indicator name
         /// уникальное имя индикатора
         /// </summary>
         public string Name { get; set; }
 
         /// <summary>
+        /// growing column color
         /// цвет растущего столбика
         /// </summary>
         public Color ColorUp { get; set; }
 
         /// <summary>
+        /// falling column color
         /// цвет падуещего столбца
         /// </summary>
         public Color ColorDown { get; set; }
 
         /// <summary>
+        /// is indicator tracing enabled
         /// включена ли прорисовка индикатора
         /// </summary>
         public bool PaintOn { get; set; }
 
         /// <summary>
+        /// save settings to file
         /// сохранить настройки в файл
         /// </summary>
         public void Save()
@@ -194,11 +207,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
             catch (Exception)
             {
+                // send to log
                 // отправить в лог
             }
         }
 
         /// <summary>
+        /// upload settings from file
         /// загрузить настройки из файла
         /// </summary>
         public void Load()
@@ -224,11 +239,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
             catch (Exception)
             {
+                // send to log
                 // отправить в лог
             }
         }
 
         /// <summary>
+        /// delete file with settings
         /// удалить файл с настройками
         /// </summary>
         public void Delete()
@@ -243,6 +260,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// delete data
         /// удалить данные
         /// </summary>
         public void Clear()
@@ -255,6 +273,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// display settings window
         /// показать окно с настройками
         /// </summary>
         public void ShowDialog()
@@ -269,6 +288,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// reload indicator
         /// перезагрузить индикатор
         /// </summary>
         public void Reload()
@@ -286,6 +306,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// show short ma settings
         /// показать настройки короткой машки
         /// </summary>
         public void ShowMaShortDialog()
@@ -301,6 +322,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// show long ma settings
         /// показать настройки длинной машки
         /// </summary>
         public void ShowMaLongDialog()
@@ -316,6 +338,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// show settings of signal MA
         /// показать настройки сигнальной машки
         /// </summary>
         public void ShowMaSignalDialog()
@@ -329,35 +352,40 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 NeadToReloadEvent(this);
             }
         }
-
+        // calculating
         // расчёт
 
         /// <summary>
+        /// candles to calculate indicator
         /// свечи для рассчёта индикатора
         /// </summary>
         private List<Candle> _myCandles;
 
         /// <summary>
+        /// short ma
         /// короткая машка
         /// </summary>
         private MovingAverage _maShort;
 
         /// <summary>
+        /// long ma
         /// длинная машка
         /// </summary>
         private MovingAverage _maLong;
 
         /// <summary>
+        /// signal ma
         /// сигнальная машка
         /// </summary>
         private MovingAverage _maSignal;
 
-        private List<decimal> _macd; 
+        private List<decimal> _macd;
 
         /// <summary>
+        /// calculate indicator
         /// рассчитать индикатор
         /// </summary>
-        /// <param name="candles">свечи</param>
+        /// <param name="candles">candles/свечи</param>
         public void Process(List<Candle> candles)
         {
             _myCandles = candles;
@@ -385,11 +413,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// indicator needs to be redrawn
         /// индикатор нужно перерисовать
         /// </summary>
         public event Action<IIndicatorCandle> NeadToReloadEvent;
 
         /// <summary>
+        /// load only last candle
         /// прогрузить только последнюю свечку
         /// </summary>
         private void ProcessOne(List<Candle> candles)
@@ -415,6 +445,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// to upload from the beginning
         /// прогрузить с самого начала
         /// </summary>
         private void ProcessAll(List<Candle> candles)
@@ -443,6 +474,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// overload last value
         /// перегрузить последнее значение
         /// </summary>
         private void ProcessLast(List<Candle> candles)
@@ -457,10 +489,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// take indicator value by index
         /// взять значение индикатора по индексу
         /// </summary>
-        /// <param name="index">индекс</param>
-        /// <returns>значение индикатора по индексу</returns>
+        /// <param name="index">index/индекс</param>
+        /// <returns>index value/значение индикатора по индексу</returns>
         private decimal GetMacd(int index)
         {
             if (_maShort == null || _maShort.Values[index] == 0 ||

@@ -11,21 +11,25 @@ using TextBox = System.Windows.Forms.TextBox;
 namespace OsEngine.Charts.CandleChart.Indicators
 {
     /// <summary>
+    /// Interaction logic  for MacdLineUi.xaml
     /// Логика взаимодействия для MacdLineUi.xaml
     /// </summary>
     public partial class MacdLineUi
     {
         /// <summary>
+        /// indicator
         /// индикатор
         /// </summary>
-        private MacdLine _macd; 
-         
+        private MacdLine _macd;
+
         /// <summary>
+        /// whether indicator settings have been changed
         /// изменялись ли настройки индикатора
         /// </summary>
         public bool IsChange;
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
         public MacdLineUi(MacdLine macd)
@@ -47,6 +51,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// accept button
         /// кнопка принять
         /// </summary>
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)

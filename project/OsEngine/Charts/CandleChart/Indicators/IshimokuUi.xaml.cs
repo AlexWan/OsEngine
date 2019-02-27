@@ -15,24 +15,28 @@ namespace OsEngine.Charts.CandleChart.Indicators
 {
 
     /// <summary>
+    /// Interaction logic  for IshimokuUi.xaml
     /// Логика взаимодействия для IshimokuUi.xaml
     /// </summary>
     public partial class IshimokuUi
     {
         /// <summary>
+        /// indicator
         /// индикатор
         /// </summary>
         private Ichimoku _ishimoku;
 
         /// <summary>
+        /// whether indicator settings have been changed
         /// изменились ли настройки индикатора
         /// </summary>
         public bool IsChange;
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="ishimoku">индикатор который будем настраивать</param>
+        /// <param name="ishimoku">configuration indicator/индикатор который будем настраивать</param>
         public IshimokuUi(Ichimoku ishimoku)
         {
             InitializeComponent();
@@ -74,6 +78,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// accept button
         /// кнопка принять
         /// </summary>
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
