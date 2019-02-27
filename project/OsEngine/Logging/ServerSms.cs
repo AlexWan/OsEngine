@@ -1,4 +1,5 @@
 ﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -10,15 +11,21 @@ using System.Text;
 namespace OsEngine.Logging
 {
     /// <summary>
+    /// SMS messaging server
     /// сервер рассылки смс сообщений
     /// </summary>
     public class ServerSms
     {
+        // singleton
         // синглетон
 
-        private static ServerSms _server; // сервер в одном экземпляре
+        /// <summary>
+        /// single server
+        /// сервер в одном экземпляре
+        /// </summary>
+        private static ServerSms _server;
 
-        public static ServerSms GetSmsServer() // синглетон
+        public static ServerSms GetSmsServer() // singleton / синглетон
         {
             if (_server == null)
             {
@@ -27,14 +34,19 @@ namespace OsEngine.Logging
             return _server;
         }
 
+        // service
         // сервис
 
-        private ServerSms() // конструктор
+        private ServerSms() // constructor / конструктор
         {
             Load();
         }
 
-        private void Load() // загрузить
+        /// <summary>
+        /// upload
+        /// загрузить
+        /// </summary>
+        private void Load()
         {
             if (File.Exists(@"Engine\smsSet.txt"))
             {
@@ -49,7 +61,11 @@ namespace OsEngine.Logging
 
         }
 
-        public void Save() // сохранить
+        /// <summary>
+        /// save
+        /// сохранить
+        /// </summary>
+        public void Save()
         {
             StreamWriter writer = new StreamWriter(@"Engine\smsSet.txt");
             writer.WriteLine(SmscLogin);
@@ -59,28 +75,33 @@ namespace OsEngine.Logging
             writer.Close();
         }
 
-        public void ShowDialog() // показать меню
+        /// <summary>
+        /// show menu
+        /// показать меню
+        /// </summary>
+        public void ShowDialog()
         {
             ServerSmsUi ui = new ServerSmsUi();
             ui.ShowDialog();
         }
 
-
+        // send parameters
         // Параметры отправки
-        public string SmscLogin = "login";		    // логин клиента
-        public string SmscPassword = "password";	// пароль или MD5-хеш пароля в нижнем регистре
-        public bool SmscPost;				        // использовать метод POST
-        public bool SmscHttps = false;				// использовать HTTPS протокол
-        public string SmscCharset = "utf-8";        // кодировка сообщения (windows-1251 или koi8-r), по умолчанию используется utf-8
-        public bool SmscDebug = false;				// флаг отладки
+        public string SmscLogin = "login";		    // client login / логин клиента
+        public string SmscPassword = "password";	// password or MD5-hash of password to lower / пароль или MD5-хеш пароля в нижнем регистре
+        public bool SmscPost;				        // shows whether the POST method uses / использовать метод POST
+        public bool SmscHttps = false;				// shows whether the HTTPS protocol uses / использовать HTTPS протокол
+        public string SmscCharset = "utf-8";        // message encoding (windows-1251 or koi8-r), default value is utf-8 / кодировка сообщения (windows-1251 или koi8-r), по умолчанию используется utf-8
+        public bool SmscDebug = false;				// flag of Debug / флаг отладки
         public string[][] D2Res;
 
         public string Phones;
 
         /// <summary>
+        /// send message
         /// отправить сообщение
         /// </summary>
-        /// <param name="message"></param>
+        /// <param name="message"> message / сообщение </param>
         public void Send(string message)
         {
             if (string.IsNullOrWhiteSpace(message) || string.IsNullOrWhiteSpace(Phones))
@@ -121,7 +142,7 @@ namespace OsEngine.Logging
             return m;
         }
 
-
+        // Calling request method. Generates URL and makes 3 attempts to read
         // Метод вызова запроса. Формирует URL и делает 3 попытки чтения
 
         private string[] _smsc_send_cmd(string cmd, string arg, string[] files = null)
@@ -253,7 +274,7 @@ namespace OsEngine.Logging
                 if (SmscDebug)
                     _print_debug("Ошибка чтения адреса: " + url);
 
-                ret = ","; // фиктивный ответ
+                ret = ","; // bogus response / фиктивный ответ
             }
 
             char delim = ',';
@@ -266,7 +287,7 @@ namespace OsEngine.Logging
                 {
                     string[] lr = par[i].Split("=".ToCharArray(), 2);
 
-                    if (lr[0] == "id" && lr[1].IndexOf("%2c") > 0) // запятая в id - множественный запрос
+                    if (lr[0] == "id" && lr[1].IndexOf("%2c") > 0) // comma in id - multiple request / запятая в id - множественный запрос
                         delim = '\n';
                 }
             }
@@ -274,6 +295,7 @@ namespace OsEngine.Logging
             return ret.Split(delim);
         }
 
+        // parameter coding in http-request
         // кодирование параметра в http-запросе
         private string _urlencode(string str) {
             if (SmscPost) return str;
@@ -281,6 +303,7 @@ namespace OsEngine.Logging
             return WebUtility.UrlEncode(str);
         }
 
+        // join byte arrays
         // объединение байтовых массивов
         private byte[] _concatb(byte[] farr, byte[] sarr)
         {
@@ -292,6 +315,7 @@ namespace OsEngine.Logging
             return farr;
         }
 
+        // print debug information
         // вывод отладочной информации
         private void _print_debug(string str) {
             System.Windows.Forms.MessageBox.Show(str);

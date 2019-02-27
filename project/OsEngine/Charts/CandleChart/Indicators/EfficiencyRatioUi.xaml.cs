@@ -13,24 +13,28 @@ using TextBox = System.Windows.Forms.TextBox;
 namespace OsEngine.Charts.CandleChart.Indicators
 {
     /// <summary>
+    /// Interaction logic  for EfficiencyRatioUi.xaml
     /// Логика взаимодействия для EfficiencyRatioUi.xaml
     /// </summary>
     public partial class EfficiencyRatioUi 
     {
-       /// <summary>
+        /// <summary>
+        /// indicator
         /// индикатор
         /// </summary>
-        private EfficiencyRatio _eR; 
-         
+        private EfficiencyRatio _eR;
+
         /// <summary>
+        /// whether indicator settings have been changed
         /// изменялись ли настройки индикатора
         /// </summary>
         public bool IsChange;
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="eR">индикатор для настроек</param>
+        /// <param name="eR">configuration indicator/индикатор для настроек</param>
         public EfficiencyRatioUi(EfficiencyRatio eR)
         {
             InitializeComponent();
@@ -51,6 +55,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// accept button
         /// кнопка принять
         /// </summary>
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
@@ -79,6 +84,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// color setting button
         /// кнопка настроить цвет
         /// </summary>
         private void ButtonColor_Click(object sender, RoutedEventArgs e)

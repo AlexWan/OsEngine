@@ -13,24 +13,28 @@ using TextBox = System.Windows.Forms.TextBox;
 namespace OsEngine.Charts.CandleChart.Indicators
 {
     /// <summary>
+    /// Interaction logic  for RVIUi.xaml
     /// Логика взаимодействия для RVIUi.xaml
     /// </summary>
     public partial class RviUi
     {
         /// <summary>
+        /// indicator
         /// индикатор
         /// </summary>
         private Rvi _rvi;
 
         /// <summary>
+        /// whether indicator settings have been changed
         /// изменялись ли настройки индикатора
         /// </summary>
         public bool IsChange;
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="rvi">индикатор для настроек</param>
+        /// <param name="alb">configuration indicator/индикатор для настроек</param>
         public RviUi(Rvi rvi)
         {
             InitializeComponent();
@@ -52,6 +56,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// accept button
         /// кнопка принять
         /// </summary>
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
@@ -83,6 +88,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// color setting button
         /// кнопка настроить цвет
         /// </summary>
         private void ButtonColor_Click(object sender, RoutedEventArgs e)

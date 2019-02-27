@@ -4,6 +4,7 @@ using System.Globalization;
 namespace OsEngine.Market.Servers.Entity
 {
     /// <summary>
+    /// server parameters
     /// параметр для сервера
     /// </summary>
     public interface IServerParameter
@@ -20,6 +21,7 @@ namespace OsEngine.Market.Servers.Entity
     }
 
     /// <summary>
+    /// parameter type for server
     /// тип параметра для сервера
     /// </summary>
     public enum ServerParameterType
@@ -33,6 +35,7 @@ namespace OsEngine.Market.Servers.Entity
     }
 
     /// <summary>
+    /// string server parameter
     /// строковый параметр сервера
     /// </summary>
     public class ServerParameterString : IServerParameter
@@ -85,6 +88,7 @@ namespace OsEngine.Market.Servers.Entity
     }
 
     /// <summary>
+    /// decimal server parameter
     /// децимал параметр сервера
     /// </summary>
     public class ServerParameterDecimal : IServerParameter
@@ -137,6 +141,7 @@ namespace OsEngine.Market.Servers.Entity
     }
 
     /// <summary>
+    /// int server parameter
     /// интовый параметр сервера
     /// </summary>
     public class ServerParameterInt : IServerParameter
@@ -189,6 +194,7 @@ namespace OsEngine.Market.Servers.Entity
     }
 
     /// <summary>
+    /// bool server parameter
     /// белевый параметр сервера
     /// </summary>
     public class ServerParameterBool : IServerParameter
@@ -241,6 +247,7 @@ namespace OsEngine.Market.Servers.Entity
     }
 
     /// <summary>
+    /// password server parameter
     /// парольный параметр сервера
     /// </summary>
     public class ServerParameterPassword : IServerParameter
@@ -293,6 +300,7 @@ namespace OsEngine.Market.Servers.Entity
     }
 
     /// <summary>
+    /// path to file server parameter
     /// путь к папке параметр сервера
     /// </summary>
     public class ServerParameterPath : IServerParameter
@@ -337,7 +345,7 @@ namespace OsEngine.Market.Servers.Entity
             System.Windows.Forms.FolderBrowserDialog myDialog = new System.Windows.Forms.FolderBrowserDialog();
             myDialog.ShowDialog();
 
-            if (myDialog.SelectedPath != "") // если хоть что-то выбрано
+            if (myDialog.SelectedPath != "") // if anything is selected / если хоть что-то выбрано
             {
                 Value = myDialog.SelectedPath;
             }

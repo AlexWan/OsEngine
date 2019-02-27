@@ -10,24 +10,28 @@ using OsEngine.Language;
 namespace OsEngine.Charts.CandleChart.Indicators
 {
     /// <summary>
+    /// Interaction logic  for FractalUi.xaml
     /// Логика взаимодействия для FractalUi.xaml
     /// </summary>
     public partial class FractalUi
     {
         /// <summary>
+        /// indicator that we're setting up
         /// индикатор который мы настраиваем
         /// </summary>
         private Fractal _fractail;
 
         /// <summary>
+        /// whether indicator settings have been changed
         /// изменились ли настройки
         /// </summary>
         public bool IsChange;
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="fractail">индикатор для настройки</param>
+        /// <param name="fractail">configuration indicator/индикатор для настройки</param>
         public FractalUi(Fractal fractail) 
         {
             InitializeComponent();
@@ -47,6 +51,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// accept button
         /// кнопка принять
         /// </summary>
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
@@ -59,6 +64,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// top points color button
         /// кнопка цвет верхних точек
         /// </summary>
         private void ButtonColorUp_Click(object sender, RoutedEventArgs e)
@@ -71,6 +77,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// button points color button
         /// кнопка цвет нижних точек
         /// </summary>
         private void ButtonColorDown_Click(object sender, RoutedEventArgs e)

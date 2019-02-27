@@ -14,16 +14,19 @@ namespace OsEngine.Charts.CandleChart.Indicators
     public class StochasticOscillator : IIndicatorCandle
     {
         /// <summary>
+        /// Period 1
         /// Переод 1
         /// </summary>
         public int P1;
 
         /// <summary>
+        /// period 2
         /// Период 2
         /// </summary>
         public int P2;
 
         /// <summary>
+        /// period 3
         /// период 3
         /// </summary>
         public int P3;
@@ -31,10 +34,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public MovingAverageTypeCalculation TypeCalculationAverage;
 
         /// <summary>
+        /// constructor with parameters. Indicator will be saved
         /// конструктор с параметрами. Индикатор будет сохраняться
         /// </summary>
-        /// <param name="uniqName">уникальное имя</param>
-        /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
+        /// <param name="uniqName">unique name/уникальное имя</param>
+        /// <param name="canDelete">whether user can remove indicator from chart manually/можно ли пользователю удалить индикатор с графика вручную</param>
         public StochasticOscillator(string uniqName, bool canDelete)
         {
             Name = uniqName;
@@ -51,11 +55,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
-        /// конструктор без параметров. Индикатор не будет сохраняться
-        /// используется ТОЛЬКО для создания составных индикаторов
-        /// не используйте его из слоя создания роботов!
+        /// constructor without parameters.Indicator will not saved/конструктор без параметров. Индикатор не будет сохраняться
+        /// used ONLY to create composite indicators/используется ТОЛЬКО для создания составных индикаторов
+        /// Don't use it from robot creation layer/не используйте его из слоя создания роботов!
         /// </summary>
-        /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
+        /// <param name="canDelete">whether user can remove indicator from chart manually/можно ли пользователю удалить индикатор с графика вручную</param>
         public StochasticOscillator(bool canDelete)
         {
             Name = Guid.NewGuid().ToString();
@@ -73,6 +77,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// all indicator values
         /// все значения индикатора
         /// </summary>
         List<List<decimal>> IIndicatorCandle.ValuesToChart
@@ -87,6 +92,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// indicator colors
         /// цвета для индикатора
         /// </summary>
         List<Color> IIndicatorCandle.Colors
@@ -102,59 +108,69 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
-        /// можно ли удалить индикатор с графика. Это нужно для того чтобы у роботов нельзя было удалить 
-        /// индикаторы которые ему нужны в торговле
+        /// whether indicator can be removed from chart. This is necessary so that robots can't be removed /можно ли удалить индикатор с графика. Это нужно для того чтобы у роботов нельзя было удалить 
+        /// indicators he needs in trading/индикаторы которые ему нужны в торговле
         /// </summary>
         public bool CanDelete { get; set; }
 
         /// <summary>
+        /// indicator drawing type
         /// тип прорисовки индикатора
         /// </summary>
         public IndicatorOneCandleChartType TypeIndicator { get; set; }
 
         /// <summary>
+        /// name of data series on which indicator will be drawn
         /// имя серии данных на которой будет прорисован индикатор
         /// </summary>
         public string NameSeries { get; set; }
 
         /// <summary>
+        /// name of data area where indicator will be drawn
         /// имя области данных на которой будет прорисовываться индикатор
         /// </summary>
         public string NameArea { get; set; }
 
         /// <summary>
+        /// empty
         /// пусто
         /// </summary>
         public List<decimal> ValuesUp
         { get; set; }
 
         /// <summary>
+        /// empty
         /// пусто
         /// </summary>
         public List<decimal> ValuesDown
         { get; set; }
 
         /// <summary>
+        /// unique indicator name
         /// уникальное имя индикатора
         /// </summary>
         public string Name { get; set; }
 
         /// <summary>
+        /// color of central data series (not used)
         /// цвет верхней серии данных (не используется)
         /// </summary>
         public Color ColorUp { get; set; }
 
         /// <summary>
+        /// color of lower data series(not used)
         /// цвет нижней серии данных (не используется)
         /// </summary>
         public Color ColorDown { get; set; }
 
         /// <summary>
+        /// is indicator tracing enabled
         /// включена ли прорисовка индикатора
         /// </summary>
         public bool PaintOn { get; set; }
 
         /// <summary>
+        /// save settings to file
         /// сохранить настройки в файл
         /// </summary>
         public void Save()
@@ -182,11 +198,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
             catch (Exception)
             {
+                // send to log
                 // отправить в лог
             }
         }
 
         /// <summary>
+        /// upload settings from file
         /// загрузить настройки из файла
         /// </summary>
         public void Load()
@@ -216,11 +234,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
             catch (Exception)
             {
+                // send to log
                 // отправить в лог
             }
         }
 
         /// <summary>
+        /// delete file with settings
         /// удалить файл с настройками
         /// </summary>
         public void Delete()
@@ -232,6 +252,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// delete data
         /// удалить данные
         /// </summary>
         public void Clear()
@@ -245,6 +266,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// display settings window
         /// показать окно с настройками
         /// </summary>
         public void ShowDialog()
@@ -260,6 +282,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// reload indicator
         /// перезагрузить индикатор
         /// </summary>
         public void Reload()
@@ -278,14 +301,16 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// candles to calculate indicator
         /// свечи для рассчёта индикатора
         /// </summary>
         private List<Candle> _myCandles;
 
         /// <summary>
+        /// calculate indicator
         /// рассчитать индикатор
         /// </summary>
-        /// <param name="candles">свечи</param>
+        /// <param name="candles">candles/свечи</param>
         public void Process(List<Candle> candles)
         {
             _myCandles = candles;
@@ -330,11 +355,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// indicator needs to be redrawn
         /// индикатор нужно перерисовать
         /// </summary>
         public event Action<IIndicatorCandle> NeadToReloadEvent;
 
         /// <summary>
+        /// load only last candle
         /// прогрузить только последнюю свечку
         /// </summary>
         private void ProcessOne(List<Candle> candles)
@@ -364,6 +391,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// to upload from the beginning
         /// прогрузить с самого начала
         /// </summary>
         private void ProcessAll(List<Candle> candles)
@@ -409,6 +437,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// overload last value
         /// перегрузить последнее значение
         /// </summary>
         private void ProcessLast(List<Candle> candles)
@@ -492,69 +521,79 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// to keep the difference Close- Low
         /// для хранения разницы клоуз - лоу
         /// </summary>
         private List<decimal> _t1;
 
         /// <summary>
+        /// to keep the difference High - Low
         /// для хранения разницы хай - лоу
         /// </summary>
         private List<decimal> _t2;
 
         /// <summary>
+        /// ma for smoothing Close - Low
         /// машка для сглаживания клоуз - лоу
         /// </summary>
         private MovingAverage _tM1;
 
         /// <summary>
+        /// ma for smoothing High - low
         /// машка для сглаживания хай - лоу
         /// </summary>
         private MovingAverage _tM2;
 
         /// <summary>
+        /// first line
         /// первая линия
         /// </summary>
         private List<decimal> _k;
 
         /// <summary>
+        /// ma for smoothing K
         /// машкая для сглаживания К
         /// </summary>
         private MovingAverage _kM;
-
-// Три настройки
+        // Three settings
+        // P1 - length of which we look back in time with Low and High // 5
+        // P2 - length of which we average these Low and High         // 3
+        // P3 -  length of which we average last ma                  // 3
+        // Три настройки
         // P1 - длинна на которую мы в прошлое смотрим хаи с лоями // 5
         // P2 - длинна на которую мы эти лои и хаи усредняем       // 3
         // P3 - длинна на которую усредняем последнюю машку        // 3
-
+        // take an array of Highs and Lows
         // берём массив хаёв и лоёв
         //H_tmp[I]=Value(I,"High",ds)
         //L_tmp[I]=Value(I,"Low",ds)
 
-//if I>=P then
+        //if I>=P then
 
-
-// берём максимальный хай и минимальный лой за I-P до I
-//	local HHV = math.max(unpack(H_tmp,I-P+1,I)) 
-//	local LLV = math.min(unpack(L_tmp,I-P+1,I))
- 
+        // taking highest high and lowest low for I-P to I
+        // берём максимальный хай и минимальный лой за I-P до I
+        //	local HHV = math.max(unpack(H_tmp,I-P+1,I)) 
+        //	local LLV = math.min(unpack(L_tmp,I-P+1,I))
+        // 1 calculating  _tkma1 _tkma2
         // 1 рассчитываем _tkma1 _tkma2
 
-//	t_K_MA1[I-P+1] = "Close" - LLV
-//	t_K_MA2[I-P+1] = HHV - LLV
-
+        //	t_K_MA1[I-P+1] = "Close" - LLV
+        //	t_K_MA2[I-P+1] = HHV - LLV
+        // 2 average the values found
         // 2 усредняем найденные значения 
 
-//	local v_K_MA1 = K_MA1(I-P+1, {Period=S, Metod = M, VType="Any", round=R}, t_K_MA1)
-//	local v_K_MA2 = K_MA2(I-P+1, {Period=S, Metod = M, VType="Any", round=R}, t_K_MA2)
+        //	local v_K_MA1 = K_MA1(I-P+1, {Period=S, Metod = M, VType="Any", round=R}, t_K_MA1)
+        //	local v_K_MA2 = K_MA2(I-P+1, {Period=S, Metod = M, VType="Any", round=R}, t_K_MA2)
 
-//	if I>=P+S-1 then
+        //	if I>=P+S-1 then
+        // 3 find first value
         // 3 находим первое значение
-//		t_K[I-(P+S-2)] = 100 * v_K_MA1 / v_K_MA2
-
+        //		t_K[I-(P+S-2)] = 100 * v_K_MA1 / v_K_MA2
+        // 4 averaging and finding last value
         // 4 усредняем и находим последнее значение
-//		return rounding(t_K[I-(P+S-2)], R), rounding(D_MA(I-(P+S-2), {Period=PD, Metod = MD, VType="Any", round=R}, t_K), R),20,80
-//	end
-//end
+        //		return rounding(t_K[I-(P+S-2)], R), rounding(D_MA(I-(P+S-2), {Period=PD, Metod = MD, VType="Any", round=R}, t_K), R),20,80
+        //	end
+        //end
 
     }
 }

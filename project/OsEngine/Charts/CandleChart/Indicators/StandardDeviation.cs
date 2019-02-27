@@ -12,56 +12,66 @@ using OsEngine.Entity;
 namespace OsEngine.Charts.CandleChart.Indicators
 {
     /// <summary>
+    /// Indicator calculation type of moving average
     /// Тип рассчёта индикаторм Скользящая средняя
     /// </summary>
 
     /// <summary>
+    /// what price of candle using when drawing indicator
     /// какая цена свечи берётся при построении
     /// </summary>
     public enum StandardDeviationTypePoints
     {
         /// <summary>
+        /// open
         /// открытие
         /// </summary>
         Open,
 
         /// <summary>
+        /// high
         /// максимум
         /// </summary>
         High,
 
         /// <summary>
+        /// low
         /// минимум
         /// </summary>
         Low,
 
         /// <summary>
+        /// close
         /// закрытие
         /// </summary>
         Close,
 
         /// <summary>
+        /// median. (High + Low) / 2
         /// медиана. (High + Low) / 2
         /// </summary>
         Median,
 
         /// <summary>
+        /// typical price (High + Low + Close) / 3
         /// типичная цена (High + Low + Close) / 3
         /// </summary>
         Typical
     }
 
     /// <summary>
+    /// Standard Deviation indicator
     /// Standard Deviation. Индикатор Среднеквадратическое отклонение
     /// </summary>
     public class StandardDeviation : IIndicatorCandle
     {
 
         /// <summary>
-        /// конструктор с параметрами. Индикатор будет сохранять настройки
+        /// constructor with parameters. Indicator will be saved
+        /// конструктор с параметрами. Индикатор будет сохраняться
         /// </summary>
-        /// <param name="uniqName">уникальное имя</param>
-        /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
+        /// <param name="uniqName">unique name/уникальное имя</param>
+        /// <param name="canDelete">whether user can remove indicator from chart manually/можно ли пользователю удалить индикатор с графика вручную</param>
         public StandardDeviation(string uniqName, bool canDelete)
         {
             Name = uniqName;
@@ -75,11 +85,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
-        /// конструктор без параметров. Индикатор не будет сохраняться
-        /// используется ТОЛЬКО для создания составных индикаторов
-        /// не используйте его из слоя создания роботов!
+        /// constructor without parameters.Indicator will not saved/конструктор без параметров. Индикатор не будет сохраняться
+        /// used ONLY to create composite indicators/используется ТОЛЬКО для создания составных индикаторов
+        /// Don't use it from robot creation layer/не используйте его из слоя создания роботов!
         /// </summary>
-        /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
+        /// <param name="canDelete">whether user can remove indicator from chart manually/можно ли пользователю удалить индикатор с графика вручную</param>
         public StandardDeviation(bool canDelete)
         {
             Name = Guid.NewGuid().ToString();
@@ -92,6 +102,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// all indicator values
         /// все значения индикатора
         /// </summary>
         List<List<decimal>> IIndicatorCandle.ValuesToChart
@@ -105,6 +116,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// indicator colors
         /// цвета для индикатора
         /// </summary>
         List<Color> IIndicatorCandle.Colors
@@ -119,57 +131,67 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
-        /// можно ли удалить индикатор с графика. Это нужно для того чтобы у роботов нельзя было удалить 
-        /// индикаторы которые ему нужны в торговле
+        /// whether indicator can be removed from chart. This is necessary so that robots can't be removed /можно ли удалить индикатор с графика. Это нужно для того чтобы у роботов нельзя было удалить 
+        /// indicators he needs in trading/индикаторы которые ему нужны в торговле
         /// </summary>
         public bool CanDelete { get; set; }
 
         /// <summary>
+        /// indicator drawing type
         /// тип прорисовки индикатора
         /// </summary>
         public IndicatorOneCandleChartType TypeIndicator { get; set; }
 
         /// <summary>
+        /// on what point indicator will be built on: Open, Close ...
         /// по какой точке будет строиться индикатор по: Open, Close ...
         /// </summary>
         public StandardDeviationTypePoints TypePointsToSearch;
 
         /// <summary>
+        /// name of data series on which indicator drawn
         /// имя серии данных на которой индикатор прорисовывается
         /// </summary>
         public string NameSeries { get; set; }
 
         /// <summary>
+        /// name of data area where indicator will be drawn
         /// имя области данных на которой индикатор прорисовывается
         /// </summary>
         public string NameArea { get; set; }
 
         /// <summary>
+        /// meaning of Standard Deviation
         /// значение Standard Deviation
         /// </summary>
         public List<decimal> Values { get; set; }
 
         /// <summary>
+        /// unique indicator name
         /// уникальное имя индикатора
         /// </summary>
         public string Name { get; set; }
 
         /// <summary>
+        /// indicator calculation length
         /// длинна рассчёта индикатора
         /// </summary>
         public int Lenght { get; set; }
 
         /// <summary>
+        /// Standard Deviation indicator line color
         /// цвет линии индикатора Standard Deviation
         /// </summary>
         public Color ColorBase { get; set; }
 
         /// <summary>
+        /// candles to calculate indicator
         /// включена ли прорисовка серии на чарте
         /// </summary>
         public bool PaintOn { get; set; }
 
         /// <summary>
+        /// upload settings from file
         /// загрузить настройки из файла
         /// </summary>
         public void Load()
@@ -196,11 +218,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
             catch (Exception)
             {
+                // send to log
                 // отправить в лог
             }
         }
 
         /// <summary>
+        /// save settings to file
         /// сохранить настройки в файл
         /// </summary>
         public void Save()
@@ -218,11 +242,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
             catch (Exception)
             {
+                // send to log
                 // отправить в лог
             }
         }
 
         /// <summary>
+        /// delete file with settings
         /// удалить файл с настройками
         /// </summary>
         public void Delete()
@@ -234,6 +260,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// delete data
         /// удалить данные
         /// </summary>
         public void Clear()
@@ -246,11 +273,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// candles on which indicator is built
         /// свечи по которым строится индикатор
         /// </summary>
         private List<Candle> _myCandles;
 
         /// <summary>
+        /// display settings window
         /// показать окно с настройками
         /// </summary>
         public void ShowDialog()
@@ -265,6 +294,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// reload indicator
         /// перезагрузить индикатор
         /// </summary>
         public void Reload()
@@ -283,11 +313,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// it's necessary to redraw indicator on chart
         /// необходимо перерисовать индикатор на графике
         /// </summary>
         public event Action<IIndicatorCandle> NeadToReloadEvent;
 
         /// <summary>
+        /// take indicator value by index
         /// взять значение индикаторм по индексу
         /// </summary>
         private decimal GetValueStandardDeviation(List<Candle> candles, int index)
@@ -315,22 +347,23 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             for (int i = index; i > index - lenght2; i--)
             {
-                decimal x = GetPoint(candles, i) - m;  // разница между значениями за период и средней
-                double g = Math.Pow((double)x, 2.0);   // квадрат зницы
-                sd += (decimal)g;   // сумма квадратов
+                decimal x = GetPoint(candles, i) - m;  //Difference between values for period and average/разница между значениями за период и средней
+                double g = Math.Pow((double)x, 2.0);   // difference square/ квадрат зницы
+                sd += (decimal)g;   //square footage/ сумма квадратов
             }
-            sd = (decimal)Math.Sqrt((double)sd / lenght2);  // находим корень из суммы/период 
+            sd = (decimal)Math.Sqrt((double)sd / lenght2);  //find the root of sum/period // находим корень из суммы/период 
 
             return Math.Round(sd, 5);
 
         }
 
         /// <summary>
+        /// take point values to calculate data
         /// взять значения точки для рассчёта данных
         /// </summary>
-        /// <param name="candles">свечи</param>
-        /// <param name="index">индекс</param>
-        /// <returns>значение точки по индексу</returns>
+        /// <param name="candles">candles/свечи</param>
+        /// <param name="index">index/индекс</param>
+        /// <returns>index value/значение индикатора по индексу</returns>
         private decimal GetPoint(List<Candle> candles, int index)
         {
             if (TypePointsToSearch == StandardDeviationTypePoints.Close)
@@ -361,6 +394,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// to upload new candles
         /// прогрузить новыми свечками
         /// </summary>        
         public void Process(List<Candle> candles)
@@ -385,6 +419,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// load only last candle
         /// прогрузить только последнюю свечку
         /// </summary>
         private void ProcessOne(List<Candle> candles)
@@ -397,6 +432,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// to upload from the beginning
         /// прогрузить с самого начала
         /// </summary>
         private void ProcessAll(List<Candle> candles)
@@ -413,6 +449,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// overload last value
         /// перегрузить последнее значение
         /// </summary>
         private void ProcessLast(List<Candle> candles)

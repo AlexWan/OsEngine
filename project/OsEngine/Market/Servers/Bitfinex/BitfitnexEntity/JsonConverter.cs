@@ -235,7 +235,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfitnexEntity
 
     #endregion
 
-    #region Парсер снимка портфелей
+    #region parser of portfolio snapshot / Парсер снимка портфелей
 
     public partial struct WaletWalet
     {
@@ -375,7 +375,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfitnexEntity
 
     #endregion
 
-    #region Обновился портфель
+    #region portfolio updated / Обновился портфель
 
     public partial struct WalletUpdateWalletUpdate
     {

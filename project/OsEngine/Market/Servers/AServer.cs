@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
@@ -15,6 +20,7 @@ namespace OsEngine.Market.Servers
     public abstract class AServer : IServer
     {
         /// <summary>
+        /// implementation of connection to the API
         /// реализация подключения к API
         /// </summary>
         public IServerRealization ServerRealization
@@ -96,11 +102,13 @@ namespace OsEngine.Market.Servers
         private IServerRealization _serverRealization;
 
         /// <summary>
+        /// server type
         /// тип сервера
         /// </summary>
         public ServerType ServerType { get { return ServerRealization.ServerType; } }
 
         /// <summary>
+        /// show settings window
         /// показать окно настроек
         /// </summary>
         public void ShowDialog()
@@ -118,6 +126,7 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// settings window
         /// окно настроек
         /// </summary>
         private AServerParameterUi _ui;
@@ -138,29 +147,35 @@ namespace OsEngine.Market.Servers
             }
         }
 
+        // parameters
         // параметры
 
         /// <summary>
+        /// shows whether the server starts working
         /// запустился ли сервер
         /// </summary>
         private bool _serverIsStart;
 
         /// <summary>
+        /// parameter that shows whether need to save ticks for server
         /// параметр с флагом о том, нужно ли сохранять тики для сервера
         /// </summary>
         private ServerParameterBool _neadToSaveTicksParam;
 
         /// <summary>
+        /// parameter with the number of days for saving ticks
         /// параметр с количеством дней которые нужно сохранять тики
         /// </summary>
         private ServerParameterInt _neadToSaveTicksDaysCountParam;
 
         /// <summary>
+        /// server parameters
         /// параметры сервера
         /// </summary>
         public List<IServerParameter> ServerParameters = new List<IServerParameter>();
 
         /// <summary>
+        /// create STRING server parameter
         /// создать строковый параметр сервера
         /// </summary>
         public void CreateParameterString(string name, string param)
@@ -183,6 +198,7 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// create INT server parameter
         /// создать интовый параметр сервера
         /// </summary>
         public void CreateParameterInt(string name, int param)
@@ -205,6 +221,7 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// create DECIMAL server parameter
         /// создать десимал параметр сервера
         /// </summary>
         public void CreateParameterDecimal(string name, decimal param)
@@ -227,6 +244,7 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// create BOOL server parameter
         /// создать булевый параметр сервера
         /// </summary>
         public void CreateParameterBoolean(string name, bool param)
@@ -250,6 +268,7 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// create PASSWORD server parameter
         /// создать парольный параметр сервера
         /// </summary>
         public void CreateParameterPassword(string name, string param)
@@ -272,6 +291,7 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// create PATH TO FILE server parameter
         /// создать параметр сервера для пути к папке
         /// </summary>
         public void CreateParameterPath(string name)
@@ -293,6 +313,7 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// changed parameter state
         /// изменилось состояние параметра
         /// </summary>
         void newParam_ValueChange()
@@ -301,6 +322,7 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// save parameters
         /// сохранить параметры
         /// </summary>
         private void SaveParam()
@@ -320,11 +342,12 @@ namespace OsEngine.Market.Servers
             }
             catch (Exception)
             {
-                // отправить в лог
+                // send to the log / отправить в лог
             }
         }
 
         /// <summary>
+        /// upload parameter
         /// загрузить параметр
         /// </summary>
         private IServerParameter LoadParam(IServerParameter param)
@@ -412,15 +435,19 @@ namespace OsEngine.Market.Servers
             return param;
         }
 
+        // connect/disconnect 
         // подключение/отключение
 
         /// <summary>
+        /// necessary server status. It needs to thread that listens to connectin
+        /// Depending on this field manage the connection 
         /// нужный статус сервера. Нужен потоку который следит за соединением
         /// В зависимости от этого поля управляет соединением
         /// </summary>
         private ServerConnectStatus _serverStatusNead;
 
         /// <summary>
+        /// run the server. Connect to trade system
         /// запустить сервер. Подключиться к торговой системе
         /// </summary>
         public void StartServer()
@@ -441,6 +468,7 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// stop the server
         /// остановить сервер
         /// </summary>
         public void StopServer()
@@ -453,6 +481,7 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// alert message from client that connection is established
         /// пришло оповещение от клиента, что соединение установлено
         /// </summary>
         void _serverRealization_Connected()
@@ -461,9 +490,11 @@ namespace OsEngine.Market.Servers
             ServerStatus = ServerConnectStatus.Connect;
         }
 
+        // connection status
         // статус соединения
 
         /// <summary>
+        /// server status
         /// статус сервера
         /// </summary>
         public ServerConnectStatus ServerStatus
@@ -485,13 +516,16 @@ namespace OsEngine.Market.Servers
         private ServerConnectStatus _serverConnectStatus;
 
         /// <summary>
+        /// connection state has changed
         /// изменилось состояние соединения
         /// </summary>
         public event Action<string> ConnectStatusChangeEvent;
 
+        // work of main thread
         // работа основного потока !!!!!!
 
         /// <summary>
+        /// true - server is ready to work 
         /// true - сервер готов к работе
         /// </summary>
         public virtual bool IsTimeToServerWork
@@ -500,13 +534,14 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// main thread that monitors the connection, loading portfolios and securities, sending data to up 
         /// основной поток, следящий за подключением, загрузкой портфелей и бумаг, пересылкой данных на верх
         /// </summary>
         private Thread _threadPrime;
 
         /// <summary>
-        /// место в котором контролируется соединение.
-        /// опрашиваются потоки данных
+        /// the place where connection is controlled. look at data streams
+        /// место в котором контролируется соединение. опрашиваются потоки данных
         /// </summary>
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void PrimeThreadArea()
@@ -580,7 +615,7 @@ namespace OsEngine.Market.Servers
                     _candleManager = null;
 
                     Thread.Sleep(5000);
-                    // переподключаемся
+                    // reconnect / переподключаемся
                     _threadPrime = new Thread(PrimeThreadArea);
                     _threadPrime.CurrentCulture = new CultureInfo("ru-RU");
                     _threadPrime.IsBackground = true;
@@ -597,11 +632,13 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// server time of last starting
         /// время последнего старта сервера
         /// </summary>
         private DateTime _lastStartServerTime = DateTime.MinValue;
 
         /// <summary>
+        /// client connection has broken
         /// соединение с клиентом разорвано
         /// </summary>
         void _serverRealization_Disconnected()
@@ -616,6 +653,7 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// start candle downloading
         /// запускает скачиватель свечек
         /// </summary>
         private void StartCandleManager()
@@ -631,51 +669,61 @@ namespace OsEngine.Market.Servers
         #region Работа потока рассылки
 
         /// <summary>
+        /// queue of new orders
         /// очередь новых ордеров
         /// </summary>
         private ConcurrentQueue<Order> _ordersToSend = new ConcurrentQueue<Order>();
 
         /// <summary>
+        /// queue of ticks
         /// очередь тиков
         /// </summary>
         private ConcurrentQueue<List<Trade>> _tradesToSend = new ConcurrentQueue<List<Trade>>();
 
         /// <summary>
+        /// queue of new portfolios
         /// очередь новых портфелей
         /// </summary>
         private ConcurrentQueue<List<Portfolio>> _portfolioToSend = new ConcurrentQueue<List<Portfolio>>();
 
         /// <summary>
+        /// queue of new securities
         /// очередь новых инструментов
         /// </summary>
         private ConcurrentQueue<List<Security>> _securitiesToSend = new ConcurrentQueue<List<Security>>();
 
         /// <summary>
+        /// queue of my new trades
         /// очередь новых моих сделок
         /// </summary>
         private ConcurrentQueue<MyTrade> _myTradesToSend = new ConcurrentQueue<MyTrade>();
 
         /// <summary>
+        /// queue of new time
         /// очередь нового времени
         /// </summary>
         private ConcurrentQueue<DateTime> _newServerTime = new ConcurrentQueue<DateTime>();
 
         /// <summary>
+        /// queue of updated candles series
         /// очередь обновлённых серий свечек
         /// </summary>
         private ConcurrentQueue<CandleSeries> _candleSeriesToSend = new ConcurrentQueue<CandleSeries>();
 
         /// <summary>
+        /// queue of new depths 
         /// очередь новых стаканов
         /// </summary>
         private ConcurrentQueue<MarketDepth> _marketDepthsToSend = new ConcurrentQueue<MarketDepth>();
 
         /// <summary>
+        /// queue of updated bid and ask by security
         /// очередь обновлений бида с аска по инструментам 
         /// </summary>
         private ConcurrentQueue<BidAskSender> _bidAskToSend = new ConcurrentQueue<BidAskSender>();
 
         /// <summary>
+        /// place where the connection is controlled
         /// место в котором контролируется соединение
         /// </summary>
         private void SenderThreadArea()
@@ -815,9 +863,11 @@ namespace OsEngine.Market.Servers
 
         #endregion
 
+        // server time
         // время сервера
 
         /// <summary>
+        /// server time
         /// время сервера
         /// </summary>
         public DateTime ServerTime
@@ -844,13 +894,16 @@ namespace OsEngine.Market.Servers
         private DateTime _serverTime;
 
         /// <summary>
+        /// server time changed
         /// изменилось время сервера
         /// </summary>
         public event Action<DateTime> TimeServerChangeEvent;
-
+        
+        // portfolios
         // портфели
 
         /// <summary>
+        /// all account in the system
         /// все счета в системе
         /// </summary>
         public List<Portfolio> Portfolios
@@ -860,6 +913,7 @@ namespace OsEngine.Market.Servers
         private List<Portfolio> _portfolios;
 
         /// <summary>
+        /// take portfolio by number
         /// взять портфель по номеру
         /// </summary>
         public Portfolio GetPortfolioForName(string name)
@@ -880,6 +934,7 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// portfolio updated
         /// обновился портфель
         /// </summary>
         private void _serverRealization_PortfolioEvent(List<Portfolio> portf)
@@ -916,13 +971,16 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// portfolios changed
         /// изменились портфели
         /// </summary>
         public event Action<List<Portfolio>> PortfoliosChangeEvent;
-
+        
+        // instruments
         // инструменты
 
         /// <summary>
+        /// all instruments in the system
         /// все инструменты в системе
         /// </summary>
         public List<Security> Securities
@@ -932,6 +990,7 @@ namespace OsEngine.Market.Servers
         private List<Security> _securities;
 
         /// <summary>
+        /// take the instrument as a Security by name of instrument
         /// взять инструмент в виде класса Security, по имени инструмента 
         /// </summary>
         public Security GetSecurityForName(string name)
@@ -944,6 +1003,7 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// security list updated
         /// обновился список бумаг
         /// </summary>
         void _serverRealization_SecurityEvent(List<Security> securities)
@@ -969,11 +1029,13 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// instruments changed
         /// изменились инструменты
         /// </summary>
         public event Action<List<Security>> SecuritiesChangeEvent;
 
         /// <summary>
+        /// show security
         /// показать бумаги
         /// </summary>
         public void ShowSecuritiesDialog()
@@ -982,24 +1044,28 @@ namespace OsEngine.Market.Servers
             ui.ShowDialog();
         }
 
+        // subcribe to data
         // Подпись на данные
 
         /// <summary>
+        /// master of dowloading candles
         /// мастер загрузки свечек
         /// </summary>
         private CandleManager _candleManager;
 
         /// <summary>
+        /// multithreaded access locker in StartThisSecurity
         /// объект блокирующий многопоточный доступ в StartThisSecurity
         /// </summary>
         private object _lockerStarter = new object();
 
         /// <summary>
+        /// start downloading of this instrument
         /// начать выкачивать данный иснтрументн
         /// </summary>
-        /// <param name="namePaper"> название инструмента</param>
-        /// <param name="timeFrameBuilder">объект несущий в себе данные о ТаймФрейме нужном для серии</param>
-        /// <returns>в случае успешного запуска возвращает CandleSeries, объект генерирующий свечи</returns>
+        /// <param name="namePaper"> security name / название инструмента </param>
+        /// <param name="timeFrameBuilder"> object that has data about needed for series timeframe / объект несущий в себе данные о ТаймФрейме нужном для серии </param>
+        /// <returns> if everything is going well, CandleSeries returns generated candle object / в случае успешного запуска возвращает CandleSeries, объект генерирующий свечи </returns>
         public CandleSeries StartThisSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder)
         {
             try
@@ -1076,9 +1142,10 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// stop the downloading of candles
         /// остановить скачивание свечек
         /// </summary>
-        /// <param name="series"> серия свечек которую надо остановить</param>
+        /// <param name="series"> candles series that need to stop / серия свечек которую надо остановить </param>
         public void StopThisSecurity(CandleSeries series)
         {
             if (series != null)
@@ -1088,6 +1155,7 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// candles series changed
         /// изменились серии свечек
         /// </summary>
         private void _candleManager_CandleUpdateEvent(CandleSeries series)
@@ -1096,11 +1164,13 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// need to reconnect server and get a new data
         /// необходимо перезаказать данные у сервера
         /// </summary>
         public event Action NeadToReconnectEvent;
 
         /// <summary>
+        /// take the candle history for a period
         /// взять историю свечей за период
         /// </summary>
         public CandleSeries GetCandleDataToSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder, DateTime startTime,
@@ -1177,6 +1247,7 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// take ticks data for a period
         /// взять тиковые данные за период
         /// </summary>
         public bool GetTickDataToSecurity(string namePaper, DateTime startTime, DateTime endTime, DateTime actualTime,
@@ -1249,7 +1320,7 @@ namespace OsEngine.Market.Servers
                 }
             }
 
-            // хранилища для инструмента нет
+            // there is no instruments storage / хранилища для инструмента нет
             List<Trade>[] allTradesNew = new List<Trade>[_allTrades.Length + 1];
 
             for (int i = 0; i < _allTrades.Length; i++)
@@ -1265,18 +1336,22 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// new cadles
         /// новые свечи
         /// </summary>
         public event Action<CandleSeries> NewCandleIncomeEvent;
 
+        // depth
         // стакан
 
         /// <summary>
+        /// all depths
         /// все стаканы
         /// </summary>
         private List<MarketDepth> _depths;
 
         /// <summary>
+        /// came a new depth
         /// пришел обновленный стакан
         /// </summary>
         /// <param name="myDepth"></param>
@@ -1314,23 +1389,28 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// best bid or ask changed for the instrument
         /// изменился лучший бид / аск по инструменту
         /// </summary>
         public event Action<decimal, decimal, Security> NewBidAscIncomeEvent;
 
         /// <summary>
+        /// new depth in the system
         /// новый стакан в системе
         /// </summary>
         public event Action<MarketDepth> NewMarketDepthEvent;
 
+        // ticks 
         // тики
 
         /// <summary>
+        /// ticks storage
         /// хранилище тиков
         /// </summary>
         private ServerTickStorage _tickStorage;
 
         /// <summary>
+        /// ticks storage
         /// хранилище тиков
         /// </summary>
         /// <param name="trades"></param>
@@ -1340,15 +1420,17 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// all ticks
         /// все тики
         /// </summary>
         private List<Trade>[] _allTrades;
 
         /// <summary>
+        /// take ticks history by instrument
         /// взять историю тиков по инструменту
         /// </summary>
-        /// <param name="security"> инстурмент</param>
-        /// <returns>сделки</returns>
+        /// <param name="security"> instrument / инстурмент </param>
+        /// <returns> trades / сделки </returns>
         public List<Trade> GetAllTradesToSecurity(Security security)
         {
             try
@@ -1378,18 +1460,20 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// all server ticks
         /// все тики имеющиеся у сервера
         /// </summary>
         public List<Trade>[] AllTrades { get { return _allTrades; } }
 
         /// <summary>
+        /// came new ticks
         /// пришли новые тики
         /// </summary>
         void ServerRealization_NewTradesEvent(Trade trade)
         {
             try
             {
-                // сохраняем
+                // save / сохраняем
                 if (_allTrades == null)
                 {
                     _allTrades = new List<Trade>[1];
@@ -1397,7 +1481,7 @@ namespace OsEngine.Market.Servers
                 }
                 else
                 {
-                    // сортируем сделки по хранилищам
+                    // sort trades by storages / сортируем сделки по хранилищам
                     List<Trade> myList = null;
                     bool isSave = false;
                     for (int i = 0; i < _allTrades.Length; i++)
@@ -1405,7 +1489,7 @@ namespace OsEngine.Market.Servers
                         if (_allTrades[i] != null && _allTrades[i].Count != 0 &&
                             _allTrades[i][0].SecurityNameCode == trade.SecurityNameCode)
                         {
-                            // если для этого инструметна уже есть хранилище, сохраняем и всё
+                            // if there is already storage for this instrument, we save it / если для этого инструметна уже есть хранилище, сохраняем и всё
                             if (trade.Time < _allTrades[i][_allTrades[i].Count - 1].Time)
                             {
                                 return;
@@ -1420,7 +1504,7 @@ namespace OsEngine.Market.Servers
 
                     if (isSave == false)
                     {
-                        // хранилища для инструмента нет
+                        // there is no storage for instrument / хранилища для инструмента нет
                         List<Trade>[] allTradesNew = new List<Trade>[_allTrades.Length + 1];
                         for (int i = 0; i < _allTrades.Length; i++)
                         {
@@ -1435,7 +1519,7 @@ namespace OsEngine.Market.Servers
                     _tradesToSend.Enqueue(myList);
                 }
 
-                // перегружаем последним временем тика время сервера
+                // fill server time by last ticks time / перегружаем последним временем тика время сервера
                 ServerTime = trade.Time;
             }
             catch (Exception error)
@@ -1445,15 +1529,18 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// new tick
         /// новый тик
         /// </summary>
         public event Action<List<Trade>> NewTradeEvent;
-
+        
+        // my new trade
         // новая моя сделка
 
         private List<MyTrade> _myTrades = new List<MyTrade>();
 
         /// <summary>
+        /// my trades
         /// мои сделки
         /// </summary>
         public List<MyTrade> MyTrades
@@ -1462,6 +1549,7 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// my incoming trades from system 
         /// входящие из системы мои сделки
         /// </summary>
         void _serverRealization_MyTradeEvent(MyTrade trade)
@@ -1477,6 +1565,7 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// my trade changed
         /// изменилась моя сделка
         /// </summary>
         public event Action<MyTrade> NewMyTradeEvent;
@@ -1508,9 +1597,11 @@ namespace OsEngine.Market.Servers
             }
         }
 
+        // work with orders
         // работа с ордерами
 
         /// <summary>
+        /// work place of thred on the queues of ordr execution and order cancellation 
         /// место работы потока на очередях исполнения заявок и их отмены
         /// </summary>
         private void ExecutorOrdersThreadArea()
@@ -1550,16 +1641,19 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// order queue for placing in the system
         /// очередь ордеров для выставления в систему
         /// </summary>
         private ConcurrentQueue<Order> _ordersToExecute = new ConcurrentQueue<Order>();
 
         /// <summary>
+        /// order queue for canceling in the system
         /// очередь ордеров для отмены в системе
         /// </summary>
         private ConcurrentQueue<Order> _ordersToCansel = new ConcurrentQueue<Order>();
 
         /// <summary>
+        /// incoming order from system
         /// входящий из системы ордер
         /// </summary>
         void _serverRealization_MyOrderEvent(Order myOrder)
@@ -1593,9 +1687,10 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// send order for execution to the trading system
         /// выслать ордер на исполнение в торговую систему
         /// </summary>
-        /// <param name="order">ордер</param>
+        /// <param name="order"> order / ордер </param>
         public void ExecuteOrder(Order order)
         {
             if (UserSetOrderOnExecute != null)
@@ -1623,9 +1718,10 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// cancel order from the trading system
         /// отозвать ордер из торговой системы
         /// </summary>
-        /// <param name="order">ордер</param>
+        /// <param name="order"> order / ордер </param>
         public void CanselOrder(Order order)
         {
             if (UserSetOrderOnCancel != null)
@@ -1637,13 +1733,16 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// order changed
         /// изменился ордер
         /// </summary>
         public event Action<Order> NewOrderIncomeEvent;
 
+        // log messages
         // сообщения для лога
 
         /// <summary>
+        /// add a new message in the log
         /// добавить в лог новое сообщение
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
@@ -1655,33 +1754,40 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// log manager
         /// менеджер лога
         /// </summary>
         public Log Log;
 
         /// <summary>
+        /// outgoing messages for the log
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
+        // outgoing events for automatic testing
         // исходящие события для автоматического тестирования
 
         /// <summary>
+        /// external systems requested order execution
         /// внешние системы запросили исполнение ордера
         /// </summary>
         public event Action<Order> UserSetOrderOnExecute;
 
         /// <summary>
+        /// external systems requested order cancellation
         /// внешние системы запросили отзыв ордера
         /// </summary>
         public event Action<Order> UserSetOrderOnCancel;
 
         /// <summary>
+        /// user requested connect to the API
         /// пользователь запросил подключение к АПИ
         /// </summary>
         public event Action UserWhantConnect;
 
         /// <summary>
+        /// user requested disconnect from the API
         /// пользователь запросил отключение от АПИ
         /// </summary>
         public event Action UserWhantDisconnect;

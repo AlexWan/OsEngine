@@ -13,24 +13,28 @@ using TextBox = System.Windows.Forms.TextBox;
 namespace OsEngine.Charts.CandleChart.Indicators
 {
     /// <summary>
+    /// Interaction logic  for TRIXUi.xaml
     /// Логика взаимодействия для TRIXUi.xaml
     /// </summary>
     public partial class TrixUi
     {
         /// <summary>
+        /// indicator
         /// индикатор
         /// </summary>
         private Trix _trix;
 
         /// <summary>
+        /// whether indicator settings have been changed
         /// изменялись ли настройки индикатора
         /// </summary>
         public bool IsChange;
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="trix">индикатор для настроек</param>
+        /// <param name="trix">configuration indicator/индикатор для настроек</param>
         public TrixUi(Trix trix)
         {
             InitializeComponent();
@@ -60,6 +64,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// accept button
         /// кнопка принять
         /// </summary>
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
@@ -90,6 +95,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// color setting button
         /// кнопка настроить цвет
         /// </summary>
         private void ButtonColor_Click(object sender, RoutedEventArgs e)

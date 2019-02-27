@@ -1,4 +1,5 @@
 ﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -14,14 +15,16 @@ using OsEngine.Market.Servers;
 namespace OsEngine.Market
 {
     /// <summary>
+    /// interaction logic for ServerPrimeUi.xaml
     /// Логика взаимодействия для ServerPrimeUi.xaml
     /// </summary>
     public partial class ServerMasterUi
     {
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="isTester">вызывается ли метод из тестера</param>
+        /// <param name="isTester">shows whether the method is called from the tester / вызывается ли метод из тестера </param>
         public ServerMasterUi(bool isTester)
         {
             InitializeComponent();
@@ -91,11 +94,13 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// source table
         /// таблица источников
         /// </summary>
         private DataGridView _gridSources;
 
         /// <summary>
+        /// create source table
         /// сохдать таблицу источников
         /// </summary>
         private void CreateSourceGrid()
@@ -109,6 +114,7 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// redraw source table
         /// перерисовать таблицу источников
         /// </summary>
         private void RePaintSourceGrid()
@@ -170,6 +176,7 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// double click evet on the source table
         /// событие двойного клика на таблицу источников
         /// </summary>
         void _gridSources_DoubleClick(object sender, EventArgs e)
@@ -187,17 +194,18 @@ namespace OsEngine.Market
             if (servers == null ||
                 servers.Find(serv => serv.ServerType == type) == null)
             {
+                // need to create a server for the first time 
                 // нужно впервые создать сервер
                 ServerMaster.CreateServer(type, true);
 
                 servers = ServerMaster.GetServers();
 
                 if (servers == null)
-                { // чтото пошло не так
+                { // something went wrong / что-то пошло не так
                     return;
                 }
                 else
-                { // подписываемся на событие изменения статуса
+                { // subscribe to the change status event / подписываемся на событие изменения статуса
                     IServer myServ = servers.Find(serv => serv.ServerType == type);
 
                     if (myServ != null)
@@ -218,6 +226,7 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// change status event for server
         /// событие измениня статуса сервера
         /// </summary>
         /// <param name="newState"></param>

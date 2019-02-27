@@ -11,6 +11,7 @@ using TextBox = System.Windows.Forms.TextBox;
 namespace OsEngine.Charts.CandleChart.Indicators
 {
     /// <summary>
+    /// Interaction logic  for PivotPointsRobotUi.xaml
     /// Логика взаимодействия для PivotPointsRobotUi.xaml
     /// </summary>
     public partial class PivotPointsUi : Window
@@ -18,6 +19,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         private PivotPoints _pivotPoints;
 
         /// <summary>
+        /// whether indicator settings have been changed
         /// изменялись ли настройки индикатора
         /// </summary>
         public bool IsChange;

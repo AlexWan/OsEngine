@@ -1,4 +1,5 @@
 ﻿/*
+*Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
 *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -29,19 +30,22 @@ using OsEngine.PrimeSettings;
 namespace OsEngine.Logging
 {
     /// <summary>
+    /// class for logging messages of program
     /// класс для логирования сообщений программы
     /// </summary>
     public class Log
     {
-
+        // static part with thread work saving logs
         // статическая часть с работой потока сохраняющего логи
 
         /// <summary>
+        /// thread
         /// поток 
         /// </summary>
         public static Thread Watcher;
 
         /// <summary>
+        /// logs that need to be serviced
         /// логи которые нужно обслуживать
         /// </summary>
         public static List<Log> LogsToCheck = new List<Log>();
@@ -49,6 +53,7 @@ namespace OsEngine.Logging
         private static object _activatorLocker = new object();
 
         /// <summary>
+        /// activate thread for saving
         /// активировать поток для сохранения
         /// </summary>
         public static void Activate()
@@ -68,6 +73,7 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// work place of thread that save logs
         /// место работы потока который сохраняет логи
         /// </summary>
         public static void WatcherHome()
@@ -89,13 +95,15 @@ namespace OsEngine.Logging
             }
         }
 
+        // object of log
         // объект лога
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="uniqName">имя объекта которому принадлежит лог</param>
-        /// <param name="startProgram">программа создавшая класс</param>
+        /// <param name="uniqName">log object name / имя объекта которому принадлежит лог</param>
+        /// <param name="startProgram">program createing class / программа создавшая класс</param>
         public Log(string uniqName, StartProgram startProgram)
         {
             _uniqName = uniqName;
@@ -145,6 +153,7 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// delete the object and clear all files associated with it
         /// удалить объект и очистить все файлы связанные с ним
         /// </summary>
         public void Delete()
@@ -172,11 +181,13 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// shows whether the object is destroyed
         /// уничтожен ли объект
         /// </summary>
         private bool _isDelete;
 
         /// <summary>
+        /// name
         /// имя
         /// </summary>
         private string _uniqName;
@@ -184,6 +195,7 @@ namespace OsEngine.Logging
         private StartProgram _startProgram;
 
         /// <summary>
+        /// start listening to the server
         /// начать прослушку сервера
         /// </summary>
         /// <param name="server">сервер</param>
@@ -193,6 +205,7 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// start listening to the Server Miner
         /// начать прослушку сервера майнера
         /// </summary>
         public void Listen(OsMinerServer server)
@@ -201,6 +214,7 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// start listening to the Optimizer
         /// начать прослушку оптимизатора
         /// </summary>
         /// <param name="optimizer">оптимизатор</param>
@@ -210,6 +224,7 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// start listening to the OsData
         /// начать прослушку OsData
         /// </summary>
         /// <param name="master"></param>
@@ -219,6 +234,7 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// start listening to the OsData
         /// начать прослушку OsData
         /// </summary>
         /// <param name="master"></param>
@@ -229,6 +245,7 @@ namespace OsEngine.Logging
 
 
         /// <summary>
+        /// start listening to the Optimizer storage
         /// начать прослушку хранилища оптимизатора
         /// </summary>
         public void Listen(OptimizerDataStorage panel)
@@ -237,6 +254,7 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// start listening to the bot panel
         /// начать прослушку панели робота
         /// </summary>
         public void Listen(BotPanel panel)
@@ -245,6 +263,7 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// start listening to the bot storage
         /// начать прослушку хранилища роботов
         /// </summary>
         public void Listen(OsTraderMaster master)
@@ -253,6 +272,7 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// start listening to the bot storage
         /// начать прослушку хранилища роботов
         /// </summary>
         public void Listen(OsConverterMaster master)
@@ -261,6 +281,7 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// start listening to the router
         /// начать прослушку роутера
         /// </summary>
         public void ListenServerMaster()
@@ -269,11 +290,13 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// table with records
         /// таблица с записями
         /// </summary>
         private DataGridView _grid;
 
         /// <summary>
+        /// host to get log table
         /// хост для отрисовки таблицы лога
         /// </summary>
         private WindowsFormsHost _host;
@@ -281,10 +304,11 @@ namespace OsEngine.Logging
         private ConcurrentQueue<LogMessage> _incomingMessages = new ConcurrentQueue<LogMessage>();
 
         /// <summary>
+        /// incoming message
         /// входящее сообщение
         /// </summary>
-        /// <param name="message">сообщение</param>
-        /// <param name="type">тип сообщения</param>
+        /// <param name="message">message / сообщение</param>
+        /// <param name="type">message type / тип сообщения</param>
         private void ProcessMessage(string message, LogMessageType type)
         {
             if (_isDelete)
@@ -363,9 +387,11 @@ namespace OsEngine.Logging
             }
         }
 
+        // saving messages
         // сохранение сообщений      
 
         /// <summary>
+        /// all log messages
         /// все сообщения лога
         /// </summary>
         private List<LogMessage> _messageses;
@@ -373,8 +399,8 @@ namespace OsEngine.Logging
         private int _lastAreaCount;
 
         /// <summary>
-        /// метод в котором работает поток который сохранит
-        /// лог когда приложение начнёт закрыаться
+        /// method for working saving log thread when the application starts closing
+        /// метод в котором работает поток который сохранит лог когда приложение начнёт закрываться
         /// </summary>
         public void TrySaveLog()
         {
@@ -413,14 +439,17 @@ namespace OsEngine.Logging
 
         }
 
+        // distribution
         // рассылка
 
         /// <summary>
+        /// object for distribution massages
         /// объект рассылающий сообщения
         /// </summary>
         private MessageSender _messageSender;
 
         /// <summary>
+        /// user clicked on the log window twice 
         /// пользователь дважды нажал на окно лога
         /// </summary>
         void _grid_DoubleClick(object sender, EventArgs e)
@@ -428,9 +457,11 @@ namespace OsEngine.Logging
             _messageSender.ShowDialog();
         }
 
+        // drawing
         // прорисовка
 
         /// <summary>
+        /// start drawing the object
         /// начать прорисовку объекта
         /// </summary>
         public void StartPaint(WindowsFormsHost host)
@@ -446,6 +477,7 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// finish drawing the object
         /// остановить прорисовку объекта
         /// </summary>
         public void StopPaint()
@@ -466,20 +498,23 @@ namespace OsEngine.Logging
             }
         }
 
-
+        // general error log 
         // общий лог для ошибок
 
         /// <summary>
+        /// table for drawing error messages
         /// таблица для прорисовки сообщений с ошибками
         /// </summary>
         private static DataGridView _gridErrorLog;
 
         /// <summary>
+        /// window with error log
         /// окно лога с ошибками
         /// </summary>
         private static LogErrorUi _logErrorUi;
 
         /// <summary>
+        /// create the table for errors
         /// создать таблицу для ошибок
         /// </summary>
         private static void CreateErrorLogGreed()
@@ -525,6 +560,7 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// send new error message
         /// выслать новое сообщение об ошибке
         /// </summary>
         private static void SetNewErrorMessage(LogMessage message)
@@ -567,26 +603,31 @@ namespace OsEngine.Logging
     }
 
     /// <summary>
+    /// log message
     /// сообщение для лога
     /// </summary>
     public class LogMessage
     {
         /// <summary>
+        /// message time
         /// время сообщения
         /// </summary>
         public DateTime Time;
 
         /// <summary>
+        /// message type
         /// тип сообщения
         /// </summary>
         public LogMessageType Type;
 
         /// <summary>
+        /// message
         /// сообщение
         /// </summary>
         public string Message;
 
         /// <summary>
+        /// take a string representation of object
         /// взять строковое представление объекта
         /// </summary>
         public string GetString()
@@ -601,41 +642,49 @@ namespace OsEngine.Logging
     }
 
     /// <summary>
+    /// log message type
     /// тип сообщения для лога
     /// </summary>
     public enum LogMessageType
     {
         /// <summary>
+        /// systemic message
         /// Системное сообщение
         /// </summary>
         System,
 
         /// <summary>
+        /// Bot got a signal from one of strategies 
         /// Робот получил сигнал из одной из стратегий
         /// </summary>
         Signal,
 
         /// <summary>
+        /// error happened
         /// Случилась ошибка
         /// </summary>
         Error,
 
         /// <summary>
+        /// connect or disconnect message
         /// Сообщение о установке или обрыве соединения
         /// </summary>
         Connect,
 
         /// <summary>
+        /// transaction message
         /// Сообщение об исполнении транзакции
         /// </summary>
         Trade,
 
         /// <summary>
+        /// message without specification
         /// Сообщение без спецификации
         /// </summary>
         NoName,
 
         /// <summary>
+        /// user action recorded
         /// Зафиксировано действие пользователя
         /// </summary>
         User

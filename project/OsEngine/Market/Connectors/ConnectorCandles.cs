@@ -1,4 +1,5 @@
 ﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -18,18 +19,22 @@ namespace OsEngine.Market.Connectors
 {
 
     /// <summary>
+    /// class that provides a universal interface for connecting to the servers of the exchange for bots
+    /// terminals and tabs that can trade
     /// класс предоставляющий универсальный интерфейс для подключения к серверам биржи для роботов, 
     /// терминалов и вкладок, которые могут торговать
     /// </summary>
     public class ConnectorCandles
     {
+// service
 // сервис
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="name">имя робота</param>
-        /// <param name="startProgram">программа создавшая робота который создал это подключение</param>
+        /// <param name="name"> bot name / имя робота </param>
+        /// <param name="startProgram"> program that created the bot which created this connection / программа создавшая робота который создал это подключение </param>
         public ConnectorCandles(string name,StartProgram startProgram)
         {
             _name = name;
@@ -55,6 +60,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// upload
         /// загрузить
         /// </summary>
         private void Load()
@@ -83,16 +89,19 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// program that created the bot which created this connection
         /// программа создавшая робота который создал это подключение
         /// </summary>
         public StartProgram StartProgram;
 
         /// <summary>
+        /// shows whether it is possible to save settings
         /// можно ли сохранять настройки
         /// </summary>
         private bool _canSave;
 
         /// <summary>
+        /// save object settings in file
         /// сохранить настройки объекта в файл
         /// </summary>
         public void Save()
@@ -120,6 +129,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// delete object settings
         /// удалить настройки объекта
         /// </summary>
         public void Delete()
@@ -150,6 +160,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// show settings window
         /// показать окно настроек
         /// </summary>
         public void ShowDialog()
@@ -175,6 +186,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// name of bot that owns the connector
         /// имя робота которому принадлежит коннектор
         /// </summary>
         private string _name;
@@ -185,11 +197,13 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// connector's account number
         /// номер счёта к которому подключен коннектор
         /// </summary>
         public string PortfolioName;
 
         /// <summary>
+        /// connector's account
         /// счёт к которому подключен коннектор
         /// </summary>
         public Portfolio Portfolio
@@ -214,6 +228,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// connector's security name
         /// Название бумаги к которой подключен коннектор
         /// </summary>
         public string NamePaper
@@ -232,6 +247,7 @@ namespace OsEngine.Market.Connectors
         private string _namePaper;
 
         /// <summary>
+        /// connector's security
         /// бумага к которой подключен коннектор
         /// </summary>
         public Security Security
@@ -255,11 +271,13 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// object preserving settings for building candles
         /// объект сохраняющий в себе настройки для построения свечек
         /// </summary>
         public TimeFrameBuilder TimeFrameBuilder;
 
         /// <summary>
+        /// method of creating candles: from ticks or from depths 
         /// способ создания свечей: из тиков или из стаканов
         /// </summary>
         public CandleMarketDataType CandleMarketDataType
@@ -277,6 +295,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// method of creating candles: from ticks or from depths 
         /// способ создания свечей: из тиков или из стаканов
         /// </summary>
         public CandleCreateMethodType CandleCreateMethodType
@@ -294,6 +313,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// cadles timeframe on which the connector is subscribed
         /// ТаймФрейм свечек на который подписан коннектор
         /// </summary>
         public TimeFrame TimeFrame
@@ -317,7 +337,8 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
-        /// хранилище переодов для дельты
+        /// period storage for delta
+        /// хранилище периодов для дельты
         /// </summary>
         public decimal DeltaPeriods
         {
@@ -334,6 +355,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// movement is required to candle close when renko candle mode is selected
         /// движение необходимое для закрытия свечи, когда выбран режим свечей ренко
         /// </summary>
         public decimal RencoPunktsToCloseCandleInRencoType
@@ -350,7 +372,8 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
-        /// стороим ли мы тени у свечи когда выбран ренко. true - строим
+        /// shows whether we are building candle shadows when renko mode is selected. true means "to build" 
+        /// строим ли мы тени у свечи когда выбран ренко. true - строим
         /// </summary>
         public bool RencoIsBuildShadows
         {
@@ -363,6 +386,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// range value of bars
         /// величина рейдж баров
         /// </summary>
         public decimal RangeCandlesPunkts
@@ -379,6 +403,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// minimum movement for reversible bars
         /// минимальное движение для риверсивных баров
         /// </summary>
         public decimal ReversCandlesPunktsMinMove
@@ -396,6 +421,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// retracement value for reversible bars
         /// величина отката для риверсивных баров
         /// </summary>
         public decimal ReversCandlesPunktsBackMove
@@ -413,6 +439,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// candle timeframe in the form of connector' s Timespan
         /// ТаймФрейм свечек в виде TimeSpan на который подписан коннектор
         /// </summary>
         public TimeSpan TimeFrameTimeSpan
@@ -421,16 +448,19 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// candle series that collects candles  
         /// серия свечек которая собирает для нас свечки
         /// </summary>
         private CandleSeries _mySeries;
 
         /// <summary>
+        /// connector's server type 
         /// тип сервера на который подписан коннектор
         /// </summary>
         public ServerType ServerType;
 
         /// <summary>
+        /// trade server
         /// сервер через который идёт торговля
         /// </summary>
         public IServer MyServer
@@ -440,11 +470,13 @@ namespace OsEngine.Market.Connectors
         private IServer _myServer;
 
         /// <summary>
+        /// shows whether execution of trades in emulation mode is enabled
         /// включено ли исполнение сделок в режиме эмуляции
         /// </summary>
         public bool EmulatorIsOn;
 
         /// <summary>
+        /// shows whether non-trading intervals are needed
         /// нужно ли запрашивать неторговые интервалы
         /// </summary>
         public bool SetForeign
@@ -462,6 +494,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// count of trades in candles with timeframe Ticks
         /// количество трейдов в свечах при таймФрейме Тики
         /// </summary>
         public int CountTradeInCandle
@@ -478,6 +511,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// volume is needed for closing candle when the candle closure mode is selected "by volume"
         /// объём необходимый для закрытия свечи, когда выбран режим закрытия свечи по объёму
         /// </summary>
         public decimal VolumeToCloseCandleInVolumeType
@@ -494,11 +528,13 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// emulator. It's for order execution in the emulation mode 
         /// эмулятор. В нём исполняются ордера в режиме эмуляции
         /// </summary>
         private readonly OrderExecutionEmulator _emulator;
 
         /// <summary>
+        /// shows whether connector is connected to download data 
         /// подключен ли коннектор на скачивание данных
         /// </summary>
         public bool IsConnected
@@ -513,9 +549,11 @@ namespace OsEngine.Market.Connectors
             }
         }
 
+// data subscription
 // подписка на данные 
 
         /// <summary>
+        /// reconnect candle downloading
         /// переподключить скачивание свечек
         /// </summary>
         private void Reconnect()
@@ -560,11 +598,13 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// thread for candle subscription
         /// поток занимающийся подпиской на свечи
         /// </summary>
         private Thread _subscrabler;
 
         /// <summary>
+        /// locker that blocks multi-threaded access to method Subscrable
         /// локер запрещающий многопоточный доступ к Subscrable
         /// </summary>
         private object _subscrableLocker = new object();
@@ -572,6 +612,7 @@ namespace OsEngine.Market.Connectors
         private bool _neadToStopThread;
 
         /// <summary>
+        /// subscribe to receive candle
         /// подписаться на получение свечек
         /// </summary>
         private void Subscrable()
@@ -698,9 +739,11 @@ namespace OsEngine.Market.Connectors
             Reconnect();
         }
 
+// incoming data
 // входящие данные
 
         /// <summary>
+        /// test finished
         /// тест завершился
         /// </summary>
         void ConnectorReal_TestingEndEvent()
@@ -719,6 +762,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// the candle has just ended
         /// свеча только что завершилась
         /// </summary>
         void MySeries_СandleFinishedEvent(CandleSeries candleSeries)
@@ -737,6 +781,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// the candle updated
         /// свеча обновилась
         /// </summary>
         void MySeries_СandleUpdeteEvent(CandleSeries candleSeries)
@@ -755,6 +800,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// incoming order
         /// входящий ордер
         /// </summary>
         void ConnectorBot_NewOrderIncomeEvent(Order order)
@@ -773,6 +819,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// incoming my trade
         /// входящая моя сделка
         /// </summary>
         void ConnectorBot_NewMyTradeEvent(MyTrade trade)
@@ -795,6 +842,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// incoming best bid with ask
         /// входящие лучшие бид с аском
         /// </summary>
         void ConnectorBotNewBidAscIncomeEvent(decimal bestBid, decimal bestAsk, Security namePaper)
@@ -827,6 +875,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// incoming depth
         /// входящий стакан
         /// </summary>
         private void ConnectorBot_NewMarketDepthEvent(MarketDepth glass)
@@ -864,6 +913,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// incoming trades
         /// входящие трейды
         /// </summary>
         void ConnectorBot_NewTradeEvent(List<Trade> tradesList)
@@ -881,6 +931,7 @@ namespace OsEngine.Market.Connectors
             }
             catch
             {
+                // it's hard to catch the error here. Who will understand what is wrong - well done 
                 // ошибка сдесь трудноуловимая. Кто поймёт что не так - молодец
             }
 
@@ -898,6 +949,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// incoming night server time
         /// входящее новое время сервера
         /// </summary>
         void myServer_TimeServerChangeEvent(DateTime time)
@@ -915,21 +967,26 @@ namespace OsEngine.Market.Connectors
             }
         }
 
+// stored data
 // хранящиеся данные
 
         /// <summary>
+        /// best price of buyer 
         /// лучшая цена покупателя
         /// </summary>
         private decimal _bestBid;
 
         /// <summary>
+        /// best price of seller
         ///  лучшая цена продавца
         /// </summary>
         private decimal _bestAsk;
 
+// external data access interface
 // внешний интерфейс доступа к данным
 
         /// <summary>
+        /// conector's ticks
         /// тики коннектора
         /// </summary>
         public List<Trade> Trades
@@ -954,6 +1011,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// connector's candles
         /// свечи коннектора
         /// </summary>
         public List<Candle> Candles(bool onlyReady)
@@ -985,6 +1043,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// take the best price of seller in the depth
         /// взять лучшую цену продавца в стакане
         /// </summary>
         public decimal BestAsk
@@ -996,6 +1055,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// take the best price of buyer in the depth
         /// взять лучшую цену покупателя в стакане
         /// </summary>
         public decimal BestBid
@@ -1007,6 +1067,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// take server time
         /// взять время сервера
         /// </summary>
         public DateTime MarketTime
@@ -1029,9 +1090,11 @@ namespace OsEngine.Market.Connectors
             }
         }
 
+ // forward orders
  // Пересылка ордеров
 
         /// <summary>
+        /// execute order
         /// исполнить ордер
         /// </summary>
         public void OrderExecute(Order order)
@@ -1070,6 +1133,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// cancel order
         /// отменить ордер
         /// </summary>
         public void OrderCancel(Order order)
@@ -1098,14 +1162,17 @@ namespace OsEngine.Market.Connectors
             }
         }
 
+// outgoing events
 // Исходящие события
 
         /// <summary>
-        ///  изменились Ордера
+        /// orders are changed
+        /// изменились Ордера
         /// </summary>
         public event Action<Order> OrderChangeEvent;
 
         /// <summary>
+        /// candles are changed
         /// изменились Свечки
         /// </summary>
         public event Action<List<Candle>> NewCandlesChangeEvent;
@@ -1116,48 +1183,58 @@ namespace OsEngine.Market.Connectors
         public event Action<List<Candle>> LastCandlesChangeEvent;
 
         /// <summary>
+        /// depth is changed
         /// изменился Стакан
         /// </summary>
         public event Action<MarketDepth> GlassChangeEvent;
 
         /// <summary>
+        /// my trades are changed
         /// изменились мои сделки
         /// </summary>
         public event Action<MyTrade> MyTradeEvent;
 
         /// <summary>
+        /// tick is changed
         /// изменился тик
         /// </summary>
         public event Action<List<Trade>> TickChangeEvent;
 
         /// <summary>
+        /// bid or ask is changed
         /// изменился бид с аском
         /// </summary>
         public event Action<decimal, decimal> BestBidAskChangeEvent;
 
         /// <summary>
+        /// testing finished
         /// завершилось тестирование
         /// </summary>
         public event Action TestOverEvent;
 
         /// <summary>
+        /// server time is changed
         /// изменилось время сервера
         /// </summary>
         public event Action<DateTime> TimeChangeEvent;
 
         /// <summary>
+        /// connector is starting to reconnect
         /// коннектор начинает процедуру переподключения
         /// </summary>
         public event Action<string, TimeFrame, TimeSpan, string, ServerType> ConnectorStartedReconnectEvent;
 
         /// <summary>
+        /// security for connector defined
         /// бумага для коннектора определена
         /// </summary>
         public event Action<Security> SecuritySubscribeEvent;
 
+// message log
 // сообщения в лог 
 
         /// <summary>
+        /// send new message to up
         /// выслать новое сообщение на верх
         /// </summary>
         private void SendNewLogMessage(string message, LogMessageType type)
@@ -1167,28 +1244,32 @@ namespace OsEngine.Market.Connectors
                 LogMessageEvent(message, type);
             }
             else if (type == LogMessageType.Error)
-            { // если на нас никто не подписан и в логе ошибка
+            { // if nobody is subscribed to us and there is an error in the log / если на нас никто не подписан и в логе ошибка
                 System.Windows.MessageBox.Show(message);
             }
         }
 
         /// <summary>
+        /// outgoing log message
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
     }
 
     /// <summary>
+    /// connector work type
     /// тип работы коннектора
     /// </summary>
     public enum ConnectorWorkType
     {
         /// <summary>
+        /// real connection
         /// реальное подключение
         /// </summary>
         Real,
 
         /// <summary>
+        /// test trading
         /// тестовая торговля
         /// </summary>
         Tester

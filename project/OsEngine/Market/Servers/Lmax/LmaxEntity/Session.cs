@@ -7,6 +7,7 @@ using System.Text;
 namespace OsEngine.Market.Servers.Lmax.LmaxEntity
 {
     /// <summary>
+	/// data exchange session
     /// сессия обмена данными
     /// </summary>
     public class Session : IDisposable
@@ -32,6 +33,7 @@ namespace OsEngine.Market.Servers.Lmax.LmaxEntity
         }
 
         /// <summary>
+		/// send data
         /// отправить данные
         /// </summary>
         public int Send(string data)

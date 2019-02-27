@@ -1,4 +1,5 @@
 ﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -15,14 +16,16 @@ namespace OsEngine.Market.Servers
 {
 
     /// <summary>
+    /// server ticks storage
     /// хранилище тиков для сервера
     /// </summary>
     public class ServerTickStorage
     {
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="server">сервер с которого будем сохранять тики</param>
+        /// <param name="server"> server for saving ticks / сервер с которого будем сохранять тики </param>
         public ServerTickStorage(IServer server)
         {
             _server = server;
@@ -43,26 +46,31 @@ namespace OsEngine.Market.Servers
         private IServer _server;
 
         /// <summary>
+        /// shows whether need to save trades
         /// нужно ли сохранять сделки
         /// </summary>
         public bool NeadToSave;
 
         /// <summary>
+        /// how many days upload from history
         /// сколько дней надо грузить из истории
         /// </summary>
         public int DaysToLoad;
 
         /// <summary>
+        /// directory for saving data
         /// название папки для хранения данных
         /// </summary>
         private string _pathName;
 
         /// <summary>
+        /// securities for saving
         /// инструменты которые нужно сохранять
         /// </summary>
         private List<Security> _securities;
 
         /// <summary>
+        /// save security data 
         /// сохранять данные по бумаге
         /// </summary>
         public void SetSecurityToSave(Security security)
@@ -79,19 +87,23 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// upload ticks for some instrument
         /// по какому-то инструменту загрузили тики
         /// </summary>
         public event Action<List<Trade>[]> TickLoadedEvent;
 
 
         /// <summary>
+        /// service information for saving trades
         /// сервисная информация для сохранения трейдов
         /// </summary>
         private List<TradeSaveInfo> _tradeSaveInfo;
 
+        // for saving in one file
         // для сохранения в один файл
 
         /// <summary>
+        /// method with tick saving thread
         /// метод в котором работает поток сохраняющий тики
         /// </summary>
         private void TickSaverSpaceInOneFile()
@@ -168,7 +180,7 @@ namespace OsEngine.Market.Servers
                         for (int i = tradeInfo.LastSaveIndex; i < allTrades[i1].Count - 1; i++)
                         {
                             if (allTrades[i1][i].MicroSeconds == 0)
-                            { // генерим какое-то время микросекунд, если нам коннектор их не выдал
+                            { // for some time in microseconds if the connector did not issue them to us / генерим какое-то время микросекунд, если нам коннектор их не выдал
                                 if (lastSecond != allTrades[i1][i].Time.Second)
                                 {
                                     lastMillisecond = 0;
@@ -195,9 +207,10 @@ namespace OsEngine.Market.Servers
         private bool _weLoadTrades;
 
         /// <summary>
+        /// upload ticks
         /// загрузить тики
         /// </summary>
-        /// <param name="dayCount">количество дней которые нужно подгрузить</param>
+        /// <param name="dayCount"> number of days for uploading / количество дней которые нужно подгрузить </param>
         public void LoadTick()
         {
             try
@@ -214,7 +227,7 @@ namespace OsEngine.Market.Servers
 
                 for (int i = 0; i < saves.Length; i++)
                 {
-                    // загружаем
+                    // upload / загружаем
                     StreamReader reader = new StreamReader(saves[i]);
 
                     List<Trade> newList = new List<Trade>();
@@ -269,7 +282,7 @@ namespace OsEngine.Market.Servers
                         continue;
                     }
 
-                    // сохраняем
+                    // save / сохраняем
 
                     if (newList.Count == 0)
                     {
@@ -314,9 +327,11 @@ namespace OsEngine.Market.Servers
             _weLoadTrades = true;
         }
 
+        // log messages
         // сообщения в лог 
 
         /// <summary>
+        /// send a new message to up
         /// выслать новое сообщение на верх
         /// </summary>
         private void SendNewLogMessage(string message, LogMessageType type)
@@ -326,12 +341,13 @@ namespace OsEngine.Market.Servers
                 LogMessageEvent(message, type);
             }
             else if (type == LogMessageType.Error)
-            { // если на нас никто не подписан и в логе ошибка
+            { // if nobody is subscribed to us and there is a log error / если на нас никто не подписан и в логе ошибка
                 System.Windows.MessageBox.Show(message);
             }
         }
 
         /// <summary>
+        /// outgoing log message
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;

@@ -23,16 +23,19 @@ namespace OsEngine.Market.Servers.Lmax
     public class LmaxFixClient
     {
         /// <summary>
+		/// address of FIX-Trading service
         /// адрес FIX – Trading сервиса
         /// </summary>
         private string _fixTradingIp;
 
         /// <summary>
+		/// address of FIX-Market data service 
         /// адрес FIX – Market Data сервиса
         /// </summary>
         private string _fixMarketDataIp;
 
         /// <summary>
+		/// url of web-interface
         /// url веб интерфейса
         /// </summary>
         private string _uiUrl;
@@ -40,6 +43,7 @@ namespace OsEngine.Market.Servers.Lmax
         private string _password;
 
         /// <summary>
+		/// port number
         /// номер порта
         /// </summary>
         private int _port;
@@ -59,6 +63,7 @@ namespace OsEngine.Market.Servers.Lmax
         public bool IsCreated;
 
         /// <summary>
+		/// constructor
         /// конструктор
         /// </summary>
         public LmaxFixClient(string fixTradingIp, string fixMarketDataIp, string uiUrl, int port, string username, string password, DateTime startWorkingTime, DateTime endWorkingTime)
@@ -109,6 +114,7 @@ namespace OsEngine.Market.Servers.Lmax
         private TcpClient _client;
 
         /// <summary>
+		/// connect to the exchange
         /// установить соединение с биржей 
         /// </summary>
         public void Connect()
@@ -157,6 +163,7 @@ namespace OsEngine.Market.Servers.Lmax
         private bool _helperSessionIsReady;
 
         /// <summary>
+		/// connect to Lmax NET API
         /// подключиться к Lmax NET API
         /// </summary>
         private void LoginCallback(ISession session)
@@ -185,6 +192,7 @@ namespace OsEngine.Market.Servers.Lmax
         }
 
         /// <summary>
+		/// depth and ticks updated
         /// обновился стакан и тики
         /// </summary>
         private void SessionOnMarketDataChanged(OrderBookEvent orderBook)
@@ -198,6 +206,7 @@ namespace OsEngine.Market.Servers.Lmax
         }
 
         /// <summary>
+		/// portfolios updated
         /// обновились портфели
         /// </summary>
         public void OnAccountStateEvent(AccountStateEvent accountStateEvent)
@@ -218,6 +227,7 @@ namespace OsEngine.Market.Servers.Lmax
         }
 
         /// <summary>
+		/// request list of instruments
         /// запросить список инструментов
         /// </summary>
         public void GetSecyrities()
@@ -230,10 +240,11 @@ namespace OsEngine.Market.Servers.Lmax
         }
 
         /// <summary>
+		/// got instruments
         /// пришли инструменты
         /// </summary>
-        /// <param name="instruments">список инструментов</param>
-        /// <param name="hasMoreResults">true если есть еще инструменты помимо пришедших</param>
+        /// <param name="instruments">list of instrument / список инструментов</param>
+        /// <param name="hasMoreResults">true if there are more instruments besides comers/true если есть еще инструменты помимо пришедших</param>
         private void SearchCallback(List<Instrument> instruments, bool hasMoreResults)
         {
             UpdatedSecurities?.Invoke(instruments);
@@ -249,6 +260,7 @@ namespace OsEngine.Market.Servers.Lmax
         }
 
         /// <summary>
+		/// subscribe to updated quote depth
         /// подписаться на обновления стакана котировок
         /// </summary>
         public void SubscribeToPaper(string securityId)
@@ -260,6 +272,7 @@ namespace OsEngine.Market.Servers.Lmax
         }
 
         /// <summary>
+		/// send a new order to the exchange
         /// отправить на биржу новый ордер
         /// </summary>
         public void SendNewOrderSingle(string securityId, Order order)
@@ -272,10 +285,11 @@ namespace OsEngine.Market.Servers.Lmax
         }
 
         /// <summary>
+		/// cancel order
         /// отменить ордер
         /// </summary>
-        /// <param name="securityId">id инструмента</param>
-        /// <param name="order">ордер который нужно отменить</param>
+        /// <param name="securityId">instrument id / id инструмента</param>
+        /// <param name="order">order for cancellation / ордер который нужно отменить</param>
         public void CancelOrder(string securityId, Order order)
         {
             string cancelOrderMsg = _creator.OrderCancelRequestMsg(order.NumberMarket, order.NumberUser.ToString(), securityId);
@@ -284,6 +298,7 @@ namespace OsEngine.Market.Servers.Lmax
         }
 
         /// <summary>
+		/// request order status
         /// запросить статус ордера
         /// </summary>
         public void GetOrderState(string securityId, Order order)
@@ -299,6 +314,7 @@ namespace OsEngine.Market.Servers.Lmax
 
 
         /// <summary>
+		/// start all auxiliary threads
         /// запустить все вспомогательные потоки
         /// </summary>
         private void StartAllThreads()
@@ -317,6 +333,7 @@ namespace OsEngine.Market.Servers.Lmax
         private bool _inWork;
 
         /// <summary>
+		/// work place of thread reading market data from the exchange
         /// место работы потока считывающего market data с биржи
         /// </summary>
         public void TradingDataReader()
@@ -338,6 +355,7 @@ namespace OsEngine.Market.Servers.Lmax
         }
 
         /// <summary>
+		/// session handler
         /// обработчик события торговой сессии
         /// </summary>
         private void TradingSessionOnNewMessageEvent(StringBuilder message)
@@ -348,14 +366,16 @@ namespace OsEngine.Market.Servers.Lmax
         }
 
 
-        #region Разбор пришедших данных
+        #region Parsing incoming data / Разбор пришедших данных
 
         /// <summary>
+		/// queue of new data coming from the exchange server
         /// очередь новых данных, пришедших с сервера биржи
         /// </summary>
         private ConcurrentQueue<string> _newMessage = new ConcurrentQueue<string>();
 
         /// <summary>
+		/// takes messages from the data queue, converts them to C # classes and sends further
         /// берет сообщения из очереди данных, конвертирует их в классы C# и отправляет дальше
         /// </summary>
         public void Converter()
@@ -446,6 +466,7 @@ namespace OsEngine.Market.Servers.Lmax
         private DateTime _lastMessageTime;
 
         /// <summary>
+		/// check the connection
         /// проверить соединение
         /// </summary>
         private void CheckConnection()
@@ -461,6 +482,7 @@ namespace OsEngine.Market.Servers.Lmax
         private readonly RejectReasons _errorDictionary = new RejectReasons();
 
         /// <summary>
+		/// report handler of my orders and trades
         /// обработчик отчета о моих ордерах и сделках
         /// </summary>
         private void ExecutionReportHandler(FixEntity entity)
@@ -482,7 +504,7 @@ namespace OsEngine.Market.Servers.Lmax
                     {
                         try
                         {
-                            // если пришел сигнал о новом ордере, но ClOrdID не может быть конвертирован в int, значит ордер создавался не в OsEngine, игнорим его
+                            // if new order signal has come, but ClOrdID cannot be converted to int, then the order was not created in OsEngine, ignore it / если пришел сигнал о новом ордере, но ClOrdID не может быть конвертирован в int, значит ордер создавался не в OsEngine, игнорим его
                             order.NumberUser = Convert.ToInt32(numUser);
                         }
                         catch (Exception e)
@@ -591,6 +613,7 @@ namespace OsEngine.Market.Servers.Lmax
         }
 
         /// <summary>
+		/// my order cancellation error report handler
         /// обработчик отчета об ошибках отмены моих ордеров
         /// </summary>
         private void OrderCancelRejectHandler(FixEntity entity)
@@ -635,6 +658,7 @@ namespace OsEngine.Market.Servers.Lmax
 
 
         /// <summary>
+		/// clear the resources used by the client
         /// очистить ресурсы используемые клиентом
         /// </summary>
         public void Dispose(bool needSendLogOutMsg = false)
@@ -652,48 +676,57 @@ namespace OsEngine.Market.Servers.Lmax
             _lmaxApi = null;
         }
 
-        #region исходящие события
+        #region outgoing messages / исходящие события
 
         /// <summary>
+		/// API connection established
         /// соединение с API установлено
         /// </summary>
         public event Action Connected;
 
         /// <summary>
+		/// API connection lost
         /// соединение с API разорвано
         /// </summary>
         public event Action Disconnected;
 
         /// <summary>
+		/// new securities in the system
         /// новые бумаги в системе
         /// </summary>
         public event Action<List<Instrument>> UpdatedSecurities;
 
         /// <summary>
+		/// updated portfolios
         /// обновились портфели
         /// </summary>
         public event Action<AccountStateEvent> UpdatePortfolios;
 
         /// <summary>
+		/// updated depth
         /// обновился стакан
         /// </summary>
         public event Action<OrderBookEvent> UpdateMarketDepth;
 
         /// <summary>
+		/// my new orders
         /// новые мои ордера
         /// </summary>
         public event Action<Order> MyOrderEvent;
 
         /// <summary>
+		/// my new trades
         /// новые мои сделки
         /// </summary>
         public event Action<MyTrade> MyTradeEvent;
 
         #endregion
 
+		// log messages
         // сообщения для лога
 
         /// <summary>
+		/// add a new log message
         /// добавить в лог новое сообщение
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
@@ -702,6 +735,7 @@ namespace OsEngine.Market.Servers.Lmax
         }
 
         /// <summary>
+		/// outgoing message for log
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
