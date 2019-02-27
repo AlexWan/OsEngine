@@ -12,6 +12,7 @@ using OsEngine.Language;
 namespace OsEngine.Market.Servers.Lmax
 {
     /// <summary>
+	/// LMax server
     /// сервер LMax
     /// </summary>
     public class LmaxServer : AServer
@@ -35,6 +36,7 @@ namespace OsEngine.Market.Servers.Lmax
         }
 
         /// <summary>
+		/// history request on instrument
         /// запрос истории по инструменту
         /// </summary>
         public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf)
@@ -56,6 +58,7 @@ namespace OsEngine.Market.Servers.Lmax
         }
 
         /// <summary>
+		/// server type
         /// тип сервера
         /// </summary>
         public ServerType ServerType { get { return ServerType.Lmax; } }
@@ -63,6 +66,7 @@ namespace OsEngine.Market.Servers.Lmax
         public List<IServerParameter> ServerParameters { get; set; }
 
         /// <summary>
+		/// server time
         /// время сервера
         /// </summary>
         public DateTime ServerTime { get; set; }
@@ -70,7 +74,7 @@ namespace OsEngine.Market.Servers.Lmax
         private readonly DateTime _startWorkingTime;
         private readonly DateTime _endWorkingTime;
 
-        // запросы
+        // requests / запросы
 
         private DateTime _lastStartServerTime;
 
@@ -168,6 +172,7 @@ namespace OsEngine.Market.Servers.Lmax
         }
 
         /// <summary>
+		/// subscribe to get instrument data
         /// подписаться на получение данных по инструменту
         /// </summary>
         public void Subscrible(Security security)
@@ -176,6 +181,7 @@ namespace OsEngine.Market.Servers.Lmax
         }
 
         /// <summary>
+		/// take candle history for period
         /// взять историю свечек за период
         /// </summary>
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
@@ -185,6 +191,7 @@ namespace OsEngine.Market.Servers.Lmax
         }
 
         /// <summary>
+		/// take ticks data on instrument for period
         /// взять тиковые данные по инструменту за определённый период
         /// </summary>
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
@@ -193,9 +200,10 @@ namespace OsEngine.Market.Servers.Lmax
         }
 
         /// <summary>
+		/// request of order status
         /// запросить статус ордеров
         /// </summary>
-        /// <param name="orders">список ордеров</param>
+        /// <param name="orders">list of orders/список ордеров</param>
         public void GetOrdersState(List<Order> orders)
         {
             foreach (var order in orders)
@@ -218,6 +226,7 @@ namespace OsEngine.Market.Servers.Lmax
         }
 
         /// <summary>
+		/// updated portfolios
         /// обновились портфели
         /// </summary>
         private void ClientOnUpdatePortfolios(AccountStateEvent accountState)
@@ -239,6 +248,7 @@ namespace OsEngine.Market.Servers.Lmax
         private List<Security> _securities;
 
         /// <summary>
+		/// got list of exchange instruments
         /// пришел список инструментов биржи
         /// </summary>
         private void ClientOnUpdatedSecurities(List<Instrument> securities)
@@ -294,6 +304,7 @@ namespace OsEngine.Market.Servers.Lmax
         }
 
         /// <summary>
+		/// all depths
         /// все стаканы
         /// </summary>
         private List<MarketDepth> _depths;
@@ -301,6 +312,7 @@ namespace OsEngine.Market.Servers.Lmax
         private readonly object _depthLocker = new object();
 
         /// <summary>
+		/// updated depths and ticks
         /// обновились стаканы и тики
         /// </summary>
         private void ClientOnUpdateMarketDepth(OrderBookEvent data)
@@ -384,6 +396,7 @@ namespace OsEngine.Market.Servers.Lmax
         }
 
         /// <summary>
+		/// request history by instrument
         /// запрос истории по инструменту
         /// </summary>
         public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf)
@@ -392,6 +405,7 @@ namespace OsEngine.Market.Servers.Lmax
         }
 
         /// <summary>
+		/// updated my order
         /// обновился мой ордер
         /// </summary>
         private void ClientOnMyOrderEvent(Order order)
@@ -408,6 +422,7 @@ namespace OsEngine.Market.Servers.Lmax
         }
 
         /// <summary>
+		/// got my trade
         /// пришла моя сделка
         /// </summary>
         private void ClientOnMyTradeEvent(MyTrade myTrade)
@@ -430,10 +445,11 @@ namespace OsEngine.Market.Servers.Lmax
         public event Action ConnectEvent;
         public event Action DisconnectEvent;
 
-
+		// log messages
         // сообщения для лога
 
         /// <summary>
+		/// add a new log message 
         /// добавить в лог новое сообщение
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
@@ -442,6 +458,7 @@ namespace OsEngine.Market.Servers.Lmax
         }
 
         /// <summary>
+		/// outgoing log message
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;

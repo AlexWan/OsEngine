@@ -1,4 +1,5 @@
 ﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -8,13 +9,18 @@ using OsEngine.Language;
 namespace OsEngine.Logging
 {
     /// <summary>
+    /// SMS messaging settings window
     /// Окно настроек рассылки СМС сообщений
     /// </summary>
     public partial class MessageSenderUi
     {
-        private readonly MessageSender _sender; // менедженр рассылки
+        /// <summary>
+        /// distribution manager
+        /// менедженр рассылки
+        /// </summary>
+        private readonly MessageSender _sender; 
 
-        public MessageSenderUi(MessageSender sender) // конструктор
+        public MessageSenderUi(MessageSender sender) // constructor / конструктор
         {
             _sender = sender;
             InitializeComponent();
@@ -44,7 +50,11 @@ namespace OsEngine.Logging
 
         }
 
-        private void LoadDateOnForm() // выгрузить настройки на форму
+        /// <summary>
+        /// upload settings to the form
+        /// выгрузить настройки на форму
+        /// </summary>
+        private void LoadDateOnForm()
         {
             ComboBoxModeMail.Items.Add(OsLocalization.Logging.Label1);
             ComboBoxModeMail.Items.Add(OsLocalization.Logging.Label2);
@@ -84,7 +94,11 @@ namespace OsEngine.Logging
             CheckBoxSmsConnect.IsChecked = _sender.SmsConnectSendOn;
         }
 
-        private void Save() // сохранить
+        /// <summary>
+        /// save
+        /// сохранить
+        /// </summary>
+        private void Save()
         {
             if (ComboBoxModeMail.Text == OsLocalization.Logging.Label1)
             {
@@ -118,18 +132,18 @@ namespace OsEngine.Logging
             _sender.Save();
         }
 
-        private void ButtonAccept_Click(object sender, RoutedEventArgs e) // кнопка принять
+        private void ButtonAccept_Click(object sender, RoutedEventArgs e) // accept button / кнопка принять
         {
             Save();
             Close();
         }
 
-        private void ButtonMailGlobeSet_Click(object sender, RoutedEventArgs e) // кнопка настроить сервер почтовой рассылки
+        private void ButtonMailGlobeSet_Click(object sender, RoutedEventArgs e) // button to configure the mailing server / кнопка настроить сервер почтовой рассылки
         {
             ServerMail.GetServer().ShowDialog();
         }
 
-        private void ButtonSmsGlobeSet_Click(object sender, RoutedEventArgs e) // кнопка настроить сервер Смс рассылки
+        private void ButtonSmsGlobeSet_Click(object sender, RoutedEventArgs e) // button to configure the SMS messaging server / кнопка настроить сервер Смс рассылки
         {
             ServerSms.GetSmsServer().ShowDialog();
         }

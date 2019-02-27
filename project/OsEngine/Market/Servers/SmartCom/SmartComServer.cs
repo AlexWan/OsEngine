@@ -52,11 +52,13 @@ namespace OsEngine.Market.Servers.SmartCom
         public DateTime ServerTime { get; set; }
 
         /// <summary>
+        /// server SmartCom
         /// Сервер СмартКом
         /// </summary>
         public StServerClass SmartServer;
 
         /// <summary>
+        /// multi-threaded access locker to SmartCom server
         /// блокиратор многопоточного доступа к серверу СмартКом
         /// </summary>
         private object _smartComServerLocker = new object();
@@ -158,6 +160,7 @@ namespace OsEngine.Market.Servers.SmartCom
         }
 
         /// <summary>
+        /// securities has been added to the download data
         /// бумаги уже добавленные на скачивание данных
         /// </summary>
         private List<string> _startedSecurities = new List<string>();
@@ -203,24 +206,29 @@ namespace OsEngine.Market.Servers.SmartCom
             
         }
 
-// работа с ордерами
+        // work with orders
+        // работа с ордерами
 
         /// <summary>
+        /// order numbers sending for execution to SmartCom
         /// номера ордеров отправленных на исполнение в СмартКом
         /// </summary>
         private List<TransactioinSmartComSendState> _numsSendToExecuteOrders = new List<TransactioinSmartComSendState>();
 
         /// <summary>
+        /// order numbers sending for cancelletion to SmartCom
         /// номера ордеров отправленных на отзыв в СмартКом
         /// </summary>
         private List<TransactioinSmartComSendState> _numsSendToCancelOrders = new List<TransactioinSmartComSendState>();
 
         /// <summary>
+        /// order numbers for opening position from SmartCom
         /// номера ордеров на открытие позиций входящих из СмартКом
         /// </summary>
         private List<int> _numsIncomeExecuteOrders = new List<int>();
 
         /// <summary>
+        /// order numbers sending for cancelletion from SmartCom
         /// номера ордеров отправленных к отмене входящих из СмартКом
         /// </summary>
         private List<int> _numsIncomeCancelOrders = new List<int>();
@@ -420,6 +428,7 @@ namespace OsEngine.Market.Servers.SmartCom
         private List<Order> _ordersWhithId = new List<Order>();
 
         /// <summary>
+        /// method for operating thread checking connection to smart analyzing outgoing and incoming orders
         /// метод для работы потока проверяющего соединение со смартком
         /// анализируя исходящие и входящие ордера
         /// </summary>
@@ -456,14 +465,14 @@ namespace OsEngine.Market.Servers.SmartCom
                         }
 
                         if (isInArray == false)
-                        { // не нашли ответа на транзакцию
+                        { // didn't find the answer on the transaction / не нашли ответа на транзакцию
                             SendLogMessage(
                                 OsLocalization.Market.Message93,
                                 LogMessageType.System);
                             Dispose();
                         }
                         else
-                        { // нашли ответ на транзакцию
+                        { // found the answer to the transaction / нашли ответ на транзакцию
                             _numsSendToExecuteOrders.RemoveAt(i);
                             i--;
                         }
@@ -494,7 +503,7 @@ namespace OsEngine.Market.Servers.SmartCom
                             Dispose();
                         }
                         else
-                        { // нашли ответ на транзакцию
+                        { // found the answer to the transaction / нашли ответ на транзакцию
                             _numsSendToCancelOrders.RemoveAt(i);
                             i--;
                         }
@@ -503,15 +512,17 @@ namespace OsEngine.Market.Servers.SmartCom
             }
         }
 
-// свечи. Внутренняя тема смартКом
+        // candles. The theme of smartkom
+        // свечи. Внутренняя тема смартКом
 
         /// <summary>
+        /// take candles by instrument
         /// взять свечи по инструменту
         /// </summary>
-        /// <param name="security"> короткое название бумаги</param>
-        /// <param name="timeSpan">таймФрейм</param>
-        /// <param name="count">количество свечек</param>
-        /// <returns>в случае неудачи вернётся null</returns>
+        /// <param name="security"> short security name / короткое название бумаги</param>
+        /// <param name="timeSpan">timeframe/таймФрейм</param>
+        /// <param name="count">count of candles/количество свечек</param>
+        /// <returns>in case of failure returns null/в случае неудачи вернётся null</returns>
         public List<Candle> GetSmartComCandleHistory(string security, TimeSpan timeSpan, int count)
         {
             if (timeSpan.TotalMinutes > 60 ||
@@ -566,11 +577,13 @@ namespace OsEngine.Market.Servers.SmartCom
         }
 
         /// <summary>
+        /// candles downloaded from GetSmartComCandleHistory
         /// свечи скаченные из метода GetSmartComCandleHistory
         /// </summary>
         private List<Candle> _candles;
 
         /// <summary>
+        /// incoming from system candles
         /// входящие из системы свечи
         /// </summary>
         private void SmartServerOnAddBar(int row, int nrows, string symbol, StBarInterval interval, DateTime datetime,
@@ -599,7 +612,7 @@ namespace OsEngine.Market.Servers.SmartCom
             _candles.Add(candle);
         }
 
-// портфели
+// portfolios / портфели
 
         private List<Portfolio> _portfolios;
 
@@ -778,8 +791,8 @@ namespace OsEngine.Market.Servers.SmartCom
             }
         }
 
-
-// разбор входящих данных
+        // parsing incoming data
+        // разбор входящих данных
 
 
         private List<MarketDepth> _depths = new List<MarketDepth>();
@@ -996,52 +1009,62 @@ namespace OsEngine.Market.Servers.SmartCom
             ServerStatus = ServerConnectStatus.Connect;
         }
 
-
+        // outgoing events
         // исходящие события
 
         /// <summary>
+        /// called when order has changed
         /// вызывается когда изменился ордер
         /// </summary>
         public event Action<Order> MyOrderEvent;
 
         /// <summary>
+        /// called when my trade has changed
         /// вызывается когда изменился мой трейд
         /// </summary>
         public event Action<MyTrade> MyTradeEvent;
 
         /// <summary>
+        /// appear new portfolios
         /// появились новые портфели
         /// </summary>
         public event Action<List<Portfolio>> PortfolioEvent;
 
         /// <summary>
+        /// new securities
         /// новые бумаги
         /// </summary>
         public event Action<List<Security>> SecurityEvent;
 
         /// <summary>
+        /// new depth
         /// новый стакан
         /// </summary>
         public event Action<MarketDepth> MarketDepthEvent;
 
         /// <summary>
+        /// new trade
         /// новый трейд
         /// </summary>
         public event Action<Trade> NewTradesEvent;
 
         /// <summary>
+        /// API connection established
         /// соединение с API установлено
         /// </summary>
         public event Action ConnectEvent;
 
         /// <summary>
+        /// API connection lost
         /// соединение с API разорвано
         /// </summary>
         public event Action DisconnectEvent;
 
+// log messages
 // сообщения для лога
 
         /// <summary>
+        /// add a new log message
         /// добавить в лог новое сообщение
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
@@ -1053,6 +1076,7 @@ namespace OsEngine.Market.Servers.SmartCom
         }
 
         /// <summary>
+        /// outgoing log message
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
@@ -1099,17 +1123,20 @@ namespace OsEngine.Market.Servers.SmartCom
     }
 
     /// <summary>
+    /// object to hold transaction status
     /// объект для хранения статуса транзакции
     /// в логике проверки ответа от сервера
     /// </summary>
     public class TransactioinSmartComSendState
     {
         /// <summary>
+        /// transaction sending time
         /// время отправки транзакции
         /// </summary>
         public DateTime TimeSendTransaction;
 
         /// <summary>
+        /// transaction number
         /// номер транзакции
         /// </summary>
         public int NumTransaction;

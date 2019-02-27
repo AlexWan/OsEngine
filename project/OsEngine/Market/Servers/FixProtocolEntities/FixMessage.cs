@@ -12,12 +12,13 @@ namespace OsEngine.Market.Servers.FixProtocolEntities
         private readonly List<Field> _fields = new List<Field>();
 
         /// <summary>
+        /// when creating a message, standard fields are set immediately
         /// при создании сообщения сразу задаются стандартные поля
         /// </summary>
-        /// <param name="msgSeqNum">порядковый номер сообщения</param>
-        /// <param name="type">тип сообщения</param>
-        /// <param name="isTradingMsg">флаг указывающий для какой сессии это сообщение создается, true - trading, false - marketData </param>
-        /// <param name="headerSettings">набор стандартных параметров</param>
+        /// <param name="msgSeqNum">message sequence number / порядковый номер сообщения</param>
+        /// <param name="type">message type / тип сообщения</param>
+        /// <param name="isTradingMsg">flag indicating for which session this message is generated / флаг указывающий для какой сессии это сообщение создается, true - trading, false - marketData </param>
+        /// <param name="headerSettings">set of standard parameters / набор стандартных параметров</param>
         public FixMessage(long msgSeqNum, string type, bool isTradingMsg, StandartHeaderSettings headerSettings)
         {
 
@@ -31,6 +32,7 @@ namespace OsEngine.Market.Servers.FixProtocolEntities
         }
 
         /// <summary>
+        /// add body to the message
         /// добавить тело к сообщению
         /// </summary>
         public void AddBody(List<Field> body)
@@ -39,6 +41,7 @@ namespace OsEngine.Market.Servers.FixProtocolEntities
         }
 
         /// <summary>
+        /// take string in the FIX format
         /// взять строку в формате FIX
         /// </summary>
         public override string ToString()

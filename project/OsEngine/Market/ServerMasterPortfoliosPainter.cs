@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Windows.Forms;
@@ -13,8 +18,8 @@ namespace OsEngine.Market
 {
 
     /// <summary>
-    /// класс отвечающий за прорисовку всех портфелей
-    /// и всех ордеров открытых за текущую сессию на развёрнутых серверах
+    /// class responsible for drawing all portfolios and all orders open for current session on deployed servers
+    /// класс отвечающий за прорисовку всех портфелей и всех ордеров открытых за текущую сессию на развёрнутых серверах
     /// </summary>
     public class ServerMasterPortfoliosPainter
     {
@@ -29,6 +34,7 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// incoming events. a new server has been deployed in server-master
         /// входящее событие. В сервермастере был развёрнут новый сервер
         /// </summary>
         private void ServerMaster_ServerCreateEvent(IServer server)
@@ -52,6 +58,7 @@ namespace OsEngine.Market
         } 
 
         /// <summary>
+        /// start drawing class control
         /// начать прорисовывать контролы класса 
         /// </summary>
         public void StartPaint()
@@ -68,6 +75,7 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// stop drawing class control
         /// остановить прорисовку контролов класса 
         /// </summary>
         public void StopPaint()
@@ -77,6 +85,7 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// add items for drawing portfolios and orders
         /// добавить элементы, на котором будут прорисовываться портфели и ордера
         /// </summary>
         public void SetHostTable(WindowsFormsHost hostPortfolio, WindowsFormsHost hostOrders)
@@ -102,11 +111,13 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// multi-thread locker to portfolios
         /// блокиратор многопоточного доступа к портфелям
         /// </summary>
         private object lockerPortfolio = new object();
 
         /// <summary>
+        /// portfolios changed in the server
         /// в сервере изменились портфели
         /// </summary>
         /// <param name="portfolios">портфели</param>
@@ -146,6 +157,7 @@ namespace OsEngine.Market
             _neadToPaintPortfolio = true;
         }
 
+// work of thread that draws portfolios and orders
 // работа потока прорисовывающего портфели и ордера
 
         private void PainterThreadArea()
@@ -174,28 +186,34 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// shows whether state of the portfolio has changed and you need to redraw it
         /// флаг, означающий что состояние портфеля изменилось и нужно его перерисовать
         /// </summary>
         private bool _neadToPaintPortfolio;
 
         /// <summary>
+        /// shows whether orders have changed on the exchange and you need to redraw
         /// флаг, означающий что ордера на бирже изменились и нужно их перерисовать
         /// </summary>
         private bool _needToPaintOrders;
 
+// portfolio drawing
 // прорисовка портфеля
 
         /// <summary>
+        /// table for drawing portfolios
         /// таблица для прорисовки портфелей
         /// </summary>
         private DataGridView _gridPosition;
 
         /// <summary>
+        /// area for drawing portfolios
         /// область для прорисовки портфелей
         /// </summary>
         private WindowsFormsHost _positionHost;
 
         /// <summary>
+        /// redraw the portfolio table
         /// перерисовать таблицу портфелей
         /// </summary>
         private void RePaintPortfolio()
@@ -213,6 +231,7 @@ namespace OsEngine.Market
                     return;
                 }
 
+                // clear old data from grid
                 // очищаем старые данные с грида
 
                 _gridPosition.Rows.Clear();
@@ -222,6 +241,7 @@ namespace OsEngine.Market
                     return;
                 }
 
+                // send portfolios to draw
                 // отправляем портфели на прорисовку
                 for (int i = 0; _portfolios != null && i < _portfolios.Count; i++)
                 {
@@ -242,6 +262,7 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// draw portfolio
         /// прорисовать портфель
         /// </summary>
         private void PaintPortfolio(Portfolio portfolio)
@@ -305,6 +326,7 @@ namespace OsEngine.Market
             }
             catch
             {   
+                // ignore. Let us sometimes face with null-value, when deleting the original order or modification, but don't break work of mail thread
                 // игнорим. Пусть иногда натыкаемся на налл, при удалении исходного ордера или модификации
                 // зато не мешаем основному потоку работать
                 //SendNewLogMessage(error.ToString(), LogMessageType.Error);
@@ -312,23 +334,28 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// all portfolios
         /// все портфели
         /// </summary>
         private List<Portfolio> _portfolios;
 
+// orders
 // ордера
 
         /// <summary>
+        /// table for drawing orders
         /// таблица для прорисовки ордеров
         /// </summary>
         private DataGridView _gridOrders;
 
         /// <summary>
+        /// area for drawing orders
         /// область для прорисовки ордеров
         /// </summary>
         private WindowsFormsHost _ordersHost;
 
         /// <summary>
+        /// new order on the server
         /// новый ордер в сервере
         /// </summary>
         private void _server_NewOrderIncomeEvent(Order order)
@@ -408,6 +435,7 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// my new trade on the server
         /// новый мой трейд в сервере
         /// </summary>
         /// <param name="trade"></param>
@@ -437,11 +465,13 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// all orders
         /// все ордера
         /// </summary>
         private List<Order> _orders;
 
         /// <summary>
+        /// draw orders
         /// прорисовать ордера
         /// </summary>
         private void PaintOrders()
@@ -517,15 +547,18 @@ namespace OsEngine.Market
             }
             catch
             {
+                // ignore. Let us sometimes face with null-value, when deleting the original order or modification, but don't break work of mail thread
                 // игнорим. Пусть иногда натыкаемся на налл, при удалении исходного ордера или модификации
                 // зато не мешаем основному потоку работать
                 //SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-        
+
+// user clicks the popup menu       
 // пользователь кликает по всплывающему меню
 
         /// <summary>
+        /// user clicked the table with all orders
         /// пользователь кликнул на таблицу всех ордеров
         /// </summary>
         private void _gridOrders_Click(object sender, EventArgs e)
@@ -559,6 +592,7 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// clear order list
         /// очистить список ордеров
         /// </summary>
         public void ClearOrders()
@@ -567,6 +601,7 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// user requested closing all orders
         /// пользователь запросил закрытие всех ордеров
         /// </summary>
         private void OrdersCloseAll_Click(object sender, EventArgs e)
@@ -598,6 +633,7 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// user requested closing order by number
         /// пользователь запросил закрытие ордера по номеру
         /// </summary>
         private void PositionCloseForNumber_Click(object sender, EventArgs e)
@@ -628,9 +664,11 @@ namespace OsEngine.Market
             }
         }
 
+// log message
 // сообщения в лог
 
         /// <summary>
+        /// send a new message to up
         /// выслать новое сообщение на верх
         /// </summary>
         private void SendNewLogMessage(string message, LogMessageType type)
@@ -640,12 +678,13 @@ namespace OsEngine.Market
                 LogMessageEvent(message, type);
             }
             else if (type == LogMessageType.Error)
-            { // если на нас никто не подписан и в логе ошибка
+            { // if nobody is substribed to us and there is a log error / если на нас никто не подписан и в логе ошибка
                 MessageBox.Show(message);
             }
         }
 
         /// <summary>
+        /// outgoing log message
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 namespace OsEngine.Market.Servers.Lmax
 {
     /// <summary>
+	/// field tags for FIX protocol
     /// теги полей, используемые FIX протоколом
     /// </summary>
     public enum Tags

@@ -6,6 +6,7 @@ using System.Linq;
 namespace OsEngine.Market.Servers.Lmax.LmaxEntity
 {
     /// <summary>
+	/// parse message from the exchange
     /// парсит сообщения от биржи
     /// </summary>
     public class FixMessageParser

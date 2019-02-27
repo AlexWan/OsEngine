@@ -1,4 +1,5 @@
 ﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -17,6 +18,7 @@ using MessageBox = System.Windows.MessageBox;
 namespace OsEngine.Market.Connectors
 {
     /// <summary>
+    /// interaction login for ConnectorCandlesUi
     /// Логика взаимодействия для ConnectorCandlesUi
     /// </summary>
     public partial class ConnectorCandlesUi
@@ -30,14 +32,16 @@ namespace OsEngine.Market.Connectors
                 List<IServer> servers = ServerMaster.GetServers();
 
                 if (servers == null)
-                {// если сервер для подключения к бирже ещё не создан
+                {// if connection server to exhange hasn't been created yet / если сервер для подключения к бирже ещё не создан
                     Close();
                     return;
                 }
 
+                // save connectors
                 // сохраняем коннекторы
                 _connectorBot = connectorBot;
 
+                // upload settings to controls
                 // загружаем настройки в контролы
                 for (int i = 0; i < servers.Count; i++)
                 {
@@ -167,6 +171,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// search tools by first letter in the title
         /// поиск инструментов по первой букве в названии
         /// </summary>
         private void ComboBoxSecuritiesOnKeyDown(object sender, KeyEventArgs e)
@@ -182,6 +187,7 @@ namespace OsEngine.Market.Connectors
 
             ComboBoxSecurities.Items.Clear();
 
+            // upload instruments matching the search terms
             // грузим инструменты подходящие под условия поиска
 
             List<Security> needSecurities = null;
@@ -352,6 +358,7 @@ namespace OsEngine.Market.Connectors
 
 
         /// <summary>
+        /// the number of trades in the candle with timeframe "Trades" has changed
         /// изменилось кол-во трейдов в свече с ТФ "трейды"
         /// </summary>
         void TextBoxCountTradesInCandle_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
@@ -434,8 +441,8 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
-        /// нужно когда изменяется бумага. При тестовом подключении 
-        /// смотрим здесь ТайФреймы для этой бумаги
+        /// it's need when security changes. For test connection we look at Timeframe for this security
+        /// нужно когда изменяется бумага. При тестовом подключении смотрим здесь ТайФреймы для этой бумаги
         /// </summary>
         void ComboBoxSecurities_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
@@ -489,16 +496,19 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// server connector
         /// коннектор к серверу
         /// </summary>
         private ConnectorCandles _connectorBot;
 
         /// <summary>
+        /// selected server for now
         /// выбранный в данным момент сервер
         /// </summary>
         private ServerType _selectedType;
 
         /// <summary>
+        /// user changed server type to connect
         /// пользователь изменил тип сервера для подключения
         /// </summary>
         void ComboBoxTypeServer_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -535,6 +545,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// happens after switching the class of displayed instruments
         /// происходит после переключения класса отображаемых инструментов
         /// </summary>
         void ComboBoxClass_SelectionChanged(object sender,
@@ -544,6 +555,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// new securities arrived at the server
         /// на сервер пришли новые бумаги
         /// </summary>
         void server_SecuritiesCharngeEvent(List<Security> securities)
@@ -552,6 +564,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// new accounts arrived at the server
         /// на сервер пришли новые счета
         /// </summary>
         void server_PortfoliosChangeEvent(List<Portfolio> portfolios)
@@ -560,6 +573,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// unload accounts to the form
         /// выгружает счета на форму
         /// </summary>
         private void LoadPortfolioOnBox() 
@@ -646,6 +660,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// place classes in the window
         /// поместить классы в окно
         /// </summary>
         private void LoadClassOnBox()
@@ -720,6 +735,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// upload data from storage to form
         /// выгрузить данные из хранилища на форму
         /// </summary>
         private void LoadSecurityOnBox()
@@ -734,9 +750,11 @@ namespace OsEngine.Market.Connectors
                 {
                     return;
                 }
+                // clear all
                 // стираем всё
 
                 ComboBoxSecurities.Items.Clear();
+                // download available instruments
                 // грузим инструменты доступные для скачивания
 
                 var securities = server.Securities;
@@ -754,6 +772,7 @@ namespace OsEngine.Market.Connectors
                     }
                 }
 
+                // download already running instruments
                 // грузим уже запущенные инструменты
 
                 string paper = _connectorBot.NamePaper;
@@ -781,10 +800,13 @@ namespace OsEngine.Market.Connectors
 
             if (_connectorBot.StartProgram == StartProgram.IsTester)
             {
+                // Timeframe
                 // таймФрейм
                 TesterServer server = (TesterServer)ServerMaster.GetServers()[0];
                 if (server.TypeTesterData != TesterDataType.Candle)
                 {
+                    // if we build data on ticks or depths, then any Timeframe can be used
+                    // candle manager builds any Timeframe
                     // если строим данные на тиках или стаканах, то можно использовать любой ТФ
                     // менеджер свечей построит любой
                     ComboBoxTimeFrame.Items.Add(TimeFrame.Day);
@@ -812,6 +834,8 @@ namespace OsEngine.Market.Connectors
                 }
                 else
                 {
+                    // then if we use ready-made candles, then we need to use only those Timeframe that are
+                    // and they are inserted only when we select the security in the method
                     // далее, если используем готовые свечки, то нужно ставить только те ТФ, которые есть
                     // и вставляются они только когда мы выбираем бумагу в методе 
 
@@ -863,7 +887,8 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
-        ///  кнопка принять
+        /// accept button
+        /// кнопка принять
         /// </summary>
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
         {
@@ -917,9 +942,11 @@ namespace OsEngine.Market.Connectors
             }
         }
 
+        // log messages
         // сообщения в лог 
 
         /// <summary>
+        /// send new message to up
         /// выслать новое сообщение на верх
         /// </summary>
         private void SendNewLogMessage(string message, LogMessageType type)
@@ -931,10 +958,12 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// outgoing log message
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
+        // additional settings for different types of candles
         // дополнительные настройки разных типов свечей
 
         private void ShowDopCandleSettings()

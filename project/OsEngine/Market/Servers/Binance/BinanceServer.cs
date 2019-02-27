@@ -9,6 +9,7 @@ using OsEngine.Market.Servers.Entity;
 namespace OsEngine.Market.Servers.Binance
 {
     /// <summary>
+    /// server Binance
     /// сервер Binance
     /// </summary>
     public class BinanceServer:AServer
@@ -23,6 +24,7 @@ namespace OsEngine.Market.Servers.Binance
         }
         
         /// <summary>
+        /// instrument history query
         /// запрос истории по инструменту
         /// </summary>
         public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf)
@@ -39,6 +41,7 @@ namespace OsEngine.Market.Servers.Binance
         }
 
         /// <summary>
+        /// server type
         /// тип сервера
         /// </summary>
         public ServerType ServerType
@@ -47,15 +50,18 @@ namespace OsEngine.Market.Servers.Binance
         }
 
         /// <summary>
+        /// server parameters
         /// параметры сервера
         /// </summary>
         public List<IServerParameter> ServerParameters { get; set; }
 
         /// <summary>
+        /// server time
         /// время сервера
         /// </summary>
         public DateTime ServerTime { get; set; }
 
+// requests
 // запросы
 
         /// <summary>
@@ -64,6 +70,7 @@ namespace OsEngine.Market.Servers.Binance
         private BinanceClient _client;
 
         /// <summary>
+        /// release API
         /// освободить апи
         /// </summary>
         public void Dispose()
@@ -89,6 +96,7 @@ namespace OsEngine.Market.Servers.Binance
         }
 
         /// <summary>
+        /// connect to API
         /// подсоединиться к апи
         /// </summary>
         public void Connect()
@@ -112,6 +120,7 @@ namespace OsEngine.Market.Servers.Binance
         }
 
         /// <summary>
+        /// request securities
         /// запросить бумаги
         /// </summary>
         public void GetSecurities()
@@ -120,6 +129,7 @@ namespace OsEngine.Market.Servers.Binance
         }
 
         /// <summary>
+        /// request portfolios
         /// запросить портфели
         /// </summary>
         public void GetPortfolios()
@@ -128,6 +138,7 @@ namespace OsEngine.Market.Servers.Binance
         }
 
         /// <summary>
+        /// send order
         /// исполнить ордер
         /// </summary>
         public void SendOrder(Order order)
@@ -136,6 +147,7 @@ namespace OsEngine.Market.Servers.Binance
         }
 
         /// <summary>
+        /// cancel order
         /// отозвать ордер
         /// </summary>
         public void CanselOrder(Order order)
@@ -144,6 +156,7 @@ namespace OsEngine.Market.Servers.Binance
         }
 
         /// <summary>
+        /// subscribe
         /// подписаться 
         /// </summary>
         public void Subscrible(Security security)
@@ -152,6 +165,7 @@ namespace OsEngine.Market.Servers.Binance
         }
 
         /// <summary>
+        /// take candle history for period
         /// взять историю свечек за период
         /// </summary>
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
@@ -199,6 +213,7 @@ namespace OsEngine.Market.Servers.Binance
         }
 
         /// <summary>
+        /// take ticks data on instrument for period
         /// взять тиковые данные по инструменту за период
         /// </summary>
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
@@ -207,6 +222,7 @@ namespace OsEngine.Market.Servers.Binance
         }
 
         /// <summary>
+        /// request order state
         /// запросить статус ордеров
         /// </summary>
         public void GetOrdersState(List<Order> orders)
@@ -215,11 +231,13 @@ namespace OsEngine.Market.Servers.Binance
         }
 
         /// <summary>
+        /// server status
         /// статус серверов
         /// </summary>
         public ServerConnectStatus ServerStatus { get; set; }
 
         /// <summary>
+        /// request instrument history
         /// запрос истории по инструменту
         /// </summary>
         public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf)
@@ -227,6 +245,7 @@ namespace OsEngine.Market.Servers.Binance
             return _client.GetCandles(nameSec, tf);
         }
 
+//parsing incoming data
 // разбор входящих данных
 
         void _client_MyOrderEvent(Order order)
@@ -246,6 +265,7 @@ namespace OsEngine.Market.Servers.Binance
         }
 
         /// <summary>
+        /// multi-threaded access locker to ticks
         /// блокиратор многопоточного доступа к тикам
         /// </summary>
         private readonly object _newTradesLoker = new object();
@@ -280,6 +300,7 @@ namespace OsEngine.Market.Servers.Binance
         }
 
         /// <summary>
+        /// all depths
         /// все стаканы
         /// </summary>
         private List<MarketDepth> _depths;
@@ -506,51 +527,62 @@ namespace OsEngine.Market.Servers.Binance
             ServerStatus = ServerConnectStatus.Connect;
         }
 
+// outgoing messages
 // исходящие события
 
         /// <summary>
+        /// called when order changed
         /// вызывается когда изменился ордер
         /// </summary>
         public event Action<Order> MyOrderEvent;
 
         /// <summary>
+        /// called when my trade changed
         /// вызывается когда изменился мой трейд
         /// </summary>
         public event Action<MyTrade> MyTradeEvent;
 
         /// <summary>
+        /// new portfolios appeared
         /// появились новые портфели
         /// </summary>
         public event Action<List<Portfolio>> PortfolioEvent;
 
         /// <summary>
+        /// new securities
         /// новые бумаги
         /// </summary>
         public event Action<List<Security>> SecurityEvent;
 
         /// <summary>
+        /// new depth
         /// новый стакан
         /// </summary>
         public event Action<MarketDepth> MarketDepthEvent;
 
         /// <summary>
+        /// new trade
         /// новый трейд
         /// </summary>
         public event Action<Trade> NewTradesEvent;
 
         /// <summary>
+        /// API connection established
         /// соединение с API установлено
         /// </summary>
         public event Action ConnectEvent;
 
         /// <summary>
+        /// API connection lost
         /// соединение с API разорвано
         /// </summary>
         public event Action DisconnectEvent;
 
+// log messages
 // сообщения для лога
 
         /// <summary>
+        /// add a new log message
         /// добавить в лог новое сообщение
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
@@ -562,6 +594,7 @@ namespace OsEngine.Market.Servers.Binance
         }
 
         /// <summary>
+        /// outgoing log message
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;

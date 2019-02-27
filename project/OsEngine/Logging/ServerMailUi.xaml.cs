@@ -1,4 +1,5 @@
 ﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -8,11 +9,12 @@ using OsEngine.Language;
 namespace OsEngine.Logging
 {
     /// <summary>
+    /// window of mailing server settings
     /// Окно настроек сервера почтовой рассылки
     /// </summary>
     public partial class ServerMailDeliveryUi
     {
-         public ServerMailDeliveryUi() // конструктор
+         public ServerMailDeliveryUi() // constructor / конструктор
         {
             InitializeComponent();
 
@@ -50,7 +52,7 @@ namespace OsEngine.Logging
             Label14.Content = OsLocalization.Logging.Label14;
         }
 
-        private void buttonAccept_Click(object sender, RoutedEventArgs e) // принять
+        private void buttonAccept_Click(object sender, RoutedEventArgs e) // accept / принять
         {
             ServerMail serverMail = ServerMail.GetServer();
             serverMail.MyAdress = TextBoxMyAdress.Text;

@@ -1,4 +1,5 @@
 ﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -22,12 +23,14 @@ namespace OsEngine.Market.Servers.Finam
 {
 
     /// <summary>
+    /// class-server for connection to Finam
     /// класс - сервер для подключения к Финам
     /// </summary>
     public class FinamServer : IServer
     {
-        
+
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
         public FinamServer()
@@ -73,12 +76,14 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// take server type
         /// взять тип сервера
         /// </summary>
         /// <returns></returns>
         public ServerType ServerType { get; set; }
 
         /// <summary>
+        /// show settings
         /// показать настройки
         /// </summary>
         public void ShowDialog()
@@ -97,16 +102,19 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// item control window
         /// окно управления элемента
         /// </summary>
         private FinamServerUi _ui;
 
         /// <summary>
+        /// server address to connect to server
         /// адрес сервера по которому нужно соединяться с сервером
         /// </summary>
         public string ServerAdress;
 
         /// <summary>
+        /// take server settings from file
         /// загрузить настройки сервера из файла
         /// </summary>
         public void Load()
@@ -132,6 +140,7 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// save server settings in file
         /// сохранить настройки сервера в файл
         /// </summary>
         public void Save()
@@ -151,11 +160,13 @@ namespace OsEngine.Market.Servers.Finam
             }
         }
 
+        // server status
         // статус сервера
 
         private ServerConnectStatus _serverConnectStatus;
 
         /// <summary>
+        /// server status
         /// статус сервера
         /// </summary>
         public ServerConnectStatus ServerStatus
@@ -176,6 +187,7 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// called when connection status changed
         /// вызывается когда статус соединения изменяется
         /// </summary>
         public event Action<string> ConnectStatusChangeEvent;
@@ -184,9 +196,11 @@ namespace OsEngine.Market.Servers.Finam
 
         public bool NeadToSaveTicks { get; set; }
 
+        // connection / disconnection
         // подключение / отключение
 
         /// <summary>
+        /// start server
         /// запустить сервер
         /// </summary>
         public void StartServer()
@@ -200,7 +214,8 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
-        /// остановить сервер СмартКом
+        /// stop server
+        /// остановить сервер
         /// </summary>
         public void StopServer()
         {
@@ -208,21 +223,24 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// needed server status. Need a thread that monitors the connection. Depending on this field controls the connection
         /// нужный статус сервера. Нужен потоку который следит за соединением
         /// В зависимости от этого поля управляет соединением
         /// </summary>
         private ServerConnectStatus _serverStatusNead;
 
+        // main thread work !!!!!!
         // работа основного потока !!!!!!
 
         /// <summary>
+        /// main thread that controls connection, downloading portfolios and securities, sending to up
         /// основной поток, следящий за подключением, загрузкой портфелей и бумаг, пересылкой данных на верх
         /// </summary>
         private Thread _threadPrime;
 
         /// <summary>
-        /// место в котором контролируется соединение.
-        /// опрашиваются потоки данных
+        /// the place where the connection is controlled. listen to data streams
+        /// место в котором контролируется соединение. опрашиваются потоки данных
         /// </summary>
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void PrimeThreadArea()
@@ -271,7 +289,7 @@ namespace OsEngine.Market.Servers.Finam
                     ServerStatus = ServerConnectStatus.Disconnect;
 
                     Thread.Sleep(5000);
-                    // переподключаемся
+                    // reconect / переподключаемся
                     _threadPrime = new Thread(PrimeThreadArea);
                     _threadPrime.CurrentCulture = new CultureInfo("ru-RU");
                     _threadPrime.IsBackground = true;
@@ -288,16 +306,19 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// last start server time
         /// время последнего старта сервера
         /// </summary>
         private DateTime _lastStartServerTime = DateTime.MinValue;
 
         /// <summary>
+        /// shows whether portfolios and securities downloaded
         /// скачаны ли портфели и бумаги
         /// </summary>
         private bool _getSecurities;
 
         /// <summary>
+        /// start connection
         /// начать процесс подключения
         /// </summary>
         private void CheckPing()
@@ -308,7 +329,7 @@ namespace OsEngine.Market.Servers.Finam
 
             if (pingReply == null || pingReply.Status != IPStatus.Success ||
                 pingReply.RoundtripTime > 1000)
-            { // если что-то не так - выходим
+            { // if something is wrong, we exit / если что-то не так - выходим
                 SendLogMessage("Server response fail, ping is " + pingReply.Status + ". wrong address or internet fail", LogMessageType.Error);
                 return;
             }
@@ -319,6 +340,7 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// check server page availability
         /// проверка доступности страницы сервера
         /// </summary>
         private void CheckServer()
@@ -326,7 +348,7 @@ namespace OsEngine.Market.Servers.Finam
             String pageContent = GetPage("http://" + ServerAdress);
 
             if (pageContent.Length == 0)
-            { // если нет контента - выходим
+            { // if there is no content, we exit / если нет контента - выходим
                 SendLogMessage(OsLocalization.Market.Message51, LogMessageType.Error);
                 return;
             }
@@ -358,6 +380,7 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// includes loading of tools and portfolios
         /// включает загрузку инструментов и портфелей
         /// </summary>
         private void GetSecurities()
@@ -678,39 +701,47 @@ namespace OsEngine.Market.Servers.Finam
             _portfolioToSend.Enqueue(Portfolios);
         }
 
+        // work of sending thread
         // работа потока рассылки !!!!!
 
         /// <summary>
+        /// queue of ticks
         /// очередь тиков
         /// </summary>
         private ConcurrentQueue<List<Trade>> _tradesToSend;
 
         /// <summary>
+        /// queue of new instruments
         /// очередь новых инструментов
         /// </summary>
         private ConcurrentQueue<List<Security>> _securitiesToSend;
 
         /// <summary>
+        /// queue of upsated candle series
         /// очередь обновлённых серий свечек
         /// </summary>
         private ConcurrentQueue<CandleSeries> _candleSeriesToSend;
 
         /// <summary>
+        /// queue of new depths
         /// очередь новых стаканов
         /// </summary>
         private ConcurrentQueue<MarketDepth> _marketDepthsToSend;
 
         /// <summary>
+        /// queue of new portfolios
         /// очередь новых портфелей
         /// </summary>
         private ConcurrentQueue<List<Portfolio>> _portfolioToSend;
 
         /// <summary>
+        /// queue of updated bid/ask on instruments
         /// очередь обновлений бида с аска по инструментам 
         /// </summary>
         private ConcurrentQueue<BidAskSender> _bidAskToSend;
 
         /// <summary>
+        /// place where the connection is controlled
         /// место в котором контролируется соединение
         /// </summary>
         private void SenderThreadArea()
@@ -803,12 +834,13 @@ namespace OsEngine.Market.Servers.Finam
             }
         }
 
-        // бумаги
+        // security / бумаги
         private List<FinamSecurity> _finamSecurities;
 
         private List<Security> _securities;
 
         /// <summary>
+        /// all instruments in the system
         /// все инструменты в системе
         /// </summary>
         public List<Security> Securities
@@ -817,6 +849,7 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// take the instrument as a Security class by the name of the tool
         /// взять инструмент в виде класса Security, по имени инструмента 
         /// </summary>
         public Security GetSecurityForName(string name)
@@ -829,11 +862,13 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// called when new tools appear
         /// вызывается при появлении новых инструментов
         /// </summary>
         public event Action<List<Security>> SecuritiesChangeEvent;
 
         /// <summary>
+        /// show instruments
         /// показать инструменты 
         /// </summary>
         public void ShowSecuritiesDialog()
@@ -842,11 +877,13 @@ namespace OsEngine.Market.Servers.Finam
             ui.ShowDialog();
         }
 
-// портфели. Рассылается для торговли в эмуляторе на сервере финам
+        // portfolios. It is sent for trading in the emulator on Finam server
+        // портфели. Рассылается для торговли в эмуляторе на сервере финам
 
         private List<Portfolio> _portfolios;
 
         /// <summary>
+        /// all accounts in the system
         /// все счета в системе
         /// </summary>
         public List<Portfolio> Portfolios
@@ -855,6 +892,7 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// take portfolio by his number/name
         /// взять портфель по его номеру/имени
         /// </summary>
         public Portfolio GetPortfolioForName(string name)
@@ -876,26 +914,30 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// called when new portfolios appear
         /// вызывается когда в системе появляются новые портфели
         /// </summary>
         public event Action<List<Portfolio>> PortfoliosChangeEvent;
 
+        // Subscribe to data
         // Подпись на данные
 
         private List<FinamDataSeries> _finamDataSeries;
 
         /// <summary>
+        /// multi-threaded access locker in StartThisSecurity
         /// объект блокирующий многопоточный доступ в StartThisSecurity
         /// </summary>
         private object _lockerStarter = new object();
 
         /// <summary>
+        /// start downloading data on instrument
         /// Начать выгрузку данных по инструменту. 
         /// </summary>
-        /// <param name="namePaper">имя бумаги которую будем запускать</param>
-        /// <param name="timeFrameBuilder">объект несущий в себе таймфрейм</param>
-        /// <returns>В случае удачи возвращает CandleSeries
-        /// в случае неудачи null</returns>
+        /// <param name="namePaper">security name for running / имя бумаги которую будем запускать</param>
+        /// <param name="timeFrameBuilder">object with timeframe / объект несущий в себе таймфрейм</param>
+        /// <returns>In case of luck, returns CandleSeries / В случае удачи возвращает CandleSeries
+        /// in case of failure null / в случае неудачи null</returns>
         public CandleSeries StartThisSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder)
         {
             return null;
@@ -953,16 +995,17 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// Start uploading data on the instrument
         /// Начать выгрузку данных по инструменту. 
         /// </summary>
-        /// <param name="namePaper">айди бумаги</param>
-        /// <param name="timeFrameBuilder">объект несущий в себе данные по таймФреймам</param>
-        /// <param name="startTime">время начала загрузки</param>
-        /// <param name="endTime">время завершения работы</param>
-        /// <param name="actualTime">время последней загрузки данных</param>
-        /// <param name="neadToUpdate">нужно ли автоматически обновлять</param>
-        /// <returns>В случае удачи возвращает CandleSeries
-        /// в случае неудачи null</returns>
+        /// <param name="namePaper">security id/айди бумаги</param>
+        /// <param name="timeFrameBuilder">object with timeframe / объект несущий в себе данные по таймФреймам</param>
+        /// <param name="startTime">start downloading time / время начала загрузки</param>
+        /// <param name="endTime">finish downloading time /время завершения работы</param>
+        /// <param name="actualTime">time of the last data load / время последней загрузки данных</param>
+        /// <param name="neadToUpdate">whether to automatically update / нужно ли автоматически обновлять</param>
+        /// <returns>In case of luck, returns CandleSeries / В случае удачи возвращает CandleSeries
+        /// in case of failure null / в случае неудачи null</returns>
         public CandleSeries GetCandleDataToSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdate)
         {
             try
@@ -972,14 +1015,14 @@ namespace OsEngine.Market.Servers.Finam
                     return null;
                 }
 
-                // дальше по одному
+                // one by one / дальше по одному
                 lock (_lockerStarter)
                 {
                     if (namePaper == null)
                     {
                         return null;
                     }
-                    // надо запустить сервер если он ещё отключен
+                    // need to start the server if it is still disabled / надо запустить сервер если он ещё отключен
                     if (ServerStatus != ServerConnectStatus.Connect)
                     {
                         //MessageBox.Show("Сервер не запущен. Скачивание данных прервано. Инструмент: " + namePaper);
@@ -1060,6 +1103,7 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// take ticks data on instrument for period
         /// взять тиковые данные по инструменту за определённый период
         /// </summary>
         /// <returns></returns>
@@ -1072,14 +1116,14 @@ namespace OsEngine.Market.Servers.Finam
                     return false;
                 }
 
-                // дальше по одному
+                // one by one / дальше по одному
                 lock (_lockerStarter)
                 {
                     if (namePaper == null)
                     {
                         return false;
                     }
-                    // надо запустить сервер если он ещё отключен
+                    // need to start the server if it is still disabled / надо запустить сервер если он ещё отключен
                     if (ServerStatus != ServerConnectStatus.Connect)
                     {
                         //MessageBox.Show("Сервер не запущен. Скачивание данных прервано. Инструмент: " + namePaper);
@@ -1153,6 +1197,7 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// start depth downloading on instrument 
         /// запустить скачивание стакана по инструменту
         /// </summary>
         /// <returns></returns>
@@ -1162,6 +1207,7 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// stop downloading on instrument
         /// остановить скачивание инструмента
         /// </summary>
         public void StopThisSecurity(CandleSeries series)
@@ -1181,19 +1227,22 @@ namespace OsEngine.Market.Servers.Finam
             }
         }
 
-// стакан. Рассылается для торговли в эмуляторе на сервере Финам
+        // depth. Sent for trading in the emulator on Finam server
+        // стакан. Рассылается для торговли в эмуляторе на сервере Финам
 
         /// <summary>
+        /// called when bid or ask changes
         /// вызывается когда изменяется бид или аск по инструменту
         /// </summary>
         public event Action<decimal, decimal, Security> NewBidAscIncomeEvent;
 
         /// <summary>
+        /// called when depth changes
         /// вызывается когда изменяется стакан
         /// </summary>
         public event Action<MarketDepth> NewMarketDepthEvent;
 
-        // выгрузка свечей
+        // candle downloading / выгрузка свечей
 
         private void ThreadDownLoaderArea()
         {
@@ -1220,23 +1269,27 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// called at the time of changing candle series
         /// вызывается в момент изменения серий свечек
         /// </summary>
         public event Action<CandleSeries> NewCandleIncomeEvent;
 
         /// <summary>
+        /// connectors connected to server need to reload data
         /// коннекторам подключеным к серверу необходимо перезаказать данные
         /// </summary>
         public event Action NeadToReconnectEvent;
 
         /// <summary>
+        /// candles downloading from method GetSmartComCandleHistory
         /// свечи скаченные из метода GetSmartComCandleHistory
         /// </summary>
         private List<Candle> _candles;
 
-        // тики
+        // ticks / тики
 
         /// <summary>
+        /// file names downloaded from Finam with trades
         /// имена файлов загруженных из финам с трейдами
         /// </summary>
         private List<List<string>> _downLoadFilesWhithTrades;  
@@ -1276,7 +1329,7 @@ namespace OsEngine.Market.Servers.Finam
             }
             else
             {
-                // сортируем сделки по хранилищам
+                // sort trades by storages / сортируем сделки по хранилищам
                 for (int indTrade = 0; indTrade < tradesNew.Count; indTrade++)
                 {
                     Trade trade = tradesNew[indTrade];
@@ -1286,7 +1339,7 @@ namespace OsEngine.Market.Servers.Finam
                         if (_allTrades[i] != null && _allTrades[i].Count != 0 &&
                             _allTrades[i][0].SecurityNameCode == trade.SecurityNameCode)
                         {
-                            // если для этого инструметна уже есть хранилище, сохраняем и всё
+                            // if there is already a storage for this instrument, we save and everything / если для этого инструметна уже есть хранилище, сохраняем и всё
                             isSave = true;
                             if (_allTrades[i][_allTrades[i].Count - 1].Time > trade.Time)
                             {
@@ -1298,7 +1351,7 @@ namespace OsEngine.Market.Servers.Finam
                     }
                     if (isSave == false)
                     {
-                        // хранилища для инструмента нет
+                        // there is no storage for the instrument / хранилища для инструмента нет
                         List<Trade>[] allTradesNew = new List<Trade>[_allTrades.Length + 1];
                         for (int i = 0; i < _allTrades.Length; i++)
                         {
@@ -1323,11 +1376,13 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// all ticks
         /// все тики
         /// </summary>
         private List<Trade>[] _allTrades;
 
         /// <summary>
+        /// all server ticks
         /// все тики имеющиеся у сервера
         /// </summary>
         public List<Trade>[] AllTrades
@@ -1336,6 +1391,7 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// take ticks by instruments
         /// взять тики по инструменту
         /// </summary>
         public List<Trade> GetAllTradesToSecurity(Security security)
@@ -1367,13 +1423,16 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// called at the time of appearance of new trades on instrument
         /// вызывается в момет появления новых трейдов по инструменту
         /// </summary>
         public event Action<List<Trade>> NewTradeEvent;
 
+        // log messages
         // обработка лога
 
         /// <summary>
+        /// add a new log message
         /// добавить в лог новое сообщение
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
@@ -1385,22 +1444,24 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// log manager
         /// менеджер лога
         /// </summary>
         private Log _logMaster;
 
         /// <summary>
+        /// outgoing message for log
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
 
-        #region остальное из интерфейса сервера не реализовано, т.к. Финам не полный сервер
+        #region the rest of the server interface is not implemented, because Finam isn't a full server /остальное из интерфейса сервера не реализовано, т.к. Финам не полный сервер
 
-   
-        // мои сделки
+        // my trades / мои сделки
 
         /// <summary>
+        /// my trades
         /// мои сделки
         /// </summary>
         public List<MyTrade> MyTrades
@@ -1409,13 +1470,16 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// called when my new deal comes
         /// вызывается когда приходит новая моя сделка
         /// </summary>
         public event Action<MyTrade> NewMyTradeEvent;
 
+        // work with orders
         // работа с ордерами
 
         /// <summary>
+        /// execute order
         /// исполнить ордер
         /// </summary>
         public void ExecuteOrder(Order order)
@@ -1424,6 +1488,7 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// cancel order
         /// отменить ордер
         /// </summary>
         public void CanselOrder(Order order)
@@ -1432,6 +1497,7 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// called when new order appear in the system
         /// вызывается когда в системе появляется новый ордер
         /// </summary>
         public event Action<Order> NewOrderIncomeEvent;
@@ -1439,6 +1505,7 @@ namespace OsEngine.Market.Servers.Finam
         private DateTime _serverTime;
 
         /// <summary>
+        /// server time
         /// время сервера
         /// </summary>
         public DateTime ServerTime
@@ -1456,6 +1523,7 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// called when server time is changed
         /// вызывается когда изменяется время сервера
         /// </summary>
         public event Action<DateTime> TimeServerChangeEvent;
@@ -1465,27 +1533,32 @@ namespace OsEngine.Market.Servers.Finam
     }
 
     /// <summary>
+    /// data series for the load history at Finam
     /// серия данных для подгрузки истории в финам
     /// </summary>
     public class FinamDataSeries
     {
 
         /// <summary>
+        /// prefix for the server address
         /// префикс для адреса сервера
         /// </summary>
         public string ServerPrefics;
 
         /// <summary>
+        /// security in the Finam specification
         /// контракт в финам спецификации
         /// </summary>
         public FinamSecurity SecurityFinam;
 
         /// <summary>
+        /// security in Os.Engine format
         /// контракт в формате Os.Engine
         /// </summary>
         public Security Security;
 
         /// <summary>
+        /// timeframe
         /// таймФрейм
         /// </summary>
         public TimeFrame TimeFrame
@@ -1535,51 +1608,61 @@ namespace OsEngine.Market.Servers.Finam
         private TimeFrame _timeFrame;
 
         /// <summary>
+        /// timeframe in Finam format
         /// таймфрейм в формате финам
         /// </summary>
         private string _timeFrameFinam;
 
         /// <summary>
+        /// timeframe in TimeSpan format
         /// таймфрейм в формате TimeSpan
         /// </summary>
         private TimeSpan _timeFrameSpan;
 
         /// <summary>
+        /// candle series
         /// серия свечек
         /// </summary>
         public CandleSeries Series;
 
         /// <summary>
+        /// start time of the download
         /// время начала скачивания
         /// </summary>
         public DateTime TimeStart;
 
         /// <summary>
+        /// finish time of the download
         /// время завершения скачивания
         /// </summary>
         public DateTime TimeEnd;
 
         /// <summary>
+        /// current time
         /// актуальное время
         /// </summary>
         public DateTime TimeActual;
 
         /// <summary>
+        /// candle updated
         /// обновились свечи
         /// </summary>
         public event Action<CandleSeries> CandleUpdateEvent;
 
         /// <summary>
+        /// trades updated
         /// обновились трейды
         /// </summary>
         public event Action<List<string>> TradesUpdateEvent;
 
         /// <summary>
+        /// is current object a downloading tick
         /// является ли текущий объект скачивающим тики
         /// </summary>
         public bool IsTick;
 
         /// <summary>
+        /// update data
         /// обновить данные
         /// </summary>
         public void Process()
@@ -1686,16 +1769,19 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// whether need to update the series automatically
         /// нужно ли обновлять серию автоматически
         /// </summary>
         public bool NeadToUpdeate;
 
         /// <summary>
+        /// set had once loaded
         /// сет уже один раз подгружался
         /// </summary>
         public bool LoadedOnce;
 
         /// <summary>
+        /// update trades
         /// обновить трейды
         /// </summary>
         /// <returns></returns>
@@ -1741,6 +1827,7 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// take trade for period
         /// взять трейды за период
         /// </summary>
         /// <param name="timeStart"></param>
@@ -1790,6 +1877,7 @@ namespace OsEngine.Market.Servers.Finam
             url += "datf=" + "12" + "&";
             url += "at=" + "0" ;
 
+// if we have already downloaded this trades series, try to get it from the general storage
 // если мы уже эту серию трейдов качали, пробуем достать её из общего хранилища
 
             string fileName = @"Data\Temp\" + SecurityFinam.Name + "_" + timeStart.ToShortDateString() + ".txt";
@@ -1800,7 +1888,7 @@ namespace OsEngine.Market.Servers.Finam
                 return fileName;
             }
 
-
+// request data
 // запрашиваем данные
 
             WebClient wb = new WebClient();
@@ -1828,7 +1916,7 @@ namespace OsEngine.Market.Servers.Finam
             wb.Dispose();
 
             if (!File.Exists(fileName))
-            { // файл не загружен
+            { // file is not uploaded / файл не загружен
                 return null;
             }
 
@@ -1876,6 +1964,7 @@ namespace OsEngine.Market.Servers.Finam
         private bool _tickLoaded;
 
         /// <summary>
+        /// update candles
         /// обновить свечи
         /// </summary>
         /// <returns></returns>
@@ -1926,6 +2015,7 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// take candles for period
         /// взять свечи за период
         /// </summary>
         /// <param name="timeStart"></param>
@@ -2016,6 +2106,7 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// add a new log message
         /// добавить в лог новое сообщение
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
@@ -2031,22 +2122,26 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// outgoin log message
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
     }
 
     /// <summary>
+    /// security in Finam specification
     /// контракт в спецификации финам
     /// </summary>
     public class FinamSecurity
     {
         /// <summary>
+        /// unique number
         /// уникальный номер
         /// </summary>
         public string Id;
 
         /// <summary>
+        /// name
         /// имя
         /// </summary>
         public string Name;
@@ -2057,11 +2152,13 @@ namespace OsEngine.Market.Servers.Finam
         public string Code;
 
         /// <summary>
+        /// name of market
         /// название рынка 
         /// </summary>
         public string Market;
 
         /// <summary>
+        /// name of market as a number
         /// название рынка в виде цифры
         /// </summary>
         public string MarketId;
@@ -2077,6 +2174,7 @@ namespace OsEngine.Market.Servers.Finam
         public string EmitentChild;
 
         /// <summary>
+        /// web-site adress
         /// адрес на сайте
         /// </summary>
         public string Url;

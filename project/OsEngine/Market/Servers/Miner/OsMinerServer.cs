@@ -15,11 +15,13 @@ using OsEngine.Market.Servers.Tester;
 namespace OsEngine.Market.Servers.Miner
 {
     /// <summary>
+	/// class that provides data for Miner
     /// класс реализующий  предоставление данных для Майнера
     /// </summary>
     public class OsMinerServer
     {
         /// <summary>
+		/// constructor
         /// конструктор
         /// </summary>
         public OsMinerServer(string name)
@@ -48,16 +50,19 @@ namespace OsEngine.Market.Servers.Miner
         }
 
         /// <summary>
+		/// server name
         /// имя сервера
         /// </summary>
         private string _name;
 
         /// <summary>
+		/// log
         /// лог
         /// </summary>
         public Log Log;
 
         /// <summary>
+		/// server type
         /// тип сервера
         /// </summary>
         public ServerType ServerType
@@ -66,6 +71,7 @@ namespace OsEngine.Market.Servers.Miner
         }
 
         /// <summary>
+		/// load settings from file
         /// загрузить настройки из файла
         /// </summary>
         private void Load()
@@ -93,6 +99,7 @@ namespace OsEngine.Market.Servers.Miner
         }
 
         /// <summary>
+		/// save settings
         /// сохранить настройки
         /// </summary>
         public void Save()
@@ -114,6 +121,7 @@ namespace OsEngine.Market.Servers.Miner
         }
 
         /// <summary>
+		/// delete settings
         /// удалить настройки
         /// </summary>
         public void Delete()
@@ -125,9 +133,11 @@ namespace OsEngine.Market.Servers.Miner
             _neadToStopThread = true;
         }
 
+// work with data connection
 // работа с подключением данных
 
         /// <summary>
+		/// data source type
         /// тип источника данных
         /// </summary>
         public TesterSourceDataType SourceDataType
@@ -148,6 +158,7 @@ namespace OsEngine.Market.Servers.Miner
         private TesterSourceDataType _sourceDataType;
 
         /// <summary>
+		/// data sets
         /// сеты данных
         /// </summary>
         public List<string> Sets
@@ -158,6 +169,7 @@ namespace OsEngine.Market.Servers.Miner
         private List<string> _sets;
 
         /// <summary>
+		/// take all sets from the directory
         /// взять все сеты из папки
         /// </summary>
         private void CheckSet()
@@ -195,9 +207,10 @@ namespace OsEngine.Market.Servers.Miner
         }
 
         /// <summary>
+		/// bind to tester a new data set
         /// привязать к тестору новый сет данных
         /// </summary>
-        /// <param name="setName">имя сета</param>
+        /// <param name="setName">set name / имя сета</param>
         public void SetNewSet(string setName)
         {
             string newSet = @"Data" + @"\" + @"Set_" + setName;
@@ -217,11 +230,12 @@ namespace OsEngine.Market.Servers.Miner
         }
 
         /// <summary>
+		/// reload data
         /// перезакачать данные
         /// </summary>
         public void ReloadSecurities()
         {
-            // чистим все данные, отключаемся
+            // clear all data and disconnected / чистим все данные, отключаемся
             _securities = null;
             Save();
 
@@ -229,6 +243,7 @@ namespace OsEngine.Market.Servers.Miner
         }
 
         /// <summary>
+		/// data folder path
         /// путь к папке с данными
         /// </summary>
         public string PathToFolder
@@ -238,6 +253,7 @@ namespace OsEngine.Market.Servers.Miner
         private string _pathToFolder;
 
         /// <summary>
+		/// show folder path selection window
         /// вызвать окно выбора пути к папке
         /// </summary>
         public void ShowPathSenderDialog()
@@ -252,7 +268,7 @@ namespace OsEngine.Market.Servers.Miner
             myDialog.ShowDialog();
 
             if (myDialog.SelectedPath != "" &&
-                _pathToFolder != myDialog.SelectedPath) // если хоть что-то выбрано
+                _pathToFolder != myDialog.SelectedPath) // if anything is selected/если хоть что-то выбрано
             {
                 _pathToFolder = myDialog.SelectedPath;
                 if (_sourceDataType == TesterSourceDataType.Folder)
@@ -262,9 +278,11 @@ namespace OsEngine.Market.Servers.Miner
             }
         }
 
+// Synchronizer
 // Синхронизатор
 
         /// <summary>
+		/// path to data folder. He is the name of the active set
         /// путь к папке с данными. Он же название активного сета
         /// </summary>
         public string ActiveSet
@@ -274,38 +292,46 @@ namespace OsEngine.Market.Servers.Miner
         private string _activSet;
 
         /// <summary>
+		/// minimum time that can be set for synchronization
         /// минимальное время которое можно задать для синхронизации
         /// </summary>
         public DateTime TimeMin;
 
         /// <summary>
+		/// maximum time that can be set for synchronization
         /// максимальное время которое можно задать для синхронизации
         /// </summary>
         public DateTime TimeMax;
 
         /// <summary>
+		/// test start time selected by user
         /// время начала тестирования выбранное пользователем
         /// </summary>
         public DateTime TimeStart;
 
         /// <summary>
+		// test finish time selected by user
         /// время конца тестирования выбранное пользователем
         /// </summary>
         public DateTime TimeEnd;
 
         /// <summary>
+		/// synchronizer time in current moment of history
         /// время синхронизатора в данный момент подачи истории
         /// </summary>
         public DateTime TimeNow;
 
+// work place of main thread
 // место работы основного потока
 
         /// <summary>
+		/// is it time to reload security in the directory
         /// пора ли перезагружать бумаги в директории
         /// </summary>
         private bool _needToReloadSecurities;
 
         /// <summary>
+		/// main stream, which is engaged in loading all data
         /// основной поток, которые занимается прогрузкой всех данных
         /// </summary>
         private Thread _worker;
@@ -313,11 +339,13 @@ namespace OsEngine.Market.Servers.Miner
         private static object _workerLocker = new object();
 
         /// <summary>
+		/// flag that it's time to break the work thread
         /// флаг о том что пора отрубать рабочий поток
         /// </summary>
         private bool _neadToStopThread;
 
         /// <summary>
+		/// work place of main thread
         /// место работы основного потока
         /// </summary>
         private void WorkThreadArea()
@@ -359,6 +387,7 @@ namespace OsEngine.Market.Servers.Miner
         }
 
         /// <summary>
+		/// load security data from folder
         /// загрузить данные о бумагах из директории
         /// </summary>
         private void LoadSecurities()
@@ -375,7 +404,7 @@ namespace OsEngine.Market.Servers.Miner
 
             if (_sourceDataType == TesterSourceDataType.Set)
             {
-                // сеты данных Геркулеса
+                // Hercules data sets / сеты данных Геркулеса
                 string[] directories = Directory.GetDirectories(_activSet);
 
                 if (directories.Length == 0)
@@ -393,7 +422,7 @@ namespace OsEngine.Market.Servers.Miner
             }
             else // if (_sourceDataType == TesterSourceDataType.Folder)
             {
-                // простые файлы из папки
+                // simple files from directory / простые файлы из папки
 
                 string[] files = Directory.GetFiles(_pathToFolder);
 
@@ -414,9 +443,10 @@ namespace OsEngine.Market.Servers.Miner
         }
 
         /// <summary>
+		/// load one instrument from folder
         /// выгрузить один инструмент из папки
         /// </summary>
-        /// <param name="path">путь к папке с инструментом</param>
+        /// <param name="path">tool folder path/путь к папке с инструментом</param>
         private void LoadSeciruty(string path)
         {
             string[] directories = Directory.GetDirectories(path);
@@ -441,6 +471,7 @@ namespace OsEngine.Market.Servers.Miner
         }
 
         /// <summary>
+		/// load data from folder
         /// загрузить данные из папки
         /// </summary>
         private void LoadCandleFromFolder(string folderName)
@@ -470,25 +501,25 @@ namespace OsEngine.Market.Servers.Miner
                 security[security.Count - 1].Security.Go = 1;
                 security[security.Count - 1].Security.PriceStepCost = 1;
                 security[security.Count - 1].Security.PriceStep = 1;
-                // тф
-                // шаг цены
-                // начало
-                // конец
+                // timeframe / тф
+                // step price / шаг цены
+                // begin / начало
+                // end / конец
 
                 StreamReader reader = new StreamReader(files[i]);
 
-                // свечи: 20110111,100000,19577.00000,19655.00000,19533.00000,19585.00000,2752
-                // тики 1 вар: 20150401,100000,86160.000000000,2
-                // тики 2 вар: 20151006,040529,3010,5,Buy/Sell/Unknown
+                // candles/свечи: 20110111,100000,19577.00000,19655.00000,19533.00000,19585.00000,2752
+                // ticks ver.1/тики 1 вар: 20150401,100000,86160.000000000,2
+                // ticks ver.2/тики 2 вар: 20151006,040529,3010,5,Buy/Sell/Unknown
 
                 string str = reader.ReadLine();
 
                 try
                 {
-                    // смотрим свечи ли в файле
+                    // check whether candles are in the file / смотрим свечи ли в файле
                     Candle candle = new Candle();
                     candle.SetCandleFromString(str);
-                    // в файле свечи. Смотрим какие именно
+                    // candles are in the file. We look at which ones / в файле свечи. Смотрим какие именно
 
                     security[security.Count - 1].TimeStart = candle.TimeStart;
 
@@ -497,7 +528,7 @@ namespace OsEngine.Market.Servers.Miner
 
                     security[security.Count - 1].TimeFrameSpan = candle2.TimeStart - candle.TimeStart;
                     security[security.Count - 1].TimeFrame = GetTimeFrame(security[security.Count - 1].TimeFrameSpan);
-                    // шаг цены
+                    // step price / шаг цены
 
                     decimal minPriceStep = decimal.MaxValue;
                     int countFive = 0;
@@ -519,7 +550,7 @@ namespace OsEngine.Market.Servers.Miner
                             low.ToString(culture).Split(',').Length > 1 ||
                             close.ToString(culture).Split(',').Length > 1)
                         {
-                            // если имеет место вещественная часть
+                            // if the real part takes place / если имеет место вещественная часть
                             int lenght = 1;
 
                             if (open.ToString(culture).Split(',').Length > 1 &&
@@ -577,7 +608,7 @@ namespace OsEngine.Market.Servers.Miner
                         }
                         else
                         {
-                            // если вещественной части нет
+                            // if the real part doesn't take place / если вещественной части нет
                             int lenght = 1;
 
                             for (int i3 = open.ToString(culture).Length - 1; open.ToString(culture)[i3] == '0'; i3--)
@@ -646,7 +677,7 @@ namespace OsEngine.Market.Servers.Miner
                     security[security.Count - 1].Security.PriceStepCost = minPriceStep;
 
 
-                    // последняя дата
+                    // last date / последняя дата
                     string lastString = null;
 
                     while (!reader.EndOfStream)
@@ -672,6 +703,7 @@ namespace OsEngine.Market.Servers.Miner
                 }
             }
 
+			// save security
             // сохраняем бумаги
 
             if (security == null ||
@@ -693,6 +725,7 @@ namespace OsEngine.Market.Servers.Miner
                 }
             }
 
+// count time
 // считаем время
             
             SecuritiesTester.AddRange(security);
@@ -720,18 +753,22 @@ namespace OsEngine.Market.Servers.Miner
         }
 
         /// <summary>
+		/// changed security and server data
         /// изменились бумаги и данные по серверу
         /// </summary>
         public event Action<List<MinerCandleSeries>> CandleSeriesChangeEvent; 
 
+// security
 // бумаги
 
         /// <summary>
+		/// data currently stored in server
         /// данные хранящиеся в текущий момент в сервере
         /// </summary>
         public List<MinerCandleSeries> SecuritiesTester = new List<MinerCandleSeries>();
 
         /// <summary>
+		/// all securities for trading
         /// все бумаги доступные для торгов
         /// </summary>
         public List<Security> Securities
@@ -741,6 +778,7 @@ namespace OsEngine.Market.Servers.Miner
         private List<Security> _securities;
 
         /// <summary>
+		/// take timeframe in format OsEngine
         /// взять таймфрейм в формате OsEngine
         /// </summary>
         private TimeFrame GetTimeFrame(TimeSpan frameSpan)
@@ -819,10 +857,11 @@ namespace OsEngine.Market.Servers.Miner
             return timeFrame;
         }
 
-
+// work with logs
 // работа с логами
 
         /// <summary>
+		/// send a new log message
         /// отправить в лог новый мессадж
         /// </summary>
         private void TesterServer_LogMessageEvent(string logMessage)
@@ -831,6 +870,7 @@ namespace OsEngine.Market.Servers.Miner
         }
 
         /// <summary>
+		/// save a new log message
         /// сохранить новую запись в лог
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
@@ -842,54 +882,65 @@ namespace OsEngine.Market.Servers.Miner
         }
 
         /// <summary>
+		/// called when there is a new message in log
         /// вызывается когда есть новое сообщение в логе
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
     }
 
     /// <summary>
+	/// instrument storage and data on it
     /// хранилище инструмента и данных по нему
     /// </summary>
     public class MinerCandleSeries
     {
         /// <summary>
+		/// security
         /// бумага которой принадлежит объект
         /// </summary>
         public Security Security;
 
         /// <summary>
+		/// file address with instrument data 
         /// адрес файла с данными инструмента
         /// </summary>
         public string FileAdress;
 
         /// <summary>
+		/// file start time
         /// время начала данных в файле
         /// </summary>
         public DateTime TimeStart;
 
         /// <summary>
+		/// file finish time
         /// время конца данных в файле
         /// </summary>
         public DateTime TimeEnd;
 
         /// <summary>
+		/// timeframe as interval of TimeSpan
         /// таймфрейм в виде интервала  времени TimeSpan
         /// </summary>
         public TimeSpan TimeFrameSpan;
 
         /// <summary>
+		/// timeframe in OsEngine format 
         /// таймфрейм в формате OsEngine
         /// </summary>
         public TimeFrame TimeFrame;
 
         /// <summary>
+		/// available candles
         /// доступные свечи 
         /// </summary>
         public List<Candle> Candles = new List<Candle>(); 
 
+// analysis of candle files
 // разбор свечных файлов
 
         /// <summary>
+		/// load candles from file
         /// загрузка свечек из файла
         /// </summary>
         public void LoadCandles()
@@ -920,10 +971,11 @@ namespace OsEngine.Market.Servers.Miner
             }
         }
 
-
+// work with logs
 // работа с логами
 
         /// <summary>
+		/// save a new log message
         /// сохранить новую запись в лог
         /// </summary>
         private void SendLogMessage(string message)
@@ -935,6 +987,7 @@ namespace OsEngine.Market.Servers.Miner
         }
 
         /// <summary>
+		/// called when there is new log message
         /// вызывается когда есть новое сообщение в логе
         /// </summary>
         public event Action<string> LogMessageEvent;

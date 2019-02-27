@@ -10,6 +10,7 @@ using OsEngine.Market.Servers.Entity;
 namespace OsEngine.Market.Servers.BitStamp
 {
     /// <summary>
+    /// BitStamp server
     /// сервер BitStamp
     /// </summary>
     public class BitStampServer : AServer
@@ -33,11 +34,13 @@ namespace OsEngine.Market.Servers.BitStamp
         }
 
         /// <summary>
+        /// server status
         /// статус сервера
         /// </summary>
         public ServerConnectStatus ServerStatus { get; set; }
 
         /// <summary>
+        /// server type
         /// тип сервера
         /// </summary>
         public ServerType ServerType
@@ -46,16 +49,18 @@ namespace OsEngine.Market.Servers.BitStamp
         }
 
         /// <summary>
+        /// server parameters
         /// параметры сервера
         /// </summary>
         public List<IServerParameter> ServerParameters { get; set; }
 
         /// <summary>
+        /// server time
         /// время сервера
         /// </summary>
         public DateTime ServerTime { get; set; }
 
-// запросы
+// requests / запросы
 
         /// <summary>
         /// bitstamp client
@@ -63,6 +68,7 @@ namespace OsEngine.Market.Servers.BitStamp
         private BitstampClient _client;
 
         /// <summary>
+        /// dispose API
         /// освободить апи
         /// </summary>
         public void Dispose()
@@ -87,6 +93,7 @@ namespace OsEngine.Market.Servers.BitStamp
         }
 
         /// <summary>
+        /// connect to API
         /// подсоединиться к апи
         /// </summary>
         public void Connect()
@@ -111,6 +118,7 @@ namespace OsEngine.Market.Servers.BitStamp
         }
 
         /// <summary>
+        /// request securities
         /// запросить бумаги
         /// </summary>
         public void GetSecurities()
@@ -119,6 +127,7 @@ namespace OsEngine.Market.Servers.BitStamp
         }
 
         /// <summary>
+        /// request portfolios
         /// запросить портфели
         /// </summary>
         public void GetPortfolios()
@@ -135,6 +144,7 @@ namespace OsEngine.Market.Servers.BitStamp
         }
 
         /// <summary>
+        /// cancel order
         /// отозвать ордер
         /// </summary>
         public void CanselOrder(Order order)
@@ -143,6 +153,7 @@ namespace OsEngine.Market.Servers.BitStamp
         }
 
         /// <summary>
+        /// subscribe
         /// подписаться 
         /// </summary>
         public void Subscrible(Security security)
@@ -151,6 +162,7 @@ namespace OsEngine.Market.Servers.BitStamp
         }
 
         /// <summary>
+        /// take candle history for period
         /// взять историю свечек за период
         /// </summary>
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime,
@@ -160,6 +172,7 @@ namespace OsEngine.Market.Servers.BitStamp
         }
 
         /// <summary>
+        /// take ticks data for period
         /// взять тиковые данные по инструменту за период
         /// </summary>
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
@@ -168,6 +181,7 @@ namespace OsEngine.Market.Servers.BitStamp
         }
 
         /// <summary>
+        /// request order status
         /// запросить статус ордеров
         /// </summary>
         public void GetOrdersState(List<Order> orders)
@@ -175,7 +189,8 @@ namespace OsEngine.Market.Servers.BitStamp
             return;
         }
 
-// обработка входящих данных
+        // incoming data processing
+        // обработка входящих данных
 
         private void ClientOnLogMessageEvent(string message, LogMessageType type)
         {
@@ -338,54 +353,62 @@ namespace OsEngine.Market.Servers.BitStamp
             }
         }
 
-        // исходящие события
-
-
+        // outgoing events
         // исходящие события
 
         /// <summary>
+        /// called when order changed
         /// вызывается когда изменился ордер
         /// </summary>
         public event Action<Order> MyOrderEvent;
 
         /// <summary>
+        /// called when my trade changed
         /// вызывается когда изменился мой трейд
         /// </summary>
         public event Action<MyTrade> MyTradeEvent;
 
         /// <summary>
+        /// appear new portfolios
         /// появились новые портфели
         /// </summary>
         public event Action<List<Portfolio>> PortfolioEvent;
 
         /// <summary>
+        /// new securities
         /// новые бумаги
         /// </summary>
         public event Action<List<Security>> SecurityEvent;
 
         /// <summary>
+        /// new depth
         /// новый стакан
         /// </summary>
         public event Action<MarketDepth> MarketDepthEvent;
 
         /// <summary>
+        /// new trade
         /// новый трейд
         /// </summary>
         public event Action<Trade> NewTradesEvent;
 
         /// <summary>
+        /// API connection established
         /// соединение с API установлено
         /// </summary>
         public event Action ConnectEvent;
 
         /// <summary>
+        /// API connection lost
         /// соединение с API разорвано
         /// </summary>
         public event Action DisconnectEvent;
 
+        // log messages
         // сообщения для лога
 
         /// <summary>
+        /// add a new log message
         /// добавить в лог новое сообщение
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
@@ -397,6 +420,7 @@ namespace OsEngine.Market.Servers.BitStamp
         }
 
         /// <summary>
+        /// outgoing log message
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
