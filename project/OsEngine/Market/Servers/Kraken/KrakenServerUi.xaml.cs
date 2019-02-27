@@ -7,6 +7,7 @@ using OsEngine.Logging;
 namespace OsEngine.Market.Servers.Kraken
 {
     /// <summary>
+    /// Interaction logic for KrakenServerUi.xaml
     /// Логика взаимодействия для KrakenServerUi.xaml
     /// </summary>
     public partial class KrakenServerUi
@@ -90,7 +91,7 @@ namespace OsEngine.Market.Servers.Kraken
             }
         }
 
-        void server_ConnectChangeEvent(string status) // изменился статус сервера
+        void server_ConnectChangeEvent(string status) // changed serve status / изменился статус сервера
         {
             if (!LabelStatus.CheckAccess())
             {
@@ -101,7 +102,7 @@ namespace OsEngine.Market.Servers.Kraken
             LabelStatus.Content = status;
         }
 
-        private void ButtonConnect_Click(object sender, RoutedEventArgs e) // кнопка подключить сервер
+        private void ButtonConnect_Click(object sender, RoutedEventArgs e) // button connecto to server / кнопка подключить сервер
         {
             if (string.IsNullOrWhiteSpace(TextBoxPublicKey.Text) )
             {
@@ -124,7 +125,7 @@ namespace OsEngine.Market.Servers.Kraken
             _server.StartServer();
         }
 
-        private void ButtonAbort_Click(object sender, RoutedEventArgs e) // кнопка остановить сервер
+        private void ButtonAbort_Click(object sender, RoutedEventArgs e) // button stop server / кнопка остановить сервер
         {
             _server.StopServer();
         }

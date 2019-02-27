@@ -1,4 +1,5 @@
 ﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -14,19 +15,22 @@ namespace OsEngine.Market.Servers.AstsBridge
 {
 
     /// <summary>
+    /// library wrapper mtesrl.dll.
     /// обёртка библиотеки mtesrl.dll.
     /// </summary>
     public class AstsBridgeWrapper
     {
 
+// PART ONE. Managment version mtesrl.dll
 // ЧАСТЬ ПЕРВАЯ. Managment версия mtesrl.dll
 
         /// <summary>
+        /// connecto to AstsBrige
         /// Подключиться к AstsBrige
         /// </summary>
-        /// <param name="paramsString">строка с параметрами</param>
-        /// <param name="errorString">переменная в которую будет записан код ошибки если что-то пойдёт не так</param>
-        /// <returns>Дескриптор соединения или код ошибки(отрицательное значение) если что-то пошло не так</returns>
+        /// <param name="paramsString"> string with parameters / строка с параметрами </param>
+        /// <param name="errorString"> the variable in which the error code will be written if something goes wrong / переменная в которую будет записан код ошибки если что-то пойдёт не так</param>
+        /// <returns>Connection descriptor or error code (negative value) if something went wrong / Дескриптор соединения или код ошибки(отрицательное значение) если что-то пошло не так</returns>
         [DllImport("mtesrl64.dll", EntryPoint = "MTEConnect", 
             CallingConvention = CallingConvention.StdCall)]
         private static extern int MteConnect(
@@ -34,42 +38,46 @@ namespace OsEngine.Market.Servers.AstsBridge
              StringBuilder errorString);
 
         /// <summary>
+        /// request the AstsBrige status
         /// запросить статус AstsBrige
         /// </summary>
-        /// <param name="procNum">номер коннекта</param>
-        /// <returns>Статус: 0 - включен и работает. Остальное код ошибки</returns>
+        /// <param name="procNum">number of connect / номер коннекта</param>
+        /// <returns>Status: 0 - enabled and running, else error code / Статус: 0 - включен и работает. Остальное код ошибки</returns>
         [DllImport("mtesrl64.dll", EntryPoint = "MTEConnectionStatus", 
             CallingConvention = CallingConvention.StdCall)]
         private static extern int MTEConnectionStatus(
             [param: MarshalAs(UnmanagedType.I4)] Int32 procNum);
 
         /// <summary>
+        /// disconnect from AstsBrige
         /// Отключиться от AstsBrige
         /// </summary>
-        /// <returns>результат выполнения. 0 - ОК. Остальное код ошибки</returns>
+        /// <returns>result of execution. 0 - OK, else error code / результат выполнения. 0 - ОК. Остальное код ошибки</returns>
         [DllImport("mtesrl64.dll", EntryPoint = "MTEDisconnect", 
             CallingConvention = CallingConvention.StdCall)]
         private static extern int MteDisconnect(
             [param: MarshalAs(UnmanagedType.I4)] Int32 procNum);
 
         /// <summary>
+        /// request an error specification
         /// Запросить спецификацию ошибки
         /// </summary>
-        /// <returns>результат выполнения. 0 - ОК. Остальное код ошибки</returns>
+        /// <returns>result of execution. 0 - OK, else error code / результат выполнения. 0 - ОК. Остальное код ошибки</returns>
         [DllImport("mtesrl64.dll", EntryPoint = "MTEErrorMsg", 
             CallingConvention = CallingConvention.StdCall)]
         private static extern IntPtr MteErrorMsg(
             [param: MarshalAs(UnmanagedType.I4)] Int32 procNum);
 
         /// <summary>
+        /// Request table opening
         /// Запросить открытие таблицы
         /// </summary>
-        /// <param name="procNum">дескриптор соединения выданный MteConnect</param>
-        /// <param name="tableName">название таблицы которую мы запрашиваем</param>
-        /// <param name="tableParams">параметры для открытия таблицы</param>
-        /// <param name="loadAllTable">нужно ли подгружать полную таблицу</param>
-        /// <param name="msg">переменная в которую будет записан результат запроса</param>
-        /// <returns>если >= 0, то это дескриптор таблицы, нужный для запроса её обновления. Если меньше 0, то код ошибки</returns>
+        /// <param name="procNum">connection handle issued MteConnect / дескриптор соединения выданный MteConnect</param>
+        /// <param name="tableName">name of the table that we request / название таблицы которую мы запрашиваем</param>
+        /// <param name="tableParams">parameters for opening the table / параметры для открытия таблицы</param>
+        /// <param name="loadAllTable">need to upload full table / нужно ли подгружать полную таблицу</param>
+        /// <param name="msg"> variable for request result / переменная в которую будет записан результат запроса</param>
+        /// <returns>if >=0 then this's the table descriptor needed to request its update, else returns error code / если >= 0, то это дескриптор таблицы, нужный для запроса её обновления. Если меньше 0, то код ошибки</returns>
         [DllImport("mtesrl64.dll", EntryPoint = "MTEOpenTable",
             CallingConvention = CallingConvention.StdCall)]
         private static unsafe extern int MteOpenTableFirstTime(
@@ -80,12 +88,13 @@ namespace OsEngine.Market.Servers.AstsBridge
             out int* msg);
 
         /// <summary>
+        /// Request data structures
         /// Запросить структуры данных
         /// </summary>
-        /// <param name="procNum">дескриптор соединения выданный MteConnect</param>
-        /// <param name="version">номер запрашиваемых структур</param>
-        /// <param name="msg">переменная в которую будет записан результат запроса</param>
-        /// <returns>если меньше 0, то код ошибки</returns>
+        /// <param name="procNum">connection handle issued MteConnect / дескриптор соединения выданный MteConnect</param>
+        /// <param name="version">number of requested structures / номер запрашиваемых структур</param>
+        /// <param name="msg"> variable for request result / переменная в которую будет записан результат запроса</param>
+        /// <returns> if less 0, then returns error code / если меньше 0, то код ошибки</returns>
         [DllImport("mtesrl64.dll", EntryPoint = "MTEStructureEx", 
             CallingConvention = CallingConvention.StdCall)]
         private static unsafe extern int MteStructureEx(
@@ -94,13 +103,14 @@ namespace OsEngine.Market.Servers.AstsBridge
             out int* msg);
 
         /// <summary>
+        /// Queue table for update
         /// Поставить таблицу в очередь на обновление
         /// </summary>
-        /// <param name="procNum">дескриптор соединения выданный MteConnect</param>
-        /// <param name="tableNum">дескриптор таблицы которую нужно ставить в очередь на обновление</param>
-        /// <param name="userId">поле для ввода идентификатра таблицы(придумывается пользователем) 
-        /// которая потом передатся в память в начале этой таблицы</param>
-        /// <returns>0 - всё ок. Всё остальное код ошибки</returns>
+        /// <param name="procNum">connection handle issued MteConnect / дескриптор соединения выданный MteConnect</param>
+        /// <param name="tableNum">descriptor of the table to be queued for update/дескриптор таблицы которую нужно ставить в очередь на обновление</param>
+        /// <param name="userId">field for entering the table identifier(created by the user)/поле для ввода идентификатра таблицы(придумывается пользователем) 
+        /// which is then passed to memory at the beginning of this table / которая потом передатся в память в начале этой таблицы</param>
+        /// <returns>0 - everything is OK. Else returns error code/0 - всё ок. Всё остальное код ошибки</returns>
         [DllImport("mtesrl64.dll", EntryPoint = "MTEAddTable", 
             CallingConvention = CallingConvention.StdCall)]
         private static extern int MteAddTableInQueueOnRefresh(
@@ -109,11 +119,12 @@ namespace OsEngine.Market.Servers.AstsBridge
             [param: MarshalAs(UnmanagedType.I4)] Int32 userId);
 
         /// <summary>
+        /// update the tables placed in the queue to update
         /// Обновить таблицы поставленные в очередь на обновление
         /// </summary>
-        /// <param name="procNum">дескриптор соединения выданный MteConnect</param>
-        /// <param name="msg">результат запросов</param>
-        /// <returns>0 - всё ок. Всё остальное код ошибки. если пришла ошибка, то msg содержит её спецификацию</returns>
+        /// <param name="procNum">connection descriptor is issued by MteConnect/дескриптор соединения выданный MteConnect</param>
+        /// <param name="msg">request result / результат запросов</param>
+        /// <returns>0 - everything is OK. Else returns error code / 0 - всё ок. Всё остальное код ошибки. если пришла ошибка, то msg содержит её спецификацию</returns>
         [DllImport("mtesrl64.dll", EntryPoint = "MTERefresh", 
             CallingConvention = CallingConvention.StdCall)]
         private static unsafe extern int MteRefresh(
@@ -121,11 +132,12 @@ namespace OsEngine.Market.Servers.AstsBridge
             out int* msg);
 
         /// <summary>
+        /// cloae the table
         /// Закрыть таблицу
         /// </summary>
-        /// <param name="procNum">дескриптор соединения выданный MteConnect</param>
-        /// <param name="tabNum">дескриптор таблицы</param>
-        /// <returns>0 - всё ок. Всё остальное код ошибки</returns>
+        /// <param name="procNum">connection descriptor is issued by MteConnect/дескриптор соединения выданный MteConnect</param>
+        /// <param name="tabNum">table descriptor / дескриптор таблицы</param>
+        /// <returns>0 - everything is OK. Else returns error code / 0 - всё ок. Всё остальное код ошибки</returns>
         [DllImport("mtesrl64.dll", EntryPoint = "MTECloseTable", 
             CallingConvention = CallingConvention.StdCall)]
         private static extern int MteCloseTable(
@@ -133,13 +145,14 @@ namespace OsEngine.Market.Servers.AstsBridge
             [param: MarshalAs(UnmanagedType.I4)] Int32 tabNum);
 
         /// <summary>
+        /// execute the transaction
         /// Исполнить транзакцию
         /// </summary>
-        /// <param name="procNum">дескриптор соединения выданный MteConnect</param>
-        /// <param name="transName">название транзакции</param>
-        /// <param name="transParams">параметры транзакции</param>
-        /// <param name="errorString">результат</param>
-        /// <returns>0 - всё ок. Всё остальное код ошибки</returns>
+        /// <param name="procNum">connection descriptor is issued by MteConnect/дескриптор соединения выданный MteConnect</param>
+        /// <param name="transName">transaction name / название транзакции</param>
+        /// <param name="transParams">transaction parameters/параметры транзакции</param>
+        /// <param name="errorString">result/результат</param>
+        /// <returns>0 - everything is OK. Else returns error code / 0 - всё ок. Всё остальное код ошибки</returns>
         [DllImport("mtesrl64.dll", EntryPoint = "MTEExecTrans",
             CallingConvention = CallingConvention.StdCall)]
         private static extern int MteExecTrans(
@@ -148,9 +161,11 @@ namespace OsEngine.Market.Servers.AstsBridge
             StringBuilder transParams,
             StringBuilder errorString);
 
-// ЧАСТЬ ВТОРАЯ. Реализация Апи 
+        // PART TWO. Implementation Of API
+        // ЧАСТЬ ВТОРАЯ. Реализация Апи 
 
         /// <summary>
+        /// deploy ASTS Bridge Api
         /// развернуть ASTS Bridge Api. 
         /// </summary>
         public AstsBridgeWrapper()
@@ -160,41 +175,49 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// client code
         /// код клиента
         /// </summary>
         public string ClientCode;
 
         /// <summary>
+        /// data processing class from my trades table
         /// класс обработки данных из таблицы моих сделок
         /// </summary>
         private MyTradeTableConverter _tableMyTrade;
 
         /// <summary>
+        /// data processing class from my orders table
         /// класс обработки данных из таблицы моих ордеров
         /// </summary>
         private OrderTableConverter _tableOrder;
 
         /// <summary>
+        /// data processing class from security table
         /// класс обработки данных из таблицы бумаг
         /// </summary>
         private SecurityTableConverter _tableSecurity;
 
         /// <summary>
+        /// data processing class from portfolio table
         /// класс обработки данных из таблицы портфелей
         /// </summary>
         private PortfoliosTableConverter _tablePortfolios;
 
         /// <summary>
+        /// data processing class from trades table
         /// класс обработки данных из таблицы трейдов
         /// </summary>
         private TradesTableConverter _tableTrade;
 
         /// <summary>
+        /// data processing class from place table
         /// класс обработки данных из таблицы площадок
         /// </summary>
         private SecurityBoardsConverter _tableBoards;
 
         /// <summary>
+        /// класс обработки данных из таблицы площадок
         /// класс обработки данных из таблицы стаканов
         /// </summary>
         private MarketDepthTableConverter _marketDepthTable;
@@ -234,11 +257,13 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// connection descriptor. Unique number issued by the server when connecting
         /// дескриптор соединения. Уникальный номер выданный сервером при подключении
         /// </summary>
         private int _procNum;
 
         /// <summary>
+        /// disconnect with Asts
         /// разорвать соединение с Asts
         /// </summary>
         public void Disconnect()
@@ -263,6 +288,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// whether the wrapper for the Asts Bridge is running. True - if everything is OK.
         /// запущена ли обёртка для AstsBridge. True - если всё ОК.
         /// </summary>
         public bool IsConnected
@@ -275,46 +301,51 @@ namespace OsEngine.Market.Servers.AstsBridge
         private bool _isConnected;
 
         /// <summary>
+        /// array of data type ASTS
         /// массив типов данных ASTS
         /// </summary>
         private List<AstsEnumType> _typesStruct;
 
         /// <summary>
+        /// array of data table ASTS
         /// массив таблиц данных ASTS
         /// </summary>
         private List<AstsTable> _tablesStruct;
 
         /// <summary>
+        /// array of data table ASTS
         /// массив таблиц данных ASTS
         /// </summary>
         private List<AstsTransaction> _transactionStruct;
 
+// get data structure
 // принимаем структуры данных
 
         /// <summary>
+        /// request data structure for tables
         /// запросить структуру данных для таблиц
         /// </summary>
         public unsafe void GetStructureData()
         {
-            /*  Структура TMTEMsg определена так:
+            /*  The structure of TMTEMsg is defined as: / Структура TMTEMsg определена так:
             С++ typedef 
             struct TMTEMSG_TAG
             {
-                long DataLen; // Длина следующих далее данных // 
+                long DataLen; // Length of the next data / Длина следующих далее данных // 
                 char Data [
                 DataLen]
                 ; // commented
             }*/
 
-              /* 
-              перед каждым полем типа String передаётся 4 байта, содержащие длину этой строки)
-              ИмяИнтерфейса String
-              ЗаголовокИнтерфейса String
-              ОписаниеИнтерфейса String // только MTEStructureEx c Version>=2
-              ПеречислимыеТипы TEnumTypes
-              Таблицы TTables
-              Транзакции TTransactions
-             */
+            /* 
+            4 bytes containing the length of this string are passed before each String field / перед каждым полем типа String передаётся 4 байта, содержащие длину этой строки)
+            interface name String / ИмяИнтерфейса String
+            header of interface / ЗаголовокИнтерфейса String
+            description of interface / ОписаниеИнтерфейса String // only / только MTEStructureEx c Version>=2
+            enumerated type / ПеречислимыеТипы TEnumTypes
+            tables / Таблицы TTables
+            transaction / Транзакции TTransactions
+           */
 
             int* ptrOnTable;
 
@@ -327,7 +358,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 int[] lenghtFull = new int[1];
                 Marshal.Copy(IntPtr.Add(new IntPtr(ptrOnTable),  sdvig), lenghtFull, 0, 1);
 
-                ptrOnTable += 1; // сдвигаем на длинну длинны инта
+                ptrOnTable += 1; // shift to the length to int / сдвигаем на длинну длинны инта
 
                 string intrFase = GetString(ptrOnTable,out ptrOnTable, sdvig, out sdvig);
 
@@ -358,13 +389,14 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// take data types from the memory in the message MTEStructureEx
         /// взять типы данных из памяти в сообщении MTEStructureEx
         /// </summary>
-        /// <param name="ptr">адрес начала строки</param>
-        /// <param name="newPtr">OUT адрес сдвинутый на длинну строки</param>
-        /// <param name="sdvig">побайтовый сдвиг</param>
-        /// <param name="newSdvig">новый побайтовый сдвиг</param>
-        /// <returns>типы</returns>
+        /// <param name="ptr">address of string begin/адрес начала строки</param>
+        /// <param name="newPtr">OUT address is shifted to the length of the string/OUT адрес сдвинутый на длинну строки</param>
+        /// <param name="sdvig">bit shift / побайтовый сдвиг</param>
+        /// <param name="newSdvig">new bit shift/новый побайтовый сдвиг</param>
+        /// <returns>types/типы</returns>
         private unsafe List<AstsEnumType> GetAllTypes(int* ptr, out int* newPtr, int sdvig, out int newSdvig)
         {
             GetInt(ptr, out ptr, sdvig);
@@ -383,13 +415,14 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// take one type of data from the memory in the message MTEStructureEx
         /// взять один тип данных из памяти в сообщении MTEStructureEx
         /// </summary>
-        /// <param name="ptr">адрес начала строки</param>
-        /// <param name="newPtr">OUT адрес вдвинутый на длинну строки</param>
-        /// <param name="sdvig">побайтовый сдвиг</param>
-        /// <param name="newSdvig">новый побайтовый сдвиг</param>
-        /// <returns>тип</returns>
+        /// <param name="ptr">address of string begin/адрес начала строки</param>
+        /// <param name="newPtr">OUT address is shifted to the length of the string/OUT адрес вдвинутый на длинну строки</param>
+        /// <param name="sdvig">bit shift/побайтовый сдвиг</param>
+        /// <param name="newSdvig">new bit shift/новый побайтовый сдвиг</param>
+        /// <returns>type/тип</returns>
         private unsafe AstsEnumType GetOneType(int* ptr, out int* newPtr, int sdvig, out int newSdvig)
         {
             AstsEnumType type = new AstsEnumType();
@@ -433,13 +466,14 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// take tables from the memory in the message MTEStructureEx
         /// взять таблицы из памяти в сообщении MTEStructureEx
         /// </summary>
-        /// <param name="ptr">адрес начала строки</param>
-        /// <param name="newPtr">OUT адрес сдвинутый на длинну строки</param>
-        /// <param name="sdvig">побайтовый сдвиг</param>
-        /// <param name="newSdvig">новый побайтовый сдвиг</param>
-        /// <returns>типы</returns>
+        /// <param name="ptr">address of string begin/адрес начала строки</param>
+        /// <param name="newPtr">OUT address is shifted to the length of the string/OUT адрес сдвинутый на длинну строки</param>
+        /// <param name="sdvig">bit shift/побайтовый сдвиг</param>
+        /// <param name="newSdvig">new bit shift/новый побайтовый сдвиг</param>
+        /// <returns>types/типы</returns>
         private unsafe List<AstsTable> GetAllTables(int* ptr, out int* newPtr, int sdvig, out int newSdvig)
         {
             int tableCount = GetInt(ptr, out ptr, sdvig);
@@ -457,13 +491,14 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// take one table from the memory in the message MTEStructureEx
         /// взять одну таблицу данных из памяти в сообщении MTEStructureEx
         /// </summary>
-        /// <param name="ptr">адрес начала строки</param>
-        /// <param name="newPtr">OUT адрес сдвинутый на длинну строки</param>
-        /// <param name="sdvig">побайтовый сдвиг</param>
-        /// <param name="newSdvig">новый побайтовый сдвиг</param>
-        /// <returns>таблица</returns>
+        /// <param name="ptr">address of string begin/адрес начала строки</param>
+        /// <param name="newPtr">OUT address is shifted to the length of the string/OUT адрес сдвинутый на длинну строки</param>
+        /// <param name="sdvig">bit shift/побайтовый сдвиг</param>
+        /// <param name="newSdvig">new bit shift/новый побайтовый сдвиг</param>
+        /// <returns>tables/таблица</returns>
         private unsafe AstsTable GetOneTable(int* ptr, out int* newPtr, int sdvig, out int newSdvig)
         {
             AstsTable table = new AstsTable();
@@ -496,14 +531,15 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// take table fields
         /// взять поля таблицы
         /// </summary>
-        /// <param name="ptr">адрес начала строки</param>
-        /// <param name="newPtr">OUT адрес сдвинутый на длинну строки</param>
-        /// <param name="sdvig">побайтовый сдвиг</param>
-        /// <param name="newSdvig">новый побайтовый сдвиг</param>
-        /// <param name="neadDefoltValue">нужно ли считывать дефолтное значение</param>
-        /// <returns>поля таблицы</returns>
+        /// <param name="ptr">address of string begin/адрес начала строки</param>
+        /// <param name="newPtr">OUT address is shifted to the length of the string/OUT адрес сдвинутый на длинну строки</param>
+        /// <param name="sdvig">bit shift/побайтовый сдвиг</param>
+        /// <param name="newSdvig">new bit shift/новый побайтовый сдвиг</param>
+        /// <param name="neadDefoltValue">wether need to read the default value/нужно ли считывать дефолтное значение</param>
+        /// <returns>table fields/поля таблицы</returns>
         private unsafe List<AstsTableField> GetTableFields(int* ptr, out int* newPtr, int sdvig, out int newSdvig, bool neadDefoltValue)
         {
             
@@ -587,13 +623,14 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// take transactions from the memory in the message MTEStructureEx
         /// взять транзакции из памяти в сообщении MTEStructureEx
         /// </summary>
-        /// <param name="ptr">адрес начала строки</param>
-        /// <param name="newPtr">OUT адрес сдвинутый на длинну строки</param>
-        /// <param name="sdvig">побайтовый сдвиг</param>
-        /// <param name="newSdvig">новый побайтовый сдвиг</param>
-        /// <returns>типы</returns>
+        /// <param name="ptr">address of string begin/адрес начала строки</param>
+        /// <param name="newPtr">OUT address is shifted to the length of the string/OUT адрес сдвинутый на длинну строки</param>
+        /// <param name="sdvig">bit shift/побайтовый сдвиг</param>
+        /// <param name="newSdvig">new bit shift/новый побайтовый сдвиг</param>
+        /// <returns>types/типы</returns>
         private unsafe List<AstsTransaction> GetAllTrans(int* ptr, out int* newPtr, int sdvig, out int newSdvig)
         {
             int count = GetInt(ptr, out ptr, sdvig);
@@ -611,13 +648,14 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// take one transaction from the memory in the message MTEStructureEx
         /// взять одну транзакцию из памяти в сообщении MTEStructureEx
         /// </summary>
-        /// <param name="ptr">адрес начала строки</param>
-        /// <param name="newPtr">OUT адрес сдвинутый на длинну строки</param>
-        /// <param name="sdvig">побайтовый сдвиг</param>
-        /// <param name="newSdvig">новый побайтовый сдвиг</param>
-        /// <returns>тип</returns>
+        /// <param name="ptr">address of string begin/адрес начала строки</param>
+        /// <param name="newPtr">OUT address is shifted to the length of the string/OUT адрес сдвинутый на длинну строки</param>
+        /// <param name="sdvig">bit shift/побайтовый сдвиг</param>
+        /// <param name="newSdvig">new bit shift/новый побайтовый сдвиг</param>
+        /// <returns>type/тип</returns>
         private unsafe AstsTransaction GetOneTrans(int* ptr, out int* newPtr, int sdvig, out int newSdvig)
         {
             AstsTransaction type = new AstsTransaction();
@@ -635,37 +673,39 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// read 4 bytes int from memory
         /// считать из памяти целое 4 байт
         /// </summary>
-        /// <param name="ptr">адрес начала строки</param>
-        /// <param name="newPtr">OUT адрес сдвинутый на длинну строки</param>
-        /// <param name="sdvig">побайтовый сдвиг</param>
-        /// <returns>строка скачанная из памяти</returns>
+        /// <param name="ptr">address of string begin/адрес начала строки</param>
+        /// <param name="newPtr">OUT address is shifted to the length of the string/OUT адрес сдвинутый на длинну строки</param>
+        /// <param name="sdvig">bit shift/побайтовый сдвиг</param>
+        /// <returns>string from the memory/строка скачанная из памяти</returns>
         private unsafe int GetInt(int* ptr, out int* newPtr, int sdvig)
         {
             int[] stringLength = new int[1];
             Marshal.Copy(IntPtr.Add(new IntPtr(ptr), sdvig), stringLength, 0, 1);
             int length = stringLength[0];
-            ptr += 1; // сдвигаем на длинну длинны инта
+            ptr += 1; // shift to the int length / сдвигаем на длинну длинны инта
             newPtr = ptr;
 
             return length;
         }
 
         /// <summary>
+        /// read from memory an integer reading it from a byte field
         /// считать из памяти целое считав его из байтового поля
         /// </summary>
-        /// <param name="ptr">адрес начала строки</param>
-        /// <param name="newPtr">OUT адрес сдвинутый на длинну строки</param>
-        /// <param name="sdvig">побайтовый сдвиг</param>
-        /// <param name="newSdvig">новый побайтовый сдвиг</param>
-        /// <returns>строка скачанная из памяти</returns>
+        /// <param name="ptr">address of string begin/адрес начала строки</param>
+        /// <param name="newPtr">OUT address is shifted to the length of the string/OUT адрес сдвинутый на длинну строки</param>
+        /// <param name="sdvig">bit shift/побайтовый сдвиг</param>
+        /// <param name="newSdvig">new bit shift/новый побайтовый сдвиг</param>
+        /// <returns>string from the memory/строка скачанная из памяти</returns>
         private unsafe int GetIntFromByte(int* ptr, out int* newPtr, int sdvig, out int newSdvig)
         {
             byte[] stringLength = new byte[1];
             Marshal.Copy(IntPtr.Add(new IntPtr(ptr), sdvig), stringLength, 0, 1);
             int length = stringLength[0];
-            sdvig += 1; // сдвигаем 
+            sdvig += 1; // shift/ сдвигаем 
 
             while (sdvig >= 4)
             {
@@ -680,13 +720,14 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// read string from memory
         /// считать из памяти строку
         /// </summary>
-        /// <param name="ptr">адрес начала строки</param>
-        /// <param name="newPtr">OUT адрес вдвинутый на длинну строки</param>
-        /// <param name="sdvig">побайтовый сдвиг</param>
-        /// <param name="newSdvig">новый побайтовый сдвиг</param>
-        /// <returns>строка скачанная из памяти</returns>
+        /// <param name="ptr">address of string begin/адрес начала строки</param>
+        /// <param name="newPtr">OUT address is shifted to the length of the string/OUT адрес вдвинутый на длинну строки</param>
+        /// <param name="sdvig">bit shift/побайтовый сдвиг</param>
+        /// <param name="newSdvig">new bit shift/новый побайтовый сдвиг</param>
+        /// <returns>string from memory/строка скачанная из памяти</returns>
         private unsafe string GetString(int* ptr, out int* newPtr, int sdvig, out int newSdvig)
         {
             int[] stringLength = new int[1];
@@ -694,7 +735,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
             int length = stringLength[0]; 
 
-            ptr += 1; // сдвигаем на длинну длинны инта
+            ptr += 1; // shift to the int length / сдвигаем на длинну длинны инта
 
             string result = Marshal.PtrToStringAnsi(IntPtr.Add(new IntPtr(ptr), sdvig), stringLength[0]);
 
@@ -720,14 +761,15 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// read string from memory when we know int length
         /// считать из памяти строку когда мы знаем длинну интов
         /// </summary>
-        /// <param name="ptr">адрес начала строки</param>
-        /// <param name="newPtr">OUT адрес вдвинутый на длинну строки</param>
-        /// <param name="sdvig">побайтовый сдвиг</param>
-        /// <param name="newSdvig">новый побайтовый сдвиг</param>
-        /// <param name="length">длинна строки</param>
-        /// <returns>строка скачанная из памяти</returns>
+        /// <param name="ptr">address of string begin/адрес начала строки</param>
+        /// <param name="newPtr">OUT address is shifted to the length of the string/OUT адрес вдвинутый на длинну строки</param>
+        /// <param name="sdvig">bit shift/побайтовый сдвиг</param>
+        /// <param name="newSdvig">new bit shift/новый побайтовый сдвиг</param>
+        /// <param name="length">length of string/длинна строки</param>
+        /// <returns>string from memory/строка скачанная из памяти</returns>
         private unsafe string GetStringWhenWeKnownLength(int* ptr, out int* newPtr, int sdvig, out int newSdvig, int length)
         {
             string result;
@@ -762,19 +804,20 @@ namespace OsEngine.Market.Servers.AstsBridge
             return result;
         }
 
-// работа с запросом таблиц в первый раз
+        // working with a table query for the first time/работа с запросом таблиц в первый раз
 
-        // используемые нами таблицы, спецификация по адресу: ftp://ftp.moex.com/pub/ClientsAPI/ASTS/Bridge_Interfaces/Currency/Currency26_Broker_Russian.htm#t0_36
-        // ALL_TRADES - таблица всех сделок. Без параметров
-        // EXT_ORDERBOOK - стакан. Параметры: string secBoard, string secCode, int depth
-        // TRDACC - номер счёта клиента. Без параметров
-        // POSITIONS - позиции клиента. Без параметров
-        // BOARDS - доступные площадки. Без параметоров. Предоставляет данные нужные для вызова GetSecurities
-        // SECURITIES - Запросить бумаги по рынку. Параметры:  string marketId. string boardId
-        // ORDERS - Запросить ордера. Без параметров
-        // TRADES - Мои трейды. Без параметров
+        // tables used by us, specification at link / используемые нами таблицы, спецификация по адресу: ftp://ftp.moex.com/pub/ClientsAPI/ASTS/Bridge_Interfaces/Currency/Currency26_Broker_Russian.htm#t0_36
+        // ALL_TRADES - table with all trade. Without parameters / таблица всех сделок. Без параметров
+        // EXT_ORDERBOOK - depth / стакан. parameters / Параметры: string secBoard, string secCode, int depth
+        // TRDACC - number of client account / номер счёта клиента. Without parameters/ Без параметров
+        // POSITIONS - client positions / позиции клиента. Without parameters/ Без параметров
+        // BOARDS - available boards / доступные площадки. Without parameters /Без параметоров. Provides the data needed for the call GetSecurities/Предоставляет данные нужные для вызова GetSecurities
+        // SECURITIES - Request securities by market/ Запросить бумаги по рынку. parameters/Параметры:  string marketId. string boardId
+        // ORDERS - Request orders / Запросить ордера. Without parameters/Без параметров
+        // TRADES - My trades / Мои трейды. Without parameters/ Без параметров
 
         /// <summary>
+        /// request tables for the first time
         /// запросить таблицы в первый раз
         /// </summary>
         public unsafe void OpenTablesInFirstTime()
@@ -797,7 +840,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
             int* ptrOnTable;
 
-// портфели
+// portfolios / портфели
 
             int result = MteOpenTableFirstTime(_procNum, "TRDACC", null, true, out ptrOnTable);
 
@@ -825,7 +868,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 SendErrorFromAsts(result);
             }
 
-// денежные лимиты по портфелю
+// money limits on portfolio / денежные лимиты по портфелю
 
             result = MteOpenTableFirstTime(_procNum, "POSITIONS", null, true, out ptrOnTable);
 
@@ -840,7 +883,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 SendErrorFromAsts(result);
             }
 
-// бумаги
+// securities / бумаги
 
             result = MteOpenTableFirstTime(_procNum, "BOARDS", null, true, out ptrOnTable);
 
@@ -878,7 +921,7 @@ namespace OsEngine.Market.Servers.AstsBridge
             _tableMyTrade.Securities = _tableSecurity.MySecurities;
             _tableTrade.Securities = _tableSecurity.MySecurities;
 
-// денежные лимиты по бумагам
+// securities limits / денежные лимиты по бумагам
 
             result = MteOpenTableFirstTime(_procNum, "RM_HOLD", null, true, out ptrOnTable);
 
@@ -893,7 +936,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 SendErrorFromAsts(result);
             }
 
-// таблица всех сделок
+// table of all trades / таблица всех сделок
 
             result = MteOpenTableFirstTime(_procNum, "ALL_TRADES", null, true, out ptrOnTable);
 
@@ -934,6 +977,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 SendErrorFromAsts(result);
             }
 
+// from this table get the maximum and minimum value for securities today
 // из этой таблицы качаем максимальное и минимально знаечение для бумаг на сегодня
 
             result = MteOpenTableFirstTime(_procNum, "ASSETS", "", true, out ptrOnTable);
@@ -952,14 +996,15 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// download table from memory
         /// загрузить таблицу из памяти
         /// </summary>
-        /// <param name="ptr">адрес начала строки</param>
-        /// <param name="newPtr">OUT адрес вдвинутый на длинну строки</param>
-        /// <param name="sdvig">побайтовый сдвиг</param>
-        /// <param name="newSdvig">новый побайтовый сдвиг</param>
-        /// <param name="nameTable">название таблицы, если мы её сразу знаем</param>
-        /// <returns>получилось ли что-то скачать то, в конце концов!</returns>
+        /// <param name="ptr">address of string begin/адрес начала строки</param>
+        /// <param name="newPtr">OUT address is shifted to the length of the string/OUT адрес вдвинутый на длинну строки</param>
+        /// <param name="sdvig">bit shift/побайтовый сдвиг</param>
+        /// <param name="newSdvig">new bit shift/новый побайтовый сдвиг</param>
+        /// <param name="nameTable">table name, if we know it/название таблицы, если мы её сразу знаем</param>
+        /// <returns>did you get something to download/получилось ли что-то скачать то, в конце концов!</returns>
         private unsafe bool ReadTable(int* ptr, out int* newPtr, int sdvig, out int newSdvig, string nameTable)
         {
             AstsTable tableStruct = _tablesStruct.Find(astsTable => astsTable.Name == nameTable);
@@ -980,14 +1025,14 @@ namespace OsEngine.Market.Servers.AstsBridge
                 return false;
             }
 
-            // ALL_TRADES - таблица всех сделок. Без параметров
-            // EXT_ORDERBOOK - стакан. Параметры: string secBoard, string secCode, int depth
-            // TRDACC - номер счёта клиента. Без параметров
-            // POSITIONS - позиции клиента. Без параметров
-            // BOARDS - доступные площадки. Без параметоров. Предоставляет данные нужные для вызова GetSecurities
-            // SECURITIES - Запросить бумаги по рынку. Параметры:  string marketId. string boardId
-            // ORDERS - Запросить ордера. Без параметров
-            // TRADES - Мои трейды. Без параметров
+            // ALL_TRADES - table with all trades/таблица всех сделок. Without parameters / Без параметров
+            // EXT_ORDERBOOK - depth/стакан. parameters / Параметры: string secBoard, string secCode, int depth
+            // TRDACC - number of client account / номер счёта клиента. Without parameters / Без параметров
+            // POSITIONS - client positions / позиции клиента. Without parameters / Без параметров
+            // BOARDS - available boards / доступные площадки. Without parameters / Без параметоров. Provides the data needed for the call GetSecurities/Предоставляет данные нужные для вызова GetSecurities
+            // SECURITIES - Request securities by market/Запросить бумаги по рынку. parameters/Параметры:  string marketId. string boardId
+            // ORDERS - Request orders /Запросить ордера. Without parameters/Без параметров
+            // TRADES - My trades / Мои трейды. Without parameters/Без параметров
 
             if (tableStruct == null)
             {
@@ -1152,15 +1197,16 @@ namespace OsEngine.Market.Servers.AstsBridge
             return true;
         }
 
-       
+// work with table updating       
 // работа с обновлением таблиц
 
         /// <summary>
+        /// contact server to send transactions and update table data
         /// обратиться к серверу для отправки транзакций и обновления данных в таблицах
         /// </summary>
         public unsafe void Process()
         {
-// блок отправки транзакций
+// sending transaction block / блок отправки транзакций
 
             if (!_ordersToExecute.IsEmpty)
             {
@@ -1239,6 +1285,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 }
             }
 
+// get depths for the first time
 // подгружаем стаканы в первый раз
 
             for (int i = 0; _securitiesToMarketDepth != null && i < _securitiesToMarketDepth.Count; i++)
@@ -1273,6 +1320,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 }
             }
 
+// block of updating table
 // блок обновления таблиц
 
             if (_marketDepthTable.Descriptors.Count == 0)
@@ -1330,6 +1378,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// take line from order to send the transaction
         /// взять из ордера строку для отправки транзакции
         /// </summary>
         /// <param name="order">входящий ордер</param>
@@ -1337,22 +1386,22 @@ namespace OsEngine.Market.Servers.AstsBridge
         private StringBuilder GetStringToExecuteOrder(Order order)
         {
             /*   Char
-             * Дополняется справа пробелами до длины, указанной в описании поля. Например, 
-             * для поля типа Char(12) строка "ROOT" должна быть представлена как "ROOT "
+             * added on the right with spaces to the length specified in the field description. For example,/Дополняется справа пробелами до длины, указанной в описании поля. Например, 
+             * for a Char(12) field, the string "ROOT" must be represented as " ROOT "/для поля типа Char(12) строка "ROOT" должна быть представлена как "ROOT "
              Integer
-             Дополняется слева нулями до нужной длины. Например, значение 127 с типом Integer(10) преобразуется в строку "0000000127"
+             On the left is added with zeros to the needed length. For example, a value of 127 of type Integer(10) is converted to the string "0000000127"/Дополняется слева нулями до нужной длины. Например, значение 127 с типом Integer(10) преобразуется в строку "0000000127"
              Fixed
-             Оставляется два знака после десятичной точки, убирается десятичная точка, 
-             * дополняется слева нулями до нужной длины. Например, значение 927,4 с типом Fixed(8) преобразуется в строку "00092740"
+             Left two characters after the decimal point, removed the decimal point/Оставляется два знака после десятичной точки, убирается десятичная точка, 
+             * on the left is added with zeros to needed length. For example, a value of 927.4 with type Fixed(8) is converted to the string "00092740"/дополняется слева нулями до нужной длины. Например, значение 927,4 с типом Fixed(8) преобразуется в строку "00092740"
              Float
-             Оставляется N знаков после десятичной точки, убирается десятичная точка, 
-             * дополняется слева нулями до нужной длины. Значение N зависит от формата представления цен для финансового инструмента,
-             * к которому относится данное поле. 
-             * Например, значение 26,75 с типом Float(9) для инструмента с N = 4 преобразуется в строку "000267500"
+             Leaves N digits after the decimal point, removes the decimal point/Оставляется N знаков после десятичной точки, убирается десятичная точка, 
+             * on the left is added with zeros to needed length. The value of N depends on the presentation format of prices for financial instrument,/дополняется слева нулями до нужной длины. Значение N зависит от формата представления цен для финансового инструмента,
+             * to which this field belongs./к которому относится данное поле. 
+             * For example, a value of 26.75 with type Float (9) for a tool with N = 4 is converted to the string "000267500"/Например, значение 26,75 с типом Float(9) для инструмента с N = 4 преобразуется в строку "000267500"
              Date
-             Представляется в формате YYYYMMDD. Например значение 24 августа 1999г. преобразуется к "19990824"
+             Submitted in the YYYYMMDD format. For example, the value is August 24, 1999. converted to " 19990824"/Представляется в формате YYYYMMDD. Например значение 24 августа 1999г. преобразуется к "19990824"
              Time
-             Представляется в формате*/
+             Submitted in the format/Представляется в формате*/
 
             Security mySecurity = _tableSecurity.MySecurities.Find(s => s.Name == order.SecurityNameCode);
 
@@ -1381,7 +1430,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                     result.Append(acc);
                 }
                 else if (field.Name == "BUYSELL")
-                { // 12 ячейка
+                { // 12th cell / 12 ячейка
 
                     if (order.Side == Side.Buy)
                     {
@@ -1426,7 +1475,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                     result.Append(name);
                 }
                 else if (field.Name == "PRICE")
-                { // первая ячейка 35
+                { // the first cell 35/первая ячейка 35
 
                     string price;
                     int countDecimals = 0;
@@ -1454,11 +1503,11 @@ namespace OsEngine.Market.Servers.AstsBridge
                     }
 
                     result.Append(price);
-                    // последня ячейка 43
+                    // the last cell 43/последня ячейка 43
                 }
                 else if (field.Name == "QUANTITY")
                 {
-                    // первая ячейка 44
+                    // the first cell 44/первая ячейка 44
                     string volume = order.Volume.ToString();
 
                     if (field.Lenght > volume.Length)
@@ -1467,7 +1516,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                     }
 
                     result.Append(volume);
-                    // первая ячейка 53
+                    // the first cell 53/первая ячейка 53
                 }
                 else if (field.Name == "HIDDEN")
                 {
@@ -1481,7 +1530,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                     result.Append(hide);
                 }
                 else if (field.Name == "BROKERREF")
-                {// первая ячейка 64
+                {// the first cell 64/первая ячейка 64
                     string refB = "@" + order.NumberUser.ToString();
 
                     if (field.Lenght > refB.Length)
@@ -1490,7 +1539,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                     }
 
                     result.Append(refB);
-                    // последняя 83
+                    // the last cell 83/последняя 83
                 }
                 else if (field.Name == "EXTREF")
                 {
@@ -1555,6 +1604,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// new incoming trade came
         /// новый входящий трейд пришёл
         /// </summary>
         void _tableTrade_TradeUpdateEvent(List<Trade> trades)
@@ -1566,6 +1616,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// updating portfolio
         /// обновление портфеля
         /// </summary>
         void _tablePortfolios_PortfolioUpdateEvent(Portfolio portfolio)
@@ -1577,6 +1628,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// Level1 was changed in the security
         /// Level один изменился у бумаги
         /// </summary>
         void _tableSecurity_SecurityMoexUpdateEvent(SecurityLevelOne securityMoex)
@@ -1588,6 +1640,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// new security in the system
         /// новая бумага в системе
         /// </summary>
         void _tableSecurity_SecurityUpdateEvent(Security security)
@@ -1599,6 +1652,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// updated order
         /// обновился ордер
         /// </summary>
         void _tableOrder_OrderUpdateEvent(Order order)
@@ -1610,6 +1664,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// my new trade
         /// новая моя сделка
         /// </summary>
         void _tableMyTrade_MyTradeUpdateEvent(MyTrade myTrade)
@@ -1621,6 +1676,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// new depth
         /// новый стакан
         /// </summary>
         void _marketDepthTable_MarketDepthEvent(MarketDepth marketDepth)
@@ -1632,11 +1688,13 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// securities subscribed to get the depth
         /// бумаги подписанные на получение стакана
         /// </summary>
         private List<Security> _securitiesToMarketDepth; 
 
         /// <summary>
+        /// start listening depth on the instrument
         /// начать прослушивание стакана по инструменту
         /// </summary>
         public void ListenBidAsks(Security newSecurity)
@@ -1653,16 +1711,19 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// queue of orders to be placed in the system
         /// очередь ордеров для выставления в систему
         /// </summary>
         private ConcurrentQueue<Order> _ordersToExecute;
 
         /// <summary>
+        /// queue of orders to be canceled in the system
         /// очередь ордеров для отмены в системе
         /// </summary>
         private ConcurrentQueue<Order> _ordersToCansel;
 
         /// <summary>
+        /// execute order
         /// исполнить ордер
         /// </summary>
         public void ExecuteOrder(Order order)
@@ -1673,6 +1734,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
         private List<Order> _canselledOrders; 
         /// <summary>
+        /// cancel order
         /// отменить ордер
         /// </summary>
         public void CanselOrder(Order order)
@@ -1692,58 +1754,69 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// connection is established
         /// соединение установлено
         /// </summary>
         public event Action ConnectedEvent;
 
         /// <summary>
+        /// connection is lost
         /// соединение разорвано
         /// </summary>
         public event Action<string> DisconnectedEvent;
 
         /// <summary>
+        /// downloaded new instrument
         /// подгружен новый инструмент
         /// </summary>
         public event Action<Security> NewSecurityEvent;
 
         /// <summary>
+        /// updated portfolio
         /// обновился портфель
         /// </summary>
         public event Action<Portfolio> PortfolioUpdateEvent;
 
         /// <summary>
+        /// new trades in the system
         /// новые трейды в системе
         /// </summary>
         public event Action<List<Trade>> NewTradesEvent;
 
         /// <summary>
+        /// updated depth
         /// обновился стакан
         /// </summary>
         public event Action<MarketDepth> MarketDepthUpdateEvent;
 
         /// <summary>
+        /// my new trade
         /// новая Моя сделка
         /// </summary>
         public event Action<MyTrade> NewMyTradeEvent;
 
         /// <summary>
+        /// updated order state in the system
         /// обновилось состояние ордера в системе
         /// </summary>
         public event Action<Order> OrderUpdateEvent;
 
         /// <summary>
+        /// error when placing order
         /// ошибка при выставлении ордера
         /// </summary>
         public event Action<string, int> OrderFailedEvent;
 
         /// <summary>
+        /// updated security in exchange format
         /// обновились бумаги в формате биржи
         /// </summary>
         public event Action<SecurityLevelOne> SecurityMoexUpdateEvent;
 
-// логирование
+        // logging / логирование
 
         /// <summary>
+        /// send a specification error to log
         /// выслать спецификацию ошибки в лог
         /// </summary>
         /// <param name="numberError">номер ошибки которую вернул Asts</param>
@@ -1757,6 +1830,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// add a new log message
         /// добавить в лог новое сообщение
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
@@ -1768,20 +1842,24 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// outgoing message for log
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
     }
 
-// универсальная таблица с возвращающимися данными
+    // universal table with returning data
+    // универсальная таблица с возвращающимися данными
 
     /// <summary>
+    /// part of the data structure: table
     /// часть структуры данных: таблица
     /// </summary>
     public class UniversalTable
     {
         /// <summary>
+        /// private constructor
         /// закрытый конструктор
         /// </summary>
         private UniversalTable()
@@ -1797,17 +1875,20 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// table name
         /// название таблицы
         /// </summary>
         public readonly string Name;
 
         /// <summary>
+        /// rows
         /// строки
         /// </summary>
         public List<UniversalRow> Rows;
     }
 
     /// <summary>
+    /// part of the data structure: row in table
     /// часть структуры данных: строка в таблице
     /// </summary>
     public class UniversalRow
@@ -1818,15 +1899,17 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// fields
         /// поля строки
         /// </summary>
         public List<UniversalField> Fields;
 
         /// <summary>
+        /// take the field by name and convert it to int
         /// взять поле по название и конвертировать его в int
         /// </summary>
-        /// <param name="fieldName">название поля которое нам нужно</param>
-        /// <returns>возвращаемое значение. Если 0, то вероятна ошибка</returns>
+        /// <param name="fieldName">field name/название поля которое нам нужно</param>
+        /// <returns>returned value. If 0, then we may have an error/возвращаемое значение. Если 0, то вероятна ошибка</returns>
         public int GetAsInt32(string fieldName)
         {
             if (Fields == null)
@@ -1856,10 +1939,11 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// take the field by name and convert it to int
         /// взять поле по название и конвертировать его в int
         /// </summary>
-        /// <param name="fieldName">название поля которое нам нужно</param>
-        /// <returns>возвращаемое значение. Если 0, то вероятна ошибка</returns>
+        /// <param name="fieldName">field name/название поля которое нам нужно</param>
+        /// <returns>returned value. If 0, then we may have an error/возвращаемое значение. Если 0, то вероятна ошибка</returns>
         public long GetAsInt64(string fieldName)
         {
             if (Fields == null)
@@ -1889,10 +1973,11 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// take the field by name and convert it to string
         /// взять поле по название и конвертировать его в строку
         /// </summary>
-        /// <param name="fieldName">название поля которое нам нужно</param>
-        /// <returns>возвращаемое значение. Если null, то у нас ошибка</returns>
+        /// <param name="fieldName">field name/название поля которое нам нужно</param>
+        /// <returns>returned value. If 0, then we may have an error/возвращаемое значение. Если null, то у нас ошибка</returns>
         public string GetAsString(string fieldName)
         {
             if (Fields == null)
@@ -1911,11 +1996,12 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// take the field by name and convert it to a string
         /// взять поле по название и конвертировать его в строку
         /// </summary>
-        /// <param name="fieldName">название поля которое нам нужно</param>
-        /// <param name="decimals">количество знаков после зяпятой</param>
-        /// <returns>возвращаемое значение. Если 0, то у нас может быть ошибка</returns>
+        /// <param name="fieldName">field name / название поля которое нам нужно</param>
+        /// <param name="decimals">number of decimal places/количество знаков после зяпятой</param>
+        /// <returns>returned value. If 0, then we may have an error/возвращаемое значение. Если 0, то у нас может быть ошибка</returns>
         public decimal GetAsDecimal(string fieldName, int decimals)
         {
             if (Fields == null)
@@ -1967,10 +2053,11 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// take the field by name and convert it to a string
         /// взять поле по название и конвертировать его в строку
         /// </summary>
-        /// <param name="fieldName">название поля которое нам нужно</param>
-        /// <returns>возвращаемое значение. Если 0, то у нас может быть ошибка</returns>
+        /// <param name="fieldName">field name / название поля которое нам нужно</param>
+        /// <returns>returned value. If 0, then we may have an error/возвращаемое значение. Если 0, то у нас может быть ошибка</returns>
         public decimal GetAsDecimal(string fieldName)
         {
             if (Fields == null)
@@ -2002,11 +2089,12 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// take the field by name and convert it to DateTime
         /// взять поле по название и конвертировать его в DateTime
         /// </summary>
-        /// <param name="fieldDate">название поля в котором храниться дата</param>
-        /// <param name="fieldTime">название поля в котором храниться время</param>
-        /// <returns>возвращаемое значение. Если 0, то у нас может быть ошибка</returns>
+        /// <param name="fieldDate">name of field in which the date is stored/название поля в котором храниться дата</param>
+        /// <param name="fieldTime">name of field in which the time is stored/название поля в котором храниться время</param>
+        /// <returns>returned value. If 0, then we may have an error/возвращаемое значение. Если 0, то у нас может быть ошибка</returns>
         public DateTime GetAsDateTime(string fieldDate, string fieldTime)
         {
             if (Fields == null)
@@ -2052,60 +2140,71 @@ namespace OsEngine.Market.Servers.AstsBridge
     }
 
     /// <summary>
+    /// part of the data structure: field for a row in the data table
     /// часть структуры данных: поле для строки в таблице данных
     /// </summary>
     public class UniversalField
     {
         /// <summary>
+        /// field name
         /// имя поля
         /// </summary>
         public string Name;
 
         /// <summary>
+        /// value
         /// значение
         /// </summary>
         public string Value;
 
         /// <summary>
+        /// Unused field
         /// Не используемое поле
         /// </summary>
         public int Decimals;
     }
 
-
-// описание структур данных: Перечисления Asts Bridge
+    // description of data structures: enumerations Asts Bridge
+    // описание структур данных: Перечисления Asts Bridge
 
     /// <summary>
+    /// enumeration Asts Bridge
     /// перечисление Asts Bridge
     /// </summary>
     public class AstsEnumType
     {
         /// <summary>
+        /// name
         /// имя String
         /// </summary>
         public string Name;
 
         /// <summary>
+        /// header
         /// заголовок String
         /// </summary>
         public string Header;
 
         /// <summary>
+        /// description
         /// описание String
         /// </summary>
         public string Description;
 
         /// <summary>
+        /// size
         /// размер int
         /// </summary>
         public int Lenght;
 
         /// <summary>
+        /// type of type
         /// тип Типа. int
         /// </summary>
         public AstsEnumKind Type;
 
         /// <summary>
+        /// variable constants
         /// константы переменной
         /// </summary>
         public List<AstsEnumConst> Consts;
@@ -2113,27 +2212,32 @@ namespace OsEngine.Market.Servers.AstsBridge
     }
 
     /// <summary>
+    /// constant for an enumeration AstsBridge
     /// константа для перечисления AstsBridge
     /// </summary>
     public class AstsEnumConst
     {
         /// <summary>
+        /// value
         /// значение
         /// </summary>
         public string Value;
 
         /// <summary>
+        /// long description
         /// длинная запись
         /// </summary>
         public string LongDescription;
 
         /// <summary>
+        /// short description
         /// короткая запись
         /// </summary>
         public string ShorDescription;
     }
 
     /// <summary>
+    /// preferred view
     /// предпочтительный вид представления
     /// </summary>
     public enum AstsEnumKind
@@ -2144,51 +2248,61 @@ namespace OsEngine.Market.Servers.AstsBridge
         EkCheck = 0,
 
         /// <summary>
+        /// group 1
         /// группа 1
         /// </summary>
         EkGroup = 1,
 
         /// <summary>
+        /// type 2
         /// тип 2
         /// </summary>
         EkCombo = 2
     }
 
-// описание структур данных: Таблицы Asts Bridge
+    // description of data structures: table Asts Bridge
+    // описание структур данных: Таблицы Asts Bridge
 
     public class AstsTable
     {
         /// <summary>
+        /// name
         /// имя
         /// </summary>
         public string Name;
 
         /// <summary>
+        /// header
         /// заголовок
         /// </summary>
         public string Header;
 
         /// <summary>
+        /// description
         /// описание String
         /// </summary>
         public string Description;
 
         /// <summary>
+        /// index
         /// индекс
         /// </summary>
         public int IndexInSystem;
 
         /// <summary>
+        /// way of updating table
         /// способ обновления таблицы
         /// </summary>
         public AstsTableFlags Flag;
 
         /// <summary>
+        /// input fields
         /// поля для ввода
         /// </summary>
         public List<AstsTableField> FieldsIn;
 
         /// <summary>
+        /// output fields
         /// поля для вывода
         /// </summary>
         public List<AstsTableField> FieldsOut;
@@ -2196,33 +2310,39 @@ namespace OsEngine.Market.Servers.AstsBridge
     }
 
     /// <summary>
+    /// sign of updatability table
     /// признак обновляемости таблицы
     /// </summary>
     public enum AstsTableFlags
     {
         /// <summary>
+        /// 1 the table is updatable. It is possible to call functions MTEAddTable/MTERefresh;
         /// 1 таблица является обновляемой. Для нее можно вызывать функции MTEAddTable/MTERefresh;
         /// </summary>
         TfUpdateable = 1,
 
         /// <summary>
+        /// 2 old contents of the table must be deleted each time an update is received
         /// 2 старое содержимое таблицы должно удаляться при получении каждого обновления 
         /// с помощью функций MTEAddTable/MTERefresh.
         /// </summary>
         TfClearOnUpdate = 2,
 
         /// <summary>
+        /// 3 table has a quotation format and should be processed accordingly
         /// 3 таблица имеет формат котировок и должна обрабатываться соответсвующим образом
         /// </summary>
         TfOrderbook = 4,
     }
 
     /// <summary>
+    /// table field
     /// поле таблицы
     /// </summary>
     public class AstsTableField
     {
         /// <summary>
+        /// name
         /// имя
         /// </summary>
         public string Name;
@@ -2233,36 +2353,43 @@ namespace OsEngine.Market.Servers.AstsBridge
         public string Header;
 
         /// <summary>
+        /// description
         /// описание String
         /// </summary>
         public string Description;
 
         /// <summary>
+        /// size
         /// размер
         /// </summary>
         public int Lenght;
 
         /// <summary>
+        /// field type
         /// тип поля
         /// </summary>
         public AstsTableFieldType FieldType;
 
         /// <summary>
+        /// number of decimal places
         /// кол-во знаков после запятой
         /// </summary>
         public int CountDecimal;
 
         /// <summary>
+        /// flag
         /// флаг
         /// </summary>
         public AstsTableFieldFlags FieldFlag;
 
         /// <summary>
+        /// enumerated type
         /// перечисляемый тип
         /// </summary>
         public string TypeEnums;
 
         /// <summary>
+        /// default value
         /// значение по умолчанию
         /// </summary>
         public string DefoltValue;
@@ -2270,6 +2397,7 @@ namespace OsEngine.Market.Servers.AstsBridge
     }
 
     /// <summary>
+    /// field type
     /// тип поля
     /// </summary>
     public enum AstsTableFieldType
@@ -2311,6 +2439,7 @@ namespace OsEngine.Market.Servers.AstsBridge
     }
 
     /// <summary>
+    /// flag of table fields
     /// флаг поля таблицы
     /// </summary>
     public enum AstsTableFieldFlags
@@ -2337,64 +2466,77 @@ namespace OsEngine.Market.Servers.AstsBridge
     }
 
     /// <summary>
+    /// description of transaction
     /// описание транзакции
     /// </summary>
     public class AstsTransaction
     {
         /// <summary>
+        /// name
         /// имя
         /// </summary>
         public string Name;
 
         /// <summary>
+        /// header
         /// заголовок
         /// </summary>
         public string Header;
 
         /// <summary>
+        /// description
         /// описание String
         /// </summary>
         public string Description;
 
         /// <summary>
+        /// index
         /// индекс
         /// </summary>
         public int IndexInSystem;
 
         /// <summary>
+        /// fields
         /// поля
         /// </summary>
         public List<AstsTableField> Fields;
     }
 
-// таблицы в которых формируются привычные для Os.Engine данные
+    // tables in which are formed familiar to the Os.Engine data
+    // таблицы в которых формируются привычные для Os.Engine данные
 
     /// <summary>
+    /// class-converter of order table
     /// класс конвертер таблицы ордеров 
     /// </summary>
     public class OrderTableConverter
     {
         /// <summary>
+        /// descriptor of table assigned to a gateway
         /// дескриптор таблицы назначенный шлюзом
         /// </summary>
         public int Descriptor;
 
         /// <summary>
+        /// unique table number assigned by us
         /// уникальный номер таблицы назначенный нами
         /// </summary>
         public int TableUniqNum = 1;
 
         /// <summary>
+        /// orders
         /// ордера
         /// </summary>
         public List<Order> Orders;
 
         /// <summary>
+        /// securities
         /// бумаги
         /// </summary>
         public List<Security> Securities; 
 
         /// <summary>
+        /// parse table
         /// разобрать таблицу
         /// </summary>
         /// <param name="table"></param>
@@ -2483,37 +2625,44 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// outgoing event of updating order
         /// исходящее событие обновление ордера
         /// </summary>
         public event Action<Order> OrderUpdateEvent;
     }
 
     /// <summary>
+    /// class-converter of my trades table
     /// класс конвертер таблицы моих сделок
     /// </summary>
     public class MyTradeTableConverter
     {
         /// <summary>
+        /// descriptor tables assigned to a gateway
         /// дескриптор таблицы назначенный шлюзом
         /// </summary>
         public int Descriptor;
 
         /// <summary>
+        /// unique table number assigned by us
         /// уникальный номер таблицы назначенный нами
         /// </summary>
         public int TableUniqNum = 2;
 
         /// <summary>
+        /// loaded my trades
         /// загруженные мои сделки
         /// </summary>
         public List<MyTrade> MyTrades;
 
         /// <summary>
+        /// securities
         /// бумаги
         /// </summary>
         public List<Security> Securities;
- 
+
         /// <summary>
+        /// parse table
         /// разобрать таблицу
         /// </summary>
         public void LoadTable(UniversalTable table)
@@ -2567,32 +2716,38 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// outgoing event of create my trade
         /// исходящее событие создания моей сделки
         /// </summary>
         public event Action<MyTrade> MyTradeUpdateEvent;
     }
 
     /// <summary>
+    /// class-converter of all trades table
     /// класс конвертер таблицы всех сделок
     /// </summary>
     public class TradesTableConverter
     {
         /// <summary>
+        /// descriptor of table assigned to a gateway
         /// дескриптор таблицы назначенный шлюзом
         /// </summary>
         public int Descriptor;
 
         /// <summary>
+        /// unique table number assigned by us
         /// уникальный номер таблицы назначенный нами
         /// </summary>
         public int TableUniqNum = 3;
 
         /// <summary>
+        /// securities
         /// бумаги
         /// </summary>
-        public List<Security> Securities; 
+        public List<Security> Securities;
 
         /// <summary>
+        /// parse incoming data
         /// разобрать входящие данные
         /// </summary>
         public void LoadTables(UniversalTable table)
@@ -2646,57 +2801,68 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// outgoing events of updating trades
         /// исходящее событие обновления сделок
         /// </summary>
         public event Action<List<Trade>> TradeUpdateEvent;
     }
 
     /// <summary>
+    /// class-converter of table associated with updating the portfolio
     /// класс конвертер таблиц связанных с обновлением портфеля
     /// </summary>
     public class PortfoliosTableConverter
     {
         /// <summary>
+        /// descriptor of table is assigned to gateway
         /// дескриптор таблицы назначенный шлюзом
         /// </summary>
         public int Descriptor;
 
         /// <summary>
+        /// descriptor of positions table is assigned to gateway
         /// дескриптор таблицы позиций назначенный шлюзом
         /// </summary>
         public int DescriptorPosition;
 
         /// <summary>
+        /// descriptor of positions table is assigned to gateway of table with limits
         /// дескриптор таблицы позиций назначенный шлюзом таблицы с лимитами
         /// </summary>
         public int DescriptorLimits;
 
         /// <summary>
+        /// unique number of table with portfolios assigned to us
         /// уникальный номер таблицы с портфелями назначенный нами
         /// </summary>
         public int TablePortfolioUniq = 4;
 
         /// <summary>
+        /// unique number of table with portfolio limits assigned to us POSITIONS
         /// уникальный номер таблицы с лимитами портфелей назначенный нами POSITIONS
         /// </summary>
         public int TablePortfolioLimitsUniq = 5;
 
         /// <summary>
+        /// unique number of table with positions assigned to us RM_HOLDING
         /// уникальный номер таблицы с позициями по бумагам назначенный нами RM_HOLD
         /// </summary>
         public int TablePortfolioPositionOnBoardUniq = 6;
 
         /// <summary>
+        /// portfolios
         /// портфели
         /// </summary>
         public List<Portfolio> Portfolios;
 
         /// <summary>
+        /// securities 
         /// бумаги
         /// </summary>
-        public List<Security> Securities; 
+        public List<Security> Securities;
 
         /// <summary>
+        /// upload portfolios. table BANKUSE
         /// загрузить портфели. таблица BANKUSE
         /// </summary>
         public void LoadPortfoliosAccount(UniversalTable table)
@@ -2769,6 +2935,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         private List<string> _codePortfolio;
 
         /// <summary>
+        /// portfolio to update the client code. table BANKACC
         /// обновить портфель кодом клиента. таблица BANKACC
         /// </summary>
         public void LoadPortfolioCodeClient(UniversalTable table)
@@ -2799,6 +2966,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// download the position for the money portfolio. table POSITIONS
         /// загрузить позиции по деньгам по портфелю. таблица POSITIONS
         /// </summary>
         public void LoadLimits(UniversalTable table)
@@ -2861,6 +3029,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// updated securities positions on the exchange/ table RM_HOLD
         /// обновились позиции по бумагам на бирже/ таблица RM_HOLD
         /// </summary>
         public void LoadPositionOnBoard(UniversalTable table)
@@ -2932,6 +3101,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// update portfolio message
         /// сообщение обновления портфеля
         /// </summary>
         public event Action<Portfolio> PortfolioUpdateEvent;
@@ -2939,36 +3109,43 @@ namespace OsEngine.Market.Servers.AstsBridge
     }
 
     /// <summary>
+    /// class-converter of tables assinged with update portfolio
     /// класс конвертер таблиц связанных с обновлением портфеля
     /// </summary>
     public class SecurityTableConverter
     {
         /// <summary>
+        /// descriptor tables assigned to a gateway
         /// дескриптор таблицы назначенный шлюзом
         /// </summary>
         public int Descriptor;
 
         /// <summary>
+        /// unique table number
         /// уникальный номер таблицы назначенный нами
         /// </summary>
         public int TableUniqNum = 7;
 
         /// <summary>
+        /// securities as Level 1
         /// бумаги в виде Level один
         /// </summary>
         public List<SecurityLevelOne> MySecurityMoex;
 
         /// <summary>
+        /// securities in Os.Engine format
         /// бумаги формата Os.Engine
         /// </summary>
         public List<Security> MySecurities;
 
         /// <summary>
+        /// securities codes
         /// коды бумаг
         /// </summary>
-        public List<string> MySecuritiesCodeToGetLimits; 
+        public List<string> MySecuritiesCodeToGetLimits;
 
         /// <summary>
+        /// process incoming table of securities
         /// обработать входящую таблицу бумаг
         /// </summary>
         public void LoadTable(UniversalTable table)
@@ -3062,6 +3239,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                     }
                 }
 
+// part two level 1 update
 // часть два обновление Level 1
 
                 if (MySecurityMoex == null)
@@ -3078,20 +3256,20 @@ namespace OsEngine.Market.Servers.AstsBridge
                     MySecurityMoex.Add(mySecurityMoex);
                 }
 
-                string status = table.Rows[i].GetAsString("STATUS"); // STATUS Статус A - операции разрешены S - операции запрещены
+                string status = table.Rows[i].GetAsString("STATUS"); // STATUS Status A-operations allowed S-operations prohibited/Статус A - операции разрешены S - операции запрещены
 
                 if (status== "S")
                 {
                     continue;
                 }
 
-                int biddepth = table.Rows[i].GetAsInt32("BIDDEPTH"); //  BIDDEPTH Лотов на покупку по лучшей
+                int biddepth = table.Rows[i].GetAsInt32("BIDDEPTH"); //  BIDDEPTH Lots to buy at the best / Лотов на покупку по лучшей
                 if (biddepth != 0)
                 {
                     mySecurityMoex.Biddepth = biddepth;
                 }
 
-                int biddeptht = table.Rows[i].GetAsInt32("BIDDEPTHT"); // BIDDEPTHT	Совокупный спрос
+                int biddeptht = table.Rows[i].GetAsInt32("BIDDEPTHT"); // BIDDEPTHT	Aggregate demand / Совокупный спрос
                 if (biddeptht != 0)
                 {
                     mySecurityMoex.Biddeptht = biddeptht;
@@ -3103,12 +3281,12 @@ namespace OsEngine.Market.Servers.AstsBridge
                     mySecurityMoex.Numbids = numbids;
                 }*/
 
-                int offerdepth = table.Rows[i].GetAsInt32("OFFERDEPTH"); //	OFFERDEPTH Лотов на продажу по лучшей
+                int offerdepth = table.Rows[i].GetAsInt32("OFFERDEPTH"); //	OFFERDEPTH Lots for sale at the best / Лотов на продажу по лучшей
                 if (offerdepth != 0)
                 {
                     mySecurityMoex.Offerdepth = offerdepth;
                 }
-                int offerdeptht = table.Rows[i].GetAsInt32("OFFERDEPTHT"); // OFFERDEPTHT	Совокупное предложение
+                int offerdeptht = table.Rows[i].GetAsInt32("OFFERDEPTHT"); // OFFERDEPTHT	Aggregate supply / Совокупное предложение
                 if (offerdeptht != 0)
                 {
                     mySecurityMoex.Offerdeptht = offerdeptht;
@@ -3120,12 +3298,12 @@ namespace OsEngine.Market.Servers.AstsBridge
                     mySecurityMoex.Numoffers = numoffers;
                 }*/
 
-                decimal change = table.Rows[i].GetAsDecimal("CHANGE", mySecurity.Decimals);  //	CHANGE Изменение к закрытию предыдущего дня
+                decimal change = table.Rows[i].GetAsDecimal("CHANGE", mySecurity.Decimals);  //	CHANGE Change to close the previous day / Изменение к закрытию предыдущего дня
                 if (change != 0)
                 {
                     mySecurityMoex.Change = change;
                 }
-                int qty = table.Rows[i].GetAsInt32("QTY"); // QTY	Лотов в последней
+                int qty = table.Rows[i].GetAsInt32("QTY"); // QTY	volume in the last trade/Лотов в последней
                 if (qty != 0)
                 {
                     mySecurityMoex.Qty = qty;
@@ -3137,25 +3315,25 @@ namespace OsEngine.Market.Servers.AstsBridge
                     mySecurityMoex.Closeprice = closeprice;
                 }
 
-                DateTime dateTime = table.Rows[i].GetAsDateTime("SETTLEDATE", "TIME"); // 	Время последней Поля: TIME SETTLEDATE
+                DateTime dateTime = table.Rows[i].GetAsDateTime("SETTLEDATE", "TIME"); // 	last trade time / Время последней Поля: TIME SETTLEDATE
                 if (dateTime != DateTime.MinValue)
                 {
                     mySecurityMoex.DateTime = dateTime;
                 }
 
-                decimal highbid = table.Rows[i].GetAsDecimal("HIGHBID", mySecurity.Decimals);  // HIGHBID	Лучший спрос
+                decimal highbid = table.Rows[i].GetAsDecimal("HIGHBID", mySecurity.Decimals);  // HIGHBID	best bid / Лучший спрос
                 if (highbid != 0)
                 {
                     mySecurityMoex.Highbid = highbid;
                 }
 
-                decimal lowoffer = table.Rows[i].GetAsDecimal("LOWOFFER", mySecurity.Decimals);  //	LOWOFFER Лучшее предложение
+                decimal lowoffer = table.Rows[i].GetAsDecimal("LOWOFFER", mySecurity.Decimals);  //	LOWOFFER best offer / Лучшее предложение
                 if (lowoffer != 0)
                 {
                     mySecurityMoex.Lowoffer = lowoffer;
                 }
 
-                int numtrades = table.Rows[i].GetAsInt32("NUMTRADES");// NUMTRADES	Сделок за сегодня
+                int numtrades = table.Rows[i].GetAsInt32("NUMTRADES");// NUMTRADES	Trades for today / Сделок за сегодня
                 if (numtrades != 0)
                 {
                     mySecurityMoex.Numtrades = numtrades;
@@ -3169,6 +3347,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// upload limits to instruments
         /// подгрузить к инструментам лимиты
         /// </summary>
         /// <param name="table"></param>
@@ -3210,37 +3389,44 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// updated instruments
         /// обновились инструменты
         /// </summary>
         public event Action<Security> SecurityUpdateEvent;
 
         /// <summary>
+        /// updated instruments in format Level 1
         /// обновились инструменты в формате Level 1
         /// </summary>
         public event Action<SecurityLevelOne> SecurityMoexUpdateEvent;
     }
 
     /// <summary>
+    /// class-converter of tables associated with sites for sale
     /// класс конвертер таблиц связанных с площадками для торговли
     /// </summary>
     public class SecurityBoardsConverter
     {
         /// <summary>
+        /// descriptor tables assigned to a gateway
         /// дескриптор таблицы назначенный шлюзом
         /// </summary>
         public int Descriptor;
 
         /// <summary>
+        /// unique table number
         /// уникальный номер таблицы назначенный нами
         /// </summary>
         public int TableUniqNum = 6;
 
         /// <summary>
+        /// places
         /// площадки
         /// </summary>
         public List<AstsBoards> Bords;
 
         /// <summary>
+        /// process table with places
         /// обработать таблицу с площадками
         /// </summary>
         public void LoadTable(UniversalTable  table)
@@ -3281,27 +3467,32 @@ namespace OsEngine.Market.Servers.AstsBridge
     }
 
     /// <summary>
+    /// places of ASTS
     /// площадки ASTS
     /// </summary>
     public class AstsBoards
     {
         /// <summary>
+        /// unique place number
         /// уникальный номер площадки
         /// </summary>
         public string BoardId;
 
         /// <summary>
+        /// name
         /// имя
         /// </summary>
         public string BoardName;
 
         /// <summary>
+        /// unique market number
         /// уникальный номер рынка
         /// </summary>
         public string MarketId;
     }
 
     /// <summary>
+    /// class-converter of depth table
     /// класс конвертер таблиц стаканов
     /// </summary>
     public class MarketDepthTableConverter
@@ -3313,26 +3504,31 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// descriptor of tables assigned to a gateway 
         /// дескриптор таблицы назначенный шлюзом
         /// </summary>
         public List<int> Descriptors;
 
         /// <summary>
+        /// subscribed securities to update depth
         /// бумаги подписанные на обновление стакана
         /// </summary>
-        public List<Security> Securities; 
+        public List<Security> Securities;
 
         /// <summary>
+        /// unique table number
         /// уникальный номер таблицы назначенный нами
         /// </summary>
         public int TableUniqNum = 8;
 
         /// <summary>
+        /// depths
         /// стаканы
         /// </summary>
         public List<MarketDepth> MarketDepths;
 
         /// <summary>
+        /// load a row from the instrument into the table
         /// загрузить строку с инструментов в таблицу
         /// </summary>
         public void LoadTable(UniversalTable table)
@@ -3417,6 +3613,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// depth update event
         /// событие обновления стаканов
         /// </summary>
         public event Action<MarketDepth> MarketDepthEvent;

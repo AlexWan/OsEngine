@@ -270,9 +270,11 @@ namespace OsEngine.Market.Servers.Kraken.KrakenEntity
             }
         }
 
+        //logging
         //обработка лога
 
         /// <summary>
+        /// add a new log message
         /// добавить в лог новое сообщение
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
@@ -284,6 +286,7 @@ namespace OsEngine.Market.Servers.Kraken.KrakenEntity
         }
 
         /// <summary>
+        /// outgoing log message
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;

@@ -41,6 +41,7 @@ namespace OsEngine.Market.Servers.Transaq
         public ServerWorkingTimeSettings WorkingTimeSettings;
 
         /// <summary>
+        /// override method that gives server state
         /// переопределяем метод отдающий состояние сервера
         /// </summary>
         public override bool IsTimeToServerWork
@@ -49,6 +50,7 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         /// <summary>
+        /// request of history by instrument
         /// запрос истории по инструменту
         /// </summary>
         public void GetCandleHistory(CandleSeries series)
@@ -78,6 +80,7 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         /// <summary>
+        /// server type
         /// тип сервера
         /// </summary>
         public ServerType ServerType
@@ -88,57 +91,67 @@ namespace OsEngine.Market.Servers.Transaq
         public List<IServerParameter> ServerParameters { get; set; }
 
         /// <summary>
+        /// server time
         /// время сервера
         /// </summary>
         public DateTime ServerTime { get; set; }
 
         public ServerConnectStatus ServerStatus { get; set; }
 
+        // outgoing events
         // исходящие события
 
         /// <summary>
+        /// called when the order has changed
         /// вызывается когда изменился ордер
         /// </summary>
         public event Action<Order> MyOrderEvent;
 
         /// <summary>
+        /// called when my trade has changed
         /// вызывается когда изменился мой трейд
         /// </summary>
         public event Action<MyTrade> MyTradeEvent;
 
         /// <summary>
+        /// appear new portfolios
         /// появились новые портфели
         /// </summary>
         public event Action<List<Portfolio>> PortfolioEvent;
 
         /// <summary>
+        /// new securities
         /// новые бумаги
         /// </summary>
         public event Action<List<Security>> SecurityEvent;
 
         /// <summary>
+        /// new depth
         /// новый стакан
         /// </summary>
         public event Action<MarketDepth> MarketDepthEvent;
 
         /// <summary>
+        /// new trade
         /// новый трейд
         /// </summary>
         public event Action<Trade> NewTradesEvent;
 
         /// <summary>
+        /// API connection established
         /// соединение с API установлено
         /// </summary>
         public event Action ConnectEvent;
 
         /// <summary>
+        /// API connection lost
         /// соединение с API разорвано
         /// </summary>
         public event Action DisconnectEvent;
 
         TransaqClient _client;
         
-        #region запросы
+        #region requests / запросы
 
         private CancellationTokenSource _cancellationTokenSource;
 
@@ -147,6 +160,7 @@ namespace OsEngine.Market.Servers.Transaq
 
 
         /// <summary>
+        /// connect to API
         /// подсоединиться к апи
         /// </summary>
         public void Connect()
@@ -180,6 +194,7 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         /// <summary>
+        /// exchange requires to change the password
         /// биржа требует изменить пароль
         /// </summary>
         private void NeedChangePassword()
@@ -193,13 +208,14 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         /// <summary>
+        /// change password
         /// изменить пароль
         /// </summary>
         public void ChangePassword(string oldPassword, string newPassword)
         {
             string cmd = $"<command id=\"change_pass\" oldpass=\"{oldPassword}\" newpass=\"{newPassword}\"/>";
 
-            // отправка команды
+            // sending command / отправка команды
             string res = _client.ConnectorSendCommand(cmd);
 
             if (res == "<result success=\"true\"/>")
@@ -243,6 +259,7 @@ namespace OsEngine.Market.Servers.Transaq
 
 
         /// <summary>
+        /// dispose API
         /// освободить апи
         /// </summary>
         public void Dispose()
@@ -282,6 +299,7 @@ namespace OsEngine.Market.Servers.Transaq
         private Task _portfoliosHandlerTask;
 
         /// <summary>
+        /// request portfolios
         /// запросить портфели
         /// </summary>
         public void GetPortfolios()
@@ -317,7 +335,7 @@ namespace OsEngine.Market.Servers.Transaq
                 {
                     continue;
                 }
-                // отправка команды
+                // sending command / отправка команды
                 string res = _client.ConnectorSendCommand(cmd);
 
                 if (res != "<result success=\"true\"/>")
@@ -335,6 +353,7 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         /// <summary>
+        /// send order to exchange
         /// выслать ордер на биржу
         /// </summary>
         public void SendOrder(Order order)
@@ -357,7 +376,7 @@ namespace OsEngine.Market.Servers.Transaq
 
             cmd += "</command>";
 
-            // отправка команды
+            // sending command / отправка команды
             string res = _client.ConnectorSendCommand(cmd);
 
             Result data;
@@ -383,6 +402,7 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         /// <summary>
+        /// cancel order
         /// отменить ордер
         /// </summary>
         public void CanselOrder(Order order)
@@ -401,9 +421,10 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         /// <summary>
+        /// subscribe to get ticks and depth by instrument
         /// подписаться на получение тиков и стаканов по инструменту
         /// </summary>
-        /// <param name="security">инструмент на который подписываемся</param>
+        /// <param name="security">subscribed instrument / инструмент на который подписываемся</param>
         public void Subscrible(Security security)
         {
             string cmd = "<command id=\"subscribe\">";
@@ -421,7 +442,7 @@ namespace OsEngine.Market.Servers.Transaq
             cmd += "</quotes>";
             cmd += "</command>";
 
-            // отправка команды
+            // sending command / отправка команды
             string res = _client.ConnectorSendCommand(cmd);
 
             if (res != "<result success=\"true\"/>")
@@ -442,6 +463,7 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         /// <summary>
+        /// request candle history
         /// запросить историю свечей
         /// </summary>
         public void GetCandleHistory(CandleSeries series)
@@ -466,7 +488,7 @@ namespace OsEngine.Market.Servers.Transaq
             cmd += "<reset>" + "true" + "</reset>";
             cmd += "</command>";
 
-            // отправка команды
+            // sending command / отправка команды
             string res = _client.ConnectorSendCommand(cmd);
 
             if (res != "<result success=\"true\"/>")
@@ -537,6 +559,7 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         /// <summary>
+        /// build candles
         /// собрать свечи
         /// </summary>
         /// <param name="oldCandles"></param>
@@ -650,6 +673,7 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         /// <summary>
+        /// get needed id
         /// получить нужный Id
         /// </summary>
         private string GetNeedIdPeriod(TimeFrame tf, out int newTf, out int oldTf)
@@ -713,7 +737,7 @@ namespace OsEngine.Market.Servers.Transaq
 
         #endregion
 
-        #region разбор входящих данных
+        #region parsing incoming data / разбор входящих данных
 
         void _client_Connected()
         {
@@ -730,6 +754,7 @@ namespace OsEngine.Market.Servers.Transaq
         private List<Client> _clients;
 
         /// <summary>
+        /// updated client data
         /// обновились данные о клиенте
         /// </summary>
         private void ClientsInfoUpdate(Client clientInfo)
@@ -742,9 +767,10 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         /// <summary>
+        /// got portfolio data
         /// пришли данные по портфелям
         /// </summary>
-        /// <param name="unitedPortfolio">портфель в формате Transaq</param>
+        /// <param name="unitedPortfolio">portfolio in Transaq format / портфель в формате Transaq</param>
         private void ClientOnUpdatePortfolio(UnitedPortfolio unitedPortfolio)
         {
             if (_portfolios == null)
@@ -798,14 +824,16 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         /// <summary>
+        /// all instruments of connector
         /// все инструменты коннектора
         /// </summary>
         private List<Security> _securities;
 
         /// <summary>
+        /// got instruments
         /// пришли инструменты
         /// </summary>
-        /// <param name="securities">список инструментов в формате transaq</param>
+        /// <param name="securities">list of instrument in transaq format / список инструментов в формате transaq</param>
         private void ClientOnUpdatePairs(List<TransaqEntity.Security> securities)
         {
             Task.Run(() => HandleSecurities(securities));
@@ -876,6 +904,7 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         /// <summary>
+        /// got new ticks from server
         /// с сервера пришли новые тики
         /// </summary>
         private void ClientOnNewTradesEvent(List<TransaqEntity.Trade> trades)
@@ -905,6 +934,7 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         /// <summary>
+        /// all depths
         /// все стаканы
         /// </summary>
         private List<MarketDepth> _depths;
@@ -912,6 +942,7 @@ namespace OsEngine.Market.Servers.Transaq
         private readonly object _depthLocker = new object();
 
         /// <summary>
+        /// updated market depth
         /// обновился стакан котировок
         /// </summary>
         private void ClientOnUpdateMarketDepth(List<Quote> quotes)
@@ -1055,6 +1086,7 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         /// <summary>
+        /// got order information
         /// пришла информация об ордерах
         /// </summary>
         private void ClientOnMyOrderEvent(List<TransaqEntity.Order> orders)
@@ -1126,6 +1158,7 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         /// <summary>
+        /// got my trades
         /// пришли мои трейды
         /// </summary>
         private void ClientOnMyTradeEvent(List<TransaqEntity.Trade> trades)
@@ -1157,10 +1190,11 @@ namespace OsEngine.Market.Servers.Transaq
 
         #endregion
 
-
+        // log messages
         // сообщения для лога
 
         /// <summary>
+        /// add a new log message
         /// добавить в лог новое сообщение
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
@@ -1172,6 +1206,7 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         /// <summary>
+        /// outgoing lom message
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
