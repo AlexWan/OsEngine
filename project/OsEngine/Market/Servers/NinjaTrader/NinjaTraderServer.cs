@@ -7,6 +7,7 @@ using OsEngine.Market.Servers.Entity;
 namespace OsEngine.Market.Servers.NinjaTrader
 {
     /// <summary>
+	/// Ninja server
     /// сервер Ninja
     /// </summary>
     public class NinjaTraderServer: AServer
@@ -35,6 +36,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
 
         public DateTime ServerTime { get; set; }
 
+ // requests
  // запросы
 
         private NinjaTraderClient _client;
@@ -118,7 +120,8 @@ namespace OsEngine.Market.Servers.NinjaTrader
         {
        
         }
-
+		
+		// parsing incoming data
         // разбор входящих данных
 
         private void ClientOnLogMessageEvent(string message, LogMessageType type)
@@ -190,51 +193,62 @@ namespace OsEngine.Market.Servers.NinjaTrader
             }
         }
 
+		// outgoing events
         // исходящие события
 
         /// <summary>
+		/// called when order has changed
         /// вызывается когда изменился ордер
         /// </summary>
         public event Action<Order> MyOrderEvent;
 
         /// <summary>
+		/// called when my trade has changed
         /// вызывается когда изменился мой трейд
         /// </summary>
         public event Action<MyTrade> MyTradeEvent;
 
         /// <summary>
+		/// appeared new portfolios
         /// появились новые портфели
         /// </summary>
         public event Action<List<Portfolio>> PortfolioEvent;
 
         /// <summary>
+		/// new securities
         /// новые бумаги
         /// </summary>
         public event Action<List<Security>> SecurityEvent;
 
         /// <summary>
+		/// new depth
         /// новый стакан
         /// </summary>
         public event Action<MarketDepth> MarketDepthEvent;
 
         /// <summary>
+		/// new trade
         /// новый трейд
         /// </summary>
         public event Action<Trade> NewTradesEvent;
 
         /// <summary>
+		/// API connection established
         /// соединение с API установлено
         /// </summary>
         public event Action ConnectEvent;
 
         /// <summary>
+		/// API connection lost
         /// соединение с API разорвано
         /// </summary>
         public event Action DisconnectEvent;
 
+		// log messages
         // сообщения для лога
 
         /// <summary>
+		/// add a new log message
         /// добавить в лог новое сообщение
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
@@ -246,6 +260,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
         }
 
         /// <summary>
+		/// outgoing log message
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;

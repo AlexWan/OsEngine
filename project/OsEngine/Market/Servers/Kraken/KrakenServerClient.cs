@@ -1,4 +1,5 @@
 ﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -18,11 +19,13 @@ using OsEngine.Market.Servers.Kraken.KrakenEntity;
 namespace OsEngine.Market.Servers.Kraken
 {
     /// <summary>
+    /// client for connection to Kraken
     /// клиент для подключения к кракену
     /// </summary>
     public class KrakenServerClient
     {
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
         public KrakenServerClient()
@@ -44,19 +47,23 @@ namespace OsEngine.Market.Servers.Kraken
 
         private List<ProxyHolder> _proxies;
 
+// connect
 // коннект
 
         /// <summary>
+        /// API
         /// апи
         /// </summary>
         private KrakenApi _kraken;
 
         /// <summary>
+        /// is there a connection
         /// есть ли подключение
         /// </summary>
         private bool _isConnected;
 
         /// <summary>
+        /// connect
         /// установить соединение
         /// </summary>
         public void Connect(string publicKey, string privateKey)
@@ -94,6 +101,7 @@ namespace OsEngine.Market.Servers.Kraken
         }
 
         /// <summary>
+        /// disconnect
         /// отключиться
         /// </summary>
         public void Disconnect()
@@ -116,19 +124,23 @@ namespace OsEngine.Market.Servers.Kraken
             }
         }
 
+// thread work getting data
 // Работа потока запрашивающего данные
 
         /// <summary>
+        /// type of requested data 
         /// тип запрашиваемых данных
         /// </summary>
         public KrakenDateType DataType;
 
         /// <summary>
+        /// multi-threaded access locker to API
         /// объект для блокировки многопоточного доступа к АПИ
         /// </summary>
         private object _lockerListen = new object();
 
         /// <summary>
+        /// work place of thread that download data from API
         /// место работы потока который скачивает данные из апи
         /// </summary>
         private void ThreadListenDataArea()
@@ -149,11 +161,11 @@ namespace OsEngine.Market.Servers.Kraken
                         continue;
                     }
 
-                    // раз в десять секунд запрашиваем портфель и его составляющие
+                    // every ten seconds request a portfolio and its components / раз в десять секунд запрашиваем портфель и его составляющие
 
                     lock (_lockerListen)
                     {
-                        // раз в секунду запрашиваем наши ордера и мои трейды
+                        // once a second request our orders and my trades / раз в секунду запрашиваем наши ордера и мои трейды
 
                         if (_lastTimeGetOrders.AddSeconds(2) < DateTime.Now)
                         {
@@ -161,14 +173,14 @@ namespace OsEngine.Market.Servers.Kraken
                             GetOrders();
                         }
 
-                        // раз в пол секунды запрашиваем спред по подключенным бумагам
+                        // once in half a second request a spread on the connected securities / раз в пол секунды запрашиваем спред по подключенным бумагам
 
                         if (DataType == KrakenDateType.OnlyMarketDepth)
                         {
                             GetSpreads();
                         }
 
-                        // трейды запрашиваем без перерыва
+                        // request trades without interruption / трейды запрашиваем без перерыва
 
                         if (DataType == KrakenDateType.OnlyTrades)
                         {
@@ -194,9 +206,11 @@ namespace OsEngine.Market.Servers.Kraken
 
         private DateTime _lastTimeGetOrders = DateTime.MinValue;
 
+// portfolios
 // Портфели
 
         /// <summary>
+        /// start listening to data from API
         /// начать считывание данных из АПИ
         /// </summary>
         public void InizialazeListening()
@@ -206,10 +220,11 @@ namespace OsEngine.Market.Servers.Kraken
         }
 
         /// <summary>
+        /// take candles by instrument
         /// взять свечи по инструменту
         /// </summary>
-        /// <param name="name">имя инструмента</param>
-        /// <param name="minuteCount">кол-во минут в свече</param>
+        /// <param name="name">instrument name / имя инструмента</param>
+        /// <param name="minuteCount">number of minutes in candle/кол-во минут в свече</param>
         public List<Candle> GetCandles(string name, int minuteCount)
         {
             try
@@ -288,6 +303,7 @@ namespace OsEngine.Market.Servers.Kraken
         }
 
         /// <summary>
+        /// take portfolios
         /// взять портфели
         /// </summary>
         private void GetPortfolios()
@@ -327,6 +343,7 @@ namespace OsEngine.Market.Servers.Kraken
         }
 
         /// <summary>
+        /// take securities
         /// взять бумаги
         /// </summary>
         private void GetSecurities()
@@ -384,6 +401,7 @@ namespace OsEngine.Market.Servers.Kraken
         }
 
         /// <summary>
+        /// update order data
         /// обновить данные по ордерам
         /// </summary>
         private void GetOrders()
@@ -429,6 +447,7 @@ namespace OsEngine.Market.Servers.Kraken
         }
 
         /// <summary>
+        /// generete my trade from order
         /// сгенерировать мои трейды из ордера
         /// </summary>
         /// <param name="order"></param>
@@ -461,11 +480,13 @@ namespace OsEngine.Market.Servers.Kraken
         }
 
         /// <summary>
+        /// list of instruments for listening
         /// список инструментов подключеннных на обновление
         /// </summary>
         private List<string> _namesListenSecurities = new List<string>();
 
         /// <summary>
+        /// take depths from API
         /// взять стаканы из АПИ
         /// </summary>
         private void GetSpreads()
@@ -526,11 +547,13 @@ namespace OsEngine.Market.Servers.Kraken
         }
 
         /// <summary>
+        /// objects required for loading of trades from API
         /// объекты необходимые для загрузки трейдов из АПИ
         /// </summary>
         private List<DataSinece> _timeTrades = new List<DataSinece>();
 
         /// <summary>
+        /// take trades from API
         /// взять трейды из АПИ
         /// </summary>
         private void GetTrades()
@@ -650,6 +673,7 @@ namespace OsEngine.Market.Servers.Kraken
         }
 
         /// <summary>
+        /// start listenin to data instrument
         /// включить инструмент на подгрузку данных
         /// </summary>
         public void ListenSecurity(string name)
@@ -661,11 +685,13 @@ namespace OsEngine.Market.Servers.Kraken
         }
 
         /// <summary>
+        /// initial orders in OsEngine format
         /// исходные ордера в формате OsEngine
         /// </summary>
         private List<Order> _osEngineOrders = new List<Order>();
 
         /// <summary>
+        /// execute order in the exchange
         /// исполнить ордер на бирже
         /// </summary>
         public void ExecuteOrder(KrakenOrder order, Order osOrder, DateTime time)
@@ -941,6 +967,7 @@ namespace OsEngine.Market.Servers.Kraken
         }
 
         /// <summary>
+        /// cancel order
         /// отозвать ордер
         /// </summary>
         public void CanselOrder(Order order)
@@ -969,55 +996,67 @@ namespace OsEngine.Market.Servers.Kraken
         }
 
         /// <summary>
+        /// list of orders
         /// список ордеров
         /// </summary>
         private List<KrakenOrder> _orders = new List<KrakenOrder>();
 
         /// <summary>
+        /// new position by portfolio
         /// новая позиция по портфелю
         /// </summary>
         public event Action<Portfolio> NewPortfolio;
 
         /// <summary>
+        /// new trade
         /// новый трейд
         /// </summary>
         public event Action<OsEngine.Entity.Trade> NewTradeEvent;
 
+// outgoin event
 // исходящие события
 
         /// <summary>
+        /// new order in the system
         /// новый ордер в системе
         /// </summary>
         public event Action<Order> NewOrderEvent;
 
         /// <summary>
+        /// new securities in the system
         /// новые бумаги в системе
         /// </summary>
         public event Action<List<Security>> NewSecuritiesEvent;
 
         /// <summary>
+        /// new my trade in the system
         /// новая моя сделка в системе
         /// </summary>
         public event Action<MyTrade> NewMyTradeEvent;
 
         /// <summary>
+        /// new depth in the system
         /// новый стакан в системе
         /// </summary>
         public event Action<MarketDepth> NewMarketDepthEvent;
 
         /// <summary>
+        /// successfully connected to TWS server
         /// успешно подключились к серверу TWS
         /// </summary>
         public event Action ConnectionSucsess;
 
         /// <summary>
+        /// connection with TWS lost
         /// соединение с TWS разорвано
         /// </summary>
         public event Action ConnectionFail;
 
+// logging
 // логирование работы
 
         /// <summary>
+        /// add a new log message
         /// добавить в лог новое сообщение
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
@@ -1029,13 +1068,14 @@ namespace OsEngine.Market.Servers.Kraken
         }
 
         /// <summary>
+        /// outgoing log message
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
     }
 
-// далее идут объекты необходимые для конвертации JSon сообщений
+    // next are the objects needed to convert JSon messages / далее идут объекты необходимые для конвертации JSon сообщений
 
     public class DataSinece
     {

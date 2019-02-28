@@ -22,11 +22,12 @@ namespace OsEngine.Market.Servers.QuikLua
         }
 
         /// <summary>
+		/// tame candles by instrument
         /// взять свечи по инструменту
         /// </summary>
-        /// <param name="security"> короткое название бумаги</param>
-        /// <param name="timeSpan">таймФрейм</param>
-        /// <returns>в случае неудачи вернётся null</returns>
+        /// <param name="security"> short security name/короткое название бумаги</param>
+        /// <param name="timeSpan">timeframe/таймФрейм</param>
+        /// <returns>failure will return null/в случае неудачи вернётся null</returns>
         public List<Candle> GetQuikLuaCandleHistory(string security, TimeSpan timeSpan)
         {
             return ((QuikLuaServerRealization)ServerRealization).GetQuikLuaCandleHistory(security, timeSpan);
@@ -318,7 +319,7 @@ namespace OsEngine.Market.Servers.QuikLua
                         }
                         else
                         {
-                            // TODO сделать получение информации по фьючерсным лимитам для счетов без ЕБС
+                            // TODO make information on futures limits for accounts without EBU / сделать получение информации по фьючерсным лимитам для счетов без ЕБС
                         }
 
                         _portfolios.Add(myPortfolio);
@@ -490,11 +491,12 @@ namespace OsEngine.Market.Servers.QuikLua
         private object _getCandlesLocker = new object();
 
         /// <summary>
+		/// take candles by instrument
         /// взять свечи по инструменту
         /// </summary>
-        /// <param name="security"> короткое название бумаги</param>
-        /// <param name="timeSpan">таймФрейм</param>
-        /// <returns>в случае неудачи вернётся null</returns>
+        /// <param name="security"> short security name/короткое название бумаги</param>
+        /// <param name="timeSpan">timeframe/таймФрейм</param>
+        /// <returns>failure will return null/в случае неудачи вернётся null</returns>
         public List<Candle> GetQuikLuaCandleHistory(string security, TimeSpan timeSpan)
         {
             try
@@ -602,11 +604,12 @@ namespace OsEngine.Market.Servers.QuikLua
         }
 
         /// <summary>
+		/// candles downloadin with using method GetQuikLuaCandleHistory
         /// свечи скаченные из метода GetQuikLuaCandleHistory
         /// </summary>
         private List<Candle> _candles;
 
-
+		// parsing incoming data
         // разбор входящих данных
 
         private object _newTradesLoker = new object();
@@ -635,7 +638,7 @@ namespace OsEngine.Market.Servers.QuikLua
                         NewTradesEvent(trade);
                     }
                     
-                    // перегружаем последним временем тика время сервера
+                    // write last tick time in server time / перегружаем последним временем тика время сервера
                     ServerTime = trade.Time;
 
                 }
@@ -887,52 +890,62 @@ namespace OsEngine.Market.Servers.QuikLua
             ConnectEvent?.Invoke();
         }
 
-
+		// outgoing events
         // исходящие события
 
         /// <summary>
+		/// called when order changed
         /// вызывается когда изменился ордер
         /// </summary>
         public event Action<Order> MyOrderEvent;
 
         /// <summary>
+		/// called when my trade changed
         /// вызывается когда изменился мой трейд
         /// </summary>
         public event Action<MyTrade> MyTradeEvent;
 
         /// <summary>
+		/// appeared new portfolios
         /// появились новые портфели
         /// </summary>
         public event Action<List<Portfolio>> PortfolioEvent;
 
         /// <summary>
+		/// new securities
         /// новые бумаги
         /// </summary>
         public event Action<List<Security>> SecurityEvent;
 
         /// <summary>
+		/// new depth
         /// новый стакан
         /// </summary>
         public event Action<MarketDepth> MarketDepthEvent;
 
         /// <summary>
+		/// new trade
         /// новый трейд
         /// </summary>
         public event Action<Trade> NewTradesEvent;
 
         /// <summary>
+		/// API connection established
         /// соединение с API установлено
         /// </summary>
         public event Action ConnectEvent;
 
         /// <summary>
+		/// API connection lost
         /// соединение с API разорвано
         /// </summary>
         public event Action DisconnectEvent;
 
+		// log messages
         // сообщения для лога
 
         /// <summary>
+		/// add a new log message
         /// добавить в лог новое сообщение
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
@@ -944,6 +957,7 @@ namespace OsEngine.Market.Servers.QuikLua
         }
 
         /// <summary>
+		/// outgoing log message
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;

@@ -1,4 +1,5 @@
 ﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -14,18 +15,21 @@ using OsEngine.Market.Servers.Tester;
 namespace OsEngine.Market.Servers.Optimizer
 {
     /// <summary>
+	/// Optimizer server
     /// сервер оптимизации.
+	/// During optimization, a separate instance is developed for each bot with own thread
     /// Во время оптимизации для каждого робота разворачивается отдельный экземпляр
     /// со своим потоком
     /// </summary>
     public class OptimizerServer:IServer
     {
        /// <summary>
+	   /// constructor
        /// конструктор
        /// </summary>
-       /// <param name="dataStorage">хранилище данных</param>
-       /// <param name="num">номер сервера</param>
-       /// <param name="portfolioStratValue">начальное значение для порфеля</param>
+       /// <param name="dataStorage">data storage/хранилище данных</param>
+       /// <param name="num">sever number/номер сервера</param>
+       /// <param name="portfolioStratValue">start value for portfolio/начальное значение для порфеля</param>
         public OptimizerServer(OptimizerDataStorage dataStorage, int num, decimal portfolioStratValue)
         {
             _storagePrime = dataStorage;
@@ -58,11 +62,13 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// server number
         /// номер сервера
         /// </summary>
         public int NumberServer;
 
         /// <summary>
+		/// server type
         /// тип сервера
         /// </summary>
         public ServerType ServerType
@@ -71,6 +77,7 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// show settings window
         /// показать окно настроек
         /// </summary>
         public void ShowDialog()
@@ -79,6 +86,7 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// Tester data type for ordering
         /// тип данных которые заказывает тестер
         /// </summary>
         public TesterDataType TypeTesterData
@@ -103,6 +111,7 @@ namespace OsEngine.Market.Servers.Optimizer
         private TesterDataType _typeTesterData;
 
         /// <summary>
+		/// save settings
         /// сохранить настройки
         /// </summary>
         public void Save()
@@ -111,6 +120,7 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// clear server from unnecessary links
         /// очистить сервер от не нужных ссылок
         /// </summary>
         public void Clear()
@@ -119,21 +129,26 @@ namespace OsEngine.Market.Servers.Optimizer
         }
         private bool _cleared;
 
+// additional from normal servers
 // аппендикс от нормальных серверов
 
         /// <summary>
+		/// it doesn't use in the test server 
         /// в тестовом сервере не используется
         /// </summary>
         public void StartServer(){}
 
         /// <summary>
+		/// it doesn't use in the test server 
         /// в тестовом сервере не используется
         /// </summary>
         public void StopServer(){}
 
+// Managment
 // Управление
 
         /// <summary>
+		/// start testing
         /// начать тестирование
         /// </summary>
         public void TestingStart()
@@ -214,48 +229,58 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// testing is starting
         /// Тестирование запущено
         /// </summary>
         public event Action TestingStartEvent;
 
         /// <summary>
+		/// testing is breaking
+		/// parameter: server number
         /// тестирование прервано
         /// параметр: номер севера
         /// </summary>
         public event Action<int> TestingEndEvent;
 
         /// <summary>
+		/// changed the number of downloaded objects
         /// изменилось кол-во прогружаемых объектов
-        /// первый параметр - текущее кол-во
-        /// второй параметр - максимальное
-        /// третий - номер сервера
+        /// the first parameter is current count / первый параметр - текущее кол-во
+        /// the second parameter is maximum count / второй параметр - максимальное
+        /// the third parameter is server number / третий - номер сервера
         /// </summary>
         public event Action<int, int, int> TestintProgressChangeEvent;
 
+// work place of main thread
 // место работы основного потока
 
         /// <summary>
+		/// synchronizer accuracy. For candles above a minute - minutes. For ticks - seconds. For depths - milliseconds
         /// точность синхронизатора. Для свечек выше минуты - минутки. Для тиков - секунды. Для стаканов - миллисекунды
         /// устанавливается в методе SynhSecurities
         /// </summary>
         private TimeAddInTestType _timeAddType;
 
         /// <summary>
+		/// whether series data have ran 
         /// пошли ли данные из серий данных
         /// </summary>
         private bool _dataIsActive;
 
         /// <summary>
+		/// Tester mode
         /// режим тестирования
         /// </summary>
         private TesterRegime _testerRegime;
 
         /// <summary>
+		/// main thread for loading all data
         /// основной поток, которые занимается прогрузкой всех данных
         /// </summary>
         private Thread _worker;
 
         /// <summary>
+		/// work place of main thread
         /// место работы основного потока
         /// </summary>
         private void WorkThreadArea()
@@ -311,26 +336,29 @@ namespace OsEngine.Market.Servers.Optimizer
                 }
             }
         }
-        
+// request data from storage        
 // запрашивание данных у хранилища
 
         /// <summary>
+		/// data storage
         /// хранилище данных
         /// </summary>
         private OptimizerDataStorage _storagePrime;
 
         /// <summary>
+		/// all storages of candles, ticks, depths for bot
         /// все хранилища свечей, тиков, стаканов, которые у нас запросил робот
         /// </summary>
         private List<DataStorage> _storages = new List<DataStorage>(); 
 
         /// <summary>
+		/// download data to server
         /// загрузить в сервер данные
         /// </summary>
-        /// <param name="security">спецификация инструмента</param>
-        /// <param name="timeFrame">таймФрейм</param>
-        /// <param name="timeStart">время старта данных</param>
-        /// <param name="timeEnd">время завершения данных</param>
+        /// <param name="security">instrument specification /спецификация инструмента</param>
+        /// <param name="timeFrame">timeframe/таймФрейм</param>
+        /// <param name="timeStart">data start time/время старта данных</param>
+        /// <param name="timeEnd">data finish time/время завершения данных</param>
         public void GetDataToSecurity(Security security, TimeFrame timeFrame, DateTime timeStart, DateTime timeEnd)
         {
             DataStorage newStorage = _storagePrime.GetStorageToSecurity(security, timeFrame, timeStart, timeEnd);
@@ -395,14 +423,17 @@ namespace OsEngine.Market.Servers.Optimizer
             ServerStatus = ServerConnectStatus.Connect;
         }
 
+// data downloading
 // подгрузка данных
 
         /// <summary>
+		/// synchronizer time in now moment of history data
         /// время синхронизатора в данный момент подачи истории
         /// </summary>
         public DateTime TimeNow;
 
         /// <summary>
+		/// request next data
         /// запросить следующие данные
         /// </summary>
         private void LoadNextData()
@@ -456,9 +487,11 @@ namespace OsEngine.Market.Servers.Optimizer
             }
         }
 
+// check order execution
 // проверка исполнения ордеров
 
         /// <summary>
+		/// check order execution
         /// проверить ордера на исполненность
         /// </summary>
         private void CheckOrders()
@@ -472,7 +505,7 @@ namespace OsEngine.Market.Servers.Optimizer
             {
 
                 Order order = OrdersActiv[i];
-                // проверяем наличие инструмента на рынке
+                // check instrument availability on the market / проверяем наличие инструмента на рынке
                 SecurityOptimizer security =
                     _candleSeriesTesterActivate.Find(
                         tester =>
@@ -486,7 +519,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 }
 
                 if (security.DataType == SecurityTesterDataType.Tick)
-                { // прогон на тиках
+                { // running on ticks / прогон на тиках
                     List<Trade> trades = security.LastTradeSeries;
 
                     for (int indexTrades = 0; trades != null && indexTrades < trades.Count; indexTrades++)
@@ -499,7 +532,7 @@ namespace OsEngine.Market.Servers.Optimizer
                     }
                 }
                 else if(security.DataType == SecurityTesterDataType.Candle)
-                { // прогон на свечках
+                { // running on candles / прогон на свечках
                     Candle lastCandle = security.LastCandle;
                     if (CheckOrdersInCandleTest(order, lastCandle))
                     {
@@ -508,7 +541,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 }
                 else if (security.DataType == SecurityTesterDataType.MarketDepth)
                 {
-                    // ЗДЕСЬ!!!!!!!!!!!!!!!!!!!!
+                    // here / ЗДЕСЬ!!!!!!!!!!!!!!!!!!!!
                     MarketDepth depth = security.LastMarketDepth;
 
                     if (CheckOrdersInMarketDepthTest(order, depth))
@@ -520,11 +553,12 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// check order execution by testing with using candles
         /// проверить исполнение ордера при тестировании на свечках
         /// </summary>
-        /// <param name="order">ордер</param>
-        /// <param name="lastCandle">свеча на которой проверяем исполнение</param>
-        /// <returns>если исполнилось или отозвалось по времени, возвратиться true</returns>
+        /// <param name="order">order/ордер</param>
+        /// <param name="lastCandle">candle for checking execution/свеча на которой проверяем исполнение</param>
+        /// <returns>if it is completed or responded in time, return true / если исполнилось или отозвалось по времени, возвратиться true</returns>
         private bool CheckOrdersInCandleTest(Order order, Candle lastCandle)
         {
             decimal minPrice = decimal.MaxValue;
@@ -546,7 +580,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 return false;
             }
 
-            // проверяем, прошёл ли ордер
+            // check whether the order passed / проверяем, прошёл ли ордер
             if (order.Side == Side.Buy)
             {
                 if ((OrderExecutionType == OrderExecutionType.Intersection && order.Price > minPrice) 
@@ -561,13 +595,13 @@ namespace OsEngine.Market.Servers.Optimizer
                     _lastOrderExecutionTypeInFiftyFiftyType == OrderExecutionType.Touch &&
                     order.Price >= minPrice)
                     )
-                {// исполняем
+                {// execute / исполняем
 
                     decimal realPrice = order.Price;
 
                     if (realPrice > openPrice && order.IsStopOrProfit == false)
                     {
-                        // если заявка не котировачная и выставлена в рынок
+                        // if order is not quotation and put into the market / если заявка не котировачная и выставлена в рынок
                         realPrice = openPrice;
                     }
                     else if (order.IsStopOrProfit && order.Price > maxPrice)
@@ -614,12 +648,12 @@ namespace OsEngine.Market.Servers.Optimizer
                      order.Price <= maxPrice)
                     )
                 {
-// исполняем
+// execute / исполняем
                     decimal realPrice = order.Price;
 
                     if (realPrice < openPrice && order.IsStopOrProfit == false)
                     {
-                        // если заявка не котировачная и выставлена в рынок
+                        // if order is not quotation and put into the market / если заявка не котировачная и выставлена в рынок
                         realPrice = openPrice;
                     }
                     else if (order.IsStopOrProfit && order.Price < minPrice)
@@ -653,7 +687,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 }
             }
 
-            // ордер не `исполнился. проверяем, не пора ли отзывать
+            // order not filled. check if it's time to recall / ордер не `исполнился. проверяем, не пора ли отзывать
 
             if (order.TimeCallBack.Add(order.LifeTime) <= ServerTime)
             {
@@ -664,12 +698,13 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// check order execution by testing with using ticks
         /// проверить исполнение ордера при тиковом прогоне
         /// </summary>
-        /// <param name="order">ордер для исполнения</param>
-        /// <param name="lastTrade">последняя цена по инструменту</param>
-        /// <param name="firstTime">первая ли эта проверка на исполнение. Если первая то возможно исполнение по текущей цене.
-        /// есил false, то исполнение только по цене ордером. В этом случае мы котируем</param>
+        /// <param name="order">execution order / ордер для исполнения</param>
+        /// <param name="lastTrade">last instrument price/последняя цена по инструменту</param>
+        /// <param name="firstTime">Is this the first performance check? If the first is possible execution at the current price/первая ли эта проверка на исполнение. Если первая то возможно исполнение по текущей цене.
+        /// if false then execution only by order price. In this case, we quote / есил false, то исполнение только по цене ордером. В этом случае мы котируем</param>
         /// <returns></returns>
         private bool CheckOrdersInTickTest(Order order, Trade lastTrade, bool firstTime)
         {
@@ -680,7 +715,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 return false;
             }
 
-            // проверяем, прошёл ли ордер
+            // check the order / проверяем, прошёл ли ордер
             if (order.Side == Side.Buy)
             {
                  if ((OrderExecutionType == OrderExecutionType.Intersection && order.Price > lastTrade.Price) 
@@ -695,7 +730,7 @@ namespace OsEngine.Market.Servers.Optimizer
                     _lastOrderExecutionTypeInFiftyFiftyType == OrderExecutionType.Touch &&
                     order.Price >= lastTrade.Price)
                     )
-                {// исполняем
+                {// execute / исполняем
                     int slipage = 0;
 
 
@@ -736,7 +771,7 @@ namespace OsEngine.Market.Servers.Optimizer
                    _lastOrderExecutionTypeInFiftyFiftyType == OrderExecutionType.Touch &&
                    order.Price <= lastTrade.Price)
                    )
-                {// исполняем
+                {// execute / исполняем
                     int slipage = 0;
 
                     ExecuteOnBoardOrder(order, lastTrade.Price, ServerTime, slipage);
@@ -762,6 +797,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 }
             }
 
+			// order is not executed. check if it's time to recall
             // ордер не исполнился. проверяем, не пора ли отзывать
 
             if (order.TimeCallBack.Add(order.LifeTime) <= ServerTime)
@@ -773,11 +809,12 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// check order execution by testing with using candles
         /// проверить исполнение ордера при тестировании на свечках
         /// </summary>
-        /// <param name="order">ордер</param>
-        /// <param name="lastMarketDepth">стакан на которой проверяем исполнение</param>
-        /// <returns>если исполнилось или отозвалось по времени, возвратиться true</returns>
+        /// <param name="order">order/ордер</param>
+        /// <param name="lastMarketDepth">depth for checking execution/стакан на которой проверяем исполнение</param>
+        /// <returns>if it is completed or responded in time, return true / если исполнилось или отозвалось по времени, возвратиться true</returns>
         private bool CheckOrdersInMarketDepthTest(Order order, MarketDepth lastMarketDepth)
         {
             if (lastMarketDepth == null)
@@ -796,7 +833,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 return false;
             }
 
-            // проверяем, прошёл ли ордер
+            // check the order / проверяем, прошёл ли ордер
             if (order.Side == Side.Buy)
             {
                  if ((OrderExecutionType == OrderExecutionType.Intersection && order.Price > minPrice) 
@@ -816,7 +853,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                     if (realPrice > openPrice && order.IsStopOrProfit == false)
                     {
-                        // если заявка не котировачная и выставлена в рынок
+                        // if order is not quotation and put into the market / если заявка не котировачная и выставлена в рынок
                         realPrice = openPrice;
                     }
                     else if (order.IsStopOrProfit && order.Price > maxPrice)
@@ -862,12 +899,13 @@ namespace OsEngine.Market.Servers.Optimizer
                      order.Price <= maxPrice)
                     )
                 {
+// execute
 // исполняем
                     decimal realPrice = order.Price;
 
                     if (realPrice < openPrice && order.IsStopOrProfit == false)
                     {
-                        // если заявка не котировачная и выставлена в рынок
+                        // if order is not quotation and put into the market / если заявка не котировачная и выставлена в рынок
                         realPrice = openPrice;
                     }
                     else if (order.IsStopOrProfit && order.Price < minPrice)
@@ -897,7 +935,7 @@ namespace OsEngine.Market.Servers.Optimizer
                     return true;
                 }
             }
-
+			// order didn't execute. check if it's time to recall
             // ордер не `исполнился. проверяем, не пора ли отзывать
 
             if (order.TimeCallBack.Add(order.LifeTime) <= ServerTime)
@@ -909,6 +947,7 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// order execution type
         /// тип исполнения ордеров
         /// </summary>
         public OrderExecutionType OrderExecutionType
@@ -923,14 +962,17 @@ namespace OsEngine.Market.Servers.Optimizer
         private OrderExecutionType _orderExecutionType;
 
         /// <summary>
+		/// the next type of order execution, if we chose type 50 * 50 and they should alternate
         /// следующий по очереди тип исполнения заявки, 
         /// если мы выбрали тип 50*50 и они должны чередоваться
         /// </summary>
         private OrderExecutionType _lastOrderExecutionTypeInFiftyFiftyType;
 
+// server status
 // статус сервера
 
         /// <summary>
+		/// server status
         /// статус сервера
         /// </summary>
         public ServerConnectStatus ServerStatus
@@ -952,6 +994,7 @@ namespace OsEngine.Market.Servers.Optimizer
         private ServerConnectStatus _serverConnectStatus;
 
         /// <summary>
+		/// changed connection status
         /// изменился статус соединения
         /// </summary>
         public event Action<string> ConnectStatusChangeEvent;
@@ -960,10 +1003,12 @@ namespace OsEngine.Market.Servers.Optimizer
 
         public bool NeadToSaveTicks { get; set; }
 
+// server time
 // время сервера
 
         private DateTime _serverTime;
         /// <summary>
+		/// server time
         /// время сервера
         /// </summary>
         public DateTime ServerTime
@@ -987,21 +1032,25 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// changed server time
         /// изменилось время сервера
         /// </summary>
         public event Action<DateTime> TimeServerChangeEvent;
 
+// profits and losses on the exchange
 // прибыли и убытки биржи
 
         /// <summary>
+		/// list with the history of portfolio movement
         /// лист с историей движения портфеля
         /// </summary>
         public List<decimal> ProfitArray;
 
         /// <summary>
+		/// add the change in the portfolio
         /// добавить в портфель изменение
         /// </summary>
-        /// <param name="profit">прибыль со сделки</param>
+        /// <param name="profit">profit from trade/прибыль со сделки</param>
         public void AddProfit(decimal profit)
         {
             Portfolios[0].ValueCurrent += profit;
@@ -1014,19 +1063,22 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// event: portfolio value changed
         /// событие: значение портфеля изменилось
         /// </summary>
         public event Action<decimal> NewCurrentValue; 
 
-
+// portfolios and positions on the exchange
 // портфели и позиция на бирже
 
         /// <summary>
+		/// portfolios
         /// портфели
         /// </summary>
         public List<Portfolio> Portfolios { get; set; }
 
         /// <summary>
+		/// create portfolio for test server
         /// создать портфель для тестового сервера
         /// </summary>
         private void CreatePortfolio(decimal startValue)
@@ -1045,6 +1097,7 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// take portfolio by number/name
         /// взять портфель по номеру/названию
         /// </summary>
         public Portfolio GetPortfolioForName(string name)
@@ -1053,13 +1106,16 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// changed portfolio
         /// изменился портфель
         /// </summary>
         public event Action<List<Portfolio>> PortfoliosChangeEvent;
 
+// securities
 // бумаги
 
         /// <summary>
+		/// all securities available to trade
         /// все бумаги доступные для торгов
         /// </summary>
         public List<Security> Securities
@@ -1070,6 +1126,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
 
         /// <summary>
+		/// take security as Security class by name
         /// взять бумагу в виде класса Security по названию
         /// </summary>
         public Security GetSecurityForName(string name)
@@ -1083,11 +1140,12 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// incoming candles from CandleManager
         /// входящие свечки из CandleManager
         /// </summary>
         void _candleManager_CandleUpdateEvent(CandleSeries series)
         {
-            // перегружаем последним временем тика время сервера
+            // write last tick time in the server time / перегружаем последним временем тика время сервера
             ServerTime = series.CandlesAll[series.CandlesAll.Count - 1].TimeStart;
 
             if (NewCandleIncomeEvent != null)
@@ -1097,11 +1155,13 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// tester instruments changed
         /// инструменты тестера изменились
         /// </summary>
         public event Action<List<Security>> SecuritiesChangeEvent;
 
         /// <summary>
+		/// show instruments
         /// показать инструменты 
         /// </summary>
         public void ShowSecuritiesDialog()
@@ -1110,30 +1170,35 @@ namespace OsEngine.Market.Servers.Optimizer
             ui.ShowDialog();
         }
 
+// ordering for downloading instrument
 // Заказ инструмента на скачивание
 
         /// <summary>
+		/// series of tester candles running on download
         /// серии свечек Тестера запущенные на скачивание
         /// </summary>
         private List<SecurityOptimizer> _candleSeriesTesterActivate;
 
         /// <summary>
+		/// wizard of candle downloading from ticks
         /// мастер загрузки свечек из тиков
         /// </summary>
         private CandleManager _candleManager;
 
         /// <summary>
+		/// multi-threaded access locker in method StartThisSecurity
         /// объект блокирующий многопоточный доступ в метод StartThisSecurity
         /// </summary>
         private object _starterLocker = new object();
 
         /// <summary>
+		/// start downloading data on instrument
         /// Начать выгрузку данных по инструменту. 
         /// </summary>
-        /// <param name="namePaper">имя бумаги которую будем запускать</param>
-        /// <param name="timeFrameBuilder">объект несущий в себе данные о таймФрейме</param>
-        /// <returns>В случае удачи возвращает CandleSeries
-        /// в случае неудачи null</returns>
+        /// <param name="namePaper">security name/имя бумаги которую будем запускать</param>
+        /// <param name="timeFrameBuilder">object with timeframe/объект несущий в себе данные о таймФрейме</param>
+        /// <returns>In case of success returns CandleSeries / В случае удачи возвращает CandleSeries
+        /// в случае неудачи null / в случае неудачи null</returns>
         public CandleSeries StartThisSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder)
         {
             lock (_starterLocker)
@@ -1142,7 +1207,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 {
                     return null;
                 }
-                // надо запустить сервер если он ещё отключен
+                // need to start the server if it is still disabled / надо запустить сервер если он ещё отключен
                 if (ServerStatus != ServerConnectStatus.Connect)
                 {
                     return null;
@@ -1169,7 +1234,7 @@ namespace OsEngine.Market.Servers.Optimizer
                     return null;
                 }
 
-                // находим бумагу
+                // find security / находим бумагу
 
                 if (TypeTesterData == TesterDataType.MarketDepthAllCandleState ||
                     TypeTesterData == TesterDataType.MarketDepthOnlyReadyCandle)
@@ -1196,6 +1261,7 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// start uploading data for instrument
         /// Начать выгрузку данных по инструменту
         /// </summary>
         public CandleSeries GetCandleDataToSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder, DateTime startTime,
@@ -1205,6 +1271,7 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// take tick data on the instrument for a certain period
         /// взять тиковые данные по инструменту за определённый период
         /// </summary>
         public bool GetTickDataToSecurity(string namePaper, DateTime startTime, DateTime endTime, DateTime actualTime,
@@ -1214,6 +1281,7 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// take timeframe as TimeSpan from TimeFrame enumeration
         /// взять таймФрейм в виде TimeSpan из перечисления TimeFrame
         /// </summary>
         private TimeSpan GetTimeFremeInSpan(TimeFrame frame)
@@ -1293,6 +1361,7 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// stop accepting data on security
         /// прекратить принимать данные по бумаге 
         /// </summary>
         public void StopThisSecurity(CandleSeries series)
@@ -1304,12 +1373,15 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// connectors connected to the server need to get a new data
         /// коннекторам подключеным к серверу необходимо перезаказать данные
         /// </summary>
         public event Action NeadToReconnectEvent;
 
+// candles
 // свечи
         /// <summary>
+		/// new candles appear in the server
         /// в сервере появилась новая свечка
         /// </summary>
         void TesterServer_NewCandleEvent(Candle candle, string nameSecurity, TimeSpan timeFrame, int currentCandleCount, int allCandleCount)
@@ -1338,24 +1410,29 @@ namespace OsEngine.Market.Servers.Optimizer
         private DateTime _lastTimeCountChange;
 
         /// <summary>
+		/// appeared new candle
         /// появилась новая свеча
         /// </summary>
         public event Action<CandleSeries> NewCandleIncomeEvent;
 
+// bid and ask
 // бид и аск
 
         /// <summary>
+		/// updated bid and ask
         /// обновился бид с аском
         /// </summary>
         public event Action<decimal, decimal, Security> NewBidAscIncomeEvent;
 
+// depth
 // стакан
         /// <summary>
+		/// new incoming depth
         /// новый входящий стакан
         /// </summary>
-        /// <param name="marketDepth">стакан</param>
-        /// <param name="lastCount">последний индекс стакана в хранилище</param>
-        /// <param name="maxCount">максимальный индекс</param>
+        /// <param name="marketDepth">depth/стакан</param>
+        /// <param name="lastCount">last depth index in the storage / последний индекс стакана в хранилище</param>
+        /// <param name="maxCount">maximum index/максимальный индекс</param>
         void TesterServer_NewMarketDepthEvent(MarketDepth marketDepth, int lastCount, int maxCount)
         {
             if (_dataIsActive == false)
@@ -1380,19 +1457,23 @@ namespace OsEngine.Market.Servers.Optimizer
         /// </summary>
         public event Action<MarketDepth> NewMarketDepthEvent;
 
+// all trades table
 // таблица всех сделок
 
         /// <summary>
+		/// all trades in the storage
         /// все сделки в хранилище
         /// </summary>
         private List<Trade>[] _allTrades;
 
         /// <summary>
+		/// all server ticks
         /// все тики имеющиеся у сервера
         /// </summary>
         public List<Trade>[] AllTrades { get { return _allTrades; } }
 
         /// <summary>
+		/// get new trades from the server 
         /// пришли новые сделки из сервера
         /// </summary>
         void TesterServer_NewTradesEvent(List<Trade> tradesNew, int lastCount, int maxCount)
@@ -1413,7 +1494,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 _allTrades[0] = new List<Trade>(tradesNew);
             }
             else
-            {// сортируем сделки по хранилищам
+            {// sort trades by storages / сортируем сделки по хранилищам
 
                 for (int indTrade = 0; indTrade < tradesNew.Count; indTrade++)
                 {
@@ -1423,7 +1504,7 @@ namespace OsEngine.Market.Servers.Optimizer
                    {
                        if (_allTrades[i] != null && _allTrades[i].Count != 0 &&
                            _allTrades[i][0].SecurityNameCode == trade.SecurityNameCode)
-                       { // если для этого инструметна уже есть хранилище, сохраняем и всё
+                       { // if there is already storage for this instrument, save / если для этого инструметна уже есть хранилище, сохраняем и всё
                            isSave = true;
                            if (_allTrades[i][0].Time > trade.Time)
                            {
@@ -1434,7 +1515,7 @@ namespace OsEngine.Market.Servers.Optimizer
                        }
                    }
                    if (isSave == false)
-                   { // хранилища для инструмента нет
+                   { // there is no storage for instrument / хранилища для инструмента нет
                        List<Trade>[] allTradesNew = new List<Trade>[_allTrades.Length + 1];
                        for (int i = 0; i < _allTrades.Length; i++)
                        {
@@ -1480,6 +1561,7 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// take all trades by instrument
         /// взять все сделки по инструменту
         /// </summary>
         public List<Trade> GetAllTradesToSecurity(Security security)
@@ -1496,13 +1578,16 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// called when a new trade comes in the instrument
         /// вызывается когда по инструменту приходят новые сделки
         /// </summary>
         public event Action<List<Trade>> NewTradeEvent;
 
+// my trades
 // мои сделки
 
         /// <summary>
+		/// my incoming trades 
         /// входящие мои сделки
         /// </summary>
         private void MyTradesIncome(MyTrade trade)
@@ -1521,6 +1606,7 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// my trades
         /// мои сделки
         /// </summary>
         public List<MyTrade> MyTrades
@@ -1530,28 +1616,34 @@ namespace OsEngine.Market.Servers.Optimizer
         private List<MyTrade> _myTrades;
 
         /// <summary>
+		/// called when a new trade comes
         /// вызывается когда приходит новая Моя Сделка
         /// </summary>
         public event Action<MyTrade> NewMyTradeEvent;
 
+// work of placing and cancellation of my orders
 // работа по выставлению и снятию моих ордеров
 
         /// <summary>
+		/// placed orders on the exchange
         /// выставленные на биржу ордера
         /// </summary>
         private List<Order> OrdersActiv;
 
         /// <summary>
+		/// iterator of order numbers on the exchange
         /// итератор номеров ордеров на бирже
         /// </summary>
         private int _iteratorNumbersOrders;
 
         /// <summary>
+		/// iterator of trades numbers on the exchange
         /// итератор номеров трэйдов на бирже
         /// </summary>
         private int _iteratorNumbersMyTrades;
 
         /// <summary>
+		/// execute order on the exchange
         /// выставить ордер на биржу
         /// </summary>
         public void ExecuteOrder(Order order)
@@ -1653,6 +1745,7 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// cancel order from the exchange
         /// отозвать ордер с биржи
         /// </summary>
         public void CanselOrder(Order order)
@@ -1668,13 +1761,16 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// updated order on the exchange
         /// обновился ордер на бирже
         /// </summary>
         public event Action<Order> NewOrderIncomeEvent;
 
+// internal operations of the "exchange" on orders
 // внутренние операции "биржи" над ордерами
 
         /// <summary>
+		/// cancel order from the exchange
         /// провести отзыв ордера с биржи 
         /// </summary>
         private void CanselOnBoardOrder(Order order)
@@ -1717,6 +1813,7 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// reject order on the stock exchange
         /// провести отбраковку ордера на бирже
         /// </summary>
         private void FailedOperationOrder(Order order)
@@ -1742,6 +1839,7 @@ namespace OsEngine.Market.Servers.Optimizer
         }
         
         /// <summary>
+		/// execute order on the exchange
         /// исполнить ордер на бирже
         /// </summary>
         private void ExecuteOnBoardOrder(Order order,decimal price, DateTime time, int slipage)
@@ -1798,9 +1896,11 @@ namespace OsEngine.Market.Servers.Optimizer
             }
         }
 
+// logging
 // работа с логами
 
         /// <summary>
+		/// save a new log message
         /// сохранить новую запись в лог
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
@@ -1812,12 +1912,14 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// log manager
         /// лог менеджер
         /// </summary>
         /// 
         private Log _logMaster;
 
         /// <summary>
+		/// called when there is a new message in the log
         /// вызывается когда есть новое сообщение в логе
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
@@ -1825,6 +1927,7 @@ namespace OsEngine.Market.Servers.Optimizer
     }
 
     /// <summary>
+	/// security in Optimizer. Encapsulate test data and data upload methods.
     /// бумага в оптимизаторе
     /// Инкапсулирует данные для тестирования и методы прогрузки данных
     /// </summary>
@@ -1840,6 +1943,7 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// new candle in the server
         /// в сервере новая свеча
         /// </summary>
         /// <param name="series"></param>
@@ -1853,58 +1957,70 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// list of candles
         /// список свечей
         /// </summary>
         public List<Candle> Candles;
 
         /// <summary>
+		/// list of trades
         /// список трейдов
         /// </summary>
         public List<Trade> Trades;
 
         /// <summary>
+		/// list of depths
         /// список стаканов
         /// </summary>
         public List<MarketDepth> MarketDepths; 
 
         /// <summary>
+		/// security
         /// бумага которой принадлежит объект
         /// </summary>
         public Security Security;
 
         /// <summary>
+		/// begin time in the file
         /// время начала данных в файле
         /// </summary>
         public DateTime TimeStart;
 
         /// <summary>
+		/// end time in the file
         /// время конца данных в файле
         /// </summary>
         public DateTime TimeEnd;
 
         /// <summary>
+		/// object data type
         /// Тип данных хранящихся в объекте
         /// </summary>
         public SecurityTesterDataType DataType;
 
         /// <summary>
+		/// timeframe in TimeSpan
         /// таймФрейм в TimeSpan
         /// </summary>
         public TimeSpan TimeFrameSpan;
 
         /// <summary>
+		/// timeframe
         /// таймФрейм
         /// </summary>
         public TimeFrame TimeFrame;
 
+		// managment of data downloading
         // управление выгрузгой данных
 
         /// <summary>
+		/// whether the series is activated for unloading
         /// активирована ли серия для выгрузки
         /// </summary>
         public bool IsActiv;
 
         /// <summary>
+		/// clear the object and bring it to the initial state ready for testing
         /// очистить объект и привести к начальному, готовому к тестированию состоянию
         /// </summary>
         public void Clear()
@@ -1925,10 +2041,11 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// download a new time in object, this method downloads candles and ticks
         /// прогрузить объект новым временем
         /// этот метод и прогружает свечи или тики
         /// </summary>
-        /// <param name="now">время для синхронизации</param>
+        /// <param name="now">sync time / время для синхронизации</param>
         public void Load(DateTime now)
         {
             try
@@ -1953,24 +2070,28 @@ namespace OsEngine.Market.Servers.Optimizer
             }
         }
 
-        // разбор файлов тиковых
+        // parsing ticks files / разбор файлов тиковых
 
         /// <summary>
+		/// last trade of instrument from file
         /// последний трейд инструмента из файла
         /// </summary>
         public Trade LastTrade;
 
         /// <summary>
+		/// last index of trade
         /// последний индекс трейда
         /// </summary>
         private int _lastTradeIndex;
 
         /// <summary>
+		/// last downloaded ticks for last second
         /// последние подгруженные тики за последнюю секунду
         /// </summary>
         public List<Trade> LastTradeSeries;
 
         /// <summary>
+		/// check whether it is time to send a new batch of ticks
         /// проверить, не пора ли высылать новую партию тиков
         /// </summary>
         private void CheckTrades(DateTime now)
@@ -1992,7 +2113,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 return;
             }
 
-            // качаем новый трейд
+            // upload new trades / качаем новый трейд
 
             if (LastTrade == null)
             {
@@ -2005,7 +2126,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 return;
             }
 
-            // здесь имеем первый трейд в текущей секунде
+            // here we have the first trade in the current second / здесь имеем первый трейд в текущей секунде
 
             List<Trade> lastTradesSeries = new List<Trade>();
 
@@ -2034,9 +2155,11 @@ namespace OsEngine.Market.Servers.Optimizer
             }
         }
 
+		// parsing candle files
         // разбор свечных файлов
 
         /// <summary>
+		/// last candle
         /// последняя свеча
         /// </summary>
         public Candle LastCandle
@@ -2047,11 +2170,13 @@ namespace OsEngine.Market.Servers.Optimizer
         private Candle _lastCandle;
 
         /// <summary>
+		/// last index candle in the array
         /// последний индекс свечи в массиве
         /// </summary>
         private int _lastCandleIndex;
 
         /// <summary>
+		/// check, is it time to send the candle
         /// провирить, не пора ли высылать свечку
         /// </summary>
         private void CheckCandles(DateTime now)
@@ -2130,33 +2255,40 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// new ticks appeared
         /// новые тики появились
         /// </summary>
         public event Action<List<Trade>,int, int> NewTradesEvent;
 
         /// <summary>
+		/// new candles appeared
         /// новые свечи появились
         /// </summary>
         public event Action<Candle, string, TimeSpan,int,int> NewCandleEvent;
 
         /// <summary>
+		/// new depths appeared
         /// новые тики появились
         /// </summary>
         public event Action<MarketDepth,int,int> NewMarketDepthEvent;
 
+		// parsing depths
         // разбор стаканов
 
         /// <summary>
+		/// last trade of instrument from file
         /// последний трейд инструмента из файла
         /// </summary>
         public MarketDepth LastMarketDepth;
 
         /// <summary>
+		/// last depth index in the list
         /// последний индекс стакана в листе
         /// </summary>
         private int _lastMarketDepthIndex;
 
         /// <summary>
+		/// upload depth data
         /// подгрузить данные по стакану
         /// </summary>
         /// <param name="now">время</param>
@@ -2179,7 +2311,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 return;
             }
 
-            // качаем первую секунду если 
+            // if download the first second / качаем первую секунду если 
 
             if (LastMarketDepth == null)
             {
@@ -2206,9 +2338,11 @@ namespace OsEngine.Market.Servers.Optimizer
             }
         }
 
+		// logging
         // работа с логами
 
         /// <summary>
+		/// save a new log message
         /// сохранить новую запись в лог
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
@@ -2220,6 +2354,7 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// called when there is a new log message
         /// вызывается когда есть новое сообщение в логе
         /// </summary>
         public event Action<string,LogMessageType> LogMessageEvent;
