@@ -1,4 +1,5 @@
 ﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -13,11 +14,13 @@ namespace OsEngine.Market.Servers.Quik
 {
 
     /// <summary>
+    /// thing is the successor of DE server, is responsible for subscribing to certain data, sorting data from DE, bringing the data to the form of arrays C#, and then to bring them to the classes OsApi
     /// штука, наследник ДДЕ сервера, отвечает за подписку на определённые данные, сортировку данных из ДДЕ, приведение данных к виду массивов Си Шарп, и потом к их приведению к классам OsApi
     /// </summary>
     internal class QuikDde
     {
 
+// work with the chanel subscription
 // работа с подпиской на каналы
 
         public QuikDde(string service)
@@ -28,6 +31,7 @@ namespace OsEngine.Market.Servers.Quik
 
         private qC.QuikCon _server;
 
+// access to QUIK and DDE activation
 // доступ к Квик и активация ДДЕ
 
         public bool IsRegistered
@@ -110,7 +114,7 @@ namespace OsEngine.Market.Servers.Quik
 
         public event Action<DdeServerStatus> StatusChangeEvent;
 
-  // 1) Таблица инструментов
+  // 1) instrument table / Таблица инструментов
         private void SecuritiesUpdated(long id, object[,] table)
         {
             int countElem = table.GetLength(0);
@@ -226,10 +230,10 @@ namespace OsEngine.Market.Servers.Quik
                         }
                     }
                     catch (Exception)
-                    { // здесь убираем элемент по индексу, и уменьшаем массив, т.к. в строке кака
-                        if (securities.Length == 1)
-                        { // если битым является единственный элемент массива
-                            return;
+                { // here we remove the element by index, and reduce the array / здесь убираем элемент по индексу, и уменьшаем массив, т.к. в строке кака
+                    if (securities.Length == 1)
+                    { // if the only element of the array is broken / если битым является единственный элемент массива
+                        return;
                         }
 
                         Security[] newArraySecurities = new Security[securities.Length-1];
@@ -255,7 +259,7 @@ namespace OsEngine.Market.Servers.Quik
 
         public event Action<DateTime> UpdateTimeSecurity;
 
-  // 2) таблица всех сделок
+  // 2) all trades table / таблица всех сделок
         private void TradesUpdated(long id, object[,] table)
         {
             try
@@ -344,7 +348,7 @@ namespace OsEngine.Market.Servers.Quik
 
         public event Action<List<Trade>> UpdateTrade;
 
-  // 3) порфели и спот и деривативы
+  // 3) portfolios of spot and derivatives / порфели и спот и деривативы
         private void PortfolioSpotUpdated(long id, object[,] table)
         {
              int countElem = table.GetLength(0);
@@ -504,7 +508,7 @@ namespace OsEngine.Market.Servers.Quik
 
         public event Action<List<Portfolio>> UpdatePortfolios;
 
-  // 4) позиция спот и деривативы
+        // 4) position of spot and derivatives / позиция спот и деривативы
 
         private void PositionDerivativeUpdated(long id, object[,] table)
         {
@@ -579,7 +583,7 @@ namespace OsEngine.Market.Servers.Quik
             }
         }
 
-  // 5) стаканы
+  // 5) depths / стаканы
         private void GlassUpdated(long id, object[,] table, string nameSecurity)
         {
             int countElem = table.GetLength(0);
@@ -589,8 +593,8 @@ namespace OsEngine.Market.Servers.Quik
                 return;
             }
 
-            // в тайблах у нас уровни сверху вниз, как в таблице из Квик. 
-            // первый индекс это номер строки, второй столбца
+            // in the tables we have levels from top to bottom as in QUIK table / в тайблах у нас уровни сверху вниз, как в таблице из Квик. 
+            // the first index is the row number, the second column / первый индекс это номер строки, второй столбца
 
             List<MarketDepthLevel> asks = new List<MarketDepthLevel>();
 
@@ -664,6 +668,7 @@ namespace OsEngine.Market.Servers.Quik
             return result;
         }
 
+// logginf
 // работа с логами
 
         private void SendLogMessage(string message,LogMessageType type)
@@ -675,6 +680,7 @@ namespace OsEngine.Market.Servers.Quik
         }
 
         /// <summary>
+        /// outgoing log message
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
@@ -682,16 +688,19 @@ namespace OsEngine.Market.Servers.Quik
     }
 
     /// <summary>
+    /// class for intermediate storage of spot portfolios for QUIK server
     /// класс для промежуточного хранения портфелей спот для сервера Квик
     /// </summary>
     public class QuikPortfolio
     {
         /// <summary>
+        /// portfolio
         /// портфель
         /// </summary>
         public string Number;
 
         /// <summary>
+        /// firm
         /// фирма
         /// </summary>
         public string Firm;
@@ -699,6 +708,7 @@ namespace OsEngine.Market.Servers.Quik
 
 
     /// <summary>
+    /// state type of DDE server
     /// типы состояния ДДЕ сервера
     /// </summary>
     public enum DdeServerStatus
@@ -708,6 +718,7 @@ namespace OsEngine.Market.Servers.Quik
     }
 
     /// <summary>
+    /// thing that sends portfolio table to the second round
     /// штука отправляющая таблицу портфеля на второй круг
     /// </summary>
     public class PortfolioReturner

@@ -1,4 +1,5 @@
 ﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -19,14 +20,18 @@ namespace OsEngine.Market.Servers.Tester
 {
 
     /// <summary>
+	/// server for testing
+	/// Delivers synchronized data. Executes applications. Keeps track of positions
     /// сервер для тестирования. 
     /// Поставляет синхронизированные данные. Исполняет заявки. Следит за позициями
     /// </summary>
     public class TesterServer: IServer
     {
+// service		
 // сервис
 
         /// <summary>
+		/// constructor
         /// конструктор
         /// </summary>
         public TesterServer()
@@ -70,6 +75,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// server type
         /// тип сервера
         /// </summary>
         public ServerType ServerType
@@ -80,6 +86,7 @@ namespace OsEngine.Market.Servers.Tester
         private TesterServerUi _ui;
 
         /// <summary>
+		/// show settings window
         /// показать окно настроек
         /// </summary>
         public void ShowDialog()
@@ -103,6 +110,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// data type that the tester orders
         /// тип данных которые заказывает тестер
         /// </summary>
         public TesterDataType TypeTesterData
@@ -129,6 +137,7 @@ namespace OsEngine.Market.Servers.Tester
         private TesterDataType _typeTesterData;
 
         /// <summary>
+		/// download settings from the file
         /// загрузить настройки из файла
         /// </summary>
         private void Load()
@@ -162,6 +171,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// save settings
         /// сохранить настройки
         /// </summary>
         public void Save()
@@ -187,21 +197,26 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
+// additional part from standart servers
 // аппендикс от нормальных серверов
 
         /// <summary>
+		/// isn't used in the test server
         /// в тестовом сервере не используется
         /// </summary>
         public void StartServer(){}
 
         /// <summary>
+		/// isn't used in the test server
         /// в тестовом сервере не используется
         /// </summary>
         public void StopServer(){}
 
+// Managment
 // Управление
 
         /// <summary>
+		/// start testing
         /// начать тестирование
         /// </summary>
         public void TestingStart()
@@ -275,6 +290,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// speed testing by hiding areas
         /// ускорить тестирование, спрятав области
         /// </summary>
         public void TestingFast()
@@ -291,6 +307,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// stops testing, or starts
         /// останавливает тестирование, или запускает
         /// </summary>
         public void TestingPausePlay()
@@ -306,6 +323,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// get the next second and stop testing
         /// прогрузить следующую секунду и остановить тестирование
         /// </summary>
         public void TestingPlusOne()
@@ -314,25 +332,30 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// Testing started
         /// Тестирование запущено
         /// </summary>
         public event Action TestingStartEvent;
 
         /// <summary>
+		/// rewind mode enabled
         /// включен режим перемотки
         /// </summary>
         public event Action TestingFastEvent;
 
         /// <summary>
+		/// testing stopped
         /// тестирование прервано
         /// </summary>
         public event Action TestingEndEvent;
 
         /// <summary>
+		/// new securities in tester
         /// новые бумаги в тестере
         /// </summary>
         public event Action TestingNewSecurityEvent;
 
+// work with data connection
 // работа с подключением данных
 
         public TesterSourceDataType SourceDataType
@@ -352,6 +375,7 @@ namespace OsEngine.Market.Servers.Tester
         private TesterSourceDataType _sourceDataType;
 
         /// <summary>
+		/// data sets
         /// сеты данных
         /// </summary>
         private List<string> _sets;
@@ -368,6 +392,7 @@ namespace OsEngine.Market.Servers.Tester
         } 
 
         /// <summary>
+		/// take all sets from folder
         /// взять все сеты из папки
         /// </summary>
         private void CheckSet()
@@ -403,6 +428,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// bind to the tester a new data set
         /// привязать к тестору новый сет данных
         /// </summary>
         /// <param name="setName">имя сета</param>
@@ -426,7 +452,7 @@ namespace OsEngine.Market.Servers.Tester
 
         public void ReloadSecurities()
         {
-            // чистим все данные, отключаемся
+            // clear all data and disconnect / чистим все данные, отключаемся
             _testerRegime = TesterRegime.Pause;
             _dataIsReady = false;
             ServerStatus = ServerConnectStatus.Disconnect;
@@ -436,7 +462,7 @@ namespace OsEngine.Market.Servers.Tester
             _candleSeriesTesterActivate = new List<SecurityTester>();
             Save();
 
-            // обновляем
+            // update / обновляем
             
             _needToReloadSecurities = true;
 
@@ -447,6 +473,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// path to the data folder
         /// путь к папке с данными
         /// </summary>
         public string PathToFolder
@@ -456,6 +483,7 @@ namespace OsEngine.Market.Servers.Tester
         private string _pathToFolder;
 
         /// <summary>
+		/// call folder path selection window
         /// вызвать окно выбора пути к папке
         /// </summary>
         public void ShowPathSenderDialog()
@@ -482,9 +510,11 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
+// Synchronizer
 // Синхронизатор
 
         /// <summary>
+		/// path to the data folder. He is the name of the active set
         /// путь к папке с данными. Он же название активного сета
         /// </summary>
         private string _activSet;
@@ -494,41 +524,49 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// minimum time that can be set for synchronization
         /// минимальное время которое можно задать для синхронизации
         /// </summary>
         public DateTime TimeMin;
 
         /// <summary>
+		/// maximum time that can be set for synchronization
         /// максимальное время которое можно задать для синхронизации
         /// </summary>
         public DateTime TimeMax;
 
         /// <summary>
+		/// start time of testing selected by the user
         /// время начала тестирования выбранное пользователем
         /// </summary>
         public DateTime TimeStart;
 
         /// <summary>
+		/// finish time of testing selected by the user
         /// время конца тестирования выбранное пользователем
         /// </summary>
         public DateTime TimeEnd;
 
         /// <summary>
+		/// time synchronizer at now time of history
         /// время синхронизатора в данный момент подачи истории
         /// </summary>
         public DateTime TimeNow;
 
         /// <summary>
+		/// are data ready for loading
         /// готовы ли данные к загрузке
         /// </summary>
         private bool _dataIsReady;
 
         /// <summary>
+		/// securities available for loading
         /// бумаги доступные для загрузки 
         /// </summary>
         public List<SecurityTester> SecuritiesTester;
 
         /// <summary>
+		/// removes unnecessary connections by synchronizing them with loaded bots
         /// удаляет лишние подключения синхронизируя их с загруженными ботами
         /// </summary>
         public void SynhSecurities(List<BotPanel> bots)
@@ -623,35 +661,43 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
+// work place of main thread
 // место работы основного потока
 
         /// <summary>
+		/// synchronizer accuracy. For candles above a minute - minutes. For ticks - seconds. For depths - milliseconds
         /// точность синхронизатора. Для свечек выше минуты - минутки. Для тиков - секунды. Для стаканов - миллисекунды
+		/// set in the SynhSecurities method
         /// устанавливается в методе SynhSecurities
         /// </summary>
         private TimeAddInTestType _timeAddType;
 
         /// <summary>
+		/// did the data from data series go
         /// пошли ли данные из серий данных
         /// </summary>
         private bool _dataIsActive;
 
         /// <summary>
+		/// is it time to reload securities in the directory
         /// пора ли перезагружать бумаги в директории
         /// </summary>
         private bool _needToReloadSecurities;
 
         /// <summary>
+		/// test mode
         /// режим тестирования
         /// </summary>
         private TesterRegime _testerRegime;
 
         /// <summary>
+		/// main thread that downloads all data
         /// основной поток, которые занимается прогрузкой всех данных
         /// </summary>
         private Thread _worker;
 
         /// <summary>
+		/// work place of main thread
         /// место работы основного потока
         /// </summary>
         private void WorkThreadArea()
@@ -719,6 +765,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// create portfolio for test server
         /// создать портфель для тестового сервера
         /// </summary>
         private void CreatePortfolio()
@@ -737,6 +784,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// download data about securities from the directory
         /// загрузить данные о бумагах из директории
         /// </summary>
         private void LoadSecurities()
@@ -748,7 +796,7 @@ namespace OsEngine.Market.Servers.Tester
             }
 
             if (_sourceDataType == TesterSourceDataType.Set)
-            { // сеты данных Геркулеса
+            { // Hercules data sets/сеты данных Геркулеса
                 string[] directories = Directory.GetDirectories(_activSet);
 
                 if (directories.Length == 0)
@@ -765,7 +813,7 @@ namespace OsEngine.Market.Servers.Tester
                 _dataIsReady = true;
             }
             else // if (_sourceDataType == TesterSourceDataType.Folder)
-            { // простые файлы из папки
+            { // simple files from folder/простые файлы из папки
 
                 string[] files = Directory.GetFiles(_pathToFolder);
 
@@ -782,9 +830,10 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// unload one tool from folder
         /// выгрузить один инструмент из папки
         /// </summary>
-        /// <param name="path">путь к папке с инструментом</param>
+        /// <param name="path">folder path to instrument / путь к папке с инструментом</param>
         private void LoadSeciruty(string path)
         {
             string[] directories = Directory.GetDirectories(path);
@@ -849,25 +898,25 @@ namespace OsEngine.Market.Servers.Tester
                 security[security.Count - 1].Security.Go = 1;
                 security[security.Count - 1].Security.PriceStepCost = 1;
                 security[security.Count - 1].Security.PriceStep = 1;
-                // тф
-                // шаг цены
-                // начало
-                // конец
+                // timeframe / тф
+                // price step / шаг цены
+                // begin / начало
+                // end / конец
 
                 StreamReader reader = new StreamReader(files[i]);
 
-                // свечи: 20110111,100000,19577.00000,19655.00000,19533.00000,19585.00000,2752
-                // тики 1 вар: 20150401,100000,86160.000000000,2
-                // тики 2 вар: 20151006,040529,3010,5,Buy/Sell/Unknown
+                // candles / свечи: 20110111,100000,19577.00000,19655.00000,19533.00000,19585.00000,2752
+                // ticks ver.1 / тики 1 вар: 20150401,100000,86160.000000000,2
+                // ticks ver.2 / тики 2 вар: 20151006,040529,3010,5,Buy/Sell/Unknown
 
                 string str = reader.ReadLine();
 
                 try
                 {
-                    // смотрим свечи ли в файле
+                    // check whether candles are in the file / смотрим свечи ли в файле
                     Candle candle = new Candle();
                     candle.SetCandleFromString(str);
-                    // в файле свечи. Смотрим какие именно
+                    // candles are in the file. We look at which ones / в файле свечи. Смотрим какие именно
 
                     security[security.Count - 1].TimeStart = candle.TimeStart;
 
@@ -877,7 +926,7 @@ namespace OsEngine.Market.Servers.Tester
                     security[security.Count - 1].DataType = SecurityTesterDataType.Candle;
                     security[security.Count - 1].TimeFrameSpan = candle2.TimeStart - candle.TimeStart;
                     security[security.Count - 1].TimeFrame = GetTimeFrame(security[security.Count - 1].TimeFrameSpan);
-                    // шаг цены
+                    // step price / шаг цены
 
                     decimal minPriceStep = decimal.MaxValue;
                     int countFive = 0;
@@ -899,7 +948,7 @@ namespace OsEngine.Market.Servers.Tester
                             low.ToString(culture).Split(',').Length > 1 ||
                             close.ToString(culture).Split(',').Length > 1)
                         {
-                            // если имеет место вещественная часть
+                            // if the real part takes place / если имеет место вещественная часть
                             int lenght = 1;
 
                             if (open.ToString(culture).Split(',').Length > 1 &&
@@ -957,7 +1006,7 @@ namespace OsEngine.Market.Servers.Tester
                         }
                         else
                         {
-                            // если вещественной части нет
+                            // if the real part doesn't take place / если вещественной части нет
                             int lenght = 1;
 
                             for (int i3 = open.ToString(culture).Length - 1; open.ToString(culture)[i3] == '0'; i3--)
@@ -1026,7 +1075,7 @@ namespace OsEngine.Market.Servers.Tester
                     security[security.Count - 1].Security.PriceStepCost = minPriceStep;
 
 
-                    // последняя дата
+                    // last data / последняя дата
                     string lastString = null;
 
                     while (!reader.EndOfStream)
@@ -1049,7 +1098,8 @@ namespace OsEngine.Market.Servers.Tester
                     reader.Close();
                 }
             }
-            
+ 
+ // save securities 
  // сохраняем бумаги
 
             if (security == null || 
@@ -1078,6 +1128,7 @@ namespace OsEngine.Market.Servers.Tester
                 SecuritiesTester.Add(security[i]);
             }
 
+// count the time
 // считаем время
 
             if (SecuritiesTester.Count != 0)
@@ -1100,6 +1151,7 @@ namespace OsEngine.Market.Servers.Tester
                 }
             }
 
+// check in tester file data on the presence of multipliers and GO for securities
 // проверяем в файле тестера данные о наличии мультипликаторов и ГО для бумаг
 
             List<string[]> array = LoadSecurityDopSettings(folderName + "\\SecuritiesSettings.txt");
@@ -1161,30 +1213,30 @@ namespace OsEngine.Market.Servers.Tester
                 security[security.Count - 1].Security.Go = 1;
                 security[security.Count - 1].Security.PriceStepCost = 1;
                 security[security.Count - 1].Security.PriceStep = 1;
-                // тф
-                // шаг цены
-                // начало
-                // конец
+				// timeframe / тф
+				// price step / шаг цены
+				// begin / начало
+				// end / конец
 
                 StreamReader reader = new StreamReader(files[i]);
 
-                // свечи: 20110111,100000,19577.00000,19655.00000,19533.00000,19585.00000,2752
-                // тики 1 вар: 20150401,100000,86160.000000000,2
-                // тики 2 вар: 20151006,040529,3010,5,Buy/Sell/Unknown
+                // candles / свечи: 20110111,100000,19577.00000,19655.00000,19533.00000,19585.00000,2752
+                // ticks ver.1 / тики 1 вар: 20150401,100000,86160.000000000,2
+                // ticks ver.2 / тики 2 вар: 20151006,040529,3010,5,Buy/Sell/Unknown
 
                 string str = reader.ReadLine();
 
                 try
                 {
-                    // смотрим тики ли в файле
+                    // check whether ticks are in the file / смотрим тики ли в файле
                     Trade trade = new Trade();
                     trade.SetTradeFromString(str);
-                    // в файле тики
+                    // ticks are in the file / в файле тики
 
                     security[security.Count - 1].TimeStart = trade.Time;
                     security[security.Count - 1].DataType = SecurityTesterDataType.Tick;
 
-                    // шаг цены
+                    // price step / шаг цены
 
                     decimal minPriceStep = decimal.MaxValue;
                     int countFive = 0;
@@ -1201,7 +1253,7 @@ namespace OsEngine.Market.Servers.Tester
 
                         if (open.ToString(culture).Split(',').Length > 1)
                         {
-                            // если имеет место вещественная часть
+                            // if the real part takes place / если имеет место вещественная часть
                             int lenght = 1;
 
                             if (open.ToString(culture).Split(',').Length > 1 &&
@@ -1242,7 +1294,7 @@ namespace OsEngine.Market.Servers.Tester
                         }
                         else
                         {
-                            // если вещественной части нет
+                            // if the real part doesn't take place / если вещественной части нет
                             int lenght = 1;
 
                             for (int i3 = open.ToString(culture).Length - 1; open.ToString(culture)[i3] == '0'; i3--)
@@ -1274,7 +1326,7 @@ namespace OsEngine.Market.Servers.Tester
                     security[security.Count - 1].Security.PriceStep = minPriceStep;
                     security[security.Count - 1].Security.PriceStepCost = minPriceStep;
 
-                    // последняя дата
+                    // last data / последняя дата
                     string lastString2 = null;
 
                     while (!reader.EndOfStream)
@@ -1296,7 +1348,7 @@ namespace OsEngine.Market.Servers.Tester
 
             }
 
-            // сохраняем бумаги
+            // save securities / сохраняем бумаги
 
             if (security.Count == 0)
             {
@@ -1322,7 +1374,7 @@ namespace OsEngine.Market.Servers.Tester
                 SecuritiesTester.Add(security[i]);
             }
 
-            // считаем время 
+            // count the time / считаем время 
 
             if (SecuritiesTester.Count != 0)
             {
@@ -1344,6 +1396,7 @@ namespace OsEngine.Market.Servers.Tester
                 }
             }
 
+			// check in the tester file data on the presence of multipliers and GO for securities
             // проверяем в файле тестера данные о наличии мультипликаторов и ГО для бумаг
 
             List<string[]> array = LoadSecurityDopSettings(folderName + "\\SecuritiesSettings.txt");
@@ -1396,10 +1449,10 @@ namespace OsEngine.Market.Servers.Tester
                 security[security.Count - 1].Security.Go = 1;
                 security[security.Count - 1].Security.PriceStepCost = 1;
                 security[security.Count - 1].Security.PriceStep = 1;
-                // тф
-                // шаг цены
-                // начало
-                // конец
+				// timeframe / тф
+				// price step / шаг цены
+				// begin / начало
+				// end / конец
 
                 StreamReader reader = new StreamReader(files[i]);
 
@@ -1411,17 +1464,17 @@ namespace OsEngine.Market.Servers.Tester
 
                 try
                 {
-                    // смотрим стакан ли в файле
+                    // check whether depth is in the file / смотрим стакан ли в файле
 
                     MarketDepth trade = new MarketDepth();
                     trade.SetMarketDepthFromString(str);
 
-                    // в файле стаканы
+                    // depth is in the file / в файле стаканы
 
                     security[security.Count - 1].TimeStart = trade.Time;
                     security[security.Count - 1].DataType = SecurityTesterDataType.MarketDepth;
 
-                    // шаг цены
+                    // price step / шаг цены
 
                     decimal minPriceStep = decimal.MaxValue;
                     int countFive = 0;
@@ -1442,7 +1495,7 @@ namespace OsEngine.Market.Servers.Tester
 
                         if (open.ToString(culture).Split(',').Length > 1)
                         {
-                            // если имеет место вещественная часть
+                            // if the real part takes place / если имеет место вещественная часть
                             int lenght = 1;
 
                             if (open.ToString(culture).Split(',').Length > 1 &&
@@ -1483,7 +1536,7 @@ namespace OsEngine.Market.Servers.Tester
                         }
                         else
                         {
-                            // если вещественной части нет
+                            // if the real part doesn't take place / если вещественной части нет
                             int lenght = 1;
 
                             for (int i3 = open.ToString(culture).Length - 1; open.ToString(culture)[i3] == '0'; i3--)
@@ -1515,7 +1568,7 @@ namespace OsEngine.Market.Servers.Tester
                     security[security.Count - 1].Security.PriceStep = minPriceStep;
                     security[security.Count - 1].Security.PriceStepCost = minPriceStep;
 
-                    // последняя дата
+                    // last data / последняя дата
                     string lastString2 = null;
 
                     while (!reader.EndOfStream)
@@ -1535,6 +1588,7 @@ namespace OsEngine.Market.Servers.Tester
                 reader.Close();
             }
 
+			// save securities
             // сохраняем бумаги
 
             if (security == null ||
@@ -1562,6 +1616,7 @@ namespace OsEngine.Market.Servers.Tester
                 SecuritiesTester.Add(security[i]);
             }
 
+			// count the time
             // считаем время 
 
             if (SecuritiesTester.Count != 0)
@@ -1584,6 +1639,7 @@ namespace OsEngine.Market.Servers.Tester
                 }
             }
 
+			// check in the tester file data on the presence of multipliers and GO for securities
             // проверяем в файле тестера данные о наличии мультипликаторов и ГО для бумаг
 
             List<string[]> array = LoadSecurityDopSettings(folderName + "\\SecuritiesSettings.txt");
@@ -1608,6 +1664,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// unload the next batch of data from files
         /// выгрузить из файлов следующую партию данных
         /// </summary>
         private void LoadNextData()
@@ -1665,9 +1722,11 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
+// check order execution
 // проверка исполнения ордеров
 
         /// <summary>
+		/// check order execution
         /// проверить ордера на исполненность
         /// </summary>
         private void CheckOrders()
@@ -1681,7 +1740,7 @@ namespace OsEngine.Market.Servers.Tester
             {
 
                 Order order = OrdersActiv[i];
-                // проверяем наличие инструмента на рынке
+                // check availability of securities on the market / проверяем наличие инструмента на рынке
                 SecurityTester security =
                     _candleSeriesTesterActivate.Find(
                         tester =>
@@ -1695,7 +1754,7 @@ namespace OsEngine.Market.Servers.Tester
                 }
 
                 if (security.DataType == SecurityTesterDataType.Tick)
-                { // прогон на тиках
+                { // test with using ticks / прогон на тиках
                     List<Trade> trades = security.LastTradeSeries;
 
                     for (int indexTrades = 0; trades != null && indexTrades < trades.Count; indexTrades++)
@@ -1708,7 +1767,7 @@ namespace OsEngine.Market.Servers.Tester
                     }
                 }
                 else if(security.DataType == SecurityTesterDataType.Candle)
-                { // прогон на свечках
+                { // test with using candles / прогон на свечках
                     Candle lastCandle = security.LastCandle;
                     if (CheckOrdersInCandleTest(order, lastCandle))
                     {
@@ -1717,7 +1776,7 @@ namespace OsEngine.Market.Servers.Tester
                 }
                 else if (security.DataType == SecurityTesterDataType.MarketDepth)
                 {
-                    // ЗДЕСЬ!!!!!!!!!!!!!!!!!!!!
+                    // HERE!!!!!!!!!!!! / ЗДЕСЬ!!!!!!!!!!!!!!!!!!!!
                     MarketDepth depth = security.LastMarketDepth;
 
                     if (CheckOrdersInMarketDepthTest(order, depth))
@@ -1729,11 +1788,12 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// check order execution with using candle testing
         /// проверить исполнение ордера при тестировании на свечках
         /// </summary>
-        /// <param name="order">ордер</param>
-        /// <param name="lastCandle">свеча на которой проверяем исполнение</param>
-        /// <returns>если исполнилось или отозвалось по времени, возвратиться true</returns>
+        /// <param name="order">order/ордер</param>
+        /// <param name="lastCandle">candle for checking execution/свеча на которой проверяем исполнение</param>
+        /// <returns>if it is completed or responded in time, return true/если исполнилось или отозвалось по времени, возвратиться true</returns>
         private bool CheckOrdersInCandleTest(Order order, Candle lastCandle)
         {
             decimal minPrice = decimal.MaxValue;
@@ -1755,7 +1815,7 @@ namespace OsEngine.Market.Servers.Tester
                 return false;
             }
 
-            // проверяем, прошёл ли ордер
+            // check whether the order passed / проверяем, прошёл ли ордер
             if (order.Side == Side.Buy)
             {
                 if ((OrderExecutionType == OrderExecutionType.Intersection && order.Price > minPrice) 
@@ -1770,13 +1830,13 @@ namespace OsEngine.Market.Servers.Tester
                     _lastOrderExecutionTypeInFiftyFiftyType == OrderExecutionType.Touch &&
                     order.Price >= minPrice)
                     )
-                {// исполняем
+                {// execute / исполняем
 
                     decimal realPrice = order.Price;
 
                     if (realPrice > openPrice && order.IsStopOrProfit == false)
                     {
-                        // если заявка не котировачная и выставлена в рынок
+                        // if order is not quotation and put into the market / если заявка не котировачная и выставлена в рынок
                         realPrice = openPrice;
                     }
                     else if (order.IsStopOrProfit && order.Price > maxPrice)
@@ -1833,12 +1893,12 @@ namespace OsEngine.Market.Servers.Tester
                      order.Price <= maxPrice)
                     )
                 {
-// исполняем
+// execute / исполняем
                     decimal realPrice = order.Price;
 
                     if (realPrice < openPrice && order.IsStopOrProfit == false)
                     {
-                        // если заявка не котировачная и выставлена в рынок
+                        // if order is not quotation and put into the market / если заявка не котировачная и выставлена в рынок
                         realPrice = openPrice;
                     }
                     else if (order.IsStopOrProfit && order.Price < minPrice)
@@ -1879,7 +1939,7 @@ namespace OsEngine.Market.Servers.Tester
                 }
             }
 
-            // ордер не `исполнился. проверяем, не пора ли отзывать
+            // order didn't execute. check if it's time to recall / ордер не `исполнился. проверяем, не пора ли отзывать
 
             if (order.TimeCallBack.Add(order.LifeTime) <= ServerTime)
             {
@@ -1890,12 +1950,13 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// check order execution with using ticks testing
         /// проверить исполнение ордера при тиковом прогоне
         /// </summary>
-        /// <param name="order">ордер для исполнения</param>
-        /// <param name="lastTrade">последняя цена по инструменту</param>
-        /// <param name="firstTime">первая ли эта проверка на исполнение. Если первая то возможно исполнение по текущей цене.
-        /// есил false, то исполнение только по цене ордером. В этом случае мы котируем</param>
+        /// <param name="order">order for execution/ордер для исполнения</param>
+        /// <param name="lastTrade">last price on the instrument/последняя цена по инструменту</param>
+        /// <param name="firstTime">Is this the first execution check? If the first is possible execution at the current price./первая ли эта проверка на исполнение. Если первая то возможно исполнение по текущей цене.
+        /// if false then execution is only by order price. In this case, we quote/есил false, то исполнение только по цене ордером. В этом случае мы котируем</param>
         /// <returns></returns>
         private bool CheckOrdersInTickTest(Order order, Trade lastTrade, bool firstTime)
         {
@@ -1906,7 +1967,7 @@ namespace OsEngine.Market.Servers.Tester
                 return false;
             }
 
-            // проверяем, прошёл ли ордер
+            // check whether the order passed/проверяем, прошёл ли ордер
             if (order.Side == Side.Buy)
             {
                  if ((OrderExecutionType == OrderExecutionType.Intersection && order.Price > lastTrade.Price) 
@@ -1921,7 +1982,7 @@ namespace OsEngine.Market.Servers.Tester
                     _lastOrderExecutionTypeInFiftyFiftyType == OrderExecutionType.Touch &&
                     order.Price >= lastTrade.Price)
                     )
-                {// исполняем
+                {// execute/исполняем
                     int slipage = 0;
 
                     if (order.IsStopOrProfit && _slipageToStopOrder > 0)
@@ -1970,7 +2031,7 @@ namespace OsEngine.Market.Servers.Tester
                    _lastOrderExecutionTypeInFiftyFiftyType == OrderExecutionType.Touch &&
                    order.Price <= lastTrade.Price)
                    )
-                {// исполняем
+                {// execute/исполняем
                     int slipage = 0;
 
                     if (order.IsStopOrProfit && _slipageToStopOrder > 0)
@@ -2004,7 +2065,7 @@ namespace OsEngine.Market.Servers.Tester
                 }
             }
 
-            // ордер не исполнился. проверяем, не пора ли отзывать
+            // order is not executed. check if it's time to recall / ордер не исполнился. проверяем, не пора ли отзывать
 
             if (order.TimeCallBack.Add(order.LifeTime) <= ServerTime)
             {
@@ -2015,11 +2076,12 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// check order execution by testing with using depth
         /// проверить исполнение ордера при тестировании на свечках
         /// </summary>
-        /// <param name="order">ордер</param>
-        /// <param name="lastMarketDepth">стакан на которой проверяем исполнение</param>
-        /// <returns>если исполнилось или отозвалось по времени, возвратиться true</returns>
+        /// <param name="order">order/ордер</param>
+        /// <param name="lastMarketDepth">depth for checking execution/стакан на которой проверяем исполнение</param>
+        /// <returns>if it is executed or responded in time, return true/если исполнилось или отозвалось по времени, возвратиться true</returns>
         private bool CheckOrdersInMarketDepthTest(Order order, MarketDepth lastMarketDepth)
         {
             if (lastMarketDepth == null)
@@ -2037,7 +2099,7 @@ namespace OsEngine.Market.Servers.Tester
                 return false;
             }
 
-            // проверяем, прошёл ли ордер
+            // check whether the order passed / проверяем, прошёл ли ордер
             if (order.Side == Side.Buy)
             {
                 if ((OrderExecutionType == OrderExecutionType.Intersection && order.Price > minPrice)
@@ -2101,7 +2163,7 @@ namespace OsEngine.Market.Servers.Tester
                      order.Price <= maxPrice)
                     )
                 {
-                    // исполняем
+                    // execute / исполняем
                     decimal realPrice = order.Price;
 
                     int slipage = 0;
@@ -2136,7 +2198,7 @@ namespace OsEngine.Market.Servers.Tester
                 }
             }
 
-            // ордер не `исполнился. проверяем, не пора ли отзывать
+            // order didn't execute. check if it's time to recall / ордер не `исполнился. проверяем, не пора ли отзывать
 
             if (order.TimeCallBack.Add(order.LifeTime) <= ServerTime)
             {
@@ -2147,6 +2209,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// order execution type
         /// тип исполнения ордеров
         /// </summary>
         public OrderExecutionType OrderExecutionType
@@ -2161,7 +2224,8 @@ namespace OsEngine.Market.Servers.Tester
         private OrderExecutionType _orderExecutionType;
 
         /// <summary>
-        /// следующий по очереди тип исполнения заявки, 
+		/// the next type of order execution, if we chose type 50 * 50 and they should alternate
+        /// cледующий по очереди тип исполнения заявки, 
         /// если мы выбрали тип 50*50 и они должны чередоваться
         /// </summary>
         private OrderExecutionType _lastOrderExecutionTypeInFiftyFiftyType;
@@ -2188,6 +2252,7 @@ namespace OsEngine.Market.Servers.Tester
         }
         private int _slipageToStopOrder;
 
+// storage of additional security data: GO, Multipliers, Lots
 // хранение дополнительных данных о бумагах: ГО, Мультипликаторы, Лоты
 
         private List<string[]> LoadSecurityDopSettings(string path)
@@ -2219,7 +2284,7 @@ namespace OsEngine.Market.Servers.Tester
             }
             catch (Exception)
             {
-                // отправить в лог
+                // send to the log / отправить в лог
             }
             return null;
         }
@@ -2260,7 +2325,7 @@ namespace OsEngine.Market.Servers.Tester
             CultureInfo culture = new CultureInfo("ru-RU");
 
             for (int i = 0; i < saves.Count; i++)
-            { // удаляем совпадающие
+            { // delete the same / удаляем совпадающие
 
                 if (saves[i][0] == securityToSave.Name)
                 {
@@ -2312,7 +2377,7 @@ namespace OsEngine.Market.Servers.Tester
             {
                 using (StreamWriter writer = new StreamWriter(pathToSettings, false))
                 {
-                    // Имя, Лот, ГО, Цена шага, стоимость цены шага
+                    // name, lot, GO, price step, cost of price step / Имя, Лот, ГО, Цена шага, стоимость цены шага
                     for (int i = 0; i < saves.Count; i++)
                     {
                         writer.WriteLine(
@@ -2329,7 +2394,7 @@ namespace OsEngine.Market.Servers.Tester
             }
             catch (Exception)
             {
-                // отправить в лог
+                // send to the log / отправить в лог
             }
 
             if (NeadToReconnectEvent != null)
@@ -2338,11 +2403,13 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
+// server status
 // статус сервера
 
         private ServerConnectStatus _serverConnectStatus;
 
         /// <summary>
+		/// server status
         /// статус сервера
         /// </summary>
         public ServerConnectStatus ServerStatus
@@ -2363,6 +2430,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// changed connection status
         /// изменился статус соединения
         /// </summary>
         public event Action<string> ConnectStatusChangeEvent;
@@ -2371,10 +2439,12 @@ namespace OsEngine.Market.Servers.Tester
 
         public bool NeadToSaveTicks { get; set; }
 
+// server time
 // время сервера
 
         private DateTime _serverTime;
         /// <summary>
+		/// server time
         /// время сервера
         /// </summary>
         public DateTime ServerTime
@@ -2398,15 +2468,18 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// changed server time
         /// изменилось время сервера
         /// </summary>
         public event Action<DateTime> TimeServerChangeEvent;
 
+// profits and losses of exchange
 // прибыли и убытки биржи
 
         public List<decimal> ProfitArray;
 
         /// <summary>
+		/// whether calculation of internal profit of the exchange is included
         /// включен ли рассчёт внутреннего профита биржи
         /// </summary>
         public bool ProfitMarketIsOn
@@ -2437,9 +2510,11 @@ namespace OsEngine.Market.Servers.Tester
 
         public event Action<decimal> NewCurrentValue; 
 
+// portfolios and positions on the exchange
 // портфели и позиция на бирже
 
         /// <summary>
+		/// initial portfolio value when testing
         /// начальное значение портфеля при тестировании
         /// </summary>
         public decimal StartPortfolio;
@@ -2447,6 +2522,7 @@ namespace OsEngine.Market.Servers.Tester
         private List<Portfolio> _portfolios;
 
         /// <summary>
+		/// portfolios
         /// портфели
         /// </summary>
         public List<Portfolio> Portfolios
@@ -2455,9 +2531,10 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// changed portfolio position
         /// изменить позицию по портфелю
         /// </summary>
-        /// <param name="orderExecute">исполненный ордер который повлияет на позицию</param>
+        /// <param name="orderExecute">executed order that will affect the position/исполненный ордер который повлияет на позицию</param>
         private void ChangePosition(Order orderExecute)
         {
             List<PositionOnBoard> positions = _portfolios[0].GetPositionOnBoard();
@@ -2492,6 +2569,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// incoming new portfolios
         /// входящие новые портфели из ДДЕ сервера
         /// </summary>
         void UpdatePortfolios(List<Portfolio> portfoliosNew)
@@ -2506,6 +2584,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// take portfolios by number/name
         /// взять портфель по номеру/названию
         /// </summary>
         public Portfolio GetPortfolioForName(string name)
@@ -2519,15 +2598,18 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// changed the portfolio
         /// изменился портфель
         /// </summary>
         public event Action<List<Portfolio>> PortfoliosChangeEvent;
 
+// securities
 // бумаги
 
         private List<Security> _securities;
 
         /// <summary>
+		/// all securities available for trading
         /// все бумаги доступные для торгов
         /// </summary>
         public List<Security> Securities
@@ -2536,6 +2618,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// take security as Security class by name
         /// взять бумагу в виде класса Security по названию
         /// </summary>
         public Security GetSecurityForName(string name)
@@ -2549,6 +2632,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// incoming candles from CandleManager
         /// входящие свечки из CandleManager
         /// </summary>
         void _candleManager_CandleUpdateEvent(CandleSeries series)
@@ -2558,7 +2642,7 @@ namespace OsEngine.Market.Servers.Tester
                 _testerRegime = TesterRegime.Pause;
             }
 
-            // перегружаем последним временем тика время сервера
+            // write last tick time in server time / перегружаем последним временем тика время сервера
             ServerTime = series.CandlesAll[series.CandlesAll.Count - 1].TimeStart;
 
             if (NewCandleIncomeEvent != null)
@@ -2568,11 +2652,13 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// tester instrument changed
         /// инструменты тестера изменились
         /// </summary>
         public event Action<List<Security>> SecuritiesChangeEvent;
 
         /// <summary>
+		/// show instruments
         /// показать инструменты 
         /// </summary>
         public void ShowSecuritiesDialog()
@@ -2581,14 +2667,17 @@ namespace OsEngine.Market.Servers.Tester
             ui.ShowDialog();
         }
 
+// subscribe instruments to download
 // Заказ инструмента на скачивание
 
         /// <summary>
+		/// candle series of Tester for downloading
         /// серии свечек Тестера запущенные на скачивание
         /// </summary>
         private List<SecurityTester> _candleSeriesTesterActivate;
 
         /// <summary>
+		/// tick candle loading wizard
         /// мастер загрузки свечек из тиков
         /// </summary>
         private CandleManager _candleManager;
@@ -2596,12 +2685,13 @@ namespace OsEngine.Market.Servers.Tester
         private object _starterLocker = new object();
 
         /// <summary>
+		/// start downloading data by instrument
         /// Начать выгрузку данных по инструменту. 
         /// </summary>
-        /// <param name="namePaper">имя бумаги которую будем запускать</param>
-        /// <param name="timeFrameBuilder">объект несущий в себе данные о таймФрейме</param>
-        /// <returns>В случае удачи возвращает CandleSeries
-        /// в случае неудачи null</returns>
+        /// <param name="namePaper">security name for testing / имя бумаги которую будем запускать</param>
+        /// <param name="timeFrameBuilder">object with timeframe / объект несущий в себе данные о таймФрейме</param>
+        /// <returns>In case of success returns CandleSeries / В случае удачи возвращает CandleSeries
+        /// in case of failure null / в случае неудачи null</returns>
         public CandleSeries StartThisSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder)
         {
             lock (_starterLocker)
@@ -2610,7 +2700,7 @@ namespace OsEngine.Market.Servers.Tester
                 {
                     return null;
                 }
-                // надо запустить сервер если он ещё отключен
+                // need to start the server if it is still disabled / надо запустить сервер если он ещё отключен
                 if (ServerStatus != ServerConnectStatus.Connect)
                 {
                     return null;
@@ -2637,7 +2727,7 @@ namespace OsEngine.Market.Servers.Tester
                     return null;
                 }
 
-                // находим бумагу
+                // find security / находим бумагу
 
                 if (TypeTesterData == TesterDataType.MarketDepthAllCandleState ||
                     TypeTesterData == TesterDataType.MarketDepthOnlyReadyCandle)
@@ -2653,7 +2743,7 @@ namespace OsEngine.Market.Servers.Tester
 
                 CandleSeries series = new CandleSeries(timeFrameBuilder, security, StartProgram.IsTester);
 
-   // запускаем бумагу на выгрузку
+   // start security for unloading / запускаем бумагу на выгрузку
 
                 if (TypeTesterData != TesterDataType.Candle &&
                     timeFrameBuilder.CandleMarketDataType == CandleMarketDataType.Tick)
@@ -2669,7 +2759,7 @@ namespace OsEngine.Market.Servers.Tester
                                            tester.DataType == SecurityTesterDataType.Tick));
                         }
                         else
-                        { // нечем запускать серию
+                        { // there is nothing to run the series / нечем запускать серию
                             return null;
                         }
                     }
@@ -2689,7 +2779,7 @@ namespace OsEngine.Market.Servers.Tester
                                            tester.DataType == SecurityTesterDataType.MarketDepth));
                         }
                         else
-                        { // нечем запускать серию
+                        { // there is nothing to run the series / нечем запускать серию
                             return null;
                         }
                     }
@@ -2726,6 +2816,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// start data downloading on instrument 
         /// Начать выгрузку данных по инструменту
         /// </summary>
         public CandleSeries GetCandleDataToSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder, DateTime startTime,
@@ -2735,6 +2826,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// take ticks data on instrument for period
         /// взять тиковые данные по инструменту за определённый период
         /// </summary>
         public bool GetTickDataToSecurity(string namePaper, DateTime startTime, DateTime endTime, DateTime actualTime,
@@ -2896,6 +2988,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// stop getting data on instrument
         /// прекратить принимать данные по бумаге 
         /// </summary>
         public void StopThisSecurity(CandleSeries series)
@@ -2907,12 +3000,14 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// connectors connected to the server need to get a new data
         /// коннекторам подключеным к серверу необходимо перезаказать данные
         /// </summary>
         public event Action NeadToReconnectEvent;
 
-// свечи
+// candles / свечи
         /// <summary>
+		/// new candle appeared in the server
         /// в сервере появилась новая свечка
         /// </summary>
         void TesterServer_NewCandleEvent(Candle candle, string nameSecurity, TimeSpan timeFrame)
@@ -2933,18 +3028,19 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// new candle appeared
         /// появилась новая свеча
         /// </summary>
         public event Action<CandleSeries> NewCandleIncomeEvent;
 
-// бид и аск
+// bid and ask / бид и аск
 
         /// <summary>
-        /// обновился бид с аском
+        /// bid and ask updated / обновился бид с аском
         /// </summary>
         public event Action<decimal, decimal, Security> NewBidAscIncomeEvent;
 
-// стакан
+// depth / стакан
 
         void TesterServer_NewMarketDepthEvent(MarketDepth marketDepth)
         {
@@ -2960,23 +3056,28 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// updated depth
         /// обновился стакан
         /// </summary>
         public event Action<MarketDepth> NewMarketDepthEvent;
 
+// all trades table
 // таблица всех сделок
 
         /// <summary>
+		/// all trades in the storage
         /// все сделки в хранилище
         /// </summary>
         private List<Trade>[] _allTrades;
 
         /// <summary>
+		/// all ticks from server
         /// все тики имеющиеся у сервера
         /// </summary>
         public List<Trade>[] AllTrades { get { return _allTrades; } }
 
         /// <summary>
+		/// send new trades from server
         /// пришли новые сделки из сервера
         /// </summary>
         void TesterServer_NewTradesEvent(List<Trade> tradesNew)
@@ -2992,7 +3093,7 @@ namespace OsEngine.Market.Servers.Tester
                 _allTrades[0] = new List<Trade>(tradesNew);
             }
             else
-            {// сортируем сделки по хранилищам
+            {// sort trades by storages / сортируем сделки по хранилищам
 
                 for (int indTrade = 0; indTrade < tradesNew.Count; indTrade++)
                 {
@@ -3002,7 +3103,7 @@ namespace OsEngine.Market.Servers.Tester
                    {
                        if (_allTrades[i] != null && _allTrades[i].Count != 0 &&
                            _allTrades[i][0].SecurityNameCode == trade.SecurityNameCode)
-                       { // если для этого инструметна уже есть хранилище, сохраняем и всё
+                       { // if there is already a storage for this instrument, save it/ если для этого инструметна уже есть хранилище, сохраняем и всё
                            isSave = true;
                            if (_allTrades[i][0].Time > trade.Time)
                            {
@@ -3013,7 +3114,7 @@ namespace OsEngine.Market.Servers.Tester
                        }
                    }
                    if (isSave == false)
-                   { // хранилища для инструмента нет
+                   { // there is no storage for instrument / хранилища для инструмента нет
                        List<Trade>[] allTradesNew = new List<Trade>[_allTrades.Length + 1];
                        for (int i = 0; i < _allTrades.Length; i++)
                        {
@@ -3048,6 +3149,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// take all trades on instrument
         /// взять все сделки по инструменту
         /// </summary>
         public List<Trade> GetAllTradesToSecurity(Security security)
@@ -3064,13 +3166,16 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// called when comes new deals on instrument
         /// вызывается когда по инструменту приходят новые сделки
         /// </summary>
         public event Action<List<Trade>> NewTradeEvent;
 
+// my trades
 // мои сделки
 
         /// <summary>
+		/// my incoming trades
         /// входящие мои сделки
         /// </summary>
         private void MyTradesIncome(MyTrade trade)
@@ -3091,6 +3196,7 @@ namespace OsEngine.Market.Servers.Tester
         private List<MyTrade> _myTrades;
 
         /// <summary>
+		/// my trades
         /// мои сделки
         /// </summary>
         public List<MyTrade> MyTrades
@@ -3099,29 +3205,35 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// called when new My Deal comes
         /// вызывается когда приходит новая Моя Сделка
         /// </summary>
         public event Action<MyTrade> NewMyTradeEvent;
 
+// work with placing and cancellation of my orders
 // работа по выставлению и снятию моих ордеров
 
         /// <summary>
+		/// placed order on the exchange
         /// выставленные на биржу ордера
         /// </summary>
         private List<Order> OrdersActiv;
 
         /// <summary>
+		/// iterator of order numbers on the exchange
         /// итератор номеров ордеров на бирже
         /// </summary>
         private int _iteratorNumbersOrders;
 
         /// <summary>
+		/// iterator of trade numbers on the exchange
         /// итератор номеров трэйдов на бирже
         /// </summary>
         private int _iteratorNumbersMyTrades;
 
 
         /// <summary>
+		/// place order to the exchange
         /// выставить ордер на биржу
         /// </summary>
         public void ExecuteOrder(Order order)
@@ -3219,13 +3331,14 @@ namespace OsEngine.Market.Servers.Tester
             {
                 SecurityTester security = SecuritiesTester.Find(tester => tester.Security.Name == order.SecurityNameCode);
                 if (security.DataType == SecurityTesterDataType.Candle)
-                { // прогон на свечках
+                { // testing with using candles / прогон на свечках
                     CheckOrdersInCandleTest(order, security.LastCandle);
                 }
             }
         }
 
         /// <summary>
+		/// cancel order from the exchange
         /// отозвать ордер с биржи
         /// </summary>
         public void CanselOrder(Order order)
@@ -3241,13 +3354,16 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// updated order on the exchange
         /// обновился ордер на бирже
         /// </summary>
         public event Action<Order> NewOrderIncomeEvent;
 
+// internal operations of the "exchange" on orders
 // внутренние операции "биржи" над ордерами
 
         /// <summary>
+		/// cancel order from the exchange
         /// провести отзыв ордера с биржи 
         /// </summary>
         private void CanselOnBoardOrder(Order order)
@@ -3290,6 +3406,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// reject order on the stock exchange
         /// провести отбраковку ордера на бирже
         /// </summary>
         private void FailedOperationOrder(Order order)
@@ -3315,6 +3432,7 @@ namespace OsEngine.Market.Servers.Tester
         }
         
         /// <summary>
+		/// execute order on the exchange
         /// исполнить ордер на бирже
         /// </summary>
         private void ExecuteOnBoardOrder(Order order,decimal price, DateTime time, int slipage)
@@ -3373,9 +3491,11 @@ namespace OsEngine.Market.Servers.Tester
             ChangePosition(order);
         }
 
+// logging
 // работа с логами
 
         /// <summary>
+		/// send a new log message
         /// отправить в лог новый мессадж
         /// </summary>
         void TesterServer_LogMessageEvent(string logMessage)
@@ -3384,6 +3504,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// save a log message new 
         /// сохранить новую запись в лог
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
@@ -3395,18 +3516,21 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// log manager
         /// лог менеджер
         /// </summary>
         /// 
         private Log _logMaster;
 
         /// <summary>
+		/// called when there is a new message in the log
         /// вызывается когда есть новое сообщение в логе
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
     }
 
     /// <summary>
+	/// Tester security. Encapsulates test data and data upload methods.
     /// бумага в тестере. 
     /// Инкапсулирует данные для тестирования и методы прогрузки данных
     /// </summary>
@@ -3431,26 +3555,31 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// security
         /// бумага которой принадлежит объект
         /// </summary>
         public Security Security;
 
         /// <summary>
+		/// address of file with instrument data
         /// адрес файла с данными инструмента
         /// </summary>
         public string FileAdress;
 
         /// <summary>
+		/// start time of data in the file
         /// время начала данных в файле
         /// </summary>
         public DateTime TimeStart;
 
         /// <summary>
+		/// end time of data in the file
         /// время конца данных в файле
         /// </summary>
         public DateTime TimeEnd;
 
         /// <summary>
+		/// data type stored in the object
         /// Тип данных хранящихся в объекте
         /// </summary>
         public SecurityTesterDataType DataType;
@@ -3459,19 +3588,23 @@ namespace OsEngine.Market.Servers.Tester
 
         public TimeFrame TimeFrame;
 
+// data upload management
 // управление выгрузгой данных
 
         /// <summary>
+		/// whether the series is activated for unloading
         /// активирована ли серия для выгрузки
         /// </summary>
         public bool IsActiv;
 
         /// <summary>
+		/// thread control reading the data file
         /// поток управляющий считыванием файла с данными
         /// </summary>
         private StreamReader _reader;
 
         /// <summary>
+		/// clear object and bring it to the initial state ready for testing
         /// очистить объект и привести к начальному, готовому к тестированию состоянию
         /// </summary>
         public void Clear()
@@ -3490,6 +3623,8 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// get new time object
+		/// this method loads candles or ticks
         /// прогрузить объект новым временем
         /// этот метод и прогружает свечи или тики
         /// </summary>
@@ -3514,24 +3649,29 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
+// parsing tick files
 // разбор файлов тиковых
 
         /// <summary>
+		/// last instrument trade from the file
         /// последний трейд инструмента из файла
         /// </summary>
         public Trade LastTrade;
 
         /// <summary>
+		/// last downloaded ticks for the last second
         /// последние подгруженные тики за последнюю секунду
         /// </summary>
         public List<Trade> LastTradeSeries; 
 
         /// <summary>
+		/// the last line from the reader, participates in loading
         /// последняя строка из ридера, участвует в прогрузке
         /// </summary>
         private string _lastString;
 
         /// <summary>
+		/// check whether it is time to send a new batch of ticks
         /// проверить, не пора ли высылать новую партию тиков
         /// </summary>
         private void CheckTrades(DateTime now)
@@ -3552,7 +3692,7 @@ namespace OsEngine.Market.Servers.Tester
                 return;
             }
 
-            // качаем первую секунду если 
+            // swing the first second if / качаем первую секунду если 
 
             if (LastTrade == null)
             {
@@ -3574,7 +3714,7 @@ namespace OsEngine.Market.Servers.Tester
                 return;
             }
 
-            // здесь имеем первый трейд в текущей секунде
+            // here we have the first trade in the current second / здесь имеем первый трейд в текущей секунде
 
             List<Trade> lastTradesSeries = new List<Trade>();
 
@@ -3607,11 +3747,13 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
+// parsing candle files
 // разбор свечных файлов
 
         private Candle _lastCandle;
 
         /// <summary>
+		/// last candle
         /// последняя свеча
         /// </summary>
         public Candle LastCandle
@@ -3621,6 +3763,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// check, is it time to send the candle
         /// провирить, не пора ли высылать свечку
         /// </summary>
         private void CheckCandles(DateTime now)
@@ -3695,23 +3838,28 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// new ticks appeared
         /// новые тики появились
         /// </summary>
         public event Action<List<Trade>> NewTradesEvent;
 
         /// <summary>
+		/// new candles appeared
         /// новые свечи появились
         /// </summary>
         public event Action<Candle, string,TimeSpan> NewCandleEvent;
 
         /// <summary>
+		/// new depths appeared
         /// новые тики появились
         /// </summary>
         public event Action<MarketDepth> NewMarketDepthEvent;
 
+// parsing depths
 // разбор стаканов
 
         /// <summary>
+		/// last trade of instrumnet from the file
         /// последний трейд инструмента из файла
         /// </summary>
         public MarketDepth LastMarketDepth;
@@ -3735,7 +3883,7 @@ namespace OsEngine.Market.Servers.Tester
                 return;
             }
 
-            // качаем первую секунду если 
+            // if download the first second / качаем первую секунду если 
 
             if (LastMarketDepth == null)
             {
@@ -3764,10 +3912,11 @@ namespace OsEngine.Market.Servers.Tester
         }
 
 
-
+// logging
 // работа с логами
 
         /// <summary>
+		/// save a new log message
         /// сохранить новую запись в лог
         /// </summary>
         private void SendLogMessage(string message)
@@ -3779,6 +3928,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+		/// called when there is a new log message
         /// вызывается когда есть новое сообщение в логе
         /// </summary>
         public event Action<string> LogMessageEvent;
@@ -3786,130 +3936,155 @@ namespace OsEngine.Market.Servers.Tester
     }
 
     /// <summary>
+	/// data type
     /// тип данных 
     /// </summary>
     public enum TesterSourceDataType
     {
 
         /// <summary>
+		/// data set
         /// Сет данных
         /// </summary>
         Set,
 
         /// <summary>
+		/// folder with data
         /// папка с данными
         /// </summary>
         Folder
     }
 
     /// <summary>
+	/// testing mode
     /// режимы тестирования
     /// </summary>
     public enum TesterRegime
     {
         /// <summary>
+		/// pause
         /// пауза
         /// </summary>
         Pause,
 
         /// <summary>
+		/// play
         /// работает
         /// </summary>
         Play,
 
         /// <summary>
+		/// load the next data and pause
         /// надо прогрузить следующие данные и поставить на паузу
         /// </summary>
         PlusOne
     }
 
     /// <summary>
+	/// data type from Tester
     /// тип данных идущих из тестера
     /// </summary>
     public enum TesterDataType
     {
         /// <summary>
+		/// candles
         /// свечи
         /// </summary>
         Candle,
 
         /// <summary>
+		/// ticks. all candles states
         /// тики. Все состояния свечей
         /// </summary>
         TickAllCandleState,
 
         /// <summary>
+		/// ticks. only ready candles
         /// тики. Только готовые свечи
         /// </summary>
         TickOnlyReadyCandle,
 
         /// <summary>
+		/// depth. all candle states
         /// стаканы. Все состояния свечей
         /// </summary>
         MarketDepthAllCandleState,
 
         /// <summary>
+		/// depth. only ready ticks
         /// стаканы. Только готовые свечи
         /// </summary>
         MarketDepthOnlyReadyCandle,
 
         /// <summary>
+		/// unknown
         /// неизвестно
         /// </summary>
         Unknown
     }
 
     /// <summary>
+	/// data type stored in test security
     /// тип данных хранящийся в тестовой бумаге
     /// </summary>
     public enum SecurityTesterDataType
     {
         /// <summary>
+		/// candles
         /// свечи
         /// </summary>
         Candle,
 
         /// <summary>
+		/// ticks
         /// тики
         /// </summary>
         Tick,
 
         /// <summary>
+		/// depth
         /// стакан
         /// </summary>
         MarketDepth
     }
 
     /// <summary>
+	/// time step in the synchronizer
     /// шаг времени в синхронизаторе. 
     /// </summary>
     public enum TimeAddInTestType
     {
         /// <summary>
+		/// minute
         /// минута
         /// </summary>
         Minute,
         /// <summary>
+		/// second
         /// секунда
         /// </summary>
         Second,
         /// <summary>
+		/// milisecond
         /// миллисекунда
         /// </summary>
         MilliSecond
     }
 
     /// <summary>
+	/// type of order execution
     /// тип исполнения ордера
     /// </summary>
     public enum OrderExecutionType
     {
         /// <summary>
+		/// intersection
         /// Пересечение
         /// </summary>
         Intersection,
 
         /// <summary>
+		/// Touch
         /// Прикосновение
         /// </summary>
         Touch,
