@@ -107,6 +107,7 @@ namespace OsEngine.Market.Servers.Plaza
             
         }
 
+        // parsing incoming data
         // разбор входящих данных
 
         private void PlazaControllerOnNewTradeEvent(Trade trade, bool isOnLine)
@@ -172,7 +173,7 @@ namespace OsEngine.Market.Servers.Plaza
         {
             lock (_lockerUpdatePosition)
             {
-                // забиваем в название инструмента правдивое описание, т.к. до этого в этой строке некий ID
+                // write in the security name right description, becaus before in this line some ID / забиваем в название инструмента правдивое описание, т.к. до этого в этой строке некий ID
 
                 Security security = null;
 
@@ -344,51 +345,61 @@ namespace OsEngine.Market.Servers.Plaza
             SendLogMessage(message, LogMessageType.System);
         }
 
-        // исходящие события
+        // outgoing events / исходящие события
 
         /// <summary>
+        /// called when order has changed
         /// вызывается когда изменился ордер
         /// </summary>
         public event Action<Order> MyOrderEvent;
 
         /// <summary>
+        /// called when my trade has changed
         /// вызывается когда изменился мой трейд
         /// </summary>
         public event Action<MyTrade> MyTradeEvent;
 
         /// <summary>
+        /// appeared new portfolios
         /// появились новые портфели
         /// </summary>
         public event Action<List<Portfolio>> PortfolioEvent;
 
         /// <summary>
+        /// new securities
         /// новые бумаги
         /// </summary>
         public event Action<List<Security>> SecurityEvent;
 
         /// <summary>
+        /// new depth
         /// новый стакан
         /// </summary>
         public event Action<MarketDepth> MarketDepthEvent;
 
         /// <summary>
+        /// new trade
         /// новый трейд
         /// </summary>
         public event Action<Trade> NewTradesEvent;
 
         /// <summary>
+        /// API connection established
         /// соединение с API установлено
         /// </summary>
         public event Action ConnectEvent;
 
         /// <summary>
+        /// API connection lost
         /// соединение с API разорвано
         /// </summary>
         public event Action DisconnectEvent;
 
+        // log messages
         // сообщения для лога
 
         /// <summary>
+        /// add a new log message
         /// добавить в лог новое сообщение
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
@@ -400,6 +411,7 @@ namespace OsEngine.Market.Servers.Plaza
         }
 
         /// <summary>
+        /// outgoing log message
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;

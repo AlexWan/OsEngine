@@ -12,6 +12,7 @@ using OsEngine.Market.Servers.Entity;
 namespace OsEngine.Market.Servers.Quik
 {
     /// <summary>
+    /// QUIK DDE server
     /// сервер Квик ДДЕ
     /// </summary>
     public class QuikServer:AServer
@@ -27,6 +28,7 @@ namespace OsEngine.Market.Servers.Quik
         }
 
         /// <summary>
+        /// override method that gives the server state
         /// переопределяем метод отдающий состояние сервера
         /// </summary>
         public override bool IsTimeToServerWork
@@ -36,12 +38,13 @@ namespace OsEngine.Market.Servers.Quik
     }
 
     /// <summary>
+    /// implementation of QUIK DDE Server
     /// реализация сервера Квик ДДЕ
     /// </summary>
     public class QuikDdeServerRealization : IServerRealization
     {
 
-// сервис
+// service/сервис
         public QuikDdeServerRealization()
         {
             Thread statusWatcher = new Thread(StatusWatcherArea);
@@ -70,6 +73,7 @@ namespace OsEngine.Market.Servers.Quik
         }
 
         /// <summary>
+        /// server type
         /// тип сервера
         /// </summary>
         public ServerType ServerType
@@ -113,14 +117,17 @@ namespace OsEngine.Market.Servers.Quik
             }
         }
 
+        // connect / disconnect
         // подключение / отключение
 
         /// <summary>
+        /// start server time
         /// время старта севрера
         /// </summary>
         private DateTime _lastStartServerTime;
 
         /// <summary>
+        /// dispoese objects connected with server
         /// освободить объекты связанные с сервером
         /// </summary>
         public void Dispose()
@@ -149,6 +156,7 @@ namespace OsEngine.Market.Servers.Quik
         }
 
         /// <summary>
+        /// connect to API
         /// подключиться к Апи
         /// </summary>
         public void Connect()
@@ -250,6 +258,7 @@ namespace OsEngine.Market.Servers.Quik
         }
 
         /// <summary>
+        /// in this place lives thread of a tracking of server readiness
         /// в этом месте живёт поток следящий за готовностью сервера
         /// </summary>
         private void StatusWatcherArea()
@@ -298,37 +307,44 @@ namespace OsEngine.Market.Servers.Quik
         }
 
         /// <summary>
+        /// DDE server status
         /// статус ДДЕ сервера
         /// </summary>
         private ServerConnectStatus _ddeStatus;
 
         /// <summary>
+        /// Trans2QUIK library status
         /// статус трансТуКвик библиотеки
         /// </summary>
         private ServerConnectStatus _transe2QuikStatus;
 
         /// <summary>
+        /// whether server is connected
         /// подключены ли к серверу
         /// </summary>
         private ServerConnectStatus _connectToBrokerStatus;
 
         /// <summary>
+        /// downloading ticks status
         /// статус подгрузки тиков
         /// </summary>
         private ServerConnectStatus _tradesStatus;
 
         /// <summary>
+        /// main server status. Connect if the top three are also connect
         /// основной статус сервера. Connect если верхние три тоже коннект
         /// </summary>
         private ServerConnectStatus _status;
 
         /// <summary>
+        /// server status
         /// статус сервера
         /// </summary>
         public ServerConnectStatus ServerStatus 
         { get { return _status; } set { _status = value; } }
 
         /// <summary>
+        /// incoming message about changing connect to QUIK state
         /// входящее сообщение об изменении состояния подключения к Квик
         /// </summary>
         private void StatusCallback(Trans2Quik.QuikResult connectionEvent,
@@ -364,6 +380,7 @@ namespace OsEngine.Market.Servers.Quik
         }
 
         /// <summary>
+        /// incoming message about changing DDE server state
         /// входящее сообщение об изменении состояния ДДЕ сервера
         /// </summary>
         void _serverDde_StatusChangeEvent(DdeServerStatus status)
@@ -388,14 +405,16 @@ namespace OsEngine.Market.Servers.Quik
 
         }
 
-// портфели
+        // portfolios / портфели
 
         /// <summary>
+        /// portfolios
         /// портфели
         /// </summary>
-        private List<Portfolio> _portfolios; 
+        private List<Portfolio> _portfolios;
 
         /// <summary>
+        /// API sent portfolios
         /// Апи прислал нам протфели
         /// </summary>
         void _serverDde_UpdatePortfolios(List<Portfolio> portfolios)
@@ -408,8 +427,9 @@ namespace OsEngine.Market.Servers.Quik
             }
         }
 
-// трейды
+// trades / трейды
         /// <summary>
+        /// got new trades from DDE server
         /// пришли новые сделки из ДДЕ сервера
         /// </summary>
         private void _serverDde_UpdateTrade(List<Trade> tradesNew)
@@ -436,14 +456,16 @@ namespace OsEngine.Market.Servers.Quik
             }
         }
 
-// бумаги
+// securities / бумаги
 
         /// <summary>
+        /// securities
         /// бумаги
         /// </summary>
-        private List<Security> _securities; 
+        private List<Security> _securities;
 
         /// <summary>
+        /// incoming securities from DDE server
         /// входящие бумаги из ДДЕ сервера
         /// </summary>
         void _serverDde_UpdateSecurity(Security security, decimal bestAsk, decimal bestBid)
@@ -499,9 +521,10 @@ namespace OsEngine.Market.Servers.Quik
             }
         }
 
-// стакан
+// depth / стакан
 
         /// <summary>
+        /// got new depth
         /// пришёл новый стакан
         /// </summary>
         void _serverDde_UpdateGlass(MarketDepth marketDepth)
@@ -517,7 +540,7 @@ namespace OsEngine.Market.Servers.Quik
                 MarketDepthEvent(marketDepth);
             }
 
-            // грузим стаканы в хранилище
+            // save depths in the storage  /грузим стаканы в хранилище
             for (int i = 0; i < _marketDepths.Count; i++)
             {
                 if (_marketDepths[i].SecurityNameCode == marketDepth.SecurityNameCode)
@@ -530,13 +553,15 @@ namespace OsEngine.Market.Servers.Quik
         }
 
         /// <summary>
+        /// depths
         /// стаканы
         /// </summary>
-        private List<MarketDepth> _marketDepths = new List<MarketDepth>(); 
+        private List<MarketDepth> _marketDepths = new List<MarketDepth>();
 
-// обработка запросов
+        // request processing / обработка запросов
 
         /// <summary>
+        /// requests securities from the connector
         /// запрашивает у коннектора бумаги
         /// </summary>
         public void GetSecurities()
@@ -545,6 +570,7 @@ namespace OsEngine.Market.Servers.Quik
         }
 
         /// <summary>
+        /// requests portfolios from the connector
         /// запрашивает у коннектора портфели
         /// </summary>
         public void GetPortfolios()
@@ -553,6 +579,7 @@ namespace OsEngine.Market.Servers.Quik
         }
 
         /// <summary>
+        /// subscribe to security information
         /// подписаться на информацию по бумаге
         /// </summary>
         /// <param name="security"></param>
@@ -562,6 +589,7 @@ namespace OsEngine.Market.Servers.Quik
         }
 
         /// <summary>
+        /// take candle history for period
         /// взять историю свечек за период
         /// </summary>
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
@@ -571,6 +599,7 @@ namespace OsEngine.Market.Servers.Quik
         }
 
         /// <summary>
+        /// take tick data on instrument for period
         /// взять тиковые данные по инструменту за определённый период
         /// </summary>
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
@@ -579,6 +608,7 @@ namespace OsEngine.Market.Servers.Quik
         }
 
         /// <summary>
+        /// send order
         /// выслать ордер
         /// </summary>
         public void SendOrder(Order order)
@@ -614,6 +644,7 @@ namespace OsEngine.Market.Servers.Quik
         }
 
         /// <summary>
+        /// cancel order
         /// отозвать ордер
         /// </summary>
         public void CanselOrder(Order order)
@@ -635,6 +666,7 @@ namespace OsEngine.Market.Servers.Quik
         }
 
         /// <summary>
+        /// take order status
         /// взять статус ордеров
         /// </summary>
         public void GetOrdersState(List<Order> orders)
@@ -643,6 +675,7 @@ namespace OsEngine.Market.Servers.Quik
         }
 
         /// <summary>
+        /// convert Os.Engine order to string for placing in QUIK 
         /// преобразовать ордер Os.Engine в строку выставления ордера Квик
         /// </summary>
         private string ConvertToSimpleQuikOrder(Order order)
@@ -723,6 +756,7 @@ namespace OsEngine.Market.Servers.Quik
         }
 
         /// <summary>
+        /// convert Os.Engine order to string for canceling in QUIK 
         /// преобразовать ордер Os.Engine в строку отзыва ордера Квик
         /// </summary>
         private string ConvertToKillQuikOrder(Order order)
@@ -784,16 +818,19 @@ namespace OsEngine.Market.Servers.Quik
             return command;
         }
 
+// processing data from auxiliary classes
 // обработка данных из вспомогательных классов
 
         /// <summary>
+        /// DDE server
         /// ДДЕ сервер
         /// </summary>
         private QuikDde _serverDde;
 
-        // новая моя сделка
+        // my new trade / новая моя сделка
 
         /// <summary>
+        /// API sent a new my trade
         /// Апи выслал нам новую Мою Сделку
         /// </summary>
         private void PfnTradeStatusCallback(int nMode, ulong nNumber, ulong nOrderNumber, string classCode,
@@ -847,11 +884,13 @@ namespace OsEngine.Market.Servers.Quik
         }
 
         /// <summary>
+        /// my trades
         /// мои сделки
         /// </summary>
         private List<MyTrade> _myTrades;
 
         /// <summary>
+        /// incoming orders by protocol Trance2Quik
         /// входящие ордера по протоколам Trance2Quik
         /// </summary>
         private void TransactionReplyCallback(int nTransactionResult, int transactionExtendedErrorCode,
@@ -902,9 +941,10 @@ namespace OsEngine.Market.Servers.Quik
             }
         }
 
-        // из трансТуКвик пришло оповещение об ордере
+        // from Trance2Quik got an alert about order / из трансТуКвик пришло оповещение об ордере
 
         /// <summary>
+        /// aler about changing order
         /// оповещение об изменившемся ордере
         /// </summary>
         private void PfnOrderStatusCallback(int nMode, int dwTransId, ulong nOrderNum, string classCode, string secCode,
@@ -995,6 +1035,7 @@ namespace OsEngine.Market.Servers.Quik
         }
 
         /// <summary>
+        /// save order to the array
         /// сохранить ордер в массив
         /// </summary>
         private void SetOrder(Order newOrder)
@@ -1018,16 +1059,19 @@ namespace OsEngine.Market.Servers.Quik
         }
 
         /// <summary>
+        /// all orders came from the server
         /// все ордера пришедшие из сервера
         /// </summary>
         private List<Order> _allOrders = new List<Order>();
 
         /// <summary>
+        /// multi-threaded access locker in SetOrder
         /// объект блокирующий многопоточный доступ в SetOrder
         /// </summary>
         private object _orderSenderLocker = new object();
 
         /// <summary>
+        /// take order by internal Id
         /// взять ордер по внутреннему Id
         /// </summary>
         private Order GetOrderFromUserId(string userId)
@@ -1035,51 +1079,61 @@ namespace OsEngine.Market.Servers.Quik
             return _allOrders.Find(ord => ord.NumberUser.ToString() == userId);
         }
 
+// outgoing events
 // исходящие события
 
         /// <summary>
+        /// called when order has changed
         /// вызывается когда изменился ордер
         /// </summary>
         public event Action<Order> MyOrderEvent;
 
         /// <summary>
+        /// called when my trade has changed
         /// вызывается когда изменился мой трейд
         /// </summary>
         public event Action<MyTrade> MyTradeEvent;
 
         /// <summary>
+        /// appeared new portfolios
         /// появились новые портфели
         /// </summary>
         public event Action<List<Portfolio>> PortfolioEvent;
 
         /// <summary>
+        /// new securities
         /// новые бумаги
         /// </summary>
         public event Action<List<Security>> SecurityEvent;
 
         /// <summary>
+        /// new depth
         /// новый стакан
         /// </summary>
         public event Action<MarketDepth> MarketDepthEvent;
 
         /// <summary>
+        /// new trade
         /// новый трейд
         /// </summary>
         public event Action<Trade> NewTradesEvent;
 
         /// <summary>
+        /// API connection established
         /// соединение с API установлено
         /// </summary>
         public event Action ConnectEvent;
 
         /// <summary>
+        /// API connection lost
         /// соединение с API разорвано
         /// </summary>
         public event Action DisconnectEvent;
 
-//логирование
+// logging / логирование
 
         /// <summary>
+        /// add a new log message
         /// добавить в лог новое сообщение
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
@@ -1091,6 +1145,7 @@ namespace OsEngine.Market.Servers.Quik
         }
 
         /// <summary>
+        /// send exeptions
         /// отправляет исключения
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;

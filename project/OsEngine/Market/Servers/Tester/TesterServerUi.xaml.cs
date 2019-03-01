@@ -1,4 +1,5 @@
 ﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -18,16 +19,18 @@ using Color = System.Drawing.Color;
 namespace OsEngine.Market.Servers.Tester
 {
     /// <summary>
+    /// Interaction logic for TesterServerUi.xaml
     /// Логика взаимодействия для TesterServerUi.xaml
     /// </summary>
     public partial class TesterServerUi 
     {
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="server">сервер</param>
-        /// <param name="log">лог</param>
+        /// <param name="server">server/сервер</param>
+        /// <param name="log">log/лог</param>
         public TesterServerUi(TesterServer server, Log log)
         {
             InitializeComponent();
@@ -111,7 +114,7 @@ namespace OsEngine.Market.Servers.Tester
                 CheckBoxExecutionOrderFiftyFifty.IsChecked = true;
             }
 
-            // прогресс бар
+            // progress bar/прогресс бар
 
             server.TestingNewSecurityEvent += server_TestingNewSecurityEvent;
 
@@ -125,7 +128,7 @@ namespace OsEngine.Market.Servers.Tester
             barUpdater.Start();
             Closing += TesterServerUi_Closing;
 
-            // чарт
+            // chart/чарт
 
             CreateChart();
 
@@ -139,7 +142,7 @@ namespace OsEngine.Market.Servers.Tester
 
             List<string> sets = _server.Sets;
 
-            // сеты
+            // sets/сеты
 
             for (int i = 0;sets != null && sets.Count != 0 && i < sets.Count; i++)
             {
@@ -153,7 +156,7 @@ namespace OsEngine.Market.Servers.Tester
             
             ComboBoxSets.SelectionChanged += ComboBoxSets_SelectionChanged;
 
-            // данные для тестирования
+            // data for test/данные для тестирования
 
             ComboBoxDataType.Items.Add(TesterDataType.Candle);
             ComboBoxDataType.Items.Add(TesterDataType.TickAllCandleState);
@@ -198,6 +201,7 @@ namespace OsEngine.Market.Servers.Tester
         }
         
         /// <summary>
+        /// window is closing
         /// окно закрывается
         /// </summary>
         void TesterServerUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -206,6 +210,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+        /// data source has changed. Folder or Set
         /// источник данных изменился. Папка или Сет 
         /// </summary>
         void ComboBoxDataSourseType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -216,6 +221,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+        /// translation type has changed
         /// изменился тип транслируемых данных
         /// </summary>
         void ComboBoxDataType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -229,6 +235,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+        /// data set has changed
         /// сет данных изменился
         /// </summary>
         void ComboBoxSets_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -238,11 +245,13 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+        /// thread updates a progress bar
         /// поток обновляющий полосу прогресса
         /// </summary>
         private readonly Thread barUpdater;
 
         /// <summary>
+        /// work method of thread updates a progress bar
         /// метод работы потока обновляющего прогресс бар
         /// </summary>
         private void UpdaterProgressBarThreadArea()
@@ -256,6 +265,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+        /// updat progress bar
         /// обновить прогресс бар
         /// </summary>
         void ChangeProgressBar()
@@ -270,6 +280,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+        /// changed slippage window
         /// изменилось окно проскальзывания
         /// </summary>
         void TextBoxSlipageSimpleOrderTextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
@@ -288,6 +299,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+        /// changed window with value of initial deposit
         /// изменилось окно со значением начального депозита
         /// </summary>
         void TextBoxStartDepozit_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
@@ -318,14 +330,16 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-// сервер
+// server/сервер
 
         /// <summary>
+        /// test server
         /// тестовый сервер
         /// </summary>
         private TesterServer _server;
 
         /// <summary>
+        /// changed server status 
         /// изменился статус сервера
         /// </summary>
         void _server_ConnectStatusChangeEvent(string status)
@@ -339,6 +353,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+        /// changed server instrument
         /// изменились инструменты в сервере
         /// </summary>
         void _server_SecuritiesChangeEvent(List<Security> securities)
@@ -347,6 +362,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+        /// start testing event
         /// событие начала тестирования
         /// </summary>
         void _server_TestingStartEvent()
@@ -357,6 +373,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+        /// add a new security to the tester
         /// добавлена новая бумага в тестер
         /// </summary>
         void server_TestingNewSecurityEvent()
@@ -364,7 +381,7 @@ namespace OsEngine.Market.Servers.Tester
             PaintGrid();
         }
 
-// обработчики кнопок
+        // button handlers / обработчики кнопок
 
         private void buttonFast_Click(object sender, RoutedEventArgs e)
         {
@@ -403,7 +420,7 @@ namespace OsEngine.Market.Servers.Tester
         {
             if (HostSecurities.Visibility == Visibility.Hidden)
             {
-// если нужно раскрывать форму
+                // if need to expand the form/ если нужно раскрывать форму
                 Height = 600;
                 Width = 835;
                 MinWidth = 835;
@@ -423,7 +440,7 @@ namespace OsEngine.Market.Servers.Tester
             else
             {
                 ResizeMode = System.Windows.ResizeMode.NoResize;
-                // если нужно прятать
+                // if need to hide / если нужно прятать
                 HostSecurities.Visibility = Visibility.Hidden;
                 Host.Visibility = Visibility.Hidden;
                 SliderTo.Visibility = Visibility.Hidden;
@@ -441,14 +458,16 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-// чарт
+// chart/чарт
 
         /// <summary>
+        /// report chart
         /// чарт для отчёта
         /// </summary>
         Chart _chartReport;
 
         /// <summary>
+        /// create chart
         /// создать чарт
         /// </summary>
         private void CreateChart()
@@ -521,6 +540,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+        /// paint ENTIRE chart
         /// прорисовать ВЕСЬ чарт
         /// </summary>
         private void PaintProfitOnChart()
@@ -559,6 +579,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+        /// paint the last data
         /// прорисовать последнии данные
         /// </summary>
         private void PaintLastPointOnChart()
@@ -598,9 +619,9 @@ namespace OsEngine.Market.Servers.Tester
             }
 
             if (_chartReport.ChartAreas[0] != null && _chartReport.ChartAreas[0].AxisX.ScrollBar.IsVisible)
-            //если уже выбран какой-то диапазон
+            //if you have already selected a range/если уже выбран какой-то диапазон
             {
-                // сдвигаем представление вправо
+                // shift view to the right/сдвигаем представление вправо
                 _chartReport.ChartAreas[0].AxisX.ScaleView.Scroll(_chartReport.ChartAreas[0].AxisX.Maximum + 1);
             }
 
@@ -608,11 +629,13 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+        /// chart is ready for step-by-step drawing
         /// чарт готов к пошаговой прорисовке
         /// </summary>
-        private bool _chartActive; 
+        private bool _chartActive;
 
         /// <summary>
+        /// new value of portfolio from the server has come
         /// пришло новое значение портфеля из сервера
         /// </summary>
         void _server_NewCurrentValue(decimal val)
@@ -644,11 +667,11 @@ namespace OsEngine.Market.Servers.Tester
                 return;
             }
 
-            int firstX = 0; // первая отображаемая свеча
+            int firstX = 0; // first candle displayed/первая отображаемая свеча
             int lastX = profitSeries.Points.Count; // последняя отображаемая свеча
 
             if (_chartReport.ChartAreas[0].AxisX.ScrollBar.IsVisible)
-            {// если уже выбран какой-то диапазон, назначаем первую и последнюю исходя из этого диапазона
+            {// if you have already selected a range, assign the first and last based on this range/если уже выбран какой-то диапазон, назначаем первую и последнюю исходя из этого диапазона
                 firstX = Convert.ToInt32(area.AxisX.ScaleView.Position);
                 lastX = Convert.ToInt32(area.AxisX.ScaleView.Position) +
                               Convert.ToInt32(area.AxisX.ScaleView.Size) + 1;
@@ -697,14 +720,17 @@ namespace OsEngine.Market.Servers.Tester
             area.AxisY2.Minimum = min;
         }
 
+// instrument table
 //  таблица с инструментами
 
         /// <summary>
+        /// instrument table
         /// таблица с инструментами
         /// </summary>
         private DataGridView _myGridView;
 
         /// <summary>
+        /// create instrument table
         /// создать таблицу с инструментами
         /// </summary>
         private void CreateGrid()
@@ -718,6 +744,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+        /// paint instrument table
         /// прорисовать таблицу с инструментами
         /// </summary>
         private void PaintGrid()
@@ -773,6 +800,7 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+        /// double click on instrument table
         /// двойной клик по таблице с инструментами
         /// </summary>
         void _myGridView_DoubleClick(object sender, EventArgs e)
@@ -811,7 +839,7 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-
+// sliders. Setting the start and end time of testing
 // слайдеры. Установка начального и конечного времени тестирования
 
         private void SliderTo_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)

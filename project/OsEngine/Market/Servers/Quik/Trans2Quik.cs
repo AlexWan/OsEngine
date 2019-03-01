@@ -1,4 +1,5 @@
 ﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -12,22 +13,22 @@ namespace OsEngine.Market.Servers.Quik
     {
         internal enum QuikResult
         {
-            UNKNOWN                     = -1,   // Результат выполнения неизвестен или функция не выполнялась
-            SUCCESS                     = 0,    // Успешное выолнение функции
-            FAILED                      = 1,    // Выполнении функции закончилось неудачей
-            QUIK_TERMINAL_NOT_FOUND     = 2,    // В указанном каталоге либо отсутствует INFO.EXE, либо у него не запущен сервис обработки внешних подключений
-            DLL_VERSION_NOT_SUPPORTED   = 3,    // Используемая версия библиотеки TRANS2QUIK.DLL указанным INFO.EXE не поддерживается
-            ALREADY_CONNECTED_TO_QUIK   = 4,    // Cоединение уже установлено
-            WRONG_SYNTAX                = 5,    // Строка транзакции заполнена неверно
-            QUIK_NOT_CONNECTED          = 6,    // Не установлена связь терминала QUIK с сервером 
-            DLL_NOT_CONNECTED           = 7,    // Не установлена связь библиотеки TRANS2QUIK.DLL с терминалом QUIK
-            QUIK_CONNECTED              = 8,    // Соединение терминала QUIK с сервером установлено
-            QUIK_DISCONNECTED           = 9,    // Соединение терминала QUIK с сервером разорвано
-            DLL_CONNECTED               = 10,   // Соединение библиотеки TRANS2QUIK.DLL с терминалом QUIK установлено
-            DLL_DISCONNECTED            = 11,   // Соединение библиотеки TRANS2QUIK.DLL с терминалом QUIK разорвано
-            MEMORY_ALLOCATION_ERROR     = 12,   // Ошибка распределения памяти
-            WRONG_CONNECTION_HANDLE     = 13,   // Ошибка при обработке соединения
-            WRONG_INPUT_PARAMS          = 14    // Ошибочные входные параметры функции
+            UNKNOWN                     = -1,   // The result of execution is unknown or function has not been performed/Результат выполнения неизвестен или функция не выполнялась
+            SUCCESS                     = 0,    // Successful execution of the function/Успешное выолнение функции
+            FAILED                      = 1,    // The execution of the function failed/Выполнении функции закончилось неудачей
+            QUIK_TERMINAL_NOT_FOUND     = 2,    // Either there is no INFO in the specified directory.EXE, or it does not run the service for processing external connections/В указанном каталоге либо отсутствует INFO.EXE, либо у него не запущен сервис обработки внешних подключений
+            DLL_VERSION_NOT_SUPPORTED   = 3,    // The version of the TRANS2QUIK library used.DLL specified INFO.EXE is not supported/Используемая версия библиотеки TRANS2QUIK.DLL указанным INFO.EXE не поддерживается
+            ALREADY_CONNECTED_TO_QUIK   = 4,    // The connection has been established yet/Cоединение уже установлено
+            WRONG_SYNTAX                = 5,    // Transaction line is filled incorrectly/Строка транзакции заполнена неверно
+            QUIK_NOT_CONNECTED          = 6,    // No connection terminal QUIK server/Не установлена связь терминала QUIK с сервером 
+            DLL_NOT_CONNECTED           = 7,    // No connection the library TRANS2QUIK.DLL with the QUIK terminal/Не установлена связь библиотеки TRANS2QUIK.DLL с терминалом QUIK
+            QUIK_CONNECTED              = 8,    // QUIK terminal connection to the server is established/Соединение терминала QUIK с сервером установлено
+            QUIK_DISCONNECTED           = 9,    // QUIK terminal connection to the server is lost/Соединение терминала QUIK с сервером разорвано
+            DLL_CONNECTED               = 10,   // Trans2quik library connection.DLL with QUIK terminal established/Соединение библиотеки TRANS2QUIK.DLL с терминалом QUIK установлено
+            DLL_DISCONNECTED            = 11,   // Trans2quik library connection.DLL with QUIK terminal lost/Соединение библиотеки TRANS2QUIK.DLL с терминалом QUIK разорвано
+            MEMORY_ALLOCATION_ERROR     = 12,   // Memory allocation error/Ошибка распределения памяти
+            WRONG_CONNECTION_HANDLE     = 13,   // Processing connection error/Ошибка при обработке соединения
+            WRONG_INPUT_PARAMS          = 14    // Error incoming function parameters/Ошибочные входные параметры функции
         }
 
         // RESULT TRANS2QUIK_SUCCESS, TRANS2QUIK_QUIK_TERMINAL_NOT_FOUND, TRANS2QUIK_DLL_VERSION_NOT_SUPPORTED,
