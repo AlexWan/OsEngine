@@ -9,51 +9,61 @@ using System.Globalization;
 namespace OsEngine.Entity
 {
     /// <summary>
+    /// customer transaction on the exchange
     /// клиентская транзакция, совершённая на бирже
     /// </summary>
     public class MyTrade
     {
         /// <summary>
+        /// volume
         /// объём
         /// </summary>
         public decimal Volume;
 
         /// <summary>
+        /// price
         /// цена
         /// </summary>
         public decimal Price;
 
         /// <summary>
+        ///  trade number
         /// номер сделки в торговой системе
         /// </summary>
         public string NumberTrade;
 
         /// <summary>
+        /// parent's warrant number
         /// номер ордера родителя
         /// </summary>
         public string NumberOrderParent;
 
         /// <summary>
+        /// the robot's position number in OsEngine
         /// номер позиции у робота в OsEngine
         /// </summary>
         public string NumberPosition;
 
         /// <summary>
+        /// instrument code
         /// код инструмента по которому прошла сделка
         /// </summary>
         public string SecurityNameCode;
 
         /// <summary>
+        /// time
         /// время
         /// </summary>
         public DateTime Time;
 
         /// <summary>
+        /// party to the transaction
         /// сторона сделки
         /// </summary>
         public Side Side;
 
         /// <summary>
+        /// to take a line to save
         /// взять строку для сохранения
         /// </summary>
         public string GetStringFofSave()
@@ -72,6 +82,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// upload from an incoming line
         /// загрузить из входящей строки
         /// </summary>
         public void SetTradeFromString(string saveString)
@@ -89,6 +100,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// to take a line for a hint
         /// взять строку для подсказки
         /// </summary>
         public string ToolTip

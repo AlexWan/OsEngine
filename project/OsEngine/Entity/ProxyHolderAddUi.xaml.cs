@@ -9,6 +9,7 @@ using OsEngine.Language;
 namespace OsEngine.Entity
 {
     /// <summary>
+    /// Interaction Logic for ProxyAddUi.xaml 
     /// Логика взаимодействия для ProxyAddUi.xaml
     /// </summary>
     public partial class ProxyHolderAddUi

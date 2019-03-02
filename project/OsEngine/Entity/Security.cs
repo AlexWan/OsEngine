@@ -9,11 +9,13 @@ using System.Globalization;
 namespace OsEngine.Entity
 {
     /// <summary>
+    /// security
     /// инструмент
     /// </summary>
     public class Security
     {
         /// <summary>
+        /// security
         /// инструмент
         /// </summary>
         public Security()
@@ -23,32 +25,39 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// securuty name
         /// название инструмена
         /// </summary>
         public string Name;
 
         /// <summary>
+        /// full name
         /// полное название
         /// </summary>
         public string NameFull;
 
         /// <summary>
+        /// class code
         /// код класса
         /// </summary>
         public string NameClass;
 
         /// <summary>
+        /// Unique tool identifier.
+        /// It is used in some platforms as the main instrument key in the trading system.
         /// Уникальный идентификатор инструмента.
         ///  Используется в некоторых платформах как главный ключ инструмента в торговой системе.
         /// </summary>
         public string NameId;
 
         /// <summary>
+        /// the trading status of this instrument on the stock exchange
         /// состояние торгов этим инструментом на бирже
         /// </summary>
         public SecurityStateType State;
 
         /// <summary>
+        /// price step, i.e. minimal price change for the instrument
         /// шаг цены, т.е. минимальное изменение цены для инструмента
         /// </summary>
         public decimal PriceStep
@@ -73,26 +82,31 @@ namespace OsEngine.Entity
         private decimal _priceStep;
 
         /// <summary>
+        /// lot
         /// лот
         /// </summary>
         public decimal Lot;
 
         /// <summary>
+        /// the cost of a step of the price, i.e. how much profit is dripping on the deposit for one step of the price
         /// стоимость шага цены, т.е. сколько профита капает на депозит за один шаг цены
         /// </summary>
         public decimal PriceStepCost;
 
         /// <summary>
+        /// warranty coverage
         /// гарантийное обеспечение
         /// </summary>
         public decimal Go;
 
         /// <summary>
+        /// security type
         /// тип бумаги
         /// </summary>
         public SecurityType SecurityType;
 
         /// <summary>
+        /// open the Paper Settings window
         /// вызвать окно настроек бумаги
         /// </summary>
         public void ShowDialog()
@@ -102,6 +116,8 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// the number of decimal places of the instrument price.
+        /// if the price step is higher, or the raver 1, for example 10, then it still returns 0
         /// количество знаков после запятой цены инструмента.
         /// если шаг цены больше, либо равер 1, например 10, то возвращается всё равно 0
         /// </summary>
@@ -138,35 +154,41 @@ namespace OsEngine.Entity
         private int _decimals = -1;
 
         /// <summary>
+        /// Lower price limit for bids. If you place an order with a price lower - the system will reject
         /// Нижний лимит цены для заявок. Если выставить ордер с ценой ниже - система отвергнет
         /// </summary>
         public decimal PriceLimitLow;
 
         /// <summary>
+        /// Upper price limit for bids. If you place an order with a price higher - the system will reject
         /// Верхний лимит цены для заявок. Если выставить ордер с ценой выше - система отвергнет
         /// </summary>
         public decimal PriceLimitHigh;
-
-// для опционов
+        // For options
+        // для опционов
 
         /// <summary>
+        /// option type
         /// тип опциона
         /// </summary>
         public OptionType OptionType;
 
         /// <summary>
+        /// strike
         /// страйк
         /// </summary>
         public decimal Strike;
 
         /// <summary>
+        /// expiration date
         /// дата экспирации
         /// </summary>
         public DateTime Expiration;
-
-// сохранение и загрузка
+        // save and load
+        // сохранение и загрузка
 
         /// <summary>
+        /// upload from the line
         /// загрузить из строки
         /// </summary>
         public void LoadFromString(string save)
@@ -194,6 +216,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// save the line
         /// взять строку сохранения
         /// </summary>
         public string GetSaveStr()
@@ -222,37 +245,44 @@ namespace OsEngine.Entity
     }
 
     /// <summary>
+    /// stock market conditions
     /// состояние бумаги на бирже
     /// </summary>
     public enum SecurityStateType
     {
         /// <summary>
+        /// trading on the paper is active
         /// торги по бумаге активны
         /// </summary>
         Activ,
 
         /// <summary>
+        /// paper auction is closed.
         /// торги по бумаге закрыты
         /// </summary>
         Close,
 
         /// <summary>
+        /// we don't know if the bidding's going on
         /// неизвестно, идут ли торги
         /// </summary>
         UnKnown
     }
 
     /// <summary>
+    /// instrumental type
     /// тип инструмента
     /// </summary>
     public enum SecurityType
     {
         /// <summary>
+        /// none
         /// не определено
         /// </summary>
         None,
 
         /// <summary>
+        /// currency. Including crypt
         /// валюта. В т.ч. и крипта
         /// </summary>
         CurrencyPair,
@@ -263,31 +293,37 @@ namespace OsEngine.Entity
         Stock,
 
         /// <summary>
+        /// futures
         /// фьючерс
         /// </summary>
         Futures,
 
         /// <summary>
+        /// option
         /// опцион
         /// </summary>
         Option
     }
 
     /// <summary>
+    /// option type
     /// тип опциона
     /// </summary>
     public enum OptionType
     {
         /// <summary>
+        /// none
         /// не определено
         /// </summary>
         None,
         /// <summary>
+        /// put 
         /// пут
         /// </summary>
         Put,
 
         /// <summary>
+        /// call
         /// колл
         /// </summary>
         Call

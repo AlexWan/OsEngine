@@ -31,21 +31,25 @@ using Series = System.Windows.Forms.DataVisualization.Charting.Series;
 namespace OsEngine.Journal
 {
     /// <summary>
+    /// Interaction logic for JournalNewUi.xaml
     /// Логика взаимодействия для JournalNewUi.xaml
     /// </summary>
     public partial class JournalUi
     {
         /// <summary>
+        /// if window recycled
         /// является ли окно утилизированным
         /// </summary>
         public bool IsErase;
 
         /// <summary>
+        /// objects containing positions and robots
         /// объекты содержащие позиции и роботов
         /// </summary>
         private List<BotPanelJournal> _botsJournals;
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
         public JournalUi(List<BotPanelJournal> botsJournals,StartProgram startProgram)
@@ -81,6 +85,7 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// size of the tabs has changed.
         /// изменился размер вкладок
         /// </summary>
         void TabBotsSizeChanged(object sender, SizeChangedEventArgs e)
@@ -100,6 +105,7 @@ namespace OsEngine.Journal
         private StartProgram _startProgram;
 
         /// <summary>
+        /// main method of repainting report tables
         /// главный метод перерисовки таблиц отчётов
         /// </summary>
         public void RePaint()
@@ -122,18 +128,21 @@ namespace OsEngine.Journal
 
             lock (_paintLocker)
             {
+                // 1 collecting all journals.
                 // 1 собираем все журналы
                 List<Journal> myJournals = new List<Journal>();
 
                 for (int i = 0; i < _botsJournals.Count; i++)
                 {
                     string name = ((TabItem)TabBots.SelectedItem).Header.ToString();
+                    // 1 only take our bots
                     // 1 берём только нашего бота
                     if (name == "V" || name == _botsJournals[i].BotName)
                     {
                         for (int i2 = 0; i2 < _botsJournals[i]._Tabs.Count; i2++)
                         {
                             string nameTab = ((TabItem)TabControlLeft.SelectedItem).Header.ToString().Replace(" ","");
+                            // 2 only take our tabs
                             // 2 берём только наши вкладки
                             if (name == "V" || nameTab == "V" || nameTab == _botsJournals[i]._Tabs[i2].TabNum.ToString())
                             {
@@ -147,7 +156,7 @@ namespace OsEngine.Journal
                 {
                     return;
                 }
-
+                // 2 sorting deals on ALL / Long / Short
                 // 2 сортируем сделки на ВСЕ / Лонг / Шорт
 
                 List<Position> positionsAll = new List<Position>();
@@ -173,7 +182,7 @@ namespace OsEngine.Journal
                 positionsShort =
                     positionsShort.FindAll(
                         pos => pos.State != PositionStateType.OpeningFail && pos.State != PositionStateType.Opening);
-
+                // 3 sort transactions by time (this is better in a separate method)
                 // 3 сортируем сделки по времени(это лучше в отдельном методе)
 
 
@@ -293,6 +302,7 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// delete position by number
         /// удалить позицию по номеру
         /// </summary>
         private void DeletePosition(int number)
@@ -317,6 +327,7 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// show a window of transaction details
         /// показать окно с подробностями по сделке
         /// </summary>
         private void ShowPositionDialog(int number)
@@ -342,6 +353,7 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// the location of stream updating statistics
         /// место работы потока обновляющего статистку
         /// </summary>
         private void ThreadWorkerPlace()
@@ -362,10 +374,11 @@ namespace OsEngine.Journal
                 RePaint();
             }
         }
-
-// менеджмент вкладок
+        // tab management
+        // менеджмент вкладок
 
         /// <summary>
+        /// Filling the main TabControl with robot names
         /// заполнение основного TabControl именами роботов
         /// </summary>
         private void TabControlCreateNameBots()
@@ -381,6 +394,7 @@ namespace OsEngine.Journal
 
             for (int i = 0; i < _botsJournals.Count; i++)
             {
+                // addition of a new element
                 // добавление нового элемента
                 TabItem item = new TabItem() { Header = _botsJournals[i].BotName.ToString(), FontSize = 12 };
                 TabBots.Items.Add(item);
@@ -389,6 +403,7 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// Robot panel selection event , filling TabControl with Tabs robots
         /// событие выбора на панели роботов , заполнение TabControl с Tabs роботов
         /// </summary>
         private void TabBotsSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -398,6 +413,7 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// statistics tab switched
         /// переключилась вкладка статистки
         /// </summary>
         void TabControlPrime_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -406,6 +422,7 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// Robot left tab update
         /// обновление левой вкладки робота
         /// </summary>
         private void ReloadTabs()
@@ -448,22 +465,26 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// event when you change the Item TabControl selection from Tabs robots
         /// событие при изменении выборе Item TabControl с Tabs роботов
         /// </summary>
         private void TabControlLeftSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            // robot tab selection
             // выбор вкладки робота
             RePaint();
         }
-
-// заполнение таблицы статистики
+        // filling in the statistics table
+        // заполнение таблицы статистики
 
         /// <summary>
+        /// table for drawing statistics
         /// таблица для прорисовки Статистики
         /// </summary>
         private DataGridView _gridStatistics;
 
         /// <summary>
+        /// creating an empty Statistics form for the ItemStatistics tab
         /// создание пустой формы Статистики для вкладки ItemStatistics
         /// </summary>
         public void CreateTableToStatistic()
@@ -519,7 +540,7 @@ namespace OsEngine.Journal
 
                 for (int i = 0; i < 27; i++)
                 {
-                    _gridStatistics.Rows.Add(); // добавление строки
+                    _gridStatistics.Rows.Add(); //string addition/ добавление строки
                 }
 
                 _gridStatistics.Rows[0].Cells[0].Value = OsLocalization.Journal.GridRow1;
@@ -559,6 +580,7 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// draw a table of statistics
         /// прорисовать таблицу статистики
         /// </summary>
         private void PaintStatTable(List<Position> positionsAll, List<Position> positionsLong, List<Position> positionsShort, bool neadShowTickState)
@@ -610,15 +632,17 @@ namespace OsEngine.Journal
                 }
             }
         }
-
-// прорисовка профита
+        // profit drawing
+        // прорисовка профита
 
         /// <summary>
+        /// chart
         /// чарт
         /// </summary>
         Chart _chartEquity;
 
         /// <summary>
+        /// to create a profit chart
         /// создать чарт для профита
         /// </summary>
         private void CreateChartProfit()
@@ -638,8 +662,8 @@ namespace OsEngine.Journal
                 areaLineProfit.Position.Height = 70;
                 areaLineProfit.Position.Width = 100;
                 areaLineProfit.Position.Y = 0;
-                areaLineProfit.CursorX.IsUserSelectionEnabled = false; // разрешаем пользователю изменять рамки представления
-                areaLineProfit.CursorX.IsUserEnabled = true; //чертa
+                areaLineProfit.CursorX.IsUserSelectionEnabled = false; //allow the user to change the view scope/ разрешаем пользователю изменять рамки представления
+                areaLineProfit.CursorX.IsUserEnabled = true; //trait/чертa
 
                 _chartEquity.ChartAreas.Add(areaLineProfit);
 
@@ -649,7 +673,7 @@ namespace OsEngine.Journal
                 areaLineProfitBar.Position.Width = 100;
                 areaLineProfitBar.Position.Y = 70;
                 areaLineProfitBar.AxisX.Enabled = AxisEnabled.False;
-                areaLineProfitBar.CursorX.IsUserEnabled = true; //чертa
+                areaLineProfitBar.CursorX.IsUserEnabled = true; //trait/чертa
 
                 _chartEquity.ChartAreas.Add(areaLineProfitBar);
 
@@ -676,6 +700,7 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// chart out the volumes
         /// прорисовать чарт объёмов
         /// </summary>
         private void PaintProfitOnChart(List<Position> positionsAll)
@@ -775,8 +800,9 @@ namespace OsEngine.Journal
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-        
+
         /// <summary>
+        /// equity chart click
         /// клик по чарту эквити
         /// </summary>
         void _chartEquity_Click(object sender, EventArgs e)
@@ -826,15 +852,17 @@ namespace OsEngine.Journal
                 _chartEquity.Series[i].Points[index].LabelBackColor = Color.FromArgb(17, 18, 23);
             }
         }
-
-// прорисовка объёма
+        // volume drawing
+        // прорисовка объёма
 
         /// <summary>
+        /// volume chart
         /// чарт для объёмов
         /// </summary>
         Chart _chartVolume;
 
         /// <summary>
+        /// to create a chart for drawing volumes
         /// создать чарт для прорисовки объёмов
         /// </summary>
         private void CreateChartVolume()
@@ -855,6 +883,7 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// draw the chart
         /// прорисовать чарт
         /// </summary>
         private void PaintVolumeOnChart(List<Position> positionsAll)
@@ -868,7 +897,7 @@ namespace OsEngine.Journal
 
             _chartVolume.Series.Clear();
             _chartVolume.ChartAreas.Clear();
-
+            //  take the number of tools
             // берём кол-во инструментов
             List<VolumeSecurity> volumes = new List<VolumeSecurity>();
 
@@ -884,7 +913,7 @@ namespace OsEngine.Journal
             {
                 return;
             }
-
+            // create a common time line with all the changes
             // создаём общую линию времени со всеми изменениями
 
             List<DateTime> allChange = new List<DateTime>();
@@ -1005,12 +1034,13 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// draw volumes by instrument
         /// прорисовать объёмы по инструменту
         /// </summary>
-        /// <param name="volume">массив</param>
-        /// <param name="name">бумага</param>
-        /// <param name="color">цвет серии</param>
-        /// <param name="times">времена</param>
+        /// <param name="volume">array/массив</param>
+        /// <param name="name">paper/бумага</param>
+        /// <param name="color">Color series/цвет серии</param>
+        /// <param name="times">times/времена</param>
         private void PaintValuesVolume(List<decimal> volume, string name, Color color, List<DateTime> times )
         {
             if (volume == null ||
@@ -1021,8 +1051,8 @@ namespace OsEngine.Journal
 
             ChartArea areaLineSecurity = new ChartArea("ChartArea" + name);
             
-            areaLineSecurity.CursorX.IsUserSelectionEnabled = false; // разрешаем пользователю изменять рамки представления
-            areaLineSecurity.CursorX.IsUserEnabled = true; //чертa
+            areaLineSecurity.CursorX.IsUserSelectionEnabled = false; //allow the user to change the view scope/ разрешаем пользователю изменять рамки представления
+            areaLineSecurity.CursorX.IsUserEnabled = true; //trait/чертa
 
             areaLineSecurity.BorderColor = Color.Black;
             areaLineSecurity.BackColor = Color.FromArgb(17, 18, 23);
@@ -1100,6 +1130,7 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// click on the volume website
         /// клик на чарте объёмов
         /// </summary>
         void _chartVolume_Click(object sender, EventArgs e)
@@ -1153,15 +1184,17 @@ namespace OsEngine.Journal
                 _chartVolume.Series[i].Points[index].LabelBackColor = Color.FromArgb(17, 18, 23);
             }
         }
-
-// прорисовка просадки
+        // sketch of drawdown
+        // прорисовка просадки
 
         /// <summary>
+        /// drawdown chart
         /// чарт для просадки
         /// </summary>
         Chart _chartDd;
 
         /// <summary>
+        /// to create a drawdown chart
         /// создать чарт для просадки
         /// </summary>
         private void CreateChartDrowDown()
@@ -1181,8 +1214,8 @@ namespace OsEngine.Journal
                 areaDdPunct.Position.Height = 50;
                 areaDdPunct.Position.Width = 100;
                 areaDdPunct.Position.Y = 0;
-                areaDdPunct.CursorX.IsUserSelectionEnabled = false; // разрешаем пользователю изменять рамки представления
-                areaDdPunct.CursorX.IsUserEnabled = true; //чертa
+                areaDdPunct.CursorX.IsUserSelectionEnabled = false; //allow the user to change the view scope/ разрешаем пользователю изменять рамки представления
+                areaDdPunct.CursorX.IsUserEnabled = true; //trait/чертa
 
                 _chartDd.ChartAreas.Add(areaDdPunct);
 
@@ -1192,7 +1225,7 @@ namespace OsEngine.Journal
                 areaDdPersent.Position.Width = 100;
                 areaDdPersent.Position.Y = 50;
                 areaDdPersent.AxisX.Enabled = AxisEnabled.False;
-                areaDdPersent.CursorX.IsUserEnabled = true; //чертa
+                areaDdPersent.CursorX.IsUserEnabled = true; //trait/чертa
 
                 _chartDd.ChartAreas.Add(areaDdPersent);
 
@@ -1218,6 +1251,7 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// sketch out a drawdown chart
         /// прорисовать чарт для просадки
         /// </summary>
         /// <param name="positionsAll"></param>
@@ -1265,7 +1299,7 @@ namespace OsEngine.Journal
             }
 
             _chartDd.Series.Add(drowDownPunct);
-
+            // dd in %
             // дд в %
 
             List<decimal> ddPepcent = new decimal[positionsAll.Count].ToList();
@@ -1306,6 +1340,7 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// Click on the chart with max drawdown
         /// клик по чарту с макс просадкой
         /// </summary>
         void _chartDd_Click(object sender, EventArgs e)
@@ -1355,20 +1390,23 @@ namespace OsEngine.Journal
                 _chartDd.Series[i].Points[index].LabelBackColor = Color.Black;
             }
         }
-
-// позиции
+        // positions
+        // позиции
 
         /// <summary>
+        /// open position table
         /// таблица открытых позиций
         /// </summary>
         private DataGridView _openPositionGrid;
 
         /// <summary>
+        /// closed position table
         /// таблица закрытых позиций
         /// </summary>
         private DataGridView _closePositionGrid;
 
         /// <summary>
+        /// create tables for positions
         /// создать таблицы для позиций
         /// </summary>
         private void CreatPositionTables()
@@ -1385,9 +1423,10 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// create a table
         /// создать таблицу
         /// </summary>
-        /// <returns>таблица для прорисовки на ней позиций</returns>
+        /// <returns>table for drawing positions on it/таблица для прорисовки на ней позиций</returns>
         private DataGridView CreateNewTable()
         {
             try
@@ -1404,10 +1443,11 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// take a row for the table representing the position
         /// взять строку для таблицы представляющую позицию
         /// </summary>
-        /// <param name="position">позиция</param>
-        /// <returns>строка для таблицы</returns>
+        /// <param name="position">position/позиция</param>
+        /// <returns>table row/строка для таблицы</returns>
         private DataGridViewRow GetRow(Position position)
         {
             if (position == null)
@@ -1500,6 +1540,7 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// Double-click on the table of open positions
         /// двойной клик по таблице открытых позиций
         /// </summary>
         void _openPositionGrid_DoubleClick(object sender, EventArgs e)
@@ -1518,6 +1559,7 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// Click on the table of open positions
         /// клик по таблице открытых позиций
         /// </summary>
         void _openPositionGrid_Click(object sender, EventArgs e)
@@ -1553,6 +1595,7 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// open additional information on the position
         /// открыть дополнительную информацию по позиции
         /// </summary>
         void OpenDealMoreInfo_Click(object sender, EventArgs e)
@@ -1571,6 +1614,7 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// Delete position
         /// удалить позицию
         /// </summary>
         void OpenDealDelete_Click(object sender, EventArgs e)
@@ -1591,6 +1635,7 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// clear out the open positions
         /// очистить открытые позиции
         /// </summary>
         void OpenDealClearAll_Click(object sender, EventArgs e)
@@ -1617,6 +1662,7 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// Draw open positions on the table
         /// прорисовать открытые позиции на таблице
         /// </summary>
         private void PaintOpenPositionGrid(List<Position> positionsAll)
@@ -1631,10 +1677,11 @@ namespace OsEngine.Journal
                 }
             }
         }
-
-// позиции закрытые
+        // closed positions
+        // позиции закрытые
 
         /// <summary>
+        /// Double-click on the closed seat table
         /// двойной клик по таблице закрытых седлок
         /// </summary>
         void _closePositionGrid_DoubleClick(object sender, EventArgs e)
@@ -1653,6 +1700,7 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// Click on the table of closed transactions
         /// клик по таблице закрытых сделок
         /// </summary>
         void _closePositionGrid_Click(object sender, EventArgs e)
@@ -1691,6 +1739,7 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// save information about closed transactions to a file
         /// сохранить в файл информацию о закрытых сделках
         /// </summary>
         void CloseDealSaveInFile_Click(object sender, EventArgs e)
@@ -1767,6 +1816,7 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// open additional information on the position
         /// открыть дополнительную информацию по позиции
         /// </summary>
         void CloseDealMoreInfo_Click(object sender, EventArgs e)
@@ -1785,6 +1835,7 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// delete position
         /// удалить позицию
         /// </summary>
         void CloseDealDelete_Click(object sender, EventArgs e)
@@ -1805,6 +1856,7 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// clear closed positions
         /// очистить закрытые позиции
         /// </summary>
         void CloseDealClearAll_Click(object sender, EventArgs e)
@@ -1831,6 +1883,7 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// Draw closed positions on the table
         /// прорисовать закрытые позиции на таблице
         /// </summary>
         private void PaintClosePositionGrid(List<Position> positionsAll)
@@ -1845,10 +1898,11 @@ namespace OsEngine.Journal
                 }
             }
         }
-
-// сообщения в лог
+        // messages to the log
+        // сообщения в лог
 
         /// <summary>
+        /// send a new message to the top
         /// выслать новое сообщение на верх
         /// </summary>
         private void SendNewLogMessage(string message, LogMessageType type)
@@ -1860,6 +1914,7 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// outgoing message for log
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
@@ -1867,6 +1922,7 @@ namespace OsEngine.Journal
     }
 
     /// <summary>
+    /// log storage class
     /// класс хранилище журналов
     /// </summary>
     public class BotPanelJournal
@@ -1877,6 +1933,7 @@ namespace OsEngine.Journal
     }
 
     /// <summary>
+    /// log storage class
     /// класс хранилище журналов
     /// </summary>
     public class BotTabJournal
@@ -1887,6 +1944,7 @@ namespace OsEngine.Journal
     }
 
     /// <summary>
+    /// the class of DataGridView. modification of cells allows working with the thickness of the cell boundary
     /// класс модификации ячеек DataGridView. позволяет работать с толщиной границы ячейки
     /// </summary>
     internal class CustomDataGridViewCell : DataGridViewTextBoxCell
@@ -1933,16 +1991,19 @@ namespace OsEngine.Journal
     }
 
     /// <summary>
+    /// tool volume over time
     /// объём во времени по инструменту
     /// </summary>
     public class VolumeSecurity
     {
         /// <summary>
+        /// volume over time
         /// массив данных по объёму во времени
         /// </summary>
         public List<decimal> Volume;
 
         /// <summary>
+        /// paper name
         /// название бумаги
         /// </summary>
         public string Security;

@@ -9,14 +9,16 @@ using System.Globalization;
 namespace OsEngine.Entity
 {
     /// <summary>
+    /// tick
     /// тик
     /// </summary>
     public class Trade
     {
-
-// стандартная часть
+        // standard part
+        // стандартная часть
 
         /// <summary>
+        /// instrument code for which the transaction took place
         /// код инструмента по которому прошла сделка
         /// </summary>
         public string SecurityNameCode
@@ -31,63 +33,74 @@ namespace OsEngine.Entity
         private string name;
 
         /// <summary>
+        /// transaction number in the system
         /// номер сделки в системе
         /// </summary>
         public string Id;
 
         /// <summary>
+        /// volume
         /// объём
         /// </summary>
         public decimal Volume;
 
         /// <summary>
+        /// transaction price
         /// цена сделки
         /// </summary>
         public decimal Price;
 
         /// <summary>
+        /// deal time
         /// время сделки
         /// </summary>
         public DateTime Time;
 
         /// <summary>
+        /// microseconds
         /// микросекунды
         /// </summary>
         public int MicroSeconds;
 
         /// <summary>
+        ///  transaction direction
         /// направление сделки
         /// </summary>
         public Side Side;
-
-// новая часть. Эту часть с финама не скачать. Её можно добыть OsData, только из стандартных коннекторов
+        // a new part. This part of the final is not to be downloaded. It can be obtained from OsData, only from standard connectors
+        // новая часть. Эту часть с финама не скачать. Её можно добыть OsData, только из стандартных коннекторов
 
         /// <summary>
+        /// the best sale in a glass when this trade came in.
         /// лучшая продажа в стакане, на момент когда пришёл этот трейд
         /// </summary>
         public decimal Bid;
 
         /// <summary>
+        /// the best buy in the glass when this trade came in.
         /// лучшая покупка в стакане, на момент когда пришёл этот трейд
         /// </summary>
         public decimal Ask;
 
         /// <summary>
+        /// the total volume of sales in a glass at the moment when this trade came in
         /// суммарный объём в продажах в стакане, на момент когда пришёл этот трейд
         /// </summary>
         public decimal BidsVolume;
 
         /// <summary>
+        /// the total volume of purchases in the glass at the moment when this trade came in
         /// суммарный объём в покупках в стакане, на момент когда пришёл этот трейд
         /// </summary>
         public decimal AsksVolume;
-
-//сохранение / загрузка тика
+        // //saving / loading ticks
+        //сохранение / загрузка тика
 
         /// <summary>
+        /// to take a line to save
         /// взять строку для сохранения
         /// </summary>
-        /// <returns>строка с состоянием объекта</returns>
+        /// <returns>line with the state of the object/строка с состоянием объекта</returns>
         public string GetSaveString()
         {
             //20150401,100000,86160.000000000,2
@@ -116,6 +129,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// upload a tick from a saved line
         /// загрузить тик из сохранённой строки
         /// </summary>
         /// <param name="In"></param>
@@ -128,6 +142,7 @@ namespace OsEngine.Entity
 
             if (sIn.Length >= 6 && (sIn[5] == "C" || sIn[5] == "S"))
             {
+                // download data from IqFeed
                 // загружаем данные из IqFeed
                 Time = Convert.ToDateTime(sIn[0]);
                 Price = Convert.ToDecimal(sIn[1].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
@@ -182,15 +197,15 @@ namespace OsEngine.Entity
         private Random _rand = null;
         private Side GetSideIqFeed()
         {
-            if (Bid == Price && Bid != Ask) // сделка была на продажу
+            if (Bid == Price && Bid != Ask) //the deal was for sale/ сделка была на продажу
             {
                 return Side.Sell;
             }
-            else if (Ask == Price && Bid != Ask) // сделка была на покупку
+            else if (Ask == Price && Bid != Ask) //the deal was to buy/ сделка была на покупку
             {
                 return Side.Buy;
             }
-            //if (Bid == Ask && Ask == Price) // в остальных случаях указываем случайное направление
+            //if (Bid == Ask && Ask == Price) // in other cases, we indicate a random direction/ в остальных случаях указываем случайное направление
             if (_rand == null)
                 _rand = new Random();
 
