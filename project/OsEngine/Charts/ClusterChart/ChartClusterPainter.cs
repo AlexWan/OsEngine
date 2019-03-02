@@ -23,14 +23,16 @@ namespace OsEngine.Charts.ClusterChart
 {
     public class ChartClusterPainter
     {
+        // service
         // сервис
-        
+
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="name">имя робота, которому принадлежит чарт</param>
-        /// <param name="startProgram">программа создающая объект класса</param>
-        /// <param name="volume">объёмы</param>
+        /// <param name="name">name of the robot that owns the chart/имя робота, которому принадлежит чарт</param>
+        /// <param name="startProgram">program that creates a class object/программа создающая объект класса</param>
+        /// <param name="volume">volumes/объёмы</param>
         public ChartClusterPainter(string name, StartProgram startProgram, HorizontalVolume volume)
         {
             try
@@ -43,7 +45,7 @@ namespace OsEngine.Charts.ClusterChart
                 CreateChart();
 
                 _chart.Text = name;
-                _chart.AxisViewChanged += _chart_AxisViewChanged; // событие изменения масштаба
+                _chart.AxisViewChanged += _chart_AxisViewChanged; // zoom event/событие изменения масштаба
 
                 _chart.MouseLeave += _chart_MouseLeave;
 
@@ -60,21 +62,25 @@ namespace OsEngine.Charts.ClusterChart
         }
 
         /// <summary>
+        /// program that creates a class object
         /// программа создающая объект класса
         /// </summary>
         private StartProgram _startProgram;
 
         /// <summary>
+        /// area where chart will be placed
         /// область на которой будет размещён чарт
         /// </summary>
         private WindowsFormsHost _host;
 
         /// <summary>
+        /// element on which _host will be placed
         /// элемент на котором будет размещён _host
         /// </summary>
         private Rectangle _rectangle;
 
         /// <summary>
+        /// candles chart
         /// свечной график
         /// </summary>
         private Chart _chart;
@@ -82,6 +88,7 @@ namespace OsEngine.Charts.ClusterChart
         private HorizontalVolume _volume;
 
         /// <summary>
+        /// clusters
         /// кластеры
         /// </summary>
         private List<HorizontalVolumeLine> _myClusters;

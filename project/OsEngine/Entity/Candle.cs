@@ -10,11 +10,13 @@ using System.Globalization;
 namespace OsEngine.Entity
 {
     /// <summary>
+    /// Candle
     /// Свеча
     /// </summary>
     public class Candle
     {
         /// <summary>
+        /// candle start time
         /// время начала свечи
         /// </summary>
         public DateTime TimeStart
@@ -28,36 +30,43 @@ namespace OsEngine.Entity
         private DateTime _timeStart;
 
         /// <summary>
+        ///  opening price
         /// цена открытия
         /// </summary>
         public decimal Open;
 
         /// <summary>
+        /// maximum price for the period
         /// максимальная цена за период
         /// </summary>
         public decimal High;
 
         /// <summary>
+        /// closing price
         /// цена закрытия
         /// </summary>
         public decimal Close;
 
         /// <summary>
+        /// minimum price for the period
         /// минимальная цена за период
         /// </summary>
         public decimal Low;
 
         /// <summary>
+        /// volume
         /// объём
         /// </summary>
         public decimal Volume;
 
         /// <summary>
+        /// candles completion status
         /// статус завершённости свечи
         /// </summary>
         public CandleState State;
 
         /// <summary>
+        /// the trades that make up this candle
         /// трейды составляющие эту свечу
         /// </summary>
         public List<Trade> Trades
@@ -72,6 +81,7 @@ namespace OsEngine.Entity
         private List<Trade> _trades = new List<Trade>();
 
         /// <summary>
+        /// if this growing candle
         /// растущая ли эта свеча
         /// </summary>
         public bool IsUp
@@ -87,6 +97,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// if that candle is falling
         /// падающая ли эта свеча
         /// </summary>
         public bool IsDown
@@ -102,9 +113,10 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// to load the status of the candlestick from the line
         /// загрузить состояние свечи из строки
         /// </summary>
-        /// <param name="In">строка состояния</param>
+        /// <param name="In">status line/строка состояния</param>
         public void SetCandleFromString(string In)
         {
 //20131001,100000,97.8000000,97.9900000,97.7500000,97.9000000,1
@@ -137,6 +149,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// take a line of signatures
         /// взять строку с подписями
         /// </summary>
         public string ToolTip
@@ -226,7 +239,9 @@ namespace OsEngine.Entity
             get
             {
                 if (_closeWhenGotLastString == Close)
-                {// если мы уже брали свечи раньше, не рассчитываем заного строку
+                {
+                    // If we've taken candles before, we're not counting on that line.
+                    // если мы уже брали свечи раньше, не рассчитываем заного строку
                     return _stringToSave;
                 }
 
@@ -255,21 +270,25 @@ namespace OsEngine.Entity
     }
 
     /// <summary>
+    /// candle formation status
     /// состояние формирования свечи
     /// </summary>
     public enum CandleState
     {
         /// <summary>
+        /// completed
         /// завершено
         /// </summary>
         Finished,
 
         /// <summary>
+        /// started
         /// начато
         /// </summary>
         Started,
 
         /// <summary>
+        /// indefinitely
         /// неизвестно
         /// </summary>
         None

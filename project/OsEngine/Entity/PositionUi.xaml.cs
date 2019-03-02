@@ -11,17 +11,20 @@ namespace OsEngine.Entity
 {
 
     /// <summary>
+    /// View additional information about the transaction in the window
     /// Окно просмотра дополнительной информации по сделке
     /// </summary>
     public partial class PositionUi
     {
 
         /// <summary>
+        /// position
         /// позиция
         /// </summary>
         private Position _position;
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
         public PositionUi(Position position)
@@ -38,13 +41,14 @@ namespace OsEngine.Entity
             PositionLabel3.Content = OsLocalization.Entity.PositionLabel3;
 
         }
-
-// главная таблица
+        // main table
+        // главная таблица
 
         /// <summary>
+        /// create a table
         /// создать таблицу 
         /// </summary>
-        /// <returns>таблица для прорисовки на ней позиций</returns>
+        /// <returns>table for drawing positions on it/таблица для прорисовки на ней позиций</returns>
         private void CreateMainTable()
         {
             DataGridView newGrid = DataGridFactory.GetDataGridPosition();
@@ -55,10 +59,12 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// take a row for the table representing the position
+
         /// взять строку для таблицы представляющую позицию
         /// </summary>
-        /// <param name="position">позиция</param>
-        /// <returns>строка для таблицы</returns>
+        /// <param name="position">position/позиция</param>
+        /// <returns>table row/строка для таблицы</returns>
         private DataGridViewRow GetRow(Position position)
         {
             if (position == null)
@@ -136,10 +142,11 @@ namespace OsEngine.Entity
 
             return nRow;
         }
-
-// ордера
+        // Orders
+        // ордера
 
         /// <summary>
+        /// draw order tables
         /// прорисовать таблицы ордеров
         /// </summary>
         private void PaintOrderTable()
@@ -162,9 +169,10 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// создать таблицу ордеров
+        /// create a table of orders
+           /// создать таблицу ордеров
         /// </summary>
-        private  DataGridView CreateOrderTable()
+        private DataGridView CreateOrderTable()
         {
             DataGridView newGrid = DataGridFactory.GetDataGridOrder();
 
@@ -173,6 +181,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// create a row for the table from the order
         /// создать строку для таблицы из ордера
         /// </summary>
         private DataGridViewRow CreateOrderRow(Order order)
@@ -223,10 +232,11 @@ namespace OsEngine.Entity
 
             return nRow;
         }
-
-// трейды
+        //trades
+        // трейды
 
         /// <summary>
+        /// draw the table of trades
         /// прорисовать таблицу трейдов
         /// </summary>
         private void PaintTradeTable()
@@ -255,6 +265,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// create a table for trades
         /// создать таблицу для трейдов
         /// </summary>
         private DataGridView CreateTradeTable()
@@ -265,6 +276,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// create row for table from trade
         /// создать строку для таблицы из трейда
         /// </summary>
         private DataGridViewRow CreateTradeRow(MyTrade trade)

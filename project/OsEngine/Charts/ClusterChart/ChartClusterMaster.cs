@@ -33,6 +33,7 @@ namespace OsEngine.Charts.ClusterChart
         private string _name;
 
         /// <summary>
+        /// save settings to file
         /// сохранить настройки в файл
         /// </summary>
         public void Save()
@@ -48,11 +49,13 @@ namespace OsEngine.Charts.ClusterChart
             }
             catch (Exception)
             {
+                // send to log
                 // отправить в лог
             }
         }
 
         /// <summary>
+        /// upload settings from file
         /// загрузить настройки из файла
         /// </summary>
         public void Load()
@@ -72,11 +75,13 @@ namespace OsEngine.Charts.ClusterChart
             }
             catch (Exception)
             {
+                // send to log
                 // отправить в лог
             }
         }
 
         /// <summary>
+        /// delete settings from file
         /// удалить настройки из файла
         /// </summary>
         public void Delete()
@@ -117,6 +122,7 @@ namespace OsEngine.Charts.ClusterChart
         private HorizontalVolume _cluster;
 
         /// <summary>
+        /// to start drawing this chart on the window
         /// начать прорисовывать данный чарт на окне
         /// </summary>
         public void StartPaint(WindowsFormsHost host, Rectangle rectangle)
@@ -137,6 +143,7 @@ namespace OsEngine.Charts.ClusterChart
         }
 
         /// <summary>
+        /// stop drawing this chart on the window
         /// прекратить прорисовывать данный чарт на окне
         /// </summary>
         public void StopPaint()
@@ -146,6 +153,7 @@ namespace OsEngine.Charts.ClusterChart
         }
 
         /// <summary>
+        /// clear chart
         /// очистить чарт
         /// </summary>
         public void Clear()
@@ -155,6 +163,7 @@ namespace OsEngine.Charts.ClusterChart
         }
 
         /// <summary>
+        /// redraw chart
         /// перерисовать чарт
         /// </summary>
         public void Refresh()
@@ -166,10 +175,11 @@ namespace OsEngine.Charts.ClusterChart
                 _chart.ProcessCluster(_cluster.VolumeClusterLines);
             }
         }
-
-// работа с логом
+        // work with log
+        // работа с логом
 
         /// <summary>
+        /// send an error message upstairs
         /// выслать наверх сообщение об ошибке
         /// </summary>
         private void SendErrorMessage(Exception error)
@@ -179,12 +189,15 @@ namespace OsEngine.Charts.ClusterChart
                 LogMessageEvent(error.ToString(), LogMessageType.Error);
             }
             else
-            { // если никто на нас не подписан и происходит ошибка
+            {
+                // if no one's subscribed to us and there's a mistake
+                // если никто на нас не подписан и происходит ошибка
                 System.Windows.MessageBox.Show(error.ToString());
             }
         }
 
         /// <summary>
+        /// an incoming event from class where chart drawn
         /// входящее событие из класса в котором прорисовывается чарт
         /// </summary>
         void NewLogMessage(string message, LogMessageType type)
@@ -194,12 +207,15 @@ namespace OsEngine.Charts.ClusterChart
                 LogMessageEvent(message, type);
             }
             else if (type == LogMessageType.Error)
-            { // если никто на нас не подписан и происходит ошибка
+            {
+                // if no one's subscribed to us and there's a mistake
+                // если никто на нас не подписан и происходит ошибка
                 System.Windows.MessageBox.Show(message);
             }
         }
 
         /// <summary>
+        /// outgoing message for log
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;

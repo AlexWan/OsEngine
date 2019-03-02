@@ -102,42 +102,49 @@ namespace OsEngine.Charts.CandleChart.Indicators
         { get; set; }
 
         /// <summary>
+        /// name of data area where indicator will be drawn
         /// имя области данных на которой будет прорисовываться индикатор
         /// </summary>
         public string NameArea
         { get; set; }
 
         /// <summary>
+        /// volume
         /// объём
         /// </summary>
         public List<decimal> Values
         { get; set; }
 
         /// <summary>
+        /// unique indicator name
         /// уникальное имя
         /// </summary>
         public string Name
         { get; set; }
 
         /// <summary>
+        /// color of increasing volume
         /// цвет растущего объёма
         /// </summary>
         public Color ColorUp
         { get; set; }
 
         /// <summary>
+        /// color of falling volume
         /// цвет падающего объёма
         /// </summary>
         public Color ColorDown
         { get; set; }
 
         /// <summary>
+        /// candles to calculate indicator
         /// включена ли прорисовка индикатора на чарте
         /// </summary>
         public bool PaintOn
         { get; set; }
 
         /// <summary>
+        /// save settings to file
         /// сохранить настройки в файл
         /// </summary>
         public void Save()
@@ -158,11 +165,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
             catch (Exception)
             {
+                // send to log
                 // отправить в лог
             }
         }
 
         /// <summary>
+        /// upload settings from file
         /// загрузить настройки из файла
         /// </summary>
         public void Load()
@@ -183,11 +192,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
             catch (Exception)
             {
+                // send to log
                 // отправить в лог
             }
         }
 
         /// <summary>
+        /// delete file with settings
         /// удалить файл с настройками
         /// </summary>
         public void Delete()
@@ -199,6 +210,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// delete data
         /// удалить данные
         /// </summary>
         public void Clear()
@@ -210,6 +222,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// display settings window
         /// показать окно настроек
         /// </summary>
         public void ShowDialog()
@@ -227,13 +240,15 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// indicator needs to be redrawn
         /// нужно перерисовать индикатор
         /// </summary>
         public event Action<IIndicatorCandle> NeadToReloadEvent;
-
-// вычисления
+        // calculating
+        // вычисления
 
         /// <summary>
+        /// load indicator with candles
         /// прогрузить индикатор свечками
         /// </summary>
         public void Process(List<Candle> candles)
@@ -255,6 +270,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// load only last candle
         /// прогрузить только последнюю свечку
         /// </summary>
         private void ProcessOneCandle(List<Candle> candles)
@@ -271,6 +287,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// load all candles
         /// прогрузить все свечи
         /// </summary>
         private void ProcessAllCandle(List<Candle> candles)
@@ -284,6 +301,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
+        /// load only last candle
         /// перегрузить последнюю свечу
         /// </summary>
         private void ProcessLastCanlde(List<Candle> candles)

@@ -11,6 +11,7 @@ using OsEngine.Market.Servers.Kraken;
 namespace OsEngine.Entity
 {
     /// <summary>
+    /// Interaction logic for  ProxyUi.xaml
     /// Логика взаимодействия для ProxyUi.xaml
     /// </summary>
     public partial class ProxiesUi
@@ -46,6 +47,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// table for drawing error messages
         /// таблица для прорисовки сообщений с ошибками
         /// </summary>
         private DataGridView _gridErrorLog;

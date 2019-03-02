@@ -26,18 +26,20 @@ using Rectangle = System.Windows.Shapes.Rectangle;
 namespace OsEngine.Charts.CandleChart
 {
     /// <summary>
+    ///Candles drawing wizard
     /// Мастер прорисовки свечного графика
     /// </summary>
     public class ChartCandlePainter
     {
-
-// сервис
+        //service
+        // сервис
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="name">имя робота, которому принадлежит чарт</param>
-        /// <param name="startProgram">программа создающая объект класса</param>
+        /// <param name="name">name of robot that owns chart/имя робота, которому принадлежит чарт</param>
+        /// <param name="startProgram"> program that creates a class object/программа создающая объект класса</param>
         public ChartCandlePainter(string name,StartProgram startProgram)
         {
             try
@@ -50,8 +52,8 @@ namespace OsEngine.Charts.CandleChart
                 CreateChart();
 
                 _chart.Text = name;
-                _chart.AxisScrollBarClicked += _chart_AxisScrollBarClicked; // событие передвижения курсора
-                _chart.AxisViewChanged += _chart_AxisViewChanged; // событие изменения масштаба
+                _chart.AxisScrollBarClicked += _chart_AxisScrollBarClicked; // cursor event/событие передвижения курсора
+                _chart.AxisViewChanged += _chart_AxisViewChanged; // scale event/событие изменения масштаба
                 _chart.Click += _chart_Click;
 
                 _chart.MouseDown += _chartForCandle_MouseDown;
@@ -77,46 +79,55 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// program that creates a class object
         /// программа создающая объект класса
         /// </summary>
         private StartProgram _startProgram;
 
         /// <summary>
+        /// area where chart will be placed
         /// область на которой будет размещён чарт
         /// </summary>
         private WindowsFormsHost _host;
 
         /// <summary>
+        /// element on which _host will be placed
         /// элемент на котором будет размещён _host
         /// </summary>
         private Rectangle _rectangle;
 
         /// <summary>
+        /// candles chart
         /// свечной график
         /// </summary>
         private Chart _chart;
 
         /// <summary>
+        /// candles
         /// свечки
         /// </summary>
         private List<Candle> _myCandles;
 
         /// <summary>
+        /// Time frame of candles which are drawn in chart in the form of time
         /// таймфрейм свечек которые прорисовываются в чарте в виде времени
         /// </summary>
         private TimeSpan _timeFrameSpan;
 
         /// <summary>
+        /// timeframe of candles that appear on chart
         /// таймфрейм свечек которые прорисовываются в чарте
         /// </summary>
         private TimeFrame _timeFrame;
 
         /// <summary>
-        /// таймфреймы для данного чата устанавливались
+        /// Timeframes for this chart were set
+        /// таймфреймы для данного чарта устанавливались
         /// </summary>
         private bool _timeFrameIsActivate;
 
         /// <summary>
+        /// change candle timeframe for drawing
         /// изменить таймФрейм свечек для прорисовки
         /// </summary>
         /// <param name="timeFrameSpan"></param>
@@ -129,6 +140,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// to start drawing schedule
         /// начать прорисовку графика
         /// </summary>
         public void StartPaintPrimeChart(WindowsFormsHost host, Rectangle rectangle) 
@@ -167,6 +179,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// Stop drawing chart
         /// остановить прорисовку графика
         /// </summary>
         public void StopPaint()
@@ -190,6 +203,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// whether drawing graphics is enabled
         /// включена ли прорисовка графика
         /// </summary>
         private bool _isPaint;
@@ -197,6 +211,7 @@ namespace OsEngine.Charts.CandleChart
         private DateTime _lastTimeClear;
 
         /// <summary>
+        /// clear chart
         /// очистить график
         /// </summary>
         public void ClearDataPointsAndSizeValue() 
@@ -243,6 +258,7 @@ namespace OsEngine.Charts.CandleChart
 
                 for (int i = 0; _chart.Series != null && i < _chart.Series.Count; i++)
                 {
+                    // delete stops
                     // удаляем стопы
                     if (_chart.Series[i].Name.Split('_')[0] == "Stop" ||
                         _chart.Series[i].Name.Split('_')[0] == "Profit")
@@ -296,6 +312,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// delete all files related to class
         /// удалить все файлы связанные с классом
         /// </summary>
         public void Delete()
@@ -305,10 +322,11 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// a message came in from the color keeper to log
         /// из хранителя цвета пришло сообщение в лог
         /// </summary>
-        /// <param name="message">сообщение</param>
-        /// <param name="type">тип сообщения</param>
+        /// <param name="message">message/сообщение</param>
+        /// <param name="type">message type/тип сообщения</param>
         void SendLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
@@ -316,24 +334,29 @@ namespace OsEngine.Charts.CandleChart
                 LogMessageEvent(message, type);
             }
             else if (type == LogMessageType.Error)
-            { // если никто на нас не подписан и происходит ошибка
+            {
+                // if no one's subscribed to us and there's a mistake
+                // если никто на нас не подписан и происходит ошибка
                 System.Windows.MessageBox.Show(message);
             }
         }
 
         /// <summary>
+        /// outgoing message for log
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string,LogMessageType> LogMessageEvent;
-
-// работа с цветом чарта и областей
+        // working with chart colors and areas
+        // работа с цветом чарта и областей
 
         /// <summary>
+        /// color storage for chart
         /// хранилище цветов для чарта
         /// </summary>
-        private ChartMasterColorKeeper _colorKeeper; 
+        private ChartMasterColorKeeper _colorKeeper;
 
         /// <summary>
+        /// to set up a dark scheme for chart
         /// установить тёмную схему для чарта
         /// </summary>
         public void SetBlackScheme()
@@ -352,6 +375,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// to set up a white scheme for chart
         /// установить белую схему для чарта
         /// </summary>
         public void SetWhiteScheme()
@@ -360,12 +384,13 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// Incoming event: colors of chart have changed
         /// входящее событие: изменились цвета графика
         /// </summary>
         void _colorKeeper_NeedToRePaintFormEvent()
         {
             RefreshChartColor();
-
+            // right axis redrawing
             // перерисовка правой оси
 
             for (int i = 0; _chart.ChartAreas.Count != 0 && i < _chart.ChartAreas.Count; i++)
@@ -375,6 +400,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// to repaint colors at chart
         /// перекрасить цвета у чарта
         /// </summary>
         public void RefreshChartColor() 
@@ -438,10 +464,11 @@ namespace OsEngine.Charts.CandleChart
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-
-// создание удаление областей и серий
+        // Create zone and series deletion
+        // создание удаление областей и серий
 
         /// <summary>
+        /// to create chart. Creates an initial area and a series for drawing candles
         /// создать чарт. Создаёт первоначальную область и серию для прорисовки свечек
         /// </summary>
         private void CreateChart()
@@ -511,18 +538,24 @@ namespace OsEngine.Charts.CandleChart
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+        /*
+         * Primary objects on the chart are the data areas- ChartArea
+         * On the areas, then, you can create a series of data - Series
+         * Series in turn has data points (Point) through which we draw objects
+         */
 
         /*
          * Первичными объектами на чарте являются области данных - ChartArea
          * На областях, затем, можно создавать серии данных - Series
          * У Series в свою очередь есть точки данных(Point), через которые мы прорисовываем объекты
          */
-         
+
         /// <summary>
+        /// create a data area on chart
         /// создать область данных на чарте
         /// </summary>
-        /// <param name="nameArea">имя области</param>
-        /// <param name="height">высота области</param>
+        /// <param name="nameArea">area name/имя области</param>
+        /// <param name="height">area height/высота области</param>
         /// <returns></returns>
         public ChartArea CreateArea(string nameArea, int height)
         {
@@ -540,7 +573,7 @@ namespace OsEngine.Charts.CandleChart
                 {
                     return null;
                 }
-
+                // 1 the areas that have already been created need to be moved.
                 // 1 уже созданные области надо подвинуть.
 
                 ChartArea primeArea = FindAreaByNameSafe("Prime");
@@ -614,9 +647,10 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// create a series of data on area
         /// создать серию данных на области
         /// </summary>
-        /// <returns>возвращается имя серии данных. null в случае ошибки</returns>
+        /// <returns>returns the name of data series. null in case of error/возвращается имя серии данных. null в случае ошибки</returns>
         public string CreateSeries(ChartArea area, IndicatorOneCandleChartType indicatorType, string name)
         {
             try
@@ -652,28 +686,31 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// to take the data area by name
         /// взять область данных по имени
         /// </summary>
-        /// <param name="name">имя области</param>
-        /// <returns>возвращается область данных или null</returns>
+        /// <param name="name">area name/имя области</param>
+        /// <returns>returns a data area or null/возвращается область данных или null</returns>
         public ChartArea GetChartArea(string name)
         {
             return FindAreaByNameSafe(name);
         }
 
         /// <summary>
+        /// take a chart
         /// взять чарт
         /// </summary>
-        /// <returns>возвращаем чарт</returns>
+        /// <returns>returning the chart./возвращаем чарт</returns>
         public Chart GetChart()
         {
             return _chart;
         }
 
         /// <summary>
+        /// removes the indicator from chart and, if it was the last one on tarea, then the area
         /// удаляет с графика индикатор и, если он был последний на области, то и область
         /// </summary>
-        /// <param name="indicator">индикатор который следует удалить</param>
+        /// <param name="indicator">indicator that should be removed/индикатор который следует удалить</param>
         public void DeleteIndicator(IIndicatorCandle indicator)
         {
             try
@@ -746,9 +783,10 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// is there an indicator created
         /// создан ли индикатор
         /// </summary>
-        /// <param name="name">имя индикатора</param>
+        /// <param name="name">indicator name/имя индикатора</param>
         /// <returns>true / false</returns>
         public bool IndicatorIsCreate(string name)
         {
@@ -780,9 +818,10 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// whether the area is created
         /// создана ли область
         /// </summary>
-        /// <param name="name">имя области</param>
+        /// <param name="name">area name/имя области</param>
         /// <returns>try / false</returns>
         public bool AreaIsCreate(string name)
         {
@@ -803,10 +842,11 @@ namespace OsEngine.Charts.CandleChart
             }
             return false;
         }
-
-// работа потока прорисовывающего чарт
+        // work of flow of the drawing chart
+        // работа потока прорисовывающего чарт
 
         /// <summary>
+        /// the method in which the flow drawing chart works
         /// метод в котором работает поток прорисовывающий чарт
         /// </summary>
         private void PainterThreadArea()
@@ -837,7 +877,7 @@ namespace OsEngine.Charts.CandleChart
                     _candlesToPaint = new ConcurrentQueue<List<Candle>>();
                     _indicatorsToPaint = new ConcurrentQueue<IIndicatorCandle>();
                 }
-
+                // checking to see if the candles are here.
                 // проверяем, пришли ли свечи
 
                 if (!_candlesToPaint.IsEmpty)
@@ -854,7 +894,7 @@ namespace OsEngine.Charts.CandleChart
                         PaintCandles(candles);
                     }
                 }
-
+                // checking to see if the positions have come
                 // проверяем, пришли ли позиции
 
                 if (!_positions.IsEmpty)
@@ -871,7 +911,7 @@ namespace OsEngine.Charts.CandleChart
                         PaintPositions(positions);
                     }
                 }
-
+                // checking to see if the ticks are here.
                 // проверяем, пришли ли тики
 
                 if (!_tradesToPaint.IsEmpty)
@@ -888,7 +928,7 @@ namespace OsEngine.Charts.CandleChart
                         PaintTrades(trades);
                     }
                 }
-
+                // see if there are any new elements to draw on chart
                 // проверяем, есть ли новые элементы для прорисовки на чарте
 
                 if (!_chartElementsToPaint.IsEmpty)
@@ -921,8 +961,8 @@ namespace OsEngine.Charts.CandleChart
                         PaintElem(elementsWithoutRepiat[i]);
                     }
                 }
-
- // проверяем, есть ли новые элементы для удаления с чарта
+                // check if there are any new elements to remove from tchart
+                // проверяем, есть ли новые элементы для удаления с чарта
 
                 if (!_chartElementsToClear.IsEmpty)
                 {
@@ -955,7 +995,8 @@ namespace OsEngine.Charts.CandleChart
                     }
 
                 }
-// проверяем, есть ли индикаторы для прорисовки на чарте
+                // check if there are any indicators to draw on chart
+                // проверяем, есть ли индикаторы для прорисовки на чарте
 
                 if (!_indicatorsToPaint.IsEmpty)
                 {
@@ -997,51 +1038,60 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// it's time to stop drawing a chart at all
         /// пора прекращать прорисовывать чарт на совсем
         /// </summary>
         private bool _neadToDelete;
 
         /// <summary>
+        /// line of candles to draw
         /// очередь со свечками, которые нужно прорисовать
         /// </summary>
         private ConcurrentQueue<List<Candle>> _candlesToPaint = new ConcurrentQueue<List<Candle>>();
 
         /// <summary>
+        /// line of trades to draw
         /// очеедь с трейдами, котоыре нужно прорисовать
         /// </summary>
         private ConcurrentQueue<List<Trade>> _tradesToPaint = new ConcurrentQueue<List<Trade>>();
 
         /// <summary>
+        /// line of positions to draw
         /// очередь с позициями, которые нужно прорисовать
         /// </summary>
-        private ConcurrentQueue<List<Position>> _positions = new ConcurrentQueue<List<Position>>(); 
+        private ConcurrentQueue<List<Position>> _positions = new ConcurrentQueue<List<Position>>();
 
         /// <summary>
+        /// line of chart elements to be drawn
         /// очередь с элементами чарта, которые нужно прорисовать
         /// </summary>
         private ConcurrentQueue<IChartElement> _chartElementsToPaint = new ConcurrentQueue<IChartElement>();
 
         /// <summary>
+        /// queue with chart elements that need to be deleted
         /// очередь с элементами чарта, которые нужно удалить
         /// </summary>
         private ConcurrentQueue<IChartElement> _chartElementsToClear = new ConcurrentQueue<IChartElement>();
 
         /// <summary>
+        /// line of indicators to draw
         /// очередь с индикаторами, которые нужно прорисовать
         /// </summary>
         private ConcurrentQueue<IIndicatorCandle> _indicatorsToPaint = new ConcurrentQueue<IIndicatorCandle>();
-
-// свечи
+        // candles
+        // свечи
 
         /// <summary>
+        /// data drawing culture
         /// культура отрисовки данных
         /// </summary>
         private CultureInfo _culture = new CultureInfo("ru-RU");
 
         /// <summary>
+        /// candle drawing
         /// прорисовать свечки
         /// </summary>
-        /// <param name="history">свечи</param>
+        /// <param name="history">candles/свечи</param>
         private void PaintCandles(List<Candle> history)
         {
             if (_mouseDown == true)
@@ -1084,7 +1134,10 @@ namespace OsEngine.Charts.CandleChart
                 }
 
                 if (_startProgram != StartProgram.IsTester)
-                { // в реальном подключении, каждую новую свечу рассчитываем 
+                {
+                    // in the actual connection, each new candle is calculated 
+                    // actual multipliers for regions
+                    // в реальном подключении, каждую новую свечу рассчитываем 
                     // актуальные мультипликаторы для областей
                     ReloadAreaSizes();
                 }
@@ -1126,9 +1179,10 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// add candles to the drawing
         /// добавить свечки на прорисовку
         /// </summary>
-        /// <param name="history">свечи</param>
+        /// <param name="history">candles/свечи</param>
         public void ProcessCandles(List<Candle> history)
         {
             if ((_startProgram == StartProgram.IsTester ||
@@ -1144,10 +1198,11 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// redraw candle by index
         /// перерисовать свечку по индексу
         /// </summary>
-        /// <param name="history">свечи</param>
-        /// <param name="index">индекс</param>
+        /// <param name="history">candles/свечи</param>
+        /// <param name="index">index/индекс</param>
         private void RePaintToIndex(List<Candle> history, int index)
         {
             if (index < 0 || history == null)
@@ -1205,8 +1260,10 @@ namespace OsEngine.Charts.CandleChart
                 ChartArea candleArea = FindAreaByNameSafe("Prime");
                 if (candleArea != null && candleArea.AxisX.ScrollBar.IsVisible &&
                     candleArea.AxisX.ScaleView.Position + candleArea.AxisX.ScaleView.Size + 3 >= candleSeries.Points.Count)
+                // if you've already selected a range
                 //если уже выбран какой-то диапазон
                 {
+                    // Shift the view to right
                     // сдвигаем представление вправо
                     candleArea.AxisX.ScaleView.Scroll(candleSeries.Points.Count + 1);
                 }
@@ -1222,9 +1279,10 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// draw last candle
         /// прорисовать последнюю свечку
         /// </summary>
-        /// <param name="history">свечи</param>
+        /// <param name="history">candles/свечи</param>
         private void AddCandleInArray(List<Candle> history, int index)
         {
             Series candleSeries = FindSeriesByNameSafe("SeriesCandle");
@@ -1256,8 +1314,10 @@ namespace OsEngine.Charts.CandleChart
             ChartArea candleArea = FindAreaByNameSafe("Prime");
             if (candleArea != null && candleArea.AxisX.ScrollBar.IsVisible &&
                 candleArea.AxisX.ScaleView.Position + candleArea.AxisX.ScaleView.Size + 3 >= candleSeries.Points.Count)
-                //если уже выбран какой-то диапазон
+            // if you've already selected a range
+            //если уже выбран какой-то диапазон
             {
+                // Shift the view to right
                 // сдвигаем представление вправо
                 candleArea.AxisX.ScaleView.Scroll(candleSeries.Points.Count + 1);
             }
@@ -1274,9 +1334,10 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// to draw all candles
         /// прорисовать все свечки
         /// </summary>
-        /// <param name="history">свечи</param>
+        /// <param name="history">candles/свечи</param>
         private void PaintAllCandles(List<Candle> history)
         {
             Series candleSeries = new Series("SeriesCandle");
@@ -1310,8 +1371,10 @@ namespace OsEngine.Charts.CandleChart
 
             ChartArea candleArea = FindAreaByNameSafe("Prime");
             if (candleArea != null && candleArea.AxisX.ScrollBar.IsVisible)
+                // if you've already selected a range
             //если уже выбран какой-то диапазон
             {
+                // Shift the view to right
                 // сдвигаем представление вправо
                 candleArea.AxisX.ScaleView.Scroll(candleSeries.Points.Count + 1 - candleArea.AxisX.ScaleView.Size);
             }
@@ -1325,13 +1388,14 @@ namespace OsEngine.Charts.CandleChart
            
             ReloadAreaSizes();
         }
-
-// тики
+        // ticks
+        // тики
 
         /// <summary>
+        /// draw ticks
         /// прорисовать тики
         /// </summary>
-        /// <param name="trades">тики</param>
+        /// <param name="trades">ticks/тики</param>
         private void PaintTrades(List<Trade> trades)
         {
             if (_mouseDown == true)
@@ -1365,9 +1429,10 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// add ticks to the drawing
         /// добавить тики в прорисовку
         /// </summary>
-        /// <param name="trades">тики</param>
+        /// <param name="trades">ticks/тики</param>
         public void ProcessTrades(List<Trade> trades)
         {
             if (_startProgram == StartProgram.IsTester &&
@@ -1382,6 +1447,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// Create a tick data area
         /// создать область для тиковых данных
         /// </summary>
         public void CreateTickArea()
@@ -1405,6 +1471,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// Delete tick data area
         /// удалить область для тиковых данных
         /// </summary>
         public void DeleteTickArea()
@@ -1426,14 +1493,16 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// last tick time
         /// время прихода последних тиков
         /// </summary>
         private DateTime _lastTickTime = DateTime.MinValue;
 
         /// <summary>
+        /// to draw last 300 ticks
         /// прорисовать последние 300 тиков
         /// </summary>
-        /// <param name="history">тики</param>
+        /// <param name="history">ticks/тики</param>
         private void PaintLast300(List<Trade> history)
         {
             Series tradeSeries = new Series("trade");
@@ -1515,13 +1584,14 @@ namespace OsEngine.Charts.CandleChart
 
             PaintSeriesSafe(tradeSeries);
         }
-
-// сделки
+        // Deals
+        // сделки
 
         /// <summary>
+        /// plot dealss on chart
         /// прорисовать сделки на графике
         /// </summary>
-        /// <param name="deals">сделки</param>
+        /// <param name="deals">deals/сделки</param>
         private void PaintPositions(List<Position> deals)
         {
             try
@@ -1547,7 +1617,7 @@ namespace OsEngine.Charts.CandleChart
 
                 Series buySellSeries;
                 Series[] stopProfitOrderSeries = null;
-
+                //  create points of purchase and sales
                 // формируем точки покупок и продаж
 
                 buySellSeries = new Series("Deal_" + "BuySell");
@@ -1617,6 +1687,7 @@ namespace OsEngine.Charts.CandleChart
 
                         if (_colorKeeper.PointType == PointType.TriAngle)
                         {
+                            // drawing pictures
                             // прорисовываем картинки
                             double openViewSize = _myCandles.Count;
 
@@ -1683,10 +1754,12 @@ namespace OsEngine.Charts.CandleChart
                         }
                     }
                 }
-
+                //  forming Profit and Stop lines
                 // формируем линии Профитов и Стопов
                 for (int i = 0; i < deals.Count; i++)
-                { // проходим Лимит ОРДЕРА НА ОТКРЫТИИ
+                {
+                    // going through open order limit
+                    // проходим Лимит ОРДЕРА НА ОТКРЫТИИ
 
                     if (deals[i].State == PositionStateType.Opening && deals[i].OpenOrders != null &&
                         deals[i].OpenOrders[deals[i].OpenOrders.Count - 1].State == OrderStateType.Activ)
@@ -1729,7 +1802,9 @@ namespace OsEngine.Charts.CandleChart
                     }
                 }
                 for (int i = 0; i < deals.Count; i++)
-                { // проходим Лимит ОРДЕРА НА ЗАКРЫТИИ
+                {
+                    // going through Order limit on close
+                    // проходим Лимит ОРДЕРА НА ЗАКРЫТИИ
 
                     if (i == 16)
                     {
@@ -1777,7 +1852,9 @@ namespace OsEngine.Charts.CandleChart
                     }
                 }
                 for (int i = 0; i < deals.Count; i++)
-                { // проходим СТОП ОРДЕРА
+                {
+                    // going through stop order
+                    // проходим СТОП ОРДЕРА
                     if (
                         (deals[i].State == PositionStateType.Open || deals[i].State == PositionStateType.Closing) &&
                         deals[i].StopOrderIsActiv)
@@ -1821,7 +1898,9 @@ namespace OsEngine.Charts.CandleChart
                 }
 
                 for (int i = 0; i < deals.Count; i++)
-                { // проходим ПРОФИТ ОРДЕРА
+                {
+                    // going through order profit
+                    // проходим ПРОФИТ ОРДЕРА
                     if (
                        (deals[i].State == PositionStateType.Open || deals[i].State == PositionStateType.Closing) &&
                         deals[i].ProfitOrderIsActiv)
@@ -1872,9 +1951,10 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// add positions to the drawing
         /// добавить позиции в прорисовку
         /// </summary>
-        /// <param name="deals">сделки</param>
+        /// <param name="deals">deals/сделки</param>
         public void ProcessPositions(List<Position> deals)
         {
             if (_startProgram == StartProgram.IsTester &&
@@ -1889,10 +1969,11 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// to draw a series of deals safely
         /// прорисовать серию со сделками безопасно
         /// </summary>
-        /// <param name="buySellSeries">серия точек</param>
-        /// <param name="profitStopOrderSeries">серии стоп ордеров</param>
+        /// <param name="buySellSeries">series of points/серия точек</param>
+        /// <param name="profitStopOrderSeries">stop order series/серии стоп ордеров</param>
         private void PaintDealSafe(Series buySellSeries, Series [] profitStopOrderSeries)
         {
             try
@@ -1903,7 +1984,7 @@ namespace OsEngine.Charts.CandleChart
                         (PaintDealSafe), buySellSeries, profitStopOrderSeries);
                     return;
                 }
-
+                // 1 Drawing up deals
                 // 1 прорисовываем сделки
 
                 if (FindSeriesByNameSafe(buySellSeries.Name) == null)
@@ -1915,11 +1996,13 @@ namespace OsEngine.Charts.CandleChart
                     _chart.Series.Remove(FindSeriesByNameSafe(buySellSeries.Name));
                     _chart.Series.Add(buySellSeries);
                 }
-
+                // 2 Drawing stops
                 // 2 прорисовываем стопы
 
                 for (int i = 0; _chart.Series != null && i < _chart.Series.Count; i++)
-                { // удаляем старые
+                {
+                    // deleting old
+                    // удаляем старые
                     string name = _chart.Series[i].Name.Split('_')[0];
 
                     if (name == "Stop" ||
@@ -1942,19 +2025,21 @@ namespace OsEngine.Charts.CandleChart
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-
-// поиск индекса по времени
+        // index search by time
+        // поиск индекса по времени
 
         /// <summary>
+        /// Time points on chart tied to the X-axis
         /// временные точки на графике привязанные к оси X
         /// </summary>
         private List<TimeAxisXPoint> _timePoints = new List<TimeAxisXPoint>();
 
         /// <summary>
+        /// get a candle index by time
         /// взять индекс свечи по времени
         /// </summary>
-        /// <param name="time">время</param>
-        /// <returns>индекс. Если время не найдено, возвращает 0</returns>
+        /// <param name="time">time/время</param>
+        /// <returns>index. If time is not found, returns/индекс. Если время не найдено, возвращает 0</returns>
         private int GetTimeIndex(DateTime time)
         {
             if (_timePoints == null)
@@ -1987,9 +2072,10 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// Finding a point on the X-axis to the forehead
         /// поиск точки на оси Х в лоб
         /// </summary>
-        /// <param name="time">время по которому нужно узнать индекс на оси Х</param>
+        /// <param name="time">time to get an index on the X-axis/время по которому нужно узнать индекс на оси Х</param>
         /// <returns></returns>
         private int SimpleSearch(DateTime time)
         {
@@ -2033,6 +2119,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// Recursive, fast method of finding a point on the X-axis
         /// рекурсивный, быстрый метод поиска точки на оси Х
         /// </summary>
         private int MagicSearch(DateTime time, List<Candle> candles, int start, int end)
@@ -2080,13 +2167,14 @@ namespace OsEngine.Charts.CandleChart
                 return start + (end - start) / 2;
             }
         }
-
-// ПОЛЬЗОВАТЕЛЬСКИЕ ЭЛЕМЕНТЫ
+        // CUSTOM ELEMENTS
+        // ПОЛЬЗОВАТЕЛЬСКИЕ ЭЛЕМЕНТЫ
 
         /// <summary>
+        /// draw an element on chart
         /// прорисовать элемент на чарте
         /// </summary>
-        /// <param name="element">элемент</param>
+        /// <param name="element">element/элемент</param>
         private void PaintElem(IChartElement element)
         {
             try
@@ -2123,9 +2211,10 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// add an item to the drawing
         /// добавить элемент в прорисовку
         /// </summary>
-        /// <param name="element">элемент</param>
+        /// <param name="element">element/элемент</param>
         public void ProcessElem(IChartElement element)
         {
             if (_startProgram == StartProgram.IsTester &&
@@ -2140,6 +2229,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// items on chart
         /// элементы на чарте
         /// </summary>
         private List<IChartElement> _chartElements;
@@ -2153,7 +2243,7 @@ namespace OsEngine.Charts.CandleChart
                     _chart.Invoke(new Action<IChartElement>(ClearElem), element);
                     return;
                 }
-
+                // If there is such a series on chart - delete
                 // если есть такая серия на графике - удаляем
                 if (_chart.Series != null && _chart.Series.Count != 0)
                 {
@@ -2184,6 +2274,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// take the element off the chart
         /// убрать элемент с чарта
         /// </summary>
         public void ProcessClearElem(IChartElement element)
@@ -2200,9 +2291,10 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// to draw a horizontal line across the entire chart
         /// прорисовать горизонтальную линию через весь чарт
         /// </summary>
-        /// <param name="lineElement">линия</param>
+        /// <param name="lineElement">line/линия</param>
         public void PaintHorisiontalLineOnArea(LineHorisontal lineElement)
         {
             if (lineElement.Value == 0)
@@ -2266,7 +2358,9 @@ namespace OsEngine.Charts.CandleChart
             PaintSeriesSafe(newSeries);
 
             if (!lineElement.CanResize)
-            { // если двигать нельзя, выходим
+            {
+                // If can't move, we'll go out
+                // если двигать нельзя, выходим
                 return;
             }
 
@@ -2285,6 +2379,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// draw a point on chart
         /// нарисовать на чарте точку
         /// </summary>
         /// <param name="point"></param>
@@ -2319,48 +2414,59 @@ namespace OsEngine.Charts.CandleChart
 
             PaintSeriesSafe(newSeries);
         }
-
-// Перетаскивание Пользовательских элементов
+        // Drag and drop Custom items
+        // Перетаскивание Пользовательских элементов
 
         /// <summary>
+        /// element that user clicked
         /// элемент по которому пользователь произвёл клик
         /// </summary>
         private IChartElement _clickElement;
 
         /// <summary>
+        /// if the drag and drop of element
         /// началось ли перетаскивание элемента
         /// </summary>
         private bool _isMoving;
 
         /// <summary>
+        /// the value of line along the axis of players when press the button
         /// значение линии по оси игрик при нажатии на кнопку
         /// </summary>
-        private decimal _yPoint; 
+        private decimal _yPoint;
 
         /// <summary>
+        /// X-axis line value when the button pressed
         /// значение линии по оси икс при нажатии на кнопку
         /// </summary>
-        private decimal _xPoint; 
+        private decimal _xPoint;
 
         /// <summary>
+        /// cursor value along the axis of game when press button
         /// значение курсора по оси игрик при нажатии на кнопку
         /// </summary>
         private decimal _yMouse;
 
         /// <summary>
+        /// X-axis cursor value when click on a point
         /// значение курсора по оси икс при нажатии на точку
         /// </summary>
-        private decimal _xMouse; 
+        private decimal _xMouse;
 
         /// <summary>
+        ///  mouse moved on schedule.
         /// двинулась мышь по графику
         /// </summary>
         void _chartForCandle_MouseMove2ChartElement(object sender, MouseEventArgs e)
         {
             if (_chart.Cursor != Cursors.SizeAll)
-            { // если пользователь не зажал элемент
+            {
+                // if user hasn't pinched the item
+                // если пользователь не зажал элемент
                 return;
+
             }
+// Y
 // игрик
             try
             {
@@ -2376,7 +2482,7 @@ namespace OsEngine.Charts.CandleChart
                 decimal moveMouse = lastY - _yMouse;
 
                 decimal movePrice = moveMouse * priceToOnePixel;
-
+                // round it up. 
                 // округлить надо 
 
                 string[] str = _chart.ChartAreas[0].AxisY2.Maximum.ToString(new CultureInfo("ru-RU")).Split(',');
@@ -2393,7 +2499,7 @@ namespace OsEngine.Charts.CandleChart
                     movePrice = Math.Round(movePrice, precise);
                     _yPoint = Math.Round(_yPoint, precise);
                 }
-
+                // X
                 // икс
                 decimal widthInPicsel = _host.Child.Width * Convert.ToDecimal(_chart.ChartAreas[0].InnerPlotPosition.Width / 100);
                 decimal widthInInts = Convert.ToDecimal(_chart.ChartAreas[0].AxisX.ScaleView.ViewMaximum - _chart.ChartAreas[0].AxisX.ScaleView.ViewMinimum);
@@ -2401,10 +2507,10 @@ namespace OsEngine.Charts.CandleChart
                 decimal intsToPicsel = widthInInts / widthInPicsel;
 
                 decimal moveMouseX = e.X - _xMouse;
-
+                // This is right point on the X-axis.
                 // это у нас нужная точка по оси икс
                 int moveInInts = Convert.ToInt32(_xPoint + moveMouseX * intsToPicsel);
-
+                // looking for what time it is.
                 // ищем какое это время
 
                 Series candleSeries = FindSeriesByNameSafe("SeriesCandle");
@@ -2451,6 +2557,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// as been put on chart LCM.
         /// опустилась ЛКМ на чарт
         /// </summary>
         private void _chartForCandle_MouseDown2ChartElement(object sender, MouseEventArgs e) 
@@ -2459,6 +2566,7 @@ namespace OsEngine.Charts.CandleChart
             {
                 return;
             }
+            // need to find X and Y we clicked on.
             // надо найти икс и игрик по которому кликнули
 
             try
@@ -2486,7 +2594,7 @@ namespace OsEngine.Charts.CandleChart
 
                 int x = Convert.ToInt32(_chart.ChartAreas[0].CursorX.Position);
                 decimal y = Convert.ToDecimal(_chart.ChartAreas[0].CursorY.Position);
-
+                // Now we're checking to see if any of the lines are pressed
                 // теперь проверяем, не нажата ли какая-то из линий
 
                 for (int i = 0; i < _chartElements.Count; i++)
@@ -2542,6 +2650,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// LCM up off chart.
         /// поднялась ЛКМ с чарта
         /// </summary>
         void _chartForCandle_MouseUp2ChartElement(object sender, MouseEventArgs e)
@@ -2581,7 +2690,7 @@ namespace OsEngine.Charts.CandleChart
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-
+// Alerts
 // АЛЕРТЫ
 
         public void ClearAlerts(List<IIAlert> alertArray)
@@ -2625,6 +2734,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// draw alert lines on  chart
         /// прорисовать линии алерта на чарте
         /// </summary>
         private void PaintAlert(ChartAlertLine[] lines, Color colorLine, int borderWidth, Color colorLabel, ChartAlertType type, string label,string alertName)
@@ -2704,10 +2814,12 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// draw a line on a series
         /// прорисовать линию на серии
         /// </summary>
         public void PaintOneLine(Series mySeries, List<Candle> candles, ChartAlertLine line, Color colorLine, int borderWidth, Color colorLabel, string label)
         {
+            // 1 set to a series of settings
             // 1 устанавливаем на серию настройки
 
             mySeries.Color = colorLine;
@@ -2717,7 +2829,7 @@ namespace OsEngine.Charts.CandleChart
 
             mySeries.LabelForeColor = colorLabel;
             mySeries.Label += " " + label;
-
+            // 2 looking for an index of our points
             // 2 ищем индекс наших точек
 
             int firstPointIndex = -1;
@@ -2738,9 +2850,10 @@ namespace OsEngine.Charts.CandleChart
             {
                 return;
             }
+            // 3 find out what kind of movement our candle line goes through.
             // 3 находим, какое движение проходит наша линия за свечку
 
-            decimal stepCorner; // сколько наша линия проходит за свечку
+            decimal stepCorner; //how long our line goes by candle// сколько наша линия проходит за свечку
             //stepCorner = (_secondPoint - _firstPoint) / (_numberCandleSecond - _numberCandleFirst);
 
             stepCorner = (line.ValueSecondPoint - line.ValueFirstPoint) / (secondPointIndex - firstPointIndex);
@@ -2755,13 +2868,14 @@ namespace OsEngine.Charts.CandleChart
             mySeries.Points.AddXY(x1, valueFirst);
             mySeries.Points.AddXY(x2, valieSecond);
         }
-
-// ИНДИКАТОРЫ
+        // Indicators
+        // ИНДИКАТОРЫ
 
         /// <summary>
+        /// draw an indicator on chart
         /// прорисовать индикатор на графике
         /// </summary>
-        /// <param name="indicator">индикатор</param>
+        /// <param name="indicator">indicator/индикатор</param>
         private void PaintIndicator(IIndicatorCandle indicator)
         {
             if (_mouseDown == true)
@@ -2836,9 +2950,10 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// Add an indicator to the drawing
         /// добавить индикатор в прорисовку
         /// </summary>
-        /// <param name="indicator">индикатор</param>
+        /// <param name="indicator">indicator/индикатор</param>
         public void ProcessIndicator(IIndicatorCandle indicator)
         {
             if ((_startProgram == StartProgram.IsTester
@@ -2858,9 +2973,10 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// forcefully redrawn indicator on chart from beginning to end
         /// принудительно перерисоват индикатор на графике от начала до конца
         /// </summary>
-        /// <param name="indicatorCandle">индикатор</param>
+        /// <param name="indicatorCandle">indicator/индикатор</param>
         public void RePaintIndicator(IIndicatorCandle indicatorCandle)
         {
             if (_mouseDown == true)
@@ -2892,9 +3008,10 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// clear data series
         /// очистить серию данных
         /// </summary>
-        /// <param name="series">имя серии</param>
+        /// <param name="series">series name/имя серии</param>
         private void ClearIndicatorSeries(Series series)
         {
             try
@@ -2911,10 +3028,11 @@ namespace OsEngine.Charts.CandleChart
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-
-// Индикатор точки
+        // Point indicator
+        // Индикатор точки
 
         /// <summary>
+        /// Draw an indicator as a point
         /// прорисовать индикатор как точки
         /// </summary>
         private void PaintLikePoint(List<decimal> values, Color color, string nameSeries)
@@ -2946,16 +3064,22 @@ namespace OsEngine.Charts.CandleChart
 
             if (mySeries.Points.Count != 0 &&
                values.Count - 1 == mySeries.Points.Count)
-            {// если прорисовываем только последнюю точку
+            {
+                // if draw only last point
+                // если прорисовываем только последнюю точку
                 PaintLikePointLast(values, nameSeries);
             }
             else if (mySeries.Points.Count != 0 &&
                 values.Count == mySeries.Points.Count)
-            {// перерисовываем последнюю точку
+            {
+                // redrawing the last point
+                // перерисовываем последнюю точку
                 RePaintLikePointLast(values, nameSeries);
             }
             else
-            {// если надо полностью перерисовываем весь индикатор
+            {
+                // if we need to completely,so redraw whole indicator
+                // если надо полностью перерисовываем весь индикатор
 
                 List<decimal> array = values;
 
@@ -2982,6 +3106,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// draw last points
         ///  прорисовать последние точки
         /// </summary>
         private void PaintLikePointLast(List<decimal> values, string nameSeries)
@@ -2994,6 +3119,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// redraw last point
         ///  перерисовать последнюю точку
         /// </summary>
         private void RePaintLikePointLast(List<decimal> values, string nameSeries)
@@ -3003,10 +3129,11 @@ namespace OsEngine.Charts.CandleChart
             mySeries.Points[mySeries.Points.Count - 1].YValues = new[] { Convert.ToDouble(point2) };
             mySeries.Points[mySeries.Points.Count - 1].ToolTip = point2.ToString();
         }
-
-// Индикатор линия
+        // Line indicator
+        // Индикатор линия
 
         /// <summary>
+        /// draw indicator as a line
         /// прорисовать индикатор как линию
         /// </summary>
         private void PaintLikeLine(List<decimal> values, Color color, string nameSeries)
@@ -3033,16 +3160,22 @@ namespace OsEngine.Charts.CandleChart
 
             if(mySeries.Points.Count != 0 &&
                 values.Count - 1 == mySeries.Points.Count)
-            {// если прорисовываем только последнюю точку
+            {
+                // if only draw last point
+                // если прорисовываем только последнюю точку
                 PaintLikeLineLast(values, nameSeries);
             }
             else if (mySeries.Points.Count != 0 &&
                 values.Count == mySeries.Points.Count)
-            {// перерисовываем последнюю точку
+            {
+                // redraw last point
+                // перерисовываем последнюю точку
                 RePaintLikeLineLast(values, nameSeries);
             }
             else
-            { // если надо полностью перерисовываем весь индикатор
+            {
+                // if it's needed completely redraw whole indicator
+                // если надо полностью перерисовываем весь индикатор
 
                 List<decimal> array = values;
 
@@ -3080,6 +3213,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// draw indicator as a line, last element
         /// прорисовать индикатор как линию, последний элемент
         /// </summary>
         private void PaintLikeLineLast(List<decimal> values, string nameSeries)
@@ -3094,6 +3228,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// redraw indicator as a line,last element
         /// перерисовать индикатор как линию, последний элемент
         /// </summary>
         private void RePaintLikeLineLast(List<decimal> values, string nameSeries)
@@ -3106,10 +3241,11 @@ namespace OsEngine.Charts.CandleChart
 
             RePaintRightLebels();
         }
-
-// Индикатор столбец
+        // Column indicator
+        // Индикатор столбец
 
         /// <summary>
+        /// draw as columns
         /// прорисовать как столбцы
         /// </summary>
         private void PaintLikeColumn(List<decimal> values, Color colorUp, Color colorDown, string nameSeries)
@@ -3136,16 +3272,22 @@ namespace OsEngine.Charts.CandleChart
 
             if (mySeries.Points.Count != 0 &&
                 values.Count - 1 == mySeries.Points.Count)
-            {// если прорисовываем только последнюю точку
+            {
+                // if only draw last point
+                // если прорисовываем только последнюю точку
                 PaintLikeColumnLast(values,nameSeries,colorUp,colorDown);
             }
             else if (mySeries.Points.Count != 0 &&
                 values.Count == mySeries.Points.Count)
-            {// перерисовываем последнюю точку
+            {
+                // redrawing last point
+                // перерисовываем последнюю точку
                 RePaintLikeColumnLast(values, nameSeries, colorUp, colorDown);
             }
             else
-            { // если надо полностью перерисовываем весь индикатор
+            {
+                // if it needed completely redraw whole indicator
+                // если надо полностью перерисовываем весь индикатор
 
                 List<decimal> array = values;
 
@@ -3194,8 +3336,9 @@ namespace OsEngine.Charts.CandleChart
             }
             ResizeYAxisOnArea(myArea.Name);
         }
-        
+
         /// <summary>
+        /// draw indicator as two lines,last element
         /// прорисовать индикатор как две линии, последний элемент
         /// </summary>
         private void PaintLikeColumnLast(List<decimal> values, string nameSeries, Color colorUp, Color colorDown)
@@ -3223,6 +3366,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// draw indicator as two lines, last element
         /// прорисовать индикатор как две линии, последний элемент
         /// </summary>
         private void RePaintLikeColumnLast(List<decimal> values, string nameSeries, Color colorUp, Color colorDown)
@@ -3252,9 +3396,10 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// add a series of data to chart safely
         /// добавить серию данных на чарт безопасно
         /// </summary>
-        /// <param name="series">сирия данных</param>
+        /// <param name="series">data series/серия данных</param>
         private void PaintSeriesSafe(Series series)
         {
             try
@@ -3288,9 +3433,10 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// to remove a series of data from chart safely
         /// удалить серию данных с чарта безопасно
         /// </summary>
-        /// <param name="series">серия данных</param>
+        /// <param name="series">data series/серия данных</param>
         private void ReMoveSeriesSafe(Series series)
         {
             try
@@ -3314,10 +3460,11 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// to find a series of data by name safely
         /// найти серию данных по имени безопасно
         /// </summary>
-        /// <param name="name">имя серии</param>
-        /// <returns>серия данных. Если такой нет, то null</returns>
+        /// <param name="name">series name/имя серии</param>
+        /// <returns>a series of data. If not - null/серия данных. Если такой нет, то null</returns>
         private Series FindSeriesByNameSafe(string name)
         {
             Series mySeries;
@@ -3342,10 +3489,11 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// Find data area by name safely
         /// найти область данных по имени безопасно
         /// </summary>
-        /// <param name="name">имя области</param>
-        /// <returns>область данных. Если такой нет, то null</returns>
+        /// <param name="name">area name/имя области</param>
+        /// <returns>data area. If there isn't one, then - null/область данных. Если такой нет, то null</returns>
         private ChartArea FindAreaByNameSafe(string name)
         {
             ChartArea myArea;
@@ -3368,8 +3516,8 @@ namespace OsEngine.Charts.CandleChart
 
             return myArea;
         }
-
-// Паттерны
+        // Patterns
+        // Паттерны
 
         public bool IsPatternChart;
 
@@ -3473,8 +3621,8 @@ namespace OsEngine.Charts.CandleChart
                 paintSeries.Points[i].BorderColor = pointColor;
             }
         }
-
-// управление исчезанием перекрестия на графике
+        // Crosshair disappearing control on chart
+        // управление исчезанием перекрестия на графике
 
 
         private void _chart_MouseLeave(object sender, EventArgs e)
@@ -3485,13 +3633,14 @@ namespace OsEngine.Charts.CandleChart
                 _chart.ChartAreas[i].CursorY.Position = 0;
             }
         }
-
-// переход по чарту
+        // chart transition
+        // переход по чарту
 
         /// <summary>
+        /// move chart to a specified time
         /// переместить чарт к заданному времени
         /// </summary>
-        /// <param name="time">время</param>
+        /// <param name="time">time/время</param>
         public void GoChartToTime(DateTime time)
         {
             try
@@ -3521,6 +3670,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// move chart to a specified time
         /// переместить чарт к заданному времени
         /// </summary>
         public void GoChartToIndex(int index)
@@ -3564,8 +3714,8 @@ namespace OsEngine.Charts.CandleChart
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-
-// работа с курсором и выделенем свечек на чарте
+        // working with cursor and highlight candles on chart
+        // работа с курсором и выделенем свечек на чарте
 
         void _chart_Click(object sender, EventArgs e)
         {
@@ -3749,6 +3899,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// draws the cursor value on the Y axis
         /// прорисовывает на оси Y значение курсора
         /// </summary>
         private void RePaintCursor()
@@ -3757,6 +3908,7 @@ namespace OsEngine.Charts.CandleChart
             {
                 return;
             }
+            // looking for area where cursor is now
             // ищем, на какой области сейчас курсор
 
             ChartArea area = null;
@@ -3794,17 +3946,18 @@ namespace OsEngine.Charts.CandleChart
             RePaintPrimeLines("Prime");
             CheckOverlap("Prime");
         }
-
-// прорисовка горизонтальных линий на графике
+        // Drawing horizontal lines on a chart
+        // прорисовка горизонтальных линий на графике
 
         /// <summary>
+        /// to draw an inscription on Y2 axis
         /// прорисовать надпись на оси Y2
         /// </summary>
-        /// <param name="nameArea">название области</param>
-        /// <param name="label">подпись</param>
-        /// <param name="positionOnY">позиция линии</param>
-        /// <param name="color">цвет подписи</param>
-        /// <param name="isPrime">является ли подпись подписью перекрвающий другие</param>
+        /// <param name="nameArea">area name/название области</param>
+        /// <param name="label">signature/подпись</param>
+        /// <param name="positionOnY">Line position/позиция линии</param>
+        /// <param name="color">signature color/цвет подписи</param>
+        /// <param name="isPrime">if the signature is a signature that crosses the other/является ли подпись подписью перекрвающий другие</param>
         private void PaintLabelOnY2(string name, string nameArea, string label, decimal positionOnY, Color color, bool isPrime)
         {
             if (_myCandles == null)
@@ -3836,11 +3989,15 @@ namespace OsEngine.Charts.CandleChart
                 _labels = new List<ChartYLabels>();
             }
             if (area.AxisY2.CustomLabels != null)
-            { // удаляем лэйбл если он уже был на графике
+            {
+                // delete the label if it was already on schedule.
+                // удаляем лэйбл если он уже был на графике
                 ChartYLabels oldlabel = _labels.Find(labels => labels.AreaName == nameArea && labels.SeriesName == name);
 
                 if (oldlabel != null)
-                {// нашли старую серию
+                {
+                    // found an old series
+                    // нашли старую серию
                     string positon = oldlabel.Price;
                     for (int i = 0; i < area.AxisY2.CustomLabels.Count; i++)
                     {
@@ -3925,11 +4082,13 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// all signatures on chart
         /// все подписи на графике
         /// </summary>
         private List<ChartYLabels> _labels;
 
         /// <summary>
+        /// Sign standard horizontal lines on the area
         /// подписать стандартные горизонтальные линии на области
         /// </summary>
         private void RePaintPrimeLines(string areaName)
@@ -4010,6 +4169,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// to check labels on Y-axis for overlapping labels. And hide lines if necessary
         /// проверить перехлёст лэйблов на оси Y. И спрятать линии если нужно
         /// </summary>
         private void CheckOverlap(string nameArea)
@@ -4023,7 +4183,9 @@ namespace OsEngine.Charts.CandleChart
             ChartArea area = GetChartArea(nameArea);
 
             for (int indLabel = 0; indLabel < _labels.Count; indLabel++)
-            {// ищем лэйблы с пометкой IsPrime. Под ними надо всё расчистить
+            {
+                // looking for labels marked IsPrime. Underneath them we need to clear everything
+                // ищем лэйблы с пометкой IsPrime. Под ними надо всё расчистить
                 if (_labels[indLabel].IsPrime == false)
                 {
                     continue;
@@ -4047,7 +4209,9 @@ namespace OsEngine.Charts.CandleChart
                     }
 
                     if (_labels[indSecond].IsPrime)
-                    { // если два прайма друг на дружке, то оставляем
+                    {
+                        // If two primes are on each other, leave it
+                        // если два прайма друг на дружке, то оставляем
                         continue;
                     }
 
@@ -4060,7 +4224,9 @@ namespace OsEngine.Charts.CandleChart
                     double price = Convert.ToDouble(_labels[indSecond].Price);
                     if (price < max &&
                         price > min)
-                    { // нашли пересечение
+                    {
+                        // found intersection
+                        // нашли пересечение
                         ClearLabelOnY2(_labels[indSecond].SeriesName, nameArea, _labels[indSecond].Color);
                         indSecond--;
                     }
@@ -4069,6 +4235,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// redraw digits of indicator display on right axis
         /// перерисовать цифры отображения индикаторов на правой оси
         /// </summary>
         private void RePaintRightLebels()
@@ -4173,10 +4340,11 @@ namespace OsEngine.Charts.CandleChart
         {
             RePaintRightLebels();
         }
-
-// управление схлопывание областей
+        // management of collapsing areas
+        // управление схлопывание областей
 
         /// <summary>
+        /// hide all except main
         /// спрятать все области кроме главной
         /// </summary>
         public void HideAreaOnChart()
@@ -4205,6 +4373,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// show all areas
         /// показать все области
         /// </summary>
         public void ShowAreaOnChart()
@@ -4239,12 +4408,16 @@ namespace OsEngine.Charts.CandleChart
                         if (_chart.ChartAreas[i].Name != "TradeArea")
                         {
                             if (tickChartInclude == false)
-                            { // если тиковый график ещё не прошли
+                            {
+                                // if the tick chart hasn't passed yet.
+                                // если тиковый график ещё не прошли
                                 _chart.ChartAreas[i].Position.Height = 15;
                                 _chart.ChartAreas[i].Position.Y = _chart.ChartAreas[0].Position.Y + _chart.ChartAreas[0].Position.Height + (i - 1) * 15;
                             }
                             else
-                            { // надо учитывать высоту тикового графика
+                            {
+                                // have to take into account height of tick chart
+                                // надо учитывать высоту тикового графика
                                 _chart.ChartAreas[i].Position.Height = 15;
                                 _chart.ChartAreas[i].Position.Y = _chart.ChartAreas[0].Position.Y + _chart.ChartAreas[0].Position.Height + (i - 2) * 15 + tickHigh;
                             }
@@ -4264,8 +4437,8 @@ namespace OsEngine.Charts.CandleChart
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-
-// управление высотой областей
+        // area height management
+        // управление высотой областей
 
         private List<ChartAreaPosition> _areaPositions;
 
@@ -4342,7 +4515,8 @@ namespace OsEngine.Charts.CandleChart
             {
                 myPosition.ValueYMouseOnClickStart = 0;
             }
-
+            // dragging and dropping areas
+            // Here we have a left-hand button pressed
             // перетаскивание областей
             // Здесь у нас есть нажатая левая кнопка
 
@@ -4577,6 +4751,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// recalculate location of areas in window
         /// пересчитать расположение областей на окне
         /// </summary>
         private void ReloadChartAreasSize()
@@ -4618,12 +4793,13 @@ namespace OsEngine.Charts.CandleChart
             position.DownPoint = position.UpPoint + _host.Child.Height * (area.Position.Height / 100);
 
         }
-
-// изменение масштабов осей
+        // axis scaling
+        // изменение масштабов осей
 
         private List<ChartAreaSizes> _areaSizes;
 
         /// <summary>
+        /// take current axle multipliers
         /// взять актуальные мультипликаторы осей
         /// </summary>
         private void ReloadAreaSizes()
@@ -4704,6 +4880,7 @@ namespace OsEngine.Charts.CandleChart
                     low.ToString(culture).Split(',').Length > 1 ||
                     close.ToString(culture).Split(',').Length > 1)
                 {
+                    // if there's a physical part
                     // если имеет место вещественная часть
                     int lenght = 1;
 
@@ -4778,6 +4955,7 @@ namespace OsEngine.Charts.CandleChart
                 }
                 else
                 {
+                    // if there's no physical part
                     // если вещественной части нет
                     int lenght = 1;
 
@@ -4843,7 +5021,7 @@ namespace OsEngine.Charts.CandleChart
             {
                 minPriceStep = 5;
             }
-
+            // number of decimal places
             // кол-во знаков после запятой
 
             int countZnak = 0;
@@ -4931,7 +5109,9 @@ namespace OsEngine.Charts.CandleChart
                         maxDecimal = lengh;
                     }
                     if (find == true)
-                    { // нашли глубину
+                    {
+                        // found the depth.
+                        // нашли глубину
                         break;
                     }
                 }
@@ -4946,6 +5126,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// size of axis X-axis has changed
         /// изменились масштабы Оси Х
         /// </summary>
         void _chart_AxisViewChanged(object sender, ViewEventArgs e) 
@@ -4970,6 +5151,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        ///  position of scrollbar's scrolling barrel has changed.
         /// изменилось положение коретки скроллбара чарта
         /// </summary>
         void _chart_AxisScrollBarClicked(object sender, ScrollBarEventArgs e)
@@ -4994,6 +5176,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// LCM up
         /// поднялась ЛКМ
         /// </summary>
         void _chartForCandle_MouseUp(object sender, MouseEventArgs e) 
@@ -5003,6 +5186,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// LCM down
         /// опустилась ЛКМ
         /// </summary>
         private void _chartForCandle_MouseDown(object sender, MouseEventArgs e)
@@ -5017,6 +5201,7 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
             _mouseDown = true;
+            // accept event on the right side of host
             // принимаем событие в правой части хоста
             if (_areaPositions == null)
             {
@@ -5065,21 +5250,25 @@ namespace OsEngine.Charts.CandleChart
         private bool _mouseDown;
 
         /// <summary>
+        /// Y on which clamped LC
         /// Y по которому зажали ЛК
         /// </summary>
         private double _firstY;
 
         /// <summary>
+        /// Y current
         ///  Y текущий
         /// </summary>
         private double _lastY;
 
         /// <summary>
+        /// area we're changing right now.
         /// область которую сейчас изменяем
         /// </summary>
         private string _resizeArea;
 
         /// <summary>
+        /// mouse moved
         /// двинулась мышь
         /// </summary>
         void _chartForCandle_MouseMove(object sender, MouseEventArgs e)
@@ -5163,9 +5352,10 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// Change Y-axis view of data area
         /// изменить представление оси Y у области данных
         /// </summary>
-        /// <param name="areaName">имя области данных</param>
+        /// <param name="areaName">data area name/имя области данных</param>
         private void ResizeYAxisOnArea(string areaName)
         {
             if(areaName == "TradeArea")
@@ -5192,22 +5382,24 @@ namespace OsEngine.Charts.CandleChart
                     return;
                 }
 
-                Series candleSeries = FindSeriesByNameSafe("SeriesCandle"); // берём серию свечек с графика
-                ChartArea candleArea = FindAreaByNameSafe("Prime"); // берём область для свечек с графика
+                Series candleSeries = FindSeriesByNameSafe("SeriesCandle"); // take a series of candles from chart/берём серию свечек с графика
+                ChartArea candleArea = FindAreaByNameSafe("Prime"); //take area for candles from chart/ берём область для свечек с графика
 
                 if (candleArea == null ||
                     candleSeries == null)
                 {
-// если какие-то данные не доступны. Выходим
+                    // if some data isn't available. Let's go out
+                    // если какие-то данные не доступны. Выходим
                     return;
                 }
 
-                int firstX = 0; // первая отображаемая свеча
-                int lastX = candleSeries.Points.Count; // последняя отображаемая свеча
+                int firstX = 0; //first displayed candle/ первая отображаемая свеча
+                int lastX = candleSeries.Points.Count; //last displayed candle/ последняя отображаемая свеча
 
                 if (_chart.ChartAreas[0].AxisX.ScrollBar.IsVisible)
                 {
-// если уже выбран какой-то диапазон, назначаем первую и последнюю исходя из этого диапазона
+                    // If a range has already been selected, assign first and last one based on this range
+                    // если уже выбран какой-то диапазон, назначаем первую и последнюю исходя из этого диапазона
                     firstX = Convert.ToInt32(candleArea.AxisX.ScaleView.Position);
                     lastX = Convert.ToInt32(candleArea.AxisX.ScaleView.Position) +
                             Convert.ToInt32(candleArea.AxisX.ScaleView.Size) + 1;
@@ -5391,7 +5583,9 @@ namespace OsEngine.Charts.CandleChart
 
             if (series.Points.Count < 100 ||
                 end - start < 400)
-            { // если у нас малое окно отображения, делаем всё в лоб
+            {
+                // if we have a small display window, we do everything in forehead
+                // если у нас малое окно отображения, делаем всё в лоб
                 currentLength.Xend = end;
                 currentLength.Xstart = start;
                 currentLength.Ymax = GetMaxFromSeries(series, start, end, candleSeries);
@@ -5399,12 +5593,16 @@ namespace OsEngine.Charts.CandleChart
                 currentLength.CountOneCandlesAdd = 0;
             }
             else if ((currentLength.Xend == end && currentLength.Xstart == start))
-            { // отображение не изменилось
+            {
+                // display hasn't changed
+                // отображение не изменилось
                 return currentLength;
             }
             else if (currentLength.CountOneCandlesAdd < 20 &&
                     (currentLength.Xend +1 == end && currentLength.Xstart == start))
-            { // отображение сдвинулось на один вправо
+            {
+                // display has shifted one right
+                // отображение сдвинулось на один вправо
 
                 int x = currentLength.Xend + 1;
 
@@ -5426,7 +5624,9 @@ namespace OsEngine.Charts.CandleChart
             }
             else if (currentLength.CountOneCandlesAdd < 20 && 
                 (currentLength.Xend + 1 == end && currentLength.Xstart + 1 == start))
-            { // отображение сдвинулось на один вправо
+            {
+                // display has shifted one right
+                // отображение сдвинулось на один вправо
                 if (series.Points[currentLength.Xstart].YValues.Max() == currentLength.Ymax)
                 {
                     currentLength.Ymax = series.Points[currentLength.Xstart + 1].YValues.Max();
@@ -5450,7 +5650,9 @@ namespace OsEngine.Charts.CandleChart
             }
             else if (currentLength.Xend + 1 != end || currentLength.Xstart +1 != start ||
                 currentLength.Ymax == 0 || currentLength.Ymin == 0 || currentLength.CountOneCandlesAdd>=20)
-            { // нужно перезагрузить серию заного
+            {
+                // need to reboot series again.
+                // нужно перезагрузить серию заного
                 currentLength.Xend = end;
                 currentLength.Xstart = start;
                 currentLength.Ymax = GetMaxFromSeries(series, start, end, candleSeries);
@@ -5473,6 +5675,7 @@ namespace OsEngine.Charts.CandleChart
 
                 for (int i = start; series.Points.Count >= candleSeries.Points.Count - 1 && i <= end && i < series.Points.Count; )
                 {
+                    // series of parallel candles,indicator
                     // серия паралельная свечкам, индикатор
                     if (series.Points[i].YValues.Max() > max &&
                         series.Points[i].YValues.Max() != 0)
@@ -5533,6 +5736,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// redraw lines on the X-axis
         /// перерисовать линии на оси Икс
         /// </summary>
         private void ResizeXAxis()
@@ -5618,6 +5822,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// change Y-axis view of the data area where ticks displayed
         /// изменить представление оси Y у области данных на которой отображаются тики
         /// </summary>
         private void ResizeTickArea()
@@ -5705,6 +5910,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// reset zoom in
         /// сбросить увеличение
         /// </summary>
         private void ClearZoom() 
@@ -5729,59 +5935,70 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// there's been a change int X-axis
         /// изменилось представление по оси Х
         /// </summary>
         public event Action<int> SizeAxisXChangeEvent;
     }
 
     /// <summary>
+    /// class allowing to transfer position of main window
     /// класс позволяющий передавать положение главного окна
     /// </summary>
     public class WindowCoordinate
     {
         /// <summary>
+        /// left point X at main application window
         /// левая точка Х у главного окна приложения
         /// </summary>
         public static decimal X;
 
         /// <summary>
+        /// top point Y at main application window
         /// верхняя точка Y у главного окна приложения
         /// </summary>
         public static decimal Y;
     }
 
     /// <summary>
+    /// object for storing signatures on Y-axis
     /// объект для хранения подписей на оси Y
     /// </summary>
     public class ChartYLabels
     {
         /// <summary>
+        /// Name of area
         /// Имя области
         /// </summary>
         public string AreaName;
 
         /// <summary>
+        /// Series Name
         /// Имя серии
         /// </summary>
         public string SeriesName;
 
         /// <summary>
+        /// price
         /// цена
         /// </summary>
         public string Price;
 
         /// <summary>
+        /// whether the line is a line overlapping with other lines
         /// является ли линия линией перекрывающей другие
         /// </summary>
         public bool IsPrime;
 
         /// <summary>
+        /// data series color
         /// цвет серии данных
         /// </summary>
         public Color Color;
     }
 
     /// <summary>
+    /// Object for storing axle settings
     /// объект для хранения настроек осей
     /// </summary>
     public class ChartAreaSizes
@@ -5796,62 +6013,74 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
+        /// name
         /// имя
         /// </summary>
         public string Name;
 
         /// <summary>
+        /// accuracy
         /// точность
         /// </summary>
         public int Decimals;
 
         /// <summary>
+        /// height
         /// высота
         /// </summary>
         public int High;
 
         /// <summary>
+        /// content alignment multiplier
         /// мультипликатор для центровки содержимого
         /// </summary>
         public double Multiplier;
 
         /// <summary>
+        /// Number of lines separating the area
         /// кол-во линий разделяющих область
         /// </summary>
         public int LineCount;
     }
 
     /// <summary>
+    /// parameters of series location in Y-axis
     /// параметры расположения серии на оси Y
     /// </summary>
     public class SeriesYLength
     {
         /// <summary>
+        /// series
         /// серия
         /// </summary>
         public Series Series;
 
         /// <summary>
+        ///  Start of displaying on X-axis
         /// начало отображения на оси X
         /// </summary>
         public int Xstart;
 
         /// <summary>
+        /// End of display in X-axis
         /// конец отображения на оси X
         /// </summary>
         public int Xend;
 
         /// <summary>
+        /// top point in Y axis
         /// верхняя точка на оси Y
         /// </summary>
         public double Ymax;
 
         /// <summary>
+        /// lower point on Y axis
         /// нижняя точка на оси Y
         /// </summary>
         public double Ymin;
 
         /// <summary>
+        /// number of consecutive incremental increments of one candle each
         /// количество подряд приращения по одной свече
         /// </summary>
         public int CountOneCandlesAdd;
@@ -5859,74 +6088,87 @@ namespace OsEngine.Charts.CandleChart
     }
 
     /// <summary>
+    /// Date position on X axis
     /// расположение даты на оси X
     /// </summary>
     public class TimeAxisXPoint
     {
         /// <summary>
+        /// time
         /// время 
         /// </summary>
         public DateTime PositionTime;
 
         /// <summary>
+        /// X-axis number
         /// номер на оси X
         /// </summary>
         public int PositionXPoint;
     }
 
     /// <summary>
+    /// object reflecting current position of area in the window. Absolute values of position of sides of regions.
     /// объект отражающий текущее положение области в окне. Абсолютные значения положения сторон областей.
     /// </summary>
     public class ChartAreaPosition
     {
         /// <summary>
+        /// area
         /// область
         /// </summary>
         public ChartArea Area;
 
         /// <summary>
+        /// top point position
         /// положение верхней точки 
         /// </summary>
         public double UpPoint;
 
         /// <summary>
+        /// bottom point position
         /// положение нижней точки 
         /// </summary>
         public double DownPoint;
 
         /// <summary>
+        /// left point position
         /// положение левой точки 
         /// </summary>
         public double LeftPoint;
 
         /// <summary>
+        ///  position of right point
         /// положение правой точки 
         /// </summary>
         public double RightPoint;
-
-// переменные для настройки высоты областей
+        // Variables to adjust height of areas
+        // переменные для настройки высоты областей
 
         /// <summary>
+        /// value by which we clicked on the area
         /// значение по которому мы нажали на область
         /// </summary>
         public double ValueYMouseOnClickStart;
 
         /// <summary>
+        ///  height of area when we started dragging it
         /// высота области в момент когда мы её начали перетаскивать
         /// </summary>
         public double HeightAreaOnClick;
 
         /// <summary>
+        /// point Y of area when we started dragging it
         /// точка Y области в момент когда мы её начали перетаскивать
         /// </summary>
         public double ValueYChartOnClick;
 
         /// <summary>
+        /// height of upper area when we started dragging it
         /// высота верхней области в момент когда мы её начали перетаскивать
         /// </summary>
         public double HeightAreaOnClickBeforeUs;
-
-// переменные для настройки ширины представления
+        // Variables to adjust the presentation width
+        // переменные для настройки ширины представления
 
         public double ValueXMouseOnClickStart;
 
