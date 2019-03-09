@@ -894,11 +894,6 @@ namespace OsEngine.Market.Servers.BitMex
             {
                 MarketDepth depth = _depths.Find(d => d.SecurityNameCode == quotes.data[0].symbol);
 
-                if (depth != null && depth.SecurityNameCode == "ADAH19")
-                {
-
-                }
-
                 lock (_quoteLock)
                 {
                     
@@ -1397,6 +1392,7 @@ namespace OsEngine.Market.Servers.BitMex
                             //param["orderIDs"] = order.NumberUser.ToString();
                             param["orderQty"] = order.Volume.ToString();
                             param["clOrdID"] = order.NumberUser.ToString();
+                            param["origClOrdID"] = order.NumberUser.ToString();
 
                             param["ordType"] = order.TypeOrder == OrderPriceType.Limit ? "Limit" : "Market";
 

@@ -318,6 +318,12 @@ namespace OsEngine.Market.Servers.Binance
                         _depths = new List<MarketDepth>();
                     }
 
+                    if (myDepth.data.asks == null || myDepth.data.asks.Count == 0 ||
+                        myDepth.data.bids == null || myDepth.data.bids.Count == 0)
+                    {
+                        return;
+                    }
+
                     var needDepth = _depths.Find(depth =>
                         depth.SecurityNameCode == myDepth.stream.Split('@')[0].ToUpper());
 
@@ -336,23 +342,26 @@ namespace OsEngine.Market.Servers.Binance
                         ascs.Add(new MarketDepthLevel()
                         {
                             Ask = Convert.ToDecimal(
-                                myDepth.data.asks[i][1].ToString().Replace(".",
+                                myDepth.data.asks[i][1].ToString().Replace(",",
                                     CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
                                 CultureInfo.InvariantCulture),
                             Price = Convert.ToDecimal(
-                                myDepth.data.asks[i][0].ToString().Replace(".",
+                                myDepth.data.asks[i][0].ToString().Replace(",",
                                     CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
                                 CultureInfo.InvariantCulture)
                         });
+                    }
 
+                    for (int i = 0; i < myDepth.data.bids.Count; i++)
+                    {
                         bids.Add(new MarketDepthLevel()
                         {
                             Bid = Convert.ToDecimal(
-                                myDepth.data.bids[i][1].ToString().Replace(".",
+                                myDepth.data.bids[i][1].ToString().Replace(",",
                                     CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
                                 CultureInfo.InvariantCulture),
                             Price = Convert.ToDecimal(
-                                myDepth.data.bids[i][0].ToString().Replace(".",
+                                myDepth.data.bids[i][0].ToString().Replace(",",
                                     CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
                                 CultureInfo.InvariantCulture),
                         });

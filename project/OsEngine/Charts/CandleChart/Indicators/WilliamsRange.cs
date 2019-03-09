@@ -378,6 +378,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 return 0;
             }
 
+            if (_high[index] - _low[index] == 0)
+            {
+                return Values[Values.Count - 1];
+            }
+
             return Math.Round(-100 * (_high[index] - candles[index].Close) / (_high[index] - _low[index]), 2);
         }
 
