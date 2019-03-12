@@ -14,6 +14,7 @@ using OsEngine.OsTrader.Panels.Tab;
 namespace OsEngine.Entity
 {
     /// <summary>
+    /// horizontal volumes
     /// горизонтальные объёмы
     /// </summary>
     public class HorizontalVolume
@@ -27,6 +28,7 @@ namespace OsEngine.Entity
         private string _name;
 
         /// <summary>
+        /// save the settings to a file
         /// сохранить настройки в файл
         /// </summary>
         public void Save()
@@ -42,11 +44,13 @@ namespace OsEngine.Entity
             }
             catch (Exception)
             {
+                // send to log
                 // отправить в лог
             }
         }
 
         /// <summary>
+        /// upload the settings from the file
         /// загрузить настройки из файла
         /// </summary>
         public void Load()
@@ -67,11 +71,13 @@ namespace OsEngine.Entity
             }
             catch (Exception)
             {
+                // send to log
                 // отправить в лог
             }
         }
 
         /// <summary>
+        /// Delete the settings from the file
         /// удалить настройки из файла
         /// </summary>
         public void Delete()
@@ -81,10 +87,11 @@ namespace OsEngine.Entity
                 File.Delete(@"Engine\" + _name + @"HorizontalVolumeSet.txt");
             }
         }
-
-// расчёт кластеров
+        // cluster calculation
+        // расчёт кластеров
 
         /// <summary>
+        /// compute the clusters
         /// просчитать кластеры
         /// </summary>
         public void Process(List<Candle> candles)
@@ -120,6 +127,7 @@ namespace OsEngine.Entity
 
             for (int i = index; i < candles.Count; i++)
             {
+                // take the cluster from the storage, if not, then create a new
                 // берём кластер из хранилища, если нет, то создаём новый
 
                 if (candles[i].Trades == null ||
@@ -174,12 +182,12 @@ namespace OsEngine.Entity
 
                     cluster.NewLineCreateEvent += delegate(HorizontalVolumeLine line) { VolumeClusterLines.Add(line); };
                 }
-
-// прогружаем кластер данными
+                // upload the cluster with data
+                // прогружаем кластер данными
 
                 cluster.Process(candles[i].Trades);
-
- // рассчитываем максимальные / минимальные кластеры
+                // calculate the maximum / minimum clusters
+                // рассчитываем максимальные / минимальные кластеры
 
                 if (MaxSummVolumeCluster == null ||
                     cluster.MaxSummVolumeLine.VolumeSumm > MaxSummVolumeCluster.MaxSummVolumeLine.VolumeSumm)
@@ -249,16 +257,19 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// the last number of candles processed
         /// последнее количество обработанных свечек
         /// </summary>
         private int _lastCandlesCount = 0;
 
         /// <summary>
+        /// candlesticks that were used to calculate the volumes
         /// свечи по которым рассчитывались объёмы
         /// </summary>
         private List<Candle> _myCandles;
 
         /// <summary>
+        ///   clear all data
         /// очистить все данные
         /// </summary>
         public void Clear()
@@ -277,6 +288,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        ///  volume update
         /// обновить объёмы
         /// </summary>
         public void Refresh()
@@ -286,6 +298,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// line pitch in cluster
         /// шаг линии в кластере
         /// </summary>
         public decimal StepLine
@@ -306,6 +319,7 @@ namespace OsEngine.Entity
         private decimal _lineStep;
 
         /// <summary>
+        /// the paper on which we calculate the clusters
         /// бумага по которой рассчитываем кластеры
         /// </summary>
         public Security Security
@@ -327,78 +341,91 @@ namespace OsEngine.Entity
             }
         }
         private Security _security;
-    
 
-// хранение данных
+        // Data storage
+        // хранение данных
 
         /// <summary>
+        /// volume clusters
         /// кластеры(колонки) объёмов
         /// </summary>
         public List<HorizontalVolumeCluster> VolumeClusters = new List<HorizontalVolumeCluster>();
 
         /// <summary>
+        /// lines in volume clusters
         /// линии в кластерах обьёма
         /// </summary>
         public List<HorizontalVolumeLine> VolumeClusterLines = new List<HorizontalVolumeLine>();
 
         /// <summary>
+        /// volume column with the maximum volume of all transactions
         /// столбец объёма с максимальным объёмом всех сделок
         /// </summary>
         public HorizontalVolumeCluster MaxSummVolumeCluster;
 
         /// <summary>
+        /// volume column with minimum volume of all transactions
         /// столбец объёма с минимальным объёмом всех сделок
         /// </summary>
         public HorizontalVolumeCluster MinSummVolumeCluster;
 
         /// <summary>
+        /// volume column with the maximum amount of purchases
         /// столбец объёма с максимальным объёмом покупок
         /// </summary>
         public HorizontalVolumeCluster MaxBuyVolumeCluster;
 
         /// <summary>
+        /// volume column with a minimum amount of purchases
         /// столбец объёма с минимальным объёмом покупок
         /// </summary>
         public HorizontalVolumeCluster MinBuyVolumeCluster;
 
         /// <summary>
+        /// volume column with maximum sales
         /// столбец объёма с максимальным объёмом продаж
         /// </summary>
         public HorizontalVolumeCluster MaxSellVolumeCluster;
 
         /// <summary>
+        /// volume column with minimum sales
         /// столбец объёма с минимальным объёмом продаж
         /// </summary>
         public HorizontalVolumeCluster MinSellVolumeCluster;
 
         /// <summary>
+        /// volume column with the maximum delta volume (purchases minus sales)
         /// столбец объёма с максимальным объёмом по дельте (покупки минус продажи)
         /// </summary>
         public HorizontalVolumeCluster MaxDeltaVolumeCluster;
 
         /// <summary>
+        /// minimum volume delta volume column (purchases minus sales)
         /// столбец объёма с минимальным объёмом по дельте (покупки минус продажи)
         /// </summary>
         public HorizontalVolumeCluster MinDeltaVolumeCluster;
 
         /// <summary>
+        /// maximum price slob
         /// слобец объёма с максимальной ценой
         /// </summary>
         public HorizontalVolumeCluster MaxPriceCluster;
 
         /// <summary>
+        /// volume column with minimum price
         /// столбец объёма с минимальной ценой
         /// </summary>
         public HorizontalVolumeCluster MinPriceCluster;
-
-// методы доступа к данным
+        // data access methods
+        // методы доступа к данным
 
         /// <summary>
+        /// find cluster with maximum volume
         /// найти кластер с максимальным объёмом
         /// </summary>
-        /// <param name="startIndex">стартовый индекс</param>
-        /// <param name="endIndex">конечный индекс</param>
-        /// <param name="typeCluster">тип объёма в кластере</param>
+        /// <param name="startIndex">starting index/стартовый индекс</param>
+        /// <param name="endIndex">final index /конечный индекс</param>
+        /// <param name="typeCluster">type of volume in the cluster/тип объёма в кластере</param>
         /// <returns></returns>
         public HorizontalVolumeCluster FindMaxVolumeCluster(int startIndex, int endIndex, ClusterType typeCluster)
         {
@@ -458,11 +485,12 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        ///  найти кластер с минимальный объёмом
         /// найти кластер с минимальный объёмом
         /// </summary>
-        /// <param name="startIndex">стартовый индекс</param>
-        /// <param name="endIndex">конечный индекс</param>
-        /// <param name="typeCluster">тип объёма в кластере</param>
+        /// <param name="startIndex">starting index/стартовый индекс</param>
+        /// <param name="endIndex">final index /конечный индекс</param>
+        /// <param name="typeCluster">type of volume in the cluster/тип объёма в кластере</param>
         /// <returns></returns>
         public HorizontalVolumeCluster FindMinVolumeCluster(int startIndex, int endIndex, ClusterType typeCluster)
         {
@@ -520,92 +548,109 @@ namespace OsEngine.Entity
 
             return cluster;
         }
-
-// исходящие события
+        // outgoing events
+        // исходящие события
 
         /// <summary>
+        /// the cluster has changed with the maximum total volume
         /// изменился кластер с максимальным суммарным объёмом
         /// </summary>
         public event Action<HorizontalVolumeCluster> MaxSummClusterChangeEvent;
 
         /// <summary>
+        /// the cluster with the maximum total amount of purchases has changed
         /// изменился кластер с максимальным сумарным объёмом покупок
         /// </summary>
         public event Action<HorizontalVolumeCluster> MaxBuyClusterChangeEvent;
 
         /// <summary>
+        /// the cluster with the maximum total sales volume has changed
         /// изменился кластер с максимальным сумарным объёмом продаж
         /// </summary>
         public event Action<HorizontalVolumeCluster> MaxSellClusterChangeEvent;
 
         /// <summary>
+        /// the cluster with the maximum total volume by delta has changed (purchases - sales)
         /// изменился кластер с максимальным сумарным объёмом по дельте (покупки - продажи)
         /// </summary>
         public event Action<HorizontalVolumeCluster> MaxDeltaClusterChangeEvent;
 
         /// <summary>
+        /// the cluster has changed with minimal total volume
         /// изменился кластер с минимальным сумарным объёмом
         /// </summary>
         public event Action<HorizontalVolumeCluster> MinSummClusterChangeEvent;
 
         /// <summary>
+        /// the cluster has changed with minimal total purchases
         /// изменился кластер с минимальным сумарным объёмом покупок
         /// </summary>
         public event Action<HorizontalVolumeCluster> MinBuyClusterChangeEvent;
 
         /// <summary>
+        /// cluster change with minimal total sales
         /// изменился кластер с минимальным сумарным объёмом продаж
         /// </summary>
         public event Action<HorizontalVolumeCluster> MinSellClusterChangeEvent;
 
         /// <summary>
+        /// the cluster with the minimum total volume of purchases and sales in the delta has changed
         /// изменился кластер с минимальным сумарным объёмом по дельте (покупки - продажи)
         /// </summary>
         public event Action<HorizontalVolumeCluster> MinDeltaClusterChangeEvent;
 
         /// <summary>
+        /// the volume line with the maximum total volume has changed
         /// изменилась линия объёма с максимальным сумарным объёмом
         /// </summary>
         public event Action<HorizontalVolumeLine> MaxSummLineChangeEvent;
 
         /// <summary>
+        /// the volume line with the maximum total volume of purchases has changed
         /// изменилась линия объёма с максимальным сумарным объёмом покупок
         /// </summary>
         public event Action<HorizontalVolumeLine> MaxBuyLineChangeEvent;
 
         /// <summary>
+        /// The volume line with the maximum total sales volume has changed
         /// изменилась линия объёма с максимальным сумарным объёмом продаж
         /// </summary>
         public event Action<HorizontalVolumeLine> MaxSellLineChangeEvent;
 
         /// <summary>
+        /// the volume line with the maximum total volume in the delta (buying/selling) has changed
         /// изменилась линия объёма с максимальным сумарным объёмом по дельте (покупки - продажи)
         /// </summary>
         public event Action<HorizontalVolumeLine> MaxDeltaLineChangeEvent;
 
         /// <summary>
+        /// the volume line has changed with minimal total volume
         /// изменилась линия объёма с минимальным сумарным объёмом
         /// </summary>
         public event Action<HorizontalVolumeLine> MinSummLineChangeEvent;
 
         /// <summary>
+        /// the line of volume has changed with the minimum total volume of purchases
         /// изменилась линия объёма  минимальным сумарным объёмом покупок
         /// </summary>
         public event Action<HorizontalVolumeLine> MinBuyLineChangeEvent;
 
         /// <summary>
+        /// the minimum total sales line changed
         /// изменилась линия объёма  минимальным сумарным объёмом продаж
         /// </summary>
         public event Action<HorizontalVolumeLine> MinSellLineChangeEvent;
 
-        /// <summary>
+        /// <summary>.
+        /// the volume line with the minimum total volume of the delta has changed (purchases - sales)
         /// изменилась линия объёма  минимальным сумарным объёмом по дельте (покупки - продажи)
         /// </summary>
         public event Action<HorizontalVolumeLine> MinDeltaLineChangeEvent;
-
-// логирование
+        // logging
+        // логирование
 
         /// <summary>
+        /// send a new message to the top
         /// выслать новое сообщение на верх
         /// </summary>
         private void SendNewLogMessage(string message, LogMessageType type)
@@ -621,12 +666,14 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// message for log
         /// сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
     }
 
     /// <summary>
+    /// horizontal volume column
     /// столбец в горизонтальных обьёмах
     /// </summary>
     public class HorizontalVolumeCluster
@@ -653,21 +700,25 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// line spacing
         /// шаг между линиями
         /// </summary>
         public decimal StepLines;
 
         /// <summary>
+        /// minimum price step of the instrument
         /// минимальный шаг цены инструмента
         /// </summary>
         public decimal StepSecurity;
 
         /// <summary>
+        /// a number of simbols after comma
         /// количество знаков после запятой
         /// </summary>
         public int Decimals;
 
         /// <summary>
+        /// horizontal volume lines. 0 - with a minimum price
         /// линии горизонтального объёма. 0 - с минимальной ценой
         /// </summary>
         public List<HorizontalVolumeLine> Lines
@@ -684,6 +735,7 @@ namespace OsEngine.Entity
         List<HorizontalVolumeLine> _lines = new List<HorizontalVolumeLine>();
 
         /// <summary>
+        /// last updated line
         /// последняя обновлённая линия
         /// </summary>
         public HorizontalVolumeLine LastUpdateLine
@@ -700,6 +752,7 @@ namespace OsEngine.Entity
         private HorizontalVolumeLine _lastUpdateLine;
 
         /// <summary>
+        /// volume line with the maximum volume of all transactions
         /// линия объёма с максимальным объёмом всех сделок
         /// </summary>
         public HorizontalVolumeLine MaxSummVolumeLine
@@ -716,6 +769,7 @@ namespace OsEngine.Entity
         private HorizontalVolumeLine _maxVolumeSummLine;
 
         /// <summary>
+        /// volume line with the minimum volume of all transactions
         /// линия объёма с минимальным объёмом всех сделок
         /// </summary>
         public HorizontalVolumeLine MinSummVolumeLine
@@ -732,6 +786,7 @@ namespace OsEngine.Entity
         private HorizontalVolumeLine _minVolumeSummLine;
 
         /// <summary>
+        /// volume line with the maximum amount of purchases
         /// линия объёма с максимальным объёмом покупок
         /// </summary>
         public HorizontalVolumeLine MaxBuyVolumeLine
@@ -748,6 +803,7 @@ namespace OsEngine.Entity
         private HorizontalVolumeLine _maxVolumeBuyLine;
 
         /// <summary>
+        /// volume line with a minimum amount of purchases
         /// линия объёма с минимальным объёмом покупок
         /// </summary>
         public HorizontalVolumeLine MinBuyVolumeLine
@@ -764,6 +820,7 @@ namespace OsEngine.Entity
         private HorizontalVolumeLine _minVolumeBuyLine;
 
         /// <summary>
+        /// volume line with maximum sales
         /// линия объёма с максимальным объёмом продаж
         /// </summary>
         public HorizontalVolumeLine MaxSellVolumeLine
@@ -780,6 +837,7 @@ namespace OsEngine.Entity
         private HorizontalVolumeLine _maxVolumeSellLine;
 
         /// <summary>
+        /// volume line with minimum sales
         /// линия объёма с минимальным объёмом продаж
         /// </summary>
         public HorizontalVolumeLine MinSellVolumeLine
@@ -796,6 +854,7 @@ namespace OsEngine.Entity
         private HorizontalVolumeLine _minVolumeSellLine;
 
         /// <summary>
+        /// volume line with maximum delta volume (purchases minus sales)
         /// линия объёма с максимальным объёмом по дельте (покупки минус продажи)
         /// </summary>
         public HorizontalVolumeLine MaxDeltaVolumeLine
@@ -812,6 +871,7 @@ namespace OsEngine.Entity
         private HorizontalVolumeLine _maxVolumeDeltaLine;
 
         /// <summary>
+        /// volume line with a minimum delta volume (purchases minus sales)
         /// линия объёма с минимальным объёмом по дельте (покупки минус продажи)
         /// </summary>
         public HorizontalVolumeLine MinDeltaVolumeLine
@@ -828,6 +888,7 @@ namespace OsEngine.Entity
         private HorizontalVolumeLine _minVolumeDeltaLine;
 
         /// <summary>
+        /// volume line with maximum price
         /// линия объёма с максимальной ценой
         /// </summary>
         public HorizontalVolumeLine MaxPriceLine
@@ -844,6 +905,7 @@ namespace OsEngine.Entity
         private HorizontalVolumeLine _maxPriceLine;
 
         /// <summary>
+        /// volume line with minimum price
         /// линия объёма с минимальной ценой
         /// </summary>
         public HorizontalVolumeLine MinPriceLine
@@ -860,23 +922,27 @@ namespace OsEngine.Entity
         private HorizontalVolumeLine _minPriceLine;
 
         /// <summary>
+        /// time of the candle by which the volume was built
         /// время свечи, по которой строился объём
         /// </summary>
         public DateTime Time;
 
         /// <summary>
+        /// cluster number in the storage of horizontal volumes
         /// номер кластера в хранилище горизонтальных объёмов
         /// </summary>
         public int NumCluster;
-
-// расчёт объёмов
+        // calculation of volumes
+        // расчёт объёмов
 
         /// <summary>
+        /// multi-threaded trade array blocker for updating
         /// блокировщик многопоточного доступа к массиву трейдов для обновления
         /// </summary>
         public object _tradesArrayLocker = new object();
 
         /// <summary>
+        /// update trades by volume
         /// обновить трейды по объёмам
         /// </summary>
         public void Process(List<Trade> trades)
@@ -896,21 +962,25 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// flag. Do I need to rebuild obmy before sending data to the top
         /// флаг. Нужно ли перестраивать объмы перед отправкой данных на верх
         /// </summary>
         private bool _neadToRebuidVolume;
 
         /// <summary>
+        /// number of trades already accounted for
         /// количество трейдов уже учтённых в объёмах
         /// </summary>
         private int _tradesCount = 0;
 
         /// <summary>
+        /// trades not accounted for in volumes
         /// не учтёные в объёмах трейды
         /// </summary>
         private List<Trade> _tradesNew = new List<Trade>();
 
         /// <summary>
+        /// to align the price of the trade in a cluster step
         /// выровнять цену трейда по шагу кластера
         /// </summary>
         private decimal Round(decimal price)
@@ -929,6 +999,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// volume updating method not considered trades
         /// метод обновляющий объёмы не учтёными трейдами
         /// </summary>
         private void ReloadLines()
@@ -1073,54 +1144,63 @@ namespace OsEngine.Entity
               
             }
         }
-
+        // outgoing events
         // исходящие события
 
         public event Action<HorizontalVolumeLine> NewLineCreateEvent;
 
         /// <summary>
+        /// the volume line was replaced with the maximum total volume
         /// изменилась линия объёма с максимальным сумарным объёмом
         /// </summary>
         public event Action<HorizontalVolumeLine> MaxSummLineChangeEvent;
 
         /// <summary>
+        /// the volume line with the maximum total volume of purchases has changed
         /// изменилась линия объёма с максимальным сумарным объёмом покупок
         /// </summary>
         public event Action<HorizontalVolumeLine> MaxBuyLineChangeEvent;
 
         /// <summary>
+        /// volume line has changed with the maximum total sales volume
         /// изменилась линия объёма с максимальным сумарным объёмом продаж
         /// </summary>
         public event Action<HorizontalVolumeLine> MaxSellLineChangeEvent;
 
         /// <summary>
+        /// the volume line with the maximum total sales volume changed the volume line with the maximum total volume by delta changed
         /// изменилась линия объёма с максимальным сумарным объёмом по дельте (покупки - продажи)
         /// </summary>
         public event Action<HorizontalVolumeLine> MaxDeltaLineChangeEvent;
 
         /// <summary>
+        /// the volume line has changed with the minimum total volume
         /// изменилась линия объёма с минимальным сумарным объёмом
         /// </summary>
         public event Action<HorizontalVolumeLine> MinSummLineChangeEvent;
 
         /// <summary>
+        /// the volume line was changed by the minimum total amount of purchases
         /// изменилась линия объёма  минимальным сумарным объёмом покупок
         /// </summary>
         public event Action<HorizontalVolumeLine> MinBuyLineChangeEvent;
 
         /// <summary>
+        /// the volume line has changed with a minimum total sales volume
         /// изменилась линия объёма  минимальным сумарным объёмом продаж
         /// </summary>
         public event Action<HorizontalVolumeLine> MinSellLineChangeEvent;
 
         /// <summary>
+        /// the volume line with the minimum total volume of the delta has changed (purchases - sales)
         /// изменилась линия объёма  минимальным сумарным объёмом по дельте (покупки - продажи)
         /// </summary>
         public event Action<HorizontalVolumeLine> MinDeltaLineChangeEvent;
-
+        // logging
         // логирование
 
         /// <summary>
+        /// send a new message to the top
         /// выслать новое сообщение на верх
         /// </summary>
         private void SendNewLogMessage(string message, LogMessageType type)
@@ -1136,6 +1216,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// message for log
         /// сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
@@ -1143,35 +1224,41 @@ namespace OsEngine.Entity
     }
 
     /// <summary>
+    /// one line of horizontal volume
     /// одна линия горизонтального объёма
     /// </summary>
     public class HorizontalVolumeLine
     {
         /// <summary>
+        /// volume Total amount of trades taken
         /// объём. Общая сумма учтёных трейдов
         /// </summary>
         public decimal VolumeSumm;
 
         /// <summary>
+        /// volume The amount of purchases in the recorded trades
         /// объём. Сумма покупок в учтёных трейдах
         /// </summary>
         public decimal VolumeBuy;
 
         /// <summary>
+        /// volume Amount of sales in the recorded trades
         /// объём. Сумма продаж в учтёных трейдах
         /// </summary>
         public decimal VolumeSell;
 
         /// <summary>
+        /// volume Delta (amount of purchases minus the amount of sales)
         /// объём. Дельта (сумма объёма покупок минус сумма объёма продаж)
         /// </summary>
         public decimal VolumeDelta;
 
         /// <summary>
+        /// take the volume according to its type
         /// взять объём по его типу 
         /// </summary>
         /// <param name="clusterType"></param>
-        /// <returns>тип объёма</returns>
+        /// <returns>volume type/тип объёма</returns>
         public decimal GetVolume(ClusterType clusterType)
         {
             if (clusterType == ClusterType.SummVolume)
@@ -1193,31 +1280,37 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// price level
         /// цена уровня
         /// </summary>
         public decimal Price;
 
         /// <summary>
+        /// line trades
         /// трейды линии
         /// </summary>
         public List<Trade> Trades = new List<Trade>();
 
         /// <summary>
+        /// candle time
         /// время свечи
         /// </summary>
         public DateTime TimeCandle;
 
         /// <summary>
+        /// time of the first trade
         /// время первого трейда
         /// </summary>
         public DateTime TimeFirstTrade;
 
         /// <summary>
+        /// time of the last trade
         /// время последнего трейда
         /// </summary>
         public DateTime TimeLastTrade;
 
         /// <summary>
+        /// take a line with captions
         /// взять строку с подписями
         /// </summary>
         public string ToolTip
@@ -1306,6 +1399,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// cluster number in which the line is located
         /// номер кластера в котором находится линия
         /// </summary>
         public int NumCluster;

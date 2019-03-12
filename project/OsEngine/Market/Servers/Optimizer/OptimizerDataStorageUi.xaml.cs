@@ -11,15 +11,17 @@ using OsEngine.Market.Servers.Tester;
 namespace OsEngine.Market.Servers.Optimizer
 {
     /// <summary>
+	/// Interaction logic for TesterServerUi.xaml
     /// Логика взаимодействия для TesterServerUi.xaml
     /// </summary>
     public partial class OptimizerDataStorageUi
     {
         /// <summary>
+		/// constructor
         /// конструктор
         /// </summary>
-        /// <param name="server">сервер</param>
-        /// <param name="log">лог</param>
+        /// <param name="server">server/сервер</param>
+        /// <param name="log">log/лог</param>
         public OptimizerDataStorageUi(OptimizerDataStorage server, Log log)
         {
             InitializeComponent();
@@ -35,11 +37,11 @@ namespace OsEngine.Market.Servers.Optimizer
             TextBoxFrom.TextChanged += TextBoxFrom_TextChanged;
             TextBoxTo.TextChanged += TextBoxTo_TextChanged;
 
-            // прогресс бар
+            // progress-bar/прогресс бар
 
             List<string> sets = _server.Sets;
 
-            // сеты
+            // sets/сеты
 
             for (int i = 0; sets != null && sets.Count != 0 && i < sets.Count; i++)
             {
@@ -53,7 +55,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
             ComboBoxSets.SelectionChanged += ComboBoxSets_SelectionChanged;
 
-            // данные для тестирования
+            // testing data/данные для тестирования
 
             ComboBoxDataType.Items.Add(TesterDataType.Candle);
             ComboBoxDataType.Items.Add(TesterDataType.TickOnlyReadyCandle);
@@ -79,6 +81,7 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// data source has changed. Folder or set
         /// источник данных изменился. Папка или Сет 
         /// </summary>
         void ComboBoxDataSourseType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -89,6 +92,7 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// data type has changed
         /// изменился тип транслируемых данных
         /// </summary>
         void ComboBoxDataType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -102,6 +106,7 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// data set has changed
         /// сет данных изменился
         /// </summary>
         void ComboBoxSets_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -110,14 +115,17 @@ namespace OsEngine.Market.Servers.Optimizer
             PaintGrid();
         }
 
+		// server
         // сервер
 
         /// <summary>
+		/// test server
         /// тестовый сервер
         /// </summary>
         private OptimizerDataStorage _server;
 
         /// <summary>
+		/// server instruments have changed
         /// изменились инструменты в сервере
         /// </summary>
         void _server_SecuritiesChangeEvent(List<Security> securities)
@@ -125,14 +133,17 @@ namespace OsEngine.Market.Servers.Optimizer
             PaintGrid();
         }
 
+		// table with instruments
         //  таблица с инструментами
 
         /// <summary>
+		/// table with instruments
         /// таблица с инструментами
         /// </summary>
         private DataGridView _myGridView;
 
         /// <summary>
+		/// create table with instruments
         /// создать таблицу с инструментами
         /// </summary>
         private void CreateGrid()
@@ -146,6 +157,7 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// paint table with instruments
         /// прорисовать таблицу с инструментами
         /// </summary>
         private void PaintGrid()
@@ -201,6 +213,7 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+		/// double click on table with instruments
         /// двойной клик по таблице с инструментами
         /// </summary>
         void _myGridView_DoubleClick(object sender, EventArgs e)
@@ -239,7 +252,7 @@ namespace OsEngine.Market.Servers.Optimizer
             }
         }
 
-
+		// sliders. Set the start and finish test times
         // слайдеры. Установка начального и конечного времени тестирования
 
         private void SliderTo_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)

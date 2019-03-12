@@ -1,4 +1,5 @@
 ﻿/*
+ * Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  * Если вы не покупали лицензии, то Ваши права на использования кода ограничены не коммерческим использованием и 
  * регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -103,11 +104,12 @@ namespace OsEngine.Market.Servers.Plaza.Internal
         }
 
         /// <summary>
+        /// download a new line with changing in the depth
         /// загрузить новую строку с изменением в станане
         /// </summary>
-        /// <param name="replmsg">строка сообщения</param>
-        /// <param name="security">инструмент которому принадлежит сообщение</param>
-        /// <returns>возвращаем стакан в который было внесено изменение</returns>
+        /// <param name="replmsg">message line/строка сообщения</param>
+        /// <param name="security">message instrument/инструмент которому принадлежит сообщение</param>
+        /// <returns>returns depth with changings/возвращаем стакан в который было внесено изменение</returns>
         public MarketDepth SetNewMessage(StreamDataMessage replmsg, Security security)
         {
             long replAct = replmsg["replAct"].asLong();
@@ -128,9 +130,9 @@ namespace OsEngine.Market.Servers.Plaza.Internal
 
         public MarketDepth Insert(StreamDataMessage replmsg, Security security)
         {
-            // обрабатываем ревизию
+            // process revision / обрабатываем ревизию
 
-            // создаём новую
+            // create new / создаём новую
             RevisionInfo revision = new RevisionInfo();
             revision.Price = Convert.ToDecimal(replmsg["price"].asDecimal());
             revision.TableRevision = replmsg["replRev"].asLong();
@@ -142,7 +144,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                 _marketDepthsRevisions = new List<RevisionInfo>();
             }
 
-            // удаляем по этой же цене, если такая есть
+            // remove at the same price, if any / удаляем по этой же цене, если такая есть
             RevisionInfo revisionInArray =
                 _marketDepthsRevisions.Find(info => info.Security == revision.Security && info.ReplId == revision.ReplId);
 
@@ -151,15 +153,15 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                 _marketDepthsRevisions.Remove(revisionInArray);
             }
 
-            // добавляем новую
+            // add new / добавляем новую
             _marketDepthsRevisions.Add(revision);
 
 
-            // создаём строку для стакана
+            // create line for depth / создаём строку для стакана
 
             MarketDepthLevel depthLevel = new MarketDepthLevel();
 
-            int direction = replmsg["dir"].asInt(); // 1 покупка 2 продажа
+            int direction = replmsg["dir"].asInt(); // 1 buy 2 sell/1 покупка 2 продажа
 
             if (direction == 1)
             {
@@ -171,7 +173,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
             }
 
             depthLevel.Price = Convert.ToDecimal(replmsg["price"].asDecimal());
-            // берём наш стакан
+            // take our depth/берём наш стакан
             if (_marketDepths == null)
             {
                 _marketDepths = new List<MarketDepth>();
@@ -186,7 +188,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                 _marketDepths.Add(myDepth);
             }
 
-            // добавляем строку в наш стакан
+            // add line in our depth/добавляем строку в наш стакан
 
             List<MarketDepthLevel> bids = null;
 
@@ -204,7 +206,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
 
             if (direction == 1)
             {
-                // уровни покупок
+                // buy levels/уровни покупок
                 if (bids == null || bids.Count == 0)
                 {
                     bids = new List<MarketDepthLevel>();
@@ -215,7 +217,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                     bool isInArray = false;
                     for (int i = 0; i < bids.Count; i++)
                     {
-                        // обрабатываем ситуацию когда такой уровень уже есть
+                        // proccess the situation when this level is already there/обрабатываем ситуацию когда такой уровень уже есть
                         if (bids[i].Price == depthLevel.Price)
                         {
                             bids[i] = depthLevel;
@@ -226,7 +228,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
 
                     if (isInArray == false)
                     {
-                        // обрабатываем ситуацию когда такого уровня нет
+                        // proccess the situation when this level isn't there/обрабатываем ситуацию когда такого уровня нет
                         List<MarketDepthLevel> asksNew = new List<MarketDepthLevel>();
                         bool isIn = false;
 
@@ -274,7 +276,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
 
             if (direction == 2)
             {
-                // уровни продажи
+                // sell levels/уровни продажи
                 if (asks == null || asks.Count == 0)
                 {
                     asks = new List<MarketDepthLevel>();
@@ -285,7 +287,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                     bool isInArray = false;
                     for (int i = 0; i < asks.Count; i++)
                     {
-                        // обрабатываем ситуацию когда такой уровень уже есть
+                        // proccess the situation when this level is already there/обрабатываем ситуацию когда такой уровень уже есть
                         if (asks[i].Price == depthLevel.Price)
                         {
                             asks[i] = depthLevel;
@@ -295,7 +297,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                     }
                     if (isInArray == false)
                     {
-                        // обрабатываем ситуацию когда такого уровня нет
+                        // proccess the situation when this level isn't there/обрабатываем ситуацию когда такого уровня нет
                         List<MarketDepthLevel> bidsNew = new List<MarketDepthLevel>();
                         bool isIn = false;
                         for (int i = 0, i2 = 0; i2 < asks.Count + 1; i2++)
@@ -343,7 +345,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
 
         public MarketDepth Delete(StreamDataMessage replmsg, Security security)
         {
-            // обрабатываем ревизию
+            // process revision/обрабатываем ревизию
 
             if (_marketDepthsRevisions == null)
             {
@@ -354,7 +356,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
             revision.ReplId = replmsg["replID"].asLong();
             revision.Security = security.Name;
 
-            // удаляем по этой же цене, если такая есть
+            // remove at the same price, if any/удаляем по этой же цене, если такая есть
             RevisionInfo revisionInArray =
                 _marketDepthsRevisions.Find(info => info.Security == revision.Security && info.ReplId == revision.ReplId);
 
@@ -381,7 +383,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
 
             int direction = replmsg["dir"].asInt(); // 1 покупка 2 продажа
 
-            // удаляем нашу строку из стакана
+            // remove our line from the depth/удаляем нашу строку из стакана
 
             List<MarketDepthLevel> asks = null;
 
@@ -392,7 +394,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
 
             if (direction == 1)
             {
-                // уровни покупок
+                // buy levels/уровни покупок
                 if (asks == null || asks.Count == 0)
                 {
                     return myDepth;
@@ -402,7 +404,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
 
                     for (int i = 0; i < asks.Count; i++)
                     {
-                        // обрабатываем ситуацию когда такой уровень уже есть
+                        // proccess the situation when this level is already there/обрабатываем ситуацию когда такой уровень уже есть
                         if (asks[i].Price == revisionInArray.Price)
                         {
                             asks.Remove(asks[i]);
@@ -416,7 +418,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
 
             if (direction == 2)
             {
-                // уровни продажи
+                // sell levels/уровни продажи
                 List<MarketDepthLevel> bids = null;
 
                 if (myDepth.Asks != null)
@@ -432,7 +434,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                 {
                     for (int i = 0; i < bids.Count; i++)
                     {
-                        // обрабатываем ситуацию когда такой уровень уже есть
+                        // proccess the situation when this level is already there/обрабатываем ситуацию когда такой уровень уже есть
                         if (bids[i].Price == revisionInArray.Price)
                         {
                             bids.Remove(bids[i]);

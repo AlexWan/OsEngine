@@ -108,12 +108,6 @@ namespace OsEngine.Market.Servers.BitMex
         private List<Candle> _candles;
 
         /// <summary>
-        /// depth
-        /// стакан
-        /// </summary>
-        private MarketDepth _depth;
-
-        /// <summary>
         /// connection
         /// подключение
         /// </summary>
@@ -177,6 +171,9 @@ namespace OsEngine.Market.Servers.BitMex
 
             _client = null;
             ServerStatus = ServerConnectStatus.Disconnect;
+            _subscribedSec = new List<string>();
+            _portfolioStarted = false;
+            DisconnectEvent?.Invoke();
         }
 
         /// <summary>
@@ -446,11 +443,6 @@ namespace OsEngine.Market.Servers.BitMex
                     if (_securities == null || _portfolios == null)
                     {
                         Thread.Sleep(5000);
-                        return;
-                    }
-                    if (_lastStartServerTime != DateTime.MinValue &&
-                        _lastStartServerTime.AddSeconds(15) > DateTime.Now)
-                    {
                         return;
                     }
 
@@ -887,6 +879,12 @@ namespace OsEngine.Market.Servers.BitMex
         private object _quoteLock = new object();
 
         /// <summary>
+        /// depth
+        /// стакан
+        /// </summary>
+        private List<MarketDepth> _depths = new List<MarketDepth>();
+
+        /// <summary>
         /// updated depth came
         /// пришел обновленный стакан
         /// </summary>
@@ -894,20 +892,25 @@ namespace OsEngine.Market.Servers.BitMex
         {
             try
             {
+                MarketDepth depth = _depths.Find(d => d.SecurityNameCode == quotes.data[0].symbol);
+
                 lock (_quoteLock)
                 {
+                    
+
                     if (quotes.action == "partial")
                     {
-                        if (_depth == null)
+                        if (depth == null)
                         {
-                            _depth = new MarketDepth();
+                            depth = new MarketDepth();
+                            _depths.Add(depth);
                         }
                         else
                         {
-                            _depth.Asks.Clear();
-                            _depth.Bids.Clear();
+                            depth.Asks.Clear();
+                            depth.Bids.Clear();
                         }
-                        _depth.SecurityNameCode = quotes.data[0].symbol;
+                        depth.SecurityNameCode = quotes.data[0].symbol;
                         List<MarketDepthLevel> ascs = new List<MarketDepthLevel>();
                         List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
 
@@ -926,10 +929,10 @@ namespace OsEngine.Market.Servers.BitMex
                                     Id = quotes.data[i].id
                                 });
 
-                                if (_depth.Bids != null && _depth.Bids.Count > 2 &&
-                                    quotes.data[i].price < _depth.Bids[0].Price)
+                                if (depth.Bids != null && depth.Bids.Count > 2 &&
+                                    quotes.data[i].price < depth.Bids[0].Price)
                                 {
-                                    _depth.Bids.RemoveAt(0);
+                                    depth.Bids.RemoveAt(0);
                                 }
                             }
                             else
@@ -941,31 +944,31 @@ namespace OsEngine.Market.Servers.BitMex
                                     Id = quotes.data[i].id
                                 });
 
-                                if (_depth.Asks != null && _depth.Asks.Count > 2 &&
-                                    quotes.data[i].price > _depth.Asks[0].Price)
+                                if (depth.Asks != null && depth.Asks.Count > 2 &&
+                                    quotes.data[i].price > depth.Asks[0].Price)
                                 {
-                                    _depth.Asks.RemoveAt(0);
+                                    depth.Asks.RemoveAt(0);
                                 }
                             }
                         }
 
                         ascs.Reverse();
-                        _depth.Asks = ascs;
-                        _depth.Bids = bids;
+                        depth.Asks = ascs;
+                        depth.Bids = bids;
                     }
 
                     if (quotes.action == "update")
                     {
-                        if (_depth == null)
+                        if (depth == null)
                             return;
 
                         for (int i = 0; i < quotes.data.Count; i++)
                         {
                             if (quotes.data[i].side == "Sell")
                             {
-                                if (_depth.Asks.Find(asc => asc.Id == quotes.data[i].id) != null)
+                                if (depth.Asks.Find(asc => asc.Id == quotes.data[i].id) != null)
                                 {
-                                    _depth.Asks.Find(asc => asc.Id == quotes.data[i].id).Ask = quotes.data[i].size;
+                                    depth.Asks.Find(asc => asc.Id == quotes.data[i].id).Ask = quotes.data[i].size;
                                 }
                                 else
                                 {
@@ -976,29 +979,29 @@ namespace OsEngine.Market.Servers.BitMex
 
                                     long id = quotes.data[i].id;
 
-                                    for (int j = 0; j < _depth.Asks.Count; j++)
+                                    for (int j = 0; j < depth.Asks.Count; j++)
                                     {
-                                        if (j == 0 && id > _depth.Asks[j].Id)
+                                        if (j == 0 && id > depth.Asks[j].Id)
                                         {
-                                            _depth.Asks.Insert(j, new MarketDepthLevel()
+                                            depth.Asks.Insert(j, new MarketDepthLevel()
                                             {
                                                 Ask = quotes.data[i].size,
                                                 Price = quotes.data[i].price,
                                                 Id = quotes.data[i].id
                                             });
                                         }
-                                        else if (j != _depth.Asks.Count - 1 && id < _depth.Asks[j].Id && id > _depth.Asks[j + 1].Id)
+                                        else if (j != depth.Asks.Count - 1 && id < depth.Asks[j].Id && id > depth.Asks[j + 1].Id)
                                         {
-                                            _depth.Asks.Insert(j + 1, new MarketDepthLevel()
+                                            depth.Asks.Insert(j + 1, new MarketDepthLevel()
                                             {
                                                 Ask = quotes.data[i].size,
                                                 Price = quotes.data[i].price,
                                                 Id = quotes.data[i].id
                                             });
                                         }
-                                        else if (j == _depth.Asks.Count - 1 && id < _depth.Asks[j].Id)
+                                        else if (j == depth.Asks.Count - 1 && id < depth.Asks[j].Id)
                                         {
-                                            _depth.Asks.Add(new MarketDepthLevel()
+                                            depth.Asks.Add(new MarketDepthLevel()
                                             {
                                                 Ask = quotes.data[i].size,
                                                 Price = quotes.data[i].price,
@@ -1006,10 +1009,10 @@ namespace OsEngine.Market.Servers.BitMex
                                             });
                                         }
 
-                                        if (_depth.Bids != null && _depth.Bids.Count > 2 &&
-                                            quotes.data[i].price < _depth.Bids[0].Price)
+                                        if (depth.Bids != null && depth.Bids.Count > 2 &&
+                                            quotes.data[i].price < depth.Bids[0].Price)
                                         {
-                                            _depth.Bids.RemoveAt(0);
+                                            depth.Bids.RemoveAt(0);
                                         }
                                     }
                                 }
@@ -1023,29 +1026,29 @@ namespace OsEngine.Market.Servers.BitMex
 
                                 long id = quotes.data[i].id;
 
-                                for (int j = 0; j < _depth.Bids.Count; j++)
+                                for (int j = 0; j < depth.Bids.Count; j++)
                                 {
-                                    if (j == 0 && id < _depth.Bids[i].Id)
+                                    if (j == 0 && id < depth.Bids[i].Id)
                                     {
-                                        _depth.Bids.Insert(j, new MarketDepthLevel()
+                                        depth.Bids.Insert(j, new MarketDepthLevel()
                                         {
                                             Bid = quotes.data[i].size,
                                             Price = quotes.data[i].price,
                                             Id = quotes.data[i].id
                                         });
                                     }
-                                    else if (j != _depth.Bids.Count - 1 && id > _depth.Bids[i].Id && id < _depth.Bids[j + 1].Id)
+                                    else if (j != depth.Bids.Count - 1 && id > depth.Bids[i].Id && id < depth.Bids[j + 1].Id)
                                     {
-                                        _depth.Bids.Insert(j + 1, new MarketDepthLevel()
+                                        depth.Bids.Insert(j + 1, new MarketDepthLevel()
                                         {
                                             Bid = quotes.data[i].size,
                                             Price = quotes.data[i].price,
                                             Id = quotes.data[i].id
                                         });
                                     }
-                                    else if (j == _depth.Bids.Count - 1 && id > _depth.Bids[j].Id)
+                                    else if (j == depth.Bids.Count - 1 && id > depth.Bids[j].Id)
                                     {
-                                        _depth.Bids.Add(new MarketDepthLevel()
+                                        depth.Bids.Add(new MarketDepthLevel()
                                         {
                                             Bid = quotes.data[i].size,
                                             Price = quotes.data[i].price,
@@ -1053,42 +1056,42 @@ namespace OsEngine.Market.Servers.BitMex
                                         });
                                     }
 
-                                    if (_depth.Asks != null && _depth.Asks.Count > 2 &&
-                                        quotes.data[i].price > _depth.Asks[0].Price)
+                                    if (depth.Asks != null && depth.Asks.Count > 2 &&
+                                        quotes.data[i].price > depth.Asks[0].Price)
                                     {
-                                        _depth.Asks.RemoveAt(0);
+                                        depth.Asks.RemoveAt(0);
                                     }
                                 }
                             }
                         }
 
-                        _depth.Time = ServerTime;
+                        depth.Time = ServerTime;
                     }
 
                     if (quotes.action == "delete")
                     {
-                        if (_depth == null)
+                        if (depth == null)
                             return;
 
                         for (int i = 0; i < quotes.data.Count; i++)
                         {
                             if (quotes.data[i].side == "Sell")
                             {
-                                _depth.Asks.Remove(_depth.Asks.Find(asc => asc.Id == quotes.data[i].id));
+                                depth.Asks.Remove(depth.Asks.Find(asc => asc.Id == quotes.data[i].id));
                             }
                             else
                             {
-                                _depth.Bids.Remove(_depth.Bids.Find(bid => bid.Id == quotes.data[i].id));
+                                depth.Bids.Remove(depth.Bids.Find(bid => bid.Id == quotes.data[i].id));
                             }
                         }
 
-                        _depth.Time = ServerTime;
+                        depth.Time = ServerTime;
                     }
                 }
 
                 if (quotes.action == "insert")
                 {
-                    if (_depth == null)
+                    if (depth == null)
                         return;
 
                     for (int i = 0; i < quotes.data.Count; i++)
@@ -1101,29 +1104,29 @@ namespace OsEngine.Market.Servers.BitMex
                         {
                             long id = quotes.data[i].id;
 
-                            for (int j = 0; j < _depth.Asks.Count; j++)
+                            for (int j = 0; j < depth.Asks.Count; j++)
                             {
-                                if (j == 0 && id > _depth.Asks[j].Id)
+                                if (j == 0 && id > depth.Asks[j].Id)
                                 {
-                                    _depth.Asks.Insert(j, new MarketDepthLevel()
+                                    depth.Asks.Insert(j, new MarketDepthLevel()
                                     {
                                         Ask = quotes.data[i].size,
                                         Price = quotes.data[i].price,
                                         Id = quotes.data[i].id
                                     });
                                 }
-                                else if (j != _depth.Asks.Count - 1 && id < _depth.Asks[j].Id && id > _depth.Asks[j + 1].Id)
+                                else if (j != depth.Asks.Count - 1 && id < depth.Asks[j].Id && id > depth.Asks[j + 1].Id)
                                 {
-                                    _depth.Asks.Insert(j + 1, new MarketDepthLevel()
+                                    depth.Asks.Insert(j + 1, new MarketDepthLevel()
                                     {
                                         Ask = quotes.data[i].size,
                                         Price = quotes.data[i].price,
                                         Id = quotes.data[i].id
                                     });
                                 }
-                                else if (j == _depth.Asks.Count - 1 && id < _depth.Asks[j].Id)
+                                else if (j == depth.Asks.Count - 1 && id < depth.Asks[j].Id)
                                 {
-                                    _depth.Asks.Add(new MarketDepthLevel()
+                                    depth.Asks.Add(new MarketDepthLevel()
                                     {
                                         Ask = quotes.data[i].size,
                                         Price = quotes.data[i].price,
@@ -1131,10 +1134,10 @@ namespace OsEngine.Market.Servers.BitMex
                                     });
                                 }
 
-                                if (_depth.Bids != null && _depth.Bids.Count > 2 &&
-                                    quotes.data[i].price < _depth.Bids[0].Price)
+                                if (depth.Bids != null && depth.Bids.Count > 2 &&
+                                    quotes.data[i].price < depth.Bids[0].Price)
                                 {
-                                    _depth.Bids.RemoveAt(0);
+                                    depth.Bids.RemoveAt(0);
                                 }
                             }
                         }
@@ -1142,29 +1145,29 @@ namespace OsEngine.Market.Servers.BitMex
                         {
                             long id = quotes.data[i].id;
 
-                            for (int j = 0; j < _depth.Bids.Count; j++)
+                            for (int j = 0; j < depth.Bids.Count; j++)
                             {
-                                if (j == 0 && id < _depth.Bids[j].Id)
+                                if (j == 0 && id < depth.Bids[j].Id)
                                 {
-                                    _depth.Bids.Insert(j, new MarketDepthLevel()
+                                    depth.Bids.Insert(j, new MarketDepthLevel()
                                     {
                                         Bid = quotes.data[i].size,
                                         Price = quotes.data[i].price,
                                         Id = quotes.data[i].id
                                     });
                                 }
-                                else if (j != _depth.Bids.Count - 1 && id > _depth.Bids[j].Id && id < _depth.Bids[j + 1].Id)
+                                else if (j != depth.Bids.Count - 1 && id > depth.Bids[j].Id && id < depth.Bids[j + 1].Id)
                                 {
-                                    _depth.Bids.Insert(j + 1, new MarketDepthLevel()
+                                    depth.Bids.Insert(j + 1, new MarketDepthLevel()
                                     {
                                         Bid = quotes.data[i].size,
                                         Price = quotes.data[i].price,
                                         Id = quotes.data[i].id
                                     });
                                 }
-                                else if (j == _depth.Bids.Count - 1 && id > _depth.Bids[j].Id)
+                                else if (j == depth.Bids.Count - 1 && id > depth.Bids[j].Id)
                                 {
-                                    _depth.Bids.Add(new MarketDepthLevel()
+                                    depth.Bids.Add(new MarketDepthLevel()
                                     {
                                         Bid = quotes.data[i].size,
                                         Price = quotes.data[i].price,
@@ -1172,30 +1175,30 @@ namespace OsEngine.Market.Servers.BitMex
                                     });
                                 }
 
-                                if (_depth.Asks != null && _depth.Asks.Count > 2 &&
-                                    quotes.data[i].price > _depth.Asks[0].Price)
+                                if (depth.Asks != null && depth.Asks.Count > 2 &&
+                                    quotes.data[i].price > depth.Asks[0].Price)
                                 {
-                                    _depth.Asks.RemoveAt(0);
+                                    depth.Asks.RemoveAt(0);
                                 }
                             }
                         }
                     }
 
-                    while (_depth.Asks != null && _depth.Asks.Count > 200)
+                    while (depth.Asks != null && depth.Asks.Count > 200)
                     {
-                        _depth.Asks.RemoveAt(200);
+                        depth.Asks.RemoveAt(200);
                     }
 
-                    while (_depth.Bids != null && _depth.Bids.Count > 200)
+                    while (depth.Bids != null && depth.Bids.Count > 200)
                     {
-                        _depth.Bids.RemoveAt(200);
+                        depth.Bids.RemoveAt(200);
                     }
 
-                    _depth.Time = ServerTime;
+                    depth.Time = ServerTime;
 
                     if (MarketDepthEvent != null)
                     {
-                        MarketDepthEvent(_depth.GetCopy());
+                        MarketDepthEvent(depth.GetCopy());
                     }
                 }
             }
@@ -1389,6 +1392,7 @@ namespace OsEngine.Market.Servers.BitMex
                             //param["orderIDs"] = order.NumberUser.ToString();
                             param["orderQty"] = order.Volume.ToString();
                             param["clOrdID"] = order.NumberUser.ToString();
+                            param["origClOrdID"] = order.NumberUser.ToString();
 
                             param["ordType"] = order.TypeOrder == OrderPriceType.Limit ? "Limit" : "Market";
 

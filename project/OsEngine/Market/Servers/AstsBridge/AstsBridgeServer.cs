@@ -1,4 +1,5 @@
 ﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -22,6 +23,7 @@ namespace OsEngine.Market.Servers.AstsBridge
     {
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
         public AstsBridgeServer(bool neadToLoadTicks)
@@ -76,12 +78,14 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// take server type
         /// взять тип сервера
         /// </summary>
         /// <returns></returns>
         public ServerType ServerType { get; set; }
 
         /// <summary>
+        /// show settings window
         /// показать окно настроект
         /// </summary>
         public void ShowDialog()
@@ -100,36 +104,43 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// item control window
         /// окно управления элемента
         /// </summary>
         private AstsServerUi _ui;
 
         /// <summary>
+        /// server adress for connecting
         /// адрес сервера по которому нужно соединяться с сервером
         /// </summary>
         public string ServerAdress;
 
         /// <summary>
+        /// access server name
         /// имя сервера доступа
         /// </summary>
         public string ServerName;
 
         /// <summary>
+        /// access service name
         /// имя сервиса доступа
         /// </summary>
         public string ServiseName;
 
         /// <summary>
+        /// user login for access to SmartCom
         /// логин пользователя для доступа к СмартКом
         /// </summary>
         public string UserLogin;
 
         /// <summary>
+        /// user password for access to SmartCom
         /// пароль пользователя для доступа к СмартКом
         /// </summary>
         public string UserPassword;
 
         /// <summary>
+        /// client code
         /// код клиента
         /// </summary>
         public string ClientCode
@@ -149,6 +160,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         private string _clientCode;
 
         /// <summary>
+        /// bot location
         /// расположение бота
         /// </summary>
         public AstsDislocation Dislocation;
@@ -156,6 +168,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         private int _countDaysTickNeadToSave;
 
         /// <summary>
+        /// tick data to save (number of days ago)
         /// количество дней назад, тиковые данные по которым нужно сохранять
         /// </summary>
         public int CountDaysTickNeadToSave
@@ -176,6 +189,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         private bool _neadToSaveTicks;
 
         /// <summary>
+        /// shows whether need to save ticks
         /// нужно ли сохранять тики 
         /// </summary>
         public bool NeadToSaveTicks
@@ -194,6 +208,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// upload server settings from file
         /// загрузить настройки сервера из файла
         /// </summary>
         public void Load()
@@ -226,6 +241,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// save server settins in file
         /// сохранить настройки сервера в файл
         /// </summary>
         public void Save()
@@ -254,11 +270,13 @@ namespace OsEngine.Market.Servers.AstsBridge
 
         private ServerTickStorage _tickStorage;
 
+// server status
 // статус сервера
 
         private ServerConnectStatus _serverConnectStatus;
 
         /// <summary>
+        /// server status
         /// статус сервера
         /// </summary>
         public ServerConnectStatus ServerStatus
@@ -279,13 +297,16 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// called when connection status changes
         /// вызывается когда статус соединения изменяется
         /// </summary>
         public event Action<string> ConnectStatusChangeEvent;
 
+// connect / disconnect
 // подключение / отключение
 
         /// <summary>
+        /// start SmartCom server
         /// запустить сервер СмартКом
         /// </summary>
         public void StartServer()
@@ -294,6 +315,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// stop SmartCom server
         /// остановить сервер СмартКом
         /// </summary>
         public void StopServer()
@@ -302,12 +324,13 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
-        /// нужный статус сервера. Нужен потоку который следит за соединением
-        /// В зависимости от этого поля управляет соединением
+        /// necessary server status. It needs a thread to monitor the connection. Depending on this field controls the connection 
+        /// нужный статус сервера. Нужен потоку который следит за соединением. В зависимости от этого поля управляет соединением
         /// </summary>
         private ServerConnectStatus _serverStatusNead;
 
         /// <summary>
+        /// alert message from SmartCom that the connection is broken
         /// пришло оповещение от СмартКом, что соединение разорвано
         /// </summary>
         private void Disconnected(string reason)
@@ -317,6 +340,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// alert message from SmartCom that the connection is established
         /// пришло оповещение от СмартКом, что соединение установлено
         /// </summary>
         private void Connected()
@@ -324,14 +348,17 @@ namespace OsEngine.Market.Servers.AstsBridge
             ServerStatus = ServerConnectStatus.Connect;
         }
 
+// work of meain thread !!!!!!
 // работа основного потока !!!!!!
 
         /// <summary>
+        /// main thread, it controls connection, getting portfloios and securities, sending data to up
         /// основной поток, следящий за подключением, загрузкой портфелей и бумаг, пересылкой данных на верх
         /// </summary>
         private Thread _threadPrime;
 
         /// <summary>
+        /// the place where the connection is controlled, listen to data threads
         /// место в котором контролируется соединение.
         /// опрашиваются потоки данных
         /// </summary>
@@ -420,10 +447,10 @@ namespace OsEngine.Market.Servers.AstsBridge
 
                         SendLogMessage(error.ToString(), LogMessageType.Error);
                         ServerStatus = ServerConnectStatus.Disconnect;
-                        Dispose(); // очищаем данные о предыдущем коннекторе
+                        Dispose(); // clear the data about the previous connector / очищаем данные о предыдущем коннекторе
 
                         Thread.Sleep(5000);
-                        // переподключаемся
+                        // reconnect / переподключаемся
                         _threadPrime = new Thread(PrimeThreadArea);
                         _threadPrime.CurrentCulture = new CultureInfo("ru-RU");
                         _threadPrime.IsBackground = true;
@@ -441,28 +468,32 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// last start server time
         /// время последнего старта сервера
         /// </summary>
         private DateTime _lastStartServerTime = DateTime.MinValue;
 
         /// <summary>
+        /// shows whether we request data about table structures
         /// запросили ли мы уже данные по структурам таблиц
         /// </summary>
         private bool _metaDataIsExist;
 
         /// <summary>
+        /// shows whether portfolios and securities get
         /// скачаны ли портфели и бумаги
         /// </summary>
         private bool _getPortfoliosAndSecurities;
 
         /// <summary>
+        /// create new connection
         /// создать новое подключение
         /// </summary>
         private void CreateNewServer()
         {
             if (AstsServer == null)
             {
-                AstsServer = new AstsBridgeWrapper(); // Создать и назначить обработчики событий
+                AstsServer = new AstsBridgeWrapper(); // Create and assign event handlers / Создать и назначить обработчики событий
                 AstsServer.ConnectedEvent += Connected;
                 AstsServer.DisconnectedEvent += Disconnected;
                 AstsServer.NewSecurityEvent += NewSecurityEvent;
@@ -479,6 +510,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// start the connection process
         /// начать процесс подключения
         /// </summary>
         private void Connect()
@@ -514,6 +546,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// suspend connection
         /// приостановить подключение
         /// </summary>
         private void Disconnect()
@@ -523,6 +556,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// start downloading candles
         /// запускает скачиватель свечек
         /// </summary>
         private void StartCandleManager()
@@ -536,6 +570,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// bring the program to the start. Clear all objects involved in connecting to the server
         /// привести программу к моменту запуска. Очистить все объекты участвующие в подключении к серверу
         /// </summary>
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
@@ -573,73 +608,88 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// multi-treaded access locker to SmartCom server
         /// блокиратор многопоточного доступа к серверу СмартКом
         /// </summary>
         private object _serverLocker = new object();
 
         /// <summary>
+        /// server
         /// Сервер
         /// </summary>
         public AstsBridgeWrapper AstsServer;
 
+// work of sending thread !!!!!
 // работа потока рассылки !!!!!
 
         /// <summary>
+        /// queue of new orders
         /// очередь новых ордеров
         /// </summary>
         private ConcurrentQueue<Order> _ordersToSend;
 
         /// <summary>
+        /// queue of ticks
         /// очередь тиков
         /// </summary>
         private ConcurrentQueue<List<Trade>> _tradesToSend;
 
         /// <summary>
+        /// queue of new portfolios
         /// очередь новых портфелей
         /// </summary>
         private ConcurrentQueue<List<Portfolio>> _portfolioToSend;
 
         /// <summary>
+        /// queue of new instruments
         /// очередь новых инструментов
         /// </summary>
         private ConcurrentQueue<List<Security>> _securitiesToSend;
 
         /// <summary>
+        /// queue of my new trades
         /// очередь новых моих сделок
         /// </summary>
         private ConcurrentQueue<MyTrade> _myTradesToSend;
 
         /// <summary>
+        /// queue of new time
         /// очередь нового времени
         /// </summary>
         private ConcurrentQueue<DateTime> _newServerTime;
 
         /// <summary>
+        /// queue of updated candle series
         /// очередь обновлённых серий свечек
         /// </summary>
         private ConcurrentQueue<CandleSeries> _candleSeriesToSend;
 
         /// <summary>
+        /// queue of new depths
         /// очередь новых стаканов
         /// </summary>
         private ConcurrentQueue<MarketDepth> _marketDepthsToSend;
 
         /// <summary>
+        /// queue of updates of bids / asks on instruments
         /// очередь обновлений бида с аска по инструментам 
         /// </summary>
         private ConcurrentQueue<BidAskSender> _bidAskToSend;
 
         /// <summary>
+        /// queue of updates of leve1-data on instruments
         /// очередь обновлений level 1 по инструментам 
         /// </summary>
         private ConcurrentQueue<SecurityLevelOne> _levelOneToSend;
 
         /// <summary>
+        /// queue of updates of all trades table on instruments
         /// очередь обновлений таблицы всех сделок по инструментам 
         /// </summary>
         private ConcurrentQueue<List<Trade>> _tradesTableToSend;
 
         /// <summary>
+        /// place where connection is controled
         /// место в котором контролируется соединение
         /// </summary>
         private void SenderThreadArea()
@@ -796,11 +846,13 @@ namespace OsEngine.Market.Servers.AstsBridge
             }
         }
 
+// server time
 // время сервера
 
         private DateTime _serverTime;
 
         /// <summary>
+        /// server time
         /// время сервера
         /// </summary>
         public DateTime ServerTime
@@ -820,15 +872,18 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// calls when server time changes
         /// вызывается когда изменяется время сервера
         /// </summary>
         public event Action<DateTime> TimeServerChangeEvent;
 
+// portfolios
 // портфели
 
         private List<Portfolio> _portfolios;
 
         /// <summary>
+        /// all accounts in the system
         /// все счета в системе
         /// </summary>
         public List<Portfolio> Portfolios
@@ -837,6 +892,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// take portfolio by his number/name
         /// взять портфель по его номеру/имени
         /// </summary>
         public Portfolio GetPortfolioForName(string name)
@@ -860,9 +916,10 @@ namespace OsEngine.Market.Servers.AstsBridge
         private object _lockerUpdatePosition = new object();
 
         /// <summary>
+        /// position on exchange has updated
         /// обновилась позиция на бирже
         /// </summary>
-        /// <param name="position">позиция по инструменту на бирже</param>
+        /// <param name="position"> instrument position on the exchange / позиция по инструменту на бирже</param>
         private void UpdatePosition(PositionOnBoard position)
         {
             lock (_lockerUpdatePosition)
@@ -894,6 +951,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// new portfolios come from the system
         /// из системы пришли новые портфели
         /// </summary>
         private void AddPortfolio(Portfolio portfolio)
@@ -927,15 +985,18 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// called when new portfolios appear in the system
         /// вызывается когда в системе появляются новые портфели
         /// </summary>
         public event Action<List<Portfolio>> PortfoliosChangeEvent;
 
+// securities 
 // бумаги
 
         private List<Security> _securities;
 
         /// <summary>
+        /// all instruments in the system
         /// все инструменты в системе
         /// </summary>
         public List<Security> Securities
@@ -944,6 +1005,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// take instruments as class Security by name
         /// взять инструмент в виде класса Security, по имени инструмента 
         /// </summary>
         public Security GetSecurityForName(string name)
@@ -956,6 +1018,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// new instruments have appeared in the system
         /// в системе появлились новые инструменты
         /// </summary>
         private void NewSecurityEvent(Security security)
@@ -987,16 +1050,19 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// called when new instruments appear
         /// вызывается при появлении новых инструментов
         /// </summary>
         public event Action<List<Security>> SecuritiesChangeEvent;
 
         /// <summary>
+        /// instrument Level 1 changed
         /// Level 1 по бумаге изменился
         /// </summary>
         public event Action<SecurityLevelOne> SecurityLevelOneChange;
 
         /// <summary>
+        /// show instruments
         /// показать инструменты 
         /// </summary>
         public void ShowSecuritiesDialog()
@@ -1005,25 +1071,28 @@ namespace OsEngine.Market.Servers.AstsBridge
             ui.ShowDialog();
         }
 
+// data subscription
 // Подпись на данные
 
         /// <summary>
+        /// master of candle downloading
         /// мастер загрузки свечек
         /// </summary>
         private CandleManager _candleManager;
 
         /// <summary>
+        /// multi-threaded access locker in StartThisSecurity
         /// объект блокирующий многопоточный доступ в StartThisSecurity
         /// </summary>
         private object _lockerStarter = new object();
 
         /// <summary>
+        /// start uploading data on instrument
         /// Начать выгрузку данных по инструменту. 
         /// </summary>
-        /// <param name="namePaper">имя бумаги которую будем запускать</param>
-        /// <param name="timeFrameBuilder">объект несущий в себе данные о таймФрейме</param>
-        /// <returns>В случае удачи возвращает CandleSeries
-        /// в случае неудачи null</returns>
+        /// <param name="namePaper"> security name for running / имя бумаги которую будем запускать</param>
+        /// <param name="timeFrameBuilder"> object that has data about timeframe / объект несущий в себе данные о таймФрейме</param>
+        /// <returns> returns CandleSeries if successful else null / В случае удачи возвращает CandleSeries в случае неудачи null</returns>
         public CandleSeries StartThisSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder)
         {
             try
@@ -1033,14 +1102,14 @@ namespace OsEngine.Market.Servers.AstsBridge
                     return null;
                 }
 
-                // дальше по одному
+                // one by one / дальше по одному
                 lock (_lockerStarter)
                 {
                     if (namePaper == "")
                     {
                         return null;
                     }
-                    // надо запустить сервер если он ещё отключен
+                    // need to start the server if it is still disabled / надо запустить сервер если он ещё отключен
                     if (ServerStatus != ServerConnectStatus.Connect)
                     {
                         //MessageBox.Show("Сервер не запущен. Скачивание данных прервано. Инструмент: " + namePaper);
@@ -1098,6 +1167,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// stop downloading of instrument
         /// остановить скачивание инструмента
         /// </summary>
         public void StopThisSecurity(CandleSeries series)
@@ -1109,6 +1179,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// candle series changed
         /// изменились серии свечек
         /// </summary>
         private void _candleManager_CandleUpdateEvent(CandleSeries series)
@@ -1129,18 +1200,22 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// called at the time of changing candle series
         /// вызывается в момент изменения серий свечек
         /// </summary>
         public event Action<CandleSeries> NewCandleIncomeEvent;
 
         /// <summary>
+        /// connectors connected to server need to re-order data
         /// коннекторам подключеным к серверу необходимо перезаказать данные
         /// </summary>
         public event Action NeadToReconnectEvent;
 
+// depth
 // стакан
 
         /// <summary>
+        /// incoming cut of depth
         /// входящий срез стакана
         /// </summary>
         private void UpdateBidAsk(MarketDepth myDepth)
@@ -1162,23 +1237,28 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// called when bid or ask changes
         /// вызывается когда изменяется бид или аск по инструменту
         /// </summary>
         public event Action<decimal, decimal, Security> NewBidAscIncomeEvent;
 
         /// <summary>
+        /// called when depth changes
         /// вызывается когда изменяется стакан
         /// </summary>
         public event Action<MarketDepth> NewMarketDepthEvent;
 
+// ticks
 // тики
 
         /// <summary>
+        /// all ticks
         /// все тики
         /// </summary>
         private List<Trade>[] _allTrades;
 
         /// <summary>
+        /// all ticks that server has
         /// все тики имеющиеся у сервера
         /// </summary>
         public List<Trade>[] AllTrades
@@ -1187,6 +1267,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// multi-threaded access locker in SmartServer_AddTick
         /// блокиратор многопоточного доступа в SmartServer_AddTick
         /// </summary>
         private object _newTradesLoker = new object();
@@ -1197,6 +1278,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// all trade table updated
         /// обновилась таблица всех сделок
         /// </summary>
         /// <param name="newTrades"></param>
@@ -1216,6 +1298,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// incoming ticks from system
         /// входящие тики из системы
         /// </summary>
         private void AddTrade(Trade trade)
@@ -1224,7 +1307,7 @@ namespace OsEngine.Market.Servers.AstsBridge
             {
                 lock (_newTradesLoker)
                 {
-                    // сохраняем
+                    // save / сохраняем
                     if (_allTrades == null)
                     {
                         _allTrades = new List<Trade>[1];
@@ -1232,7 +1315,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                     }
                     else
                     {
-                        // сортируем сделки по хранилищам
+                        // sort trades by storages / сортируем сделки по хранилищам
                         List<Trade> myList = null;
                         bool isSave = false;
                         for (int i = 0; i < _allTrades.Length; i++)
@@ -1240,7 +1323,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                             if (_allTrades[i] != null && _allTrades[i].Count != 0 &&
                                 _allTrades[i][0].SecurityNameCode == trade.SecurityNameCode)
                             {
-                                // если для этого инструметна уже есть хранилище, сохраняем и всё
+                                // if there is already a storage for this instrument, we save it / если для этого инструметна уже есть хранилище, сохраняем и всё
                                 _allTrades[i].Add(trade);
                                 myList = _allTrades[i];
                                 isSave = true;
@@ -1250,7 +1333,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
                         if (isSave == false)
                         {
-                            // хранилища для инструмента нет
+                            // there is no storage for the instrument / хранилища для инструмента нет
                             List<Trade>[] allTradesNew = new List<Trade>[_allTrades.Length + 1];
                             for (int i = 0; i < _allTrades.Length; i++)
                             {
@@ -1266,7 +1349,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
                     }
 
-                    // перегружаем последним временем тика время сервера
+                    // write the last tick time in server time / перегружаем последним временем тика время сервера
                     ServerTime = trade.Time;
                 }
             }
@@ -1278,6 +1361,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// take ticks on instrument
         /// взять тики по инструменту
         /// </summary>
         public List<Trade> GetAllTradesToSecurity(Security security)
@@ -1299,20 +1383,24 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// called at the time of the appearance of new trades on instrument
         /// вызывается в момет появления новых трейдов по инструменту
         /// </summary>
         public event Action<List<Trade>> NewTradeEvent;
 
         /// <summary>
+        /// all trade table changed
         /// изменилась таблица всех сделок
         /// </summary>
         public event Action<List<Trade>> AllTradesTableChangeEvent;
 
+// my trades
 // мои сделки
 
         private List<MyTrade> _myTrades;
 
         /// <summary>
+        /// my trades
         /// мои сделки
         /// </summary>
         public List<MyTrade> MyTrades
@@ -1321,6 +1409,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// my incoming from system trades
         /// входящие из системы мои сделки
         /// </summary>
         private void AddMyTrade(MyTrade trade)
@@ -1342,13 +1431,16 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// called when my new trade comes
         /// вызывается когда приходит новая моя сделка
         /// </summary>
         public event Action<MyTrade> NewMyTradeEvent;
 
+// work with orders
 // работа с ордерами
 
         /// <summary>
+        /// execute order
         /// исполнить ордер
         /// </summary>
         public void ExecuteOrder(Order order)
@@ -1361,6 +1453,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// cancel order
         /// отменить ордер
         /// </summary>
         public void CanselOrder(Order order)
@@ -1372,6 +1465,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// incoming from system order
         /// входящий из системы ордер
         /// </summary>
         private void UpdateOrder(Order order)
@@ -1399,10 +1493,11 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// placed order error
         /// ошибка при выставлении ордера
         /// </summary>
-        /// <param name="reason">причина сбоя при отправке</param>
-        /// <param name="number">номер ордера</param>
+        /// <param name="reason"> the reason for the send failure / причина сбоя при отправке </param>
+        /// <param name="number"> order number / номер ордера </param>
         private void OrderFailedEvent(string reason, int number)
         {
             try
@@ -1422,13 +1517,16 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// called when a new oreder appears in the system
         /// вызывается когда в системе появляется новый ордер
         /// </summary>
         public event Action<Order> NewOrderIncomeEvent;
 
+// log messages
 // обработка лога
 
         /// <summary>
+        /// add a new log message
         /// добавить в лог новое сообщение
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
@@ -1440,27 +1538,32 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// log manager
         /// менеджер лога
         /// </summary>
         private Log _logMaster;
 
         /// <summary>
+        /// outgoing log messages
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
     }
 
     /// <summary>
+    /// server location
     /// расположение сервера
     /// </summary>
     public enum AstsDislocation
     {
         /// <summary>
+        /// colocation, server on the exhange
         /// colocation, сервер биржи
         /// </summary>
         Colo,
 
         /// <summary>
+        /// Internet
         /// интернет
         /// </summary>
         Internet

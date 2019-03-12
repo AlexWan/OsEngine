@@ -11,6 +11,7 @@ using OsEngine.Language;
 namespace OsEngine.Entity
 {
     /// <summary>
+    /// Interaction logic for ParemetrsUi.xaml
     /// Логика взаимодействия для ParemetrsUi.xaml
     /// </summary>
     public partial class ParemetrsUi 

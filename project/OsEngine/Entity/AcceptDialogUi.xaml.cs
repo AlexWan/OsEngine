@@ -5,25 +5,29 @@ using OsEngine.Language;
 namespace OsEngine.Entity
 {
     /// <summary>
+    /// Interaction logic for AcceptDialogUi.xaml
     /// Логика взаимодействия для AcceptDialogUi.xaml
     /// </summary>
     public partial class AcceptDialogUi
     {
 
         /// <summary>
+        /// the number of the inscription that will be displayed on the button
         /// номер надписи которая будет выведена на кнопку
         /// </summary>
         private static int _numMessage;
 
         /// <summary>
+        /// The user has approved the action to be taken
         /// Пользователь одобрил проводитмое действие
         /// </summary>
         public bool UserAcceptActioin;
 
         /// <summary>
+        /// window designer
         /// конструктор окна
         /// </summary>
-        /// <param name="text">текст который будет выведен в качестве основного сообщения пользователю. То что он должен будет одобрить</param>
+        /// <param name="text">text that will be displayed as the main message to the user. What he will have to approve/текст который будет выведен в качестве основного сообщения пользователю. То что он должен будет одобрить</param>
         public AcceptDialogUi(string text)
         {
             InitializeComponent();

@@ -9,21 +9,24 @@ using OsEngine.OsTrader.Panels.Tab;
 namespace OsEngine.Entity
 {
     /// <summary>
+    /// candle converter
     /// конвертер для свечек
     /// </summary>
     public static class CandleConverter
     {
 
         /// <summary>
+        /// the vaults of already converted candlesticks
         /// хранилища уже конвертированных свечек
         /// </summary>
         private static List<ValueSave> _valuesToFormula = new List<ValueSave>();
 
         /// <summary>
+        /// dump candles
         /// слить свечи 
         /// </summary>
-        /// <param name="candles">свечи</param>
-        /// <param name="countMerge">количество складывания для начального ТФ</param>
+        /// <param name="candles">candles/свечи</param>
+        /// <param name="countMerge">Number of folds for the initial TF/количество складывания для начального ТФ</param>
         /// <returns></returns>
         public static List<Candle> Merge(List<Candle> candles, int countMerge)
         {
@@ -56,8 +59,8 @@ namespace OsEngine.Entity
                 saveVal.Name = candles[0].StringToSave + countMerge;
                 _valuesToFormula.Add(saveVal);
             }
-            
-// узнаём начальный индекс
+            // we know the initial index.        
+            // узнаём начальный индекс
 
             int firstIndex = 0;
 
@@ -82,8 +85,8 @@ namespace OsEngine.Entity
                     }
                 }
             }
-
-// собираем
+            // " Gathering
+            // собираем
 
             for (int i = firstIndex; i < candles.Count; )
             {
@@ -130,11 +133,12 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// candle connection
         /// соединить свечи
         /// </summary>
-        /// <param name="candles">изначальные свечи</param>
-        /// <param name="index">индекс начала</param>
-        /// <param name="count">количество свечек для соединения</param>
+        /// <param name="candles">original candles/изначальные свечи</param>
+        /// <param name="index">start index/индекс начала</param>
+        /// <param name="count">candle count for connection/количество свечек для соединения</param>
         /// <returns></returns>
         private static Candle Concate(List<Candle> candles, int index, int count)
         {
@@ -171,6 +175,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// clean up old data
         /// очистить старые данные
         /// </summary>
         public static void Clear()

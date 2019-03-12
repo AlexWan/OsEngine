@@ -16,19 +16,22 @@ using OsEngine.Logging;
 namespace OsEngine.Entity
 {
     /// <summary>
+    /// class responsible for drawing the glass and lines bid-ask
     /// класс отвечающий за отрисовку стакана и линий бид-аск
     /// </summary>
     public class MarketDepthPainter
     {
-
-// статическая часть с работой потока прорисовывающего стакан
+        // static part with the work of drawing glass flow
+        // статическая часть с работой потока прорисовывающего стакан
 
         /// <summary>
+        /// thread
         /// поток 
         /// </summary>
         public static Thread Watcher;
 
         /// <summary>
+        /// logs that need to be serviced
         /// логи которые нужно обслуживать
         /// </summary>
         public static List<MarketDepthPainter> MarketDepthsToCheck = new List<MarketDepthPainter>();
@@ -36,6 +39,7 @@ namespace OsEngine.Entity
         private static object _activatorLocker = new object();
 
         /// <summary>
+        /// activate stream to save
         /// активировать поток для сохранения
         /// </summary>
         public static void Activate()
@@ -55,6 +59,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// place of work that keeps logs
         /// место работы потока который сохраняет логи
         /// </summary>
         public static void WatcherHome()
@@ -74,10 +79,11 @@ namespace OsEngine.Entity
                 }
             }
         }
-
-// основной класс
+        // main class
+        // основной класс
 
         /// <summary>
+        /// constructor object drawing glass
         /// конструктор объекта прорисовывающего стакан
         /// </summary>
         public MarketDepthPainter(string botName)
@@ -92,6 +98,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// remove this object from the drawing
         /// удалить данный объект из прорисовки
         /// </summary>
         public void Delete()
@@ -107,31 +114,37 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// the name of the robot that owns the glass
         /// имя робота которому принадлежит стакан
         /// </summary>
         private string _name;
 
         /// <summary>
+        /// glass area
         /// область для размещения стакана
         /// </summary>
         private WindowsFormsHost _hostGlass;
 
         /// <summary>
+        /// glass table
         /// таблица стакана
         /// </summary>
         DataGridView _glassBox;
 
         /// <summary>
+        /// element for drawing the price selected by the user
         /// элемент для отрисовки выбранной пользователем цены
         /// </summary>
         private System.Windows.Controls.TextBox _textBoxLimitPrice;
 
         /// <summary>
+        /// Last price selected by the user
         /// последняя выбранная пользователем цена
         /// </summary>
         private decimal _lastSelectPrice;
 
         /// <summary>
+        /// Load controls into the connector
         /// загрузить контролы в коннектор
         /// </summary>
         public void CreateGlass()
@@ -224,6 +237,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        ///  the text in the limit price field next to the glass has changed
         /// изменился текст в поле лимитной цены рядом со стаканом
         /// </summary>
         void _textBoxLimitPrice_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
@@ -251,6 +265,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// the user clicks on the glass
         /// пользователь щёлкнул по стакану
         /// </summary>
         void _glassBox_SelectionChanged(object sender, EventArgs e)
@@ -294,6 +309,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// to start drawing the connector elements
         /// начать прорисовывать элементы коннектора
         /// </summary>
         public void StartPaint(WindowsFormsHost glass, System.Windows.Controls.TextBox textBoxLimitPrice)
@@ -329,6 +345,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// Stop drawing connector elements
         /// остановить прорисовывание элементов коннектора
         /// </summary>
         public void StopPaint()
@@ -358,10 +375,11 @@ namespace OsEngine.Entity
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-
-// работа потока прорисовывающего стаканы
+        // operation of the flow of drawing glasses
+        // работа потока прорисовывающего стаканы
 
         /// <summary>
+        /// draw a glass
         /// прорисовать стакан
         /// </summary>
         private void TryPaintMarketDepth()
@@ -388,16 +406,19 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// penultimate cup
         /// предпоследний стакан
         /// </summary>
         private MarketDepth _lastMarketDepth;
 
         /// <summary>
+        ///  current cup
         /// текущий стакан
         /// </summary>
         private MarketDepth _currentMaretDepth;
 
         /// <summary>
+        /// to send a glass to draw
         /// отправить стакан на прорисовку
         /// </summary>
         public void ProcessMarketDepth(MarketDepth depth)
@@ -406,6 +427,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// draw a glass
         /// прорисовать стакан
         /// </summary>
         private void PaintMarketDepth(MarketDepth depth)
@@ -482,7 +504,7 @@ namespace OsEngine.Entity
                     }
 
                 }
-
+                // volume in sticks for ask
                 // объём в палках для аска
                 for (int i = 0; depth.Bids != null && i < 25 && i < depth.Bids.Count; i++)
                 {
@@ -502,7 +524,7 @@ namespace OsEngine.Entity
                     _glassBox.Rows[25 + i].Cells[1].Value = builder;
 
                 }
-
+                // volume in bid sticks
                 // объём в палках для бида
                 for (int i = 0; depth.Asks != null && i < 25 && i < depth.Asks.Count; i++)
                 {
@@ -533,7 +555,7 @@ namespace OsEngine.Entity
                 {
                     maxSeries = allBid;
                 }
-
+                // volume cumulative for ask
                 // объём комулятивный для аска
                 decimal summ = 0;
                 for (int i = 0; depth.Bids != null && i < 25 && i < depth.Bids.Count; i++)
@@ -556,7 +578,7 @@ namespace OsEngine.Entity
                     _glassBox.Rows[25 + i].Cells[0].Value = builder;
 
                 }
-
+                // volume is cumulative for bids
                 // объём комулятивный для бида
                 summ = 0;
                 for (int i = 0; depth.Asks != null && i < 25 && i < depth.Asks.Count; i++)
@@ -592,6 +614,7 @@ namespace OsEngine.Entity
         private decimal _ask;
 
         /// <summary>
+        /// send Bid with Ask for drawing
         /// отправить Бид с Аском на прорисовку
         /// </summary>
         public void ProcessBidAsk(decimal bid, decimal ask)
@@ -601,6 +624,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// draw the bid with ask in the glass
         /// прорисовать бид с аском в стакане
         /// </summary>
         private void PaintBidAsk(decimal bid, decimal ask)
@@ -628,10 +652,11 @@ namespace OsEngine.Entity
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-
-// сообщения в лог 
+        // messages to log
+        // сообщения в лог 
 
         /// <summary>
+        /// send a new message to the top
         /// выслать новое сообщение на верх
         /// </summary>
         private void SendNewLogMessage(string message, LogMessageType type)
@@ -641,12 +666,15 @@ namespace OsEngine.Entity
                 LogMessageEvent(message, type);
             }
             else if (type == LogMessageType.Error)
-            { // если на нас никто не подписан и в логе ошибка
+            {
+                // if nobody is signed to us and there is an error in the log
+                // если на нас никто не подписан и в логе ошибка
                 System.Windows.MessageBox.Show(message);
             }
         }
 
         /// <summary>
+        /// outgoing message for log
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;

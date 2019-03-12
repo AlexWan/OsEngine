@@ -4,6 +4,7 @@ using OsEngine.Language;
 namespace OsEngine.Market.Servers.Transaq
 {
     /// <summary>
+    /// Interaction logic for ChangeTransaqPassword.xaml
     /// Логика взаимодействия для ChangeTransaqPassword.xaml
     /// </summary>
     public partial class ChangeTransaqPassword : Window

@@ -1,4 +1,5 @@
 ﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -14,11 +15,13 @@ using ru.micexrts.cgate.message;
 namespace OsEngine.Market.Servers.Plaza.Internal
 {
     /// <summary>
+	/// class realizing interaction with Router Plaza 2 CGate
     /// класс реализующий взаимодействие с Роутером Плаза 2 CGate
     /// </summary>
     public class PlazaClient
     {
         /// <summary>
+		/// constructor
         /// конструктор
         /// </summary>
         public PlazaClient(string key)
@@ -31,81 +34,93 @@ namespace OsEngine.Market.Servers.Plaza.Internal
             GateOpenString = "ini=Plaza/PlazaStartSettings.ini;key=" + key;
         }
 
+		// connection settings constants
         // константы настроек соединения
 
         /// <summary>
-        /// максимальное количество транзакций в секунду для логина
-        /// учитывается при разборе очереди на выставление/снятие заявок
-        /// если выставить не то, Ваш депозит уйдёт в зрительный зал
+        /// maximum number of transactions per second for login/максимальное количество транзакций в секунду для логина
+        /// taken into account when parsing the queue for placing/cancellation orders/учитывается при разборе очереди на выставление/снятие заявок
+        /// if you set the wrong, your deposit will disappear / если выставить не то, Ваш депозит уйдёт в зрительный зал
         /// </summary>
-        private const int MaxTransaction = 30; // АХТУНГ!!! Узнай что такое единица производительности для логина, или биржа отберёт ВЕСЬ депозит за штрафы
+        private const int MaxTransaction = 30; // ALARM !!! Find out what is the unit of performance for the login, or the exchange will select the entire deposit for fines / АХТУНГ!!! Узнай что такое единица производительности для логина, или биржа отберёт ВЕСЬ депозит за штрафы
 
         /// <summary>
+		/// initialization string connection to the router
         /// строка инициализации подключения к Роутеру
         /// </summary>
         private string GateOpenString; // = "ini=Plaza/PlazaStartSettings.ini;key=11111111"; 
 
         /// <summary>
-        /// строка подключения коннектора.
-        /// Эту строку подключения не нужно удалять. Её нужно использовать во время тестов на тестовом сервере
-        /// Она инициализирует коннектор к Роутеру по ТСП, это медленне, но безопаснее
-        /// При таком подключении соединение с Роутером автоматически разрывается при нештатном закрытии соединения
+        /// connector connection string/строка подключения коннектора.
+        /// This connection string does not need to be deleted. It should be used during tests on a test server./Эту строку подключения не нужно удалять. Её нужно использовать во время тестов на тестовом сервере
+        /// It initializes the TCP connector to the Router, it is slower, but safer./Она инициализирует коннектор к Роутеру по ТСП, это медленне, но безопаснее
+        /// With this connection, the connection with the router is automatically disconnected when the connection is abnormally closed./При таком подключении соединение с Роутером автоматически разрывается при нештатном закрытии соединения
         /// </summary>
         //private const string ConnectionOpenString = "p2tcp://127.0.0.1:4001;app_name=osaApplication;name=connectorPrime";
 
         /// <summary>
-        /// строка подключения коннектора. Инициализирует подключение к Роутеру через разделяемую память
-        /// в случае, если такое соединение закрылось не штатно, придётся идти в диспетчер задач и мочить P2MQRouter*32
-        /// далее из диска С запускать Роутер через start_router.cmd
+        /// connector connection string. Initializes the connection to the router through shared memory./строка подключения коннектора. Инициализирует подключение к Роутеру через разделяемую память
+        /// if such a connection is not closed normally, you will have to go to the task manager and wet the P2MQRouter * 32/в случае, если такое соединение закрылось не штатно, придётся идти в диспетчер задач и мочить P2MQRouter*32
+        /// from the C drive, launch the Router via start_router.cmd/далее из диска С запускать Роутер через start_router.cmd
         /// </summary>
         private const string ConnectionOpenString = "p2lrpcq://127.0.0.1:4001;app_name=osaApplication;name=connectorPrime";
 
         /// <summary>
+		/// initialization line of the Listner responsible for receiving information about the instruments
         /// строка инициализации Листнера отвечающего за приём информации об инструментах
         /// </summary>
         private const string ListenInfoString = "p2repl://FORTS_FUTINFO_REPL;scheme=|FILE|Plaza/Schemas/fut_info.ini|CustReplScheme";
 
         /// <summary>
+		/// initialization string of the Listner responsible for receiving position
         /// строка инициализации листнера отвечающего за приём позиции
         /// </summary>
         private const string ListenPositionString = "p2repl://FORTS_POS_REPL;scheme=|FILE|Plaza/Schemas/portfolios.ini|CustReplScheme";
 
         /// <summary>
+		/// initialization string of the Listner responsible for getting portfolios
         /// строка инициализации листнера отвечающего за приём портфелей
         /// </summary>
         private const string ListenPortfolioString = "p2repl://FORTS_PART_REPL;scheme=|FILE|Plaza/Schemas/part.ini|CustReplScheme";
 
         /// <summary>
+		/// initialization string of the Listner responsible for receiving ticks
         /// строка инициализации листнера отвечающего за приём тиков
         /// </summary>
         private const string ListenTradeString = "p2repl://FORTS_DEALS_REPL;scheme=|FILE|Plaza/Schemas/fut-deals.ini|CustReplScheme";
 
         /// <summary>
+		/// initialization string of the Listner responsible for receiving my trades and my orders
         /// строка инициализации листнера отвечающего за приём Моих сделок и моих ордеров
         /// </summary>
         private const string ListenOrderAndMyTradesString = "p2repl://FORTS_FUTTRADE_REPL;scheme=|FILE|Plaza/Schemas/fut_trades.ini|CustReplScheme";
 
         /// <summary>
+		/// initialization string of the Listner responsible for receiving depth
         /// строка инициализации для листнера отвечающего за приём среза стакана
         /// </summary>
         private const string ListenMarketDepth = "p2repl://FORTS_FUTAGGR20_REPL;scheme=|FILE|Plaza/Schemas/orders_aggr.ini|CustReplScheme";
 
         /// <summary>
+		/// initialization string for order publisher
         /// строка инициализации для публишера ордеров
         /// </summary>
         private const string PublisherOrdersString =
             "p2mq://FORTS_SRV;category=FORTS_MSG;name=srvlink;timeout=5000;scheme=|FILE|Plaza/Schemas/forts_messages.ini|message";
 
         /// <summary>
+		/// initialization string for transaction tracing list listener
         /// строка инициализации для листнера следящего за реакцией публишера сделок
         /// </summary>
         private const string ListnerOrders = "p2mqreply://;ref=srvlink";
 
+		// server status
         // статус сервера
 
         private ServerConnectStatus _serverConnectStatus;
 
         /// <summary>
+		/// server status
         /// статус сервера
         /// </summary>
         public ServerConnectStatus Status
@@ -127,42 +142,48 @@ namespace OsEngine.Market.Servers.Plaza.Internal
         }
 
         /// <summary>
-        /// статус заказанный пользователем
-        /// если он будет отличаться от текущего статуса сервера
-        /// основной поток будет пытаться привести их к одному значению
+        /// user-ordered status/статус заказанный пользователем
+        /// if it is different from the current server status/если он будет отличаться от текущего статуса сервера
+        /// main thread will try to bring them to the same value/основной поток будет пытаться привести их к одному значению
         /// </summary>
         private ServerConnectStatus _statusNeeded;
 
         /// <summary>
+		/// called when the server status changes
         /// вызывается при изменении статуса сервера
         /// </summary>
         public event Action<ServerConnectStatus> ConnectStatusChangeEvent;
 
+		// connection setup and listening
         // установка соединения и слежение за ним
 
         /// <summary>
+		/// object to connect to router
         /// объект подключения к Роутеру
         /// </summary>
         public Connection Connection;
 
         /// <summary>
+		/// thread responsible for connecting to Plaza, monitoring threads and processing incoming data
         /// поток отвечающий за соединение с плазой, следящий за потоками и обрабатывающий входящие данные
         /// </summary>
         private Thread _threadPrime;
 
         /// <summary>
-        /// поток присматривающий за основным потоком
-        /// и если основной поток не отвечает, больше минуты
-        /// переподключает всю систему
+        /// thread watching the main thread/поток присматривающий за основным потоком
+        /// and if the main thread does not respond, more than a minute/и если основной поток не отвечает, больше минуты
+        /// reconnects the entire system/переподключает всю систему
         /// </summary>
         private Thread _threadNanny;
 
         /// <summary>
+		/// multi-threaded access locker to Plaza object
         /// объект участвующий в блокировке многопоточного доступа к объектам Плаза
         /// </summary>
         private object _plazaThreadLocker;
 
         /// <summary>
+		/// start Plaza server
         /// запустить сервер Плаза
         /// </summary>
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
@@ -209,6 +230,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
         }
 
         /// <summary>
+		/// stop Plaza server
         /// остановить сервер Плаза
         /// </summary>
         public void Stop()
@@ -222,6 +244,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
         }
 
         /// <summary>
+		/// clear all objects involved in the connection with Plaza 2
         /// очистить все объекты участвующие в соединение с Плаза 2
         /// </summary>
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
@@ -230,7 +253,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
             _statusNeeded = ServerConnectStatus.Disconnect;
             Thread.Sleep(1000);
 
-            // отключаем поток следящий за основным потоком
+            // turn off thread watching the main thread/отключаем поток следящий за основным потоком
             if (_threadNanny != null)
             {
                 try
@@ -246,7 +269,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
 
             _threadNanny = null;
 
-            // отключаем основной поток
+            // turn off the main thread/отключаем основной поток
             if (_threadPrime != null)
             {
                 try
@@ -263,7 +286,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
             _threadPrime = null;
 
 
-            // отключаем поток отправляющий хартбиты
+            // turn off the heartbeat thread/ отключаем поток отправляющий хартбиты
             if (_heartBeatSenderThread != null)
             {
                 try
@@ -279,7 +302,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
             }
             _heartBeatSenderThread = null;
 
-            // отключаем поток отправляющий заявки из очереди
+            // turn off thread sending orders from queue/ отключаем поток отправляющий заявки из очереди
             if (_threadOrderExecutor != null)
             {
                 try
@@ -295,7 +318,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
             }
             _threadOrderExecutor = null;
 
-            // отключаем соединение
+            // disconnect / отключаем соединение
             if (Connection != null)
             {
                 try
@@ -308,7 +331,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                 }
                 Connection = null;
             }
-            // отключаем листнеры
+            // turn off listeners / отключаем листнеры
 
             if (_listenerInfo != null)
             {
@@ -458,7 +481,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
 
             }
 
-            // закрываем соединение с роутером
+            // close connection with router / закрываем соединение с роутером
             try
             {
                 CGate.Close();
@@ -470,6 +493,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
         }
 
         /// <summary>
+		/// reconnect
         /// переподключиться
         /// </summary>
         private void Reconnect()
@@ -482,11 +506,13 @@ namespace OsEngine.Market.Servers.Plaza.Internal
         }
 
         /// <summary>
+		/// time of the last checkpoint of main thread
         /// время последнего чекПоинта основного потока
         /// </summary>
         private DateTime _lastMoveTime = DateTime.MinValue;
 
         /// <summary>
+		/// place of work of stream 2, which looks after the responses of stream 1
         /// место работы потока 2, который присматривает за откликами потока 1
         /// </summary>
         private void ThreadNannySpace()
@@ -499,7 +525,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                     _lastMoveTime.AddMinutes(1) < DateTime.Now)
                 {
                     SendLogMessage(OsLocalization.Market.Message78);
-                    // авария у нас. Рабочий поток потерялся и не выходит на связь три минуты
+                    // we have an accident. Workflow lost and does not connect for three minutes/авария у нас. Рабочий поток потерялся и не выходит на связь три минуты
                     Thread worker = new Thread(Reconnect);
                     worker.CurrentCulture = new CultureInfo("ru-RU");
                     worker.IsBackground = true;
@@ -511,6 +537,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
         }
 
         /// <summary>
+		/// place of main stream work
         /// место работы основного потока
         /// </summary>
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
@@ -538,18 +565,18 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                             }
                             catch (Exception error)
                             {
-                                // не получилось подключиться
+                                // could not connect/не получилось подключиться
                                SendLogMessage(error.ToString());
                                 Thread.Sleep(10000);
                                 try
                                 {
-                                    //через десять секунд пытаемся ещё раз
+                                    //in ten seconds we try again/через десять секунд пытаемся ещё раз
                                     Connection.Open("");
                                     Thread.Sleep(1000);
                                 }
                                 catch (Exception)
                                 {
-                                    // что-то совсем не так. Пытаемся переподключиться полностью
+                                    // something completely wrong. We are trying to reconnect completely/что-то совсем не так. Пытаемся переподключиться полностью
                                     Thread worker = new Thread(Reconnect);
                                     worker.CurrentCulture = new CultureInfo("ru-RU");
                                     worker.IsBackground = true;
@@ -584,21 +611,21 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                             continue;
                         }
 
-                        // подключаем листнеры
+                        // connect listeners/подключаем листнеры
 
-                        CheckListnerInfo(); // инструменты и портфели
+                        CheckListnerInfo(); // instruments and portfolios/инструменты и портфели
 
-                        CheckListnerPosition(); //прослушка позиции по портфелям
+                        CheckListnerPosition(); //listening to positions on portfolios/прослушка позиции по портфелям
 
-                        CheckListnerTrades(); //прослушка сделки и завки
+                        CheckListnerTrades(); //listening to deals and applications/прослушка сделки и завки
 
-                        CheckListnerMyTrades(); //прослушка ордер лог и мои сделки
+                        CheckListnerMyTrades(); //listening to order log and my trades/прослушка ордер лог и мои сделки
 
-                        CheckListnerMarketDepth(); // стакан
-                        // публишер 
+                        CheckListnerMarketDepth(); // depth/стакан
+                        // publisher/публишер 
                         CheckOrderSender();
 
-                        // смотрим очедедь данных
+                        // look at the data/смотрим очедедь данных
 
                         if (_ordersToExecute != null && _ordersToExecute.Count != 0)
                         {
@@ -612,31 +639,35 @@ namespace OsEngine.Market.Servers.Plaza.Internal
             catch (Exception error)
             {
                 SendLogMessage(error.ToString());
-                // назначаем время последнего отзыва от основного потока - четырем минуты назад
-                // после этого поток следящий за основным потоком начинает процедуру переподключения
+                // set the time of the last review from the main thread - four minutes ago/назначаем время последнего отзыва от основного потока - четырем минуты назад
+                // thereafter, the stream watching the main stream starts the reconnection procedure/после этого поток следящий за основным потоком начинает процедуру переподключения
                 _lastMoveTime = DateTime.Now.AddMinutes(-4);
             }
         }
 
+		// Instruments. thread FORTS_FUTINFO_REPL table "fut_sess_contents"
         // Инструменты. поток FORTS_FUTINFO_REPL таблица "fut_sess_contents"
 
         /// <summary>
+		/// listner responsible for accepting tools
         /// листнер отвечающий за приём инструментов
         /// </summary>
         private Listener _listenerInfo;
 
         /// <summary>
-        /// флаг, говорящий о том что коннект с листнером прервался 
-        /// и требуется его полная перезагрузка
+        /// flag saying that the connection with the list was interrupted/флаг, говорящий о том что коннект с листнером прервался 
+        /// and it requires a full reboot/и требуется его полная перезагрузка
         /// </summary>
         private bool _listenerInfoNeadToReconnect;
 
         /// <summary>
+		/// thread state of instrument listener
         /// состояние потока листнера инструментов
         /// </summary>
         private string _listenerInfoReplState;
 
         /// <summary>
+		/// check the instrument listener for connection and validity
         /// проверить на подключение и валидность листнер инструментов
         /// </summary>
         private void CheckListnerInfo()
@@ -694,6 +725,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
         }
 
         /// <summary>
+		/// handles the tool table here
         /// здесь обрабатывается таблица инструментов 
         /// </summary>
         public int ClientMessage_Board(
@@ -761,45 +793,52 @@ namespace OsEngine.Market.Servers.Plaza.Internal
         }
 
         /// <summary>
+		/// called when a new instrument appears
         /// вызывается при появлении нового инструмента
         /// </summary>
         public event Action<Security> UpdateSecurity;
 
-// Позиции и портфели. поток FORTS_POS_REPL и FORTS_PART_REPL таблица "position" и "part"
+// Positions and portfolios. thread FORTS_POS_REPL and tables "position" and "part"
+// Позиции и портфели. поток FORTS_POS_REPL и c таблица "position" и "part"
 
         /// <summary>
+		/// portfolio listener
         /// листнер портфелей
         /// </summary>
         private Listener _listenerPortfolio;
 
         /// <summary>
-        /// флаг, говорящий о том что коннект с листнером прервался 
-        /// и требуется его полная перезагрузка
+        /// flag saying that the connection with the list was interrupted/флаг, говорящий о том что коннект с листнером прервался 
+        /// and it requires a full reboot/и требуется его полная перезагрузка
         /// </summary>
         private bool _listenerPortfolioNeadToReconnect;
 
         /// <summary>
+		/// position listener
         /// листнет позиций
         /// </summary>
         private Listener _listenerPosition;
 
         /// <summary>
-        /// флаг, говорящий о том что коннект с листнером прервался 
-        /// и требуется его полная перезагрузка
+        /// flag saying that the connection with the list was interrupted/флаг, говорящий о том что коннект с листнером прервался 
+        /// and it requires a full reboot/и требуется его полная перезагрузка
         /// </summary>
         private bool _listenerPositionNeadToReconnect;
 
         /// <summary>
+		/// thread state of position listener
         /// состояние потока листнера позиций
         /// </summary>
         private string _listenerPositionReplState;
 
         /// <summary>
+		/// thread state of portfolio listener
         /// состояние потока листнера портфелей
         /// </summary>
         private string _listenerPortfolioReplState;
 
         /// <summary>
+		/// check the position and portfolio listener for connection and validity
         /// проверить на подключение и валидность листнер позиций и портфелей
         /// </summary>
         private void CheckListnerPosition()
@@ -908,6 +947,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
         }
 
         /// <summary>
+		/// here process the table of positions by portfolios
         /// здесь обрабатывается таблица позиций по портфелям
         /// </summary>
         public int ClientMessage_Position(
@@ -968,6 +1008,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
         }
 
         /// <summary>
+		/// process the portfolio table here
         /// здесь обрабатывается таблица портфелей
         /// </summary>
         public int ClientMessage_Portfolio(
@@ -1038,46 +1079,53 @@ Connection conn, Listener listener, Message msg)
         }
 
         /// <summary>
+		/// called when changing position
         /// вызывается при изменении позиции
         /// </summary>
         public event Action<PositionOnBoard> UpdatePosition;
 
         /// <summary>
+		/// called when new portfolios appear
         /// вызывается при появлении новых портфелей
         /// </summary>
         public event Action<Portfolio> UpdatePortfolio;
 
         /// <summary>
+		/// portfolios in the system
         /// портфели в системе
         /// </summary>
         private List<Portfolio> _portfolios;
 
+// listening ticks. thread FORTS_DEALS_REPL "deal" table
 // Прослушка тиков. поток FORTS_DEALS_REPL таблица "deal"
 
         /// <summary>
+		/// tick listener
         /// листнер тиков
         /// </summary>
         private Listener _listenerTrade;
 
         /// <summary>
-        /// флаг, говорящий о том что коннект с листнером прервался 
-        /// и требуется его полная перезагрузка
+        /// flag saying that the connection with the list was interrupted/флаг, говорящий о том что коннект с листнером прервался 
+        /// and it requires a full reboot/и требуется его полная перезагрузка
         /// </summary>
         private bool _listenerTradeNeadToReconnect;
 
         /// <summary>
+		/// thread state of tick listener
         /// состояние потока листнера тиков
         /// </summary>
         private string _listenerTradeReplState;
 
         /// <summary>
-        /// флаг. идут ли сделки идут онлайн. используется при первой загрузке, 
-        /// т.к. программа кэширует все тики из плазы это очень тяжело принимать
-        /// и пока все тики первый раз не дойдут, подписываться на стаканы и торговать не выйдет
+        /// flag. Do transactions go online. used on first boot,/флаг. идут ли сделки идут онлайн. используется при первой загрузке, 
+        /// the program caches all the tics from the plaza is very hard to take/т.к. программа кэширует все тики из плазы это очень тяжело принимать
+        /// and until all ticks reach the first time, subscribing to depths and trading will not work/и пока все тики первый раз не дойдут, подписываться на стаканы и торговать не выйдет
         /// </summary>
         private bool _dealsOnLine;
 
         /// <summary>
+		/// check tick listener for connection and validity
         /// проверить на подключение и валидность листнер тиков
         /// </summary>
         private void CheckListnerTrades()
@@ -1138,6 +1186,7 @@ Connection conn, Listener listener, Message msg)
         }
 
         /// <summary>
+		/// tick table is processed here
         /// здесь обрабатываются таблица тиков
         /// </summary>
         public int ClientMessage_Trades(
@@ -1152,11 +1201,11 @@ Connection conn, Listener listener, Message msg)
                             StreamDataMessage replmsg = (StreamDataMessage)msg;
                             if (replmsg.MsgName == "deal")
                             {
-                                // тики
+                                // ticks/тики
                                 try
                                 {
-                                    //- если id_ord_sell < id_ord_buy, то Операция = Купля
-                                    //- если id_ord_sell > id_ord_buy, то Операция = Продажа
+                                    //- if id_ord_sell < id_ord_buy, то Side = buy/если id_ord_sell < id_ord_buy, то Операция = Купля
+                                    //- if id_ord_sell > id_ord_buy, то Side = sell/если id_ord_sell > id_ord_buy, то Операция = Продажа
 
 
                                     byte isSystem = replmsg["nosystem"].asByte();
@@ -1202,9 +1251,9 @@ Connection conn, Listener listener, Message msg)
                     case MessageType.MsgP2ReplOnline:
                         {
                             SendLogMessage(OsLocalization.Market.Message80);
-                            // дальше данные идут ОнЛайн
+                            // further data go Online/дальше данные идут ОнЛайн
                             _dealsOnLine = true;
-                            // меняем статус сервера, чтобы можно было к нему подцеплять ботов
+                            // change the status of server so that you can add bots to it/меняем статус сервера, чтобы можно было к нему подцеплять ботов
                             Status = ServerConnectStatus.Connect;
 
                             break;
@@ -1229,24 +1278,28 @@ Connection conn, Listener listener, Message msg)
         }
 
         /// <summary>
+		/// called when a new tick comes from the system
         /// вызывается когда из системы приходит новый тик
         /// </summary>
         public event Action<Trade, bool> NewTradeEvent;
 
+// depth thread FORTS_FUTAGGR20_REPL table "orders_aggr"
 // Стаканы поток FORTS_FUTAGGR20_REPL таблица "orders_aggr"
 
         /// <summary>
+		/// depth listener
         /// листнер стаканов
         /// </summary>
         private Listener _listenerMarketDepth;
 
         /// <summary>
-        /// флаг, говорящий о том что коннект с листнером прервался 
-        /// и требуется его полная перезагрузка
+        /// flag saying that the connection with the list was interrupted/флаг, говорящий о том что коннект с листнером прервался 
+        /// and it requires a full reboot/и требуется его полная перезагрузка
         /// </summary>
         private bool _listenerMarketDepthNeadToReconnect;
 
         /// <summary>
+		/// check connection and validity listener of depth
         /// проверить на подключение и валидность листнер среза стаканов
         /// </summary>
         private void CheckListnerMarketDepth()
@@ -1299,11 +1352,13 @@ Connection conn, Listener listener, Message msg)
         }
 
         /// <summary>
+		/// instruments for which to collect depths
         /// инструменты по которым надо собирать стаканы
         /// </summary>
         private List<Security> _securitiesDepth;
 
         /// <summary>
+		/// start unloading depth on this instrument
         /// начать выгружать стакан по этому инструменту
         /// </summary>
         public void StartMarketDepth(Security security)
@@ -1319,6 +1374,7 @@ Connection conn, Listener listener, Message msg)
         }
 
         /// <summary>
+		/// stop unloading depth on this instrument
         /// остановить выгрузку стакана по этому инструменту
         /// </summary>
         public void StopMarketDepth(Security security)
@@ -1327,17 +1383,19 @@ Connection conn, Listener listener, Message msg)
         }
 
         /// <summary>
+		/// class responsible for the assembly depth from the slice
         /// класс отвечающий за сборку стакана из среза
         /// </summary>
         private PlazaMarketDepthCreator _depthCreator;
 
         /// <summary>
-        /// стаканы которые обновились за предыдущую серию данных 
-        /// и требуется рассылка этих стаканов
+        /// depths that have been updated for the previous data series/стаканы которые обновились за предыдущую серию данных 
+        /// and mailing these depths is required/и требуется рассылка этих стаканов
         /// </summary>
         private List<MarketDepth> rebildDepths;
 
         /// <summary>
+		/// depth is processed here
         /// здесь обрабатывается стакан
         /// </summary>
         public int ClientMessage_OrderLog(
@@ -1392,7 +1450,7 @@ Connection conn, Listener listener, Message msg)
                             break;
                         }
                     case MessageType.MsgP2ReplClearDeleted:
-                        {// надо удалить из стаканов уровни с ревизией младше указанного
+                        {// it is necessary to remove levels from revision from depths/надо удалить из стаканов уровни с ревизией младше указанного
                             P2ReplClearDeletedMessage cdMessage = (P2ReplClearDeletedMessage)msg;
                             _depthCreator.ClearFromRevision(cdMessage);
                             break;
@@ -1448,29 +1506,34 @@ Connection conn, Listener listener, Message msg)
         }
 
         /// <summary>
+		/// called when a glass has been updated.
         /// вызывается когда обновился какой-то стакан
         /// </summary>
         public event Action<MarketDepth> MarketDepthChangeEvent;
 
+// my trades and orderLog thread FORTS_FUTTRADE_REPLL table "user_deal" "orders_log"
 // Мои сделки и ордерЛог поток FORTS_FUTTRADE_REPLL таблица "user_deal" "orders_log"
 
         /// <summary>
+		/// listener of my deals and my orders
         /// листнер моих сделок и моих ордеров
         /// </summary>
         private Listener _listenerOrderAndMyDeal;
 
         /// <summary>
-        /// флаг, говорящий о том что коннект с листнером прервался 
-        /// и требуется его полная перезагрузка
+        /// flag saying that the connection with the list was interrupted/флаг, говорящий о том что коннект с листнером прервался 
+        /// and it requires a full reboot/и требуется его полная перезагрузка
         /// </summary>
         private bool _listenerOrderAndMyDealNeadToReload;
 
         /// <summary>
+		/// thread state of my trades and my orders listener
         /// состояние потока листнера моих сделок и моих ордеров
         /// </summary>
         private string _listenerOrderAndMyDealReplState;
 
         /// <summary>
+		/// check my orders and my trades listener for connection and validity
         /// проверить на подключение и валидность листнер моих ордеров и моих сделок
         /// </summary>
         private void CheckListnerMyTrades()
@@ -1529,6 +1592,7 @@ Connection conn, Listener listener, Message msg)
         }
 
         /// <summary>
+		/// here my trades and orders table is processed
         /// здесь обрабатывается таблица мои сделки и ордеров
         /// </summary>
         public int ClientMessage_OrderAndMyDeal(
@@ -1697,39 +1761,46 @@ Connection conn, Listener listener, Message msg)
         }
 
         /// <summary>
+		/// called when a new trade comes from the system
         /// вызывается когда из системы приходит новая моя сделка
         /// </summary>
         public event Action<MyTrade> NewMyTradeEvent;
 
         /// <summary>
+		/// called when a new order comes from the system
         /// вызывается когда из системы приходит новый мой ордер
         /// </summary>
         public event Action<Order> NewMyOrderEvent;
 
+		// order execution
         // Исполнение заявок
 
         /// <summary>
+		/// listener listening to publisher's answers (thing that transmit orders to the system)
         /// листнер прослушивающий ответы публишера(штуки которая передаёт ордера в систему)
         /// </summary>
         private Listener _listenerOrderSendMirror;
 
         /// <summary>
-        /// флаг, говорящий о том что коннект с листнером прервался 
-        /// и требуется его полная перезагрузка
+        /// flag saying that the connection with the list was interrupted/флаг, говорящий о том что коннект с листнером прервался 
+        /// and it requires a full reboot/и требуется его полная перезагрузка
         /// </summary>
         private bool _listenerOrderSendMirrorNeadToReload;
 
         /// <summary>
+		/// thread status of listener monitoring the publisher
         /// состояние потока листнера следящего за публишером
         /// </summary>
         private string _listenerOrderSenderMirrorReplState;
 
         /// <summary>
+		/// trades publisher and CODHeartbeat
         /// публишер сделок и CODHeartbeat
         /// </summary>
         private Publisher _publisher;
 
         /// <summary>
+		/// check on the connection and validity of the publisher and listner watching his responses
         /// проверить на подключение и валидность публишер и листнер следящий за его откликами
         /// </summary>
         private void CheckOrderSender()
@@ -1833,6 +1904,7 @@ Connection conn, Listener listener, Message msg)
         }
 
         /// <summary>
+		/// here my trade table and order log are processed
         /// здесь обрабатывается таблица мои сделки и ордерЛог
         /// </summary>
         public int ClientMessage_OrderSenderMirror(
@@ -1851,7 +1923,7 @@ Connection conn, Listener listener, Message msg)
 
                                 if (msgData.MsgId == 101)
                                 {
-                                    // пришёл отклик на выставление заявки
+                                    // received response to place order/пришёл отклик на выставление заявки
                                     int code = msgData["code"].asInt();
 
                                     Order order = new Order();
@@ -1875,7 +1947,7 @@ Connection conn, Listener listener, Message msg)
                                 }
                                 else if (msgData.MsgId == 102)
                                 {
-                                    // пришёл отклик на удаление заявки
+                                    // received response to cancel order/пришёл отклик на удаление заявки
                                     int code = msgData["code"].asInt();
 
                                     Order order = new Order();
@@ -1940,6 +2012,7 @@ Connection conn, Listener listener, Message msg)
         }
 
         /// <summary>
+		/// execute order
         /// исполнить ордер
         /// </summary>
         public void ExecuteOrder(Order order)
@@ -1948,6 +2021,7 @@ Connection conn, Listener listener, Message msg)
         }
 
         /// <summary>
+		/// cancel order from the system
         /// отозвать ордер из системы
         /// </summary>
         public void CancelOrder(Order order)
@@ -1962,6 +2036,7 @@ Connection conn, Listener listener, Message msg)
             if (record != null)
             {
                 record[1] += 1;
+				// if algorithm tries to remove one bid five times, then order cancellation will be ignored
                 // если алгоритм пытается снять одну заявку пять раз, то снятие этой заявки будет проигнорировано
                 if (record[1] > 5)
                 {
@@ -1978,21 +2053,25 @@ Connection conn, Listener listener, Message msg)
         }
 
         /// <summary>
+		/// thread standing on the order queue and monitoring the execution of trades
         /// поток стоящий на очереди заявок и следящий за исполнением сделок
         /// </summary>
         private Thread _threadOrderExecutor;
 
         /// <summary>
+		/// number of orders in the last second
         /// количество заявок в последней секунде
         /// </summary>
         private int _countActionInThisSecond = 0;
 
         /// <summary>
+		/// last second in which we placed orders
         /// последняя секунда, в которой мы выставляли заявки
         /// </summary>
         private DateTime _thisSecond = DateTime.MinValue;
 
         /// <summary>
+		/// method where the stream is running sending orders to the system
         /// метод где работает поток высылающий заявки в систему
         /// </summary>
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
@@ -2112,11 +2191,13 @@ Connection conn, Listener listener, Message msg)
         }
 
         /// <summary>
+		/// order queue for execution
         /// очередь заявок на исполнение
         /// </summary>
         private Queue<Order> _ordersToExecute;
 
         /// <summary>
+		/// order queue for cancellation
         /// очередь заявок на отмену
         /// </summary>
         private Queue<Order> _ordersToCansel;
@@ -2126,14 +2207,15 @@ Connection conn, Listener listener, Message msg)
         // CODHeartbeat
 
         /// <summary>
-        /// поток отправляющий CODHeartbeat
-        /// COD - специально заказываемая услуга у брокера
-        /// позволяет при обрыве связи с Вашей программой удалять все активные заявки ВАшего логина
-        /// Работает так- пока сигналы из программы идут - всё ок. Как прекращаются - биржа кроет все заявки.
+        /// CODHeartbeat thread / поток отправляющий CODHeartbeat
+        /// COD - specially ordered service from a broker/COD - специально заказываемая услуга у брокера
+        /// allows you to delete all active orders of your login when the connection with your program is broken/позволяет при обрыве связи с Вашей программой удалять все активные заявки ВАшего логина
+        /// It works as well - while signals from the program are being sent - everything is ok. How to stop - the exchange cancels all orders./Работает так- пока сигналы из программы идут - всё ок. Как прекращаются - биржа кроет все заявки.
         /// </summary>
         private Thread _heartBeatSenderThread;
 
         /// <summary>
+		/// work place of thread sending signals CODHeartbeat to the system
         /// место работы потока отправляющего сигналы CODHeartbeat в систему
         /// </summary>
         private void HeartBeatSender()
@@ -2161,10 +2243,12 @@ Connection conn, Listener listener, Message msg)
                 }
             }
         }
-
+	
+		// sending messages to up
         // Отправка сообщений на верх
 
         /// <summary>
+		/// send log message
         /// отправить сообщение в лог
         /// </summary>
         private void SendLogMessage(string message)
@@ -2176,6 +2260,7 @@ Connection conn, Listener listener, Message msg)
         }
 
         /// <summary>
+		/// called when a new log message appears
         /// вызывается когда появлось новое сообщение в Лог
         /// </summary>
         public event Action<string> LogMessageEvent;

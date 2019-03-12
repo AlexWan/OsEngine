@@ -18,11 +18,11 @@ namespace OsEngine.Market.Servers.Transaq
 {
     public class TransaqClient
     {
-        public string Login; // логин пользователя для сервера Transaq
-        public string Password; // пароль пользователя для сервера Transaq
+        public string Login; // user login for Transaq server / логин пользователя для сервера Transaq
+        public string Password; // user password for Transaq server / пароль пользователя для сервера Transaq
         public string NewPassword;
-        public string ServerIp; // IP адрес сервера Transaq
-        public string ServerPort; // номер порта сервера Transaq
+        public string ServerIp; // IP-address of Transaq server / IP адрес сервера Transaq
+        public string ServerPort; // port number of Transaq server / номер порта сервера Transaq
         public string LogPath;
 
         delegate bool CallBackDelegate(IntPtr pData);
@@ -30,6 +30,7 @@ namespace OsEngine.Market.Servers.Transaq
         readonly CallBackDelegate _myCallbackDelegate;
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
         public TransaqClient(string login, string password, string serverIp, string serverPort, string logPath)
@@ -53,6 +54,7 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         /// <summary>
+        /// connecto to the exchange
         /// установить соединение с биржей 
         /// </summary>
         public void Connect()
@@ -60,7 +62,7 @@ namespace OsEngine.Market.Servers.Transaq
             ConnectorInitialize();
             Thread.Sleep(1000);
 
-            // формирование текста команды
+            // formation of the command text / формирование текста команды
             string cmd = "<command id=\"connect\">";
             cmd = cmd + "<login>" + Login + "</login>";
             cmd = cmd + "<password>" + Password + "</password>";
@@ -69,35 +71,39 @@ namespace OsEngine.Market.Servers.Transaq
             cmd = cmd + "<rqdelay>100</rqdelay>";
             cmd = cmd + "</command>";
 
-            // отправка команды
+            // sending the command / отправка команды
             var res = ConnectorSendCommand(cmd);
         }
 
         /// <summary>
+        /// disconnect to exchange
         /// разорвать соединение с биржей 
         /// </summary>
         public void Disconnect()
         {
-            // формирование текста команды
+            // formation of the command text / формирование текста команды
             string cmd = "<command id=\"disconnect\">";
             cmd = cmd + "</command>";
 
-            // отправка команды
+            // sending the command / отправка команды
             var res = ConnectorSendCommand(cmd);
 
         }
 
         /// <summary>
+        /// is connection working
         /// работает ли соединение
         /// </summary>
         public bool IsConnected;
 
         /// <summary>
+        /// there was a request to clean up the object
         /// произошёл запрос на очистку объекта
         /// </summary>
         private bool _isDisposed;
 
         /// <summary>
+        /// bring the program to the start time. Clear all objects involved in connecting to the server
         /// привести программу к моменту запуска. Очистить все объекты участвующие в подключении к серверу
         /// </summary>
         public void Dispose()
@@ -120,6 +126,7 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         /// <summary>
+        /// Initializes the library: starts the callback queue processing thread
         /// Выполняет инициализацию библиотеки: запускает поток обработки очереди обратных вызовов
         /// </summary>
         public bool ConnectorInitialize()
@@ -141,6 +148,7 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         /// <summary>
+        /// Shuts down the internal threads of the library, including completing thread queue callbacks
         /// Выполняет остановку внутренних потоков библиотеки, в том числе завершает поток обработки очереди обратных вызовов
         /// </summary>
         public bool ConnectorUnInitialize()
@@ -162,14 +170,16 @@ namespace OsEngine.Market.Servers.Transaq
         private readonly XmlDeserializer _deserializer;
 
         /// <summary>
+        /// queue of new messages from server
         /// очередь новых сообщений, пришедших с сервера биржи
         /// </summary>
         private ConcurrentQueue<string> _newMessage = new ConcurrentQueue<string>();
 
         /// <summary>
+        /// processor of data from callbacks 
         /// обработчик данных пришедших через каллбек
         /// </summary>
-        /// <param name="pData">данные, поступившие от транзака</param>
+        /// <param name="pData">data from Transaq / данные, поступившие от транзака</param>
         bool CallBackDataHandler(IntPtr pData)
         {
             string data = MarshalUtf8.PtrToStringUtf8(pData);
@@ -180,10 +190,11 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         /// <summary>
+        /// sent the command
         /// отправить команду
         /// </summary>
-        /// <param name="command">команда в виде XML документа</param>
-        /// <returns>результат отправки команды</returns>
+        /// <param name="command">command as a XML document / команда в виде XML документа</param>
+        /// <returns>result of sending command/результат отправки команды</returns>
         public string ConnectorSendCommand(string command)
         {
             IntPtr pData = MarshalUtf8.StringToHGlobalUtf8(command);
@@ -198,6 +209,7 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         /// <summary>
+        /// takes messages from the shared queue, converts them to C# classes, and sends them to up
         /// берет сообщения из общей очереди, конвертирует их в классы C# и отправляет на верх
         /// </summary>
         public void Converter()
@@ -309,11 +321,12 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         /// <summary>
+        /// converts a string of data to needed format
         /// преобразует строку с данными в нужный формат
         /// </summary>
-        /// <typeparam name="T">тип, в который нужно преобразовать данные</typeparam>
-        /// <param name="data">строка с данными</param>
-        /// <returns>объект нужного типа</returns>
+        /// <typeparam name="T">type for converting / тип, в который нужно преобразовать данные</typeparam>
+        /// <param name="data">data string / строка с данными</param>
+        /// <returns>nessesary object / объект нужного типа</returns>
         private T Deserialize<T>(string data)
         {
             T newData;
@@ -324,69 +337,81 @@ namespace OsEngine.Market.Servers.Transaq
             }
             return newData;
         }
-        
-        #region Исходящие события
+
+        #region outgoing events / Исходящие события
 
         /// <summary>
+        /// customer data came in
         /// пришли данные о клиентах
         /// </summary>
         public event Action<Client> ClientsInfo;
 
         /// <summary>
+        /// API connection established
         /// соединение с API установлено
         /// </summary>
         public event Action Connected;
 
         /// <summary>
+        /// API connection lost
         /// соединение с API разорвано
         /// </summary>
         public event Action Disconnected;
 
         /// <summary>
+        /// new security in the system
         /// новые бумаги в системе
         /// </summary>
         public event Action<List<Security>> UpdatePairs;
 
         /// <summary>
+        /// updated portfolios
         /// обновились портфели
         /// </summary>
         public event Action<UnitedPortfolio> UpdatePortfolio;
 
         /// <summary>
+        /// updated ticks
         /// обновились тики
         /// </summary>
         public event Action<List<Trade>> NewTradesEvent;
 
         /// <summary>
+        /// updated depth
         /// обновился стакан
         /// </summary>
         public event Action<List<Quote>> UpdateMarketDepth;
 
         /// <summary>
+        /// my new orders
         /// новые мои ордера
         /// </summary>
         public event Action<List<Order>> MyOrderEvent;
 
         /// <summary>
+        /// my new trades
         /// новые мои сделки
         /// </summary>
         public event Action<List<Trade>> MyTradeEvent;
 
         /// <summary>
+        /// got candles
         /// пришли свечи
         /// </summary>
         public event Action<Candles> NewCandles;
 
         /// <summary>
+        /// need to change password
         /// нужно изменить пароль
         /// </summary>
         public event Action NeedChangePassword;
 
         #endregion
 
-        #region сообщения для лога
+        #region log message / сообщения для лога
 
         /// <summary>
+        /// add a new log message
         /// добавить в лог новое сообщение
         /// </summary>
         void SendLogMessage(string message, LogMessageType type)
@@ -398,6 +423,7 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         /// <summary>
+        /// send exeptions
         /// отправляет исключения
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
@@ -406,6 +432,7 @@ namespace OsEngine.Market.Servers.Transaq
 
 
         //--------------------------------------------------------------------------------
+        // file of library TXmlConnector.the dll must be in the same folder as the program
         // файл библиотеки TXmlConnector.dll должен находиться в одной папке с программой
 
         [DllImport("txmlconnector64.dll", CallingConvention = CallingConvention.StdCall)]

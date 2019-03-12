@@ -13,19 +13,21 @@ namespace OsEngine.Entity
 {
 
     /// <summary>
+    /// a series of candles. The object in which the incoming data is collected candles
     /// серия свечек. Объект в котором из входящих данных собираются свечи
     /// </summary>
     public class CandleSeries
     {
-
-// сервис
+        // service
+        // сервис
 
         /// <summary>
+        /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="timeFrameBuilder">объект несущий в себе данные о таймФрейме</param>
-        /// <param name="security">бумага на которою мы подписаны</param>
-        /// <param name="startProgram">программа создавшая объект</param>
+        /// <param name="timeFrameBuilder">/object that carries timeframe data/объект несущий в себе данные о таймФрейме</param>
+        /// <param name="security">security we are subscribed to/бумага на которою мы подписаны</param>
+        /// <param name="startProgram">the program that created the object/программа создавшая объект</param>
         public CandleSeries(TimeFrameBuilder timeFrameBuilder, Security security, StartProgram startProgram)
         {
             _timeFrameBuilder = timeFrameBuilder;
@@ -34,6 +36,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// blocking empty constructor
         /// блокируем пустой конструктор
         /// </summary>
         private CandleSeries()
