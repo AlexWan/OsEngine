@@ -618,11 +618,13 @@ namespace OsEngine.Charts.CandleChart
                 SendErrorMessage(error);
             }  
         }
+
         // work on changing trade points depending on the size of representation on the X-axis
         // работа по изменению точек сделок в зависимости от размера представления на оси Х
-
         private void ChartCandle_SizeAxisXChangeEvent(int newSizeX)
         {
+          //  return;
+
             if (_myPosition == null ||
                 _myPosition.Count == 0)
             {
@@ -1332,7 +1334,8 @@ namespace OsEngine.Charts.CandleChart
             }
 
             if (_securityOnThisChart == security &&
-                _timeFrameSecurity == timeFrameBuilder.TimeFrame)
+                _timeFrameSecurity == timeFrameBuilder.TimeFrame &&
+                serverType == _serverType)
             {
                 return;
             }

@@ -630,7 +630,18 @@ namespace OsEngine.Market.Servers.QuikLua
                     trade.Id = allTrade.TradeNum.ToString();
                     trade.Price = Convert.ToDecimal(allTrade.Price);
                     trade.Volume = Convert.ToInt32(allTrade.Qty);
-                    trade.Side = Convert.ToInt32(allTrade.Flags) == 1 ? Side.Sell : Side.Buy;
+
+                    var side = Convert.ToInt32(allTrade.Flags);
+
+                    if(side == 1025 || side == 1)
+                    {
+                        trade.Side = Side.Sell;
+                    }
+                    else //if(side == 1026 || side == 2)
+                    {
+                        trade.Side = Side.Buy;
+                    }
+
                     trade.Time = new DateTime(allTrade.Datetime.year, allTrade.Datetime.month, allTrade.Datetime.day,
                                               allTrade.Datetime.hour, allTrade.Datetime.min, allTrade.Datetime.sec);
                     if (NewTradesEvent != null)
