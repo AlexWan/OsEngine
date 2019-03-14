@@ -1255,7 +1255,7 @@ namespace OsEngine.Charts.CandleChart
                     candleSeries.Points[index].BackSecondaryColor = _colorKeeper.ColorDownBodyCandle;
                 }
 
-                candleSeries.Points[index].ToolTip = history[index].ToolTip;
+               //candleSeries.Points[index].ToolTip = history[index].ToolTip;
 
                 ChartArea candleArea = FindAreaByNameSafe("Prime");
                 if (candleArea != null && candleArea.AxisX.ScrollBar.IsVisible &&
@@ -1307,7 +1307,7 @@ namespace OsEngine.Charts.CandleChart
             }
 
            
-            candleSeries.Points[candleSeries.Points.Count - 1].ToolTip = history[candleSeries.Points.Count - 1].ToolTip;
+            //candleSeries.Points[candleSeries.Points.Count - 1].ToolTip = history[candleSeries.Points.Count - 1].ToolTip;
 
             // candleSeries.Points[candleSeries.Points.Count - 1].AxisLabel = history[lastIndex].TimeStart.ToString(_culture);
 
@@ -1364,7 +1364,7 @@ namespace OsEngine.Charts.CandleChart
                     candleSeries.Points[candleSeries.Points.Count - 1].BackSecondaryColor = _colorKeeper.ColorDownBodyCandle;
                 }
 
-                candleSeries.Points[candleSeries.Points.Count - 1].ToolTip = history[candleSeries.Points.Count - 1].ToolTip;
+                //candleSeries.Points[candleSeries.Points.Count - 1].ToolTip = history[candleSeries.Points.Count - 1].ToolTip;
 
                 // candleSeries.Points[candleSeries.Points.Count - 1].AxisLabel = history[i].TimeStart.ToString(new CultureInfo("ru-RU"));
             }
@@ -1683,7 +1683,7 @@ namespace OsEngine.Charts.CandleChart
 
                         buySellSeries.Points.AddXY(xIndexPoint, trades[indTrades].Price);
 
-                        buySellSeries.Points[buySellSeries.Points.Count - 1].ToolTip = trades[indTrades].ToolTip;
+                       // buySellSeries.Points[buySellSeries.Points.Count - 1].ToolTip = trades[indTrades].ToolTip;
 
                         if (_colorKeeper.PointType == PointType.TriAngle)
                         {
@@ -3096,7 +3096,7 @@ namespace OsEngine.Charts.CandleChart
                     if (array[i] != 0)
                     {
                         series.Points.AddXY(i, array[i]);
-                        series.Points[series.Points.Count - 1].ToolTip = array[i].ToString();
+                        //series.Points[series.Points.Count - 1].ToolTip = array[i].ToString();
                     }
                 }
                 ReloadAreaSizes();
@@ -3115,7 +3115,7 @@ namespace OsEngine.Charts.CandleChart
 
             decimal lastPoint = values[values.Count - 1];
             mySeries.Points.AddXY(values.Count - 1, lastPoint);
-            mySeries.Points[mySeries.Points.Count - 1].ToolTip = lastPoint.ToString();
+            //mySeries.Points[mySeries.Points.Count - 1].ToolTip = lastPoint.ToString();
         }
 
         /// <summary>
@@ -3127,7 +3127,7 @@ namespace OsEngine.Charts.CandleChart
             Series mySeries = FindSeriesByNameSafe(nameSeries);
             decimal point2 = Convert.ToDecimal(values[values.Count - 2]);
             mySeries.Points[mySeries.Points.Count - 1].YValues = new[] { Convert.ToDouble(point2) };
-            mySeries.Points[mySeries.Points.Count - 1].ToolTip = point2.ToString();
+           // mySeries.Points[mySeries.Points.Count - 1].ToolTip = point2.ToString();
         }
         // Line indicator
         // Индикатор линия
@@ -3197,11 +3197,13 @@ namespace OsEngine.Charts.CandleChart
                     if (array[i] != 0)
                     {
                         series.Points.AddXY(i, array[i]);
-                        series.Points[series.Points.Count - 1].ToolTip = array[i].ToString();
+                        //series.Points[series.Points.Count - 1].ToolTip = array[i].ToString();
                     }
                     else
                     {
-                        series.Points.AddXY(i, 0);
+                        var point = new DataPoint(mySeries.Points.Count, 0);
+                        point.IsEmpty = true;
+                        mySeries.Points.Add(point);
                     }
                 }
 
@@ -3221,8 +3223,19 @@ namespace OsEngine.Charts.CandleChart
             Series mySeries = FindSeriesByNameSafe(nameSeries);
 
             decimal lastPoint = values[values.Count - 1];
-            mySeries.Points.AddXY(mySeries.Points.Count, lastPoint);
-            mySeries.Points[mySeries.Points.Count - 1].ToolTip = lastPoint.ToString();
+
+            if(lastPoint != 0)
+            {
+                mySeries.Points.AddXY(mySeries.Points.Count, lastPoint);
+                //mySeries.Points[mySeries.Points.Count - 1].ToolTip = lastPoint.ToString();
+            }
+            else
+            {
+                var point = new DataPoint(mySeries.Points.Count, (double)lastPoint);
+                point.IsEmpty = true;
+                mySeries.Points.Add(point);
+            }
+
 
             RePaintRightLebels();
         }
@@ -3237,7 +3250,7 @@ namespace OsEngine.Charts.CandleChart
 
             decimal lastPoint = Convert.ToDecimal(values[values.Count - 1]);
             mySeries.Points[mySeries.Points.Count - 1].YValues = new [] { Convert.ToDouble(lastPoint) };
-            mySeries.Points[mySeries.Points.Count - 1].ToolTip = lastPoint.ToString();
+            //mySeries.Points[mySeries.Points.Count - 1].ToolTip = lastPoint.ToString();
 
             RePaintRightLebels();
         }
@@ -3304,7 +3317,7 @@ namespace OsEngine.Charts.CandleChart
                     if (array[i] != 0)
                     {
                         series.Points.AddXY(i, array[i]);
-                        series.Points[series.Points.Count - 1].ToolTip = array[i].ToString();
+                        //series.Points[series.Points.Count - 1].ToolTip = array[i].ToString();
                     }
                     else
                     {
@@ -3347,7 +3360,7 @@ namespace OsEngine.Charts.CandleChart
             Series mySeriesUp = FindSeriesByNameSafe(nameSeries);
             decimal lastPointUp = values[values.Count - 1];
             mySeriesUp.Points.AddXY(mySeriesUp.Points.Count, lastPointUp);
-            mySeriesUp.Points[mySeriesUp.Points.Count - 1].ToolTip = lastPointUp.ToString();
+            //mySeriesUp.Points[mySeriesUp.Points.Count - 1].ToolTip = lastPointUp.ToString();
 
             if (values[values.Count - 1] > values[values.Count - 2])
             {
@@ -3374,7 +3387,7 @@ namespace OsEngine.Charts.CandleChart
             Series mySeriesUp = FindSeriesByNameSafe(nameSeries);
             decimal lastPoint = Convert.ToDecimal(values[values.Count - 1]);
             mySeriesUp.Points[mySeriesUp.Points.Count - 1].YValues = new[] { Convert.ToDouble(lastPoint) };
-            mySeriesUp.Points[mySeriesUp.Points.Count - 1].ToolTip = lastPoint.ToString();
+           // mySeriesUp.Points[mySeriesUp.Points.Count - 1].ToolTip = lastPoint.ToString();
 
             if (values.Count != 1)
             {
@@ -4845,7 +4858,6 @@ namespace OsEngine.Charts.CandleChart
             }
         }
 
-        
         private int GetCandlesDecimal(List<Candle> candles)
         {
             if (candles == null)
