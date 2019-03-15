@@ -149,7 +149,7 @@ namespace OsEngine.Market.Servers.BitMex.BitMexEntity
         /// volume
         /// объем
         /// </summary>
-        public int currentQty { get; set; }
+        public string currentQty { get; set; }
 
         //public string currency { get; set; }
         //public string underlying { get; set; }
