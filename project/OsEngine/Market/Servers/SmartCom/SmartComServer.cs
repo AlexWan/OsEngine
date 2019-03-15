@@ -206,8 +206,7 @@ namespace OsEngine.Market.Servers.SmartCom
             
         }
 
-        // work with orders
-        // работа с ордерами
+        // work with orders / работа с ордерами
 
         /// <summary>
         /// order numbers sending for execution to SmartCom
@@ -791,9 +790,7 @@ namespace OsEngine.Market.Servers.SmartCom
             }
         }
 
-        // parsing incoming data
-        // разбор входящих данных
-
+        // parsing incoming data / разбор входящих данных
 
         private List<MarketDepth> _depths = new List<MarketDepth>();
 
@@ -838,6 +835,11 @@ namespace OsEngine.Market.Servers.SmartCom
 
             asks[row] = askOs;
             bids[row] = bidOs;
+
+            if (row != nrows-1)
+            {
+                return;
+            }
 
             if (MarketDepthEvent != null)
             {
@@ -927,6 +929,46 @@ namespace OsEngine.Market.Servers.SmartCom
                     security.Strike = Convert.ToDecimal(strike);
                     security.Expiration = expiryDate;
 
+                    if (type == "TQBR" || type == "TQDE" || type == "TQNE"
+                        || type == "EQNE" || type == "ADR")
+                    {
+                        security.SecurityType = SecurityType.Stock;
+                    }
+                    else if (type == "FUT" || type == "SPBEX" 
+                             || type == "ST")
+                    {
+                        security.SecurityType = SecurityType.Futures;
+                    }
+                    else if (type == "CUR" || type == "CETS" )
+                    {
+                        security.SecurityType = SecurityType.CurrencyPair;
+                    }
+                    else if (type == "OPTM" || type == "OPT")
+                    {
+                        security.SecurityType = SecurityType.Futures;
+                    }
+                    else if (type == "IDX" || type == "FDDIZLBLT" || type == "D"
+                             || type == "FDESPOKOZ" || type == "E")
+                    {
+                        security.SecurityType = SecurityType.Futures;
+                    }
+                    else
+                    {
+                        security.SecurityType = SecurityType.Futures;
+                    }
+
+                    security.Decimals = decimals;
+
+                    if (decimals == 7.0)
+                    {
+                        security.PriceStep = 0.0000001m;
+                        security.PriceStepCost = 0.0000001m;
+                    }
+                    if (decimals == 6.0)
+                    {
+                        security.PriceStep = 0.000001m;
+                        security.PriceStepCost = 0.000001m;
+                    }
                     if (decimals == 5.0)
                     {
                         security.PriceStep = 0.00001m;
@@ -956,6 +998,12 @@ namespace OsEngine.Market.Servers.SmartCom
                     {
                         security.PriceStep = Convert.ToDecimal(step);
                         security.PriceStepCost = Convert.ToDecimal(punkt);
+                    }
+
+                    if (security.PriceStep == 0)
+                    {
+                        security.PriceStep = 1;
+                        security.PriceStepCost = 1;
                     }
 
                     if (type == "FUT")

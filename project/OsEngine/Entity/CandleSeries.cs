@@ -231,6 +231,11 @@ namespace OsEngine.Entity
                 return;
             }
 
+            if(_lastTradeIndex == 0)
+            {
+
+            }
+
             // обновилось неизвесное кол-во тиков
             for (int i = _lastTradeIndex; i < trades.Count; i++)
             {
@@ -238,6 +243,12 @@ namespace OsEngine.Entity
                 {
                     continue;
                 }
+
+                if(CandlesAll[CandlesAll.Count - 1].TimeStart > trades[i].Time)
+                {
+                    continue;
+                }
+
                 UpDateCandle(trades[i].Time, trades[i].Price, trades[i].Volume, true, trades[i].Side);
 
                 if (_startProgram == StartProgram.IsOsData)

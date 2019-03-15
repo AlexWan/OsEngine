@@ -3676,7 +3676,7 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         private void CheckTrades(DateTime now)
         {
-            if (_reader == null || _reader.EndOfStream)
+            if (_reader == null || (_reader.EndOfStream && LastTrade == null))
             {
                 _reader = new StreamReader(FileAdress);
             }

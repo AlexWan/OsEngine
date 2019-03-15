@@ -4,8 +4,10 @@
 */
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading;
 using OsEngine.Entity;
 
 namespace OsEngine.Market.Connectors
@@ -17,9 +19,42 @@ namespace OsEngine.Market.Connectors
     /// </summary>
     public class OrderExecutionEmulator
     {
+        private static List<OrderExecutionEmulator> _emulators = new List<OrderExecutionEmulator>();
+        
+        private static void Listen(OrderExecutionEmulator emulator)
+        {
+            _emulators.Add(emulator);
+
+            if (_emulators.Count == 1)
+            {
+                Thread worker = new Thread(WatcherThread);
+                worker.Start();
+            }
+        }
+
+        private static void WatcherThread()
+        {
+            while(true)
+            {
+                Thread.Sleep(1000);
+
+                if (MainWindow.ProccesIsWorked == false)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < _emulators.Count; i++)
+                {
+                    _emulators[i].CheckOrders();
+                }
+
+            }
+        }
+
         public OrderExecutionEmulator()
         {
             ordersOnBoard = new List<Order>();
+            Listen(this);
         }
 
 // order management
@@ -57,9 +92,47 @@ namespace OsEngine.Market.Connectors
             newOrder.TypeOrder = order.TypeOrder;
             newOrder.TimeCallBack = _serverTime;
 
-            if (OrderChangeEvent != null)
+            _ordersToSend.Enqueue(newOrder);
+        }
+
+        private ConcurrentQueue<Order> _ordersToSend = new ConcurrentQueue<Order>();
+
+        private ConcurrentQueue<MyTrade> _myTradesToSend = new ConcurrentQueue<MyTrade>();
+
+        private void CheckOrders()
+        {
+            while (_ordersToSend.IsEmpty == false)
             {
-                OrderChangeEvent(newOrder);
+                Order order;
+
+                _ordersToSend.TryDequeue(out order);
+
+                if (order == null)
+                {
+                    continue;
+                }
+
+                if (OrderChangeEvent != null)
+                {
+                    OrderChangeEvent(order);
+                }
+            }
+
+            while (_myTradesToSend.IsEmpty == false)
+            {
+                MyTrade trade;
+
+                _myTradesToSend.TryDequeue(out trade);
+
+                if (trade == null)
+                {
+                    continue;
+                }
+
+                if (MyTradeEvent != null)
+                {
+                    MyTradeEvent(trade);
+                }
             }
         }
 
@@ -157,10 +230,7 @@ namespace OsEngine.Market.Connectors
             newOrder.Side = order.Side;
             newOrder.SecurityNameCode = order.SecurityNameCode;
 
-            if (OrderChangeEvent != null)
-            {
-                OrderChangeEvent(newOrder);
-            }
+            _ordersToSend.Enqueue(newOrder);
 
             MyTrade trade = new MyTrade();
             trade.Volume = order.Volume;
@@ -171,10 +241,7 @@ namespace OsEngine.Market.Connectors
             trade.Side = order.Side;
             trade.NumberOrderParent = newOrder.NumberMarket;
 
-            if (MyTradeEvent != null)
-            {
-                MyTradeEvent(trade);
-            }
+            _myTradesToSend.Enqueue(trade);
 
         }
 
@@ -196,10 +263,7 @@ namespace OsEngine.Market.Connectors
             newOrder.Side = order.Side;
             newOrder.SecurityNameCode = order.SecurityNameCode;
 
-            if (OrderChangeEvent != null)
-            {
-                OrderChangeEvent(newOrder);
-            }
+            _ordersToSend.Enqueue(newOrder);
         }
 
 // server needs to be loaded with new data to execute stop- and profit-orders

@@ -26,7 +26,7 @@
         <Label Name="LabelTimeFrame" Content="TimeFrame" HorizontalAlignment="Left" Margin="41,296,0,0" VerticalAlignment="Top" Width="78"/>
         <ComboBox x:Name ="ComboBoxTimeFrame" Margin="206,296,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
 
-        <CheckBox x:Name="CheckBoxIsEmulator" Content="Execute trades in the emulator" HorizontalAlignment="Left" Margin="120,112,0,0" ToolTip="Сделки будут сведены в рамках платформы и в рынок выставлены не будут" VerticalAlignment="Top"/>
+        <CheckBox x:Name="CheckBoxIsEmulator" Content="Execute trades in the emulator" HorizontalAlignment="Left" Margin="120,112,0,0" VerticalAlignment="Top"/>
 
         <Label Name="Label8" Content="From what we collect candles" HorizontalAlignment="Left" Margin="41,242,0,0" VerticalAlignment="Top"/>
         <ComboBox x:Name ="ComboBoxCandleMarketDataType" Margin="206,242,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184" />

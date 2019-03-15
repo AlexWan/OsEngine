@@ -680,7 +680,8 @@ namespace OsEngine.Market.Servers.Quik
         /// </summary>
         private string ConvertToSimpleQuikOrder(Order order)
         {
-            Portfolio myPortfolio = _portfolios.Find(por => por.Number == order.PortfolioNumber);
+            Portfolio myPortfolio = _portfolios.Find(por => por.Number == order.PortfolioNumber ||
+                                                            por.Number.StartsWith(order.PortfolioNumber));
             Security mySecurity = _securities.Find(sec => sec.Name == order.SecurityNameCode);
 
             if (myPortfolio == null ||

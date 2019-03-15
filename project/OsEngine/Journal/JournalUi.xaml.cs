@@ -754,12 +754,15 @@ namespace OsEngine.Journal
                 decimal profitSum = 0;
                 decimal profitSumLong = 0;
                 decimal profitSumShort = 0;
+                decimal maxYVal = 0;
+                decimal minYval = decimal.MaxValue;
                 //Side d = new Side();
 
                 for (int i = 0; i < positionsAll.Count; i++)
                 {
                     profitSum += positionsAll[i].ProfitPortfolioPunkt;
                     profit.Points.AddXY(i, profitSum);
+
 
                     profit.Points[profit.Points.Count - 1].AxisLabel =
                         positionsAll[i].TimeCreate.ToString(new CultureInfo("ru-RU"));
@@ -774,6 +777,32 @@ namespace OsEngine.Journal
                     if (positionsAll[i].Direction == Side.Sell)
                     {
                         profitSumShort += positionsAll[i].ProfitPortfolioPunkt;
+                    }
+
+                    if (profitSum > maxYVal)
+                    {
+                        maxYVal = profitSum;
+                    }
+                    if (profitSumLong > maxYVal)
+                    {
+                        maxYVal = profitSumLong;
+                    }
+                    if (profitSumShort > maxYVal)
+                    {
+                        maxYVal = profitSumShort;
+                    }
+
+                    if (profitSum < minYval)
+                    {
+                        minYval = profitSum;
+                    }
+                    if (profitSumLong < minYval)
+                    {
+                        minYval = profitSumLong;
+                    }
+                    if (profitSumShort < minYval)
+                    {
+                        minYval = profitSumShort;
                     }
 
                     profitLong.Points.AddXY(i, profitSumLong);
@@ -794,6 +823,13 @@ namespace OsEngine.Journal
                 _chartEquity.Series.Add(profitLong);
                 _chartEquity.Series.Add(profitShort);
                 _chartEquity.Series.Add(profitBar);
+
+                if(minYval != decimal.MaxValue &&
+                    maxYVal != 0)
+                {
+                    _chartEquity.ChartAreas[0].AxisY2.Maximum = (double)maxYVal;
+                    _chartEquity.ChartAreas[0].AxisY2.Minimum = (double)minYval;
+                }
             }
             catch (Exception error)
             {

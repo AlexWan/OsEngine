@@ -202,6 +202,7 @@ namespace OsEngine.Market.Servers.Quik
                         try
                         {
                             if (table.GetLength(1) > 11)
+                            {
                                 if (
                                     !string.IsNullOrEmpty(table[i, 11].ToString()))
                                 {
@@ -222,6 +223,12 @@ namespace OsEngine.Market.Servers.Quik
                                         securities[i].Lot = 1;
                                     }
                                 }
+                            }
+                            else
+                            {
+                            securities[i].SecurityType = SecurityType.Stock;
+                                securities[i].Lot = 1;
+                        }
 
                         }
                         catch (Exception error)
@@ -415,11 +422,22 @@ namespace OsEngine.Market.Servers.Quik
                 myPortfolio.ValueCurrent = valueCurrent;
                 myPortfolio.ValueBlocked = valueBlock;
                 myPortfolio.Profit = profitLoss;
+            }
 
-                if (UpdatePortfolios != null)
+            for (int i = 0; i < _portfolios.Count; i++)
+            {
+                List<Portfolio> portfolios = _portfolios.FindAll(p => p.Number == _portfolios[i].Number);
+
+                if (portfolios.Count > 1)
                 {
-                    UpdatePortfolios(_portfolios);
+                    _portfolios.RemoveAt(i);
+                    break;
                 }
+            }
+
+            if (UpdatePortfolios != null)
+            {
+                UpdatePortfolios(_portfolios);
             }
         }
         
@@ -455,11 +473,6 @@ namespace OsEngine.Market.Servers.Quik
                     data.Firm = firm;
                     data.Number = numberPortfolio;
                     _portfoliosQuik.Add(data);
-                }
-
-                if (UpdatePortfolios != null)
-                {
-                    UpdatePortfolios(_portfolios);
                 }
             }
         }
@@ -596,15 +609,15 @@ namespace OsEngine.Market.Servers.Quik
             // in the tables we have levels from top to bottom as in QUIK table / в тайблах у нас уровни сверху вниз, как в таблице из Квик. 
             // the first index is the row number, the second column / первый индекс это номер строки, второй столбца
 
-            List<MarketDepthLevel> asks = new List<MarketDepthLevel>();
-
             List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
+
+            List<MarketDepthLevel> asks = new List<MarketDepthLevel>();
 
             for (int i = 0; i < countElem; i++)
             {
                 if (ToDecimal(table[i, 0]) == 0)
                 {
-                    asks.Add(new MarketDepthLevel() {
+                    bids.Add(new MarketDepthLevel() {
                         Bid = ToDecimal(table[i, 2]),
                         Price = ToDecimal(table[i, 1]),
                         Ask = 0
@@ -612,7 +625,7 @@ namespace OsEngine.Market.Servers.Quik
                 }
                 else
                 {
-                    bids.Add(new MarketDepthLevel()
+                    asks.Add(new MarketDepthLevel()
                     {
                         Bid = 0,
                         Price = ToDecimal(table[i, 1]),
@@ -621,30 +634,49 @@ namespace OsEngine.Market.Servers.Quik
                 }
             }
 
-            if (asks.Count > 1 && asks[0].Price < (asks[1].Price))
+            for (int i = 0; i < bids.Count; i++)
             {
-                List<MarketDepthLevel> asksSort = new List<MarketDepthLevel>();
-                for (int i = asks.Count - 1; i > -1; i--)
+                if (bids[i].Price == 0 ||
+                    bids[i].Bid == 0)
                 {
-                    asksSort.Add(asks[i]);
+                    bids.RemoveAt(i);
+                    i--;
                 }
-                asks = asksSort;
+            }
+            for (int i = 0; i < asks.Count; i++)
+            {
+                if (asks[i].Price == 0 ||
+                    asks[i].Ask == 0)
+                {
+                    asks.RemoveAt(i);
+                    i--;
+                }
             }
 
-            if (bids.Count > 1 && bids[0].Price > (bids[1].Price))
+            if (bids.Count > 1 && bids[0].Price < (bids[1].Price))
             {
                 List<MarketDepthLevel> bidsSort = new List<MarketDepthLevel>();
                 for (int i = bids.Count - 1; i > -1; i--)
                 {
                     bidsSort.Add(bids[i]);
                 }
-
                 bids = bidsSort;
             }
 
+            if (asks.Count > 1 && asks[0].Price > (asks[1].Price))
+            {
+                List<MarketDepthLevel> asksSort = new List<MarketDepthLevel>();
+                for (int i = asks.Count - 1; i > -1; i--)
+                {
+                    asksSort.Add(asks[i]);
+                }
+
+                asks = asksSort;
+            }
+
             MarketDepth glass = new MarketDepth();
-            glass.Bids = asks;
-            glass.Asks = bids;
+            glass.Bids = bids;
+            glass.Asks = asks;
             glass.SecurityNameCode = nameSecurity;
 
             if (UpdateGlass != null)

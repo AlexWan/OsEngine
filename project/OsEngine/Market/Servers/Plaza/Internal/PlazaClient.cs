@@ -757,6 +757,8 @@ namespace OsEngine.Market.Servers.Plaza.Internal
 
                                     security.Lot = 1; //Convert.ToDecimal(replmsg["lot_volume"].asInt());
 
+                                    security.SecurityType = SecurityType.Futures;
+
                                     security.NameClass = "FORTS";
 
                                     if (UpdateSecurity != null)

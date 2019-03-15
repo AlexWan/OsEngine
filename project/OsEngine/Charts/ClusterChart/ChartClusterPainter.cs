@@ -865,13 +865,13 @@ namespace OsEngine.Charts.ClusterChart
             }
 
             ChartArea candleArea = FindAreaByNameSafe("Prime");
-            if (candleArea != null && candleArea.AxisY.ScrollBar.IsVisible)
+           // if (candleArea != null && candleArea.AxisY.ScrollBar.IsVisible)
                 //если уже выбран какой-то диапазон
-            {
+           // {
                 // сдвигаем представление вправо
                 candleArea.AxisY.Maximum = _volume.VolumeClusters.Count + 2;
                 candleArea.AxisY.Minimum = -1;
-            }
+            //}
 
             if (FindSeriesByNameSafe("Cursor") != null)
             {

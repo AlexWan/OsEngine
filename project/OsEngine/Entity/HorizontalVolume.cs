@@ -111,10 +111,7 @@ namespace OsEngine.Entity
                 return;
             }
 
-            if (candles[candles.Count - 1].Trades.Count == 0)
-            {
-                return;
-            }
+
 
             _myCandles = candles;
 
@@ -127,6 +124,11 @@ namespace OsEngine.Entity
 
             for (int i = index; i < candles.Count; i++)
             {
+                if (candles[i].Trades.Count == 0)
+                {
+                    continue;
+                }
+
                 // take the cluster from the storage, if not, then create a new
                 // берём кластер из хранилища, если нет, то создаём новый
 
@@ -948,6 +950,11 @@ namespace OsEngine.Entity
         public void Process(List<Trade> trades)
         {
             if (_tradesCount == trades.Count)
+            {
+                return;
+            }
+
+            if (trades.Count < _tradesCount)
             {
                 return;
             }
