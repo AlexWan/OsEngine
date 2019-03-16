@@ -1689,6 +1689,15 @@ namespace OsEngine.Market.Servers.BitMex
                             continue;
                         }
 
+                        try
+                        {
+                            Convert.ToInt32(myOrder.data[i].clOrdID);
+                        }
+                        catch
+                        {
+                            continue;
+                        }
+
                         if (myOrder.action == "insert")
                         {
                             Order order = new Order();
