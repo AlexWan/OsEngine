@@ -244,7 +244,8 @@ namespace OsEngine.Entity
                     continue;
                 }
 
-                if(CandlesAll[CandlesAll.Count - 1].TimeStart > trades[i].Time)
+                if(CandlesAll != null &&
+                   CandlesAll[CandlesAll.Count - 1].TimeStart > trades[i].Time)
                 {
                     continue;
                 }
