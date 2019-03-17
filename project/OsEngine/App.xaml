@@ -1796,7 +1796,7 @@
 
         <!-- Windows -->
         <SolidColorBrush x:Key="WindowTitleBarBackgroundBrush" Color="#151a1e"/>
-        <SolidColorBrush x:Key="WindowBorderBrush" Color="#FF17171B" />
+        <SolidColorBrush x:Key="WindowBorderBrush" Color="#999999" />
         <SolidColorBrush x:Key="WindowBorderBrushInactive" Color="#999999" />
         <SolidColorBrush x:Key="WindowStatusForeground" Color="#FFFFFF" />
         <SolidColorBrush x:Key="WindowStatusForegroundInactive" Color="#FFFFFF" />
@@ -1845,7 +1845,7 @@
         <!-- Window CanResize -->
         <Style x:Key="WindowStyleCanResize" TargetType="{x:Type Window}">
             <Setter Property="WindowStyle" Value="None" />
-            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Background" Value="{StaticResource WindowBackgroundGradientBrush}"/>
             <Setter Property="AllowsTransparency" Value="False" />
             <Setter Property="ResizeMode" Value="CanResizeWithGrip" />
@@ -1878,7 +1878,7 @@
                             Height="Auto"
                             Background="#EFEFF2"
                             BorderBrush="{StaticResource WindowBorderBrush}"
-                            BorderThickness="2"
+                            BorderThickness="1"
                             Padding="0">
                                     <DockPanel
                                HorizontalAlignment="Stretch"
@@ -2034,7 +2034,7 @@
         <!-- Window NoResize -->
         <Style x:Key="WindowStyleNoResize" TargetType="{x:Type Window}">
             <Setter Property="WindowStyle" Value="None" />
-            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Background" Value="{StaticResource WindowBackgroundGradientBrush}"/>
             <Setter Property="AllowsTransparency" Value="False" />
             <Setter Property="ResizeMode" Value="CanResizeWithGrip" />
@@ -2067,7 +2067,7 @@
                             Background="#EFEFF2"
                             BorderBrush="{StaticResource WindowBorderBrush}"
                             
-                            BorderThickness="2"
+                            BorderThickness="1"
                             Padding="0">
                                     <DockPanel
                                HorizontalAlignment="Stretch"
