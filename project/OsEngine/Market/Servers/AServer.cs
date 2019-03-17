@@ -1094,6 +1094,10 @@ namespace OsEngine.Market.Servers
 
                     for (int i = 0; _securities != null && i < _securities.Count; i++)
                     {
+                        if (_securities[i] == null)
+                        {
+                            continue;
+                        }
                         if (_securities[i].Name == namePaper)
                         {
                             security = _securities[i];
