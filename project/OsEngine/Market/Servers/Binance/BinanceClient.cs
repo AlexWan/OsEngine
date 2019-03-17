@@ -133,8 +133,15 @@ namespace OsEngine.Market.Servers.Binance
         {
             foreach (var ws in _wsStreams)
             {
+                ws.Value.Opened -= new EventHandler(Connect);
+                ws.Value.Closed -= new EventHandler(Disconnect);
+                ws.Value.Error -= new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>(WsError);
+                ws.Value.MessageReceived -= new EventHandler<MessageReceivedEventArgs>(GetRes);
+
                 ws.Value.Close();
+                ws.Value.Dispose();
             }
+
             IsConnected = false;
 
             if (Disconnected != null)
@@ -922,6 +929,10 @@ namespace OsEngine.Market.Servers.Binance
         /// </summary>        
         private void GetRes(object sender, MessageReceivedEventArgs e)
         {
+            if (_isDisposed == true)
+            {
+                return;
+            }
             _newMessage.Enqueue(e.Message);
         }
 
