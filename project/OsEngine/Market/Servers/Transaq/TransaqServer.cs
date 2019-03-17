@@ -476,7 +476,9 @@ namespace OsEngine.Market.Servers.Transaq
             Security security = series.Security;
             TimeFrame tf = series.TimeFrame;
 
-            string needPeriodId = GetNeedIdPeriod(tf, out var newTf, out var oldTf);
+            int newTf;
+            int oldTf;
+            string needPeriodId = GetNeedIdPeriod(tf, out newTf, out oldTf);
 
             string cmd = "<command id=\"gethistorydata\">";
             cmd += "<security>";
