@@ -242,6 +242,14 @@ namespace OsEngine.Market.Servers.Tester
                 }
             }
 
+            _candleSeriesTesterActivate = new List<SecurityTester>();
+
+            if (NeadToReconnectEvent != null)
+            {
+                NeadToReconnectEvent();
+            }
+
+            Thread.Sleep(5000);
             _candleManager.Clear();
 
             _allTrades = null;
@@ -2603,8 +2611,8 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         public event Action<List<Portfolio>> PortfoliosChangeEvent;
 
-// securities
-// бумаги
+ // securities / бумаги
+
 
         private List<Security> _securities;
 
@@ -2667,11 +2675,11 @@ namespace OsEngine.Market.Servers.Tester
             ui.ShowDialog();
         }
 
-// subscribe instruments to download
-// Заказ инструмента на скачивание
+// subscribe instruments to download / Заказ инструмента на скачивание
+
 
         /// <summary>
-		/// candle series of Tester for downloading
+        /// candle series of Tester for downloading
         /// серии свечек Тестера запущенные на скачивание
         /// </summary>
         private List<SecurityTester> _candleSeriesTesterActivate;
