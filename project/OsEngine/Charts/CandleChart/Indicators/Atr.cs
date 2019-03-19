@@ -365,7 +365,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             TrueRangeReload(candles, index);
             _moving = MovingAverageWild(_trueRange, _moving, Lenght, index);
 
-            return Math.Round(_moving[_moving.Count-1],6);
+            return Math.Round(_moving[_moving.Count-1],7);
         }
 
         private List<decimal> _moving;
@@ -493,7 +493,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
 
                 decimal lastValueMoving;
-                decimal lastValueSeries = Math.Round(valuesSeries[valuesSeries.Count - 1], 6);
+                decimal lastValueSeries = Math.Round(valuesSeries[valuesSeries.Count - 1], 7);
 
                 if (index > moving.Count - 1)
                 {
@@ -505,7 +505,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                     lastValueMoving = moving[moving.Count - 2];
                 }
 
-                moving[moving.Count - 1] = Math.Round((lastValueMoving * (Lenght - 1) + lastValueSeries) / Lenght, 6);
+                moving[moving.Count - 1] = Math.Round((lastValueMoving * (Lenght - 1) + lastValueSeries) / Lenght, 7);
 
             }
 

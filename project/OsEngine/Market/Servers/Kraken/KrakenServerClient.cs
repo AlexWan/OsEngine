@@ -314,7 +314,7 @@ namespace OsEngine.Market.Servers.Kraken
             }
             try
             {
-                var tradeBalance = _kraken.GetTradeBalance("currency", string.Empty);
+                var tradeBalance = _kraken.GetTradeBalance("currency", "ZUSD");
 
                 var ret = JsonConvert.DeserializeObject<GetTradeBalanceResponse>(tradeBalance.ToString());
 

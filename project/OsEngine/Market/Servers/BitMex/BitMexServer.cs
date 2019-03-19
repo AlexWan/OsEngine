@@ -864,7 +864,16 @@ namespace OsEngine.Market.Servers.BitMex
 
                     newPos.PortfolioName = pos.data[i].account.ToString();
                     newPos.SecurityNameCode = pos.data[i].symbol;
-                    newPos.ValueCurrent = pos.data[i].currentQty;
+
+                    if (string.IsNullOrEmpty(pos.data[i].currentQty) == false)
+                    {
+                        newPos.ValueCurrent =
+                            Convert.ToDecimal(
+                                pos.data[i].currentQty.Replace(",",
+                                    CultureInfo.InvariantCulture.NumberFormat.NumberGroupSeparator),
+                                CultureInfo.InvariantCulture);
+                    }
+                    
 
                     needPortfolio.SetNewPosition(newPos);
                 }
@@ -1676,6 +1685,15 @@ namespace OsEngine.Market.Servers.BitMex
                     for (int i = 0; i < myOrder.data.Count; i++)
                     {
                         if (string.IsNullOrEmpty(myOrder.data[i].clOrdID))
+                        {
+                            continue;
+                        }
+
+                        try
+                        {
+                            Convert.ToInt32(myOrder.data[i].clOrdID);
+                        }
+                        catch
                         {
                             continue;
                         }

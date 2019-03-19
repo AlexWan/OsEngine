@@ -147,8 +147,7 @@ namespace OsEngine.Market.Servers
             }
         }
 
-        // parameters
-        // параметры
+        // parameters / параметры
 
         /// <summary>
         /// shows whether the server starts working
@@ -435,8 +434,7 @@ namespace OsEngine.Market.Servers
             return param;
         }
 
-        // connect/disconnect 
-        // подключение/отключение
+        // connect/disconnect / подключение/отключение
 
         /// <summary>
         /// necessary server status. It needs to thread that listens to connectin
@@ -490,8 +488,7 @@ namespace OsEngine.Market.Servers
             ServerStatus = ServerConnectStatus.Connect;
         }
 
-        // connection status
-        // статус соединения
+        // connection status /  статус соединения
 
         /// <summary>
         /// server status
@@ -521,8 +518,7 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public event Action<string> ConnectStatusChangeEvent;
 
-        // work of main thread
-        // работа основного потока !!!!!!
+        // work of main thread / работа основного потока !!!!!!
 
         /// <summary>
         /// true - server is ready to work 
@@ -863,8 +859,7 @@ namespace OsEngine.Market.Servers
 
         #endregion
 
-        // server time
-        // время сервера
+        // server time / время сервера
 
         /// <summary>
         /// server time
@@ -898,9 +893,8 @@ namespace OsEngine.Market.Servers
         /// изменилось время сервера
         /// </summary>
         public event Action<DateTime> TimeServerChangeEvent;
-        
-        // portfolios
-        // портфели
+
+        // portfolios / портфели
 
         /// <summary>
         /// all account in the system
@@ -975,9 +969,8 @@ namespace OsEngine.Market.Servers
         /// изменились портфели
         /// </summary>
         public event Action<List<Portfolio>> PortfoliosChangeEvent;
-        
-        // instruments
-        // инструменты
+
+        // instruments / инструменты
 
         /// <summary>
         /// all instruments in the system
@@ -1044,8 +1037,7 @@ namespace OsEngine.Market.Servers
             ui.ShowDialog();
         }
 
-        // subcribe to data
-        // Подпись на данные
+        // subcribe to data / Подпись на данные
 
         /// <summary>
         /// master of dowloading candles
@@ -1102,6 +1094,10 @@ namespace OsEngine.Market.Servers
 
                     for (int i = 0; _securities != null && i < _securities.Count; i++)
                     {
+                        if (_securities[i] == null)
+                        {
+                            continue;
+                        }
                         if (_securities[i].Name == namePaper)
                         {
                             security = _securities[i];
@@ -1341,14 +1337,13 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public event Action<CandleSeries> NewCandleIncomeEvent;
 
-        // depth
-        // стакан
+        // market depth / стакан
 
         /// <summary>
         /// all depths
         /// все стаканы
         /// </summary>
-        private List<MarketDepth> _depths;
+        private List<MarketDepth> _depths = new List<MarketDepth>();
 
         /// <summary>
         /// came a new depth
@@ -1359,10 +1354,6 @@ namespace OsEngine.Market.Servers
         {
             try
             {
-                if (_depths == null)
-                {
-                    _depths = new List<MarketDepth>();
-                }
 
                 myDepth.Time = ServerTime;
 
@@ -1372,12 +1363,16 @@ namespace OsEngine.Market.Servers
 
                     if (myDepth.Asks.Count != 0 && myDepth.Bids.Count != 0)
                     {
-                        _bidAskToSend.Enqueue(new BidAskSender
+                        Security sec = GetSecurityForName(myDepth.SecurityNameCode);
+                        if (sec != null)
                         {
-                            Bid = myDepth.Bids[0].Price,
-                            Ask = myDepth.Asks[0].Price,
-                            Security = GetSecurityForName(myDepth.SecurityNameCode)
-                        });
+                            _bidAskToSend.Enqueue(new BidAskSender
+                            {
+                                Bid = myDepth.Bids[0].Price,
+                                Ask = myDepth.Asks[0].Price,
+                                Security = sec
+                            });
+                        }
                     }
                 }
 
@@ -1400,8 +1395,7 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public event Action<MarketDepth> NewMarketDepthEvent;
 
-        // ticks 
-        // тики
+        // ticks / тики
 
         /// <summary>
         /// ticks storage
@@ -1473,6 +1467,8 @@ namespace OsEngine.Market.Servers
         {
             try
             {
+                BathTradeMarketDepthData(trade);
+
                 // save / сохраняем
                 if (_allTrades == null)
                 {
@@ -1516,6 +1512,8 @@ namespace OsEngine.Market.Servers
                         _allTrades = allTradesNew;
                     }
 
+
+
                     _tradesToSend.Enqueue(myList);
                 }
 
@@ -1529,13 +1527,33 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// upload trades by market depth data
+        /// прогрузить трейды данными стакана
+        /// </summary>
+        private void BathTradeMarketDepthData(Trade trade)
+        {
+            MarketDepth depth = _depths.Find(d => d.SecurityNameCode == trade.SecurityNameCode);
+
+            if (depth == null ||
+                depth.Asks == null || depth.Asks.Count == 0 ||
+                depth.Bids == null || depth.Bids.Count == 0)
+            {
+                return;
+            }
+
+            trade.Ask = depth.Asks[0].Price;
+            trade.Bid = depth.Bids[0].Price;
+            trade.BidsVolume = depth.BidSummVolume;
+            trade.AsksVolume = depth.AskSummVolume;
+        }
+
+        /// <summary>
         /// new tick
         /// новый тик
         /// </summary>
         public event Action<List<Trade>> NewTradeEvent;
-        
-        // my new trade
-        // новая моя сделка
+
+        // my new trade / новая моя сделка
 
         private List<MyTrade> _myTrades = new List<MyTrade>();
 
@@ -1597,8 +1615,7 @@ namespace OsEngine.Market.Servers
             }
         }
 
-        // work with orders
-        // работа с ордерами
+        // work with orders / работа с ордерами
 
         /// <summary>
         /// work place of thred on the queues of ordr execution and order cancellation 
@@ -1661,6 +1678,10 @@ namespace OsEngine.Market.Servers
             if (myOrder.TimeCallBack == DateTime.MinValue)
             {
                 myOrder.TimeCallBack = ServerTime;
+            }
+            if (myOrder.TimeCreate == DateTime.MinValue)
+            {
+                myOrder.TimeCreate = ServerTime;
             }
             if (myOrder.State == OrderStateType.Done &&
                 myOrder.TimeDone == DateTime.MinValue)
@@ -1738,8 +1759,7 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public event Action<Order> NewOrderIncomeEvent;
 
-        // log messages
-        // сообщения для лога
+        // log messages / сообщения для лога
 
         /// <summary>
         /// add a new message in the log

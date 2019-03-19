@@ -138,6 +138,11 @@ namespace OsEngine.Entity
             //20150401,100000,86160.000000000,2
             // либо 20150401,100000,86160.000000000,2, Buy/Sell
 
+            if(string.IsNullOrWhiteSpace(In))
+            {
+                return;
+            }
+
             string[] sIn = In.Split(',');
 
             if (sIn.Length >= 6 && (sIn[5] == "C" || sIn[5] == "S"))

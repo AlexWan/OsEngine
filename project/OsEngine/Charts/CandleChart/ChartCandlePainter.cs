@@ -716,7 +716,7 @@ namespace OsEngine.Charts.CandleChart
             try
             {
 
-                for (int i = 0; i < 20; i++)
+                for (int i = 0; i < 30; i++)
                 {
                     Series mySeries = FindSeriesByNameSafe(indicator.Name + i);
 
@@ -3163,14 +3163,14 @@ namespace OsEngine.Charts.CandleChart
             {
                 // if only draw last point
                 // если прорисовываем только последнюю точку
-                PaintLikeLineLast(values, nameSeries);
+                PaintLikeLineLast(values, nameSeries,color);
             }
             else if (mySeries.Points.Count != 0 &&
                 values.Count == mySeries.Points.Count)
             {
                 // redraw last point
                 // перерисовываем последнюю точку
-                RePaintLikeLineLast(values, nameSeries);
+                RePaintLikeLineLast(values, nameSeries, color);
             }
             else
             {
@@ -3194,17 +3194,17 @@ namespace OsEngine.Charts.CandleChart
 
                 for (int i = 0; i < array.Count; i++)
                 {
-                    if (array[i] != 0)
-                    {
+                  //  if (array[i] != 0)
+                  //  {
                         series.Points.AddXY(i, array[i]);
                         //series.Points[series.Points.Count - 1].ToolTip = array[i].ToString();
-                    }
-                    else
-                    {
-                        var point = new DataPoint(mySeries.Points.Count, 0);
-                        point.IsEmpty = true;
-                        mySeries.Points.Add(point);
-                    }
+                  //  }
+                    //else
+                   // {
+                       // var point = new DataPoint(mySeries.Points.Count, 0);
+                       // point.IsEmpty = true;
+                       // series.Points.Add(point);
+                    //}
                 }
 
                 PaintSeriesSafe(series);
@@ -3218,23 +3218,23 @@ namespace OsEngine.Charts.CandleChart
         /// draw indicator as a line, last element
         /// прорисовать индикатор как линию, последний элемент
         /// </summary>
-        private void PaintLikeLineLast(List<decimal> values, string nameSeries)
+        private void PaintLikeLineLast(List<decimal> values, string nameSeries, Color color)
         {
             Series mySeries = FindSeriesByNameSafe(nameSeries);
-
+            mySeries.Color = color;
             decimal lastPoint = values[values.Count - 1];
 
-            if(lastPoint != 0)
-            {
+          //  if(lastPoint != 0)
+          //  {
                 mySeries.Points.AddXY(mySeries.Points.Count, lastPoint);
                 //mySeries.Points[mySeries.Points.Count - 1].ToolTip = lastPoint.ToString();
-            }
-            else
-            {
-                var point = new DataPoint(mySeries.Points.Count, (double)lastPoint);
-                point.IsEmpty = true;
-                mySeries.Points.Add(point);
-            }
+          //  }
+          //  else
+          //  {
+           //     var point = new DataPoint(mySeries.Points.Count, (double)lastPoint);
+               // point.IsEmpty = true;
+           //     mySeries.Points.Add(point);
+          //  }
 
 
             RePaintRightLebels();
@@ -3244,10 +3244,10 @@ namespace OsEngine.Charts.CandleChart
         /// redraw indicator as a line,last element
         /// перерисовать индикатор как линию, последний элемент
         /// </summary>
-        private void RePaintLikeLineLast(List<decimal> values, string nameSeries)
+        private void RePaintLikeLineLast(List<decimal> values, string nameSeries, Color color)
         {
             Series mySeries = FindSeriesByNameSafe(nameSeries);
-
+            mySeries.Color = color;
             decimal lastPoint = Convert.ToDecimal(values[values.Count - 1]);
             mySeries.Points[mySeries.Points.Count - 1].YValues = new [] { Convert.ToDouble(lastPoint) };
             //mySeries.Points[mySeries.Points.Count - 1].ToolTip = lastPoint.ToString();

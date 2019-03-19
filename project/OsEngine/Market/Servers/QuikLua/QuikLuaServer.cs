@@ -204,18 +204,33 @@ namespace OsEngine.Market.Servers.QuikLua
                             newSec.Decimals = Convert.ToInt32(oneSec.Scale);
                             newSec.Lot = Convert.ToDecimal(oneSec.LotSize);
                             newSec.NameClass = oneSec.ClassCode;
+
+
+
                             newSec.PriceLimitHigh = Convert.ToDecimal(QuikLua.Trading
                                 .GetParamEx(classCode, secCode, "PRICEMAX")
                                 .Result.ParamValue.Replace('.', separator));
+
                             newSec.PriceLimitLow = Convert.ToDecimal(QuikLua.Trading
                                 .GetParamEx(classCode, secCode, "PRICEMIN")
                                 .Result.ParamValue.Replace('.', separator));
+
                             newSec.PriceStep = Convert.ToDecimal(QuikLua.Trading
                                 .GetParamEx(classCode, secCode, "SEC_PRICE_STEP")
                                 .Result.ParamValue.Replace('.', separator));
+
                             newSec.PriceStepCost = Convert.ToDecimal(QuikLua.Trading
                                 .GetParamEx(classCode, secCode, "STEPPRICET")
                                 .Result.ParamValue.Replace('.', separator));
+
+                            if (newSec.PriceStep == 0)
+                            {
+                                newSec.PriceStep = 1;
+                            }
+                            if (newSec.PriceStepCost == 0)
+                            {
+                                newSec.PriceStepCost = 1;
+                            }
 
                             securities.Add(newSec);
                         }
@@ -271,6 +286,11 @@ namespace OsEngine.Market.Servers.QuikLua
                     if (MainWindow.ProccesIsWorked == false)
                     {
                         return;
+                    }
+
+                    if(QuikLua == null)
+                    {
+                        continue;
                     }
 
                     for (int i = 0; i < accaunts.Count; i++)
@@ -349,6 +369,11 @@ namespace OsEngine.Market.Servers.QuikLua
                 if (QuikLua != null)
                 {
                     bool quikStateIsActiv = QuikLua.Service.IsConnected().Result;
+                }
+
+                if(QuikLua == null)
+                {
+                    continue;
                 }
                 
 
