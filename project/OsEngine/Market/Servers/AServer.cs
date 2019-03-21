@@ -1438,6 +1438,7 @@ namespace OsEngine.Market.Servers
                 for (int i = 0; i < _allTrades.Length; i++)
                 {
                     if (_allTrades[i] != null && _allTrades[i].Count != 0 &&
+                        _allTrades[i][0] != null &&
                         _allTrades[i][0].SecurityNameCode == security.Name)
                     {
                         return _allTrades[i];
@@ -1468,6 +1469,11 @@ namespace OsEngine.Market.Servers
             try
             {
                 BathTradeMarketDepthData(trade);
+
+                if (trade == null)
+                {
+                    return;
+                }
 
                 // save / сохраняем
                 if (_allTrades == null)
