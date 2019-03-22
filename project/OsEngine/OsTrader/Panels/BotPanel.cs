@@ -1094,6 +1094,38 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
+        /// delete tab for num / 
+        /// удалить вкладку по номеру
+        /// </summary>
+        public void TabDelete(int index)
+        {
+            try
+            {
+                if (ActivTab == null)
+                {
+                    return;
+                }
+
+                if (index >= _botTabs.Count)
+                {
+                    return;
+                }
+
+                _botTabs.RemoveAt(index);
+                if (_botTabs != null && _botTabs.Count != 0)
+                {
+                    ChangeActivTab(0);
+                }
+
+                ReloadTab();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
         /// set new active tab / 
         /// установить новую активную вкладку
         /// </summary>
