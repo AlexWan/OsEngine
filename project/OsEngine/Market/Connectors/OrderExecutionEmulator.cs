@@ -36,7 +36,7 @@ namespace OsEngine.Market.Connectors
         {
             while(true)
             {
-                Thread.Sleep(1000);
+                Thread.Sleep(250);
 
                 if (MainWindow.ProccesIsWorked == false)
                 {
@@ -47,7 +47,6 @@ namespace OsEngine.Market.Connectors
                 {
                     _emulators[i].CheckOrders();
                 }
-
             }
         }
 
