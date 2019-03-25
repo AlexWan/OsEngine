@@ -293,34 +293,6 @@ namespace OsEngine.Market
         /// </summary>
         public static event Action<IServer> ServerCreateEvent;
 
-        /// <summary>
-        /// take the list of existing connections
-        /// взять список существующих подключений
-        /// </summary>
-        /// <returns></returns>
-        public static List<ServerType> GetServerTypes()
-        {
-            List < ServerType > types = new List<ServerType>();
-
-            types.Add(ServerType.AstsBridge);
-            types.Add(ServerType.Binance);
-            types.Add(ServerType.BitMex);
-            types.Add(ServerType.BitStamp);
-            types.Add(ServerType.Bitfinex);
-            types.Add(ServerType.Finam);
-            types.Add(ServerType.InteractivBrokers);
-            types.Add(ServerType.Kraken);
-            types.Add(ServerType.Lmax);
-            types.Add(ServerType.NinjaTrader);
-            types.Add(ServerType.Oanda);
-            types.Add(ServerType.Plaza);
-            types.Add(ServerType.QuikDde);
-            types.Add(ServerType.QuikLua);
-            types.Add(ServerType.SmartCom);
-
-            return types;
-        }
-
 // creating servers automatically 
 // создание серверов автоматически
 
