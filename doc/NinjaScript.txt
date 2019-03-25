@@ -36,9 +36,9 @@ namespace NinjaTrader.NinjaScript.Strategies
 	{
 		//список бумаг по которым мы будем выкачиваеть трейды, стаканы и будем торговать
 		private string [] _loadSecurities = new string[]{
-			"NQ 09-18",
-			"6B 09-18",
-			"ES 09-18",
+			"NQ 06-19",
+			"6B 06-19",
+			"ES 06-19",
 			"",
 			"",
 			"",
@@ -270,7 +270,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 				{
 				  if(series[i].Instrument.FullName == nameSecurity)
 				  {
-					  numSecurity = i+1;
+					  numSecurity = i;
 					  findInstrument = true;
 				      // нашли наш инструмент в загруженных дополнительно
 					  break;
@@ -315,7 +315,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 				result +=  numberUser + "#";
 			    result += order.Id.ToString() + "#";
 			    result += order.OrderId.ToString() + "#";
-				result += order.Time.ToString() + "#";
+				result += order.Time.ToString(CultureInfo.InvariantCulture) + "#";
 				
 			    return result;
 			}
@@ -456,8 +456,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 				
 				newSecurity += securities[i].Id + "%";
 				newSecurity += securities[i].MasterInstrument.InstrumentType + "%";
-				newSecurity += securities[i].MasterInstrument.TickSize + "%";
-				newSecurity += securities[i].MasterInstrument.PointValue + "%";
+				newSecurity += (decimal)securities[i].MasterInstrument.TickSize + "%";
+				newSecurity += (decimal)securities[i].MasterInstrument.PointValue + "%";
 				newSecurity += securities[i].Expiry.Month + "-" + securities[i].Expiry.Year + "%";
 				
 				result.Append(newSecurity + "&");
@@ -591,7 +591,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 				orderstr += order.Instrument.FullName + "#"; // имя инструмента
 				orderstr += order.Quantity + "#"; // весь объём ордера
 				orderstr += order.Filled + "#"; // исполнено
-				orderstr += order.LimitPrice + "#"; // цена ордера
+				orderstr += (decimal)order.LimitPrice + "#"; // цена ордера
 				orderstr += order.Account.Name + "#"; // портфель
 				
 				if(order.OrderAction == OrderAction.Buy ||
@@ -636,7 +636,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 				}
 				
 				
-				orderstr += order.Time + "$";
+				orderstr += order.Time.ToString(CultureInfo.InvariantCulture) + "$";
 				
 				_ordersToSend.Enqueue(orderstr);
 			}
@@ -669,7 +669,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 					tradeStr += "Sell" + "#";
 				}
 				
-				tradeStr += execution.Time + "$";
+				tradeStr += execution.Time.ToString(CultureInfo.InvariantCulture) + "$";
 
 				_myTradesToSend.Enqueue(tradeStr);
 			}
@@ -739,9 +739,9 @@ namespace NinjaTrader.NinjaScript.Strategies
 				}
 				
 				string trade = marketDataUpdate.Instrument.FullName + "#"; // имя инструмента
-				trade += marketDataUpdate.Price + "#"; // цена
+				trade += (decimal)marketDataUpdate.Price + "#"; // цена
 				trade += marketDataUpdate.Volume + "#"; // объём
-				trade += marketDataUpdate.Time + "$"; // время исполнения
+				trade += marketDataUpdate.Time.ToString(CultureInfo.InvariantCulture) + "$"; // время исполнения
 				
 			    _tradesToSend.Enqueue(trade);
 			}
@@ -777,10 +777,10 @@ namespace NinjaTrader.NinjaScript.Strategies
 
 				marketDepthStr += marketDepthUpdate.Operation + "#"; // операция
 		        
-				marketDepthStr += marketDepthUpdate.Price + "#"; // цена
+				marketDepthStr += (decimal)marketDepthUpdate.Price + "#"; // цена
 				marketDepthStr += marketDepthUpdate.Volume + "#"; // объём на уровне
 				
-				marketDepthStr += marketDepthUpdate.Time + "$"; // время
+				marketDepthStr += marketDepthUpdate.Time.ToString(CultureInfo.InvariantCulture) + "$"; // время
 		        
 				_marketDepthsToSend.Enqueue(marketDepthStr);
 			}

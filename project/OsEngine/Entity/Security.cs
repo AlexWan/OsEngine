@@ -302,7 +302,12 @@ namespace OsEngine.Entity
         /// option
         /// опцион
         /// </summary>
-        Option
+        Option,
+
+        /// <summary>
+        /// index индекс
+        /// </summary>
+        Index
     }
 
     /// <summary>
