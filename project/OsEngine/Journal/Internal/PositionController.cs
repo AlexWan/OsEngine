@@ -896,7 +896,7 @@ namespace OsEngine.Journal.Internal
                     return;
                 }
 
-                lock (_positionPaintLocker)
+                try
                 {
                     while (_positionsToPaint.Count != 0)
                     {
@@ -908,6 +908,10 @@ namespace OsEngine.Journal.Internal
                         }
                         _positionsToPaint.RemoveAt(0);
                     }
+                }
+                catch 
+                {
+                   // ignore
                 }
             }
             catch (Exception error)
@@ -1127,7 +1131,7 @@ namespace OsEngine.Journal.Internal
         /// </summary>
         public void ProcesPosition(Position position)
         {
-            lock (_positionPaintLocker)
+            try
             {
                 for (int i = 0; i < _positionsToPaint.Count; i++)
                 {
@@ -1139,6 +1143,10 @@ namespace OsEngine.Journal.Internal
                 }
 
                 _positionsToPaint.Add(position);
+            }
+            catch
+            {
+                // ignore
             }
         }
 

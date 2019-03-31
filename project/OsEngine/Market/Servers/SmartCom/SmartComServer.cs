@@ -92,7 +92,10 @@ namespace OsEngine.Market.Servers.SmartCom
             string username = ((ServerParameterString)ServerParameters[2]).Value;
             string userpassword = ((ServerParameterPassword)ServerParameters[3]).Value;
 
-            SmartServer.connect(ip, port, username, userpassword);
+            lock (_smartComServerLocker)
+            {
+                SmartServer.connect(ip, port, username, userpassword);
+            }
 
             Thread.Sleep(10000);
         }
@@ -101,9 +104,12 @@ namespace OsEngine.Market.Servers.SmartCom
         {
             try
             {
-                if (SmartServer != null && SmartServer.IsConnected())
+                lock (_smartComServerLocker)
                 {
-                    SmartServer.disconnect();
+                    if (SmartServer != null && SmartServer.IsConnected())
+                    {
+                        SmartServer.disconnect();
+                    }
                 }
             }
             catch (Exception error)
@@ -136,25 +142,37 @@ namespace OsEngine.Market.Servers.SmartCom
             _numsIncomeExecuteOrders = new List<int>();
             _numsIncomeCancelOrders = new List<int>();
 
-            SmartServer = null;
+            lock (_smartComServerLocker)
+            {
+                SmartServer = null;
+            }
             ServerStatus = ServerConnectStatus.Disconnect;
         }
 
         public void GetSecurities()
         {
-            SmartServer.GetSymbols();
+            lock (_smartComServerLocker)
+            {
+                SmartServer.GetSymbols();
+            }
         }
 
         public void GetPortfolios()
         {
-            SmartServer.GetPrortfolioList();
+            lock (_smartComServerLocker)
+            {
+                SmartServer.GetPrortfolioList();
+            }
 
             if (_portfolios != null)
             {
                 for (int i = 0; i < _portfolios.Count; i++)
                 {
-                    SmartServer.CancelPortfolio(_portfolios[i].Number);
-                    SmartServer.ListenPortfolio(_portfolios[i].Number);
+                    lock (_smartComServerLocker)
+                    {
+                        SmartServer.CancelPortfolio(_portfolios[i].Number);
+                        SmartServer.ListenPortfolio(_portfolios[i].Number);
+                    } 
                 }
             }
         }
@@ -1057,8 +1075,7 @@ namespace OsEngine.Market.Servers.SmartCom
             ServerStatus = ServerConnectStatus.Connect;
         }
 
-        // outgoing events
-        // исходящие события
+        // outgoing events / исходящие события
 
         /// <summary>
         /// called when order has changed
@@ -1108,8 +1125,7 @@ namespace OsEngine.Market.Servers.SmartCom
         /// </summary>
         public event Action DisconnectEvent;
 
-// log messages
-// сообщения для лога
+        // log messages / сообщения для лога
 
         /// <summary>
         /// add a new log message

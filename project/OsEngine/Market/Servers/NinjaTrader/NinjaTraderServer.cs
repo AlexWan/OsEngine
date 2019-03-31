@@ -45,7 +45,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
         {
             if (_client == null)
             {
-                _client = new NinjaTraderClient(((ServerParameterString)ServerParameters[1]).Value, ((ServerParameterPassword)ServerParameters[0]).Value);
+                _client = new NinjaTraderClient(((ServerParameterPassword)ServerParameters[1]).Value, ((ServerParameterString)ServerParameters[0]).Value);
                 _client.Connected += ClientOnConnected;
                 _client.UpdateSecuritiesEvent += ClientOnUpdateSecuritiesEvent;
                 _client.Disconnected += ClientOnDisconnected;
@@ -55,6 +55,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
                 _client.MyTradeEvent += ClientOnMyTradeEvent;
                 _client.MyOrderEvent += ClientOnMyOrderEvent;
                 _client.LogMessageEvent += ClientOnLogMessageEvent;
+                _client.Connect();
             }
         }
 
@@ -171,6 +172,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
 
         private void ClientOnDisconnected()
         {
+            ServerStatus = ServerConnectStatus.Disconnect;
             if (DisconnectEvent != null)
             {
                 DisconnectEvent();
@@ -187,6 +189,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
 
         private void ClientOnConnected()
         {
+            ServerStatus = ServerConnectStatus.Connect;
             if (ConnectEvent != null)
             {
                 ConnectEvent();

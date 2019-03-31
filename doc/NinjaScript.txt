@@ -1,4 +1,4 @@
-#region Using declarations
+п»ї#region Using declarations
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -34,11 +34,12 @@ namespace NinjaTrader.NinjaScript.Strategies
 {
 	public class OsEngineConnect : Strategy
 	{
-		//список бумаг по которым мы будем выкачиваеть трейды, стаканы и будем торговать
+		//СЃРїРёСЃРѕРє Р±СѓРјР°Рі РїРѕ РєРѕС‚РѕСЂС‹Рј РјС‹ Р±СѓРґРµРј РІС‹РєР°С‡РёРІР°РµС‚СЊ С‚СЂРµР№РґС‹, СЃС‚Р°РєР°РЅС‹ Рё Р±СѓРґРµРј С‚РѕСЂРіРѕРІР°С‚СЊ
+		// list of securities for which we will download trades, marketDepths and trade
 		private string [] _loadSecurities = new string[]{
-			"NQ 09-18",
-			"6B 09-18",
-			"ES 09-18",
+			"NQ 06-19",
+			"6B 06-19",
+			"ES 06-19",
 			"",
 			"",
 			"",
@@ -52,71 +53,71 @@ namespace NinjaTrader.NinjaScript.Strategies
 			""
 		};
 		
-		/// <summary>
-		/// конструктор
-		/// </summary>
 		public OsEngineConnect()
 		{
 
 		}
 	
-// обработка входящих сообщений		
+// processing incoming messages / РѕР±СЂР°Р±РѕС‚РєР° РІС…РѕРґСЏС‰РёС… СЃРѕРѕР±С‰РµРЅРёР№		
 		
 		/// <summary>
-		/// поток обслуживающий соединение
+		/// flow serving connection
+		/// РїРѕС‚РѕРє РѕР±СЃР»СѓР¶РёРІР°СЋС‰РёР№ СЃРѕРµРґРёРЅРµРЅРёРµ
 		/// </summary>
 		Thread worker;
 		
 		/// <summary>
-		/// после дисконнекта ставим флаг что пора отключаться
+		/// after disconnect we set a flag that itвЂ™s time to disconnect
+		/// РїРѕСЃР»Рµ РґРёСЃРєРѕРЅРЅРµРєС‚Р° СЃС‚Р°РІРёРј С„Р»Р°Рі С‡С‚Рѕ РїРѕСЂР° РѕС‚РєР»СЋС‡Р°С‚СЊСЃСЏ
 		/// </summary>
 		bool _neadToStopWorker;
 		
 		/// <summary>
-		/// место работы потока соединения
+		/// place of work flow connection
+		/// РјРµСЃС‚Рѕ СЂР°Р±РѕС‚С‹ РїРѕС‚РѕРєР° СЃРѕРµРґРёРЅРµРЅРёСЏ
 		/// </summary>
 		private void SocketWorkerPlace()
 		{
-		    // Устанавливаем для сокета локальную конечную точку
             IPHostEntry ipHost = Dns.GetHostEntry("localhost");
             IPAddress ipAddr = ipHost.AddressList[1];
             IPEndPoint ipEndPoint = new IPEndPoint(ipAddr, 11000);
 
-            // Создаем сокет Tcp/Ip
             Socket sListener = new Socket(ipAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
-            // Назначаем сокет локальной конечной точке и слушаем входящие сокеты
-			
             try
             {
                 sListener.Bind(ipEndPoint);
                 sListener.Listen(10);
 
-                // Начинаем слушать соединения
+                // РќР°С‡РёРЅР°РµРј СЃР»СѓС€Р°С‚СЊ СЃРѕРµРґРёРЅРµРЅРёСЏ
+				// Start listening to connections
                 while (true)
                 {
 					if(_neadToStopWorker == true)
-					{ // стратегия отключилась
+					{ // СЃС‚СЂР°С‚РµРіРёСЏ РѕС‚РєР»СЋС‡РёР»Р°СЃСЊ
+					//the strategy turned off
 						return;
 					}
 					
-                    // Программа приостанавливается, ожидая входящее соединение
+                    // РџСЂРѕРіСЂР°РјРјР° РїСЂРёРѕСЃС‚Р°РЅР°РІР»РёРІР°РµС‚СЃСЏ, РѕР¶РёРґР°СЏ РІС…РѕРґСЏС‰РµРµ СЃРѕРµРґРёРЅРµРЅРёРµ
+					// The program pauses waiting for an incoming connection.
+					
                     Socket handler = sListener.Accept();
                     string data = null;
 					
 					if(_neadToStopWorker == true)
-					{ // стратегия отключилась
+					{
 						return;
 					}
 
-                    // Мы дождались клиента, пытающегося с нами соединиться
+                    // РњС‹ РґРѕР¶РґР°Р»РёСЃСЊ РєР»РёРµРЅС‚Р°, РїС‹С‚Р°СЋС‰РµРіРѕСЃСЏ СЃ РЅР°РјРё СЃРѕРµРґРёРЅРёС‚СЊСЃСЏ
+					// We waited for a client trying to connect with us.
 					
                     byte[] bytes = new byte[1024];
                     int bytesRec = handler.Receive(bytes);
 
                     data += Encoding.UTF8.GetString(bytes, 0, bytesRec);
 
-                    // берём ответ из метода который считывает данные из входящего сообщения
                     string reply = InComeMessage(data);
 					
                     byte[] msg = Encoding.UTF8.GetBytes(reply);
@@ -152,7 +153,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 		}
 		
 		/// <summary>
-		/// разбор входящих сообщений и генерация ответа
+		/// parsing incoming messages and generating a response
+		/// СЂР°Р·Р±РѕСЂ РІС…РѕРґСЏС‰РёС… СЃРѕРѕР±С‰РµРЅРёР№ Рё РіРµРЅРµСЂР°С†РёСЏ РѕС‚РІРµС‚Р°
 		/// </summary>
 		private string InComeMessage(string message)
 		{
@@ -191,7 +193,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 						return "orderCanselReport@" +OrderCancel(message.Split('@')[1]);
 					}
 					else if(tag == "Process")
-					{// запрос каких либо потоковых данных
+					{// Р·Р°РїСЂРѕСЃ РєР°РєРёС… Р»РёР±Рѕ РїРѕС‚РѕРєРѕРІС‹С… РґР°РЅРЅС‹С…
 
 						if(_errorsToSend.IsEmpty == false)
 						{
@@ -236,10 +238,11 @@ namespace NinjaTrader.NinjaScript.Strategies
 			}
 		}
         
-// работа с ордерами
+// work with orders / СЂР°Р±РѕС‚Р° СЃ РѕСЂРґРµСЂР°РјРё
 		
 		/// <summary>
-		/// исполнить ордер
+		/// execute order
+		/// РёСЃРїРѕР»РЅРёС‚СЊ РѕСЂРґРµСЂ
 		/// </summary>
 		private string OrderExecute(string orderStr)
 		{
@@ -270,9 +273,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 				{
 				  if(series[i].Instrument.FullName == nameSecurity)
 				  {
-					  numSecurity = i+1;
+					  numSecurity = i;
 					  findInstrument = true;
-				      // нашли наш инструмент в загруженных дополнительно
 					  break;
 				  }
 				}
@@ -301,7 +303,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 				order.OrderState == OrderState.CancelPending)
 			{
 				string result = "Error" + "#";
-				result += "Ордер отвергнут системой" + "#";
+				result += "РћСЂРґРµСЂ РѕС‚РІРµСЂРіРЅСѓС‚ СЃРёСЃС‚РµРјРѕР№" + "#";
 				result += numberUser + "#";
 				result += numSecurity + "#";
 				result += volume + "#";
@@ -315,7 +317,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 				result +=  numberUser + "#";
 			    result += order.Id.ToString() + "#";
 			    result += order.OrderId.ToString() + "#";
-				result += order.Time.ToString() + "#";
+				result += order.Time.ToString(CultureInfo.InvariantCulture) + "#";
 				
 			    return result;
 			}
@@ -323,12 +325,14 @@ namespace NinjaTrader.NinjaScript.Strategies
 		}
 		
 		/// <summary>
-		/// список выставленных мной ордеров
+		/// list of orders placed by me
+		/// СЃРїРёСЃРѕРє РІС‹СЃС‚Р°РІР»РµРЅРЅС‹С… РјРЅРѕР№ РѕСЂРґРµСЂРѕРІ
 		/// </summary>
 		List<Order> _myOrders = new List<Order>();
 		
 		/// <summary>
-		/// отозвать ордер
+		/// withdraw order
+		/// РѕС‚РѕР·РІР°С‚СЊ РѕСЂРґРµСЂ
 		/// </summary>
 		private string OrderCancel(string order)
 		{
@@ -360,7 +364,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 		}
 		
 		
-// очереди исходящих данных
+// outgoing queues / РѕС‡РµСЂРµРґРё РёСЃС…РѕРґСЏС‰РёС… РґР°РЅРЅС‹С…
 		
 		public static ConcurrentQueue<string> _tradesToSend = new ConcurrentQueue<string>();
 
@@ -376,10 +380,11 @@ namespace NinjaTrader.NinjaScript.Strategies
 		
 		public static ConcurrentQueue<string> _positionsChangeToSend = new ConcurrentQueue<string>();
 		
-// разбор запрашиваемых данных и подготовка их к пересылке
+// parsing the requested data and preparing them for shipment / СЂР°Р·Р±РѕСЂ Р·Р°РїСЂР°С€РёРІР°РµРјС‹С… РґР°РЅРЅС‹С… Рё РїРѕРґРіРѕС‚РѕРІРєР° РёС… Рє РїРµСЂРµСЃС‹Р»РєРµ
 		
 		/// <summary>
-		/// преобразование очереди в строку
+		/// turn queue to string
+		/// РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёРµ РѕС‡РµСЂРµРґРё РІ СЃС‚СЂРѕРєСѓ
 		/// </summary>
 		private string GetStack(ConcurrentQueue<string> queue)
 		{
@@ -408,7 +413,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 		}
 		
 		/// <summary>
-		/// взять доступные инструменты
+		/// take available tools
+		/// РІР·СЏС‚СЊ РґРѕСЃС‚СѓРїРЅС‹Рµ РёРЅСЃС‚СЂСѓРјРµРЅС‚С‹
 		/// </summary>
 		/// <returns></returns>
 		private string GetSecuritiesString()
@@ -456,8 +462,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 				
 				newSecurity += securities[i].Id + "%";
 				newSecurity += securities[i].MasterInstrument.InstrumentType + "%";
-				newSecurity += securities[i].MasterInstrument.TickSize + "%";
-				newSecurity += securities[i].MasterInstrument.PointValue + "%";
+				newSecurity += (decimal)securities[i].MasterInstrument.TickSize + "%";
+				newSecurity += (decimal)securities[i].MasterInstrument.PointValue + "%";
 				newSecurity += securities[i].Expiry.Month + "-" + securities[i].Expiry.Year + "%";
 				
 				result.Append(newSecurity + "&");
@@ -467,7 +473,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 		}
 		
 		/// <summary>
-		/// взять портфели
+		/// take portfolios
+		/// РІР·СЏС‚СЊ РїРѕСЂС‚С„РµР»Рё
 		/// </summary>
 		private string GetPortfoliosStringOnStart()
 		{
@@ -486,10 +493,11 @@ namespace NinjaTrader.NinjaScript.Strategies
 			return result.ToString();
 		}
 
-// входящие события		
+// incoming events / РІС…РѕРґСЏС‰РёРµ СЃРѕР±С‹С‚РёСЏ		
 		
 		/// <summary>
-		/// Здесь у нас происходит инициализация инструментов
+		/// Here we have the initialization of securities
+		/// Р—РґРµСЃСЊ Сѓ РЅР°СЃ РїСЂРѕРёСЃС…РѕРґРёС‚ РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РёРЅСЃС‚СЂСѓРјРµРЅС‚РѕРІ
 		/// </summary>
 		protected override void OnStateChange()
 		{
@@ -513,14 +521,14 @@ namespace NinjaTrader.NinjaScript.Strategies
 				StopTargetHandling							= StopTargetHandling.PerEntryExecution;
 				BarsRequiredToTrade							= 1;
 			
-				IsUnmanaged = true; // разрешение использовать некотролируемые методы выставления ордеров
+				IsUnmanaged = true; // СЂР°Р·СЂРµС€РµРЅРёРµ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ РЅРµРєРѕС‚СЂРѕР»РёСЂСѓРµРјС‹Рµ РјРµС‚РѕРґС‹ РІС‹СЃС‚Р°РІР»РµРЅРёСЏ РѕСЂРґРµСЂРѕРІ
 				// Disable this property for performance gains in Strategy Analyzer optimizations
 				// See the Help Guide for additional information
 				IsInstantiatedOnEachOptimizationIteration	= true;
 			}
 			else if(State == State.Active ||State == State.Realtime)
 			{
-				//запускаем поток обслуживающий соединение
+				//Р·Р°РїСѓСЃРєР°РµРј РїРѕС‚РѕРє РѕР±СЃР»СѓР¶РёРІР°СЋС‰РёР№ СЃРѕРµРґРёРЅРµРЅРёРµ
 				if(worker == null)
 				{
                     worker = new Thread(SocketWorkerPlace);
@@ -556,7 +564,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 		}
 
 		/// <summary>
-		/// изменились ордера в системе
+		/// changed orders in the system
+		/// РёР·РјРµРЅРёР»РёСЃСЊ РѕСЂРґРµСЂР° РІ СЃРёСЃС‚РµРјРµ
 		/// </summary>
 		protected override void OnOrderUpdate(Cbi.Order order, double limitPrice, double stopPrice, 
 			int quantity, int filled, double averageFillPrice, 
@@ -586,13 +595,13 @@ namespace NinjaTrader.NinjaScript.Strategies
 				 	_myOrders.Add(order);
 				}
 				
-				string orderstr = order.Id + "#"; // номер который ему дал клиент. Хрен. Нет такого фунционала
-				orderstr += order.Id + "#"; // номер на бирже
-				orderstr += order.Instrument.FullName + "#"; // имя инструмента
-				orderstr += order.Quantity + "#"; // весь объём ордера
-				orderstr += order.Filled + "#"; // исполнено
-				orderstr += order.LimitPrice + "#"; // цена ордера
-				orderstr += order.Account.Name + "#"; // портфель
+				string orderstr = order.Id + "#"; 
+				orderstr += order.Id + "#"; // РЅРѕРјРµСЂ РЅР° Р±РёСЂР¶Рµ
+				orderstr += order.Instrument.FullName + "#"; // РёРјСЏ РёРЅСЃС‚СЂСѓРјРµРЅС‚Р°
+				orderstr += order.Quantity + "#"; // РІРµСЃСЊ РѕР±СЉС‘Рј РѕСЂРґРµСЂР°
+				orderstr += order.Filled + "#"; // РёСЃРїРѕР»РЅРµРЅРѕ
+				orderstr += (decimal)order.LimitPrice + "#"; // С†РµРЅР° РѕСЂРґРµСЂР°
+				orderstr += order.Account.Name + "#"; // РїРѕСЂС‚С„РµР»СЊ
 				
 				if(order.OrderAction == OrderAction.Buy ||
 					order.OrderAction == OrderAction.BuyToCover)
@@ -636,7 +645,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 				}
 				
 				
-				orderstr += order.Time + "$";
+				orderstr += order.Time.ToString(CultureInfo.InvariantCulture) + "$";
 				
 				_ordersToSend.Enqueue(orderstr);
 			}
@@ -647,18 +656,19 @@ namespace NinjaTrader.NinjaScript.Strategies
 		}
 		
 		/// <summary>
-		/// новый наш трейд в системе
+		/// new our trade in the system
+		/// РЅРѕРІС‹Р№ РЅР°С€ С‚СЂРµР№Рґ РІ СЃРёСЃС‚РµРјРµ
 		/// </summary>
 		protected override void OnExecutionUpdate(Cbi.Execution execution, string executionId, double price, int quantity, 
 			Cbi.MarketPosition marketPosition, string orderId, DateTime time)
 		{
 			try
 			{
-				string tradeStr = execution.Instrument.FullName + "#"; // имя инструмента
-				tradeStr += execution.ExecutionId + "#"; // номер на бирже
-				tradeStr += execution.OrderId + "#"; // номер ордера по которому прошла сделка
-				tradeStr += execution.Price + "#"; // цена сведения
-				tradeStr += execution.Quantity + "#"; // объём
+				string tradeStr = execution.Instrument.FullName + "#"; // РёРјСЏ РёРЅСЃС‚СЂСѓРјРµРЅС‚Р°
+				tradeStr += execution.ExecutionId + "#"; // РЅРѕРјРµСЂ РЅР° Р±РёСЂР¶Рµ
+				tradeStr += execution.OrderId + "#"; // РЅРѕРјРµСЂ РѕСЂРґРµСЂР° РїРѕ РєРѕС‚РѕСЂРѕРјСѓ РїСЂРѕС€Р»Р° СЃРґРµР»РєР°
+				tradeStr += execution.Price + "#"; // С†РµРЅР° СЃРІРµРґРµРЅРёСЏ
+				tradeStr += execution.Quantity + "#"; // РѕР±СЉС‘Рј
 				
 				if(execution.MarketPosition == MarketPosition.Long)
 				{
@@ -669,7 +679,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 					tradeStr += "Sell" + "#";
 				}
 				
-				tradeStr += execution.Time + "$";
+				tradeStr += execution.Time.ToString(CultureInfo.InvariantCulture) + "$";
 
 				_myTradesToSend.Enqueue(tradeStr);
 			}
@@ -680,7 +690,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 		}
 		
 		/// <summary>
-		/// изменилось состояние портфеля
+		/// portfolio status has changed
+		/// РёР·РјРµРЅРёР»РѕСЃСЊ СЃРѕСЃС‚РѕСЏРЅРёРµ РїРѕСЂС‚С„РµР»СЏ
 		/// </summary>
 		protected override void OnAccountItemUpdate(Account account, AccountItem item, double value)
 		{
@@ -691,9 +702,9 @@ namespace NinjaTrader.NinjaScript.Strategies
 				   return;	
 				}
 				
-				string portfolioStr = account.Name + "#"; // портфель
+				string portfolioStr = account.Name + "#"; // РїРѕСЂС‚С„РµР»СЊ
 	            
-				portfolioStr += value + "$"; // текущее кол-во денег на счёте
+				portfolioStr += value + "$"; // С‚РµРєСѓС‰РµРµ РєРѕР»-РІРѕ РґРµРЅРµРі РЅР° СЃС‡С‘С‚Рµ
 	            
 				_portfolioChangeToSend.Enqueue(portfolioStr);
 			}
@@ -704,16 +715,17 @@ namespace NinjaTrader.NinjaScript.Strategies
 		}
 
 	    /// <summary>
-		/// изменилась позиция на рынке
+		/// market position has changed
+		/// РёР·РјРµРЅРёР»Р°СЃСЊ РїРѕР·РёС†РёСЏ РЅР° СЂС‹РЅРєРµ
 		/// </summary>
 		protected override void OnPositionUpdate(Cbi.Position position, double averagePrice, 
 			int quantity, Cbi.MarketPosition marketPosition)
 		{		
 			try
 			{
-				string positionstr = position.Instrument.FullName + "#"; // бумага
-	            positionstr += position.Account.Name + "#"; // название портфеля
-				positionstr += position.Quantity + "$"; // текущий объём на рынке
+				string positionstr = position.Instrument.FullName + "#"; // Р±СѓРјР°РіР°
+	            positionstr += position.Account.Name + "#"; // РЅР°Р·РІР°РЅРёРµ РїРѕСЂС‚С„РµР»СЏ
+				positionstr += position.Quantity + "$"; // С‚РµРєСѓС‰РёР№ РѕР±СЉС‘Рј РЅР° СЂС‹РЅРєРµ
 	            
 				_positionsChangeToSend.Enqueue(positionstr);
 			}
@@ -725,7 +737,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 		}
 		
 		/// <summary>
-		/// новые трейды
+		/// new trades
+		/// РЅРѕРІС‹Рµ С‚СЂРµР№РґС‹
 		/// </summary>
 		protected override void OnMarketData(MarketDataEventArgs marketDataUpdate)
 		{
@@ -738,10 +751,10 @@ namespace NinjaTrader.NinjaScript.Strategies
 					return;
 				}
 				
-				string trade = marketDataUpdate.Instrument.FullName + "#"; // имя инструмента
-				trade += marketDataUpdate.Price + "#"; // цена
-				trade += marketDataUpdate.Volume + "#"; // объём
-				trade += marketDataUpdate.Time + "$"; // время исполнения
+				string trade = marketDataUpdate.Instrument.FullName + "#"; // РёРјСЏ РёРЅСЃС‚СЂСѓРјРµРЅС‚Р°
+				trade += (decimal)marketDataUpdate.Price + "#"; // С†РµРЅР°
+				trade += marketDataUpdate.Volume + "#"; // РѕР±СЉС‘Рј
+				trade += marketDataUpdate.Time.ToString(CultureInfo.InvariantCulture) + "$"; // РІСЂРµРјСЏ РёСЃРїРѕР»РЅРµРЅРёСЏ
 				
 			    _tradesToSend.Enqueue(trade);
 			}
@@ -752,7 +765,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 		}
 
 		/// <summary>
-		/// изменился стакан
+		/// marketDepth has changed
+		/// РёР·РјРµРЅРёР»СЃСЏ СЃС‚Р°РєР°РЅ
 		/// </summary>
 		protected override void OnMarketDepth(MarketDepthEventArgs marketDepthUpdate)
 		{
@@ -764,7 +778,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 				    return;	
 				}
 				
-				string marketDepthStr = marketDepthUpdate.Instrument.FullName + "#"; // бумага
+				string marketDepthStr = marketDepthUpdate.Instrument.FullName + "#"; // Р±СѓРјР°РіР°
 				
 				if(marketDepthUpdate.MarketDataType == MarketDataType.Ask)
 				{
@@ -775,12 +789,12 @@ namespace NinjaTrader.NinjaScript.Strategies
 					marketDepthStr += "Bid" + "#";
 				}
 
-				marketDepthStr += marketDepthUpdate.Operation + "#"; // операция
+				marketDepthStr += marketDepthUpdate.Operation + "#"; // РѕРїРµСЂР°С†РёСЏ
 		        
-				marketDepthStr += marketDepthUpdate.Price + "#"; // цена
-				marketDepthStr += marketDepthUpdate.Volume + "#"; // объём на уровне
+				marketDepthStr += (decimal)marketDepthUpdate.Price + "#"; // С†РµРЅР°
+				marketDepthStr += marketDepthUpdate.Volume + "#"; // РѕР±СЉС‘Рј РЅР° СѓСЂРѕРІРЅРµ
 				
-				marketDepthStr += marketDepthUpdate.Time + "$"; // время
+				marketDepthStr += marketDepthUpdate.Time.ToString(CultureInfo.InvariantCulture) + "$"; // РІСЂРµРјСЏ
 		        
 				_marketDepthsToSend.Enqueue(marketDepthStr);
 			}

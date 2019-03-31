@@ -190,6 +190,10 @@
     <Compile Include="Charts\CandleChart\Indicators\CmoUi.xaml.cs">
       <DependentUpon>CmoUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\DonchianChannel.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\DonchianChannelUi.xaml.cs">
+      <DependentUpon>DonchianChannelUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Charts\CandleChart\Indicators\EfficiencyRatio.cs" />
     <Compile Include="Charts\CandleChart\Indicators\EfficiencyRatioUi.xaml.cs">
       <DependentUpon>EfficiencyRatioUi.xaml</DependentUpon>
@@ -776,6 +780,10 @@
     <Page Include="Charts\CandleChart\Indicators\CmoUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\DonchianChannelUi.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Charts\CandleChart\Indicators\EfficiencyRatioUi.xaml">
       <SubType>Designer</SubType>

@@ -954,6 +954,7 @@ namespace OsEngine.Market.Servers
                     curPortfolio.ValueBegin = portf[i].ValueBegin;
                     curPortfolio.ValueCurrent = portf[i].ValueCurrent;
                     curPortfolio.ValueBlocked = portf[i].ValueBlocked;
+                    
                 }
 
                 _portfolioToSend.Enqueue(_portfolios);
@@ -1012,6 +1013,7 @@ namespace OsEngine.Market.Servers
                     SendLogMessage(OsLocalization.Market.Message13, LogMessageType.Error);
                     return;
                 }
+
                 if (_securities.Find(s => s.NameId == securities[i].NameId) == null)
                 {
                     _securities.Add(securities[i]);

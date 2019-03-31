@@ -160,6 +160,7 @@ namespace OsEngine.Robots.Trend
                     Slipage = Convert.ToDecimal(reader.ReadLine());
                     VolumeFix = Convert.ToDecimal(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
+                    Step = Convert.ToDecimal(reader.ReadLine());
                     Upline = Convert.ToDecimal(reader.ReadLine());
                     Downline = Convert.ToDecimal(reader.ReadLine());
 

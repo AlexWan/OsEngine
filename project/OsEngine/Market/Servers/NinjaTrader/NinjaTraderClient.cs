@@ -370,7 +370,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
                 order.NumberUser = Convert.ToInt32(str[1]);
                 order.NumberMarket = str[3];
                 order.State = OrderStateType.Activ;
-                order.TimeCallBack = Convert.ToDateTime(str[4]);
+                order.TimeCallBack = Convert.ToDateTime(str[4], CultureInfo.InvariantCulture);
 
                 if (MyOrderEvent != null)
                 {
@@ -383,7 +383,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
         }
 
         /// <summary>
-		/// parsing incoming messages about depth
+        /// parsing incoming messages about depth
         /// разбор входящих сообощений о стакане
         /// </summary>
         private void LoadMarketDepths(string message)
@@ -419,13 +419,14 @@ namespace OsEngine.Market.Servers.NinjaTrader
 
                 if (str[1] == "Ask")
                 {
-                    level.Ask = Convert.ToDecimal(str[4]);
+                    level.Ask = Convert.ToDecimal(str[4].Replace(",",CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),CultureInfo.InvariantCulture);
                 }
                 else
                 {
-                    level.Bid = Convert.ToDecimal(str[4]);
+                    level.Bid = Convert.ToDecimal(str[4].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                 }
-                level.Price = Convert.ToDecimal(str[3]);
+
+                level.Price = Convert.ToDecimal(str[3].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
 
                 MarketDepth myDepth = _marketDepths.Find(m => m.SecurityNameCode == str[0]);
 
@@ -436,7 +437,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
                     _marketDepths.Add(myDepth);
                 }
 
-                myDepth.Time = Convert.ToDateTime(str[5]);
+                myDepth.Time = Convert.ToDateTime(str[5], CultureInfo.InvariantCulture);
 
                 if (myDepth.Bids == null)
                 {
@@ -453,6 +454,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
                 {
                     AddAsk(myDepth.Asks, level);
                 }
+
                 if (str[1] == "Ask" && str[2] == "Remove")
                 {
                     Remove(myDepth.Asks, level);
@@ -462,9 +464,32 @@ namespace OsEngine.Market.Servers.NinjaTrader
                 {
                     AddBid(myDepth.Bids, level);
                 }
+
                 if (str[1] == "Bid" && str[2] == "Remove")
                 {
                     Remove(myDepth.Bids, level);
+                }
+
+                if (myDepth.Bids != null &&
+                    myDepth.Bids.Count > 0 &&
+                    myDepth.Asks != null &&
+                    myDepth.Asks.Count > 0)
+
+                {
+                    while(str[1] == "Bid" && (str[2] == "Add" || str[2] == "Update") &&
+                          myDepth.Asks.Count > 0 &&
+                        myDepth.Bids[0].Price >= myDepth.Asks[0].Price)
+                    {
+                        myDepth.Asks.RemoveAt(0);
+                    }
+
+                    while (str[1] == "Ask" && (str[2] == "Add" || str[2] == "Update") &&
+                        myDepth.Bids.Count > 0 &&
+                        myDepth.Bids[0].Price >= myDepth.Asks[0].Price)
+                    {
+                        myDepth.Bids.RemoveAt(0);
+                    }
+
                 }
 
                 while (myDepth.Asks != null &&
@@ -479,32 +504,26 @@ namespace OsEngine.Market.Servers.NinjaTrader
                     myDepth.Bids.RemoveAt(myDepth.Bids.Count - 1);
                 }
 
-                if (myDepth.Bids != null &&
-                    myDepth.Bids.Count > 0 &&
-                    myDepth.Asks != null &&
-                    myDepth.Asks.Count > 0)
-
+                if (myDepth.Time == DateTime.MinValue)
                 {
-                    if (str[1] == "Bid" &&
-                        myDepth.Bids[0].Price >= myDepth.Asks[0].Price)
-                    {
-                        myDepth.Asks.RemoveAt(0);
-                    }
-                    if (str[1] == "Ask" &&
-                    myDepth.Bids[0].Price >= myDepth.Asks[0].Price)
-                    {
-                        myDepth.Bids.RemoveAt(0);
-                    }
-
+                    return;
                 }
 
-            if (UpdateMarketDepth != null)
+                if (myDepth.Asks == null ||
+                    myDepth.Bids == null ||
+                    myDepth.Asks.Count == 0||
+                    myDepth.Bids.Count == 0)
+                {
+                    return;
+                }
+
+                if (UpdateMarketDepth != null)
                 {
                     UpdateMarketDepth(myDepth.GetCopy());
                 }
             }
         }
-        
+
         private void AddBid(List<MarketDepthLevel> levels, MarketDepthLevel newLevel)
         { // buy levels. with index zero greater value / уровни покупок.  с индексом ноль бОльшее значение 
             for (int i = 0; i < levels.Count; i++)
@@ -580,7 +599,8 @@ namespace OsEngine.Market.Servers.NinjaTrader
 
                 Portfolio newPos = new Portfolio();
                 newPos.Number = trdStr[0];
-                newPos.ValueCurrent= Convert.ToDecimal(trdStr[1]);
+                newPos.ValueCurrent= Convert.ToDecimal(trdStr[1].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                    CultureInfo.InvariantCulture);
 
                 Portfolio myPortfolio = _portfolios.Find(p => p.Number == newPos.Number);
 
@@ -627,7 +647,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
                 PositionOnBoard newPos = new PositionOnBoard();
                 newPos.SecurityNameCode = trdStr[0];
                 newPos.PortfolioName= trdStr[1];
-                newPos.ValueCurrent = Convert.ToDecimal(trdStr[2]);
+                newPos.ValueCurrent = Convert.ToDecimal(trdStr[2].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
 
                 Portfolio myPortfolio = _portfolios.Find(p => p.Number == newPos.PortfolioName);
 
@@ -679,10 +699,10 @@ namespace OsEngine.Market.Servers.NinjaTrader
                 newMyTrade.SecurityNameCode = trdStr[0];
                 newMyTrade.NumberTrade= trdStr[1];
                 newMyTrade.NumberOrderParent = trdStr[2];
-                newMyTrade.Price = Convert.ToDecimal(trdStr[3]);
-                newMyTrade.Volume= Convert.ToDecimal(trdStr[4]);
+                newMyTrade.Price = Convert.ToDecimal(trdStr[3].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                newMyTrade.Volume= Convert.ToDecimal(trdStr[4].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                 Enum.TryParse(trdStr[5], out newMyTrade.Side);
-                newMyTrade.Time= Convert.ToDateTime(trdStr[6]);
+                newMyTrade.Time= Convert.ToDateTime(trdStr[6], CultureInfo.InvariantCulture);
 
                 if (MyTradeEvent != null)
                 {
@@ -760,16 +780,16 @@ namespace OsEngine.Market.Servers.NinjaTrader
                 newOrder.NumberUser = Convert.ToInt32(ordStr[0]);
                 newOrder.NumberMarket= ordStr[1];
                 newOrder.SecurityNameCode = ordStr[2];
-                newOrder.Volume = Convert.ToDecimal(ordStr[3]);
-                newOrder.VolumeExecute = Convert.ToDecimal(ordStr[4]);
-                newOrder.Price = Convert.ToDecimal(ordStr[5]);
+                newOrder.Volume = Convert.ToDecimal(ordStr[3].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                newOrder.VolumeExecute = Convert.ToDecimal(ordStr[4].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                newOrder.Price = Convert.ToDecimal(ordStr[5].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                 newOrder.PortfolioNumber = ordStr[6];
                 Enum.TryParse(ordStr[7], out newOrder.Side);
 
                 OrderStateType state;
                 Enum.TryParse(ordStr[8], out state);
                 newOrder.State = state;
-                newOrder.TimeCallBack = Convert.ToDateTime(ordStr[9]);
+                newOrder.TimeCallBack = Convert.ToDateTime(ordStr[9], CultureInfo.InvariantCulture);
 
                 if (MyOrderEvent != null)
                 {
@@ -779,7 +799,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
         }
 
         /// <summary>
-		/// parsing incoming messages about list of securities
+        /// parsing incoming messages about list of securities
         /// разбор входящих сообщений о списке бумаг
         /// </summary>
         private void LoadSecurities(string message)
@@ -816,14 +836,37 @@ namespace OsEngine.Market.Servers.NinjaTrader
                     newSecurity.NameFull = sec[0];
                     newSecurity.NameId = sec[1];
                     newSecurity.NameClass = sec[2];
-                    newSecurity.PriceStep = Convert.ToDecimal(sec[3].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                    newSecurity.PriceStepCost = Convert.ToDecimal(sec[4].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                    newSecurity.PriceStep =
+                        Convert.ToDecimal(
+                            sec[3].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                            CultureInfo.InvariantCulture);
+                    newSecurity.PriceStepCost =
+                        Convert.ToDecimal(
+                            sec[4].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                            CultureInfo.InvariantCulture);
+                    newSecurity.Lot = 1;
+
+                    if (newSecurity.NameClass == "Stock")
+                    {
+                        newSecurity.SecurityType = SecurityType.Stock;
+                    }
+                    else if (newSecurity.NameClass == "Future")
+                    {
+                        newSecurity.SecurityType = SecurityType.Futures;
+                    }
+                    else if (newSecurity.NameClass == "Index")
+                    {
+                        newSecurity.SecurityType = SecurityType.Index;
+                    }
+                    else if (newSecurity.NameClass == "Forex")
+                    {
+                        newSecurity.SecurityType = SecurityType.CurrencyPair;
+                    }
                 }
                 catch (Exception)
                 {
 
                 }
-
 
                 securities.Add(newSecurity);
             }
@@ -854,7 +897,8 @@ namespace OsEngine.Market.Servers.NinjaTrader
                 result.Append(newAccount + "&");
             }*/
 
-            List<Portfolio> portfolios = new List<Portfolio>();
+            if(_portfolios == null)
+            { _portfolios = new List<Portfolio>();}
 
             string[] securityArray = message.Split('&');
 
@@ -862,12 +906,16 @@ namespace OsEngine.Market.Servers.NinjaTrader
             {
                 Portfolio newPortfolio = new Portfolio();
                 newPortfolio.Number = securityArray[i];
-                portfolios.Add(newPortfolio);
+
+                if (_portfolios.Find(port => port.Number == newPortfolio.Number) == null)
+                {
+                    _portfolios.Add(newPortfolio);
+                }
             }
 
             if (UpdatePortfolio != null)
             {
-                UpdatePortfolio(portfolios);
+                UpdatePortfolio(_portfolios);
             }
         }
 
@@ -908,7 +956,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
                     Convert.ToDecimal(
                         tradeInArray[2].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
                         CultureInfo.InvariantCulture);
-                newTrade.Time = Convert.ToDateTime(tradeInArray[3]);
+                newTrade.Time = Convert.ToDateTime(tradeInArray[3], CultureInfo.InvariantCulture);
 
                 if (NewTradesEvent != null)
                 {

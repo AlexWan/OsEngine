@@ -72,6 +72,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _gridViewIndicators.Rows.Add("BearsPower");
             _gridViewIndicators.Rows.Add("CMO");
             _gridViewIndicators.Rows.Add("CCI");    
+            _gridViewIndicators.Rows.Add("DonchianChannel");    
             _gridViewIndicators.Rows.Add("Envelops");
             _gridViewIndicators.Rows.Add("Efficiency Ratio");
             _gridViewIndicators.Rows.Add("Fractal");
@@ -247,6 +248,23 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 IndicatorCandle = new Bollinger(_chartMaster.Name + name, true);
                 _chartMaster.CreateIndicator(IndicatorCandle, areaName);
             }
+
+            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "DonchianChannel")
+            {
+                string name = "";
+
+                for (int i = 0; i < 30; i++)
+                {
+                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "DonchianChannel" + i) == false)
+                    {
+                        name = "DonchianChannel" + i;
+                        break;
+                    }
+                }
+                IndicatorCandle = new DonchianChannel(_chartMaster.Name + name, true);
+                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+            }
+
             if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "BFMFI")
             {
                 string name = "";
