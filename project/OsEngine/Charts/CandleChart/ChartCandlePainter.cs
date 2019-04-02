@@ -842,8 +842,8 @@ namespace OsEngine.Charts.CandleChart
             }
             return false;
         }
-        // work of flow of the drawing chart
-        // работа потока прорисовывающего чарт
+
+        // work of flow of the drawing chart / работа потока прорисовывающего чарт
 
         /// <summary>
         /// the method in which the flow drawing chart works
@@ -1078,8 +1078,9 @@ namespace OsEngine.Charts.CandleChart
         /// очередь с индикаторами, которые нужно прорисовать
         /// </summary>
         private ConcurrentQueue<IIndicatorCandle> _indicatorsToPaint = new ConcurrentQueue<IIndicatorCandle>();
-        // candles
-        // свечи
+        
+        // candles / свечи
+
 
         /// <summary>
         /// data drawing culture
@@ -1388,8 +1389,8 @@ namespace OsEngine.Charts.CandleChart
            
             ReloadAreaSizes();
         }
-        // ticks
-        // тики
+
+        // ticks /  тики
 
         /// <summary>
         /// draw ticks
@@ -1584,8 +1585,8 @@ namespace OsEngine.Charts.CandleChart
 
             PaintSeriesSafe(tradeSeries);
         }
-        // Deals
-        // сделки
+
+        // Deals / сделки
 
         /// <summary>
         /// plot dealss on chart
@@ -3830,7 +3831,7 @@ namespace OsEngine.Charts.CandleChart
                     }
                     else
                     {
-                        labelSeries.Points[0].Label = series[i].Points[index].YValues[0].ToString();
+                        labelSeries.Points[0].Label = ((decimal)series[i].Points[index].YValues[0]).ToString();
                     }
                 }
 
