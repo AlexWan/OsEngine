@@ -67,9 +67,9 @@ namespace OsEngine.Market.Connectors
         {
             order.SecurityNameCode = "TestPaper";
             order.PortfolioNumber = "TestPortfolio";
-            ordersOnBoard.Add(order);
-
+  
             ActivateSimple(order);
+            ordersOnBoard.Add(order);
             CheckExecution(true, order);
         }
 
@@ -149,6 +149,11 @@ namespace OsEngine.Market.Connectors
         /// <param name="order"> execution order / проверяемый на исполнение ордер </param>
         private bool CheckExecution(bool isFirstTime, Order order)
         {
+            if (order.NumberMarket == "")
+            {
+                return false;
+            }
+
             if (order.TypeOrder == OrderPriceType.Market)
             {
                 if (order.Side == Side.Buy)

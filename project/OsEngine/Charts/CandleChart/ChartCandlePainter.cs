@@ -4597,6 +4597,11 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
 
+            if (_areaPositions == null)
+            {
+                return;
+            }
+
             if (_areaPositions.Count != _chart.ChartAreas.Count ||
                 _areaPositions.Find(posi => posi.RightPoint == 0) != null)
             {
