@@ -176,7 +176,7 @@ namespace OsEngine.Market.Connectors
             else //if (order.TypeOrder == OrderPriceType.Limit)
             {
                 if (order.Side == Side.Buy &&
-              order.Price > _bestSell)
+              order.Price >= _bestSell)
                 {
                     decimal price;
 
@@ -194,7 +194,7 @@ namespace OsEngine.Market.Connectors
                     return true;
                 }
                 else if (order.Side == Side.Sell &&
-                         order.Price < _bestBuy)
+                         order.Price <= _bestBuy)
                 {
                     decimal price;
 
