@@ -258,6 +258,7 @@ namespace OsEngine.Market.Connectors
         {
             Order newOrder = new Order();
             newOrder.NumberMarket = DateTime.Now.ToString(new CultureInfo("ru-RU")) + order.NumberUser;
+            order.NumberMarket = newOrder.NumberMarket;
             newOrder.NumberUser = order.NumberUser;
             newOrder.State = OrderStateType.Activ;
             newOrder.Volume = order.Volume;
@@ -267,7 +268,10 @@ namespace OsEngine.Market.Connectors
             newOrder.Side = order.Side;
             newOrder.SecurityNameCode = order.SecurityNameCode;
 
-            _ordersToSend.Enqueue(newOrder);
+            if (OrderChangeEvent != null)
+            {
+                OrderChangeEvent(newOrder);
+            }
         }
 
 // server needs to be loaded with new data to execute stop- and profit-orders
@@ -300,8 +304,17 @@ namespace OsEngine.Market.Connectors
         /// <param name="time"> time / время </param>
         public void ProcessBidAsc(decimal sell, decimal buy, DateTime time)
         {
-            _bestBuy = buy;
-            _bestSell = sell;
+            if (buy > sell)
+            {
+                _bestBuy = sell;
+                _bestSell = buy;
+            }
+            else
+            {
+                _bestBuy = buy;
+                _bestSell = sell;
+            }
+
             _serverTime = time;
 
             for (int i = 0;ordersOnBoard != null && i < ordersOnBoard.Count; i++)
