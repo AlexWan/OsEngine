@@ -304,14 +304,14 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 TcpWrite(0);
                 TcpWrite(contract.Symbol);
                 TcpWrite(contract.SecType);
-                TcpWrite("");
-                TcpWrite(0);
-                TcpWrite(null);
-                TcpWrite("");
+                TcpWrite(contract.Expiry);
+                TcpWrite(contract.Strike);
+                TcpWrite(null); // Right
+                TcpWrite(""); // Multiplier
                 TcpWrite(contract.Exchange);
-                TcpWrite("");
+                TcpWrite(""); // PrimaryEx
                 TcpWrite(contract.Currency);
-                TcpWrite("");
+                TcpWrite(contract.LocalSymbol);
                 TcpWrite(null);
                 TcpWrite(false);
                 TcpWrite("");
@@ -798,6 +798,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                     {
                         continue;
                     }
+
                     if (typeMessage == 1)
                     {
                         LoadTrade();
@@ -827,12 +828,12 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                         LoadContractData();
                     }
                     else if (typeMessage == 12 ||
-                        typeMessage == 13)
+                             typeMessage == 13)
                     {
                         LoadMarketDepth(typeMessage);
                     }
                     else if (typeMessage == 15)
-                    { 
+                    {
                         LoadAccounts();
                     }
                     else if (typeMessage == 65)
@@ -858,7 +859,8 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                     // next, an unnecessary Os.Engine date from which the stream still needs to be cleaned / далее не нужная Os.Engine дата, от которой всё же поток нужно чистить
 
                     else if (typeMessage == 5)
-                    { //OpenOrder
+                    {
+                        //OpenOrder
                         ClearOpenOrder();
                     }
 
@@ -880,13 +882,29 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                         ClearExecutionData();
                     }
 
+                    else if (typeMessage == 64 || typeMessage == 52)
+                    {
+                        TcpReadInt();
+                        TcpReadInt();
+                    }
+                    else if (typeMessage == 45)
+                    {
+                        int val = TcpReadInt();
+                        int val2 = TcpReadInt();
+                        int val3 = TcpReadInt();
+                        double val4 = TcpReadDouble();
+                        // TcpReadString();
+                        //  TcpReadString();
+                    }
+
                     else
                     {
-                        if(SkipUnnecessaryData(typeMessage) == false)
+                        if (SkipUnnecessaryData(typeMessage) == false)
                         {
-                            SendLogMessage("Неучтённое сообщение. Всё пропало! Номер: " + typeMessage, LogMessageType.Error);
+                            SendLogMessage("Неучтённое сообщение. Всё пропало! Номер: " + typeMessage,
+                                LogMessageType.Error);
                         }
-                        
+
                     }
                 }
                 catch (Exception error)
@@ -1042,7 +1060,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             }
             else if (typeMessage == 46)
             {
-                // TickString
+                TcpReadInt();
                 TcpReadInt();
                 TcpReadInt();
                 TcpReadString();

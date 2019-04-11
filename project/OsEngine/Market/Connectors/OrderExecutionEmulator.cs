@@ -67,9 +67,9 @@ namespace OsEngine.Market.Connectors
         {
             order.SecurityNameCode = "TestPaper";
             order.PortfolioNumber = "TestPortfolio";
-            ordersOnBoard.Add(order);
-
+  
             ActivateSimple(order);
+            ordersOnBoard.Add(order);
             CheckExecution(true, order);
         }
 
@@ -149,6 +149,11 @@ namespace OsEngine.Market.Connectors
         /// <param name="order"> execution order / проверяемый на исполнение ордер </param>
         private bool CheckExecution(bool isFirstTime, Order order)
         {
+            if (order.NumberMarket == "")
+            {
+                return false;
+            }
+
             if (order.TypeOrder == OrderPriceType.Market)
             {
                 if (order.Side == Side.Buy)
@@ -171,7 +176,7 @@ namespace OsEngine.Market.Connectors
             else //if (order.TypeOrder == OrderPriceType.Limit)
             {
                 if (order.Side == Side.Buy &&
-              order.Price > _bestSell)
+              order.Price >= _bestSell)
                 {
                     decimal price;
 
@@ -189,7 +194,7 @@ namespace OsEngine.Market.Connectors
                     return true;
                 }
                 else if (order.Side == Side.Sell &&
-                         order.Price < _bestBuy)
+                         order.Price <= _bestBuy)
                 {
                     decimal price;
 
@@ -253,6 +258,7 @@ namespace OsEngine.Market.Connectors
         {
             Order newOrder = new Order();
             newOrder.NumberMarket = DateTime.Now.ToString(new CultureInfo("ru-RU")) + order.NumberUser;
+            order.NumberMarket = newOrder.NumberMarket;
             newOrder.NumberUser = order.NumberUser;
             newOrder.State = OrderStateType.Activ;
             newOrder.Volume = order.Volume;
@@ -262,7 +268,10 @@ namespace OsEngine.Market.Connectors
             newOrder.Side = order.Side;
             newOrder.SecurityNameCode = order.SecurityNameCode;
 
-            _ordersToSend.Enqueue(newOrder);
+            if (OrderChangeEvent != null)
+            {
+                OrderChangeEvent(newOrder);
+            }
         }
 
 // server needs to be loaded with new data to execute stop- and profit-orders
@@ -295,8 +304,17 @@ namespace OsEngine.Market.Connectors
         /// <param name="time"> time / время </param>
         public void ProcessBidAsc(decimal sell, decimal buy, DateTime time)
         {
-            _bestBuy = buy;
-            _bestSell = sell;
+            if (buy > sell)
+            {
+                _bestBuy = sell;
+                _bestSell = buy;
+            }
+            else
+            {
+                _bestBuy = buy;
+                _bestSell = sell;
+            }
+
             _serverTime = time;
 
             for (int i = 0;ordersOnBoard != null && i < ordersOnBoard.Count; i++)

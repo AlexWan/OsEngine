@@ -1575,6 +1575,11 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                     }
                     _marketDepths.Add(copy);
 
+                    if (NewBidAscIncomeEvent != null &&
+                        copy.Bids.Count != 0 && copy.Asks.Count != 0)
+                    {
+                        NewBidAscIncomeEvent(copy.Bids[0].Price, copy.Asks[0].Price, mySecurity);
+                    }
                 }
             }
             catch (Exception error)
@@ -1622,7 +1627,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             try
             {
                 BathTradeMarketDepthData(trade);
-
+                ServerTime = trade.Time;
                 // save/сохраняем
                 if (_allTrades == null)
                 {
@@ -1892,6 +1897,11 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 if (osOrder == null)
                 {
                     return;
+                }
+
+                if (order.State == OrderStateType.Fail)
+                {
+                    osOrder.State = OrderStateType.Fail;
                 }
 
                 _ordersToSend.Enqueue(osOrder);
