@@ -767,7 +767,7 @@ namespace OsEngine.Market.Connectors
                         if (ComboBoxClass.SelectedItem != null && classSec == ComboBoxClass.SelectedItem.ToString())
                         {
                             ComboBoxSecurities.Items.Add(securities[i].Name);
-                            ComboBoxSecurities.SelectedItem = securities[i];
+                            ComboBoxSecurities.SelectedItem = securities[i].Name;
                         }
                     }
                 }
@@ -776,11 +776,11 @@ namespace OsEngine.Market.Connectors
                 // грузим уже запущенные инструменты
 
                 string paper = _connectorBot.NamePaper;
-
+                
                 if (paper != null)
                 {
                     ComboBoxSecurities.Text = paper;
-
+                    ComboBoxSecurities.SelectedItem = paper;
                     if (ComboBoxSecurities.Text == null)
                     {
                         ComboBoxSecurities.Items.Add(_connectorBot.NamePaper);

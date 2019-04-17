@@ -68,6 +68,7 @@ namespace OsEngine.Market.Servers.Transaq
             cmd = cmd + "<password>" + Password + "</password>";
             cmd = cmd + "<host>" + ServerIp + "</host>";
             cmd = cmd + "<port>" + ServerPort + "</port>";
+            cmd = cmd + "<push_pos_equity>" + 3 + "</push_pos_equity>";
             cmd = cmd + "<rqdelay>100</rqdelay>";
             cmd = cmd + "</command>";
 
@@ -131,7 +132,7 @@ namespace OsEngine.Market.Servers.Transaq
         /// </summary>
         public bool ConnectorInitialize()
         {
-            IntPtr pResult = Initialize(MarshalUtf8.StringToHGlobalUtf8(LogPath), 1);
+            IntPtr pResult = Initialize(MarshalUtf8.StringToHGlobalUtf8(LogPath), 3);
 
             if (!pResult.Equals(IntPtr.Zero))
             {
@@ -265,6 +266,18 @@ namespace OsEngine.Market.Servers.Transaq
                                 
                                 UpdatePortfolio?.Invoke(unitedPortfolio);
                             }
+                            else if (data.StartsWith("<positions"))
+                            {
+                                var positions = Deserialize<TransaqPositions>(data);
+
+                                UpdatePositions?.Invoke(positions);
+                            }
+                            else if (data.StartsWith("<clientlimits"))
+                            {
+                                var limits = Deserialize<Clientlimits>(data);
+
+                                UpdateMonoPortfolio?.Invoke(limits);
+                            }
                             else if (data.StartsWith("<client"))
                             {
                                 var clientInfo = _deserializer.Deserialize<Client>(new RestResponse() { Content = data });
@@ -369,6 +382,18 @@ namespace OsEngine.Market.Servers.Transaq
         /// обновились портфели
         /// </summary>
         public event Action<UnitedPortfolio> UpdatePortfolio;
+
+        /// <summary>
+        /// updated portfolios
+        /// обновились портфели
+        /// </summary>
+        public event Action<Clientlimits> UpdateMonoPortfolio;
+
+        /// <summary>
+        /// updated positions
+        /// обновились позиции
+        /// </summary>
+        public event Action<TransaqPositions> UpdatePositions;
 
         /// <summary>
         /// updated ticks

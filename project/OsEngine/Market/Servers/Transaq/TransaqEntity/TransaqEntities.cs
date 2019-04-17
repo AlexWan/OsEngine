@@ -14,6 +14,8 @@ namespace OsEngine.Market.Servers.Transaq.TransaqEntity
         public string Type { get; set; }
         [XmlElement(ElementName = "union")]
         public string Union { get; set; }
+        [XmlElement(ElementName = "forts_acc")]
+        public string Forts_acc { get; set; }
         [XmlAttribute(AttributeName = "id")]
         public string Id { get; set; }
         [XmlAttribute(AttributeName = "remove")]
@@ -105,25 +107,6 @@ namespace OsEngine.Market.Servers.Transaq.TransaqEntity
         [XmlElement(ElementName = "sell")]
         public decimal Sell { get; set; }
 
-        //public override bool Equals(object quote)
-        //{
-        //    if (quote == null)
-        //    {
-        //        return false;
-        //    }
-        //    if (quote.GetType() != typeof(Quote))
-        //    {
-        //        return false;
-        //    }
-        //    if (this.Price == ((Quote)quote).Price)
-        //    {
-        //        return true;
-        //    }
-        //    else
-        //    {
-        //        return false;
-        //    }            
-        //}
     }
 
     [XmlRoot(ElementName = "order")]
