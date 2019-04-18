@@ -505,6 +505,7 @@
     <Compile Include="Market\Servers\Transaq\TransaqClient.cs" />
     <Compile Include="Market\Servers\Transaq\TransaqEntity\TransaqEntities.cs" />
     <Compile Include="Market\Servers\Transaq\TransaqEntity\TransaqPortfolio.cs" />
+    <Compile Include="Market\Servers\Transaq\TransaqEntity\TransaqPositions.cs" />
     <Compile Include="Market\Servers\Transaq\TransaqServer.cs" />
     <Compile Include="OsMiner\OsMinerMaster.cs" />
     <Compile Include="OsMiner\OsMinerSet.cs" />

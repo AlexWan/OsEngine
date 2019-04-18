@@ -149,6 +149,35 @@ namespace OsEngine.Market.Servers.Transaq.TransaqEntity
         [XmlAttribute(AttributeName = "client")]
         public string Client { get; set; }
     }
+
+    [XmlRoot(ElementName = "portfolio_tplus")]
+    public class Portfolio_tplus
+    {
+        [XmlElement(ElementName = "coverage_fact")]
+        public string Coverage_fact { get; set; }
+        [XmlElement(ElementName = "coverage_plan")]
+        public string Coverage_plan { get; set; }
+        [XmlElement(ElementName = "coverage_crit")]
+        public string Coverage_crit { get; set; }
+        [XmlElement(ElementName = "open_equity")]
+        public string Open_equity { get; set; }
+        [XmlElement(ElementName = "equity")]
+        public string Equity { get; set; }
+        [XmlElement(ElementName = "cover")]
+        public string Cover { get; set; }
+        [XmlElement(ElementName = "init_margin")]
+        public string Init_margin { get; set; }
+        [XmlElement(ElementName = "pnl_income")]
+        public string Pnl_income { get; set; }
+        [XmlElement(ElementName = "pnl_intraday")]
+        public string Pnl_intraday { get; set; }
+        [XmlElement(ElementName = "leverage")]
+        public string Leverage { get; set; }
+        [XmlElement(ElementName = "margin_level")]
+        public string Margin_level { get; set; }
+        [XmlAttribute(AttributeName = "client")]
+        public string Client { get; set; }
+    }
 }
 
 
