@@ -34,7 +34,7 @@ namespace OsEngine.Market.Servers.Transaq
 
             CreateParameterString(OsLocalization.Market.Message63, "");
             CreateParameterPassword(OsLocalization.Market.Message64, "");
-            CreateParameterString(OsLocalization.Market.Label41, "213.247.141.133");
+            CreateParameterString(OsLocalization.Market.Label41, "tr1.finam.ru");
             CreateParameterString(OsLocalization.Market.Message90, "3900");
         }
 
