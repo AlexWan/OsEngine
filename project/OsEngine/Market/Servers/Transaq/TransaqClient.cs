@@ -132,7 +132,7 @@ namespace OsEngine.Market.Servers.Transaq
         /// </summary>
         public bool ConnectorInitialize()
         {
-            IntPtr pResult = Initialize(MarshalUtf8.StringToHGlobalUtf8(LogPath), 3);
+            IntPtr pResult = Initialize(MarshalUtf8.StringToHGlobalUtf8(LogPath), 1);
 
             if (!pResult.Equals(IntPtr.Zero))
             {
