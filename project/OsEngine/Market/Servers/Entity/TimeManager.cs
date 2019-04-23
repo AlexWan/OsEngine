@@ -9,5 +9,26 @@ namespace OsEngine.Market.Servers.Entity
             TimeZoneInfo neededTimeZone = TimeZoneInfo.FindSystemTimeZoneById(needTimeZone);
             return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, neededTimeZone);
         }
+
+        public static DateTime GetDateTimeFromTimeStamp(long timeStamp)
+        {
+            return new DateTime(1970, 1, 1).AddMilliseconds(timeStamp);
+        }
+
+        public static long GetUnixTimeStampSeconds()
+        {
+            return Convert.ToInt64(GetUnixTimeStamp().TotalSeconds);
+        }
+
+        public static long GetUnixTimeStampMilliseconds()
+        {
+            return Convert.ToInt64(GetUnixTimeStamp().TotalMilliseconds);
+        }
+
+        private static TimeSpan GetUnixTimeStamp()
+        {
+            DateTime yearBegin = new DateTime(1970, 1, 1);
+            return DateTime.UtcNow - yearBegin;
+        }
     }
 }
