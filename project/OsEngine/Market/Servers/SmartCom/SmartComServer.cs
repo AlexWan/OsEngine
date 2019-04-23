@@ -63,6 +63,7 @@ namespace OsEngine.Market.Servers.SmartCom
         /// </summary>
         private object _smartComServerLocker = new object();
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void Connect()
         {
             if (SmartServer == null)
@@ -100,6 +101,7 @@ namespace OsEngine.Market.Servers.SmartCom
             Thread.Sleep(10000);
         }
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void Dispose()
         {
             try
@@ -149,6 +151,7 @@ namespace OsEngine.Market.Servers.SmartCom
             ServerStatus = ServerConnectStatus.Disconnect;
         }
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void GetSecurities()
         {
             lock (_smartComServerLocker)
@@ -157,6 +160,7 @@ namespace OsEngine.Market.Servers.SmartCom
             }
         }
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void GetPortfolios()
         {
             lock (_smartComServerLocker)
@@ -172,9 +176,11 @@ namespace OsEngine.Market.Servers.SmartCom
                     {
                         SmartServer.CancelPortfolio(_portfolios[i].Number);
                         SmartServer.ListenPortfolio(_portfolios[i].Number);
-                    } 
+                    }
                 }
             }
+
+          
         }
 
         /// <summary>
@@ -183,6 +189,7 @@ namespace OsEngine.Market.Servers.SmartCom
         /// </summary>
         private List<string> _startedSecurities = new List<string>();
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void Subscrible(Security security)
         {
             string namePaper = security.Name;
@@ -250,6 +257,7 @@ namespace OsEngine.Market.Servers.SmartCom
         /// </summary>
         private List<int> _numsIncomeCancelOrders = new List<int>();
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void SendOrder(Order order)
         {
             StOrder_Action action;
@@ -285,6 +293,8 @@ namespace OsEngine.Market.Servers.SmartCom
                 TimeSendTransaction = DateTime.Now
             });
         }
+
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
 
         public void CanselOrder(Order order)
         {
@@ -449,6 +459,7 @@ namespace OsEngine.Market.Servers.SmartCom
         /// метод для работы потока проверяющего соединение со смартком
         /// анализируя исходящие и входящие ордера
         /// </summary>
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void ConnectionCheckerToOrdersThreadArea()
         {
             while (true)
@@ -540,57 +551,67 @@ namespace OsEngine.Market.Servers.SmartCom
         /// <param name="timeSpan">timeframe/таймФрейм</param>
         /// <param name="count">count of candles/количество свечек</param>
         /// <returns>in case of failure returns null/в случае неудачи вернётся null</returns>
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public List<Candle> GetSmartComCandleHistory(string security, TimeSpan timeSpan, int count)
         {
+            
             if (timeSpan.TotalMinutes > 60 ||
                 timeSpan.TotalMinutes < 1)
             {
                 return null;
             }
 
-            StBarInterval tf = StBarInterval.StBarInterval_Quarter;
+            try
+            {
+                StBarInterval tf = StBarInterval.StBarInterval_Quarter;
 
-            if (Convert.ToInt32(timeSpan.TotalMinutes) == 1)
-            {
-                tf = StBarInterval.StBarInterval_1Min;
-            }
-            else if (Convert.ToInt32(timeSpan.TotalMinutes) == 5)
-            {
-                tf = StBarInterval.StBarInterval_5Min;
-            }
-            else if (Convert.ToInt32(timeSpan.TotalMinutes) == 10)
-            {
-                tf = StBarInterval.StBarInterval_10Min;
-            }
-            else if (Convert.ToInt32(timeSpan.TotalMinutes) == 15)
-            {
-                tf = StBarInterval.StBarInterval_15Min;
-            }
-            else if (Convert.ToInt32(timeSpan.TotalMinutes) == 30)
-            {
-                tf = StBarInterval.StBarInterval_30Min;
-            }
-            else if (Convert.ToInt32(timeSpan.TotalMinutes) == 60)
-            {
-                tf = StBarInterval.StBarInterval_60Min;
-            }
+                if (Convert.ToInt32(timeSpan.TotalMinutes) == 1)
+                {
+                    tf = StBarInterval.StBarInterval_1Min;
+                }
+                else if (Convert.ToInt32(timeSpan.TotalMinutes) == 5)
+                {
+                    tf = StBarInterval.StBarInterval_5Min;
+                }
+                else if (Convert.ToInt32(timeSpan.TotalMinutes) == 10)
+                {
+                    tf = StBarInterval.StBarInterval_10Min;
+                }
+                else if (Convert.ToInt32(timeSpan.TotalMinutes) == 15)
+                {
+                    tf = StBarInterval.StBarInterval_15Min;
+                }
+                else if (Convert.ToInt32(timeSpan.TotalMinutes) == 30)
+                {
+                    tf = StBarInterval.StBarInterval_30Min;
+                }
+                else if (Convert.ToInt32(timeSpan.TotalMinutes) == 60)
+                {
+                    tf = StBarInterval.StBarInterval_60Min;
+                }
 
-            if (tf == StBarInterval.StBarInterval_Quarter)
+                if (tf == StBarInterval.StBarInterval_Quarter)
+                {
+                    return null;
+                }
+
+                _candles = null;
+
+                while (_candles == null)
+                {
+                    lock (_smartComServerLocker)
+                    {
+                        SmartServer.GetBars(security, tf, DateTime.Now.AddHours(6), count);
+                    }
+                }
+
+                return _candles;
+            }
+            catch
             {
                 return null;
             }
-
-            _candles = null;
-
-            while (_candles == null)
-            {
-                lock (_smartComServerLocker)
-                {
-                    SmartServer.GetBars(security, tf, DateTime.Now.AddHours(6), count);
-                }
-            }
-
-            return _candles;
+            
         }
 
         /// <summary>

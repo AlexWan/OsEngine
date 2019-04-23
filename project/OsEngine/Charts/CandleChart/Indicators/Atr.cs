@@ -30,7 +30,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
             Name = uniqName;
             Lenght = 14;
             TypeIndicator = IndicatorOneCandleChartType.Line;
-            TypeCalculationAverage = MovingAverageTypeCalculation.Simple;
             ColorBase = Color.DodgerBlue;
             PaintOn = true;
             CanDelete = canDelete;
@@ -49,7 +48,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             Lenght = 14;
             TypeIndicator = IndicatorOneCandleChartType.Line;
-            TypeCalculationAverage = MovingAverageTypeCalculation.Simple;
             ColorBase = Color.DodgerBlue;
             PaintOn = true;
             CanDelete = canDelete;
@@ -95,12 +93,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// тип прорисовки индикатора
         /// </summary>
         public IndicatorOneCandleChartType TypeIndicator { get; set; }
-
-        /// <summary>
-        /// type of moving average for indicator calculation
-        /// тип скользящей средней для рассчёта индикатора
-        /// </summary>
-        public MovingAverageTypeCalculation TypeCalculationAverage;
 
         /// <summary>
         /// name of data series on which indicator will be drawn
@@ -162,7 +154,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
                     writer.WriteLine(ColorBase.ToArgb());
                     writer.WriteLine(Lenght);
                     writer.WriteLine(PaintOn);
-                    writer.WriteLine(TypeCalculationAverage);
                     writer.Close();
                 }
             }
@@ -191,7 +182,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
                     ColorBase = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
                     Lenght = Convert.ToInt32(reader.ReadLine());
                     PaintOn = Convert.ToBoolean(reader.ReadLine());
-                    Enum.TryParse(reader.ReadLine(), true, out TypeCalculationAverage);
                     reader.ReadLine();
 
                     reader.Close();
