@@ -82,9 +82,9 @@ namespace OsEngine.Market.Connectors
                     reader.Close();
                 }
             }
-            catch (Exception error)
+            catch
             {
-                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+                // ignore
             }
         }
 
@@ -122,9 +122,9 @@ namespace OsEngine.Market.Connectors
                     writer.Close();
                 }
             }
-            catch (Exception error)
+            catch 
             {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                // ignore
             }
         }
 
