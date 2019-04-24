@@ -3142,6 +3142,8 @@ namespace OsEngine.Charts.CandleChart
             if(values == null ||
                 values.Count == 0)
             {
+                Series needClearSeries = FindSeriesByNameSafe(nameSeries);
+                needClearSeries?.Points.Clear();
                 return;
             }
 
