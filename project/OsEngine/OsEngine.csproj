@@ -292,6 +292,10 @@
     <Compile Include="Charts\CandleChart\Indicators\VolumeUi.xaml.cs">
       <DependentUpon>VolumeUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\VWAP.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\VwapUi.xaml.cs">
+      <DependentUpon>VwapUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Charts\CandleChart\Indicators\WilliamsRange.cs" />
     <Compile Include="Charts\CandleChart\Indicators\WilliamsRangeUi.xaml.cs">
       <DependentUpon>WilliamsRangeUi.xaml</DependentUpon>
@@ -882,6 +886,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Charts\CandleChart\Indicators\VolumeUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\VwapUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
