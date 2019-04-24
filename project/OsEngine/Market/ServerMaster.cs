@@ -14,6 +14,7 @@ using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.AstsBridge;
 using OsEngine.Market.Servers.Binance;
 using OsEngine.Market.Servers.Bitfinex;
+using OsEngine.Market.Servers.BitMax;
 using OsEngine.Market.Servers.BitMex;
 using OsEngine.Market.Servers.BitStamp;
 using OsEngine.Market.Servers.Finam;
@@ -65,6 +66,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Plaza);
                 serverTypes.Add(ServerType.Transaq);
 
+                serverTypes.Add(ServerType.BitMax);
                 serverTypes.Add(ServerType.Binance);
                 serverTypes.Add(ServerType.BitMex);
                 serverTypes.Add(ServerType.BitStamp);
@@ -153,6 +155,10 @@ namespace OsEngine.Market
 
                 IServer newServer = null;
 
+                if (type == ServerType.BitMax)
+                {
+                    newServer = new BitMaxServer();
+                }
                 if (type == ServerType.Transaq)
                 {
                     newServer = new TransaqServer();
@@ -612,6 +618,12 @@ namespace OsEngine.Market
         /// Тип сервера не назначен
         /// </summary>
         None,
+
+        /// <summary>
+        /// BitMax exchange
+        /// биржа BitMax
+        /// </summary>
+        BitMax,
 
         /// <summary>
         /// transaq

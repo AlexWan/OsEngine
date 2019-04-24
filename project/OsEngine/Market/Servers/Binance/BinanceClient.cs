@@ -51,7 +51,7 @@ namespace OsEngine.Market.Servers.Binance
             }
             catch (Exception exception)
             {
-                SendLogMessage("Сервер не доступен. Отсутствуюет интернет. ", LogMessageType.Error);
+                SendLogMessage("Сервер не доступен. Отсутствует интернет. ", LogMessageType.Error);
                 return;
             }
 
