@@ -1159,10 +1159,12 @@ namespace OsEngine.Market.Servers.Tester
                 }
             }
 
-// check in tester file data on the presence of multipliers and GO for securities
-// проверяем в файле тестера данные о наличии мультипликаторов и ГО для бумаг
+            // check in tester file data on the presence of multipliers and GO for securities
+            // проверяем в файле тестера данные о наличии мультипликаторов и ГО для бумаг
 
-            List<string[]> array = LoadSecurityDopSettings(folderName + "\\SecuritiesSettings.txt");
+            //List<string[]> array = LoadSecurityDopSettings(folderName + "\\SecuritiesSettings.txt");
+            string pathToSecuritySettings = Path.GetDirectoryName(Path.GetDirectoryName(folderName));
+            List<string[]> array = LoadSecurityDopSettings(pathToSecuritySettings + "\\SecuritiesSettings.txt");
 
             for (int i = 0; array != null && i < array.Count; i++)
             {
@@ -1404,10 +1406,12 @@ namespace OsEngine.Market.Servers.Tester
                 }
             }
 
-			// check in the tester file data on the presence of multipliers and GO for securities
+            // check in the tester file data on the presence of multipliers and GO for securities
             // проверяем в файле тестера данные о наличии мультипликаторов и ГО для бумаг
 
-            List<string[]> array = LoadSecurityDopSettings(folderName + "\\SecuritiesSettings.txt");
+            //List<string[]> array = LoadSecurityDopSettings(folderName + "\\SecuritiesSettings.txt");
+            string pathToSecuritySettings = Path.GetDirectoryName(Path.GetDirectoryName(folderName));
+            List<string[]> array = LoadSecurityDopSettings(pathToSecuritySettings + "\\SecuritiesSettings.txt");
 
             for (int i = 0; array != null && i < array.Count; i++)
             {
@@ -1647,10 +1651,12 @@ namespace OsEngine.Market.Servers.Tester
                 }
             }
 
-			// check in the tester file data on the presence of multipliers and GO for securities
+            // check in the tester file data on the presence of multipliers and GO for securities
             // проверяем в файле тестера данные о наличии мультипликаторов и ГО для бумаг
 
-            List<string[]> array = LoadSecurityDopSettings(folderName + "\\SecuritiesSettings.txt");
+            //List<string[]> array = LoadSecurityDopSettings(folderName + "\\SecuritiesSettings.txt");
+            string pathToSecuritySettings = Path.GetDirectoryName(Path.GetDirectoryName(folderName));
+            List<string[]> array = LoadSecurityDopSettings(pathToSecuritySettings + "\\SecuritiesSettings.txt");
 
             for (int i = 0; array != null && i < array.Count; i++)
             {
