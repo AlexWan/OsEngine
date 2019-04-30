@@ -1,5 +1,4 @@
 ﻿/*
- * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
@@ -18,16 +17,17 @@ namespace OsEngine.Charts.CandleChart.Indicators
     {
 
         /// <summary>
-        /// constructor with parameters. Indicator will be saved
-        /// конструктор с параметрами. Индикатор будет сохраняться
+        /// конструктор с параметрами. Индикатор будет сохранять настройки
         /// </summary>
-        /// <param name="uniqName">unique name/уникальное имя</param>
-        /// <param name="canDelete">whether user can remove indicator from chart manually/можно ли пользователю удалить индикатор с графика вручную</param>
+        /// <param name="uniqName">уникальное имя</param>
+        /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
         public ParabolicSaR(string uniqName, bool canDelete)
         {
             Name = uniqName;
-            TypeIndicator = IndicatorOneCandleChartType.Line;
+            TypeIndicator = IndicatorOneCandleChartType.Point;
             ColorBase = Color.DeepSkyBlue;
+            ColorUp = Color.Green;
+            ColorDown = Color.Red;
             Af = 0.02;
             MaxAf = 0.2;
             PaintOn = true;
@@ -36,16 +36,18 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
-        /// constructor without parameters.Indicator will not saved/конструктор без параметров. Индикатор не будет сохраняться
-        /// used ONLY to create composite indicators/используется ТОЛЬКО для создания составных индикаторов
-        /// Don't use it from robot creation layer/не используйте его из слоя создания роботов!
+        /// конструктор без параметров. Индикатор не будет сохраняться
+        /// используется ТОЛЬКО для создания составных индикаторов
+        /// не используйте его из слоя создания роботов!
         /// </summary>
-        /// <param name="canDelete">whether user can remove indicator from chart manually/можно ли пользователю удалить индикатор с графика вручную</param>
+        /// <param name="canDelete">можно ли пользователю удалить индикатор с графика вручную</param>
         public ParabolicSaR(bool canDelete)
         {
             Name = Guid.NewGuid().ToString();
-            TypeIndicator = IndicatorOneCandleChartType.Line;
+            TypeIndicator = IndicatorOneCandleChartType.Point;
             ColorBase = Color.DeepSkyBlue;
+            ColorUp = Color.Green;
+            ColorDown = Color.Red;
             Af = 0.02;
             MaxAf = 0.2;
             PaintOn = true;
@@ -53,7 +55,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
-        /// all indicator values
         /// все значения индикатора
         /// </summary>
         List<List<decimal>> IIndicatorCandle.ValuesToChart
@@ -61,13 +62,14 @@ namespace OsEngine.Charts.CandleChart.Indicators
             get
             {
                 List<List<decimal>> list = new List<List<decimal>>();
-                list.Add(Values);
+                //list.Add(Values);
+                list.Add(ValuesUp);
+                list.Add(ValuesDown);
                 return list;
             }
         }
 
         /// <summary>
-        /// indicator colors
         /// цвета для индикатора
         /// </summary>
         List<Color> IIndicatorCandle.Colors
@@ -75,80 +77,91 @@ namespace OsEngine.Charts.CandleChart.Indicators
             get
             {
                 List<Color> colors = new List<Color>();
-                colors.Add(ColorBase);
+                // colors.Add(ColorBase);
+                colors.Add(ColorUp);
+                colors.Add(ColorDown);
                 return colors;
             }
 
         }
 
         /// <summary>
-        /// whether indicator can be removed from chart. This is necessary so that robots can't be removed /можно ли удалить индикатор с графика. Это нужно для того чтобы у роботов нельзя было удалить 
-        /// indicators he needs in trading/индикаторы которые ему нужны в торговле
+        /// можно ли удалить индикатор с графика. Это нужно для того чтобы у роботов нельзя было удалить 
+        /// индикаторы которые ему нужны в торговле
         /// </summary>
         public bool CanDelete { get; set; }
 
         /// <summary>
-        /// indicator drawing type
         /// тип прорисовки индикатора
         /// </summary>
         public IndicatorOneCandleChartType TypeIndicator { get; set; }
 
         /// <summary>
-        /// name of data series on which indicator will be drawn
         /// имя серии данных на которой индикатор прорисовывается
         /// </summary>
         public string NameSeries { get; set; }
 
         /// <summary>
-        /// name of data area where indicator will be drawn
         /// имя области данных на которой индикатор прорисовывается
         /// </summary>
         public string NameArea { get; set; }
 
         /// <summary>
-        /// value
         /// значение 
         /// </summary>
         public List<decimal> Values { get; set; }
 
         /// <summary>
-        /// unique indicator name
         /// уникальное имя индикатора
         /// </summary>
         public string Name { get; set; }
 
         /// <summary>
-        /// indicator calculation length
         /// длинна рассчёта индикатора
         /// </summary>
         public int Lenght { get; set; }
 
         /// <summary>
-        /// coefficient increments
         /// коэф. приращения
         /// </summary>
         public double Af { get; set; }
 
         /// <summary>
-        /// maximum incremental value
         /// максимальный коэф. приращения
         /// </summary>
         public double MaxAf { get; set; }
 
         /// <summary>
-        /// color of indicator line
         /// цвет линии индикатора
         /// </summary>
         public Color ColorBase { get; set; }
 
         /// <summary>
-        /// candles to calculate indicator
+        /// цвет точки индикатора при сигнале лонг
+        /// </summary>
+        public Color ColorUp { get; set; }
+        
+        /// <summary>
+        /// цвет точки индикатора при сигнале шорт
+        /// </summary>
+        public Color ColorDown { get; set; }
+
+        /// <summary>
         /// включена ли прорисовка серии на чарте
         /// </summary>
         public bool PaintOn { get; set; }
 
         /// <summary>
-        /// upload settings from file
+        /// верхние фракталы
+        /// </summary>
+        public List<decimal> ValuesUp { get; set; }
+
+        /// <summary>
+        /// нижние фракталы
+        /// </summary>
+        public List<decimal> ValuesDown { get; set; }
+
+        /// <summary>
         /// загрузить настройки из файла
         /// </summary>
         public void Load()
@@ -163,6 +176,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 using (StreamReader reader = new StreamReader(@"Engine\" + Name + @".txt"))
                 {
                     ColorBase = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
+                    ColorUp = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
+                    ColorDown = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
                     Af = Convert.ToDouble(reader.ReadLine());
                     MaxAf = Convert.ToDouble(reader.ReadLine());
                     PaintOn = Convert.ToBoolean(reader.ReadLine());
@@ -172,13 +187,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
             catch (Exception)
             {
-                // send to log
                 // отправить в лог
             }
         }
 
         /// <summary>
-        /// save settings to file
         /// сохранить настройки в файл
         /// </summary>
         public void Save()
@@ -188,6 +201,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @".txt", false))
                 {
                     writer.WriteLine(ColorBase.ToArgb());
+                    writer.WriteLine(ColorUp.ToArgb());
+                    writer.WriteLine(ColorDown.ToArgb());
                     writer.WriteLine(Af);
                     writer.WriteLine(MaxAf);
                     writer.WriteLine(PaintOn);
@@ -196,13 +211,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
             catch (Exception)
             {
-                // send to log
                 // отправить в лог
             }
         }
 
         /// <summary>
-        /// delete file with settings
         /// удалить файл с настройками
         /// </summary>
         public void Delete()
@@ -214,7 +227,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
-        /// delete data
         /// удалить данные
         /// </summary>
         public void Clear()
@@ -222,18 +234,18 @@ namespace OsEngine.Charts.CandleChart.Indicators
             if (Values != null)
             {
                 Values.Clear();
+                ValuesUp.Clear();
+                ValuesDown.Clear();
             }
             _myCandles = null;
         }
 
         /// <summary>
-        /// candles used to build indicator
         /// свечи по которым строится индикатор
         /// </summary>
         private List<Candle> _myCandles;
 
         /// <summary>
-        /// display settings window
         /// показать окно с настройками
         /// </summary>
         public void ShowDialog()
@@ -248,7 +260,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
-        /// reload indicator
         /// перезагрузить индикатор
         /// </summary>
         public void Reload()
@@ -267,13 +278,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
-        /// it's necessary to redraw indicator on chart
         /// необходимо перерисовать индикатор на графике
         /// </summary>
         public event Action<IIndicatorCandle> NeadToReloadEvent;
 
         /// <summary>
-        /// additional info to calculate indicator
         /// доп. инф для расчета индикатора
         /// </summary>
         public List<decimal> MasTrend { get; set; }
@@ -283,7 +292,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public List<decimal> psar { get; set; }
 
         /// <summary>
-        /// to upload new candles
         /// прогрузить новыми свечками
         /// </summary>        
         public void Process(List<Candle> candles)
@@ -308,7 +316,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
-        /// load only last candle
         /// прогрузить только последнюю свечку
         /// </summary>
         private void ProcessOne(List<Candle> candles)
@@ -322,6 +329,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
             if (psar == null) psar = new List<decimal>();
 
             if (Values == null) Values = new List<decimal>();
+            if (ValuesUp == null) ValuesUp = new List<decimal>();
+            if (ValuesDown == null) ValuesDown = new List<decimal>();
 
             decimal[] dop = new decimal[6];
             if (Values.Count == 0)
@@ -334,6 +343,20 @@ namespace OsEngine.Charts.CandleChart.Indicators
                     MasHp[MasHp.Count - 1], MasLp[MasLp.Count - 1], MasAf[MasAf.Count - 1]);
             }
 
+            if (dop[0] > candles[candles.Count-1].High)
+            {
+                ValuesDown.Add(dop[0]);
+                ValuesUp.Add(0);
+            } else if (dop[0] < candles[candles.Count-1].Low)
+            {
+                ValuesUp.Add(dop[0]);
+                ValuesDown.Add(0);
+            } else
+            {
+                ValuesUp.Add(0);
+                ValuesDown.Add(0);
+            }
+
             Values.Add(dop[0]);
             MasTrend.Add(dop[1]);
             MasHp.Add(dop[2]);
@@ -342,7 +365,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
-        /// to upload from the beginning
         /// прогрузить с самого начала
         /// </summary>
         private void ProcessAll(List<Candle> candles)
@@ -355,6 +377,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
             MasAf = new List<decimal>();
 
             Values = new List<decimal>();
+            ValuesUp = new List<decimal>();
+            ValuesDown = new List<decimal>();
 
             for (int i = 0; i < candles.Count; i++)
             {
@@ -369,6 +393,21 @@ namespace OsEngine.Charts.CandleChart.Indicators
                         MasHp[MasHp.Count - 1], MasLp[MasLp.Count - 1], MasAf[MasAf.Count - 1]);
                 }
 
+                if (dop[0] > candles[i].High)
+                {
+                    ValuesDown.Add(dop[0]);
+                    ValuesUp.Add(0);
+                }
+                else if (dop[0] < candles[i].Low)
+                {
+                    ValuesUp.Add(dop[0]);
+                    ValuesDown.Add(0);
+                } else
+                {
+                    ValuesUp.Add(0);
+                    ValuesDown.Add(0);
+                }
+
                 Values.Add(dop[0]);
                 MasTrend.Add(dop[1]);
                 MasHp.Add(dop[2]);
@@ -380,7 +419,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
-        /// overload last value
         /// перегрузить последнее значение
         /// </summary>
         private void ProcessLast(List<Candle> candles)
@@ -398,6 +436,22 @@ namespace OsEngine.Charts.CandleChart.Indicators
                     MasHp[MasHp.Count - 2], MasLp[MasLp.Count - 2], MasAf[MasAf.Count - 2]);
             }
 
+            if (dop[0] > candles[candles.Count - 1].High)
+            {
+                ValuesDown[ValuesDown.Count-1] = dop[0];
+                ValuesUp[ValuesUp.Count-1] = 0;
+            }
+            else if (dop[0] < candles[candles.Count - 1].Low)
+            {
+                ValuesUp[ValuesUp.Count - 1] = dop[0];
+                ValuesDown[ValuesDown.Count - 1] = 0;
+            }
+            else
+            {
+                ValuesUp[ValuesUp.Count - 1] = 0;
+                ValuesDown[ValuesDown.Count - 1] = 0;
+            }
+
             Values[Values.Count - 1] = dop[0];
             MasTrend[MasTrend.Count - 1] = dop[1];
             MasHp[MasHp.Count - 1] = dop[2];
@@ -406,7 +460,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
         }
 
         /// <summary>
-        /// take indicator value by index
         /// взять значение индикаторм по индексу
         /// </summary>
         private decimal[] GetValueParabolicSar(List<Candle> candles, int index, int update, decimal lineP, decimal trendP, decimal hpP, decimal lpP, decimal afP)
