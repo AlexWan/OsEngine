@@ -25,7 +25,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             Name = uniqName;
             TypeIndicator = IndicatorOneCandleChartType.Point;
-            ColorBase = Color.DeepSkyBlue;
             ColorUp = Color.Green;
             ColorDown = Color.Red;
             Af = 0.02;
@@ -45,7 +44,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             Name = Guid.NewGuid().ToString();
             TypeIndicator = IndicatorOneCandleChartType.Point;
-            ColorBase = Color.DeepSkyBlue;
             ColorUp = Color.Green;
             ColorDown = Color.Red;
             Af = 0.02;
@@ -132,11 +130,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public double MaxAf { get; set; }
 
         /// <summary>
-        /// цвет линии индикатора
-        /// </summary>
-        public Color ColorBase { get; set; }
-
-        /// <summary>
         /// цвет точки индикатора при сигнале лонг
         /// </summary>
         public Color ColorUp { get; set; }
@@ -175,7 +168,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
                 using (StreamReader reader = new StreamReader(@"Engine\" + Name + @".txt"))
                 {
-                    ColorBase = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
                     ColorUp = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
                     ColorDown = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
                     Af = Convert.ToDouble(reader.ReadLine());
@@ -200,7 +192,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @".txt", false))
                 {
-                    writer.WriteLine(ColorBase.ToArgb());
                     writer.WriteLine(ColorUp.ToArgb());
                     writer.WriteLine(ColorDown.ToArgb());
                     writer.WriteLine(Af);

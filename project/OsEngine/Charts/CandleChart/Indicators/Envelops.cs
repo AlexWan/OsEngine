@@ -32,11 +32,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 // if this is our first download.
                 // если у нас первая загрузка
-                _maSignal = new MovingAverage(uniqName + "maSignal", false) { Lenght = 9, TypeCalculationAverage = MovingAverageTypeCalculation.Simple };
+                MovingAverage = new MovingAverage(uniqName + "maSignal", false) { Lenght = 9, TypeCalculationAverage = MovingAverageTypeCalculation.Simple };
             } 
             else
             {
-                _maSignal = new MovingAverage(uniqName + "maSignal", false);
+                MovingAverage = new MovingAverage(uniqName + "maSignal", false);
             }
             CanDelete = canDelete;
             Load();
@@ -57,7 +57,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             ColorDown = Color.DarkRed;
             PaintOn = true;
             Deviation = 2;
-            _maSignal = new MovingAverage(false){Lenght = 9,TypeCalculationAverage = MovingAverageTypeCalculation.Simple};
+            MovingAverage = new MovingAverage(false){Lenght = 9,TypeCalculationAverage = MovingAverageTypeCalculation.Simple};
             CanDelete = canDelete;
         }
 
@@ -76,8 +76,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
             PaintOn = true;
             Deviation = 2;
 
-            _maSignal = moving;
-            _maSignal.Name = uniqName + "maSignal";
+            MovingAverage = moving;
+            MovingAverage.Name = uniqName + "maSignal";
 
             Load();
         }
@@ -185,7 +185,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// </summary>
         public void Save()
         {
-            _maSignal.Save();
+            MovingAverage.Save();
             try
             {
                 if (string.IsNullOrWhiteSpace(Name))
@@ -252,7 +252,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 File.Delete(@"Engine\" + Name + @".txt");
             }
-            _maSignal.Delete();
+            MovingAverage.Delete();
         }
 
         /// <summary>
@@ -308,7 +308,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// </summary>
         public void ShowMaSignalDialog()
         {
-            _maSignal.ShowDialog();
+            MovingAverage.ShowDialog();
 
             ProcessAll(_myCandles);
 
@@ -316,7 +316,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 NeadToReloadEvent(this);
             }
-            _maSignal.Save();
+            MovingAverage.Save();
         }
         // calculation
         // расчёт
@@ -331,7 +331,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// signal MA
         /// сигнальная машка
         /// </summary>
-        private MovingAverage _maSignal;
+        public MovingAverage MovingAverage;
 
         /// <summary>
         /// calculate indicator
@@ -343,7 +343,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             _myCandles = candles;
 
-            _maSignal.Process(candles);
+            MovingAverage.Process(candles);
 
             if (ValuesDown != null &&
                 ValuesDown.Count + 1 == candles.Count)
@@ -400,8 +400,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 return;
             }
 
-            _maSignal.Values = null;
-            _maSignal.Process(candles);
+            MovingAverage.Values = null;
+            MovingAverage.Process(candles);
 
             ValuesUp = new List<decimal>();
             ValuesDown= new List<decimal>();
@@ -430,20 +430,20 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
         private decimal GetUpValue(int index)
         {
-            if (_maSignal.Values.Count <= index)
+            if (MovingAverage.Values.Count <= index)
             {
-                index = _maSignal.Values.Count - 1;
+                index = MovingAverage.Values.Count - 1;
             }
-            return Math.Round(_maSignal.Values[index] + _maSignal.Values[index]*(Deviation/100),5);
+            return Math.Round(MovingAverage.Values[index] + MovingAverage.Values[index]*(Deviation/100),5);
         }
 
         private decimal GetDownValue(int index)
         {
-            if (_maSignal.Values.Count <= index)
+            if (MovingAverage.Values.Count <= index)
             {
-                index = _maSignal.Values.Count - 1;
+                index = MovingAverage.Values.Count - 1;
             }
-            return Math.Round(_maSignal.Values[index] - _maSignal.Values[index] * (Deviation / 100),5);
+            return Math.Round(MovingAverage.Values[index] - MovingAverage.Values[index] * (Deviation / 100),5);
         }
     }
 }
