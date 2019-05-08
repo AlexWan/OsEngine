@@ -4,6 +4,7 @@ using System.Globalization;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
+using System.Threading;
 using OsEngine.Market.Servers.Entity;
 
 namespace OsEngine.Market.Servers.Binance
@@ -216,9 +217,43 @@ namespace OsEngine.Market.Servers.Binance
         /// take ticks data on instrument for period
         /// взять тиковые данные по инструменту за период
         /// </summary>
-        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime lastDate)
         {
-            return null;
+            List<Trade> lastTrades = new List<Trade>();
+
+            string tradeId = "";
+
+            DateTime lastTradeTime = DateTime.MaxValue;
+
+            while (lastTradeTime > startTime)
+            {
+                lastDate = TimeZoneInfo.ConvertTimeToUtc(lastDate);
+
+                List<Trade> trades = _client.GetTickHistoryToSecurity(security, tradeId);
+
+                if (trades == null ||
+                    trades.Count == 0)
+                {
+                    lastTradeTime = lastDate.AddSeconds(-1);
+                    Thread.Sleep(2000);
+                    continue;
+                }
+
+                DateTime uniTime = trades[trades.Count - 1].Time.ToUniversalTime();
+
+                lastTradeTime = trades[0].Time;
+
+                for (int i2 = 0; i2 < trades.Count; i2++)
+                {
+                    lastTrades.Insert(i2, trades[i2]);
+                }
+
+                tradeId = (Convert.ToInt32(trades[0].Id) - 1000).ToString();
+
+                Thread.Sleep(100);
+            }
+
+            return lastTrades;
         }
 
         /// <summary>

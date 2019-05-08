@@ -467,6 +467,63 @@ namespace OsEngine.Market.Servers.Binance
             return null;
         }
 
+        public List<Trade> GetTickHistoryToSecurity(Security security, string lastId)
+        {
+            try
+            {
+
+                List<Trade> newTrades = new List<Trade>();
+
+                Dictionary<string, string> param = new Dictionary<string, string>();
+
+                if (string.IsNullOrEmpty(lastId) == false)
+                {
+                    param.Add("symbol=" + security.Name, "&limit=1000" + "&fromId=" + lastId);
+                }
+                else
+                {
+                    param.Add("symbol=" + security.Name, "&limit=1000");
+                }
+
+
+                string endPoint = "api/v1/historicalTrades";
+
+                var res2 = CreateQuery(Method.GET, endPoint, param, false);
+
+                List<HistoryTrade> tradeHistory = JsonConvert.DeserializeAnonymousType(res2, new List<HistoryTrade>());
+
+                //tradeHistory.Reverse();
+
+                foreach (var trades in tradeHistory)
+                {
+                    Trade trade = new Trade();
+                    trade.SecurityNameCode = security.Name;
+                    trade.Price =
+                        Convert.ToDecimal(
+                            trades.price.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                            CultureInfo.InvariantCulture);
+
+                    trade.Id = trades.id.ToString();
+                    trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(trades.time));
+                    trade.Volume =
+                        Convert.ToDecimal(
+                            trades.qty.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                            CultureInfo.InvariantCulture);
+                    trade.Side = Convert.ToBoolean(trades.isBuyerMaker) == true ? Side.Buy : Side.Sell;
+
+                    newTrades.Add(trade);
+                }
+
+                return newTrades;
+
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+                return null;
+            }
+        }
+
         /// <summary>
         /// take candles
         /// взять свечи

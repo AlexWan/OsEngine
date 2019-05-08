@@ -132,5 +132,13 @@ namespace OsEngine.Language
         public string Label27 => OsLocalization.ConvertToLocString(
             "Eng:You want to close the program. Are you sure?_" +
             "Ru:Вы собираетесь закрыть программу. Вы уверены?_");
+
+        public string Label28 => OsLocalization.ConvertToLocString(
+            "Eng:We request trades on security _" +
+            "Ru:Запрашиваем трейды по бумаге _");
+
+        public string Label29 => OsLocalization.ConvertToLocString(
+            "Eng:Trades successfully loaded. Security _" +
+            "Ru:Трейды успешно закгужены. Бумага _");
     }
 }

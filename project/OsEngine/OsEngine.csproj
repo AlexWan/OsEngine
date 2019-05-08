@@ -362,6 +362,7 @@
     <Compile Include="Market\Servers\Binance\BinanceEntity\ErrorMessage.cs" />
     <Compile Include="Market\Servers\Binance\BinanceEntity\ExecutionReport.cs" />
     <Compile Include="Market\Servers\Binance\BinanceEntity\HistoryOrderReport.cs" />
+    <Compile Include="Market\Servers\Binance\BinanceEntity\HistoryTrade.cs" />
     <Compile Include="Market\Servers\Binance\BinanceEntity\ListenKey.cs" />
     <Compile Include="Market\Servers\Binance\BinanceEntity\OutboundAccountInfo.cs" />
     <Compile Include="Market\Servers\Binance\BinanceEntity\SecurityResponce.cs" />
