@@ -459,7 +459,11 @@ namespace OsEngine.Journal.Internal
                         PositionNetVolumeChangeEvent(_deals[i]);
                     }
 
-                    ProcesPosition(_deals[i]);
+                    if (i < _deals.Count)
+                    {
+                        ProcesPosition(_deals[i]);
+                    }
+
                     break;
                 }
             }
