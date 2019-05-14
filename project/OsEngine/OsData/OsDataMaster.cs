@@ -428,7 +428,8 @@ namespace OsEngine.OsData
         /// </summary>
         private void _gridset_DoubleClick(object sender, EventArgs e)
         {
-            if (_gridset.CurrentCell.RowIndex <= -1)
+            if (_gridset.CurrentCell == null ||
+                _gridset.CurrentCell.RowIndex <= -1)
             {
                 return;
             }

@@ -406,6 +406,11 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                             continue;
                         }
 
+                        if (IsInArray(openOrder))
+                        {
+                            continue;
+                        }
+
                         if (SecondToOpenIsOn &&
                             openOrder.TimeCreate.Add(openOrder.LifeTime) < ServerTime)
                         {
@@ -453,6 +458,11 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                             continue;
                         }
 
+                        if (IsInArray(closeOrder))
+                        {
+                            continue;
+                        }
+
                         if (SecondToCloseIsOn &&
                             closeOrder.TimeCreate.Add(closeOrder.LifeTime) < ServerTime)
                         {
@@ -496,14 +506,13 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-
         }
 
         /// <summary>
         /// orders already sent for closure
         /// ордера, уже высланные на закрытие
         /// </summary>
-        private Order[] _ordersToClose;
+        private List<Order> _ordersToClose = new List<Order>();
 
         /// <summary>
         /// send a review order /
@@ -518,7 +527,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 return;
             }
 
-            SetInArray(order);
+            _ordersToClose.Add(order);
 
             if (DontOpenOrderDetectedEvent != null)
             {
@@ -532,46 +541,14 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// </summary>
         private bool IsInArray(Order order)
         {
-            if (_ordersToClose == null)
-            {
-                return false;
-            }
-
-            for (int i = 0; i < _ordersToClose.Length; i++)
+            for (int i = 0; i < _ordersToClose.Count; i++)
             {
                 if (_ordersToClose[i].NumberUser == order.NumberUser)
                 {
                     return true;
                 }
             }
-
             return false;
-        }
-
-        /// <summary>
-        /// add order to the array of revoked orders / 
-        /// добавить ордер в массив отзываемых ордеров
-        /// </summary>
-        private void SetInArray(Order order)
-        {
-
-            if (_ordersToClose == null)
-            {
-                _ordersToClose = new[] { order };
-            }
-            else
-            {
-                Order[] newOrders = new Order[_ordersToClose.Length + 1];
-
-                for (int i = 0; i < _ordersToClose.Length; i++)
-                {
-                    newOrders[i] = _ordersToClose[i];
-                }
-
-                newOrders[newOrders.Length - 1] = order;
-
-                _ordersToClose = newOrders;
-            }
         }
 
         /// <summary>

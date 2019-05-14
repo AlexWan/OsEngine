@@ -362,6 +362,7 @@
     <Compile Include="Market\Servers\Binance\BinanceEntity\ErrorMessage.cs" />
     <Compile Include="Market\Servers\Binance\BinanceEntity\ExecutionReport.cs" />
     <Compile Include="Market\Servers\Binance\BinanceEntity\HistoryOrderReport.cs" />
+    <Compile Include="Market\Servers\Binance\BinanceEntity\HistoryTrade.cs" />
     <Compile Include="Market\Servers\Binance\BinanceEntity\ListenKey.cs" />
     <Compile Include="Market\Servers\Binance\BinanceEntity\OutboundAccountInfo.cs" />
     <Compile Include="Market\Servers\Binance\BinanceEntity\SecurityResponce.cs" />
@@ -587,6 +588,7 @@
     <Compile Include="Robots\BotFactory.cs" />
     <Compile Include="Robots\CounterTrend\ClusterCountertrend.cs" />
     <Compile Include="Robots\High Frequency\HighFrequencyTrader.cs" />
+    <Compile Include="Robots\Trend\EnvelopTrend.cs" />
     <Compile Include="Robots\Trend\MomentumMacd.cs" />
     <Compile Include="Robots\MarketMaker\PairTraderSpreadSma.cs" />
     <Compile Include="Robots\Trend\ParabolicSarTrade.cs" />

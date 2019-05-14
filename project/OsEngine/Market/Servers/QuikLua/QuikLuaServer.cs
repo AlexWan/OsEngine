@@ -153,87 +153,89 @@ namespace OsEngine.Market.Servers.QuikLua
                 {
                     try
                     {
-                        if (oneSec != null)
+                        if (oneSec == null)
                         {
-                            Security newSec = new Security();
-                            string secCode = oneSec.SecCode;
-                            string classCode = oneSec.ClassCode;
-                            if (oneSec.ClassCode == "SPBFUT")
-                            {
-                                newSec.SecurityType = SecurityType.Futures;
-                                var exp = oneSec.MatDate;
-                                newSec.Expiration = new DateTime(Convert.ToInt32(exp.Substring(0, 4))
-                                    , Convert.ToInt32(exp.Substring(4, 2))
-                                    , Convert.ToInt32(exp.Substring(6, 2)));
-
-                                newSec.Go = Convert.ToDecimal(QuikLua.Trading
-                                    .GetParamEx(classCode, secCode, "SELLDEPO")
-                                    .Result.ParamValue.Replace('.', separator));
-                            }
-                            else if (oneSec.ClassCode == "SPBOPT")
-                            {
-                                newSec.SecurityType = SecurityType.Option;
-
-                                newSec.OptionType = QuikLua.Trading.GetParamEx(classCode, secCode, "OPTIONTYPE")
-                                                        .Result.ParamImage == "Put"
-                                    ? OptionType.Put
-                                    : OptionType.Call;
-
-                                var exp = oneSec.MatDate;
-                                newSec.Expiration = new DateTime(Convert.ToInt32(exp.Substring(0, 4))
-                                    , Convert.ToInt32(exp.Substring(4, 2))
-                                    , Convert.ToInt32(exp.Substring(6, 2)));
-
-                                newSec.Go = Convert.ToDecimal(QuikLua.Trading
-                                    .GetParamEx(classCode, secCode, "SELLDEPO")
-                                    .Result.ParamValue.Replace('.', separator));
-
-                                newSec.Strike = Convert.ToDecimal(QuikLua.Trading
-                                    .GetParamEx(classCode, secCode, "STRIKE")
-                                    .Result.ParamValue.Replace('.', separator));
-                            }
-                            else
-                            {
-                                newSec.SecurityType = SecurityType.Stock;
-                            }
-
-                            newSec.Name = oneSec.SecCode; // тест
-                            newSec.NameFull = oneSec.Name;
-                            newSec.NameId = oneSec.Name;
-
-                            newSec.Decimals = Convert.ToInt32(oneSec.Scale);
-                            newSec.Lot = Convert.ToDecimal(oneSec.LotSize);
-                            newSec.NameClass = oneSec.ClassCode;
-
-
-
-                            newSec.PriceLimitHigh = Convert.ToDecimal(QuikLua.Trading
-                                .GetParamEx(classCode, secCode, "PRICEMAX")
-                                .Result.ParamValue.Replace('.', separator));
-
-                            newSec.PriceLimitLow = Convert.ToDecimal(QuikLua.Trading
-                                .GetParamEx(classCode, secCode, "PRICEMIN")
-                                .Result.ParamValue.Replace('.', separator));
-
-                            newSec.PriceStep = Convert.ToDecimal(QuikLua.Trading
-                                .GetParamEx(classCode, secCode, "SEC_PRICE_STEP")
-                                .Result.ParamValue.Replace('.', separator));
-
-                            newSec.PriceStepCost = Convert.ToDecimal(QuikLua.Trading
-                                .GetParamEx(classCode, secCode, "STEPPRICET")
-                                .Result.ParamValue.Replace('.', separator));
-
-                            if (newSec.PriceStep == 0)
-                            {
-                                newSec.PriceStep = 1;
-                            }
-                            if (newSec.PriceStepCost == 0)
-                            {
-                                newSec.PriceStepCost = 1;
-                            }
-
-                            securities.Add(newSec);
+                            continue;
                         }
+                        Security newSec = new Security();
+                        string secCode = oneSec.SecCode;
+                        string classCode = oneSec.ClassCode;
+                        if (oneSec.ClassCode == "SPBFUT")
+                        {
+                            newSec.SecurityType = SecurityType.Futures;
+                            var exp = oneSec.MatDate;
+                            newSec.Expiration = new DateTime(Convert.ToInt32(exp.Substring(0, 4))
+                                , Convert.ToInt32(exp.Substring(4, 2))
+                                , Convert.ToInt32(exp.Substring(6, 2)));
+
+                            newSec.Go = Convert.ToDecimal(QuikLua.Trading
+                                .GetParamEx(classCode, secCode, "SELLDEPO")
+                                .Result.ParamValue.Replace('.', separator));
+                        }
+                        else if (oneSec.ClassCode == "SPBOPT")
+                        {
+                            newSec.SecurityType = SecurityType.Option;
+
+                            newSec.OptionType = QuikLua.Trading.GetParamEx(classCode, secCode, "OPTIONTYPE")
+                                                    .Result.ParamImage == "Put"
+                                ? OptionType.Put
+                                : OptionType.Call;
+
+                            var exp = oneSec.MatDate;
+                            newSec.Expiration = new DateTime(Convert.ToInt32(exp.Substring(0, 4))
+                                , Convert.ToInt32(exp.Substring(4, 2))
+                                , Convert.ToInt32(exp.Substring(6, 2)));
+
+                            newSec.Go = Convert.ToDecimal(QuikLua.Trading
+                                .GetParamEx(classCode, secCode, "SELLDEPO")
+                                .Result.ParamValue.Replace('.', separator));
+
+                            newSec.Strike = Convert.ToDecimal(QuikLua.Trading
+                                .GetParamEx(classCode, secCode, "STRIKE")
+                                .Result.ParamValue.Replace('.', separator));
+                        }
+                        else
+                        {
+                            newSec.SecurityType = SecurityType.Stock;
+                        }
+
+                        newSec.Name = oneSec.SecCode; // тест
+                        newSec.NameFull = oneSec.Name;
+                        newSec.NameId = oneSec.Name;
+
+                        newSec.Decimals = Convert.ToInt32(oneSec.Scale);
+                        newSec.Lot = Convert.ToDecimal(oneSec.LotSize);
+                        newSec.NameClass = oneSec.ClassCode;
+
+
+
+                        newSec.PriceLimitHigh = Convert.ToDecimal(QuikLua.Trading
+                            .GetParamEx(classCode, secCode, "PRICEMAX")
+                            .Result.ParamValue.Replace('.', separator));
+
+                        newSec.PriceLimitLow = Convert.ToDecimal(QuikLua.Trading
+                            .GetParamEx(classCode, secCode, "PRICEMIN")
+                            .Result.ParamValue.Replace('.', separator));
+
+                        newSec.PriceStep = Convert.ToDecimal(QuikLua.Trading
+                            .GetParamEx(classCode, secCode, "SEC_PRICE_STEP")
+                            .Result.ParamValue.Replace('.', separator));
+
+                        newSec.PriceStepCost = Convert.ToDecimal(QuikLua.Trading
+                            .GetParamEx(classCode, secCode, "STEPPRICET")
+                            .Result.ParamValue.Replace('.', separator));
+
+                        if (newSec.PriceStep == 0)
+                        {
+                            newSec.PriceStep = 1;
+                        }
+                        if (newSec.PriceStepCost == 0)
+                        {
+                            newSec.PriceStepCost = 1;
+                        }
+
+                        securities.Add(newSec);
+
                     }
 
                     catch (Exception error)

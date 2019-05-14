@@ -43,11 +43,15 @@ namespace OsEngine.Charts.CandleChart.Indicators
             TextBoxAf.Text = _mA.Af.ToString();
             TextBoxMaxAf.Text = _mA.MaxAf.ToString();
             HostColor.Child = new TextBox();
-            HostColor.Child.BackColor = _mA.ColorBase;
+            HostColor.Child.BackColor = _mA.ColorUp;
+
+            HostColorDown.Child = new TextBox();
+            HostColorDown.Child.BackColor = _mA.ColorDown;
 
             CheckBoxPaintOnOff.IsChecked = _mA.PaintOn;
 
             ButtonColor.Content = OsLocalization.Charts.LabelButtonIndicatorColor;
+            ButtonColorDown.Content = OsLocalization.Charts.LabelButtonIndicatorColor;
             CheckBoxPaintOnOff.Content = OsLocalization.Charts.LabelPaintIntdicatorIsVisible;
             ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
             LabelIndicatorStep.Content = OsLocalization.Charts.LabelIndicatorStep;
@@ -76,7 +80,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 return;
             }
 
-            _mA.ColorBase = HostColor.Child.BackColor;
+            _mA.ColorUp = HostColor.Child.BackColor;
+            _mA.ColorDown = HostColorDown.Child.BackColor;
+
             _mA.Af = Convert.ToDouble(TextBoxAf.Text);
             _mA.MaxAf = Convert.ToDouble(TextBoxMaxAf.Text);
             _mA.PaintOn = CheckBoxPaintOnOff.IsChecked.Value;
@@ -100,5 +106,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
             HostColor.Child.BackColor = dialog.Color;
         }
 
+        private void ButtonColorDown_Click(object sender, RoutedEventArgs e)
+        {
+            ColorDialog dialog = new ColorDialog();
+            dialog.Color = HostColorDown.Child.BackColor;
+            dialog.ShowDialog();
+
+            HostColorDown.Child.BackColor = dialog.Color;
+        }
     }
 }

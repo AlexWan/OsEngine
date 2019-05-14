@@ -823,12 +823,14 @@ namespace OsEngine.OsData
             {
                 for (int i = 0; i < SecuritiesNames.Count; i++)
                 {
+                    SendNewLogMessage(OsLocalization.Data.Label28 + SecuritiesNames[i].Id, LogMessageType.System);
                     while (
                         (_myServer).GetTickDataToSecurity(SecuritiesNames[i].Id, TimeStart, TimeEnd,
                             GetActualTimeToTrade("Data\\" + SetName + "\\" + SecuritiesNames[i].Name.Replace("/", "") + "\\Tick"), NeadToUpdate) == false)
                     {
                         Thread.Sleep(5000);
                     }
+                    SendNewLogMessage(OsLocalization.Data.Label29 + SecuritiesNames[i].Id, LogMessageType.System);
                 }
             }
 
@@ -962,7 +964,7 @@ namespace OsEngine.OsData
                         {
 
                             SaveThisTick(trades[i2],
-                                path, SecuritiesNames[i].Name.Replace("*", ""), null, path + "\\" + "Tick");
+                                path + "\\" + "Tick", SecuritiesNames[i].Name.Replace("*", ""), null, path + "\\" + "Tick");
                         }
                     }
                     else

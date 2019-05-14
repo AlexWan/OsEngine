@@ -1290,7 +1290,18 @@ namespace OsEngine.Market.Servers
 
             if (security == null)
             {
-                return false;
+                for (int i = 0; _securities != null && i < _securities.Count; i++)
+                {
+                    if (_securities[i].NameId == namePaper)
+                    {
+                        security = _securities[i];
+                        break;
+                    }
+                }
+                if (security == null)
+                {
+                    return false;
+                }
             }
 
             List<Trade> trades = ServerRealization.GetTickDataToSecurity(security, startTime, endTime, actualTime);
