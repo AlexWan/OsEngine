@@ -89,6 +89,31 @@ namespace OsEngine.Market.Servers.Transaq.TransaqEntity
         public string Active { get; set; }
     }
 
+    [XmlRoot(ElementName = "sec_info_upd")]
+    public class SecurityInfo
+    {
+        [XmlElement(ElementName = "secid")]
+        public string Secid { get; set; }
+        [XmlElement(ElementName = "seccode")]
+        public string Seccode { get; set; }
+        [XmlElement(ElementName = "market")]
+        public string Market { get; set; }
+        [XmlElement(ElementName = "bgo_c")]
+        public string Bgo_c { get; set; }
+        [XmlElement(ElementName = "bgo_nc")]
+        public string Bgo_nc { get; set; }
+        [XmlElement(ElementName = "bgo_buy")]
+        public string Bgo_buy { get; set; }
+        [XmlElement(ElementName = "buy_deposit")]
+        public string Buy_deposit { get; set; }
+        [XmlElement(ElementName = "sell_deposit")]
+        public string Sell_deposit { get; set; }
+        [XmlElement(ElementName = "minprice")]
+        public string Minprice { get; set; }
+        [XmlElement(ElementName = "maxprice")]
+        public string Maxprice { get; set; }
+    }
+
     [XmlRoot(ElementName = "quote")]
     public sealed class Quote
     {
