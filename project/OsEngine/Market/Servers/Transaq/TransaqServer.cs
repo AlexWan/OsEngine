@@ -185,6 +185,7 @@ namespace OsEngine.Market.Servers.Transaq
             _client.MyTradeEvent += ClientOnMyTradeEvent;
             _client.NewCandles += ClientOnNewCandles;
             _client.NeedChangePassword += NeedChangePassword;
+            _client.UpdateSecurity += ClientOnUpdateSecurityInfo;
 
             _client.Connect();
 
@@ -258,8 +259,7 @@ namespace OsEngine.Market.Servers.Transaq
                 Thread.Sleep(15000);
             }
         }
-
-
+        
         /// <summary>
         /// dispose API
         /// освободить апи
@@ -968,6 +968,32 @@ namespace OsEngine.Market.Servers.Transaq
             Task.Run(() => HandleSecurities(securities));
         }
 
+        /// <summary>
+        /// obtained additional data on the security
+        /// получены дополнительные данные по инструменту
+        /// </summary>
+        private void ClientOnUpdateSecurityInfo(SecurityInfo securityInfo)
+        {
+            var needSec = _securities.Find(s => s.Name == securityInfo.Seccode);
+            if (needSec != null)
+            {
+                if (needSec.SecurityType == SecurityType.Option)
+                {
+                    needSec.Go = Convert.ToDecimal(securityInfo.Bgo_nc.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),CultureInfo.InvariantCulture);
+                }
+                else if (needSec.SecurityType == SecurityType.Futures)
+                {
+                    needSec.Go = Convert.ToDecimal(securityInfo.Buy_deposit.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                    needSec.PriceLimitHigh = Convert.ToDecimal(securityInfo.Maxprice.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                    needSec.PriceLimitLow = Convert.ToDecimal(securityInfo.Minprice.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                }
+            }
+        }
+
+        /// <summary>
+        /// process the list of new securities
+        /// обработать список новых бумаг
+        /// </summary>
         private void HandleSecurities(List<TransaqEntity.Security> securities)
         {
             if (_securities == null)
@@ -980,7 +1006,8 @@ namespace OsEngine.Market.Servers.Transaq
                 {
                     if (securityData.Sectype != "FUT" &&
                         securityData.Sectype != "SHARE" &&
-                        securityData.Sectype != "CURRENCY")
+                        securityData.Sectype != "CURRENCY" &&
+                        securityData.Sectype != "OPT")
                     {
                         continue;
                     }
@@ -989,7 +1016,7 @@ namespace OsEngine.Market.Servers.Transaq
                     security.Name = securityData.Seccode;
                     security.NameFull = securityData.Shortname;
                     security.NameClass = securityData.Board;
-                    security.NameId = securityData.Secid; // + "-" + securityData.Board;
+                    security.NameId = securityData.Secid;
                     security.Decimals = Convert.ToInt32(securityData.Decimals);
 
                     security.SecurityType = securityData.Sectype == "FUT" ? SecurityType.Futures

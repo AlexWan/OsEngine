@@ -230,7 +230,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                         if (_newMessage.TryDequeue(out data))
                         {
-                            if (data.StartsWith("<pits>") || data.StartsWith("<sec_info"))
+                            if (data.StartsWith("<pits>"))
                             {
                                 continue;
                             }
@@ -320,6 +320,12 @@ namespace OsEngine.Market.Servers.Transaq
                                 {
                                     NeedChangePassword?.Invoke();
                                 }
+                            }
+                            else if (data.StartsWith("<sec_info_upd>"))
+                            {
+                                var secInfo = Deserialize<SecurityInfo>(data);
+
+                                UpdateSecurity?.Invoke(secInfo);
                             }
                         }
                     }
@@ -430,6 +436,12 @@ namespace OsEngine.Market.Servers.Transaq
         /// нужно изменить пароль
         /// </summary>
         public event Action NeedChangePassword;
+
+        /// <summary>
+        /// updated security
+        /// обновились данные по инструменту
+        /// </summary>
+        public event Action<SecurityInfo> UpdateSecurity;
 
         #endregion
 
