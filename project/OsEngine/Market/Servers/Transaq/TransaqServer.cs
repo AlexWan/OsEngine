@@ -845,6 +845,7 @@ namespace OsEngine.Market.Servers.Transaq
                     Number = unitedPortfolio.Union,
                     ValueBegin = Convert.ToDecimal(unitedPortfolio.Open_equity.Replace(".", ",")),
                     ValueCurrent = Convert.ToDecimal(unitedPortfolio.Equity.Replace(".", ",")),
+                    ValueBlocked = Convert.ToDecimal(unitedPortfolio.Init_req.Replace(".", ",")),
                 };
                 _portfolios.Add(needPortfolio);
             }
@@ -852,6 +853,7 @@ namespace OsEngine.Market.Servers.Transaq
             {
                 needPortfolio.ValueBegin = Convert.ToDecimal(unitedPortfolio.Open_equity.Replace(".", ","));
                 needPortfolio.ValueCurrent = Convert.ToDecimal(unitedPortfolio.Equity.Replace(".", ","));
+                needPortfolio.ValueBlocked = Convert.ToDecimal(unitedPortfolio.Init_req.Replace(".", ","));
             }
 
             needPortfolio.ClearPositionOnBoard();
@@ -1016,9 +1018,9 @@ namespace OsEngine.Market.Servers.Transaq
                     {
                         needSec.Go = Convert.ToDecimal(securityInfo.Bgo_nc.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                     }
-                    else if (needSec.SecurityType == SecurityType.Futures && securityInfo.Buy_deposit != null)
+                    else if (needSec.SecurityType == SecurityType.Futures && securityInfo.Sell_deposit != null)
                     {
-                        needSec.Go = Convert.ToDecimal(securityInfo.Buy_deposit.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                        needSec.Go = Convert.ToDecimal(securityInfo.Sell_deposit.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                         if (securityInfo.Maxprice != null && securityInfo.Minprice != null)
                         {
                             needSec.PriceLimitHigh = Convert.ToDecimal(securityInfo.Maxprice.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
