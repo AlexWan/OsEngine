@@ -914,8 +914,8 @@ namespace OsEngine.Market.Servers.Transaq
                     {
                         Number = clientLimits.Client,
                         ValueBegin = Convert.ToDecimal(clientLimits.Money_current.Replace(".", ",")),
-                        ValueCurrent = Convert.ToDecimal(clientLimits.Money_current.Replace(".", ",")),
-                        ValueBlocked = Convert.ToDecimal(clientLimits.Money_current.Replace(".", ",")) - Convert.ToDecimal(clientLimits.Money_free.Replace(".", ",")),
+                        ValueCurrent = Convert.ToDecimal(clientLimits.Money_free.Replace(".", ",")),
+                        ValueBlocked = _blocked,
                     };
                 }
 
@@ -932,12 +932,14 @@ namespace OsEngine.Market.Servers.Transaq
                 else
                 {
                     needPortfolio.ValueBegin = Convert.ToDecimal(clientLimits.Money_current.Replace(".", ","));
-                    needPortfolio.ValueCurrent = Convert.ToDecimal(clientLimits.Money_current.Replace(".", ","));
-                    needPortfolio.ValueBlocked = needPortfolio.ValueCurrent - Convert.ToDecimal(clientLimits.Money_free.Replace(".", ","));
+                    needPortfolio.ValueCurrent = Convert.ToDecimal(clientLimits.Money_free.Replace(".", ","));
+                    needPortfolio.ValueBlocked = _blocked;
                 }
             }
             PortfolioEvent?.Invoke(_portfolios);
         }
+
+        private decimal _blocked = 0;
 
         /// <summary>
         /// updated position
@@ -952,6 +954,11 @@ namespace OsEngine.Market.Servers.Transaq
             if (_portfolios == null)
             {
                 _portfolios = new List<Portfolio>();
+            }
+
+            if (transaqPositions.Forts_money != null)
+            {
+                _blocked = Convert.ToDecimal(transaqPositions.Forts_money.Blocked.Replace(".", ","));
             }
 
             if (transaqPositions.Forts_position.Count == 0)
