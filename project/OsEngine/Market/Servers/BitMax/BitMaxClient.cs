@@ -428,7 +428,7 @@ namespace OsEngine.Market.Servers.BitMax
             _wsStreams.Add(_privateStream);
         }
 
-        private const string SubscribeMsg = "{\"messageType\": \"subscribe\" ,\"marketDepthLevel\": 20 }";
+        private const string SubscribeMsg = "{\"messageType\": \"subscribe\" ,\"marketDepthLevel\": 20, \"recentTradeMaxCount\": 1 }";
 
         /// <summary>
         /// ws-connection is opened
