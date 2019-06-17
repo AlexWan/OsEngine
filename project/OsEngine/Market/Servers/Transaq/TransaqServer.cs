@@ -1023,15 +1023,15 @@ namespace OsEngine.Market.Servers.Transaq
                 {
                     if (needSec.SecurityType == SecurityType.Option && securityInfo.Bgo_nc != null)
                     {
-                        needSec.Go = Convert.ToDecimal(securityInfo.Bgo_nc.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                        needSec.Go = securityInfo.Bgo_nc.ToDecimal();
                     }
                     else if (needSec.SecurityType == SecurityType.Futures && securityInfo.Sell_deposit != null)
                     {
-                        needSec.Go = Convert.ToDecimal(securityInfo.Sell_deposit.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                        needSec.Go = securityInfo.Sell_deposit.ToDecimal();
                         if (securityInfo.Maxprice != null && securityInfo.Minprice != null)
                         {
-                            needSec.PriceLimitHigh = Convert.ToDecimal(securityInfo.Maxprice.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                            needSec.PriceLimitLow = Convert.ToDecimal(securityInfo.Minprice.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                            needSec.PriceLimitHigh = securityInfo.Maxprice.ToDecimal();
+                            needSec.PriceLimitLow = securityInfo.Minprice.ToDecimal();
                         }
                     }
                 }
@@ -1078,18 +1078,14 @@ namespace OsEngine.Market.Servers.Transaq
                         : SecurityType.None;
 
 
-                    security.Lot = Convert.ToDecimal(securityData.Lotsize.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture);
+                    security.Lot = securityData.Lotsize.ToDecimal();
 
-                    security.PriceStep = Convert.ToDecimal(securityData.Minstep.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture);
+                    security.PriceStep = securityData.Minstep.ToDecimal();
 
                     decimal pointCost;
                     try
                     {
-                        pointCost = Convert.ToDecimal(securityData.Point_cost.Replace(
-                                ".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                            CultureInfo.InvariantCulture);
+                        pointCost = securityData.Point_cost.ToDecimal();
                     }
                     catch (Exception e)
                     {
@@ -1377,8 +1373,8 @@ namespace OsEngine.Market.Servers.Transaq
                 myTrade.Time = DateTime.Parse(trade.Time);
                 myTrade.NumberOrderParent = trade.Orderno;
                 myTrade.NumberTrade = trade.Tradeno;
-                myTrade.Volume = Convert.ToDecimal(trade.Quantity.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                myTrade.Price = Convert.ToDecimal(trade.Price.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                myTrade.Volume = trade.Quantity.ToDecimal();
+                myTrade.Price = trade.Price.ToDecimal();
                 myTrade.SecurityNameCode = trade.Seccode;
                 myTrade.Side = trade.Buysell == "B" ? Side.Buy : Side.Sell;
 

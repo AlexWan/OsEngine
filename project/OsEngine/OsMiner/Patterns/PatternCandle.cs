@@ -246,10 +246,8 @@ namespace OsEngine.OsMiner.Patterns
             string [] array = saveString.Split('^');
 
             Length = Convert.ToInt32(array[1]);
-            Weigth = Convert.ToDecimal(array[2].Replace(",",
-                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-            Expand = Convert.ToDecimal(array[3].Replace(",",
-                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+            Weigth = array[2].ToDecimal();
+            Expand = array[3].ToDecimal();
 
             Enum.TryParse(array[4], out TypeWatch);
 
@@ -268,26 +266,18 @@ namespace OsEngine.OsMiner.Patterns
 
                 Sequence[i] = new decimal[8];
                 //Open:
-                Sequence[i][0] = Convert.ToDecimal(lockal[0].Replace(",",
-                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                Sequence[i][1] = Convert.ToDecimal(lockal[1].Replace(",",
-                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                Sequence[i][0] = lockal[0].ToDecimal();
+                Sequence[i][1] = lockal[1].ToDecimal();
                 //High:
-                Sequence[i][2] = Convert.ToDecimal(lockal[2].Replace(",",
-                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                Sequence[i][3] = Convert.ToDecimal(lockal[3].Replace(",",
-                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                Sequence[i][2] = lockal[2].ToDecimal();
+                Sequence[i][3] = lockal[3].ToDecimal();
                 //Low:
-                Sequence[i][4] = Convert.ToDecimal(lockal[4].Replace(",",
-                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                Sequence[i][5] = Convert.ToDecimal(lockal[5].Replace(",",
-                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                Sequence[i][4] = lockal[4].ToDecimal();
+                Sequence[i][5] = lockal[5].ToDecimal();
 
                 //Close:
-                Sequence[i][6] = Convert.ToDecimal(lockal[6].Replace(",",
-                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                Sequence[i][7] = Convert.ToDecimal(lockal[7].Replace(",",
-                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                Sequence[i][6] = lockal[6].ToDecimal();
+                Sequence[i][7] = lockal[7].ToDecimal();
             }
         }
 

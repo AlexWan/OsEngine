@@ -515,13 +515,11 @@ namespace OsEngine.Market.Servers.Lmax
                         order.State = OrderStateType.Activ;
                         order.NumberMarket = entity.GetFieldByTag((int)Tags.OrderID);
                         order.Side = entity.GetFieldByTag((int)Tags.Side) == "1" ? Side.Buy : Side.Sell;
-                        order.Volume = Convert.ToDecimal(entity.GetFieldByTag((int)Tags.OrderQty),
-                            CultureInfo.InvariantCulture);
+                        order.Volume = entity.GetFieldByTag((int)Tags.OrderQty).ToDecimal();
 
                         if (entity.GetFieldByTag((int)Tags.OrdType) == "2")
                         {
-                            order.Price = Convert.ToDecimal(entity.GetFieldByTag((int)Tags.Price),
-                                CultureInfo.InvariantCulture);
+                            order.Price = entity.GetFieldByTag((int)Tags.Price).ToDecimal();
                         }
 
                         MyOrderEvent?.Invoke(order);
@@ -570,13 +568,11 @@ namespace OsEngine.Market.Servers.Lmax
 
                         order.NumberMarket = entity.GetFieldByTag((int)Tags.OrderID);
                         order.Side = entity.GetFieldByTag((int)Tags.Side) == "1" ? Side.Buy : Side.Sell;
-                        order.Volume = Convert.ToDecimal(entity.GetFieldByTag((int)Tags.OrderQty),
-                            CultureInfo.InvariantCulture);
+                        order.Volume = entity.GetFieldByTag((int)Tags.OrderQty).ToDecimal();
 
                         if (entity.GetFieldByTag((int)Tags.OrdType) == "2")
                         {
-                            order.Price = Convert.ToDecimal(entity.GetFieldByTag((int)Tags.Price),
-                                CultureInfo.InvariantCulture);
+                            order.Price = entity.GetFieldByTag((int)Tags.Price).ToDecimal();
                         }
 
                         MyOrderEvent?.Invoke(order);
@@ -593,10 +589,8 @@ namespace OsEngine.Market.Servers.Lmax
                         "yyyyMMdd-HH:mm:ss.fff", CultureInfo.CurrentCulture);
                     trade.NumberOrderParent = entity.GetFieldByTag((int)Tags.OrderID);
                     trade.NumberTrade = entity.GetFieldByTag((int)Tags.ExecID);
-                    trade.Volume = Convert.ToDecimal(entity.GetFieldByTag((int)Tags.LastQty),
-                        CultureInfo.InvariantCulture);
-                    trade.Price = Convert.ToDecimal(entity.GetFieldByTag((int)Tags.LastPx),
-                        CultureInfo.InvariantCulture);
+                    trade.Volume = entity.GetFieldByTag((int)Tags.LastQty).ToDecimal();
+                    trade.Price = entity.GetFieldByTag((int)Tags.LastPx).ToDecimal();
                     trade.SecurityNameCode = entity.GetFieldByTag((int)Tags.SecurityID);
 
                     MyTradeEvent?.Invoke(trade);

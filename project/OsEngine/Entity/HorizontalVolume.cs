@@ -63,8 +63,7 @@ namespace OsEngine.Entity
             {
                 using (StreamReader reader = new StreamReader(@"Engine\" + _name + @"HorizontalVolumeSet.txt"))
                 {
-                    _lineStep = Convert.ToDecimal(reader.ReadLine().Replace(",",
-                        CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                    _lineStep = reader.ReadLine().ToDecimal();
 
                     reader.Close();
                 }

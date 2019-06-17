@@ -306,10 +306,10 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
-        /// last start server time
+        /// server time of last starting
         /// время последнего старта сервера
         /// </summary>
-        private DateTime _lastStartServerTime = DateTime.MinValue;
+        public DateTime LastStartServerTime { get; set; }
 
         /// <summary>
         /// shows whether portfolios and securities downloaded
@@ -1010,7 +1010,7 @@ namespace OsEngine.Market.Servers.Finam
         {
             try
             {
-                if (_lastStartServerTime.AddSeconds(5) > DateTime.Now)
+                if (LastStartServerTime.AddSeconds(5) > DateTime.Now)
                 {
                     return null;
                 }
@@ -1034,8 +1034,8 @@ namespace OsEngine.Market.Servers.Finam
                         Thread.Sleep(5000);
                         return null;
                     }
-                    if (_lastStartServerTime != DateTime.MinValue &&
-                        _lastStartServerTime.AddSeconds(15) > DateTime.Now)
+                    if (LastStartServerTime != DateTime.MinValue &&
+                        LastStartServerTime.AddSeconds(15) > DateTime.Now)
                     {
                         return null;
                     }
@@ -1111,7 +1111,7 @@ namespace OsEngine.Market.Servers.Finam
         {
             try
             {
-                if (_lastStartServerTime.AddSeconds(5) > DateTime.Now)
+                if (LastStartServerTime.AddSeconds(5) > DateTime.Now)
                 {
                     return false;
                 }
@@ -1135,8 +1135,8 @@ namespace OsEngine.Market.Servers.Finam
                         Thread.Sleep(5000);
                         return false;
                     }
-                    if (_lastStartServerTime != DateTime.MinValue &&
-                        _lastStartServerTime.AddSeconds(15) > DateTime.Now)
+                    if (LastStartServerTime != DateTime.MinValue &&
+                        LastStartServerTime.AddSeconds(15) > DateTime.Now)
                     {
                         return false;
                     }
@@ -1250,7 +1250,7 @@ namespace OsEngine.Market.Servers.Finam
             {
                 Thread.Sleep(5000);
 
-                if (_lastStartServerTime.AddSeconds(15) > DateTime.Now)
+                if (LastStartServerTime.AddSeconds(15) > DateTime.Now)
                 {
                     continue;
                 }

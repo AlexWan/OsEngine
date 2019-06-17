@@ -225,18 +225,13 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
                 if (
-                    Convert.ToDecimal(
-                        TextBoxReversCandlesPunktsBackMove.Text.Replace(",",
-                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture) <= 0)
+                    
+                        TextBoxReversCandlesPunktsBackMove.Text.ToDecimal() <= 0)
                 {
                     throw new Exception();
                 }
                 _reversCandlesPunktsBackMove =
-                    Convert.ToDecimal(
-                        TextBoxReversCandlesPunktsBackMove.Text.Replace(",",
-                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture);
+                        TextBoxReversCandlesPunktsBackMove.Text.ToDecimal();
             }
             catch
             {
@@ -256,18 +251,12 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
                 if (
-                    Convert.ToDecimal(
-                        TextBoxReversCandlesPunktsMinMove.Text.Replace(",",
-                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture) <= 0)
+                        TextBoxReversCandlesPunktsMinMove.Text.ToDecimal() <= 0)
                 {
                     throw new Exception();
                 }
                 _reversCandlesPunktsMinMove =
-                    Convert.ToDecimal(
-                        TextBoxReversCandlesPunktsMinMove.Text.Replace(",",
-                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture);
+                        TextBoxReversCandlesPunktsMinMove.Text.ToDecimal();
             }
             catch
             {
@@ -287,18 +276,12 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
                 if (
-                    Convert.ToDecimal(
-                        TextBoxRangeCandlesPunkts.Text.Replace(",",
-                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture) <= 0)
+                        TextBoxRangeCandlesPunkts.Text.ToDecimal() <= 0)
                 {
                     throw new Exception();
                 }
                 _rangeCandlesPunkts =
-                    Convert.ToDecimal(
-                        TextBoxRangeCandlesPunkts.Text.Replace(",",
-                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture);
+                        TextBoxRangeCandlesPunkts.Text.ToDecimal();
             }
             catch
             {
@@ -337,18 +320,12 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
                 if (
-                    Convert.ToDecimal(
-                        TextBoxDeltaPeriods.Text.Replace(",",
-                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture) <= 0)
+                        TextBoxDeltaPeriods.Text.ToDecimal() <= 0)
                 {
                     throw new Exception();
                 }
                 _deltaPeriods =
-                    Convert.ToDecimal(
-                        TextBoxDeltaPeriods.Text.Replace(",",
-                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture);
+                        TextBoxDeltaPeriods.Text.ToDecimal();
             }
             catch
             {
@@ -389,18 +366,12 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
                 if (
-                    Convert.ToDecimal(
-                        TextBoxRencoPunkts.Text.Replace(",",
-                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture) <= 0)
+                        TextBoxRencoPunkts.Text.ToDecimal() <= 0)
                 {
                     throw new Exception();
                 }
                 _rencoPuncts =
-                    Convert.ToDecimal(
-                        TextBoxRencoPunkts.Text.Replace(",",
-                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture);
+                        TextBoxRencoPunkts.Text.ToDecimal();
             }
             catch
             {
@@ -421,18 +392,12 @@ namespace OsEngine.Market.Connectors
                 }
 
                 if (
-                    Convert.ToDecimal(
-                        TextBoxVolumeToClose.Text.Replace(",",
-                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture) <= 0)
+                        TextBoxVolumeToClose.Text.ToDecimal() <= 0)
                 {
                     throw new Exception();
                 }
                 _volumeToClose =
-                    Convert.ToDecimal(
-                        TextBoxVolumeToClose.Text.Replace(",",
-                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture);
+                        TextBoxVolumeToClose.Text.ToDecimal();
             }
             catch
             {

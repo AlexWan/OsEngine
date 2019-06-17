@@ -235,9 +235,9 @@ namespace OsEngine.Market.Servers.Bitfinex
                         newOsOrder.NumberMarket = newCreatedOrder.order_id.ToString();
                         newOsOrder.NumberUser = order.NumberUser;
                         newOsOrder.ServerType = ServerType.Bitfinex;
-                        newOsOrder.Price = Convert.ToDecimal(newCreatedOrder.price.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                        newOsOrder.Volume = Convert.ToDecimal(newCreatedOrder.original_amount.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                        newOsOrder.VolumeExecute = Convert.ToDecimal(newCreatedOrder.executed_amount.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                        newOsOrder.Price = newCreatedOrder.price.ToDecimal();
+                        newOsOrder.Volume = newCreatedOrder.original_amount.ToDecimal();
+                        newOsOrder.VolumeExecute = newCreatedOrder.executed_amount.ToDecimal();
 
                         newOsOrder.TimeCallBack = new DateTime(1970, 1, 1) + TimeSpan.FromSeconds(Math.Round(Convert.ToDouble(newCreatedOrder.timestamp.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture)));
 
@@ -724,11 +724,10 @@ namespace OsEngine.Market.Servers.Bitfinex
                                     order.NumberUser = numUser;
                                     order.SecurityNameCode = values[1];
                                     order.PortfolioNumber = values[1].Substring(3);
-                                    order.Side = Convert.ToDecimal(values[2].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator)
-                                                                                        , CultureInfo.InvariantCulture) > 0 ? Side.Buy : Side.Sell;
+                                    order.Side = values[2].ToDecimal() > 0 ? Side.Buy : Side.Sell;
                                     order.NumberMarket = values[0];
-                                    order.Price = Convert.ToDecimal(values[6].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                                    order.Volume = Math.Abs(Convert.ToDecimal(values[2].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture));
+                                    order.Price = values[6].ToDecimal();
+                                    order.Volume = Math.Abs(values[2].ToDecimal());
 
                                     order.TimeCallBack = DateTime.Parse(values[8].TrimEnd('Z'));
 
@@ -775,11 +774,11 @@ namespace OsEngine.Market.Servers.Bitfinex
                                     Thread.Sleep(300);
 
                                     MyTrade myTrade = new MyTrade();
-                                    myTrade.Price = Convert.ToDecimal(valuesMyTrade[6].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                                    myTrade.Price = valuesMyTrade[6].ToDecimal();
                                     myTrade.NumberTrade = valuesMyTrade[1];
                                     myTrade.SecurityNameCode = valuesMyTrade[2];
                                     myTrade.Side = valuesMyTrade[5].Contains("-") ? Side.Sell : Side.Buy;
-                                    myTrade.Volume = Math.Abs(Convert.ToDecimal(valuesMyTrade[5].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture));
+                                    myTrade.Volume = Math.Abs(valuesMyTrade[5].ToDecimal());
                                     myTrade.Time = new DateTime(1970, 01, 01) + TimeSpan.FromSeconds(Convert.ToDouble(valuesMyTrade[3]));
                                     myTrade.NumberOrderParent = valuesMyTrade[4];
 

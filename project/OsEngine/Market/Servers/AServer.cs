@@ -460,7 +460,7 @@ namespace OsEngine.Market.Servers
                 return;
             }
 
-            _lastStartServerTime = DateTime.Now.AddMinutes(-5);
+            LastStartServerTime = DateTime.Now.AddMinutes(-5);
 
             _serverStatusNead = ServerConnectStatus.Connect;
         }
@@ -559,13 +559,13 @@ namespace OsEngine.Market.Servers
 
                     if ((ServerRealization.ServerStatus != ServerConnectStatus.Connect)
                         && _serverStatusNead == ServerConnectStatus.Connect &&
-                       _lastStartServerTime.AddSeconds(300) < DateTime.Now)
+                       LastStartServerTime.AddSeconds(300) < DateTime.Now)
                     {
                         SendLogMessage(OsLocalization.Market.Message8, LogMessageType.System);
                         ServerRealization.Dispose();
                         _candleManager = null;
                         ServerRealization.Connect();
-                        _lastStartServerTime = DateTime.Now;
+                        LastStartServerTime = DateTime.Now;
 
                         NeadToReconnectEvent?.Invoke();
 
@@ -631,7 +631,7 @@ namespace OsEngine.Market.Servers
         /// server time of last starting
         /// время последнего старта сервера
         /// </summary>
-        private DateTime _lastStartServerTime = DateTime.MinValue;
+        public DateTime LastStartServerTime { get; set; }
 
         /// <summary>
         /// client connection has broken
@@ -1076,8 +1076,8 @@ namespace OsEngine.Market.Servers
                         return null;
                     }
 
-                    if (_lastStartServerTime != DateTime.MinValue &&
-                        _lastStartServerTime.AddSeconds(15) > DateTime.Now)
+                    if (LastStartServerTime != DateTime.MinValue &&
+                        LastStartServerTime.AddSeconds(15) > DateTime.Now)
                     {
                         return null;
                     }
@@ -1179,8 +1179,8 @@ namespace OsEngine.Market.Servers
                 return null;
             }
 
-            if (_lastStartServerTime != DateTime.MinValue &&
-                _lastStartServerTime.AddSeconds(15) > DateTime.Now)
+            if (LastStartServerTime != DateTime.MinValue &&
+                LastStartServerTime.AddSeconds(15) > DateTime.Now)
             {
                 return null;
             }
@@ -1256,8 +1256,8 @@ namespace OsEngine.Market.Servers
                 return false;
             }
 
-            if (_lastStartServerTime != DateTime.MinValue &&
-                _lastStartServerTime.AddSeconds(15) > DateTime.Now)
+            if (LastStartServerTime != DateTime.MinValue &&
+                LastStartServerTime.AddSeconds(15) > DateTime.Now)
             {
                 return false;
             }
@@ -1644,7 +1644,7 @@ namespace OsEngine.Market.Servers
         {
             while (true)
             {
-                if (_lastStartServerTime.AddSeconds(30) > DateTime.Now)
+                if (LastStartServerTime.AddSeconds(30) > DateTime.Now)
                 {
                     Thread.Sleep(1000);
                     continue;
@@ -1652,20 +1652,20 @@ namespace OsEngine.Market.Servers
                 try
                 {
                     Thread.Sleep(20);
+
                     if (_ordersToExecute != null && _ordersToExecute.Count != 0)
                     {
-                        Order order;
+                        OrderAserverSender order;
                         if (_ordersToExecute.TryDequeue(out order))
                         {
-                            ServerRealization.SendOrder(order);
-                        }
-                    }
-                    else if (_ordersToCansel != null && _ordersToCansel.Count != 0)
-                    {
-                        Order order;
-                        if (_ordersToCansel.TryDequeue(out order))
-                        {
-                            ServerRealization.CanselOrder(order);
+                            if (order.OrderSendType == OrderSendType.Execute)
+                            {
+                                ServerRealization.SendOrder(order.Order);
+                            }
+                            else if (order.OrderSendType == OrderSendType.Cancel)
+                            {
+                                ServerRealization.CanselOrder(order.Order);
+                            }
                         }
                     }
                 }
@@ -1676,17 +1676,7 @@ namespace OsEngine.Market.Servers
             }
         }
 
-        /// <summary>
-        /// order queue for placing in the system
-        /// очередь ордеров для выставления в систему
-        /// </summary>
-        private ConcurrentQueue<Order> _ordersToExecute = new ConcurrentQueue<Order>();
-
-        /// <summary>
-        /// order queue for canceling in the system
-        /// очередь ордеров для отмены в системе
-        /// </summary>
-        private ConcurrentQueue<Order> _ordersToCansel = new ConcurrentQueue<Order>();
+        private ConcurrentQueue<OrderAserverSender> _ordersToExecute = new ConcurrentQueue<OrderAserverSender>();
 
         /// <summary>
         /// incoming order from system
@@ -1737,7 +1727,7 @@ namespace OsEngine.Market.Servers
             {
                 UserSetOrderOnExecute(order);
             }
-            if (_lastStartServerTime.AddMinutes(1) > DateTime.Now)
+            if (LastStartServerTime.AddMinutes(1) > DateTime.Now)
             {
                 order.State = OrderStateType.Fail;
                 _ordersToSend.Enqueue(order);
@@ -1748,7 +1738,12 @@ namespace OsEngine.Market.Servers
             }
 
             order.TimeCreate = ServerTime;
-            _ordersToExecute.Enqueue(order);
+
+            OrderAserverSender ord = new OrderAserverSender();
+            ord.Order = order;
+            ord.OrderSendType = OrderSendType.Execute;
+
+            _ordersToExecute.Enqueue(ord);
 
             SendLogMessage(OsLocalization.Market.Message19 + order.Price +
                            OsLocalization.Market.Message20 + order.Side +
@@ -1768,7 +1763,13 @@ namespace OsEngine.Market.Servers
             {
                 UserSetOrderOnCancel(order);
             }
-            _ordersToCansel.Enqueue(order);
+
+            OrderAserverSender ord = new OrderAserverSender();
+            ord.Order = order;
+            ord.OrderSendType = OrderSendType.Cancel;
+
+            _ordersToExecute.Enqueue(ord);
+
             SendLogMessage(OsLocalization.Market.Message24 + order.NumberUser, LogMessageType.System);
         }
 
@@ -1830,5 +1831,18 @@ namespace OsEngine.Market.Servers
         /// пользователь запросил отключение от АПИ
         /// </summary>
         public event Action UserWhantDisconnect;
+    }
+
+    public class OrderAserverSender
+    {
+        public Order Order;
+
+        public OrderSendType OrderSendType;
+    }
+
+    public enum OrderSendType
+    {
+        Execute,
+        Cancel
     }
 }

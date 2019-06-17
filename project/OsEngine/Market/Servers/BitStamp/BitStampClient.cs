@@ -307,13 +307,13 @@ namespace OsEngine.Market.Servers.BitStamp
                 for (int i = 0; i < 10; i++)
                 {
                     MarketDepthLevel ask = new MarketDepthLevel();
-                    ask.Price = Convert.ToDecimal(resp.asks[i][0].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                    ask.Ask = Convert.ToDecimal(resp.asks[i][1].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                    ask.Price = resp.asks[i][0].ToDecimal();
+                    ask.Ask = resp.asks[i][1].ToDecimal();
                     depth.Asks.Add(ask);
 
                     MarketDepthLevel bid = new MarketDepthLevel();
-                    bid.Price = Convert.ToDecimal(resp.bids[i][0].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                    bid.Bid = Convert.ToDecimal(resp.bids[i][1].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                    bid.Price = resp.bids[i][0].ToDecimal();
+                    bid.Bid = resp.bids[i][1].ToDecimal();
                     depth.Bids.Add(bid);
                 }
 
@@ -345,8 +345,8 @@ namespace OsEngine.Market.Servers.BitStamp
 
                 Trade trade = new Trade();
                 trade.SecurityNameCode = namePaper;
-                trade.Price = Convert.ToDecimal(resp.price.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                trade.Volume = Convert.ToDecimal(resp.amount.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                trade.Price = resp.price.ToDecimal();
+                trade.Volume = resp.amount.ToDecimal();
                 trade.Id = resp.id;
                 trade.Time = (new DateTime(1970, 1, 1, 0, 0, 0, 0)).AddSeconds(Convert.ToInt32(resp.timestamp));
 
@@ -497,10 +497,7 @@ namespace OsEngine.Market.Servers.BitStamp
                     trade.NumberTrade = response.transactions[0].tid;
                     trade.Volume = order.Volume;
                     trade.Price =
-                        Convert.ToDecimal(
-                            response.transactions[0].price.Replace(",",
-                                CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                            CultureInfo.InvariantCulture);
+                            response.transactions[0].price.ToDecimal();
 
                     _osEngineOrders.RemoveAt(i);
                     i--;

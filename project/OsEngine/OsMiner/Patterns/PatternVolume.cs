@@ -156,8 +156,7 @@ namespace OsEngine.OsMiner.Patterns
             string[] array = saveString.Split('^');
 
             Length = Convert.ToInt32(array[1]);
-            Weigth = Convert.ToDecimal(array[2].Replace(",",
-                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+            Weigth = array[2].ToDecimal();
 
             if (array.Length < 3)
             {
@@ -172,10 +171,8 @@ namespace OsEngine.OsMiner.Patterns
 
                 Sequence[i] = new decimal[2];
                 //Open:
-                Sequence[i][0] = Convert.ToDecimal(lockal[0].Replace(",",
-                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                Sequence[i][1] = Convert.ToDecimal(lockal[1].Replace(",",
-                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                Sequence[i][0] = lockal[0].ToDecimal();
+                Sequence[i][1] = lockal[1].ToDecimal();
             }
         }
 

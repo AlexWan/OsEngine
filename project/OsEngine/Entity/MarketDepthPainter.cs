@@ -256,11 +256,7 @@ namespace OsEngine.Entity
                     _textBoxLimitPrice.Text = _lastSelectPrice.ToString(new CultureInfo("RU-ru"));
                 }
 
-                _lastSelectPrice =
-                    Convert.ToDecimal(
-                        _textBoxLimitPrice.Text.Replace(",",
-                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture);
+                _lastSelectPrice = _textBoxLimitPrice.Text.ToDecimal();
             }
             catch (Exception error)
             {

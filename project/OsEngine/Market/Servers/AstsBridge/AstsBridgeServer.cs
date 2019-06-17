@@ -467,11 +467,12 @@ namespace OsEngine.Market.Servers.AstsBridge
             }
         }
 
+
         /// <summary>
-        /// last start server time
+        /// server time of last starting
         /// время последнего старта сервера
         /// </summary>
-        private DateTime _lastStartServerTime = DateTime.MinValue;
+        public DateTime LastStartServerTime { get; set; }
 
         /// <summary>
         /// shows whether we request data about table structures
@@ -541,7 +542,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
              AstsServer.Connect(settings);
 
-            _lastStartServerTime = DateTime.Now;
+            LastStartServerTime = DateTime.Now;
             Thread.Sleep(10000);
         }
 
@@ -1097,7 +1098,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         {
             try
             {
-                if (_lastStartServerTime.AddSeconds(15) > DateTime.Now)
+                if (LastStartServerTime.AddSeconds(15) > DateTime.Now)
                 {
                     return null;
                 }
@@ -1121,8 +1122,8 @@ namespace OsEngine.Market.Servers.AstsBridge
                         Thread.Sleep(5000);
                         return null;
                     }
-                    if (_lastStartServerTime != DateTime.MinValue &&
-                        _lastStartServerTime.AddSeconds(15) > DateTime.Now)
+                    if (LastStartServerTime != DateTime.MinValue &&
+                        LastStartServerTime.AddSeconds(15) > DateTime.Now)
                     {
                         return null;
                     }
