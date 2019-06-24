@@ -10,6 +10,7 @@ using Jayrock.Json;
 using Jayrock.Json.Conversion;
 using OsEngine.Entity;
 using OsEngine.Logging;
+using OsEngine.Market.Servers.Entity;
 
 namespace OsEngine.Market.Servers.Kraken.KrakenEntity
 {

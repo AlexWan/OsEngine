@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using OsEngine.Market.Servers.Entity;
 
 namespace OsEngine.Market.Servers.Kraken.KrakenEntity
 {

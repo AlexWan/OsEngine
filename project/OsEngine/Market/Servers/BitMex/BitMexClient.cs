@@ -17,6 +17,7 @@ using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.BitMex.BitMexEntity;
+using OsEngine.Market.Servers.Entity;
 
 namespace OsEngine.Market.Servers.BitMex
 {
@@ -26,8 +27,9 @@ namespace OsEngine.Market.Servers.BitMex
     /// </summary>
     public class BitMexClient
     {
-        
         private ClientWebSocket _ws;
+
+        RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(300));
 
         private string _serverAdress;
 
@@ -207,6 +209,7 @@ namespace OsEngine.Market.Servers.BitMex
         {
             lock (_queryLocker)
             {
+                _rateGate.WaitToProceed();
                 var reqAsBytes = Encoding.UTF8.GetBytes(que);
                 var ticksRequest = new ArraySegment<byte>(reqAsBytes);
 
@@ -526,6 +529,9 @@ namespace OsEngine.Market.Servers.BitMex
         {
             lock (_queryHttpLocker)
             {
+                //Wait for RateGate
+                _rateGate.WaitToProceed();
+
                 string paramData = BuildQueryData(param);
                 string url = "/api/v1" + function + ((method == "GET" && paramData != "") ? "?" + paramData : "");
                 string postData = (method != "GET") ? paramData : "";
