@@ -7,6 +7,7 @@ using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
+using OsEngine.Entity;
 using OsEngine.Language;
 
 namespace OsEngine.OsTrader.Panels.Tab
@@ -49,8 +50,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             try
             {
-                _lineStep = Convert.ToDecimal(TextBoxStep.Text.Replace(",",
-                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                _lineStep = TextBoxStep.Text.ToDecimal();
             }
             catch (Exception)
             {

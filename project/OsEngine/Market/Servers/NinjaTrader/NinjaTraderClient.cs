@@ -419,14 +419,14 @@ namespace OsEngine.Market.Servers.NinjaTrader
 
                 if (str[1] == "Ask")
                 {
-                    level.Ask = Convert.ToDecimal(str[4].Replace(",",CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),CultureInfo.InvariantCulture);
+                    level.Ask = str[4].ToDecimal();
                 }
                 else
                 {
-                    level.Bid = Convert.ToDecimal(str[4].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                    level.Bid = str[4].ToDecimal();
                 }
 
-                level.Price = Convert.ToDecimal(str[3].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                level.Price = str[3].ToDecimal();
 
                 MarketDepth myDepth = _marketDepths.Find(m => m.SecurityNameCode == str[0]);
 
@@ -599,8 +599,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
 
                 Portfolio newPos = new Portfolio();
                 newPos.Number = trdStr[0];
-                newPos.ValueCurrent= Convert.ToDecimal(trdStr[1].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                    CultureInfo.InvariantCulture);
+                newPos.ValueCurrent= trdStr[1].ToDecimal();
 
                 Portfolio myPortfolio = _portfolios.Find(p => p.Number == newPos.Number);
 
@@ -647,7 +646,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
                 PositionOnBoard newPos = new PositionOnBoard();
                 newPos.SecurityNameCode = trdStr[0];
                 newPos.PortfolioName= trdStr[1];
-                newPos.ValueCurrent = Convert.ToDecimal(trdStr[2].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                newPos.ValueCurrent = trdStr[2].ToDecimal();
 
                 Portfolio myPortfolio = _portfolios.Find(p => p.Number == newPos.PortfolioName);
 
@@ -699,8 +698,8 @@ namespace OsEngine.Market.Servers.NinjaTrader
                 newMyTrade.SecurityNameCode = trdStr[0];
                 newMyTrade.NumberTrade= trdStr[1];
                 newMyTrade.NumberOrderParent = trdStr[2];
-                newMyTrade.Price = Convert.ToDecimal(trdStr[3].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                newMyTrade.Volume= Convert.ToDecimal(trdStr[4].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                newMyTrade.Price = trdStr[3].ToDecimal();
+                newMyTrade.Volume= trdStr[4].ToDecimal();
                 Enum.TryParse(trdStr[5], out newMyTrade.Side);
                 newMyTrade.Time= Convert.ToDateTime(trdStr[6], CultureInfo.InvariantCulture);
 
@@ -780,9 +779,9 @@ namespace OsEngine.Market.Servers.NinjaTrader
                 newOrder.NumberUser = Convert.ToInt32(ordStr[0]);
                 newOrder.NumberMarket= ordStr[1];
                 newOrder.SecurityNameCode = ordStr[2];
-                newOrder.Volume = Convert.ToDecimal(ordStr[3].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                newOrder.VolumeExecute = Convert.ToDecimal(ordStr[4].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                newOrder.Price = Convert.ToDecimal(ordStr[5].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                newOrder.Volume = ordStr[3].ToDecimal();
+                newOrder.VolumeExecute = ordStr[4].ToDecimal();
+                newOrder.Price = ordStr[5].ToDecimal();
                 newOrder.PortfolioNumber = ordStr[6];
                 Enum.TryParse(ordStr[7], out newOrder.Side);
 
@@ -837,13 +836,9 @@ namespace OsEngine.Market.Servers.NinjaTrader
                     newSecurity.NameId = sec[1];
                     newSecurity.NameClass = sec[2];
                     newSecurity.PriceStep =
-                        Convert.ToDecimal(
-                            sec[3].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                            CultureInfo.InvariantCulture);
+                            sec[3].ToDecimal();
                     newSecurity.PriceStepCost =
-                        Convert.ToDecimal(
-                            sec[4].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                            CultureInfo.InvariantCulture);
+                            sec[4].ToDecimal();
                     newSecurity.Lot = 1;
 
                     if (newSecurity.NameClass == "Stock")
@@ -949,13 +944,9 @@ namespace OsEngine.Market.Servers.NinjaTrader
                 newTrade.SecurityNameCode = tradeInArray[0];
                 newTrade.Side = Side.Buy;
                 newTrade.Price =
-                    Convert.ToDecimal(
-                        tradeInArray[1].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture);
+                        tradeInArray[1].ToDecimal();
                 newTrade.Volume =
-                    Convert.ToDecimal(
-                        tradeInArray[2].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture);
+                        tradeInArray[2].ToDecimal();
                 newTrade.Time = Convert.ToDateTime(tradeInArray[3], CultureInfo.InvariantCulture);
 
                 if (NewTradesEvent != null)

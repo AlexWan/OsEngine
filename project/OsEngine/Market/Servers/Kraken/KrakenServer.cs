@@ -418,10 +418,10 @@ namespace OsEngine.Market.Servers.Kraken
         private KrakenServerClient _krakenClient;
 
         /// <summary>
-        /// time of server last turn on
-        /// последнее время включения сервера
+        /// server time of last starting
+        /// время последнего старта сервера
         /// </summary>
-        private DateTime _lastStartServerTime;
+        public DateTime LastStartServerTime { get; set; }
 
         /// <summary>
         /// main thread that monitors the connection, loading portfolios and papers, sending data to up
@@ -549,7 +549,7 @@ namespace OsEngine.Market.Servers.Kraken
             }
 
             _krakenClient.Connect(PublicKey, PrivateKey);
-            _lastStartServerTime = DateTime.Now;
+            LastStartServerTime = DateTime.Now;
             Thread.Sleep(5000);
         }
 
@@ -1001,7 +1001,7 @@ namespace OsEngine.Market.Servers.Kraken
         {
             try
             {
-                if (_lastStartServerTime.AddSeconds(15) > DateTime.Now)
+                if (LastStartServerTime.AddSeconds(15) > DateTime.Now)
                 {
                     return null;
                 }
@@ -1024,8 +1024,8 @@ namespace OsEngine.Market.Servers.Kraken
                         Thread.Sleep(5000);
                         return null;
                     }
-                    if (_lastStartServerTime != DateTime.MinValue &&
-                        _lastStartServerTime.AddSeconds(15) > DateTime.Now)
+                    if (LastStartServerTime != DateTime.MinValue &&
+                        LastStartServerTime.AddSeconds(15) > DateTime.Now)
                     {
                         return null;
                     }

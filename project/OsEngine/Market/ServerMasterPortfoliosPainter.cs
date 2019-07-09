@@ -230,15 +230,23 @@ namespace OsEngine.Market
                     return;
                 }
 
-                for (int i = 0; i < _portfolios.Count; i++)
+                try
                 {
-                    List<Portfolio> portfolios = _portfolios.FindAll(p => p.Number == _portfolios[i].Number);
-
-                    if (portfolios.Count > 1)
+                    for (int i = 0; i < _portfolios.Count; i++)
                     {
-                        _portfolios.RemoveAt(i);
-                        break;
+                        List<Portfolio> portfolios =
+                            _portfolios.FindAll(p => p.Number == _portfolios[i].Number);
+
+                        if (portfolios.Count > 1)
+                        {
+                            _portfolios.RemoveAt(i);
+                            break;
+                        }
                     }
+                }
+                catch
+                {
+                    // ignore
                 }
 
                 if (!_positionHost.CheckAccess())

@@ -266,10 +266,8 @@ namespace OsEngine.OsMiner.Patterns
             string[] array = saveString.Split('^');
 
             Length = Convert.ToInt32(array[1]);
-            Weigth = Convert.ToDecimal(array[2].Replace(",",
-                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-            Expand = Convert.ToDecimal(array[3].Replace(",",
-                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+            Weigth = array[2].ToDecimal();
+            Expand = array[3].ToDecimal();
 
             Enum.TryParse(array[4], out SearchType);
 
@@ -356,8 +354,7 @@ namespace OsEngine.OsMiner.Patterns
 
                 for (int i2 = 0; i2 < seqSec.Length - 1; i2++)
                 {
-                    sequence[i][i2] = Convert.ToDecimal(seqSec[i2].Replace(",",
-                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                    sequence[i][i2] = seqSec[i2].ToDecimal();
                 }
             }
 

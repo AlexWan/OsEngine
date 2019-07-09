@@ -498,17 +498,12 @@ namespace OsEngine.Market.Servers.Binance
                 {
                     Trade trade = new Trade();
                     trade.SecurityNameCode = security.Name;
-                    trade.Price =
-                        Convert.ToDecimal(
-                            trades.price.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                            CultureInfo.InvariantCulture);
+                    trade.Price = trades.price.ToDecimal();
 
                     trade.Id = trades.id.ToString();
                     trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(trades.time));
                     trade.Volume =
-                        Convert.ToDecimal(
-                            trades.qty.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                            CultureInfo.InvariantCulture);
+                            trades.qty.ToDecimal();
                     trade.Side = Convert.ToBoolean(trades.isBuyerMaker) == true ? Side.Buy : Side.Sell;
 
                     newTrades.Add(trade);
@@ -1128,8 +1123,8 @@ namespace OsEngine.Market.Servers.Binance
                                     //newOrder.PortfolioNumber = order.PortfolioNumber; добавить в сервере
                                     newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
                                     newOrder.State = OrderStateType.Activ;
-                                    newOrder.Volume = Convert.ToDecimal(order.q.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                                    newOrder.Price = Convert.ToDecimal(order.p.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                                    newOrder.Volume = order.q.ToDecimal();
+                                    newOrder.Price = order.p.ToDecimal();
                                     newOrder.ServerType = ServerType.Binance;
                                     newOrder.PortfolioNumber = newOrder.SecurityNameCode;
 
@@ -1148,8 +1143,8 @@ namespace OsEngine.Market.Servers.Binance
                                     newOrder.NumberMarket = order.i.ToString();
                                     newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
                                     newOrder.State = OrderStateType.Cancel;
-                                    newOrder.Volume = Convert.ToDecimal(order.q.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                                    newOrder.Price = Convert.ToDecimal(order.p.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                                    newOrder.Volume = order.q.ToDecimal();
+                                    newOrder.Price = order.p.ToDecimal();
                                     newOrder.ServerType = ServerType.Binance;
                                     newOrder.PortfolioNumber = newOrder.SecurityNameCode;
 
@@ -1167,8 +1162,8 @@ namespace OsEngine.Market.Servers.Binance
                                     newOrder.NumberMarket = order.i.ToString();
                                     newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
                                     newOrder.State = OrderStateType.Fail;
-                                    newOrder.Volume = Convert.ToDecimal(order.q.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                                    newOrder.Price = Convert.ToDecimal(order.p.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                                    newOrder.Volume = order.q.ToDecimal();
+                                    newOrder.Price = order.p.ToDecimal();
                                     newOrder.ServerType = ServerType.Binance;
                                     newOrder.PortfolioNumber = newOrder.SecurityNameCode;
 
@@ -1184,8 +1179,8 @@ namespace OsEngine.Market.Servers.Binance
                                     trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.T));
                                     trade.NumberOrderParent = order.i.ToString();
                                     trade.NumberTrade = order.t.ToString();
-                                    trade.Volume = Convert.ToDecimal(order.l.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                                    trade.Price = Convert.ToDecimal(order.L.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                                    trade.Volume = order.l.ToDecimal();
+                                    trade.Price = order.L.ToDecimal();
                                     trade.SecurityNameCode = order.s;
                                     trade.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
 
@@ -1204,8 +1199,8 @@ namespace OsEngine.Market.Servers.Binance
                                     newOrder.NumberMarket = order.i.ToString();
                                     newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
                                     newOrder.State = OrderStateType.Cancel;
-                                    newOrder.Volume = Convert.ToDecimal(order.q.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                                    newOrder.Price = Convert.ToDecimal(order.p.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                                    newOrder.Volume = order.q.ToDecimal();
+                                    newOrder.Price = order.p.ToDecimal();
                                     newOrder.ServerType = ServerType.Binance;
                                     newOrder.PortfolioNumber = newOrder.SecurityNameCode;
 

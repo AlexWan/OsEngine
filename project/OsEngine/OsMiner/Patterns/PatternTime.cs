@@ -103,8 +103,7 @@ namespace OsEngine.OsMiner.Patterns
         {
             string[] array = saveString.Split('^');
 
-            Weigth = Convert.ToDecimal(array[1].Replace(",",
-                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+            Weigth = array[1].ToDecimal();
             StartTime = Convert.ToDateTime(array[2]);
             EndTime = Convert.ToDateTime(array[3]);
         }

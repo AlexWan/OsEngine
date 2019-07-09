@@ -788,9 +788,9 @@ namespace OsEngine.Entity
 
             NameBot = arraySave[2];
 
-            ProfitOperationPersent = Convert.ToDecimal(arraySave[3].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+            ProfitOperationPersent = arraySave[3].ToDecimal();
 
-            ProfitOperationPunkt = Convert.ToDecimal(arraySave[4].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+            ProfitOperationPunkt = arraySave[4].ToDecimal();
 
             if (arraySave[5] != "null")
             {
@@ -810,18 +810,18 @@ namespace OsEngine.Entity
             Comment = arraySave[7];
 
             StopOrderIsActiv = Convert.ToBoolean(arraySave[8]);
-            StopOrderPrice = Convert.ToDecimal(arraySave[9].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-            StopOrderRedLine = Convert.ToDecimal(arraySave[10].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+            StopOrderPrice = arraySave[9].ToDecimal();
+            StopOrderRedLine = arraySave[10].ToDecimal();
 
             ProfitOrderIsActiv = Convert.ToBoolean(arraySave[11]);
-            ProfitOrderPrice = Convert.ToDecimal(arraySave[12].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+            ProfitOrderPrice = arraySave[12].ToDecimal();
 
-            Lots = Convert.ToDecimal(arraySave[13].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-            PriceStepCost = Convert.ToDecimal(arraySave[14].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-            PriceStep = Convert.ToDecimal(arraySave[15].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-            PortfolioValueOnOpenPosition = Convert.ToDecimal(arraySave[16].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+            Lots = arraySave[13].ToDecimal();
+            PriceStepCost = arraySave[14].ToDecimal();
+            PriceStep = arraySave[15].ToDecimal();
+            PortfolioValueOnOpenPosition = arraySave[16].ToDecimal();
 
-            ProfitOrderRedLine = Convert.ToDecimal(arraySave[17].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+            ProfitOrderRedLine = arraySave[17].ToDecimal();
 
             SignalTypeOpen = arraySave[18];
             SignalTypeClose = arraySave[19];

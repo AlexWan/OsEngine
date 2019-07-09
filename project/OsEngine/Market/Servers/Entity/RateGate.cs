@@ -2,7 +2,7 @@
 using System.Collections.Concurrent;
 using System.Threading;
 
-namespace OsEngine.Market.Servers.Kraken.KrakenEntity
+namespace OsEngine.Market.Servers.Entity
 {
     /// <summary>
     /// Used to control the rate of some occurrence per unit of time.

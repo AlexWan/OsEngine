@@ -119,6 +119,11 @@ namespace OsEngine.Robots.Trend
 
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
+            if (Regime.ValueString != "On")
+            {
+                return;
+            }
+
             if(candles.Count +5 < _envelop.MovingAverage.Lenght)
             {
                 return;

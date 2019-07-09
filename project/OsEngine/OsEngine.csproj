@@ -275,6 +275,10 @@
     <Compile Include="Charts\CandleChart\Indicators\StochasticOscillatorUi.xaml.cs">
       <DependentUpon>StochasticOscillatorUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\StochRsi.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\StochRsiUi.xaml.cs">
+      <DependentUpon>StochRsiUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Charts\CandleChart\Indicators\TradeThread.cs" />
     <Compile Include="Charts\CandleChart\Indicators\Trix.cs" />
     <Compile Include="Charts\CandleChart\Indicators\TrixUi.xaml.cs">
@@ -313,6 +317,7 @@
     </Compile>
     <Compile Include="Entity\CandleConverter.cs" />
     <Compile Include="Entity\DataGridFactory.cs" />
+    <Compile Include="Entity\Extensions.cs" />
     <Compile Include="Entity\HorizontalVolume.cs" />
     <Compile Include="Entity\MarketDepthPainter.cs" />
     <Compile Include="Entity\ProxyHolder.cs" />
@@ -418,7 +423,7 @@
     <Compile Include="Market\Servers\Kraken\KrakenEntity\EnumerableExtensions.cs" />
     <Compile Include="Market\Servers\Kraken\KrakenEntity\KrakenClient.cs" />
     <Compile Include="Market\Servers\Kraken\KrakenEntity\KrakenOrder.cs" />
-    <Compile Include="Market\Servers\Kraken\KrakenEntity\RateGate.cs" />
+    <Compile Include="Market\Servers\Entity\RateGate.cs" />
     <Compile Include="Market\Servers\Kraken\KrakenServerClient.cs" />
     <Compile Include="Market\Servers\Kraken\KrakenServer.cs" />
     <Compile Include="Market\Servers\Kraken\KrakenServerUi.xaml.cs">
@@ -872,6 +877,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Charts\CandleChart\Indicators\StochasticOscillatorUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\StochRsiUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -150,10 +150,10 @@ namespace OsEngine.Entity
                 // download data from IqFeed
                 // загружаем данные из IqFeed
                 Time = Convert.ToDateTime(sIn[0]);
-                Price = Convert.ToDecimal(sIn[1].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                Volume = Convert.ToDecimal(sIn[2].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                Bid = Convert.ToDecimal(sIn[3].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                Ask = Convert.ToDecimal(sIn[4].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                Price = sIn[1].ToDecimal();
+                Volume = sIn[2].ToDecimal();
+                Bid = sIn[3].ToDecimal();
+                Ask = sIn[4].ToDecimal();
                 Side = GetSideIqFeed();
 
                 return;
@@ -169,9 +169,9 @@ namespace OsEngine.Entity
 
             Time = new DateTime(year, month, day, hour, minute, second);
             
-            Price = Convert.ToDecimal(sIn[2].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+            Price = sIn[2].ToDecimal();
 
-            Volume = Convert.ToDecimal(sIn[3].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+            Volume = sIn[3].ToDecimal();
 
             if (sIn.Length > 4)
             {
@@ -190,8 +190,8 @@ namespace OsEngine.Entity
 
             if (sIn.Length > 7)
             {
-                Bid = Convert.ToDecimal(sIn[7].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                Ask = Convert.ToDecimal(sIn[8].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                Bid = sIn[7].ToDecimal();
+                Ask = sIn[8].ToDecimal();
                 BidsVolume = Convert.ToInt32(sIn[9]);
                 AsksVolume = Convert.ToInt32(sIn[10]);
             }

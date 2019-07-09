@@ -76,6 +76,10 @@ namespace OsEngine.Charts.CandleChart
 
                         string[] indicator = readerStr.Split('@');
 
+                        if (indicator[0] == "StochRsi")
+                        {
+                            CreateIndicator(new StochRsi(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                        }
                         if (indicator[0] == "Vwap")
                         {
                             CreateIndicator(new Vwap(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);

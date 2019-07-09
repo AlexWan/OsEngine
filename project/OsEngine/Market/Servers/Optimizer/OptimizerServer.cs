@@ -423,11 +423,17 @@ namespace OsEngine.Market.Servers.Optimizer
             ServerStatus = ServerConnectStatus.Connect;
         }
 
-// data downloading
-// подгрузка данных
+        /// <summary>
+        /// server time of last starting
+        /// время последнего старта сервера
+        /// </summary>
+        public DateTime LastStartServerTime { get; set; }
+
+        // data downloading
+        // подгрузка данных
 
         /// <summary>
-		/// synchronizer time in now moment of history data
+        /// synchronizer time in now moment of history data
         /// время синхронизатора в данный момент подачи истории
         /// </summary>
         public DateTime TimeNow;

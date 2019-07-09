@@ -257,8 +257,8 @@ namespace OsEngine.Market.Servers.BitStamp
                     _portfolios.Add(osPortEur);
                 }
 
-                osPortEur.ValueBegin = Convert.ToDecimal(portf.eur_balance.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                osPortEur.ValueBlocked = Convert.ToDecimal(portf.eur_reserved.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                osPortEur.ValueBegin = portf.eur_balance.ToDecimal();
+                osPortEur.ValueBlocked = portf.eur_reserved.ToDecimal();
 
                 Portfolio osPortUsd = _portfolios.Find(p => p.Number == "usdPortfolio");
 
@@ -269,8 +269,8 @@ namespace OsEngine.Market.Servers.BitStamp
                     _portfolios.Add(osPortUsd);
                 }
 
-                osPortUsd.ValueBegin = Convert.ToDecimal(portf.usd_balance.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                osPortUsd.ValueBlocked = Convert.ToDecimal(portf.usd_reserved.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                osPortUsd.ValueBegin = portf.usd_balance.ToDecimal();
+                osPortUsd.ValueBlocked = portf.usd_reserved.ToDecimal();
 
 
                 Portfolio osPortBtc = _portfolios.Find(p => p.Number == "btcPortfolio");
@@ -282,8 +282,8 @@ namespace OsEngine.Market.Servers.BitStamp
                     _portfolios.Add(osPortBtc);
                 }
 
-                osPortBtc.ValueBegin = Convert.ToDecimal(portf.btc_balance.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                osPortBtc.ValueBlocked = Convert.ToDecimal(portf.btc_reserved.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                osPortBtc.ValueBegin = portf.btc_balance.ToDecimal();
+                osPortBtc.ValueBlocked = portf.btc_reserved.ToDecimal();
 
                 if (PortfolioEvent != null)
                 {

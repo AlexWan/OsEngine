@@ -316,15 +316,11 @@ namespace OsEngine.Market.Servers.Binance
                 Trade trade = new Trade();
                 trade.SecurityNameCode = trades.data.s;
                 trade.Price =
-                    Convert.ToDecimal(
-                        trades.data.p.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture);
+                        trades.data.p.ToDecimal();
                 trade.Id = trades.data.t.ToString();
                 trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(trades.data.T));
                 trade.Volume =
-                    Convert.ToDecimal(
-                        trades.data.q.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture);
+                        trades.data.q.ToDecimal();
                 trade.Side = trades.data.m == true ? Side.Sell : Side.Buy;
 
                 if (NewTradesEvent != null)
@@ -376,14 +372,12 @@ namespace OsEngine.Market.Servers.Binance
                     {
                         ascs.Add(new MarketDepthLevel()
                         {
-                            Ask = Convert.ToDecimal(
-                                myDepth.data.asks[i][1].ToString().Replace(",",
-                                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                                CultureInfo.InvariantCulture),
-                            Price = Convert.ToDecimal(
-                                myDepth.data.asks[i][0].ToString().Replace(",",
-                                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                                CultureInfo.InvariantCulture)
+                            Ask = 
+                                myDepth.data.asks[i][1].ToString().ToDecimal()
+                            ,
+                            Price =
+                                myDepth.data.asks[i][0].ToString().ToDecimal()
+                                    
                         });
                     }
 
@@ -391,14 +385,11 @@ namespace OsEngine.Market.Servers.Binance
                     {
                         bids.Add(new MarketDepthLevel()
                         {
-                            Bid = Convert.ToDecimal(
-                                myDepth.data.bids[i][1].ToString().Replace(",",
-                                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                                CultureInfo.InvariantCulture),
-                            Price = Convert.ToDecimal(
-                                myDepth.data.bids[i][0].ToString().Replace(",",
-                                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                                CultureInfo.InvariantCulture),
+                            Bid = 
+                                myDepth.data.bids[i][1].ToString().ToDecimal()
+                            ,
+                            Price = 
+                                myDepth.data.bids[i][0].ToString().ToDecimal()
                         });
                     }
 
@@ -453,8 +444,10 @@ namespace OsEngine.Market.Servers.Binance
                         continue;
                     }
 
-                    neeedPortf.ValueCurrent = Convert.ToDecimal(onePortf.f.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                    neeedPortf.ValueBlocked = Convert.ToDecimal(onePortf.l.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                    neeedPortf.ValueCurrent = 
+                        onePortf.f.ToDecimal();
+                    neeedPortf.ValueBlocked = 
+                        onePortf.l.ToDecimal();
                 }
 
                 if (PortfolioEvent != null)
@@ -491,8 +484,10 @@ namespace OsEngine.Market.Servers.Binance
                 {
                     Portfolio newPortf = new Portfolio();
                     newPortf.Number = onePortf.asset;
-                    newPortf.ValueCurrent = Convert.ToDecimal(onePortf.free.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                    newPortf.ValueBlocked = Convert.ToDecimal(onePortf.locked.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                    newPortf.ValueCurrent = 
+                        onePortf.free.ToDecimal();
+                    newPortf.ValueBlocked = 
+                        onePortf.locked.ToDecimal();
 
                     _portfolios.Add(newPortf);
                 }
@@ -535,12 +530,12 @@ namespace OsEngine.Market.Servers.Binance
                 security.NameId = sec.symbol + sec.quoteAsset;
                 security.SecurityType = SecurityType.CurrencyPair;
                 // sec.filters[1] - минимальный объем равный цена * объем
-                security.Lot = Convert.ToDecimal(sec.filters[2].stepSize.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                security.PriceStep = Convert.ToDecimal(sec.filters[0].tickSize.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                security.Lot = sec.filters[2].stepSize.ToDecimal();
+                security.PriceStep = sec.filters[0].tickSize.ToDecimal();
                 security.PriceStepCost = security.PriceStep;
                
-                security.PriceLimitLow = Convert.ToDecimal(sec.filters[0].minPrice.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                security.PriceLimitHigh = Convert.ToDecimal(sec.filters[0].maxPrice.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                security.PriceLimitLow = sec.filters[0].minPrice.ToDecimal();
+                security.PriceLimitHigh = sec.filters[0].maxPrice.ToDecimal();
 
                 if (security.PriceStep < 1)
                 {

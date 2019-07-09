@@ -211,12 +211,18 @@ namespace OsEngine.Market.Servers.Tester
         /// в тестовом сервере не используется
         /// </summary>
         public void StopServer(){}
+       
+        /// <summary>
+        /// server time of last starting
+        /// время последнего старта сервера
+        /// </summary>
+        public DateTime LastStartServerTime { get; set; }
 
-// Managment
-// Управление
+        // Managment
+        // Управление
 
         /// <summary>
-		/// start testing
+        /// start testing
         /// начать тестирование
         /// </summary>
         public void TestingStart()

@@ -91,11 +91,12 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _gridViewIndicators.Rows.Add("Price Oscillator");
             _gridViewIndicators.Rows.Add("Pivot");
             _gridViewIndicators.Rows.Add("Pivot Points");
-            _gridViewIndicators.Rows.Add("StochasticOscillator");
             _gridViewIndicators.Rows.Add("RSI");
             _gridViewIndicators.Rows.Add("ROC");
             _gridViewIndicators.Rows.Add("RVI");
             _gridViewIndicators.Rows.Add("Standard Deviation");
+            _gridViewIndicators.Rows.Add("Stochastic Oscillator");
+            _gridViewIndicators.Rows.Add("Stochastic Rsi");
             _gridViewIndicators.Rows.Add("Trix");
             _gridViewIndicators.Rows.Add("TradeThread");
             _gridViewIndicators.Rows.Add("Unk");
@@ -340,7 +341,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 IndicatorCandle = new BearsPower(_chartMaster.Name + name, true);
                 _chartMaster.CreateIndicator(IndicatorCandle, areaName);
             }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "StochasticOscillator")
+            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Stochastic Oscillator")
             {
                 string name = "";
 
@@ -353,6 +354,21 @@ namespace OsEngine.Charts.CandleChart.Indicators
                     }
                 }
                 IndicatorCandle = new StochasticOscillator(_chartMaster.Name + name, true);
+                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+            }
+            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Stochastic Rsi")
+            {
+                string name = "";
+
+                for (int i = 0; i < 30; i++)
+                {
+                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "StochasticRsi" + i) == false)
+                    {
+                        name = "StochasticRsi" + i;
+                        break;
+                    }
+                }
+                IndicatorCandle = new StochRsi(_chartMaster.Name + name, true);
                 _chartMaster.CreateIndicator(IndicatorCandle, areaName);
             }
             if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "RSI")

@@ -868,10 +868,7 @@ namespace OsEngine.Market.Servers.BitMex
                     if (string.IsNullOrEmpty(pos.data[i].currentQty) == false)
                     {
                         newPos.ValueCurrent =
-                            Convert.ToDecimal(
-                                pos.data[i].currentQty.Replace(",",
-                                    CultureInfo.InvariantCulture.NumberFormat.NumberGroupSeparator),
-                                CultureInfo.InvariantCulture);
+                                pos.data[i].currentQty.ToDecimal();
                     }
                     
 
@@ -1233,7 +1230,7 @@ namespace OsEngine.Market.Servers.BitMex
                     {
                         Trade trade = new Trade();
                         trade.SecurityNameCode = trades.data[j].symbol;
-                        trade.Price = Convert.ToDecimal(trades.data[j].price.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberGroupSeparator), CultureInfo.InvariantCulture);
+                        trade.Price = trades.data[j].price.ToDecimal();
                         trade.Id = trades.data[j].trdMatchID;
                         trade.Time = Convert.ToDateTime(trades.data[j].timestamp);
                         trade.Volume = trades.data[j].size;
@@ -1274,7 +1271,7 @@ namespace OsEngine.Market.Servers.BitMex
                         trade.NumberTrade = order.data[i].execID;
                         trade.NumberOrderParent = order.data[i].orderID;
                         trade.SecurityNameCode = order.data[i].symbol;
-                        trade.Price = Convert.ToDecimal(order.data[i].avgPx.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberGroupSeparator), CultureInfo.InvariantCulture);
+                        trade.Price = order.data[i].avgPx.ToDecimal();
                         trade.Time = Convert.ToDateTime(order.data[i].transactTime);
                         trade.Side = order.data[i].side == "Buy" ? Side.Buy : Side.Sell;
 
@@ -1321,7 +1318,7 @@ namespace OsEngine.Market.Servers.BitMex
                 security.NameClass = sec.typ;
                 security.NameId = sec.symbol + sec.expiry;
                 security.SecurityType = SecurityType.CurrencyPair;
-                security.Lot = Convert.ToDecimal(sec.lotSize.ToString().Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                security.Lot = sec.lotSize.ToString().ToDecimal();
                 security.PriceStep = sec.tickSize;
                 security.PriceStepCost = sec.tickSize;
 
@@ -1500,9 +1497,7 @@ namespace OsEngine.Market.Servers.BitMex
 
                     if (!string.IsNullOrEmpty(myOrders[i].price))
                     {
-                        order.Price = Convert.ToDecimal(myOrders[i].price.Replace(",",
-                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                            CultureInfo.InvariantCulture);
+                        order.Price = myOrders[i].price.ToDecimal();
                     }
 
                     if (myOrders[i].ordStatus == "Filled")
@@ -1520,9 +1515,7 @@ namespace OsEngine.Market.Servers.BitMex
 
                     if (myOrders[i].orderQty != null)
                     {
-                        order.Volume = Convert.ToDecimal(myOrders[i].orderQty.Replace(",",
-                                CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                            CultureInfo.InvariantCulture);
+                        order.Volume = myOrders[i].orderQty.ToDecimal();
                     }
 
                     order.Comment = myOrders[i].text;
@@ -1708,18 +1701,14 @@ namespace OsEngine.Market.Servers.BitMex
 
                             if (!string.IsNullOrEmpty(myOrder.data[i].price))
                             {
-                                order.Price = Convert.ToDecimal(myOrder.data[i].price.Replace(",",
-                                CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                                CultureInfo.InvariantCulture);
+                                order.Price = myOrder.data[i].price.ToDecimal();
                             }
 
                             order.State = OrderStateType.Pending;
 
                             if (myOrder.data[i].orderQty != null)
                             {
-                                order.Volume = Convert.ToDecimal(myOrder.data[i].orderQty.Replace(",",
-                                        CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                                    CultureInfo.InvariantCulture);
+                                order.Volume = myOrder.data[i].orderQty.ToDecimal();
                             }
 
                             order.Comment = myOrder.data[i].text;
@@ -1838,9 +1827,7 @@ namespace OsEngine.Market.Servers.BitMex
                                     needOrder.State = OrderStateType.Patrial;
                                     if (myOrder.data[i].cumQty != null)
                                     {
-                                        needOrder.VolumeExecute = Convert.ToDecimal(myOrder.data[i].cumQty.Replace(",",
-                                                CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                                            CultureInfo.InvariantCulture);
+                                        needOrder.VolumeExecute = myOrder.data[i].cumQty.ToDecimal();
                                     }
 
                                  }
@@ -1850,9 +1837,7 @@ namespace OsEngine.Market.Servers.BitMex
                                     needOrder.State = OrderStateType.Done;
                                     if (myOrder.data[i].cumQty != null)
                                     {
-                                        needOrder.VolumeExecute = Convert.ToDecimal(myOrder.data[i].cumQty.Replace(",",
-                                                CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                                            CultureInfo.InvariantCulture);
+                                        needOrder.VolumeExecute = myOrder.data[i].cumQty.ToDecimal();
                                     }
                                 }
                                 if (_myTrades != null &&
