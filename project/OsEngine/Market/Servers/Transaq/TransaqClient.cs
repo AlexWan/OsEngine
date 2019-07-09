@@ -144,6 +144,7 @@ namespace OsEngine.Market.Servers.Transaq
             }
             else
             {
+                FreeMemory(pResult);
                 return true;
             }
         }
@@ -164,6 +165,7 @@ namespace OsEngine.Market.Servers.Transaq
             }
             else
             {
+                FreeMemory(pResult);
                 return true;
             }
         }
@@ -186,6 +188,8 @@ namespace OsEngine.Market.Servers.Transaq
             string data = MarshalUtf8.PtrToStringUtf8(pData);
 
             _newMessage.Enqueue(data);
+
+            FreeMemory(pData);
 
             return true;
         }
