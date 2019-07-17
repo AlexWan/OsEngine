@@ -24,6 +24,7 @@ using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.RiskManager;
+using Chart = System.Windows.Forms.DataVisualization.Charting.Chart;
 
 namespace OsEngine.OsTrader
 {
@@ -1130,5 +1131,68 @@ namespace OsEngine.OsTrader
             return true;
         }
 
+        /// <summary>
+        /// get list of charts for by bot name
+        /// получить список чартов по имени бота
+        /// </summary>
+        /// <param name="botName">bot name / имя бота</param>
+        /// <returns>
+        /// chart, tab name, chart information / чарт, имя таба, информация о чарте
+        /// </returns>
+        public List<Tuple<Chart, string, string>> GetCharts(string botName)
+        {
+            List<Tuple<Chart, string, string>> charts = new List<Tuple<Chart, string, string>>();
+            BotPanel bot = GetBotByName(botName);
+
+            if (bot == null)
+            {
+                return charts;
+            }
+
+            foreach (var tab in bot.TabsSimple)
+            {
+                charts.Add(new Tuple<Chart, string, string>(tab.GetChart(), tab.TabName, tab.GetChartLabel()));
+            }
+
+            foreach (var tab in bot.TabsIndex)
+            {
+                charts.Add(new Tuple<Chart, string, string>(tab.GetChart(), tab.TabName, tab.GetChartLabel()));
+            }
+
+            foreach (var tab in bot.TabsCluster)
+            {
+                charts.Add(new Tuple<Chart, string, string>(tab.GetChart(), tab.TabName, ""));
+            }
+
+            return charts;
+        }
+
+        /// <summary>
+        /// get panel(bot) by bot name
+        /// получить панель(бота) по имени бота
+        /// </summary>
+        /// <param name="botName">bot name / имя бота</param>
+        private BotPanel GetBotByName(string botName)
+        {
+            try
+            {
+                if (_panelsArray != null)
+                {
+                    for (int i = 0; i < _panelsArray.Count; i++)
+                    {
+                        if (_panelsArray[i].NameStrategyUniq.Replace(" ", "") == botName.Replace(" ", ""))
+                        {
+                            return _panelsArray[i];
+                        }
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+
+            return null;
+        }
     }
 }

@@ -1385,6 +1385,33 @@ namespace OsEngine.Charts.CandleChart
 
         private System.Windows.Controls.Grid _grid;
 
+        /// <summary>
+        /// get chart information
+        /// получить информацию о чарте
+        /// </summary>
+        public string GetChartLabel()
+        {
+            string security = _securityOnThisChart;
+
+            if (string.IsNullOrEmpty(security))
+            {
+                security = "Unknown";
+            }
+
+            string label = _serverType.ToString();
+
+            if (_timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Simple)
+            {
+                label += " / " + security + " / " + _timeFrameSecurity;
+            }
+            else
+            {
+                label += " / " + security + " / " + _timeFrameBuilder.CandleCreateMethodType;
+            }
+
+            return label;
+        }
+
         private void PaintLabelOnSlavePanel()
         {
             if (_grid == null)

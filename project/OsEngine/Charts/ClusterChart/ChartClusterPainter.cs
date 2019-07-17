@@ -109,6 +109,16 @@ namespace OsEngine.Charts.ClusterChart
         private ClusterType _chartType;
 
         /// <summary>
+        /// take a chart
+        /// взять чарт
+        /// </summary>
+        /// <returns>returning the chart./возвращаем чарт</returns>
+        public Chart GetChart()
+        {
+            return _chart;
+        }
+
+        /// <summary>
         /// начать прорисовку графика
         /// </summary>
         public void StartPaintPrimeChart(WindowsFormsHost host, Rectangle rectangle)

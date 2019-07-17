@@ -17,6 +17,7 @@ using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels.Tab;
+using Chart = System.Windows.Forms.DataVisualization.Charting.Chart;
 
 namespace OsEngine.Charts.ClusterChart
 {
@@ -219,6 +220,15 @@ namespace OsEngine.Charts.ClusterChart
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
+ 
+        /// <summary>
+        /// get chart
+        /// взять чарт
+        /// </summary>
+        public Chart GetChart()
+        {
+            return _chart.GetChart();
+        }
     }
 
 

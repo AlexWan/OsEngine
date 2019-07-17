@@ -102,5 +102,21 @@ namespace OsEngine.Language
         public string Label15 => OsLocalization.ConvertToLocString(
             "Eng:Login_" +
             "Ru:Логин_");
+
+        public string Label16 => OsLocalization.ConvertToLocString(
+            "Eng:Webhooks_" +
+            "Ru:Вебхуки_");
+
+        public string Label17 => OsLocalization.ConvertToLocString(
+            "Eng:Slack token_" +
+            "Ru:Slack токен_");
+
+        public string Label18 => OsLocalization.ConvertToLocString(
+            "Eng:Send trading screenshots_" +
+            "Ru:Отправлять скриншоты торговли_");
+
+        public string Label19 => OsLocalization.ConvertToLocString(
+            "Eng:Webhooks_" +
+            "Ru:Вебхуки_");
     }
 }

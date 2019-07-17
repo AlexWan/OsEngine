@@ -24,6 +24,7 @@ using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels.Tab.Internal;
+using Chart = System.Windows.Forms.DataVisualization.Charting.Chart;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -317,6 +318,24 @@ namespace OsEngine.OsTrader.Panels.Tab
         public void DeleteAllChartElement()
         {
             _chartMaster.DeleteAllChartElement();
+        }
+
+        /// <summary>
+        /// get chart
+        /// взять чарт
+        /// </summary>
+        public Chart GetChart()
+        {
+            return _chartMaster.GetChart();
+        }
+
+        /// <summary>
+        /// get chart information
+        /// получить информацию о чарте
+        /// </summary>
+        public string GetChartLabel()
+        {
+            return _chartMaster.GetChartLabel();
         }
 
 // closed components / закрытые составные части

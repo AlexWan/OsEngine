@@ -350,6 +350,10 @@
     <Compile Include="Logging\LogErrorUi.xaml.cs">
       <DependentUpon>LogErrorUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Logging\ServerWebhookUi.xaml.cs">
+      <DependentUpon>ServerWebhookUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Logging\ServerWebhook.cs" />
     <Compile Include="Market\Servers\AServer.cs" />
     <Compile Include="Market\Servers\AServerParameterUi.xaml.cs">
       <DependentUpon>AServerParameterUi.xaml</DependentUpon>
@@ -931,6 +935,10 @@
     <Page Include="Logging\LogErrorUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Logging\ServerWebhookUi.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Market\Servers\AServerParameterUi.xaml">
       <SubType>Designer</SubType>

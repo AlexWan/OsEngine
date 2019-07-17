@@ -9,8 +9,8 @@ using OsEngine.Language;
 namespace OsEngine.Logging
 {
     /// <summary>
-    /// SMS messaging settings window
-    /// Окно настроек рассылки СМС сообщений
+    /// Messaging settings window
+    /// Окно настроек рассылки сообщений
     /// </summary>
     public partial class MessageSenderUi
     {
@@ -30,11 +30,14 @@ namespace OsEngine.Logging
 
             Label3.Content = OsLocalization.Logging.Label3;
             Label4.Content = OsLocalization.Logging.Label4;
+            Label19.Content = OsLocalization.Logging.Label19;
             Label5.Content = OsLocalization.Logging.Label5;
             Label52.Content = OsLocalization.Logging.Label5;
+            Label53.Content = OsLocalization.Logging.Label5;
             ButtonAccept.Content = OsLocalization.Logging.Button1;
             ButtonSmsGlobeSet.Content = OsLocalization.Logging.Button2;
             ButtonMailGlobeSet.Content = OsLocalization.Logging.Button2;
+            ButtonWebhookGlobeSet.Content = OsLocalization.Logging.Button2;
 
             CheckBoxSmsSignal.Content = OsLocalization.Logging.Label6;
             CheckBoxSmsTrade.Content = OsLocalization.Logging.Label7;
@@ -48,6 +51,11 @@ namespace OsEngine.Logging
             CheckBoxMailSystem.Content = OsLocalization.Logging.Label9;
             CheckBoxMailConnect.Content = OsLocalization.Logging.Label10;
 
+            CheckBoxWebhookSignal.Content = OsLocalization.Logging.Label6;
+            CheckBoxWebhookTrade.Content = OsLocalization.Logging.Label7;
+            CheckBoxWebhookError.Content = OsLocalization.Logging.Label8;
+            CheckBoxWebhookSystem.Content = OsLocalization.Logging.Label9;
+            CheckBoxWebhookConnect.Content = OsLocalization.Logging.Label10;
         }
 
         /// <summary>
@@ -56,6 +64,25 @@ namespace OsEngine.Logging
         /// </summary>
         private void LoadDateOnForm()
         {
+            ComboBoxModeWebhook.Items.Add(OsLocalization.Logging.Label1);
+            ComboBoxModeWebhook.Items.Add(OsLocalization.Logging.Label2);
+
+            if (_sender.WebhookSendOn)
+            {
+                ComboBoxModeWebhook.Text = OsLocalization.Logging.Label1;
+            }
+            else
+            {
+                ComboBoxModeWebhook.Text = OsLocalization.Logging.Label2;
+            }
+
+            CheckBoxWebhookSignal.IsChecked = _sender.WebhookSignalSendOn;
+            CheckBoxWebhookTrade.IsChecked = _sender.WebhookTradeSendOn;
+            CheckBoxWebhookError.IsChecked = _sender.WebhookErrorSendOn;
+            CheckBoxWebhookSystem.IsChecked = _sender.WebhookSystemSendOn;
+            CheckBoxWebhookConnect.IsChecked = _sender.WebhookConnectSendOn;
+
+
             ComboBoxModeMail.Items.Add(OsLocalization.Logging.Label1);
             ComboBoxModeMail.Items.Add(OsLocalization.Logging.Label2);
 
@@ -100,6 +127,22 @@ namespace OsEngine.Logging
         /// </summary>
         private void Save()
         {
+            if (ComboBoxModeWebhook.Text == OsLocalization.Logging.Label1)
+            {
+                _sender.WebhookSendOn = true;
+            }
+            else
+            {
+                _sender.WebhookSendOn = false;
+            }
+
+            _sender.WebhookSignalSendOn = CheckBoxWebhookSignal.IsChecked.Value;
+            _sender.WebhookTradeSendOn = CheckBoxWebhookTrade.IsChecked.Value;
+            _sender.WebhookErrorSendOn = CheckBoxWebhookError.IsChecked.Value;
+            _sender.WebhookSystemSendOn = CheckBoxWebhookSystem.IsChecked.Value;
+            _sender.WebhookConnectSendOn = CheckBoxWebhookConnect.IsChecked.Value;
+
+
             if (ComboBoxModeMail.Text == OsLocalization.Logging.Label1)
             {
                 _sender.MailSendOn = true;
@@ -114,6 +157,7 @@ namespace OsEngine.Logging
            _sender.MailErrorSendOn = CheckBoxMailError.IsChecked.Value;
            _sender.MailSystemSendOn = CheckBoxMailSystem.IsChecked.Value;
            _sender.MailConnectSendOn = CheckBoxMailConnect.IsChecked.Value;
+
 
             if (ComboBoxModeSms.Text == OsLocalization.Logging.Label1)
             {
@@ -136,6 +180,11 @@ namespace OsEngine.Logging
         {
             Save();
             Close();
+        }
+
+        private void ButtonWebhookGlobeSet_Click(object sender, RoutedEventArgs e) // button to configure the webhook server / кнопка настроить сервер рассылки сообщений через вебхуки
+        {
+            ServerWebhook.GetServer().ShowDialog();
         }
 
         private void ButtonMailGlobeSet_Click(object sender, RoutedEventArgs e) // button to configure the mailing server / кнопка настроить сервер почтовой рассылки

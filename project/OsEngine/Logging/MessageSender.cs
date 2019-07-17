@@ -17,6 +17,16 @@ namespace OsEngine.Logging
     {
  // distribution settings
  // настройки рассылки
+
+        public bool WebhookSendOn;
+
+        public bool WebhookSystemSendOn;
+        public bool WebhookSignalSendOn;
+        public bool WebhookErrorSendOn;
+        public bool WebhookConnectSendOn;
+        public bool WebhookTradeSendOn;
+        public bool WebhookNoNameSendOn;
+
         public bool MailSendOn;
 
         public bool MailSystemSendOn;
@@ -93,6 +103,15 @@ namespace OsEngine.Logging
                     SmsTradeSendOn = Convert.ToBoolean(reader.ReadLine());
                     SmsNoNameSendOn = Convert.ToBoolean(reader.ReadLine());
 
+                    WebhookSendOn = Convert.ToBoolean(reader.ReadLine());
+
+                    WebhookSystemSendOn = Convert.ToBoolean(reader.ReadLine());
+                    WebhookSignalSendOn = Convert.ToBoolean(reader.ReadLine());
+                    WebhookErrorSendOn = Convert.ToBoolean(reader.ReadLine());
+                    WebhookConnectSendOn = Convert.ToBoolean(reader.ReadLine());
+                    WebhookTradeSendOn = Convert.ToBoolean(reader.ReadLine());
+                    WebhookNoNameSendOn = Convert.ToBoolean(reader.ReadLine());
+
                     reader.Close();
                 }
             }
@@ -124,12 +143,21 @@ namespace OsEngine.Logging
 
                     writer.WriteLine(SmsSendOn);
 
-                   writer.WriteLine( SmsSystemSendOn);
+                    writer.WriteLine(SmsSystemSendOn);
                     writer.WriteLine(SmsSignalSendOn);
                     writer.WriteLine(SmsErrorSendOn);
                     writer.WriteLine(SmsConnectSendOn);
                     writer.WriteLine(SmsTradeSendOn);
                     writer.WriteLine(SmsNoNameSendOn);
+
+                    writer.WriteLine(WebhookSendOn);
+
+                    writer.WriteLine(WebhookSystemSendOn);
+                    writer.WriteLine(WebhookSignalSendOn);
+                    writer.WriteLine(WebhookErrorSendOn);
+                    writer.WriteLine(WebhookConnectSendOn);
+                    writer.WriteLine(WebhookTradeSendOn);
+                    writer.WriteLine(WebhookNoNameSendOn);
                     writer.Close();
                 }
             }
@@ -162,6 +190,35 @@ namespace OsEngine.Logging
             if (_startProgram != StartProgram.IsOsTrader)
             {
                 return;
+            }
+
+            if (WebhookSendOn)
+            {
+                if (message.Type == LogMessageType.Connect &&
+                    WebhookConnectSendOn)
+                {
+                    ServerWebhook.GetServer().Send(message, _name);
+                }
+                if (message.Type == LogMessageType.Error &&
+                    WebhookErrorSendOn)
+                {
+                    ServerWebhook.GetServer().Send(message, _name);
+                }
+                if (message.Type == LogMessageType.Signal &&
+                    WebhookSignalSendOn)
+                {
+                    ServerWebhook.GetServer().Send(message, _name);
+                }
+                if (message.Type == LogMessageType.System &&
+                    WebhookSystemSendOn)
+                {
+                    ServerWebhook.GetServer().Send(message, _name);
+                }
+                if (message.Type == LogMessageType.Trade &&
+                    WebhookTradeSendOn)
+                {
+                    ServerWebhook.GetServer().Send(message, _name);
+                }
             }
 
             if (MailSendOn)
