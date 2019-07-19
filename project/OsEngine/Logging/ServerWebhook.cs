@@ -691,6 +691,7 @@ namespace OsEngine.Logging
                             chartsToRender = charts;
                         }
 
+                        int tabNumber = 1;
                         var imageList = new List<Image>();
                         foreach (var c in chartsToRender)
                         { // convert charts to images / конвертировать чарты в изображения
@@ -703,13 +704,7 @@ namespace OsEngine.Logging
                             // add title / добавляем заголовок
                             Graphics g = Graphics.FromImage(bmp);
 
-                            string tabLabel = "";
-                            string regex = @"(?<botName>^.*)\s?tab\s?(?<tabNumber>\d*$)";
-                            foreach (Match match in Regex.Matches(c.Item2, regex, RegexOptions.IgnoreCase))
-                            {
-                                tabLabel += $"{match.Groups["botName"].Value} / Tab {Convert.ToInt16(match.Groups["tabNumber"].Value) + 1}";
-                            }
-                            string chartlabel = "📈 " + tabLabel; // tab info
+                            string chartlabel = "📈 " + $"{botName} / Tab {tabNumber}"; // tab info
                             if (!string.IsNullOrEmpty(c.Item3))
                             {
                                 chartlabel += "  ⚙ " + c.Item3; // chart info
@@ -724,6 +719,8 @@ namespace OsEngine.Logging
                             // save bmp to list / сохраняем картинку в список
                             imageList.Add(bmp);
                             g.Dispose();
+
+                            tabNumber ++;
                         }
 
                         // merge charts images / склеиваем картинки чартов
