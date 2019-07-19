@@ -1141,30 +1141,37 @@ namespace OsEngine.OsTrader
         /// </returns>
         public List<Tuple<Chart, string, string>> GetCharts(string botName)
         {
-            List<Tuple<Chart, string, string>> charts = new List<Tuple<Chart, string, string>>();
+            List<Tuple<int, Chart, string, string>> charts = new List<Tuple<int, Chart, string, string>>();
+            List<Tuple<Chart, string, string>> orderedCharts = new List<Tuple<Chart, string, string>>();
+
             BotPanel bot = GetBotByName(botName);
 
             if (bot == null)
             {
-                return charts;
+                return orderedCharts;
             }
 
             foreach (var tab in bot.TabsSimple)
             {
-                charts.Add(new Tuple<Chart, string, string>(tab.GetChart(), tab.TabName, tab.GetChartLabel()));
+                charts.Add(new Tuple<int, Chart, string, string>(tab.TabNum,tab.GetChart(), tab.TabName, tab.GetChartLabel()));
             }
 
             foreach (var tab in bot.TabsIndex)
             {
-                charts.Add(new Tuple<Chart, string, string>(tab.GetChart(), tab.TabName, tab.GetChartLabel()));
+                charts.Add(new Tuple<int, Chart, string, string>(tab.TabNum, tab.GetChart(), tab.TabName, tab.GetChartLabel()));
             }
 
             foreach (var tab in bot.TabsCluster)
             {
-                charts.Add(new Tuple<Chart, string, string>(tab.GetChart(), tab.TabName, ""));
+                charts.Add(new Tuple<int, Chart, string, string>(tab.TabNum, tab.GetChart(), tab.TabName, ""));
             }
 
-            return charts;
+            foreach (var chart in charts.OrderBy(i => i.Item1))
+            {
+                orderedCharts.Add(new Tuple<Chart, string, string>(chart.Item2, chart.Item3, chart.Item4));
+            }
+
+            return orderedCharts;
         }
 
         /// <summary>
