@@ -3,7 +3,11 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Threading;
 using System.Windows.Forms;
 using OsEngine.Entity;
 using OsEngine.Language;
@@ -77,7 +81,92 @@ namespace OsEngine.OsData
             column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(column1);
 
+            _grid.KeyPress += SearchSecurity;
+
             HostSecurity.Child = _grid;
+        }
+
+        /// <summary>
+        /// search string/строка поиска
+        /// </summary>
+        private string _searchString;
+
+        /// <summary>
+        /// when a key was pressed/когда была нажата кнопка
+        /// </summary>
+        private DateTime _startSearch;
+
+        /// <summary>
+        /// search security in table/поиск бумаги в таблице 
+        /// </summary>
+        private void SearchSecurity(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)Keys.Back)
+            {
+                _startSearch = DateTime.Now;
+                _searchString = "";
+                LabelSearchString.Content = "";
+                return;
+            }
+
+            if (!char.IsLetter(e.KeyChar) && !char.IsDigit(e.KeyChar))
+            {
+                return;
+            }
+
+            int freshnessTime = 3; // seconds
+
+            if (_startSearch == null || DateTime.Now.Subtract(_startSearch).Seconds > freshnessTime)
+            {
+                _startSearch = DateTime.Now;
+                _searchString = e.KeyChar.ToString();
+                RefreshSearchLabel(freshnessTime);
+            }
+            else
+            {
+                _searchString += e.KeyChar.ToString();
+                RefreshSearchLabel(freshnessTime);
+            }
+
+            char[] charsToTrim = { '*', ' ', '\'', '\"', '+', '=', '-', '!', '#', '%', '.', ',' };
+
+            for (int c = 0; c < _grid.Columns.Count; c++)
+            {
+                for (int r = 0; r < _grid.Rows.Count; r++)
+                {
+                    if (_grid.Rows[r].Cells[c].Value.ToString().Trim(charsToTrim)
+                        .StartsWith(_searchString, true, CultureInfo.InvariantCulture))
+                    {
+                        _grid.Rows[r].Cells[c].Selected = true;
+                        return; // stop looping
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// refresh search label/обновить строку поиска
+        /// </summary>
+        private void RefreshSearchLabel(int freshnessTime)
+        {
+            LabelSearchString.Content = "🔍 " + _searchString;
+
+            // clear search label after freshnessTime + 1 (seconds)
+            // очистить строку поиска через freshnessTime + 1 (секунд)
+            Thread t = new Thread(new ThreadStart(() => {
+
+                Thread.Sleep((freshnessTime+1)*1000);
+
+                if (DateTime.Now.Subtract(_startSearch).Seconds > freshnessTime)
+                {
+                    LabelSearchString.Dispatcher.Invoke(() =>
+                    {
+                        LabelSearchString.Content = "";
+                    });
+                }
+
+            }));
+            t.Start();
         }
 
         /// <summary>
@@ -85,13 +174,16 @@ namespace OsEngine.OsData
         /// </summary>
         private void GetClasses()
         {
+            // order securities by class / упорядочить бумаги по классу
+            List<Security> orderedSecurities = _securities.OrderBy(s => s.NameClass).ToList();
             List<string> classes = new List<string>();
-            for (int i = 0; i < _securities.Count; i++)
+            for (int i = 0; i < orderedSecurities.Count; i++)
             {
-                if (classes.Find(s => s == _securities[i].NameClass) == null)
+                if (classes.Find(s => s == orderedSecurities[i].NameClass) == null && 
+                    !IsSecurityEmpty(orderedSecurities[i]))
                 {
-                    classes.Add(_securities[i].NameClass);
-                    ComboBoxClass.Items.Add(_securities[i].NameClass);
+                    classes.Add(orderedSecurities[i].NameClass);
+                    ComboBoxClass.Items.Add(orderedSecurities[i].NameClass);
                 }
             }
 
@@ -105,6 +197,15 @@ namespace OsEngine.OsData
             {
                 ComboBoxClass.SelectedItem = "All";
             }
+        }
+
+        /// <summary>
+        /// security doesn't contain enough info/бумага не содержит достаточно информации
+        /// </summary>
+        private bool IsSecurityEmpty(Security security)
+        {
+            return string.IsNullOrEmpty(security.Name) || 
+                   string.IsNullOrEmpty(security.NameFull);
         }
 
         /// <summary>
@@ -133,9 +234,7 @@ namespace OsEngine.OsData
                     continue;
                 }
 
-                if (_securities[i].NameFull== null ||
-                    _securities[i].NameFull[0] == '\'' && _securities[i].NameFull[1] == '\'' &&
-                    _securities[i].NameFull.Length == 2)
+                if (IsSecurityEmpty(_securities[i]))
                 {
                     continue;
                 }

@@ -11,6 +11,7 @@ using System.IO;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
 using OsEngine.Entity;
@@ -380,12 +381,22 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// get path to the latest cashed version of icharts.js
+        /// получить путь к последней кешированной версии icharts.js
+        /// </summary>
+        public static string GetIchartsPath()
+        {
+            var response = GetPage("https://www.finam.ru/profile/moex-akcii/sberbank/");
+            return Regex.Match(response, @"\/cache\/.*\/icharts\/icharts\.js", RegexOptions.IgnoreCase).Value;
+        }
+
+        /// <summary>
         /// includes loading of tools and portfolios
         /// включает загрузку инструментов и портфелей
         /// </summary>
         private void GetSecurities()
         {
-            var response = GetPage("https://www.finam.ru/cache/icharts/icharts.js");
+            var response = GetPage($"https://www.finam.ru{GetIchartsPath()}");
 
             string[] arraySets = response.Split('=');
             string[] arrayIds = arraySets[1].Split('[')[1].Split(']')[0].Split(',');
@@ -423,7 +434,7 @@ namespace OsEngine.Market.Servers.Finam
             for (int i = 0; i < arrayIds.Length; i++)
             {
                 _finamSecurities.Add(new FinamSecurity());
-                _finamSecurities[i].Code = arrayCodes[i]; 
+                _finamSecurities[i].Code = arrayCodes[i].TrimStart('\'').TrimEnd('\''); 
                 _finamSecurities[i].Decp = arrayDecp[i].Split(':')[1];
                 _finamSecurities[i].EmitentChild = arrayEmitentChild[i];
                 _finamSecurities[i].Id = arrayIds[i];
@@ -482,7 +493,7 @@ namespace OsEngine.Market.Servers.Finam
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 6)
                 {
-                    _finamSecurities[i].Market = "Мировые Индексы";
+                    _finamSecurities[i].Market = "Мировые индексы";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 24)
                 {
@@ -568,17 +579,19 @@ namespace OsEngine.Market.Servers.Finam
                 {
                     _finamSecurities[i].Market = "Отрасли";
                 }
+                else if (Convert.ToInt32(arrayMarkets[i]) == 520)
+                {
+                    _finamSecurities[i].Market = "Криптовалюты";
+                }
             }
-
-            _finamSecurities.AddRange(Ge3tCryptoSec());
 
             _securities = new List<Security>();
 
             for (int i = 0; i < _finamSecurities.Count; i++)
             {
                 Security sec = new Security();
-                sec.Name = _finamSecurities[i].Name;
-                sec.NameFull = _finamSecurities[i].Code;
+                sec.NameFull = _finamSecurities[i].Name;
+                sec.Name = _finamSecurities[i].Code;
                 sec.NameId = _finamSecurities[i].Id;
                 sec.NameClass = _finamSecurities[i].Market;
                 sec.PriceStep = 1;
@@ -590,98 +603,6 @@ namespace OsEngine.Market.Servers.Finam
             _securitiesToSend.Enqueue(_securities);
 
             SendLogMessage(OsLocalization.Market.Message52 +  _securities.Count, LogMessageType.System);
-        }
-
-        private List<FinamSecurity> Ge3tCryptoSec()
-        {
-          List<FinamSecurity> crypto = new List<FinamSecurity>();
-
-            for (int i = 0; i < 13; i++)
-            {
-                crypto.Add(new FinamSecurity());
-                crypto[i].Market = "Криптовалюты";
-                crypto[i].MarketId = 520.ToString();
-            }
-
-            crypto[0].Id = 484427.ToString();
-            crypto[0].Code = "GDAX.ETH-BTC";
-            crypto[0].Url = "cryptocurrencies/eth-btc";
-            crypto[0].Name = "ETH-BTC";
-            crypto[0].Decp = "5";
-
-            crypto[1].Id = 491809.ToString();
-            crypto[1].Code = "GDAX.BCH-USD";
-            crypto[1].Url = "cryptocurrencies/bch-usd";
-            crypto[1].Name = "BCH-USD";
-            crypto[1].Decp = "2";
-
-            crypto[2].Id = 484425.ToString();
-            crypto[2].Code = "GDAX.BTC-EUR";
-            crypto[2].Url = "cryptocurrencies/btc-eur";
-            crypto[2].Name = "BTC-EUR";
-            crypto[2].Decp = "2";
-
-            crypto[3].Id = 484424.ToString();
-            crypto[3].Code = "GDAX.BTC-GBP";
-            crypto[3].Url = "cryptocurrencies/btc-gbp";
-            crypto[3].Name = "BTC-GBP";
-            crypto[3].Decp = "2";
-
-            crypto[4].Id = 484429.ToString();
-            crypto[4].Code = "GDAX.BTC-USD";
-            crypto[4].Url = "cryptocurrencies/btc-usd";
-            crypto[4].Name = "BTC-USD";
-            crypto[4].Decp = "2";
-
-            crypto[5].Id = 484427.ToString();
-            crypto[5].Code = "GDAX.ETH-BTC";
-            crypto[5].Url = "cryptocurrencies/eth-btc";
-            crypto[5].Name = "ETH-BTC";
-            crypto[5].Decp = "5";
-
-            crypto[6].Id = 484426.ToString();
-            crypto[6].Code = "GDAX.ETH-EUR";
-            crypto[6].Url = "cryptocurrencies/eth-eur";
-            crypto[6].Name = "ETH-EUR";
-            crypto[6].Decp = "2";
-
-            crypto[7].Id = 484430.ToString();
-            crypto[7].Code = "GDAX.ETH-USD";
-            crypto[7].Url = "cryptocurrencies/eth-usd";
-            crypto[7].Name = "ETH-USD";
-            crypto[7].Decp = "2";
-
-            crypto[8].Id = 484423.ToString();
-            crypto[8].Code = "GDAX.LTC-BTC";
-            crypto[8].Url = "cryptocurrencies/ltc-btc";
-            crypto[8].Name = "LTC-BTC";
-            crypto[8].Decp = "5";
-
-            crypto[9].Id = 484422.ToString();
-            crypto[9].Code = "GDAX.LTC-EUR";
-            crypto[9].Url = "cryptocurrencies/ltc-eur";
-            crypto[9].Name = "LTC-EUR";
-            crypto[9].Decp = "2";
-
-            crypto[10].Id = 484428.ToString();
-            crypto[10].Code = "GDAX.LTC-USD";
-            crypto[10].Url = "cryptocurrencies/ltc-usd";
-            crypto[10].Name = "LTC-USD";
-            crypto[10].Decp = "2";
-
-            crypto[11].Id = 491575.ToString();
-            crypto[11].Code = "BTSM.ETH/EUR@milli";
-            crypto[11].Url = "cryptocurrencies/ether-euro-milli";
-            crypto[11].Name = "Ether / Euro milli";
-            crypto[11].Decp = "2";
-
-            crypto[12].Id = 491576.ToString();
-            crypto[12].Code = "BTSP.ETH/USD@milli";
-            crypto[12].Url = "cryptocurrencies/ether-usd-milli";
-            crypto[12].Name = "Ether / U.S. dollar milli";
-            crypto[12].Decp = "2";
-
-            return crypto;
         }
 
         private void CreatePortfolio()
