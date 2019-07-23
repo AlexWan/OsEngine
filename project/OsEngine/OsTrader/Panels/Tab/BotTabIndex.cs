@@ -19,6 +19,7 @@ using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Connectors;
 using OsEngine.OsTrader.Panels.Tab.Internal;
+using Chart = System.Windows.Forms.DataVisualization.Charting.Chart;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -1285,6 +1286,23 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
+        /// <summary>
+        /// get chart
+        /// взять чарт
+        /// </summary>
+        public Chart GetChart()
+        {
+            return _chartMaster.GetChart();
+        }
+
+        /// <summary>
+        /// get chart information
+        /// получить информацию о чарте
+        /// </summary>
+        public string GetChartLabel()
+        {
+            return _chartMaster.GetChartLabel();
+        }
     }
 
     /// <summary>
