@@ -3998,7 +3998,7 @@ namespace OsEngine.Charts.CandleChart
 
             double max = Convert.ToDouble(positionOnY + Convert.ToDecimal(area.AxisY2.Interval) / 20);
 
-            label = Convert.ToDecimal(Convert.ToDouble(label)).ToString();
+            label = label.ToDecimal().ToString(CultureInfo.InvariantCulture);
 
             if (_labels == null)
             {
@@ -4086,7 +4086,7 @@ namespace OsEngine.Charts.CandleChart
 
             _labels.Remove(oldlabel);
 
-            string positon = Convert.ToDecimal(oldlabel.Price).ToString(_culture);
+            string positon = oldlabel.Price.ToDecimal().ToString(CultureInfo.InvariantCulture);
             for (int i = 0; i < area.AxisY2.CustomLabels.Count; i++)
             {
                 if (area.AxisY2.CustomLabels[i].Text == positon && area.AxisY2.CustomLabels[i].ForeColor == color)
@@ -4214,8 +4214,8 @@ namespace OsEngine.Charts.CandleChart
                     continue;
                 }
 
-                double max = Convert.ToDouble(label.Price) + area.AxisY2.Interval * 0.2;
-                double min = Convert.ToDouble(label.Price) - area.AxisY2.Interval * 0.2;
+                double max = label.Price.ToDouble() + area.AxisY2.Interval * 0.2;
+                double min = label.Price.ToDouble() - area.AxisY2.Interval * 0.2;
 
                 for (int indSecond = 0; indSecond < _labels.Count; indSecond++)
                 {
@@ -4237,7 +4237,7 @@ namespace OsEngine.Charts.CandleChart
                         continue;
                     }
 
-                    double price = Convert.ToDouble(_labels[indSecond].Price);
+                    double price = _labels[indSecond].Price.ToDouble();
                     if (price < max &&
                         price > min)
                     {

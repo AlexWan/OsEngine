@@ -430,6 +430,10 @@ namespace OsEngine.Journal
             try
             {
                 _positionController.SetNewPosition(position);
+                if (PositionStateChangeEvent != null)
+                {
+                    PositionStateChangeEvent(position);
+                }
             }
             catch (Exception error)
             {
