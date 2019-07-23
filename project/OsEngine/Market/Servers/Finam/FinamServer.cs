@@ -434,7 +434,7 @@ namespace OsEngine.Market.Servers.Finam
             for (int i = 0; i < arrayIds.Length; i++)
             {
                 _finamSecurities.Add(new FinamSecurity());
-                _finamSecurities[i].Code = arrayCodes[i]; 
+                _finamSecurities[i].Code = arrayCodes[i].TrimStart('\'').TrimEnd('\''); 
                 _finamSecurities[i].Decp = arrayDecp[i].Split(':')[1];
                 _finamSecurities[i].EmitentChild = arrayEmitentChild[i];
                 _finamSecurities[i].Id = arrayIds[i];
@@ -493,7 +493,7 @@ namespace OsEngine.Market.Servers.Finam
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 6)
                 {
-                    _finamSecurities[i].Market = "Мировые Индексы";
+                    _finamSecurities[i].Market = "Мировые индексы";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 24)
                 {
@@ -590,8 +590,8 @@ namespace OsEngine.Market.Servers.Finam
             for (int i = 0; i < _finamSecurities.Count; i++)
             {
                 Security sec = new Security();
-                sec.Name = _finamSecurities[i].Name;
-                sec.NameFull = _finamSecurities[i].Code;
+                sec.NameFull = _finamSecurities[i].Name;
+                sec.Name = _finamSecurities[i].Code;
                 sec.NameId = _finamSecurities[i].Id;
                 sec.NameClass = _finamSecurities[i].Market;
                 sec.PriceStep = 1;
