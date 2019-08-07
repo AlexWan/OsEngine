@@ -186,8 +186,10 @@ namespace OsEngine.Market.Servers.Tester
                     writer.WriteLine(_typeTesterData);
                     writer.WriteLine(_sourceDataType);
                     writer.WriteLine(_pathToFolder);
+                    writer.WriteLine(_slipageToStopOrder);
                     writer.WriteLine(_orderExecutionType);
                     writer.WriteLine(_profitMarketIsOn);
+
                     writer.Close();
                 }
             }
