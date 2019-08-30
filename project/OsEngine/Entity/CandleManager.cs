@@ -420,6 +420,14 @@ namespace OsEngine.Entity
                                 transaq.GetCandleHistory(series);
                             }
                         }
+                        else if (serverType == ServerType.Livecoin)
+                        {
+                            List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
+
+                            series.PreLoad(allTrades);
+                            series.UpdateAllCandles();
+                            series.IsStarted = true;
+                        }
                     }
                 }
             }

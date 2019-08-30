@@ -1051,7 +1051,10 @@ namespace OsEngine.Market.Servers.Binance
         {
             if (!_wsStreams.ContainsKey(security.Name))
             {
-                string urlStr = "wss://stream.binance.com:9443/stream?streams=" + security.Name.ToLower() + "@depth20/" +security.Name.ToLower() + "@trade";
+                string urlStr = "wss://stream.binance.com:9443/stream?streams=" 
+                                + security.Name.ToLower() 
+                                + "@depth20/" 
+                                + security.Name.ToLower() + "@trade";
 
                 _wsClient = new WebSocket(urlStr); // create web-socket / создаем вебсокет
 

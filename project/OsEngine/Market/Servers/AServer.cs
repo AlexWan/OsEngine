@@ -1367,8 +1367,10 @@ namespace OsEngine.Market.Servers
         {
             try
             {
-
-                myDepth.Time = ServerTime;
+                if (myDepth.Time == DateTime.MinValue)
+                {
+                    myDepth.Time = ServerTime;
+                }
 
                 if (NewMarketDepthEvent != null)
                 {

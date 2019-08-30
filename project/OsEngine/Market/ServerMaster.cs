@@ -20,6 +20,7 @@ using OsEngine.Market.Servers.BitStamp;
 using OsEngine.Market.Servers.Finam;
 using OsEngine.Market.Servers.InteractivBrokers;
 using OsEngine.Market.Servers.Kraken;
+using OsEngine.Market.Servers.Livecoin;
 using OsEngine.Market.Servers.Lmax;
 using OsEngine.Market.Servers.NinjaTrader;
 using OsEngine.Market.Servers.Oanda;
@@ -72,6 +73,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.BitStamp);
                 serverTypes.Add(ServerType.Bitfinex);
                 serverTypes.Add(ServerType.Kraken);
+                serverTypes.Add(ServerType.Livecoin);
 
                 serverTypes.Add(ServerType.InteractivBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
@@ -155,6 +157,10 @@ namespace OsEngine.Market
 
                 IServer newServer = null;
 
+                if (type == ServerType.Livecoin)
+                {
+                    newServer = new LivecoinServer();
+                }
                 if (type == ServerType.BitMax)
                 {
                     newServer = new BitMaxServer();
@@ -618,6 +624,12 @@ namespace OsEngine.Market
         /// Тип сервера не назначен
         /// </summary>
         None,
+
+        /// <summary>
+        /// Livecoin exchange
+        /// биржа Livecoin
+        /// </summary>
+        Livecoin,
 
         /// <summary>
         /// BitMax exchange

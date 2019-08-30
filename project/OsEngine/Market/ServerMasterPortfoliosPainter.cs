@@ -378,6 +378,8 @@ namespace OsEngine.Market
         /// </summary>
         private WindowsFormsHost _ordersHost;
 
+        private object _lockerOrders = new Object();
+
         /// <summary>
         /// new order on the server
         /// новый ордер в сервере
@@ -398,65 +400,75 @@ namespace OsEngine.Market
                     _orders = new List<Order>();
                 }
 
-                Order myOrder = _orders.Find(order1 => order1.NumberUser == order.NumberUser);
-
-                if (myOrder == null)
+                lock (_lockerOrders)
                 {
-                    _orders.Add(order);
-                }
-                else
-                {
-                    if (!string.IsNullOrWhiteSpace(order.NumberMarket))
-                    {
-                        myOrder.NumberMarket = order.NumberMarket;
-                    }
+                    Order myOrder = _orders.Find(order1 => order1.NumberUser == order.NumberUser);
 
-                    if (order.Price != 0)
+                    if (myOrder == null)
                     {
-                        myOrder.Price = order.Price;
+                        _orders.Add(order);
                     }
+                    else
+                    {
+                        if (!string.IsNullOrWhiteSpace(order.NumberMarket))
+                        {
+                            myOrder.NumberMarket = order.NumberMarket;
+                        }
 
-                    if (order.Side != Side.None)
-                    {
-                        myOrder.Side = order.Side;
-                    }
+                        if (order.Price != 0)
+                        {
+                            myOrder.Price = order.Price;
+                        }
 
-                    if (!string.IsNullOrWhiteSpace(order.PortfolioNumber))
-                    {
-                        myOrder.PortfolioNumber = order.PortfolioNumber;
-                    }
+                        if (order.Side != Side.None)
+                        {
+                            myOrder.Side = order.Side;
+                        }
 
-                    if (order.Volume != 0)
-                    {
-                        myOrder.Volume = order.Volume;
-                    }
+                        if (!string.IsNullOrWhiteSpace(order.PortfolioNumber))
+                        {
+                            myOrder.PortfolioNumber = order.PortfolioNumber;
+                        }
 
-                    if (order.VolumeExecute != 0)
-                    {
-                        myOrder.VolumeExecute = order.VolumeExecute;
-                    }
+                        if (order.Volume != 0)
+                        {
+                            myOrder.Volume = order.Volume;
+                        }
 
-                    if (order.State != OrderStateType.None)
-                    {
-                        myOrder.State = order.State;
-                    }
+                        if (order.VolumeExecute != 0)
+                        {
+                            myOrder.VolumeExecute = order.VolumeExecute;
+                        }
 
-                    if (string.IsNullOrWhiteSpace(myOrder.SecurityNameCode))
-                    {
-                        myOrder.SecurityNameCode = order.SecurityNameCode;
+                        if (order.State != OrderStateType.None)
+                        {
+                            myOrder.State = order.State;
+                        }
+
+                        if (string.IsNullOrWhiteSpace(myOrder.SecurityNameCode))
+                        {
+                            myOrder.SecurityNameCode = order.SecurityNameCode;
+                        }
+                        if (myOrder.TimeCallBack == DateTime.MinValue)
+                        {
+                            myOrder.TimeCallBack = order.TimeCallBack;
+                        }
                     }
-                    if (myOrder.TimeCallBack == DateTime.MinValue)
+                    if (_orders.Count > 1000)
                     {
-                        myOrder.TimeCallBack = order.TimeCallBack;
+                        _orders.RemoveAt(0);
                     }
                 }
             }
             catch (Exception error)
             {
+                _orders.Clear();
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
             _needToPaintOrders = true;
         }
+
+        private object _lockerTrades = new Object();
 
         /// <summary>
         /// my new trade on the server
@@ -470,22 +482,25 @@ namespace OsEngine.Market
                 return;
             }
 
-            Order myOrder = _orders.Find(order1 => order1.NumberMarket == trade.NumberOrderParent);
-
-            if (myOrder == null)
+            lock (_lockerTrades)
             {
-                return;
-            }
+                Order myOrder = _orders.Find(order1 => order1.NumberMarket == trade.NumberOrderParent);
 
-            if (myOrder.ServerType == ServerType.Tester ||
-                myOrder.ServerType == ServerType.Optimizer ||
-                myOrder.ServerType == ServerType.Miner)
-            {
-                return;
-            }
+                if (myOrder == null)
+                {
+                    return;
+                }
 
-            _orders.Remove(myOrder);
-            _needToPaintOrders = true;
+                if (myOrder.ServerType == ServerType.Tester ||
+                    myOrder.ServerType == ServerType.Optimizer ||
+                    myOrder.ServerType == ServerType.Miner)
+                {
+                    return;
+                }
+
+                _orders.Remove(myOrder);
+                _needToPaintOrders = true;
+            }
         }
 
         /// <summary>

@@ -74,13 +74,16 @@
       <HintPath>bin\Debug\LmaxClientLibrary.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\Debug\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="OandaV20, Version=1.0.6457.18210, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\OsEngineTepm\7 OANDA\OandaV20-master\OkonkwoOandaV20\OkonkwoOandaV20\bin\Debug\OandaV20.dll</HintPath>
+    </Reference>
+    <Reference Include="protobuf-net">
+      <HintPath>..\..\..\Роботы на заказ\62 Ликвидность BShort\devAzure\OsEngine\bin\Debug\protobuf-net.dll</HintPath>
     </Reference>
     <Reference Include="PusherClient">
       <HintPath>..\..\..\OsEngineTepm\12BitStamp\pusher-websocket-dotnet-master\pusher-websocket-dotnet-master\PusherClient\bin\Debug\PusherClient.dll</HintPath>
@@ -107,6 +110,9 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="websocket-sharp">
+      <HintPath>..\..\..\Роботы на заказ\62 Ликвидность BShort\devAzure\OsEngine\bin\Debug\websocket-sharp.dll</HintPath>
     </Reference>
     <Reference Include="WebSocket4Net">
       <HintPath>..\..\..\OsEngineTepm\12BitStamp\pusher-websocket-dotnet-master\pusher-websocket-dotnet-master\PusherClient\bin\Debug\WebSocket4Net.dll</HintPath>
@@ -433,6 +439,10 @@
     <Compile Include="Market\Servers\Kraken\KrakenServerUi.xaml.cs">
       <DependentUpon>KrakenServerUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\Servers\Livecoin\LivecoinClient.cs" />
+    <Compile Include="Market\Servers\Livecoin\LivecoinEntity\LivecoinEntity.cs" />
+    <Compile Include="Market\Servers\Livecoin\LivecoinEntity\protobuf\ProtoB.cs" />
+    <Compile Include="Market\Servers\Livecoin\LivecoinServer.cs" />
     <Compile Include="Market\Servers\Lmax\LmaxEntity\FixMessageCreator.cs" />
     <Compile Include="Market\Servers\Lmax\LmaxEntity\FixMessageParser.cs" />
     <Compile Include="Market\Servers\Lmax\LmaxEntity\RejectReasons.cs" />

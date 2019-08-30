@@ -7,6 +7,10 @@ namespace OsEngine.Entity
     {
         public static decimal ToDecimal(this string value)
         {
+            if (value.Contains("E"))
+            {
+                return Convert.ToDecimal(value.ToDouble());
+            }
             try
             {
                 return Convert.ToDecimal(value.Replace(",",
