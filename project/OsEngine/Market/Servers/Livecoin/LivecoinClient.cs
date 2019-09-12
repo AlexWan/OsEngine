@@ -318,6 +318,8 @@ namespace OsEngine.Market.Servers.Livecoin
 
         public void Subscribe(string security)
         {
+            security = security.Replace("_", "/");
+
             var orderBookMessage = new protobuf.ws.SubscribeOrderBookChannelRequest
             {
                 CurrencyPair = security,
@@ -388,7 +390,7 @@ namespace OsEngine.Market.Servers.Livecoin
         {
             var newOrder = new protobuf.ws.PutLimitOrderRequest
             {
-                CurrencyPair = order.SecurityNameCode,
+                CurrencyPair = order.SecurityNameCode.Replace("_","/"),
                 Amount = order.Volume.ToString(),
                 order_type = order.Side == Side.Sell ? protobuf.ws.PutLimitOrderRequest.OrderType.Ask : protobuf.ws.PutLimitOrderRequest.OrderType.Bid,
                 Price = order.Price.ToString(),
@@ -431,7 +433,7 @@ namespace OsEngine.Market.Servers.Livecoin
                     Now = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds,
                     Ttl = ttl
                 },
-                CurrencyPair = order.SecurityNameCode,
+                CurrencyPair = order.SecurityNameCode.Replace("_", "/"),
                 Id = Convert.ToInt64(order.NumberMarket)
             };
 
