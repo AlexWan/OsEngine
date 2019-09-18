@@ -420,7 +420,8 @@ namespace OsEngine.Entity
                                 transaq.GetCandleHistory(series);
                             }
                         }
-                        else if (serverType == ServerType.Livecoin)
+                        else if (serverType == ServerType.Livecoin ||
+                                 serverType == ServerType.Exmo)
                         {
                             List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
 

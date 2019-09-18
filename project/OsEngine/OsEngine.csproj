@@ -412,6 +412,8 @@
     <Compile Include="Market\Servers\Entity\OrderSender.cs" />
     <Compile Include="Market\Servers\Entity\PositionOnBoardSander.cs" />
     <Compile Include="Market\Servers\Entity\ServerParameter.cs" />
+    <Compile Include="Market\Servers\ExMo\ExmoClient.cs" />
+    <Compile Include="Market\Servers\ExMo\ExmoServer.cs" />
     <Compile Include="Market\Servers\Finam\FinamServer.cs" />
     <Compile Include="Market\Servers\Finam\FinamServerUi.xaml.cs">
       <DependentUpon>FinamServerUi.xaml</DependentUpon>

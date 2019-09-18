@@ -285,7 +285,7 @@ namespace OsEngine.Entity
                     {
                         return;
                     }
-                    price = Convert.ToDecimal(_glassBox.Rows[_glassBox.CurrentCell.RowIndex].Cells[2].Value);
+                    price = _glassBox.Rows[_glassBox.CurrentCell.RowIndex].Cells[2].Value.ToString().ToDecimal();
                 }
                 catch (Exception)
                 {

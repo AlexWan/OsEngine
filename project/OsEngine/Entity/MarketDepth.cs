@@ -37,15 +37,14 @@ namespace OsEngine.Entity
         /// total sales volume
         /// суммарный объём в продажах
         /// </summary>
-        public int AskSummVolume
+        public decimal AskSummVolume
         {
-
             get
             {
-                int vol = 0;
+                decimal vol = 0;
                 for (int i = 0; Asks != null && i < Asks.Count; i++)
                 {
-                    vol += Convert.ToInt32(Asks[i].Ask);
+                    vol += Asks[i].Ask;
                 }
                 return vol;
             }
@@ -55,14 +54,14 @@ namespace OsEngine.Entity
         /// total amount in purchases
         /// суммарный объём в покупках
         /// </summary>
-        public int BidSummVolume
+        public decimal BidSummVolume
         {
             get
             {
-                int vol = 0;
+                decimal vol = 0;
                 for (int i = 0; Bids != null && i < Bids.Count; i++)
                 {
-                    vol += Convert.ToInt32(Bids[i].Bid);
+                    vol += Bids[i].Bid;
                 }
                 return vol;
             }

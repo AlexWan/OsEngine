@@ -17,6 +17,7 @@ using OsEngine.Market.Servers.Bitfinex;
 using OsEngine.Market.Servers.BitMax;
 using OsEngine.Market.Servers.BitMex;
 using OsEngine.Market.Servers.BitStamp;
+using OsEngine.Market.Servers.ExMo;
 using OsEngine.Market.Servers.Finam;
 using OsEngine.Market.Servers.InteractivBrokers;
 using OsEngine.Market.Servers.Kraken;
@@ -74,6 +75,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Bitfinex);
                 serverTypes.Add(ServerType.Kraken);
                 serverTypes.Add(ServerType.Livecoin);
+                serverTypes.Add(ServerType.Exmo);
 
                 serverTypes.Add(ServerType.InteractivBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
@@ -157,6 +159,10 @@ namespace OsEngine.Market
 
                 IServer newServer = null;
 
+                if (type == ServerType.Exmo)
+                {
+                    newServer = new ExmoServer();
+                }
                 if (type == ServerType.Livecoin)
                 {
                     newServer = new LivecoinServer();
@@ -660,6 +666,12 @@ namespace OsEngine.Market
         /// биржа криптовалют Binance
         /// </summary>
         Binance,
+
+        /// <summary>
+        /// cryptocurrency exchange Exmo
+        /// биржа криптовалют Exmo
+        /// </summary>
+        Exmo,
 
         /// <summary>
         /// terminal Ninja Trader
