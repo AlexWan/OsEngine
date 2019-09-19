@@ -32,6 +32,7 @@ namespace OsEngine.Market.Servers.ExMo
         RateGate _rateGate;
 
         public string _key;
+
         public string _secret;
 
         private string _url = "http://api.exmo.me/v1/";

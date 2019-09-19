@@ -182,8 +182,7 @@ namespace OsEngine.Market.Servers.ExMo
         /// </summary>
         public ServerConnectStatus ServerStatus { get; set; }
 
-        //parsing incoming data
-        // разбор входящих данных
+        //parsing incoming data разбор входящих данных
 
         void _client_MyOrderEvent(Order order)
         {
@@ -201,12 +200,6 @@ namespace OsEngine.Market.Servers.ExMo
             }
         }
 
-        /// <summary>
-        /// multi-threaded access locker to ticks
-        /// блокиратор многопоточного доступа к тикам
-        /// </summary>
-        private readonly object _newTradesLoker = new object();
-
         void _client_NewTradesEvent(List<Trade> trades)
         {
             for (int i = 0; i < trades.Count; i++)
@@ -217,12 +210,6 @@ namespace OsEngine.Market.Servers.ExMo
                 }
             }
         }
-
-        /// <summary>
-        /// all depths
-        /// все стаканы
-        /// </summary>
-        private List<MarketDepth> _depths;
 
         void _client_UpdateMarketDepth(MarketDepth myDepth)
         {
@@ -245,7 +232,7 @@ namespace OsEngine.Market.Servers.ExMo
                 {
                     _portfolios[i] = portfs;
                     isInArray = true;
-                    continue;
+                    break;
                 }
             }
 
@@ -290,8 +277,7 @@ namespace OsEngine.Market.Servers.ExMo
             ServerStatus = ServerConnectStatus.Connect;
         }
 
-        // outgoing messages
-        // исходящие события
+        // outgoing messages исходящие события
 
         /// <summary>
         /// called when order changed
