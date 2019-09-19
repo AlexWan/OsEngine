@@ -32,6 +32,7 @@ using OsEngine.Market.Servers.QuikLua;
 using OsEngine.Market.Servers.SmartCom;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.Market.Servers.Transaq;
+using OsEngine.Market.Servers.ZB;
 using MessageBox = System.Windows.MessageBox;
 
 namespace OsEngine.Market
@@ -76,6 +77,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Kraken);
                 serverTypes.Add(ServerType.Livecoin);
                 serverTypes.Add(ServerType.Exmo);
+                serverTypes.Add(ServerType.Zb);
 
                 serverTypes.Add(ServerType.InteractivBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
@@ -159,6 +161,10 @@ namespace OsEngine.Market
 
                 IServer newServer = null;
 
+                if (type == ServerType.Zb)
+                {
+                    newServer = new ZbServer();
+                }
                 if (type == ServerType.Exmo)
                 {
                     newServer = new ExmoServer();
@@ -630,6 +636,12 @@ namespace OsEngine.Market
         /// Тип сервера не назначен
         /// </summary>
         None,
+
+        /// <summary>
+        /// cryptocurrency exchange ZB
+        /// биржа криптовалют ZB
+        /// </summary>
+        Zb,
 
         /// <summary>
         /// Livecoin exchange

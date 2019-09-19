@@ -364,6 +364,7 @@
     <Compile Include="Market\Servers\AServerParameterUi.xaml.cs">
       <DependentUpon>AServerParameterUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\Servers\AServerRealization.cs" />
     <Compile Include="Market\Servers\AServerTests.cs" />
     <Compile Include="Market\Servers\AstsBridge\AstsBridgeWrapper.cs" />
     <Compile Include="Market\Servers\AstsBridge\AstsBridgeServer.cs" />
@@ -536,6 +537,14 @@
     <Compile Include="Market\Servers\Transaq\TransaqEntity\TransaqPortfolio.cs" />
     <Compile Include="Market\Servers\Transaq\TransaqEntity\TransaqPositions.cs" />
     <Compile Include="Market\Servers\Transaq\TransaqServer.cs" />
+    <Compile Include="Market\Servers\ZB\EntityCreators\ZbMarketDepthCreator.cs" />
+    <Compile Include="Market\Servers\ZB\EntityCreators\ZbOrderCreator.cs" />
+    <Compile Include="Market\Servers\ZB\EntityCreators\ZbPortfolioCreator.cs" />
+    <Compile Include="Market\Servers\ZB\EntityCreators\ZbSecurityCreator.cs" />
+    <Compile Include="Market\Servers\ZB\EntityCreators\ZbTradesCreator.cs" />
+    <Compile Include="Market\Servers\ZB\ZBServer.cs" />
+    <Compile Include="Market\Services\CandlesCreator.cs" />
+    <Compile Include="Market\Services\WsSource.cs" />
     <Compile Include="OsMiner\OsMinerMaster.cs" />
     <Compile Include="OsMiner\OsMinerSet.cs" />
     <Compile Include="OsMiner\OsMinerSetUi.xaml.cs">

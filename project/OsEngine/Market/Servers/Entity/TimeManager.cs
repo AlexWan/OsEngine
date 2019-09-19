@@ -15,6 +15,11 @@ namespace OsEngine.Market.Servers.Entity
             return new DateTime(1970, 1, 1).AddMilliseconds(timeStamp);
         }
 
+        public static DateTime GetDateTimeFromTimeStampSeconds(long timeStamp)
+        {
+            return new DateTime(1970, 1, 1).AddSeconds(timeStamp);
+        }
+
         public static long GetUnixTimeStampSeconds()
         {
             return Convert.ToInt64(GetUnixTimeStamp().TotalSeconds);
