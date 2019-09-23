@@ -810,6 +810,7 @@ namespace OsEngine.Market.Connectors
                     // если строим данные на тиках или стаканах, то можно использовать любой ТФ
                     // менеджер свечей построит любой
                     ComboBoxTimeFrame.Items.Add(TimeFrame.Day);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Hour4);
                     ComboBoxTimeFrame.Items.Add(TimeFrame.Hour2);
                     ComboBoxTimeFrame.Items.Add(TimeFrame.Hour1);
                     ComboBoxTimeFrame.Items.Add(TimeFrame.Min45);
@@ -851,6 +852,7 @@ namespace OsEngine.Market.Connectors
             else
             {
                 ComboBoxTimeFrame.Items.Add(TimeFrame.Day);
+                ComboBoxTimeFrame.Items.Add(TimeFrame.Hour4);
                 ComboBoxTimeFrame.Items.Add(TimeFrame.Hour2);
                 ComboBoxTimeFrame.Items.Add(TimeFrame.Hour1);
                 ComboBoxTimeFrame.Items.Add(TimeFrame.Min45);

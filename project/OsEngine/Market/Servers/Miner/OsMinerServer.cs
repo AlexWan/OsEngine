@@ -850,6 +850,10 @@ namespace OsEngine.Market.Servers.Miner
             {
                 timeFrame = TimeFrame.Hour2;
             }
+            else if (frameSpan == new TimeSpan(0, 4, 0, 0))
+            {
+                timeFrame = TimeFrame.Hour4;
+            }
             else if (frameSpan == new TimeSpan(24, 0, 0, 0))
             {
                 timeFrame = TimeFrame.Day;
