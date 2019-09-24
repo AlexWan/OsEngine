@@ -71,6 +71,7 @@ namespace OsEngine.OsData
             CheckBoxTf30MinuteIsOn.IsChecked = set.Tf30MinuteIsOn;
             CheckBoxTf1HourIsOn.IsChecked = set.Tf1HourIsOn;
             CheckBoxTf2HourIsOn.IsChecked = set.Tf2HourIsOn;
+            CheckBoxTf4HourIsOn.IsChecked = set.Tf4HourIsOn;
             CheckBoxTfTickIsOn.IsChecked = set.TfTickIsOn;
             CheckBoxTfMarketDepthIsOn.IsChecked = set.TfMarketDepthIsOn;
 
@@ -168,6 +169,9 @@ namespace OsEngine.OsData
                     CheckBoxTf2HourIsOn.IsEnabled = false;
                     CheckBoxTf2HourIsOn.IsChecked = false;
 
+                    CheckBoxTf4HourIsOn.IsEnabled = false;
+                    CheckBoxTf4HourIsOn.IsChecked = false;
+
                     CheckBoxTf2MinuteIsOn.IsChecked = false;
                     CheckBoxTf2MinuteIsOn.IsEnabled = false;
 
@@ -177,6 +181,7 @@ namespace OsEngine.OsData
                 else
                 {
                     CheckBoxTf2HourIsOn.IsEnabled = true;
+                    CheckBoxTf4HourIsOn.IsEnabled = true;
                     CheckBoxTf2MinuteIsOn.IsEnabled = true;
                     CheckBoxTfMarketDepthIsOn.IsEnabled = true;
                 }
@@ -206,6 +211,7 @@ namespace OsEngine.OsData
             CheckBoxTf30MinuteIsOn.IsEnabled = false;
             CheckBoxTf1HourIsOn.IsEnabled = false;
             CheckBoxTf2HourIsOn.IsEnabled = false;
+            CheckBoxTf4HourIsOn.IsEnabled = false;
             CheckBoxTfTickIsOn.IsEnabled = false;
             CheckBoxTfMarketDepthIsOn.IsEnabled = false;
             ComboBoxSource.IsEnabled = false;
@@ -216,6 +222,7 @@ namespace OsEngine.OsData
             ComboBoxCandleCreateType.IsEnabled = false;
             ComboBoxMarketDepthDepth.IsEnabled = false;
             CheckBoxTf2HourIsOn.IsEnabled = false;
+            CheckBoxTf4HourIsOn.IsEnabled = false;
             CheckBoxTf2MinuteIsOn.IsEnabled = false;
             CheckBoxTfMarketDepthIsOn.IsEnabled = false;
             CheckBoxNeadToUpDate.IsEnabled = false;
@@ -243,6 +250,7 @@ namespace OsEngine.OsData
             CheckBoxTf30MinuteIsOn.IsEnabled = true;
             CheckBoxTf1HourIsOn.IsEnabled = true;
             CheckBoxTf2HourIsOn.IsEnabled = true;
+            CheckBoxTf4HourIsOn.IsEnabled = true;
             CheckBoxTfTickIsOn.IsEnabled = true;
             CheckBoxTfMarketDepthIsOn.IsEnabled = true;
             ComboBoxSource.IsEnabled = true;
@@ -296,6 +304,7 @@ namespace OsEngine.OsData
             _set.Tf30MinuteIsOn = CheckBoxTf30MinuteIsOn.IsChecked.Value;
             _set.Tf1HourIsOn = CheckBoxTf1HourIsOn.IsChecked.Value;
             _set.Tf2HourIsOn = CheckBoxTf2HourIsOn.IsChecked.Value;
+            _set.Tf4HourIsOn = CheckBoxTf4HourIsOn.IsChecked.Value;
             _set.TfTickIsOn = CheckBoxTfTickIsOn.IsChecked.Value;
             _set.TfMarketDepthIsOn = CheckBoxTfMarketDepthIsOn.IsChecked.Value;
             _set.MarketDepthDepth = Convert.ToInt32(ComboBoxMarketDepthDepth.SelectedValue.ToString());

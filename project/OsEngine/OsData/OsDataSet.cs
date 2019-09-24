@@ -102,6 +102,11 @@ namespace OsEngine.OsData
         public bool Tf2HourIsOn;
 
         /// <summary>
+        /// is the 4 hour timeframe enabled for saving/включен ли к сохранению 2 часовой ТаймФрейм
+        /// </summary>
+        public bool Tf4HourIsOn;
+
+        /// <summary>
         /// is tick timeframe enabled for saving/включен ли к сохранению тиковый ТаймФрейм
         /// </summary>
         public bool TfTickIsOn;
@@ -180,6 +185,7 @@ namespace OsEngine.OsData
             Tf30MinuteIsOn = true;
             Tf1HourIsOn = false;
             Tf2HourIsOn = false;
+            Tf4HourIsOn = false;
             TfTickIsOn = false;
             TfMarketDepthIsOn = false;
             Source = ServerType.None;
@@ -237,6 +243,7 @@ namespace OsEngine.OsData
                     writer.WriteLine(Tf30MinuteIsOn);
                     writer.WriteLine(Tf1HourIsOn);
                     writer.WriteLine(Tf2HourIsOn);
+                    writer.WriteLine(Tf4HourIsOn);
                     writer.WriteLine(TfTickIsOn);
                     writer.WriteLine(TfMarketDepthIsOn);
                     writer.WriteLine(Source);
@@ -299,6 +306,7 @@ namespace OsEngine.OsData
                     Tf30MinuteIsOn = Convert.ToBoolean(reader.ReadLine());
                     Tf1HourIsOn = Convert.ToBoolean(reader.ReadLine());
                     Tf2HourIsOn = Convert.ToBoolean(reader.ReadLine());
+                    Tf4HourIsOn = Convert.ToBoolean(reader.ReadLine());
                     TfTickIsOn = Convert.ToBoolean(reader.ReadLine());
                     TfMarketDepthIsOn = Convert.ToBoolean(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), out Source);
@@ -574,6 +582,10 @@ namespace OsEngine.OsData
                 {
                     LoadSetsFromFile(SecuritiesNames[i].Name.Replace("*", ""), TimeFrame.Hour2);
                 }
+                if (Tf4HourIsOn)
+                {
+                    LoadSetsFromFile(SecuritiesNames[i].Name.Replace("*", ""), TimeFrame.Hour4);
+                }
 
                 if (Tf1SecondIsOn)
                 {
@@ -810,6 +822,13 @@ namespace OsEngine.OsData
                 for (int i = 0; i < SecuritiesNames.Count; i++)
                 {
                     StartThis(SecuritiesNames[i], TimeFrame.Hour2);
+                }
+            }
+            if (Tf4HourIsOn)
+            {
+                for (int i = 0; i < SecuritiesNames.Count; i++)
+                {
+                    StartThis(SecuritiesNames[i], TimeFrame.Hour4);
                 }
             }
             if (TfMarketDepthIsOn)
@@ -1762,6 +1781,12 @@ namespace OsEngine.OsData
                 {
                     _comboBoxTimeFrame.Items.Add(TimeFrame.Hour2);
                     _comboBoxTimeFrame.SelectedItem = TimeFrame.Hour2;
+                }
+
+                if (Tf4HourIsOn)
+                {
+                    _comboBoxTimeFrame.Items.Add(TimeFrame.Hour4);
+                    _comboBoxTimeFrame.SelectedItem = TimeFrame.Hour4;
                 }
 
                 if (Tf1MinuteIsOn)

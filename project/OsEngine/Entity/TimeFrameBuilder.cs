@@ -225,6 +225,10 @@ namespace OsEngine.Entity
                         {
                             _timeFrameSpan = new TimeSpan(0, 2, 0, 0);
                         }
+                        else if (value == TimeFrame.Hour4)
+                        {
+                            _timeFrameSpan = new TimeSpan(0, 4, 0, 0);
+                        }
                         else if (value == TimeFrame.Day)
                         {
                             _timeFrameSpan = new TimeSpan(0, 24, 0, 0);
@@ -544,6 +548,11 @@ namespace OsEngine.Entity
         /// два часа
         /// </summary>
         Hour2,
+        /// <summary>
+        /// two hours
+        /// два часа
+        /// </summary>
+        Hour4,
         /// <summary>
         /// day
         /// день

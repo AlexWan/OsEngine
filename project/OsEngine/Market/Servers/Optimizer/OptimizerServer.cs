@@ -1306,6 +1306,10 @@ namespace OsEngine.Market.Servers.Optimizer
             {
                 result = new TimeSpan(0, 2, 0, 0);
             }
+            if (frame == TimeFrame.Hour4)
+            {
+                result = new TimeSpan(0, 4, 0, 0);
+            }
             if (frame == TimeFrame.Min1)
             {
                 result = new TimeSpan(0, 0, 1, 0);
