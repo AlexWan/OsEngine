@@ -99,6 +99,16 @@ namespace OsEngine.Market.Servers
             get { return _serverRealization; }
         }
 
+        private  double _waitTimeAfterFirstStart = 60;
+
+        /// <summary>
+        /// время ожиадания после старта сервера, по прошествии которого можно выставлять ордера
+        /// </summary>
+        protected double WaitTimeAfterFirstStart
+        {
+            set { _waitTimeAfterFirstStart = value; }
+        }
+
         private IServerRealization _serverRealization;
 
         /// <summary>
@@ -1646,7 +1656,7 @@ namespace OsEngine.Market.Servers
         {
             while (true)
             {
-                if (LastStartServerTime.AddSeconds(30) > DateTime.Now)
+                if (LastStartServerTime.AddSeconds(_waitTimeAfterFirstStart) > DateTime.Now)
                 {
                     Thread.Sleep(1000);
                     continue;
@@ -1729,7 +1739,7 @@ namespace OsEngine.Market.Servers
             {
                 UserSetOrderOnExecute(order);
             }
-            if (LastStartServerTime.AddMinutes(1) > DateTime.Now)
+            if (LastStartServerTime.AddSeconds(_waitTimeAfterFirstStart) > DateTime.Now)
             {
                 order.State = OrderStateType.Fail;
                 _ordersToSend.Enqueue(order);

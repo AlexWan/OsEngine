@@ -515,49 +515,14 @@ namespace OsEngine.Market.Servers.BitMax
                 newSec.Decimals = product.priceScale;
                 newSec.SecurityType = SecurityType.CurrencyPair;
                 newSec.State = product.status == "Normal" ? SecurityStateType.Activ : SecurityStateType.Close;
-                newSec.Lot = GetValueByDecimals(product.qtyScale);
-                newSec.PriceStep = GetValueByDecimals(product.priceScale);
+                newSec.Lot = product.qtyScale.GetValueByDecimals();
+                newSec.PriceStep = product.priceScale.GetValueByDecimals();
                 newSec.PriceStepCost = newSec.PriceStep;
 
                 securities.Add(newSec);
             }
 
             SecurityEvent?.Invoke(securities);
-        }
-
-        /// <summary>
-        /// получить точность шкалы на основании количества знаков после запятой
-        /// </summary>
-        /// <param name="decimals">количество знаков после запятой</param>
-        private decimal GetValueByDecimals(int decimals)
-        {
-            switch (decimals)
-            {
-                case 0:
-                    return 1;
-                case 1:
-                    return 0.1m;
-                case 2:
-                    return 0.01m;
-                case 3:
-                    return 0.001m;
-                case 4:
-                    return 0.0001m;
-                case 5:
-                    return 0.00001m;
-                case 6:
-                    return 0.000001m;
-                case 7:
-                    return 0.0000001m;
-                case 8:
-                    return 0.00000001m;
-                case 9:
-                    return 0.000000001m;
-                case 10:
-                    return 0.0000000001m;
-                default:
-                    return 0;
-            }
         }
 
         /// <summary>

@@ -423,6 +423,12 @@
     <Compile Include="Market\Servers\FixProtocolEntities\FixEntity.cs" />
     <Compile Include="Market\Servers\FixProtocolEntities\FixMessage.cs" />
     <Compile Include="Market\Servers\FixProtocolEntities\StandartHeaderSettings.cs" />
+    <Compile Include="Market\Servers\GateIo\EntityCreators\GateMarketDepthCreator.cs" />
+    <Compile Include="Market\Servers\GateIo\EntityCreators\GateOrderCreator.cs" />
+    <Compile Include="Market\Servers\GateIo\EntityCreators\GatePortfolioCreator.cs" />
+    <Compile Include="Market\Servers\GateIo\EntityCreators\GateSecurityCreator.cs" />
+    <Compile Include="Market\Servers\GateIo\EntityCreators\GateTradesCreator.cs" />
+    <Compile Include="Market\Servers\GateIo\GateIoServer.cs" />
     <Compile Include="Market\Servers\InteractivBrokers\IbClient.cs" />
     <Compile Include="Market\Servers\InteractivBrokers\IbContractStorageUi.xaml.cs">
       <DependentUpon>IbContractStorageUi.xaml</DependentUpon>
@@ -543,7 +549,9 @@
     <Compile Include="Market\Servers\ZB\EntityCreators\ZbSecurityCreator.cs" />
     <Compile Include="Market\Servers\ZB\EntityCreators\ZbTradesCreator.cs" />
     <Compile Include="Market\Servers\ZB\ZBServer.cs" />
+    <Compile Include="Market\Services\BaseMarketDepthUpdater.cs" />
     <Compile Include="Market\Services\CandlesCreator.cs" />
+    <Compile Include="Market\Services\RestChannel.cs" />
     <Compile Include="Market\Services\WsSource.cs" />
     <Compile Include="OsMiner\OsMinerMaster.cs" />
     <Compile Include="OsMiner\OsMinerSet.cs" />

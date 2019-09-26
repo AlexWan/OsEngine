@@ -19,6 +19,7 @@ using OsEngine.Market.Servers.BitMex;
 using OsEngine.Market.Servers.BitStamp;
 using OsEngine.Market.Servers.ExMo;
 using OsEngine.Market.Servers.Finam;
+using OsEngine.Market.Servers.GateIo;
 using OsEngine.Market.Servers.InteractivBrokers;
 using OsEngine.Market.Servers.Kraken;
 using OsEngine.Market.Servers.Livecoin;
@@ -62,6 +63,8 @@ namespace OsEngine.Market
             get
             {
                 List<ServerType> serverTypes = new List<ServerType>();
+
+                serverTypes.Add(ServerType.GateIo);
 
                 serverTypes.Add(ServerType.QuikDde);
                 serverTypes.Add(ServerType.QuikLua);
@@ -161,6 +164,10 @@ namespace OsEngine.Market
 
                 IServer newServer = null;
 
+                if (type == ServerType.GateIo)
+                {
+                    newServer = new GateIoServer();
+                }
                 if (type == ServerType.Zb)
                 {
                     newServer = new ZbServer();
@@ -636,6 +643,12 @@ namespace OsEngine.Market
         /// Тип сервера не назначен
         /// </summary>
         None,
+
+        /// <summary>
+        /// cryptocurrency exchange Gate.io
+        /// биржа криптовалют Gate.io
+        /// </summary>
+        GateIo,
 
         /// <summary>
         /// cryptocurrency exchange ZB
