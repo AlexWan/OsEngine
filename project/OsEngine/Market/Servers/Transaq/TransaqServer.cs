@@ -777,6 +777,10 @@ namespace OsEngine.Market.Servers.Transaq
                     newTf = 1440;
                     oldTf = 60;
                     return "4";
+                case TimeFrame.Hour4:
+                    newTf = 240;
+                    oldTf = 60;
+                    return "4";
                 default:
                     newTf = 0;
                     oldTf = 0;
