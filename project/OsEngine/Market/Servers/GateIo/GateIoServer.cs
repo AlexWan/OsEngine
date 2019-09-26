@@ -80,8 +80,6 @@ namespace OsEngine.Market.Servers.GateIo
             _marketDepthCreator = new GateMarketDepthCreator();
             _orderCreator = new GateOrderCreator(PortfolioNumber);
 
-            _restChannel = new RestChannel();
-
             _supportedIntervals = CreateIntervalDictionary();
         }
 
@@ -139,6 +137,8 @@ namespace OsEngine.Market.Servers.GateIo
             }
 
             StartMessageReader();
+
+            _restChannel = new RestChannel();
 
             _wsSource = new WsSource(WsUri);
             _wsSource.MessageEvent += WsSourceOnMessageEvent;
@@ -261,6 +261,10 @@ namespace OsEngine.Market.Servers.GateIo
                 {
                     await Task.Delay(50000, token);
 
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        continue;
+                    }
                     SendPing();
                 }
                 catch (TaskCanceledException)
