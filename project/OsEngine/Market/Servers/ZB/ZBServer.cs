@@ -453,7 +453,7 @@ namespace OsEngine.Market.Servers.ZB
         private string GetHashSecretKey(string secretKey)
         {
             byte[] computedHash;
-            //5b1f87b2375ad8e46abf5e8ac4577c50dcee7989
+
             using (var hash = new SHA1CryptoServiceProvider())
             {
                 computedHash = hash.ComputeHash(Encoding.UTF8.GetBytes(secretKey));
