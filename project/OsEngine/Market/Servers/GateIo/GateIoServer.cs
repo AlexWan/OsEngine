@@ -115,7 +115,7 @@ namespace OsEngine.Market.Servers.GateIo
             }
             catch (Exception e)
             {
-                SendLogMessage("Zb connect error: " + e.Message, LogMessageType.Error);
+                SendLogMessage("Gate io connect error: " + e.Message, LogMessageType.Error);
             }
         }
 
