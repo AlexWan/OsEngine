@@ -590,8 +590,8 @@ namespace OsEngine.Market.Servers.Finam
             for (int i = 0; i < _finamSecurities.Count; i++)
             {
                 Security sec = new Security();
-                sec.NameFull = _finamSecurities[i].Name;
-                sec.Name = _finamSecurities[i].Code;
+                sec.NameFull = _finamSecurities[i].Code;
+                sec.Name = _finamSecurities[i].Name;
                 sec.NameId = _finamSecurities[i].Id;
                 sec.NameClass = _finamSecurities[i].Market;
                 sec.PriceStep = 1;
