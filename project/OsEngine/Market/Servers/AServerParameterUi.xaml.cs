@@ -52,12 +52,12 @@ namespace OsEngine.Market.Servers
             LabelStatus.Content = _server.ServerStatus;
         }
 
-        private DataGridView _newGrid; 
+        private DataGridView _newGrid;
 
         public void CreateParamDataGrid()
         {
             _newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.None);
-            
+
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = _newGrid.DefaultCellStyle;
 
@@ -72,7 +72,7 @@ namespace OsEngine.Market.Servers
             colu.CellTemplate = cell0;
             colu.HeaderText = OsLocalization.Market.GridColumn2;
             colu.ReadOnly = false;
-            
+
             colu.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
             _newGrid.Columns.Add(colu);
@@ -90,7 +90,7 @@ namespace OsEngine.Market.Servers
 
             _newGrid.Click += _newGrid_Click;
         }
-        
+
         public void UpdateParamDataGrid()
         {
             List<IServerParameter> param = _server.ServerParameters;
@@ -152,7 +152,7 @@ namespace OsEngine.Market.Servers
             DataGridViewButtonCell button = new DataGridViewButtonCell();
             button.Value = "Настроить";
 
-            nRow.Cells.Add( button);
+            nRow.Cells.Add(button);
             nRow.Cells[1].Value = param.Value;
 
             return nRow;
@@ -195,7 +195,7 @@ namespace OsEngine.Market.Servers
             checkBox.Items.Add("True");
             checkBox.Items.Add("False");
 
-            if(param.Value)
+            if (param.Value)
             {
                 checkBox.Value = "True";
             }
@@ -203,10 +203,10 @@ namespace OsEngine.Market.Servers
             {
                 checkBox.Value = "False";
             }
-            
+
 
             nRow.Cells.Add(checkBox);
-           // nRow.Cells[1].Value = param.Value;
+            // nRow.Cells[1].Value = param.Value;
 
             return nRow;
         }
@@ -220,7 +220,7 @@ namespace OsEngine.Market.Servers
         {
             var s = e.GetType();
 
-            var mouse = (MouseEventArgs) e;
+            var mouse = (MouseEventArgs)e;
 
             int clickRow = _newGrid.SelectedCells[0].RowIndex;
 
@@ -252,11 +252,11 @@ namespace OsEngine.Market.Servers
 
                 if (param[i].Type == ServerParameterType.String)
                 {
-                    ((ServerParameterString) param[i]).Value = _newGrid.Rows[i].Cells[1].Value.ToString();
+                    ((ServerParameterString)param[i]).Value = _newGrid.Rows[i].Cells[1].Value.ToString();
                 }
                 else if (param[i].Type == ServerParameterType.Password)
                 {
-                    string str = _newGrid.Rows[i].Cells[1].Value.ToString().Replace("*","");
+                    string str = _newGrid.Rows[i].Cells[1].Value.ToString().Replace("*", "");
                     if (str != "")
                     {
                         ((ServerParameterPassword)param[i]).Value = str;
@@ -281,7 +281,7 @@ namespace OsEngine.Market.Servers
                         _newGrid.Rows[i].Cells[1].Value = "0";
                     }
                     string str = _newGrid.Rows[i].Cells[1].Value.ToString();
-                    ((ServerParameterDecimal) param[i]).Value =
+                    ((ServerParameterDecimal)param[i]).Value =
                         Convert.ToDecimal(str.Replace(".",
                             CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator));
 
@@ -294,7 +294,7 @@ namespace OsEngine.Market.Servers
                     }
 
                     string str = _newGrid.Rows[i].Cells[1].Value.ToString();
-                    ((ServerParameterInt) param[i]).Value = Convert.ToInt32(str);
+                    ((ServerParameterInt)param[i]).Value = Convert.ToInt32(str);
                 }
 
             }

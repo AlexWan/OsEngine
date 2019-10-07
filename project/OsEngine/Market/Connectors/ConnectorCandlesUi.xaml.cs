@@ -166,7 +166,7 @@ namespace OsEngine.Market.Connectors
             }
             catch (Exception error)
             {
-                 MessageBox.Show(error.ToString());
+                MessageBox.Show(error.ToString());
             }
         }
 
@@ -225,7 +225,7 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
                 if (
-                    
+
                         TextBoxReversCandlesPunktsBackMove.Text.ToDecimal() <= 0)
                 {
                     throw new Exception();
@@ -541,7 +541,7 @@ namespace OsEngine.Market.Connectors
         /// unload accounts to the form
         /// выгружает счета на форму
         /// </summary>
-        private void LoadPortfolioOnBox() 
+        private void LoadPortfolioOnBox()
         {
             try
             {
@@ -615,7 +615,7 @@ namespace OsEngine.Market.Connectors
                             break;
                         }
                     }
-                   
+
                 }
             }
             catch (Exception error)
@@ -741,7 +741,7 @@ namespace OsEngine.Market.Connectors
                 // грузим уже запущенные инструменты
 
                 string paper = _connectorBot.NamePaper;
-                
+
                 if (paper != null)
                 {
                     ComboBoxSecurities.Text = paper;
@@ -890,7 +890,7 @@ namespace OsEngine.Market.Connectors
                 _connectorBot.RencoPunktsToCloseCandleInRencoType = _rencoPuncts;
                 _connectorBot.CountTradeInCandle = _countTradesInCandle;
                 _connectorBot.VolumeToCloseCandleInVolumeType = _volumeToClose;
-                _connectorBot.DeltaPeriods= _deltaPeriods;
+                _connectorBot.DeltaPeriods = _deltaPeriods;
                 _connectorBot.RangeCandlesPunkts = _rangeCandlesPunkts;
                 _connectorBot.ReversCandlesPunktsMinMove = _reversCandlesPunktsMinMove;
                 _connectorBot.ReversCandlesPunktsBackMove = _reversCandlesPunktsBackMove;
@@ -1009,7 +1009,7 @@ namespace OsEngine.Market.Connectors
         {
             ComboBoxTimeFrame.Visibility = Visibility.Visible;
             ComboBoxTimeFrame.Margin = new Thickness(206, 297, 0, 0);
-            
+
             LabelTimeFrame.Visibility = Visibility.Visible;
             LabelTimeFrame.Margin = new Thickness(41, 297, 0, 0);
 
@@ -1050,7 +1050,7 @@ namespace OsEngine.Market.Connectors
 
             CheckBoxRencoIsBuildShadows.Visibility = Visibility.Visible;
             CheckBoxRencoIsBuildShadows.Margin = new Thickness(120, 327, 0, 0);
-            Height  = 445;
+            Height = 445;
         }
 
         private void CreateVolumeCandleSettings()
