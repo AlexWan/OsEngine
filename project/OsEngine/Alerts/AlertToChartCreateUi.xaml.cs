@@ -581,7 +581,7 @@ namespace OsEngine.Alerts
         private void SetReadyLineAlert(List<Candle> candles)
         {
             if (candles == null ||
-                 (candles[candles.Count - 1].TimeStart - candles[0].TimeStart).Hours < 1)
+                 (candles[candles.Count - 1].TimeStart - candles[0].TimeStart).TotalHours < 1)
             {
                 return;
             }

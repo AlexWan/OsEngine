@@ -552,6 +552,8 @@ namespace OsEngine.Market.Connectors
 // data subscription
 // подписка на данные 
 
+        private DateTime _lastReconnectTime;
+
         /// <summary>
         /// reconnect candle downloading
         /// переподключить скачивание свечек
@@ -560,6 +562,12 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
+                if (_lastReconnectTime.AddSeconds(1) > DateTime.Now)
+                {
+                    return;
+                }
+                _lastReconnectTime = DateTime.Now;
+
                 if (_mySeries != null)
                 {
                     _mySeries.СandleUpdeteEvent -= MySeries_СandleUpdeteEvent;
@@ -576,14 +584,21 @@ namespace OsEngine.Market.Connectors
                     ConnectorStartedReconnectEvent(NamePaper, TimeFrame, TimeFrameTimeSpan, PortfolioName, ServerType);
                 }
 
-
                 if (_subscrabler == null)
                 {
-                    _subscrabler = new Thread(Subscrable);
-                    _subscrabler.CurrentCulture = new CultureInfo("ru-RU");
-                    _subscrabler.IsBackground = true;
-                    _subscrabler.Name = "ConnectorSubscrableThread_" + UniqName; 
-                    _subscrabler.Start();
+                    try
+                    {
+                        _subscrabler = new Thread(Subscrable);
+                        _subscrabler.CurrentCulture = new CultureInfo("ru-RU");
+                        _subscrabler.IsBackground = true;
+                        _subscrabler.Name = "ConnectorSubscrableThread_" + UniqName;
+                        _subscrabler.Start();
+                    }
+                    catch
+                    {
+
+                    }
+
 
                     if (NewCandlesChangeEvent != null)
                     {
@@ -735,7 +750,6 @@ namespace OsEngine.Market.Connectors
 
         void _myServer_NeadToReconnectEvent()
         {
-
             Reconnect();
         }
 

@@ -1034,13 +1034,20 @@ namespace OsEngine.Market.Servers
             }
             for (int i = 0; i < securities.Count; i++)
             {
+                if (securities[i] == null)
+                {
+                    continue;
+                }
                 if (securities[i].NameId == null)
                 {
                     SendLogMessage(OsLocalization.Market.Message13, LogMessageType.Error);
                     return;
                 }
 
-                if (_securities.Find(s => s.NameId == securities[i].NameId) == null)
+                if (_securities.Find(s => 
+                        s != null && 
+                        s.NameId == securities[i].NameId &&
+                        s.Name == securities[i].Name) == null)
                 {
                     bool isInArray = false;
 

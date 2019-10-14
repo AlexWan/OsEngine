@@ -365,7 +365,8 @@ namespace OsEngine.Entity
 
                 for (int i = 0; _openOrders != null && i < _openOrders.Count; i++)
                 {
-                    if (_openOrders[i].State == OrderStateType.Activ)
+                    if (_openOrders[i].State == OrderStateType.Activ ||
+                        _openOrders[i].State == OrderStateType.Patrial)
                     {
                         volumeWait += _openOrders[i].Volume - _openOrders[i].VolumeExecute;
                     }
