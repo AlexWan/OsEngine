@@ -812,7 +812,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                         var rawCandles = GetBitfinexCandles("15m", securityName, count);
                         newCandles = TransformCandles(15, tf, rawCandles);
                     }
-                    else if (tf == 60 || tf == 120)
+                    else if (tf == 60 || tf == 120 || tf == 240)
                     {
                         // building candles from 1 hour / строим свечи из часовиков
                         var rawCandles = GetBitfinexCandles("1h", securityName, count);
@@ -919,6 +919,14 @@ namespace OsEngine.Market.Servers.Bitfinex
                 if (time.Minute % needTf != 0 && isStart)
                 {
                     continue;
+                }
+
+                if (needTf > 60)
+                {
+                    if (time.Hour % (needTf / 60) != 0 && isStart)
+                    {
+                        continue;
+                    }
                 }
 
                 isStart = false;
