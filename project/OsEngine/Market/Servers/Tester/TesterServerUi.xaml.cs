@@ -193,13 +193,13 @@ namespace OsEngine.Market.Servers.Tester
             CheckBoxSlipageStopOff.Content = OsLocalization.Market.Label35;
             CheckBoxSlipageLimitOn.Content = OsLocalization.Market.Label36;
             CheckBoxSlipageStopOn.Content = OsLocalization.Market.Label36;
-            CheckBoxExecutionOrderIntersection.Content = OsLocalization.Market.Label37;
-            CheckBoxExecutionOrderTuch.Content = OsLocalization.Market.Label38;
+            CheckBoxExecutionOrderIntersection.Content = OsLocalization.Market.Label38;
+            CheckBoxExecutionOrderTuch.Content = OsLocalization.Market.Label37;
             CheckBoxOnOffMarketPortfolio.Content = OsLocalization.Market.Label39;
             Label40.Content = OsLocalization.Market.Label40;
 
         }
-        
+
         /// <summary>
         /// window is closing
         /// окно закрывается
