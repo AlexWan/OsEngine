@@ -6,7 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms.Integration;
 using OsEngine.Language;
 using OsEngine.Logging;
@@ -64,7 +64,7 @@ namespace OsEngine.Market
             {
                 List<ServerType> serverTypes = new List<ServerType>();
 
-                serverTypes.Add(ServerType.GateIo);
+                
 
                 serverTypes.Add(ServerType.QuikDde);
                 serverTypes.Add(ServerType.QuikLua);
@@ -72,6 +72,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Plaza);
                 serverTypes.Add(ServerType.Transaq);
 
+                serverTypes.Add(ServerType.GateIo);
                 serverTypes.Add(ServerType.BitMax);
                 serverTypes.Add(ServerType.Binance);
                 serverTypes.Add(ServerType.BitMex);
@@ -334,10 +335,9 @@ namespace OsEngine.Market
         public static void ActivateAutoConnection()
         {
             Load();
-            Thread starterThread = new Thread(ThreadStarterWorkArea);
-            starterThread.IsBackground = true;
-            starterThread.Name = "SeverMasterAutoStartThread";
-            starterThread.Start();
+
+            Task task = new Task(ThreadStarterWorkArea);
+            task.Start();
         }
 
         private static ServerMasterPortfoliosPainter _painter;
@@ -430,12 +430,13 @@ namespace OsEngine.Market
         /// work place of the thread that connects our servers in auto mode
         /// место работы потока который подключает наши сервера в авто режиме
         /// </summary>
-        private static void ThreadStarterWorkArea()
+        private static async void ThreadStarterWorkArea()
         {
-            Thread.Sleep(20000);
+            await Task.Delay(20000);
+
             while (true)
             {
-                Thread.Sleep(5000);
+                await Task.Delay(5000);
 
                 if (!MainWindow.ProccesIsWorked)
                 {

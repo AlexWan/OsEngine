@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Threading;
+using System.Threading.Tasks;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
@@ -29,7 +29,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// revocation thread
         /// поток отзывающий ордера
         /// </summary>
-        public static Thread Watcher;
+        public static Task Watcher;
 
         /// <summary>
         /// tabs that need to be checked
@@ -51,9 +51,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 {
                     return;
                 }
-                Watcher = new Thread(WatcherHome);
-                Watcher.Name = "BotManualControlThread";
-                Watcher.IsBackground = true;
+
+                Watcher = new Task(WatcherHome);
                 Watcher.Start();
             }
 
@@ -63,11 +62,11 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// place of work thread that monitors the execution of transactions
         /// место работы потока который следит за исполнением сделок
         /// </summary>
-        public static void WatcherHome()
+        public static async void WatcherHome()
         {
             while (true)
             {
-                Thread.Sleep(2000);
+                await Task.Delay(2000);
 
                 for (int i = 0; i < TabsToCheck.Count; i++)
                 {

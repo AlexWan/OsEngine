@@ -5,7 +5,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
@@ -27,10 +27,8 @@ namespace OsEngine.Market
         {
             ServerMaster.ServerCreateEvent += ServerMaster_ServerCreateEvent;
 
-            Thread painter = new Thread(PainterThreadArea);
-            painter.IsBackground = true;
-            painter.Name = "ServerMasterPortfoliosPainterThread";
-            painter.Start();
+            Task task = new Task(PainterThreadArea);
+            task.Start();
         }
 
         /// <summary>
@@ -160,11 +158,11 @@ namespace OsEngine.Market
 // work of thread that draws portfolios and orders
 // работа потока прорисовывающего портфели и ордера
 
-        private void PainterThreadArea()
+        private async void PainterThreadArea()
         {
             while (true)
             {
-               Thread.Sleep(1000);
+               await Task.Delay(1000);
 
                 if (MainWindow.ProccesIsWorked == false)
                 {

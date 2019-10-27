@@ -449,7 +449,14 @@ namespace OsEngine.Journal
         {
             try
             {
+                position.State = PositionStateType.Deleted;
+
                 _positionController.DeletePosition(position);
+
+                if (PositionStateChangeEvent != null)
+                {
+                    PositionStateChangeEvent(position);
+                }
             }
             catch (Exception error)
             {

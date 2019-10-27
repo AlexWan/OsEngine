@@ -7,7 +7,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Threading;
+using System.Threading.Tasks;
 using OsEngine.Entity;
 
 namespace OsEngine.Market.Connectors
@@ -27,16 +27,16 @@ namespace OsEngine.Market.Connectors
 
             if (_emulators.Count == 1)
             {
-                Thread worker = new Thread(WatcherThread);
-                worker.Start();
+                Task task = new Task(WatcherThread);
+                task.Start();
             }
         }
 
-        private static void WatcherThread()
+        private static async void WatcherThread()
         {
             while(true)
             {
-                Thread.Sleep(250);
+               await Task.Delay(250);
 
                 if (MainWindow.ProccesIsWorked == false)
                 {

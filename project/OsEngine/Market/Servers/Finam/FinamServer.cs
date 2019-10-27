@@ -589,6 +589,10 @@ namespace OsEngine.Market.Servers.Finam
 
             for (int i = 0; i < _finamSecurities.Count; i++)
             {
+                if (_finamSecurities[i].Name == "")
+                {
+                    continue;
+                }
                 Security sec = new Security();
                 sec.NameFull = _finamSecurities[i].Code;
                 sec.Name = _finamSecurities[i].Name;

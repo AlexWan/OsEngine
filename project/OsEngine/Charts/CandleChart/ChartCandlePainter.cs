@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Forms.Integration;
@@ -66,11 +66,8 @@ namespace OsEngine.Charts.CandleChart
 
                 _chart.MouseLeave += _chart_MouseLeave;
 
-                Thread painterThred = new Thread(PainterThreadArea);
-                painterThred.IsBackground = true;
-                painterThred.Name = name + "ChartPainterThread";
-                painterThred.Start();
-                
+                Task task = new Task(PainterThreadArea);
+                task.Start();               
             }
             catch (Exception error)
             {
@@ -849,11 +846,11 @@ namespace OsEngine.Charts.CandleChart
         /// the method in which the flow drawing chart works
         /// метод в котором работает поток прорисовывающий чарт
         /// </summary>
-        private void PainterThreadArea()
+        private async void PainterThreadArea()
         {
             while (true)
             {
-                Thread.Sleep(1000);
+                await Task.Delay(1000);
 
                 if (_neadToDelete)
                 {
@@ -873,7 +870,7 @@ namespace OsEngine.Charts.CandleChart
                 if (_lastTimeClear.AddSeconds(5) > DateTime.Now
                     && _startProgram != StartProgram.IsOsOptimizer)
                 {
-                    Thread.Sleep(5000);
+                    await Task.Delay(5000);
                     _candlesToPaint = new ConcurrentQueue<List<Candle>>();
                     _indicatorsToPaint = new ConcurrentQueue<IIndicatorCandle>();
                 }
@@ -1032,7 +1029,7 @@ namespace OsEngine.Charts.CandleChart
                 if (_startProgram == StartProgram.IsTester ||
                     _startProgram == StartProgram.IsOsOptimizer)
                 {
-                    Thread.Sleep(2000);
+                    await Task.Delay(2000);
                 }
             }
         }
@@ -3492,7 +3489,6 @@ namespace OsEngine.Charts.CandleChart
             {
                 try
                 {
-                    Thread.Sleep(100);
                     mySeries = _chart.Series.FindByName(name);
                 }
                 catch (Exception)
@@ -3521,7 +3517,6 @@ namespace OsEngine.Charts.CandleChart
             {
                 try
                 {
-                    Thread.Sleep(100);
                     myArea = _chart.ChartAreas.FindByName(name);
                 }
                 catch (Exception)

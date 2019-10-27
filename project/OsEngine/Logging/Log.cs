@@ -10,7 +10,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Media;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
@@ -42,7 +42,7 @@ namespace OsEngine.Logging
         /// thread
         /// поток 
         /// </summary>
-        public static Thread Watcher;
+        private static Task _watcher;
 
         /// <summary>
         /// logs that need to be serviced
@@ -60,15 +60,13 @@ namespace OsEngine.Logging
         {
             lock (_activatorLocker)
             {
-                if (Watcher != null)
+                if (_watcher != null)
                 {
                     return;
                 }
 
-                Watcher = new Thread(WatcherHome);
-                Watcher.Name = "LogSaveThread";
-                Watcher.IsBackground = true;
-                Watcher.Start();
+                _watcher = new Task(WatcherHome);
+                _watcher.Start();
             }
         }
 
@@ -76,11 +74,11 @@ namespace OsEngine.Logging
         /// work place of thread that save logs
         /// место работы потока который сохраняет логи
         /// </summary>
-        public static void WatcherHome()
+        public static async void WatcherHome()
         {
             while (true)
             {
-                Thread.Sleep(2000);
+                await Task.Delay(2000);
 
                 for (int i = 0; i < LogsToCheck.Count; i++)
                 {
@@ -109,7 +107,7 @@ namespace OsEngine.Logging
             _uniqName = uniqName;
             _startProgram = startProgram;
 
-            if (Watcher == null)
+            if (_watcher == null)
             {
                 Activate();
             }

@@ -7,7 +7,7 @@ using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels;
 using System;
 using System.Collections.Generic;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
@@ -94,10 +94,8 @@ namespace OsEngine.OsOptimizer
 
             _master.NeadToMoveUiToEvent += _master_NeadToMoveUiToEvent;
 
-            Thread proggressPainter = new Thread(PainterProgressArea);
-            proggressPainter.Name = "ProggressPainter";
-            proggressPainter.IsBackground = true;
-            proggressPainter.Start();
+            Task task = new Task(PainterProgressArea);
+            task.Start();
 
             Label7.Content = OsLocalization.Optimizer.Label7;
             Label8.Content = OsLocalization.Optimizer.Label8;
@@ -246,11 +244,11 @@ namespace OsEngine.OsOptimizer
         /// place of work update stream progress on progress bars
         /// место работы потока обновляющего прогресс на прогрессБарах
         /// </summary>
-        private void PainterProgressArea()
+        private async void PainterProgressArea()
         {
             while (true)
             {
-                Thread.Sleep(500);
+                await Task.Delay(500);
 
                 if (MainWindow.ProccesIsWorked == false)
                 {

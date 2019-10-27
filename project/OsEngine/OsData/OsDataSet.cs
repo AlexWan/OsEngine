@@ -13,7 +13,7 @@ using OsEngine.Market.Servers.Finam;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms.Integration;
 using System.Windows.Shapes;
 
@@ -196,9 +196,8 @@ namespace OsEngine.OsData
 
             Load();
 
-            Thread worker = new Thread(WorkerArea);
-            worker.IsBackground = true;
-            worker.Start();
+            Task task = new Task(WorkerArea);
+            task.Start();
 
             _chartMaster = new ChartCandleMaster(nameUniq,StartProgram.IsOsData);
             _chartMaster.StopPaint();
@@ -490,11 +489,11 @@ namespace OsEngine.OsData
         /// <summary>
         /// mainstream operation/работа основного потока
         /// </summary>
-        private void WorkerArea()
+        private async void WorkerArea()
         {
             try
             {
-                Thread.Sleep(5000);
+                await Task.Delay(5000);
 
                 LoadSets();
 
@@ -502,7 +501,7 @@ namespace OsEngine.OsData
 
                 while (true)
                 {
-                    Thread.Sleep(10000);
+                    await Task.Delay(10000);
 
                     if (_regime == DataSetState.Off &&
                         _setIsActive == false)
@@ -673,7 +672,7 @@ namespace OsEngine.OsData
         /// <summary>
         /// create a series of candles and subscribe to the data/создать серии свечек и подписаться на данные
         /// </summary>
-        private void StartSets()
+        private async void StartSets()
         {
 
             // server first/сначала сервер
@@ -847,7 +846,7 @@ namespace OsEngine.OsData
                         (_myServer).GetTickDataToSecurity(SecuritiesNames[i].Id, TimeStart, TimeEnd,
                             GetActualTimeToTrade("Data\\" + SetName + "\\" + SecuritiesNames[i].Name.Replace("/", "") + "\\Tick"), NeadToUpdate) == false)
                     {
-                        Thread.Sleep(5000);
+                        await Task.Delay(5000);
                     }
                     SendNewLogMessage(OsLocalization.Data.Label29 + SecuritiesNames[i].Id, LogMessageType.System);
                 }
@@ -861,7 +860,7 @@ namespace OsEngine.OsData
         /// </summary>
         /// <param name="name">paper name/название бумаги</param>
         /// <param name="timeFrame">time frame/тайм фрейм</param>
-        private void StartThis(SecurityToLoad loadSec, TimeFrame timeFrame)
+        private async void StartThis(SecurityToLoad loadSec, TimeFrame timeFrame)
         {
             CandleSeries series = null;
             while (series == null)
@@ -872,7 +871,7 @@ namespace OsEngine.OsData
                 series = _myServer.GetCandleDataToSecurity(loadSec.Id, timeFrameBuilder, TimeStart,
                         TimeEnd, GetActualTimeToCandle("Data\\" + SetName + "\\" + loadSec.Name.Replace("/", "") + "\\" + timeFrame), NeadToUpdate);
 
-                Thread.Sleep(10);
+                await Task.Delay(10);
             }
 
             _mySeries.Add(series);

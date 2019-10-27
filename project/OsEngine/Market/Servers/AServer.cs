@@ -6,10 +6,10 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Media;
 using System.Threading;
+using System.Threading.Tasks;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
@@ -57,29 +57,19 @@ namespace OsEngine.Market.Servers
                 _tickStorage.LogMessageEvent += SendLogMessage;
                 _tickStorage.LoadTick();
 
-
-                Thread ordersExecutor = new Thread(ExecutorOrdersThreadArea);
-                ordersExecutor.CurrentCulture = CultureInfo.InvariantCulture;
-                ordersExecutor.IsBackground = true;
-                ordersExecutor.Name = "ServerThreadOrderExecutor" + _serverRealization.ServerType;
-                ordersExecutor.Start();
+                Task task0 = new Task(ExecutorOrdersThreadArea);
+                task0.Start();
 
                 Log = new Log(_serverRealization.ServerType + "Server", StartProgram.IsOsTrader);
                 Log.Listen(this);
 
                 _serverStatusNead = ServerConnectStatus.Disconnect;
 
-                _threadPrime = new Thread(PrimeThreadArea);
-                _threadPrime.CurrentCulture = CultureInfo.InvariantCulture;
-                _threadPrime.IsBackground = true;
-                _threadPrime.Name = "ServerThreadPrime" + _serverRealization.ServerType;
-                _threadPrime.Start();
+                Task task = new Task(PrimeThreadArea);
+                task.Start();
 
-                Thread threadDataSender = new Thread(SenderThreadArea);
-                threadDataSender.CurrentCulture = CultureInfo.InvariantCulture;
-                threadDataSender.IsBackground = true;
-                threadDataSender.Name = "ServerThreadDataSender" + _serverRealization.ServerType;
-                threadDataSender.Start();
+                Task task2 = new Task(SenderThreadArea);
+                task2.Start();
 
                 if (PrimeSettings.PrimeSettingsMaster.ServerTestingIsActive)
                 {
@@ -88,10 +78,8 @@ namespace OsEngine.Market.Servers
                     tester.LogMessageEvent += SendLogMessage;
                 }
 
-                Thread beepThread = new Thread(MyTradesBeepThread);
-                beepThread.IsBackground = true;
-                beepThread.Name = "AserverBeepThread" + _serverRealization.ServerType;
-                beepThread.Start();
+                Task task3 = new Task(MyTradesBeepThread);
+                task3.Start();
 
                 _serverIsStart = true;
 
@@ -217,6 +205,26 @@ namespace OsEngine.Market.Servers
             newParam.Value = param;
 
             newParam = (ServerParameterInt)LoadParam(newParam);
+            if (_serverIsStart)
+            {
+                ServerParameters.Insert(ServerParameters.Count - 2, newParam);
+            }
+            else
+            {
+                ServerParameters.Add(newParam);
+            }
+
+            newParam.ValueChange += newParam_ValueChange;
+        }
+
+        public void CreateParameterEnum(string name, string value, List<string> collection)
+        {
+            ServerParameterEnum newParam = new ServerParameterEnum();
+            newParam.Name = name;
+            newParam.Value = value;
+            newParam = (ServerParameterEnum)LoadParam(newParam);
+            newParam.EnumValues = collection;
+
             if (_serverIsStart)
             {
                 ServerParameters.Insert(ServerParameters.Count - 2, newParam);
@@ -393,6 +401,10 @@ namespace OsEngine.Market.Servers
 
                         IServerParameter oldParam = null;
 
+                        if (type == ServerParameterType.Enum)
+                        {
+                            oldParam = new ServerParameterEnum();
+                        }
                         if (type == ServerParameterType.String)
                         {
                             oldParam = new ServerParameterString();
@@ -433,8 +445,6 @@ namespace OsEngine.Market.Servers
                     }
 
                     return param;
-
-
                 }
             }
             catch (Exception error)
@@ -540,20 +550,15 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
-        /// main thread that monitors the connection, loading portfolios and securities, sending data to up 
-        /// основной поток, следящий за подключением, загрузкой портфелей и бумаг, пересылкой данных на верх
-        /// </summary>
-        private Thread _threadPrime;
-
-        /// <summary>
         /// the place where connection is controlled. look at data streams
         /// место в котором контролируется соединение. опрашиваются потоки данных
         /// </summary>
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
-        private void PrimeThreadArea()
+        private async void PrimeThreadArea()
         {
             while (true)
             {
+               //await Task.Delay(1000);
                 Thread.Sleep(1000);
                 try
                 {
@@ -622,10 +627,9 @@ namespace OsEngine.Market.Servers
 
                     Thread.Sleep(5000);
                     // reconnect / переподключаемся
-                    _threadPrime = new Thread(PrimeThreadArea);
-                    _threadPrime.CurrentCulture = new CultureInfo("ru-RU");
-                    _threadPrime.IsBackground = true;
-                    _threadPrime.Start();
+
+                    Task task = new Task(PrimeThreadArea);
+                    task.Start();
 
                     if (NeadToReconnectEvent != null)
                     {
@@ -732,7 +736,7 @@ namespace OsEngine.Market.Servers
         /// place where the connection is controlled
         /// место в котором контролируется соединение
         /// </summary>
-        private void SenderThreadArea()
+        private async void SenderThreadArea()
         {
             while (true)
             {
@@ -857,7 +861,7 @@ namespace OsEngine.Market.Servers
                         {
                             return;
                         }
-                        Thread.Sleep(1);
+                        await Task.Delay(1);
                     }
                 }
                 catch (Exception error)
@@ -1163,8 +1167,6 @@ namespace OsEngine.Market.Servers
                     CandleSeries series = new CandleSeries(timeFrameBuilder, security, StartProgram.IsOsTrader);
 
                     ServerRealization.Subscrible(security);
-
-                    Thread.Sleep(300);
 
                     _candleManager.StartSeries(series);
 
@@ -1659,11 +1661,11 @@ namespace OsEngine.Market.Servers
 
         private bool _neadToBeepOnTrade;
 
-        private void MyTradesBeepThread()
+        private async void MyTradesBeepThread()
         {
             while (true)
             {
-                Thread.Sleep(2000);
+                await Task.Delay(2000);
                 if (MainWindow.ProccesIsWorked == false)
                 {
                     return;
@@ -1690,18 +1692,18 @@ namespace OsEngine.Market.Servers
         /// work place of thred on the queues of ordr execution and order cancellation 
         /// место работы потока на очередях исполнения заявок и их отмены
         /// </summary>
-        private void ExecutorOrdersThreadArea()
+        private async void ExecutorOrdersThreadArea()
         {
             while (true)
             {
                 if (LastStartServerTime.AddSeconds(_waitTimeAfterFirstStart) > DateTime.Now)
                 {
-                    Thread.Sleep(1000);
+                    await Task.Delay(1000);
                     continue;
                 }
                 try
                 {
-                    Thread.Sleep(20);
+                    await Task.Delay(20);
 
                     if (_ordersToExecute != null && _ordersToExecute.Count != 0)
                     {

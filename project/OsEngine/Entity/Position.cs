@@ -1071,7 +1071,12 @@ namespace OsEngine.Entity
         /// brute force during closing.
         /// перебор во время закрытия.
         /// </summary>
-        ClosingSurplus
+        ClosingSurplus,
+
+        /// <summary>
+        /// удалена
+        /// </summary>
+        Deleted
     }
 
     /// <summary>

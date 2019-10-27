@@ -6,7 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
+using System.Threading.Tasks;
 using OsEngine.Logging;
 using OsEngine.Market;
 
@@ -20,7 +20,7 @@ namespace OsEngine.OsTrader.RiskManager
     {
         // static part with work flow / статическая часть с работой потока
 
-        public static Thread Watcher;
+        public static Task Watcher;
 
         /// <summary>
         /// risk managers who need to be serviced
@@ -42,9 +42,7 @@ namespace OsEngine.OsTrader.RiskManager
                 {
                     return;
                 }
-                Watcher = new Thread(WatcherHome);
-                Watcher.Name = "RiskManagerThread";
-                Watcher.IsBackground = true;
+                Watcher = new Task(WatcherHome);
                 Watcher.Start();
             }
         }
@@ -53,11 +51,11 @@ namespace OsEngine.OsTrader.RiskManager
         /// place of work thread
         /// место работы потока
         /// </summary>
-        public static void WatcherHome()
+        public static async void WatcherHome()
         {
             while (true)
             {
-                Thread.Sleep(2000);
+                await Task.Delay(2000);
 
                 for (int i = 0; i < RiskManagersToCheck.Count; i++)
                 {

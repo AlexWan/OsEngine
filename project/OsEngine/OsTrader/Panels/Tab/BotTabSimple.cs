@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Forms.Integration;
 using System.Windows.Shapes;
@@ -2840,10 +2840,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         PositionToSecondLoopSender sender = new PositionToSecondLoopSender() { Position = position };
                         sender.PositionNeadToStopSend += ManualReloadStopsAndProfitToPosition;
-                        Thread worker = new Thread(sender.Start);
-                        worker.CurrentCulture = new CultureInfo("ru-RU");
-                        worker.IsBackground = true;
-                        worker.Start();
+
+                        Task task = new Task(sender.Start);
+                        task.Start();
                         return;
                     }
 
@@ -3892,9 +3891,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         public Position Position;
 
-        public void Start()
+        public async void Start()
         {
-            Thread.Sleep(3000);
+            await Task.Delay(3000);
             if (PositionNeadToStopSend != null)
             {
                 PositionNeadToStopSend(Position);

@@ -6,7 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Forms.Integration;
@@ -49,10 +49,8 @@ namespace OsEngine.Charts.ClusterChart
 
                 _chart.MouseLeave += _chart_MouseLeave;
 
-                Thread painterThred = new Thread(PainterThreadArea);
-                painterThred.IsBackground = true;
-                painterThred.Name = name + "ChartPainterThread";
-                painterThred.Start();
+                Task task = new Task(PainterThreadArea);
+                task.Start();
 
             }
             catch (Exception error)
@@ -353,7 +351,6 @@ namespace OsEngine.Charts.ClusterChart
             {
                 try
                 {
-                    Thread.Sleep(100);
                     mySeries = _chart.Series.FindByName(name);
                 }
                 catch (Exception)
@@ -381,7 +378,6 @@ namespace OsEngine.Charts.ClusterChart
             {
                 try
                 {
-                    Thread.Sleep(100);
                     myArea = _chart.ChartAreas.FindByName(name);
                 }
                 catch (Exception)
@@ -501,11 +497,11 @@ namespace OsEngine.Charts.ClusterChart
         /// <summary>
         /// метод в котором работает поток прорисовывающий чарт
         /// </summary>
-        private void PainterThreadArea()
+        private async void PainterThreadArea()
         {
             while (true)
             {
-                Thread.Sleep(1000);
+                await Task.Delay(1000);
 
                 if (_neadToDelete)
                 {
@@ -525,7 +521,7 @@ namespace OsEngine.Charts.ClusterChart
                 if (_lastTimeClear.AddSeconds(5) > DateTime.Now
                     && _startProgram != StartProgram.IsOsOptimizer)
                 {
-                    Thread.Sleep(5000);
+                    await Task.Delay(5000);
                     _clustersToPaint = new ConcurrentQueue<List<HorizontalVolumeLine>>();
                 }
 
@@ -549,7 +545,7 @@ namespace OsEngine.Charts.ClusterChart
                 if (_startProgram == StartProgram.IsTester ||
                     _startProgram == StartProgram.IsOsOptimizer)
                 {
-                    Thread.Sleep(2000);
+                    await Task.Delay(2000);
                 }
             }
         }

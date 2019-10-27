@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms.Integration;
@@ -247,10 +247,9 @@ namespace OsEngine.OsTrader
                 if (_activPanel != null)
                 {
                     _tabBotNames.IsEnabled = false;
-                    Thread worker = new Thread(TabEnadler);
-                    worker.CurrentCulture = new CultureInfo("ru-RU");
-                    worker.IsBackground = true;
-                    worker.Start();
+
+                    Task task = new Task(TabEnadler);
+                    task.Start();
                 }
             }
             catch (Exception error)
@@ -263,13 +262,13 @@ namespace OsEngine.OsTrader
         /// the method allows to touch the tabs with the names of robots, after redrawing the window with candles
         /// метод разрешающий трогать вкладки с именами роботов, после перерисовки окна со свечками
         /// </summary>
-        private void TabEnadler()
+        private async void TabEnadler()
         {
             try
             {
                 if (_tabBotNames != null && !_tabBotNames.Dispatcher.CheckAccess())
                 {
-                    Thread.Sleep(1000);
+                    await Task.Delay(1000);
                     _tabBotNames.Dispatcher.Invoke(TabEnadler);
                     return;
                 }

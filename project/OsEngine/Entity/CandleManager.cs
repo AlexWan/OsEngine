@@ -5,8 +5,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using OsEngine.Logging;
 using OsEngine.Market;
@@ -47,11 +46,8 @@ namespace OsEngine.Entity
             _server.NewMarketDepthEvent += _server_NewMarketDepthEvent;
             _candleSeriesNeadToStart = new Queue<CandleSeries>();
 
-            Thread worker = new Thread(CandleStarter);
-            worker.CurrentCulture = new CultureInfo("ru-RU");
-            worker.IsBackground = true;
-            worker.Name = "CandleStarter";
-            worker.Start();
+            Task task = new Task(CandleStarter);
+            task.Start();
 
             TypeTesterData = TesterDataType.Unknown;
         }
@@ -196,14 +192,14 @@ namespace OsEngine.Entity
         /// the method in which the processing queue _candleSeriesNeadToStart is running
         /// метод, в котором работает поток обрабатывающий очередь _candleSeriesNeadToStart
         /// </summary>
-        private void CandleStarter()
+        private async void CandleStarter()
         {
             try
             {
                 while (true)
                 {
 
-                    Thread.Sleep(50);
+                   await Task.Delay(50);
 
                     if (_candleSeriesNeadToStart.Count != 0)
                     {

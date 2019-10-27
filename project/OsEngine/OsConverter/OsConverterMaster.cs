@@ -6,7 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
@@ -207,21 +207,20 @@ namespace OsEngine.OsConverter
         public void StartConvert()
         {
             if (_worker != null &&
-                _worker.IsAlive)
+                _worker.IsCompleted)
             {
                 SendNewLogMessage(OsLocalization.Converter.Message1, LogMessageType.System);
                 return;
             }
 
-            _worker = new Thread(WorkerSpace);
-            _worker.IsBackground = true;
+            _worker = new Task(WorkerSpace);
             _worker.Start();
         }
 
         /// <summary>
         /// stream creating new file/поток занимающийся созданием нового файла
         /// </summary>
-        private Thread _worker;
+        private Task _worker;
 
         /// <summary>
         /// place of work of the stream creating a new file/место работы потока создающего новый файл

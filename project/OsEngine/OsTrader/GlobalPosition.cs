@@ -5,7 +5,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
@@ -38,13 +38,9 @@ namespace OsEngine.OsTrader
             _host.Child = _grid;
             _host.Child.Show();
 
-            if (Watcher == null)
-            {
-                Watcher = new Thread(WatcherHome);
-                Watcher.IsBackground = true;
-                Watcher.Name = "GlobalPositionThread";
-                Watcher.Start();
-            }
+            Task task = new Task(WatcherHome);
+            task.Start();
+       
         }
 
         /// <summary>
@@ -331,16 +327,10 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
-        /// Thread
-        /// поток 
-        /// </summary>
-        private Thread Watcher;
-
-        /// <summary>
         /// place of work that keeps logs
         /// место работы потока который сохраняет логи
         /// </summary>
-        private void WatcherHome()
+        private async void WatcherHome()
         {
             if (_startProgram != StartProgram.IsOsTrader)
             {
@@ -349,7 +339,7 @@ namespace OsEngine.OsTrader
 
             while (true)
             {
-                Thread.Sleep(2000);
+               await Task.Delay(2000);
 
                 CheckPosition();
 
@@ -359,7 +349,6 @@ namespace OsEngine.OsTrader
                 }
             }
         }
-
 
         /// <summary>
         /// check the position on the correctness of drawing
@@ -375,7 +364,6 @@ namespace OsEngine.OsTrader
             }
             try
             {
-
                 List<Position> openPositions = new List<Position>();
 
                 for (int i = 0; _journals != null && i < _journals.Count; i++)

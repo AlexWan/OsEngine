@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
 using System.Text;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using OsEngine.Language;
@@ -25,12 +25,6 @@ namespace OsEngine.Entity
         // статическая часть с работой потока прорисовывающего стакан
 
         /// <summary>
-        /// thread
-        /// поток 
-        /// </summary>
-        public static Thread Watcher;
-
-        /// <summary>
         /// logs that need to be serviced
         /// логи которые нужно обслуживать
         /// </summary>
@@ -46,27 +40,27 @@ namespace OsEngine.Entity
         {
             lock (_activatorLocker)
             {
-                if (Watcher != null)
+                if (_painter != null)
                 {
                     return;
                 }
 
-                Watcher = new Thread(WatcherHome);
-                Watcher.Name = "MarketDepthPainterThread";
-                Watcher.IsBackground = true;
-                Watcher.Start();
+                _painter = new Task(WatcherHome);
+                _painter.Start();
             }
         }
+
+        private static Task _painter;
 
         /// <summary>
         /// place of work that keeps logs
         /// место работы потока который сохраняет логи
         /// </summary>
-        public static void WatcherHome()
+        public static async void WatcherHome()
         {
             while (true)
             {
-                Thread.Sleep(700);
+                await Task.Delay(700);
 
                 for (int i = 0; i < MarketDepthsToCheck.Count; i++)
                 {
@@ -89,10 +83,8 @@ namespace OsEngine.Entity
         public MarketDepthPainter(string botName)
         {
             CreateGlass();
-            if (Watcher == null)
-            {
-                Activate();
-            }
+            Activate();
+
             MarketDepthsToCheck.Add(this);
             _name = botName;
         }

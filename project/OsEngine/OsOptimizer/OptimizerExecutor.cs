@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using OsEngine.Entity;
 using OsEngine.Language;
@@ -54,9 +54,8 @@ namespace OsEngine.OsOptimizer
             _servers = new List<OptimizerServer>();
             _countAllServersMax = 0;
             _serverNum = 0;
-            
-            _primeThreadWorker = new Thread(PrimeThreadWorkerPlace);
-            _primeThreadWorker.IsBackground = true;
+
+            _primeThreadWorker = new Task(PrimeThreadWorkerPlace);
             _primeThreadWorker.Start();
 
             return true;
@@ -100,13 +99,13 @@ namespace OsEngine.OsOptimizer
         /// main stream responsible for optimization
         /// основной поток отвечающий за оптимизацию
         /// </summary>
-        private Thread _primeThreadWorker;
+        private Task _primeThreadWorker;
 
         /// <summary>
         /// place of work flow responsible for optimization
         /// место работы потока отвечающего за оптимизацию
         /// </summary>
-        private void PrimeThreadWorkerPlace()
+        private async void PrimeThreadWorkerPlace()
         {
             List<IIStrategyParameter> allParam = _parameters;
 
@@ -321,14 +320,14 @@ namespace OsEngine.OsOptimizer
 
                 while (_servers.Count >= _master.ThreadsCount)
                 {
-                    Thread.Sleep(2000);
+                   await Task.Delay(2000);
                 }
 
                 if (_neadToStop)
                 {
                     while (true)
                     {
-                        Thread.Sleep(1000);
+                        await Task.Delay(1000);
                         if (_servers.Count == 0)
                         {
                             break;
@@ -353,7 +352,7 @@ namespace OsEngine.OsOptimizer
 
             while (true)
             {
-                Thread.Sleep(1000);
+                await Task.Delay(1000);
                 if (_servers.Count == 0)
                 {
                     break;
@@ -383,14 +382,14 @@ namespace OsEngine.OsOptimizer
             {
                 while (_servers.Count >= _master.ThreadsCount)
                 {
-                    Thread.Sleep(2000);
+                    await Task.Delay(2000);
                 }
 
                 if (_neadToStop)
                 {
                     while (true)
                     {
-                        Thread.Sleep(1000);
+                        await Task.Delay(1000);
                         if (_servers.Count == 0)
                         {
                             break;
@@ -414,7 +413,7 @@ namespace OsEngine.OsOptimizer
 
             while (true)
             {
-                Thread.Sleep(1000);
+                await Task.Delay(1000);
                 if (_servers.Count == 0)
                 {
                     break;
@@ -567,7 +566,7 @@ namespace OsEngine.OsOptimizer
         /// <param name="faze">current optimization phase/текущая фаза оптимизации</param>
         /// <param name="botsInFaze">list of bots already running in the current phase/список ботов уже запущенный в текущей фазе</param>
         /// <param name="botName">the name of the created robot/имя создаваемого робота</param>
-        private void StartNewBot(List<IIStrategyParameter> parametrs, List<IIStrategyParameter> paramOptimized,
+        private async void StartNewBot(List<IIStrategyParameter> parametrs, List<IIStrategyParameter> paramOptimized,
             OptimizerFaze faze, List<BotPanel> botsInFaze, string botName)
         {
             if (!MainWindow.GetDispatcher.CheckAccess())
@@ -577,7 +576,7 @@ namespace OsEngine.OsOptimizer
                         <List<IIStrategyParameter>, List<IIStrategyParameter>,
                             OptimizerFaze, List<BotPanel>, string>(StartNewBot),
                     parametrs, paramOptimized, faze, botsInFaze, botName);
-                Thread.Sleep(1000);
+                await Task.Delay(1000);
                 return;
             }
 
@@ -693,7 +692,7 @@ namespace OsEngine.OsOptimizer
 
             while (bot.IsConnected == false)
             {
-                Thread.Sleep(1000);
+                await Task.Delay(1000);
 
                 if (timeStartWaiting.AddSeconds(20) < DateTime.Now)
                 {

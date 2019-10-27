@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Text;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using OsEngine.Alerts;
@@ -30,12 +30,6 @@ namespace OsEngine.Journal.Internal
         // статическая часть с работой потока сохраняющего позиции
 
         /// <summary>
-        ///  streaming 
-        /// поток 
-        /// </summary>
-        public static Thread Watcher;
-
-        /// <summary>
         /// position controllers that need to be serviced
         /// контроллеры позиций которые нужно обслуживать
         /// </summary>
@@ -47,22 +41,25 @@ namespace OsEngine.Journal.Internal
         /// </summary>
         public static void Activate()
         {
-            Watcher = new Thread(WatcherHome);
-            Watcher.Name = "PositionControllerThread";
-            Watcher.IsBackground = true;
-            Watcher.Start();
+            if (_worker == null)
+            {
+                _worker = new Task(WatcherHome);
+                _worker.Start();
+            }
         }
+
+        private static Task _worker;
 
         /// <summary>
         /// flow location
         /// место работы потока
         /// </summary>
-        public static void WatcherHome()
+        public static async void WatcherHome()
         {
 
             while (true)
             {
-                Thread.Sleep(1000);
+                await Task.Delay(1000);
 
                 for (int i = 0; i < ControllersToCheck.Count; i++)
                 {
@@ -83,10 +80,7 @@ namespace OsEngine.Journal.Internal
             _name = name;
             _startProgram = startProgram;
 
-            if (Watcher == null)
-            {
-                Activate();
-            }
+            Activate();
 
             ControllersToCheck.Add(this);
 
