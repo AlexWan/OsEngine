@@ -201,6 +201,16 @@ namespace OsEngine.Entity
 
                    await Task.Delay(50);
 
+                    if (_isDisposed == true)
+                    {
+                        return;
+                    }
+
+                    if (MainWindow.ProccesIsWorked == false)
+                    {
+                        return;
+                    }
+
                     if (_candleSeriesNeadToStart.Count != 0)
                     {
                         CandleSeries series = _candleSeriesNeadToStart.Dequeue();
@@ -546,6 +556,22 @@ namespace OsEngine.Entity
                 _activSeries[i].Clear();
             }
         }
+
+        public void Dispose()
+        {
+            Clear();
+            _isDisposed = true;
+
+            for (int i = 0; i < _activSeries.Count; i++)
+            {
+                _activSeries[i].Stop();
+                _activSeries[i].Clear();
+            }
+
+            _activSeries = null;
+        }
+
+        private bool _isDisposed;
 
         /// <summary>
         /// for the tester. Sync Received Data

@@ -1191,6 +1191,16 @@ namespace OsEngine.Charts.CandleChart
             }
             else
             {
+                if (_candlesToPaint.IsEmpty == false 
+                    &&
+                    _candlesToPaint.Count > 5)
+                {
+                    List<Candle> res;
+
+                    while (_candlesToPaint.IsEmpty == false)
+                        _candlesToPaint.TryDequeue(out res);
+                }
+
                 _candlesToPaint.Enqueue(history); 
             }
         }
@@ -1440,6 +1450,16 @@ namespace OsEngine.Charts.CandleChart
             }
             else
             {
+                if (_tradesToPaint.IsEmpty == false
+                    &&
+                    _tradesToPaint.Count > 5)
+                {
+                    List<Trade> res;
+
+                    while (_tradesToPaint.IsEmpty == false)
+                        _tradesToPaint.TryDequeue(out res);
+                }
+
                 _tradesToPaint.Enqueue(trades);
             }
         }
@@ -1962,6 +1982,16 @@ namespace OsEngine.Charts.CandleChart
             }
             else
             {
+                if (_positions.IsEmpty == false
+                    &&
+                    _positions.Count > 5)
+                {
+                    List<Position> res;
+
+                    while (_positions.IsEmpty == false)
+                        _positions.TryDequeue(out res);
+                }
+
                 _positions.Enqueue(deals);
             }
         }
@@ -2222,6 +2252,17 @@ namespace OsEngine.Charts.CandleChart
             }
             else
             {
+                if (_chartElementsToPaint.IsEmpty == false
+                    &&
+                    _chartElementsToPaint.Count > 5)
+                {
+                    IChartElement res;
+
+                    while (_chartElementsToPaint.IsEmpty == false &&
+                           _chartElementsToPaint.Count > 20)
+                        _chartElementsToPaint.TryDequeue(out res);
+                }
+
                 _chartElementsToPaint.Enqueue(element);
             }
         }
@@ -2284,6 +2325,17 @@ namespace OsEngine.Charts.CandleChart
             }
             else
             {
+                if (_chartElementsToClear.IsEmpty == false
+                    &&
+                    _chartElementsToClear.Count > 5)
+                {
+                    IChartElement res;
+
+                    while (_chartElementsToClear.IsEmpty == false &&
+                           _chartElementsToClear.Count > 200)
+                        _chartElementsToClear.TryDequeue(out res);
+                }
+
                 _chartElementsToClear.Enqueue(element);
             }
         }
@@ -2966,6 +3018,18 @@ namespace OsEngine.Charts.CandleChart
             }
             else
             {
+                if (_indicatorsToPaint.IsEmpty == false
+                    &&
+                    _indicatorsToPaint.Count > 25)
+                {
+                    IIndicatorCandle res;
+
+                    while (_indicatorsToPaint.IsEmpty == false &&
+                           _indicatorsToPaint.Count > 25)
+
+                        _indicatorsToPaint.TryDequeue(out res);
+                }
+
                 _indicatorsToPaint.Enqueue(indicator);
             }
         }

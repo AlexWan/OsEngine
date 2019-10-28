@@ -131,15 +131,22 @@ namespace OsEngine.Market.Servers.Binance
         /// </summary>
         public void Dispose()
         {
-            foreach (var ws in _wsStreams)
+            try
             {
-                ws.Value.Opened -= new EventHandler(Connect);
-                ws.Value.Closed -= new EventHandler(Disconnect);
-                ws.Value.Error -= new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>(WsError);
-                ws.Value.MessageReceived -= new EventHandler<MessageReceivedEventArgs>(GetRes);
+                foreach (var ws in _wsStreams)
+                {
+                    ws.Value.Opened -= new EventHandler(Connect);
+                    ws.Value.Closed -= new EventHandler(Disconnect);
+                    ws.Value.Error -= new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>(WsError);
+                    ws.Value.MessageReceived -= new EventHandler<MessageReceivedEventArgs>(GetRes);
 
-                ws.Value.Close();
-                ws.Value.Dispose();
+                    ws.Value.Close();
+                    ws.Value.Dispose();
+                }
+            }
+            catch 
+            {
+                // ignore
             }
 
             IsConnected = false;
@@ -172,6 +179,11 @@ namespace OsEngine.Market.Servers.Binance
         /// <param name="e"></param>
         private void UserDataMessageHandler(object sender, MessageReceivedEventArgs e)
         {
+            if (_isDisposed)
+            {
+                return;
+            }
+
             _newUserDataMessage.Enqueue(e.Message);
         }
 

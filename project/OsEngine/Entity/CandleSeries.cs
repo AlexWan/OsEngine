@@ -153,6 +153,12 @@ namespace OsEngine.Entity
         public void Clear()
         {
             _lastTradeIndex = 0;
+
+            for (int i = 0; CandlesAll != null && i < CandlesAll.Count; i++)
+            {
+                CandlesAll[i].Trades = null;
+            }
+
             CandlesAll = null;
         }
 

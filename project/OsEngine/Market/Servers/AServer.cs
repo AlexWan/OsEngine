@@ -578,7 +578,13 @@ namespace OsEngine.Market.Servers
                     {
                         SendLogMessage(OsLocalization.Market.Message8, LogMessageType.System);
                         ServerRealization.Dispose();
-                        _candleManager = null;
+
+                        if (_candleManager != null)
+                        {
+                            _candleManager.Dispose();
+                            _candleManager = null;
+                        }
+
                         ServerRealization.Connect();
                         LastStartServerTime = DateTime.Now;
 
@@ -591,7 +597,13 @@ namespace OsEngine.Market.Servers
                     {
                         SendLogMessage(OsLocalization.Market.Message9, LogMessageType.System);
                         ServerRealization.Dispose();
-                        _candleManager = null;
+
+                        if (_candleManager != null)
+                        {
+                            _candleManager.Dispose();
+                            _candleManager = null;
+                        }
+
                         continue;
                     }
 
