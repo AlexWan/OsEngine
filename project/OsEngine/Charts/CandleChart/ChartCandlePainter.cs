@@ -4335,7 +4335,7 @@ namespace OsEngine.Charts.CandleChart
             }
             else
             {
-                index = (int)_chart.ChartAreas[0].AxisX.ScaleView.Position + (int)_chart.ChartAreas[0].AxisX.ScaleView.Size;
+                index = (int)(_chart.ChartAreas[0].AxisX.ScaleView.Position +_chart.ChartAreas[0].AxisX.ScaleView.Size);
             }
 
             if(index < 0)
@@ -4370,43 +4370,51 @@ namespace OsEngine.Charts.CandleChart
                         series.Points.Count < index ||
                         series.ChartType == SeriesChartType.Point
                         //|| series.Points.Count +2 < _myCandles.Count
-                        )
+                    )
                     {
                         continue;
                     }
 
-                   /* if (series.ChartType == SeriesChartType.Candlestick)
+                    /* if (series.ChartType == SeriesChartType.Candlestick)
+                     {
+                         PaintLabelOnY2(series.Name + "Label", series.ChartArea,
+                            _myCandles[index].Close.ToString(_culture),
+                                _myCandles[index].Close, _colorKeeper.ColorBackCursor, true);
+ 
+                     }
+                     else
+                     {
+                     */
+                    int realIndex = index;
+
+                    if (index == series.Points.Count)
+                    {
+                        realIndex = series.Points.Count - 1;
+                    }
+
+                    int rounder = 0;
+
+                    if (_areaSizes != null)
+                    {
+                        ChartAreaSizes size = _areaSizes.Find(sizes => sizes.Name == _chart.ChartAreas[i].Name);
+                        if (size != null)
+                        {
+                            rounder = size.Decimals;
+                        }
+                    }
+
+                    if (series.Name == "SeriesCandle")
                     {
                         PaintLabelOnY2(series.Name + "Label", series.ChartArea,
-                           _myCandles[index].Close.ToString(_culture),
-                               _myCandles[index].Close, _colorKeeper.ColorBackCursor, true);
-
+                            (Math.Round(series.Points[realIndex].YValues[3], rounder)).ToString(_culture),
+                            (decimal)series.Points[realIndex].YValues[3], series.Points[realIndex].Color, true);
                     }
                     else
                     {
-                    */
-                        int realIndex = index;
-
-                        if (index == series.Points.Count)
-                        {
-                            realIndex = series.Points.Count - 1;
-                        }
-
-                        int rounder = 0;
-
-                        if (_areaSizes != null)
-                        {
-                            ChartAreaSizes size = _areaSizes.Find(sizes => sizes.Name == _chart.ChartAreas[i].Name);
-                            if (size != null)
-                            {
-                                rounder = size.Decimals;
-                            }
-                        }
-
                         PaintLabelOnY2(series.Name + "Label", series.ChartArea,
-                              (Math.Round(series.Points[realIndex].YValues[0], rounder)).ToString(_culture),
-                                 (decimal)series.Points[realIndex].YValues[0], series.Points[realIndex].Color, true);
-                  //  }
+                            (Math.Round(series.Points[realIndex].YValues[0], rounder)).ToString(_culture),
+                            (decimal)series.Points[realIndex].YValues[0], series.Points[realIndex].Color, true);
+                    }
                 }
             }
         }
