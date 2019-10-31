@@ -942,6 +942,8 @@ namespace OsEngine.Entity
             }
         }
 
+        public decimal Comission;
+
         /// <summary>
         /// the amount of profit relative to the portfolio in absolute terms
         /// количество прибыли относительно портфеля в абсолютном выражении
@@ -957,16 +959,29 @@ namespace OsEngine.Entity
                     volume += _openOrders[i].VolumeExecute;
                 }
 
-                if(volume == 0||
+                if (volume == 0 ||
                     PriceStepCost == 0 ||
                     MaxVolume == 0)
                 {
                     return 0;
                 }
 
-                return (ProfitOperationPunkt/PriceStep)*PriceStepCost*MaxVolume*1; //  Lots;
-            } 
+                decimal comisAbsolute = 0;
+
+                if (Comission != 0)
+                {
+                    comisAbsolute = MaxVolume * EntryPrice * (Comission / 100) +
+                                    MaxVolume * ClosePrice * (Comission / 100);
+                }
+
+                decimal profit =
+                    (ProfitOperationPunkt / PriceStep) * PriceStepCost * MaxVolume - comisAbsolute;
+
+
+                return profit; //  Lots;
+            }
         }
+
 
         /// <summary>
         /// the number of lots in one transaction

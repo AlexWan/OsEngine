@@ -3545,7 +3545,7 @@ namespace OsEngine.OsTrader.Panels
             {
                 for (int i = 0; i < openPositions.Count; i++)
                 {
-                    LogicClosePosition(candles, openPositions[i]);
+                    LogicClosePosition(candles, openPositions[i],openPositions);
 
                     Upline.Refresh();
                     Downline.Refresh();
@@ -3584,15 +3584,22 @@ namespace OsEngine.OsTrader.Panels
         /// logic close position
         /// логика зыкрытия позиции и открытие по реверсивной системе
         /// </summary>
-        private void LogicClosePosition(List<Candle> candles, Position position)
+        private void LogicClosePosition(List<Candle> candles, Position position, List<Position> allPos)
         {
+            if (position.State != PositionStateType.Open)
+            {
+                return;
+            }
+
             if (position.Direction == Side.Buy)
             {
                 if (_lastCci > Upline.Value)
                 {
                     _tab.CloseAtLimit(position, _lastPrice - Slipage, position.OpenVolume);
 
-                    if (Regime != BotTradeRegime.OnlyLong && Regime != BotTradeRegime.OnlyClosePosition)
+                    if (Regime != BotTradeRegime.OnlyLong && 
+                        Regime != BotTradeRegime.OnlyClosePosition &&
+                        allPos.Count < 3)
                     {
                         _tab.SellAtLimit(VolumeFix, _lastPrice - Slipage);
                     }
@@ -3605,11 +3612,12 @@ namespace OsEngine.OsTrader.Panels
                 {
                     _tab.CloseAtLimit(position, _lastPrice + Slipage, position.OpenVolume);
 
-                    if (Regime != BotTradeRegime.OnlyShort && Regime != BotTradeRegime.OnlyClosePosition)
+                    if (Regime != BotTradeRegime.OnlyShort && 
+                        Regime != BotTradeRegime.OnlyClosePosition &&
+                        allPos.Count < 3)
                     {
                         _tab.BuyAtLimit(VolumeFix, _lastPrice + Slipage);
                     }
-
                 }
             }
         }
