@@ -432,6 +432,9 @@
     <Compile Include="Market\Servers\GateIo\EntityCreators\GateSecurityCreator.cs" />
     <Compile Include="Market\Servers\GateIo\EntityCreators\GateTradesCreator.cs" />
     <Compile Include="Market\Servers\GateIo\GateIoServer.cs" />
+    <Compile Include="Market\Servers\Hitbtc\HitbtcClient.cs" />
+    <Compile Include="Market\Servers\Hitbtc\HitbtcEntity.cs" />
+    <Compile Include="Market\Servers\Hitbtc\HitbtcServer.cs" />
     <Compile Include="Market\Servers\InteractivBrokers\IbClient.cs" />
     <Compile Include="Market\Servers\InteractivBrokers\IbContractStorageUi.xaml.cs">
       <DependentUpon>IbContractStorageUi.xaml</DependentUpon>

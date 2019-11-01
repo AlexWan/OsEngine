@@ -34,6 +34,7 @@ using OsEngine.Market.Servers.SmartCom;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.Market.Servers.Transaq;
 using OsEngine.Market.Servers.ZB;
+using OsEngine.Market.Servers.Hitbtc;
 using MessageBox = System.Windows.MessageBox;
 
 namespace OsEngine.Market
@@ -64,8 +65,8 @@ namespace OsEngine.Market
             {
                 List<ServerType> serverTypes = new List<ServerType>();
 
-                
 
+                serverTypes.Add(ServerType.Hitbtc);
                 serverTypes.Add(ServerType.QuikDde);
                 serverTypes.Add(ServerType.QuikLua);
                 serverTypes.Add(ServerType.SmartCom);
@@ -165,6 +166,10 @@ namespace OsEngine.Market
 
                 IServer newServer = null;
 
+                if (type == ServerType.Hitbtc)
+                {
+                    newServer = new HitbtcServer();
+                }
                 if (type == ServerType.GateIo)
                 {
                     newServer = new GateIoServer();
@@ -644,6 +649,12 @@ namespace OsEngine.Market
         /// Тип сервера не назначен
         /// </summary>
         None,
+
+        /// <summary>
+        /// cryptocurrency exchange Hitbtc
+        /// биржа криптовалют Hitbtc
+        /// </summary>
+        Hitbtc,
 
         /// <summary>
         /// cryptocurrency exchange Gate.io

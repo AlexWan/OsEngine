@@ -21,6 +21,7 @@ using OsEngine.Market.Servers.SmartCom;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.Market.Servers.Transaq;
 using OsEngine.Market.Servers.ZB;
+using OsEngine.Market.Servers.Hitbtc;
 
 namespace OsEngine.Entity
 {
@@ -473,6 +474,27 @@ namespace OsEngine.Entity
                             {
                                 List<Candle> candles = gateIoServer.GetCandleHistory(series.Security.Name, series.TimeFrameSpan);
 
+                                if (candles != null)
+                                {
+                                    series.CandlesAll = candles;
+                                }
+                            }
+                            series.UpdateAllCandles();
+                            series.IsStarted = true;
+                        }
+                        else if (serverType == ServerType.Hitbtc)
+                        {
+                            HitbtcServer hitbtc = (HitbtcServer)_server;
+                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
+                                series.TimeFrameSpan.TotalMinutes < 1)
+                            {
+                                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
+                                series.PreLoad(allTrades);
+                            }
+                            else
+                            {
+                                List<Candle> candles = hitbtc.GetCandleHistory(series.Security.Name,
+                                    series.TimeFrameSpan);
                                 if (candles != null)
                                 {
                                     series.CandlesAll = candles;
