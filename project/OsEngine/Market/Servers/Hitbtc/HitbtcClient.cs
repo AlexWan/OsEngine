@@ -38,7 +38,7 @@ namespace OsEngine.Market.Servers.Hitbtc
             _pubKey = pubKey;
             _secKey = secKey;
 
-            _portfolioName = "Trading" + portfolioname;
+            _portfolioName = "HitBtcPortfolio" + portfolioname;
         }
 
 
@@ -87,9 +87,7 @@ namespace OsEngine.Market.Servers.Hitbtc
             //    Connected();
             //}
 
-            Thread converter = new Thread(Converter);
-            converter.CurrentCulture = new CultureInfo("ru-RU");
-            converter.IsBackground = true;
+            Task converter = new Task(Converter);
             converter.Start();
 
             CreateNewWebSocket();
@@ -114,6 +112,15 @@ namespace OsEngine.Market.Servers.Hitbtc
                 Disconnected();
             }
 
+            try
+            {
+                _wsClient.Close();
+            }
+            catch
+            {
+                // ignore
+            }
+            
             _isDisposed = true;
         }
 
@@ -765,6 +772,11 @@ namespace OsEngine.Market.Servers.Hitbtc
         /// </summary>        
         private void GetRes(object sender, MessageReceivedEventArgs e)
         {
+            if (_isDisposed)
+            {
+                return;
+            }
+
             _newMessage.Enqueue(e.Message);
             //SendLogMessage(e.Message, LogMessageType.System);
         }
@@ -773,7 +785,7 @@ namespace OsEngine.Market.Servers.Hitbtc
         /// takes messages from the common queue, converts them to C # classes and sends them to up
         /// берет сообщения из общей очереди, конвертирует их в классы C# и отправляет на верх
         /// </summary>
-        public void Converter()
+        public async void Converter()
         {
             while (true)
             {
@@ -926,7 +938,13 @@ namespace OsEngine.Market.Servers.Hitbtc
                         {
                             return;
                         }
-                        Thread.Sleep(1);
+
+                        if (MainWindow.ProccesIsWorked == false)
+                        {
+                            return;
+                        }
+
+                        await Task.Delay(1);
                     }
                 }
 

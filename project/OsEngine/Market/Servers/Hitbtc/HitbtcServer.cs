@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading.Tasks;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
@@ -195,7 +196,18 @@ namespace OsEngine.Market.Servers.Hitbtc
 
             _client.SendOrder(order, needId);
 
-            
+            Task t = new Task(async () =>
+            {
+                await Task.Delay(7000);
+
+                if (_incominOrders.Find(o => o.NumberUser == order.NumberUser) == null)
+                {
+                    order.State = OrderStateType.Fail;
+                    MyOrderEvent?.Invoke(order);
+                    SendLogMessage("Order miss. Id: " + order.NumberUser, LogMessageType.Error);
+                }
+            });
+            t.Start();
         }
 
         /// <summary>
@@ -220,11 +232,11 @@ namespace OsEngine.Market.Servers.Hitbtc
 
         #endregion
 
-
-
         #region parsing incoming data / разбор входящих данных
 
         private readonly List<OrderCoupler> _couplers = new List<OrderCoupler>();
+
+        private List<Order> _incominOrders = new List<Order>();
 
         private void _client_MyOrderEvent(Result result)
         {
@@ -299,6 +311,9 @@ namespace OsEngine.Market.Servers.Hitbtc
                 order.State = OrderStateType.Fail;
             }
             MyOrderEvent?.Invoke(order);
+
+            _incominOrders.Add(order);
+
             _client.GetBalance();
         }
 

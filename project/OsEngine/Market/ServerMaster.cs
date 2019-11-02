@@ -66,7 +66,7 @@ namespace OsEngine.Market
                 List<ServerType> serverTypes = new List<ServerType>();
 
 
-                serverTypes.Add(ServerType.Hitbtc);
+                
                 serverTypes.Add(ServerType.QuikDde);
                 serverTypes.Add(ServerType.QuikLua);
                 serverTypes.Add(ServerType.SmartCom);
@@ -83,6 +83,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Livecoin);
                 serverTypes.Add(ServerType.Exmo);
                 serverTypes.Add(ServerType.Zb);
+                serverTypes.Add(ServerType.Hitbtc);
 
                 serverTypes.Add(ServerType.InteractivBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);

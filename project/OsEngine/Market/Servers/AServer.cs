@@ -1433,6 +1433,10 @@ namespace OsEngine.Market.Servers
                 {
                     myDepth.Time = ServerTime;
                 }
+                else
+                {
+                    ServerTime = myDepth.Time;
+                }
 
                 if (NewMarketDepthEvent != null)
                 {
