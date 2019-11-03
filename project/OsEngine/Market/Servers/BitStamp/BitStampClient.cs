@@ -297,13 +297,18 @@ namespace OsEngine.Market.Servers.BitStamp
         /// <param name="message">depth / стакан</param>
         private void OrderBook_Income(string namePaper, string message)
         {
+            if (_isDisposed)
+            {
+                return;
+            }
+
             try
             {
                 var resp = JsonConvert.DeserializeObject<OrderBookResponse>(message);
 
                 MarketDepth depth = new MarketDepth();
                 depth.SecurityNameCode = namePaper;
-
+                
                 for (int i = 0; i < 10; i++)
                 {
                     MarketDepthLevel ask = new MarketDepthLevel();
@@ -339,6 +344,10 @@ namespace OsEngine.Market.Servers.BitStamp
         /// <param name="message">trade/трейд</param>
         private void Trades_Income(string namePaper, string message)
         {
+            if (_isDisposed)
+            {
+                return;
+            }
             try
             {
                 var resp = JsonConvert.DeserializeObject<TradeResponse>(message);
@@ -460,6 +469,13 @@ namespace OsEngine.Market.Servers.BitStamp
                     var request = GetAuthenticatedRequest(Method.POST);
                     var response = new RestClient("https://www.bitstamp.net/api/v2/balance/").Execute(request);
 
+                    if (response.Content.Contains("error"))
+                    {
+                        SendLogMessage("BitStamp Response Error " + response.Content, LogMessageType.Error);
+
+                        return null;
+                    }
+
                     if (UpdatePortfolio != null)
                     {
                         UpdatePortfolio(JsonConvert.DeserializeObject<BalanceResponse>(response.Content));
@@ -495,9 +511,11 @@ namespace OsEngine.Market.Servers.BitStamp
                     MyTrade trade = new MyTrade();
                     trade.NumberOrderParent = order.NumberMarket;
                     trade.NumberTrade = response.transactions[0].tid;
+                    trade.SecurityNameCode = order.SecurityNameCode;
                     trade.Volume = order.Volume;
                     trade.Price =
                             response.transactions[0].price.ToDecimal();
+                    trade.Side = order.Side;
 
                     _osEngineOrders.RemoveAt(i);
                     i--;
@@ -515,7 +533,9 @@ namespace OsEngine.Market.Servers.BitStamp
                     newOrder.NumberMarket = order.NumberMarket;
                     newOrder.PortfolioNumber = order.PortfolioNumber;
                     newOrder.Side = order.Side;
+                    newOrder.Price = order.Price;
                     newOrder.State = OrderStateType.Cancel;
+                    newOrder.Volume = order.Volume;
 
                     if (MyOrderEvent != null)
                     {
@@ -698,7 +718,9 @@ namespace OsEngine.Market.Servers.BitStamp
                 newOrder.NumberMarket = result.id;
                 newOrder.PortfolioNumber = order.PortfolioNumber;
                 newOrder.Side = order.Side;
+                newOrder.Price = order.Price;
                 newOrder.State = OrderStateType.Activ;
+                newOrder.Volume = order.Volume;
 
                 if (MyOrderEvent != null)
                 {
