@@ -293,6 +293,11 @@ namespace OsEngine.Entity
         Stock,
 
         /// <summary>
+        /// облигация
+        /// </summary>
+        Bond,
+
+        /// <summary>
         /// futures
         /// фьючерс
         /// </summary>

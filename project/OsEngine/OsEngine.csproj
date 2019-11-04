@@ -538,6 +538,8 @@
     <Compile Include="Journal\Internal\DealStaticticGenerator.cs" />
     <Compile Include="Market\Servers\Quik\QuikDdeServer.cs" />
     <Compile Include="Market\Servers\Miner\OsMinerServer.cs" />
+    <Compile Include="Market\Servers\Tinkoff\TinkoffClient.cs" />
+    <Compile Include="Market\Servers\Tinkoff\TinkoffServer.cs" />
     <Compile Include="Market\Servers\Transaq\ChangeTransaqPassword.xaml.cs">
       <DependentUpon>ChangeTransaqPassword.xaml</DependentUpon>
     </Compile>

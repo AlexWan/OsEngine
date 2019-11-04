@@ -22,6 +22,7 @@ using OsEngine.Market.Servers.Tester;
 using OsEngine.Market.Servers.Transaq;
 using OsEngine.Market.Servers.ZB;
 using OsEngine.Market.Servers.Hitbtc;
+using OsEngine.Market.Servers.Tinkoff;
 
 namespace OsEngine.Entity
 {
@@ -267,6 +268,34 @@ namespace OsEngine.Entity
                                 if (candles != null)
                                 {
                                     candles.Reverse();
+                                    series.CandlesAll = candles;
+                                }
+                            }
+                            series.UpdateAllCandles();
+                            series.IsStarted = true;
+                        }
+                        else if (serverType == ServerType.Tinkoff)
+                        {
+                            TinkoffServer smart = (TinkoffServer)_server;
+
+                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
+                                series.TimeFrameSpan.TotalMinutes < 1 ||
+                                series.TimeFrame == TimeFrame.Hour2 ||
+                                series.TimeFrame == TimeFrame.Hour4 ||
+                                series.TimeFrame == TimeFrame.Min20 ||
+                                series.TimeFrame == TimeFrame.Min45)
+                            {
+                                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
+
+                                series.PreLoad(allTrades);
+                            }
+                            else
+                            {
+                                List<Candle> candles = smart.GetCandleHistory(series.Security.NameId,
+                                    series.TimeFrame);
+
+                                if (candles != null)
+                                {
                                     series.CandlesAll = candles;
                                 }
                             }
