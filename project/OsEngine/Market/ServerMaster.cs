@@ -35,6 +35,7 @@ using OsEngine.Market.Servers.Tester;
 using OsEngine.Market.Servers.Transaq;
 using OsEngine.Market.Servers.ZB;
 using OsEngine.Market.Servers.Hitbtc;
+using OsEngine.Market.Servers.Tinkoff;
 using MessageBox = System.Windows.MessageBox;
 
 namespace OsEngine.Market
@@ -72,6 +73,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.SmartCom);
                 serverTypes.Add(ServerType.Plaza);
                 serverTypes.Add(ServerType.Transaq);
+                serverTypes.Add(ServerType.Tinkoff);
 
                 serverTypes.Add(ServerType.GateIo);
                 serverTypes.Add(ServerType.BitMax);
@@ -167,6 +169,10 @@ namespace OsEngine.Market
 
                 IServer newServer = null;
 
+                if (type == ServerType.Tinkoff)
+                {
+                    newServer = new TinkoffServer();
+                }
                 if (type == ServerType.Hitbtc)
                 {
                     newServer = new HitbtcServer();
@@ -650,6 +656,12 @@ namespace OsEngine.Market
         /// Тип сервера не назначен
         /// </summary>
         None,
+
+        /// <summary>
+        /// connection to Russian broker Tinkoff Invest
+        /// подключение к Тинькофф Инвест (выдающих кредиты под 70% годовых)
+        /// </summary>
+        Tinkoff,
 
         /// <summary>
         /// cryptocurrency exchange Hitbtc

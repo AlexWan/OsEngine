@@ -706,6 +706,11 @@ namespace OsEngine.Language
             "Eng:Secret key_" +
             "Ru:Секретный ключ_");
 
+
+        public string ServerParamToken => OsLocalization.ConvertToLocString(
+            "Eng:Token_" +
+            "Ru:Token_");
+
         public string ServerParamId => OsLocalization.ConvertToLocString(
             "Eng:Id_" +
             "Ru:Идентификатор_");
