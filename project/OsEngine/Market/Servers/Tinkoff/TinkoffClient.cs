@@ -1,24 +1,19 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.ComponentModel.Design;
-using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Net.WebSockets;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
-using RestSharp.Extensions.MonoHttp;
 
 namespace OsEngine.Market.Servers.Tinkoff
 {
@@ -40,7 +35,7 @@ namespace OsEngine.Market.Servers.Tinkoff
 
         private string _url = "https://api-invest.tinkoff.ru/openapi/";
 
-        private string _urlWebSocket = "wss://api-invest.tinkoff.ru/openapi/md/v1/md-openapi/ws";
+       // private string _urlWebSocket = "wss://api-invest.tinkoff.ru/openapi/md/v1/md-openapi/ws";
 
         /// <summary>
         /// connecto to the exchange
@@ -88,13 +83,6 @@ namespace OsEngine.Market.Servers.Tinkoff
 
         private object _queryLocker = new object();
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="url"></param>
-        /// <param name="type">POST, GET</param>
-        /// <param name="req"></param>
-        /// <returns></returns>
         public string ApiQuery(string url, string type, IDictionary<string, string> req)
         {
             try
@@ -220,8 +208,7 @@ namespace OsEngine.Market.Servers.Tinkoff
                 catch (Exception e)
                 {
                     SendLogMessage(e.ToString(), LogMessageType.Error);
-                    Thread.Sleep(5000);
-                    continue;
+                    await Task.Delay(5000);
                 }
             }
         }
@@ -232,10 +219,6 @@ namespace OsEngine.Market.Servers.Tinkoff
 
         private List<Portfolio> _portfolios = new List<Portfolio>();
 
-        /// <summary>
-        /// take balance
-        /// взять баланс
-        /// </summary>
         public void UpdBalance()
         {
             try
@@ -338,10 +321,6 @@ namespace OsEngine.Market.Servers.Tinkoff
             }
         }
 
-        /// <summary>
-        /// take securities
-        /// взять бумаги
-        /// </summary>
         public void GetSecurities()
         {
             List<Security> securities = new List<Security>();
@@ -612,7 +591,7 @@ namespace OsEngine.Market.Servers.Tinkoff
 
             var jBid = JToken.Parse(jsonCurrency).SelectToken("payload").SelectToken("bids");
 
-            List<MarketDepthLevel> Bids = new List<MarketDepthLevel>();
+            List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
 
             foreach (var bid in jBid)
             {
@@ -621,15 +600,15 @@ namespace OsEngine.Market.Servers.Tinkoff
                 newBid.Bid = bid.SelectToken("quantity").ToString().ToDecimal();
                 newBid.Price = bid.SelectToken("price").ToString().ToDecimal();
 
-                Bids.Add(newBid);
+                bids.Add(newBid);
             }
 
-            depth.Bids = Bids;
+            depth.Bids = bids;
 
 
             var jAsk = JToken.Parse(jsonCurrency).SelectToken("payload").SelectToken("asks");
 
-            List<MarketDepthLevel> Ask = new List<MarketDepthLevel>();
+            List<MarketDepthLevel> asks = new List<MarketDepthLevel>();
 
             foreach (var ask in jAsk)
             {
@@ -638,10 +617,10 @@ namespace OsEngine.Market.Servers.Tinkoff
                 newAsk.Ask = ask.SelectToken("quantity").ToString().ToDecimal();
                 newAsk.Price = ask.SelectToken("price").ToString().ToDecimal();
 
-                Ask.Add(newAsk);
+                asks.Add(newAsk);
             }
 
-            depth.Asks = Ask;
+            depth.Asks = asks;
 
             if (depth.Asks == null ||
                 depth.Asks.Count == 0 ||

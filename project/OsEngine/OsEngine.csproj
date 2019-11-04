@@ -78,9 +78,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\Debug\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="OandaV20, Version=1.0.6457.18210, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="OkonkwoOandaV20, Version=1.0.7247.23935, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\OsEngineTepm\7 OANDA\OandaV20-master\OkonkwoOandaV20\OkonkwoOandaV20\bin\Debug\OandaV20.dll</HintPath>
+      <HintPath>..\..\..\OsEngineTepm\7 OANDA\OandaV20-master\OkonkwoOandaV20\OkonkwoOandaV20\bin\Debug\OkonkwoOandaV20.dll</HintPath>
     </Reference>
     <Reference Include="protobuf-net">
       <HintPath>..\..\..\Роботы на заказ\62 Ликвидность BShort\devAzure\OsEngine\bin\Debug\protobuf-net.dll</HintPath>
