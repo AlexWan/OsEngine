@@ -247,7 +247,7 @@ namespace OsEngine.OsData
                     writer.WriteLine(TfMarketDepthIsOn);
                     writer.WriteLine(Source);
 
-                    writer.WriteLine(TimeStart);
+                    writer.WriteLine(TimeStart.ToString(""));
                     writer.WriteLine(TimeEnd);
 
                     writer.WriteLine(_selectedTf);
@@ -309,8 +309,11 @@ namespace OsEngine.OsData
                     TfTickIsOn = Convert.ToBoolean(reader.ReadLine());
                     TfMarketDepthIsOn = Convert.ToBoolean(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), out Source);
-                    TimeStart = Convert.ToDateTime(reader.ReadLine());
-                    TimeEnd = Convert.ToDateTime(reader.ReadLine());
+
+                    string str1 = reader.ReadLine();
+                    TimeStart = Convert.ToDateTime(str1);
+                    string str = reader.ReadLine();
+                    TimeEnd = Convert.ToDateTime(str);
 
                     Enum.TryParse(reader.ReadLine(), out _selectedTf);
                     _selectedSecurity = reader.ReadLine();
@@ -870,6 +873,8 @@ namespace OsEngine.OsData
 
                 series = _myServer.GetCandleDataToSecurity(loadSec.Id, timeFrameBuilder, TimeStart,
                         TimeEnd, GetActualTimeToCandle("Data\\" + SetName + "\\" + loadSec.Name.Replace("/", "") + "\\" + timeFrame), NeadToUpdate);
+
+                SendNewLogMessage("Security: " + loadSec.Name + " Tf: " + timeFrame + " Loaded",LogMessageType.System);
 
                 await Task.Delay(10);
             }

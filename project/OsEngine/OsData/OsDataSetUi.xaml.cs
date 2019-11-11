@@ -178,16 +178,67 @@ namespace OsEngine.OsData
                     CheckBoxTfMarketDepthIsOn.IsChecked = false;
                     CheckBoxTfMarketDepthIsOn.IsEnabled = false;
                 }
+                else if (ComboBoxSource.SelectedItem != null &&
+                         ComboBoxSource.SelectedItem.ToString() == "BitMex")
+                {
+                    CheckBoxTf2HourIsOn.IsEnabled = false;
+                    CheckBoxTf2HourIsOn.IsChecked = false;
+
+                    CheckBoxTf4HourIsOn.IsEnabled = false;
+                    CheckBoxTf4HourIsOn.IsChecked = false;
+
+                    CheckBoxTf2MinuteIsOn.IsChecked = false;
+                    CheckBoxTf2MinuteIsOn.IsEnabled = false;
+
+                    CheckBoxTf10MinuteIsOn.IsChecked = false;
+                    CheckBoxTf10MinuteIsOn.IsEnabled = false;
+
+                    CheckBoxTf15MinuteIsOn.IsChecked = false;
+                    CheckBoxTf15MinuteIsOn.IsEnabled = false;
+
+                    CheckBoxTf30MinuteIsOn.IsChecked = false;
+                    CheckBoxTf30MinuteIsOn.IsEnabled = false;
+
+                    CheckBoxTf1SecondIsOn.IsChecked = false;
+                    CheckBoxTf1SecondIsOn.IsEnabled = false;
+
+                    CheckBoxTf2SecondIsOn.IsChecked = false;
+                    CheckBoxTf2SecondIsOn.IsEnabled = false;
+
+                    CheckBoxTf5SecondIsOn.IsChecked = false;
+                    CheckBoxTf5SecondIsOn.IsEnabled = false;
+
+                    CheckBoxTf10SecondIsOn.IsChecked = false;
+                    CheckBoxTf10SecondIsOn.IsEnabled = false;
+
+                    CheckBoxTf15SecondIsOn.IsChecked = false;
+                    CheckBoxTf15SecondIsOn.IsEnabled = false;
+
+                    CheckBoxTf20SecondIsOn.IsChecked = false;
+                    CheckBoxTf20SecondIsOn.IsEnabled = false;
+
+                    CheckBoxTf30SecondIsOn.IsChecked = false;
+                    CheckBoxTf30SecondIsOn.IsEnabled = false;
+                }
                 else
                 {
+                    CheckBoxTf10MinuteIsOn.IsEnabled = true;
+                    CheckBoxTf15MinuteIsOn.IsEnabled = true;
+                    CheckBoxTf30MinuteIsOn.IsEnabled = true;
                     CheckBoxTf2HourIsOn.IsEnabled = true;
                     CheckBoxTf4HourIsOn.IsEnabled = true;
                     CheckBoxTf2MinuteIsOn.IsEnabled = true;
                     CheckBoxTfMarketDepthIsOn.IsEnabled = true;
+
+                    CheckBoxTf1SecondIsOn.IsEnabled = true;
+                    CheckBoxTf2SecondIsOn.IsEnabled = true;
+                    CheckBoxTf5SecondIsOn.IsEnabled = true;
+                    CheckBoxTf10SecondIsOn.IsEnabled = true;
+                    CheckBoxTf15SecondIsOn.IsEnabled = true;
+                    CheckBoxTf20SecondIsOn.IsEnabled = true;
+                    CheckBoxTf30SecondIsOn.IsEnabled = true;
                 }
             }
-
-
         }
 
         /// <summary>

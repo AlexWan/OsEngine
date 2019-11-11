@@ -8,6 +8,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
+using System.Windows.Forms;
 using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Language;
@@ -302,7 +303,105 @@ namespace OsEngine.Market.Servers.BitMex
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
             DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-           return GetBitMexCandleHistory(security.Name, timeFrameBuilder.TimeFrameTimeSpan);
+           return GetCandles(security.Name, timeFrameBuilder,startTime);
+        }
+
+        /// <summary>
+        /// take candle history
+        /// взять историю свечек
+        /// </summary>
+        /// <param name="security"></param>
+        /// <param name="tf"></param>
+        /// <returns></returns>
+        private List<Candle> GetCandles(string security, TimeFrameBuilder timeFrameBuilder, DateTime timeStart)
+        {
+            try
+            {
+                lock (_getCandles)
+                {
+                    string tf = "1m";
+
+                    if (timeFrameBuilder.TimeFrame == TimeFrame.Min5)
+                    {
+                        tf = "5m";
+                    }
+                    else if (timeFrameBuilder.TimeFrame == TimeFrame.Hour1)
+                    {
+                        tf = "1h";
+                    }
+
+                    int shift = Convert.ToInt32(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes);
+
+                    // 1m,5m,1h
+
+                    List<BitMexCandle> allbmcandles = new List<BitMexCandle>();
+
+                    DateTime actualTime = DateTime.Now.AddDays(1);
+
+                    _candles = null;
+
+                    while  (actualTime > timeStart)
+                    {
+                        
+                        actualTime = TimeZoneInfo.ConvertTimeToUtc(actualTime);
+
+                        string end = actualTime.ToString("yyyy-MM-dd HH:mm");
+
+                        var param = new Dictionary<string, string>();
+                        param["symbol"] = security;
+                        param["count"] = 500.ToString();
+                        param["binSize"] = tf;
+                        param["reverse"] = true.ToString();
+                        //param["startTime"] = start;
+                        param["endTime"] = end;
+                        param["partial"] = true.ToString();
+
+                        try
+                        {
+                            var res = _client.CreateQuery("GET", "/trade/bucketed", param);
+
+                            List<BitMexCandle> bmcandles =
+                                JsonConvert.DeserializeAnonymousType(res, new List<BitMexCandle>());
+                            bmcandles.Reverse();
+                            allbmcandles.InsertRange(0,bmcandles);
+
+                            actualTime = Convert.ToDateTime(bmcandles[0].timestamp)
+                                .Subtract(TimeSpan.FromMinutes(shift));
+                        }
+                        catch
+                        {
+                            // ignored
+                        }
+                        Thread.Sleep(2000);
+                    }
+
+                    if (_candles == null)
+                    {
+                        _candles = new List<Candle>();
+                    }
+
+                    foreach (var bitMexCandle in allbmcandles)
+                    {
+                        Candle newCandle = new Candle();
+
+                        newCandle.Open = bitMexCandle.open;
+                        newCandle.High = bitMexCandle.high;
+                        newCandle.Low = bitMexCandle.low;
+                        newCandle.Close = bitMexCandle.close;
+                        newCandle.TimeStart = Convert.ToDateTime(bitMexCandle.timestamp).Subtract(TimeSpan.FromMinutes(shift));
+                        newCandle.Volume = bitMexCandle.volume;
+
+                        _candles.Add(newCandle);
+                    }
+                   // _candles.Reverse();
+                    return _candles;
+                }
+            }
+            catch (Exception error)
+            {
+                _client_SendLogMessage(error.ToString(), LogMessageType.Error);
+                return null;
+            }
         }
 
         /// <summary>
@@ -313,17 +412,18 @@ namespace OsEngine.Market.Servers.BitMex
         {
             List<Trade> lastTrades = new List<Trade>();
 
-            while (lastDate < endTime)
+            lastDate = endTime;
+           
+
+            while (lastDate > startTime)
             {
                 lastDate = TimeZoneInfo.ConvertTimeToUtc(lastDate);
-
-                List<Trade> trades = GetTickHistoryToSecurity(security, startTime, endTime, lastDate);
+                List<Trade> trades = GetTickHistoryToSecurity(security, lastDate);
 
                 if (trades == null ||
                     trades.Count == 0)
                 {
-                    lastDate = lastDate.AddSeconds(1);
-                    Thread.Sleep(2000);
+                    Thread.Sleep(5000);
                     continue;
                 }
 
@@ -339,28 +439,69 @@ namespace OsEngine.Market.Servers.BitMex
 
                 if (trades.Count == 0)
                 {
-                    lastDate = lastDate.AddSeconds(1);
+                    Thread.Sleep(5000);
                     continue;
                 }
 
-                DateTime uniTime = trades[trades.Count - 1].Time.ToUniversalTime();
+                lastDate = trades[0].Time;
 
-                if (trades.Count != 0 && lastDate < uniTime)
-                {
-                    lastDate = trades[trades.Count - 1].Time;
-                }
-                else
-                {
-                    lastDate = lastDate.AddSeconds(1);
-                }
+                lastTrades.InsertRange(0,trades);
 
-                lastTrades.AddRange(trades);
-
-                Thread.Sleep(2000);
+                Thread.Sleep(3000);
             }
 
             return lastTrades;
         }
+
+        public List<Trade> GetTickHistoryToSecurity(Security security, DateTime endTime)
+        {
+            try
+            {
+                lock (_lockerStarter)
+                {
+                    List<Trade> trades = new List<Trade>();
+
+                    Dictionary<string, string> param = new Dictionary<string, string>();
+
+                    //string start = startTime.ToString("yyyy-MM-dd HH:mm:ss");
+                    string end = endTime.ToString("yyyy-MM-dd HH:mm:ss");
+
+                    param["symbol"] = security.Name;
+                    param["count"] = 500.ToString();
+                    param["start"] = 0.ToString();
+                    param["reverse"] = true.ToString();
+                    // param["startTime"] = start;
+                    param["endTime"] = end;
+
+                    var res = _client.CreateQuery("GET", "/trade", param);
+
+                    List<TradeBitMex> tradeHistory = JsonConvert.DeserializeAnonymousType(res, new List<TradeBitMex>());
+
+                    tradeHistory.Reverse();
+
+                    foreach (var oneTrade in tradeHistory)
+                    {
+                        Trade trade = new Trade();
+                        trade.SecurityNameCode = oneTrade.symbol;
+                        trade.Id = oneTrade.trdMatchID;
+                        trade.Time = Convert.ToDateTime(oneTrade.timestamp);
+                        trade.Price = oneTrade.price;
+                        trade.Volume = oneTrade.size.ToDecimal();
+                        trade.Side = oneTrade.side == "Sell" ? Side.Sell : Side.Buy;
+                        trades.Add(trade);
+                    }
+
+                    return trades;
+                }
+            }
+            catch (Exception error)
+            {
+                _client_SendLogMessage(error.ToString(), LogMessageType.Error);
+                return null;
+            }
+        }
+
+
 
         private bool _portfolioStarted = false; // already subscribed to portfolios / уже подписались на портфели
 
@@ -712,60 +853,6 @@ namespace OsEngine.Market.Servers.BitMex
             }
 
             return candlestf;
-        }
-
-        public List<Trade> GetTickHistoryToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
-        {
-            try
-            {
-                lock (_lockerStarter)
-                {
-                    List<Trade> trades = new List<Trade>();
-                    if (startTime < endTime)
-                    {
-                        if (startTime < actualTime)
-                        {
-                            startTime = actualTime;
-                        }
-
-                        Dictionary<string, string> param = new Dictionary<string, string>();
-
-                        string start = startTime.ToString("yyyy-MM-dd HH:mm:ss");
-                        string end = startTime.AddMinutes(1).ToString("yyyy-MM-dd HH:mm:ss");
-
-                        param["symbol"] = security.Name;
-                        param["count"] = 500.ToString();
-                        param["start"] = 0.ToString();
-                        param["reverse"] = true.ToString();
-                        param["startTime"] = start;
-                        param["endTime"] = end;
-
-                        var res = _client.CreateQuery("GET", "/trade", param);
-
-                        List<TradeBitMex> tradeHistory = JsonConvert.DeserializeAnonymousType(res, new List<TradeBitMex>());
-
-                        tradeHistory.Reverse();
-
-                        foreach (var oneTrade in tradeHistory)
-                        {
-                            Trade trade = new Trade();
-                            trade.SecurityNameCode = oneTrade.symbol;
-                            trade.Id = oneTrade.trdMatchID;
-                            trade.Time = Convert.ToDateTime(oneTrade.timestamp);
-                            trade.Price = oneTrade.price;
-                            trade.Volume = oneTrade.size;
-                            trade.Side = oneTrade.side == "Sell" ? Side.Sell : Side.Buy;
-                            trades.Add(trade);
-                        }
-                    }
-                    return trades;
-                }
-            }
-            catch (Exception error)
-            {
-                _client_SendLogMessage(error.ToString(), LogMessageType.Error);
-                return null;
-            }
         }
 
         // event implementation
@@ -2000,13 +2087,13 @@ namespace OsEngine.Market.Servers.BitMex
         public string timestamp { get; set; }
         public string symbol { get; set; }
         public string side { get; set; }
-        public int size { get; set; }
+        public string size { get; set; }
         public decimal price { get; set; }
         public string tickDirection { get; set; }
         public string trdMatchID { get; set; }
         public object grossValue { get; set; }
         public double homeNotional { get; set; }
-        public int foreignNotional { get; set; }
+        public string foreignNotional { get; set; }
     }
 
     /// <summary>
