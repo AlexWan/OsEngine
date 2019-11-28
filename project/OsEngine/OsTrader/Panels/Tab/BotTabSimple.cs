@@ -67,7 +67,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _journal.UserSelectActionEvent += _journal_UserSelectActionEvent;
                 _journal.LogMessageEvent += SetNewLogMessage;
 
-                _chartMaster = new ChartCandleMaster(TabName, StartProgram);
+                _connector.ComissionType = _journal.ComissionType;
+                _connector.ComissionValue = _journal.ComissionValue;
+
+               _chartMaster = new ChartCandleMaster(TabName, StartProgram);
                 _chartMaster.LogMessageEvent += SetNewLogMessage;
                 _chartMaster.SetNewSecurity(_connector.NamePaper, _connector.TimeFrameBuilder, _connector.PortfolioName, _connector.ServerType);
                 _chartMaster.SetPosition(_journal.AllPosition);
@@ -467,6 +470,24 @@ namespace OsEngine.OsTrader.Panels.Tab
         private Portfolio _portfolio;
 
         /// <summary>
+        /// тип комиссии для позиций
+        /// </summary>
+        public ComissionType ComissionType
+        {
+            get { return _journal.ComissionType; }
+            set { _journal.ComissionType = value; }
+        }
+
+        /// <summary>
+        /// размер комиссии
+        /// </summary>
+        public decimal ComissionValue
+        {
+            get { return _journal.ComissionValue; }
+            set { _journal.ComissionValue = value; }
+        }
+
+        /// <summary>
         /// All positions are owned by bot. Open, closed and with errors / 
         /// все позиции принадлежащие боту. Открытые, закрытые и с ошибками
         /// </summary>
@@ -712,6 +733,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         public void ShowConnectorDialog()
         {
             _connector.ShowDialog();
+
+            _journal.ComissionType = _connector.ComissionType;
+            _journal.ComissionValue = _connector.ComissionValue;
         }
 
         /// <summary>

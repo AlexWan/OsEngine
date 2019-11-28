@@ -141,6 +141,13 @@ namespace OsEngine.Market.Connectors
                 ComboBoxCandleCreateMethodType.SelectionChanged += ComboBoxCandleCreateMethodType_SelectionChanged;
                 ComboBoxSecurities.KeyDown += ComboBoxSecuritiesOnKeyDown;
 
+                ComboBoxComissionType.Items.Add(ComissionType.None.ToString());
+                ComboBoxComissionType.Items.Add(ComissionType.OneLotFix.ToString());
+                ComboBoxComissionType.Items.Add(ComissionType.Percent.ToString());
+                ComboBoxComissionType.SelectedItem = _connectorBot.ComissionType.ToString();
+
+                TextBoxComissionValue.Text = _connectorBot.ComissionValue.ToString();
+
 
                 Title = OsLocalization.Market.TitleConnectorCandle;
                 Label1.Content = OsLocalization.Market.Label1;
@@ -163,6 +170,8 @@ namespace OsEngine.Market.Connectors
                 LabelReversCandlesPunktsMinMove.Content = OsLocalization.Market.Label18;
                 LabelReversCandlesPunktsBackMove.Content = OsLocalization.Market.Label19;
                 ButtonAccept.Content = OsLocalization.Market.ButtonAccept;
+                LabelComissionType.Content = OsLocalization.Market.LabelComissionType;
+                LabelComissionValue.Content = OsLocalization.Market.LabelComissionValue;
             }
             catch (Exception error)
             {
@@ -880,6 +889,19 @@ namespace OsEngine.Market.Connectors
                 CandleCreateMethodType methodType;
                 Enum.TryParse(ComboBoxCandleCreateMethodType.Text, true, out methodType);
 
+                ComissionType typeComission;
+                Enum.TryParse(ComboBoxComissionType.Text, true, out typeComission);
+                _connectorBot.ComissionType = typeComission;
+
+                try
+                {
+                    _connectorBot.ComissionValue = TextBoxComissionValue.Text.ToDecimal();
+                }
+                catch
+                {
+                    // ignore
+                }
+
                 _connectorBot.CandleCreateMethodType = methodType;
 
                 if (CheckBoxSetForeign.IsChecked.HasValue)
@@ -1008,15 +1030,15 @@ namespace OsEngine.Market.Connectors
         private void CreateSimpleCandleSettings()
         {
             ComboBoxTimeFrame.Visibility = Visibility.Visible;
-            ComboBoxTimeFrame.Margin = new Thickness(206, 297, 0, 0);
+            ComboBoxTimeFrame.Margin = new Thickness(206, 340, 0, 0);
 
             LabelTimeFrame.Visibility = Visibility.Visible;
-            LabelTimeFrame.Margin = new Thickness(41, 297, 0, 0);
+            LabelTimeFrame.Margin = new Thickness(41, 340, 0, 0);
 
             CheckBoxSetForeign.Visibility = Visibility.Visible;
-            CheckBoxSetForeign.Margin = new Thickness(120, 327, 0, 0);
+            CheckBoxSetForeign.Margin = new Thickness(120, 380, 0, 0);
 
-            this.Height = 445;
+            this.Height = 490;
         }
 
         private void CreateDeltaCandleSettings()
@@ -1035,22 +1057,22 @@ namespace OsEngine.Market.Connectors
             TextBoxCountTradesInCandle.Visibility = Visibility.Visible;
             LabelCountTradesInCandle.Visibility = Visibility.Visible;
 
-            TextBoxCountTradesInCandle.Margin = new Thickness(206, 297, 0, 0);
-            LabelCountTradesInCandle.Margin = new Thickness(41, 297, 0, 0);
-            Height = 420;
+            TextBoxCountTradesInCandle.Margin = new Thickness(206, 340, 0, 0);
+            LabelCountTradesInCandle.Margin = new Thickness(41, 340, 0, 0);
+            Height = 465;
         }
 
         private void CreateRencoCandleSettings()
         {
             TextBoxRencoPunkts.Visibility = Visibility.Visible;
-            TextBoxRencoPunkts.Margin = new Thickness(206, 297, 0, 0);
+            TextBoxRencoPunkts.Margin = new Thickness(206, 340, 0, 0);
 
             LabelRencoPunkts.Visibility = Visibility.Visible;
-            LabelRencoPunkts.Margin = new Thickness(41, 297, 0, 0);
+            LabelRencoPunkts.Margin = new Thickness(41, 340, 0, 0);
 
             CheckBoxRencoIsBuildShadows.Visibility = Visibility.Visible;
-            CheckBoxRencoIsBuildShadows.Margin = new Thickness(120, 327, 0, 0);
-            Height = 445;
+            CheckBoxRencoIsBuildShadows.Margin = new Thickness(120, 380, 0, 0);
+            Height = 490;
         }
 
         private void CreateVolumeCandleSettings()
@@ -1058,20 +1080,20 @@ namespace OsEngine.Market.Connectors
             LabelVolumeToClose.Visibility = Visibility.Visible;
             TextBoxVolumeToClose.Visibility = Visibility.Visible;
 
-            LabelVolumeToClose.Margin = new Thickness(41, 297, 0, 0);
-            TextBoxVolumeToClose.Margin = new Thickness(206, 297, 0, 0);
-            Height = 420;
+            LabelVolumeToClose.Margin = new Thickness(41, 340, 0, 0);
+            TextBoxVolumeToClose.Margin = new Thickness(206, 340, 0, 0);
+            Height = 465;
         }
 
         private void CreateHaikenAshiCandleSettings()
         {
             ComboBoxTimeFrame.Visibility = Visibility.Visible;
-            ComboBoxTimeFrame.Margin = new Thickness(206, 297, 0, 0);
+            ComboBoxTimeFrame.Margin = new Thickness(206, 340, 0, 0);
 
             LabelTimeFrame.Visibility = Visibility.Visible;
-            LabelTimeFrame.Margin = new Thickness(41, 297, 0, 0);
+            LabelTimeFrame.Margin = new Thickness(41, 340, 0, 0);
 
-            Height = 420;
+            Height = 465;
         }
 
         private void CreateRangeCandleSettings()
@@ -1079,27 +1101,27 @@ namespace OsEngine.Market.Connectors
             LabelRangeCandlesPunkts.Visibility = Visibility.Visible;
             TextBoxRangeCandlesPunkts.Visibility = Visibility.Visible;
 
-            LabelRangeCandlesPunkts.Margin = new Thickness(41, 297, 0, 0);
-            TextBoxRangeCandlesPunkts.Margin = new Thickness(206, 297, 0, 0);
-            Height = 420;
+            LabelRangeCandlesPunkts.Margin = new Thickness(41, 340, 0, 0);
+            TextBoxRangeCandlesPunkts.Margin = new Thickness(206, 340, 0, 0);
+            Height = 465;
 
         }
 
         private void CreateReversCandleSettings()
         {
             TextBoxReversCandlesPunktsMinMove.Visibility = Visibility.Visible;
-            TextBoxReversCandlesPunktsMinMove.Margin = new Thickness(206, 297, 0, 0);
+            TextBoxReversCandlesPunktsMinMove.Margin = new Thickness(206, 340, 0, 0);
 
             LabelReversCandlesPunktsMinMove.Visibility = Visibility.Visible;
-            LabelReversCandlesPunktsMinMove.Margin = new Thickness(41, 297, 0, 0);
+            LabelReversCandlesPunktsMinMove.Margin = new Thickness(41, 340, 0, 0);
 
             TextBoxReversCandlesPunktsBackMove.Visibility = Visibility.Visible;
-            TextBoxReversCandlesPunktsBackMove.Margin = new Thickness(206, 326, 0, 0);
+            TextBoxReversCandlesPunktsBackMove.Margin = new Thickness(206, 370, 0, 0);
 
             LabelReversCandlesPunktsBackMove.Visibility = Visibility.Visible;
-            LabelReversCandlesPunktsBackMove.Margin = new Thickness(41, 326, 0, 0);
+            LabelReversCandlesPunktsBackMove.Margin = new Thickness(41, 370, 0, 0);
 
-            Height = 445;
+            Height = 490;
         }
     }
 }

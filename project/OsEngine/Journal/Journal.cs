@@ -47,7 +47,6 @@ namespace OsEngine.Journal
             }
         }
 
-
         /// <summary>
         /// name
         /// имя
@@ -86,7 +85,6 @@ namespace OsEngine.Journal
             }
         }
 
-
         /// <summary>
         /// to keep the current state of positions
         /// сохранить текущее состояние позиций
@@ -95,8 +93,26 @@ namespace OsEngine.Journal
         {
             _positionController.Save();
         }
-        // access to transactions
-        // доступ к сделкам
+
+        /// <summary>
+        /// тип комиссии для позиций
+        /// </summary>
+        public ComissionType ComissionType
+        {
+            get {return _positionController.ComissionType; }
+            set { _positionController.ComissionType = value; }
+        }
+
+        /// <summary>
+        /// размер комиссии
+        /// </summary>
+        public decimal ComissionValue
+        {
+            get { return _positionController.ComissionValue; }
+            set { _positionController.ComissionValue = value; }
+        }
+
+        // access to transactions доступ к сделкам
 
         /// <summary>
         /// transaction repository

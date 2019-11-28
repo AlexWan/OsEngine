@@ -277,6 +277,16 @@ namespace OsEngine.Market.Connectors
         public TimeFrameBuilder TimeFrameBuilder;
 
         /// <summary>
+        /// тип комиссии для позиций
+        /// </summary>
+        public ComissionType ComissionType;
+
+        /// <summary>
+        /// размер комиссии
+        /// </summary>
+        public decimal ComissionValue;
+
+        /// <summary>
         /// method of creating candles: from ticks or from depths 
         /// способ создания свечей: из тиков или из стаканов
         /// </summary>

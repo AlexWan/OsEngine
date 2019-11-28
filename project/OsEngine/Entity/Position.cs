@@ -770,7 +770,10 @@ namespace OsEngine.Entity
 
             result.Append(ProfitOrderRedLine + "#");
             result.Append(SignalTypeOpen + "#");
-            result.Append(SignalTypeClose);
+            result.Append(SignalTypeClose + "#");
+
+            result.Append(ComissionValue + "#");
+            result.Append(ComissionType);
 
             if (CloseOrders != null)
             {
@@ -833,12 +836,15 @@ namespace OsEngine.Entity
             SignalTypeOpen = arraySave[18];
             SignalTypeClose = arraySave[19];
 
+            ComissionValue = arraySave[20].ToDecimal();
+            Enum.TryParse(arraySave[21], out ComissionType);
+
             for (int i = 0; i < 10; i++)
             {
-                if (arraySave.Length > 20 + i)
+                if (arraySave.Length > 22 + i)
                 {
                     Order newOrder = new Order();
-                    newOrder.SetOrderFromString(arraySave[20 + i]);
+                    newOrder.SetOrderFromString(arraySave[22 + i]);
                     AddNewCloseOrder(newOrder);
                 }
             }
@@ -942,7 +948,16 @@ namespace OsEngine.Entity
             }
         }
 
-        public decimal Comission;
+        /// <summary>
+        /// тип комиссии для позиции
+        /// </summary>
+        public ComissionType ComissionType;
+
+        /// <summary>
+        /// величина комиссии
+        /// comission value
+        /// </summary>
+        public decimal ComissionValue;
 
         /// <summary>
         /// the amount of profit relative to the portfolio in absolute terms
@@ -968,10 +983,31 @@ namespace OsEngine.Entity
 
                 decimal comisAbsolute = 0;
 
-                if (Comission != 0)
+                if(ComissionType != ComissionType.None && ComissionValue != 0)
                 {
-                    comisAbsolute = MaxVolume * EntryPrice * (Comission / 100) +
-                                    MaxVolume * ClosePrice * (Comission / 100);
+                    if (ComissionType == ComissionType.Percent)
+                    {
+                        if(EntryPrice != 0 && ClosePrice == 0)
+                        {
+                            comisAbsolute = MaxVolume * EntryPrice * (ComissionValue / 100);
+                        }
+                        else if(EntryPrice != 0 && ClosePrice != 0)
+                        {
+                            comisAbsolute = MaxVolume * EntryPrice * (ComissionValue / 100) +
+                            MaxVolume * ClosePrice * (ComissionValue / 100);
+                        }
+                    }
+                    if(ComissionType == ComissionType.OneLotFix)
+                    {
+                        if (EntryPrice != 0 && ClosePrice == 0)
+                        {
+                            comisAbsolute = MaxVolume * ComissionValue;
+                        }
+                        else if (EntryPrice != 0 && ClosePrice != 0)
+                        {
+                            comisAbsolute = MaxVolume * ComissionValue *2;
+                        }
+                    }
                 }
 
                 decimal profit =
@@ -981,7 +1017,6 @@ namespace OsEngine.Entity
                 return profit; //  Lots;
             }
         }
-
 
         /// <summary>
         /// the number of lots in one transaction
@@ -1116,5 +1151,15 @@ namespace OsEngine.Entity
         /// продажа
         /// </summary>
         Sell
+    }
+
+    /// <summary>
+    /// Тип комиссии
+    /// </summary>
+    public enum ComissionType
+    {
+        None,
+        Percent,
+        OneLotFix
     }
 }

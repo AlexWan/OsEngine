@@ -1354,6 +1354,12 @@ namespace OsEngine.Market.Servers.BitMex
                 {
                     for (int i = 0; i < order.data.Count; i++)
                     {
+                        if(order.data[i].lastQty == null ||
+                            order.data[i].lastQty == 0)
+                        {
+                            continue;
+                        }
+
                         MyTrade trade = new MyTrade();
                         trade.NumberTrade = order.data[i].execID;
                         trade.NumberOrderParent = order.data[i].orderID;

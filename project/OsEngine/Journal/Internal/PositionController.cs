@@ -112,8 +112,7 @@ namespace OsEngine.Journal.Internal
         /// </summary>
         private void Load()
         {
-            if (_startProgram == StartProgram.IsTester ||
-                _startProgram == StartProgram.IsOsOptimizer ||
+            if (_startProgram == StartProgram.IsOsOptimizer ||
                 _startProgram == StartProgram.IsOsMiner)
             {
                 return;
@@ -132,6 +131,16 @@ namespace OsEngine.Journal.Internal
 
                 using (StreamReader reader = new StreamReader(@"Engine\" + _name + @"DealController.txt"))
                 {
+                    try
+                    {
+                        Enum.TryParse(reader.ReadLine(), out _comissionType);
+                        _comissionValue = reader.ReadLine().ToDecimal();
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+
                     while (!reader.EndOfStream)
                     {
                         countDeal++;
@@ -249,6 +258,50 @@ namespace OsEngine.Journal.Internal
             }
         }
 
+        public ComissionType ComissionType
+        {
+            get { return _comissionType; }
+            set
+            {
+                if(value == _comissionType)
+                {
+                    return;
+                }
+                _comissionType = value;
+
+                for(int i = 0; AllPositions != null && i < AllPositions.Count;i++)
+                {
+                    AllPositions[i].ComissionType = _comissionType;
+                }
+
+                _neadToSave = true;
+            }
+        }
+        private ComissionType _comissionType;
+
+        public decimal ComissionValue
+        {
+            get { return _comissionValue; }
+            set
+            {
+                if (value == _comissionValue)
+                {
+                    return;
+                }
+                _comissionValue = value;
+
+
+                for (int i = 0; AllPositions != null && i < AllPositions.Count; i++)
+                {
+                    AllPositions[i].ComissionValue = _comissionValue;
+                }
+
+                _neadToSave = true;
+            }
+
+        }
+        private decimal _comissionValue;
+
         /// <summary>
         /// is it necessary to save the data
         /// нужно ли сохранить данные
@@ -262,11 +315,6 @@ namespace OsEngine.Journal.Internal
                 return;
             }
 
-            if (_startProgram != StartProgram.IsOsTrader)
-            {
-                return;
-            }
-
             _neadToSave = false;
 
             try
@@ -276,6 +324,15 @@ namespace OsEngine.Journal.Internal
                     List<Position> deals = _deals;
 
                     StringBuilder result = new StringBuilder();
+
+                    result.Append(_comissionType + "\r\n");
+                    result.Append(_comissionValue+ "\r\n");
+
+                    if (_startProgram != StartProgram.IsOsTrader)
+                    {
+                        writer.Write(result);
+                        return;
+                    }
 
                     for (int i = 0; deals != null && i < deals.Count; i++)
                     {
@@ -299,6 +356,7 @@ namespace OsEngine.Journal.Internal
         {
             _neadToSave = true;
         }
+
         // working with a position
         // работа с позицией
 
@@ -320,6 +378,9 @@ namespace OsEngine.Journal.Internal
             }
             // saving
             // сохраняем
+
+            newPosition.ComissionType = ComissionType;
+            newPosition.ComissionValue = ComissionValue;
 
             if (_deals == null)
             {
@@ -582,8 +643,8 @@ namespace OsEngine.Journal.Internal
         /// пустой лист который мы возвращаем вместо null при запросе массивов
         /// </summary>
         private List<Position> _emptyList = new List<Position>();
-        // last position
-        // последняя позиция
+
+        // last position последняя позиция
 
         /// <summary>
         /// last position has changed
