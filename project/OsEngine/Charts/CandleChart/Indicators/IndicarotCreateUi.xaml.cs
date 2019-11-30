@@ -100,6 +100,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _gridViewIndicators.Rows.Add("Trix");
             _gridViewIndicators.Rows.Add("TradeThread");
             _gridViewIndicators.Rows.Add("Unk");
+            _gridViewIndicators.Rows.Add("UltimateOscillator");
             _gridViewIndicators.Rows.Add("VerticalHorizontalFilter");
             _gridViewIndicators.Rows.Add("Volume Oscillator");
             _gridViewIndicators.Rows.Add("Volume");
@@ -182,6 +183,22 @@ namespace OsEngine.Charts.CandleChart.Indicators
                     }
                 }
                 IndicatorCandle = new Vwap(_chartMaster.Name + name, true);
+                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+            }
+
+            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "UltimateOscillator")
+            {
+                string name = "";
+
+                for (int i = 0; i < 30; i++)
+                {
+                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "UltimateOscillator" + i) == false)
+                    {
+                        name = "UltimateOscillator" + i;
+                        break;
+                    }
+                }
+                IndicatorCandle = new UltimateOscillator(_chartMaster.Name + name, true);
                 _chartMaster.CreateIndicator(IndicatorCandle, areaName);
             }
 

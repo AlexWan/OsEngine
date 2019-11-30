@@ -480,7 +480,7 @@ namespace OsEngine.Market.Servers
                 return;
             }
 
-            LastStartServerTime = DateTime.Now.AddMinutes(-5);
+            LastStartServerTime = DateTime.Now;
 
             _serverStatusNead = ServerConnectStatus.Connect;
         }

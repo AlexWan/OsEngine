@@ -1,0 +1,23 @@
+﻿<Window x:Class="OsEngine.Charts.CandleChart.Indicators.UltimateOscillatorUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OsEngine.Charts.CandleChart.Indicators"
+        mc:Ignorable="d"
+         Title="Ultimate Oscillator" Height="235.333" Width="322" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico" Topmost="True">
+    <Grid>
+        <Rectangle Margin="5,5,5,37"/>
+        <Button x:Name ="ButtonAccept"  Content="Accept" Margin="0,0,10,10" Click="ButtonAccept_Click" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="119"/>
+        <TextBox x:Name ="TextBoxLenght"  Margin="153,5,24,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <Label Name="LabelIndicatorPeriod" Content="Period 1" HorizontalAlignment="Right" Margin="0,5,177,0" VerticalAlignment="Top"/>
+        <CheckBox Name="CheckBoxPaintOnOff" Content="Is visible" Margin="0,108,24,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="127" />
+        <Button x:Name="ButtonColor" Content="Color" Margin="21,81,177,0" VerticalAlignment="Top" Click="ButtonColor_Click"  />
+        <WindowsFormsHost x:Name="HostColorBase" Height="22" Margin="153,81,24,0" VerticalAlignment="Top"/>
+        <TextBox x:Name ="TextBoxLenght2"  Margin="153,28,24,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <Label x:Name="LabelIndicatorPeriod2" Content="Period 2" HorizontalAlignment="Right" Margin="0,28,177,0" VerticalAlignment="Top"/>
+        <TextBox x:Name ="TextBoxLenght3"  Margin="153,51,24,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <Label x:Name="LabelIndicatorPeriod3" Content="Period 3" HorizontalAlignment="Right" Margin="0,51,177,0" VerticalAlignment="Top"/>
+
+    </Grid>
+</Window>

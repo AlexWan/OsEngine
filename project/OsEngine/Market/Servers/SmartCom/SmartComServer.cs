@@ -7,7 +7,6 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
-using OsEngine.Market.Servers.Transaq;
 using SmartCOM4Lib;
 
 namespace OsEngine.Market.Servers.SmartCom
@@ -55,7 +54,7 @@ namespace OsEngine.Market.Servers.SmartCom
         /// server SmartCom
         /// Сервер СмартКом
         /// </summary>
-        public StServerClass SmartServer;
+        private StServerClass _smartServer;
 
         /// <summary>
         /// multi-threaded access locker to SmartCom server
@@ -66,26 +65,26 @@ namespace OsEngine.Market.Servers.SmartCom
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void Connect()
         {
-            if (SmartServer == null)
+            if (_smartServer == null)
             {
-                SmartServer = new StServerClass();
-                SmartServer.ConfigureClient("logLevel=0;maxWorkerThreads=10");
+                _smartServer = new StServerClass();
+                _smartServer.ConfigureClient("logLevel=0");
 
-                SmartServer.Connected += SmartServerOnConnected;
-                SmartServer.Disconnected += SmartServerOnDisconnected;
-                SmartServer.AddSymbol += SmartServerOnAddSymbol;
-                SmartServer.AddPortfolio += SmartServerOnAddPortfolio;
-                SmartServer.SetPortfolio += SmartServerOnSetPortfolio;
-                SmartServer.UpdatePosition += SmartServerOnUpdatePosition;
-                SmartServer.AddTick += SmartServerOnAddTick;
-                SmartServer.AddTrade += SmartServerOnAddTrade;
-                SmartServer.AddBar += SmartServerOnAddBar;
-                SmartServer.UpdateBidAsk += SmartServerOnUpdateBidAsk;
-                SmartServer.UpdateOrder += SmartServerOnUpdateOrder;
-                SmartServer.OrderFailed += SmartServerOnOrderFailed;
-                SmartServer.OrderSucceeded += SmartServerOnOrderSucceeded;
-                SmartServer.OrderCancelFailed += SmartServerOnOrderCancelFailed;
-                SmartServer.OrderCancelSucceeded += SmartServerOnOrderCancelSucceeded;
+                _smartServer.Connected += SmartServerOnConnected;
+                _smartServer.Disconnected += SmartServerOnDisconnected;
+                _smartServer.AddSymbol += SmartServerOnAddSymbol;
+                _smartServer.AddPortfolio += SmartServerOnAddPortfolio;
+                _smartServer.SetPortfolio += SmartServerOnSetPortfolio;
+                _smartServer.UpdatePosition += SmartServerOnUpdatePosition;
+                _smartServer.AddTick += SmartServerOnAddTick;
+                _smartServer.AddTrade += SmartServerOnAddTrade;
+                _smartServer.AddBar += SmartServerOnAddBar;
+                _smartServer.UpdateBidAsk += SmartServerOnUpdateBidAsk;
+                _smartServer.UpdateOrder += SmartServerOnUpdateOrder;
+                _smartServer.OrderFailed += SmartServerOnOrderFailed;
+                _smartServer.OrderSucceeded += SmartServerOnOrderSucceeded;
+                _smartServer.OrderCancelFailed += SmartServerOnOrderCancelFailed;
+                _smartServer.OrderCancelSucceeded += SmartServerOnOrderCancelSucceeded;
             }
 
             string ip = ((ServerParameterString)ServerParameters[0]).Value;
@@ -95,7 +94,7 @@ namespace OsEngine.Market.Servers.SmartCom
 
             lock (_smartComServerLocker)
             {
-                SmartServer.connect(ip, port, username, userpassword);
+                _smartServer.connect(ip, port, username, userpassword);
             }
 
             Thread.Sleep(10000);
@@ -108,9 +107,9 @@ namespace OsEngine.Market.Servers.SmartCom
             {
                 lock (_smartComServerLocker)
                 {
-                    if (SmartServer != null && SmartServer.IsConnected())
+                    if (_smartServer != null && _smartServer.IsConnected())
                     {
-                        SmartServer.disconnect();
+                        _smartServer.disconnect();
                     }
                 }
             }
@@ -119,23 +118,23 @@ namespace OsEngine.Market.Servers.SmartCom
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
 
-            if (SmartServer != null)
+            if (_smartServer != null)
             {
-                SmartServer.Connected -= SmartServerOnConnected;
-                SmartServer.Disconnected -= SmartServerOnDisconnected;
-                SmartServer.AddSymbol -= SmartServerOnAddSymbol;
-                SmartServer.AddPortfolio -= SmartServerOnAddPortfolio;
-                SmartServer.SetPortfolio -= SmartServerOnSetPortfolio;
-                SmartServer.UpdatePosition -= SmartServerOnUpdatePosition;
-                SmartServer.AddTick -= SmartServerOnAddTick;
-                SmartServer.AddTrade -= SmartServerOnAddTrade;
-                SmartServer.AddBar -= SmartServerOnAddBar;
-                SmartServer.UpdateBidAsk -= SmartServerOnUpdateBidAsk;
-                SmartServer.UpdateOrder -= SmartServerOnUpdateOrder;
-                SmartServer.OrderFailed -= SmartServerOnOrderFailed;
-                SmartServer.OrderSucceeded -= SmartServerOnOrderSucceeded;
-                SmartServer.OrderCancelFailed -= SmartServerOnOrderCancelFailed;
-                SmartServer.OrderCancelSucceeded -= SmartServerOnOrderCancelSucceeded;
+                _smartServer.Connected -= SmartServerOnConnected;
+                _smartServer.Disconnected -= SmartServerOnDisconnected;
+                _smartServer.AddSymbol -= SmartServerOnAddSymbol;
+                _smartServer.AddPortfolio -= SmartServerOnAddPortfolio;
+                _smartServer.SetPortfolio -= SmartServerOnSetPortfolio;
+                _smartServer.UpdatePosition -= SmartServerOnUpdatePosition;
+                _smartServer.AddTick -= SmartServerOnAddTick;
+                _smartServer.AddTrade -= SmartServerOnAddTrade;
+                _smartServer.AddBar -= SmartServerOnAddBar;
+                _smartServer.UpdateBidAsk -= SmartServerOnUpdateBidAsk;
+                _smartServer.UpdateOrder -= SmartServerOnUpdateOrder;
+                _smartServer.OrderFailed -= SmartServerOnOrderFailed;
+                _smartServer.OrderSucceeded -= SmartServerOnOrderSucceeded;
+                _smartServer.OrderCancelFailed -= SmartServerOnOrderCancelFailed;
+                _smartServer.OrderCancelSucceeded -= SmartServerOnOrderCancelSucceeded;
             }
 
             _startedSecurities = new List<string>();
@@ -146,7 +145,7 @@ namespace OsEngine.Market.Servers.SmartCom
 
             lock (_smartComServerLocker)
             {
-                SmartServer = null;
+                _smartServer = null;
             }
             ServerStatus = ServerConnectStatus.Disconnect;
         }
@@ -156,7 +155,7 @@ namespace OsEngine.Market.Servers.SmartCom
         {
             lock (_smartComServerLocker)
             {
-                SmartServer.GetSymbols();
+                _smartServer.GetSymbols();
             }
         }
 
@@ -165,7 +164,7 @@ namespace OsEngine.Market.Servers.SmartCom
         {
             lock (_smartComServerLocker)
             {
-                SmartServer.GetPrortfolioList();
+                _smartServer.GetPrortfolioList();
             }
 
             if (_portfolios != null)
@@ -174,8 +173,8 @@ namespace OsEngine.Market.Servers.SmartCom
                 {
                     lock (_smartComServerLocker)
                     {
-                        SmartServer.CancelPortfolio(_portfolios[i].Number);
-                        SmartServer.ListenPortfolio(_portfolios[i].Number);
+                        _smartServer.CancelPortfolio(_portfolios[i].Number);
+                        _smartServer.ListenPortfolio(_portfolios[i].Number);
                     }
                 }
             }
@@ -207,9 +206,9 @@ namespace OsEngine.Market.Servers.SmartCom
 
                 if (isStarted == false)
                 {
-                    SmartServer.ListenBidAsks(namePaper);
-                    SmartServer.ListenQuotes(namePaper);
-                    SmartServer.ListenTicks(namePaper);
+                    _smartServer.ListenBidAsks(namePaper);
+                    _smartServer.ListenQuotes(namePaper);
+                    _smartServer.ListenTicks(namePaper);
                     _startedSecurities.Add(namePaper);
                 }
             }
@@ -283,7 +282,7 @@ namespace OsEngine.Market.Servers.SmartCom
 
             lock (_smartComServerLocker)
             {
-                SmartServer.PlaceOrder(order.PortfolioNumber, order.SecurityNameCode, action, type,
+                _smartServer.PlaceOrder(order.PortfolioNumber, order.SecurityNameCode, action, type,
                     validity,
                     price, volume, 0, cookie);
             }
@@ -303,7 +302,7 @@ namespace OsEngine.Market.Servers.SmartCom
                 Order realOrder = _ordersWhithId.Find(o => o.NumberUser == order.NumberUser);
                 if (realOrder != null)
                 {
-                    SmartServer.CancelOrder(order.PortfolioNumber, order.SecurityNameCode,
+                    _smartServer.CancelOrder(order.PortfolioNumber, order.SecurityNameCode,
                         realOrder.Comment);
                 }
             }
@@ -601,7 +600,7 @@ namespace OsEngine.Market.Servers.SmartCom
                 {
                     lock (_smartComServerLocker)
                     {
-                        SmartServer.GetBars(security, tf, DateTime.Now.AddHours(6), count);
+                        _smartServer.GetBars(security, tf, DateTime.Now.AddHours(6), count);
                     }
                 }
 

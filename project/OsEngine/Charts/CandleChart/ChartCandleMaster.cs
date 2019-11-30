@@ -80,6 +80,10 @@ namespace OsEngine.Charts.CandleChart
                         {
                             CreateIndicator(new StochRsi(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
+                        if (indicator[0] == "UltimateOscillator")
+                        {
+                            CreateIndicator(new UltimateOscillator(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                        }
                         if (indicator[0] == "Vwap")
                         {
                             CreateIndicator(new Vwap(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);

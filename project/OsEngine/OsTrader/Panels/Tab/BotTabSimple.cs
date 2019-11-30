@@ -233,6 +233,15 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// connector is ready to send Orders / 
+        /// готов ли коннектор к выставленю заявок
+        /// </summary>
+        public bool IsReadyToTrade
+        {
+            get { return _connector.IsReadyToTrade; }
+        }
+
+        /// <summary>
         /// the program that created the object / 
         /// программа создавшая объект
         /// </summary>

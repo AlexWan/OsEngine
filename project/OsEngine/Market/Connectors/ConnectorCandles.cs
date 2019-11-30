@@ -559,8 +559,40 @@ namespace OsEngine.Market.Connectors
             }
         }
 
-// data subscription
-// подписка на данные 
+        /// <summary>
+        /// connector is ready to send Orders / 
+        /// готов ли коннектор к выставленю заявок
+        /// </summary>
+        public bool IsReadyToTrade
+        {
+            get 
+            {
+                if(_myServer == null)
+                {
+                    return false;
+                }
+
+                if(_myServer.ServerStatus != ServerConnectStatus.Connect)
+                {
+                    return false;
+                }
+
+                if(StartProgram != StartProgram.IsOsTrader)
+                { // в тестере и оптимизаторе дальше не проверяем
+                    return true;
+                }
+
+                if (_myServer.LastStartServerTime.AddSeconds(60) > DateTime.Now)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+        }
+
+        // data subscription
+        // подписка на данные 
 
         private DateTime _lastReconnectTime;
 
