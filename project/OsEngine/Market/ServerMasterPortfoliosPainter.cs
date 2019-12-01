@@ -137,6 +137,11 @@ namespace OsEngine.Market
 
                     for (int i = 0; i < portfolios.Count; i++)
                     {
+                        if (portfolios[i] == null)
+                        {
+                            continue;
+                        }
+
                         Portfolio portf = _portfolios.Find(portfolio => portfolio.Number == portfolios[i].Number);
 
                         if (portf != null)
