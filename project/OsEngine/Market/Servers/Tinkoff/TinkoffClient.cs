@@ -359,12 +359,18 @@ namespace OsEngine.Market.Servers.Tinkoff
             {
                 Security newSecurity = new Security();
 
-                newSecurity.Name = jtSecurity.SelectToken("ticker").ToString();
-                newSecurity.NameId = jtSecurity.SelectToken("figi").ToString();
-                newSecurity.NameFull = jtSecurity.SelectToken("name").ToString();
-
-                newSecurity.PriceStep = jtSecurity.SelectToken("minPriceIncrement").ToString().ToDecimal();
-                newSecurity.PriceStepCost = newSecurity.PriceStep;
+                try
+                {
+                    newSecurity.Name = jtSecurity.SelectToken("ticker").ToString();
+                    newSecurity.NameId = jtSecurity.SelectToken("figi").ToString();
+                    newSecurity.NameFull = jtSecurity.SelectToken("name").ToString();
+                    newSecurity.PriceStep = jtSecurity.SelectToken("minPriceIncrement").ToString().ToDecimal();
+                    newSecurity.PriceStepCost = newSecurity.PriceStep;
+                }
+                catch
+                {
+                    continue;
+                }
 
                 if (secClass == "Stock" &&
                     jtSecurity.SelectToken("currency").ToString() == "RUB")
