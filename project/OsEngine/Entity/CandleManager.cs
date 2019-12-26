@@ -613,7 +613,7 @@ namespace OsEngine.Entity
             Clear();
             _isDisposed = true;
 
-            for (int i = 0; i < _activSeries.Count; i++)
+            for (int i = 0; _activSeries != null && i < _activSeries.Count; i++)
             {
                 _activSeries[i].Stop();
                 _activSeries[i].Clear();

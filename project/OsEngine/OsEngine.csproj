@@ -488,6 +488,9 @@
     <Compile Include="Market\Servers\Entity\ServerWorkingTimeSettings.cs" />
     <Compile Include="Market\Servers\Entity\TimeManager.cs" />
     <Compile Include="Market\Servers\SmartCom\SmartComServer.cs" />
+    <Compile Include="Market\Servers\SmartCom\SmartComServerUi.xaml.cs">
+      <DependentUpon>SmartComServerUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Market\Servers\Tester\TesterServer.cs" />
     <Compile Include="Market\Servers\Tester\TesterServerUi.xaml.cs">
       <DependentUpon>TesterServerUi.xaml</DependentUpon>
@@ -1011,6 +1014,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Market\Servers\Optimizer\OptimizerDataStorageUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\SmartCom\SmartComServerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

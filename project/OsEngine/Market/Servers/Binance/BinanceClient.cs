@@ -209,14 +209,14 @@ namespace OsEngine.Market.Servers.Binance
         {
             while (true)
             {
-                Thread.Sleep(300000);
+                Thread.Sleep(30000);
 
                 if (_listenKey == "")
                 {
                     return;
                 }
 
-                if (_timeStart.AddMinutes(30) < DateTime.Now)
+                if (_timeStart.AddMinutes(25) < DateTime.Now)
                 {
                     _timeStart = DateTime.Now;
 
@@ -758,6 +758,12 @@ namespace OsEngine.Market.Servers.Binance
             }
             catch (Exception ex)
             {
+                if (ex.ToString().Contains("This listenKey does not exist"))
+                {
+                    IsConnected = false;
+                    Disconnected?.Invoke();
+                }
+
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
                 return null;
             }
@@ -842,6 +848,7 @@ namespace OsEngine.Market.Servers.Binance
                     else
                     {
                         order.State = OrderStateType.Fail;
+
                         if (MyOrderEvent != null)
                         {
                             MyOrderEvent(order);
@@ -913,6 +920,11 @@ namespace OsEngine.Market.Servers.Binance
                 //"symbol={symbol.ToUpper()}&recvWindow={recvWindow}"
 
                 var res = CreateQuery(Method.GET, endPoint, param, true);
+
+                if (res == null)
+                {
+                    continue;
+                }
 
                 HistoryOrderReport[] orders = JsonConvert.DeserializeObject<HistoryOrderReport[]>(res);
 

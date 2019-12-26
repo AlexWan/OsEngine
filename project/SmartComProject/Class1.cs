@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Threading;
-using System.Windows.Documents;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
@@ -28,7 +27,7 @@ namespace OsEngine.Market.Servers.SmartCom
         public SmartComServer()
         {
             ServerPort = "8443";
-            ServerAdress = "mxdemo.ittrade.ru"; //  "mx.ittrade.ru"
+            ServerAdress = "mxdemo.ittrade.ru";
             ServerStatus = ServerConnectStatus.Disconnect;
             ServerType = ServerType.SmartCom;
 
@@ -52,7 +51,7 @@ namespace OsEngine.Market.Servers.SmartCom
             ordersExecutor.Name = "SmartComExecutorOrdersThread";
             ordersExecutor.Start();
 
-            _logMaster = new Log("SmartComServer",StartProgram.IsOsTrader);
+            _logMaster = new Log("SmartComServer");
             _logMaster.Listen(this);
 
             _serverStatusNead = ServerConnectStatus.Disconnect;
@@ -75,19 +74,6 @@ namespace OsEngine.Market.Servers.SmartCom
             orderStatusCheckThread.Name = "SmartComOrdersExecutionChekerThread";
             orderStatusCheckThread.Start();
         }
-
-        public CandleSeries GetCandleDataToSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder, DateTime startTime,
-            DateTime endTime, DateTime actualTime, bool neadToUpdate)
-        {
-            return null;
-        }
-
-        public bool GetTickDataToSecurity(string namePaper, DateTime startTime, DateTime endTime, DateTime actualTime,
-            bool neadToUpdete)
-        {
-            return false;
-        }
-
 
         /// <summary>
         /// взять тип сервера
@@ -361,6 +347,11 @@ namespace OsEngine.Market.Servers.SmartCom
                 }
             }
         }
+
+        /// <summary>
+        /// время последнего старта сервера
+        /// </summary>
+        private DateTime _lastStartServerTime = DateTime.MinValue;
 
         /// <summary>
         /// включена ли прослушка портфелей
@@ -754,21 +745,9 @@ namespace OsEngine.Market.Servers.SmartCom
         /// </summary>
         public event Action<DateTime> TimeServerChangeEvent;
 
-        /// <summary>
-        /// время последнего старта сервера
-        /// </summary>
-        public DateTime LastStartServerTime
-        {
-            get
-            {
-                return _lastStartServerTime;
-            }
-        }
-        private DateTime _lastStartServerTime = DateTime.MinValue;
-
         // портфели
 
-        
+        private List<Portfolio> _portfolios;
 
         /// <summary>
         /// все счета в системе
@@ -777,7 +756,6 @@ namespace OsEngine.Market.Servers.SmartCom
         {
             get { return _portfolios; }
         }
-        private List<Portfolio> _portfolios;
 
         /// <summary>
         /// взять портфель по его номеру/имени
@@ -1037,51 +1015,10 @@ namespace OsEngine.Market.Servers.SmartCom
                     security.Name = symbol;
                     security.NameFull = longName;
                     security.NameClass = type;
-                    security.NameId = longName;
 
                     security.Strike = Convert.ToDecimal(strike);
                     security.Expiration = expiryDate;
 
-                    if (type == "TQBR" || type == "TQDE" || type == "TQNE"
-                        || type == "EQNE" || type == "ADR")
-                    {
-                        security.SecurityType = SecurityType.Stock;
-                    }
-                    else if (type == "FUT" || type == "SPBEX"
-                             || type == "ST")
-                    {
-                        security.SecurityType = SecurityType.Futures;
-                    }
-                    else if (type == "CUR" || type == "CETS")
-                    {
-                        security.SecurityType = SecurityType.CurrencyPair;
-                    }
-                    else if (type == "OPTM" || type == "OPT")
-                    {
-                        security.SecurityType = SecurityType.Futures;
-                    }
-                    else if (type == "IDX" || type == "FDDIZLBLT" || type == "D"
-                             || type == "FDESPOKOZ" || type == "E")
-                    {
-                        security.SecurityType = SecurityType.Futures;
-                    }
-                    else
-                    {
-                        security.SecurityType = SecurityType.Futures;
-                    }
-
-                    security.Decimals = decimals;
-
-                    if (decimals == 7.0)
-                    {
-                        security.PriceStep = 0.0000001m;
-                        security.PriceStepCost = 0.0000001m;
-                    }
-                    if (decimals == 6.0)
-                    {
-                        security.PriceStep = 0.000001m;
-                        security.PriceStepCost = 0.000001m;
-                    }
                     if (decimals == 5.0)
                     {
                         security.PriceStep = 0.00001m;
@@ -1113,12 +1050,6 @@ namespace OsEngine.Market.Servers.SmartCom
                         security.PriceStepCost = Convert.ToDecimal(punkt);
                     }
 
-                    if (security.PriceStep == 0)
-                    {
-                        security.PriceStep = 1;
-                        security.PriceStepCost = 1;
-                    }
-
                     if (type == "FUT")
                     {
                         security.Lot = 1;
@@ -1132,18 +1063,10 @@ namespace OsEngine.Market.Servers.SmartCom
                     security.PriceLimitHigh = 0;
 
                     _securities.Add(security);
-                }
-                else
-                {
-                    return;
-                }
 
-                if (row + 1 < nrows)
-                {
-                    return;
-                }
+                    _securitiesToSend.Enqueue(_securities);
 
-                _securitiesToSend.Enqueue(_securities);
+                }
             }
             catch (Exception error)
             {
@@ -1247,7 +1170,7 @@ namespace OsEngine.Market.Servers.SmartCom
 
                     _candles = null;
 
-                    CandleSeries series = new CandleSeries(timeFrameBuilder, security, StartProgram.IsOsTrader)
+                    CandleSeries series = new CandleSeries(timeFrameBuilder, security)
                     {
                         CandlesAll = _candles
                     };
@@ -1308,7 +1231,6 @@ namespace OsEngine.Market.Servers.SmartCom
         {
             _candleSeriesToSend.Enqueue(series);
         }
-
 
         /// <summary>
         /// вызывается в момент изменения серий свечек
@@ -1429,20 +1351,15 @@ namespace OsEngine.Market.Servers.SmartCom
         private void SmartServer_UpdateBidAsk(string symbol, int row, int nrows, double bid, double bidsize, double ask,
             double asksize)
         {
-            if (ask < bid)
-            {
-                return;
-            }
-
             MarketDepthLevel askOs = new MarketDepthLevel();
-            askOs.Bid = 0;
-            askOs.Ask = Convert.ToDecimal(asksize);
-            askOs.Price = Convert.ToDecimal(ask);
+            askOs.Bid = Convert.ToDecimal(bidsize);
+            askOs.Ask = 0;
+            askOs.Price = Convert.ToDecimal(bid);
 
             MarketDepthLevel bidOs = new MarketDepthLevel();
-            bidOs.Ask = 0;
-            bidOs.Bid = Convert.ToDecimal(bidsize);
-            bidOs.Price = Convert.ToDecimal(bid);
+            bidOs.Ask = Convert.ToDecimal(asksize);
+            bidOs.Bid = 0;
+            bidOs.Price = Convert.ToDecimal(ask);
 
             if (_depths == null)
             {
@@ -1458,10 +1375,10 @@ namespace OsEngine.Market.Servers.SmartCom
                 _depths.Add(myDepth);
             }
 
-            myDepth.Time = ServerTime;
+            myDepth.Time = DateTime.Now;
 
-            List<MarketDepthLevel> bids = myDepth.Bids;
-            List<MarketDepthLevel> asks = myDepth.Asks;
+            List<MarketDepthLevel> asks = myDepth.Bids;
+            List<MarketDepthLevel> bids = myDepth.Asks;
 
             if (asks == null || asks.Count != nrows)
             {
@@ -1472,8 +1389,8 @@ namespace OsEngine.Market.Servers.SmartCom
                     asks.Add(new MarketDepthLevel());
                     bids.Add(new MarketDepthLevel());
                 }
-                myDepth.Bids =  bids;
-                myDepth.Asks = asks;
+                myDepth.Bids = asks;
+                myDepth.Asks = bids;
             }
 
             asks[row] = askOs;
@@ -1481,7 +1398,7 @@ namespace OsEngine.Market.Servers.SmartCom
 
             if (row == nrows - 1 && NewMarketDepthEvent != null)
             {
-                _marketDepthsToSend.Enqueue(myDepth.GetCopy());
+                _marketDepthsToSend.Enqueue(myDepth);
                 _bidAskToSend.Enqueue(new BidAskSender
                 {
                     Bid = bids[0].Price,
@@ -1704,15 +1621,6 @@ namespace OsEngine.Market.Servers.SmartCom
                     _myTrades = new List<MyTrade>();
                 }
                 _myTrades.Add(trade);
-
-                Order myOrder = _orderWhithMarketId.Find(ord => ord.NumberMarket == orderid);
-
-                if (myOrder == null)
-                {
-                    return;
-                }
-
-                trade.Side = myOrder.Side;
 
                 _myTradesToSend.Enqueue(trade);
             }
@@ -1955,8 +1863,6 @@ namespace OsEngine.Market.Servers.SmartCom
 
         private List<Order> _ordersWhithId = new List<Order>();
 
-        private List<Order> _orderWhithMarketId = new List<Order>();
-
         /// <summary>
         /// входящий из системы ордер
         /// </summary>
@@ -1983,11 +1889,6 @@ namespace OsEngine.Market.Servers.SmartCom
                     _ordersWhithId.Add(order);
                 }
 
-                if (string.IsNullOrEmpty(order.NumberMarket) == false &&
-                    _orderWhithMarketId.Find(o => o.NumberMarket == order.NumberMarket) == null)
-                {
-                    _orderWhithMarketId.Add(order);
-                }
 
                 if (state == StOrder_State.StOrder_State_Open ||
                     state == StOrder_State.StOrder_State_Submited)
@@ -2036,8 +1937,7 @@ namespace OsEngine.Market.Servers.SmartCom
                 }
 
 
-                if (action == StOrder_Action.StOrder_Action_Buy ||
-                    action == StOrder_Action.StOrder_Action_Cover)
+                if (action == StOrder_Action.StOrder_Action_Buy)
                 {
                     order.Side = Side.Buy;
                 }
@@ -2065,7 +1965,6 @@ namespace OsEngine.Market.Servers.SmartCom
 
                     for (int tradeNum = 0; tradeNum < myTrade.Count; tradeNum++)
                     {
-                        myTrade[tradeNum].Side = order.Side;
                         _myTradesToSend.Enqueue(myTrade[tradeNum]);
                     }
                 }
