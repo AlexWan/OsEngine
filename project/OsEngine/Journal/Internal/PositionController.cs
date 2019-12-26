@@ -1256,14 +1256,39 @@ namespace OsEngine.Journal.Internal
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[9].Value = position.WaitVolume;
 
-                nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[10].Value = position.EntryPrice;
+                if (position.EntryPrice != 0)
+                {
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[10].Value = position.EntryPrice;
+                }
+                else
+                {
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    if (position.OpenOrders != null &&
+                        position.OpenOrders.Count != 0 &&
+                        position.State != PositionStateType.OpeningFail)
+                    {
+                        nRow.Cells[10].Value = position.OpenOrders[position.OpenOrders.Count - 1].Price;
+                    }
+                }
+
+                if (position.ClosePrice != 0)
+                {
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[11].Value = position.ClosePrice;
+                }
+                else
+                {
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    if (position.CloseOrders != null &&
+                        position.CloseOrders.Count != 0 &&
+                        position.State != PositionStateType.ClosingFail)
+                    {
+                        nRow.Cells[11].Value = position.CloseOrders[position.CloseOrders.Count - 1].Price;
+                    }
+                }
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[11].Value = position.ClosePrice;
-
-                nRow.Cells.Add(new DataGridViewTextBoxCell());
-                
                 nRow.Cells[12].Value = position.ProfitPortfolioPunkt;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
