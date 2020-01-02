@@ -60,9 +60,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
             get
             {
                 List<List<decimal>> list = new List<List<decimal>>();
-                //list.Add(Values);
-                list.Add(ValuesUp);
-                list.Add(ValuesDown);
+                list.Add(Values);
+                //list.Add(ValuesUp);
+                //list.Add(ValuesDown);
                 return list;
             }
         }
@@ -75,7 +75,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             get
             {
                 List<Color> colors = new List<Color>();
-                // colors.Add(ColorBase);
+                //colors.Add(ColorBase);
                 colors.Add(ColorUp);
                 colors.Add(ColorDown);
                 return colors;
@@ -133,7 +133,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// цвет точки индикатора при сигнале лонг
         /// </summary>
         public Color ColorUp { get; set; }
-        
+
         /// <summary>
         /// цвет точки индикатора при сигнале шорт
         /// </summary>
@@ -334,19 +334,22 @@ namespace OsEngine.Charts.CandleChart.Indicators
                     MasHp[MasHp.Count - 1], MasLp[MasLp.Count - 1], MasAf[MasAf.Count - 1]);
             }
 
-            if (dop[0] > candles[candles.Count-1].High)
+            if (dop[0] > candles[candles.Count - 1].High)
             {
                 ValuesDown.Add(dop[0]);
                 ValuesUp.Add(0);
-            } else if (dop[0] < candles[candles.Count-1].Low)
+            }
+            else if (dop[0] < candles[candles.Count - 1].Low)
             {
                 ValuesUp.Add(dop[0]);
                 ValuesDown.Add(0);
-            } else
+            }
+            else
             {
                 ValuesUp.Add(0);
                 ValuesDown.Add(0);
             }
+
 
             Values.Add(dop[0]);
             MasTrend.Add(dop[1]);
@@ -374,7 +377,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             for (int i = 0; i < candles.Count; i++)
             {
                 decimal[] dop = new decimal[6];
-                if (Values.Count == 0)
+                if (Values.Count < 2)
                 {
                     dop = GetValueParabolicSar(candles, i, 0, 0, 0, 0, 0, 0);
                 }
@@ -393,10 +396,21 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 {
                     ValuesUp.Add(dop[0]);
                     ValuesDown.Add(0);
-                } else
+                }
+                else
                 {
-                    ValuesUp.Add(0);
-                    ValuesDown.Add(0);
+                    if (dop[1] == 1.0m)
+                    {
+                        dop[0] = candles[i].Low;
+                        ValuesUp.Add(dop[0]);
+                        ValuesDown.Add(0);
+                    }
+                    else
+                    {
+                        dop[0] = candles[i].High;
+                        ValuesUp.Add(0);
+                        ValuesDown.Add(dop[0]);
+                    }
                 }
 
                 Values.Add(dop[0]);
@@ -427,10 +441,23 @@ namespace OsEngine.Charts.CandleChart.Indicators
                     MasHp[MasHp.Count - 2], MasLp[MasLp.Count - 2], MasAf[MasAf.Count - 2]);
             }
 
+            //if (dop[1] == 1.0m)
+            //{
+            //    if (candles[candles.Count - 1].Low == candles[candles.Count - 2].Low)
+            //    {
+            //        if(candles[candles.Count-1].Low < dop[0]) dop[0] = candles[candles.Count - 1].Low;
+            //    }
+            //}
+            //else
+            //{
+            //    if (candles[candles.Count - 1].High == candles[candles.Count - 2].High)
+            //        if (candles[candles.Count - 1].High > dop[0]) dop[0] = candles[candles.Count - 1].High;
+            //}
+
             if (dop[0] > candles[candles.Count - 1].High)
             {
-                ValuesDown[ValuesDown.Count-1] = dop[0];
-                ValuesUp[ValuesUp.Count-1] = 0;
+                ValuesDown[ValuesDown.Count - 1] = dop[0];
+                ValuesUp[ValuesUp.Count - 1] = 0;
             }
             else if (dop[0] < candles[candles.Count - 1].Low)
             {
@@ -439,8 +466,24 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
             else
             {
-                ValuesUp[ValuesUp.Count - 1] = 0;
-                ValuesDown[ValuesDown.Count - 1] = 0;
+
+                if (dop[1] == 1.0m)
+                {
+                    dop[0] = candles[candles.Count - 1].Low;
+                    ValuesUp[ValuesUp.Count - 1] = dop[0];
+                    ValuesDown[ValuesDown.Count - 1] = 0;
+                }
+                else
+                {
+                    dop[0] = candles[candles.Count - 1].High;
+                    ValuesDown[ValuesDown.Count - 1] = dop[0];
+                    ValuesUp[ValuesUp.Count - 1] = 0;
+
+                }
+
+                //ValuesUp[ValuesUp.Count - 1] = 0;
+                //ValuesDown[ValuesDown.Count - 1] = 0;
+
             }
 
             Values[Values.Count - 1] = dop[0];
@@ -468,20 +511,12 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 return dop;
             }
 
-            if (update == 0)
-            {
-                if (trendP == 1.0m)
-                {
-                    lineP = lineP + afP * (hpP - lineP);
-                }
-                else
-                {
-                    lineP = lineP + afP * (lpP - lineP);
-                }
-            }
 
+
+            //сначала проверяем пробила ли свеча своим хаем или лоу максимальное значение
             int reverseP = 0;
 
+            // проверяем текущую свечу на значение прошлого сар
             if (trendP == 1.0m)
             {
                 if (candles[index].Low < lineP)
@@ -516,11 +551,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
                         if (afP > (decimal)MaxAf) afP = (decimal)MaxAf;
                     }
 
-                    if (candles[index - 1].Low < lineP)
-                        lineP = candles[index - 1].Low;
+                    //if (candles[index - 1].Low < lineP)
+                    //    lineP = candles[index - 1].Low;
 
-                    if (candles[index - 2].Low < lineP)
-                        lineP = candles[index - 2].Low;
+                    //if (candles[index - 2].Low < lineP)
+                    //    lineP = candles[index - 2].Low;
                 }
                 else
                 {
@@ -531,15 +566,43 @@ namespace OsEngine.Charts.CandleChart.Indicators
                         if (afP > (decimal)MaxAf) afP = (decimal)MaxAf;
                     }
 
-                    if (candles[index - 1].High > lineP)
-                        lineP = candles[index - 1].High;
+                    //if (candles[index - 1].High > lineP)
+                    //    lineP = candles[index - 1].High;
 
-                    if (candles[index - 2].High > lineP)
-                        lineP = candles[index - 2].High;
+                    //if (candles[index - 2].High > lineP)
+                    //    lineP = candles[index - 2].High;
                 }
             }
 
-            dop[0] = Math.Round(lineP, 5);
+            // это нужно расчитать после вычисления afp.
+            if (reverseP == 0)
+            {
+                if (trendP == 1.0m)
+                {
+                    lineP = lineP + afP * (hpP - lineP);
+
+                    if (candles[index].Low < lineP)
+                        lineP = candles[index].Low;
+
+                    //if (candles[index - 2].Low < lineP)
+                    //    lineP = candles[index - 2].Low;
+                }
+                else
+                {
+                    lineP = lineP + afP * (lpP - lineP);
+
+                    if (candles[index].High > lineP)
+                        lineP = candles[index].High;
+
+                    //if (candles[index - 2].High > lineP)
+                    //    lineP = candles[index - 2].High;
+                }
+            }
+
+
+
+
+            dop[0] = Math.Round(lineP, 4);
             dop[1] = trendP;
             dop[2] = hpP;
             dop[3] = lpP;
