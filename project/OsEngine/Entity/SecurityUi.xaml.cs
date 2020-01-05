@@ -62,10 +62,10 @@ namespace OsEngine.Entity
 
             try
             {
-                go = Convert.ToDecimal(TextBoxGoPersent.Text);
-                lot = Convert.ToDecimal(TextBoxLot.Text);
-                step = Convert.ToDecimal(TextBoxStep.Text);
-                stepCost = Convert.ToDecimal(TextBoxStepCost.Text);
+                go = TextBoxGoPersent.Text.ToDecimal();
+                lot = TextBoxLot.Text.ToDecimal();
+                step = TextBoxStep.Text.ToDecimal();
+                stepCost = TextBoxStepCost.Text.ToDecimal();
 
             }
             catch (Exception)
