@@ -1,7 +1,29 @@
 --~ // Licensed under the Apache License, Version 2.0. See LICENSE.txt in the project root for license information.
 
 package.path = package.path..";"..".\\?.lua;"..".\\?.luac"
-package.cpath = package.cpath..";"..'.\\clibs\\?.dll'
+
+-- Получаем текущюю версию Quik
+local qver = getInfoParam("VERSION")
+-- Если запрос выполнен удачно, - выделим номер версии
+if qver ~= nil then
+	qver = tonumber(qver:match("%d+"))
+end
+-- Если преобразование выполнено корректно, - определяем папку хранения библиотек
+if qver == nil then
+	message("QuikSharp! Не удалось определить версию QUIK", 3)
+	return
+else
+	libPath = "\\clibs"
+end
+-- Если версия Quik 8 и выше, добавляем к наименованию папки 64, иначе оставляем существующий путь
+if qver >= 8 then
+	libPath = libPath .. "64\\"
+else
+	libPath = "\\clibs\\"
+end
+
+--package.cpath = package.cpath..";"..'.\\clibs\\?.dll'
+package.cpath = package.cpath..";"..'.'..libPath..'?.dll'
 
 local util = require("qsutils")
 
@@ -14,14 +36,9 @@ local qscallbacks = {}
 -- СЃРѕРѕР±С‰РµРЅРёСЏ РїРѕСЃР»Рµ РїРµСЂРµРїРѕРґРєР»СЋС‡РµРЅРёСЏ (РµСЃР»Рё С…РІР°С‚РёС‚ РјРµСЃС‚Р° РЅР° РґРёСЃРєРµ)
 local function CleanUp()
     -- close log
-    pcall(logfile:close(logfile))
+    closeLog()
     -- discard missed values if any
-    if missed_values_file then
-        pcall(missed_values_file:close(missed_values_file))
-        missed_values_file = nil
-        pcall(os.remove, missed_values_file_name)
-        missed_values_file_name = nil
-    end
+    discardMissedValues()
 end
 
 --- Р¤СѓРЅРєС†РёСЏ РІС‹Р·С‹РІР°РµС‚СЃСЏ РєРѕРіРґР° СЃРѕРµРґРёРЅРµРЅРёРµ СЃ QuikSharp РєР»РёРµРЅС‚РѕРј РѕР±СЂС‹РІР°РµС‚СЃСЏ

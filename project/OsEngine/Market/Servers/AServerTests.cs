@@ -153,7 +153,9 @@ namespace OsEngine.Market.Servers
             {
                 return;
             }
-            for (int i = 0; i < trades.Count; i++)
+            for (int i = trades.Count-1; 
+                i > 0 && i > trades.Count-10; 
+                i--)
             {
                 _trades.Enqueue(trades[i]);
             }

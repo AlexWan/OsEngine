@@ -745,6 +745,12 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             lock (quoteLock)
             {
+
+                if (orderBook.sec_code == "GZH0")
+                {
+
+                }
+
                 if (subscribedBook.Find(name => name == orderBook.sec_code) == null)
                 {
                     return;

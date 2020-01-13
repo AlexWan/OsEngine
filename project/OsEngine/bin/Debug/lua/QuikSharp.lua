@@ -7,10 +7,38 @@ end
 script_path = "."
 if is_quik() then
     script_path = getScriptPath()
-	package.loadlib(getScriptPath()  .. "\\clibs\\lua51.dll", "main")
+
+	-- Получаем текущюю версию Quik
+	local qver = getInfoParam("VERSION")
+
+	-- Если запрос выполнен удачно, - выделим номер версии
+	if qver ~= nil then
+		qver = tonumber(qver:match("%d+"))
+	end
+
+	-- Если преобразование выполнено корректно, - определяем папку хранения библиотек
+	if qver == nil then
+		message("QuikSharp! Не удалось определить версию QUIK", 3)
+		return
+	else
+		libPath = "\\clibs"
+	end
+
+	-- Если версия Quik 8 и выше, добавляем к наименованию папки 64, иначе оставляем существующий путь
+	if qver >= 8 then
+		libPath = libPath .. "64\\"
+	else
+		libPath = "\\clibs\\"
+	end
+
+	-- Если версия Quik 7 будет загружена существующая WIN32 библиотека 
+	-- Если версия Quik 8 будет загружена WIN64 библиотека, - которую нужно положить в папку clibs64  
+	package.loadlib(getScriptPath()  .. libPath .. "lua51.dll", "main")
+	--package.loadlib(getScriptPath()  .. "\\clibs\\lua51.dll", "main")
 end
 package.path = package.path .. ";" .. script_path .. "\\?.lua;" .. script_path .. "\\?.luac"..";"..".\\?.lua;"..".\\?.luac"
-package.cpath = package.cpath .. ";" .. script_path .. '\\clibs\\?.dll'..";"..'.\\clibs\\?.dll'
+--package.cpath = package.cpath .. ";" .. script_path .. '\\clibs\\?.dll'..";"..'.\\clibs\\?.dll'
+package.cpath = package.cpath .. ";" .. script_path .. libPath .. '?.dll'..";".. '.' .. libPath .. '?.dll'
 
 local util = require("qsutils")
 local qf = require("qsfunctions")

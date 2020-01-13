@@ -92,9 +92,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\Debug\qC.dll</HintPath>
     </Reference>
-    <Reference Include="QuikSharp, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="QUIKSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=eb70e0fec970faf8, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\QuikSharp.dll</HintPath>
+      <HintPath>..\..\..\OsEngineTepm\34 LUA x64\QUIKSharp-master\src\QuikSharp\bin\Debug\net45\QUIKSharp.dll</HintPath>
     </Reference>
     <Reference Include="RestSharp">
       <HintPath>..\..\..\OsEngineTepm\12BitStamp\Rokolab.BitstampClient-master (хороший HHTP клиент. Больше ничего )\Rokolab.BitstampClient\bin\Debug\RestSharp.dll</HintPath>
