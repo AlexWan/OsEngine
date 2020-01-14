@@ -970,7 +970,15 @@ namespace OsEngine.Market.Servers.Quik
                 order.SecurityNameCode = secCode;
                 order.ServerType = ServerType.QuikDde;
                 order.Price = (decimal)dPrice;
-                order.Volume = (int)dValue;
+                //order.Volume = (int)dValue;
+
+                Order oldOrder = GetOrderFromUserId(dwTransId.ToString());
+
+                if (oldOrder != null)
+                {
+                    order.Volume = oldOrder.Volume;
+                }
+
                 order.NumberUser = dwTransId;
                 order.NumberMarket = nOrderNum.ToString();
                 order.SecurityNameCode = secCode;

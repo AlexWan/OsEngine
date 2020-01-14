@@ -596,6 +596,8 @@ namespace OsEngine.Market.Connectors
 
         private DateTime _lastReconnectTime;
 
+        private object _reconnectLocker = new object();
+
         /// <summary>
         /// reconnect candle downloading
         /// переподключить скачивание свечек
@@ -604,11 +606,14 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
-                if (_lastReconnectTime.AddSeconds(1) > DateTime.Now)
+                lock (_reconnectLocker)
                 {
-                    return;
+                    if (_lastReconnectTime.AddSeconds(1) > DateTime.Now)
+                    {
+                        return;
+                    }
+                    _lastReconnectTime = DateTime.Now;
                 }
-                _lastReconnectTime = DateTime.Now;
 
                 if (_mySeries != null)
                 {
