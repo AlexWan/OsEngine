@@ -176,12 +176,6 @@ namespace OsEngine.Robots.CounterTrend
                 return;
             }
 
-            if (StartProgram == StartProgram.IsOsTrader
-                && DateTime.Now.Hour < 10)
-            {
-                return;
-            }
-
             if (_bollinger.ValuesUp == null ||
                 _bollinger.ValuesUp.Count == 0 ||
                 _bollinger.ValuesUp.Count < candles.Count ||

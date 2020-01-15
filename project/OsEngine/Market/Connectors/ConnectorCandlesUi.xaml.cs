@@ -737,6 +737,10 @@ namespace OsEngine.Market.Connectors
                 {
                     for (int i = 0; i < securities.Count; i++)
                     {
+                        if (securities[i] == null)
+                        {
+                            continue;
+                        }
                         string classSec = securities[i].NameClass;
                         if (ComboBoxClass.SelectedItem != null && classSec == ComboBoxClass.SelectedItem.ToString())
                         {
