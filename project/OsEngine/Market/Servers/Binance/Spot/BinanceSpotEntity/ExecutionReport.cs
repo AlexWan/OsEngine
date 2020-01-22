@@ -1,4 +1,4 @@
-﻿namespace OsEngine.Market.Servers.Binance.BinanceEntity
+﻿namespace OsEngine.Market.Servers.Binance.Spot.BinanceSpotEntity
 {
     public class ExecutionReport
     {
@@ -34,4 +34,3 @@
         public string Z { get; set; }
     }
 }
-

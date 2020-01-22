@@ -11,6 +11,8 @@ using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Binance;
+using OsEngine.Market.Servers.Binance.Futures;
+using OsEngine.Market.Servers.Binance.Spot;
 using OsEngine.Market.Servers.Bitfinex;
 using OsEngine.Market.Servers.BitMax;
 using OsEngine.Market.Servers.BitMex;
@@ -398,6 +400,28 @@ namespace OsEngine.Entity
                             series.UpdateAllCandles();
                             series.IsStarted = true;
                         }
+                        else if (serverType == ServerType.BinanceFutures)
+                        {
+
+                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
+                                series.TimeFrameSpan.TotalMinutes < 1)
+                            {
+                                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
+                                series.PreLoad(allTrades);
+                            }
+                            else
+                            {
+                                BinanceServerFutures binance = (BinanceServerFutures)_server;
+                                List<Candle> candles = binance.GetCandleHistory(series.Security.Name,
+                                    series.TimeFrameSpan);
+                                if (candles != null)
+                                {
+                                    series.CandlesAll = candles;
+                                }
+                            }
+                            series.UpdateAllCandles();
+                            series.IsStarted = true;
+                        }
                         else if (serverType == ServerType.BitMax)
                         {
                             BitMaxServer bitMax = (BitMaxServer)_server;
@@ -610,16 +634,23 @@ namespace OsEngine.Entity
 
         public void Dispose()
         {
-            Clear();
-            _isDisposed = true;
-
-            for (int i = 0; _activSeries != null && i < _activSeries.Count; i++)
+            try
             {
-                _activSeries[i].Stop();
-                _activSeries[i].Clear();
-            }
+                Clear();
+                _isDisposed = true;
 
-            _activSeries = null;
+                for (int i = 0; _activSeries != null && i < _activSeries.Count; i++)
+                {
+                    _activSeries[i].Stop();
+                    _activSeries[i].Clear();
+                }
+
+                _activSeries = null;
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         private bool _isDisposed;

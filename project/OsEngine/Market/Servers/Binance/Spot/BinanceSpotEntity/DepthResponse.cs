@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace OsEngine.Market.Servers.Binance.BinanceEntity
+namespace OsEngine.Market.Servers.Binance.Spot.BinanceSpotEntity
 {
 
     public class Datas

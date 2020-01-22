@@ -12,7 +12,8 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.AstsBridge;
-using OsEngine.Market.Servers.Binance;
+using OsEngine.Market.Servers.Binance.Futures;
+using OsEngine.Market.Servers.Binance.Spot;
 using OsEngine.Market.Servers.Bitfinex;
 using OsEngine.Market.Servers.BitMax;
 using OsEngine.Market.Servers.BitMex;
@@ -78,6 +79,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.GateIo);
                 serverTypes.Add(ServerType.BitMax);
                 serverTypes.Add(ServerType.Binance);
+                serverTypes.Add(ServerType.BinanceFutures);
                 serverTypes.Add(ServerType.BitMex);
                 serverTypes.Add(ServerType.BitStamp);
                 serverTypes.Add(ServerType.Bitfinex);
@@ -212,6 +214,10 @@ namespace OsEngine.Market
                 if (type == ServerType.Binance)
                 {
                     newServer = new BinanceServer();
+                }
+                if (type == ServerType.BinanceFutures)
+                {
+                    newServer = new BinanceServerFutures();
                 }
                 if (type == ServerType.NinjaTrader)
                 {
@@ -716,6 +722,12 @@ namespace OsEngine.Market
         /// биржа криптовалют Binance
         /// </summary>
         Binance,
+
+        /// <summary>
+        /// cryptocurrency exchange Binance Futures
+        /// биржа криптовалют Binance, секция фьючеры
+        /// </summary>
+        BinanceFutures,
 
         /// <summary>
         /// cryptocurrency exchange Exmo

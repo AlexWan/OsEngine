@@ -1,6 +1,6 @@
-﻿using SuperSocket.ClientEngine;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using SuperSocket.ClientEngine;
 using WebSocket4Net;
 
 namespace OsEngine.Market.Services
@@ -96,13 +96,13 @@ namespace OsEngine.Market.Services
 
         public event Action<WsMessageType, string> MessageEvent;
     }
-}
 
-public enum WsMessageType
-{
-    Opened,
-    Closed,
-    StringData,
-    ByteData,
-    Error
+    public enum WsMessageType
+    {
+        Opened,
+        Closed,
+        StringData,
+        ByteData,
+        Error
+    }
 }

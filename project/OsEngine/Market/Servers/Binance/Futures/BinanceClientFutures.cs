@@ -9,16 +9,18 @@ using System.Threading;
 using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Logging;
-using OsEngine.Market.Servers.Binance.BinanceEntity;
+using OsEngine.Market.Servers.Binance.Futures.Entity;
+using OsEngine.Market.Servers.Binance.Spot.BinanceSpotEntity;
+using OsEngine.Market.Servers.Entity;
 using RestSharp;
 using WebSocket4Net;
-using TradeResponse = OsEngine.Market.Servers.Binance.BinanceEntity.TradeResponse;
+using TradeResponse = OsEngine.Market.Servers.Binance.Spot.BinanceSpotEntity.TradeResponse;
 
-namespace OsEngine.Market.Servers.Binance
+namespace OsEngine.Market.Servers.Binance.Futures
 {
-    public class BinanceClient
+    public class BinanceClientFutures
     {
-        public BinanceClient(string pubKey, string secKey)
+        public BinanceClientFutures(string pubKey, string secKey)
         {
             ApiKey = pubKey;
             SecretKey = secKey;
@@ -27,7 +29,7 @@ namespace OsEngine.Market.Servers.Binance
         public string ApiKey;
         public string SecretKey;
 
-        private string _baseUrl = "https://api.binance.com/api";
+        private string _baseUrl = "https://fapi.binance.com";
 
         /// <summary>
         /// connecto to the exchange
@@ -42,7 +44,7 @@ namespace OsEngine.Market.Servers.Binance
             }
 
             // check server availability for HTTP communication with it / проверяем доступность сервера для HTTP общения с ним
-            Uri uri = new Uri(_baseUrl+"/v1/time");
+            Uri uri = new Uri(_baseUrl + "/fapi/v1/time");
             try
             {
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
@@ -62,6 +64,31 @@ namespace OsEngine.Market.Servers.Binance
                 Connected();
             }
 
+            CreateDataStreams();
+
+            _timeStart = DateTime.Now;
+        }
+
+        private string _listenKey = "";
+
+        private WebSocket _spotSocketClient;
+
+
+        private void CreateDataStreams()
+        {
+            _spotSocketClient = CreateUserDataStream("/fapi/v1/listenKey");
+            _wsStreams.Add("userDataStream", _spotSocketClient);
+            _spotSocketClient.MessageReceived += delegate (object sender, MessageReceivedEventArgs args)
+            {
+                UserDataMessageHandler(sender, args);
+            };
+
+
+            Thread keepalive = new Thread(KeepaliveUserDataStream);
+            keepalive.CurrentCulture = new CultureInfo("ru-RU");
+            keepalive.IsBackground = true;
+            keepalive.Start();
+
             Thread converter = new Thread(Converter);
             converter.CurrentCulture = new CultureInfo("ru-RU");
             converter.IsBackground = true;
@@ -71,58 +98,37 @@ namespace OsEngine.Market.Servers.Binance
             converterUserData.CurrentCulture = new CultureInfo("ru-RU");
             converterUserData.IsBackground = true;
             converterUserData.Start();
-
-            CreateUserDataStream();
-
-            _timeStart = DateTime.Now;
-
-            Thread keepalive = new Thread(KeepaliveUserDataStream);
-            keepalive.CurrentCulture = new CultureInfo("ru-RU");
-            keepalive.IsBackground = true;
-            keepalive.Start();
         }
-
-        private string _listenKey = "";
-
-        private WebSocket _userDataClient;
 
         /// <summary>
         /// create user data thread
         /// создать поток пользовательских данных
         /// </summary>
         /// <returns></returns>
-        private bool CreateUserDataStream()
+        private WebSocket CreateUserDataStream(string url)
         {
             try
             {
-                var res = CreateQuery(Method.POST, "api/v1/userDataStream", null, false);
+                var res = CreateQuery(Method.POST, url, null, false);
 
                 _listenKey = JsonConvert.DeserializeAnonymousType(res, new ListenKey()).listenKey;
 
-                string urlStr = "wss://stream.binance.com:9443/ws/" + _listenKey;
+                string urlStr = "wss://fstream.binance.com/ws/" + _listenKey;
 
-                _userDataClient = new WebSocket(urlStr); //create a web socket / создаем вебсокет
+                WebSocket client = new WebSocket(urlStr); //create a web socket / создаем вебсокет
 
-                _userDataClient.Opened += Connect;
+                client.Opened += Connect;
+                client.Closed += Disconnect;
+                client.Error += WsError;
+                client.Open();
 
-                _userDataClient.Closed += Disconnect;
-
-                _userDataClient.Error += WsError;
-
-                _userDataClient.MessageReceived += UserDataMessageHandler;
-
-                _userDataClient.Open();
-
-                _wsStreams.Add("userDataStream", _userDataClient);
-
-                return true;
+                return client;
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.Message, LogMessageType.Connect);
-                return false;
+                return null;
             }
-
         }
 
         /// <summary>
@@ -144,7 +150,7 @@ namespace OsEngine.Market.Servers.Binance
                     ws.Value.Dispose();
                 }
             }
-            catch 
+            catch
             {
                 // ignore
             }
@@ -169,7 +175,7 @@ namespace OsEngine.Market.Servers.Binance
         /// queue of new messages from the exchange server
         /// очередь новых сообщений, пришедших с сервера биржи
         /// </summary>
-        private ConcurrentQueue<string> _newUserDataMessage = new ConcurrentQueue<string>();
+        private ConcurrentQueue<BinanceUserMessage> _newUserDataMessage = new ConcurrentQueue<BinanceUserMessage>();
 
         /// <summary>
         /// user data handler
@@ -183,8 +189,9 @@ namespace OsEngine.Market.Servers.Binance
             {
                 return;
             }
-
-            _newUserDataMessage.Enqueue(e.Message);
+            BinanceUserMessage message = new BinanceUserMessage();
+            message.MessageStr = e.Message;
+            _newUserDataMessage.Enqueue(message);
         }
 
         /// <summary>
@@ -220,11 +227,13 @@ namespace OsEngine.Market.Servers.Binance
                 {
                     _timeStart = DateTime.Now;
 
-                    CreateQuery(Method.PUT, "api/v1/userDataStream", new Dictionary<string, string>() { { "listenKey=", _listenKey } }, false);
+                    CreateQuery(Method.PUT,
+                        "/fapi/v1/listenKey", new Dictionary<string, string>()
+                            { { "listenKey=", _listenKey } }, false);
+
                 }
             }
         }
-
 
         /// <summary>
         /// shows whether connection works
@@ -234,49 +243,51 @@ namespace OsEngine.Market.Servers.Binance
 
         private object _lock = new object();
 
-        /// <summary>
-        /// take balance
-        /// взять баланс
-        /// </summary>
-        public AccountResponse GetBalance()
+        public void GetBalance()
         {
             lock (_lock)
             {
                 try
                 {
-                    var res = CreateQuery(Method.GET, "api/v3/account", null, true);
+                    // var res = CreateQuery( Method.GET, "/fapi/v1/balance", null, true);
+
+                    var res = CreateQuery(Method.GET, "/fapi/v1/account", null, true);
 
                     if (res == null)
                     {
-                        return null;
+
+                        return;
                     }
 
-                    AccountResponse resp = JsonConvert.DeserializeAnonymousType(res, new AccountResponse());
+                    AccountResponseFutures resp = JsonConvert.DeserializeAnonymousType(res, new AccountResponseFutures());
                     if (NewPortfolio != null)
                     {
                         NewPortfolio(resp);
                     }
-                    return resp;
                 }
                 catch (Exception ex)
                 {
                     SendLogMessage(ex.ToString(), LogMessageType.Error);
-                    return null;
                 }
             }
         }
+
+        public event Action<AccountResponseFutures> NewPortfolio;
 
         /// <summary>
         /// take securities
         /// взять бумаги
         /// </summary>
-        public SecurityResponce GetSecurities()
+        public void GetSecurities()
         {
             lock (_lock)
             {
                 try
                 {
-                    var res = CreateQuery(Method.GET, "api/v1/exchangeInfo", null, false);
+                    //Get All Margin Pairs (MARKET_DATA)
+                    //GET /sapi/v1/margin/allPairs
+
+                    var res = CreateQuery(Method.GET, "/fapi/v1/exchangeInfo", null, false);
 
                     SecurityResponce secResp = JsonConvert.DeserializeAnonymousType(res, new SecurityResponce());
 
@@ -285,7 +296,6 @@ namespace OsEngine.Market.Servers.Binance
                         UpdatePairs(secResp);
                     }
 
-                    return secResp;
                 }
                 catch (Exception ex)
                 {
@@ -293,8 +303,6 @@ namespace OsEngine.Market.Servers.Binance
                     {
                         LogMessageEvent(ex.ToString(), LogMessageType.Error);
                     }
-
-                    return null;
                 }
             }
         }
@@ -349,7 +357,7 @@ namespace OsEngine.Market.Servers.Binance
 
                             newCandle = new Candle();
                             newCandle.TimeStart = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(param[0]));
-                            newCandle.Low = Convert.ToDecimal(param[3].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator).Trim(new char[] { '"', '"' }),CultureInfo.InvariantCulture);
+                            newCandle.Low = Convert.ToDecimal(param[3].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator).Trim(new char[] { '"', '"' }), CultureInfo.InvariantCulture);
                             newCandle.High = Convert.ToDecimal(param[2].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator).Trim(new char[] { '"', '"' }), CultureInfo.InvariantCulture);
                             newCandle.Open = Convert.ToDecimal(param[1].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator).Trim(new char[] { '"', '"' }), CultureInfo.InvariantCulture);
                             newCandle.Close = Convert.ToDecimal(param[4].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator).Trim(new char[] { '"', '"' }), CultureInfo.InvariantCulture);
@@ -422,7 +430,7 @@ namespace OsEngine.Market.Servers.Binance
                     break;
             }
 
-            string endPoint = "api/v1/klines";
+            string endPoint = "fapi/v1/klines";
 
             if (needTf != "2m" && needTf != "10m" && needTf != "20m" && needTf != "45m")
             {
@@ -498,7 +506,7 @@ namespace OsEngine.Market.Servers.Binance
                 }
 
 
-                string endPoint = "api/v1/historicalTrades";
+                string endPoint = "fapi/v1/historicalTrades";
 
                 var res2 = CreateQuery(Method.GET, endPoint, param, false);
 
@@ -577,13 +585,13 @@ namespace OsEngine.Market.Servers.Binance
                     break;
             }
 
-            string endPoint = "api/v1/klines";
+            string endPoint = "/fapi/v1/klines";
 
             if (needTf != "2m" && needTf != "10m" && needTf != "20m" && needTf != "45m")
             {
                 var param = new Dictionary<string, string>();
                 param.Add("symbol=" + nameSec.ToUpper(), "&interval=" + needTf);
-               
+
                 var res = CreateQuery(Method.GET, endPoint, param, false);
 
                 var candles = _deserializeCandles(res);
@@ -644,7 +652,7 @@ namespace OsEngine.Market.Servers.Binance
         /// <returns></returns>
         private List<Candle> BuildCandles(List<Candle> oldCandles, int needTf, int oldTf)
         {
-            List < Candle > newCandles = new List<Candle>();
+            List<Candle> newCandles = new List<Candle>();
 
             int index = oldCandles.FindIndex(can => can.TimeStart.Minute % needTf == 0);
 
@@ -694,11 +702,16 @@ namespace OsEngine.Market.Servers.Binance
 
             return newCandles;
         }
+
+        #region Аутентификация запроса
+
         /// <summary>
         /// multi-threaded access locker to http-requests
         /// блокиратор многопоточного доступа к http запросам
         /// </summary>
         private object _queryHttpLocker = new object();
+
+        RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(100));
 
         /// <summary>
         /// method sends a request and returns a response from the server
@@ -711,6 +724,7 @@ namespace OsEngine.Market.Servers.Binance
             {
                 lock (_queryHttpLocker)
                 {
+                    _rateGate.WaitToProceed();
                     string fullUrl = "";
 
                     if (param != null)
@@ -737,20 +751,23 @@ namespace OsEngine.Market.Servers.Binance
                         }
                         else
                         {
-                            message = fullUrl + "&timestamp="+ timeStamp;
-                            fullUrl += "&timestamp="+ timeStamp + "&signature=" + CreateSignature(message.Trim('?'));
+                            message = fullUrl + "&timestamp=" + timeStamp;
+                            fullUrl += "&timestamp=" + timeStamp + "&signature=" + CreateSignature(message.Trim('?'));
                         }
                     }
 
                     var request = new RestRequest(endpoint + fullUrl, method);
                     request.AddHeader("X-MBX-APIKEY", ApiKey);
 
-                    var response = new RestClient("https://api.binance.com").Execute(request).Content;
+                    string baseUrl = _baseUrl;
+
+
+                    var response = new RestClient(baseUrl).Execute(request).Content;
 
                     if (response.Contains("code"))
                     {
                         var error = JsonConvert.DeserializeAnonymousType(response, new ErrorMessage());
-                        throw new Exception(error.msg);                        
+                        throw new Exception(error.msg);
                     }
 
                     return response;
@@ -769,13 +786,11 @@ namespace OsEngine.Market.Servers.Binance
             }
         }
 
-        #region Аутентификация запроса
-
         private string GetNonce()
         {
-            var resTime = CreateQuery(Method.GET, "api/v1/time", null, false);
+            var resTime = CreateQuery(Method.GET, "/fapi/v1/time", null, false);
             var result = JsonConvert.DeserializeAnonymousType(resTime, new BinanceTime());
-            return (result.serverTime+500).ToString();
+            return (result.serverTime + 500).ToString();
 
             /*DateTime yearBegin = new DateTime(1970, 1, 1);
             var res = DateTime.UtcNow;
@@ -802,12 +817,9 @@ namespace OsEngine.Market.Servers.Binance
             }
         }
 
-
         #endregion
 
-        // work with orders
-        //работа с ордерами
-
+        // work with orders работа с ордерами
 
         /// <summary>
         /// execute order
@@ -815,6 +827,11 @@ namespace OsEngine.Market.Servers.Binance
         /// </summary>
         /// <param name="order"></param>
         public void ExecuteOrder(Order order)
+        {
+            ExecuteOrderOnMarginExchange(order);
+        }
+
+        private void ExecuteOrderOnMarginExchange(Order order)
         {
             lock (_lockOrder)
             {
@@ -839,7 +856,7 @@ namespace OsEngine.Market.Servers.Binance
                         order.Price.ToString(CultureInfo.InvariantCulture)
                             .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
 
-                    var res = CreateQuery(Method.POST, "api/v3/order", param, true);
+                    var res = CreateQuery(Method.POST, "/fapi/v1/order", param, true);
 
                     if (res != null && res.Contains("clientOrderId"))
                     {
@@ -874,12 +891,33 @@ namespace OsEngine.Market.Servers.Binance
             {
                 try
                 {
+                    if (string.IsNullOrEmpty(order.NumberMarket))
+                    {
+                        Order onBoard = GetOrderState(order);
+
+                        if (onBoard == null)
+                        {
+                            order.State = OrderStateType.Fail;
+                            SendLogMessage("При отзыве ордера не нашли такого на бирже. считаем что он уже отозван",
+                                LogMessageType.Error);
+                            if (MyOrderEvent != null)
+                            {
+                                MyOrderEvent(order);
+                            }
+                            return;
+                        }
+
+                        order.NumberMarket = onBoard.NumberMarket;
+                        order = onBoard;
+                    }
+
                     Dictionary<string, string> param = new Dictionary<string, string>();
 
                     param.Add("symbol=", order.SecurityNameCode.ToUpper());
                     param.Add("&orderId=", order.NumberMarket);
 
-                    var res = CreateQuery(Method.DELETE, "api/v3/order", param, true);
+                    CreateQuery(Method.DELETE, "/fapi/v1/order", param, true);
+
                 }
                 catch (Exception ex)
                 {
@@ -906,7 +944,7 @@ namespace OsEngine.Market.Servers.Binance
             }
 
 
-            string endPoint = "/api/v3/allOrders";
+            string endPoint = "/fapi/v1/allOrder";
 
             List<HistoryOrderReport> allOrders = new List<HistoryOrderReport>();
 
@@ -958,7 +996,7 @@ namespace OsEngine.Market.Servers.Binance
                     trade.SecurityNameCode = oldOpenOrders[i].SecurityNameCode;
                     trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(myOrder.updateTime));
                     trade.Side = oldOpenOrders[i].Side;
-                    
+
                     if (MyTradeEvent != null)
                     {
                         MyTradeEvent(trade);
@@ -971,7 +1009,7 @@ namespace OsEngine.Market.Servers.Binance
                     newOrder.NumberUser = oldOpenOrders[i].NumberUser;
                     newOrder.SecurityNameCode = oldOpenOrders[i].SecurityNameCode;
                     newOrder.State = OrderStateType.Cancel;
-                   
+
                     newOrder.Volume = oldOpenOrders[i].Volume;
                     newOrder.VolumeExecute = oldOpenOrders[i].VolumeExecute;
                     newOrder.Price = oldOpenOrders[i].Price;
@@ -990,8 +1028,85 @@ namespace OsEngine.Market.Servers.Binance
             return true;
         }
 
-        // stream data from WEBSOCKET
-        // потоковые данные из WEBSOCKET
+        private Order GetOrderState(Order oldOrder)
+        {
+            List<string> namesSec = new List<string>();
+            namesSec.Add(oldOrder.SecurityNameCode);
+
+            string endPoint = "/fapi/v1/allOrder";
+
+            List<HistoryOrderReport> allOrders = new List<HistoryOrderReport>();
+
+            for (int i = 0; i < namesSec.Count; i++)
+            {
+                var param = new Dictionary<string, string>();
+                param.Add("symbol=", namesSec[i].ToUpper());
+                //param.Add("&recvWindow=" , "100");
+                //param.Add("&limit=", GetNonce());
+                param.Add("&limit=", "500");
+                //"symbol={symbol.ToUpper()}&recvWindow={recvWindow}"
+
+                var res = CreateQuery(Method.GET, endPoint, param, true);
+
+                if (res == null)
+                {
+                    continue;
+                }
+
+                HistoryOrderReport[] orders = JsonConvert.DeserializeObject<HistoryOrderReport[]>(res);
+
+                if (orders != null && orders.Length != 0)
+                {
+                    allOrders.AddRange(orders);
+                }
+            }
+
+            HistoryOrderReport orderOnBoard =
+                allOrders.Find(ord => ord.clientOrderId == oldOrder.NumberUser.ToString());
+
+            if (orderOnBoard == null)
+            {
+                return null;
+            }
+
+            Order newOrder = new Order();
+            newOrder.NumberMarket = orderOnBoard.orderId;
+            newOrder.NumberUser = oldOrder.NumberUser;
+            newOrder.SecurityNameCode = oldOrder.SecurityNameCode;
+            newOrder.State = OrderStateType.Cancel;
+
+            newOrder.Volume = oldOrder.Volume;
+            newOrder.VolumeExecute = oldOrder.VolumeExecute;
+            newOrder.Price = oldOrder.Price;
+            newOrder.TypeOrder = oldOrder.TypeOrder;
+            newOrder.TimeCallBack = oldOrder.TimeCallBack;
+            newOrder.TimeCancel = newOrder.TimeCallBack;
+            newOrder.ServerType = ServerType.Binance;
+            newOrder.PortfolioNumber = oldOrder.PortfolioNumber;
+
+            if (orderOnBoard.status == "NEW" ||
+                orderOnBoard.status == "PARTIALLY_FILLED")
+            { // order is active. Do nothing / ордер активен. Ничего не делаем
+                newOrder.State = OrderStateType.Activ;
+            }
+            else if (orderOnBoard.status == "FILLED")
+            {
+                newOrder.State = OrderStateType.Done;
+            }
+            else
+            {
+                newOrder.State = OrderStateType.Cancel;
+            }
+
+            if (MyOrderEvent != null)
+            {
+                MyOrderEvent(newOrder);
+            }
+
+            return newOrder;
+        }
+
+        // stream data from WEBSOCKET потоковые данные из WEBSOCKET
 
         /// <summary>
         /// WebSocket client
@@ -1075,12 +1190,10 @@ namespace OsEngine.Market.Servers.Binance
         {
             if (!_wsStreams.ContainsKey(security.Name))
             {
-                string urlStr = "wss://stream.binance.com:9443/stream?streams=" 
-                                + security.Name.ToLower() 
-                                + "@depth20/" 
-                                + security.Name.ToLower() + "@trade";
-
-                _wsClient = new WebSocket(urlStr); // create web-socket / создаем вебсокет
+                string urlStr = "wss://fstream.binance.com/stream?streams="
+                                 + security.Name.ToLower() + "@depth20/"
+                                 + security.Name.ToLower() + "@trade";
+                _wsClient = new WebSocket(urlStr); // create web-socket / создаем вебсоке
 
                 _wsClient.Opened += new EventHandler(Connect);
 
@@ -1109,26 +1222,24 @@ namespace OsEngine.Market.Servers.Binance
                 {
                     if (!_newUserDataMessage.IsEmpty)
                     {
-                        string mes;
+                        BinanceUserMessage messsage;
 
-                        if (_newUserDataMessage.TryDequeue(out mes))
+                        if (_newUserDataMessage.TryDequeue(out messsage))
                         {
+                            string mes = messsage.MessageStr;
+
                             if (mes.Contains("code"))
                             {
                                 SendLogMessage(JsonConvert.DeserializeAnonymousType(mes, new ErrorMessage()).msg, LogMessageType.Error);
                             }
 
-                            else if (mes.Contains("\"e\"" + ":" + "\"executionReport\""))
+                            else if (mes.Contains("\"e\"" + ":" + "\"ORDER_TRADE_UPDATE\""))
                             {
-                                var order = JsonConvert.DeserializeAnonymousType(mes, new ExecutionReport());
+                                var ord = JsonConvert.DeserializeAnonymousType(mes, new OrderUpdResponse());
 
-                                string orderNumUser = order.C;
+                                var order = ord.o;
 
-                                if (string.IsNullOrEmpty(orderNumUser) ||
-                                    orderNumUser == "null")
-                                {
-                                    orderNumUser = order.c;
-                                }
+                                string orderNumUser = order.c;
 
                                 try
                                 {
@@ -1143,7 +1254,7 @@ namespace OsEngine.Market.Servers.Binance
                                 {
                                     Order newOrder = new Order();
                                     newOrder.SecurityNameCode = order.s;
-                                    newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.E));
+                                    newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(ord.T));
                                     newOrder.NumberUser = Convert.ToInt32(orderNumUser);
 
                                     newOrder.NumberMarket = order.i.ToString();
@@ -1164,7 +1275,7 @@ namespace OsEngine.Market.Servers.Binance
                                 {
                                     Order newOrder = new Order();
                                     newOrder.SecurityNameCode = order.s;
-                                    newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.E));
+                                    newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(ord.T));
                                     newOrder.TimeCancel = newOrder.TimeCallBack;
                                     newOrder.NumberUser = Convert.ToInt32(orderNumUser);
                                     newOrder.NumberMarket = order.i.ToString();
@@ -1184,7 +1295,7 @@ namespace OsEngine.Market.Servers.Binance
                                 {
                                     Order newOrder = new Order();
                                     newOrder.SecurityNameCode = order.s;
-                                    newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.E));
+                                    newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(ord.T));
                                     newOrder.NumberUser = Convert.ToInt32(orderNumUser);
                                     newOrder.NumberMarket = order.i.ToString();
                                     newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
@@ -1220,7 +1331,7 @@ namespace OsEngine.Market.Servers.Binance
                                 {
                                     Order newOrder = new Order();
                                     newOrder.SecurityNameCode = order.s;
-                                    newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.E));
+                                    newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(ord.T));
                                     newOrder.TimeCancel = newOrder.TimeCallBack;
                                     newOrder.NumberUser = Convert.ToInt32(orderNumUser);
                                     newOrder.NumberMarket = order.i.ToString();
@@ -1240,9 +1351,9 @@ namespace OsEngine.Market.Servers.Binance
                                 continue;
                             }
 
-                            else if (mes.Contains("\"e\"" + ":" + "\"outboundAccountInfo\""))
+                            else if (mes.Contains("\"e\"" + ":" + "\"ACCOUNT_UPDATE\""))
                             {
-                                var portfolios = JsonConvert.DeserializeAnonymousType(mes, new OutboundAccountInfo());
+                                var portfolios = JsonConvert.DeserializeAnonymousType(mes, new AccountResponseFuturesFromWebSocket());
 
                                 if (UpdatePortfolio != null)
                                 {
@@ -1250,6 +1361,12 @@ namespace OsEngine.Market.Servers.Binance
                                 }
                                 continue;
                             }
+
+                            //ORDER_TRADE_UPDATE
+                            // "{\"e\":\"ORDER_TRADE_UPDATE\",\"T\":1579688850841,\"E\":1579688850846,\"o\":{\"s\":\"BTCUSDT\",\"c\":\"1998\",\"S\":\"BUY\",\"o\":\"LIMIT\",\"f\":\"GTC\",\"q\":\"0.001\",\"p\":\"8671.86\",\"ap\":\"0.00000\",\"sp\":\"0.00\",\"x\":\"NEW\",\"X\":\"NEW\",\"i\":760799835,\"l\":\"0.000\",\"z\":\"0.000\",\"L\":\"0.00\",\"T\":1579688850841,\"t\":0,\"b\":\"0.00000\",\"a\":\"0.00000\",\"m\":false,\"R\":false,\"wt\":\"CONTRACT_PRICE\",\"ot\":\"LIMIT\"}}"
+
+                            //ACCOUNT_UPDATE
+                            //"{\"e\":\"ACCOUNT_UPDATE\",\"T\":1579688850841,\"E\":1579688850846,\"a\":{\"B\":[{\"a\":\"USDT\",\"wb\":\"29.88018817\",\"cw\":\"29.88018817\"},{\"a\":\"BNB\",\"wb\":\"0.00000000\",\"cw\":\"0.00000000\"}],\"P\":[{\"s\":\"BTCUSDT\",\"pa\":\"0.000\",\"ep\":\"0.00000\",\"cr\":\"-0.05040000\",\"up\":\"0.00000000\",\"mt\":\"cross\",\"iw\":\"0.00000000\"},{\"s\":\"ETHUSDT\",\"pa\":\"0.000\",\"ep\":\"0.00000\",\"cr\":\"0.00000000\",\"up\":\"0.00000000\",\"mt\":\"cross\",\"iw\":\"0.00000000\"},{\"s\":\"BCHUSDT\",\"pa\":\"0.000\",\"ep\":\"0.00000\",\"cr\":\"0.00000000\",\"up\":\"0.00000000\",\"mt\":\"cross\",\"iw\":\"0.00000000\"},{\"s\":\"XRPUSDT\",\"pa\":\"0.0\",\"ep\":\"0.00000\",\"cr\":\"0.00000000\",\"up\":\"0.000000\",\"mt\":\"cross\",\"iw\":\"0.00000000\"},{\"s\":\"EOSUSDT\",\"pa\":\"0.0\",\"ep\":\"0.0000\",\"cr\":\"0.00000000\",\"up\":\"0.00000\",\"mt\":\"cross\",\"iw\":\"0.00000000\"},{\"s\":\"LTCUSDT\",\"pa\":\"0.000\",\"ep\":\"0.00000\",\"cr\":\"0.00000000\",\"up\":\"0.00000000\",\"mt\":\"cross\",\"iw\":\"0.00000000\"},{\"s\":\"TRXUSDT\",\"pa\":\"0\",\"ep\":\"0.00000\",\"cr\":\"0.00000000\",\"up\":\"0.00000\",\"mt\":\"cross\",\"iw\":\"0.00000000\"},{\"s\":\"ETCUSDT\",\"pa\":\"0.00\",\"ep\":\"0.00000\",\"cr\":\"0.00000000\",\"up\":\"0.0000000\",\"mt\":\"cross\",\"iw\":\"0.00000000\"},{\"s\":\"LINKUSDT\",\"pa\":\"0.00\",\"ep\":\"0.00000\",\"cr\":\"0.00000000\",\"up\":\"0.0000000\",\"mt\":\"cross\",\"iw\":\"0.00000000\"},{\"s\":\"XLMUSDT\",\"pa\":\"0\",\"ep\":\"0.00000\",\"cr\":\"0.00000000\",\"up\":\"0.00000\",\"mt\":\"cross\",\"iw\":\"0.00000000\"}]}}"
                         }
                     }
                     else
@@ -1266,7 +1383,7 @@ namespace OsEngine.Market.Servers.Binance
                 {
                     SendLogMessage(exception.ToString(), LogMessageType.Error);
                 }
-                
+
             }
         }
 
@@ -1302,9 +1419,9 @@ namespace OsEngine.Market.Servers.Binance
                                 continue;
                             }
 
-                            else if (mes.Contains("\"lastUpdateId\""))
+                            else if (mes.Contains("\"depthUpdate\""))
                             {
-                                var quotes = JsonConvert.DeserializeAnonymousType(mes, new DepthResponse());
+                                var quotes = JsonConvert.DeserializeAnonymousType(mes, new DepthResponseFutures());
 
                                 if (UpdateMarketDepth != null)
                                 {
@@ -1345,17 +1462,12 @@ namespace OsEngine.Market.Servers.Binance
         /// </summary>
         public event Action<MyTrade> MyTradeEvent;
 
-        /// <summary>
-        /// new portfolios
-        /// новые портфели
-        /// </summary>
-        public event Action<AccountResponse> NewPortfolio;
 
         /// <summary>
         /// portfolios updated
         /// обновились портфели
         /// </summary>
-        public event Action<OutboundAccountInfo> UpdatePortfolio;
+        public event Action<AccountResponseFuturesFromWebSocket> UpdatePortfolio;
 
         /// <summary>
         /// new security in the system
@@ -1367,7 +1479,7 @@ namespace OsEngine.Market.Servers.Binance
         /// depth updated
         /// обновился стакан
         /// </summary>
-        public event Action<DepthResponse> UpdateMarketDepth;
+        public event Action<DepthResponseFutures> UpdateMarketDepth;
 
         /// <summary>
         /// ticks updated
@@ -1410,5 +1522,10 @@ namespace OsEngine.Market.Servers.Binance
         public event Action<string, LogMessageType> LogMessageEvent;
 
         #endregion
+    }
+
+    public class BinanceUserMessage
+    {
+        public string MessageStr;
     }
 }

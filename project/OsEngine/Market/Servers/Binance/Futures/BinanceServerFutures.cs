@@ -1,42 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
-using System.Threading;
+using OsEngine.Market.Servers.Binance.Futures.Entity;
+using OsEngine.Market.Servers.Binance.Spot.BinanceSpotEntity;
 using OsEngine.Market.Servers.Entity;
 
-namespace OsEngine.Market.Servers.Binance
+namespace OsEngine.Market.Servers.Binance.Futures
 {
-    /// <summary>
-    /// server Binance
-    /// сервер Binance
-    /// </summary>
-    public class BinanceServer:AServer
+    public class BinanceServerFutures : AServer
     {
-        public BinanceServer()
+        public BinanceServerFutures()
         {
-            BinanceServerRealization realization = new BinanceServerRealization();
+            BinanceServerFuturesRealization realization = new BinanceServerFuturesRealization();
             ServerRealization = realization;
 
-            CreateParameterString(OsLocalization.Market.ServerParamPublicKey,"");
+            CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
         }
-        
+
         /// <summary>
         /// instrument history query
         /// запрос истории по инструменту
         /// </summary>
         public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf)
         {
-            return ((BinanceServerRealization)ServerRealization).GetCandleHistory(nameSec, tf);
+            return ((BinanceServerFuturesRealization)ServerRealization).GetCandleHistory(nameSec, tf);
         }
     }
 
-    public class BinanceServerRealization : IServerRealization
+    public class BinanceServerFuturesRealization : IServerRealization
     {
-        public BinanceServerRealization()
+        public BinanceServerFuturesRealization()
         {
             ServerStatus = ServerConnectStatus.Disconnect;
         }
@@ -47,7 +45,7 @@ namespace OsEngine.Market.Servers.Binance
         /// </summary>
         public ServerType ServerType
         {
-            get { return ServerType.Binance; }
+            get { return ServerType.BinanceFutures; }
         }
 
         /// <summary>
@@ -62,13 +60,13 @@ namespace OsEngine.Market.Servers.Binance
         /// </summary>
         public DateTime ServerTime { get; set; }
 
-// requests
-// запросы
+        // requests
+        // запросы
 
         /// <summary>
         /// binance client
         /// </summary>
-        private BinanceClient _client;
+        private BinanceClientFutures _client;
 
         /// <summary>
         /// release API
@@ -104,7 +102,9 @@ namespace OsEngine.Market.Servers.Binance
         {
             if (_client == null)
             {
-                _client = new BinanceClient(((ServerParameterString)ServerParameters[0]).Value, ((ServerParameterPassword)ServerParameters[1]).Value);
+                _client = new BinanceClientFutures(
+                    ((ServerParameterString)ServerParameters[0]).Value,
+                    ((ServerParameterPassword)ServerParameters[1]).Value);
                 _client.Connected += _client_Connected;
                 _client.UpdatePairs += _client_UpdatePairs;
                 _client.Disconnected += _client_Disconnected;
@@ -178,7 +178,7 @@ namespace OsEngine.Market.Servers.Binance
 
             while (actualTime < endTime)
             {
-                List<Candle> newCandles = _client.GetCandlesForTimes(security.Name, 
+                List<Candle> newCandles = _client.GetCandlesForTimes(security.Name,
                     timeFrameBuilder.TimeFrameTimeSpan,
                     actualTime, endTime);
 
@@ -280,8 +280,8 @@ namespace OsEngine.Market.Servers.Binance
             return _client.GetCandles(nameSec, tf);
         }
 
-//parsing incoming data
-// разбор входящих данных
+        //parsing incoming data
+        // разбор входящих данных
 
         void _client_MyOrderEvent(Order order)
         {
@@ -305,7 +305,7 @@ namespace OsEngine.Market.Servers.Binance
         /// </summary>
         private readonly object _newTradesLoker = new object();
 
-        void _client_NewTradesEvent(BinanceEntity.TradeResponse trades)
+        void _client_NewTradesEvent(TradeResponse trades)
         {
             lock (_newTradesLoker)
             {
@@ -338,7 +338,7 @@ namespace OsEngine.Market.Servers.Binance
 
         private readonly object _depthLocker = new object();
 
-        void _client_UpdateMarketDepth(BinanceEntity.DepthResponse myDepth)
+        void _client_UpdateMarketDepth(DepthResponseFutures myDepth)
         {
             try
             {
@@ -349,8 +349,8 @@ namespace OsEngine.Market.Servers.Binance
                         _depths = new List<MarketDepth>();
                     }
 
-                    if (myDepth.data.asks == null || myDepth.data.asks.Count == 0 ||
-                        myDepth.data.bids == null || myDepth.data.bids.Count == 0)
+                    if (myDepth.data.a == null || myDepth.data.a.Count == 0 ||
+                        myDepth.data.b == null || myDepth.data.b.Count == 0)
                     {
                         return;
                     }
@@ -368,34 +368,35 @@ namespace OsEngine.Market.Servers.Binance
                     List<MarketDepthLevel> ascs = new List<MarketDepthLevel>();
                     List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
 
-                    for (int i = 0; i < myDepth.data.asks.Count; i++)
+                    for (int i = 0; i < myDepth.data.a.Count; i++)
                     {
                         ascs.Add(new MarketDepthLevel()
                         {
-                            Ask = 
-                                myDepth.data.asks[i][1].ToString().ToDecimal()
+                            Ask =
+                                myDepth.data.a[i][1].ToString().ToDecimal()
                             ,
                             Price =
-                                myDepth.data.asks[i][0].ToString().ToDecimal()
-                                    
+                                myDepth.data.a[i][0].ToString().ToDecimal()
+
                         });
                     }
 
-                    for (int i = 0; i < myDepth.data.bids.Count; i++)
+                    for (int i = 0; i < myDepth.data.b.Count; i++)
                     {
                         bids.Add(new MarketDepthLevel()
                         {
-                            Bid = 
-                                myDepth.data.bids[i][1].ToString().ToDecimal()
+                            Bid =
+                                myDepth.data.b[i][1].ToString().ToDecimal()
                             ,
-                            Price = 
-                                myDepth.data.bids[i][0].ToString().ToDecimal()
+                            Price =
+                                myDepth.data.b[i][0].ToString().ToDecimal()
                         });
                     }
 
                     needDepth.Asks = ascs;
                     needDepth.Bids = bids;
-                    needDepth.Time = ServerTime;
+
+                    needDepth.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(myDepth.data.T));
 
                     if (needDepth.Time == DateTime.MinValue)
                     {
@@ -414,9 +415,11 @@ namespace OsEngine.Market.Servers.Binance
             }
         }
 
-        private List<Portfolio> _portfolios;
+        #region Портфели
 
-        void _client_UpdatePortfolio(BinanceEntity.OutboundAccountInfo portfs)
+        private List<Portfolio> _portfolios = new List<Portfolio>();
+
+        void _client_UpdatePortfolio(AccountResponseFuturesFromWebSocket portfs)
         {
             try
             {
@@ -429,25 +432,63 @@ namespace OsEngine.Market.Servers.Binance
                 {
                     return;
                 }
-                foreach (var onePortf in portfs.B)
+
+                Portfolio portfolio = null;
+
+                portfolio = _portfolios.Find(p => p.Number == "BinanceFutures");
+
+
+                if (portfolio == null)
+                {
+                    return;
+                }
+
+                foreach (var onePortf in portfs.a.B)
                 {
                     if (onePortf == null ||
-                        onePortf.f == null ||
-                        onePortf.l == null)
+                        onePortf.a == null ||
+                        onePortf.wb == null)
                     {
                         continue;
                     }
-                    Portfolio neeedPortf = _portfolios.Find(p => p.Number == onePortf.a);
+
+                    PositionOnBoard neeedPortf =
+                        portfolio.GetPositionOnBoard().Find(p => p.SecurityNameCode == onePortf.a);
 
                     if (neeedPortf == null)
                     {
                         continue;
                     }
 
-                    neeedPortf.ValueCurrent = 
-                        onePortf.f.ToDecimal();
-                    neeedPortf.ValueBlocked = 
-                        onePortf.l.ToDecimal();
+                    neeedPortf.ValueCurrent =
+                        onePortf.wb.ToDecimal();
+                }
+
+                foreach (var onePortf in portfs.a.P)
+                {
+                    if (onePortf == null ||
+                        onePortf.s == null ||
+                        onePortf.pa == null)
+                    {
+                        continue;
+                    }
+
+                    PositionOnBoard neeedPortf =
+                        portfolio.GetPositionOnBoard().Find(p => p.SecurityNameCode == onePortf.s);
+
+                    if (neeedPortf == null)
+                    {
+                        PositionOnBoard newPositionOnBoard = new PositionOnBoard();
+                        newPositionOnBoard.SecurityNameCode = onePortf.s;
+                        newPositionOnBoard.PortfolioName = portfolio.Number;
+                        newPositionOnBoard.ValueBegin =
+                            onePortf.pa.ToDecimal();
+                        portfolio.SetNewPosition(newPositionOnBoard);
+                        neeedPortf = newPositionOnBoard;
+                    }
+
+                    neeedPortf.ValueCurrent =
+                        onePortf.pa.ToDecimal();
                 }
 
                 if (PortfolioEvent != null)
@@ -461,35 +502,37 @@ namespace OsEngine.Market.Servers.Binance
             }
         }
 
-        void _client_NewPortfolio(BinanceEntity.AccountResponse portfs)
+        void _client_NewPortfolio(AccountResponseFutures portfs)
         {
             try
             {
-                if (portfs == null)
-                {
-                    return;
-                }
+                Portfolio myPortfolio = _portfolios.Find(p => p.Number == "BinanceFutures");
 
-                if (_portfolios == null)
-                {
-                    _portfolios = new List<Portfolio>();
-                }
-
-                if (portfs.balances == null)
-                {
-                    return;
-                }
-
-                foreach (var onePortf in portfs.balances)
+                if (myPortfolio == null)
                 {
                     Portfolio newPortf = new Portfolio();
-                    newPortf.Number = onePortf.asset;
-                    newPortf.ValueCurrent = 
-                        onePortf.free.ToDecimal();
-                    newPortf.ValueBlocked = 
-                        onePortf.locked.ToDecimal();
-
+                    newPortf.Number = "BinanceFutures";
+                    newPortf.ValueBegin = 1;
+                    newPortf.ValueCurrent = 1;
                     _portfolios.Add(newPortf);
+                    myPortfolio = newPortf;
+                }
+
+                if (portfs.assets == null)
+                {
+                    return;
+                }
+
+                foreach (var onePortf in portfs.assets)
+                {
+                    PositionOnBoard newPortf = new PositionOnBoard();
+                    newPortf.SecurityNameCode = onePortf.asset;
+                    newPortf.ValueBegin =
+                        onePortf.marginBalance.ToDecimal();
+                    newPortf.ValueCurrent =
+                        onePortf.marginBalance.ToDecimal();
+
+                    myPortfolio.SetNewPosition(newPortf);
                 }
 
                 if (PortfolioEvent != null)
@@ -502,6 +545,8 @@ namespace OsEngine.Market.Servers.Binance
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
+        #endregion
 
         void _client_Disconnected()
         {
@@ -514,7 +559,7 @@ namespace OsEngine.Market.Servers.Binance
 
         private List<Security> _securities;
 
-        void _client_UpdatePairs(BinanceEntity.SecurityResponce pairs)
+        void _client_UpdatePairs(SecurityResponce pairs)
         {
             if (_securities == null)
             {
@@ -528,12 +573,12 @@ namespace OsEngine.Market.Servers.Binance
                 security.NameFull = sec.symbol;
                 security.NameClass = sec.quoteAsset;
                 security.NameId = sec.symbol + sec.quoteAsset;
-                security.SecurityType = SecurityType.CurrencyPair;
+                security.SecurityType = SecurityType.Futures;
                 // sec.filters[1] - минимальный объем равный цена * объем
                 security.Lot = sec.filters[2].stepSize.ToDecimal();
                 security.PriceStep = sec.filters[0].tickSize.ToDecimal();
                 security.PriceStepCost = security.PriceStep;
-               
+
                 security.PriceLimitLow = sec.filters[0].minPrice.ToDecimal();
                 security.PriceLimitHigh = sec.filters[0].maxPrice.ToDecimal();
 
@@ -559,15 +604,15 @@ namespace OsEngine.Market.Servers.Binance
 
         void _client_Connected()
         {
-            if(ConnectEvent != null)
+            if (ConnectEvent != null)
             {
                 ConnectEvent();
             }
             ServerStatus = ServerConnectStatus.Connect;
         }
 
-// outgoing messages
-// исходящие события
+        // outgoing messages
+        // исходящие события
 
         /// <summary>
         /// called when order changed
@@ -617,8 +662,8 @@ namespace OsEngine.Market.Servers.Binance
         /// </summary>
         public event Action DisconnectEvent;
 
-// log messages
-// сообщения для лога
+        // log messages
+        // сообщения для лога
 
         /// <summary>
         /// add a new log message

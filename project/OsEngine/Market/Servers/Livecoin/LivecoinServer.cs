@@ -3,13 +3,13 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using OsEngine.Market.Servers.Livecoin.LivecoinEntity;
-using protobuf.ws;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OsEngine.Market.Servers.Livecoin.LivecoinEntity.protobuf;
 using Order = OsEngine.Entity.Order;
 
 namespace OsEngine.Market.Servers.Livecoin
