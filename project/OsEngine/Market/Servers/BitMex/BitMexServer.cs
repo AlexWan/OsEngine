@@ -1498,7 +1498,7 @@ namespace OsEngine.Market.Servers.BitMex
                             param["price"] = order.Price.ToString().Replace(",", ".");
                             param["side"] = order.Side == Side.Buy ? "Buy" : "Sell";
                             //param["orderIDs"] = order.NumberUser.ToString();
-                            param["orderQty"] = order.Volume.ToString();
+                            param["orderQty"] = order.Volume.ToString().Replace(",", ".");
                             param["clOrdID"] = order.NumberUser.ToString();
                             param["origClOrdID"] = order.NumberUser.ToString();
 
@@ -1644,7 +1644,7 @@ namespace OsEngine.Market.Servers.BitMex
 
                     if (osOrder == null && string.IsNullOrEmpty(_ordersToCheck[i].NumberMarket))
                     {
-                        if (_ordersToCheck[i].TimeCreate.AddMinutes(5) < ServerTime)
+                        if (_ordersToCheck[i].TimeCreate.AddMinutes(1) < ServerTime)
                         {
                             _ordersToCheck[i].State = OrderStateType.Cancel;
 

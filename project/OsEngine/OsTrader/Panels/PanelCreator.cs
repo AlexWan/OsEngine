@@ -326,12 +326,6 @@ namespace OsEngine.OsTrader.Panels
                 return;
             }
 
-            if (StartProgram == StartProgram.IsOsTrader
-                && DateTime.Now.Hour < 10)
-            {
-                return;
-            }
-
             if (_smaTrenda.Lenght > candles.Count ||
                 _channel.LenghtUpLine > candles.Count ||
                 _channel.LenghtDownLine > candles.Count)

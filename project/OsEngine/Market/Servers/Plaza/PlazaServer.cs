@@ -17,7 +17,7 @@ namespace OsEngine.Market.Servers.Plaza
             PlazaServerRealization realization = new PlazaServerRealization();
             ServerRealization = realization;
 
-            CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "12345");
+            CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "11111111");
         }
     }
 
@@ -112,6 +112,10 @@ namespace OsEngine.Market.Servers.Plaza
 
         private void PlazaControllerOnNewTradeEvent(Trade trade, bool isOnLine)
         {
+            if (_securities == null)
+            {
+                return;
+            }
             Security security = _securities.Find(s => s.NameId == trade.SecurityNameCode);
 
             if (security == null)

@@ -491,15 +491,25 @@ namespace OsEngine.Market.Servers.BitStamp
             }
         }
 
+        private List<Order> _ordersCanseled = new List<Order>();
+
         /// <summary>
         /// update order data
         /// обновить данные по ордерам
         /// </summary>
         private void GetOrders()
         {
+
             for (int i = 0; i < _osEngineOrders.Count; i++)
             {
                 Thread.Sleep(300);
+
+                if (_ordersCanseled.Find(ord => ord.NumberMarket == _osEngineOrders[i].NumberMarket) != null)
+                {
+                    _osEngineOrders.RemoveAt(i);
+                    i--;
+                    continue;
+                }
 
                 Order order = _osEngineOrders[i];
 
@@ -525,7 +535,8 @@ namespace OsEngine.Market.Servers.BitStamp
                         MyTradeEvent(trade);
                     }
                 }
-                else if (response.status == "Finished" || response.status == null)
+                else if (response.status == "Finished" ||
+                         (response.status == null && string.IsNullOrEmpty(order.NumberMarket)))
                 {
                     Order newOrder = new Order();
                     newOrder.SecurityNameCode = order.SecurityNameCode;
@@ -615,7 +626,17 @@ namespace OsEngine.Market.Servers.BitStamp
         /// </summary>
         public void CanselOrder(Order order)
         {
-            CancelOrder(order.NumberMarket);
+            if (CancelOrder(order.NumberMarket))
+            {
+                order.State = OrderStateType.Cancel;
+
+                if (MyOrderEvent != null)
+                {
+                    MyOrderEvent(order);
+                }
+
+                _ordersCanseled.Add(order);
+            }
         }
 
         /// <summary>
@@ -633,7 +654,8 @@ namespace OsEngine.Market.Servers.BitStamp
 
                     var response = new RestClient("https://www.bitstamp.net/api/v2/cancel_order/").Execute(request);
 
-                    return (response.Content == "true") ? true : false;
+                    return true;
+
                 }
                 catch (Exception ex)
                 {

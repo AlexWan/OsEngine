@@ -1267,7 +1267,7 @@ namespace OsEngine.Charts.CandleChart
 
                 ChartArea candleArea = FindAreaByNameSafe("Prime");
                 if (candleArea != null && candleArea.AxisX.ScrollBar.IsVisible &&
-                    candleArea.AxisX.ScaleView.Position + candleArea.AxisX.ScaleView.Size + 3 >= candleSeries.Points.Count)
+                    candleArea.AxisX.ScaleView.Position + candleArea.AxisX.ScaleView.Size + 10 >= candleSeries.Points.Count)
                 // if you've already selected a range
                 //если уже выбран какой-то диапазон
                 {
@@ -1321,7 +1321,7 @@ namespace OsEngine.Charts.CandleChart
 
             ChartArea candleArea = FindAreaByNameSafe("Prime");
             if (candleArea != null && candleArea.AxisX.ScrollBar.IsVisible &&
-                candleArea.AxisX.ScaleView.Position + candleArea.AxisX.ScaleView.Size + 3 >= candleSeries.Points.Count)
+                candleArea.AxisX.ScaleView.Position + candleArea.AxisX.ScaleView.Size + 10 >= candleSeries.Points.Count)
             // if you've already selected a range
             //если уже выбран какой-то диапазон
             {
@@ -4390,6 +4390,10 @@ namespace OsEngine.Charts.CandleChart
                     if (index == series.Points.Count)
                     {
                         realIndex = series.Points.Count - 1;
+                    }
+                    else
+                    {
+                        //realIndex = series.Points.Count - (series.Points.Count - 1 - index);
                     }
 
                     int rounder = 0;

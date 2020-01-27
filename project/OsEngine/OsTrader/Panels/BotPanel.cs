@@ -220,7 +220,15 @@ namespace OsEngine.OsTrader.Panels
                 for (int i = 0; _botTabs != null && i < _botTabs.Count; i++)
                 {
                     _botTabs[i].StopPaint();
-                    _log.StopPaint();
+                    try
+                    {
+                        _log.StopPaint();
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                   
                 }
 
                 _tabBotTab = null;
