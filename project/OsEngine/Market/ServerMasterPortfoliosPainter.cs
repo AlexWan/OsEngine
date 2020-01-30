@@ -142,7 +142,8 @@ namespace OsEngine.Market
                             continue;
                         }
 
-                        Portfolio portf = _portfolios.Find(portfolio => portfolio.Number == portfolios[i].Number);
+                        Portfolio portf = _portfolios.Find(
+                            portfolio => portfolio != null && portfolio.Number == portfolios[i].Number);
 
                         if (portf != null)
                         {
