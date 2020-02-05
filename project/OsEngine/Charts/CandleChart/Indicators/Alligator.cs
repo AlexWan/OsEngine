@@ -42,7 +42,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             ColorDown = Color.DodgerBlue;
             
             PaintOn = true;
-            TypeCalculationAverage = MovingAverageTypeCalculation.Simple;
+            TypeCalculationAverage = MovingAverageTypeCalculation.Smoofed;
             CanDelete = canDelete;
             Load();
         }
@@ -72,7 +72,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             ColorDown = Color.DodgerBlue;
 
             PaintOn = true;
-            TypeCalculationAverage = MovingAverageTypeCalculation.Simple;
+            TypeCalculationAverage = MovingAverageTypeCalculation.Smoofed;
             CanDelete = canDelete;
         }
 

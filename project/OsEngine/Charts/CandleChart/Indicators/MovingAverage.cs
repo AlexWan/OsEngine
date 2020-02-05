@@ -52,7 +52,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// VolumeWeighted moving average
         /// взвешенная по объёму
         /// </summary>
-        VolumeWeighted
+        VolumeWeighted,
+
+        /// <summary>
+        /// Smoothed Moving Average (SSMA) 
+        /// Сглаженное скользящее среднее
+        /// </summary>
+        Smoofed
     }
 
     /// <summary>
@@ -445,6 +451,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 Values.Add(GetValueVolumeWeighted(candles, candles.Count - 1));
             }
+            if (TypeCalculationAverage == MovingAverageTypeCalculation.Smoofed)
+            {
+                Values.Add(GetValueSmma(candles, candles.Count - 1));
+            }
         }
 
         /// <summary>
@@ -485,6 +495,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 {
                     Values.Add(GetValueVolumeWeighted(candles, i));
                 }
+                if (TypeCalculationAverage == MovingAverageTypeCalculation.Smoofed)
+                {
+                    Values.Add(GetValueSmma(candles, i));
+                }
             }
         }
 
@@ -521,6 +535,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
             if (TypeCalculationAverage == MovingAverageTypeCalculation.VolumeWeighted)
             {
                 Values[Values.Count - 1] = GetValueVolumeWeighted(candles, candles.Count - 1);
+            }
+            if (TypeCalculationAverage == MovingAverageTypeCalculation.Smoofed)
+            {
+                Values[Values.Count - 1] = GetValueSmma(candles, candles.Count - 1);
             }
         }
 
@@ -1184,6 +1202,40 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
 
             return Math.Round(result, 8);
+        }
+
+        private decimal GetValueSmma(List<Candle> candles, int index)
+        {
+            decimal result = 0;
+
+            if (index == Lenght)
+            {
+                // it's the first value. Calculate as simple ma
+                // это первое значение. Рассчитываем как простую машку
+                decimal lastMoving = 0;
+
+                for (int i = index - Lenght + 1; i < index + 1; i++)
+                {
+                    lastMoving += GetPoint(candles, i);
+                }
+
+                lastMoving = lastMoving / Lenght;
+
+                result = lastMoving;
+            }
+            else if (index > Lenght)
+            {
+                // (smma[1] * (length - 1) + src) / length
+
+                decimal emaLast = Values[index - 1];
+
+                decimal p = GetPoint(candles, index);
+
+                result = (emaLast * (Lenght - 1) + p) / Lenght;
+
+            }
+
+            return Math.Round(result, 10);
         }
     }
 }

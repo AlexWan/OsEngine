@@ -273,10 +273,13 @@ namespace OsEngine.Entity
                 decimal price;
                 try
                 {
-                    if (_glassBox.CurrentCell == null)
+                    if (_glassBox.CurrentCell == null ||
+                        _glassBox.Rows.Count == 0 ||
+                        _glassBox.Rows[_glassBox.CurrentCell.RowIndex].Cells.Count < 2)
                     {
                         return;
                     }
+  
                     price = _glassBox.Rows[_glassBox.CurrentCell.RowIndex].Cells[2].Value.ToString().ToDecimal();
                 }
                 catch (Exception)

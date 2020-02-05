@@ -1019,6 +1019,14 @@ namespace OsEngine.Market.Servers.Tester
                             {
                                 minPriceStep = 0.0000001m;
                             }
+                            if (lenght == 8 && minPriceStep > 0.00000001m)
+                            {
+                                minPriceStep = 0.00000001m;
+                            }
+                            if (lenght == 9 && minPriceStep > 0.000000001m)
+                            {
+                                minPriceStep = 0.000000001m;
+                            }
                         }
                         else
                         {
@@ -1309,6 +1317,14 @@ namespace OsEngine.Market.Servers.Tester
                             {
                                 minPriceStep = 0.0000001m;
                             }
+                            if (lenght == 8 && minPriceStep > 0.00000001m)
+                            {
+                                minPriceStep = 0.00000001m;
+                            }
+                            if (lenght == 9 && minPriceStep > 0.000000001m)
+                            {
+                                minPriceStep = 0.000000001m;
+                            }
                         }
                         else
                         {
@@ -1552,6 +1568,14 @@ namespace OsEngine.Market.Servers.Tester
                             if (lenght == 7 && minPriceStep > 0.0000001m)
                             {
                                 minPriceStep = 0.0000001m;
+                            }
+                            if (lenght == 8 && minPriceStep > 0.00000001m)
+                            {
+                                minPriceStep = 0.00000001m;
+                            }
+                            if (lenght == 9 && minPriceStep > 0.000000001m)
+                            {
+                                minPriceStep = 0.000000001m;
                             }
                         }
                         else
