@@ -45,6 +45,10 @@ namespace OsEngine.Market.Connectors
 
                 for (int i = 0; i < _emulators.Count; i++)
                 {
+                    if (_emulators[i] == null)
+                    {
+                        continue;
+                    }
                     _emulators[i].CheckOrders();
                 }
             }

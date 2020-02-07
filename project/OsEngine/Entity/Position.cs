@@ -564,42 +564,21 @@ namespace OsEngine.Entity
                     State = PositionStateType.ClosingSurplus;
                 }
                 
-                if (State == PositionStateType.Done && CloseOrders != null && EntryPrice != 0)
+                if (State == PositionStateType.Done && CloseOrders != null && EntryPrice != 0 && ClosePrice != 0)
                 {
-                    //AlertMessageManager.ThrowAlert(null, "Done пересчёт", "");
-                    decimal medianPriceClose = 0;
-                    decimal countValue = 0;
-
-                    for (int i = 0; i < CloseOrders.Count; i++)
-                    {
-                        if (CloseOrders[i].VolumeExecute != 0)
-                        {
-                            medianPriceClose += CloseOrders[i].PriceReal * CloseOrders[i].VolumeExecute;
-                            countValue += CloseOrders[i].VolumeExecute;
-                        }
-                    }
-
-                    if (countValue != 0)
-                    {
-                        medianPriceClose = medianPriceClose/countValue;
-                    }
-
-                    if (medianPriceClose == 0)
-                    {
-                        return;
-                    }
+                    decimal closePrice = ClosePrice;
+                    decimal openPrice = EntryPrice;
 
                     if (Direction == Side.Buy)
                     {
-                        ProfitOperationPersent = medianPriceClose / EntryPrice * 100 - 100;
-                        ProfitOperationPunkt = medianPriceClose - EntryPrice;
+                        ProfitOperationPersent = closePrice / EntryPrice * 100 - 100;
+                        ProfitOperationPunkt = closePrice - EntryPrice;
                     }
                     else
                     {
-                        ProfitOperationPunkt = EntryPrice - medianPriceClose;
-                        ProfitOperationPersent = -(medianPriceClose / EntryPrice * 100 - 100);
+                        ProfitOperationPunkt = EntryPrice - closePrice;
+                        ProfitOperationPersent = -(closePrice / EntryPrice * 100 - 100);
                     }
-                    ProfitOperationPersent = Math.Round(ProfitOperationPersent, 5);
                 }
             }
         }
@@ -657,41 +636,19 @@ namespace OsEngine.Entity
             }
 
 
-            if (State == PositionStateType.Done && CloseOrders != null && EntryPrice != 0 )
+            if (State == PositionStateType.Done && CloseOrders != null && EntryPrice != 0  && ClosePrice != 0)
             {
-                decimal medianPriceClose = 0;
-                decimal countValue = 0;
 
-                for (int i = 0; i < CloseOrders.Count; i++)
-                {
-                    if (CloseOrders[i].VolumeExecute != 0)
-                    {
-                        medianPriceClose += CloseOrders[i].PriceReal * CloseOrders[i].VolumeExecute;
-                        countValue += CloseOrders[i].VolumeExecute;
-                    }
-                }
-
-                if (countValue != 0)
-                {
-                    medianPriceClose = medianPriceClose / countValue;
-                }
-
-                if (medianPriceClose == 0)
-                {
-                    return;
-                }
                 if (Direction == Side.Buy)
                 {
-                    ProfitOperationPersent = medianPriceClose / EntryPrice * 100 - 100;
-                    ProfitOperationPunkt = medianPriceClose - EntryPrice;
+                    ProfitOperationPersent = ClosePrice / EntryPrice * 100 - 100;
+                    ProfitOperationPunkt = ClosePrice - EntryPrice;
                 }
                 else
                 {
-                    ProfitOperationPunkt = EntryPrice - medianPriceClose;
-                    ProfitOperationPersent = -(medianPriceClose / EntryPrice * 100 - 100);
+                    ProfitOperationPunkt = EntryPrice - ClosePrice;
+                    ProfitOperationPersent = -(ClosePrice / EntryPrice * 100 - 100);
                 }
-
-                ProfitOperationPersent = Math.Round(ProfitOperationPersent, 3);
             }
         }
 
@@ -704,6 +661,11 @@ namespace OsEngine.Entity
             if (State == PositionStateType.Open)
             {
                 if (EntryPrice == 0)
+                {
+                    return;
+                }
+
+                if (ClosePrice != 0)
                 {
                     return;
                 }

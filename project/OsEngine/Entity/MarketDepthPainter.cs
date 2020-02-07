@@ -275,7 +275,8 @@ namespace OsEngine.Entity
                 {
                     if (_glassBox.CurrentCell == null ||
                         _glassBox.Rows.Count == 0 ||
-                        _glassBox.Rows[_glassBox.CurrentCell.RowIndex].Cells.Count < 2)
+                        _glassBox.Rows[_glassBox.CurrentCell.RowIndex].Cells.Count < 2 ||
+                        _glassBox.Rows[_glassBox.CurrentCell.RowIndex].Cells[2].Value == null)
                     {
                         return;
                     }
