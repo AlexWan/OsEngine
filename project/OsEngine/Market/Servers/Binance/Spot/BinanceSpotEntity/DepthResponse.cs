@@ -5,7 +5,7 @@ namespace OsEngine.Market.Servers.Binance.Spot.BinanceSpotEntity
 
     public class Datas
     {
-        public int lastUpdateId { get; set; }
+        public long lastUpdateId { get; set; }
         public List<List<object>> bids { get; set; }
         public List<List<object>> asks { get; set; }
     }

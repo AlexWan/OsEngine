@@ -569,6 +569,26 @@ namespace OsEngine.Logging
                 return;
             }
 
+            if(_gridErrorLog.Rows.Count == 500)
+            {
+                DataGridViewRow row1 = new DataGridViewRow();
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[0].Value = DateTime.Now;
+
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[1].Value = LogMessageType.Error;
+
+                row1.Cells.Add(new DataGridViewTextBoxCell());
+                row1.Cells[2].Value = "To much ERRORS. Error log shut down.";
+                _gridErrorLog.Rows.Insert(0, row1);
+                return;
+            }
+            else if(_gridErrorLog.Rows.Count > 500)
+            {
+                return;
+            }
+
+
             DataGridViewRow row = new DataGridViewRow();
             row.Cells.Add(new DataGridViewTextBoxCell());
             row.Cells[0].Value = DateTime.Now;

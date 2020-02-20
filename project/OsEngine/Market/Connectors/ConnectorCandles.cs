@@ -610,6 +610,10 @@ namespace OsEngine.Market.Connectors
                 {
                     if (_lastReconnectTime.AddSeconds(1) > DateTime.Now)
                     {
+                        if (ConnectorStartedReconnectEvent != null)
+                        {
+                            ConnectorStartedReconnectEvent(NamePaper, TimeFrame, TimeFrameTimeSpan, PortfolioName, ServerType);
+                        }
                         return;
                     }
                     _lastReconnectTime = DateTime.Now;

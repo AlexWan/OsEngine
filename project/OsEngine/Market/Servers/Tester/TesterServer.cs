@@ -1901,6 +1901,11 @@ namespace OsEngine.Market.Servers.Tester
                         slipage = _slipageToSimpleOrder;
                     }
 
+                    if (realPrice > maxPrice)
+                    {
+                        realPrice = maxPrice;
+                    }
+
                     ExecuteOnBoardOrder(order, realPrice, time, slipage);
 
                     for (int i = 0; i < OrdersActiv.Count; i++)
@@ -1960,6 +1965,11 @@ namespace OsEngine.Market.Servers.Tester
                     else if (order.IsStopOrProfit == false && _slipageToSimpleOrder > 0)
                     {
                         slipage = _slipageToSimpleOrder;
+                    }
+
+                    if (realPrice < minPrice)
+                    {
+                        realPrice = minPrice;
                     }
 
                     ExecuteOnBoardOrder(order, realPrice, time, slipage);
@@ -3384,6 +3394,12 @@ namespace OsEngine.Market.Servers.Tester
                 { // testing with using candles / прогон на свечках
                     CheckOrdersInCandleTest(order, security.LastCandle);
                 }
+                else if (security.DataType == SecurityTesterDataType.Tick)
+                { // testing with using candles / прогон на свечках
+                    CheckOrdersInTickTest(order, security.LastTrade,true);
+                }
+
+
             }
         }
 
