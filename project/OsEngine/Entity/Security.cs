@@ -76,7 +76,7 @@ namespace OsEngine.Entity
 
                 string step = Convert.ToDecimal(Convert.ToDouble(_priceStep)).ToString(new CultureInfo("ru-RU"));
                
-                if(step.Split(',').Length == 0)
+                if(step.Split(',').Length == 1)
                 {
                     _decimals = 0;
                 }
