@@ -303,13 +303,13 @@ namespace OsEngine.Robots.MarketMaker
                 if (lastPrice < _lines[i] &&
                     nowPrice > _lines[i])
                 { 
-                    totalDeal--;
+                    totalDeal -= Volume;
                 }
 
                 if (lastPrice > _lines[i] &&
                     nowPrice < _lines[i])
                 { 
-                    totalDeal++;
+                    totalDeal += Volume;
                 }
             }
 
@@ -330,12 +330,10 @@ namespace OsEngine.Robots.MarketMaker
                     if (positionsShort[0].OpenVolume <= totalDeal)
                     {
                         _tab.CloseAtMarket(positionsShort[0], positionsShort[0].OpenVolume);
-                        totalDeal -= positionsShort[0].OpenVolume;
                     }
                     else
                     {
                         _tab.CloseAtMarket(positionsShort[0], totalDeal);
-                        totalDeal = 0;
                     }
                 }
 
@@ -345,7 +343,11 @@ namespace OsEngine.Robots.MarketMaker
 
                     if (positionsLong != null && positionsLong.Count != 0)
                     {
-                        _tab.BuyAtMarketToPosition(positionsLong[0], totalDeal);
+                        if(totalDeal - positionsLong[0].OpenVolume <= 0)
+                        {
+                            return;
+                        }
+                        _tab.BuyAtMarketToPosition(positionsLong[0], totalDeal - positionsLong[0].OpenVolume);
                     }
                     else
                     {
@@ -365,12 +367,10 @@ namespace OsEngine.Robots.MarketMaker
                     if (positionsLong[0].OpenVolume <= totalDeal)
                     {
                         _tab.CloseAtMarket(positionsLong[0], positionsLong[0].OpenVolume);
-                        totalDeal -= positionsLong[0].OpenVolume;
                     }
                     else
                     {
                         _tab.CloseAtMarket(positionsLong[0], totalDeal);
-                        totalDeal = 0;
                     }
                 }
 
@@ -380,7 +380,12 @@ namespace OsEngine.Robots.MarketMaker
 
                     if (positionsShort != null && positionsShort.Count != 0)
                     {
-                        _tab.SellAtMarketToPosition(positionsShort[0], totalDeal);
+                        if (totalDeal - positionsShort[0].OpenVolume <= 0)
+                        {
+                            return;
+                        }
+
+                        _tab.SellAtMarketToPosition(positionsShort[0], totalDeal - positionsShort[0].OpenVolume);
                     }
                     else
                     {

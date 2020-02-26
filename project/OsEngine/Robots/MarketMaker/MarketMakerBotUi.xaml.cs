@@ -5,6 +5,7 @@
 
 using System;
 using System.Windows;
+using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 
@@ -43,8 +44,8 @@ namespace OsEngine.Robots.MarketMaker
         {
             try
             {
-                if (Convert.ToDecimal(TextBoxVolumeOne.Text) <= 0||
-                    Convert.ToDecimal(TextBoxSpreadBeetwenLine.Text) <= 0)
+                if (TextBoxVolumeOne.Text.ToDecimal() <= 0||
+                    TextBoxSpreadBeetwenLine.Text.ToDecimal() <= 0)
                 {
                     throw new Exception("");
                 }
@@ -55,8 +56,8 @@ namespace OsEngine.Robots.MarketMaker
                 return;
             }
 
-            _strategy.Volume = Convert.ToDecimal(TextBoxVolumeOne.Text);
-            _strategy.PersentToSpreadLines = Convert.ToDecimal(TextBoxSpreadBeetwenLine.Text);
+            _strategy.Volume = TextBoxVolumeOne.Text.ToDecimal();
+            _strategy.PersentToSpreadLines = TextBoxSpreadBeetwenLine.Text.ToDecimal();
             Enum.TryParse(ComboBoxRegime.Text, true, out _strategy.Regime);
 
             if (CheckBoxNeadToPaint.IsChecked.HasValue)

@@ -68,7 +68,9 @@ namespace OsEngine.Market.Servers.Binance.Spot
             _timeStart = DateTime.Now;
         }
 
-        private string _listenKey = "";
+        private string _spotListenKey = "";
+
+        private string _marginListenKey = "";
 
         private WebSocket _spotSocketClient;
 
@@ -76,14 +78,14 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         private void CreateDataStreams()
         {
-            _spotSocketClient = CreateUserDataStream("api/v1/userDataStream");
+            _spotSocketClient = CreateUserDataStream("api/v1/userDataStream", BinanceExchangeType.SpotExchange);
             _wsStreams.Add("userDataStream", _spotSocketClient);
             _spotSocketClient.MessageReceived += delegate (object sender, MessageReceivedEventArgs args)
             {
                 UserDataMessageHandler(sender, args, BinanceExchangeType.SpotExchange);
             };
 
-            _marginSocketClient = CreateUserDataStream("/sapi/v1/userDataStream");
+            _marginSocketClient = CreateUserDataStream("/sapi/v1/userDataStream", BinanceExchangeType.MarginExchange);
             _wsStreams.Add("userDataStreamMargine", _marginSocketClient);
             _marginSocketClient.MessageReceived += delegate (object sender, MessageReceivedEventArgs args)
             {
@@ -111,15 +113,23 @@ namespace OsEngine.Market.Servers.Binance.Spot
         /// создать поток пользовательских данных
         /// </summary>
         /// <returns></returns>
-        private WebSocket CreateUserDataStream(string url)
+        private WebSocket CreateUserDataStream(string url, BinanceExchangeType exType)
         {
             try
             {
                 var res = CreateQuery(BinanceExchangeType.SpotExchange, Method.POST, url, null, false);
+                string urlStr = "";
 
-                _listenKey = JsonConvert.DeserializeAnonymousType(res, new ListenKey()).listenKey;
-
-                string urlStr = "wss://stream.binance.com:9443/ws/" + _listenKey;
+                if (exType == BinanceExchangeType.SpotExchange)
+                {
+                    _spotListenKey = JsonConvert.DeserializeAnonymousType(res, new ListenKey()).listenKey;
+                    urlStr = "wss://stream.binance.com:9443/ws/" + _spotListenKey;
+                }
+                else if (exType == BinanceExchangeType.MarginExchange)
+                {
+                    _marginListenKey = JsonConvert.DeserializeAnonymousType(res, new ListenKey()).listenKey;
+                    urlStr = "wss://stream.binance.com:9443/ws/" + _marginListenKey;
+                }
 
                 WebSocket client = new WebSocket(urlStr); //create a web socket / создаем вебсокет
 
@@ -208,9 +218,13 @@ namespace OsEngine.Market.Servers.Binance.Spot
         /// </summary>
         private void CloseUserDataStream()
         {
-            if (_listenKey != "")
+            if (_spotListenKey != "")
             {
-                CreateQuery(BinanceExchangeType.SpotExchange, Method.DELETE, "api/v1/userDataStream", new Dictionary<string, string>() { { "listenKey=", _listenKey } }, false);
+                CreateQuery(BinanceExchangeType.SpotExchange, Method.DELETE, "api/v1/userDataStream", new Dictionary<string, string>() { { "listenKey=", _spotListenKey } }, false);
+            }
+            if (_marginListenKey != "")
+            {
+                CreateQuery(BinanceExchangeType.SpotExchange, Method.DELETE, "sapi/v1/userDataStream", new Dictionary<string, string>() { { "listenKey=", _marginListenKey } }, false);
             }
         }
 
@@ -226,22 +240,25 @@ namespace OsEngine.Market.Servers.Binance.Spot
             {
                 Thread.Sleep(30000);
 
-                if (_listenKey == "")
+
+                if (_spotListenKey == "" ||
+                    _marginListenKey == "")
                 {
-                    return;
+                    continue;
                 }
+
 
                 if (_timeStart.AddMinutes(25) < DateTime.Now)
                 {
                     _timeStart = DateTime.Now;
 
-                   /* CreateQuery(BinanceExchangeType.SpotExchange, Method.PUT,
-                        "api/v1/userDataStream", new Dictionary<string, string>()
-                            { { "listenKey=", _listenKey } }, false);*/
-
                     CreateQuery(BinanceExchangeType.SpotExchange, Method.PUT,
+                        "api/v1/userDataStream", new Dictionary<string, string>()
+                            { { "listenKey=", _spotListenKey } }, false);
+
+                    CreateQuery(BinanceExchangeType.MarginExchange, Method.PUT,
                         "sapi/v1/userDataStream", new Dictionary<string, string>()
-                            { { "listenKey=", _listenKey } }, false);
+                            { { "listenKey=", _marginListenKey } }, false);
                 }
             }
         }
