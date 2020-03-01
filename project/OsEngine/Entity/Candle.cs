@@ -305,13 +305,13 @@ namespace OsEngine.Entity
                 result += "  \r\n";
 
                 result += " O: ";
-                result += Open.ToString(new CultureInfo("ru-RU"));
+                result += Open.ToStringWithNoEndZero();
                 result += " H: ";
-                result += High.ToString(new CultureInfo("ru-RU"));
+                result += High.ToStringWithNoEndZero();
                 result += " L: ";
-                result += Low.ToString(new CultureInfo("ru-RU"));
+                result += Low.ToStringWithNoEndZero();
                 result += " C: ";
-                result += Close.ToString(new CultureInfo("ru-RU"));
+                result += Close.ToStringWithNoEndZero();
 
                 return result;
             }

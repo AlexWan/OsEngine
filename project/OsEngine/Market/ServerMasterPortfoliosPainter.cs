@@ -584,13 +584,13 @@ namespace OsEngine.Market
                     nRow.Cells[6].Value = _orders[i].State;
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[7].Value = _orders[i].Price.ToString("G29");
+                    nRow.Cells[7].Value = _orders[i].Price.ToStringWithNoEndZero();
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[8].Value = _orders[i].PriceReal.ToString("G29");
+                    nRow.Cells[8].Value = _orders[i].PriceReal.ToStringWithNoEndZero();
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[9].Value = _orders[i].Volume.ToString("G29");
+                    nRow.Cells[9].Value = _orders[i].Volume.ToStringWithNoEndZero();
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
                     nRow.Cells[10].Value = _orders[i].TypeOrder;

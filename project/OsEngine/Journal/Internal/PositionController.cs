@@ -1248,18 +1248,18 @@ namespace OsEngine.Journal.Internal
                 nRow.Cells[6].Value = position.State;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[7].Value = position.MaxVolume.ToString().ToDecimal();
+                nRow.Cells[7].Value = position.MaxVolume.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[8].Value = position.OpenVolume.ToString().ToDecimal();
+                nRow.Cells[8].Value = position.OpenVolume.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[9].Value = position.WaitVolume.ToString().ToDecimal();
+                nRow.Cells[9].Value = position.WaitVolume.ToStringWithNoEndZero();
 
                 if (position.EntryPrice != 0)
                 {
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[10].Value = position.EntryPrice.ToString().ToDecimal();
+                    nRow.Cells[10].Value = position.EntryPrice.ToStringWithNoEndZero();
                 }
                 else
                 {
@@ -1268,14 +1268,14 @@ namespace OsEngine.Journal.Internal
                         position.OpenOrders.Count != 0 &&
                         position.State != PositionStateType.OpeningFail)
                     {
-                        nRow.Cells[10].Value = position.OpenOrders[position.OpenOrders.Count - 1].Price.ToString().ToDecimal();
+                        nRow.Cells[10].Value = position.OpenOrders[position.OpenOrders.Count - 1].Price.ToStringWithNoEndZero();
                     }
                 }
 
                 if (position.ClosePrice != 0)
                 {
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[11].Value = position.ClosePrice.ToString().ToDecimal();
+                    nRow.Cells[11].Value = position.ClosePrice.ToStringWithNoEndZero();
                 }
                 else
                 {
@@ -1284,24 +1284,24 @@ namespace OsEngine.Journal.Internal
                         position.CloseOrders.Count != 0 &&
                         position.State != PositionStateType.ClosingFail)
                     {
-                        nRow.Cells[11].Value = position.CloseOrders[position.CloseOrders.Count - 1].Price.ToString().ToDecimal();
+                        nRow.Cells[11].Value = position.CloseOrders[position.CloseOrders.Count - 1].Price.ToStringWithNoEndZero();
                     }
                 }
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[12].Value = position.ProfitPortfolioPunkt.ToString().ToDecimal();
+                nRow.Cells[12].Value = position.ProfitPortfolioPunkt.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[13].Value = position.StopOrderRedLine.ToString().ToDecimal();
+                nRow.Cells[13].Value = position.StopOrderRedLine.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[14].Value = position.StopOrderPrice.ToString().ToDecimal();
+                nRow.Cells[14].Value = position.StopOrderPrice.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[15].Value = position.ProfitOrderRedLine.ToString().ToDecimal();
+                nRow.Cells[15].Value = position.ProfitOrderRedLine.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[16].Value = position.ProfitOrderPrice.ToString().ToDecimal();
+                nRow.Cells[16].Value = position.ProfitOrderPrice.ToStringWithNoEndZero();
 
                 return nRow;
             }

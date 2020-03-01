@@ -31,8 +31,7 @@ namespace OsEngine.Charts.CandleChart
     /// </summary>
     public class ChartCandlePainter
     {
-        //service
-        // сервис
+        //service сервис
 
         /// <summary>
         /// constructor
@@ -343,8 +342,8 @@ namespace OsEngine.Charts.CandleChart
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string,LogMessageType> LogMessageEvent;
-        // working with chart colors and areas
-        // работа с цветом чарта и областей
+
+        // working with chart colors and areas работа с цветом чарта и областей
 
         /// <summary>
         /// color storage for chart
@@ -461,8 +460,8 @@ namespace OsEngine.Charts.CandleChart
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-        // Create zone and series deletion
-        // создание удаление областей и серий
+
+        // Create zone and series deletion создание удаление областей и серий
 
         /// <summary>
         /// to create chart. Creates an initial area and a series for drawing candles
@@ -2205,8 +2204,8 @@ namespace OsEngine.Charts.CandleChart
                 return start + (end - start) / 2;
             }
         }
-        // CUSTOM ELEMENTS
-        // ПОЛЬЗОВАТЕЛЬСКИЕ ЭЛЕМЕНТЫ
+
+        // CUSTOM ELEMENTS ПОЛЬЗОВАТЕЛЬСКИЕ ЭЛЕМЕНТЫ
 
         /// <summary>
         /// draw an element on chart
@@ -2474,8 +2473,8 @@ namespace OsEngine.Charts.CandleChart
 
             PaintSeriesSafe(newSeries);
         }
-        // Drag and drop Custom items
-        // Перетаскивание Пользовательских элементов
+
+        // Drag and drop Custom items  Перетаскивание Пользовательских элементов
 
         /// <summary>
         /// element that user clicked
@@ -2750,8 +2749,8 @@ namespace OsEngine.Charts.CandleChart
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-// Alerts
-// АЛЕРТЫ
+
+        // Alerts АЛЕРТЫ
 
         public void ClearAlerts(List<IIAlert> alertArray)
         {
@@ -2928,8 +2927,8 @@ namespace OsEngine.Charts.CandleChart
             mySeries.Points.AddXY(x1, valueFirst);
             mySeries.Points.AddXY(x2, valieSecond);
         }
-        // Indicators
-        // ИНДИКАТОРЫ
+
+        // Indicators  ИНДИКАТОРЫ
 
         /// <summary>
         /// draw an indicator on chart
@@ -3100,8 +3099,8 @@ namespace OsEngine.Charts.CandleChart
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-        // Point indicator
-        // Индикатор точки
+
+        // Point indicator Индикатор точки
 
         /// <summary>
         /// Draw an indicator as a point
@@ -3201,8 +3200,8 @@ namespace OsEngine.Charts.CandleChart
             mySeries.Points[mySeries.Points.Count - 1].YValues = new[] { Convert.ToDouble(point2) };
            // mySeries.Points[mySeries.Points.Count - 1].ToolTip = point2.ToString();
         }
-        // Line indicator
-        // Индикатор линия
+
+        // Line indicator Индикатор линия
 
         /// <summary>
         /// draw indicator as a line
@@ -3328,8 +3327,8 @@ namespace OsEngine.Charts.CandleChart
 
             RePaintRightLebels();
         }
-        // Column indicator
-        // Индикатор столбец
+
+        // Column indicator  Индикатор столбец
 
         /// <summary>
         /// draw as columns
@@ -3601,8 +3600,8 @@ namespace OsEngine.Charts.CandleChart
 
             return myArea;
         }
-        // Patterns
-        // Паттерны
+
+        // Patterns  Паттерны
 
         public bool IsPatternChart;
 
@@ -3706,9 +3705,8 @@ namespace OsEngine.Charts.CandleChart
                 paintSeries.Points[i].BorderColor = pointColor;
             }
         }
-        // Crosshair disappearing control on chart
-        // управление исчезанием перекрестия на графике
 
+        // Crosshair disappearing control on chart управление исчезанием перекрестия на графике
 
         private void _chart_MouseLeave(object sender, EventArgs e)
         {
@@ -3718,8 +3716,8 @@ namespace OsEngine.Charts.CandleChart
                 _chart.ChartAreas[i].CursorY.Position = 0;
             }
         }
-        // chart transition
-        // переход по чарту
+
+        // chart transition переход по чарту
 
         /// <summary>
         /// move chart to a specified time
@@ -3799,8 +3797,8 @@ namespace OsEngine.Charts.CandleChart
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-        // working with cursor and highlight candles on chart
-        // работа с курсором и выделенем свечек на чарте
+
+        // working with cursor and highlight candles on chart работа с курсором и выделенем свечек на чарте
 
         void _chart_Click(object sender, EventArgs e)
         {
@@ -4031,8 +4029,8 @@ namespace OsEngine.Charts.CandleChart
             RePaintPrimeLines("Prime");
             CheckOverlap("Prime");
         }
-        // Drawing horizontal lines on a chart
-        // прорисовка горизонтальных линий на графике
+
+        // Drawing horizontal lines on a chart прорисовка горизонтальных линий на графике
 
         /// <summary>
         /// to draw an inscription on Y2 axis
@@ -4437,8 +4435,8 @@ namespace OsEngine.Charts.CandleChart
         {
             RePaintRightLebels();
         }
-        // management of collapsing areas
-        // управление схлопывание областей
+
+        // management of collapsing areas управление схлопывание областей
 
         /// <summary>
         /// hide all except main
@@ -4534,8 +4532,8 @@ namespace OsEngine.Charts.CandleChart
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-        // area height management
-        // управление высотой областей
+
+        // area height management управление высотой областей
 
         private List<ChartAreaPosition> _areaPositions;
 
@@ -4895,8 +4893,8 @@ namespace OsEngine.Charts.CandleChart
             position.DownPoint = position.UpPoint + _host.Child.Height * (area.Position.Height / 100);
 
         }
-        // axis scaling
-        // изменение масштабов осей
+
+        // axis scaling изменение масштабов осей
 
         private List<ChartAreaSizes> _areaSizes;
 
