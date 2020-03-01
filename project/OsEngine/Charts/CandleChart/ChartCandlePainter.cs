@@ -1263,7 +1263,10 @@ namespace OsEngine.Charts.CandleChart
                     candleSeries.Points[index].BackSecondaryColor = _colorKeeper.ColorDownBodyCandle;
                 }
 
-               //candleSeries.Points[index].ToolTip = history[index].ToolTip;
+                if(_startProgram == StartProgram.IsOsTrader)
+                {
+                    candleSeries.Points[index].ToolTip = history[index].ToolTip;
+                }
 
                 ChartArea candleArea = FindAreaByNameSafe("Prime");
                 if (candleArea != null && candleArea.AxisX.ScrollBar.IsVisible &&
@@ -1314,12 +1317,13 @@ namespace OsEngine.Charts.CandleChart
                 candleSeries.Points[candleSeries.Points.Count - 1].BackSecondaryColor = _colorKeeper.ColorDownBodyCandle;
             }
 
-           
-            //candleSeries.Points[candleSeries.Points.Count - 1].ToolTip = history[candleSeries.Points.Count - 1].ToolTip;
-
+            if (_startProgram == StartProgram.IsOsTrader)
+            {
+                candleSeries.Points[candleSeries.Points.Count - 1].ToolTip = history[candleSeries.Points.Count - 1].ToolTip;
+            }
             // candleSeries.Points[candleSeries.Points.Count - 1].AxisLabel = history[lastIndex].TimeStart.ToString(_culture);
 
-            ChartArea candleArea = FindAreaByNameSafe("Prime");
+                ChartArea candleArea = FindAreaByNameSafe("Prime");
             if (candleArea != null && candleArea.AxisX.ScrollBar.IsVisible &&
                 candleArea.AxisX.ScaleView.Position + candleArea.AxisX.ScaleView.Size + 10 >= candleSeries.Points.Count)
             // if you've already selected a range
@@ -1372,10 +1376,13 @@ namespace OsEngine.Charts.CandleChart
                     candleSeries.Points[candleSeries.Points.Count - 1].BackSecondaryColor = _colorKeeper.ColorDownBodyCandle;
                 }
 
-                //candleSeries.Points[candleSeries.Points.Count - 1].ToolTip = history[candleSeries.Points.Count - 1].ToolTip;
 
-                // candleSeries.Points[candleSeries.Points.Count - 1].AxisLabel = history[i].TimeStart.ToString(new CultureInfo("ru-RU"));
-            }
+                if (_startProgram == StartProgram.IsOsTrader)
+                {
+                    candleSeries.Points[candleSeries.Points.Count - 1].ToolTip = history[candleSeries.Points.Count - 1].ToolTip;
+                }
+                    // candleSeries.Points[candleSeries.Points.Count - 1].AxisLabel = history[i].TimeStart.ToString(new CultureInfo("ru-RU"));
+                }
 
             ChartArea candleArea = FindAreaByNameSafe("Prime");
             if (candleArea != null && candleArea.AxisX.ScrollBar.IsVisible)
@@ -1701,7 +1708,10 @@ namespace OsEngine.Charts.CandleChart
 
                         buySellSeries.Points.AddXY(xIndexPoint, trades[indTrades].Price);
 
-                       // buySellSeries.Points[buySellSeries.Points.Count - 1].ToolTip = trades[indTrades].ToolTip;
+                        if(_startProgram == StartProgram.IsOsTrader)
+                        {
+                            buySellSeries.Points[buySellSeries.Points.Count - 1].ToolTip = trades[indTrades].ToolTip;
+                        }
 
                         if (_colorKeeper.PointType == PointType.TriAngle)
                         {

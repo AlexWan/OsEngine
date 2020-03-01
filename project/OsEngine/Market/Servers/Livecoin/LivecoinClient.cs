@@ -2,6 +2,7 @@
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Livecoin.LivecoinEntity;
+using protobuf.ws;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using OsEngine.Market.Servers.Livecoin.LivecoinEntity.protobuf;
+using System.Threading.Tasks;
 using WebSocketSharp;
 
 
@@ -276,16 +277,15 @@ namespace OsEngine.Market.Servers.Livecoin
         /// queue of new messages from the exchange server
         /// очередь новых сообщений, пришедших с сервера биржи
         /// </summary>
-        private ConcurrentQueue<WsResponse> _newMessage = new ConcurrentQueue<WsResponse>();
-
+        private ConcurrentQueue<protobuf.ws.WsResponse> _newMessage = new ConcurrentQueue<protobuf.ws.WsResponse>();
 
         private void WsClient_Login(String key, String secret, int ttl)
         {
             byte[] msg;
 
-            LoginRequest message = new LoginRequest
+            protobuf.ws.LoginRequest message = new protobuf.ws.LoginRequest
             {
-                ExpireControl = new RequestExpired
+                ExpireControl = new protobuf.ws.RequestExpired
                 {
                     Now = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds,
                     Ttl = ttl
@@ -299,14 +299,14 @@ namespace OsEngine.Market.Servers.Livecoin
                 msg = msgStream.ToArray();
             }
             byte[] sign = ComputeHash(secret, msg);
-            var meta = new WsRequestMetaData
+            var meta = new protobuf.ws.WsRequestMetaData
             {
-                RequestType = WsRequestMetaData.WsRequestMsgType.Login,
+                RequestType = protobuf.ws.WsRequestMetaData.WsRequestMsgType.Login,
                 Token = "Login request",
                 Sign = sign
             };
 
-            WsRequest request = new WsRequest
+            protobuf.ws.WsRequest request = new protobuf.ws.WsRequest
             {
                 Meta = meta,
                 Msg = msg
@@ -317,50 +317,48 @@ namespace OsEngine.Market.Servers.Livecoin
 
         public void Subscribe(string security)
         {
-            security = security.Replace("_", "/");
-
-            var orderBookMessage = new SubscribeOrderBookChannelRequest
+            var orderBookMessage = new protobuf.ws.SubscribeOrderBookChannelRequest
             {
                 CurrencyPair = security,
             };
 
             string token = "OrderBook_" + security;
 
-            WsClient_Subscribe(token, WsRequestMetaData.WsRequestMsgType.SubscribeOrderBook, orderBookMessage);
+            WsClient_Subscribe(token, protobuf.ws.WsRequestMetaData.WsRequestMsgType.SubscribeOrderBook, orderBookMessage);
 
 
-            var tradesMessage = new SubscribeTradeChannelRequest
+            var tradesMessage = new protobuf.ws.SubscribeTradeChannelRequest
             {
                 CurrencyPair = security,
             };
 
             token = "Trades_" + security;
 
-            WsClient_Subscribe(token, WsRequestMetaData.WsRequestMsgType.SubscribeTrade, tradesMessage);
+            WsClient_Subscribe(token, protobuf.ws.WsRequestMetaData.WsRequestMsgType.SubscribeTrade, tradesMessage);
 
             SubscribePrivateChannel(_secKey, _portfolioName);
         }
 
         private void SubscribePrivateChannel(string privateKey, string portfolio)
         {
-            var subscribeOrdersEvent = new PrivateSubscribeOrderRawChannelRequest
+            var subscribeOrdersEvent = new protobuf.ws.PrivateSubscribeOrderRawChannelRequest
             {
-                ExpireControl = new RequestExpired
+                ExpireControl = new protobuf.ws.RequestExpired
                 {
                     Now = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds,
                     Ttl = ttl
                 },
-                subscribe_type = PrivateSubscribeOrderRawChannelRequest.SubscribeType.OnlyEvents,
+                subscribe_type = protobuf.ws.PrivateSubscribeOrderRawChannelRequest.SubscribeType.OnlyEvents,
             };
 
             string token = "PrivateSubscribeOrderRawChannelRequest_" + portfolio;
 
-            SendAuthMessage(privateKey, token, WsRequestMetaData.WsRequestMsgType.PrivateSubscribeOrderRaw, subscribeOrdersEvent);
+            SendAuthMessage(privateKey, token, protobuf.ws.WsRequestMetaData.WsRequestMsgType.PrivateSubscribeOrderRaw, subscribeOrdersEvent);
 
 
-            var subscribeTradesEvent = new PrivateSubscribeTradeChannelRequest
+            var subscribeTradesEvent = new protobuf.ws.PrivateSubscribeTradeChannelRequest
             {
-                ExpireControl = new RequestExpired
+                ExpireControl = new protobuf.ws.RequestExpired
                 {
                     Now = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds,
                     Ttl = ttl
@@ -369,11 +367,11 @@ namespace OsEngine.Market.Servers.Livecoin
 
             token = "PrivateSubscribeTradeChannelRequest_" + portfolio;
 
-            SendAuthMessage(privateKey, token, WsRequestMetaData.WsRequestMsgType.PrivateSubscribeTrade, subscribeTradesEvent);
+            SendAuthMessage(privateKey, token, protobuf.ws.WsRequestMetaData.WsRequestMsgType.PrivateSubscribeTrade, subscribeTradesEvent);
 
-            var balanceMessage = new PrivateSubscribeBalanceChangeChannelRequest()
+            var balanceMessage = new protobuf.ws.PrivateSubscribeBalanceChangeChannelRequest()
             {
-                ExpireControl = new RequestExpired
+                ExpireControl = new protobuf.ws.RequestExpired
                 {
                     Now = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds,
                     Ttl = ttl
@@ -382,18 +380,18 @@ namespace OsEngine.Market.Servers.Livecoin
 
             token = "First";
 
-            SendAuthMessage(privateKey, token, WsRequestMetaData.WsRequestMsgType.SubscribeBalanceChange, balanceMessage);
+            SendAuthMessage(privateKey, token, protobuf.ws.WsRequestMetaData.WsRequestMsgType.SubscribeBalanceChange, balanceMessage);
         }
 
         public void SendOrder(OsEngine.Entity.Order order)
         {
-            var newOrder = new PutLimitOrderRequest
+            var newOrder = new protobuf.ws.PutLimitOrderRequest
             {
-                CurrencyPair = order.SecurityNameCode.Replace("_","/"),
+                CurrencyPair = order.SecurityNameCode.Replace('_','/'),
                 Amount = order.Volume.ToString(),
-                order_type = order.Side == Side.Sell ? PutLimitOrderRequest.OrderType.Ask : PutLimitOrderRequest.OrderType.Bid,
+                order_type = order.Side == Side.Sell ? protobuf.ws.PutLimitOrderRequest.OrderType.Ask : protobuf.ws.PutLimitOrderRequest.OrderType.Bid,
                 Price = order.Price.ToString(),
-                ExpireControl = new RequestExpired
+                ExpireControl = new protobuf.ws.RequestExpired
                 {
                     Now = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds,
                     Ttl = ttl
@@ -402,14 +400,14 @@ namespace OsEngine.Market.Servers.Livecoin
 
             string token = "NewOrder" + "_" + order.NumberUser.ToString();
 
-            SendAuthMessage(_secKey, token, WsRequestMetaData.WsRequestMsgType.PutLimitOrder, newOrder);
+            SendAuthMessage(_secKey, token, protobuf.ws.WsRequestMetaData.WsRequestMsgType.PutLimitOrder, newOrder);
         }
 
         public void CancelAllOrders(List<string> secName)
         {
-            var cancelOrders = new CancelOrdersRequest
+            var cancelOrders = new protobuf.ws.CancelOrdersRequest
             {
-                ExpireControl = new RequestExpired
+                ExpireControl = new protobuf.ws.RequestExpired
                 {
                     Now = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds,
                     Ttl = 30000
@@ -418,32 +416,36 @@ namespace OsEngine.Market.Servers.Livecoin
 
             string token = "CancelAllOrders";
 
-            SendAuthMessage(_secKey, token, WsRequestMetaData.WsRequestMsgType.CancelOrders, cancelOrders);
+            SendAuthMessage(_secKey, token, protobuf.ws.WsRequestMetaData.WsRequestMsgType.CancelOrders, cancelOrders);
         }
 
         private int ttl = 30000;
 
         public void CancelLimitOrder(OsEngine.Entity.Order order)
         {
-            var cancelOrders = new CancelLimitOrderRequest
+            if (string.IsNullOrEmpty(order.NumberMarket))
             {
-                ExpireControl = new RequestExpired
+                return;
+            }
+            var cancelOrders = new protobuf.ws.CancelLimitOrderRequest
+            {
+                ExpireControl = new protobuf.ws.RequestExpired
                 {
                     Now = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds,
                     Ttl = ttl
                 },
-                CurrencyPair = order.SecurityNameCode.Replace("_", "/"),
+                CurrencyPair = order.SecurityNameCode.Replace('_', '/'),
                 Id = Convert.ToInt64(order.NumberMarket)
             };
 
             string token = "CancelOrder_" + order.NumberUser;
 
-            SendAuthMessage(_secKey, token, WsRequestMetaData.WsRequestMsgType.CancelLimitOrder, cancelOrders);
+            SendAuthMessage(_secKey, token, protobuf.ws.WsRequestMetaData.WsRequestMsgType.CancelLimitOrder, cancelOrders);
         }
 
-        private void SendAuthMessage<T>(string secret, string token, WsRequestMetaData.WsRequestMsgType requestType, T message)
+        private void SendAuthMessage<T>(string secret, string token, protobuf.ws.WsRequestMetaData.WsRequestMsgType requestType, T message)
         {
-            WsRequestMetaData meta;
+            protobuf.ws.WsRequestMetaData meta;
 
             byte[] msg;
 
@@ -455,14 +457,14 @@ namespace OsEngine.Market.Servers.Livecoin
 
             byte[] sign = ComputeHash(secret, msg);
 
-            meta = new WsRequestMetaData
+            meta = new protobuf.ws.WsRequestMetaData
             {
                 RequestType = requestType,
                 Token = token,
                 Sign = sign
             };
 
-            WsRequest request = new WsRequest
+            protobuf.ws.WsRequest request = new protobuf.ws.WsRequest
             {
                 Meta = meta,
                 Msg = msg
@@ -471,9 +473,9 @@ namespace OsEngine.Market.Servers.Livecoin
             SendRequest(request);
         }
 
-        private void WsClient_Subscribe<T>(string token, WsRequestMetaData.WsRequestMsgType requestType, T message)
+        private void WsClient_Subscribe<T>(string token, protobuf.ws.WsRequestMetaData.WsRequestMsgType requestType, T message)
         {
-            WsRequestMetaData meta;
+            protobuf.ws.WsRequestMetaData meta;
 
             byte[] msg;
 
@@ -483,13 +485,13 @@ namespace OsEngine.Market.Servers.Livecoin
                 msg = msgStream.ToArray();
             }
 
-            meta = new WsRequestMetaData
+            meta = new protobuf.ws.WsRequestMetaData
             {
                 RequestType = requestType,
                 Token = token
             };
 
-            WsRequest request = new WsRequest
+            protobuf.ws.WsRequest request = new protobuf.ws.WsRequest
             {
                 Meta = meta,
                 Msg = msg
@@ -498,7 +500,8 @@ namespace OsEngine.Market.Servers.Livecoin
             SendRequest(request);
         }
 
-        private void SendRequest(WsRequest request)
+
+        private void SendRequest(protobuf.ws.WsRequest request)
         {
             using (var requestStream = new MemoryStream())
             {
@@ -525,7 +528,7 @@ namespace OsEngine.Market.Servers.Livecoin
             // parsing response
             using (MemoryStream responseStream = new MemoryStream(receivedData))
             {
-                WsResponse response = ProtoBuf.Serializer.Deserialize<WsResponse>(responseStream);
+                protobuf.ws.WsResponse response = ProtoBuf.Serializer.Deserialize<protobuf.ws.WsResponse>(responseStream);
 
                 _newMessage.Enqueue(response);
             }
@@ -541,41 +544,50 @@ namespace OsEngine.Market.Servers.Livecoin
         {
             while (true)
             {
-                try
+
+                if (_isDisposed)
                 {
-                    if (_isDisposed)
-                    {
-                        return;
-                    }
+                    return;
+                }
 
-                    if (!_newMessage.IsEmpty)
-                    {
-                        WsResponse response;
+                if (!_newMessage.IsEmpty)
+                {
+                    protobuf.ws.WsResponse response;
 
-                        if (_newMessage.TryDequeue(out response))
+                    if (_newMessage.TryDequeue(out response))
+                    {
+                        try
                         {
-                            if (response.Meta.ResponseType == WsResponseMetaData.WsResponseMsgType.TradeChannelSubscribed)
+
+                            if (response.Meta.ResponseType == protobuf.ws.WsResponseMetaData.WsResponseMsgType.TradeChannelSubscribed)
                             {
                                 using (MemoryStream messageStream = new MemoryStream(response.Msg))
                                 {
-                                    TradeChannelSubscribedResponse message = ProtoBuf.Serializer.Deserialize<TradeChannelSubscribedResponse>(messageStream);
+                                    protobuf.ws.TradeChannelSubscribedResponse message = ProtoBuf.Serializer.Deserialize<protobuf.ws.TradeChannelSubscribedResponse>(messageStream);
                                     SendLogMessage("Успешная подписка на все сделки", LogMessageType.System);
                                 }
                             }
-                            else if (response.Meta.ResponseType == WsResponseMetaData.WsResponseMsgType.TradeNotify)
+                            else if (response.Meta.ResponseType == protobuf.ws.WsResponseMetaData.WsResponseMsgType.TradeNotify)
                             {
                                 using (MemoryStream messageStream = new MemoryStream(response.Msg))
                                 {
-                                    TradeNotification message = ProtoBuf.Serializer.Deserialize<TradeNotification>(messageStream);
-
-                                    NewTradesEvent?.Invoke(message);
+                                    try
+                                    {
+                                        protobuf.ws.TradeNotification message = ProtoBuf.Serializer.Deserialize<protobuf.ws.TradeNotification>(messageStream);
+                                        message.CurrencyPair = message.CurrencyPair.Replace('/', '_');
+                                        NewTradesEvent?.Invoke(message);
+                                    }
+                                    catch
+                                    {
+                                        // ignore
+                                    }
                                 }
                             }
-                            else if (response.Meta.ResponseType == WsResponseMetaData.WsResponseMsgType.Error)
+                            else if (response.Meta.ResponseType == protobuf.ws.WsResponseMetaData.WsResponseMsgType.Error)
                             {
                                 using (MemoryStream messageStream = new MemoryStream(response.Msg))
                                 {
-                                    ErrorResponse message = ProtoBuf.Serializer.Deserialize<ErrorResponse>(messageStream);
+                                    protobuf.ws.ErrorResponse message = ProtoBuf.Serializer.Deserialize<protobuf.ws.ErrorResponse>(messageStream);
 
                                     var token = response.Meta.Token;
 
@@ -599,14 +611,14 @@ namespace OsEngine.Market.Servers.Livecoin
                                     SendLogMessage("WsClient error : " + message.Message, LogMessageType.Error);
                                 }
                             }
-                            else if (response.Meta.ResponseType == WsResponseMetaData.WsResponseMsgType.ChannelUnsubscribed)
+                            else if (response.Meta.ResponseType == protobuf.ws.WsResponseMetaData.WsResponseMsgType.ChannelUnsubscribed)
                             {
                                 using (MemoryStream messageStream = new MemoryStream(response.Msg))
                                 {
-                                    ChannelUnsubscribedResponse message = ProtoBuf.Serializer.Deserialize<ChannelUnsubscribedResponse>(messageStream);
+                                    protobuf.ws.ChannelUnsubscribedResponse message = ProtoBuf.Serializer.Deserialize<protobuf.ws.ChannelUnsubscribedResponse>(messageStream);
                                 }
                             }
-                            else if (response.Meta.ResponseType == WsResponseMetaData.WsResponseMsgType.LoginResponse)
+                            else if (response.Meta.ResponseType == protobuf.ws.WsResponseMetaData.WsResponseMsgType.LoginResponse)
                             {
                                 IsConnected = true;
 
@@ -617,18 +629,18 @@ namespace OsEngine.Market.Servers.Livecoin
 
                                 // SendLogMessage("Соединение через вебсокет успешно установлено", LogMessageType.System);
                             }
-                            else if (response.Meta.ResponseType == WsResponseMetaData.WsResponseMsgType.BalanceChangeChannelSubscribed)
+                            else if (response.Meta.ResponseType == protobuf.ws.WsResponseMetaData.WsResponseMsgType.BalanceChangeChannelSubscribed)
                             {
                                 using (MemoryStream messageStream = new MemoryStream(response.Msg))
                                 {
-                                    PrivateSubscribeBalanceChangeChannelRequest message = ProtoBuf.Serializer.Deserialize<PrivateSubscribeBalanceChangeChannelRequest>(messageStream);
+                                    protobuf.ws.PrivateSubscribeBalanceChangeChannelRequest message = ProtoBuf.Serializer.Deserialize<protobuf.ws.PrivateSubscribeBalanceChangeChannelRequest>(messageStream);
                                 }
                             }
-                            else if (response.Meta.ResponseType == WsResponseMetaData.WsResponseMsgType.BalanceChangeNotify)
+                            else if (response.Meta.ResponseType == protobuf.ws.WsResponseMetaData.WsResponseMsgType.BalanceChangeNotify)
                             {
                                 using (MemoryStream messageStream = new MemoryStream(response.Msg))
                                 {
-                                    PrivateChangeBalanceNotification message = ProtoBuf.Serializer.Deserialize<PrivateChangeBalanceNotification>(messageStream);
+                                    protobuf.ws.PrivateChangeBalanceNotification message = ProtoBuf.Serializer.Deserialize<protobuf.ws.PrivateChangeBalanceNotification>(messageStream);
 
                                     if (UpdatePortfolio != null)
                                     {
@@ -636,11 +648,13 @@ namespace OsEngine.Market.Servers.Livecoin
                                     }
                                 }
                             }
-                            else if (response.Meta.ResponseType == WsResponseMetaData.WsResponseMsgType.OrderBookNotify)
+                            else if (response.Meta.ResponseType == protobuf.ws.WsResponseMetaData.WsResponseMsgType.OrderBookNotify)
                             {
                                 using (MemoryStream messageStream = new MemoryStream(response.Msg))
                                 {
-                                    OrderBookNotification message = ProtoBuf.Serializer.Deserialize<OrderBookNotification>(messageStream);
+                                    protobuf.ws.OrderBookNotification message = ProtoBuf.Serializer.Deserialize<protobuf.ws.OrderBookNotification>(messageStream);
+
+                                    message.CurrencyPair = message.CurrencyPair.Replace('/', '_');
 
                                     if (UpdateMarketDepth != null)
                                     {
@@ -648,43 +662,45 @@ namespace OsEngine.Market.Servers.Livecoin
                                     }
                                 }
                             }
-                            else if (response.Meta.ResponseType == WsResponseMetaData.WsResponseMsgType.OrderBookChannelSubscribed)
+                            else if (response.Meta.ResponseType == protobuf.ws.WsResponseMetaData.WsResponseMsgType.OrderBookChannelSubscribed)
                             {
                                 using (MemoryStream messageStream = new MemoryStream(response.Msg))
                                 {
-                                    OrderBookChannelSubscribedResponse message = ProtoBuf.Serializer.Deserialize<OrderBookChannelSubscribedResponse>(messageStream);
+                                    protobuf.ws.OrderBookChannelSubscribedResponse message = ProtoBuf.Serializer.Deserialize<protobuf.ws.OrderBookChannelSubscribedResponse>(messageStream);
 
                                     // SendLogMessage("Успешная подписка на стакан котировок", LogMessageType.System);
-
+                                    message.CurrencyPair = message.CurrencyPair.Replace('/', '_');
                                     if (NewMarketDepth != null)
                                     {
                                         NewMarketDepth(message);
                                     }
                                 }
                             }
-                            else if (response.Meta.ResponseType == WsResponseMetaData.WsResponseMsgType.PrivateOrderRawChannelSubscribed)
+                            else if (response.Meta.ResponseType == protobuf.ws.WsResponseMetaData.WsResponseMsgType.PrivateOrderRawChannelSubscribed)
                             {
+
                                 using (MemoryStream messageStream = new MemoryStream(response.Msg))
                                 {
                                     //SendLogMessage("Успешная подписка на мои ордера", LogMessageType.System);
                                 }
                             }
-                            else if (response.Meta.ResponseType == WsResponseMetaData.WsResponseMsgType.PrivateOrderRawNotify)
+                            else if (response.Meta.ResponseType == protobuf.ws.WsResponseMetaData.WsResponseMsgType.PrivateOrderRawNotify)
                             {
                                 using (MemoryStream messageStream = new MemoryStream(response.Msg))
                                 {
-                                    PrivateOrderRawNotification message = ProtoBuf.Serializer.Deserialize<PrivateOrderRawNotification>(messageStream);
+                                    protobuf.ws.PrivateOrderRawNotification message = ProtoBuf.Serializer.Deserialize<protobuf.ws.PrivateOrderRawNotification>(messageStream);
 
                                     foreach (var ev in message.Datas)
                                     {
                                         if (!_myOrders.ContainsValue(ev.Id))
                                         {
+                                            ev.CurrencyPair = ev.CurrencyPair.Replace('/', '_');
                                             _orderEvents.Add(ev);
                                         }
                                         else
                                         {
                                             var needNumberUser = _myOrders.First(o => o.Value == ev.Id);
-
+                                            ev.CurrencyPair = ev.CurrencyPair.Replace('/', '_');
                                             MyOrderEvent?.Invoke(needNumberUser.Key, GetPortfolioName(), ev);
                                         }
                                     }
@@ -692,23 +708,25 @@ namespace OsEngine.Market.Servers.Livecoin
                                     //SendLogMessage("Пришла информацияпо ордеру", LogMessageType.System);
                                 }
                             }
-                            else if (response.Meta.ResponseType == WsResponseMetaData.WsResponseMsgType.PrivateTradeChannelSubscribed)
+                            else if (response.Meta.ResponseType == protobuf.ws.WsResponseMetaData.WsResponseMsgType.PrivateTradeChannelSubscribed)
                             {
                                 using (MemoryStream messageStream = new MemoryStream(response.Msg))
                                 {
                                     //SendLogMessage("Успешная подписка на мои сделки", LogMessageType.System);
                                 }
                             }
-                            else if (response.Meta.ResponseType == WsResponseMetaData.WsResponseMsgType.PrivateTradeNotify)
+                            else if (response.Meta.ResponseType == protobuf.ws.WsResponseMetaData.WsResponseMsgType.PrivateTradeNotify)
                             {
                                 using (MemoryStream messageStream = new MemoryStream(response.Msg))
                                 {
-                                    PrivateTradeNotification message = ProtoBuf.Serializer.Deserialize<PrivateTradeNotification>(messageStream);
+                                    protobuf.ws.PrivateTradeNotification message = ProtoBuf.Serializer.Deserialize<protobuf.ws.PrivateTradeNotification>(messageStream);
 
                                     //SendLogMessage("Пришла моя сделка", LogMessageType.System);
 
                                     foreach (var t in message.Datas)
                                     {
+                                        t.CurrencyPair = t.CurrencyPair.Replace('/', '_');
+
                                         if (!_myOrders.ContainsValue(t.OrderBuyId))
                                         {
                                             _queueMyTradeEvents.Add(t);
@@ -731,11 +749,11 @@ namespace OsEngine.Market.Servers.Livecoin
 
                                 }
                             }//PUT_LIMIT_ORDER_RESPONSE
-                            else if (response.Meta.ResponseType == WsResponseMetaData.WsResponseMsgType.PutLimitOrderResponse)
+                            else if (response.Meta.ResponseType == protobuf.ws.WsResponseMetaData.WsResponseMsgType.PutLimitOrderResponse)
                             {
                                 using (MemoryStream messageStream = new MemoryStream(response.Msg))
                                 {
-                                    PutLimitOrderResponse message = ProtoBuf.Serializer.Deserialize<PutLimitOrderResponse>(messageStream);
+                                    protobuf.ws.PutLimitOrderResponse message = ProtoBuf.Serializer.Deserialize<protobuf.ws.PutLimitOrderResponse>(messageStream);
 
                                     var orderData = response.Meta.Token.Split('_');
 
@@ -747,16 +765,16 @@ namespace OsEngine.Market.Servers.Livecoin
                                 }
                             }
                         }
-                    }
-                    else
-                    {
-                        Thread.Sleep(1);
+                        catch (Exception exception)
+                        {
+                            SendLogMessage(exception.Message, LogMessageType.Error);
+                            SendLogMessage("Message type " + response.Meta.ResponseType, LogMessageType.Error);
+                        }
                     }
                 }
-
-                catch (Exception exception)
+                else
                 {
-                    SendLogMessage(exception.Message, LogMessageType.Error);
+                    Thread.Sleep(1);
                 }
             }
         }
@@ -869,19 +887,19 @@ namespace OsEngine.Market.Servers.Livecoin
         /// new depth
         /// новый стакан
         /// </summary>
-        public event Action<OrderBookChannelSubscribedResponse> NewMarketDepth;
+        public event Action<protobuf.ws.OrderBookChannelSubscribedResponse> NewMarketDepth;
 
         /// <summary>
         /// depth updated
         /// обновился стакан
         /// </summary>
-        public event Action<OrderBookNotification> UpdateMarketDepth;
+        public event Action<protobuf.ws.OrderBookNotification> UpdateMarketDepth;
 
         /// <summary>
         /// ticks updated
         /// обновились тики
         /// </summary>
-        public event Action<TradeNotification> NewTradesEvent;
+        public event Action<protobuf.ws.TradeNotification> NewTradesEvent;
 
         /// <summary>
         /// API connection established

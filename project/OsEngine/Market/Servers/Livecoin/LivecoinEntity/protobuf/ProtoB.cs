@@ -1,4 +1,10 @@
-﻿namespace OsEngine.Market.Servers.Livecoin.LivecoinEntity.protobuf
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace protobuf.ws
 {
 
     [global::ProtoBuf.ProtoContract()]

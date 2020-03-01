@@ -82,8 +82,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\OsEngineTepm\7 OANDA\OandaV20-master\OkonkwoOandaV20\OkonkwoOandaV20\bin\Debug\OkonkwoOandaV20.dll</HintPath>
     </Reference>
-    <Reference Include="protobuf-net">
+    <Reference Include="protobuf-net, Version=2.4.0.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
       <HintPath>..\..\..\Роботы на заказ\62 Ликвидность BShort\devAzure\OsEngine\bin\Debug\protobuf-net.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
     <Reference Include="PusherClient">
       <HintPath>..\..\..\OsEngineTepm\12BitStamp\pusher-websocket-dotnet-master\pusher-websocket-dotnet-master\PusherClient\bin\Debug\PusherClient.dll</HintPath>

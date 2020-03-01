@@ -3,13 +3,13 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using OsEngine.Market.Servers.Livecoin.LivecoinEntity;
+using protobuf.ws;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using OsEngine.Market.Servers.Livecoin.LivecoinEntity.protobuf;
 using Order = OsEngine.Entity.Order;
 
 namespace OsEngine.Market.Servers.Livecoin
@@ -167,7 +167,7 @@ namespace OsEngine.Market.Servers.Livecoin
 
         public void Subscrible(Security security)
         {
-            _client.Subscribe(security.Name);
+            _client.Subscribe(security.Name.Replace('_','/'));
         }
 
         //parsing incoming data
@@ -199,10 +199,8 @@ namespace OsEngine.Market.Servers.Livecoin
 
             foreach (var sec in securitiesInfo.restrictions)
             {
-                sec.currencyPair = sec.currencyPair.Replace("/", "_");
-
                 Security security = new Security();
-                security.Name = sec.currencyPair;
+                security.Name = sec.currencyPair.Replace('/','_');
                 security.NameFull = sec.currencyPair;
                 security.NameClass = GetCurrency(sec.currencyPair);
                 security.NameId = sec.currencyPair + "_" + security.NameClass;
@@ -223,7 +221,7 @@ namespace OsEngine.Market.Servers.Livecoin
 
         private string GetCurrency(string securityName)
         {
-            return securityName.Split('_')[1];
+            return securityName.Split('/')[1];
         }
 
         private decimal CalculatePriceStep(int decimals)
@@ -340,8 +338,6 @@ namespace OsEngine.Market.Servers.Livecoin
 
         private void Client_UpdateMarketDepth(OrderBookNotification orderBook)
         {
-            orderBook.CurrencyPair = orderBook.CurrencyPair.Replace("/", "_");
-
             var needDepth = _depths.Find(d => d.SecurityNameCode == orderBook.CurrencyPair);
 
             if (needDepth == null)
@@ -404,10 +400,8 @@ namespace OsEngine.Market.Servers.Livecoin
                         _needSortBids = true;
                     }
                 }
-              
+                needDepth.Time = DateTime.UtcNow;
             }
-
-            needDepth.Time = DateTime.UtcNow;
 
             if (_needSortAsks)
             {
@@ -469,16 +463,16 @@ namespace OsEngine.Market.Servers.Livecoin
             }
 
             var newDepth = new MarketDepth();
-
-            orderBook.CurrencyPair = orderBook.CurrencyPair.Replace("/", "_");
-
             newDepth.SecurityNameCode = orderBook.CurrencyPair;
 
             List<MarketDepthLevel> ascs = new List<MarketDepthLevel>();
             List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
 
+            long biggestTimeStamp = 0;
+
             foreach (var level in orderBook.Datas)
             {
+
                 if (level.order_type == OrderBookEvent.OrderType.Ask)
                 {
                     ascs.Add(new MarketDepthLevel
@@ -495,11 +489,21 @@ namespace OsEngine.Market.Servers.Livecoin
                         Bid = ParseDecimal(level.Quantity),
                     });
                 }
+
+                if (level.Timestamp > biggestTimeStamp)
+                {
+                    biggestTimeStamp = level.Timestamp;
+                }
             }
 
             newDepth.Asks = ascs;
             newDepth.Bids = bids;
-            newDepth.Time = DateTime.Now;
+
+            if (biggestTimeStamp != 0)
+            {
+                newDepth.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(biggestTimeStamp));
+                ServerTime = newDepth.Time;
+            }
 
             _depths.Add(newDepth);
 
@@ -507,6 +511,8 @@ namespace OsEngine.Market.Servers.Livecoin
             {
                 MarketDepthEvent(newDepth.GetCopy());
             }
+
+
         }
 
         private void Client_NewTradesEvent(TradeNotification newTrade)
@@ -514,9 +520,6 @@ namespace OsEngine.Market.Servers.Livecoin
             foreach (var t in newTrade.Datas)
             {
                 OsEngine.Entity.Trade trade = new OsEngine.Entity.Trade();
-
-                newTrade.CurrencyPair = newTrade.CurrencyPair.Replace("/", "_");
-
                 trade.SecurityNameCode = newTrade.CurrencyPair;
 
                 trade.Id = t.Id.ToString();
@@ -630,6 +633,8 @@ namespace OsEngine.Market.Servers.Livecoin
         {
             return Decimal.Parse(number, System.Globalization.NumberStyles.Float, System.Globalization.NumberFormatInfo.InvariantInfo);
         }
+
+
 
         // log messages
         // сообщения для лога

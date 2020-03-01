@@ -309,13 +309,13 @@ namespace OsEngine.Market
                 secondRow.Cells[0].Value = portfolio.Number;
 
                 secondRow.Cells.Add(new DataGridViewTextBoxCell());
-                secondRow.Cells[1].Value = portfolio.ValueBegin.ToString("G29");
+                secondRow.Cells[1].Value = portfolio.ValueBegin.ToString().ToDecimal();
 
                 secondRow.Cells.Add(new DataGridViewTextBoxCell());
-                secondRow.Cells[2].Value = portfolio.ValueCurrent.ToString("G29");
+                secondRow.Cells[2].Value = portfolio.ValueCurrent.ToString().ToDecimal();
 
                 secondRow.Cells.Add(new DataGridViewTextBoxCell());
-                secondRow.Cells[3].Value = portfolio.ValueBlocked.ToString("G29");
+                secondRow.Cells[3].Value = portfolio.ValueBlocked.ToString().ToDecimal();
 
                 _gridPosition.Rows.Add(secondRow);
 
@@ -353,13 +353,13 @@ namespace OsEngine.Market
                         nRow.Cells[4].Value = positionsOnBoard[i].SecurityNameCode;
 
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
-                        nRow.Cells[5].Value = positionsOnBoard[i].ValueBegin.ToString("G29");
+                        nRow.Cells[5].Value = positionsOnBoard[i].ValueBegin.ToString().ToDecimal();
 
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
-                        nRow.Cells[6].Value = positionsOnBoard[i].ValueCurrent.ToString("G29");
+                        nRow.Cells[6].Value = positionsOnBoard[i].ValueCurrent.ToString().ToDecimal();
 
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
-                        nRow.Cells[7].Value = positionsOnBoard[i].ValueBlocked.ToString("G29");
+                        nRow.Cells[7].Value = positionsOnBoard[i].ValueBlocked.ToString().ToDecimal();
 
                         _gridPosition.Rows.Add(nRow);
                     }

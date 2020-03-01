@@ -179,6 +179,13 @@ namespace OsEngine.OsOptimizer
             for (int i = numThread; i < names.Count; i += 3)
             {
                 BotPanel bot = PanelCreator.GetStrategyForName(names[i], numThread.ToString(), StartProgram.IsOsOptimizer);
+
+                if(bot == null)
+                {
+                    SendLogMessage("Bot with name " + names[i] + " is not exist.", LogMessageType.Error);
+                    continue;
+                }
+
                 if (bot.Parameters == null ||
                     bot.Parameters.Count == 0)
                 {
