@@ -288,18 +288,18 @@ namespace OsEngine.OsTrader
                 nRow.Cells[6].Value = position.State;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[7].Value = position.MaxVolume;
+                nRow.Cells[7].Value = position.MaxVolume.ToString("G29");
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[8].Value = position.OpenVolume;
+                nRow.Cells[8].Value = position.OpenVolume.ToString("G29");
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[9].Value = position.WaitVolume;
+                nRow.Cells[9].Value = position.WaitVolume.ToString("G29");
 
                 if (position.EntryPrice != 0)
                 {
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[10].Value = position.EntryPrice;
+                    nRow.Cells[10].Value = position.EntryPrice.ToString("G29");
                 }
                 else
                 {
@@ -315,7 +315,7 @@ namespace OsEngine.OsTrader
                 if (position.ClosePrice != 0)
                 {
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[11].Value = position.ClosePrice;
+                    nRow.Cells[11].Value = position.ClosePrice.ToString("G29");
                 }
                 else
                 {
@@ -324,24 +324,24 @@ namespace OsEngine.OsTrader
                         position.CloseOrders.Count != 0 &&
                         position.State != PositionStateType.ClosingFail)
                     {
-                        nRow.Cells[11].Value = position.CloseOrders[position.CloseOrders.Count - 1].Price;
+                        nRow.Cells[11].Value = position.CloseOrders[position.CloseOrders.Count - 1].Price.ToString("G29");
                     }
                 }
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[12].Value = position.ProfitPortfolioPunkt;
+                nRow.Cells[12].Value = position.ProfitPortfolioPunkt.ToString("G29");
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[13].Value = position.StopOrderRedLine;
+                nRow.Cells[13].Value = position.StopOrderRedLine.ToString("G29");
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[14].Value = position.StopOrderPrice;
+                nRow.Cells[14].Value = position.StopOrderPrice.ToString("G29");
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[15].Value = position.ProfitOrderRedLine;
+                nRow.Cells[15].Value = position.ProfitOrderRedLine.ToString("G29");
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[16].Value = position.ProfitOrderPrice;
+                nRow.Cells[16].Value = position.ProfitOrderPrice.ToString("G29");
 
                 return nRow;
             }

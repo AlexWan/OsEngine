@@ -29,7 +29,7 @@ namespace OsEngine.Market.Servers.BitMex
     {
         private ClientWebSocket _ws;
 
-        RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(300));
+        RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(500));
 
         private string _serverAdress;
 
