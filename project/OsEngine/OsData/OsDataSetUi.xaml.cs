@@ -44,7 +44,7 @@ namespace OsEngine.OsData
             if (set.SetName != "Set_")
             {
                 TextBoxFolderName.IsEnabled = false;
-                DatePickerTimeEnd.IsEnabled = false;
+                //DatePickerTimeEnd.IsEnabled = false;
                 DatePickerTimeStart.IsEnabled = false;
                
             }
@@ -314,7 +314,7 @@ namespace OsEngine.OsData
 
             if (TextBoxFolderName.IsEnabled == false)
             {
-                DatePickerTimeEnd.IsEnabled = false;
+                DatePickerTimeEnd.IsEnabled = true;
                 DatePickerTimeStart.IsEnabled = false;
             }
             else

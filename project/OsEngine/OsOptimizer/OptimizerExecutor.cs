@@ -725,8 +725,7 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         public event Action<NeadToMoveUiTo> NeadToMoveUiToEvent;
 
-// server performing optimization
-// сервера проводящие оптимизацию
+        // server performing optimization сервера проводящие оптимизацию
 
         /// <summary>
         /// server optimization
