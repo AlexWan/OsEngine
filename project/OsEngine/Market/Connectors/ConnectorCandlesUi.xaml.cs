@@ -194,32 +194,58 @@ namespace OsEngine.Market.Connectors
                 return;
             }
 
+            if (e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl ||
+                e.Key == Key.LeftAlt || e.Key == Key.RightAlt ||
+                e.Key == Key.LeftShift || e.Key == Key.RightShift ||
+                e.Key == Key.Enter)
+            {
+                return;
+            }
+
+            string curText = ComboBoxSecurities.Text;
+
             ComboBoxSecurities.Items.Clear();
 
             // upload instruments matching the search terms
             // грузим инструменты подходящие под условия поиска
 
             List<Security> needSecurities = null;
+            string findStr = "";
+            if (curText != null)
+            {
+                findStr = curText;
+            }
 
             if (e.Key == Key.Back)
             {
-                needSecurities = server.Securities;
+                if(findStr.Length != 0)
+                    findStr = findStr.Remove(findStr.Length - 1);
             }
             else
             {
-                needSecurities = server.Securities.FindAll(sec => sec.Name.StartsWith(e.Key.ToString(), StringComparison.CurrentCultureIgnoreCase));
+                findStr += e.Key;
             }
 
-            for (int i = 0; i < needSecurities.Count; i++)
+            ComboBoxSecurities.Text = findStr;
+            ComboBoxSecurities.Items.Add(findStr);
+            ComboBoxSecurities.SelectedItem = findStr;
+
+            needSecurities = server.Securities.FindAll(
+                sec => sec.Name.StartsWith(ComboBoxSecurities.Text, StringComparison.CurrentCultureIgnoreCase));
+
+
+            for (int i = 0;
+                needSecurities != null &&
+                i < needSecurities.Count;
+                i++)
             {
                 string classSec = needSecurities[i].NameClass;
                 if (ComboBoxClass.SelectedItem != null && classSec == ComboBoxClass.SelectedItem.ToString())
                 {
                     ComboBoxSecurities.Items.Add(needSecurities[i].Name);
-                    ComboBoxSecurities.SelectedItem = needSecurities[i];
+                    //ComboBoxSecurities.SelectedItem = needSecurities[i];
                 }
             }
-
         }
 
         private void TextBoxReversCandlesPunktsBackMove_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)

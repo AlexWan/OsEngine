@@ -86,7 +86,7 @@ namespace OsEngine.Market.Servers.BitStamp
             {
                 return;
             }
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3;
             // check server availability for HTTP communication with it / проверяем доступность сервера для HTTP общения с ним
             Uri uri = new Uri("https://www.bitstamp.net");
             try

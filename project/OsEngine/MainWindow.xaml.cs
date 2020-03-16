@@ -158,9 +158,15 @@ namespace OsEngine
         {
             try
             {
+
                 if (!Directory.Exists("Engine"))
                 {
                     Directory.CreateDirectory("Engine");
+                }
+
+                if (File.Exists("Engine\\checkFile.txt"))
+                {
+                    File.Delete("Engine\\checkFile.txt");
                 }
 
                 File.Create("Engine\\checkFile.txt");

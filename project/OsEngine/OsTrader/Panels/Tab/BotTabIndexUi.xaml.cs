@@ -32,7 +32,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         private void CreateTable()
         {
             _grid1 = new DataGridView();
-            _grid1.CellContentDoubleClick += Grid1CellValueChangeClick;
+            _grid1.CellDoubleClick += Grid1CellValueChangeClick;
 
             _grid1.AllowUserToOrderColumns = false;
             _grid1.AllowUserToResizeColumns = false;

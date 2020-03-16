@@ -641,5 +641,8 @@ namespace OsEngine.Language
             "Eng: Withdrew the order on the rollback of the price in the marketDepth from the order price_" +
             "Ru: Отозвали ордер по откату цены в стакане от цены ордера, номер _");
 
+        public string Label158 => OsLocalization.ConvertToLocString(
+            "Eng: Values type_" +
+            "Ru: Тип переменных _");
     }
 }

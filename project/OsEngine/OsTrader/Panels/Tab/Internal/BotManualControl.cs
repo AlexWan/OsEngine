@@ -143,11 +143,11 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 {
 
                     StopIsOn = Convert.ToBoolean(reader.ReadLine());
-                    StopDistance = Convert.ToInt32(reader.ReadLine());
-                    StopSlipage = Convert.ToInt32(reader.ReadLine());
+                    StopDistance = reader.ReadLine().ToDecimal();
+                    StopSlipage = reader.ReadLine().ToDecimal();
                     ProfitIsOn = Convert.ToBoolean(reader.ReadLine());
-                    ProfitDistance = Convert.ToInt32(reader.ReadLine());
-                    ProfitSlipage = Convert.ToInt32(reader.ReadLine());
+                    ProfitDistance = reader.ReadLine().ToDecimal();
+                    ProfitSlipage = reader.ReadLine().ToDecimal();
                     TimeSpan.TryParse(reader.ReadLine(), out SecondToOpen);
                     TimeSpan.TryParse(reader.ReadLine(), out SecondToClose);
 
@@ -157,12 +157,13 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                     SecondToCloseIsOn = Convert.ToBoolean(reader.ReadLine());
 
                     SetbackToOpenIsOn = Convert.ToBoolean(reader.ReadLine());
-                    SetbackToOpenPosition = Convert.ToInt32(reader.ReadLine());
+                    SetbackToOpenPosition = reader.ReadLine().ToDecimal();
                     SetbackToCloseIsOn = Convert.ToBoolean(reader.ReadLine());
-                    SetbackToClosePosition = Convert.ToInt32(reader.ReadLine());
+                    SetbackToClosePosition = reader.ReadLine().ToDecimal();
 
-                    DoubleExitSlipage = Convert.ToInt32(reader.ReadLine());
+                    DoubleExitSlipage = reader.ReadLine().ToDecimal();
                     Enum.TryParse(reader.ReadLine(), out TypeDoubleExitOrder);
+                    Enum.TryParse(reader.ReadLine(), out ValuesType);
 
                     reader.Close();
                 }
@@ -205,6 +206,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                     writer.WriteLine(SetbackToClosePosition);
                     writer.WriteLine(DoubleExitSlipage);
                     writer.WriteLine(TypeDoubleExitOrder);
+                    writer.WriteLine(ValuesType);
                     writer.Close();
                 }
             }
@@ -259,13 +261,13 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// distance from entry to stop /
         /// расстояние от входа до стопа
         /// </summary>
-        public int StopDistance;
+        public decimal StopDistance;
 
         /// <summary>
         /// slippage for stop /
         /// проскальзывание для стопа
         /// </summary>
-        public int StopSlipage;
+        public decimal StopSlipage;
 
         /// <summary>
         /// profit is enabled /
@@ -277,13 +279,13 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// distance from trade entry to order profit /
         /// расстояние от входа в сделку до Профит ордера
         /// </summary>
-        public int ProfitDistance;
+        public decimal ProfitDistance;
 
         /// <summary>
         /// slippage /
         /// проскальзывание
         /// </summary>
-        public int ProfitSlipage;
+        public decimal ProfitSlipage;
 
         /// <summary>
         /// open orders life time is enabled /
@@ -325,7 +327,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// slip to re-close /
         /// проскальзывание для повторного закрытия
         /// </summary>
-        public int DoubleExitSlipage;
+        public decimal DoubleExitSlipage;
 
         /// <summary>
         /// is revocation of orders for opening on price rollback included / 
@@ -337,7 +339,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// maximum rollback from order price when opening a position /
         /// максимальный откат от цены ордера при открытии позиции
         /// </summary>
-        public int SetbackToOpenPosition;
+        public decimal SetbackToOpenPosition;
 
         /// <summary>
         /// whether revocation of orders for closing on price rollback is included / 
@@ -349,7 +351,9 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// maximum rollback from order price when opening a position / 
         /// максимальный откат от цены ордера при открытии позиции
         /// </summary>
-        public int SetbackToClosePosition;
+        public decimal SetbackToClosePosition;
+
+        public ManualControlValuesType ValuesType;
 
         /// <summary>
         /// journal /
@@ -421,7 +425,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                         if (SetbackToOpenIsOn &&
                             openOrder.Side == Side.Buy)
                         {
-                            decimal maxSpread = _botTab.Securiti.PriceStep * SetbackToOpenPosition;
+                            decimal maxSpread = GetMaxSpread(openOrder);
 
                             if (Math.Abs(_botTab.PriceBestBid - openOrder.Price) > maxSpread)
                             {
@@ -434,9 +438,9 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                         if (SetbackToOpenIsOn &&
                             openOrder.Side == Side.Sell)
                         {
-                            decimal maxSpread = _botTab.Securiti.PriceStep * SetbackToOpenPosition;
+                            decimal maxSpread = GetMaxSpread(openOrder);
 
-                            if (Math.Abs(_botTab.PriceBestAsk - openOrder.Price) > maxSpread)
+                            if (Math.Abs(openOrder.Price - _botTab.PriceBestAsk) > maxSpread)
                             {
                                 SendNewLogMessage(OsLocalization.Trader.Label157 + openOrder.NumberMarket,
                                     LogMessageType.Trade);
@@ -507,6 +511,197 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
         }
 
+        public void TryReloadStopAndProfit(BotTabSimple bot, Position position)
+        {
+            if (StopIsOn)
+            {
+                if (position.Direction == Side.Buy)
+                {
+                    decimal priceRedLine = position.EntryPrice - GetStopDistance(position,bot.Securiti);
+                    decimal priceOrder = priceRedLine - GetStopSlippageDistance(position, bot.Securiti);
+
+                    bot.CloseAtStop(position, priceRedLine, priceOrder);
+                }
+
+                if (position.Direction == Side.Sell)
+                {
+                    decimal priceRedLine = position.EntryPrice + GetStopDistance(position, bot.Securiti);
+                    decimal priceOrder = priceRedLine + GetStopSlippageDistance(position, bot.Securiti);
+
+                    bot.CloseAtStop(position, priceRedLine, priceOrder);
+                }
+            }
+
+            if (ProfitIsOn)
+            {
+                if (position.Direction == Side.Buy)
+                {
+                    decimal priceRedLine = position.EntryPrice + GetProfitDistance(position, bot.Securiti);
+                    decimal priceOrder = priceRedLine - GetProfitDistanceSlippage(position, bot.Securiti);
+
+                    bot.CloseAtProfit(position, priceRedLine, priceOrder);
+                }
+
+                if (position.Direction == Side.Sell)
+                {
+                    decimal priceRedLine = position.EntryPrice - GetProfitDistance(position, bot.Securiti);
+                    decimal priceOrder = priceRedLine + GetProfitDistanceSlippage(position, bot.Securiti);
+
+                    bot.CloseAtProfit(position, priceRedLine, priceOrder);
+                }
+            }
+        }
+
+        public void TryEmergencyClosePosition(BotTabSimple bot, Position position)
+        {
+            if (TypeDoubleExitOrder == OrderPriceType.Market)
+            {
+                bot.CloseAtMarket(position, position.OpenVolume);
+            }
+            else if (TypeDoubleExitOrder == OrderPriceType.Limit)
+            {
+                decimal price;
+                if (position.Direction == Side.Buy)
+                {
+                    price = bot.PriceBestBid - GetEmergencyExitDistance(bot, position);
+                }
+                else
+                {
+                    price = bot.PriceBestAsk + GetEmergencyExitDistance(bot, position);
+                }
+
+                bot.CloseAtLimit(position, price, position.OpenVolume);
+            }
+        }
+
+        private decimal GetEmergencyExitDistance(BotTabSimple bot, Position position)
+        {
+            decimal result = 0;
+
+            if (ValuesType == ManualControlValuesType.MinPriceStep)
+            {
+                result = bot.Securiti.PriceStep * DoubleExitSlipage;
+            }
+            else if (ValuesType == ManualControlValuesType.Absolute)
+            {
+                result = DoubleExitSlipage;
+            }
+            else if (ValuesType == ManualControlValuesType.Percent)
+            {
+                if (position.Direction == Side.Buy)
+                {
+                    result = bot.PriceBestBid * DoubleExitSlipage / 100;
+                }
+                else
+                {
+                    result = bot.PriceBestAsk * DoubleExitSlipage / 100;
+                }
+            }
+
+            return result;
+        }
+
+        public decimal GetProfitDistanceSlippage(Position position,Security security)
+        {
+            decimal result = 0;
+
+            if (ValuesType == ManualControlValuesType.MinPriceStep)
+            {
+                result = security.PriceStep * ProfitSlipage;
+            }
+            else if (ValuesType == ManualControlValuesType.Absolute)
+            {
+                result = ProfitSlipage;
+            }
+            else if (ValuesType == ManualControlValuesType.Percent)
+            {
+                result = position.EntryPrice * ProfitSlipage / 100;
+            }
+
+            return result;
+        }
+
+        public decimal GetProfitDistance(Position position, Security security)
+        {
+            decimal result = 0;
+
+            if (ValuesType == ManualControlValuesType.MinPriceStep)
+            {
+                result = security.PriceStep * ProfitDistance;
+            }
+            else if (ValuesType == ManualControlValuesType.Absolute)
+            {
+                result = ProfitDistance;
+            }
+            else if (ValuesType == ManualControlValuesType.Percent)
+            {
+                result = position.EntryPrice * ProfitDistance / 100;
+            }
+
+            return result;
+        }
+
+        private decimal GetStopDistance(Position position, Security security)
+        {
+            decimal result = 0;
+
+            if (ValuesType == ManualControlValuesType.MinPriceStep)
+            {
+                result = security.PriceStep * StopDistance;
+            }
+            else if (ValuesType == ManualControlValuesType.Absolute)
+            {
+                result = StopDistance;
+            }
+            else if (ValuesType == ManualControlValuesType.Percent)
+            {
+                result = position.EntryPrice * StopDistance / 100;
+            }
+
+            return result;
+
+        }
+
+        private decimal GetStopSlippageDistance(Position position, Security security)
+        {
+            decimal result = 0;
+
+            if (ValuesType == ManualControlValuesType.MinPriceStep)
+            {
+                result = security.PriceStep * StopSlipage;
+            }
+            else if (ValuesType == ManualControlValuesType.Absolute)
+            {
+                result = StopSlipage;
+            }
+            else if (ValuesType == ManualControlValuesType.Percent)
+            {
+                result = position.EntryPrice * StopSlipage / 100;
+            }
+
+            return result;
+        }
+
+        private decimal GetMaxSpread(Order order)
+        {
+            decimal maxSpread = 0;
+
+            if (ValuesType == ManualControlValuesType.MinPriceStep)
+            {
+                maxSpread = _botTab.Securiti.PriceStep * SetbackToOpenPosition;
+            }
+            else if (ValuesType == ManualControlValuesType.Absolute)
+            {
+                maxSpread = SetbackToOpenPosition;
+            }
+            else if (ValuesType == ManualControlValuesType.Percent)
+            {
+                maxSpread = order.Price * SetbackToOpenPosition / 100;
+            }
+
+            return maxSpread;
+        }
+
         /// <summary>
         /// orders already sent for closure
         /// ордера, уже высланные на закрытие
@@ -575,5 +770,26 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
+    }
+
+    /// <summary>
+    /// тип переменных для подсчёта расстояния
+    /// </summary>
+    public enum ManualControlValuesType
+    {
+        /// <summary>
+        /// Минимальный шаг цены инструмента
+        /// </summary>
+        MinPriceStep,
+
+        /// <summary>
+        /// абсолютные значения
+        /// </summary>
+        Absolute,
+
+        /// <summary>
+        /// %
+        /// </summary>
+        Percent
     }
 }
