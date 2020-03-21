@@ -16,6 +16,7 @@ using OsEngine.Charts.CandleChart;
 using OsEngine.Charts.CandleChart.Elements;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
+using OsEngine.Indicators;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
@@ -280,7 +281,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="indicator">indicator / индикатор</param>
         /// <param name="nameArea">the name of the area on which it will be placed. Default: "Prime" / название области на которую он будет помещён. По умолчанию: "Prime"</param>
         /// <returns></returns>
-        public IIndicatorCandle CreateCandleIndicator(IIndicatorCandle indicator, string nameArea)
+        public IIndicator CreateCandleIndicator(IIndicator indicator, string nameArea)
         {
             return _chartMaster.CreateIndicator(indicator, nameArea);
         }
@@ -289,7 +290,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// remove indicator / 
         /// удалить индикатор 
         /// </summary>
-        public void DeleteCandleIndicator(IIndicatorCandle indicator)
+        public void DeleteCandleIndicator(IIndicator indicator)
         {
             _chartMaster.DeleteIndicator(indicator);
         }
@@ -298,7 +299,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// all available indicators in the system / 
         /// все доступные индикаторы в системе
         /// </summary>
-        public List<IIndicatorCandle> Indicators
+        public List<IIndicator> Indicators
         {
             get { return _chartMaster.Indicators; }
         }

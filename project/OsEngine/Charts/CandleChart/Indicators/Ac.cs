@@ -8,10 +8,11 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using OsEngine.Entity;
+using OsEngine.Indicators;
 
 namespace OsEngine.Charts.CandleChart.Indicators
 {
-    public class Ac : IIndicatorCandle
+    public class Ac : IIndicator
     {
 
         /// <summary>
@@ -25,7 +26,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             Name = uniqName;
             LenghtLong = 34;
             LenghtShort = 5;
-            TypeIndicator = IndicatorOneCandleChartType.Column;
+            TypeIndicator = IndicatorChartPaintType.Column;
             TypeCalculationAverage = MovingAverageTypeCalculation.Simple;
             PaintOn = true;
             CanDelete = canDelete;
@@ -46,7 +47,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             LenghtLong = 34;
             LenghtShort = 5;
-            TypeIndicator = IndicatorOneCandleChartType.Column;
+            TypeIndicator = IndicatorChartPaintType.Column;
             TypeCalculationAverage = MovingAverageTypeCalculation.Simple;
             PaintOn = true;
             CanDelete = canDelete;
@@ -61,7 +62,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <summary>
         /// all indicator values/все значения индикатора
         /// </summary>
-        List<List<decimal>> IIndicatorCandle.ValuesToChart
+        List<List<decimal>> IIndicator.ValuesToChart
         {
             get
             {
@@ -74,7 +75,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <summary>
         /// indicator colors/цвета для индикатора
         /// </summary>
-        List<Color> IIndicatorCandle.Colors
+        List<Color> IIndicator.Colors
         {
             get
             {
@@ -90,7 +91,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator drawing type
         /// тип прорисовки индикатора
         /// </summary>
-        public IndicatorOneCandleChartType TypeIndicator { get; set; }
+        public IndicatorChartPaintType TypeIndicator { get; set; }
 
         /// <summary>
         /// type of moving average for indicator calculation
@@ -310,7 +311,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator needs to be redrawn
         /// индикатор нужно перерисовать
         /// </summary>
-        public event Action<IIndicatorCandle> NeadToReloadEvent;
+        public event Action<IIndicator> NeadToReloadEvent;
 
         /// <summary>
         /// load only last candle

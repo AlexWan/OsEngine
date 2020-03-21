@@ -341,6 +341,15 @@
     <Compile Include="Entity\SecurityLevelOne.cs" />
     <Compile Include="Entity\StrategyParameter.cs" />
     <Compile Include="Entity\TimeFrameBuilder.cs" />
+    <Compile Include="Indicators\Aindicator.cs" />
+    <Compile Include="Indicators\AIndicatorUi.xaml.cs">
+      <DependentUpon>AIndicatorUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Indicators\Entity.cs" />
+    <Compile Include="Indicators\IndicatorParameter.cs" />
+    <Compile Include="Indicators\IndicatorsFactory.cs" />
+    <Compile Include="Indicators\ScriptSpells.cs" />
+    <Compile Include="Indicators\Script\Template.cs" />
     <Compile Include="Journal\JournalUi.xaml.cs">
       <DependentUpon>JournalUi.xaml</DependentUpon>
     </Compile>
@@ -537,7 +546,7 @@
     <Compile Include="Charts\CandleChart\Indicators\FractalUi.xaml.cs">
       <DependentUpon>FractalUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Charts\CandleChart\Indicators\IIndicatorCandle.cs" />
+    <Compile Include="Indicators\IIndicator.cs" />
     <Compile Include="Charts\CandleChart\Indicators\MovingAverage.cs" />
     <Compile Include="Charts\CandleChart\Indicators\MovingAverageUi.xaml.cs">
       <DependentUpon>MovingAverageUi.xaml</DependentUpon>
@@ -977,6 +986,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Entity\ProxiesUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Indicators\AIndicatorUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

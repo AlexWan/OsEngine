@@ -237,11 +237,6 @@ namespace OsEngine.Entity
                 return;
             }
 
-            if (Security.Name == "SBERP")
-            {
-
-            }
-
             if (_lastTradeIndex == 0)
             {
 
@@ -1686,14 +1681,6 @@ namespace OsEngine.Entity
 
         public void SetNewMarketDepth(MarketDepth marketDepth)
         {
-            if (marketDepth.SecurityNameCode == "GAZP")
-            {
-                if (CandlesAll.Count == 12)
-                {
-
-                }
-            }
-
             if (_isStarted == false)
             {
                 return;

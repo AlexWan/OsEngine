@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using OsEngine.Entity;
+using OsEngine.Indicators;
 
 namespace OsEngine.Charts.CandleChart.Indicators
 {
@@ -16,7 +17,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
     /// Indicator AO. AwesomeOscillator
     /// индикатор AO. AwesomeOscillator
     /// </summary>
-    public class AwesomeOscillator:IIndicatorCandle
+    public class AwesomeOscillator:IIndicator
     {
         /// <summary>
         /// constructor
@@ -27,7 +28,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public AwesomeOscillator(string uniqName, bool canDelete)
         {
             Name = uniqName;
-            TypeIndicator = IndicatorOneCandleChartType.Column;
+            TypeIndicator = IndicatorChartPaintType.Column;
             TypeCalculationAverage = MovingAverageTypeCalculation.Exponential;
             LenghtShort = 5;
             LenghtLong = 32;
@@ -48,7 +49,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             Name = Guid.NewGuid().ToString();
 
-            TypeIndicator = IndicatorOneCandleChartType.Column;
+            TypeIndicator = IndicatorChartPaintType.Column;
             LenghtShort = 5;
             LenghtLong = 32;
             ColorUp = Color.DodgerBlue;
@@ -61,7 +62,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// all indicator values
         /// все значения индикатора
         /// </summary>
-        List<List<decimal>> IIndicatorCandle.ValuesToChart
+        List<List<decimal>> IIndicator.ValuesToChart
         {
             get
             {
@@ -75,7 +76,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator colors
         /// цвета для индикатора
         /// </summary>
-        List<Color> IIndicatorCandle.Colors
+        List<Color> IIndicator.Colors
         {
             get
             {
@@ -97,7 +98,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator drawing type
         /// тип прорисовки индикатора
         /// </summary>
-        public IndicatorOneCandleChartType TypeIndicator
+        public IndicatorChartPaintType TypeIndicator
         { get; set; }
 
         private MovingAverageTypeCalculation _movingAverageType;
@@ -482,6 +483,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator rebooted
         /// индикатор перезагрузился
         /// </summary>
-        public event Action<IIndicatorCandle> NeadToReloadEvent;
+        public event Action<IIndicator> NeadToReloadEvent;
     }
 }

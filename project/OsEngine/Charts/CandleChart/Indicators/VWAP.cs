@@ -5,10 +5,11 @@ using System.Drawing;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using OsEngine.Indicators;
 
 namespace OsEngine.Charts.CandleChart.Indicators
 {
-    public class Vwap : IIndicatorCandle
+    public class Vwap : IIndicator
     {
         #region options
 
@@ -94,7 +95,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public Vwap(string uniqName, bool canDelete)
         {
             Name = uniqName;
-            TypeIndicator = IndicatorOneCandleChartType.Line;
+            TypeIndicator = IndicatorChartPaintType.Line;
             PaintOn = true;
             CanDelete = canDelete;
 
@@ -111,7 +112,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             Load();
         }
 
-        public IndicatorOneCandleChartType TypeIndicator { get; set; }
+        public IndicatorChartPaintType TypeIndicator { get; set; }
 
         private List<Color> _colors;
 
@@ -119,7 +120,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator colors
         /// цвета для индикатора
         /// </summary>
-        List<Color> IIndicatorCandle.Colors
+        List<Color> IIndicator.Colors
         {
             get
             {
@@ -283,7 +284,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// all indicator values
         /// все значения индикатора
         /// </summary>
-        List<List<decimal>> IIndicatorCandle.ValuesToChart
+        List<List<decimal>> IIndicator.ValuesToChart
         {
             get
             {
@@ -334,7 +335,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public List<decimal> VwapWeekly;
         public List<List<decimal>> WeeklyDeviationsValues;
 
-        public event Action<IIndicatorCandle> NeadToReloadEvent;
+        public event Action<IIndicator> NeadToReloadEvent;
 
         /// <summary>
         /// candles to calculate the indicator

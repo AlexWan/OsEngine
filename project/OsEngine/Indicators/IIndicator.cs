@@ -8,21 +8,21 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
 
-namespace OsEngine.Charts.CandleChart.Indicators
+namespace OsEngine.Indicators
 {
 
     /// <summary>
     /// candles indicator interface
     /// интерфейс для индикаторов на свечках
     /// </summary>
-    public interface IIndicatorCandle
+    public interface IIndicator
     {
 
         /// <summary>
         /// sequence type
         ///  тип последовательности
         /// </summary>
-        IndicatorOneCandleChartType TypeIndicator { get; set; }
+        IndicatorChartPaintType TypeIndicator { get; set; }
 
         /// <summary>
         /// indicator colors
@@ -100,7 +100,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator needs to be redrawn
         /// требуется перерисовать индикатор
         /// </summary>
-        event Action<IIndicatorCandle> NeadToReloadEvent;
+        event Action<IIndicator> NeadToReloadEvent;
 
         /// <summary>
         /// Update indicator values
@@ -114,7 +114,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
     /// Indicator type
     /// Тип индикатора
     /// </summary>
-    public enum IndicatorOneCandleChartType
+    public enum IndicatorChartPaintType
     {
         /// <summary>
         /// Line
