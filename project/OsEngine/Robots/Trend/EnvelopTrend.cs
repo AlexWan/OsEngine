@@ -90,8 +90,8 @@ namespace OsEngine.Robots.Trend
 
         private void _tab_PositionOpeningSuccesEvent(Position position)
         {
-            _tab.BuyAtStopCanсel();
-            _tab.SellAtStopCanсel();
+            _tab.BuyAtStopCancel();
+            _tab.SellAtStopCancel();
 
             if (position.Direction == Side.Buy)
             {

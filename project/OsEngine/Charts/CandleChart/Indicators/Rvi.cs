@@ -424,13 +424,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
 
         }
-        /// <summary>
-        /// Numerator calculation method
-        /// Метод расчета числителя
-        /// </summary>
-        /// <param name="candles"></param>
-        /// <param name="index"></param>
-        /// <returns></returns>
+
         private decimal GetMoveAverage(List<Candle> candles, int index)
         {
             if (index > 3)
@@ -447,13 +441,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
         }
 
-        /// <summary>
-        /// denominator calculation method
-        /// метод расчета знаменателя
-        /// </summary>
-        /// <param name="candles"></param>
-        /// <param name="index"></param>
-        /// <returns></returns>
         private decimal GetRangeAverage(List<Candle> candles, int index)
         {
             if (index > 3)
@@ -467,7 +454,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 return 0;
             }
-
         }
 
         private decimal GetRvi(int index)

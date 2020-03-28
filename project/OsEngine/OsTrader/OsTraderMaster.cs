@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -24,6 +23,7 @@ using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.RiskManager;
+using OsEngine.Robots;
 using Chart = System.Windows.Forms.DataVisualization.Charting.Chart;
 
 namespace OsEngine.OsTrader
@@ -54,7 +54,7 @@ namespace OsEngine.OsTrader
         /// <param name="gridChartControlPanel">grid for chart control panel / грид для панели управления чартом</param>
         /// <param name="startProgram">type of program that requested class creation / тип программы который запросил создание класса</param>
         public OsTraderMaster(WindowsFormsHost hostChart, WindowsFormsHost hostGlass, WindowsFormsHost hostOpenDeals,
-            WindowsFormsHost hostCloseDeals, WindowsFormsHost hostAllDeals, WindowsFormsHost hostLogBot, WindowsFormsHost hostLogPrime, Rectangle rectangleAroundChart, 
+            WindowsFormsHost hostCloseDeals, WindowsFormsHost hostAllDeals, WindowsFormsHost hostLogBot, WindowsFormsHost hostLogPrime, Rectangle rectangleAroundChart,
             WindowsFormsHost hostAlerts,
             TabControl tabPanel, TabControl tabBotTab, TextBox textBoxLimitPrice, Grid gridChartControlPanel, StartProgram startProgram)
         {
@@ -99,15 +99,15 @@ namespace OsEngine.OsTrader
             _riskManager = new RiskManager.RiskManager("GlobalRiskManager", _startProgram);
             _riskManager.RiskManagerAlarmEvent += _riskManager_RiskManagerAlarmEvent;
             _riskManager.LogMessageEvent += SendNewLogMessage;
-            _globalController = new GlobalPosition(_hostAllDeals,_startProgram);
+            _globalController = new GlobalPosition(_hostAllDeals, _startProgram);
             _globalController.LogMessageEvent += SendNewLogMessage;
 
-            _log = new Log("Prime",_startProgram);
+            _log = new Log("Prime", _startProgram);
             _log.StartPaint(hostLogPrime);
             _log.Listen(this);
             _hostLogPrime = hostLogPrime;
 
-            SendNewLogMessage(OsLocalization.Trader.Label1,LogMessageType.User);
+            SendNewLogMessage(OsLocalization.Trader.Label1, LogMessageType.User);
 
             Load();
             _tabBotNames.SelectionChanged += _tabBotControl_SelectionChanged;
@@ -152,9 +152,9 @@ namespace OsEngine.OsTrader
         /// load robots with saved names
         /// загрузить роботов по сохранённым именам
         /// </summary>
-        private void Load() 
+        private void Load()
         {
-            if (!File.Exists(@"Engine\Settings"+ _typeWorkKeeper+"Keeper.txt"))
+            if (!File.Exists(@"Engine\Settings" + _typeWorkKeeper + "Keeper.txt"))
             { // if there is no file we need. Just go out
               // если нет нужного нам файла. Просто выходим
                 return;
@@ -186,11 +186,30 @@ namespace OsEngine.OsTrader
                 while (!reader.EndOfStream)
                 {
                     string[] names = reader.ReadLine().Split('@');
-                    BotPanel bot = PanelCreator.GetStrategyForName(names[1], names[0],_startProgram);
+
+                    BotPanel bot = null;
+
+                    if (names.Length > 2)
+                    {
+                        try
+                        {
+                            bot = BotFactory.GetStrategyForName(names[1], names[0], _startProgram, Convert.ToBoolean(names[2]));
+                        }
+                        catch (Exception e)
+                        {
+                            SendNewLogMessage(e.ToString(), LogMessageType.Error);
+                        }
+                    
+                    }
+                    else
+                    {
+                        bot = BotFactory.GetStrategyForName(names[1], names[0], _startProgram, false);
+                    }
+
                     if (bot != null)
                     {
                         _panelsArray.Add(bot);
-                        _tabBotNames.Items.Add(" " +_panelsArray[botIterator].NameStrategyUniq + " ");
+                        _tabBotNames.Items.Add(" " + _panelsArray[botIterator].NameStrategyUniq + " ");
                         SendNewLogMessage(OsLocalization.Trader.Label2 + _panelsArray[botIterator].NameStrategyUniq,
                             LogMessageType.System);
                         botIterator++;
@@ -217,7 +236,7 @@ namespace OsEngine.OsTrader
 
                     for (int i = 0; _panelsArray != null && i < _panelsArray.Count; i++)
                     {
-                        writer.WriteLine(_panelsArray[i].NameStrategyUniq + "@" + _panelsArray[i].GetNameStrategyType());
+                        writer.WriteLine(_panelsArray[i].NameStrategyUniq + "@" + _panelsArray[i].GetNameStrategyType() + "@" + _panelsArray[i].IsScript);
                     }
 
                     writer.Close();
@@ -334,7 +353,7 @@ namespace OsEngine.OsTrader
                 {
                     for (int i = 0; i < _panelsArray.Count; i++)
                     {
-                        if (_panelsArray[i].NameStrategyUniq.Replace(" ", "") == newBotName.Replace(" ",""))
+                        if (_panelsArray[i].NameStrategyUniq.Replace(" ", "") == newBotName.Replace(" ", ""))
                         {
                             ReloadActivBot(_panelsArray[i]);
                             return;
@@ -348,8 +367,8 @@ namespace OsEngine.OsTrader
             }
         }
 
-// Global Risk Manager
-// Глобальный Риск Менеджер
+        // Global Risk Manager
+        // Глобальный Риск Менеджер
 
         /// <summary>
         /// risk Manager
@@ -476,7 +495,7 @@ namespace OsEngine.OsTrader
             }
         }
 
-// Common position on bots / Общая позиция по ботам
+        // Common position on bots / Общая позиция по ботам
 
         /// <summary>
         /// general robot position manager
@@ -535,7 +554,7 @@ namespace OsEngine.OsTrader
                     panelsJournal.Add(botPanel);
                 }
 
-                _journalUi = new JournalUi(panelsJournal,_startProgram);
+                _journalUi = new JournalUi(panelsJournal, _startProgram);
                 _journalUi.LogMessageEvent += SendNewLogMessage;
                 _journalUi.Closed += _journalUi_Closed;
                 _journalUi.Show();
@@ -552,7 +571,7 @@ namespace OsEngine.OsTrader
             _journalUi = null;
         }
 
-// log / логироавние
+        // log / логироавние
 
         /// <summary>
         /// log
@@ -582,7 +601,7 @@ namespace OsEngine.OsTrader
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
-// events from the test server / события из тестового сервера
+        // events from the test server / события из тестового сервера
 
         /// <summary>
         /// is rewind enabled in the tester
@@ -650,7 +669,7 @@ namespace OsEngine.OsTrader
             StartPaint();
         }
 
-// Disable/Enable Interface / Отключение/включение интерфейса
+        // Disable/Enable Interface / Отключение/включение интерфейса
 
         /// <summary>
         /// stop drawing the interface
@@ -720,7 +739,7 @@ namespace OsEngine.OsTrader
             }
         }
 
-// Storage Management / Управление хранилищем
+        // Storage Management / Управление хранилищем
 
         /// <summary>
         /// remove active bot
@@ -784,7 +803,9 @@ namespace OsEngine.OsTrader
         {
             try
             {
-                PanelCreateUi ui = new PanelCreateUi();
+                BotCreateUi ui = new BotCreateUi(BotFactory.GetNamesStrategy(),
+                    BotFactory.GetScriptsNamesStrategy(), StartProgram.IsOsTrader);
+
                 ui.ShowDialog();
 
                 if (ui.IsAccepted == false)
@@ -840,7 +861,7 @@ namespace OsEngine.OsTrader
                     }
                 }
 
-                BotPanel newRobot = PanelCreator.GetStrategyForName(ui.NameStrategy, ui.NameBot, _startProgram);
+                BotPanel newRobot = BotFactory.GetStrategyForName(ui.NameStrategy, ui.NameBot, _startProgram, ui.IsScript);
 
                 if (_panelsArray == null)
                 {
@@ -861,7 +882,7 @@ namespace OsEngine.OsTrader
             }
         }
 
-// Robot control / Управление роботом
+        // Robot control / Управление роботом
 
         /// <summary>
         /// show the position tracking settings for the robot
@@ -1049,7 +1070,7 @@ namespace OsEngine.OsTrader
         /// </summary>
         /// <param name="volume">volume / объём</param>
         /// <param name="price">price / цена</param>
-        public void BotBuyLimit(decimal volume,decimal price)
+        public void BotBuyLimit(decimal volume, decimal price)
         {
             try
             {
@@ -1074,7 +1095,7 @@ namespace OsEngine.OsTrader
         /// </summary>
         /// <param name="volume">volume / объём</param>
         /// <param name="price">price / цена</param>
-        public void BotSellLimit(decimal volume,decimal price)
+        public void BotSellLimit(decimal volume, decimal price)
         {
             try
             {
@@ -1152,7 +1173,7 @@ namespace OsEngine.OsTrader
 
             foreach (var tab in bot.TabsSimple)
             {
-                charts.Add(new Tuple<int, Chart, string, string>(tab.TabNum,tab.GetChart(), tab.TabName, tab.GetChartLabel()));
+                charts.Add(new Tuple<int, Chart, string, string>(tab.TabNum, tab.GetChart(), tab.TabName, tab.GetChartLabel()));
             }
 
             foreach (var tab in bot.TabsIndex)

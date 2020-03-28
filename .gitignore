@@ -29,6 +29,7 @@ bld/
 Plaza/Log/
 Data/
 lua/logs/
+Custom/Indicators/bin
 
 # Visual Studio 2015 cache/options directory
 .vs/

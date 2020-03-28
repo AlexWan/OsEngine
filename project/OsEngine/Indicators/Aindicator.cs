@@ -47,6 +47,9 @@ namespace OsEngine.Indicators
 
             newParameter = new IndicatorParameterDecimal(name, value);
 
+            ParameterDigit param = new ParameterDigit(newParameter);
+            ParametersDigit.Add(param);
+
             return (IndicatorParameterDecimal)LoadParameterValues(newParameter);
         }
 
@@ -66,6 +69,9 @@ namespace OsEngine.Indicators
             }
 
             newParameter = new IndicatorParameterInt(name, value);
+
+            ParameterDigit param = new ParameterDigit(newParameter);
+            ParametersDigit.Add(param);
 
             return (IndicatorParameterInt)LoadParameterValues(newParameter);
         }
@@ -174,6 +180,11 @@ namespace OsEngine.Indicators
         private List<IndicatorParameter> _parameters = new List<IndicatorParameter>();
 
         /// <summary>
+        /// Цифровые параметры индикатора
+        /// </summary>
+        public List<ParameterDigit> ParametersDigit = new List<ParameterDigit>();
+
+        /// <summary>
         /// parameter has changed settings / 
         /// у параметра изменились настройки
         /// </summary>
@@ -244,17 +255,15 @@ namespace OsEngine.Indicators
             {
                 IncludeIndicators[i].Delete();
             }
-
-            for (int i = 0; DataSeries != null && i < DataSeries.Count; i++)
-            {
-                DataSeries[i].Dispose();
-            }
-
-            OnStateChange(IndicatorState.Dispose);
         }
 
         public void Load()
         {
+            if (Name == "")
+            {
+                return;
+            }
+
 
         }
 
@@ -271,15 +280,15 @@ namespace OsEngine.Indicators
 
         public void ShowDialog()
         {
-            AIndicatorUi ui = new AIndicatorUi(this);
-            ui.ShowDialog();
+              AIndicatorUi ui = new AIndicatorUi(this);
+              ui.ShowDialog();
 
-            if (ui.IsAccepted)
-            {
-                Reload();
+              if (ui.IsAccepted)
+              {
+                  Reload();
 
-                Save();
-            }
+                  Save();
+              }
         }
 
         #region встроенные индикаторы для прогрузки свечками
@@ -549,7 +558,26 @@ namespace OsEngine.Indicators
 
         public string NameSeries;
 
+        /// <summary>
+        /// массив с данными серии
+        /// </summary>
         public List<decimal> Values = new List<decimal>();
+
+        /// <summary>
+        /// последнее значение индикатора
+        /// </summary>
+        public decimal Last
+        {
+            get
+            {
+                if (Values.Count == 0)
+                {
+                    return 0;
+                }
+
+                return Values[Values.Count - 1];
+            }
+        }
 
         public string GetSaveStr()
         {
@@ -576,19 +604,52 @@ namespace OsEngine.Indicators
 
             IsPaint = Convert.ToBoolean(array[3]);
         }
-
-        public void Dispose()
-        {
-            Values.Clear();
-            Values = null;
-            Name = null;
-            NameSeries = null;
-        }
     }
 
     public enum IndicatorState
     {
         Configure,
         Dispose,
+    }
+
+    public class ParameterDigit
+    {
+        public ParameterDigit(IndicatorParameter param)
+        {
+            _parameter = param;
+        }
+
+        private IndicatorParameter _parameter;
+
+        public string Name
+        {
+            get { return _parameter.Name; }
+        }
+
+        public decimal Value
+        {
+            get
+            {
+                if (_parameter.Type == IndicatorParameterType.Decimal)
+                {
+                    return ((IndicatorParameterDecimal)_parameter).ValueDecimal;
+                }
+                else //if (_parameter.Type == IndicatorParameterType.Int)
+                {
+                    return ((IndicatorParameterInt)_parameter).ValueInt;
+                }
+            }
+            set
+            {
+                if (_parameter.Type == IndicatorParameterType.Decimal)
+                {
+                    ((IndicatorParameterDecimal)_parameter).ValueDecimal = value;
+                }
+                else //if (_parameter.Type == IndicatorParameterType.Int)
+                {
+                    ((IndicatorParameterInt)_parameter).ValueInt = (int)value;
+                }
+            }
+        }
     }
 }

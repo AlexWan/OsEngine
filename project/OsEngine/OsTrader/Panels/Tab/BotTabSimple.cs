@@ -182,8 +182,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             try
             {
                 ClearAceberg();
-                BuyAtStopCanсel();
-                SellAtStopCanсel();
+                BuyAtStopCancel();
+                SellAtStopCancel();
                 _journal.Clear();
                 _chartMaster.Clear();
             }
@@ -1505,7 +1505,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// cancel all purchase requisitions at level cross / 
         /// отменить все заявки на покупку по пробитию уровня
         /// </summary>
-        public void BuyAtStopCanсel()
+        public void BuyAtStopCancel()
         {
             try
             {
@@ -1933,7 +1933,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// cancel all purchase requisitions at level cross / 
         /// отменить все заявки на продажу по пробитию уровня
         /// </summary>
-        public void SellAtStopCanсel()
+        public void SellAtStopCancel()
         {
             try
             {

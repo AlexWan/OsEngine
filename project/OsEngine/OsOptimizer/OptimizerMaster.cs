@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Windows;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
@@ -12,6 +11,7 @@ using OsEngine.Market;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels;
+using OsEngine.Robots;
 
 namespace OsEngine.OsOptimizer
 {
@@ -50,17 +50,9 @@ namespace OsEngine.OsOptimizer
 
             _fazeCount = 1;
 
-            SendLogMessage(OsLocalization.Optimizer.Message11,LogMessageType.System);
+            SendLogMessage(OsLocalization.Optimizer.Message11, LogMessageType.System);
 
-            for (int i = 0; i < 3; i++)
-            {
-                Thread worker = new Thread(GetNamesStrategyToOptimization);
-                worker.Name = i.ToString();
-                worker.IsBackground = true;
-                worker.Start();
-            }
-
-            _optimizerExecutor= new OptimizerExecutor(this);
+            _optimizerExecutor = new OptimizerExecutor(this);
             _optimizerExecutor.LogMessageEvent += SendLogMessage;
             _optimizerExecutor.TestingProgressChangeEvent += _optimizerExecutor_TestingProgressChangeEvent;
             _optimizerExecutor.PrimeProgressChangeEvent += _optimizerExecutor_PrimeProgressChangeEvent;
@@ -104,6 +96,7 @@ namespace OsEngine.OsOptimizer
 
                     writer.WriteLine(_filterDealsCountValue);
                     writer.WriteLine(_filterDealsCountIsOn);
+                    writer.WriteLine(IsScript);
 
                     writer.Close();
                 }
@@ -149,6 +142,7 @@ namespace OsEngine.OsOptimizer
 
                     _filterDealsCountValue = Convert.ToInt32(reader.ReadLine());
                     _filterDealsCountIsOn = Convert.ToBoolean(reader.ReadLine());
+                    _isScript = Convert.ToBoolean(reader.ReadLine());
                     reader.Close();
                 }
             }
@@ -158,66 +152,7 @@ namespace OsEngine.OsOptimizer
             }
         }
 
-//checking strategies for parameters/ проверка стратегий на наличие параметров
-
-        /// <summary>
-        /// all strategies with parameters that are in the platform
-        /// все стратегии с параметрами которые есть в платформе
-        /// </summary>
-        private List<string> _namesWhithParams = new List<string>();
-
-        /// <summary>
-        /// take all the strategies with parameters that are in the platform
-        /// взять все стратегии с параметрами которые есть в платформе
-        /// </summary>
-        public void GetNamesStrategyToOptimization()
-        {
-            List<string> names = PanelCreator.GetNamesStrategy();
-
-            int numThread = Convert.ToInt32(Thread.CurrentThread.Name);
-
-            for (int i = numThread; i < names.Count; i += 3)
-            {
-                BotPanel bot = PanelCreator.GetStrategyForName(names[i], numThread.ToString(), StartProgram.IsOsOptimizer);
-
-                if(bot == null)
-                {
-                    SendLogMessage("Bot with name " + names[i] + " is not exist.", LogMessageType.Error);
-                    continue;
-                }
-
-                if (bot.Parameters == null ||
-                    bot.Parameters.Count == 0)
-                {
-                    //SendLogMessage("We are not optimizing. Without parameters/Не оптимизируем. Без параметров: " + bot.GetNameStrategyType(), LogMessageType.System);
-                }
-                else
-                {
-                    // SendLogMessage("With parameters/С параметрами: " + bot.GetNameStrategyType(), LogMessageType.System);
-                    _namesWhithParams.Add(names[i]);
-                }
-                if (numThread == 2)
-                {
-
-                }
-                bot.Delete();
-            }
-
-            if (StrategyNamesReadyEvent != null)
-            {
-
-                StrategyNamesReadyEvent(_namesWhithParams);
-            }
-        }
-
-        /// <summary>
-        /// changed the list of strategies with parameters that are in the system
-        /// изменился список стратегий с параметрами которые есть в системе
-        /// </summary>
-        public event Action<List<string>> StrategyNamesReadyEvent;
-
-
-// work with the progress of the optimization process/работа с прогрессом процесса оптимизации
+        // work with the progress of the optimization process/работа с прогрессом процесса оптимизации
 
         /// <summary>
         /// inbound event: the main optimization progress has changed
@@ -242,7 +177,7 @@ namespace OsEngine.OsOptimizer
             PrimeProgressBarStatus.CurrentValue = PrimeProgressBarStatus.MaxValue;
             if (TestReadyEvent != null)
             {
-                TestReadyEvent(bots,botsOutOfSample);
+                TestReadyEvent(bots, botsOutOfSample);
             }
         }
 
@@ -286,7 +221,7 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         public ProgressBarStatus PrimeProgressBarStatus;
 
-// data store/хранилище данных
+        // data store/хранилище данных
 
         /// <summary>
         /// show data storage settings
@@ -341,7 +276,7 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         public event Action<List<Security>> NewSecurityEvent;
 
-// Management 1 tab/управление 1 вкладка
+        // Management 1 tab/управление 1 вкладка
 
         /// <summary>
         /// number of threads that will simultaneously work on optimization
@@ -374,6 +309,18 @@ namespace OsEngine.OsOptimizer
             }
         }
         private string _strategyName;
+
+
+        public bool IsScript
+        {
+            get { return _isScript; }
+            set
+            {
+                _isScript = value;
+                Save();
+            }
+        }
+        private bool _isScript;
 
         /// <summary>
         /// initial deposit
@@ -411,7 +358,7 @@ namespace OsEngine.OsOptimizer
             get { return Storage.SecuritiesTester; }
         }
 
-// tab 3, filters/вкладка 3, фильтры
+        // tab 3, filters/вкладка 3, фильтры
 
         /// <summary>
         /// profit filter value
@@ -633,7 +580,7 @@ namespace OsEngine.OsOptimizer
             get { return _timeEnd; }
             set
             {
-                _timeEnd = value; 
+                _timeEnd = value;
                 Save();
                 if (DateTimeStartEndChange != null)
                 {
@@ -687,12 +634,12 @@ namespace OsEngine.OsOptimizer
             }
 
             fazeCount *= 2;
-            
+
             int dayAll = Convert.ToInt32((TimeEnd - TimeStart).TotalDays);
 
             if (dayAll < 2)
             {
-                SendLogMessage(OsLocalization.Optimizer.Message12,LogMessageType.System);
+                SendLogMessage(OsLocalization.Optimizer.Message12, LogMessageType.System);
                 return;
             }
 
@@ -701,7 +648,7 @@ namespace OsEngine.OsOptimizer
                 fazeCount -= 2;
             }
 
-            int dayOutOfSample = Convert.ToInt32(dayAll * (_percentOnFilration/100)) / (fazeCount/2);
+            int dayOutOfSample = Convert.ToInt32(dayAll * (_percentOnFilration / 100)) / (fazeCount / 2);
             if (dayOutOfSample < 1)
             {
                 dayOutOfSample = 1;
@@ -717,7 +664,7 @@ namespace OsEngine.OsOptimizer
 
             for (int i = 0; i < fazeCount; i++)
             {
-                if (i%2 == 0)
+                if (i % 2 == 0)
                 {
                     fazesLenght.Add(dayInSample);
                 }
@@ -738,7 +685,7 @@ namespace OsEngine.OsOptimizer
                     }
                     if (i + 1 == fazesLenght.Count)
                     {
-                        SendLogMessage(OsLocalization.Optimizer.Message13,LogMessageType.System);
+                        SendLogMessage(OsLocalization.Optimizer.Message13, LogMessageType.System);
                         return;
                     }
                 }
@@ -746,7 +693,7 @@ namespace OsEngine.OsOptimizer
 
             while (fazesLenght.Sum() < dayAll)
             {
-                  fazesLenght[0] += 1;
+                fazesLenght[0] += 1;
             }
 
 
@@ -762,7 +709,7 @@ namespace OsEngine.OsOptimizer
                 newFaze.TimeEnd = time;
                 newFaze.Days = fazesLenght[i];
 
-                if (i%2 != 0)
+                if (i % 2 != 0)
                 {
                     newFaze.TypeFaze = OptimizerFazeType.OutOfSample;
                 }
@@ -781,7 +728,7 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         public event Action DateTimeStartEndChange;
 
-// optimization options/параметры оптимизации
+        // optimization options/параметры оптимизации
 
         /// <summary>
         /// actually used parameters for optimization.
@@ -798,7 +745,7 @@ namespace OsEngine.OsOptimizer
                     return null;
                 }
 
-                BotPanel bot = PanelCreator.GetStrategyForName(_strategyName, "", StartProgram.IsOsOptimizer);
+                BotPanel bot = BotFactory.GetStrategyForName(_strategyName, "", StartProgram.IsOsOptimizer, _isScript);
 
                 if (bot == null)
                 {
@@ -827,12 +774,12 @@ namespace OsEngine.OsOptimizer
             get
             {
 
-                    _paramOn = new List<bool>();
-                    for (int i = 0; _parameters != null && i < _parameters.Count; i++)
-                    {
-                        _paramOn.Add(false);
-                    }
-                
+                _paramOn = new List<bool>();
+                for (int i = 0; _parameters != null && i < _parameters.Count; i++)
+                {
+                    _paramOn.Add(false);
+                }
+
 
                 return _paramOn;
             }
@@ -840,7 +787,7 @@ namespace OsEngine.OsOptimizer
         private List<bool> _paramOn;
 
 
-// job startup optimization algorithm/работа запуска алгоритма оптимизации
+        // job startup optimization algorithm/работа запуска алгоритма оптимизации
 
         /// <summary>
         /// the object that optimizes
@@ -978,7 +925,7 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         public event Action<NeadToMoveUiTo> NeadToMoveUiToEvent;
 
-// logging/логирование
+        // logging/логирование
 
         /// <summary>
         /// log
@@ -1005,7 +952,7 @@ namespace OsEngine.OsOptimizer
         {
             if (LogMessageEvent != null)
             {
-                LogMessageEvent(message,type);
+                LogMessageEvent(message, type);
             }
         }
 

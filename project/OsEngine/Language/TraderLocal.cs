@@ -246,7 +246,7 @@ namespace OsEngine.Language
             "Ru:Не верное имя. Не возможно продолжить процесс создания бота._");
 
         public string Label59 => OsLocalization.ConvertToLocString(
-            "Eng:Add robot_" +
+            "Eng:Robot create_" +
             "Ru:Создание робота_");
 
         public string Label60 => OsLocalization.ConvertToLocString(

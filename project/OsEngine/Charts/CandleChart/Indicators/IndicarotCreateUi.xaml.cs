@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Forms;
 using OsEngine.Entity;
 using OsEngine.Indicators;
@@ -143,6 +144,18 @@ namespace OsEngine.Charts.CandleChart.Indicators
             TabItemScript.Header = OsLocalization.Charts.Label7;
 
             CreateGridScriptIndicators();
+
+            TabControlIndicatorsNames.SelectionChanged += delegate
+            {
+                if (TabControlIndicatorsNames.SelectedIndex == 0)
+                {
+                    _lastScriptGrid = false;
+                }
+                else if (TabControlIndicatorsNames.SelectedIndex == 1)
+                {
+                    _lastScriptGrid = true;
+                }
+            };
         }
 
         public IIndicator IndicatorCandle;

@@ -447,7 +447,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 return;
             }
-            _t1[_t1.Count-1] = GetT1(candles, candles.Count - 1);
+            _t1[_t1.Count - 1] = GetT1(candles, candles.Count - 1);
             _t2[_t2.Count - 1] = GetT2(candles, candles.Count - 1);
 
             _tM1.Process(_t1);
@@ -458,7 +458,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
             ValuesUp[ValuesUp.Count-1] = Math.Round(_k[_k.Count - 1],2) ;
             ValuesDown[ValuesDown.Count-1] = Math.Round(_kM.Values[_kM.Values.Count - 1],2);
         }
-
 
         private decimal GetT1(List<Candle> candles, int index)
         {
@@ -556,6 +555,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// машкая для сглаживания К
         /// </summary>
         private MovingAverage _kM;
+
         // Three settings
         // P1 - length of which we look back in time with Low and High // 5
         // P2 - length of which we average these Low and High         // 3

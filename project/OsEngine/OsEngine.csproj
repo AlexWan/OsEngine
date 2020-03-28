@@ -339,6 +339,7 @@
       <DependentUpon>ProxiesUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Entity\SecurityLevelOne.cs" />
+    <Compile Include="Entity\StartProgramm.cs" />
     <Compile Include="Entity\StrategyParameter.cs" />
     <Compile Include="Entity\TimeFrameBuilder.cs" />
     <Compile Include="Indicators\Aindicator.cs" />
@@ -349,7 +350,6 @@
     <Compile Include="Indicators\IndicatorParameter.cs" />
     <Compile Include="Indicators\IndicatorsFactory.cs" />
     <Compile Include="Indicators\ScriptSpells.cs" />
-    <Compile Include="Indicators\Script\Template.cs" />
     <Compile Include="Journal\JournalUi.xaml.cs">
       <DependentUpon>JournalUi.xaml</DependentUpon>
     </Compile>
@@ -645,15 +645,27 @@
     <Compile Include="OsTrader\Panels\BotPanelChartUI.xaml.cs">
       <DependentUpon>BotPanelChartUI.xaml</DependentUpon>
     </Compile>
-    <Compile Include="OsTrader\Panels\PanelsGui\BBPowerTradeUi.xaml.cs">
-      <DependentUpon>BBPowerTradeUi.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="OsTrader\Panels\PanelsGui\BollingerOutburstUi.xaml.cs">
-      <DependentUpon>BollingerOutburstUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Robots\BotFactory.cs" />
     <Compile Include="Robots\CounterTrend\ClusterCountertrend.cs" />
+    <Compile Include="Robots\Engines\CandleEngine.cs" />
+    <Compile Include="Robots\Engines\ClusterEngine.cs" />
     <Compile Include="Robots\High Frequency\HighFrequencyTrader.cs" />
+    <Compile Include="Robots\MarketMaker\PairTraderSimple.cs" />
+    <Compile Include="Robots\MarketMaker\PairTraderSimpleUi.xaml.cs">
+      <DependentUpon>PairTraderSimpleUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Robots\OnScriptIndicators\BbPowerTrade.cs" />
+    <Compile Include="Robots\OnScriptIndicators\BollingerRevers.cs" />
+    <Compile Include="Robots\OnScriptIndicators\BollingerTrailing.cs" />
+    <Compile Include="Robots\OnScriptIndicators\CciTrade.cs" />
+    <Compile Include="Robots\OnScriptIndicators\MacdRevers.cs" />
+    <Compile Include="Robots\OnScriptIndicators\MacdTrail.cs" />
+    <Compile Include="Robots\OnScriptIndicators\OneLegArbitrage.cs" />
+    <Compile Include="Robots\OnScriptIndicators\PairRsiTrade.cs" />
+    <Compile Include="Robots\OnScriptIndicators\PriceChannelBreak.cs" />
+    <Compile Include="Robots\OnScriptIndicators\PriceChannelVolatility.cs" />
+    <Compile Include="Robots\OnScriptIndicators\RsiTrade.cs" />
+    <Compile Include="Robots\OnScriptIndicators\RviTrade.cs" />
     <Compile Include="Robots\Trend\EnvelopTrend.cs" />
     <Compile Include="Robots\Trend\MomentumMacd.cs" />
     <Compile Include="Robots\MarketMaker\PairTraderSpreadSma.cs" />
@@ -667,26 +679,8 @@
     <Compile Include="Robots\CounterTrend\StrategyBollingerUi.xaml.cs">
       <DependentUpon>StrategyBollingerUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="OsTrader\Panels\PanelsGui\BollingerTradeUi.xaml.cs">
-      <DependentUpon>BollingerTradeUi.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="OsTrader\Panels\PanelsGui\CCITradeUi.xaml.cs">
-      <DependentUpon>CCITradeUi.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="OsTrader\Panels\PanelsGui\MacdTradeUi.xaml.cs">
-      <DependentUpon>MacdTradeUi.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="OsTrader\Panels\PanelsGui\MacdTrailUi.xaml.cs">
-      <DependentUpon>MacdTrailUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Robots\Trend\MomentumMacdUi.xaml.cs">
       <DependentUpon>MomentumMacdUi.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="OsTrader\Panels\PanelsGui\OneLegArbitrationUi.xaml.cs">
-      <DependentUpon>OneLegArbitrationUi.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="OsTrader\Panels\PanelsGui\PairRsiTradeUi.xaml.cs">
-      <DependentUpon>PairRsiTradeUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Robots\Trend\ParabolicSarTradeUi.xaml.cs">
       <DependentUpon>ParabolicSarTradeUi.xaml</DependentUpon>
@@ -697,32 +691,17 @@
     <Compile Include="Robots\Patterns\PivotPointsRobotUi.xaml.cs">
       <DependentUpon>PivotPointsRobotUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="OsTrader\Panels\PanelsGui\PriceChannelBreakUi.xaml.cs">
-      <DependentUpon>PriceChannelBreakUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Robots\Trend\PriceChannelTradeUi.xaml.cs">
       <DependentUpon>PriceChannelTradeUi.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="OsTrader\Panels\PanelsGui\PriceChannelVolatilityUi.xaml.cs">
-      <DependentUpon>PriceChannelVolatilityUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Robots\CounterTrend\RsiContrtrendUi.xaml.cs">
       <DependentUpon>RsiContrtrendUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="OsTrader\Panels\PanelsGui\RsiTradeUi.xaml.cs">
-      <DependentUpon>RsiTradeUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Robots\Trend\SmaStochasticUi.xaml.cs">
       <DependentUpon>SmaStochasticUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="OsTrader\Panels\PanelsGui\StochasticTradeUi.xaml.cs">
-      <DependentUpon>StochasticTradeUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Robots\Patterns\ThreeSoldierUi.xaml.cs">
       <DependentUpon>ThreeSoldierUi.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="OsTrader\Panels\PanelsGui\TrixTradeUi.xaml.cs">
-      <DependentUpon>TrixTradeUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Robots\CounterTrend\WilliamsRangeTradeUi.xaml.cs">
       <DependentUpon>WilliamsRangeTradeUi.xaml</DependentUpon>
@@ -751,9 +730,6 @@
     <Compile Include="Robots\MarketMaker\MarketMakerBotUi.xaml.cs">
       <DependentUpon>MarketMakerBotUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="OsTrader\Panels\PanelsGui\SamplePairTraderSimpleUi.xaml.cs">
-      <DependentUpon>SamplePairTraderSimpleUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Robots\MarketMaker\PairTraderSpreadSmaUi.xaml.cs">
       <DependentUpon>PairTraderSpreadSmaUi.xaml</DependentUpon>
     </Compile>
@@ -780,13 +756,12 @@
     <Compile Include="OsTrader\Panels\Tab\BotTabSimple.cs" />
     <Compile Include="OsTrader\OsTraderMaster.cs" />
     <Compile Include="OsTrader\Panels\Tab\Internal\BotManualControl.cs" />
-    <Compile Include="OsTrader\Panels\PanelCreateUi.xaml.cs">
-      <DependentUpon>PanelCreateUi.xaml</DependentUpon>
+    <Compile Include="Robots\BotCreateUi.xaml.cs">
+      <DependentUpon>BotCreateUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="OsTrader\Panels\Tab\Internal\BotManualControlUi.xaml.cs">
       <DependentUpon>BotManualControlUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="OsTrader\Panels\PanelCreator.cs" />
     <Compile Include="OsTrader\Gui\TesterUi.xaml.cs">
       <DependentUpon>TesterUi.xaml</DependentUpon>
     </Compile>
@@ -1153,43 +1128,15 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="OsTrader\Panels\PanelsGui\BBPowerTradeUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="OsTrader\Panels\PanelsGui\BollingerOutburstUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Robots\CounterTrend\StrategyBollingerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="OsTrader\Panels\PanelsGui\BollingerTradeUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="OsTrader\Panels\PanelsGui\CCITradeUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="OsTrader\Panels\PanelsGui\MacdTradeUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="OsTrader\Panels\PanelsGui\MacdTrailUi.xaml">
+    <Page Include="Robots\MarketMaker\PairTraderSimpleUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Robots\Trend\MomentumMacdUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="OsTrader\Panels\PanelsGui\OneLegArbitrationUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="OsTrader\Panels\PanelsGui\PairRsiTradeUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -1205,15 +1152,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="OsTrader\Panels\PanelsGui\PriceChannelBreakUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Robots\Trend\PriceChannelTradeUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="OsTrader\Panels\PanelsGui\PriceChannelVolatilityUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -1221,23 +1160,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="OsTrader\Panels\PanelsGui\RsiTradeUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Robots\Trend\SmaStochasticUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="OsTrader\Panels\PanelsGui\StochasticTradeUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Robots\Patterns\ThreeSoldierUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="OsTrader\Panels\PanelsGui\TrixTradeUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -1269,10 +1196,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="OsTrader\Panels\PanelsGui\SamplePairTraderSimpleUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Robots\MarketMaker\PairTraderSpreadSmaUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -1297,7 +1220,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="OsTrader\Panels\PanelCreateUi.xaml">
+    <Page Include="Robots\BotCreateUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

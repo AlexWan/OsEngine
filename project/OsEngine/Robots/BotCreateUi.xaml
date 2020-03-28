@@ -1,0 +1,24 @@
+﻿<Window x:Class="OsEngine.Robots.BotCreateUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Add robot" Height="356.6" Width="304" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Topmost="True">
+    <Grid>
+        <Rectangle  Margin="5,5,5,43"/>
+        <Button Name="ButtonAccept" Content="Accept" Height="22" Margin="164,0,10,10" Click="ButtonAccept_Click" VerticalAlignment="Bottom"/>
+        <TextBox Name="TextBoxName" Height="23" Margin="116,5,30,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <Label Name="LabelName" Content="Name" HorizontalAlignment="Left" Margin="56,5,0,0" VerticalAlignment="Top"/>
+        <TabControl Name="TabControlRobotNames" Height="253" Margin="5,38,5,0" VerticalAlignment="Top">
+            <TabItem Name="ItemInclude" Header=" Include ">
+                <Grid Background="#FFE5E5E5">
+                    <WindowsFormsHost Name="HostNamesIncludedBots"/>
+                </Grid>
+            </TabItem>
+            <TabItem Name="ItemScript" Header=" Script ">
+                <Grid Background="#FFE5E5E5">
+                    <WindowsFormsHost Name="HostNamesScriptBots"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+    </Grid>
+</Window>

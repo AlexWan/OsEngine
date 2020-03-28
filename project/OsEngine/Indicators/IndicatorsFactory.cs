@@ -6,7 +6,6 @@ using System.Linq;
 using System.Reflection;
 using System.Windows;
 using Microsoft.CSharp;
-using OsEngine.Indicators.Script;
 
 namespace OsEngine.Indicators
 {
@@ -18,13 +17,16 @@ namespace OsEngine.Indicators
             {
                 Directory.CreateDirectory(@"Custom");
             }
-
             if (Directory.Exists(@"Custom\Indicators") == false)
             {
                 Directory.CreateDirectory(@"Custom\Indicators");
             }
+            if (Directory.Exists(@"Custom\Indicators\Scripts") == false)
+            {
+                Directory.CreateDirectory(@"Custom\Indicators\Scripts");
+            }
 
-            List<string> resultOne = GetFullNamesFromFolder(@"Custom\Indicators");
+            List<string> resultOne = GetFullNamesFromFolder(@"Custom\Indicators\Scripts");
 
             for (int i = 0; i < resultOne.Count; i++)
             {
@@ -89,7 +91,7 @@ namespace OsEngine.Indicators
             {
                 if (Indicator == null)
                 {
-                    List<string> fullPaths = GetFullNamesFromFolder(@"Custom\Indicators");
+                    List<string> fullPaths = GetFullNamesFromFolder(@"Custom\Indicators\Scripts");
 
                     string longNameClass = nameClass + ".txt";
                     string longNameClass2 = nameClass + ".cs";
@@ -104,6 +106,12 @@ namespace OsEngine.Indicators
                             myPath = fullPaths[i];
                             break;
                         }
+                    }
+
+                    if (myPath == "")
+                    {
+                        MessageBox.Show("Error! Indicator with name " + nameClass + "not found");
+                        return null;
                     }
 
                     Indicator = Serialize(myPath, nameClass, name, canDelete);
