@@ -115,6 +115,7 @@ namespace OsEngine.Robots
             }
             _gridIncludeBots.Click += delegate (object sender, EventArgs args) { IsScript = false; };
 
+            _gridScriptBots.Rows.Clear();
             List<string> botNameScript = _botsFromScript;
 
             for (int i = 0; i < botNameScript.Count; i++)

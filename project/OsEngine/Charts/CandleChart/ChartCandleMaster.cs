@@ -317,7 +317,6 @@ namespace OsEngine.Charts.CandleChart
             }
             try
             {
-
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @".txt", false))
                 {
 
