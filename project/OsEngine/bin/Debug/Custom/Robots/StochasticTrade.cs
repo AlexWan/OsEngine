@@ -18,7 +18,7 @@ public class StochasticTrade : BotPanel
     {
         TabCreate(BotTabType.Simple);
         _tab = TabsSimple[0];
-
+        
         _stoch = IndicatorsFactory.CreateIndicatorByName("Stochastic", name + "Stochastic", false);
         _stoch = (Aindicator)_tab.CreateCandleIndicator(_stoch, "StochasticArea");
 

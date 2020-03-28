@@ -28,6 +28,7 @@ public class BollingerRevers : BotPanel
 
         _bol.ParametersDigit[0].Value= BollingerLength.ValueInt;
         _bol.ParametersDigit[1].Value = BollingerDeviation.ValueDecimal;
+
         _bol.Save();
 
         _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
@@ -104,8 +105,8 @@ public class BollingerRevers : BotPanel
         }
 
         _lastPrice = candles[candles.Count - 1].Close;
-        _bolLastUp = _bol.DataSeries[0].Values[_bol.DataSeries[0].Values.Count - 1];
-        _bolLastDown = _bol.DataSeries[1].Values[_bol.DataSeries[1].Values.Count - 1];
+        _bolLastUp = _bol.DataSeries[0].Last;
+        _bolLastDown = _bol.DataSeries[1].Last;
 
         List<Position> openPositions = _tab.PositionsOpenAll;
 

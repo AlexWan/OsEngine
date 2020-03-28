@@ -117,8 +117,8 @@ namespace OsEngine.Indicators
                     Indicator = Serialize(myPath, nameClass, name, canDelete);
                 }
 
-                Indicator.CanDelete = canDelete;
                 Indicator.Init(name);
+                Indicator.CanDelete = canDelete;
             }
             catch (Exception e)
             {

@@ -31,13 +31,17 @@ public class PriceChannelVolatility : BotPanel
         LengthChannelDown = CreateParameter("Length Channel Down", 12, 5, 80, 2);
 
         _pc = IndicatorsFactory.CreateIndicatorByName("PriceChannel", name + "PriceChannel", false);
+
         _pc.ParametersDigit[0].Value = LengthChannelUp.ValueInt;
         _pc.ParametersDigit[1].Value = LengthChannelDown.ValueInt;
+
         _pc = (Aindicator)_tab.CreateCandleIndicator(_pc, "Prime");
         _pc.Save();
 
         _atr = IndicatorsFactory.CreateIndicatorByName("ATR",name + "ATR", false);
+
         _atr.ParametersDigit[0].Value = LengthAtr.ValueInt;
+
         _atr = (Aindicator)_tab.CreateCandleIndicator(_atr, "Second");
         _atr.Save();
 
@@ -163,9 +167,9 @@ public class PriceChannelVolatility : BotPanel
             return;
         }
 
-        _lastPcUp = _pc.DataSeries[0].Values[_pc.DataSeries[0].Values.Count - 1];
-        _lastPcDown = _pc.DataSeries[1].Values[_pc.DataSeries[1].Values.Count - 1];
-        _lastAtr = _atr.DataSeries[0].Values[_atr.DataSeries[0].Values.Count - 1];
+        _lastPcUp = _pc.DataSeries[0].Last;
+        _lastPcDown = _pc.DataSeries[1].Last;
+        _lastAtr = _atr.DataSeries[0].Last;
 
         if (_pc.DataSeries[0].Values == null || _pc.DataSeries[1].Values == null || 
             _pc.DataSeries[0].Values.Count < _pc.ParametersDigit[0].Value + 1 ||

@@ -25,8 +25,9 @@ namespace CustomIndicators.Scripts
                 _deviation = CreateParameterDecimal("Deviation", 2);
 
                 _seriesUp = CreateSeries("Up line", Color.Green, IndicatorChartPaintType.Line, true);
-                _seriesCenter = CreateSeries("Centre line", Color.Green, IndicatorChartPaintType.Line, true);
                 _seriesDown = CreateSeries("Down line", Color.Green, IndicatorChartPaintType.Line, true);
+
+                _seriesCenter = CreateSeries("Centre line", Color.Green, IndicatorChartPaintType.Line, true);
 
                 _sma = IndicatorsFactory.CreateIndicatorByName("Sma", Name + "Sma", false);
                 ((IndicatorParameterInt)_sma.Parameters[0]).Bind(_lenght);
