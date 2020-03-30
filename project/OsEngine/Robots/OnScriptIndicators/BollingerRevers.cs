@@ -154,7 +154,9 @@ public class BollingerRevers : BotPanel
     /// </summary>
     private void LogicClosePosition(List<Candle> candles, Position position)
     {
-        if (position.State == PositionStateType.Closing)
+        if (position.State == PositionStateType.Closing ||
+            position.CloseActiv == true ||
+            (position.CloseOrders != null &&  position.CloseOrders.Count > 0)) 
         {
             return;
         }
