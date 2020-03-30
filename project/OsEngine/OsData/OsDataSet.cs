@@ -837,7 +837,7 @@ namespace OsEngine.OsData
             {
                 for (int i = 0; i < SecuritiesNames.Count; i++)
                 {
-                    StartThis(SecuritiesNames[i], TimeFrame.Hour1);
+                    SubscribeMarketDepthOrTrades(SecuritiesNames[i]);
                 }
             }
             if (TfTickIsOn && _myServer != null)
@@ -874,12 +874,44 @@ namespace OsEngine.OsData
                 series = _myServer.GetCandleDataToSecurity(loadSec.Id, timeFrameBuilder, TimeStart,
                         TimeEnd, GetActualTimeToCandle("Data\\" + SetName + "\\" + loadSec.Name.Replace("/", "") + "\\" + timeFrame), NeadToUpdate);
 
-                SendNewLogMessage("Security: " + loadSec.Name + " Tf: " + timeFrame + " Loaded",LogMessageType.System);
+                if (series != null)
+                {
+                    SendNewLogMessage("Security: " + loadSec.Name + " Tf: " + timeFrame + " Loaded", LogMessageType.System);
+                }
+                else
+                {
+                    SendNewLogMessage("Security: " + loadSec.Name + " Tf: " + timeFrame + " Did not load. We will try it again", LogMessageType.System);
+                }
 
-                await Task.Delay(10);
+                await Task.Delay(10000);
             }
 
             _mySeries.Add(series);
+        }
+
+        private async void SubscribeMarketDepthOrTrades(SecurityToLoad loadSec)
+        {
+            CandleSeries series = null;
+            while (series == null)
+            {
+                TimeFrame timeFrame = TimeFrame.Hour1;
+                TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder();
+                timeFrameBuilder.TimeFrame = timeFrame;
+                timeFrameBuilder.CandleMarketDataType = CandleMarketDataType.MarketDepth;
+
+                series = _myServer.StartThisSecurity(loadSec.Name, timeFrameBuilder);
+
+                if (series != null)
+                {
+                    SendNewLogMessage("Market Depth: " + loadSec.Name + " subscribed", LogMessageType.System);
+                }
+                else
+                {
+                    SendNewLogMessage("Market Depth: " + loadSec.Name + " did not subscribe. We will try it again", LogMessageType.System);
+                }
+
+                await Task.Delay(10000);
+            }
         }
 
         /// <summary>
