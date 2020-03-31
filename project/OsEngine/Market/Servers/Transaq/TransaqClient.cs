@@ -234,10 +234,6 @@ namespace OsEngine.Market.Servers.Transaq
 
                         if (_newMessage.TryDequeue(out data))
                         {
-                            if (data.StartsWith("connected=\"error\" "))
-                            {
-                                continue;
-                            }
                             if (data.StartsWith("<pits>"))
                             {
                                 continue;
