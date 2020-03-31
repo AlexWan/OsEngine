@@ -27,7 +27,7 @@ namespace OsEngine.Market.Servers.Transaq
 
         delegate bool CallBackDelegate(IntPtr pData);
 
-        readonly CallBackDelegate _myCallbackDelegate;
+        private CallBackDelegate _myCallbackDelegate;
 
         /// <summary>
         /// constructor
@@ -234,6 +234,10 @@ namespace OsEngine.Market.Servers.Transaq
 
                         if (_newMessage.TryDequeue(out data))
                         {
+                            if (data.StartsWith("connected=\"error\" "))
+                            {
+                                continue;
+                            }
                             if (data.StartsWith("<pits>"))
                             {
                                 continue;
