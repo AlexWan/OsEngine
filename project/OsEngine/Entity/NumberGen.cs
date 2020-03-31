@@ -5,7 +5,7 @@
 
 using System;
 using System.IO;
-using System.Threading;
+using System.Threading.Tasks;
 using OsEngine.Market;
 
 namespace OsEngine.Entity
@@ -17,11 +17,11 @@ namespace OsEngine.Entity
     public class NumberGen
     {
         private static bool _isFirstTime = true;
-        private static void SaverSpace()
+        private static async void SaverSpace()
         {
             while (true)
             {
-                Thread.Sleep(500);
+                await Task.Delay(500);
 
                 if (_neadToSave)
                 {
@@ -90,10 +90,8 @@ namespace OsEngine.Entity
                 _isFirstTime = false;
                 Load();
 
-                Thread saver = new Thread(SaverSpace);
-                saver.Name = "NumberGeneratorThread";
-                saver.IsBackground = true;
-                saver.Start();
+                Task task = new Task(SaverSpace);
+                task.Start();
             }
 
             _numberDealForRealTrading++;
@@ -134,10 +132,8 @@ namespace OsEngine.Entity
                 _isFirstTime = false;
                 Load();
 
-                Thread saver = new Thread(SaverSpace);
-                saver.IsBackground = true;
-                saver.Name = "NumberGeneratorThread";
-                saver.Start();
+                Task task = new Task(SaverSpace);
+                task.Start();
             }
 
             _numberOrderForRealTrading++;

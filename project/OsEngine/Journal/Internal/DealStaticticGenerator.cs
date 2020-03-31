@@ -28,7 +28,9 @@ namespace OsEngine.Journal.Internal
                 return null;
             }
 
-            List<Position> positionsNew = positions.FindAll((position => position.State != PositionStateType.OpeningFail));
+            List<Position> positionsNew = positions.FindAll((
+                position => position.State != PositionStateType.OpeningFail 
+                            && position.EntryPrice != 0 && position.ClosePrice != 0));
 
             if (positionsNew.Count == 0)
             {
@@ -192,11 +194,24 @@ namespace OsEngine.Journal.Internal
             {
                 return 0;
             }
-            decimal profit = 0;
 
+            decimal profit = 0;
+            
             for (int i = 0; i < deals.Length; i++)
             {
-                profit += deals[i].ProfitOperationPersent;
+                decimal enter = deals[i].EntryPrice;
+                decimal exit = deals[i].ClosePrice;
+
+                if (enter == 0) continue;
+
+                if (deals[i].Direction == Side.Buy)
+                {
+                    profit += exit / enter * 100 - 100;
+                }
+                else if (deals[i].Direction == Side.Sell)
+                {
+                    profit += -(exit / enter * 100 - 100);
+                }
             }
 
             return Math.Round(profit / deals.Length, 6);
@@ -272,7 +287,12 @@ namespace OsEngine.Journal.Internal
             }
             decimal profit = 0;
 
-           return Math.Round(profit / deals.Length, 6);
+            for (int i = 0; i < deals.Length; i++)
+            {
+                profit += deals[i].ProfitPortfolioPunkt;
+            }
+
+            return Math.Round(profit / deals.Length, 6);
         }
 
         // Profits

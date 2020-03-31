@@ -10,7 +10,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
@@ -67,9 +67,8 @@ namespace OsEngine.Journal
             TabBots.SizeChanged += TabBotsSizeChanged;
             TabControlPrime.SelectionChanged += TabControlPrime_SelectionChanged;
 
-            Thread worker = new Thread(ThreadWorkerPlace);
-            worker.IsBackground = true;
-            worker.Start();
+            Task task = new Task(ThreadWorkerPlace);
+            task.Start();
 
             Title = OsLocalization.Journal.TitleJournalUi;
             Label1.Content = OsLocalization.Journal.Label1;
@@ -175,7 +174,10 @@ namespace OsEngine.Journal
 
                 positionsAll =
                     positionsAll.FindAll(
-                        pos => pos.State != PositionStateType.OpeningFail && pos.State != PositionStateType.Opening);
+                        pos => pos.State != PositionStateType.OpeningFail 
+                              // && pos.State != PositionStateType.Opening
+                               );
+
                 positionsLong =
                     positionsLong.FindAll(
                         pos => pos.State != PositionStateType.OpeningFail && pos.State != PositionStateType.Opening);
@@ -195,11 +197,11 @@ namespace OsEngine.Journal
                     {
                         newPositionsAll.Add(positionsAll[i]);
                     }
-                    else if (newPositionsAll[0].TimeCreate > positionsAll[i].TimeCreate)
+                    else if (newPositionsAll[0].TimeCreate >= positionsAll[i].TimeCreate)
                     {
                         newPositionsAll.Insert(0, positionsAll[i]);
                     }
-                    else
+                    else 
                     {
                         for (int i2 = 0; i2 < newPositionsAll.Count-1; i2++)
                         {
@@ -356,7 +358,7 @@ namespace OsEngine.Journal
         /// the location of stream updating statistics
         /// место работы потока обновляющего статистку
         /// </summary>
-        private void ThreadWorkerPlace()
+        private async void ThreadWorkerPlace()
         {
             if (_startProgram != StartProgram.IsOsTrader)
             {
@@ -364,7 +366,7 @@ namespace OsEngine.Journal
             }
             while (true)
             {
-                Thread.Sleep(30000);
+                await Task.Delay(30000);
 
                 if (IsErase == true)
                 {

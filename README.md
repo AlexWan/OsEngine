@@ -40,6 +40,7 @@ The layer for creating robots is similar to the Wealth-Lab script and Ninja Scri
 3) Transaq
 4) Plaza 2
 5) Asts Bridge
+6) Tinkoff
 
 *Available connections for cryptocurrency exchanges*
 
@@ -52,6 +53,8 @@ The layer for creating robots is similar to the Wealth-Lab script and Ninja Scri
 7) LiveCoin
 8) ExMo
 9) ZB
+10) Gate IO
+11) HitBtc
 
 *Available connections for Forex*
 
@@ -111,6 +114,7 @@ Forum http://o-s-a.net/eng/forum
 3) Transaq
 4) Plaza 2
 5) Asts Bridge
+6) Tinkoff
 
 *Доступные подключения для бирж криптовалют*
 
@@ -123,6 +127,8 @@ Forum http://o-s-a.net/eng/forum
 7) LiveCoin
 8) ExMo
 9) ZB
+10) Gate IO
+11) HitBtc
 
 *Доступные подключения для форекс*
 

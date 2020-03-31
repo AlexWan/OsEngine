@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using OsEngine.Entity;
+using OsEngine.Indicators;
 
 namespace OsEngine.Charts.CandleChart.Indicators
 {
@@ -15,7 +16,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
     /// Indicator BearsPower
     /// Индикатор BearsPower
     /// </summary>
-    public class BearsPower : IIndicatorCandle
+    public class BearsPower : IIndicator
     {
         /// <summary>
         /// Period N
@@ -32,7 +33,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public BearsPower(string uniqName, bool canDelete)
         {
             Name = uniqName;
-            TypeIndicator = IndicatorOneCandleChartType.Column;
+            TypeIndicator = IndicatorChartPaintType.Column;
             TypeCalculationAverage = MovingAverageTypeCalculation.Exponential;
             Period = 13;
             ColorUp = Color.DodgerBlue;
@@ -53,7 +54,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             Name = Guid.NewGuid().ToString();
 
-            TypeIndicator = IndicatorOneCandleChartType.Column;
+            TypeIndicator = IndicatorChartPaintType.Column;
             TypeCalculationAverage = MovingAverageTypeCalculation.Exponential;
             Period = 13;
             ColorUp = Color.DodgerBlue;
@@ -67,7 +68,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// all indicator values
         /// все значения индикатора
         /// </summary>
-        List<List<decimal>> IIndicatorCandle.ValuesToChart
+        List<List<decimal>> IIndicator.ValuesToChart
         {
             get
             {
@@ -81,7 +82,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator colors
         /// цвета для индикатора
         /// </summary>
-        List<Color> IIndicatorCandle.Colors
+        List<Color> IIndicator.Colors
         {
             get
             {
@@ -103,7 +104,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator drawing type
         /// тип прорисовки индикатора
         /// </summary>
-        public IndicatorOneCandleChartType TypeIndicator { get; set; }
+        public IndicatorChartPaintType TypeIndicator { get; set; }
 
         /// <summary>
         /// type of moving average for indicator calculation
@@ -312,7 +313,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator needs to be redrawn
         /// индикатор нужно перерисовать
         /// </summary>
-        public event Action<IIndicatorCandle> NeadToReloadEvent;
+        public event Action<IIndicator> NeadToReloadEvent;
 
         /// <summary>
         ///  load only last candle

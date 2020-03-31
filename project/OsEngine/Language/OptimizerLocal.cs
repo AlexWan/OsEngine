@@ -316,6 +316,9 @@ namespace OsEngine.Language
             "Eng:Position count >_" +
             "Ru:Количество сделок >_");
 
+        public string Label35 => OsLocalization.ConvertToLocString(
+            "Eng:Select_" +
+            "Ru:Выбрать_");
 
     }
 }

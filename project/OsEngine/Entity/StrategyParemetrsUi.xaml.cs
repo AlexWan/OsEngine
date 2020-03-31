@@ -14,7 +14,7 @@ namespace OsEngine.Entity
     /// Interaction logic for ParemetrsUi.xaml
     /// Логика взаимодействия для ParemetrsUi.xaml
     /// </summary>
-    public partial class ParemetrsUi 
+    public partial class ParemetrsUi
     {
 
         private List<IIStrategyParameter> _parameters;
@@ -72,16 +72,19 @@ namespace OsEngine.Entity
                 row.Cells.Add(new DataGridViewTextBoxCell());
                 row.Cells[0].Value = _parameters[i].Name;
 
-                DataGridViewComboBoxCell cell = new DataGridViewComboBoxCell();
-
                 if (_parameters[i].Type == StrategyParameterType.Bool)
                 {
+                    DataGridViewComboBoxCell cell = new DataGridViewComboBoxCell();
+
                     cell.Items.Add("False");
                     cell.Items.Add("True");
                     cell.Value = ((StrategyParameterBool)_parameters[i]).ValueBool.ToString();
+                    row.Cells.Add(cell);
                 }
                 else if (_parameters[i].Type == StrategyParameterType.String)
                 {
+                    DataGridViewComboBoxCell cell = new DataGridViewComboBoxCell();
+
                     StrategyParameterString param = (StrategyParameterString)_parameters[i];
 
                     for (int i2 = 0; i2 < param.ValuesString.Count; i2++)
@@ -89,36 +92,28 @@ namespace OsEngine.Entity
                         cell.Items.Add(param.ValuesString[i2]);
                     }
                     cell.Value = param.ValueString;
+                    row.Cells.Add(cell);
                 }
                 else if (_parameters[i].Type == StrategyParameterType.Int)
                 {
+                    DataGridViewTextBoxCell cell = new DataGridViewTextBoxCell();
+
                     StrategyParameterInt param = (StrategyParameterInt)_parameters[i];
 
-                    cell.Items.Add(param.ValueInt.ToString());
-                    int valueCurrent = param.ValueIntStart;
-                    for (int i2 = 0; valueCurrent < param.ValueIntStop; i2++)
-                    {
-                        cell.Items.Add(valueCurrent.ToString());
-                        valueCurrent += param.ValueIntStep;
-                    }
-                    cell.Items.Add(param.ValueIntStop.ToString());
                     cell.Value = param.ValueInt.ToString();
+                    row.Cells.Add(cell);
                 }
                 else if (_parameters[i].Type == StrategyParameterType.Decimal)
                 {
+                    DataGridViewTextBoxCell cell = new DataGridViewTextBoxCell();
+
                     StrategyParameterDecimal param = (StrategyParameterDecimal)_parameters[i];
 
-                    cell.Items.Add(param.ValueDecimal.ToString());
-                    decimal valueCurrent = param.ValueDecimalStart;
-                    for (int i2 = 0; valueCurrent < param.ValueDecimalStop; i2++)
-                    {
-                        cell.Items.Add(valueCurrent.ToString());
-                        valueCurrent += param.ValueDecimalStep;
-                    }
-                    cell.Items.Add(param.ValueDecimalStop.ToString());
                     cell.Value = param.ValueDecimal.ToString();
+                    row.Cells.Add(cell);
                 }
-                row.Cells.Add(cell);
+
+
 
                 _grid.Rows.Add(row);
             }
@@ -128,22 +123,31 @@ namespace OsEngine.Entity
         {
             for (int i = 0; i < _parameters.Count; i++)
             {
-                if (_parameters[i].Type == StrategyParameterType.String)
+                try
                 {
-                    ((StrategyParameterString)_parameters[i]).ValueString = _grid.Rows[i].Cells[1].EditedFormattedValue.ToString();
+                    if (_parameters[i].Type == StrategyParameterType.String)
+                    {
+                        ((StrategyParameterString)_parameters[i]).ValueString = _grid.Rows[i].Cells[1].EditedFormattedValue.ToString();
+                    }
+                    else if (_parameters[i].Type == StrategyParameterType.Int)
+                    {
+                        ((StrategyParameterInt)_parameters[i]).ValueInt = Convert.ToInt32(_grid.Rows[i].Cells[1].EditedFormattedValue.ToString());
+                    }
+                    else if (_parameters[i].Type == StrategyParameterType.Bool)
+                    {
+                        ((StrategyParameterBool)_parameters[i]).ValueBool = Convert.ToBoolean(_grid.Rows[i].Cells[1].EditedFormattedValue.ToString());
+                    }
+                    else if (_parameters[i].Type == StrategyParameterType.Decimal)
+                    {
+                        ((StrategyParameterDecimal)_parameters[i]).ValueDecimal = _grid.Rows[i].Cells[1].EditedFormattedValue.ToString().ToDecimal();
+                    }
                 }
-                else if (_parameters[i].Type == StrategyParameterType.Int)
+                catch
                 {
-                    ((StrategyParameterInt)_parameters[i]).ValueInt = Convert.ToInt32(_grid.Rows[i].Cells[1].EditedFormattedValue.ToString());
+                    MessageBox.Show("Error. One of field have note valid param");
+                    return;
                 }
-                else if (_parameters[i].Type == StrategyParameterType.Bool)
-                {
-                    ((StrategyParameterBool)_parameters[i]).ValueBool = Convert.ToBoolean(_grid.Rows[i].Cells[1].EditedFormattedValue.ToString());
-                }
-                else if (_parameters[i].Type == StrategyParameterType.Decimal)
-                {
-                    ((StrategyParameterDecimal)_parameters[i]).ValueDecimal = Convert.ToDecimal(_grid.Rows[i].Cells[1].EditedFormattedValue.ToString());
-                }
+
             }
 
             Close();

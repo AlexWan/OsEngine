@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using OsEngine.Entity;
 using OsEngine.Language;
@@ -9,6 +9,7 @@ using OsEngine.Market;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels;
+using OsEngine.Robots;
 
 namespace OsEngine.OsOptimizer
 {
@@ -19,7 +20,7 @@ namespace OsEngine.OsOptimizer
     /// </summary>
     public class OptimizerExecutor
     {
-        
+
         public OptimizerExecutor(OptimizerMaster master)
         {
             _master = master;
@@ -54,9 +55,8 @@ namespace OsEngine.OsOptimizer
             _servers = new List<OptimizerServer>();
             _countAllServersMax = 0;
             _serverNum = 0;
-            
-            _primeThreadWorker = new Thread(PrimeThreadWorkerPlace);
-            _primeThreadWorker.IsBackground = true;
+
+            _primeThreadWorker = new Task(PrimeThreadWorkerPlace);
             _primeThreadWorker.Start();
 
             return true;
@@ -94,19 +94,19 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         private bool _neadToStop;
 
-// optimization algorithm/алгоритм оптимизации 
+        // optimization algorithm/алгоритм оптимизации 
 
         /// <summary>
         /// main stream responsible for optimization
         /// основной поток отвечающий за оптимизацию
         /// </summary>
-        private Thread _primeThreadWorker;
+        private Task _primeThreadWorker;
 
         /// <summary>
         /// place of work flow responsible for optimization
         /// место работы потока отвечающего за оптимизацию
         /// </summary>
-        private void PrimeThreadWorkerPlace()
+        private async void PrimeThreadWorkerPlace()
         {
             List<IIStrategyParameter> allParam = _parameters;
 
@@ -125,7 +125,7 @@ namespace OsEngine.OsOptimizer
             List<bool> allOptimezedParam = _parametersOn;
 
 
-// 1 consider how many passes we need to do in the first phase/1 считаем сколько проходов нам нужно сделать в первой фазе
+            // 1 consider how many passes we need to do in the first phase/1 считаем сколько проходов нам нужно сделать в первой фазе
 
             List<IIStrategyParameter> optimizedParamToCheckCount = new List<IIStrategyParameter>();
 
@@ -221,8 +221,8 @@ namespace OsEngine.OsOptimizer
 
             SendLogMessage(OsLocalization.Optimizer.Message4 + countBots, LogMessageType.System);
 
-// 2 pass the first phase when you need to bypass all the options
-// 2 проходим первую фазу, когда нужно обойти все варианты
+            // 2 pass the first phase when you need to bypass all the options
+            // 2 проходим первую фазу, когда нужно обойти все варианты
 
             List<IIStrategyParameter> optimizedParam = new List<IIStrategyParameter>();
 
@@ -254,7 +254,7 @@ namespace OsEngine.OsOptimizer
             {
                 bool isAndOfFaze = false; // all parameters passed/все параметры пройдены
 
-                for (int i2 = 0; i2 < currentParam.Count+1; i2++)
+                for (int i2 = 0; i2 < currentParam.Count + 1; i2++)
                 {
                     if (i2 == currentParam.Count)
                     {
@@ -321,14 +321,14 @@ namespace OsEngine.OsOptimizer
 
                 while (_servers.Count >= _master.ThreadsCount)
                 {
-                    Thread.Sleep(2000);
+                    await Task.Delay(2000);
                 }
 
                 if (_neadToStop)
                 {
                     while (true)
                     {
-                        Thread.Sleep(1000);
+                        await Task.Delay(1000);
                         if (_servers.Count == 0)
                         {
                             break;
@@ -353,7 +353,7 @@ namespace OsEngine.OsOptimizer
 
             while (true)
             {
-                Thread.Sleep(1000);
+                await Task.Delay(1000);
                 if (_servers.Count == 0)
                 {
                     break;
@@ -367,13 +367,13 @@ namespace OsEngine.OsOptimizer
 
             SendLogMessage(OsLocalization.Optimizer.Message5, LogMessageType.System);
 
-// 3 filter/3 фильтруем 
+            // 3 filter/3 фильтруем 
 
             List<BotPanel> botsToOutOfSample = new List<BotPanel>();
 
             EndOfFazeFiltration(botsInFaze, fazes[0], botsToOutOfSample);
 
-// 4 do forwards/4 делаем форварды
+            // 4 do forwards/4 делаем форварды
 
             SendLogMessage(OsLocalization.Optimizer.Message6, LogMessageType.System);
 
@@ -383,14 +383,14 @@ namespace OsEngine.OsOptimizer
             {
                 while (_servers.Count >= _master.ThreadsCount)
                 {
-                    Thread.Sleep(2000);
+                    await Task.Delay(2000);
                 }
 
                 if (_neadToStop)
                 {
                     while (true)
                     {
-                        Thread.Sleep(1000);
+                        await Task.Delay(1000);
                         if (_servers.Count == 0)
                         {
                             break;
@@ -414,7 +414,7 @@ namespace OsEngine.OsOptimizer
 
             while (true)
             {
-                Thread.Sleep(1000);
+                await Task.Delay(1000);
                 if (_servers.Count == 0)
                 {
                     break;
@@ -444,12 +444,12 @@ namespace OsEngine.OsOptimizer
         {
             if (param.Type == StrategyParameterType.Int)
             {
-                ((StrategyParameterInt) param).ValueInt = ((StrategyParameterInt) param).ValueIntStart;
+                ((StrategyParameterInt)param).ValueInt = ((StrategyParameterInt)param).ValueIntStart;
             }
 
             if (param.Type == StrategyParameterType.Decimal)
             {
-                ((StrategyParameterDecimal) param).ValueDecimal = ((StrategyParameterDecimal) param).ValueDecimalStart;
+                ((StrategyParameterDecimal)param).ValueDecimal = ((StrategyParameterDecimal)param).ValueDecimalStart;
             }
         }
 
@@ -477,19 +477,19 @@ namespace OsEngine.OsOptimizer
                 else if (paramsToCopy[i].Type == StrategyParameterType.Int)
                 {
                     newParam = new StrategyParameterInt(paramsToCopy[i].Name,
-                        ((StrategyParameterInt) paramsToCopy[i]).ValueIntDefolt,
-                        ((StrategyParameterInt) paramsToCopy[i]).ValueIntStart,
-                        ((StrategyParameterInt) paramsToCopy[i]).ValueIntStop,
-                        ((StrategyParameterInt) paramsToCopy[i]).ValueIntStep);
-                    ((StrategyParameterInt) newParam).ValueInt = ((StrategyParameterInt) paramsToCopy[i]).ValueIntStart;
+                        ((StrategyParameterInt)paramsToCopy[i]).ValueIntDefolt,
+                        ((StrategyParameterInt)paramsToCopy[i]).ValueIntStart,
+                        ((StrategyParameterInt)paramsToCopy[i]).ValueIntStop,
+                        ((StrategyParameterInt)paramsToCopy[i]).ValueIntStep);
+                    ((StrategyParameterInt)newParam).ValueInt = ((StrategyParameterInt)paramsToCopy[i]).ValueIntStart;
                 }
                 else if (paramsToCopy[i].Type == StrategyParameterType.Decimal)
                 {
                     newParam = new StrategyParameterDecimal(paramsToCopy[i].Name,
-                        ((StrategyParameterDecimal) paramsToCopy[i]).ValueDecimalDefolt,
-                        ((StrategyParameterDecimal) paramsToCopy[i]).ValueDecimalStart,
-                        ((StrategyParameterDecimal) paramsToCopy[i]).ValueDecimalStop,
-                        ((StrategyParameterDecimal) paramsToCopy[i]).ValueDecimalStep);
+                        ((StrategyParameterDecimal)paramsToCopy[i]).ValueDecimalDefolt,
+                        ((StrategyParameterDecimal)paramsToCopy[i]).ValueDecimalStart,
+                        ((StrategyParameterDecimal)paramsToCopy[i]).ValueDecimalStop,
+                        ((StrategyParameterDecimal)paramsToCopy[i]).ValueDecimalStep);
                     ((StrategyParameterDecimal)newParam).ValueDecimal = ((StrategyParameterDecimal)paramsToCopy[i]).ValueDecimalStart;
                 }
                 newParameters.Add(newParam);
@@ -529,7 +529,7 @@ namespace OsEngine.OsOptimizer
 
                 }
                 else if (_master.FilterWinPositionIsOn &&
-                         bots[i].WinPositionPersent < _master.FilterWinPositionValue/100)
+                         bots[i].WinPositionPersent < _master.FilterWinPositionValue / 100)
                 {
 
                 }
@@ -567,7 +567,7 @@ namespace OsEngine.OsOptimizer
         /// <param name="faze">current optimization phase/текущая фаза оптимизации</param>
         /// <param name="botsInFaze">list of bots already running in the current phase/список ботов уже запущенный в текущей фазе</param>
         /// <param name="botName">the name of the created robot/имя создаваемого робота</param>
-        private void StartNewBot(List<IIStrategyParameter> parametrs, List<IIStrategyParameter> paramOptimized,
+        private async void StartNewBot(List<IIStrategyParameter> parametrs, List<IIStrategyParameter> paramOptimized,
             OptimizerFaze faze, List<BotPanel> botsInFaze, string botName)
         {
             if (!MainWindow.GetDispatcher.CheckAccess())
@@ -577,12 +577,12 @@ namespace OsEngine.OsOptimizer
                         <List<IIStrategyParameter>, List<IIStrategyParameter>,
                             OptimizerFaze, List<BotPanel>, string>(StartNewBot),
                     parametrs, paramOptimized, faze, botsInFaze, botName);
-                Thread.Sleep(1000);
+                await Task.Delay(1000);
                 return;
             }
 
-// 1. Create a new server for optimization. And one thread respectively
-// 1. создаём новый сервер для оптимизации. И один поток соответственно
+            // 1. Create a new server for optimization. And one thread respectively
+            // 1. создаём новый сервер для оптимизации. И один поток соответственно
             OptimizerServer server = ServerMaster.CreateNextOptimizerServer(_master.Storage, _serverNum,
             _master.StartDepozit);
 
@@ -602,10 +602,10 @@ namespace OsEngine.OsOptimizer
                     faze.TimeEnd);
             }
 
-// 2. create a new robot and upload it with the appropriate settings and parameters
-// 2. создаём нового робота и прогружаем его соответствующими настройками и параметрами
+            // 2. create a new robot and upload it with the appropriate settings and parameters
+            // 2. создаём нового робота и прогружаем его соответствующими настройками и параметрами
 
-            BotPanel bot = PanelCreator.GetStrategyForName(_master.StrategyName, botName,StartProgram.IsOsOptimizer);
+            BotPanel bot = BotFactory.GetStrategyForName(_master.StrategyName, botName, StartProgram.IsOsOptimizer, _master.IsScript);
 
             for (int i = 0; i < parametrs.Count; i++)
             {
@@ -634,8 +634,8 @@ namespace OsEngine.OsOptimizer
                 }
             }
 
-// custom tabs
-// настраиваем вкладки
+            // custom tabs
+            // настраиваем вкладки
             for (int i = 0; i < _master.TabsSimpleNamesAndTimeFrames.Count; i++)
             {
                 bot.TabsSimple[i].Connector.ServerType = ServerType.Optimizer;
@@ -665,7 +665,7 @@ namespace OsEngine.OsOptimizer
                     {
                         bot.TabsIndex[i].CreateNewSecurityConnector();
                     }
-                    
+
                     bot.TabsIndex[i].Tabs[i2].ServerType = ServerType.Optimizer;
                     bot.TabsIndex[i].Tabs[i2].PortfolioName = server.Portfolios[0].Number;
                     bot.TabsIndex[i].Tabs[i2].NamePaper = _master.TabsIndexNamesAndTimeFrames[i].NamesSecurity[i2];
@@ -686,14 +686,14 @@ namespace OsEngine.OsOptimizer
                 bot.TabsIndex[i].UserFormula = _master.TabsIndexNamesAndTimeFrames[i].Formula;
             }
 
-// wait for the robot to connect to its data server
-// ждём пока робот подключиться к своему серверу данных
+            // wait for the robot to connect to its data server
+            // ждём пока робот подключиться к своему серверу данных
 
             DateTime timeStartWaiting = DateTime.Now;
 
             while (bot.IsConnected == false)
             {
-                Thread.Sleep(1000);
+                await Task.Delay(1000);
 
                 if (timeStartWaiting.AddSeconds(20) < DateTime.Now)
                 {
@@ -718,7 +718,7 @@ namespace OsEngine.OsOptimizer
         /// первый параметр: текущее значение progressBar
         /// второй параемтр: максимальное значение progressBar
         /// </summary>
-        public event Action<int,int> PrimeProgressChangeEvent;
+        public event Action<int, int> PrimeProgressChangeEvent;
 
         /// <summary>
         /// the event that you need to move the interface to a certain place
@@ -726,8 +726,7 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         public event Action<NeadToMoveUiTo> NeadToMoveUiToEvent;
 
-// server performing optimization
-// сервера проводящие оптимизацию
+        // server performing optimization сервера проводящие оптимизацию
 
         /// <summary>
         /// server optimization

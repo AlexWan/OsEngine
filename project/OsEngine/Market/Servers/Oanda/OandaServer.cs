@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using OkonkwoOandaV20;
+using OkonkwoOandaV20.TradeLibrary.DataTypes.Instrument;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
@@ -32,6 +34,10 @@ namespace OsEngine.Market.Servers.Oanda
             Thread watcherConnectThread = new Thread(ReconnectThread);
             watcherConnectThread.IsBackground = true;
             watcherConnectThread.Start();
+
+            Thread workerGetTicks = new Thread(CandleGeterThread);
+            workerGetTicks.IsBackground = true;
+            workerGetTicks.Start();
         }
 
         public ServerConnectStatus ServerStatus { get; set; }
@@ -98,6 +104,8 @@ namespace OsEngine.Market.Servers.Oanda
             }
             _client.Connect(((ServerParameterString)ServerParameters[0]).Value, ((ServerParameterPassword)ServerParameters[1]).Value,
                 ((ServerParameterBool)ServerParameters[2]).Value);
+
+           
         }
 
         public void Dispose()
@@ -117,9 +125,9 @@ namespace OsEngine.Market.Servers.Oanda
 
             try
             {
-                if (_client != null && ServerStatus == ServerConnectStatus.Connect)
+                if (_client != null)
                 {
-                    _client.Disconnect();
+                    _client.Dispose();
                 }
             }
             catch (Exception error)
@@ -136,12 +144,13 @@ namespace OsEngine.Market.Servers.Oanda
             if (_portfolios == null)
             {
                 GetPortfolios();
-                Thread.Sleep(10000);
+                Thread.Sleep(15000);
             }
 
             if (_portfolios != null)
             {
-                _client.GetSecurities(_portfolios);
+              _client.GetSecurities(_portfolios);
+              Thread.Sleep(15000);
             }
         }
 
@@ -162,7 +171,12 @@ namespace OsEngine.Market.Servers.Oanda
 
         public void Subscrible(Security security)
         {
-            _client.StartStreamThreads();
+            _client.StartStreamThreads(security);
+
+            if (_namesSecuritiesToGetTicks.Find(name => name.Name == security.Name) == null)
+            {
+                _namesSecuritiesToGetTicks.Add(security);
+            }
         }
 
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime,
@@ -190,6 +204,8 @@ namespace OsEngine.Market.Servers.Oanda
             {
                 MarketDepthEvent(marketDepth);
             }
+
+            _depthsDontGo = false;
         }
 
         private void ClientOnNewSecurityEvent(List<Security> securities)
@@ -256,6 +272,7 @@ namespace OsEngine.Market.Servers.Oanda
 
         private void ClientOnConnectionSucsess()
         {
+            ServerStatus = ServerConnectStatus.Connect;
             if (ConnectEvent != null)
             {
                 ConnectEvent();
@@ -264,14 +281,156 @@ namespace OsEngine.Market.Servers.Oanda
 
         private void ClientOnConnectionFail()
         {
+            ServerStatus = ServerConnectStatus.Disconnect;
+
             if (DisconnectEvent != null)
             {
                 DisconnectEvent();
             }
         }
 
-        // outgoing events
-        // исходящие события
+        // outgoing events исходящие события
+
+        private List<Security> _namesSecuritiesToGetTicks = new List<Security>();
+
+        private bool _depthsDontGo = true;
+
+        /// <summary>
+        /// взять таймфрейм в формате Oanda
+        /// </summary>
+        private string GetTimeFrameInOandaFormat(TimeFrame frame)
+        {
+            if (frame == TimeFrame.Sec5)
+            {
+                return CandleStickGranularity.Seconds05;
+            }
+            else if (frame == TimeFrame.Sec10)
+            {
+                return CandleStickGranularity.Seconds10;
+            }
+            else if (frame == TimeFrame.Sec15)
+            {
+                return CandleStickGranularity.Seconds15;
+            }
+            else if (frame == TimeFrame.Sec30)
+            {
+                return CandleStickGranularity.Seconds30;
+            }
+            else if (frame == TimeFrame.Min1)
+            {
+                return CandleStickGranularity.Minutes01;
+            }
+            else if (frame == TimeFrame.Min5)
+            {
+                return CandleStickGranularity.Minutes05;
+            }
+            else if (frame == TimeFrame.Min10)
+            {
+                return CandleStickGranularity.Minutes10;
+            }
+            else if (frame == TimeFrame.Min15)
+            {
+                return CandleStickGranularity.Minutes10;
+            }
+            else if (frame == TimeFrame.Min30)
+            {
+                return CandleStickGranularity.Minutes10;
+            }
+            else if (frame == TimeFrame.Hour1)
+            {
+                return CandleStickGranularity.Hours01;
+            }
+            else if (frame == TimeFrame.Hour2)
+            {
+                return CandleStickGranularity.Hours02;
+            }
+            return null;
+        }
+
+        private void CandleGeterThread()
+        {
+            while (true)
+            {
+                Thread.Sleep(1000);
+
+                if (_depthsDontGo == false)
+                {
+                    return;
+                }
+
+                try
+                {
+                    for (int i = 0; i < _namesSecuritiesToGetTicks.Count; i++)
+                    {
+                        short count = 1;
+                        string price = "MBA";
+                        string instrument = _namesSecuritiesToGetTicks[i].Name;
+                        string granularity = GetTimeFrameInOandaFormat(TimeFrame.Min1).ToString();
+
+                        var parameters = new Dictionary<string, string>();
+                        parameters.Add("price", price);
+                        parameters.Add("granularity", granularity);
+                        parameters.Add("count", count.ToString());
+
+                        Task<List<CandlestickPlus>> result = Rest20.GetCandlesAsync(instrument, parameters);
+
+                        while (!result.IsCanceled &&
+                               !result.IsCompleted &&
+                               !result.IsFaulted)
+                        {
+                            Thread.Sleep(10);
+                        }
+
+                        List<CandlestickPlus> candleOanda = result.Result;
+
+                        Trade newCandle = new Trade();
+
+                        newCandle.Price = Convert.ToDecimal(candleOanda[0].bid.c);
+                        newCandle.Time = DateTime.Parse(candleOanda[0].time);
+                        newCandle.SecurityNameCode = _namesSecuritiesToGetTicks[i].Name;
+                        newCandle.Volume = candleOanda[0].volume;
+                        newCandle.Side = Side.Buy;
+
+                        if (NewTradesEvent != null)
+                        {
+                            NewTradesEvent(newCandle);
+                        }
+
+                        MarketDepth depth = new MarketDepth();
+                        depth.SecurityNameCode = newCandle.SecurityNameCode;
+                        depth.Time = newCandle.Time;
+
+                        depth.Asks = new List<MarketDepthLevel>()
+                        {
+                            new MarketDepthLevel()
+                            {
+                                Ask = 1,Price = newCandle.Price + _namesSecuritiesToGetTicks[i].PriceStep
+                            }
+                        };
+
+                        depth.Bids = new List<MarketDepthLevel>()
+                        {
+                            new MarketDepthLevel()
+                            {
+                                Bid= 1,Price = newCandle.Price - _namesSecuritiesToGetTicks[i].PriceStep
+                            }
+                        };
+
+                        if (MarketDepthEvent != null)
+                        {
+                            MarketDepthEvent(depth);
+                        }
+                    }
+                }
+                catch (Exception error)
+                {
+                    SendLogMessage(error.ToString(), LogMessageType.Error);
+                    Thread.Sleep(1000);
+                }
+
+
+            }
+        }
 
         /// <summary>
         /// called when order has changed

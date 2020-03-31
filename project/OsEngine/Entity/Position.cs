@@ -365,7 +365,8 @@ namespace OsEngine.Entity
 
                 for (int i = 0; _openOrders != null && i < _openOrders.Count; i++)
                 {
-                    if (_openOrders[i].State == OrderStateType.Activ)
+                    if (_openOrders[i].State == OrderStateType.Activ ||
+                        _openOrders[i].State == OrderStateType.Patrial)
                     {
                         volumeWait += _openOrders[i].Volume - _openOrders[i].VolumeExecute;
                     }
@@ -563,42 +564,21 @@ namespace OsEngine.Entity
                     State = PositionStateType.ClosingSurplus;
                 }
                 
-                if (State == PositionStateType.Done && CloseOrders != null && EntryPrice != 0)
+                if (State == PositionStateType.Done && CloseOrders != null && EntryPrice != 0 && ClosePrice != 0)
                 {
-                    //AlertMessageManager.ThrowAlert(null, "Done пересчёт", "");
-                    decimal medianPriceClose = 0;
-                    decimal countValue = 0;
-
-                    for (int i = 0; i < CloseOrders.Count; i++)
-                    {
-                        if (CloseOrders[i].VolumeExecute != 0)
-                        {
-                            medianPriceClose += CloseOrders[i].PriceReal * CloseOrders[i].VolumeExecute;
-                            countValue += CloseOrders[i].VolumeExecute;
-                        }
-                    }
-
-                    if (countValue != 0)
-                    {
-                        medianPriceClose = medianPriceClose/countValue;
-                    }
-
-                    if (medianPriceClose == 0)
-                    {
-                        return;
-                    }
+                    decimal closePrice = ClosePrice;
+                    decimal openPrice = EntryPrice;
 
                     if (Direction == Side.Buy)
                     {
-                        ProfitOperationPersent = medianPriceClose / EntryPrice * 100 - 100;
-                        ProfitOperationPunkt = medianPriceClose - EntryPrice;
+                        ProfitOperationPersent = closePrice / EntryPrice * 100 - 100;
+                        ProfitOperationPunkt = closePrice - EntryPrice;
                     }
                     else
                     {
-                        ProfitOperationPunkt = EntryPrice - medianPriceClose;
-                        ProfitOperationPersent = -(medianPriceClose / EntryPrice * 100 - 100);
+                        ProfitOperationPunkt = EntryPrice - closePrice;
+                        ProfitOperationPersent = -(closePrice / EntryPrice * 100 - 100);
                     }
-                    ProfitOperationPersent = Math.Round(ProfitOperationPersent, 5);
                 }
             }
         }
@@ -656,41 +636,19 @@ namespace OsEngine.Entity
             }
 
 
-            if (State == PositionStateType.Done && CloseOrders != null && EntryPrice != 0 )
+            if (State == PositionStateType.Done && CloseOrders != null && EntryPrice != 0  && ClosePrice != 0)
             {
-                decimal medianPriceClose = 0;
-                decimal countValue = 0;
 
-                for (int i = 0; i < CloseOrders.Count; i++)
-                {
-                    if (CloseOrders[i].VolumeExecute != 0)
-                    {
-                        medianPriceClose += CloseOrders[i].PriceReal * CloseOrders[i].VolumeExecute;
-                        countValue += CloseOrders[i].VolumeExecute;
-                    }
-                }
-
-                if (countValue != 0)
-                {
-                    medianPriceClose = medianPriceClose / countValue;
-                }
-
-                if (medianPriceClose == 0)
-                {
-                    return;
-                }
                 if (Direction == Side.Buy)
                 {
-                    ProfitOperationPersent = medianPriceClose / EntryPrice * 100 - 100;
-                    ProfitOperationPunkt = medianPriceClose - EntryPrice;
+                    ProfitOperationPersent = ClosePrice / EntryPrice * 100 - 100;
+                    ProfitOperationPunkt = ClosePrice - EntryPrice;
                 }
                 else
                 {
-                    ProfitOperationPunkt = EntryPrice - medianPriceClose;
-                    ProfitOperationPersent = -(medianPriceClose / EntryPrice * 100 - 100);
+                    ProfitOperationPunkt = EntryPrice - ClosePrice;
+                    ProfitOperationPersent = -(ClosePrice / EntryPrice * 100 - 100);
                 }
-
-                ProfitOperationPersent = Math.Round(ProfitOperationPersent, 3);
             }
         }
 
@@ -703,6 +661,11 @@ namespace OsEngine.Entity
             if (State == PositionStateType.Open)
             {
                 if (EntryPrice == 0)
+                {
+                    return;
+                }
+
+                if (ClosePrice != 0)
                 {
                     return;
                 }
@@ -769,7 +732,10 @@ namespace OsEngine.Entity
 
             result.Append(ProfitOrderRedLine + "#");
             result.Append(SignalTypeOpen + "#");
-            result.Append(SignalTypeClose);
+            result.Append(SignalTypeClose + "#");
+
+            result.Append(ComissionValue + "#");
+            result.Append(ComissionType);
 
             if (CloseOrders != null)
             {
@@ -832,12 +798,15 @@ namespace OsEngine.Entity
             SignalTypeOpen = arraySave[18];
             SignalTypeClose = arraySave[19];
 
+            ComissionValue = arraySave[20].ToDecimal();
+            Enum.TryParse(arraySave[21], out ComissionType);
+
             for (int i = 0; i < 10; i++)
             {
-                if (arraySave.Length > 20 + i)
+                if (arraySave.Length > 22 + i)
                 {
                     Order newOrder = new Order();
-                    newOrder.SetOrderFromString(arraySave[20 + i]);
+                    newOrder.SetOrderFromString(arraySave[22 + i]);
                     AddNewCloseOrder(newOrder);
                 }
             }
@@ -942,6 +911,17 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// тип комиссии для позиции
+        /// </summary>
+        public ComissionType ComissionType;
+
+        /// <summary>
+        /// величина комиссии
+        /// comission value
+        /// </summary>
+        public decimal ComissionValue;
+
+        /// <summary>
         /// the amount of profit relative to the portfolio in absolute terms
         /// количество прибыли относительно портфеля в абсолютном выражении
         /// </summary>
@@ -956,15 +936,48 @@ namespace OsEngine.Entity
                     volume += _openOrders[i].VolumeExecute;
                 }
 
-                if(volume == 0||
+                if (volume == 0 ||
                     PriceStepCost == 0 ||
                     MaxVolume == 0)
                 {
                     return 0;
                 }
 
-                return (ProfitOperationPunkt/PriceStep)*PriceStepCost*MaxVolume*1; //  Lots;
-            } 
+                decimal comisAbsolute = 0;
+
+                if(ComissionType != ComissionType.None && ComissionValue != 0)
+                {
+                    if (ComissionType == ComissionType.Percent)
+                    {
+                        if(EntryPrice != 0 && ClosePrice == 0)
+                        {
+                            comisAbsolute = MaxVolume * EntryPrice * (ComissionValue / 100);
+                        }
+                        else if(EntryPrice != 0 && ClosePrice != 0)
+                        {
+                            comisAbsolute = MaxVolume * EntryPrice * (ComissionValue / 100) +
+                            MaxVolume * ClosePrice * (ComissionValue / 100);
+                        }
+                    }
+                    if(ComissionType == ComissionType.OneLotFix)
+                    {
+                        if (EntryPrice != 0 && ClosePrice == 0)
+                        {
+                            comisAbsolute = MaxVolume * ComissionValue;
+                        }
+                        else if (EntryPrice != 0 && ClosePrice != 0)
+                        {
+                            comisAbsolute = MaxVolume * ComissionValue *2;
+                        }
+                    }
+                }
+
+                decimal profit =
+                    (ProfitOperationPunkt / PriceStep) * PriceStepCost * MaxVolume - comisAbsolute;
+
+
+                return profit; //  Lots;
+            }
         }
 
         /// <summary>
@@ -1070,7 +1083,12 @@ namespace OsEngine.Entity
         /// brute force during closing.
         /// перебор во время закрытия.
         /// </summary>
-        ClosingSurplus
+        ClosingSurplus,
+
+        /// <summary>
+        /// удалена
+        /// </summary>
+        Deleted
     }
 
     /// <summary>
@@ -1095,5 +1113,15 @@ namespace OsEngine.Entity
         /// продажа
         /// </summary>
         Sell
+    }
+
+    /// <summary>
+    /// Тип комиссии
+    /// </summary>
+    public enum ComissionType
+    {
+        None,
+        Percent,
+        OneLotFix
     }
 }

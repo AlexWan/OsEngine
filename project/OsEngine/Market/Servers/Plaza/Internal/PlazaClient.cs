@@ -2178,6 +2178,7 @@ Connection conn, Listener listener, Message msg)
 
                             _publisher.Post(sendMessage, PublishFlag.NeedReply);
                             sendMessage.Dispose();
+                            _countActionInThisSecond++;
                         }
                     }
                     catch (Exception error)

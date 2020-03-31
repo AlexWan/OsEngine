@@ -5,6 +5,7 @@
 
 using System;
 using System.IO;
+using OsEngine.Entity;
 using OsEngine.Market;
 
 namespace OsEngine.Logging

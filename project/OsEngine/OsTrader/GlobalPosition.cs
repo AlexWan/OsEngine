@@ -5,7 +5,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
@@ -38,13 +38,9 @@ namespace OsEngine.OsTrader
             _host.Child = _grid;
             _host.Child.Show();
 
-            if (Watcher == null)
-            {
-                Watcher = new Thread(WatcherHome);
-                Watcher.IsBackground = true;
-                Watcher.Name = "GlobalPositionThread";
-                Watcher.Start();
-            }
+            Task task = new Task(WatcherHome);
+            task.Start();
+       
         }
 
         /// <summary>
@@ -292,34 +288,61 @@ namespace OsEngine.OsTrader
                 nRow.Cells[6].Value = position.State;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[7].Value = position.MaxVolume;
+                nRow.Cells[7].Value = position.MaxVolume.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[8].Value = position.OpenVolume;
+                nRow.Cells[8].Value = position.OpenVolume.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[9].Value = position.WaitVolume;
+                nRow.Cells[9].Value = position.WaitVolume.ToStringWithNoEndZero();
+
+                if (position.EntryPrice != 0)
+                {
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+
+                    nRow.Cells[10].Value = position.EntryPrice.ToStringWithNoEndZero();
+                }
+                else
+                {
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    if(position.OpenOrders != null &&
+                       position.OpenOrders.Count != 0 &&
+                       position.State != PositionStateType.OpeningFail)
+                    {
+                        nRow.Cells[10].Value = position.OpenOrders[position.OpenOrders.Count-1].Price.ToStringWithNoEndZero();
+                    }
+                }
+
+                if (position.ClosePrice != 0)
+                {
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[11].Value = position.ClosePrice.ToStringWithNoEndZero();
+                }
+                else
+                {
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    if (position.CloseOrders != null &&
+                        position.CloseOrders.Count != 0 &&
+                        position.State != PositionStateType.ClosingFail)
+                    {
+                        nRow.Cells[11].Value = position.CloseOrders[position.CloseOrders.Count - 1].Price.ToStringWithNoEndZero();
+                    }
+                }
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[10].Value = position.EntryPrice;
+                nRow.Cells[12].Value = position.ProfitPortfolioPunkt.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[11].Value = position.ClosePrice;
+                nRow.Cells[13].Value = position.StopOrderRedLine.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[12].Value = position.ProfitPortfolioPunkt;
+                nRow.Cells[14].Value = position.StopOrderPrice.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[13].Value = position.StopOrderRedLine;
+                nRow.Cells[15].Value = position.ProfitOrderRedLine.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[14].Value = position.StopOrderPrice;
-
-                nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[15].Value = position.ProfitOrderRedLine;
-
-                nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[16].Value = position.ProfitOrderPrice;
+                nRow.Cells[16].Value = position.ProfitOrderPrice.ToStringWithNoEndZero();
 
                 return nRow;
             }
@@ -331,16 +354,10 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
-        /// Thread
-        /// поток 
-        /// </summary>
-        private Thread Watcher;
-
-        /// <summary>
         /// place of work that keeps logs
         /// место работы потока который сохраняет логи
         /// </summary>
-        private void WatcherHome()
+        private async void WatcherHome()
         {
             if (_startProgram != StartProgram.IsOsTrader)
             {
@@ -349,7 +366,7 @@ namespace OsEngine.OsTrader
 
             while (true)
             {
-                Thread.Sleep(2000);
+               await Task.Delay(2000);
 
                 CheckPosition();
 
@@ -359,7 +376,6 @@ namespace OsEngine.OsTrader
                 }
             }
         }
-
 
         /// <summary>
         /// check the position on the correctness of drawing
@@ -375,7 +391,6 @@ namespace OsEngine.OsTrader
             }
             try
             {
-
                 List<Position> openPositions = new List<Position>();
 
                 for (int i = 0; _journals != null && i < _journals.Count; i++)

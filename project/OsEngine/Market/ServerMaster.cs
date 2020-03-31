@@ -6,13 +6,15 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms.Integration;
+using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.AstsBridge;
-using OsEngine.Market.Servers.Binance;
+using OsEngine.Market.Servers.Binance.Futures;
+using OsEngine.Market.Servers.Binance.Spot;
 using OsEngine.Market.Servers.Bitfinex;
 using OsEngine.Market.Servers.BitMax;
 using OsEngine.Market.Servers.BitMex;
@@ -34,6 +36,8 @@ using OsEngine.Market.Servers.SmartCom;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.Market.Servers.Transaq;
 using OsEngine.Market.Servers.ZB;
+using OsEngine.Market.Servers.Hitbtc;
+using OsEngine.Market.Servers.Tinkoff;
 using MessageBox = System.Windows.MessageBox;
 
 namespace OsEngine.Market
@@ -64,16 +68,19 @@ namespace OsEngine.Market
             {
                 List<ServerType> serverTypes = new List<ServerType>();
 
-                serverTypes.Add(ServerType.GateIo);
 
+                
                 serverTypes.Add(ServerType.QuikDde);
                 serverTypes.Add(ServerType.QuikLua);
                 serverTypes.Add(ServerType.SmartCom);
                 serverTypes.Add(ServerType.Plaza);
                 serverTypes.Add(ServerType.Transaq);
+                serverTypes.Add(ServerType.Tinkoff);
 
+                serverTypes.Add(ServerType.GateIo);
                 serverTypes.Add(ServerType.BitMax);
                 serverTypes.Add(ServerType.Binance);
+                serverTypes.Add(ServerType.BinanceFutures);
                 serverTypes.Add(ServerType.BitMex);
                 serverTypes.Add(ServerType.BitStamp);
                 serverTypes.Add(ServerType.Bitfinex);
@@ -81,6 +88,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Livecoin);
                 serverTypes.Add(ServerType.Exmo);
                 serverTypes.Add(ServerType.Zb);
+                serverTypes.Add(ServerType.Hitbtc);
 
                 serverTypes.Add(ServerType.InteractivBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
@@ -164,6 +172,14 @@ namespace OsEngine.Market
 
                 IServer newServer = null;
 
+                if (type == ServerType.Tinkoff)
+                {
+                    newServer = new TinkoffServer();
+                }
+                if (type == ServerType.Hitbtc)
+                {
+                    newServer = new HitbtcServer();
+                }
                 if (type == ServerType.GateIo)
                 {
                     newServer = new GateIoServer();
@@ -199,6 +215,10 @@ namespace OsEngine.Market
                 if (type == ServerType.Binance)
                 {
                     newServer = new BinanceServer();
+                }
+                if (type == ServerType.BinanceFutures)
+                {
+                    newServer = new BinanceServerFutures();
                 }
                 if (type == ServerType.NinjaTrader)
                 {
@@ -334,10 +354,9 @@ namespace OsEngine.Market
         public static void ActivateAutoConnection()
         {
             Load();
-            Thread starterThread = new Thread(ThreadStarterWorkArea);
-            starterThread.IsBackground = true;
-            starterThread.Name = "SeverMasterAutoStartThread";
-            starterThread.Start();
+
+            Task task = new Task(ThreadStarterWorkArea);
+            task.Start();
         }
 
         private static ServerMasterPortfoliosPainter _painter;
@@ -430,12 +449,13 @@ namespace OsEngine.Market
         /// work place of the thread that connects our servers in auto mode
         /// место работы потока который подключает наши сервера в авто режиме
         /// </summary>
-        private static void ThreadStarterWorkArea()
+        private static async void ThreadStarterWorkArea()
         {
-            Thread.Sleep(20000);
+            await Task.Delay(20000);
+
             while (true)
             {
-                Thread.Sleep(5000);
+                await Task.Delay(5000);
 
                 if (!MainWindow.ProccesIsWorked)
                 {
@@ -590,49 +610,6 @@ namespace OsEngine.Market
     }
 
     /// <summary>
-    /// what program start the class
-    /// какая программа запустила класс
-    /// </summary>
-    public enum StartProgram
-    {
-        /// <summary>
-        /// tester
-        /// тестер
-        /// </summary>
-        IsTester,
-
-        /// <summary>
-        /// optimizator
-        /// оптимизатор
-        /// </summary>
-        IsOsOptimizer,
-
-        /// <summary>
-        /// data downloading
-        /// качалка данных
-        /// </summary>
-        IsOsData,
-
-        /// <summary>
-        /// terminal
-        /// терминал
-        /// </summary>
-        IsOsTrader,
-
-        /// <summary>
-        /// ticks to candles converter
-        /// конвертер тиков в свечи
-        /// </summary>
-        IsOsConverter,
-
-        /// <summary>
-        /// pattern miner
-        /// майнер паттернов
-        /// </summary>
-        IsOsMiner
-    }
-
-    /// <summary>
     /// type of connection to trading. Server type
     /// тип подключения к торгам. Тип сервера
     /// </summary>
@@ -643,6 +620,18 @@ namespace OsEngine.Market
         /// Тип сервера не назначен
         /// </summary>
         None,
+
+        /// <summary>
+        /// connection to Russian broker Tinkoff Invest
+        /// подключение к Тинькофф Инвест (выдающих кредиты под 70% годовых)
+        /// </summary>
+        Tinkoff,
+
+        /// <summary>
+        /// cryptocurrency exchange Hitbtc
+        /// биржа криптовалют Hitbtc
+        /// </summary>
+        Hitbtc,
 
         /// <summary>
         /// cryptocurrency exchange Gate.io
@@ -691,6 +680,12 @@ namespace OsEngine.Market
         /// биржа криптовалют Binance
         /// </summary>
         Binance,
+
+        /// <summary>
+        /// cryptocurrency exchange Binance Futures
+        /// биржа криптовалют Binance, секция фьючеры
+        /// </summary>
+        BinanceFutures,
 
         /// <summary>
         /// cryptocurrency exchange Exmo

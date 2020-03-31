@@ -34,7 +34,7 @@ namespace OsEngine.Market.Servers.BitMex.BitMexEntity
         public long id { get; set; }
         public string side { get; set; }
         public int size { get; set; }
-        public decimal price { get; set; }
+        public string price { get; set; }
     }
 
     public class FilterQuote

@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using OsEngine.Entity;
+using OsEngine.Indicators;
 
 namespace OsEngine.Charts.CandleChart.Indicators
 {
@@ -52,7 +53,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// VolumeWeighted moving average
         /// взвешенная по объёму
         /// </summary>
-        VolumeWeighted
+        VolumeWeighted,
+
+        /// <summary>
+        /// Smoothed Moving Average (SSMA) 
+        /// Сглаженное скользящее среднее
+        /// </summary>
+        Smoofed
     }
 
     /// <summary>
@@ -102,7 +109,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
     /// MA. Simple Moving Average
     /// MA. Moving Average. Индикатор скользящая средняя
     /// </summary>
-    public class MovingAverage : IIndicatorCandle
+    public class MovingAverage : IIndicator
     {
 
         /// <summary>
@@ -117,7 +124,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             KaufmanFastEma = 2;
             KaufmanSlowEma = 30;
             TypeCalculationAverage = MovingAverageTypeCalculation.Simple;
-            TypeIndicator = IndicatorOneCandleChartType.Line;
+            TypeIndicator = IndicatorChartPaintType.Line;
             TypePointsToSearch = PriceTypePoints.Close;
             ColorBase = Color.DeepSkyBlue;
             Lenght = 12;
@@ -138,7 +145,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             KaufmanFastEma = 2;
             KaufmanSlowEma = 30;
             TypeCalculationAverage = MovingAverageTypeCalculation.Simple;
-            TypeIndicator = IndicatorOneCandleChartType.Line;
+            TypeIndicator = IndicatorChartPaintType.Line;
             TypePointsToSearch = PriceTypePoints.Close;
             ColorBase = Color.DeepSkyBlue;
             Lenght = 12;
@@ -150,7 +157,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// all indicator values
         /// все значения индикатора
         /// </summary>
-        List<List<decimal>> IIndicatorCandle.ValuesToChart
+        List<List<decimal>> IIndicator.ValuesToChart
         {
             get
             {
@@ -164,7 +171,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator colors
         /// цвета для индикатора
         /// </summary>
-        List<Color> IIndicatorCandle.Colors
+        List<Color> IIndicator.Colors
         {
             get
             {
@@ -191,7 +198,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator drawing type
         /// тип прорисовки индикатора
         /// </summary>
-        public IndicatorOneCandleChartType TypeIndicator { get; set; }
+        public IndicatorChartPaintType TypeIndicator { get; set; }
 
         /// <summary>
         /// at what point average will be built. By Open Close...
@@ -369,7 +376,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// it's necessary to redraw the indicator on the chart
         /// необходимо перерисовать индикатор на графике
         /// </summary>
-        public event Action<IIndicatorCandle> NeadToReloadEvent;
+        public event Action<IIndicator> NeadToReloadEvent;
         // calculating using candles
         // расчёт на свечках
 
@@ -445,6 +452,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 Values.Add(GetValueVolumeWeighted(candles, candles.Count - 1));
             }
+            if (TypeCalculationAverage == MovingAverageTypeCalculation.Smoofed)
+            {
+                Values.Add(GetValueSmma(candles, candles.Count - 1));
+            }
         }
 
         /// <summary>
@@ -485,6 +496,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 {
                     Values.Add(GetValueVolumeWeighted(candles, i));
                 }
+                if (TypeCalculationAverage == MovingAverageTypeCalculation.Smoofed)
+                {
+                    Values.Add(GetValueSmma(candles, i));
+                }
             }
         }
 
@@ -521,6 +536,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
             if (TypeCalculationAverage == MovingAverageTypeCalculation.VolumeWeighted)
             {
                 Values[Values.Count - 1] = GetValueVolumeWeighted(candles, candles.Count - 1);
+            }
+            if (TypeCalculationAverage == MovingAverageTypeCalculation.Smoofed)
+            {
+                Values[Values.Count - 1] = GetValueSmma(candles, candles.Count - 1);
             }
         }
 
@@ -1184,6 +1203,40 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
 
             return Math.Round(result, 8);
+        }
+
+        private decimal GetValueSmma(List<Candle> candles, int index)
+        {
+            decimal result = 0;
+
+            if (index == Lenght)
+            {
+                // it's the first value. Calculate as simple ma
+                // это первое значение. Рассчитываем как простую машку
+                decimal lastMoving = 0;
+
+                for (int i = index - Lenght + 1; i < index + 1; i++)
+                {
+                    lastMoving += GetPoint(candles, i);
+                }
+
+                lastMoving = lastMoving / Lenght;
+
+                result = lastMoving;
+            }
+            else if (index > Lenght)
+            {
+                // (smma[1] * (length - 1) + src) / length
+
+                decimal emaLast = Values[index - 1];
+
+                decimal p = GetPoint(candles, index);
+
+                result = (emaLast * (Lenght - 1) + p) / Lenght;
+
+            }
+
+            return Math.Round(result, 10);
         }
     }
 }

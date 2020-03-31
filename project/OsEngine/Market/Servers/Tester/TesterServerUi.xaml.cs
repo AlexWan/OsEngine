@@ -193,13 +193,13 @@ namespace OsEngine.Market.Servers.Tester
             CheckBoxSlipageStopOff.Content = OsLocalization.Market.Label35;
             CheckBoxSlipageLimitOn.Content = OsLocalization.Market.Label36;
             CheckBoxSlipageStopOn.Content = OsLocalization.Market.Label36;
-            CheckBoxExecutionOrderIntersection.Content = OsLocalization.Market.Label37;
-            CheckBoxExecutionOrderTuch.Content = OsLocalization.Market.Label38;
+            CheckBoxExecutionOrderIntersection.Content = OsLocalization.Market.Label38;
+            CheckBoxExecutionOrderTuch.Content = OsLocalization.Market.Label37;
             CheckBoxOnOffMarketPortfolio.Content = OsLocalization.Market.Label39;
             Label40.Content = OsLocalization.Market.Label40;
 
         }
-        
+
         /// <summary>
         /// window is closing
         /// окно закрывается
@@ -758,6 +758,10 @@ namespace OsEngine.Market.Servers.Tester
             SliderFrom.ValueChanged -= SliderFrom_ValueChanged;
             SliderTo.ValueChanged -= SliderTo_ValueChanged;
 
+            ProgressBar.Maximum = (_server.TimeMax - DateTime.MinValue).TotalMinutes;
+            ProgressBar.Minimum = (_server.TimeMin - DateTime.MinValue).TotalMinutes;
+            ProgressBar.Value = (_server.TimeNow - DateTime.MinValue).TotalMinutes;
+
             _myGridView.Rows.Clear();
 
             List<SecurityTester> securities = _server.SecuritiesTester;
@@ -794,6 +798,13 @@ namespace OsEngine.Market.Servers.Tester
             SliderTo.Minimum = (_server.TimeMin - DateTime.MinValue).TotalMinutes;
             SliderTo.Maximum = (_server.TimeMax - DateTime.MinValue).TotalMinutes;
             SliderTo.Value = (_server.TimeMin - DateTime.MinValue).TotalMinutes;
+
+            if (_server.TimeEnd != DateTime.MinValue &&
+                SliderFrom.Minimum + SliderTo.Maximum - (_server.TimeEnd - DateTime.MinValue).TotalMinutes > 0)
+            {
+                SliderTo.Value =
+                SliderFrom.Minimum + SliderTo.Maximum - (_server.TimeEnd - DateTime.MinValue).TotalMinutes;
+            }
 
             SliderFrom.ValueChanged += SliderFrom_ValueChanged;
             SliderTo.ValueChanged += SliderTo_ValueChanged;

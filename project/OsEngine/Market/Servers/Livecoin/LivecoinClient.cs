@@ -279,7 +279,6 @@ namespace OsEngine.Market.Servers.Livecoin
         /// </summary>
         private ConcurrentQueue<protobuf.ws.WsResponse> _newMessage = new ConcurrentQueue<protobuf.ws.WsResponse>();
 
-
         private void WsClient_Login(String key, String secret, int ttl)
         {
             byte[] msg;
@@ -318,8 +317,6 @@ namespace OsEngine.Market.Servers.Livecoin
 
         public void Subscribe(string security)
         {
-            security = security.Replace("_", "/");
-
             var orderBookMessage = new protobuf.ws.SubscribeOrderBookChannelRequest
             {
                 CurrencyPair = security,
@@ -390,7 +387,7 @@ namespace OsEngine.Market.Servers.Livecoin
         {
             var newOrder = new protobuf.ws.PutLimitOrderRequest
             {
-                CurrencyPair = order.SecurityNameCode.Replace("_","/"),
+                CurrencyPair = order.SecurityNameCode.Replace('_','/'),
                 Amount = order.Volume.ToString(),
                 order_type = order.Side == Side.Sell ? protobuf.ws.PutLimitOrderRequest.OrderType.Ask : protobuf.ws.PutLimitOrderRequest.OrderType.Bid,
                 Price = order.Price.ToString(),
@@ -426,6 +423,10 @@ namespace OsEngine.Market.Servers.Livecoin
 
         public void CancelLimitOrder(OsEngine.Entity.Order order)
         {
+            if (string.IsNullOrEmpty(order.NumberMarket))
+            {
+                return;
+            }
             var cancelOrders = new protobuf.ws.CancelLimitOrderRequest
             {
                 ExpireControl = new protobuf.ws.RequestExpired
@@ -433,7 +434,7 @@ namespace OsEngine.Market.Servers.Livecoin
                     Now = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds,
                     Ttl = ttl
                 },
-                CurrencyPair = order.SecurityNameCode.Replace("_", "/"),
+                CurrencyPair = order.SecurityNameCode.Replace('_', '/'),
                 Id = Convert.ToInt64(order.NumberMarket)
             };
 
@@ -499,6 +500,7 @@ namespace OsEngine.Market.Servers.Livecoin
             SendRequest(request);
         }
 
+
         private void SendRequest(protobuf.ws.WsRequest request)
         {
             using (var requestStream = new MemoryStream())
@@ -542,19 +544,21 @@ namespace OsEngine.Market.Servers.Livecoin
         {
             while (true)
             {
-                try
+
+                if (_isDisposed)
                 {
-                    if (_isDisposed)
-                    {
-                        return;
-                    }
+                    return;
+                }
 
-                    if (!_newMessage.IsEmpty)
-                    {
-                        protobuf.ws.WsResponse response;
+                if (!_newMessage.IsEmpty)
+                {
+                    protobuf.ws.WsResponse response;
 
-                        if (_newMessage.TryDequeue(out response))
+                    if (_newMessage.TryDequeue(out response))
+                    {
+                        try
                         {
+
                             if (response.Meta.ResponseType == protobuf.ws.WsResponseMetaData.WsResponseMsgType.TradeChannelSubscribed)
                             {
                                 using (MemoryStream messageStream = new MemoryStream(response.Msg))
@@ -567,9 +571,16 @@ namespace OsEngine.Market.Servers.Livecoin
                             {
                                 using (MemoryStream messageStream = new MemoryStream(response.Msg))
                                 {
-                                    protobuf.ws.TradeNotification message = ProtoBuf.Serializer.Deserialize<protobuf.ws.TradeNotification>(messageStream);
-
-                                    NewTradesEvent?.Invoke(message);
+                                    try
+                                    {
+                                        protobuf.ws.TradeNotification message = ProtoBuf.Serializer.Deserialize<protobuf.ws.TradeNotification>(messageStream);
+                                        message.CurrencyPair = message.CurrencyPair.Replace('/', '_');
+                                        NewTradesEvent?.Invoke(message);
+                                    }
+                                    catch
+                                    {
+                                        // ignore
+                                    }
                                 }
                             }
                             else if (response.Meta.ResponseType == protobuf.ws.WsResponseMetaData.WsResponseMsgType.Error)
@@ -643,6 +654,8 @@ namespace OsEngine.Market.Servers.Livecoin
                                 {
                                     protobuf.ws.OrderBookNotification message = ProtoBuf.Serializer.Deserialize<protobuf.ws.OrderBookNotification>(messageStream);
 
+                                    message.CurrencyPair = message.CurrencyPair.Replace('/', '_');
+
                                     if (UpdateMarketDepth != null)
                                     {
                                         UpdateMarketDepth(message);
@@ -656,7 +669,7 @@ namespace OsEngine.Market.Servers.Livecoin
                                     protobuf.ws.OrderBookChannelSubscribedResponse message = ProtoBuf.Serializer.Deserialize<protobuf.ws.OrderBookChannelSubscribedResponse>(messageStream);
 
                                     // SendLogMessage("Успешная подписка на стакан котировок", LogMessageType.System);
-
+                                    message.CurrencyPair = message.CurrencyPair.Replace('/', '_');
                                     if (NewMarketDepth != null)
                                     {
                                         NewMarketDepth(message);
@@ -665,6 +678,7 @@ namespace OsEngine.Market.Servers.Livecoin
                             }
                             else if (response.Meta.ResponseType == protobuf.ws.WsResponseMetaData.WsResponseMsgType.PrivateOrderRawChannelSubscribed)
                             {
+
                                 using (MemoryStream messageStream = new MemoryStream(response.Msg))
                                 {
                                     //SendLogMessage("Успешная подписка на мои ордера", LogMessageType.System);
@@ -680,12 +694,13 @@ namespace OsEngine.Market.Servers.Livecoin
                                     {
                                         if (!_myOrders.ContainsValue(ev.Id))
                                         {
+                                            ev.CurrencyPair = ev.CurrencyPair.Replace('/', '_');
                                             _orderEvents.Add(ev);
                                         }
                                         else
                                         {
                                             var needNumberUser = _myOrders.First(o => o.Value == ev.Id);
-
+                                            ev.CurrencyPair = ev.CurrencyPair.Replace('/', '_');
                                             MyOrderEvent?.Invoke(needNumberUser.Key, GetPortfolioName(), ev);
                                         }
                                     }
@@ -710,6 +725,8 @@ namespace OsEngine.Market.Servers.Livecoin
 
                                     foreach (var t in message.Datas)
                                     {
+                                        t.CurrencyPair = t.CurrencyPair.Replace('/', '_');
+
                                         if (!_myOrders.ContainsValue(t.OrderBuyId))
                                         {
                                             _queueMyTradeEvents.Add(t);
@@ -748,16 +765,16 @@ namespace OsEngine.Market.Servers.Livecoin
                                 }
                             }
                         }
-                    }
-                    else
-                    {
-                        Thread.Sleep(1);
+                        catch (Exception exception)
+                        {
+                            SendLogMessage(exception.Message, LogMessageType.Error);
+                            SendLogMessage("Message type " + response.Meta.ResponseType, LogMessageType.Error);
+                        }
                     }
                 }
-
-                catch (Exception exception)
+                else
                 {
-                    SendLogMessage(exception.Message, LogMessageType.Error);
+                    Thread.Sleep(1);
                 }
             }
         }

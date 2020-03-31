@@ -246,7 +246,7 @@ namespace OsEngine.Language
             "Ru:Не верное имя. Не возможно продолжить процесс создания бота._");
 
         public string Label59 => OsLocalization.ConvertToLocString(
-            "Eng:Add robot_" +
+            "Eng:Robot create_" +
             "Ru:Создание робота_");
 
         public string Label60 => OsLocalization.ConvertToLocString(
@@ -641,5 +641,8 @@ namespace OsEngine.Language
             "Eng: Withdrew the order on the rollback of the price in the marketDepth from the order price_" +
             "Ru: Отозвали ордер по откату цены в стакане от цены ордера, номер _");
 
+        public string Label158 => OsLocalization.ConvertToLocString(
+            "Eng: Values type_" +
+            "Ru: Тип переменных _");
     }
 }

@@ -9,6 +9,7 @@ using System.Drawing;
 using System.IO;
 using System.Windows;
 using OsEngine.Entity;
+using OsEngine.Indicators;
 
 namespace OsEngine.Charts.CandleChart.Indicators
 {
@@ -16,7 +17,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
     ///  Volume-tick oscillator of contract flow per interval
     ///  объемно-тиковый осциллятор потока контрактов за интервал
     /// </summary>
-    public class TradeThread: IIndicatorCandle
+    public class TradeThread: IIndicator
     {
 
         /// <summary>
@@ -28,7 +29,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public TradeThread(string uniqName, bool canDelete)
         {
             Name = uniqName;
-            TypeIndicator = IndicatorOneCandleChartType.Line;
+            TypeIndicator = IndicatorChartPaintType.Line;
             TypePointsToSearch = PriceTypePoints.Typical;
             ColorBase = Color.DeepSkyBlue;
             Lenght = 20;
@@ -46,7 +47,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public TradeThread(bool canDelete)
         {
             Name = Guid.NewGuid().ToString();
-            TypeIndicator = IndicatorOneCandleChartType.Line;
+            TypeIndicator = IndicatorChartPaintType.Line;
             TypePointsToSearch = PriceTypePoints.Typical;
             ColorBase = Color.DeepSkyBlue;
             Lenght = 20;
@@ -58,7 +59,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// all indicator values
         /// все значения индикатора
         /// </summary>
-        List<List<decimal>> IIndicatorCandle.ValuesToChart
+        List<List<decimal>> IIndicator.ValuesToChart
         {
             get
             {
@@ -72,7 +73,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator colors
         /// цвета для индикатора
         /// </summary>
-        List<Color> IIndicatorCandle.Colors
+        List<Color> IIndicator.Colors
         {
             get
             {
@@ -93,7 +94,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator drawing type
         /// тип прорисовки индикатора
         /// </summary>
-        public IndicatorOneCandleChartType TypeIndicator { get; set; }
+        public IndicatorChartPaintType TypeIndicator { get; set; }
 
         /// <summary>
         /// on what point indicator will be built on: Open, Close ...
@@ -234,7 +235,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// it's necessary to redraw indicator on chart
         /// необходимо перерисовать индикатор на графике
         /// </summary>
-        public event Action<IIndicatorCandle> NeadToReloadEvent;
+        public event Action<IIndicator> NeadToReloadEvent;
 
         /// <summary>
         /// to upload new candles

@@ -121,9 +121,33 @@ namespace OsEngine.Market.Servers
                 {
                     newRow = GetPathParamRow((ServerParameterPath)param[i]);
                 }
+                else if (param[i].Type == ServerParameterType.Enum)
+                {
+                    newRow = GetEnumParamRow((ServerParameterEnum)param[i]);
+                }
 
                 _newGrid.Rows.Add(newRow);
             }
+        }
+
+        private DataGridViewRow GetEnumParamRow(ServerParameterEnum param)
+        {
+            DataGridViewRow nRow = new DataGridViewRow();
+
+            nRow.Cells.Add(new DataGridViewTextBoxCell());
+            nRow.Cells[0].Value = param.Name;
+
+            DataGridViewComboBoxCell comboBox = new DataGridViewComboBoxCell();
+
+            for (int i = 0; i < param.EnumValues.Count; i++)
+            {
+                comboBox.Items.Add(param.EnumValues[i]);
+            }
+
+            nRow.Cells.Add(comboBox);
+            nRow.Cells[1].Value = param.Value;
+
+            return nRow;
         }
 
         private DataGridViewRow GetPasswordParamRow(ServerParameterPassword param)
@@ -262,6 +286,11 @@ namespace OsEngine.Market.Servers
                         ((ServerParameterPassword)param[i]).Value = str;
                     }
                 }
+                else if (param[i].Type == ServerParameterType.Enum)
+                {
+                    ((ServerParameterEnum)param[i]).Value = _newGrid.Rows[i].Cells[1].Value.ToString();
+                }
+
                 else if (param[i].Type == ServerParameterType.Bool)
                 {
                     string str = _newGrid.Rows[i].Cells[1].Value.ToString();

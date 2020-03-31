@@ -1,12 +1,12 @@
 ﻿<Window x:Class="OsEngine.Market.Connectors.ConnectorCandlesUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Data flow connection" Height="664" Width="420" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+        Title="Data flow connection" Height="700" Width="420" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid>
-        <Rectangle Margin="5,146,5,40" />
+        <Rectangle Margin="5,197,5,40" />
 
 
-        <Rectangle Margin="5,61,5,0" Height="80" VerticalAlignment="Top" />
+        <Rectangle Margin="5,61,5,0" Height="131" VerticalAlignment="Top" />
 
 
         <Rectangle Margin="5,5,5,0" Height="51" VerticalAlignment="Top" />
@@ -17,42 +17,46 @@
         <Label Name="Label3" Content="Portfolio for operations" HorizontalAlignment="Left"  Margin="41,84,0,0" VerticalAlignment="Top"/>
         <ComboBox x:Name="ComboBoxPortfolio" Margin="206,84,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
 
-        <Label Name="Label6" Content="Classes displayed" HorizontalAlignment="Left" Margin="41,188,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="ComboBoxClass" Margin="206,188,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
+        <Label Name="Label6" Content="Classes displayed" HorizontalAlignment="Left" Margin="41,231,0,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name="ComboBoxClass" Margin="206,231,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
 
-        <Label Name="Label7" Content="Security" HorizontalAlignment="Left" Margin="41,215,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="ComboBoxSecurities" Margin="206,215,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
+        <Label Name="Label7" Content="Security" HorizontalAlignment="Left" Margin="41,258,0,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name="ComboBoxSecurities" Margin="206,258,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
 
-        <Label Name="LabelTimeFrame" Content="TimeFrame" HorizontalAlignment="Left" Margin="41,296,0,0" VerticalAlignment="Top" Width="78"/>
-        <ComboBox x:Name ="ComboBoxTimeFrame" Margin="206,296,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
+        <Label Name="LabelTimeFrame" Content="TimeFrame" HorizontalAlignment="Left" Margin="41,339,0,0" VerticalAlignment="Top" Width="78"/>
+        <ComboBox x:Name ="ComboBoxTimeFrame" Margin="206,339,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
 
         <CheckBox x:Name="CheckBoxIsEmulator" Content="Execute trades in the emulator" HorizontalAlignment="Left" Margin="120,112,0,0" VerticalAlignment="Top"/>
 
-        <Label Name="Label8" Content="From what we collect candles" HorizontalAlignment="Left" Margin="41,242,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name ="ComboBoxCandleMarketDataType" Margin="206,242,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184" />
+        <Label Name="Label8" Content="From what we collect candles" HorizontalAlignment="Left" Margin="41,285,0,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name ="ComboBoxCandleMarketDataType" Margin="206,285,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184" />
 
-        <CheckBox x:Name="CheckBoxSetForeign" Content="Build non-trading candles" HorizontalAlignment="Left" Margin="120,349,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="TextBoxCountTradesInCandle" HorizontalAlignment="Left" Height="23" Margin="206,324,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="184"/>
+        <CheckBox x:Name="CheckBoxSetForeign" Content="Build non-trading candles" HorizontalAlignment="Left" Margin="120,392,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="TextBoxCountTradesInCandle" HorizontalAlignment="Left" Height="23" Margin="206,367,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="184"/>
 
         <Button x:Name="ButtonAccept" Content="Accept" HorizontalAlignment="Right" Margin="0,0,5,10" VerticalAlignment="Bottom" Width="130" Click="ButtonAccept_Click"/>
-        <Label Name="LabelCountTradesInCandle" Content="Trades count in candle" HorizontalAlignment="Left" Margin="41,324,0,0" VerticalAlignment="Top"/>
-        <Label Name="Label9" Content="Candle type" HorizontalAlignment="Left" Margin="41,269,0,0" VerticalAlignment="Top" />
-        <ComboBox x:Name ="ComboBoxCandleCreateMethodType" Margin="206,269,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
+        <Label Name="LabelCountTradesInCandle" Content="Trades count in candle" HorizontalAlignment="Left" Margin="41,367,0,0" VerticalAlignment="Top"/>
+        <Label Name="Label9" Content="Candle type" HorizontalAlignment="Left" Margin="41,312,0,0" VerticalAlignment="Top" />
+        <ComboBox x:Name ="ComboBoxCandleCreateMethodType" Margin="206,312,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
         <Label Name="Label2" Content="Order execution" HorizontalAlignment="Left" Margin="10,59,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
-        <Label Name="Label5" Content="Candles settings" HorizontalAlignment="Left" Margin="10,154,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
-        <Label x:Name="LabelVolumeToClose" Content="Volume to close" HorizontalAlignment="Left" Margin="41,402,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name ="TextBoxVolumeToClose" Margin="206,402,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
-        <Label x:Name="LabelRencoPunkts" Content="Move to close" HorizontalAlignment="Left" Margin="41,432,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name ="TextBoxRencoPunkts" Margin="206,432,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
-        <Label x:Name="LabelDeltaPeriods" Content="Change delta to close" HorizontalAlignment="Left" Margin="41,372,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name ="TextBoxDeltaPeriods" Margin="246,372,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="144"  />
-        <CheckBox x:Name="CheckBoxRencoIsBuildShadows" Content="Build shadows" HorizontalAlignment="Left" Margin="120,462,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="LabelRangeCandlesPunkts" Content="Size" HorizontalAlignment="Left" Margin="41,483,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name ="TextBoxRangeCandlesPunkts" Margin="206,483,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
-        <Label x:Name="LabelReversCandlesPunktsMinMove" Content="Min movement" HorizontalAlignment="Left" Margin="41,513,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name ="TextBoxReversCandlesPunktsMinMove" Margin="206,513,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
-        <Label x:Name="LabelReversCandlesPunktsBackMove" Content="Rollback" HorizontalAlignment="Left" Margin="41,543,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name ="TextBoxReversCandlesPunktsBackMove" Margin="206,543,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
+        <Label Name="Label5" Content="Candles settings" HorizontalAlignment="Left" Margin="10,197,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
+        <Label x:Name="LabelVolumeToClose" Content="Volume to close" HorizontalAlignment="Left" Margin="41,445,0,0" VerticalAlignment="Top" />
+        <TextBox x:Name ="TextBoxVolumeToClose" Margin="206,445,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
+        <Label x:Name="LabelRencoPunkts" Content="Move to close" HorizontalAlignment="Left" Margin="41,475,0,0" VerticalAlignment="Top" />
+        <TextBox x:Name ="TextBoxRencoPunkts" Margin="206,475,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
+        <Label x:Name="LabelDeltaPeriods" Content="Change delta to close" HorizontalAlignment="Left" Margin="41,415,0,0" VerticalAlignment="Top" />
+        <TextBox x:Name ="TextBoxDeltaPeriods" Margin="246,415,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="144"  />
+        <CheckBox x:Name="CheckBoxRencoIsBuildShadows" Content="Build shadows" HorizontalAlignment="Left" Margin="120,505,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="LabelRangeCandlesPunkts" Content="Size" HorizontalAlignment="Left" Margin="41,526,0,0" VerticalAlignment="Top" />
+        <TextBox x:Name ="TextBoxRangeCandlesPunkts" Margin="206,526,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
+        <Label x:Name="LabelReversCandlesPunktsMinMove" Content="Min movement" HorizontalAlignment="Left" Margin="41,556,0,0" VerticalAlignment="Top" />
+        <TextBox x:Name ="TextBoxReversCandlesPunktsMinMove" Margin="206,556,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
+        <Label x:Name="LabelReversCandlesPunktsBackMove" Content="Rollback" HorizontalAlignment="Left" Margin="41,586,0,0" VerticalAlignment="Top" />
+        <TextBox x:Name ="TextBoxReversCandlesPunktsBackMove" Margin="206,586,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
+        <Label x:Name="LabelComissionType" Content="Comission type" HorizontalAlignment="Left"  Margin="41,135,0,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name="ComboBoxComissionType" Margin="206,135,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
+        <Label x:Name="LabelComissionValue" Content="Comission value" HorizontalAlignment="Left" Margin="41,163,0,0" VerticalAlignment="Top" />
+        <TextBox x:Name ="TextBoxComissionValue" Margin="206,163,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
 
 
     </Grid>

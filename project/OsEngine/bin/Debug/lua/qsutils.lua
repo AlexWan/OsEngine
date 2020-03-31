@@ -1,7 +1,6 @@
 --~ // Licensed under the Apache License, Version 2.0. See LICENSE.txt in the project root for license information.
 
 local socket = require ("socket")
---local json = require "cjson"
 local json = require ("dkjson")
 local qsutils = {}
 
@@ -58,7 +57,6 @@ function split(inputstr, sep)
 end
 
 function from_json(str)
-    -- local status, msg= pcall(json.decode, str) -- cjson
     local status, msg= pcall(json.decode, str, 1, json.null) -- dkjson
     if status then
         return msg
@@ -68,7 +66,6 @@ function from_json(str)
 end
 
 function to_json(msg)
-    -- local status, str= pcall(json.encode, msg) -- cjson
     local status, str= pcall(json.encode, msg, { indent = false }) -- dkjson
     if status then
         return str
@@ -83,6 +80,21 @@ logfile = io.open (script_path.. "/logs/QuikSharp.log", "a")
 missed_values_file = nil
 missed_values_file_name = nil
 
+-- closes log
+function closeLog()
+	pcall(logfile:close(logfile))
+end
+
+-- discards missed values if any
+function discardMissedValues()
+    if missed_values_file then
+        pcall(missed_values_file:close(missed_values_file))
+        missed_values_file = nil
+        pcall(os.remove, missed_values_file_name)
+        missed_values_file_name = nil
+    end
+end
+
 -- current connection state
 is_connected = false
 --- indicates that QuikSharp was connected during this session
@@ -93,6 +105,7 @@ local port = 34130
 local callback_port = port + 1
 -- we need two ports since callbacks and responses conflict and write to the same socket at the same time
 -- I do not know how to make locking in Lua, it is just simpler to have two independent connections
+-- To connect to a remote terminal - replace 'localhost' with the terminal ip-address
 local response_server = socket.bind('localhost', port, 1)
 local callback_server = socket.bind('localhost', callback_port, 1)
 local response_client
@@ -101,7 +114,7 @@ local callback_client
 
 --- accept client on server
 local function getResponseServer()
-    print('Waiting for a client')
+    log('Waiting for a response client...', 1)
 	local i = 0
 	if not response_server then
 		log("Cannot bind to response_server, probably the port is already in use", 3)
@@ -118,7 +131,7 @@ local function getResponseServer()
 end
 
 local function getCallbackClient()
-    print('Waiting for a client')
+    log('Waiting for a callback client...', 1)
 	local i = 0
 	if not callback_server then
 		log("Cannot bind to callback_server, probably the port is already in use", 3)
@@ -158,10 +171,12 @@ function qsutils.connect()
                 missed_values_file:flush()
                 missed_values_file:close()
                 missed_values_file = nil
-                local previous_file_name = missed_values_file_name
+				local previous_file_name = missed_values_file_name
                 missed_values_file_name = nil
                 for line in io.lines(previous_file_name) do
-                    callback_client:send(line..'\n')
+					if not pcall(callback_client.send, callback_client, line..'\n') then
+						break
+					end
                 end
                 -- remove previous file
                 pcall(os.remove, previous_file_name)
@@ -172,7 +187,7 @@ end
 
 local function disconnected()
     is_connected = false
-    print('Disconnecting...')
+    log('Disconnecting...', 1)
     if response_client then
         pcall(response_client.close, response_client)
         response_client = nil

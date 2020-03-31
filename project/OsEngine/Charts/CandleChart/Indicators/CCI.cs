@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using OsEngine.Entity;
+using OsEngine.Indicators;
 
 namespace OsEngine.Charts.CandleChart.Indicators
 {
@@ -20,7 +21,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
     /// <summary>
     /// indicator Standard Deviation / Индикатор Среднеквадратическое отклонение
     /// </summary>
-    public class Cci : IIndicatorCandle
+    public class Cci : IIndicator
     {
 
         /// <summary>
@@ -32,7 +33,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public Cci(string uniqName, bool canDelete)
         {
             Name = uniqName;
-            TypeIndicator = IndicatorOneCandleChartType.Line;
+            TypeIndicator = IndicatorChartPaintType.Line;
             TypePointsToSearch = PriceTypePoints.Typical;
             ColorBase = Color.DeepSkyBlue;
             Lenght = 20;
@@ -50,7 +51,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public Cci(bool canDelete)
         {
             Name = Guid.NewGuid().ToString();
-            TypeIndicator = IndicatorOneCandleChartType.Line;
+            TypeIndicator = IndicatorChartPaintType.Line;
             TypePointsToSearch = PriceTypePoints.Typical;
             ColorBase = Color.DeepSkyBlue;
             Lenght = 20;
@@ -62,7 +63,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// all indicator values
         /// все значения индикатора
         /// </summary>
-        List<List<decimal>> IIndicatorCandle.ValuesToChart
+        List<List<decimal>> IIndicator.ValuesToChart
         {
             get
             {
@@ -76,7 +77,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator colors
         /// цвета для индикатора
         /// </summary>
-        List<Color> IIndicatorCandle.Colors
+        List<Color> IIndicator.Colors
         {
             get
             {
@@ -97,7 +98,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator drawing type
         /// тип прорисовки индикатора
         /// </summary>
-        public IndicatorOneCandleChartType TypeIndicator { get; set; }
+        public IndicatorChartPaintType TypeIndicator { get; set; }
 
         /// <summary>
         /// on what point indicator will be built on: Open, Close ...
@@ -270,7 +271,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// it's necessary to redraw indicator on chart
         /// необходимо перерисовать индикатор на графике
         /// </summary>
-        public event Action<IIndicatorCandle> NeadToReloadEvent;
+        public event Action<IIndicator> NeadToReloadEvent;
 
         /// <summary>
         /// take point values to calculate data

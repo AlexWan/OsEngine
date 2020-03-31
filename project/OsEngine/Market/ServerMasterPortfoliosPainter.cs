@@ -5,7 +5,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
@@ -27,10 +27,8 @@ namespace OsEngine.Market
         {
             ServerMaster.ServerCreateEvent += ServerMaster_ServerCreateEvent;
 
-            Thread painter = new Thread(PainterThreadArea);
-            painter.IsBackground = true;
-            painter.Name = "ServerMasterPortfoliosPainterThread";
-            painter.Start();
+            Task task = new Task(PainterThreadArea);
+            task.Start();
         }
 
         /// <summary>
@@ -139,7 +137,13 @@ namespace OsEngine.Market
 
                     for (int i = 0; i < portfolios.Count; i++)
                     {
-                        Portfolio portf = _portfolios.Find(portfolio => portfolio.Number == portfolios[i].Number);
+                        if (portfolios[i] == null)
+                        {
+                            continue;
+                        }
+
+                        Portfolio portf = _portfolios.Find(
+                            portfolio => portfolio != null && portfolio.Number == portfolios[i].Number);
 
                         if (portf != null)
                         {
@@ -160,11 +164,11 @@ namespace OsEngine.Market
 // work of thread that draws portfolios and orders
 // работа потока прорисовывающего портфели и ордера
 
-        private void PainterThreadArea()
+        private async void PainterThreadArea()
         {
             while (true)
             {
-               Thread.Sleep(1000);
+               await Task.Delay(1000);
 
                 if (MainWindow.ProccesIsWorked == false)
                 {
@@ -293,18 +297,25 @@ namespace OsEngine.Market
         {
             try
             {
+                if (portfolio.ValueBegin == 0
+                    && portfolio.ValueCurrent == 0 
+                    && portfolio.ValueBlocked == 0)
+                {
+                    return;
+                }
+
                 DataGridViewRow secondRow = new DataGridViewRow();
                 secondRow.Cells.Add(new DataGridViewTextBoxCell());
                 secondRow.Cells[0].Value = portfolio.Number;
 
                 secondRow.Cells.Add(new DataGridViewTextBoxCell());
-                secondRow.Cells[1].Value = portfolio.ValueBegin;
+                secondRow.Cells[1].Value = portfolio.ValueBegin.ToString().ToDecimal();
 
                 secondRow.Cells.Add(new DataGridViewTextBoxCell());
-                secondRow.Cells[2].Value = portfolio.ValueCurrent;
+                secondRow.Cells[2].Value = portfolio.ValueCurrent.ToString().ToDecimal();
 
                 secondRow.Cells.Add(new DataGridViewTextBoxCell());
-                secondRow.Cells[3].Value = portfolio.ValueBlocked;
+                secondRow.Cells[3].Value = portfolio.ValueBlocked.ToString().ToDecimal();
 
                 _gridPosition.Rows.Add(secondRow);
 
@@ -326,6 +337,12 @@ namespace OsEngine.Market
                 {
                     for (int i = 0; i < positionsOnBoard.Count; i++)
                     {
+                        if (positionsOnBoard[i].ValueBegin == 0 &&
+                            positionsOnBoard[i].ValueCurrent == 0 &&
+                            positionsOnBoard[i].ValueBlocked == 0)
+                        {
+                            continue;
+                        }
                         DataGridViewRow nRow = new DataGridViewRow();
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
@@ -336,13 +353,13 @@ namespace OsEngine.Market
                         nRow.Cells[4].Value = positionsOnBoard[i].SecurityNameCode;
 
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
-                        nRow.Cells[5].Value = positionsOnBoard[i].ValueBegin;
+                        nRow.Cells[5].Value = positionsOnBoard[i].ValueBegin.ToString().ToDecimal();
 
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
-                        nRow.Cells[6].Value = positionsOnBoard[i].ValueCurrent;
+                        nRow.Cells[6].Value = positionsOnBoard[i].ValueCurrent.ToString().ToDecimal();
 
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
-                        nRow.Cells[7].Value = positionsOnBoard[i].ValueBlocked;
+                        nRow.Cells[7].Value = positionsOnBoard[i].ValueBlocked.ToString().ToDecimal();
 
                         _gridPosition.Rows.Add(nRow);
                     }
@@ -567,13 +584,13 @@ namespace OsEngine.Market
                     nRow.Cells[6].Value = _orders[i].State;
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[7].Value = _orders[i].Price;
+                    nRow.Cells[7].Value = _orders[i].Price.ToStringWithNoEndZero();
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[8].Value = _orders[i].PriceReal;
+                    nRow.Cells[8].Value = _orders[i].PriceReal.ToStringWithNoEndZero();
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[9].Value = _orders[i].Volume;
+                    nRow.Cells[9].Value = _orders[i].Volume.ToStringWithNoEndZero();
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
                     nRow.Cells[10].Value = _orders[i].TypeOrder;

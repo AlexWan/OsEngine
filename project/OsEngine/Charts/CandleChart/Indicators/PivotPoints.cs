@@ -11,10 +11,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OsEngine.Entity;
+using OsEngine.Indicators;
 
 namespace OsEngine.Charts.CandleChart.Indicators
 {
-    public class PivotPoints: IIndicatorCandle
+    public class PivotPoints: IIndicator
     {
         /// <summary>
         /// constructor with parameters. Indicator will be saved
@@ -26,7 +27,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             Name = uniqName;
 
-            TypeIndicator = IndicatorOneCandleChartType.Line;
+            TypeIndicator = IndicatorChartPaintType.Line;
 
             ColorP = Color.LawnGreen;
 
@@ -53,7 +54,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             Name = Guid.NewGuid().ToString();
 
-            TypeIndicator = IndicatorOneCandleChartType.Line;
+            TypeIndicator = IndicatorChartPaintType.Line;
 
             ColorP = Color.LawnGreen;
 
@@ -78,7 +79,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// all indicator values
         /// все значения индикатора
         /// </summary>
-        List<List<decimal>> IIndicatorCandle.ValuesToChart
+        List<List<decimal>> IIndicator.ValuesToChart
         {
             get
             {
@@ -99,7 +100,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator colors
         /// цвета для индикатора
         /// </summary>
-        List<Color> IIndicatorCandle.Colors
+        List<Color> IIndicator.Colors
         {
             get
             {
@@ -176,7 +177,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator type
         /// тип индикатора
         /// </summary>
-        public IndicatorOneCandleChartType TypeIndicator { get; set; }
+        public IndicatorChartPaintType TypeIndicator { get; set; }
 
         #region Colors
         public Color ColorS1 { get; set; }
@@ -198,7 +199,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator needs to be redrawn
         /// нужно перерисовать индикатор
         /// </summary>
-        public event Action<IIndicatorCandle> NeadToReloadEvent;
+        public event Action<IIndicator> NeadToReloadEvent;
 
         /// <summary>
         /// candles to calculate the indicator

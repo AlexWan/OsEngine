@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Text;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using OsEngine.Alerts;
@@ -30,12 +30,6 @@ namespace OsEngine.Journal.Internal
         // статическая часть с работой потока сохраняющего позиции
 
         /// <summary>
-        ///  streaming 
-        /// поток 
-        /// </summary>
-        public static Thread Watcher;
-
-        /// <summary>
         /// position controllers that need to be serviced
         /// контроллеры позиций которые нужно обслуживать
         /// </summary>
@@ -47,22 +41,25 @@ namespace OsEngine.Journal.Internal
         /// </summary>
         public static void Activate()
         {
-            Watcher = new Thread(WatcherHome);
-            Watcher.Name = "PositionControllerThread";
-            Watcher.IsBackground = true;
-            Watcher.Start();
+            if (_worker == null)
+            {
+                _worker = new Task(WatcherHome);
+                _worker.Start();
+            }
         }
+
+        private static Task _worker;
 
         /// <summary>
         /// flow location
         /// место работы потока
         /// </summary>
-        public static void WatcherHome()
+        public static async void WatcherHome()
         {
 
             while (true)
             {
-                Thread.Sleep(1000);
+                await Task.Delay(1000);
 
                 for (int i = 0; i < ControllersToCheck.Count; i++)
                 {
@@ -83,10 +80,7 @@ namespace OsEngine.Journal.Internal
             _name = name;
             _startProgram = startProgram;
 
-            if (Watcher == null)
-            {
-                Activate();
-            }
+            Activate();
 
             ControllersToCheck.Add(this);
 
@@ -118,8 +112,7 @@ namespace OsEngine.Journal.Internal
         /// </summary>
         private void Load()
         {
-            if (_startProgram == StartProgram.IsTester ||
-                _startProgram == StartProgram.IsOsOptimizer ||
+            if (_startProgram == StartProgram.IsOsOptimizer ||
                 _startProgram == StartProgram.IsOsMiner)
             {
                 return;
@@ -138,6 +131,16 @@ namespace OsEngine.Journal.Internal
 
                 using (StreamReader reader = new StreamReader(@"Engine\" + _name + @"DealController.txt"))
                 {
+                    try
+                    {
+                        Enum.TryParse(reader.ReadLine(), out _comissionType);
+                        _comissionValue = reader.ReadLine().ToDecimal();
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+
                     while (!reader.EndOfStream)
                     {
                         countDeal++;
@@ -255,6 +258,50 @@ namespace OsEngine.Journal.Internal
             }
         }
 
+        public ComissionType ComissionType
+        {
+            get { return _comissionType; }
+            set
+            {
+                if(value == _comissionType)
+                {
+                    return;
+                }
+                _comissionType = value;
+
+                for(int i = 0; AllPositions != null && i < AllPositions.Count;i++)
+                {
+                    AllPositions[i].ComissionType = _comissionType;
+                }
+
+                _neadToSave = true;
+            }
+        }
+        private ComissionType _comissionType;
+
+        public decimal ComissionValue
+        {
+            get { return _comissionValue; }
+            set
+            {
+                if (value == _comissionValue)
+                {
+                    return;
+                }
+                _comissionValue = value;
+
+
+                for (int i = 0; AllPositions != null && i < AllPositions.Count; i++)
+                {
+                    AllPositions[i].ComissionValue = _comissionValue;
+                }
+
+                _neadToSave = true;
+            }
+
+        }
+        private decimal _comissionValue;
+
         /// <summary>
         /// is it necessary to save the data
         /// нужно ли сохранить данные
@@ -268,11 +315,6 @@ namespace OsEngine.Journal.Internal
                 return;
             }
 
-            if (_startProgram != StartProgram.IsOsTrader)
-            {
-                return;
-            }
-
             _neadToSave = false;
 
             try
@@ -282,6 +324,15 @@ namespace OsEngine.Journal.Internal
                     List<Position> deals = _deals;
 
                     StringBuilder result = new StringBuilder();
+
+                    result.Append(_comissionType + "\r\n");
+                    result.Append(_comissionValue+ "\r\n");
+
+                    if (_startProgram != StartProgram.IsOsTrader)
+                    {
+                        writer.Write(result);
+                        return;
+                    }
 
                     for (int i = 0; deals != null && i < deals.Count; i++)
                     {
@@ -305,6 +356,7 @@ namespace OsEngine.Journal.Internal
         {
             _neadToSave = true;
         }
+
         // working with a position
         // работа с позицией
 
@@ -326,6 +378,9 @@ namespace OsEngine.Journal.Internal
             }
             // saving
             // сохраняем
+
+            newPosition.ComissionType = ComissionType;
+            newPosition.ComissionValue = ComissionValue;
 
             if (_deals == null)
             {
@@ -588,8 +643,8 @@ namespace OsEngine.Journal.Internal
         /// пустой лист который мы возвращаем вместо null при запросе массивов
         /// </summary>
         private List<Position> _emptyList = new List<Position>();
-        // last position
-        // последняя позиция
+
+        // last position последняя позиция
 
         /// <summary>
         /// last position has changed
@@ -1193,35 +1248,60 @@ namespace OsEngine.Journal.Internal
                 nRow.Cells[6].Value = position.State;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[7].Value = position.MaxVolume;
+                nRow.Cells[7].Value = position.MaxVolume.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[8].Value = position.OpenVolume;
+                nRow.Cells[8].Value = position.OpenVolume.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[9].Value = position.WaitVolume;
+                nRow.Cells[9].Value = position.WaitVolume.ToStringWithNoEndZero();
+
+                if (position.EntryPrice != 0)
+                {
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[10].Value = position.EntryPrice.ToStringWithNoEndZero();
+                }
+                else
+                {
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    if (position.OpenOrders != null &&
+                        position.OpenOrders.Count != 0 &&
+                        position.State != PositionStateType.OpeningFail)
+                    {
+                        nRow.Cells[10].Value = position.OpenOrders[position.OpenOrders.Count - 1].Price.ToStringWithNoEndZero();
+                    }
+                }
+
+                if (position.ClosePrice != 0)
+                {
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[11].Value = position.ClosePrice.ToStringWithNoEndZero();
+                }
+                else
+                {
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    if (position.CloseOrders != null &&
+                        position.CloseOrders.Count != 0 &&
+                        position.State != PositionStateType.ClosingFail)
+                    {
+                        nRow.Cells[11].Value = position.CloseOrders[position.CloseOrders.Count - 1].Price.ToStringWithNoEndZero();
+                    }
+                }
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[10].Value = position.EntryPrice;
+                nRow.Cells[12].Value = position.ProfitPortfolioPunkt.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[11].Value = position.ClosePrice;
+                nRow.Cells[13].Value = position.StopOrderRedLine.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                
-                nRow.Cells[12].Value = position.ProfitPortfolioPunkt;
+                nRow.Cells[14].Value = position.StopOrderPrice.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[13].Value = position.StopOrderRedLine;
+                nRow.Cells[15].Value = position.ProfitOrderRedLine.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[14].Value = position.StopOrderPrice;
-
-                nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[15].Value = position.ProfitOrderRedLine;
-
-                nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[16].Value = position.ProfitOrderPrice;
+                nRow.Cells[16].Value = position.ProfitOrderPrice.ToStringWithNoEndZero();
 
                 return nRow;
             }

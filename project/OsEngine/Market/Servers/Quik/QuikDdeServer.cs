@@ -17,14 +17,13 @@ namespace OsEngine.Market.Servers.Quik
     /// </summary>
     public class QuikServer:AServer
     {
-
-
         public QuikServer()
         {
             QuikDdeServerRealization realization = new QuikDdeServerRealization();
             ServerRealization = realization;
 
             CreateParameterPath(OsLocalization.Market.Message82);
+            CreateParameterEnum("Number separator", "Dot", new List<string>(){"Dot","Comma"});
         }
 
         /// <summary>
@@ -694,7 +693,16 @@ namespace OsEngine.Market.Servers.Quik
 
             var operation = order.Side == Side.Buy ? "B" : "S";
 
-            string price = order.Price.ToString(new CultureInfo("ru-RU"));
+            string price = order.Price.ToString();
+
+            if (((ServerParameterEnum) ServerParameters[1]).Value == "Dot")
+            {
+                price = price.Replace(",", ".");
+            }
+            else
+            {
+                price = price.Replace(".", ",");
+            }
 
             string type;
 
@@ -962,7 +970,15 @@ namespace OsEngine.Market.Servers.Quik
                 order.SecurityNameCode = secCode;
                 order.ServerType = ServerType.QuikDde;
                 order.Price = (decimal)dPrice;
-                order.Volume = (int)dValue;
+                //order.Volume = (int)dValue;
+
+                Order oldOrder = GetOrderFromUserId(dwTransId.ToString());
+
+                if (oldOrder != null)
+                {
+                    order.Volume = oldOrder.Volume;
+                }
+
                 order.NumberUser = dwTransId;
                 order.NumberMarket = nOrderNum.ToString();
                 order.SecurityNameCode = secCode;

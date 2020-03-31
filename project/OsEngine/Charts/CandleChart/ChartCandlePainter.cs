@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Forms.Integration;
@@ -18,6 +18,7 @@ using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Charts.CandleChart.Elements;
 using OsEngine.Charts.ColorKeeper;
 using OsEngine.Entity;
+using OsEngine.Indicators;
 using OsEngine.Logging;
 using OsEngine.Market;
 using Color = System.Drawing.Color;
@@ -31,8 +32,7 @@ namespace OsEngine.Charts.CandleChart
     /// </summary>
     public class ChartCandlePainter
     {
-        //service
-        // сервис
+        //service сервис
 
         /// <summary>
         /// constructor
@@ -66,11 +66,8 @@ namespace OsEngine.Charts.CandleChart
 
                 _chart.MouseLeave += _chart_MouseLeave;
 
-                Thread painterThred = new Thread(PainterThreadArea);
-                painterThred.IsBackground = true;
-                painterThred.Name = name + "ChartPainterThread";
-                painterThred.Start();
-                
+                Task task = new Task(PainterThreadArea);
+                task.Start();               
             }
             catch (Exception error)
             {
@@ -346,8 +343,8 @@ namespace OsEngine.Charts.CandleChart
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string,LogMessageType> LogMessageEvent;
-        // working with chart colors and areas
-        // работа с цветом чарта и областей
+
+        // working with chart colors and areas работа с цветом чарта и областей
 
         /// <summary>
         /// color storage for chart
@@ -464,8 +461,8 @@ namespace OsEngine.Charts.CandleChart
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-        // Create zone and series deletion
-        // создание удаление областей и серий
+
+        // Create zone and series deletion создание удаление областей и серий
 
         /// <summary>
         /// to create chart. Creates an initial area and a series for drawing candles
@@ -651,7 +648,7 @@ namespace OsEngine.Charts.CandleChart
         /// создать серию данных на области
         /// </summary>
         /// <returns>returns the name of data series. null in case of error/возвращается имя серии данных. null в случае ошибки</returns>
-        public string CreateSeries(ChartArea area, IndicatorOneCandleChartType indicatorType, string name)
+        public string CreateSeries(ChartArea area, IndicatorChartPaintType indicatorType, string name)
         {
             try
             {
@@ -661,15 +658,15 @@ namespace OsEngine.Charts.CandleChart
                 newSeries.ChartArea = area.Name;
                 newSeries.YAxisType = AxisType.Secondary;
 
-                if (indicatorType == IndicatorOneCandleChartType.Line)
+                if (indicatorType == IndicatorChartPaintType.Line)
                 {
                     newSeries.ChartType = SeriesChartType.Line;
                 }
-                if (indicatorType == IndicatorOneCandleChartType.Column)
+                if (indicatorType == IndicatorChartPaintType.Column)
                 {
                     newSeries.ChartType = SeriesChartType.Column;
                 }
-                if (indicatorType == IndicatorOneCandleChartType.Point)
+                if (indicatorType == IndicatorChartPaintType.Point)
                 {
                     newSeries.ChartType = SeriesChartType.Point;
                 }
@@ -711,7 +708,7 @@ namespace OsEngine.Charts.CandleChart
         /// удаляет с графика индикатор и, если он был последний на области, то и область
         /// </summary>
         /// <param name="indicator">indicator that should be removed/индикатор который следует удалить</param>
-        public void DeleteIndicator(IIndicatorCandle indicator)
+        public void DeleteIndicator(IIndicator indicator)
         {
             try
             {
@@ -849,11 +846,11 @@ namespace OsEngine.Charts.CandleChart
         /// the method in which the flow drawing chart works
         /// метод в котором работает поток прорисовывающий чарт
         /// </summary>
-        private void PainterThreadArea()
+        private async void PainterThreadArea()
         {
             while (true)
             {
-                Thread.Sleep(1000);
+                await Task.Delay(1000);
 
                 if (_neadToDelete)
                 {
@@ -873,9 +870,9 @@ namespace OsEngine.Charts.CandleChart
                 if (_lastTimeClear.AddSeconds(5) > DateTime.Now
                     && _startProgram != StartProgram.IsOsOptimizer)
                 {
-                    Thread.Sleep(5000);
+                    await Task.Delay(5000);
                     _candlesToPaint = new ConcurrentQueue<List<Candle>>();
-                    _indicatorsToPaint = new ConcurrentQueue<IIndicatorCandle>();
+                    _indicatorsToPaint = new ConcurrentQueue<IIndicator>();
                 }
                 // checking to see if the candles are here.
                 // проверяем, пришли ли свечи
@@ -1000,11 +997,11 @@ namespace OsEngine.Charts.CandleChart
 
                 if (!_indicatorsToPaint.IsEmpty)
                 {
-                    List<IIndicatorCandle> elements = new List<IIndicatorCandle>();
+                    List<IIndicator> elements = new List<IIndicator>();
 
                     while (!_indicatorsToPaint.IsEmpty)
                     {
-                        IIndicatorCandle newElement;
+                        IIndicator newElement;
                         _indicatorsToPaint.TryDequeue(out newElement);
 
                         if (newElement != null)
@@ -1013,7 +1010,7 @@ namespace OsEngine.Charts.CandleChart
                         }
                     }
 
-                    List<IIndicatorCandle> elementsWithoutRepiat = new List<IIndicatorCandle>();
+                    List<IIndicator> elementsWithoutRepiat = new List<IIndicator>();
 
                     for (int i = elements.Count-1; i >-1 ; i--)
                     {
@@ -1032,7 +1029,7 @@ namespace OsEngine.Charts.CandleChart
                 if (_startProgram == StartProgram.IsTester ||
                     _startProgram == StartProgram.IsOsOptimizer)
                 {
-                    Thread.Sleep(2000);
+                    await Task.Delay(2000);
                 }
             }
         }
@@ -1077,7 +1074,7 @@ namespace OsEngine.Charts.CandleChart
         /// line of indicators to draw
         /// очередь с индикаторами, которые нужно прорисовать
         /// </summary>
-        private ConcurrentQueue<IIndicatorCandle> _indicatorsToPaint = new ConcurrentQueue<IIndicatorCandle>();
+        private ConcurrentQueue<IIndicator> _indicatorsToPaint = new ConcurrentQueue<IIndicator>();
         
         // candles / свечи
 
@@ -1194,6 +1191,16 @@ namespace OsEngine.Charts.CandleChart
             }
             else
             {
+                if (_candlesToPaint.IsEmpty == false 
+                    &&
+                    _candlesToPaint.Count > 5)
+                {
+                    List<Candle> res;
+
+                    while (_candlesToPaint.IsEmpty == false)
+                        _candlesToPaint.TryDequeue(out res);
+                }
+
                 _candlesToPaint.Enqueue(history); 
             }
         }
@@ -1256,11 +1263,14 @@ namespace OsEngine.Charts.CandleChart
                     candleSeries.Points[index].BackSecondaryColor = _colorKeeper.ColorDownBodyCandle;
                 }
 
-               //candleSeries.Points[index].ToolTip = history[index].ToolTip;
+                if(_startProgram == StartProgram.IsOsTrader)
+                {
+                    candleSeries.Points[index].ToolTip = history[index].ToolTip;
+                }
 
                 ChartArea candleArea = FindAreaByNameSafe("Prime");
                 if (candleArea != null && candleArea.AxisX.ScrollBar.IsVisible &&
-                    candleArea.AxisX.ScaleView.Position + candleArea.AxisX.ScaleView.Size + 3 >= candleSeries.Points.Count)
+                    candleArea.AxisX.ScaleView.Position + candleArea.AxisX.ScaleView.Size + 10 >= candleSeries.Points.Count)
                 // if you've already selected a range
                 //если уже выбран какой-то диапазон
                 {
@@ -1307,14 +1317,15 @@ namespace OsEngine.Charts.CandleChart
                 candleSeries.Points[candleSeries.Points.Count - 1].BackSecondaryColor = _colorKeeper.ColorDownBodyCandle;
             }
 
-           
-            //candleSeries.Points[candleSeries.Points.Count - 1].ToolTip = history[candleSeries.Points.Count - 1].ToolTip;
-
+            if (_startProgram == StartProgram.IsOsTrader)
+            {
+                candleSeries.Points[candleSeries.Points.Count - 1].ToolTip = history[candleSeries.Points.Count - 1].ToolTip;
+            }
             // candleSeries.Points[candleSeries.Points.Count - 1].AxisLabel = history[lastIndex].TimeStart.ToString(_culture);
 
-            ChartArea candleArea = FindAreaByNameSafe("Prime");
+                ChartArea candleArea = FindAreaByNameSafe("Prime");
             if (candleArea != null && candleArea.AxisX.ScrollBar.IsVisible &&
-                candleArea.AxisX.ScaleView.Position + candleArea.AxisX.ScaleView.Size + 3 >= candleSeries.Points.Count)
+                candleArea.AxisX.ScaleView.Position + candleArea.AxisX.ScaleView.Size + 10 >= candleSeries.Points.Count)
             // if you've already selected a range
             //если уже выбран какой-то диапазон
             {
@@ -1365,10 +1376,13 @@ namespace OsEngine.Charts.CandleChart
                     candleSeries.Points[candleSeries.Points.Count - 1].BackSecondaryColor = _colorKeeper.ColorDownBodyCandle;
                 }
 
-                //candleSeries.Points[candleSeries.Points.Count - 1].ToolTip = history[candleSeries.Points.Count - 1].ToolTip;
 
-                // candleSeries.Points[candleSeries.Points.Count - 1].AxisLabel = history[i].TimeStart.ToString(new CultureInfo("ru-RU"));
-            }
+                if (_startProgram == StartProgram.IsOsTrader)
+                {
+                    candleSeries.Points[candleSeries.Points.Count - 1].ToolTip = history[candleSeries.Points.Count - 1].ToolTip;
+                }
+                    // candleSeries.Points[candleSeries.Points.Count - 1].AxisLabel = history[i].TimeStart.ToString(new CultureInfo("ru-RU"));
+                }
 
             ChartArea candleArea = FindAreaByNameSafe("Prime");
             if (candleArea != null && candleArea.AxisX.ScrollBar.IsVisible)
@@ -1443,6 +1457,16 @@ namespace OsEngine.Charts.CandleChart
             }
             else
             {
+                if (_tradesToPaint.IsEmpty == false
+                    &&
+                    _tradesToPaint.Count > 5)
+                {
+                    List<Trade> res;
+
+                    while (_tradesToPaint.IsEmpty == false)
+                        _tradesToPaint.TryDequeue(out res);
+                }
+
                 _tradesToPaint.Enqueue(trades);
             }
         }
@@ -1684,7 +1708,10 @@ namespace OsEngine.Charts.CandleChart
 
                         buySellSeries.Points.AddXY(xIndexPoint, trades[indTrades].Price);
 
-                       // buySellSeries.Points[buySellSeries.Points.Count - 1].ToolTip = trades[indTrades].ToolTip;
+                        if(_startProgram == StartProgram.IsOsTrader)
+                        {
+                            buySellSeries.Points[buySellSeries.Points.Count - 1].ToolTip = trades[indTrades].ToolTip;
+                        }
 
                         if (_colorKeeper.PointType == PointType.TriAngle)
                         {
@@ -1965,6 +1992,16 @@ namespace OsEngine.Charts.CandleChart
             }
             else
             {
+                if (_positions.IsEmpty == false
+                    &&
+                    _positions.Count > 5)
+                {
+                    List<Position> res;
+
+                    while (_positions.IsEmpty == false)
+                        _positions.TryDequeue(out res);
+                }
+
                 _positions.Enqueue(deals);
             }
         }
@@ -2168,8 +2205,8 @@ namespace OsEngine.Charts.CandleChart
                 return start + (end - start) / 2;
             }
         }
-        // CUSTOM ELEMENTS
-        // ПОЛЬЗОВАТЕЛЬСКИЕ ЭЛЕМЕНТЫ
+
+        // CUSTOM ELEMENTS ПОЛЬЗОВАТЕЛЬСКИЕ ЭЛЕМЕНТЫ
 
         /// <summary>
         /// draw an element on chart
@@ -2225,6 +2262,17 @@ namespace OsEngine.Charts.CandleChart
             }
             else
             {
+                if (_chartElementsToPaint.IsEmpty == false
+                    &&
+                    _chartElementsToPaint.Count > 5)
+                {
+                    IChartElement res;
+
+                    while (_chartElementsToPaint.IsEmpty == false &&
+                           _chartElementsToPaint.Count > 20)
+                        _chartElementsToPaint.TryDequeue(out res);
+                }
+
                 _chartElementsToPaint.Enqueue(element);
             }
         }
@@ -2287,6 +2335,17 @@ namespace OsEngine.Charts.CandleChart
             }
             else
             {
+                if (_chartElementsToClear.IsEmpty == false
+                    &&
+                    _chartElementsToClear.Count > 5)
+                {
+                    IChartElement res;
+
+                    while (_chartElementsToClear.IsEmpty == false &&
+                           _chartElementsToClear.Count > 200)
+                        _chartElementsToClear.TryDequeue(out res);
+                }
+
                 _chartElementsToClear.Enqueue(element);
             }
         }
@@ -2415,8 +2474,8 @@ namespace OsEngine.Charts.CandleChart
 
             PaintSeriesSafe(newSeries);
         }
-        // Drag and drop Custom items
-        // Перетаскивание Пользовательских элементов
+
+        // Drag and drop Custom items  Перетаскивание Пользовательских элементов
 
         /// <summary>
         /// element that user clicked
@@ -2691,8 +2750,8 @@ namespace OsEngine.Charts.CandleChart
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-// Alerts
-// АЛЕРТЫ
+
+        // Alerts АЛЕРТЫ
 
         public void ClearAlerts(List<IIAlert> alertArray)
         {
@@ -2869,15 +2928,14 @@ namespace OsEngine.Charts.CandleChart
             mySeries.Points.AddXY(x1, valueFirst);
             mySeries.Points.AddXY(x2, valieSecond);
         }
-        // Indicators
-        // ИНДИКАТОРЫ
+        // Indicators  ИНДИКАТОРЫ
 
         /// <summary>
         /// draw an indicator on chart
         /// прорисовать индикатор на графике
         /// </summary>
         /// <param name="indicator">indicator/индикатор</param>
-        private void PaintIndicator(IIndicatorCandle indicator)
+        private void PaintIndicator(IIndicator indicator)
         {
             if (_mouseDown == true)
             {
@@ -2885,62 +2943,94 @@ namespace OsEngine.Charts.CandleChart
             }
             try
             {
-                if (string.IsNullOrWhiteSpace(indicator.NameSeries))
+                if (string.IsNullOrWhiteSpace(indicator.NameSeries) &&
+                    indicator.ValuesToChart != null)
                 {
                     return;
                 }
 
                 if (_chart.InvokeRequired)
                 {
-                    _chart.Invoke(new Action<IIndicatorCandle>(PaintIndicator), indicator);
+                    _chart.Invoke(new Action<IIndicator>(PaintIndicator), indicator);
                     return;
                 }
 
-                if (indicator.PaintOn == false)
+
+                if (indicator.ValuesToChart != null)
                 {
-                    List<List<decimal>> values = indicator.ValuesToChart;
-
-                    for (int i = 0; i < values.Count; i++)
+                    if (indicator.PaintOn == false)
                     {
-                        Series mySeries = FindSeriesByNameSafe(indicator.Name + i);
+                        List<List<decimal>> values = indicator.ValuesToChart;
 
-                        if (mySeries != null && mySeries.Points.Count != 0)
+
+                        for (int i = 0; i < values.Count; i++)
                         {
-                            ClearIndicatorSeries(mySeries);
+                            Series mySeries = FindSeriesByNameSafe(indicator.Name + i);
+
+                            if (mySeries != null && mySeries.Points.Count != 0)
+                            {
+                                ClearIndicatorSeries(mySeries);
+                            }
+                        }
+
+
+                        return;
+                    }
+
+                    if (indicator.TypeIndicator == IndicatorChartPaintType.Line)
+                    {
+                        List<List<decimal>> valList = indicator.ValuesToChart;
+                        List<Color> colors = indicator.Colors;
+                        string name = indicator.Name;
+
+                        for (int i = 0; i < valList.Count; i++)
+                        {
+                            PaintLikeLine(valList[i], colors[i], name + i);
                         }
                     }
-
-                    return;
-                }
-
-                if (indicator.TypeIndicator == IndicatorOneCandleChartType.Line)
-                {
-                    List<List<decimal>> valList = indicator.ValuesToChart;
-                    List<Color> colors = indicator.Colors;
-                    string name = indicator.Name;
-
-                    for (int i = 0; i < valList.Count; i++)
+                    if (indicator.TypeIndicator == IndicatorChartPaintType.Column)
                     {
-                        PaintLikeLine(valList[i], colors[i], name + i);
+                        List<List<decimal>> valList = indicator.ValuesToChart;
+                        List<Color> colors = indicator.Colors;
+                        string name = indicator.Name;
+
+                        PaintLikeColumn(valList[0], colors[0], colors[1], name + 0);
+                    }
+                    if (indicator.TypeIndicator == IndicatorChartPaintType.Point)
+                    {
+                        List<List<decimal>> valList = indicator.ValuesToChart;
+                        List<Color> colors = indicator.Colors;
+                        string name = indicator.Name;
+
+                        for (int i = 0; i < valList.Count; i++)
+                        {
+                            PaintLikePoint(valList[i], colors[i], name + i);
+                        }
                     }
                 }
-                if (indicator.TypeIndicator == IndicatorOneCandleChartType.Column)
+                else
                 {
-                    List<List<decimal>> valList = indicator.ValuesToChart;
-                    List<Color> colors = indicator.Colors;
-                    string name = indicator.Name;
+                    Aindicator ind = (Aindicator)indicator;
+                    List<IndicatorDataSeries> series = ind.DataSeries;
 
-                    PaintLikeColumn(valList[0], colors[0], colors[1], name + 0);
-                }
-                if (indicator.TypeIndicator == IndicatorOneCandleChartType.Point)
-                {
-                    List<List<decimal>> valList = indicator.ValuesToChart;
-                    List<Color> colors = indicator.Colors;
-                    string name = indicator.Name;
-
-                    for (int i = 0; i < valList.Count; i++)
+                    for (int i = 0; series != null && i < series.Count; i++)
                     {
-                        PaintLikePoint(valList[i], colors[i], name + i);
+                        if (series[i].IsPaint == false)
+                        {
+                            continue;
+                        }
+                        if (series[i].ChartPaintType == IndicatorChartPaintType.Line)
+                        {
+                            PaintLikeLine(series[i].Values, series[i].Color, indicator.Name + i);
+                        }
+                        else if (series[i].ChartPaintType == IndicatorChartPaintType.Column)
+                        {
+                            PaintLikeColumn(series[i].Values, series[i].Color, series[i].Color, indicator.Name + i);
+                        }
+                        else if (series[i].ChartPaintType == IndicatorChartPaintType.Point)
+                        {
+                            PaintLikePoint(series[i].Values, series[i].Color, indicator.Name + i);
+                        }
                     }
                 }
             }
@@ -2955,11 +3045,11 @@ namespace OsEngine.Charts.CandleChart
         /// добавить индикатор в прорисовку
         /// </summary>
         /// <param name="indicator">indicator/индикатор</param>
-        public void ProcessIndicator(IIndicatorCandle indicator)
+        public void ProcessIndicator(IIndicator indicator)
         {
             if ((_startProgram == StartProgram.IsTester
                 || _startProgram == StartProgram.IsOsMiner ||
-                IsPatternChart) 
+                IsPatternChart)
             &&
                 _host != null)
             {
@@ -2969,6 +3059,18 @@ namespace OsEngine.Charts.CandleChart
             }
             else
             {
+                if (_indicatorsToPaint.IsEmpty == false
+                    &&
+                    _indicatorsToPaint.Count > 25)
+                {
+                    IIndicator res;
+
+                    while (_indicatorsToPaint.IsEmpty == false &&
+                           _indicatorsToPaint.Count > 25)
+
+                        _indicatorsToPaint.TryDequeue(out res);
+                }
+
                 _indicatorsToPaint.Enqueue(indicator);
             }
         }
@@ -2978,7 +3080,7 @@ namespace OsEngine.Charts.CandleChart
         /// принудительно перерисоват индикатор на графике от начала до конца
         /// </summary>
         /// <param name="indicatorCandle">indicator/индикатор</param>
-        public void RePaintIndicator(IIndicatorCandle indicatorCandle)
+        public void RePaintIndicator(IIndicator indicatorCandle)
         {
             if (_mouseDown == true)
             {
@@ -3029,8 +3131,8 @@ namespace OsEngine.Charts.CandleChart
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-        // Point indicator
-        // Индикатор точки
+
+        // Point indicator Индикатор точки
 
         /// <summary>
         /// Draw an indicator as a point
@@ -3128,10 +3230,10 @@ namespace OsEngine.Charts.CandleChart
             Series mySeries = FindSeriesByNameSafe(nameSeries);
             decimal point2 = Convert.ToDecimal(values[values.Count - 2]);
             mySeries.Points[mySeries.Points.Count - 1].YValues = new[] { Convert.ToDouble(point2) };
-           // mySeries.Points[mySeries.Points.Count - 1].ToolTip = point2.ToString();
+            // mySeries.Points[mySeries.Points.Count - 1].ToolTip = point2.ToString();
         }
-        // Line indicator
-        // Индикатор линия
+
+        // Line indicator Индикатор линия
 
         /// <summary>
         /// draw indicator as a line
@@ -3139,7 +3241,7 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         private void PaintLikeLine(List<decimal> values, Color color, string nameSeries)
         {
-            if(values == null ||
+            if (values == null ||
                 values.Count == 0)
             {
                 Series needClearSeries = FindSeriesByNameSafe(nameSeries);
@@ -3161,12 +3263,12 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
 
-            if(mySeries.Points.Count != 0 &&
+            if (mySeries.Points.Count != 0 &&
                 values.Count - 1 == mySeries.Points.Count)
             {
                 // if only draw last point
                 // если прорисовываем только последнюю точку
-                PaintLikeLineLast(values, nameSeries,color);
+                PaintLikeLineLast(values, nameSeries, color);
             }
             else if (mySeries.Points.Count != 0 &&
                 values.Count == mySeries.Points.Count)
@@ -3197,24 +3299,22 @@ namespace OsEngine.Charts.CandleChart
 
                 for (int i = 0; i < array.Count; i++)
                 {
-                  //  if (array[i] != 0)
-                  //  {
-                        series.Points.AddXY(i, array[i]);
-                        //series.Points[series.Points.Count - 1].ToolTip = array[i].ToString();
-                  //  }
-                    //else
-                   // {
-                       // var point = new DataPoint(mySeries.Points.Count, 0);
-                       // point.IsEmpty = true;
-                       // series.Points.Add(point);
-                    //}
+                    // series.Points.AddXY(i, array[i]);
+                    var point = new DataPoint(i, (double)array[i]);
+
+                    if (array[i] == 0)
+                    {
+                        point.IsEmpty = true;
+                    }
+
+                    series.Points.Add(point);
                 }
 
                 PaintSeriesSafe(series);
                 ReloadAreaSizes();
             }
             ResizeYAxisOnArea(myArea.Name);
-            
+
         }
 
         /// <summary>
@@ -3227,18 +3327,14 @@ namespace OsEngine.Charts.CandleChart
             mySeries.Color = color;
             decimal lastPoint = values[values.Count - 1];
 
-          //  if(lastPoint != 0)
-          //  {
-                mySeries.Points.AddXY(mySeries.Points.Count, lastPoint);
-                //mySeries.Points[mySeries.Points.Count - 1].ToolTip = lastPoint.ToString();
-          //  }
-          //  else
-          //  {
-           //     var point = new DataPoint(mySeries.Points.Count, (double)lastPoint);
-               // point.IsEmpty = true;
-           //     mySeries.Points.Add(point);
-          //  }
+            // mySeries.Points.AddXY(mySeries.Points.Count, lastPoint);
 
+            var point = new DataPoint(mySeries.Points.Count, (double)lastPoint);
+            if (lastPoint == 0)
+            {
+                point.IsEmpty = true;
+            }
+            mySeries.Points.Add(point);
 
             RePaintRightLebels();
         }
@@ -3252,13 +3348,21 @@ namespace OsEngine.Charts.CandleChart
             Series mySeries = FindSeriesByNameSafe(nameSeries);
             mySeries.Color = color;
             decimal lastPoint = Convert.ToDecimal(values[values.Count - 1]);
-            mySeries.Points[mySeries.Points.Count - 1].YValues = new [] { Convert.ToDouble(lastPoint) };
-            //mySeries.Points[mySeries.Points.Count - 1].ToolTip = lastPoint.ToString();
+            mySeries.Points[mySeries.Points.Count - 1].YValues = new[] { Convert.ToDouble(lastPoint) };
+
+            if (lastPoint == 0)
+            {
+                mySeries.Points[mySeries.Points.Count - 1].IsEmpty = true;
+            }
+            else
+            {
+                mySeries.Points[mySeries.Points.Count - 1].IsEmpty = false;
+            }
 
             RePaintRightLebels();
         }
-        // Column indicator
-        // Индикатор столбец
+
+        // Column indicator  Индикатор столбец
 
         /// <summary>
         /// draw as columns
@@ -3291,7 +3395,7 @@ namespace OsEngine.Charts.CandleChart
             {
                 // if only draw last point
                 // если прорисовываем только последнюю точку
-                PaintLikeColumnLast(values,nameSeries,colorUp,colorDown);
+                PaintLikeColumnLast(values, nameSeries, colorUp, colorDown);
             }
             else if (mySeries.Points.Count != 0 &&
                 values.Count == mySeries.Points.Count)
@@ -3390,7 +3494,7 @@ namespace OsEngine.Charts.CandleChart
             Series mySeriesUp = FindSeriesByNameSafe(nameSeries);
             decimal lastPoint = Convert.ToDecimal(values[values.Count - 1]);
             mySeriesUp.Points[mySeriesUp.Points.Count - 1].YValues = new[] { Convert.ToDouble(lastPoint) };
-           // mySeriesUp.Points[mySeriesUp.Points.Count - 1].ToolTip = lastPoint.ToString();
+            // mySeriesUp.Points[mySeriesUp.Points.Count - 1].ToolTip = lastPoint.ToString();
 
             if (values.Count != 1)
             {
@@ -3492,7 +3596,6 @@ namespace OsEngine.Charts.CandleChart
             {
                 try
                 {
-                    Thread.Sleep(100);
                     mySeries = _chart.Series.FindByName(name);
                 }
                 catch (Exception)
@@ -3521,7 +3624,6 @@ namespace OsEngine.Charts.CandleChart
             {
                 try
                 {
-                    Thread.Sleep(100);
                     myArea = _chart.ChartAreas.FindByName(name);
                 }
                 catch (Exception)
@@ -3532,8 +3634,8 @@ namespace OsEngine.Charts.CandleChart
 
             return myArea;
         }
-        // Patterns
-        // Паттерны
+
+        // Patterns  Паттерны
 
         public bool IsPatternChart;
 
@@ -3637,9 +3739,8 @@ namespace OsEngine.Charts.CandleChart
                 paintSeries.Points[i].BorderColor = pointColor;
             }
         }
-        // Crosshair disappearing control on chart
-        // управление исчезанием перекрестия на графике
 
+        // Crosshair disappearing control on chart управление исчезанием перекрестия на графике
 
         private void _chart_MouseLeave(object sender, EventArgs e)
         {
@@ -3649,8 +3750,8 @@ namespace OsEngine.Charts.CandleChart
                 _chart.ChartAreas[i].CursorY.Position = 0;
             }
         }
-        // chart transition
-        // переход по чарту
+
+        // chart transition переход по чарту
 
         /// <summary>
         /// move chart to a specified time
@@ -3730,8 +3831,8 @@ namespace OsEngine.Charts.CandleChart
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-        // working with cursor and highlight candles on chart
-        // работа с курсором и выделенем свечек на чарте
+
+        // working with cursor and highlight candles on chart работа с курсором и выделенем свечек на чарте
 
         void _chart_Click(object sender, EventArgs e)
         {
@@ -3962,8 +4063,8 @@ namespace OsEngine.Charts.CandleChart
             RePaintPrimeLines("Prime");
             CheckOverlap("Prime");
         }
-        // Drawing horizontal lines on a chart
-        // прорисовка горизонтальных линий на графике
+
+        // Drawing horizontal lines on a chart прорисовка горизонтальных линий на графике
 
         /// <summary>
         /// to draw an inscription on Y2 axis
@@ -4276,7 +4377,7 @@ namespace OsEngine.Charts.CandleChart
             }
             else
             {
-                index = (int)_chart.ChartAreas[0].AxisX.ScaleView.Position + (int)_chart.ChartAreas[0].AxisX.ScaleView.Size;
+                index = (int)(_chart.ChartAreas[0].AxisX.ScaleView.Position +_chart.ChartAreas[0].AxisX.ScaleView.Size);
             }
 
             if(index < 0)
@@ -4311,43 +4412,55 @@ namespace OsEngine.Charts.CandleChart
                         series.Points.Count < index ||
                         series.ChartType == SeriesChartType.Point
                         //|| series.Points.Count +2 < _myCandles.Count
-                        )
+                    )
                     {
                         continue;
                     }
 
-                   /* if (series.ChartType == SeriesChartType.Candlestick)
-                    {
-                        PaintLabelOnY2(series.Name + "Label", series.ChartArea,
-                           _myCandles[index].Close.ToString(_culture),
-                               _myCandles[index].Close, _colorKeeper.ColorBackCursor, true);
+                    /* if (series.ChartType == SeriesChartType.Candlestick)
+                     {
+                         PaintLabelOnY2(series.Name + "Label", series.ChartArea,
+                            _myCandles[index].Close.ToString(_culture),
+                                _myCandles[index].Close, _colorKeeper.ColorBackCursor, true);
+ 
+                     }
+                     else
+                     {
+                     */
+                    int realIndex = index;
 
+                    if (index == series.Points.Count)
+                    {
+                        realIndex = series.Points.Count - 1;
                     }
                     else
                     {
-                    */
-                        int realIndex = index;
+                        //realIndex = series.Points.Count - (series.Points.Count - 1 - index);
+                    }
 
-                        if (index == series.Points.Count)
+                    int rounder = 0;
+
+                    if (_areaSizes != null)
+                    {
+                        ChartAreaSizes size = _areaSizes.Find(sizes => sizes.Name == _chart.ChartAreas[i].Name);
+                        if (size != null)
                         {
-                            realIndex = series.Points.Count - 1;
+                            rounder = size.Decimals;
                         }
+                    }
 
-                        int rounder = 0;
-
-                        if (_areaSizes != null)
-                        {
-                            ChartAreaSizes size = _areaSizes.Find(sizes => sizes.Name == _chart.ChartAreas[i].Name);
-                            if (size != null)
-                            {
-                                rounder = size.Decimals;
-                            }
-                        }
-
+                    if (series.Name == "SeriesCandle")
+                    {
                         PaintLabelOnY2(series.Name + "Label", series.ChartArea,
-                              (Math.Round(series.Points[realIndex].YValues[0], rounder)).ToString(_culture),
-                                 (decimal)series.Points[realIndex].YValues[0], series.Points[realIndex].Color, true);
-                  //  }
+                            (Math.Round(series.Points[realIndex].YValues[3], rounder)).ToString(_culture),
+                            (decimal)series.Points[realIndex].YValues[3], series.Points[realIndex].Color, true);
+                    }
+                    else
+                    {
+                        PaintLabelOnY2(series.Name + "Label", series.ChartArea,
+                            (Math.Round(series.Points[realIndex].YValues[0], rounder)).ToString(_culture),
+                            (decimal)series.Points[realIndex].YValues[0], series.Points[realIndex].Color, true);
+                    }
                 }
             }
         }
@@ -4356,8 +4469,8 @@ namespace OsEngine.Charts.CandleChart
         {
             RePaintRightLebels();
         }
-        // management of collapsing areas
-        // управление схлопывание областей
+
+        // management of collapsing areas управление схлопывание областей
 
         /// <summary>
         /// hide all except main
@@ -4453,8 +4566,8 @@ namespace OsEngine.Charts.CandleChart
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-        // area height management
-        // управление высотой областей
+
+        // area height management управление высотой областей
 
         private List<ChartAreaPosition> _areaPositions;
 
@@ -4814,8 +4927,8 @@ namespace OsEngine.Charts.CandleChart
             position.DownPoint = position.UpPoint + _host.Child.Height * (area.Position.Height / 100);
 
         }
-        // axis scaling
-        // изменение масштабов осей
+
+        // axis scaling изменение масштабов осей
 
         private List<ChartAreaSizes> _areaSizes;
 

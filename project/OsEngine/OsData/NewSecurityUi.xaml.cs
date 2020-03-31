@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using OsEngine.Entity;
 using OsEngine.Language;
@@ -153,9 +154,9 @@ namespace OsEngine.OsData
 
             // clear search label after freshnessTime + 1 (seconds)
             // очистить строку поиска через freshnessTime + 1 (секунд)
-            Thread t = new Thread(new ThreadStart(() => {
+            Task t = new Task(async () => {
 
-                Thread.Sleep((freshnessTime+1)*1000);
+                await Task.Delay((freshnessTime+1)*1000);
 
                 if (DateTime.Now.Subtract(_startSearch).Seconds > freshnessTime)
                 {
@@ -164,8 +165,7 @@ namespace OsEngine.OsData
                         LabelSearchString.Content = "";
                     });
                 }
-
-            }));
+            });
             t.Start();
         }
 
@@ -182,6 +182,10 @@ namespace OsEngine.OsData
                 if (classes.Find(s => s == orderedSecurities[i].NameClass) == null && 
                     !IsSecurityEmpty(orderedSecurities[i]))
                 {
+                    if (orderedSecurities[i].NameClass == null)
+                    {
+                        continue;
+                    }
                     classes.Add(orderedSecurities[i].NameClass);
                     ComboBoxClass.Items.Add(orderedSecurities[i].NameClass);
                 }
@@ -272,7 +276,11 @@ namespace OsEngine.OsData
             {
                 return;
             }
-            SelectedSecurity = _securitiesInBox.Find(security => security.NameFull == _grid.SelectedCells[1].Value.ToString());
+
+            
+
+            SelectedSecurity = _securitiesInBox.Find(
+                security => security.Name == _grid.SelectedCells[0].Value.ToString());
             Close();
         }
 

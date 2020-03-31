@@ -114,16 +114,19 @@ namespace OsEngine.Entity
 
                 if (NumberPosition != null)
                 {
-                    _toolTip = "Pos. num: " + NumberPosition;
+                    _toolTip = "Pos. num: " + NumberPosition + "\r\n";
                 }
 
-                _toolTip += " Ord. num: " + NumberOrderParent;
-                _toolTip += " Trade num: " + NumberTrade + "\r\n";
+                if(!NumberTrade.StartsWith("emu"))
+                {
+                    _toolTip += "Ord. num: " + NumberOrderParent + "\r\n";
+                    _toolTip += "Trade num: " + NumberTrade + "\r\n";
+                }
 
                 _toolTip += "Side: " + Side + "\r\n";
                 _toolTip += "Time: " + Time + "\r\n";
-                _toolTip += "Price: " + Price + "\r\n";
-                _toolTip += "Volume: " + Volume + "\r\n";
+                _toolTip += "Price: " + Price.ToStringWithNoEndZero() + "\r\n";
+                _toolTip += "Volume: " + Volume.ToStringWithNoEndZero() + "\r\n";
 
                 return _toolTip;
             }

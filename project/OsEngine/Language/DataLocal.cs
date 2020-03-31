@@ -139,6 +139,6 @@ namespace OsEngine.Language
 
         public string Label29 => OsLocalization.ConvertToLocString(
             "Eng:Trades successfully loaded. Security _" +
-            "Ru:Трейды успешно закгужены. Бумага _");
+            "Ru:Трейды успешно загружены. Бумага _");
     }
 }

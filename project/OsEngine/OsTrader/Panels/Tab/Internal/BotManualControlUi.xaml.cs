@@ -6,6 +6,7 @@
 using System;
 using System.Globalization;
 using System.Windows;
+using System.Windows.Controls;
 using OsEngine.Entity;
 using OsEngine.Language;
 
@@ -31,6 +32,11 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             try
             {
                 _strategySettings = strategySettings;
+
+                ComboBoxValuesType.Items.Add(ManualControlValuesType.MinPriceStep.ToString());
+                ComboBoxValuesType.Items.Add(ManualControlValuesType.Absolute.ToString());
+                ComboBoxValuesType.Items.Add(ManualControlValuesType.Percent.ToString());
+                ComboBoxValuesType.SelectedItem = _strategySettings.ValuesType.ToString();
 
                 // stop
                 // стоп
@@ -89,6 +95,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 CheckBoxSecondToOpenIsOn.Content = OsLocalization.Trader.Label97;
                 ButtonAccept.Content = OsLocalization.Trader.Label17;
                 CheckBoxDoubleExitIsOnIsOn.Content = OsLocalization.Trader.Label99;
+                LabelValuesType.Content = OsLocalization.Trader.Label158;
             }
             catch (Exception error)
             {
@@ -104,16 +111,16 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         {
             try
             {
-                if(Convert.ToInt32(TextBoxSecondToOpen.Text) <= 0 ||
+                if (Convert.ToInt32(TextBoxSecondToOpen.Text) <= 0 ||
                     Convert.ToInt32(TextBoxSecondToClose.Text) <= 0 ||
-                    Convert.ToInt32(TextBoxStopPercentLenght.Text) <= 0 ||
-                    Convert.ToInt32(TextBoxSlipageStop.Text) <= 0 ||
-                    Convert.ToInt32(TextBoxProfitPercentLenght.Text) <= 0 ||
-                    Convert.ToInt32(TextBoxSlipageProfit.Text) <= 0 ||
-                    Convert.ToInt32(TextBoxSetbackToClose.Text) <= 0 ||
+                    TextBoxStopPercentLenght.Text.ToDecimal() <= 0 ||
+                    TextBoxSlipageStop.Text.ToDecimal() <= 0 ||
+                    TextBoxProfitPercentLenght.Text.ToDecimal() <= 0 ||
+                    TextBoxSlipageProfit.Text.ToDecimal() <= 0 ||
+                    TextBoxSetbackToClose.Text.ToDecimal() <= 0 ||
                     Convert.ToInt32(TextBoxSecondToOpen.Text) <= 0 ||
-                    Convert.ToInt32(TextBoxSetbackToOpen.Text) <= 0 ||
-                    Convert.ToInt32(TextBoxSlipageDoubleExit.Text) < -100)
+                    TextBoxSetbackToOpen.Text.ToDecimal() <= 0 ||
+                    TextBoxSlipageDoubleExit.Text.ToDecimal() < -100)
                 {
                     throw new Exception();
                 }
@@ -129,14 +136,14 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 // stop
                 // стоп
                 _strategySettings.StopIsOn = CheckBoxStopIsOn.IsChecked.Value;
-                _strategySettings.StopDistance = Convert.ToInt32(TextBoxStopPercentLenght.Text);
-                _strategySettings.StopSlipage = Convert.ToInt32(TextBoxSlipageStop.Text);
+                _strategySettings.StopDistance = TextBoxStopPercentLenght.Text.ToDecimal();
+                _strategySettings.StopSlipage =TextBoxSlipageStop.Text.ToDecimal();
 
                 // profit
                 // профит
                 _strategySettings.ProfitIsOn = CheckBoxProfitIsOn.IsChecked.Value;
-                _strategySettings.ProfitDistance = Convert.ToInt32(TextBoxProfitPercentLenght.Text);
-                _strategySettings.ProfitSlipage = Convert.ToInt32(TextBoxSlipageProfit.Text);
+                _strategySettings.ProfitDistance = TextBoxProfitPercentLenght.Text.ToDecimal();
+                _strategySettings.ProfitSlipage = TextBoxSlipageProfit.Text.ToDecimal();
 
                 // closing position
                 // закрытие позиции
@@ -151,7 +158,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 {
                     _strategySettings.SetbackToCloseIsOn = CheckBoxSetbackToCloseIsOn.IsChecked.Value;
                 }
-                _strategySettings.SetbackToClosePosition = Convert.ToInt32(TextBoxSetbackToClose.Text);
+                _strategySettings.SetbackToClosePosition = TextBoxSetbackToClose.Text.ToDecimal();
 
                 if (CheckBoxDoubleExitIsOnIsOn.IsChecked.HasValue)
                 {
@@ -161,7 +168,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 Enum.TryParse(ComboBoxTypeDoubleExitOrder.SelectedItem.ToString(),
                     out _strategySettings.TypeDoubleExitOrder);
 
-                _strategySettings.DoubleExitSlipage = Convert.ToInt32(TextBoxSlipageDoubleExit.Text);
+                _strategySettings.DoubleExitSlipage = TextBoxSlipageDoubleExit.Text.ToDecimal();
 
                 // opening position
                 // открытие позиции
@@ -176,7 +183,9 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 {
                     _strategySettings.SetbackToOpenIsOn = CheckBoxSetbackToOpenIsOn.IsChecked.Value;
                 }
-                _strategySettings.SetbackToOpenPosition = Convert.ToInt32(TextBoxSetbackToOpen.Text);
+                _strategySettings.SetbackToOpenPosition = TextBoxSetbackToOpen.Text.ToDecimal();
+
+                Enum.TryParse(ComboBoxValuesType.SelectedItem.ToString(), out _strategySettings.ValuesType);
 
                 _strategySettings.Save();
             }

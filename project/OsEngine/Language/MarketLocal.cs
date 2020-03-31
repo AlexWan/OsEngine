@@ -115,6 +115,14 @@ namespace OsEngine.Language
             "Eng:Deploy servers automatically_" +
             "Ru:Разворачивать сервера автоматически_");
 
+        public string LabelComissionType => OsLocalization.ConvertToLocString(
+            "Eng:Comission type_" +
+            "Ru:Тип комиссии_");
+
+        public string LabelComissionValue => OsLocalization.ConvertToLocString(
+            "Eng:Comission value_" +
+            "Ru:Значение комиссии_");
+
         public string TitleServerMasterUi => OsLocalization.ConvertToLocString(
             "Eng:Router_" +
             "Ru:Роутер_");
@@ -705,6 +713,11 @@ namespace OsEngine.Language
         public string ServerParamSecretKey => OsLocalization.ConvertToLocString(
             "Eng:Secret key_" +
             "Ru:Секретный ключ_");
+
+
+        public string ServerParamToken => OsLocalization.ConvertToLocString(
+            "Eng:Token_" +
+            "Ru:Token_");
 
         public string ServerParamId => OsLocalization.ConvertToLocString(
             "Eng:Id_" +

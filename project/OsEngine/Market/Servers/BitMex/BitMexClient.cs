@@ -29,7 +29,7 @@ namespace OsEngine.Market.Servers.BitMex
     {
         private ClientWebSocket _ws;
 
-        RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(300));
+        RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(500));
 
         private string _serverAdress;
 
@@ -346,7 +346,12 @@ namespace OsEngine.Market.Servers.BitMex
                             {
                                 var myOrder = JsonConvert.DeserializeAnonymousType(mes, new BitMexMyOrders());
 
-                                if (MyTradeEvent != null && myOrder.data.Count != 0 && myOrder.data[0].execType == "Trade")
+                                if (MyTradeEvent != null && 
+                                    myOrder.data.Count != 0
+                                    && 
+                                    (myOrder.data[0].execType == "Trade"
+                                    || myOrder.data[0].execType == "New"
+                                    || myOrder.data[0].execType == "Filled"))
                                 {
                                     MyTradeEvent(myOrder);
                                 }

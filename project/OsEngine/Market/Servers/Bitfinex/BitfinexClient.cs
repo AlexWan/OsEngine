@@ -10,7 +10,6 @@ using System.Threading;
 using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Logging;
-using OsEngine.Market.Servers.Binance.BinanceEntity;
 using OsEngine.Market.Servers.Bitfinex.BitfitnexEntity;
 using RestSharp;
 using WebSocket4Net;

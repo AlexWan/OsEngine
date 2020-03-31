@@ -6,7 +6,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
+using System.Threading.Tasks;
 using OsEngine.Entity;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
@@ -39,9 +39,9 @@ namespace OsEngine.Robots.High_Frequency
             _tab.PositionOpeningSuccesEvent += _tab_PositionOpeningSuccesEvent;
             _tab.PositionClosingFailEvent += _tab_PositionClosingFailEvent;
 
-            Thread closerThread = new Thread(ClosePositionThreadArea);
-            closerThread.IsBackground = true;
-            closerThread.Start();
+            Task task = new Task(ClosePositionThreadArea);
+            task.Start();
+
         }
 
         /// <summary>
@@ -265,11 +265,11 @@ namespace OsEngine.Robots.High_Frequency
         /// place of work where orders are recalled in a real connection
         /// место работы потока где отзываются заявки в реальном подключении
         /// </summary>
-        private void ClosePositionThreadArea()
+        private async void ClosePositionThreadArea()
         {
             while (true)
             {
-                Thread.Sleep(1000);
+                await Task.Delay(1000);
 
                 if (MainWindow.ProccesIsWorked == false)
                 {

@@ -116,7 +116,7 @@ namespace OsEngine.Entity
 
                 if (CandlesAll[CandlesAll.Count - 1].State != CandleState.Finished)
                 {
-                    return CandlesAll.GetRange(0, CandlesAll.Count - 1); 
+                    return CandlesAll.GetRange(0, CandlesAll.Count - 1);
                 }
 
                 return history;
@@ -153,10 +153,16 @@ namespace OsEngine.Entity
         public void Clear()
         {
             _lastTradeIndex = 0;
+
+            for (int i = 0; CandlesAll != null && i < CandlesAll.Count; i++)
+            {
+                CandlesAll[i].Trades = null;
+            }
+
             CandlesAll = null;
         }
 
-// приём изменившегося времени
+        // приём изменившегося времени
 
         /// <summary>
         /// добавить в серию новое время сервера
@@ -196,7 +202,7 @@ namespace OsEngine.Entity
             }
         }
 
-// сбор свечек из тиков
+        // сбор свечек из тиков
 
         /// <summary>
         /// индекс тика на последней итерации
@@ -231,7 +237,7 @@ namespace OsEngine.Entity
                 return;
             }
 
-            if(_lastTradeIndex == 0)
+            if (_lastTradeIndex == 0)
             {
 
             }
@@ -244,7 +250,7 @@ namespace OsEngine.Entity
                     continue;
                 }
 
-                if(CandlesAll != null &&
+                if (CandlesAll != null &&
                    CandlesAll[CandlesAll.Count - 1].TimeStart > trades[i].Time)
                 {
                     continue;
@@ -314,7 +320,7 @@ namespace OsEngine.Entity
             }
             else if (_timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Delta)
             {
-                UpDateDeltaTimeFrame(time, price, volume, canPushUp,side);
+                UpDateDeltaTimeFrame(time, price, volume, canPushUp, side);
             }
             else if (_timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Ticks)
             {
@@ -368,6 +374,9 @@ namespace OsEngine.Entity
                     timeNextCandle = timeNextCandle.AddMilliseconds(-1);
                 }
 
+                timeNextCandle = new DateTime(timeNextCandle.Year, timeNextCandle.Month, timeNextCandle.Day,
+                    timeNextCandle.Hour, timeNextCandle.Minute, timeNextCandle.Second, timeNextCandle.Millisecond);
+
                 Candle candle = new Candle()
                 {
                     Close = price,
@@ -392,7 +401,7 @@ namespace OsEngine.Entity
 
 
             if (CandlesAll != null &&
-                CandlesAll[CandlesAll.Count - 1].High - CandlesAll[CandlesAll.Count-1].Low >= _timeFrameBuilder.RangeCandlesPunkts)
+                CandlesAll[CandlesAll.Count - 1].High - CandlesAll[CandlesAll.Count - 1].Low >= _timeFrameBuilder.RangeCandlesPunkts)
             {
                 // если пришли данные из новой свечки
 
@@ -413,6 +422,9 @@ namespace OsEngine.Entity
                 {
                     timeNextCandle = timeNextCandle.AddMilliseconds(-1);
                 }
+
+                timeNextCandle = new DateTime(timeNextCandle.Year, timeNextCandle.Month, timeNextCandle.Day,
+                    timeNextCandle.Hour, timeNextCandle.Minute, timeNextCandle.Second, timeNextCandle.Millisecond);
 
                 Candle newCandle = new Candle()
                 {
@@ -486,6 +498,9 @@ namespace OsEngine.Entity
                     timeNextCandle = timeNextCandle.AddMilliseconds(-1);
                 }
 
+                timeNextCandle = new DateTime(timeNextCandle.Year, timeNextCandle.Month, timeNextCandle.Day,
+                    timeNextCandle.Hour, timeNextCandle.Minute, timeNextCandle.Second, timeNextCandle.Millisecond);
+
                 Candle candle = new Candle()
                 {
                     Close = price,
@@ -545,6 +560,9 @@ namespace OsEngine.Entity
                 {
                     timeNextCandle = timeNextCandle.AddMilliseconds(-1);
                 }
+
+                timeNextCandle = new DateTime(timeNextCandle.Year, timeNextCandle.Month, timeNextCandle.Day,
+                    timeNextCandle.Hour, timeNextCandle.Minute, timeNextCandle.Second, timeNextCandle.Millisecond);
 
                 Candle newCandle = new Candle()
                 {
@@ -638,6 +656,9 @@ namespace OsEngine.Entity
                     timeNextCandle = timeNextCandle.AddMilliseconds(-1);
                 }
 
+                timeNextCandle = new DateTime(timeNextCandle.Year, timeNextCandle.Month, timeNextCandle.Day,
+                    timeNextCandle.Hour, timeNextCandle.Minute, timeNextCandle.Second, timeNextCandle.Millisecond);
+
                 Candle candle = new Candle()
                 {
                     Close = price,
@@ -683,7 +704,7 @@ namespace OsEngine.Entity
                 CandlesAll[CandlesAll.Count - 1].Close = (CandlesAll[CandlesAll.Count - 1].Open +
                                                           CandlesAll[CandlesAll.Count - 1].High +
                                                           CandlesAll[CandlesAll.Count - 1].Low +
-                                                          CandlesAll[CandlesAll.Count - 1].Close)/4;
+                                                          CandlesAll[CandlesAll.Count - 1].Close) / 4;
 
                 if (CandlesAll[CandlesAll.Count - 1].State != CandleState.Finished)
                 {
@@ -726,6 +747,8 @@ namespace OsEngine.Entity
                     timeNextCandle = timeNextCandle.AddMilliseconds(-1);
                 }
 
+                timeNextCandle = new DateTime(timeNextCandle.Year, timeNextCandle.Month, timeNextCandle.Day,
+                    timeNextCandle.Hour, timeNextCandle.Minute, timeNextCandle.Second, timeNextCandle.Millisecond);
 
                 Candle newCandle = new Candle()
                 {
@@ -733,7 +756,7 @@ namespace OsEngine.Entity
                     High = price,
                     Low = price,
                     Open = (CandlesAll[CandlesAll.Count - 1].Open +
-                            CandlesAll[CandlesAll.Count - 1].Close)/2,
+                            CandlesAll[CandlesAll.Count - 1].Close) / 2,
                     State = CandleState.Started,
                     TimeStart = timeNextCandle,
                     Volume = volume
@@ -826,6 +849,9 @@ namespace OsEngine.Entity
                     timeNextCandle = timeNextCandle.AddMilliseconds(-1);
                 }
 
+                timeNextCandle = new DateTime(timeNextCandle.Year, timeNextCandle.Month, timeNextCandle.Day,
+                    timeNextCandle.Hour, timeNextCandle.Minute, timeNextCandle.Second, timeNextCandle.Millisecond);
+
                 Candle candle = new Candle()
                 {
                     Close = price,
@@ -862,7 +888,7 @@ namespace OsEngine.Entity
                 )
                 ||
                 (
-                  TimeFrame == TimeFrame.Day && 
+                  TimeFrame == TimeFrame.Day &&
                   CandlesAll[CandlesAll.Count - 1].TimeStart.Date < time.Date
                 )
                 )
@@ -910,6 +936,8 @@ namespace OsEngine.Entity
                     timeNextCandle = timeNextCandle.AddMilliseconds(-1);
                 }
 
+                timeNextCandle = new DateTime(timeNextCandle.Year, timeNextCandle.Month, timeNextCandle.Day,
+                    timeNextCandle.Hour, timeNextCandle.Minute, timeNextCandle.Second, timeNextCandle.Millisecond);
 
                 Candle newCandle = new Candle()
                 {
@@ -989,6 +1017,9 @@ namespace OsEngine.Entity
                     timeNextCandle = timeNextCandle.AddMilliseconds(-1);
                 }
 
+                timeNextCandle = new DateTime(timeNextCandle.Year, timeNextCandle.Month, timeNextCandle.Day,
+                    timeNextCandle.Hour, timeNextCandle.Minute, timeNextCandle.Second, timeNextCandle.Millisecond);
+
                 Candle candle = new Candle()
                 {
                     Close = price,
@@ -1045,6 +1076,8 @@ namespace OsEngine.Entity
                     timeNextCandle = timeNextCandle.AddMilliseconds(-1);
                 }
 
+                timeNextCandle = new DateTime(timeNextCandle.Year, timeNextCandle.Month, timeNextCandle.Day,
+                    timeNextCandle.Hour, timeNextCandle.Minute, timeNextCandle.Second, timeNextCandle.Millisecond);
 
                 Candle newCandle = new Candle()
                 {
@@ -1165,7 +1198,7 @@ namespace OsEngine.Entity
                 }
 
                 DateTime timeNextCandle = time;
-                
+
                 while (timeNextCandle.Millisecond != 0)
                 {
                     timeNextCandle = timeNextCandle.AddMilliseconds(-1);
@@ -1399,11 +1432,11 @@ namespace OsEngine.Entity
                 // если пришли данные из новой свечки
 
                 Candle lastCandle = CandlesAll[CandlesAll.Count - 1];
-                
+
 
 
                 if (
-                    (_rencoLastSide == Side.None && price - _rencoStartPrice  >= renDist)
+                    (_rencoLastSide == Side.None && price - _rencoStartPrice >= renDist)
                     ||
                     (_rencoLastSide == Side.Buy && price - _rencoStartPrice >= renDist)
                     )
@@ -1423,11 +1456,11 @@ namespace OsEngine.Entity
                     lastCandle.Low = _rencoStartPrice;
                 }
                 else if (
-                    _rencoLastSide == Side.Buy && _rencoStartPrice - price >= renDist*2 )
+                    _rencoLastSide == Side.Buy && _rencoStartPrice - price >= renDist * 2)
                 {
                     _rencoLastSide = Side.Sell;
                     lastCandle.Open = _rencoStartPrice - renDist;
-                    _rencoStartPrice = _rencoStartPrice - renDist*2;
+                    _rencoStartPrice = _rencoStartPrice - renDist * 2;
                     lastCandle.Low = _rencoStartPrice;
                 }
                 else if (
@@ -1591,7 +1624,7 @@ namespace OsEngine.Entity
             }
         }
 
-// прямая загрузка серии из свечек
+        // прямая загрузка серии из свечек
 
         /// <summary>
         /// загрузить в серию новую свечку
@@ -1644,7 +1677,7 @@ namespace OsEngine.Entity
         /// </summary>
         public event Action<CandleSeries> СandleFinishedEvent;
 
-// создание свечек из Стакана
+        // создание свечек из Стакана
 
         public void SetNewMarketDepth(MarketDepth marketDepth)
         {
@@ -1678,13 +1711,13 @@ namespace OsEngine.Entity
                 return;
             }
 
-            decimal price = marketDepth.Bids[0].Price + (marketDepth.Asks[0].Price - marketDepth.Bids[0].Price)/2;
+            decimal price = marketDepth.Bids[0].Price + (marketDepth.Asks[0].Price - marketDepth.Bids[0].Price) / 2;
 
             UpDateCandle(marketDepth.Time, price, 1, true, Side.None);
         }
 
 
-// для тестера
+        // для тестера
 
         public TesterDataType TypeTesterData;
     }

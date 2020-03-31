@@ -157,6 +157,7 @@ namespace OsEngine.Market.Servers.QuikLua
                         {
                             continue;
                         }
+
                         Security newSec = new Security();
                         string secCode = oneSec.SecCode;
                         string classCode = oneSec.ClassCode;
@@ -208,7 +209,6 @@ namespace OsEngine.Market.Servers.QuikLua
                         newSec.NameClass = oneSec.ClassCode;
 
 
-
                         newSec.PriceLimitHigh = Convert.ToDecimal(QuikLua.Trading
                             .GetParamEx(classCode, secCode, "PRICEMAX")
                             .Result.ParamValue.Replace('.', separator));
@@ -225,10 +225,18 @@ namespace OsEngine.Market.Servers.QuikLua
                             .GetParamEx(classCode, secCode, "STEPPRICET")
                             .Result.ParamValue.Replace('.', separator));
 
+
+                        if (newSec.PriceStep == 0 &&
+                            newSec.Decimals > 0)
+                        {
+                            newSec.PriceStep = newSec.Decimals * 0.1m;
+                        }
+
                         if (newSec.PriceStep == 0)
                         {
                             newSec.PriceStep = 1;
                         }
+
                         if (newSec.PriceStepCost == 0)
                         {
                             newSec.PriceStepCost = 1;
@@ -745,6 +753,7 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             lock (quoteLock)
             {
+
                 if (subscribedBook.Find(name => name == orderBook.sec_code) == null)
                 {
                     return;

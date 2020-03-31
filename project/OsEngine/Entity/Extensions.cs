@@ -30,6 +30,23 @@ namespace OsEngine.Entity
                 CultureInfo.InvariantCulture);
         }
 
+        public static string ToStringWithNoEndZero(this decimal value)
+        {
+            string result = value.ToString(CultureInfo.GetCultureInfo("ru-RU"));
+
+            if(result.Contains(","))
+            {
+                result = result.TrimEnd('0');
+
+                if(result.EndsWith(","))
+                {
+                    result = result.TrimEnd(',');
+                }
+            }
+
+            return result;
+        }
+
         public static int DecimalsCount(this string value)
         {
             value = value.Replace(",", ".");

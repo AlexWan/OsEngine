@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
+using OsEngine.Indicators;
 
 namespace OsEngine.OsMiner.Patterns
 {
@@ -63,7 +64,7 @@ namespace OsEngine.OsMiner.Patterns
         /// <param name="candles">candles/свечи</param>
         /// <param name="indicators">indicators/индикаторы</param>
         /// <param name="numberPattern">index on which we pattern pattern/индекс по которому мы с мотрим паттерн</param>
-        public bool ThisIsIt(List<Candle> candles, List<IIndicatorCandle> indicators, int numberPattern)
+        public bool ThisIsIt(List<Candle> candles, List<IIndicator> indicators, int numberPattern)
         {
             if (candles[numberPattern].TimeStart.Hour > StartTime.Hour &&
                 candles[numberPattern].TimeStart.Hour < EndTime.Hour) 
@@ -90,7 +91,7 @@ namespace OsEngine.OsMiner.Patterns
         /// this pattern does not work
         /// в этом паттерне не работает
         /// </summary>
-        public void SetFromIndex(List<Candle> candles, List<IIndicatorCandle> indicators, int numberPattern)
+        public void SetFromIndex(List<Candle> candles, List<IIndicator> indicators, int numberPattern)
         {
 
         }

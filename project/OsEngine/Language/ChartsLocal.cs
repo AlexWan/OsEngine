@@ -167,5 +167,33 @@ namespace OsEngine.Language
         public string ChartMenuItem14 => OsLocalization.ConvertToLocString(
             "Eng:Create indicator_" +
             "Ru:Добавить индикатор_");
+
+        public string Label1 => OsLocalization.ConvertToLocString(
+            "Eng: Settings _" +
+            "Ru: Настройки _");
+
+        public string Label2 => OsLocalization.ConvertToLocString(
+            "Eng: Parameters _" +
+            "Ru: Параметры _");
+
+        public string Label3 => OsLocalization.ConvertToLocString(
+            "Eng: Visual _" +
+            "Ru: Визуал _");
+
+        public string Label4 => OsLocalization.ConvertToLocString(
+            "Eng: Include indicators _" +
+            "Ru: Встроенные индикаторы _");
+
+        public string Label5 => OsLocalization.ConvertToLocString(
+            "Eng:Default_" +
+            "Ru:Сбросить_");
+
+        public string Label6 => OsLocalization.ConvertToLocString(
+            "Eng: Include _" +
+            "Ru: Встроенные _");
+
+        public string Label7 => OsLocalization.ConvertToLocString(
+            "Eng: Scripts _" +
+            "Ru:Скрипты_");
     }
 }

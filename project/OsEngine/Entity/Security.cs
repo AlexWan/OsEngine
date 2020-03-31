@@ -74,8 +74,16 @@ namespace OsEngine.Entity
                     return;
                 }
 
-                string step = Convert.ToDecimal(Convert.ToDouble(PriceStep)).ToString(new CultureInfo("ru-RU"));
-                _decimals = step.Split(',')[1].Length;
+                string step = Convert.ToDecimal(Convert.ToDouble(_priceStep)).ToString(new CultureInfo("ru-RU"));
+               
+                if(step.Split(',').Length == 1)
+                {
+                    _decimals = 0;
+                }
+                else
+                {
+                    _decimals = step.Split(',')[1].Length;
+                }
             }
         }
 
@@ -291,6 +299,11 @@ namespace OsEngine.Entity
         /// акция
         /// </summary>
         Stock,
+
+        /// <summary>
+        /// облигация
+        /// </summary>
+        Bond,
 
         /// <summary>
         /// futures

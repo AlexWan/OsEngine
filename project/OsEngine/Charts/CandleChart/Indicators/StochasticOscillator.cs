@@ -8,10 +8,11 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using OsEngine.Entity;
+using OsEngine.Indicators;
 
 namespace OsEngine.Charts.CandleChart.Indicators
 {
-    public class StochasticOscillator : IIndicatorCandle
+    public class StochasticOscillator : IIndicator
     {
         /// <summary>
         /// Period 1
@@ -42,7 +43,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public StochasticOscillator(string uniqName, bool canDelete)
         {
             Name = uniqName;
-            TypeIndicator = IndicatorOneCandleChartType.Line;
+            TypeIndicator = IndicatorChartPaintType.Line;
             TypeCalculationAverage = MovingAverageTypeCalculation.Simple;
             P1 = 5;
             P2 = 3;
@@ -64,7 +65,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             Name = Guid.NewGuid().ToString();
 
-            TypeIndicator = IndicatorOneCandleChartType.Line;
+            TypeIndicator = IndicatorChartPaintType.Line;
             TypeCalculationAverage = MovingAverageTypeCalculation.Simple;
             P1 = 5;
             P2 = 3;
@@ -80,7 +81,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// all indicator values
         /// все значения индикатора
         /// </summary>
-        List<List<decimal>> IIndicatorCandle.ValuesToChart
+        List<List<decimal>> IIndicator.ValuesToChart
         {
             get
             {
@@ -95,7 +96,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator colors
         /// цвета для индикатора
         /// </summary>
-        List<Color> IIndicatorCandle.Colors
+        List<Color> IIndicator.Colors
         {
             get
             {
@@ -117,7 +118,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator drawing type
         /// тип прорисовки индикатора
         /// </summary>
-        public IndicatorOneCandleChartType TypeIndicator { get; set; }
+        public IndicatorChartPaintType TypeIndicator { get; set; }
 
         /// <summary>
         /// name of data series on which indicator will be drawn
@@ -358,7 +359,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator needs to be redrawn
         /// индикатор нужно перерисовать
         /// </summary>
-        public event Action<IIndicatorCandle> NeadToReloadEvent;
+        public event Action<IIndicator> NeadToReloadEvent;
 
         /// <summary>
         /// load only last candle
@@ -446,7 +447,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 return;
             }
-            _t1[_t1.Count-1] = GetT1(candles, candles.Count - 1);
+            _t1[_t1.Count - 1] = GetT1(candles, candles.Count - 1);
             _t2[_t2.Count - 1] = GetT2(candles, candles.Count - 1);
 
             _tM1.Process(_t1);
@@ -457,7 +458,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
             ValuesUp[ValuesUp.Count-1] = Math.Round(_k[_k.Count - 1],2) ;
             ValuesDown[ValuesDown.Count-1] = Math.Round(_kM.Values[_kM.Values.Count - 1],2);
         }
-
 
         private decimal GetT1(List<Candle> candles, int index)
         {
@@ -555,6 +555,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// машкая для сглаживания К
         /// </summary>
         private MovingAverage _kM;
+
         // Three settings
         // P1 - length of which we look back in time with Low and High // 5
         // P2 - length of which we average these Low and High         // 3

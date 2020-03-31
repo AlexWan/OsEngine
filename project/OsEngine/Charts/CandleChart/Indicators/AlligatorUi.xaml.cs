@@ -61,7 +61,12 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             ComboBoxMovingType.Items.Add(MovingAverageTypeCalculation.Exponential);
             ComboBoxMovingType.Items.Add(MovingAverageTypeCalculation.Simple);
+            ComboBoxMovingType.Items.Add(MovingAverageTypeCalculation.Smoofed);
             ComboBoxMovingType.Items.Add(MovingAverageTypeCalculation.Weighted);
+            ComboBoxMovingType.Items.Add(MovingAverageTypeCalculation.Adaptive);
+            ComboBoxMovingType.Items.Add(MovingAverageTypeCalculation.VolumeWeighted);
+            ComboBoxMovingType.Items.Add(MovingAverageTypeCalculation.Radchenko);
+
 
             ComboBoxMovingType.SelectedItem = _alligator.TypeCalculationAverage;
 

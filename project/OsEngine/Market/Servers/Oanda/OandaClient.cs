@@ -59,21 +59,41 @@ namespace OsEngine.Market.Servers.Oanda
                 {
                     ConnectionSucsess();
                 }
-            }
 
+                _transactionsSession = new TransactionsSession(Credentials.GetDefaultCredentials().DefaultAccountId);
+                _transactionsSession.DataReceived += _transactionsSession_DataReceived;
+                _transactionsSession.StartSession();
+            }
         }
 
         /// <summary>
         /// disconnect
         /// отключиться от TCP сервера TWS
         /// </summary>
-        public void Disconnect()
+        public void Dispose()
         {
             if (ConnectionFail != null)
             {
                 ConnectionFail();
             }
+
+            if (_pricingStream != null)
+            {
+                _pricingStream.StopSession();
+                _pricingStream = null;
+            }
+
+            if (_transactionsSession != null)
+            {
+                _transactionsSession.StopSession();
+                _transactionsSession = null;
+            }
+
+            _isDisposed = true;
         }
+
+        private bool _isDisposed;
+
 
 // portfolios
 // Портфели
@@ -120,6 +140,7 @@ namespace OsEngine.Market.Servers.Oanda
 // instruments 
 // инструменты
 
+
         public async void GetSecurities(List<Portfolio> portfolios)
         {
             if (portfolios == null || portfolios.Count == 0)
@@ -146,6 +167,9 @@ namespace OsEngine.Market.Servers.Oanda
                 newSecurity.Name = _allInstruments[i].name;
                 newSecurity.NameFull = _allInstruments[i].displayName;
                 newSecurity.NameClass = _allInstruments[i].type;
+                newSecurity.SecurityType = SecurityType.CurrencyPair;
+                newSecurity.NameId = "none";
+
                 newSecurity.Lot = 1;
 
                 decimal step = 1;
@@ -176,28 +200,38 @@ namespace OsEngine.Market.Servers.Oanda
         private PricingSession _pricingStream;
         private TransactionsSession _transactionsSession;
 
-        public void StartStreamThreads()
+        private List<Instrument> _subscrubleInstruments = new List<Instrument>();
+
+        public void StartStreamThreads(Security security)
         {
+            Instrument myInstrument = _allInstruments.Find(inst => inst.name == security.Name);
+
+            if (_subscrubleInstruments.Find(subInst => subInst.name == myInstrument.name) != null)
+            {
+                return;
+            }
+
+            _subscrubleInstruments.Add(myInstrument);
+
             if (_pricingStream != null)
             {
                 _pricingStream.StopSession();
                 _pricingStream = null;
-
-                _transactionsSession.StopSession();
-                _transactionsSession = null;
             }
 
-            _pricingStream = new PricingSession(Credentials.GetDefaultCredentials().DefaultAccountId, _allInstruments);
+            _pricingStream = new PricingSession(Credentials.GetDefaultCredentials().DefaultAccountId, _subscrubleInstruments);
             _pricingStream.DataReceived += _marketDepthStream_DataReceived;
-            _pricingStream.StartSession();
 
-            _transactionsSession = new TransactionsSession(Credentials.GetDefaultCredentials().DefaultAccountId);
-            _transactionsSession.DataReceived += _transactionsSession_DataReceived;
-            _transactionsSession.StartSession();
+            _pricingStream.StartSession();
         }
 
         void _transactionsSession_DataReceived(OkonkwoOandaV20.TradeLibrary.DataTypes.Stream.TransactionStreamResponse data)
         {
+            if (_isDisposed)
+            {
+                return;
+            }
+
             if (data.transaction.type == "LIMIT_ORDER")
             {
                 LimitOrderTransaction order = (LimitOrderTransaction) data.transaction;
@@ -295,6 +329,11 @@ namespace OsEngine.Market.Servers.Oanda
 
         void _marketDepthStream_DataReceived(OkonkwoOandaV20.TradeLibrary.DataTypes.Stream.PricingStreamResponse data)
         {
+            if (_isDisposed)
+            {
+                return;
+            }
+
             Trade newTrade = new Trade();
             Trade newTrade2 = new Trade();
             newTrade.Price = Convert.ToDecimal(data.price.closeoutAsk);
@@ -364,14 +403,16 @@ namespace OsEngine.Market.Servers.Oanda
                 }
                 string price = order.Price.ToString(new CultureInfo("en-US"));
 
+                Instrument myInstrument = _allInstruments.Find(inst => inst.name == order.SecurityNameCode);
+
                 // create new pending order
-                var request = new LimitOrderRequest()
+                var request = new LimitOrderRequest(myInstrument)
                 {
                     instrument = order.SecurityNameCode,
-                    units = Convert.ToDouble(volume),
+                    units = Convert.ToInt64(volume),
                     timeInForce = TimeInForce.GoodUntilDate,
                     gtdTime = expiry,
-                    price = price,
+                    price = price.ToDecimal(),
 
                     clientExtensions = new ClientExtensions()
                     {
