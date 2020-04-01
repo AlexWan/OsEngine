@@ -27,7 +27,7 @@ namespace OsEngine.Market.Servers.Transaq
 
         delegate bool CallBackDelegate(IntPtr pData);
 
-        readonly CallBackDelegate _myCallbackDelegate;
+        private CallBackDelegate _myCallbackDelegate;
 
         /// <summary>
         /// constructor
