@@ -24,7 +24,7 @@ namespace OsEngine.Indicators
 
         public abstract void OnStateChange(IndicatorState state);
 
-        public abstract void OnProcess(List<Candle> candles, int index);
+        public abstract void OnProcess(List<Candle> source, int index);
 
         #region параметры
 
@@ -250,6 +250,10 @@ namespace OsEngine.Indicators
             {
                 File.Delete(@"Engine\" + Name + @"Parametrs.txt");
             }
+            if (File.Exists(@"Engine\" + Name + @"Base.txt"))
+            {
+                File.Delete(@"Engine\" + Name + @"Base.txt");
+            }
 
             for (int i = 0; IncludeIndicators != null && i < IncludeIndicators.Count; i++)
             {
@@ -263,8 +267,6 @@ namespace OsEngine.Indicators
             {
                 return;
             }
-
-
         }
 
         public void Save()
@@ -276,6 +278,7 @@ namespace OsEngine.Indicators
 
             SaveParametrs();
             SaveSeries();
+
         }
 
         public void ShowDialog()
@@ -293,11 +296,11 @@ namespace OsEngine.Indicators
 
         #region встроенные индикаторы для прогрузки свечками
 
-        public List<IIndicator> IncludeIndicators = new List<IIndicator>();
+        public List<Aindicator> IncludeIndicators = new List<Aindicator>();
 
         public List<string> IncludeIndicatorsName = new List<string>();
 
-        public void ProcessIndicator(string indicatorName, IIndicator indicator)
+        public void ProcessIndicator(string indicatorName, Aindicator indicator)
         {
             IncludeIndicators.Add(indicator);
             IncludeIndicatorsName.Add(indicatorName);
@@ -459,6 +462,8 @@ namespace OsEngine.Indicators
 
         private List<Candle> _myCandles = new List<Candle>();
 
+// подгрузка в индикатор свечек
+
         public void Process(List<Candle> candles)
         {
             if (candles.Count == 0)
@@ -516,6 +521,7 @@ namespace OsEngine.Indicators
                     DataSeries[i].Values.Add(0);
                 }
             }
+
             OnProcess(candles, candles.Count - 1);
         }
 
@@ -536,6 +542,103 @@ namespace OsEngine.Indicators
             OnProcess(candles, index);
         }
 
+// подгрузка в индикатор массивов данных
+
+        public void Process(List<decimal> values)
+        {
+            if (values.Count == 0)
+            {
+                return;
+            }
+            if (_myCandles == null ||
+                values.Count < _myCandles.Count ||
+                values.Count > _myCandles.Count + 1)
+            {
+                ProcessAll(values);
+            }
+            else if (_myCandles.Count == values.Count)
+            {
+                ProcessLast(values);
+            }
+            else if (_myCandles.Count + 1 == values.Count)
+            {
+                ProcessNew(values, values.Count);
+            }
+        }
+
+        private void ProcessAll(List<decimal> values)
+        {
+            for (int i = 0; i < IncludeIndicators.Count; i++)
+            {
+                IncludeIndicators[i].Clear();
+                IncludeIndicators[i].Process(values);
+            }
+
+            for (int i = 0; i < DataSeries.Count; i++)
+            {
+                DataSeries[i].Values.Clear();
+            }
+
+            for (int i = 0; i < values.Count; i++)
+            {
+                ProcessNew(values, i);
+            }
+        }
+
+        private void ProcessLast(List<decimal> values)
+        {
+            for (int i = 0; i < IncludeIndicators.Count; i++)
+            {
+                IncludeIndicators[i].Process(values);
+            }
+
+            for (int i = 0; i < DataSeries.Count; i++)
+            {
+                while (DataSeries[i].Values.Count < values.Count)
+                {
+                    DataSeries[i].Values.Add(0);
+                }
+            }
+
+            while (_myCandles.Count < values.Count)
+            {
+                _myCandles.Add(new Candle());
+            }
+
+            _myCandles[values.Count - 1].Open = values[values.Count - 1];
+            _myCandles[values.Count - 1].High = values[values.Count - 1];
+            _myCandles[values.Count - 1].Low = values[values.Count - 1];
+            _myCandles[values.Count - 1].Close = values[values.Count - 1];
+
+            OnProcess(_myCandles, values.Count - 1);
+        }
+
+        private void ProcessNew(List<decimal> values, int index)
+        {
+            for (int i = 0; i < IncludeIndicators.Count; i++)
+            {
+                IncludeIndicators[i].Process(values);
+            }
+            for (int i = 0; i < DataSeries.Count; i++)
+            {
+                while (DataSeries[i].Values.Count < index + 1)
+                {
+                    DataSeries[i].Values.Add(0);
+                }
+            }
+
+            while (_myCandles.Count < index)
+            {
+                _myCandles.Add(new Candle());
+            }
+
+            _myCandles[index].Open = values[_myCandles.Count];
+            _myCandles[index].High = values[_myCandles.Count];
+            _myCandles[index].Low = values[_myCandles.Count];
+            _myCandles[index].Close = values[_myCandles.Count];
+
+            OnProcess(_myCandles, index);
+        }
     }
 
     public class IndicatorDataSeries
@@ -557,6 +660,8 @@ namespace OsEngine.Indicators
         public bool IsPaint;
 
         public string NameSeries;
+
+        public bool CanReBuildHistoricalValues;
 
         /// <summary>
         /// массив с данными серии
@@ -652,4 +757,5 @@ namespace OsEngine.Indicators
             }
         }
     }
+
 }

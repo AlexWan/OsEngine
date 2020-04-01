@@ -83,9 +83,9 @@ namespace OsEngine.Indicators
         {
             Aindicator Indicator = null;
 
-            /* if (nameClass == "Template")
+           /*  if (nameClass == "ZigZag")
              {
-                 Indicator = new Template();
+                 Indicator = new ZigZag();
              }*/
             try
             {

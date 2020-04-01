@@ -2985,7 +2985,7 @@ namespace OsEngine.Charts.CandleChart
 
                         for (int i = 0; i < valList.Count; i++)
                         {
-                            PaintLikeLine(valList[i], colors[i], name + i);
+                            PaintLikeLine(valList[i], colors[i], name + i,false);
                         }
                     }
                     if (indicator.TypeIndicator == IndicatorChartPaintType.Column)
@@ -2994,7 +2994,7 @@ namespace OsEngine.Charts.CandleChart
                         List<Color> colors = indicator.Colors;
                         string name = indicator.Name;
 
-                        PaintLikeColumn(valList[0], colors[0], colors[1], name + 0);
+                        PaintLikeColumn(valList[0], colors[0], colors[1], name + 0,false);
                     }
                     if (indicator.TypeIndicator == IndicatorChartPaintType.Point)
                     {
@@ -3004,7 +3004,7 @@ namespace OsEngine.Charts.CandleChart
 
                         for (int i = 0; i < valList.Count; i++)
                         {
-                            PaintLikePoint(valList[i], colors[i], name + i);
+                            PaintLikePoint(valList[i], colors[i], name + i, false);
                         }
                     }
                 }
@@ -3021,15 +3021,17 @@ namespace OsEngine.Charts.CandleChart
                         }
                         if (series[i].ChartPaintType == IndicatorChartPaintType.Line)
                         {
-                            PaintLikeLine(series[i].Values, series[i].Color, indicator.Name + i);
+                            PaintLikeLine(
+                                series[i].Values, series[i].Color, indicator.Name + i,series[i].CanReBuildHistoricalValues);
                         }
                         else if (series[i].ChartPaintType == IndicatorChartPaintType.Column)
                         {
-                            PaintLikeColumn(series[i].Values, series[i].Color, series[i].Color, indicator.Name + i);
+                            PaintLikeColumn(
+                                series[i].Values, series[i].Color, series[i].Color, indicator.Name + i, series[i].CanReBuildHistoricalValues);
                         }
                         else if (series[i].ChartPaintType == IndicatorChartPaintType.Point)
                         {
-                            PaintLikePoint(series[i].Values, series[i].Color, indicator.Name + i);
+                            PaintLikePoint(series[i].Values, series[i].Color, indicator.Name + i, series[i].CanReBuildHistoricalValues);
                         }
                     }
                 }
@@ -3138,7 +3140,7 @@ namespace OsEngine.Charts.CandleChart
         /// Draw an indicator as a point
         /// прорисовать индикатор как точки
         /// </summary>
-        private void PaintLikePoint(List<decimal> values, Color color, string nameSeries)
+        private void PaintLikePoint(List<decimal> values, Color color, string nameSeries, bool fullReloadOnNewCandle)
         {
             if (values == null ||
                 values.Count == 0)
@@ -3173,7 +3175,8 @@ namespace OsEngine.Charts.CandleChart
                 PaintLikePointLast(values, nameSeries);
             }
             else if (mySeries.Points.Count != 0 &&
-                values.Count == mySeries.Points.Count)
+                values.Count == mySeries.Points.Count &&
+                fullReloadOnNewCandle == false)
             {
                 // redrawing the last point
                 // перерисовываем последнюю точку
@@ -3239,7 +3242,7 @@ namespace OsEngine.Charts.CandleChart
         /// draw indicator as a line
         /// прорисовать индикатор как линию
         /// </summary>
-        private void PaintLikeLine(List<decimal> values, Color color, string nameSeries)
+        private void PaintLikeLine(List<decimal> values, Color color, string nameSeries,bool fullReloadOnNewCandle)
         {
             if (values == null ||
                 values.Count == 0)
@@ -3264,14 +3267,15 @@ namespace OsEngine.Charts.CandleChart
             }
 
             if (mySeries.Points.Count != 0 &&
-                values.Count - 1 == mySeries.Points.Count)
+                values.Count - 1 == mySeries.Points.Count &&
+                fullReloadOnNewCandle == false)
             {
                 // if only draw last point
                 // если прорисовываем только последнюю точку
                 PaintLikeLineLast(values, nameSeries, color);
             }
             else if (mySeries.Points.Count != 0 &&
-                values.Count == mySeries.Points.Count)
+                values.Count == mySeries.Points.Count )
             {
                 // redraw last point
                 // перерисовываем последнюю точку
@@ -3368,7 +3372,7 @@ namespace OsEngine.Charts.CandleChart
         /// draw as columns
         /// прорисовать как столбцы
         /// </summary>
-        private void PaintLikeColumn(List<decimal> values, Color colorUp, Color colorDown, string nameSeries)
+        private void PaintLikeColumn(List<decimal> values, Color colorUp, Color colorDown, string nameSeries, bool fullReloadOnNewCandle)
         {
             if (values == null ||
                 values.Count == 0)
@@ -3398,7 +3402,8 @@ namespace OsEngine.Charts.CandleChart
                 PaintLikeColumnLast(values, nameSeries, colorUp, colorDown);
             }
             else if (mySeries.Points.Count != 0 &&
-                values.Count == mySeries.Points.Count)
+                values.Count == mySeries.Points.Count &&
+                fullReloadOnNewCandle == false)
             {
                 // redrawing last point
                 // перерисовываем последнюю точку
