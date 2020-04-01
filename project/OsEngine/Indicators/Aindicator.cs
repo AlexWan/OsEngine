@@ -482,7 +482,7 @@ namespace OsEngine.Indicators
             }
             else if (_myCandles.Count + 1 == candles.Count)
             {
-                ProcessNew(candles, candles.Count);
+                ProcessNew(candles, candles.Count-1);
             }
 
             _myCandles = candles;

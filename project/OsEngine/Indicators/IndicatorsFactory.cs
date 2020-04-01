@@ -83,9 +83,9 @@ namespace OsEngine.Indicators
         {
             Aindicator Indicator = null;
 
-           /*  if (nameClass == "ZigZag")
+            /* if (nameClass == "ATR")
              {
-                 Indicator = new ZigZag();
+                 Indicator = new ATR();
              }*/
             try
             {

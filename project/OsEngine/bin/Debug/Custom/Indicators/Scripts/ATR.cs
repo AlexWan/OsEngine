@@ -41,9 +41,9 @@ namespace CustomIndicators.Scripts
             _series.Values[index] = Math.Round(_moving[index], 7);
         }
 
-        private List<decimal> _moving;
+        private List<decimal> _moving = new List<decimal>();
 
-        private List<decimal> _trueRange;
+        private List<decimal> _trueRange = new List<decimal>();
 
         private void TrueRangeReload(List<Candle> candles, int index)
         {
@@ -54,7 +54,7 @@ namespace CustomIndicators.Scripts
                 return;
             }
 
-            if (index > _trueRange.Count - 1)
+            while (_trueRange.Count - 1 < index)
             {
                 _trueRange.Add(0);
             }
