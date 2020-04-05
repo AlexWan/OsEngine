@@ -91,7 +91,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void ShowIndexConnectorIndexDialog(int index)
         {
-            Tabs[index].ShowDialog();
+            Tabs[index].ShowDialog(false);
             Save();
         }
 
@@ -102,7 +102,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         public void ShowNewSecurityDialog()
         {
             CreateNewSecurityConnector();
-            Tabs[Tabs.Count - 1].ShowDialog();
+            Tabs[Tabs.Count - 1].ShowDialog(false);
             Save();
         }
 
@@ -113,6 +113,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         public void CreateNewSecurityConnector()
         {
             ConnectorCandles connector = new ConnectorCandles(TabName + Tabs.Count, _startProgram);
+            connector.SaveTradesInCandles = false;
             Tabs.Add(connector);
             Tabs[Tabs.Count - 1].NewCandlesChangeEvent += BotTabIndex_NewCandlesChangeEvent;
         }
@@ -219,7 +220,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                     string[] save2 = reader.ReadLine().Split('#');
                     for (int i = 0; i < save2.Length - 1; i++)
                     {
-                        Tabs.Add(new ConnectorCandles(save2[i], _startProgram));
+                        ConnectorCandles newConnector = new ConnectorCandles(save2[i], _startProgram);
+                        newConnector.SaveTradesInCandles = false;
+
+                        Tabs.Add(newConnector);
                         Tabs[Tabs.Count - 1].NewCandlesChangeEvent += BotTabIndex_NewCandlesChangeEvent;
                     }
                     UserFormula = reader.ReadLine();

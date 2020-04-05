@@ -1054,6 +1054,10 @@ namespace OsEngine.OsData
 
                 _lastUpdateTradesInServerTime = DateTime.Now;
 
+                if (!Directory.Exists("Data\\ServersCandleTempData"))
+                {
+                    Directory.CreateDirectory("Data\\ServersCandleTempData");
+                }
                 if (!Directory.Exists("Data\\QuikServerTrades"))
                 {
                     Directory.CreateDirectory("Data\\QuikServerTrades");
@@ -1075,6 +1079,10 @@ namespace OsEngine.OsData
                     Directory.CreateDirectory("Data\\PlazaServerTrades");
                 }
 
+                for (int i = 0; i < _mySeries.Count; i++)
+                {
+                    SaveCandlesInServersTempFolder(_mySeries[i]);
+                }
 
                 for (int i = 0; i < SecuritiesNames.Count; i++)
                 {
@@ -1121,6 +1129,7 @@ namespace OsEngine.OsData
                     File.Copy(pathToSet + SecuritiesNames[i].Name.Replace("/", "").Replace("*", "") + "\\" + "Tick" + "\\" + SecuritiesNames[i].Name.Replace("/", "").Replace("*", "") + ".txt",
                         "Data\\PlazaServerTrades\\" + nameSecurityToSave + ".txt");
                 }
+
             }
         }
 
@@ -1345,6 +1354,27 @@ namespace OsEngine.OsData
             }
 
             candleSaveInfo.LastSaveObjectTime = candles[candles.Count - 1].TimeStart;
+        }
+
+        private void SaveCandlesInServersTempFolder(CandleSeries series)
+        {
+            List<Candle> candles = series.CandlesAll;
+
+            if (candles == null ||
+                candles.Count == 0)
+            {
+                return;
+            }
+
+            string path = "Data\\ServersCandleTempData\\" + series.Specification + ".txt";
+
+            StreamWriter writer = new StreamWriter(path);
+
+            for (int i = 0; i < candles.Count; i++)
+            {
+                writer.WriteLine(candles[i].StringToSave);
+            }
+            writer.Close();
         }
 
         // trades/тики

@@ -742,7 +742,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void ShowConnectorDialog()
         {
-            _connector.ShowDialog();
+            _connector.ShowDialog(true);
 
             _journal.ComissionType = _connector.ComissionType;
             _journal.ComissionValue = _connector.ComissionValue;

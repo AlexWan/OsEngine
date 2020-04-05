@@ -39,7 +39,6 @@ namespace OsEngine.Indicators
             if (param.Type != Type)
             {
                 throw new Exception("Can`t bind param with not equals types");
-                return;
             }
 
             if (param.Type == IndicatorParameterType.Bool)

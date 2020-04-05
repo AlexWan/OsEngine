@@ -5,6 +5,7 @@
 
 using System;
 using System.IO;
+using System.Text;
 
 namespace OsEngine.Entity
 {
@@ -19,7 +20,7 @@ namespace OsEngine.Entity
         public TimeFrameBuilder(string name)
         {
             _name = name;
-            
+
             _candleCreateType = CandleMarketDataType.Tick;
             _seriesCreateMethodType = CandleCreateMethodType.Simple;
             TimeFrame = TimeFrame.Min1;
@@ -77,12 +78,14 @@ namespace OsEngine.Entity
                     _reversCandlesPunktsMinMove = Convert.ToDecimal(reader.ReadLine());
                     _reversCandlesPunktsBackMove = Convert.ToDecimal(reader.ReadLine());
                     _rangeCandlesPunkts = Convert.ToDecimal(reader.ReadLine());
+                    _saveTradesInCandles = Convert.ToBoolean(reader.ReadLine());
+
                     reader.Close();
                 }
             }
-            catch 
+            catch
             {
-              // ignore
+                // ignore
             }
         }
 
@@ -112,12 +115,13 @@ namespace OsEngine.Entity
                     writer.WriteLine(_reversCandlesPunktsMinMove);
                     writer.WriteLine(_reversCandlesPunktsBackMove);
                     writer.WriteLine(_rangeCandlesPunkts);
+                    writer.WriteLine(_saveTradesInCandles);
                     writer.Close();
                 }
             }
             catch
             {
-                 // ignore
+                // ignore
             }
         }
 
@@ -136,6 +140,31 @@ namespace OsEngine.Entity
             if (File.Exists(@"Engine\" + _name + @"TimeFrameBuilder.txt"))
             {
                 File.Delete(@"Engine\" + _name + @"TimeFrameBuilder.txt");
+            }
+        }
+
+        public string Specification
+        {
+            get
+            {
+                StringBuilder result = new StringBuilder();
+
+                result.Append(_timeFrame + "_");
+
+                result.Append(TimeFrame + "_");
+                result.Append(_candleCreateType + "_");
+                result.Append(_setForeign + "_");
+                result.Append(_tradeCount + "_");
+                result.Append(_seriesCreateMethodType + "_");
+                result.Append(_volumeToCloseCandleInVolumeType + "_");
+                result.Append(_rencoPunktsToCloseCandleInRencoType + "_");
+                result.Append(_deltaPeriods + "_");
+                result.Append(_rencoIsBuildShadows + "_");
+                result.Append(_reversCandlesPunktsMinMove + "_");
+                result.Append(_reversCandlesPunktsBackMove + "_");
+                result.Append(_rangeCandlesPunkts);
+
+                return result.ToString();
             }
         }
 
@@ -450,6 +479,22 @@ namespace OsEngine.Entity
         }
 
         private decimal _rangeCandlesPunkts;
+
+        public bool SaveTradesInCandles
+        {
+            get { return _saveTradesInCandles; }
+            set
+            {
+                if (value == _saveTradesInCandles)
+                {
+                    return;
+                }
+                _saveTradesInCandles = value;
+                Save();
+            }
+        }
+
+        private bool _saveTradesInCandles;
     }
 
     /// <summary>

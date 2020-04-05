@@ -697,14 +697,17 @@ namespace OsEngine.Language
             "Eng:Login failed_" +
             "Ru:Ошибка входа в систему_");
 
+        public string Label59 => OsLocalization.ConvertToLocString(
+            "Eng:Save trades array in Candle_" +
+            "Ru:Сохранять трейды в свече_");
 
         public string ServerParam1 => OsLocalization.ConvertToLocString(
-            "Eng:Keep history_" +
-            "Ru:Сохранять историю_");
+            "Eng:Keep trade history_" +
+            "Ru:Сохранять историю трейдов_");
 
         public string ServerParam2 => OsLocalization.ConvertToLocString(
-            "Eng:Days to load_" +
-            "Ru:Дней подгружать_");
+            "Eng:Days to load trades_" +
+            "Ru:Трейдов подгружать, дней_");
 
         public string ServerParamPublicKey => OsLocalization.ConvertToLocString(
             "Eng:Public key_" +
@@ -738,6 +741,18 @@ namespace OsEngine.Language
         public string ServerParam4 => OsLocalization.ConvertToLocString(
             "Eng:Is margin trading_" +
             "Ru:Маржинальная торговля_");
+
+        public string ServerParam5 => OsLocalization.ConvertToLocString(
+            "Eng:Keep candle history_" +
+            "Ru:Сохранять историю свечек_");
+
+        public string ServerParam6 => OsLocalization.ConvertToLocString(
+            "Eng:Candles to load_" +
+            "Ru:Свечей подгружать_");
+
+        public string ServerParam7 => OsLocalization.ConvertToLocString(
+            "Eng:Bid Ask in trades_" +
+            "Ru:Грузим данные bid/ask в трейды_");
 
     }
 }
