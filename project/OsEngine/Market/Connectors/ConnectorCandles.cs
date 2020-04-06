@@ -449,10 +449,6 @@ namespace OsEngine.Market.Connectors
             }
         }
 
-        /// <summary>
-        /// retracement value for reversible bars
-        /// величина отката для риверсивных баров
-        /// </summary>
         public bool SaveTradesInCandles
         {
             get { return TimeFrameBuilder.SaveTradesInCandles; }

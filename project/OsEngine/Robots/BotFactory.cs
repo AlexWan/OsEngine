@@ -370,6 +370,7 @@ namespace OsEngine.Robots
 
                 // Помечаем сборку, как временную
                 cp.GenerateInMemory = true;
+                cp.IncludeDebugInformation = true;
 
                 // Обрабатываем CSC компилятором
                 CompilerResults results = prov.CompileAssemblyFromSource(cp, fileStr);

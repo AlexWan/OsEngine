@@ -3301,14 +3301,20 @@ namespace OsEngine.Charts.CandleChart
                 series.YValuesPerPoint = 1;
                 series.Color = color;
 
+                bool isStarted = false;
+
                 for (int i = 0; i < array.Count; i++)
                 {
                     // series.Points.AddXY(i, array[i]);
                     var point = new DataPoint(i, (double)array[i]);
 
-                    if (array[i] == 0)
+                    if (array[i] == 0 && isStarted == false) 
                     {
                         point.IsEmpty = true;
+                    }
+                    else
+                    {
+                        isStarted = true;
                     }
 
                     series.Points.Add(point);
@@ -3334,7 +3340,8 @@ namespace OsEngine.Charts.CandleChart
             // mySeries.Points.AddXY(mySeries.Points.Count, lastPoint);
 
             var point = new DataPoint(mySeries.Points.Count, (double)lastPoint);
-            if (lastPoint == 0)
+
+            if (lastPoint == 0 && values.FindIndex(v => v != 0) == -1)
             {
                 point.IsEmpty = true;
             }
@@ -3354,7 +3361,7 @@ namespace OsEngine.Charts.CandleChart
             decimal lastPoint = Convert.ToDecimal(values[values.Count - 1]);
             mySeries.Points[mySeries.Points.Count - 1].YValues = new[] { Convert.ToDouble(lastPoint) };
 
-            if (lastPoint == 0)
+            if (lastPoint == 0 && values.FindIndex(v => v != 0) == -1)
             {
                 mySeries.Points[mySeries.Points.Count - 1].IsEmpty = true;
             }

@@ -19,7 +19,7 @@ namespace CustomIndicators.Scripts
             _seriesZigZag = CreateSeries("ZigZag", Color.CornflowerBlue, IndicatorChartPaintType.Point, false);
             _seriesZigZag.CanReBuildHistoricalValues = true;
 
-            _seriesToLine = CreateSeries("ZigZagLine", Color.CornflowerBlue, IndicatorChartPaintType.Line, true);
+            _seriesToLine = CreateSeries("ZigZagLine", Color.CornflowerBlue, IndicatorChartPaintType.Point, true);
             _seriesToLine.CanReBuildHistoricalValues = true;
         }
 
