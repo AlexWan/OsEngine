@@ -13,6 +13,7 @@ namespace OsEngine.Indicators
     {
         public static List<string> GetIndicatorsNames()
         {
+            
             if (Directory.Exists(@"Custom") == false)
             {
                 Directory.CreateDirectory(@"Custom");
@@ -83,9 +84,9 @@ namespace OsEngine.Indicators
         {
             Aindicator Indicator = null;
 
-           /* if (nameClass == "WilliamsRange")
+           /* if (nameClass == "FBD")
             {
-                Indicator = new WilliamsRange();
+                Indicator = new FBD();
             }*/
 
             try

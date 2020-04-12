@@ -609,6 +609,28 @@ position => position.State != PositionStateType.OpeningFail
         }
 
         /// <summary>
+        /// create a Decimal type parameter / 
+        /// создать параметр типа Decimal
+        /// </summary>
+        /// <param name="name">param name / Имя параметра</param>
+        /// <param name="value">default value / Значение по умолчанию</param>
+        /// <param name="start">first value / Первое значение при оптимизации</param>
+        /// <param name="stop">last value / Последнее значение при оптимизации</param>
+        /// <param name="step">value step / Шаг изменения при оптимизации</param>
+        public StrategyParameterTimeOfDay CreateParameterTimeOfDay(string name, int hour, int minute, int second, int millisecond)
+        {
+            StrategyParameterTimeOfDay newParameter =
+                new StrategyParameterTimeOfDay(name, hour, minute, second, millisecond);
+
+            if (_parameters.Find(p => p.Name == name) != null)
+            {
+                throw new Exception(OsLocalization.Trader.Label52);
+            }
+
+            return (StrategyParameterTimeOfDay)LoadParameterValues(newParameter);
+        }
+
+        /// <summary>
         /// create int parameter / 
         /// создать параметр типа Int
         /// </summary>
@@ -772,8 +794,6 @@ position => position.State != PositionStateType.OpeningFail
             {
                 // ignore
             }
-
-
         }
 
         /// <summary>

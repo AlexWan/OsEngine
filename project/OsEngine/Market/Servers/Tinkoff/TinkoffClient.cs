@@ -115,8 +115,8 @@ namespace OsEngine.Market.Servers.Tinkoff
 
                                 try
                                 {
-                                    Convert.ToDecimal(r.Value);
-                                    str += r.Value;
+                                    r.Value.ToDecimal();
+                                    str += r.Value.Replace(",", ".");
                                 }
                                 catch
                                 {

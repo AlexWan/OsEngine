@@ -495,6 +495,10 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 param.Add("symbol=" + nameSec.ToUpper(), "&interval=" + needTf + "&startTime=" + startTime + "&endTime=" + endTime);
 
                 var res = CreateQuery(BinanceExchangeType.SpotExchange, Method.GET, endPoint, param, false);
+                if(res == "")
+                {
+                    return null;
+                }
 
                 var candles = _deserializeCandles(res);
                 return candles;

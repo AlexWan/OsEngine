@@ -157,8 +157,6 @@ namespace OsEngine.Market.Servers.Transaq
 
         private CancellationToken _cancellationToken;
 
-
-
         /// <summary>
         /// connect to API
         /// подсоединиться к апи
@@ -193,7 +191,7 @@ namespace OsEngine.Market.Servers.Transaq
 
             _cancellationToken = _cancellationTokenSource.Token;
 
-            Task.Run(SessionTimeHandler, _cancellationToken);
+            Task.Run(new Action(SessionTimeHandler), _cancellationToken);
         }
 
         /// <summary>
@@ -288,7 +286,9 @@ namespace OsEngine.Market.Servers.Transaq
             }
             _depths?.Clear();
             _depths = null;
+
             _allCandleSeries?.Clear();
+
             _cancellationTokenSource?.Cancel();
 
             _securities = new List<Security>();
@@ -322,7 +322,7 @@ namespace OsEngine.Market.Servers.Transaq
                 return;
             }
 
-            _portfoliosHandlerTask = Task.Run(CycleGettingPortfolios, _cancellationToken);
+            _portfoliosHandlerTask = Task.Run(new Action(CycleGettingPortfolios), _cancellationToken);
 
         }
 

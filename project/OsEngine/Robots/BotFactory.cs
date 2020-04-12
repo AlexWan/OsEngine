@@ -21,6 +21,7 @@ using OsEngine.Robots.High_Frequency;
 using OsEngine.Robots.MarketMaker;
 using OsEngine.Robots.Patterns;
 using OsEngine.Robots.Trend;
+using OsEngine.Robots.OnScriptIndicators;
 
 namespace OsEngine.Robots
 {
@@ -36,6 +37,7 @@ namespace OsEngine.Robots
 
             result.Add("Engine");
             result.Add("ClusterEngine");
+            result.Add("FundBalanceDivergenceBot");
             result.Add("PairTraderSimple");
             result.Add("MomentumMACD");
             result.Add("MarketMakerBot");
@@ -109,6 +111,10 @@ namespace OsEngine.Robots
                 return bot;
             }
 
+            if (nameClass == "FundBalanceDivergenceBot")
+            {
+                bot = new FundBalanceDivergenceBot(name, startProgram);
+            }
             if (nameClass == "BbPowerTrade")
             {
                 bot = new BbPowerTrade(name, startProgram);

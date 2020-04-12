@@ -871,7 +871,13 @@ namespace OsEngine.OsData
                 TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder();
                 timeFrameBuilder.TimeFrame = timeFrame;
 
-                series = _myServer.GetCandleDataToSecurity(loadSec.Id, timeFrameBuilder, TimeStart,
+                string id = loadSec.Id;
+                if(id == "")
+                {
+                    id = loadSec.Name;
+                }
+
+                series = _myServer.GetCandleDataToSecurity(id, timeFrameBuilder, TimeStart,
                         TimeEnd, GetActualTimeToCandle("Data\\" + SetName + "\\" + loadSec.Name.Replace("/", "") + "\\" + timeFrame), NeadToUpdate);
 
                 if (series != null)

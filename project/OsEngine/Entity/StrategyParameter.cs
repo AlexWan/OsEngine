@@ -81,7 +81,7 @@ namespace OsEngine.Entity
         /// </summary>
         private StrategyParameterInt()
         {
-            
+
         }
 
         /// <summary>
@@ -486,7 +486,7 @@ namespace OsEngine.Entity
     /// A strategy parameter that stores a collection of strings
     /// параметр стратегии хранящий в себе коллекцию строк
     /// </summary>
-    public class StrategyParameterString: IIStrategyParameter
+    public class StrategyParameterString : IIStrategyParameter
     {
         /// <summary>
         /// constructor to create a parameter storing variables of String type
@@ -497,6 +497,22 @@ namespace OsEngine.Entity
         /// <param name="collection">Possible value options/Возможные варианты значений</param>
         public StrategyParameterString(string name, string value, List<string> collection)
         {
+            bool isInArray = false;
+
+            for (int i = 0; i < collection.Count; i++)
+            {
+                if (collection[i] == value)
+                {
+                    isInArray = true;
+                    break;
+                }
+            }
+
+            if (isInArray == false)
+            {
+                collection.Add(value);
+            }
+
             _name = name;
             _valueString = value;
             _setStringValues = collection;
@@ -520,7 +536,7 @@ namespace OsEngine.Entity
         {
             string save = _name + "#";
             save += ValueString + "#";
-           
+
             return save;
         }
 
@@ -531,7 +547,7 @@ namespace OsEngine.Entity
         /// <param name="save"></param>
         public void LoadParamFromString(string[] save)
         {
-           _valueString = save[1];
+            _valueString = save[1];
         }
 
         /// <summary>
@@ -599,6 +615,168 @@ namespace OsEngine.Entity
         public event Action ValueChange;
     }
 
+    public class StrategyParameterTimeOfDay : IIStrategyParameter
+    {
+        public StrategyParameterTimeOfDay(string name, int hour, int minute, int second, int millisecond)
+        {
+            _name = name;
+            Value = new TimeOfDay();
+            Value.Hour = hour;
+            Value.Minute = minute;
+            Value.Second = second;
+            Value.Millisecond = millisecond;
+            _type = StrategyParameterType.TimeOfDay;
+        }
+
+        public string Name
+        {
+            get { return _name; }
+        }
+        private string _name;
+
+
+        public TimeOfDay Value;
+
+        public string GetStringToSave()
+        {
+            string save = _name + "#";
+            save += Value.ToString() + "#";
+
+            return save;
+        }
+
+        public void LoadParamFromString(string[] save)
+        {
+            if (Value.LoadFromString(save[1]) &&
+                ValueChange != null)
+            {
+                ValueChange();
+            }
+        }
+
+        public StrategyParameterType Type
+        {
+            get { return _type; }
+        }
+        private StrategyParameterType _type;
+
+        public event Action ValueChange;
+    }
+
+    public class TimeOfDay
+    {
+        public int Hour;
+
+        public int Minute;
+
+        public int Second;
+
+        public int Millisecond;
+
+        public override string ToString()
+        {
+            string result = Hour + ":";
+            result += Minute + ":";
+            result += Second + ":";
+            result += Millisecond;
+
+            return result;
+        }
+
+        public bool LoadFromString(string save)
+        {
+            string[] array = save.Split(':');
+
+            bool paramUpdated = false;
+
+            if (Hour != Convert.ToInt32(array[0]))
+            {
+                Hour = Convert.ToInt32(array[0]);
+                paramUpdated = true;
+            }
+            if (Minute != Convert.ToInt32(array[1]))
+            {
+                Minute = Convert.ToInt32(array[1]);
+                paramUpdated = true;
+            }
+            if (Second != Convert.ToInt32(array[2]))
+            {
+                Second = Convert.ToInt32(array[2]);
+                paramUpdated = true;
+            }
+            if (Millisecond != Convert.ToInt32(array[3]))
+            {
+                Millisecond = Convert.ToInt32(array[3]);
+                paramUpdated = true;
+            }
+
+            return paramUpdated;
+        }
+
+        public static bool operator >(TimeOfDay c1, DateTime c2)
+        {
+            if (c1.Hour > c2.Hour)
+            {
+                return true;
+            }
+
+            if (c1.Hour >= c2.Hour
+                && c1.Minute > c2.Minute)
+            {
+                return true;
+            }
+
+            if (c1.Hour >= c2.Hour
+                && c1.Minute >= c2.Minute
+                && c1.Second > c2.Second)
+            {
+                return true;
+            }
+
+            if (c1.Hour >= c2.Hour
+                && c1.Minute >= c2.Minute
+                && c1.Second >= c2.Second
+                && c1.Millisecond >= c2.Millisecond)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool operator <(TimeOfDay c1, DateTime c2)
+        {
+            if (c1.Hour < c2.Hour)
+            {
+                return true;
+            }
+
+            if (c1.Hour == c2.Hour
+                && c1.Minute < c2.Minute)
+            {
+                return true;
+            }
+
+            if (c1.Hour == c2.Hour
+                && c1.Minute == c2.Minute
+                && c1.Second < c2.Second)
+            {
+                return true;
+            }
+
+            if (c1.Hour == c2.Hour
+                && c1.Minute == c2.Minute
+                && c1.Second == c2.Second
+                && c1.Millisecond < c2.Millisecond)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+    }
+
     /// <summary>
     /// parameter type
     /// тип параметра
@@ -627,7 +805,12 @@ namespace OsEngine.Entity
         /// Boolean value
         /// булево значение
         /// </summary>
-        Bool
+        Bool,
+
+        /// <summary>
+        /// время
+        /// </summary>
+        TimeOfDay
     }
 
 }
