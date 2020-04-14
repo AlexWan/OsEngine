@@ -82,6 +82,11 @@ namespace OsEngine.Logging
 
                 for (int i = 0; i < LogsToCheck.Count; i++)
                 {
+                    if (LogsToCheck[i] == null)
+                    {
+                        continue;
+                    }
+
                     LogsToCheck[i].TrySaveLog();
                     LogsToCheck[i].TryPaintLog();
                 }

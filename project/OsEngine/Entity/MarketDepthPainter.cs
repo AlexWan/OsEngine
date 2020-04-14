@@ -64,6 +64,10 @@ namespace OsEngine.Entity
 
                 for (int i = 0; i < MarketDepthsToCheck.Count; i++)
                 {
+                    if (MarketDepthsToCheck[i] == null)
+                    {
+                        continue;
+                    }
                     MarketDepthsToCheck[i].TryPaintMarketDepth();
                 }
 

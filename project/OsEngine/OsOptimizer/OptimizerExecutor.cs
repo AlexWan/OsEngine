@@ -321,14 +321,14 @@ namespace OsEngine.OsOptimizer
 
                 while (_servers.Count >= _master.ThreadsCount)
                 {
-                    await Task.Delay(2000);
+                    await Task.Delay(500);
                 }
 
                 if (_neadToStop)
                 {
                     while (true)
                     {
-                        await Task.Delay(1000);
+                        await Task.Delay(500);
                         if (_servers.Count == 0)
                         {
                             break;
@@ -693,7 +693,7 @@ namespace OsEngine.OsOptimizer
 
             while (bot.IsConnected == false)
             {
-                await Task.Delay(1000);
+                await Task.Delay(200);
 
                 if (timeStartWaiting.AddSeconds(20) < DateTime.Now)
                 {

@@ -7,7 +7,7 @@ using OsEngine.Indicators;
 namespace CustomIndicators.Scripts
 {
     /// <summary>
-    /// индикатор Fund Balance Divergense
+    /// индикатор Fund Balance Divergenсe
     /// тест идеи вот от сюда https://smart-lab.ru/blog/610172.php
     /// </summary>
     public class FBD : Aindicator

@@ -969,8 +969,7 @@ namespace OsEngine.Market.Servers.Finam
 
                     for (int i = 0; _securities != null && i < _securities.Count; i++)
                     {
-                        if (_securities[i].NameId == namePaper ||
-                            _securities[i].Name == namePaper)
+                        if (_securities[i].NameId == namePaper)
                         {
                             security = _securities[i];
                             break;
