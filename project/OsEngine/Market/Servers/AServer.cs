@@ -1072,9 +1072,16 @@ namespace OsEngine.Market.Servers
         /// </summary>
         void _serverRealization_SecurityEvent(List<Security> securities)
         {
+            if (securities == null)
+            {
+                return;
+            }
+
             if (_securities == null)
             {
-                _securities = new List<Security>();
+                _securities = securities;
+                _securitiesToSend.Enqueue(_securities);
+                return;
             }
             for (int i = 0; i < securities.Count; i++)
             {

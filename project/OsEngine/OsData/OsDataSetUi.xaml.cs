@@ -77,7 +77,8 @@ namespace OsEngine.OsData
 
             CheckBoxNeadToLoadDataInServers.IsChecked = set.NeadToLoadDataInServers;
 
-            List < ServerType > serverTypes = ServerMaster.ServersTypes;
+            List < ServerType > serverTypes = ServerMaster.ActiveServersTypes;
+
             ComboBoxSource.Items.Add(ServerType.None);
 
             for (int i = 0; i < serverTypes.Count; i++)
@@ -86,6 +87,13 @@ namespace OsEngine.OsData
             }
 
             ComboBoxSource.SelectedItem = _set.Source;
+
+            if (ComboBoxSource.SelectedItem == null)
+            {
+                ComboBoxSource.Items.Add(_set.Source);
+                ComboBoxSource.SelectedItem = _set.Source;
+            }
+
             ComboBoxSource.SelectionChanged += ComboBoxSource_SelectionChanged;
             DatePickerTimeStart.SelectedDate = _set.TimeStart;
             DatePickerTimeEnd.SelectedDate = _set.TimeEnd;
@@ -164,16 +172,31 @@ namespace OsEngine.OsData
             {
                 EnableControls();
                 if (ComboBoxSource.SelectedItem != null && 
-                    ComboBoxSource.SelectedItem.ToString() == "Finam")
+                    ComboBoxSource.SelectedItem.ToString() == "MoexDataServer")
                 {
-                    CheckBoxTf2HourIsOn.IsEnabled = false;
-                    CheckBoxTf2HourIsOn.IsChecked = false;
+                    CheckBoxTf1SecondIsOn.IsChecked = false;
+                    CheckBoxTf1SecondIsOn.IsEnabled = false;
 
-                    CheckBoxTf4HourIsOn.IsEnabled = false;
-                    CheckBoxTf4HourIsOn.IsChecked = false;
+                    CheckBoxTf2SecondIsOn.IsChecked = false;
+                    CheckBoxTf2SecondIsOn.IsEnabled = false;
 
-                    CheckBoxTf2MinuteIsOn.IsChecked = false;
-                    CheckBoxTf2MinuteIsOn.IsEnabled = false;
+                    CheckBoxTf5SecondIsOn.IsChecked = false;
+                    CheckBoxTf5SecondIsOn.IsEnabled = false;
+
+                    CheckBoxTf10SecondIsOn.IsChecked = false;
+                    CheckBoxTf10SecondIsOn.IsEnabled = false;
+
+                    CheckBoxTf15SecondIsOn.IsChecked = false;
+                    CheckBoxTf15SecondIsOn.IsEnabled = false;
+
+                    CheckBoxTf20SecondIsOn.IsChecked = false;
+                    CheckBoxTf20SecondIsOn.IsEnabled = false;
+
+                    CheckBoxTf30SecondIsOn.IsChecked = false;
+                    CheckBoxTf30SecondIsOn.IsEnabled = false;
+
+                    CheckBoxTfTickIsOn.IsChecked = false;
+                    CheckBoxTfTickIsOn.IsEnabled = false;
 
                     CheckBoxTfMarketDepthIsOn.IsChecked = false;
                     CheckBoxTfMarketDepthIsOn.IsEnabled = false;
@@ -362,7 +385,10 @@ namespace OsEngine.OsData
 
             Enum.TryParse(ComboBoxCandleCreateType.Text, out _set.CandleCreateType);
 
-            Enum.TryParse(ComboBoxSource.SelectedItem.ToString(), out _set.Source);
+            if (ComboBoxSource.SelectedItem != null)
+            {
+                Enum.TryParse(ComboBoxSource.SelectedItem.ToString(), out _set.Source);
+            }
 
             _set.TimeStart = DatePickerTimeStart.SelectedDate.Value;
             _set.TimeEnd = DatePickerTimeEnd.SelectedDate.Value;

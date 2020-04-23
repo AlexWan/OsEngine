@@ -417,11 +417,15 @@ namespace OsEngine.Market.Servers.Transaq
             cmd += "<seccode>" + needSec.Name + "</seccode>";
             cmd += "</security>";
             cmd += _isMono ? "<client>" + order.PortfolioNumber + "</client>" : "<union>" + order.PortfolioNumber + "</union>";
-            cmd += "<price>" + order.Price + "</price>";
+            cmd += "<price>" + order.Price.ToString().Replace(',','.') + "</price>";
             cmd += "<quantity>" + order.Volume + "</quantity>";
             cmd += "<buysell>" + side + "</buysell>";
             cmd += "<brokerref>" + order.NumberUser + "</brokerref>";
             cmd += "<unfilled> PutInQueue </unfilled>";
+            if (side == "S")
+            {
+                cmd += "<usecredit> true </usecredit>";
+            }
 
             cmd += "</command>";
 
