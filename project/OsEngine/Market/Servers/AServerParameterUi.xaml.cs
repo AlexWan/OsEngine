@@ -35,11 +35,17 @@ namespace OsEngine.Market.Servers
             server.ConnectStatusChangeEvent += Server_ConnectStatusChangeEvent;
 
             Title = OsLocalization.Market.TitleAServerParametrUi + _server.ServerType;
-            TabItem3.Header = OsLocalization.Market.TabItem3;
-            TabItem4.Header = OsLocalization.Market.TabItem4;
+            TabItemParams.Header = OsLocalization.Market.TabItem3;
+            TabItemLog.Header = OsLocalization.Market.TabItem4;
             Label21.Content = OsLocalization.Market.Label21;
             ButtonConnect.Content = OsLocalization.Market.ButtonConnect;
             ButtonAbort.Content = OsLocalization.Market.ButtonDisconnect;
+
+            if (_server.NeedToHideParams == true)
+            {
+                TabItemParams.Visibility = Visibility.Hidden;
+                TabItemLog.IsSelected = true;
+            }
         }
 
         private void Server_ConnectStatusChangeEvent(string s)

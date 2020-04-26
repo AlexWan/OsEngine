@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Market;
+using OsEngine.Market.Servers;
 
 namespace OsEngine.OsData
 {
@@ -171,88 +172,28 @@ namespace OsEngine.OsData
             else
             {
                 EnableControls();
-                if (ComboBoxSource.SelectedItem != null && 
-                    ComboBoxSource.SelectedItem.ToString() == "MoexDataServer")
+
+                IServerPermission permission = null;
+
+                if (ComboBoxSource.SelectedItem != null)
                 {
-                    CheckBoxTf1SecondIsOn.IsChecked = false;
-                    CheckBoxTf1SecondIsOn.IsEnabled = false;
-
-                    CheckBoxTf2SecondIsOn.IsChecked = false;
-                    CheckBoxTf2SecondIsOn.IsEnabled = false;
-
-                    CheckBoxTf5SecondIsOn.IsChecked = false;
-                    CheckBoxTf5SecondIsOn.IsEnabled = false;
-
-                    CheckBoxTf10SecondIsOn.IsChecked = false;
-                    CheckBoxTf10SecondIsOn.IsEnabled = false;
-
-                    CheckBoxTf15SecondIsOn.IsChecked = false;
-                    CheckBoxTf15SecondIsOn.IsEnabled = false;
-
-                    CheckBoxTf20SecondIsOn.IsChecked = false;
-                    CheckBoxTf20SecondIsOn.IsEnabled = false;
-
-                    CheckBoxTf30SecondIsOn.IsChecked = false;
-                    CheckBoxTf30SecondIsOn.IsEnabled = false;
-
-                    CheckBoxTfTickIsOn.IsChecked = false;
-                    CheckBoxTfTickIsOn.IsEnabled = false;
-
-                    CheckBoxTfMarketDepthIsOn.IsChecked = false;
-                    CheckBoxTfMarketDepthIsOn.IsEnabled = false;
+                    ServerType type;
+                    Enum.TryParse(ComboBoxSource.SelectedItem.ToString(), out type);
+                    permission = ServerMaster.GetServerPermission(type);
                 }
-                else if (ComboBoxSource.SelectedItem != null &&
-                         ComboBoxSource.SelectedItem.ToString() == "BitMex")
+
+                if(permission == null)
                 {
-                    CheckBoxTf2HourIsOn.IsEnabled = false;
-                    CheckBoxTf2HourIsOn.IsChecked = false;
-
-                    CheckBoxTf4HourIsOn.IsEnabled = false;
-                    CheckBoxTf4HourIsOn.IsChecked = false;
-
-                    CheckBoxTf2MinuteIsOn.IsChecked = false;
-                    CheckBoxTf2MinuteIsOn.IsEnabled = false;
-
-                    CheckBoxTf10MinuteIsOn.IsChecked = false;
-                    CheckBoxTf10MinuteIsOn.IsEnabled = false;
-
-                    CheckBoxTf15MinuteIsOn.IsChecked = false;
-                    CheckBoxTf15MinuteIsOn.IsEnabled = false;
-
-                    CheckBoxTf30MinuteIsOn.IsChecked = false;
-                    CheckBoxTf30MinuteIsOn.IsEnabled = false;
-
-                    CheckBoxTf1SecondIsOn.IsChecked = false;
-                    CheckBoxTf1SecondIsOn.IsEnabled = false;
-
-                    CheckBoxTf2SecondIsOn.IsChecked = false;
-                    CheckBoxTf2SecondIsOn.IsEnabled = false;
-
-                    CheckBoxTf5SecondIsOn.IsChecked = false;
-                    CheckBoxTf5SecondIsOn.IsEnabled = false;
-
-                    CheckBoxTf10SecondIsOn.IsChecked = false;
-                    CheckBoxTf10SecondIsOn.IsEnabled = false;
-
-                    CheckBoxTf15SecondIsOn.IsChecked = false;
-                    CheckBoxTf15SecondIsOn.IsEnabled = false;
-
-                    CheckBoxTf20SecondIsOn.IsChecked = false;
-                    CheckBoxTf20SecondIsOn.IsEnabled = false;
-
-                    CheckBoxTf30SecondIsOn.IsChecked = false;
-                    CheckBoxTf30SecondIsOn.IsEnabled = false;
-                }
-                else
-                {
+                    CheckBoxTf1MinuteIsOn.IsEnabled = true;
+                    CheckBoxTf2MinuteIsOn.IsEnabled = true;
+                    CheckBoxTf5MinuteIsOn.IsEnabled = true;
                     CheckBoxTf10MinuteIsOn.IsEnabled = true;
                     CheckBoxTf15MinuteIsOn.IsEnabled = true;
                     CheckBoxTf30MinuteIsOn.IsEnabled = true;
+                    CheckBoxTf1HourIsOn.IsEnabled = true;
                     CheckBoxTf2HourIsOn.IsEnabled = true;
                     CheckBoxTf4HourIsOn.IsEnabled = true;
-                    CheckBoxTf2MinuteIsOn.IsEnabled = true;
-                    CheckBoxTfMarketDepthIsOn.IsEnabled = true;
-
+                    
                     CheckBoxTf1SecondIsOn.IsEnabled = true;
                     CheckBoxTf2SecondIsOn.IsEnabled = true;
                     CheckBoxTf5SecondIsOn.IsEnabled = true;
@@ -260,6 +201,32 @@ namespace OsEngine.OsData
                     CheckBoxTf15SecondIsOn.IsEnabled = true;
                     CheckBoxTf20SecondIsOn.IsEnabled = true;
                     CheckBoxTf30SecondIsOn.IsEnabled = true;
+
+                    CheckBoxTfMarketDepthIsOn.IsEnabled = true;
+                    CheckBoxTfTickIsOn.IsEnabled = true;
+                }
+                else
+                {
+                    CheckBoxTf1MinuteIsOn.IsEnabled = permission.DataFeedTf1MinuteCanLoad;
+                    CheckBoxTf2MinuteIsOn.IsEnabled = permission.DataFeedTf2MinuteCanLoad;
+                    CheckBoxTf5MinuteIsOn.IsEnabled = permission.DataFeedTf5MinuteCanLoad;
+                    CheckBoxTf10MinuteIsOn.IsEnabled = permission.DataFeedTf10MinuteCanLoad;
+                    CheckBoxTf15MinuteIsOn.IsEnabled = permission.DataFeedTf15MinuteCanLoad;
+                    CheckBoxTf30MinuteIsOn.IsEnabled = permission.DataFeedTf30MinuteCanLoad;
+                    CheckBoxTf1HourIsOn.IsEnabled = permission.DataFeedTf1HourCanLoad;
+                    CheckBoxTf2HourIsOn.IsEnabled = permission.DataFeedTf2HourCanLoad;
+                    CheckBoxTf4HourIsOn.IsEnabled = permission.DataFeedTf4HourCanLoad;
+
+                    CheckBoxTf1SecondIsOn.IsEnabled = permission.DataFeedTf1SecondCanLoad;
+                    CheckBoxTf2SecondIsOn.IsEnabled = permission.DataFeedTf2SecondCanLoad;
+                    CheckBoxTf5SecondIsOn.IsEnabled = permission.DataFeedTf5SecondCanLoad;
+                    CheckBoxTf10SecondIsOn.IsEnabled = permission.DataFeedTf10SecondCanLoad;
+                    CheckBoxTf15SecondIsOn.IsEnabled = permission.DataFeedTf15SecondCanLoad;
+                    CheckBoxTf20SecondIsOn.IsEnabled = permission.DataFeedTf20SecondCanLoad;
+                    CheckBoxTf30SecondIsOn.IsEnabled = permission.DataFeedTf30SecondCanLoad;
+
+                    CheckBoxTfMarketDepthIsOn.IsEnabled = permission.DataFeedTfMarketDepthCanLoad;
+                    CheckBoxTfTickIsOn.IsEnabled = permission.DataFeedTfTickCanLoad;
                 }
             }
         }

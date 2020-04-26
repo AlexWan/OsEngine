@@ -193,6 +193,8 @@ namespace OsEngine.Market.Servers
 
         private ServerParameterBool _needToLoadBidAskInTrades;
 
+        public bool NeedToHideParams = false;
+
         /// <summary>
         /// server parameters
         /// параметры сервера

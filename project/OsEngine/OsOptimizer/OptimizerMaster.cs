@@ -27,7 +27,7 @@ namespace OsEngine.OsOptimizer
             _log.Listen(this);
 
             _threadsCount = 1;
-            _startDepozit = 100000;
+            _startDepozit = 1000000;
 
             Storage = new OptimizerDataStorage();
             Storage.SecuritiesChangeEvent += _storage_SecuritiesChangeEvent;

@@ -573,7 +573,7 @@ namespace OsEngine.Language
             "Ru: Транслируемые данные _");
 
         public string Label30 => OsLocalization.ConvertToLocString(
-            "Eng: Performance settings _" +
+            "Eng: Order settings _" +
             "Ru: Настройки исполнения _");
 
         public string Label31 => OsLocalization.ConvertToLocString(

@@ -4,13 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using Newtonsoft.Json.Linq;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
-using SuperSocket.ClientEngine;
 
 namespace OsEngine.Market.Servers.MOEX
 {
@@ -20,6 +18,7 @@ namespace OsEngine.Market.Servers.MOEX
         {
             MoexDataServerRealization realization = new MoexDataServerRealization();
             ServerRealization = realization;
+            NeedToHideParams = true;
         }
     }
 
@@ -725,84 +724,7 @@ namespace OsEngine.Market.Servers.MOEX
 
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-            int startCandle = 0;
-
-            DateTime lastTime = startTime;
-
-            List<Trade> trades = new List<Trade>();
-
-            while (lastTime < endTime)
-            {
-                List<Trade> curTrades = Get500Trades(security, startTime, startCandle);
-                startCandle += 500;
-
-                if (curTrades == null ||
-                    curTrades.Count == 0)
-                {
-                    break;
-                }
-
-                trades.AddRange(curTrades);
-                lastTime = curTrades[curTrades.Count - 1].Time;
-            }
-
-            return trades;
-        }
-
-        private List<Trade> Get500Trades(Security security, DateTime startTime, int startTrade)
-        {
-            string[] classes = security.NameId.Split('#');
-
-            string str = "http://iss.moex.com/iss/engines/";
-            str += classes[1];
-            str += "/markets/";
-            str += classes[2];
-            str += "/boards/";
-            str += classes[3];
-            str += "/securities/";
-            str += security.Name;
-            str += "/trades.json?from=";
-            str += startTime.Year + "-";
-
-            if (startTime.Month < 10)
-            {
-                str += "0" + startTime.Month + "-";
-            }
-            else
-            {
-                str += startTime.Month + "-";
-            }
-
-            if (startTime.Day < 10)
-            {
-                str += "0" + startTime.Day + "-";
-            }
-            else
-            {
-                str += startTime.Day;
-            }
-            str += "&start=";
-            str += startTrade;
-
-            string response = GetRequest(str);
-
-            List<Trade> result = new List<Trade>();
-
-            var jProperties = JToken.Parse(response).SelectToken("candles").SelectToken("data");
-
-            //int i = 0;
-
-            foreach (var data in jProperties)
-            {
-                Trade trade = new Trade();
-                trade.Price = data.ToArray()[0].ToString().ToDecimal();
-                trade.Volume = data.ToArray()[5].ToString().ToDecimal();
-                trade.Time = Convert.ToDateTime(data.ToArray()[6].ToString());
-
-                result.Add(trade);
-            }
-
-            return result;
+            return null;
         }
 
         private string GetRequest(string url)

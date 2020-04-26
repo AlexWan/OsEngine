@@ -277,8 +277,6 @@ namespace OsEngine.OsData
                 return;
             }
 
-            
-
             SelectedSecurity = _securitiesInBox.Find(
                 security => security.Name == _grid.SelectedCells[0].Value.ToString());
             Close();

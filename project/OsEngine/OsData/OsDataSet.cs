@@ -2204,14 +2204,15 @@ namespace OsEngine.OsData
 
         public void Load(string saveStr)
         {
-            Name = saveStr.Split('*')[0];
-            Id = saveStr.Split('*')[1];
+            Name = saveStr.Split('*')[0].Replace("^", "@");
+            Id = saveStr.Split('*')[1].Replace("^", "@");
+
         }
 
         public string GetSaveStr()
         {
-            string result = Name + "*";
-            result += Id;
+            string result = Name.Replace("@","^") + "*";
+            result += Id.Replace("@", "^");
 
             return result;
         }

@@ -249,7 +249,7 @@ namespace OsEngine.Language
             "Ru:Таблица параметров_");
 
         public string Label18 => OsLocalization.ConvertToLocString(
-            "Eng:Fazes_" +
+            "Eng:Phases_" +
             "Ru:Этапы_");
 
         public string Label19 => OsLocalization.ConvertToLocString(
