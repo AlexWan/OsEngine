@@ -3501,11 +3501,14 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _chartMaster.SetCandles(candles);
 
-                if (CandleFinishedEvent != null)
+                try
                 {
-                    CandleFinishedEvent(candles);
+                    CandleFinishedEvent?.Invoke(candles);
                 }
-               
+                catch (Exception error)
+                {
+                    SetNewLogMessage(error.ToString(), LogMessageType.Error);
+                }
             }
             catch (Exception error)
             {

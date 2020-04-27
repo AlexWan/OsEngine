@@ -602,6 +602,22 @@ namespace OsEngine.OsOptimizer
                     faze.TimeEnd);
             }
 
+            for (int i = 0; i < _master.TabsIndexNamesAndTimeFrames.Count; i++)
+            {
+                List<string> secNames = _master.TabsIndexNamesAndTimeFrames[i].NamesSecurity;
+
+                for (int i2 = 0; secNames != null && i2 < secNames.Count; i2++)
+                {
+                    string curSec = secNames[i2];
+
+                    Security secToStart =
+                        _master.Storage.Securities.Find(s => s.Name == curSec);
+
+                    server.GetDataToSecurity(secToStart, _master.TabsIndexNamesAndTimeFrames[i].TimeFrame, faze.TimeStart,
+                        faze.TimeEnd);
+                }
+            }
+
             // 2. create a new robot and upload it with the appropriate settings and parameters
             // 2. создаём нового робота и прогружаем его соответствующими настройками и параметрами
 

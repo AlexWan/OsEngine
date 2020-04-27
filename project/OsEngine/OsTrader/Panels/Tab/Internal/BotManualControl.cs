@@ -70,6 +70,10 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
                 for (int i = 0; i < TabsToCheck.Count; i++)
                 {
+                    if (TabsToCheck[i] == null)
+                    {
+                        continue;
+                    }
                     TabsToCheck[i].CheckPositions();
                 }
 

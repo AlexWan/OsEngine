@@ -887,18 +887,41 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 for (int i1 = indexStartFirst, i2 = indexStartSecond; i1 < candlesOne.Count && i2 < candlesTwo.Count; i2++, i1++)
                 {
-                    if (candlesOne[i1].TimeStart == candlesTwo[i2].TimeStart)
+                    if (candlesOne[i1] == null)
                     {
-                        exitCandles.Add(GetCandle(null, candlesOne[i1], candlesTwo[i2], sign));
+                        candlesOne.RemoveAt(i1);
+                        i2--; i1--;
+                        continue;
                     }
-                    else if (candlesOne[i1].TimeStart > candlesTwo[i2].TimeStart)
+                    if (candlesTwo[i2] == null)
                     {
-                        i1--;
+                        candlesTwo.RemoveAt(i2);
+                        i2--; i1--;
+                        continue;
                     }
-                    else if (candlesOne[i1].TimeStart < candlesTwo[i2].TimeStart)
+                    Candle candleOne = candlesOne[i1];
+                    Candle candleTwo = candlesTwo[i2];
+
+                    try
                     {
-                        i2--;
+                        if (candlesOne[i1].TimeStart == candlesTwo[i2].TimeStart)
+                        {
+                            exitCandles.Add(GetCandle(null, candlesOne[i1], candlesTwo[i2], sign));
+                        }
+                        else if (candlesOne[i1].TimeStart > candlesTwo[i2].TimeStart)
+                        {
+                            i1--;
+                        }
+                        else if (candlesOne[i1].TimeStart < candlesTwo[i2].TimeStart)
+                        {
+                            i2--;
+                        }
                     }
+                    catch (Exception e)
+                    {
+
+                    }
+
                 }
                 exitVal.ValueCandles = exitCandles;
             }
@@ -972,22 +995,28 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             List<Candle> exitCandles = exitVal.ValueCandles;
 
+            int lastOper = -1;
+
             if (exitCandles.Count != 0 &&
                 candlesOne[candlesOne.Count - 1].TimeStart == exitCandles[exitCandles.Count - 1].TimeStart)
             {
                 // need to update only the last candle
                 // надо обновить только последнюю свечу
+                lastOper = 1;
                 exitCandles[exitCandles.Count - 1] = (GetCandle(exitCandles[exitCandles.Count - 1], candlesOne[candlesOne.Count - 1], valueTwo, sign));
             }
             else if (exitCandles.Count != 0 &&
                 candlesOne[candlesOne.Count - 2].TimeStart == exitCandles[exitCandles.Count - 1].TimeStart)
             {
+                lastOper = 2;
                 // need to add one candle
                 // нужно добавить одну свечу
+
                 exitCandles.Add(GetCandle(null, candlesOne[candlesOne.Count - 1], valueTwo, sign));
             }
             else
             {
+                lastOper = 3;
                 // need to update everything
                 // обновить нужно всё
 
@@ -1008,6 +1037,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                     exitCandles.Add(GetCandle(null, candlesOne[i1], valueTwo, sign));
                 }
                 exitVal.ValueCandles = exitCandles;
+            }
+
+            for (int i = 0; i < exitVal.ValueCandles.Count; i++)
+            {
+                if (exitVal.ValueCandles[i] == null)
+                {
+
+                }
             }
 
             return exitVal.Name;
