@@ -3191,6 +3191,7 @@ namespace OsEngine.Charts.CandleChart
 
                 Series series = new Series(nameSeries);
                 series.ChartType = SeriesChartType.Point;
+                series.MarkerStyle = MarkerStyle.Circle;
                 series.YAxisType = AxisType.Secondary;
                 series.ChartArea = myArea.Name;
                 series.ShadowOffset = 1;
@@ -3202,6 +3203,7 @@ namespace OsEngine.Charts.CandleChart
                     if (array[i] != 0)
                     {
                         series.Points.AddXY(i, array[i]);
+
                         //series.Points[series.Points.Count - 1].ToolTip = array[i].ToString();
                     }
                 }

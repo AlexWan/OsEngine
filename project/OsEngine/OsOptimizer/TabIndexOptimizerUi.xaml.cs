@@ -244,7 +244,8 @@ namespace OsEngine.OsOptimizer
 
         private void ButtonDeleteSecurity_Click(object sender, RoutedEventArgs e)
         {
-            if (_securitiesNamesGrid.SelectedCells[0] == null)
+            if (_securitiesNamesGrid.SelectedCells == null ||
+                _securitiesNamesGrid.SelectedCells[0] == null)
             {
                 return;
             }
