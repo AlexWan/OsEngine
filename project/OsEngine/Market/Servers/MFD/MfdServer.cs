@@ -293,7 +293,7 @@ namespace OsEngine.Market.Servers.MFD
             //&SaveFormat=0&SaveMode=1&FileName=%D0%A1%D0%B1%D0%B5%D1%80%D0%B1%D0%B0%D0%BD%D0%BA_1min_01012010_24042020.txt
             //&FieldSeparator=%253b&DecimalSeparator=.&DateFormat=yyyyMMdd&TimeFormat=HHmmss&DateFormatCustom=&TimeFormatCustom=&AddHeader=true&RecordFormat=0&Fill=false
 
-            string fileName = security.NameId.Split('#')[1] + "file" + ".txt";
+            string fileName = "tempFile" + ".txt";
 
             string requestStr = "http://mfd.ru/export/handler.ashx/;" + fileName; 
 
@@ -306,7 +306,29 @@ namespace OsEngine.Market.Servers.MFD
             requestStr += "&SaveFormat=0&SaveMode=1&FileName=" + fileName;
             requestStr += "&FieldSeparator=%253b&DecimalSeparator=.&DateFormat=yyyyMMdd&TimeFormat=HHmmss&DateFormatCustom=&TimeFormatCustom=&AddHeader=true&RecordFormat=0&Fill=false";
 
-            string response = GetRequest(requestStr);
+            //https://mfd.ru/export/handler.ashx/_RTS_(RI)_1hour_01042010_28042020.txt?
+            //TickerGroup=26
+            //    &Tickers=5*
+            //    &Alias=false
+            //&Period=6
+            //    &timeframeValue=1
+            // &timeframeDatePart=day
+            // &StartDate=01.04.2010
+            // &EndDate=28.04.2020
+            // &SaveFormat=0
+            // &SaveMode=0
+            // &FileName=_RTS_(RI)_1hour_01042010_28042020.txt
+            // &FieldSeparator=%253b
+            // &DecimalSeparator=.
+            // &DateFormat=yyyyMMdd
+            // &TimeFormat=HHmmss
+            // &DateFormatCustom=
+            // &TimeFormatCustom=
+            // &AddHeader=false
+            // &RecordFormat=3
+            // &Fill=false
+
+            string response = GetFileRequest(requestStr);
 
             string[] lines = response.Split('\n');
 

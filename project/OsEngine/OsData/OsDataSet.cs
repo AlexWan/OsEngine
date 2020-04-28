@@ -2204,14 +2204,14 @@ namespace OsEngine.OsData
 
         public void Load(string saveStr)
         {
-            Name = saveStr.Split('*')[0].Replace("^", "@");
-            Id = saveStr.Split('*')[1].Replace("^", "@");
+            Name = saveStr.Split('~')[0].Replace("^", "@");
+            Id = saveStr.Split('~')[1].Replace("^", "@");
 
         }
 
         public string GetSaveStr()
         {
-            string result = Name.Replace("@","^") + "*";
+            string result = Name.Replace("@","^") + "~";
             result += Id.Replace("@", "^");
 
             return result;
