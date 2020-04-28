@@ -405,6 +405,11 @@ namespace OsEngine.Market.Servers.MFD
 
             string response = GetFileRequest(requestStr);
 
+            if (response == null)
+            {
+                return new List<Trade>();
+            }
+
             string[] lines = response.Split('\n');
 
             List<Trade> result = new List<Trade>();
@@ -461,7 +466,11 @@ namespace OsEngine.Market.Servers.MFD
 
         private string GetFileRequest(string url)
         {
-           string fileName = @"Data\Temp\tmpData" + ".txt";
+            if (Directory.Exists(@"Data\Temp\") == false)
+            {
+                Directory.CreateDirectory(@"Data\Temp\");
+            }
+            string fileName = @"Data\Temp\tmpData" + ".txt";
 
 
            if (File.Exists(fileName))
