@@ -3095,7 +3095,7 @@ namespace OsEngine.Charts.CandleChart
                     return;
                 }
 
-                for (int i = 0; i < 10; i++)
+                for (int i = 0; i < 150; i++)
                 {
                     Series mySeries = FindSeriesByNameSafe(indicatorCandle.Name + i);
                     if (mySeries != null)

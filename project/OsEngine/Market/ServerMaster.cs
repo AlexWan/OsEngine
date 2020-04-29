@@ -70,14 +70,13 @@ namespace OsEngine.Market
             {
                 List<ServerType> serverTypes = new List<ServerType>();
 
-
-                
                 serverTypes.Add(ServerType.QuikDde);
                 serverTypes.Add(ServerType.QuikLua);
                 serverTypes.Add(ServerType.SmartCom);
                 serverTypes.Add(ServerType.Plaza);
                 serverTypes.Add(ServerType.Transaq);
                 serverTypes.Add(ServerType.Tinkoff);
+                serverTypes.Add(ServerType.Finam);
                 serverTypes.Add(ServerType.MoexDataServer);
                 serverTypes.Add(ServerType.MfdWeb);
 
