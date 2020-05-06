@@ -422,10 +422,15 @@ namespace OsEngine.Market.Servers.Transaq
             cmd += "<buysell>" + side + "</buysell>";
             cmd += "<brokerref>" + order.NumberUser + "</brokerref>";
             cmd += "<unfilled> PutInQueue </unfilled>";
-            if (side == "S")
+
+            if(needSec.NameClass == "TQBR")
             {
-                cmd += "<usecredit> true </usecredit>";
+                if (side == "S")
+                {
+                    cmd += "<usecredit> true </usecredit>";
+                }
             }
+
 
             cmd += "</command>";
 

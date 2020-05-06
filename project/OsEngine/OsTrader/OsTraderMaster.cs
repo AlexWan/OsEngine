@@ -197,9 +197,9 @@ namespace OsEngine.OsTrader
                         }
                         catch (Exception e)
                         {
-                            SendNewLogMessage(e.ToString(), LogMessageType.Error);
+                            MessageBox.Show(" Error on bot creation. Bot Name: " + names[1] + " \n" + e.ToString());
+                            continue;
                         }
-                    
                     }
                     else
                     {
@@ -236,7 +236,18 @@ namespace OsEngine.OsTrader
 
                     for (int i = 0; _panelsArray != null && i < _panelsArray.Count; i++)
                     {
-                        writer.WriteLine(_panelsArray[i].NameStrategyUniq + "@" + _panelsArray[i].GetNameStrategyType() + "@" + _panelsArray[i].IsScript);
+                        if(_panelsArray[i].IsScript == false)
+                        {
+                            writer.WriteLine(_panelsArray[i].NameStrategyUniq + "@" +
+                                             _panelsArray[i].GetNameStrategyType() +
+                                              "@" + false);
+                        }
+                        else
+                        {
+                            writer.WriteLine(_panelsArray[i].NameStrategyUniq + "@" +
+                            _panelsArray[i].FileName +
+                            "@" + true);
+                        }
                     }
 
                     writer.Close();

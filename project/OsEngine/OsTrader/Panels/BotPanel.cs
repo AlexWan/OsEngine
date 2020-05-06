@@ -80,6 +80,11 @@ namespace OsEngine.OsTrader.Panels
         public string NameStrategyUniq;
 
         /// <summary>
+        /// название файла если это робот из файловой системы
+        /// </summary>
+        public string FileName;
+
+        /// <summary>
         /// the program that launched the robot. Tester  Robot  Optimizer / 
         /// программа которая запустила робота. Тестер  Робот  Оптимизатор
         /// </summary>

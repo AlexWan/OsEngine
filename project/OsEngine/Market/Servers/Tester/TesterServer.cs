@@ -270,11 +270,6 @@ namespace OsEngine.Market.Servers.Tester
 
             TimeNow = TimeStart;
 
-            while (TimeNow.Hour != 10)
-            {
-               TimeNow = TimeNow.AddHours(-1);
-            }
-
             while (TimeNow.Minute != 0)
             {
                TimeNow = TimeNow.AddMinutes(-1);

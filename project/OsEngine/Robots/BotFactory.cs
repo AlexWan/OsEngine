@@ -358,6 +358,7 @@ namespace OsEngine.Robots
             }
 
             bot.IsScript = true;
+            bot.FileName = nameClass;
 
             return bot;
         }
