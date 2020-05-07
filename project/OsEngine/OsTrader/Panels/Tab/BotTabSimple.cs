@@ -1518,7 +1518,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     if (_stopsOpener[i].Side == Side.Buy)
                     {
-                        _stopsOpener.Remove(_stopsOpener[i]);
+                        _stopsOpener.RemoveAt(i);
                         i--;
                     }
                 }
@@ -1946,7 +1946,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     if (_stopsOpener[i].Side == Side.Sell)
                     {
-                        _stopsOpener.Remove(_stopsOpener[i]);
+                        _stopsOpener.RemoveAt(i);// будет работать
                         i--;
                     }
                 }
@@ -3248,7 +3248,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                             PositionOpenerToStop opener = _stopsOpener[i];
                             LongCreate(_stopsOpener[i].PriceOrder, _stopsOpener[i].Volume, OrderPriceType.Limit,
                                 _manualControl.SecondToOpen, true);
-                            _stopsOpener.Remove(opener);
+                            _stopsOpener.RemoveAt(i);
                             i--;
                             continue;
                         }
@@ -3257,7 +3257,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                             PositionOpenerToStop opener = _stopsOpener[i];
                             ShortCreate(_stopsOpener[i].PriceOrder, _stopsOpener[i].Volume, OrderPriceType.Limit,
                                 _manualControl.SecondToOpen, true);
-                            _stopsOpener.Remove(opener);
+                            _stopsOpener.RemoveAt(i);
                             i--;
                             continue;
                         }

@@ -80,6 +80,12 @@ namespace OsEngine.Market.Servers.Binance.Spot
         {
             _spotSocketClient = CreateUserDataStream("api/v1/userDataStream", BinanceExchangeType.SpotExchange);
             _wsStreams.Add("userDataStream", _spotSocketClient);
+
+            if (_spotSocketClient == null)
+            {
+                Thread.Sleep(5000);
+                return;
+            }
             _spotSocketClient.MessageReceived += delegate (object sender, MessageReceivedEventArgs args)
             {
                 UserDataMessageHandler(sender, args, BinanceExchangeType.SpotExchange);
