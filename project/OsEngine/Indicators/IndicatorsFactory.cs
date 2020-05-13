@@ -139,14 +139,26 @@ namespace OsEngine.Indicators
                 string fileStr = ReadFile(path);
 
                 CSharpCodeProvider prov = new CSharpCodeProvider();
-                
-                CompilerParameters cp = new CompilerParameters(
-                    Array.ConvertAll<Assembly, string>(AppDomain.CurrentDomain.GetAssemblies(),
-                    x => x.Location));
+
+                var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+
+                var res = Array.ConvertAll<Assembly, string>(assemblies, (x) =>
+                {
+                    if (!x.IsDynamic)
+                    {
+                        return x.Location;
+                    }
+
+                    return null;
+                });
+
+                CompilerParameters cp = new CompilerParameters(res);
+
                 cp.IncludeDebugInformation = true;
 
                 cp.GenerateInMemory = true;
                 cp.TempFiles.KeepFiles = false;
+
                 CompilerResults results = prov.CompileAssemblyFromSource(cp, fileStr);
 
                 if (results.Errors != null && results.Errors.Count != 0)
