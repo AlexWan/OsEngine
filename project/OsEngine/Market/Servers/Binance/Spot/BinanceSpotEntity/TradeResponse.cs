@@ -13,6 +13,8 @@
         public long T { get; set; }
         public bool m { get; set; }
         public bool M { get; set; }
+        public object X { get; set; }
+        public object x { get; set; }
     }
 
     public class TradeResponse
