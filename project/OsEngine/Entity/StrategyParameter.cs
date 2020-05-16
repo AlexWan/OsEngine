@@ -736,7 +736,7 @@ namespace OsEngine.Entity
             if (c1.Hour >= c2.Hour
                 && c1.Minute >= c2.Minute
                 && c1.Second >= c2.Second
-                && c1.Millisecond >= c2.Millisecond)
+                && c1.Millisecond > c2.Millisecond)
             {
                 return true;
             }

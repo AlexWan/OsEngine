@@ -84,7 +84,6 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 UserDataMessageHandler(sender, args);
             };
 
-
             Thread keepalive = new Thread(KeepaliveUserDataStream);
             keepalive.CurrentCulture = new CultureInfo("ru-RU");
             keepalive.IsBackground = true;
@@ -1400,6 +1399,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
         /// </summary>
         public void Converter()
         {
+            
             while (true)
             {
                 try
@@ -1419,14 +1419,15 @@ namespace OsEngine.Market.Servers.Binance.Futures
                             {
                                 var quotes = JsonConvert.DeserializeAnonymousType(mes, new TradeResponse());
 
-                                if(quotes.data.X.ToString() != "MARKET")
+
+                                if (quotes.data.X.ToString() != "MARKET")
                                 {//INSURANCE_FUND
                                     continue;
                                 }
 
                                 if (NewTradesEvent != null)
                                 {
-                                    NewTradesEvent(quotes);
+                                    NewTradesEvent(quotes, mes);
                                 }
                                 continue;
                             }
@@ -1497,7 +1498,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
         /// ticks updated
         /// обновились тики
         /// </summary>
-        public event Action<TradeResponse> NewTradesEvent;
+        public event Action<TradeResponse,string> NewTradesEvent;
 
         /// <summary>
         /// API connection established

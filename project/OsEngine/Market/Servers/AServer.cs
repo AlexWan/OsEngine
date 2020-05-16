@@ -162,7 +162,7 @@ namespace OsEngine.Market.Servers
         {
             if (_tickStorage != null)
             {
-                _candleStorage.NeadToSave = _neadToSaveTicksParam.Value;
+                _candleStorage.NeadToSave = _neadToSaveCandlesParam.Value;
             }
         }
 

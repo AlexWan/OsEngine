@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Threading;
 using OsEngine.Entity;
 using OsEngine.Language;
@@ -305,7 +306,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
         /// </summary>
         private readonly object _newTradesLoker = new object();
 
-        void _client_NewTradesEvent(TradeResponse trades)
+        void _client_NewTradesEvent(TradeResponse trades, string mes)
         {
             lock (_newTradesLoker)
             {
@@ -327,7 +328,32 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 {
                     NewTradesEvent(trade);
                 }
+
+                if (trade.SecurityNameCode == "XRPUSDT")
+                {
+                    CheckPrice(mes, trade);
+                }
             }
+        }
+
+        private decimal lastTradePrice;
+
+        private void CheckPrice(string mes,Trade trade)
+        {
+            if (lastTradePrice != 0)
+            {
+                decimal move = trade.Price / lastTradePrice;
+
+                if (move < 0.95m ||
+                    move > 1.05m)
+                {
+                    StreamWriter writer = new StreamWriter("binanceTrades.txt");
+                    writer.WriteLine(mes);
+                    writer.Close();
+                }
+            }
+
+            lastTradePrice = trade.Price;
         }
 
         /// <summary>
