@@ -76,5 +76,79 @@ namespace OsEngine.Indicators
             return null;
         }
 
+        public static decimal Highest(this List<Candle> values, int startIndex, int endIndex)
+        {
+            if (endIndex < startIndex)
+            {
+                int i = endIndex;
+                endIndex = startIndex;
+                startIndex = i;
+            }
+
+            if (startIndex < 0)
+            {
+                startIndex = 0;
+            }
+
+            if (endIndex >= values.Count)
+            {
+                endIndex = values.Count - 1;
+            }
+
+            if (endIndex == startIndex)
+            {
+                return 0;
+            }
+
+            decimal result = decimal.MinValue;
+
+            for (int i = startIndex + 1; i < endIndex + 1; i++)
+            {
+                if (values[i].High > result)
+                {
+                    result = values[i].High;
+                }
+            }
+
+            return result;
+        }
+
+        public static decimal Lowest(this List<Candle> values, int startIndex, int endIndex)
+        {
+            if (endIndex < startIndex)
+            {
+                int i = endIndex;
+                endIndex = startIndex;
+                startIndex = i;
+            }
+
+            if (startIndex < 0)
+            {
+                startIndex = 0;
+            }
+
+            if (endIndex >= values.Count)
+            {
+                endIndex = values.Count - 1;
+            }
+
+            if (endIndex == startIndex)
+            {
+                return 0;
+            }
+
+            decimal result = decimal.MaxValue;
+
+            for (int i = startIndex + 1; i < endIndex + 1; i++)
+            {
+                if (values[i].Low < result)
+                {
+                    result = values[i].Low;
+                }
+            }
+
+            return result;
+        }
+
     }
 }

@@ -28,16 +28,12 @@ namespace OsEngine.Robots.Trend
 
             _sar = new ParabolicSaR(name + "Prime", false);
             _sar = (ParabolicSaR)_tab.CreateCandleIndicator(_sar, "Prime");
-
-
-
             _sar.Save();
 
             _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
 
             Slipage = 0;
             VolumeFix = 1;
-
 
             Load();
 

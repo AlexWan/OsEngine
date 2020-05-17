@@ -586,6 +586,30 @@ namespace OsEngine.Market.Servers.Optimizer
                 return false;
             }
 
+            if (order.IsStopOrProfit)
+            {
+
+                decimal realPrice = order.Price;
+                if (order.Side == Side.Buy)
+                {
+                    if (minPrice > realPrice)
+                    {
+                        realPrice = minPrice;
+                    }
+                }
+                if (order.Side == Side.Sell)
+                {
+                    if (maxPrice < realPrice)
+                    {
+                        realPrice = maxPrice;
+                    }
+                }
+
+                ExecuteOnBoardOrder(order, realPrice, time, 0);
+                return true;
+            }
+
+
             // check whether the order passed / проверяем, прошёл ли ордер
             if (order.Side == Side.Buy)
             {
@@ -1732,25 +1756,16 @@ namespace OsEngine.Market.Servers.Optimizer
                 NewOrderIncomeEvent(orderOnBoard);
             }
 
-            if (_candleSeriesTesterActivate[0].DataType == SecurityTesterDataType.Tick)
-            {
-                SecurityOptimizer security = _candleSeriesTesterActivate[0];
-
-                decimal f = order.Price/security.LastTradeSeries[security.LastTradeSeries.Count - 1].Price;
-                if (f > 1.02m ||
-                    f < 0.98m)
-                {
-                    
-                }
-
-                //CheckOrdersInTickTest(orderOnBoard, security.LastTradeSeries[security.LastTradeSeries.Count - 1].Price, toMarket);
-                
-            }
-
             if (orderOnBoard.IsStopOrProfit)
             {
-                SecurityOptimizer security = _candleSeriesTesterActivate[0];
-                CheckOrdersInCandleTest(order, security.LastCandle);
+                SecurityOptimizer security = _candleSeriesTesterActivate.Find(tester => tester.Security.Name == order.SecurityNameCode);
+                if (security.DataType == SecurityTesterDataType.Candle)
+                { // testing with using candles / прогон на свечках
+                    if (CheckOrdersInCandleTest(orderOnBoard, security.LastCandle))
+                    {
+                        OrdersActiv.Remove(orderOnBoard);
+                    }
+                }
             }
         }
 

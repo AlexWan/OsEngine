@@ -1427,7 +1427,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                                 if (NewTradesEvent != null)
                                 {
-                                    NewTradesEvent(quotes, mes);
+                                    NewTradesEvent(quotes);
                                 }
                                 continue;
                             }
@@ -1498,7 +1498,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
         /// ticks updated
         /// обновились тики
         /// </summary>
-        public event Action<TradeResponse,string> NewTradesEvent;
+        public event Action<TradeResponse> NewTradesEvent;
 
         /// <summary>
         /// API connection established
