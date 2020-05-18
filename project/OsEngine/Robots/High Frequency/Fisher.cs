@@ -44,10 +44,6 @@ namespace OsEngine.Robots.High_Frequency
 
         private bool _isDisposed;
 
-        /// <summary>
-        /// uniq strategy name
-        /// взять уникальное имя
-        /// </summary>
         public override string GetNameStrategyType()
         {
             return "Fisher";
@@ -59,8 +55,6 @@ namespace OsEngine.Robots.High_Frequency
         }
 
         private BotTabSimple _tab;
-
-//indicators индикаторы
 
         private Aindicator _sma;
 

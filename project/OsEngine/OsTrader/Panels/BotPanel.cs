@@ -694,6 +694,22 @@ position => position.State != PositionStateType.OpeningFail
         }
 
         /// <summary>
+        /// create button type parameter / 
+        /// создать параметр типа Button
+        /// </summary>
+        public StrategyParameterButton CreateParameterButton(string buttonLabel)
+        {
+            StrategyParameterButton newParameter = new StrategyParameterButton(buttonLabel);
+
+            if (_parameters.Find(p => p.Name == buttonLabel) != null)
+            {
+                throw new Exception(OsLocalization.Trader.Label52);
+            }
+
+            return (StrategyParameterButton)LoadParameterValues(newParameter);
+        }
+
+        /// <summary>
         /// load parameter settings / 
         /// загрузить настройки параметра
         /// </summary>

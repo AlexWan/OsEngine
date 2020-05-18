@@ -774,8 +774,80 @@ namespace OsEngine.Entity
 
             return false;
         }
-
     }
+
+    /// <summary>
+    /// A strategy parameter to button click
+    /// Параметр для обработки нажатия на кнопку
+    /// </summary>
+    public class StrategyParameterButton : IIStrategyParameter
+    {
+        public StrategyParameterButton(string buttonLabel)
+        {
+            _name = buttonLabel;
+            _type = StrategyParameterType.Button;
+        }
+
+        /// <summary>
+        /// blank. it is impossible to create a variable of StrategyParameter type with an empty constructor
+        /// заглушка. нельзя создать переменную типа StrategyParameter с пустым конструктором
+        /// </summary>
+        private StrategyParameterButton()
+        {
+
+        }
+
+        /// <summary>
+        /// to take a line to save
+        /// взять строку для сохранения
+        /// </summary>
+        public string GetStringToSave()
+        {
+            string save = _name + "#";
+
+            return save;
+        }
+
+        /// <summary>
+        /// download settings from the save file
+        /// загрузить настройки из файла сохранения
+        /// </summary>
+        /// <param name="save"></param>
+        public void LoadParamFromString(string[] save)
+        {
+        }
+
+        /// <summary>
+        /// Parameter name. Used to identify a parameter in the settings windows
+        /// Название параметра. Используется для идентификации параметра в окнах настроек
+        /// </summary>
+        public string Name
+        {
+            get { return _name; }
+        }
+        private string _name;
+
+        /// <summary>
+        /// parameter type
+        /// тип параметра
+        /// </summary>
+        public StrategyParameterType Type
+        {
+            get { return _type; }
+        }
+        private StrategyParameterType _type;
+
+        public event Action ValueChange;
+
+        public void Click()
+        {
+            UserClickOnButtonEvent?.Invoke();
+        }
+
+        public event Action UserClickOnButtonEvent;
+    }
+
+
 
     /// <summary>
     /// parameter type
@@ -810,7 +882,12 @@ namespace OsEngine.Entity
         /// <summary>
         /// время
         /// </summary>
-        TimeOfDay
+        TimeOfDay,
+
+        /// <summary>
+        /// нажатие на кнопку
+        /// </summary>
+        Button
     }
 
 }

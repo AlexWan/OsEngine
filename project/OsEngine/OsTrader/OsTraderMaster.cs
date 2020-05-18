@@ -35,6 +35,12 @@ namespace OsEngine.OsTrader
     /// </summary>
     public class OsTraderMaster
     {
+        #region Static Part
+
+        public static OsTraderMaster Master;
+
+        #endregion
+
         /// <summary>
         /// create a robot manager
         /// создать менеджера роботов
@@ -113,6 +119,8 @@ namespace OsEngine.OsTrader
             _tabBotNames.SelectionChanged += _tabBotControl_SelectionChanged;
             ReloadRiskJournals();
             _globalController.StartPaint();
+
+            OsTraderMaster.Master = this;
         }
 
         private WindowsFormsHost _hostLogPrime;
@@ -140,7 +148,7 @@ namespace OsEngine.OsTrader
         /// bots array
         /// массив роботов
         /// </summary>
-        private List<BotPanel> _panelsArray;
+        public List<BotPanel> _panelsArray;
 
         /// <summary>
         /// the bot to which the interface is currently connected

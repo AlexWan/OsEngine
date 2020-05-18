@@ -16,7 +16,6 @@ namespace OsEngine.Entity
     /// </summary>
     public partial class ParemetrsUi
     {
-
         private List<IIStrategyParameter> _parameters;
 
         public ParemetrsUi(List<IIStrategyParameter> parameters)
@@ -35,8 +34,9 @@ namespace OsEngine.Entity
 
         private void CreateTable()
         {
-            _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
+            _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect,
                 DataGridViewAutoSizeRowsMode.None);
+            _grid.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = _grid.DefaultCellStyle;
@@ -59,6 +59,7 @@ namespace OsEngine.Entity
             _grid.Rows.Add(null, null);
 
             _grid.CellValueChanged += _grid_CellValueChanged;
+            _grid.CellClick += _grid_Click;
 
             HostParametrs.Child = _grid;
         }
@@ -123,8 +124,46 @@ namespace OsEngine.Entity
                     cell.Value = param.Value.ToString();
                     row.Cells.Add(cell);
                 }
+                else if (_parameters[i].Type == StrategyParameterType.Button)
+                {
+                    DataGridViewButtonCell cell = new DataGridViewButtonCell();
+                    row.Cells[0].Value = "";
+                    cell.Value = _parameters[i].Name;
+                    // StrategyParameterButton param = (StrategyParameterButton)_parameters[i];
+
+                    row.Cells.Add(cell);
+                }
+
                 _grid.Rows.Add(row);
             }
+        }
+
+        private void _grid_Click(object sender, EventArgs e)
+        {
+            int index = 0;
+
+            try
+            {
+                int cellIndex = _grid.SelectedCells[0].ColumnIndex;
+
+                if (cellIndex != 1)
+                {
+                    return;
+                }
+
+                index = _grid.SelectedCells[0].RowIndex;
+                if (_parameters[index].Type != StrategyParameterType.Button)
+                {
+                    return;
+                }
+            }
+            catch
+            {
+                return;
+            }
+
+            StrategyParameterButton param = (StrategyParameterButton)_parameters[index];
+            param.Click();
         }
 
         private void _grid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
