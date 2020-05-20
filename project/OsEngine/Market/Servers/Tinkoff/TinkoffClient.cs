@@ -364,7 +364,17 @@ namespace OsEngine.Market.Servers.Tinkoff
                     newSecurity.Name = jtSecurity.SelectToken("ticker").ToString();
                     newSecurity.NameId = jtSecurity.SelectToken("figi").ToString();
                     newSecurity.NameFull = jtSecurity.SelectToken("name").ToString();
-                    newSecurity.PriceStep = jtSecurity.SelectToken("minPriceIncrement").ToString().ToDecimal();
+                    string str = jtSecurity.ToString();
+
+                    if (str.Contains("minPriceIncrement"))
+                    {
+                        newSecurity.PriceStep = jtSecurity.SelectToken("minPriceIncrement").ToString().ToDecimal();
+                    }
+                    else
+                    {
+                        newSecurity.PriceStep = 1;
+                    }
+
                     newSecurity.PriceStepCost = newSecurity.PriceStep;
                 }
                 catch

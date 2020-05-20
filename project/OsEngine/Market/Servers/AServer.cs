@@ -160,7 +160,7 @@ namespace OsEngine.Market.Servers
 
         void SaveCandleHistoryParam_ValueChange()
         {
-            if (_tickStorage != null)
+            if (_candleStorage != null)
             {
                 _candleStorage.NeadToSave = _neadToSaveCandlesParam.Value;
             }
@@ -1079,12 +1079,20 @@ namespace OsEngine.Market.Servers
                 return;
             }
 
-            if (_securities == null)
+            if (_securities == null 
+                && securities.Count > 5000)
             {
                 _securities = securities;
                 _securitiesToSend.Enqueue(_securities);
-                return;
+
+                 return;
             }
+
+            if (_securities == null)
+            {
+                _securities = new List<Security>();
+            }
+
             for (int i = 0; i < securities.Count; i++)
             {
                 if (securities[i] == null)

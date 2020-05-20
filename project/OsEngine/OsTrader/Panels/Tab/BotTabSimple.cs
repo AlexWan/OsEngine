@@ -3407,18 +3407,18 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         SetNewLogMessage(TabName + OsLocalization.Trader.Label71 + position.Number, LogMessageType.Trade);
                     }
-
-                    else if (StartProgram == StartProgram.IsTester)
+                    else
                     {
                         decimal profit = position.ProfitPortfolioPunkt;
 
-                        ((TesterServer)_connector.MyServer).AddProfit(profit);
-                    }
-                    else if (StartProgram == StartProgram.IsOsOptimizer)
-                    {
-                        decimal profit = position.ProfitPortfolioPunkt;
-
-                        ((OptimizerServer)_connector.MyServer).AddProfit(profit);
+                        if (_connector.ServerType == ServerType.Tester)
+                        {
+                            ((TesterServer)_connector.MyServer).AddProfit(profit);
+                        }
+                        else if (_connector.ServerType == ServerType.Optimizer)
+                        {
+                            ((OptimizerServer)_connector.MyServer).AddProfit(profit);
+                        }
                     }
                 }
                 else if (position.State == PositionStateType.OpeningFail)

@@ -102,8 +102,10 @@ namespace OsEngine.Indicators
 
                     for (int i = 0; i < fullPaths.Count; i++)
                     {
-                        if (fullPaths[i].EndsWith(longNameClass) ||
-                            fullPaths[i].EndsWith(longNameClass2))
+                        string nameInFile = fullPaths[i].Split('\\')[fullPaths[i].Split('\\').Length - 1];
+
+                        if (nameInFile == longNameClass ||
+                            nameInFile == longNameClass2)
                         {
                             myPath = fullPaths[i];
                             break;

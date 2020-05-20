@@ -163,7 +163,7 @@ namespace OsEngine.Language
 
         public string Message37 => OsLocalization.ConvertToLocString(
             "Eng:Average profit in %_" +
-            "Ru:Профит в % к депо_");
+            "Ru:Профит в % на сделку");
 
         public string Message38 => OsLocalization.ConvertToLocString(
             "Eng:Params_" +

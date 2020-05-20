@@ -3,11 +3,21 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System.Runtime.InteropServices;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Windows;
-using System.Windows.Forms.DataVisualization.Charting;
-using OsEngine.Charts;
+using System.Windows.Controls;
+using System.Windows.Forms.Integration;
+using System.Windows.Shapes;
 using OsEngine.Charts.CandleChart;
+using OsEngine.Entity;
+using OsEngine.Journal;
+using OsEngine.Language;
+using OsEngine.Logging;
+using OsEngine.Market;
+using OsEngine.Market.Connectors;
+using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.OsTrader.Panels
 {
@@ -17,86 +27,306 @@ namespace OsEngine.OsTrader.Panels
         {
             InitializeComponent();
             _panel = panel;
-            CreateTabs();
-            TabControlBotsName.SelectionChanged += TabControlBotsName_SelectionChanged;
-            PaintActivTab(0);
+
+            _panel.StartPaint(ChartHostPanel, HostGlass, HostOpenPosition,
+                HostClosePosition, HostBotLog, RectChart,
+                HostAllert, TabControlBotTab, TextBoxPrice, GreedChartPanel);
+
+            LocationChanged += RobotUi_LocationChanged;
+            TabControlBotsName.SizeChanged += TabControlBotsName_SizeChanged;
+
+            Closed += delegate (object sender, EventArgs args)
+            {
+                _panel.StopPaint();
+                _panel = null;
+            };
+
+            Local();
         }
+
 
         private BotPanel _panel;
 
-        private ChartCandlePainter _chart;
-
-        private void CreateTabs()
+        void TabControlBotsName_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            TabControlBotsName.Items.Clear();
-            for (int i = 0; i < _panel.TabsSimple.Count; i++)
+            double up = TabControlBotsName.ActualHeight - 28;
+
+            if (up < 0)
             {
-                TabControlBotsName.Items.Add(_panel.TabsSimple[i].Securiti.Name.Replace(".txt","") + _panel.TabsSimple[i].TimeFrame);
+                up = 0;
             }
 
-            for (int i = 0; i < _panel.TabsIndex.Count; i++)
-            {
-                TabControlBotsName.Items.Add("Index " + (i+1));
-            }
+            // GreedChartPanel.Margin = new Thickness(5, up, 315, 10);
         }
 
-        void TabControlBotsName_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private void RobotUi_LocationChanged(object sender, EventArgs e)
         {
-           PaintActivTab(TabControlBotsName.SelectedIndex);
+            WindowCoordinate.X = Convert.ToDecimal(Left);
+            WindowCoordinate.Y = Convert.ToDecimal(Top);
         }
 
-        private int _lastTabNum = -1;
-
-
-        private void PaintActivTab(int tabNum)
+        private void Local()
         {
-            if (_lastTabNum == tabNum)
+            TabPozition.Header = OsLocalization.Trader.Label18;
+            TabItemClosedPos.Header = OsLocalization.Trader.Label19;
+            TabItemLogBot.Header = OsLocalization.Trader.Label23;
+            TabItemMarketDepth.Header = OsLocalization.Trader.Label25;
+            TabItemAlerts.Header = OsLocalization.Trader.Label26;
+            TabItemControl.Header = OsLocalization.Trader.Label27;
+            ButtonBuyFast.Content = OsLocalization.Trader.Label28;
+            ButtonSellFast.Content = OsLocalization.Trader.Label29;
+            TextBoxVolumeInterText.Text = OsLocalization.Trader.Label30;
+            TextBoxPriceText.Text = OsLocalization.Trader.Label31;
+            ButtonBuyLimit.Content = OsLocalization.Trader.Label32;
+            ButtonSellLimit.Content = OsLocalization.Trader.Label33;
+            ButtonCloseLimit.Content = OsLocalization.Trader.Label34;
+            LabelGeneralSettings.Content = OsLocalization.Trader.Label35;
+            ButtonJournalCommunity.Content = OsLocalization.Trader.Label40;
+            ButtonStrategSettingsIndividual.Content = OsLocalization.Trader.Label43;
+            ButtonRedactTab.Content = OsLocalization.Trader.Label44;
+            ButtonStrategParametr.Content = OsLocalization.Trader.Label45;
+            ButtonRiskManager.Content = OsLocalization.Trader.Label46;
+            ButtonStrategSettings.Content = OsLocalization.Trader.Label47;
+        }
+
+
+        private void buttonBuyFast_Click_1(object sender, RoutedEventArgs e)
+        {
+            if (_panel.ActivTab.GetType().Name != "BotTabSimple")
             {
                 return;
             }
-            _lastTabNum = tabNum;
 
-            if (_chart != null)
+            decimal volume;
+
+            try
             {
-                _chart.StopPaint();
-                _chart.ClearDataPointsAndSizeValue();
-                _chart.Delete();
+                volume = TextBoxVolumeFast.Text.ToDecimal();
+            }
+            catch (Exception)
+            {
+                MessageBox.Show(OsLocalization.Trader.Label49);
+                return;
+            }
+            ((BotTabSimple)_panel.ActivTab).BuyAtMarket(volume);
+        }
+
+        private void buttonSellFast_Click(object sender, RoutedEventArgs e)
+        {
+            if (_panel.ActivTab.GetType().Name != "BotTabSimple")
+            {
+                return;
+            }
+            decimal volume;
+            try
+            {
+                volume = TextBoxVolumeFast.Text.ToDecimal();
+            }
+            catch (Exception)
+            {
+                MessageBox.Show(OsLocalization.Trader.Label49);
+                return;
+            }
+            ((BotTabSimple)_panel.ActivTab).SellAtMarket(volume);
+        }
+
+        // manual control of the position
+        // ручное управление позицией
+
+        private void ButtonStrategIndividualSettings_Click(object sender, RoutedEventArgs e)
+        {
+            _panel.ShowIndividualSettingsDialog();
+        }
+
+        private void ButtonBuyLimit_Click(object sender, RoutedEventArgs e)
+        {
+            if (_panel.ActivTab.GetType().Name != "BotTabSimple")
+            {
+                return;
+            }
+            decimal volume;
+            try
+            {
+                volume = Decimal.Parse(TextBoxVolumeFast.Text.Replace(",",
+                        CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                    CultureInfo.InvariantCulture);
+            }
+            catch (Exception)
+            {
+                MessageBox.Show(OsLocalization.Trader.Label49);
+                return;
             }
 
+            decimal price;
 
-            if (tabNum < _panel.TabsSimple.Count)
+            try
             {
-                _chart = new ChartCandlePainter(_panel.NameStrategyUniq, _panel.StartProgram);
-                _chart.ProcessCandles(_panel.TabsSimple[tabNum].CandlesFinishedOnly);
-                _chart.StartPaintPrimeChart(ChartHostPanel, RectChart);
-                _chart.ProcessPositions(_panel.TabsSimple[tabNum].PositionsAll);
-
-                for (int i = 0;_panel.TabsSimple[tabNum].Indicators != null && i < _panel.TabsSimple[tabNum].Indicators.Count; i++)
-                {
-                    ChartArea area = _chart.CreateArea("Area" + _panel.TabsSimple[tabNum].Indicators[i].Name, 15);
-                    _panel.TabsSimple[tabNum].Indicators[i].NameSeries = _chart.CreateSeries(area,
-                        _panel.TabsSimple[tabNum].Indicators[i].TypeIndicator, _panel.TabsSimple[tabNum].Indicators[i].NameSeries);
-
-                    _chart.ProcessIndicator(_panel.TabsSimple[tabNum].Indicators[i]);
-                }
+                price = TextBoxPrice.Text.ToDecimal();
             }
-            else
+            catch (Exception)
             {
+                MessageBox.Show(OsLocalization.Trader.Label50);
+                return;
+            }
 
-                tabNum = tabNum - _panel.TabsSimple.Count;
-                _chart = new ChartCandlePainter(_panel.NameStrategyUniq,_panel.StartProgram);
-                _chart.ProcessCandles(_panel.TabsIndex[tabNum].Candles);
-                _chart.StartPaintPrimeChart(ChartHostPanel, RectChart);
+            if (price == 0)
+            {
+                MessageBox.Show(OsLocalization.Trader.Label50);
+                return;
+            }
+            ((BotTabSimple)_panel.ActivTab).BuyAtLimit(volume, price);
 
-                for (int i = 0; _panel.TabsIndex[tabNum].Indicators !=  null && i < _panel.TabsIndex[tabNum].Indicators.Count; i++)
+        }
+
+        private void ButtonSellLimit_Click(object sender, RoutedEventArgs e)
+        {
+            if (_panel.ActivTab.GetType().Name != "BotTabSimple")
+            {
+                return;
+            }
+            decimal volume;
+            try
+            {
+                volume = TextBoxVolumeFast.Text.ToDecimal();
+            }
+            catch (Exception)
+            {
+                MessageBox.Show(OsLocalization.Trader.Label49);
+                return;
+            }
+
+            decimal price;
+
+            try
+            {
+                price = TextBoxPrice.Text.ToDecimal();
+            }
+            catch (Exception)
+            {
+                MessageBox.Show(OsLocalization.Trader.Label50);
+                return;
+            }
+
+            if (price == 0)
+            {
+                MessageBox.Show(OsLocalization.Trader.Label50);
+                return;
+            }
+
+            ((BotTabSimple)_panel.ActivTab).SellAtLimit(volume, price);
+        }
+
+        private void ButtonCloseLimit_Click(object sender, RoutedEventArgs e)
+        {
+            if (_panel.ActivTab.GetType().Name != "BotTabSimple")
+            {
+                return;
+            }
+
+            ((BotTabSimple)_panel.ActivTab).CloseAllOrderInSystem();
+        }
+
+        /// <summary>
+        /// journal window
+        /// </summary>
+        private JournalUi _journalUi;
+
+        private void ButtonJournalCommunity_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_journalUi != null)
                 {
-                    ChartArea area = _chart.CreateArea("Area" + _panel.TabsIndex[tabNum].Indicators[i].Name, 15);
-                    _panel.TabsIndex[tabNum].Indicators[i].NameSeries = _chart.CreateSeries(area,
-                        _panel.TabsIndex[tabNum].Indicators[i].TypeIndicator, _panel.TabsIndex[tabNum].Indicators[i].Name + i);
-
-                    _chart.ProcessIndicator(_panel.TabsIndex[tabNum].Indicators[i]);
+                    _journalUi.Activate();
+                    return;
                 }
+
+                List<BotPanelJournal> panelsJournal = new List<BotPanelJournal>();
+
+                List<Journal.Journal> journals = _panel.GetJournals();
+
+
+                BotPanelJournal botPanel = new BotPanelJournal();
+                botPanel.BotName = _panel.NameStrategyUniq;
+                botPanel._Tabs = new List<BotTabJournal>();
+
+                for (int i2 = 0; journals != null && i2 < journals.Count; i2++)
+                {
+                    BotTabJournal botTabJournal = new BotTabJournal();
+                    botTabJournal.TabNum = i2;
+                    botTabJournal.Journal = journals[i2];
+                    botPanel._Tabs.Add(botTabJournal);
+                }
+
+                panelsJournal.Add(botPanel);
+
+
+                _journalUi = new JournalUi(panelsJournal, _panel.StartProgram);
+                _journalUi.Closed += delegate (object o, EventArgs args)
+                {
+                    _journalUi.IsErase = true;
+                    _journalUi = null;
+                };
+
+                _journalUi.Show();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
+        private void ButtonRedactTab_Click(object sender, RoutedEventArgs e)
+        {
+            if (_panel.ActivTab.GetType().Name != "BotTabSimple")
+            {
+                return;
+            }
+
+            ((BotTabSimple)_panel.ActivTab).ShowConnectorDialog();
+        }
+
+        private void ButtonRiskManager_Click(object sender, RoutedEventArgs e)
+        {
+            _panel.ShowPanelRiskManagerDialog();
+        }
+
+        private void ButtonStrategParametr_Click(object sender, RoutedEventArgs e)
+        {
+            _panel.ShowParametrDialog();
+        }
+
+        private void buttonStrategManualSettings_Click(object sender, RoutedEventArgs e)
+        {
+            if (_panel.ActivTab.GetType().Name != "BotTabSimple")
+            {
+                return;
+            }
+
+            ((BotTabSimple)_panel.ActivTab).ShowManualControlDialog();
+        }
+
+        /// <summary>
+        /// send a new message 
+        /// выслать новое сообщение на верх
+        /// </summary>
+        private void SendNewLogMessage(string message, LogMessageType type)
+        {
+            if (LogMessageEvent != null)
+            {
+                LogMessageEvent(message, type);
+            }
+            else if (type == LogMessageType.Error)
+            {
+                MessageBox.Show(message);
+            }
+        }
+
+        /// <summary>
+        /// outgoing message for log
+        /// исходящее сообщение для лога
+        /// </summary>
+        public event Action<string, LogMessageType> LogMessageEvent;
+
     }
 }

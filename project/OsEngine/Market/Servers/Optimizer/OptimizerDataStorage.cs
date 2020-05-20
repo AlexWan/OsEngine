@@ -17,12 +17,15 @@ namespace OsEngine.Market.Servers.Optimizer
     public class OptimizerDataStorage
     {
 
+        private string Name;
         /// <summary>
 		/// constructor
         /// конструктор
         /// </summary>
-        public OptimizerDataStorage()
+        public OptimizerDataStorage(string name)
         {
+            Name = name;
+
             _logMaster = new Log("TesterServer",StartProgram.IsOsOptimizer);
             _logMaster.Listen(this);
             TypeTesterData = TesterDataType.Candle;
@@ -110,14 +113,14 @@ namespace OsEngine.Market.Servers.Optimizer
         /// </summary>
         private void Load()
         {
-            if (!File.Exists(@"Engine\" + @"OptimizerDataStorage.txt"))
+            if (!File.Exists(@"Engine\" + Name + @"OptimizerDataStorage.txt"))
             {
                 return;
             }
 
             try
             {
-                using (StreamReader reader = new StreamReader(@"Engine\" + @"OptimizerDataStorage.txt"))
+                using (StreamReader reader = new StreamReader(@"Engine\" + Name + @"OptimizerDataStorage.txt"))
                 {
                     _activSet = reader.ReadLine();
                     Enum.TryParse(reader.ReadLine(), out _typeTesterData);
@@ -141,7 +144,7 @@ namespace OsEngine.Market.Servers.Optimizer
         {
             try
             {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + @"OptimizerDataStorage.txt", false))
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @"OptimizerDataStorage.txt", false))
                 {
                     writer.WriteLine(_activSet);
                     writer.WriteLine(_typeTesterData);
@@ -271,6 +274,7 @@ namespace OsEngine.Market.Servers.Optimizer
         public string PathToFolder
         {
             get { return _pathToFolder; }
+            set { _pathToFolder = value; }
         }
         private string _pathToFolder;
 

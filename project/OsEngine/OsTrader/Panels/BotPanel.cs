@@ -1295,6 +1295,32 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
+        /// <summary>
+        /// убрать все вкладки
+        /// </summary>
+        public void ClearTabs()
+        {
+            for (int i = 0; TabsSimple != null && i < TabsSimple.Count; i++)
+            {
+                TabsSimple[i].Clear();
+            }
+            for (int i = 0; TabsIndex != null && i < TabsIndex.Count; i++)
+            {
+                TabsIndex[i].Clear();
+            }
+            for (int i = 0; TabsCluster != null && i < TabsCluster.Count; i++)
+            {
+                TabsCluster[i].Clear();
+            }
+
+            if (_botTabs != null)
+            {
+                _botTabs.Clear();
+            }
+
+            ActivTab = null;
+        }
+
         // call control windows / вызыв окон управления
 
 
