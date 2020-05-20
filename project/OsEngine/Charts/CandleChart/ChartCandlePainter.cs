@@ -2469,6 +2469,8 @@ namespace OsEngine.Charts.CandleChart
             newSeries.XAxisType = AxisType.Primary;
             newSeries.MarkerStyle = point.Style;
             newSeries.MarkerSize = point.Size;
+            newSeries.Label = point.Label;
+            newSeries.LabelForeColor = point.Color;
 
             newSeries.Points.AddXY(index, point.Y);
 

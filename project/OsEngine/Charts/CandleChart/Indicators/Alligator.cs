@@ -7,17 +7,17 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 
 namespace OsEngine.Charts.CandleChart.Indicators
 {
-
     /// <summary>
     /// Indicator Alligator. Bill Williams
     /// Индикатор Alligator. Билла Вильямса
     /// </summary>
-    public class Alligator: IIndicator
+    public class Alligator : IIndicator
     {
         /// <summary>
         /// constructor with parameters.Indicator will be saved
@@ -107,7 +107,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 colors.Add(ColorDown);
                 return colors;
             }
-
         }
 
         /// <summary>
@@ -191,8 +190,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// slow line. Jaw
         /// медленная линия. Челюсть
         /// </summary>
-        public List<decimal> ValuesDown 
-        { get; set; }
+        public List<decimal> ValuesDown { get; set; }
 
         /// <summary>
         /// unique indicator name
@@ -275,7 +273,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @".txt", false))
                 {
-
                     writer.WriteLine(LenghtBase);
                     writer.WriteLine(ShiftBase);
                     writer.WriteLine(ColorBase.ToArgb());
@@ -310,9 +307,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 return;
             }
+
             try
             {
-
                 using (StreamReader reader = new StreamReader(@"Engine\" + Name + @".txt"))
                 {
                     LenghtBase = Convert.ToInt32(reader.ReadLine());
@@ -326,17 +323,15 @@ namespace OsEngine.Charts.CandleChart.Indicators
                     LenghtDown = Convert.ToInt32(reader.ReadLine());
                     ShiftDown = Convert.ToInt32(reader.ReadLine());
                     ColorDown = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
-                    
+
                     PaintOn = Convert.ToBoolean(reader.ReadLine());
                     MovingAverageTypeCalculation type;
-                    Enum.TryParse(reader.ReadLine(), true,out type);
+                    Enum.TryParse(reader.ReadLine(), true, out type);
 
                     TypeCalculationAverage = type;
 
                     reader.Close();
                 }
-
-
             }
             catch (Exception)
             {
@@ -369,6 +364,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 ValuesDown.Clear();
                 ValuesUp.Clear();
             }
+
             _myCandles = null;
         }
 
@@ -397,6 +393,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 return;
             }
+
             ProcessAll(_myCandles);
 
             if (NeadToReloadEvent != null)
@@ -421,12 +418,12 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _myCandles = candles;
 
             if (Values != null &&
-                Values.Count + 1 == candles.Count)
+                Values.Count + 1 == candles.Count + ShiftBase)
             {
                 ProcessOne(candles);
             }
             else if (Values != null &&
-                     Values.Count == candles.Count)
+                     Values.Count == candles.Count + ShiftBase)
             {
                 ProcessLast(candles);
             }
@@ -452,6 +449,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 return;
             }
+
             if (Values == null)
             {
                 Values = new List<decimal>();
@@ -474,10 +472,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 return;
             }
-            Values = new List<decimal>();
-            ValuesUp = new List<decimal>();
-            ValuesDown = new List<decimal>();
 
+            Values = new List<decimal>(Enumerable.Repeat<decimal>(0, ShiftBase).ToList());
+            ValuesUp = new List<decimal>(Enumerable.Repeat<decimal>(0, ShiftUp).ToList());
+            ValuesDown = new List<decimal>(Enumerable.Repeat<decimal>(0, ShiftDown).ToList());
 
             List<Candle> newCandles = new List<Candle>();
 
@@ -500,6 +498,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 return;
             }
+
             Values[Values.Count - 1] = GetValueBase(candles, candles.Count - 1);
             ValuesUp[ValuesUp.Count - 1] = GetValueUp(candles, candles.Count - 1);
             ValuesDown[ValuesDown.Count - 1] = GetValueDown(candles, candles.Count - 1);
@@ -549,8 +548,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 return 0;
             }
 
-            return _maUp.Values[_maUp.Values.Count - 1 - ShiftUp];
-
+            return _maUp.Values[_maUp.Values.Count - 1];
         }
 
         /// <summary>
@@ -560,15 +558,16 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <param name="candles">canldles/свечи</param>
         /// <param name="index">index/индекс</param>
         /// <returns>alligator centerline by index/центальная линия аллигатора по индексу</returns>
-        private decimal GetValueBase(List<Candle> candles,int index)
+        private decimal GetValueBase(List<Candle> candles, int index)
         {
             if (index == 0)
             {
                 _maBase = new MovingAverage(false)
-                {TypeCalculationAverage = TypeCalculationAverage,
-                 Lenght = LenghtBase,
-                 TypePointsToSearch = PriceTypePoints.Median
-                };   
+                {
+                    TypeCalculationAverage = TypeCalculationAverage,
+                    Lenght = LenghtBase,
+                    TypePointsToSearch = PriceTypePoints.Median
+                };
             }
 
             _maBase.Process(candles);
@@ -578,8 +577,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 return 0;
             }
 
-            return _maBase.Values[_maBase.Values.Count - 1 - ShiftBase];
-            
+            return _maBase.Values[_maBase.Values.Count - 1];
         }
 
         /// <summary>
@@ -608,8 +606,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 return 0;
             }
 
-            return _maDown.Values[_maDown.Values.Count - 1 - ShiftDown];
+            return _maDown.Values[_maDown.Values.Count - 1];
         }
-
     }
 }

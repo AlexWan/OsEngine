@@ -1358,7 +1358,7 @@ position => position.State != PositionStateType.OpeningFail
         /// send new message / 
         /// выслать новое сообщение на верх
         /// </summary>
-        private void SendNewLogMessage(string message, LogMessageType type)
+        protected void SendNewLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
             {
