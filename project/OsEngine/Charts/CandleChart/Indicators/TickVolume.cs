@@ -303,7 +303,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
         private decimal GetValue(List<Candle> candles, int index)
         {
-            if (candles == null)
+            if (candles == null || candles.Count == 0)
             {
                 return 0;
             }
