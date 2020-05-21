@@ -60,11 +60,16 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public void SetSeriesToSave(CandleSeries series)
         {
-            if (_series.Find(
-                ser => ser.Specification == series.Specification) == null)
+            for (int i = 0; i < _series.Count; i++)
             {
-                _series.Add(series);
+                if (_series[i].Specification == series.Specification)
+                {
+                    _series.RemoveAt(i);
+                    break;
+                }
             }
+
+            _series.Add(series);
         }
 
         // for saving in one file
