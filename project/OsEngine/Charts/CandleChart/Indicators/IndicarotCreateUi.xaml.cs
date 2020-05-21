@@ -99,6 +99,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _gridViewIndicators.Rows.Add("Standard Deviation");
             _gridViewIndicators.Rows.Add("Stochastic Oscillator");
             _gridViewIndicators.Rows.Add("Stochastic Rsi");
+            _gridViewIndicators.Rows.Add("TickVolume");
             _gridViewIndicators.Rows.Add("Trix");
             _gridViewIndicators.Rows.Add("TradeThread");
             _gridViewIndicators.Rows.Add("Unk");
@@ -188,6 +189,22 @@ namespace OsEngine.Charts.CandleChart.Indicators
             if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Trades")
             {
                 _chartMaster.CreateTickChart();
+            }
+
+            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "TickVolume")
+            {
+                string name = "";
+
+                for (int i = 0; i < 30; i++)
+                {
+                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "TickVolume" + i) == false)
+                    {
+                        name = "VWAP" + i;
+                        break;
+                    }
+                }
+                IndicatorCandle = new TickVolume(_chartMaster.Name + name, true);
+                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
             }
 
             if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "VWAP")

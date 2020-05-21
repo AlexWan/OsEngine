@@ -286,6 +286,10 @@
     <Compile Include="Charts\CandleChart\Indicators\StochRsiUi.xaml.cs">
       <DependentUpon>StochRsiUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\TickVolume.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\TickVolumeUi.xaml.cs">
+      <DependentUpon>TickVolumeUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Charts\CandleChart\Indicators\TradeThread.cs" />
     <Compile Include="Charts\CandleChart\Indicators\Trix.cs" />
     <Compile Include="Charts\CandleChart\Indicators\TrixUi.xaml.cs">
@@ -927,6 +931,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Charts\CandleChart\Indicators\StochRsiUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\TickVolumeUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
