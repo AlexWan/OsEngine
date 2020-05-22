@@ -3357,13 +3357,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                         {
                             continue;
                         }
-                        CheckStop(openPositions[i], marketDepth.Asks[0].Price);
+                        // CheckStop(openPositions[i], marketDepth.Asks[0].Price);
 
                         if (openPositions.Count <= i)
                         {
                             continue;
                         }
-                        CheckStop(openPositions[i], marketDepth.Bids[0].Price);
+                        //CheckStop(openPositions[i], marketDepth.Bids[0].Price);
                     }
                 }
             }
