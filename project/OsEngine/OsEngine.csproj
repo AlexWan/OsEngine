@@ -346,6 +346,7 @@
     <Compile Include="Entity\StartProgramm.cs" />
     <Compile Include="Entity\StrategyParameter.cs" />
     <Compile Include="Entity\TimeFrameBuilder.cs" />
+    <Compile Include="Entity\Utils\CompressionUtils.cs" />
     <Compile Include="Indicators\Aindicator.cs" />
     <Compile Include="Indicators\AIndicatorUi.xaml.cs">
       <DependentUpon>AIndicatorUi.xaml</DependentUpon>
@@ -1372,7 +1373,6 @@
   <ItemGroup>
     <Resource Include="Images\MainWIndow\gear.png" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
