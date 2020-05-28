@@ -643,6 +643,26 @@ namespace OsEngine.Language
 
         public string Label158 => OsLocalization.ConvertToLocString(
             "Eng: Values type_" +
-            "Ru: Тип переменных _");
+            "Ru: Тип переменных _"); 
+        
+        public string Label159 => OsLocalization.ConvertToLocString(
+            "Eng: Update Bot_" +
+            "Ru: Обновить Бота _");
+        
+        public string Label160 => OsLocalization.ConvertToLocString(
+            "Eng: Hot update changes from source code_" +
+            "Ru: Загрзука изменений исходного кода_");
+        
+        public string Label161 => OsLocalization.ConvertToLocString(
+            "Eng: Start updating changes from the source code_" +
+            "Ru: Начинается загрузка изменений исходного кода_");
+        
+        public string Label162 => OsLocalization.ConvertToLocString(
+            "Eng: Bot successfully updated_" +
+            "Ru: Робот удачно обновлен_");
+        
+        public string Label163 => OsLocalization.ConvertToLocString(
+            "Eng: Failed to update current bot_" +
+            "Ru: Не удалось обновить робота_");
     }
 }

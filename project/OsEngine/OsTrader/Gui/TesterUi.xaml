@@ -36,6 +36,7 @@
                         <Button Name="ButtonDeleteBot"  Content="Delete" HorizontalAlignment="Left" Margin="172,70,0,0" VerticalAlignment="Top" Width="55" Click="ButtonDeleteBot_Click"/>
                         <Label Name="LabelBotControl" Content="Bot control" HorizontalAlignment="Left" Margin="10,190,0,0" VerticalAlignment="Top"  FontSize="18" Height="26"/>
                         <Button Name="ButtonStrategSettings" Content="Position support"  HorizontalAlignment="Left" Margin="65,337,0,0" VerticalAlignment="Top" Width="161" Click="buttonStrategManualSettings_Click"/>
+                        <Button Name="ButtonUpdateBot" Content="Update Bot"  HorizontalAlignment="Left" Margin="66,384,0,0" VerticalAlignment="Top" Width="161" Click="ButtonUpdateBot_Click" ToolTip="Hot update changes from source file"/>
                         <Button Name="ButtonStrategSettingsIndividual" Content="Bot trade settings" HorizontalAlignment="Left" Margin="66,230,0,0" VerticalAlignment="Top" Width="161" Click="ButtonStrategIndividualSettings_Click" Height="24"/>
                         <Button Name="ButtonRedactTab" Content="Data settings"  HorizontalAlignment="Left" Margin="66,283,0,0" VerticalAlignment="Top" Width="161" Click="ButtonRedactTab_Click"  />
                         <Button Name="ButtonJournalCommunity" Content="Journal" HorizontalAlignment="Left" Margin="66,97,0,0" VerticalAlignment="Top" Width="161" Click="ButtonJournalCommunity_Click"/>
