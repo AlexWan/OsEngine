@@ -68,6 +68,8 @@ namespace OsEngine.OsTrader.Gui
             ButtonStrategParametr.Content = OsLocalization.Trader.Label45;
             ButtonRiskManager.Content = OsLocalization.Trader.Label46;
             ButtonStrategSettings.Content = OsLocalization.Trader.Label47;
+            ButtonUpdateBot.Content = OsLocalization.Trader.Label159;
+            ButtonUpdateBot.ToolTip = OsLocalization.Trader.Label160;
         }
 
         void TesterUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -234,6 +236,11 @@ namespace OsEngine.OsTrader.Gui
         private void buttonStrategManualSettings_Click(object sender, RoutedEventArgs e)
         {
             _strategyKeeper.BotManualSettingsDialog();
+        }
+
+        private void ButtonUpdateBot_Click(object sender, RoutedEventArgs e)
+        {
+            _strategyKeeper.HotUpdateActiveBot();
         }
 
         private void ButtonJournalCommunity_Click(object sender, RoutedEventArgs e)

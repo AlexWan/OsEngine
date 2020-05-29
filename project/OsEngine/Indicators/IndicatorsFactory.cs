@@ -62,7 +62,7 @@ namespace OsEngine.Indicators
             return resultTrue;
         }
 
-        private static List<string> GetFullNamesFromFolder(string directory)
+        public static List<string> GetFullNamesFromFolder(string directory)
         {
             List<string> results = new List<string>();
 

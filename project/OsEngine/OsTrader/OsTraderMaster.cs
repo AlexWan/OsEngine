@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Forms.Integration;
 using System.Windows.Shapes;
 using OsEngine.Alerts;
@@ -24,7 +25,7 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.RiskManager;
 using OsEngine.Robots;
-using Chart = System.Windows.Forms.DataVisualization.Charting.Chart;
+using Grid = System.Windows.Controls.Grid;
 
 namespace OsEngine.OsTrader
 {
@@ -120,7 +121,7 @@ namespace OsEngine.OsTrader
             ReloadRiskJournals();
             _globalController.StartPaint();
 
-            OsTraderMaster.Master = this;
+            Master = this;
         }
 
         private WindowsFormsHost _hostLogPrime;
@@ -339,8 +340,6 @@ namespace OsEngine.OsTrader
 
                 _activPanel.StartPaint(_hostChart, _hostGlass, _hostOpenDeals, _hostCloseDeals, _hostboxLog,
                     _rectangleAroundChart, _hostAlerts, _tabBotTab, _textBoxLimitPrice, _gridChartControlPanel);
-
-
 
                 _tabBotNames.SelectionChanged -= _tabBotControl_SelectionChanged;
 
@@ -898,6 +897,24 @@ namespace OsEngine.OsTrader
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        public void HotUpdateActiveBot()
+        {
+            SendNewLogMessage(OsLocalization.Trader.Label161, LogMessageType.System);
+            
+            HotUpdateResult<BotPanel> result = HotUpdateManager.Instance.Update(_activPanel);
+            if (HotUpdateResultStatus.Success == result.Status)
+            {
+                ReloadActivBot(result.UpdatedObject);
+                Save();
+                ReloadRiskJournals();
+                SendNewLogMessage(OsLocalization.Trader.Label162, LogMessageType.System);
+            }
+            else
+            {
+                SendNewLogMessage(OsLocalization.Trader.Label163 + $". {result.ErrorMessage}.", LogMessageType.System);
             }
         }
 
