@@ -13,6 +13,7 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
+using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Tester;
 
 namespace OsEngine.Market.Connectors
@@ -484,6 +485,8 @@ namespace OsEngine.Market.Connectors
         /// </summary>
         public ServerType ServerType;
 
+        public int ServerUid;
+
         /// <summary>
         /// trade server
         /// сервер через который идёт торговля
@@ -728,7 +731,23 @@ namespace OsEngine.Market.Connectors
 
                     try
                     {
-                        _myServer = servers.Find(server => server.ServerType == ServerType);
+                        if (ServerType == ServerType.Optimizer &&
+                            this.ServerUid != 0)
+                        {
+                            for (int i = 0; i < servers.Count; i++)
+                            {
+                                if (servers[i].ServerType == ServerType.Optimizer &&
+                                    ((OptimizerServer)servers[i]).NumberServer == this.ServerUid)
+                                {
+                                    _myServer = servers[i];
+                                    break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            _myServer = servers.Find(server => server.ServerType == ServerType);
+                        }
                     }
                     catch
                     {
@@ -790,6 +809,21 @@ namespace OsEngine.Market.Connectors
 
                                 Thread.Sleep(100);
                                 _mySeries = _myServer.StartThisSecurity(_namePaper, TimeFrameBuilder);
+
+                                if (_mySeries == null &&
+                                    _myServer.ServerType == ServerType.Optimizer &&
+                                    ((OptimizerServer)_myServer).NumberServer != ServerUid)
+                                {
+                                    for (int i = 0; i < servers.Count; i++)
+                                    {
+                                        if (servers[i].ServerType == ServerType.Optimizer &&
+                                            ((OptimizerServer)servers[i]).NumberServer == this.ServerUid)
+                                        {
+                                            _myServer = servers[i];
+                                            break;
+                                        }
+                                    }
+                                }
                             }
 
 

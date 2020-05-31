@@ -317,40 +317,51 @@ namespace OsEngine.Market
             }
         }
 
+        private static object _optimizerGeneratorLocker = new object();
+
         /// <summary>
         /// create a new optimization server
         /// создать новый сервер оптимизации
         /// </summary>
         public static OptimizerServer CreateNextOptimizerServer(OptimizerDataStorage storage, int num, decimal portfolioStartVal)
         {
-            OptimizerServer serv = new OptimizerServer(storage, num, portfolioStartVal);
-
-            bool isInArray = false;
-
-            if (_servers == null)
+            lock (_optimizerGeneratorLocker)
             {
-                _servers = new List<IServer>();
-            }
+                OptimizerServer serv = new OptimizerServer(storage, num, portfolioStartVal);
 
-            for (int i = 0; i < _servers.Count; i++)
-            {
-                if (_servers[i].ServerType == ServerType.Optimizer)
+                if (serv == null)
                 {
-                    _servers[i] = serv;
-                    isInArray = true;
+                    return null;
                 }
-            }
 
-            if (isInArray == false)
-            {
-                _servers.Add(serv);
+                bool isInArray = false;
+
+                if (_servers == null)
+                {
+                    _servers = new List<IServer>();
+                }
+
+                for (int i = 0; i < _servers.Count; i++)
+                {
+                    if (_servers[i].ServerType == ServerType.Optimizer &&
+                        ((OptimizerServer)_servers[i]).NumberServer == serv.NumberServer)
+                    {
+                        _servers[i] = serv;
+                        isInArray = true;
+                    }
+                }
+
+                if (isInArray == false)
+                {
+                    _servers.Add(serv);
+                }
+
+                if (ServerCreateEvent != null)
+                {
+                    ServerCreateEvent(serv);
+                }
+                return serv;
             }
-            
-            if (ServerCreateEvent != null)
-            {
-                ServerCreateEvent(serv);
-            }
-            return serv;
         }
 
         /// <summary>

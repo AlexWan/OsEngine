@@ -2973,6 +2973,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if (_alerts == null)
+                {
+                    return;
+                }
+
                 AlertSignal signal = _alerts.CheckAlerts();
 
                 if (signal == null)

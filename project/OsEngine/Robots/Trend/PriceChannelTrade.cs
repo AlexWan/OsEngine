@@ -211,6 +211,12 @@ namespace OsEngine.Robots.Trend
         /// </summary>
         private void LogicOpenPosition(List<Candle> candles, List<Position> position)
         {
+            if (_lastPriceH > _lastPriceChUp &&
+                _lastPriceL < _lastPriceChDown)
+            {
+                return;
+            }
+
             if (_lastPriceH > _lastPriceChUp && Regime != BotTradeRegime.OnlyShort)
             {
                 _tab.BuyAtLimit(VolumeFix, _lastPriceC + Slipage);

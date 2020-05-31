@@ -210,10 +210,15 @@ namespace OsEngine.Entity
                 return;
             }
 
-            if ((CandlesAll[CandlesAll.Count - 1].TimeStart.Add(TimeFrameSpan) < time)
-                ||
-                (TimeFrame == TimeFrame.Day && CandlesAll[CandlesAll.Count - 1].TimeStart.Date < time.Date)
+            if (
+                (
+                    (CandlesAll[CandlesAll.Count - 1].TimeStart.Add(TimeFrameSpan) < time)
+                    ||
+                    (TimeFrame == TimeFrame.Day 
+                     && CandlesAll[CandlesAll.Count - 1].TimeStart.Date < time.Date)
                 )
+                &&
+                CandlesAll[CandlesAll.Count - 1].State != CandleState.Finished)
             {
                 // пришло время закрыть свечу
                 CandlesAll[CandlesAll.Count - 1].State = CandleState.Finished;

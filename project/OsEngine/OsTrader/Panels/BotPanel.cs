@@ -324,6 +324,11 @@ namespace OsEngine.OsTrader.Panels
                 {
                     _botTabs[i].Clear();
                 }
+
+                if (_log != null)
+                {
+                    _log.Clear();
+                }
             }
             catch (Exception error)
             {

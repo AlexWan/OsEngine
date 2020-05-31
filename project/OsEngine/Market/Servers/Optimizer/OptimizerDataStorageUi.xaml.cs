@@ -213,7 +213,7 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
-		/// double click on table with instruments
+        /// double click on table with instruments
         /// двойной клик по таблице с инструментами
         /// </summary>
         void _myGridView_DoubleClick(object sender, EventArgs e)
@@ -235,7 +235,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
             string str = row.Cells[1].Value.ToString();
 
-            Security security = _server.Securities.Find(s=> s.Name == str);
+            Security security = _server.Securities.Find(s => s.Name == str);
 
             if (security == null)
             {
@@ -247,12 +247,21 @@ namespace OsEngine.Market.Servers.Optimizer
 
             if (ui.IsChanged)
             {
+                for (int i = 0; i < _server.SecuritiesTester.Count; i++)
+                {
+                    if (_server.SecuritiesTester[i].Security.Name == security.Name)
+                    {
+                        _server.SecuritiesTester[i].Security = security;
+                    }
+                }
+
                 _server.SaveSecurityDopSettings(security);
-                _server.ReloadSecurities();
             }
+
+            PaintGrid();
         }
 
-		// sliders. Set the start and finish test times
+        // sliders. Set the start and finish test times
         // слайдеры. Установка начального и конечного времени тестирования
 
         private void SliderTo_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)

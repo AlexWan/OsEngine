@@ -184,6 +184,38 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// clear the object
+        /// очистить объект от данных и сообщений
+        /// </summary>
+        public void Clear()
+        {
+            if (_grid != null &&
+                _grid.InvokeRequired)
+            {
+                _grid.Invoke(new Action(Clear));
+                return;
+            }
+
+            try
+            {
+                if (_messageses != null)
+                {
+                    _messageses.Clear();
+                }
+
+                _incomingMessages = new ConcurrentQueue<LogMessage>();
+                if (_grid != null)
+                {
+                    _grid.Rows.Clear();
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        /// <summary>
         /// shows whether the object is destroyed
         /// уничтожен ли объект
         /// </summary>
