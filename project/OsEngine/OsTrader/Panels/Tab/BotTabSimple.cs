@@ -3511,7 +3511,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                     CancelStopOpenerByNewCandle(candles);
                 }
 
-                _chartMaster.SetCandles(candles);
+                if (_chartMaster != null)
+                {
+                    _chartMaster.SetCandles(candles);
+                }
 
                 try
                 {
