@@ -23,18 +23,20 @@ using OsEngine.Robots.Patterns;
 using OsEngine.Robots.Trend;
 using OsEngine.Robots.OnScriptIndicators;
 using System.Runtime;
+using OsEngine.Robots.HammerBot;
 
 namespace OsEngine.Robots
 {
     public class BotFactory
     {
         /// <summary>
-        /// list robots name / 
+        /// list robots name /
         /// список доступных роботов
         /// </summary>
         public static List<string> GetNamesStrategy()
         {
             List<string> result = new List<string>();
+            result.Add("HammerBot");
             result.Add("Fisher");
             result.Add("Engine");
             result.Add("ClusterEngine");
@@ -112,7 +114,11 @@ namespace OsEngine.Robots
                 return bot;
             }
 
-            
+
+            if (nameClass == "HammerBot")
+            {
+                bot = new RobotHammer(name, startProgram);
+            }
             if (nameClass == "Fisher")
             {
                 bot = new Fisher(name, startProgram);
@@ -352,17 +358,14 @@ namespace OsEngine.Robots
 
                 for (int i = 0; i < fullPaths.Count; i++)
                 {
-                    string nameInFile = 
-                        fullPaths[i].Split('\\')[fullPaths[i].Split('\\').Length - 1];
-
-                    if (nameInFile == longNameClass ||
-                        nameInFile == longNameClass2)
+                    if (fullPaths[i].EndsWith(longNameClass) ||
+                        fullPaths[i].EndsWith(longNameClass2))
                     {
                         myPath = fullPaths[i];
                         break;
                     }
                 }
-                
+
                 bot = Serialize(myPath, nameClass, name, startProgram);
             }
 
@@ -400,8 +403,8 @@ namespace OsEngine.Robots
                 // Помечаем сборку, как временную
                 cp.GenerateInMemory = true;
                 cp.IncludeDebugInformation = true;
-              
-               
+
+
                 // Обрабатываем CSC компилятором
                 CompilerResults results = prov.CompileAssemblyFromSource(cp, fileStr);
 
