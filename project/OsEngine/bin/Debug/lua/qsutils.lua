@@ -9,7 +9,7 @@ function delay(msec)
     if sleep then
         pcall(sleep, msec)
     else
-        pcall(socket.select, nil, nil, msec / 1000)
+        -- pcall(socket.select, nil, nil, msec / 1000)
     end
 end
 
@@ -24,7 +24,28 @@ function timemsec()
     end
 end
 
-is_debug = true
+-- when true will show QUIK message for log(...,0)
+is_debug = false
+
+-- log files
+
+function openLog()
+    os.execute("mkdir \""..script_path.."\\logs\"")
+    local lf = io.open (script_path.. "\\logs\\QUIK#_"..os.date("%Y%m%d")..".log", "a")
+    if not lf then
+        lf = io.open (script_path.. "\\QUIK#_"..os.date("%Y%m%d")..".log", "a")
+    end
+    return lf
+end
+
+-- closes log
+function closeLog()
+    if logfile then
+        pcall(logfile:close(logfile))
+    end
+end
+
+logfile = openLog()
 
 --- Write to log file and to Quik messages
 function log(msg, level)
@@ -38,8 +59,11 @@ function log(msg, level)
     if not level then level = 0 end
     local logLine = "LOG "..level..": "..msg
     print(logLine)
-    pcall(logfile.write, logfile, timemsec().." "..logLine.."\n")
-    pcall(logfile.flush, logfile)
+    local msecs = math.floor(math.fmod(timemsec(), 1000));
+    if logfile then
+        pcall(logfile.write, logfile, os.date("%Y-%m-%d %H:%M:%S").."."..msecs.." "..logLine.."\n")
+        pcall(logfile.flush, logfile)
+    end
 end
 
 
@@ -74,48 +98,21 @@ function to_json(msg)
     end
 end
 
--- log files
-os.execute("mkdir " .. "logs")
-logfile = io.open (script_path.. "/logs/QuikSharp.log", "a")
-missed_values_file = nil
-missed_values_file_name = nil
-
--- closes log
-function closeLog()
-	pcall(logfile:close(logfile))
-end
-
--- discards missed values if any
-function discardMissedValues()
-    if missed_values_file then
-        pcall(missed_values_file:close(missed_values_file))
-        missed_values_file = nil
-        pcall(os.remove, missed_values_file_name)
-        missed_values_file_name = nil
-    end
-end
-
 -- current connection state
 is_connected = false
---- indicates that QuikSharp was connected during this session
--- used to write missed values to a file and then resend them if a client reconnects
--- to avoid resending missed values, stop the script in Quik
-was_connected = false
 local port = 34130
 local callback_port = port + 1
 -- we need two ports since callbacks and responses conflict and write to the same socket at the same time
 -- I do not know how to make locking in Lua, it is just simpler to have two independent connections
 -- To connect to a remote terminal - replace 'localhost' with the terminal ip-address
-local response_server = socket.bind('localhost', port, 1)
-local callback_server = socket.bind('localhost', callback_port, 1)
+local response_server = socket.bind('127.0.0.1', port, 1)
+local callback_server = socket.bind('127.0.0.1', callback_port, 1)
 local response_client
 local callback_client
 
-
 --- accept client on server
 local function getResponseServer()
-    log('Waiting for a response client...', 1)
-	local i = 0
+    log('Waiting for a response client...', 0)
 	if not response_server then
 		log("Cannot bind to response_server, probably the port is already in use", 3)
 	else
@@ -131,8 +128,7 @@ local function getResponseServer()
 end
 
 local function getCallbackClient()
-    log('Waiting for a callback client...', 1)
-	local i = 0
+    log('Waiting for a callback client...', 0)
 	if not callback_server then
 		log("Cannot bind to callback_server, probably the port is already in use", 3)
 	else
@@ -149,7 +145,7 @@ end
 
 function qsutils.connect()
     if not is_connected then
-        log('Connecting...', 1)
+        log('QUIK# is waiting for client connection...', 1)
         if response_client then
             log("is_connected is false but the response client is not nil", 3)
             -- Quik crashes without pcall
@@ -164,30 +160,14 @@ function qsutils.connect()
         callback_client = getCallbackClient()
         if response_client and callback_client then
             is_connected = true
-            was_connected = true
-            log('Connected!', 1)
-            if missed_values_file then
-                log("Loading values that a client missed during disconnect", 2)
-                missed_values_file:flush()
-                missed_values_file:close()
-                missed_values_file = nil
-				local previous_file_name = missed_values_file_name
-                missed_values_file_name = nil
-                for line in io.lines(previous_file_name) do
-					if not pcall(callback_client.send, callback_client, line..'\n') then
-						break
-					end
-                end
-                -- remove previous file
-                pcall(os.remove, previous_file_name)
-            end
+            log('QUIK# client connected', 1)
         end
     end
 end
 
 local function disconnected()
     is_connected = false
-    log('Disconnecting...', 1)
+    log('QUIK# client disconnected', 1)
     if response_client then
         pcall(response_client.close, response_client)
         response_client = nil
@@ -234,7 +214,6 @@ function sendResponse(msg_table)
     end
 end
 
-
 function sendCallback(msg_table)
     -- if not set explicitly then set CreatedTime "t" property here
     -- if not msg_table.t then msg_table.t = timemsec() end
@@ -247,15 +226,6 @@ function sendCallback(msg_table)
             disconnected()
             return nil, err
         end
-    end
-    -- we need this break instead of else because we could lose connection inside the previous if
-    if not is_connected and was_connected then
-        if not missed_values_file then
-            missed_values_file_name = script_path .. "/logs/MissedCallbacks."..os.time()..".log"
-            missed_values_file = io.open(missed_values_file_name, "a")
-        end
-        missed_values_file:write(callback_string..'\n')
-        return nil, "Message added to the response queue"
     end
 end
 

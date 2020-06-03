@@ -81,6 +81,11 @@ namespace OsEngine.Entity
                 result.Append(_timeFrameBuilder.Specification);
 
                 _specification = result.ToString();
+
+                _specification =
+                    _specification.Replace("(", "").Replace(")", "").Replace(" ", "").Replace("\"", "");
+
+
                 return _specification;
             }
         }
