@@ -2921,7 +2921,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         SetNewLogMessage(
                             "Close Position at Stop. StopPrice: " +
                             position.StopOrderRedLine 
-                            + "LastMarketPrice: " + lastTrade, 
+                            + " LastMarketPrice: " + lastTrade, 
                             LogMessageType.System);
 
                         CloseDeal(position, OrderPriceType.Limit, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true);
@@ -2938,7 +2938,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         SetNewLogMessage(
                             "Close Position at Stop. StopPrice: " +
                             position.StopOrderRedLine
-                            + "LastMarketPrice: " + lastTrade,
+                            + " LastMarketPrice: " + lastTrade,
                             LogMessageType.System);
 
                         CloseDeal(position, OrderPriceType.Limit, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true);
@@ -2958,7 +2958,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         SetNewLogMessage(
                             "Close Position at Profit. ProfitPrice: " +
                             position.ProfitOrderRedLine
-                            + "LastMarketPrice: " + lastTrade,
+                            + " LastMarketPrice: " + lastTrade,
                             LogMessageType.System);
 
                         CloseDeal(position, OrderPriceType.Limit, position.ProfitOrderPrice, ManualPositionSupport.SecondToClose, true);
@@ -2975,7 +2975,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         SetNewLogMessage(
                             "Close Position at Profit. ProfitPrice: " +
                             position.ProfitOrderRedLine
-                            + "LastMarketPrice: " + lastTrade,
+                            + " LastMarketPrice: " + lastTrade,
                             LogMessageType.System);
 
                         CloseDeal(position, OrderPriceType.Limit, position.ProfitOrderPrice, ManualPositionSupport.SecondToClose, true);

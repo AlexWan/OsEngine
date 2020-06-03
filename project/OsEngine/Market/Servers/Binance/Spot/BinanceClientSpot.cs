@@ -1310,6 +1310,11 @@ namespace OsEngine.Market.Servers.Binance.Spot
         /// <param name="e"></param>
         private void WsError(object sender, EventArgs e)
         {
+            if (e.ToString().Contains("Unknown order send"))
+            {
+                return;
+            }
+
             SendLogMessage("Ошибка из ws4net :" + e, LogMessageType.Error);
         }
 
