@@ -16,7 +16,6 @@ namespace OsEngine.Entity
     /// </summary>
     public partial class ParemetrsUi
     {
-
         private List<IIStrategyParameter> _parameters;
 
         public ParemetrsUi(List<IIStrategyParameter> parameters)
@@ -35,8 +34,9 @@ namespace OsEngine.Entity
 
         private void CreateTable()
         {
-            _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
+            _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect,
                 DataGridViewAutoSizeRowsMode.None);
+            _grid.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = _grid.DefaultCellStyle;
@@ -45,7 +45,7 @@ namespace OsEngine.Entity
             column0.CellTemplate = cell0;
             column0.HeaderText = OsLocalization.Entity.ParametersColumn1;
             column0.ReadOnly = true;
-            column0.Width = 150;
+            column0.Width = 250;
 
             _grid.Columns.Add(column0);
 
@@ -57,6 +57,9 @@ namespace OsEngine.Entity
             _grid.Columns.Add(column1);
 
             _grid.Rows.Add(null, null);
+
+            _grid.CellValueChanged += _grid_CellValueChanged;
+            _grid.CellClick += _grid_Click;
 
             HostParametrs.Child = _grid;
         }
@@ -112,10 +115,77 @@ namespace OsEngine.Entity
                     cell.Value = param.ValueDecimal.ToString();
                     row.Cells.Add(cell);
                 }
+                else if (_parameters[i].Type == StrategyParameterType.TimeOfDay)
+                {
+                    DataGridViewTextBoxCell cell = new DataGridViewTextBoxCell();
 
+                    StrategyParameterTimeOfDay param = (StrategyParameterTimeOfDay)_parameters[i];
 
+                    cell.Value = param.Value.ToString();
+                    row.Cells.Add(cell);
+                }
+                else if (_parameters[i].Type == StrategyParameterType.Button)
+                {
+                    DataGridViewButtonCell cell = new DataGridViewButtonCell();
+                    row.Cells[0].Value = "";
+                    cell.Value = _parameters[i].Name;
+                    // StrategyParameterButton param = (StrategyParameterButton)_parameters[i];
+
+                    row.Cells.Add(cell);
+                }
 
                 _grid.Rows.Add(row);
+            }
+        }
+
+        private void _grid_Click(object sender, EventArgs e)
+        {
+            int index = 0;
+
+            try
+            {
+                int cellIndex = _grid.SelectedCells[0].ColumnIndex;
+
+                if (cellIndex != 1)
+                {
+                    return;
+                }
+
+                index = _grid.SelectedCells[0].RowIndex;
+                if (_parameters[index].Type != StrategyParameterType.Button)
+                {
+                    return;
+                }
+            }
+            catch
+            {
+                return;
+            }
+
+            StrategyParameterButton param = (StrategyParameterButton)_parameters[index];
+            param.Click();
+        }
+
+        private void _grid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            int index = e.RowIndex;
+
+            if (_parameters[index].Type != StrategyParameterType.TimeOfDay)
+            {
+                return;
+            }
+
+            StrategyParameterTimeOfDay param = new StrategyParameterTimeOfDay("temp", 0, 0, 0, 0);
+
+            try
+            {
+                string[] array = new[] { "", _grid.Rows[index].Cells[1].EditedFormattedValue.ToString() };
+                param.LoadParamFromString(array);
+            }
+            catch (Exception exception)
+            {
+
+                _grid.Rows[index].Cells[1].Value = ((StrategyParameterTimeOfDay)_parameters[index]).Value.ToString();
             }
         }
 
@@ -141,10 +211,15 @@ namespace OsEngine.Entity
                     {
                         ((StrategyParameterDecimal)_parameters[i]).ValueDecimal = _grid.Rows[i].Cells[1].EditedFormattedValue.ToString().ToDecimal();
                     }
+                    else if (_parameters[i].Type == StrategyParameterType.TimeOfDay)
+                    {
+                        string[] array = new[] { "", _grid.Rows[i].Cells[1].EditedFormattedValue.ToString() };
+                        ((StrategyParameterTimeOfDay)_parameters[i]).LoadParamFromString(array);
+                    }
                 }
                 catch
                 {
-                    MessageBox.Show("Error. One of field have note valid param");
+                    MessageBox.Show("Error. One of field have not valid param");
                     return;
                 }
 

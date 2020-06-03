@@ -157,8 +157,6 @@ namespace OsEngine.Market.Servers.Transaq
 
         private CancellationToken _cancellationToken;
 
-
-
         /// <summary>
         /// connect to API
         /// подсоединиться к апи
@@ -193,7 +191,7 @@ namespace OsEngine.Market.Servers.Transaq
 
             _cancellationToken = _cancellationTokenSource.Token;
 
-            Task.Run(() => SessionTimeHandler(), _cancellationToken);
+            Task.Run(new Action(SessionTimeHandler), _cancellationToken);
         }
 
         /// <summary>
@@ -284,11 +282,16 @@ namespace OsEngine.Market.Servers.Transaq
                 _client.MyTradeEvent -= ClientOnMyTradeEvent;
                 _client.NewCandles -= ClientOnNewCandles;
                 _client.NeedChangePassword -= NeedChangePassword;
+                _client.UpdateSecurity -= ClientOnUpdateSecurityInfo;
             }
             _depths?.Clear();
             _depths = null;
+
             _allCandleSeries?.Clear();
+
             _cancellationTokenSource?.Cancel();
+
+            _securities = new List<Security>();
 
             _client = null;
             ServerStatus = ServerConnectStatus.Disconnect;
@@ -296,7 +299,7 @@ namespace OsEngine.Market.Servers.Transaq
 
         public void GetOrdersState(List<Order> orders)
         {
-
+            throw new NotSupportedException("The operation of receiving the status of orders is not supported in the current connector" );
         }
 
         private List<Portfolio> _portfolios;
@@ -309,7 +312,6 @@ namespace OsEngine.Market.Servers.Transaq
         /// </summary>
         public void GetPortfolios()
         {
-            // <command id="get_united_portfolio" client="код клиента" union="код юниона" />
             if (_clients == null || _clients.Count == 0)
             {
                 return;
@@ -320,7 +322,7 @@ namespace OsEngine.Market.Servers.Transaq
                 return;
             }
 
-            _portfoliosHandlerTask = Task.Run(() => CycleGettingPortfolios());
+            _portfoliosHandlerTask = Task.Run(new Action(CycleGettingPortfolios), _cancellationToken);
 
         }
 
@@ -328,6 +330,7 @@ namespace OsEngine.Market.Servers.Transaq
         {
             while (!_cancellationToken.IsCancellationRequested)
             {
+                Thread.Sleep(3000);
                 if (ServerInWork == false)
                 {
                     continue;
@@ -342,7 +345,6 @@ namespace OsEngine.Market.Servers.Transaq
 
                 if (_clients == null || _clients.Count == 0)
                 {
-                    Thread.Sleep(1000);
                     continue;
                 }
 
@@ -415,11 +417,20 @@ namespace OsEngine.Market.Servers.Transaq
             cmd += "<seccode>" + needSec.Name + "</seccode>";
             cmd += "</security>";
             cmd += _isMono ? "<client>" + order.PortfolioNumber + "</client>" : "<union>" + order.PortfolioNumber + "</union>";
-            cmd += "<price>" + order.Price + "</price>";
+            cmd += "<price>" + order.Price.ToString().Replace(',','.') + "</price>";
             cmd += "<quantity>" + order.Volume + "</quantity>";
             cmd += "<buysell>" + side + "</buysell>";
             cmd += "<brokerref>" + order.NumberUser + "</brokerref>";
             cmd += "<unfilled> PutInQueue </unfilled>";
+
+            if(needSec.NameClass == "TQBR")
+            {
+                if (side == "S")
+                {
+                    cmd += "<usecredit> true </usecredit>";
+                }
+            }
+
 
             cmd += "</command>";
 
@@ -515,7 +526,7 @@ namespace OsEngine.Market.Servers.Transaq
         /// </summary>
         public void GetCandleHistory(CandleSeries series)
         {
-            Task.Run(() => GetCandles(series));
+            Task.Run(() => GetCandles(series), _cancellationToken);
         }
 
         private void GetCandles(CandleSeries series)
@@ -554,7 +565,6 @@ namespace OsEngine.Market.Servers.Transaq
 
                 if (candles != null)
                 {
-                    //series.CandlesAll?.Clear();
                     var donorCandles = ParseCandles(candles);
 
                     if ((tf == TimeFrame.Min1 && needPeriodId == "1") ||
@@ -574,7 +584,7 @@ namespace OsEngine.Market.Servers.Transaq
                     return;
                 }
 
-                Thread.Sleep(1000);
+                Thread.Sleep(500);
             }
 
             SendLogMessage(OsLocalization.Market.Message95 + security.Name, LogMessageType.Error);
@@ -818,14 +828,7 @@ namespace OsEngine.Market.Servers.Transaq
             }
             _clients.Add(clientInfo);
 
-            if (clientInfo.Union != null)
-            {
-                _isMono = false;
-            }
-            else
-            {
-                _isMono = true;
-            }
+            _isMono = clientInfo.Union == null;
         }
 
         /// <summary>
@@ -1011,7 +1014,7 @@ namespace OsEngine.Market.Servers.Transaq
         /// <param name="securities">list of instrument in transaq format / список инструментов в формате transaq</param>
         private void ClientOnUpdatePairs(List<TransaqEntity.Security> securities)
         {
-            Task.Run(() => HandleSecurities(securities));
+            HandleSecurities(securities);
         }
 
         /// <summary>
@@ -1352,10 +1355,7 @@ namespace OsEngine.Market.Servers.Transaq
                         newOrder.State = OrderStateType.None;
                     }
 
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(newOrder);
-                    }
+                    MyOrderEvent?.Invoke(newOrder);
                 }
                 catch (Exception e)
                 {
@@ -1382,10 +1382,7 @@ namespace OsEngine.Market.Servers.Transaq
                 myTrade.SecurityNameCode = trade.Seccode;
                 myTrade.Side = trade.Buysell == "B" ? Side.Buy : Side.Sell;
 
-                if (MyTradeEvent != null)
-                {
-                    MyTradeEvent(myTrade);
-                }
+                MyTradeEvent?.Invoke(myTrade);
             }
         }
 

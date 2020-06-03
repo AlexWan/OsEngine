@@ -80,12 +80,19 @@ namespace OsEngine.OsTrader.Panels
         public string NameStrategyUniq;
 
         /// <summary>
+        /// название файла если это робот из файловой системы
+        /// </summary>
+        public string FileName;
+
+        /// <summary>
         /// the program that launched the robot. Tester  Robot  Optimizer / 
         /// программа которая запустила робота. Тестер  Робот  Оптимизатор
         /// </summary>
         public StartProgram StartProgram;
 
-// control / управление
+        public bool IsScript;
+
+        // control / управление
 
         /// <summary>
         /// take logs panel / 
@@ -156,14 +163,14 @@ namespace OsEngine.OsTrader.Panels
             _hostAlerts = hostAlerts;
             _textBoxLimitPrice = textBoxLimitPrice;
             _gridChartControlPanel = gridChartControlPanel;
-           
+
             try
             {
                 if (!_tabBotTab.Dispatcher.CheckAccess())
                 {
-                    _tabBotTab.Dispatcher.Invoke(new Action<WindowsFormsHost,WindowsFormsHost,WindowsFormsHost,
-                    WindowsFormsHost, WindowsFormsHost,Rectangle,WindowsFormsHost,TabControl,TextBox,Grid> 
-                    (StartPaint),hostChart,glass,hostOpenDeals,hostCloseDeals,boxLog,rectangle,hostAlerts,tabBotTab,textBoxLimitPrice);
+                    _tabBotTab.Dispatcher.Invoke(new Action<WindowsFormsHost, WindowsFormsHost, WindowsFormsHost,
+                    WindowsFormsHost, WindowsFormsHost, Rectangle, WindowsFormsHost, TabControl, TextBox, Grid>
+                    (StartPaint), hostChart, glass, hostOpenDeals, hostCloseDeals, boxLog, rectangle, hostAlerts, tabBotTab, textBoxLimitPrice);
                     return;
                 }
 
@@ -228,7 +235,7 @@ namespace OsEngine.OsTrader.Panels
                     {
                         // ignore
                     }
-                   
+
                 }
 
                 _tabBotTab = null;
@@ -316,6 +323,11 @@ namespace OsEngine.OsTrader.Panels
                 for (int i = 0; i < _botTabs.Count; i++)
                 {
                     _botTabs[i].Clear();
+                }
+
+                if (_log != null)
+                {
+                    _log.Clear();
                 }
             }
             catch (Exception error)
@@ -594,16 +606,38 @@ position => position.State != PositionStateType.OpeningFail
         /// <param name="start">first value / Первое значение при оптимизации</param>
         /// <param name="stop">last value / Последнее значение при оптимизации</param>
         /// <param name="step">value step / Шаг изменения при оптимизации</param>
-        public StrategyParameterDecimal CreateParameter(string name, decimal value, decimal start, decimal stop, decimal step) 
+        public StrategyParameterDecimal CreateParameter(string name, decimal value, decimal start, decimal stop, decimal step)
         {
             StrategyParameterDecimal newParameter = new StrategyParameterDecimal(name, value, start, stop, step);
 
-            if (_parameters.Find(p => p.Name == name)!= null)
+            if (_parameters.Find(p => p.Name == name) != null)
             {
                 throw new Exception(OsLocalization.Trader.Label52);
             }
 
             return (StrategyParameterDecimal)LoadParameterValues(newParameter);
+        }
+
+        /// <summary>
+        /// create a Decimal type parameter / 
+        /// создать параметр типа Decimal
+        /// </summary>
+        /// <param name="name">param name / Имя параметра</param>
+        /// <param name="value">default value / Значение по умолчанию</param>
+        /// <param name="start">first value / Первое значение при оптимизации</param>
+        /// <param name="stop">last value / Последнее значение при оптимизации</param>
+        /// <param name="step">value step / Шаг изменения при оптимизации</param>
+        public StrategyParameterTimeOfDay CreateParameterTimeOfDay(string name, int hour, int minute, int second, int millisecond)
+        {
+            StrategyParameterTimeOfDay newParameter =
+                new StrategyParameterTimeOfDay(name, hour, minute, second, millisecond);
+
+            if (_parameters.Find(p => p.Name == name) != null)
+            {
+                throw new Exception(OsLocalization.Trader.Label52);
+            }
+
+            return (StrategyParameterTimeOfDay)LoadParameterValues(newParameter);
         }
 
         /// <summary>
@@ -665,11 +699,27 @@ position => position.State != PositionStateType.OpeningFail
         }
 
         /// <summary>
+        /// create button type parameter / 
+        /// создать параметр типа Button
+        /// </summary>
+        public StrategyParameterButton CreateParameterButton(string buttonLabel)
+        {
+            StrategyParameterButton newParameter = new StrategyParameterButton(buttonLabel);
+
+            if (_parameters.Find(p => p.Name == buttonLabel) != null)
+            {
+                throw new Exception(OsLocalization.Trader.Label52);
+            }
+
+            return (StrategyParameterButton)LoadParameterValues(newParameter);
+        }
+
+        /// <summary>
         /// load parameter settings / 
         /// загрузить настройки параметра
         /// </summary>
         /// <param name="newParameter">setting parameter you want to load / параметр настройки которого нужно загрузить</param>
-        private IIStrategyParameter LoadParameterValues(IIStrategyParameter  newParameter)
+        private IIStrategyParameter LoadParameterValues(IIStrategyParameter newParameter)
         {
             if (StartProgram != StartProgram.IsOsOptimizer)
             {
@@ -722,7 +772,7 @@ position => position.State != PositionStateType.OpeningFail
         public List<IIStrategyParameter> Parameters
         {
             get { return _parameters; }
-        } 
+        }
         private List<IIStrategyParameter> _parameters = new List<IIStrategyParameter>();
 
         /// <summary>
@@ -735,7 +785,7 @@ position => position.State != PositionStateType.OpeningFail
             {
                 SaveParametrs();
             }
-            
+
             if (ParametrsChangeByUser != null)
             {
                 ParametrsChangeByUser();
@@ -770,8 +820,6 @@ position => position.State != PositionStateType.OpeningFail
             {
                 // ignore
             }
-
-
         }
 
         /// <summary>
@@ -839,7 +887,7 @@ position => position.State != PositionStateType.OpeningFail
         /// emergency closing of all positions / 
         /// экстренное закрытие всех позиций
         /// </summary>
-        public void CloseAndOffAllToMarket() 
+        public void CloseAndOffAllToMarket()
         {
             try
             {
@@ -1176,7 +1224,7 @@ position => position.State != PositionStateType.OpeningFail
 
                 if (ActivTab.GetType().Name == "BotTabSimple")
                 {
-                    ((BotTabSimple) ActivTab).StartPaint(_hostChart, _hostGlass, _hostOpenDeals, _hostCloseDeals,
+                    ((BotTabSimple)ActivTab).StartPaint(_hostChart, _hostGlass, _hostOpenDeals, _hostCloseDeals,
                         _rectangle, _hostAlerts, _textBoxLimitPrice, _gridChartControlPanel);
                 }
                 else if (ActivTab.GetType().Name == "BotTabIndex")
@@ -1192,7 +1240,7 @@ position => position.State != PositionStateType.OpeningFail
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-           
+
         }
 
         /// <summary>
@@ -1223,8 +1271,8 @@ position => position.State != PositionStateType.OpeningFail
                     {
                         for (int i = 0; i < _botTabs.Count; i++)
                         {
-                            _tabBotTab.Items.Add(" "+ (i+1));
-                         
+                            _tabBotTab.Items.Add(" " + (i + 1));
+
                         }
                     }
 
@@ -1250,6 +1298,32 @@ position => position.State != PositionStateType.OpeningFail
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        /// <summary>
+        /// убрать все вкладки
+        /// </summary>
+        public void ClearTabs()
+        {
+            for (int i = 0; TabsSimple != null && i < TabsSimple.Count; i++)
+            {
+                TabsSimple[i].Clear();
+            }
+            for (int i = 0; TabsIndex != null && i < TabsIndex.Count; i++)
+            {
+                TabsIndex[i].Clear();
+            }
+            for (int i = 0; TabsCluster != null && i < TabsCluster.Count; i++)
+            {
+                TabsCluster[i].Clear();
+            }
+
+            if (_botTabs != null)
+            {
+                _botTabs.Clear();
+            }
+
+            ActivTab = null;
         }
 
         // call control windows / вызыв окон управления
@@ -1289,14 +1363,14 @@ position => position.State != PositionStateType.OpeningFail
         /// send new message / 
         /// выслать новое сообщение на верх
         /// </summary>
-        private void SendNewLogMessage(string message, LogMessageType type)
+        protected void SendNewLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
             {
                 LogMessageEvent(message, type);
             }
             else if (type == LogMessageType.Error)
-            { 
+            {
                 System.Windows.MessageBox.Show(message);
             }
         }
@@ -1313,5 +1387,42 @@ position => position.State != PositionStateType.OpeningFail
         /// </summary>
         public event Action DeleteEvent;
 
+    }
+
+    /// <summary>
+    /// robot trade regime
+    /// режим работы робота
+    /// </summary>
+    public enum BotTradeRegime
+    {
+        /// <summary>
+        /// is on
+        /// включен
+        /// </summary>
+        On,
+
+        /// <summary>
+        /// on only long position
+        /// включен только лонг
+        /// </summary>
+        OnlyLong,
+
+        /// <summary>
+        /// on only short position
+        /// включен только шорт
+        /// </summary>
+        OnlyShort,
+
+        /// <summary>
+        /// on only close position
+        /// только закрытие позиции
+        /// </summary>
+        OnlyClosePosition,
+
+        /// <summary>
+        /// robot is off
+        /// выключен
+        /// </summary>
+        Off
     }
 }

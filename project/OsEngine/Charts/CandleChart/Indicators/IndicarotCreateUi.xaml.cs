@@ -3,10 +3,12 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System;
+using System.Collections.Generic;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Forms;
 using OsEngine.Entity;
+using OsEngine.Indicators;
 using OsEngine.Language;
 
 namespace OsEngine.Charts.CandleChart.Indicators
@@ -71,8 +73,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _gridViewIndicators.Rows.Add("BullsPower");
             _gridViewIndicators.Rows.Add("BearsPower");
             _gridViewIndicators.Rows.Add("CMO");
-            _gridViewIndicators.Rows.Add("CCI");    
-            _gridViewIndicators.Rows.Add("DonchianChannel");    
+            _gridViewIndicators.Rows.Add("CCI");
+            _gridViewIndicators.Rows.Add("DonchianChannel");
             _gridViewIndicators.Rows.Add("Envelops");
             _gridViewIndicators.Rows.Add("Efficiency Ratio");
             _gridViewIndicators.Rows.Add("Fractal");
@@ -97,6 +99,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _gridViewIndicators.Rows.Add("Standard Deviation");
             _gridViewIndicators.Rows.Add("Stochastic Oscillator");
             _gridViewIndicators.Rows.Add("Stochastic Rsi");
+            _gridViewIndicators.Rows.Add("TickVolume");
             _gridViewIndicators.Rows.Add("Trix");
             _gridViewIndicators.Rows.Add("TradeThread");
             _gridViewIndicators.Rows.Add("Unk");
@@ -107,11 +110,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _gridViewIndicators.Rows.Add("VWAP");
             _gridViewIndicators.Rows.Add("WilliamsRange");
 
-            if (_chartMaster.GetChartArea("TradeArea") == null)
-            {
-                _gridViewIndicators.Rows.Add("Trades");
-            }
-
+            _gridViewIndicators.Click += delegate { _lastScriptGrid = false; };
 
             _gridViewAreas = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
                 DataGridViewAutoSizeRowsMode.AllCells);
@@ -141,9 +140,26 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             Title = OsLocalization.Charts.TitleIndicatorCreateUi;
             ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
+
+            ItemIncluded.Header = OsLocalization.Charts.Label6;
+            TabItemScript.Header = OsLocalization.Charts.Label7;
+
+            CreateGridScriptIndicators();
+
+            TabControlIndicatorsNames.SelectionChanged += delegate
+            {
+                if (TabControlIndicatorsNames.SelectedIndex == 0)
+                {
+                    _lastScriptGrid = false;
+                }
+                else if (TabControlIndicatorsNames.SelectedIndex == 1)
+                {
+                    _lastScriptGrid = true;
+                }
+            };
         }
 
-        public IIndicatorCandle IndicatorCandle;
+        public IIndicator IndicatorCandle;
 
         /// <summary>
         /// accept button
@@ -151,6 +167,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// </summary>
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
         {
+            if (_lastScriptGrid)
+            {
+                AcceptCreationScriptIndicator();
+                return;
+            }
 
             string areaName = _gridViewAreas.SelectedCells[0].Value.ToString();
 
@@ -168,6 +189,22 @@ namespace OsEngine.Charts.CandleChart.Indicators
             if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Trades")
             {
                 _chartMaster.CreateTickChart();
+            }
+
+            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "TickVolume")
+            {
+                string name = "";
+
+                for (int i = 0; i < 30; i++)
+                {
+                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "TickVolume" + i) == false)
+                    {
+                        name = "VWAP" + i;
+                        break;
+                    }
+                }
+                IndicatorCandle = new TickVolume(_chartMaster.Name + name, true);
+                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
             }
 
             if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "VWAP")
@@ -206,7 +243,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 string name = "";
 
-                for (int i = 0; i < 30; i ++)
+                for (int i = 0; i < 30; i++)
                 {
                     if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "KalmanFilter" + i) == false)
                     {
@@ -222,7 +259,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 string name = "";
 
-                for (int i = 0; i < 30; i ++)
+                for (int i = 0; i < 30; i++)
                 {
                     if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Sma" + i) == false)
                     {
@@ -230,7 +267,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                         break;
                     }
                 }
-                IndicatorCandle = new MovingAverage(_chartMaster.Name + name,true);
+                IndicatorCandle = new MovingAverage(_chartMaster.Name + name, true);
                 _chartMaster.CreateIndicator(IndicatorCandle, areaName);
             }
 
@@ -248,7 +285,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 }
 
                 IndicatorCandle = new Volume(_chartMaster.Name + name, true);
-                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
 
             }
             if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Price Channel")
@@ -824,7 +861,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                         break;
                     }
                 }
-                IndicatorCandle = new  Ichimoku(_chartMaster.Name + name, true);
+                IndicatorCandle = new Ichimoku(_chartMaster.Name + name, true);
                 _chartMaster.CreateIndicator(IndicatorCandle, areaName);
             }
             if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "TradeThread")
@@ -881,6 +918,75 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 IndicatorCandle.ShowDialog();
             }
 
+        }
+
+        // script
+
+        private DataGridView _gridNamesScript;
+
+        private bool _lastScriptGrid;
+
+        private void CreateGridScriptIndicators()
+        {
+            _gridNamesScript = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
+                DataGridViewAutoSizeRowsMode.AllCells);
+
+            _gridNamesScript.ReadOnly = true;
+            _gridNamesScript.ScrollBars = ScrollBars.Vertical;
+            HostNamesScript.Child = _gridNamesScript;
+            DataGridViewColumn column = new DataGridViewColumn();
+            column.HeaderText = OsLocalization.Charts.LabelIndicatorType;
+            column.CellTemplate = new DataGridViewTextBoxCell();
+            column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridNamesScript.Columns.Add(column);
+
+            List<string> indName = IndicatorsFactory.GetIndicatorsNames();
+
+            for (int i = 0; i < indName.Count; i++)
+            {
+                _gridNamesScript.Rows.Add(indName[i]);
+            }
+            _gridNamesScript.Click += delegate { _lastScriptGrid = true; };
+        }
+
+        private void AcceptCreationScriptIndicator()
+        {
+            string areaName = _gridViewAreas.SelectedCells[0].Value.ToString();
+
+            if (areaName == "NewArea")
+            {
+                for (int i = 0; i < 30; i++)
+                {
+                    if (_chartMaster.AreaIsCreate("NewArea" + i) == false)
+                    {
+                        areaName = "NewArea" + i;
+                        break;
+                    }
+                }
+            }
+
+            string indicatorName = _gridNamesScript.SelectedCells[0].Value.ToString();
+
+            string name = "";
+
+            for (int i = 0; i < 30; i++)
+            {
+                if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + indicatorName + i) == false)
+                {
+                    name = indicatorName + i;
+                    break;
+                }
+            }
+
+            IndicatorCandle = IndicatorsFactory.CreateIndicatorByName(indicatorName, _chartMaster.Name + name, true);
+            _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+
+            Close();
+
+            if (IndicatorCandle != null)
+            {
+                IndicatorCandle.ShowDialog();
+            }
         }
     }
 }

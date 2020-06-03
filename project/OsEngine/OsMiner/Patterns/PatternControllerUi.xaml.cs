@@ -213,8 +213,12 @@ namespace OsEngine.OsMiner.Patterns
         {
             try
             {
-                _pattern.ExpandToTempPattern = 
-                    TextBoxExpandToTempPattern.Text.ToDecimal();
+                // Мужики бисило в майнере параметр (Узнаваемость) который постоянно надо было проблемотично менять, внес коррективы в проверку текста если что можете обновить протестировал вроде работает
+                if (TextBoxExpandToTempPattern.Text.Length>0)
+                {
+                  _pattern.ExpandToTempPattern = TextBoxExpandToTempPattern.Text.ToDecimal();
+                }
+
             }
             catch (Exception)
             {

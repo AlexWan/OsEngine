@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
+using OsEngine.Indicators;
 
 
 namespace OsEngine.OsMiner.Patterns
@@ -73,7 +74,7 @@ namespace OsEngine.OsMiner.Patterns
         /// indicators moving averages, representing pattern lines
         /// индикаторы скользящие средние, представляющие линии паттерна
         /// </summary>
-        public List<IIndicatorCandle> Indicators;
+        public List<IIndicator> Indicators;
 
         /// <summary>
         /// is the current formation our pattern
@@ -82,7 +83,7 @@ namespace OsEngine.OsMiner.Patterns
         /// <param name="candles">candles/свечи</param>
         /// <param name="indicators">indicators/индикаторы</param>
         /// <param name="numberPattern">the index on which we watch the pattern/индекс по которому мы смотрим паттерн</param>
-        public bool ThisIsIt(List<Candle> candles, List<IIndicatorCandle> indicators, int numberPattern)
+        public bool ThisIsIt(List<Candle> candles, List<IIndicator> indicators, int numberPattern)
         {
             if (indicators == null ||
                indicators.Count == 0)
@@ -163,7 +164,7 @@ namespace OsEngine.OsMiner.Patterns
         /// <param name="candles">candles/свечи</param>
         /// <param name="indicators">indicators/индикаторы</param>
         /// <param name="numberPattern">the index on which we watch the pattern/индекс по которому мы с мотрим паттерн</param>
-        public void SetFromIndex(List<Candle> candles, List<IIndicatorCandle> indicators, int numberPattern)
+        public void SetFromIndex(List<Candle> candles, List<IIndicator> indicators, int numberPattern)
         {
             if (indicators == null ||
                 indicators.Count == 0)
@@ -223,7 +224,7 @@ namespace OsEngine.OsMiner.Patterns
                 Sequence[i] = new decimal[Length*2];
             }
 
-            Indicators = new List<IIndicatorCandle>();
+            Indicators = new List<IIndicator>();
 
             //Variable activation/Активация переменных
             decimal thisExpand = (100 - Expand)/100;
@@ -275,7 +276,7 @@ namespace OsEngine.OsMiner.Patterns
 
             SequenceCandlePosition = GetSequenceFromString(array[6]);
 
-            Indicators = new List<IIndicatorCandle>();
+            Indicators = new List<IIndicator>();
 
             for (int i = 0; i < Sequence.Length; i++)
             {

@@ -177,13 +177,11 @@ namespace OsEngine.Robots.Patterns
                 return;
             }
 
-
             _lastClose = candles[candles.Count - 1].Close;
             _lastOpen = candles[candles.Count - 1].Open;
             _lastHigh = candles[candles.Count - 1].High;
             _lastLow = candles[candles.Count - 1].Low;
             _lastSma = Sma.Values[Sma.Values.Count - 1];
-
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
@@ -192,7 +190,6 @@ namespace OsEngine.Robots.Patterns
                 for (int i = 0; i < openPositions.Count; i++)
                 {
                     LogicClosePosition(candles, openPositions[i]);
-
                 }
             }
 
@@ -213,17 +210,17 @@ namespace OsEngine.Robots.Patterns
         private void LogicOpenPosition(List<Candle> candles, List<Position> position)
         {
             if (_lastClose >= _lastHigh - ((_lastHigh - _lastLow) / 3) && _lastOpen >= _lastHigh - ((_lastHigh - _lastLow) / 3)
-                && _lastSma < _lastClose && Regime != BotTradeRegime.OnlyShort)
+                && _lastSma < _lastClose 
+                && Regime != BotTradeRegime.OnlyShort)
             {
                 _tab.BuyAtLimit(VolumeFix, _lastClose + Slipage);
             }
             if (_lastClose <= _lastLow + ((_lastHigh - _lastLow) / 3) && _lastOpen <= _lastLow + ((_lastHigh - _lastLow) / 3)
-                && _lastSma > _lastClose && Regime != BotTradeRegime.OnlyLong)
+                && _lastSma > _lastClose 
+                && Regime != BotTradeRegime.OnlyLong)
             {
                 _tab.SellAtLimit(VolumeFix, _lastClose + Slipage);
-
             }
-
         }
 
         /// <summary>
@@ -232,6 +229,13 @@ namespace OsEngine.Robots.Patterns
         /// </summary>
         private void LogicClosePosition(List<Candle> candles, Position position)
         {
+            if (position.State != PositionStateType.Open ||
+                position.CloseActiv == true ||
+                (position.CloseOrders != null && position.CloseOrders.Count > 0))
+            {
+                return;
+            }
+
             if (position.Direction == Side.Buy)
             {
                 if (_lastClose <= _lastLow + ((_lastHigh - _lastLow) / 3) && _lastOpen <= _lastLow + ((_lastHigh - _lastLow) / 3)
@@ -246,21 +250,19 @@ namespace OsEngine.Robots.Patterns
                 }
             }
 
-            if (position.Direction == Side.Sell)
+            else if (position.Direction == Side.Sell)
             {
                 if (_lastClose >= _lastHigh - ((_lastHigh - _lastLow) / 3) && _lastOpen >= _lastHigh - ((_lastHigh - _lastLow) / 3)
                      && _lastSma < _lastClose)
                 {
                     _tab.CloseAtLimit(position, _lastClose + Slipage, position.OpenVolume);
 
-                    if (Regime != BotTradeRegime.OnlyShort && Regime != BotTradeRegime.OnlyClosePosition)
+                    if (Regime != BotTradeRegime.OnlyLong && Regime != BotTradeRegime.OnlyClosePosition)
                     {
                         _tab.BuyAtLimit(VolumeFix, _lastClose + Slipage);
                     }
-
                 }
             }
-
         }
     }
 }

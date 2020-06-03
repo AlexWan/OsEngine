@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using OsEngine.Entity;
+using OsEngine.Indicators;
 
 namespace OsEngine.Charts.CandleChart.Indicators
 {
@@ -17,7 +18,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
     /// Indicator for analysis of convergence and divergence of moving averages in the form of Histogram
     /// Индикатор для анализа схождения-расхождения скользящих средних, в виде Гистограммы
     /// </summary>
-    public class MacdHistogram: IIndicatorCandle
+    public class MacdHistogram: IIndicator
     {
         /// <summary>
         /// constructor
@@ -28,7 +29,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public MacdHistogram(string uniqName,bool canDelete)
         {
             Name = uniqName;
-            TypeIndicator = IndicatorOneCandleChartType.Column;
+            TypeIndicator = IndicatorChartPaintType.Column;
             ColorUp = Color.DodgerBlue;
             ColorDown = Color.DarkRed;
             PaintOn = true;
@@ -62,7 +63,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public MacdHistogram(string uniqName, MovingAverage movingShort, MovingAverage movingLong, MovingAverage movingSignal, bool canDelete)
         {
             Name = uniqName;
-            TypeIndicator = IndicatorOneCandleChartType.Column;
+            TypeIndicator = IndicatorChartPaintType.Column;
             ColorUp = Color.DodgerBlue;
             ColorDown= Color.DarkRed;
             PaintOn = true;
@@ -88,7 +89,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             Name = Guid.NewGuid().ToString();
 
-            TypeIndicator = IndicatorOneCandleChartType.Column;
+            TypeIndicator = IndicatorChartPaintType.Column;
             ColorUp = Color.DodgerBlue;
             ColorDown = Color.DarkRed;
             PaintOn = true;
@@ -102,7 +103,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// all indicator values
         /// все значения индикатора
         /// </summary>
-        List<List<decimal>> IIndicatorCandle.ValuesToChart
+        List<List<decimal>> IIndicator.ValuesToChart
         {
             get
             {
@@ -116,7 +117,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator colors
         /// цвета для индикатора
         /// </summary>
-        List<Color> IIndicatorCandle.Colors
+        List<Color> IIndicator.Colors
         {
             get
             {
@@ -138,7 +139,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator drawing type
         /// тип прорисовки индикатора
         /// </summary>
-        public IndicatorOneCandleChartType TypeIndicator { get; set; }
+        public IndicatorChartPaintType TypeIndicator { get; set; }
 
         /// <summary>
         /// name of data series on which indicator will be drawn
@@ -416,7 +417,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator needs to be redrawn
         /// индикатор нужно перерисовать
         /// </summary>
-        public event Action<IIndicatorCandle> NeadToReloadEvent;
+        public event Action<IIndicator> NeadToReloadEvent;
 
         /// <summary>
         /// load only last candle

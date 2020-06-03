@@ -63,7 +63,7 @@ namespace OsEngine.OsData
         {
             _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
                 DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders);
-
+            _grid.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = _grid.DefaultCellStyle;
@@ -277,12 +277,9 @@ namespace OsEngine.OsData
                 return;
             }
 
-            
-
             SelectedSecurity = _securitiesInBox.Find(
                 security => security.Name == _grid.SelectedCells[0].Value.ToString());
             Close();
         }
-
     }
 }

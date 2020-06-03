@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
+using OsEngine.Indicators;
 
 namespace OsEngine.OsMiner.Patterns
 {
@@ -41,7 +42,7 @@ namespace OsEngine.OsMiner.Patterns
         /// <param name="indicators">indicators/индикаторы</param>
         /// <param name="numberPattern">the index on which we watch the pattern/индекс по которому мы смотрим паттерн</param>
         /// <returns></returns>
-        bool ThisIsIt(List<Candle> candles, List<IIndicatorCandle> indicators, int numberPattern);
+        bool ThisIsIt(List<Candle> candles, List<IIndicator> indicators, int numberPattern);
 
         /// <summary>
         /// set pattern with current data
@@ -50,7 +51,7 @@ namespace OsEngine.OsMiner.Patterns
         /// <param name="candles">candles/свечи</param>
         /// <param name="indicators">indicators/индикаторы</param>
         /// <param name="numberPattern">the index on which we watch the pattern/индекс по которому мы с мотрим паттерн</param>
-        void SetFromIndex(List<Candle> candles, List<IIndicatorCandle> indicators, int numberPattern);
+        void SetFromIndex(List<Candle> candles, List<IIndicator> indicators, int numberPattern);
 
         /// <summary>
         /// load pattern from save line

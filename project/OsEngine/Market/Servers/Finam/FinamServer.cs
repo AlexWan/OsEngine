@@ -386,7 +386,7 @@ namespace OsEngine.Market.Servers.Finam
         /// </summary>
         public static string GetIchartsPath()
         {
-            var response = GetPage("https://www.finam.ru/profile/moex-akcii/sberbank/");
+            var response = GetPage("https://www.finam.ru/profile/moex-akcii/gazprom/export/");
             return Regex.Match(response, @"\/cache\/.*\/icharts\/icharts\.js", RegexOptions.IgnoreCase).Value;
         }
 

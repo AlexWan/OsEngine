@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms.Integration;
+using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
@@ -36,6 +37,8 @@ using OsEngine.Market.Servers.Tester;
 using OsEngine.Market.Servers.Transaq;
 using OsEngine.Market.Servers.ZB;
 using OsEngine.Market.Servers.Hitbtc;
+using OsEngine.Market.Servers.MFD;
+using OsEngine.Market.Servers.MOEX;
 using OsEngine.Market.Servers.Tinkoff;
 using MessageBox = System.Windows.MessageBox;
 
@@ -67,14 +70,15 @@ namespace OsEngine.Market
             {
                 List<ServerType> serverTypes = new List<ServerType>();
 
-
-                
                 serverTypes.Add(ServerType.QuikDde);
                 serverTypes.Add(ServerType.QuikLua);
                 serverTypes.Add(ServerType.SmartCom);
                 serverTypes.Add(ServerType.Plaza);
                 serverTypes.Add(ServerType.Transaq);
                 serverTypes.Add(ServerType.Tinkoff);
+                serverTypes.Add(ServerType.Finam);
+                serverTypes.Add(ServerType.MoexDataServer);
+                serverTypes.Add(ServerType.MfdWeb);
 
                 serverTypes.Add(ServerType.GateIo);
                 serverTypes.Add(ServerType.BitMax);
@@ -94,10 +98,24 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Lmax);
                 serverTypes.Add(ServerType.Oanda);
 
-                serverTypes.Add(ServerType.Finam);
                 serverTypes.Add(ServerType.AstsBridge);
 
                 return serverTypes;
+            }
+        }
+
+        public static List<ServerType> ActiveServersTypes
+        {
+            get
+            {
+                List<ServerType> types = new List<ServerType>();
+
+                for (int i = 0; _servers != null && i < _servers.Count; i++)
+                {
+                    types.Add(_servers[i].ServerType);
+                }
+
+                return types;
             }
         }
 
@@ -170,7 +188,14 @@ namespace OsEngine.Market
                 }
 
                 IServer newServer = null;
-
+                if (type == ServerType.MfdWeb)
+                {
+                    newServer = new MfdServer();
+                }
+                if (type == ServerType.MoexDataServer)
+                {
+                    newServer = new MoexDataServer();
+                }
                 if (type == ServerType.Tinkoff)
                 {
                     newServer = new TinkoffServer();
@@ -292,40 +317,51 @@ namespace OsEngine.Market
             }
         }
 
+        private static object _optimizerGeneratorLocker = new object();
+
         /// <summary>
         /// create a new optimization server
         /// создать новый сервер оптимизации
         /// </summary>
         public static OptimizerServer CreateNextOptimizerServer(OptimizerDataStorage storage, int num, decimal portfolioStartVal)
         {
-            OptimizerServer serv = new OptimizerServer(storage, num, portfolioStartVal);
-
-            bool isInArray = false;
-
-            if (_servers == null)
+            lock (_optimizerGeneratorLocker)
             {
-                _servers = new List<IServer>();
-            }
+                OptimizerServer serv = new OptimizerServer(storage, num, portfolioStartVal);
 
-            for (int i = 0; i < _servers.Count; i++)
-            {
-                if (_servers[i].ServerType == ServerType.Optimizer)
+                if (serv == null)
                 {
-                    _servers[i] = serv;
-                    isInArray = true;
+                    return null;
                 }
-            }
 
-            if (isInArray == false)
-            {
-                _servers.Add(serv);
+                bool isInArray = false;
+
+                if (_servers == null)
+                {
+                    _servers = new List<IServer>();
+                }
+
+                for (int i = 0; i < _servers.Count; i++)
+                {
+                    if (_servers[i].ServerType == ServerType.Optimizer &&
+                        ((OptimizerServer)_servers[i]).NumberServer == serv.NumberServer)
+                    {
+                        _servers[i] = serv;
+                        isInArray = true;
+                    }
+                }
+
+                if (isInArray == false)
+                {
+                    _servers.Add(serv);
+                }
+
+                if (ServerCreateEvent != null)
+                {
+                    ServerCreateEvent(serv);
+                }
+                return serv;
             }
-            
-            if (ServerCreateEvent != null)
-            {
-                ServerCreateEvent(serv);
-            }
-            return serv;
         }
 
         /// <summary>
@@ -343,8 +379,56 @@ namespace OsEngine.Market
         /// </summary>
         public static event Action<IServer> ServerCreateEvent;
 
-// creating servers automatically 
-// создание серверов автоматически
+        // доступ к разрешениям для серверов
+
+        private static List<IServerPermission> _serversPermissions = new List<IServerPermission>();
+
+        public static IServerPermission GetServerPermission(ServerType type)
+        {
+            IServerPermission serverPermission = null;
+
+            if (type == ServerType.MoexDataServer)
+            {
+                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
+
+                if (serverPermission == null)
+                {
+                    serverPermission = new MoexIssPermission();
+                    _serversPermissions.Add(serverPermission);
+                }
+
+                return serverPermission;
+            }
+            if (type == ServerType.MfdWeb)
+            {
+                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
+
+                if (serverPermission == null)
+                {
+                    serverPermission = new MfdServerPermission();
+                    _serversPermissions.Add(serverPermission);
+                }
+
+                return serverPermission;
+            }
+            if (type == ServerType.Tinkoff)
+            {
+                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
+
+                if (serverPermission == null)
+                {
+                    serverPermission = new TinkoffServerPermission();
+                    _serversPermissions.Add(serverPermission);
+                }
+
+                return serverPermission;
+            }
+
+            return null;
+        }
+
+        
+        // создание серверов автоматически creating servers automatically 
 
         /// <summary>
         /// upload server settings
@@ -609,49 +693,6 @@ namespace OsEngine.Market
     }
 
     /// <summary>
-    /// what program start the class
-    /// какая программа запустила класс
-    /// </summary>
-    public enum StartProgram
-    {
-        /// <summary>
-        /// tester
-        /// тестер
-        /// </summary>
-        IsTester,
-
-        /// <summary>
-        /// optimizator
-        /// оптимизатор
-        /// </summary>
-        IsOsOptimizer,
-
-        /// <summary>
-        /// data downloading
-        /// качалка данных
-        /// </summary>
-        IsOsData,
-
-        /// <summary>
-        /// terminal
-        /// терминал
-        /// </summary>
-        IsOsTrader,
-
-        /// <summary>
-        /// ticks to candles converter
-        /// конвертер тиков в свечи
-        /// </summary>
-        IsOsConverter,
-
-        /// <summary>
-        /// pattern miner
-        /// майнер паттернов
-        /// </summary>
-        IsOsMiner
-    }
-
-    /// <summary>
     /// type of connection to trading. Server type
     /// тип подключения к торгам. Тип сервера
     /// </summary>
@@ -822,6 +863,17 @@ namespace OsEngine.Market
         /// AstsBridge, he is also the gateway or TEAP
         /// AstsBridge, он же ШЛЮЗ, он же TEAP 
         /// </summary>
-        AstsBridge
+        AstsBridge,
+
+        /// <summary>
+        /// Дата сервер московской биржи
+        /// </summary>
+        MoexDataServer,
+
+        /// <summary>
+        /// MFD web server
+        /// </summary>
+        MfdWeb,
     }
+
 }

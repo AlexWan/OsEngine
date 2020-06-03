@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
+using OsEngine.Indicators;
 
 namespace OsEngine.OsMiner.Patterns
 {
@@ -69,7 +70,7 @@ namespace OsEngine.OsMiner.Patterns
         /// <param name="candles">candles/свечи</param>
         /// <param name="indicators">indicators/индикаторы</param>
         /// <param name="numberPattern">the index on which we watch the pattern/индекс по которому мы смотрим паттерн</param>
-        public bool ThisIsIt(List<Candle> candles, List<IIndicatorCandle> indicators, int numberPattern)
+        public bool ThisIsIt(List<Candle> candles, List<IIndicator> indicators, int numberPattern)
         {
             if (numberPattern - Length <= 0)
             {
@@ -170,7 +171,7 @@ namespace OsEngine.OsMiner.Patterns
         /// <param name="candles">candles/свечи</param>
         /// <param name="indicators">indicators/индикаторы</param>
         /// <param name="numberPattern">index on which we pattern pattern/индекс по которому мы с мотрим паттерн</param>
-        public void SetFromIndex(List<Candle> candles, List<IIndicatorCandle> indicators, int numberPattern)
+        public void SetFromIndex(List<Candle> candles, List<IIndicator> indicators, int numberPattern)
         {
             if (numberPattern - Length + 1 < 0)
             {

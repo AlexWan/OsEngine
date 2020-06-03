@@ -5,8 +5,19 @@
     <Grid>
         <Rectangle Margin="5,5,5,37">
         </Rectangle>
-        <WindowsFormsHost Name ="HostNames"  HorizontalAlignment="Left" Margin="10,10,0,50" Width="201"/>
         <WindowsFormsHost Name="HostArea" Margin="216,10,10,50"/>
         <Button x:Name ="ButtonAccept" Content="Accept" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="150" Click="ButtonAccept_Click" />
+        <TabControl Name="TabControlIndicatorsNames" HorizontalAlignment="Left" Height="276" Margin="10,0,0,0" VerticalAlignment="Top" Width="201">
+            <TabItem Name="ItemIncluded" Header="Include">
+                <Grid Background="#FFE5E5E5">
+                    <WindowsFormsHost x:Name ="HostNames"/>
+                </Grid>
+            </TabItem>
+            <TabItem Name="TabItemScript" Header="Script">
+                <Grid Background="#FFE5E5E5" Margin="0,0,0,0">
+                    <WindowsFormsHost Name="HostNamesScript" Margin="0,0,0,0"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
     </Grid>
 </Window>

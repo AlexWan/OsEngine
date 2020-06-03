@@ -34,6 +34,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             _startProgram = startProgram;
 
             CandleConnector = new ConnectorCandles(name, _startProgram);
+            CandleConnector.SaveTradesInCandles = true;
             CandleConnector.LastCandlesChangeEvent += Tab_LastCandlesChangeEvent;
             CandleConnector.SecuritySubscribeEvent += CandleConnector_SecuritySubscribeEvent;
             CandleConnector.LogMessageEvent += SendNewLogMessage;
@@ -224,7 +225,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void ShowCandlesDialog()
         {
-            CandleConnector.ShowDialog();
+            CandleConnector.ShowDialog(false);
         }
        
         /// <summary>

@@ -63,6 +63,10 @@ namespace OsEngine.Journal.Internal
 
                 for (int i = 0; i < ControllersToCheck.Count; i++)
                 {
+                    if (ControllersToCheck[i] == null)
+                    {
+                        continue;
+                    }
                     ControllersToCheck[i].SavePositions();
                     ControllersToCheck[i].TryPaintPositions();
                 }
@@ -1190,6 +1194,10 @@ namespace OsEngine.Journal.Internal
         /// </summary>
         public void ProcesPosition(Position position)
         {
+            if (_startProgram == StartProgram.IsOsOptimizer)
+            {
+                return;
+            }
             try
             {
                 for (int i = 0; i < _positionsToPaint.Count; i++)

@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using OsEngine.Entity;
+using OsEngine.Indicators;
 
 namespace OsEngine.Charts.CandleChart.Indicators
 {
@@ -34,7 +35,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
     /// Price Oscillator indicator
     /// индикатор PO. Price Oscillator
     /// </summary>
-    public class PriceOscillator : IIndicatorCandle
+    public class PriceOscillator : IIndicator
     {
         /// <summary>
         /// constructor
@@ -45,7 +46,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public PriceOscillator(string uniqName,bool canDelete)
         {
             Name = uniqName;
-            TypeIndicator = IndicatorOneCandleChartType.Line;
+            TypeIndicator = IndicatorChartPaintType.Line;
             ColorBase = Color.DodgerBlue;
             TypeSerch = PriceOscillatorSerchType.Punkt;
             PaintOn = true;
@@ -67,7 +68,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             Name = Guid.NewGuid().ToString();
 
-            TypeIndicator = IndicatorOneCandleChartType.Line;
+            TypeIndicator = IndicatorChartPaintType.Line;
             ColorBase = Color.DodgerBlue;
             PaintOn = true;
             TypeSerch = PriceOscillatorSerchType.Punkt;
@@ -87,7 +88,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public PriceOscillator(string uniqName, MovingAverage maShort, MovingAverage maLong, bool canDelete)
         {
             Name = uniqName;
-            TypeIndicator = IndicatorOneCandleChartType.Line;
+            TypeIndicator = IndicatorChartPaintType.Line;
             ColorBase = Color.DodgerBlue;
             TypeSerch = PriceOscillatorSerchType.Punkt;
             PaintOn = true;
@@ -102,7 +103,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// all indicator values
         /// все значения индикатора
         /// </summary>
-        List<List<decimal>> IIndicatorCandle.ValuesToChart
+        List<List<decimal>> IIndicator.ValuesToChart
         {
             get
             {
@@ -116,7 +117,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator colors
         /// цвета для индикатора
         /// </summary>
-        List<Color> IIndicatorCandle.Colors
+        List<Color> IIndicator.Colors
         {
             get
             {
@@ -137,7 +138,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator drawing type
         /// тип прорисовки индикатора
         /// </summary>
-        public IndicatorOneCandleChartType TypeIndicator { get; set; }
+        public IndicatorChartPaintType TypeIndicator { get; set; }
 
         private PriceOscillatorSerchType _typeSerch;
 
@@ -403,7 +404,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator needs to be redrawn
         /// индикатор нужно перерисовать
         /// </summary>
-        public event Action<IIndicatorCandle> NeadToReloadEvent;
+        public event Action<IIndicator> NeadToReloadEvent;
 
         /// <summary>
         /// load only last candle

@@ -120,6 +120,8 @@ namespace OsEngine.Charts.CandleChart.Elements
         /// размер точки
         /// </summary>
         public int Size;
+        
+        public string Label;
 
         /// <summary>
         /// style of point. Note: MarkerStyle.Square;

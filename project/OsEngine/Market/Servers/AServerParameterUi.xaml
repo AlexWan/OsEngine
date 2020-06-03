@@ -8,13 +8,13 @@
         <Button Name="ButtonAbort" Content="Disconnect" HorizontalAlignment="Right" Margin="0,0,10,5" VerticalAlignment="Bottom" Width="120" Click="ButtonAbort_Click"/>
         <Label Name="Label21" Content="Connection state " Margin="0,0,151,0" VerticalAlignment="Top" HorizontalAlignment="Right" />
         <Label Name="LabelStatus" Content="Disconnect" Margin="0,0,75,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="71" />
-        <TabControl Margin="0,0,0,35">
-            <TabItem Name="TabItem3" Header=" Settings ">
+        <TabControl Name="TabControlSettings" Margin="0,0,0,35">
+            <TabItem Name="TabItemParams" Header=" Settings ">
                 <Grid >
                     <WindowsFormsHost Name="HostSettings"  Margin="0,0,0,0"/>
                 </Grid>
             </TabItem>
-            <TabItem Name="TabItem4" Header=" Logging ">
+            <TabItem Name="TabItemLog" Header=" Logging ">
                 <Grid >
                     <WindowsFormsHost Name="HostLog" Margin="0,0,0,0"/>
                 </Grid>

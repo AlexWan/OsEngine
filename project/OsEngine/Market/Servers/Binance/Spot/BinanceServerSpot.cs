@@ -198,6 +198,11 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     }
                 }
 
+                if(newCandles == null)
+                {
+                    continue;
+                }
+
                 if (newCandles.Count == 0)
                 {
                     return candles;

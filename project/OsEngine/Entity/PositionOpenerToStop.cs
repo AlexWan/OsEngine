@@ -3,6 +3,7 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using System;
 using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.Entity
@@ -80,6 +81,10 @@ namespace OsEngine.Entity
             set { _orderCreateBarNumber = value; }
         }
 
+        /// <summary>
+        /// последнее время свечке при отсечке 
+        /// </summary>
+        public DateTime LastCandleTime;
 
     }
 }

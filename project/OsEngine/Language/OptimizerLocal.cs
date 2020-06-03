@@ -163,7 +163,7 @@ namespace OsEngine.Language
 
         public string Message37 => OsLocalization.ConvertToLocString(
             "Eng:Average profit in %_" +
-            "Ru:Профит в % к депо_");
+            "Ru:Профит в % на сделку");
 
         public string Message38 => OsLocalization.ConvertToLocString(
             "Eng:Params_" +
@@ -249,7 +249,7 @@ namespace OsEngine.Language
             "Ru:Таблица параметров_");
 
         public string Label18 => OsLocalization.ConvertToLocString(
-            "Eng:Fazes_" +
+            "Eng:Phases_" +
             "Ru:Этапы_");
 
         public string Label19 => OsLocalization.ConvertToLocString(
@@ -316,6 +316,9 @@ namespace OsEngine.Language
             "Eng:Position count >_" +
             "Ru:Количество сделок >_");
 
+        public string Label35 => OsLocalization.ConvertToLocString(
+            "Eng:Select_" +
+            "Ru:Выбрать_");
 
     }
 }

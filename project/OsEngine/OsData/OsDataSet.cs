@@ -837,7 +837,7 @@ namespace OsEngine.OsData
             {
                 for (int i = 0; i < SecuritiesNames.Count; i++)
                 {
-                    StartThis(SecuritiesNames[i], TimeFrame.Hour1);
+                    SubscribeMarketDepthOrTrades(SecuritiesNames[i]);
                 }
             }
             if (TfTickIsOn && _myServer != null)
@@ -871,15 +871,53 @@ namespace OsEngine.OsData
                 TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder();
                 timeFrameBuilder.TimeFrame = timeFrame;
 
-                series = _myServer.GetCandleDataToSecurity(loadSec.Id, timeFrameBuilder, TimeStart,
+                string id = loadSec.Id;
+                if(id == "")
+                {
+                    id = loadSec.Name;
+                }
+
+                series = _myServer.GetCandleDataToSecurity(id, timeFrameBuilder, TimeStart,
                         TimeEnd, GetActualTimeToCandle("Data\\" + SetName + "\\" + loadSec.Name.Replace("/", "") + "\\" + timeFrame), NeadToUpdate);
 
-                SendNewLogMessage("Security: " + loadSec.Name + " Tf: " + timeFrame + " Loaded",LogMessageType.System);
+                if (series != null)
+                {
+                    SendNewLogMessage("Security: " + loadSec.Name + " Tf: " + timeFrame + " Loaded", LogMessageType.System);
+                }
+                else
+                {
+                    SendNewLogMessage("Security: " + loadSec.Name + " Tf: " + timeFrame + " Did not load. We will try it again", LogMessageType.System);
+                }
 
-                await Task.Delay(10);
+                await Task.Delay(10000);
             }
 
             _mySeries.Add(series);
+        }
+
+        private async void SubscribeMarketDepthOrTrades(SecurityToLoad loadSec)
+        {
+            CandleSeries series = null;
+            while (series == null)
+            {
+                TimeFrame timeFrame = TimeFrame.Hour1;
+                TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder();
+                timeFrameBuilder.TimeFrame = timeFrame;
+                timeFrameBuilder.CandleMarketDataType = CandleMarketDataType.MarketDepth;
+
+                series = _myServer.StartThisSecurity(loadSec.Name, timeFrameBuilder);
+
+                if (series != null)
+                {
+                    SendNewLogMessage("Market Depth: " + loadSec.Name + " subscribed", LogMessageType.System);
+                }
+                else
+                {
+                    SendNewLogMessage("Market Depth: " + loadSec.Name + " did not subscribe. We will try it again", LogMessageType.System);
+                }
+
+                await Task.Delay(10000);
+            }
         }
 
         /// <summary>
@@ -1022,6 +1060,10 @@ namespace OsEngine.OsData
 
                 _lastUpdateTradesInServerTime = DateTime.Now;
 
+                if (!Directory.Exists("Data\\ServersCandleTempData"))
+                {
+                    Directory.CreateDirectory("Data\\ServersCandleTempData");
+                }
                 if (!Directory.Exists("Data\\QuikServerTrades"))
                 {
                     Directory.CreateDirectory("Data\\QuikServerTrades");
@@ -1043,6 +1085,10 @@ namespace OsEngine.OsData
                     Directory.CreateDirectory("Data\\PlazaServerTrades");
                 }
 
+                for (int i = 0; i < _mySeries.Count; i++)
+                {
+                    SaveCandlesInServersTempFolder(_mySeries[i]);
+                }
 
                 for (int i = 0; i < SecuritiesNames.Count; i++)
                 {
@@ -1089,6 +1135,7 @@ namespace OsEngine.OsData
                     File.Copy(pathToSet + SecuritiesNames[i].Name.Replace("/", "").Replace("*", "") + "\\" + "Tick" + "\\" + SecuritiesNames[i].Name.Replace("/", "").Replace("*", "") + ".txt",
                         "Data\\PlazaServerTrades\\" + nameSecurityToSave + ".txt");
                 }
+
             }
         }
 
@@ -1313,6 +1360,27 @@ namespace OsEngine.OsData
             }
 
             candleSaveInfo.LastSaveObjectTime = candles[candles.Count - 1].TimeStart;
+        }
+
+        private void SaveCandlesInServersTempFolder(CandleSeries series)
+        {
+            List<Candle> candles = series.CandlesAll;
+
+            if (candles == null ||
+                candles.Count == 0)
+            {
+                return;
+            }
+
+            string path = "Data\\ServersCandleTempData\\" + series.Specification + ".txt";
+
+            StreamWriter writer = new StreamWriter(path);
+
+            for (int i = 0; i < candles.Count; i++)
+            {
+                writer.WriteLine(candles[i].StringToSave);
+            }
+            writer.Close();
         }
 
         // trades/тики
@@ -2136,14 +2204,15 @@ namespace OsEngine.OsData
 
         public void Load(string saveStr)
         {
-            Name = saveStr.Split('*')[0];
-            Id = saveStr.Split('*')[1];
+            Name = saveStr.Split('~')[0].Replace("^", "@");
+            Id = saveStr.Split('~')[1].Replace("^", "@");
+
         }
 
         public string GetSaveStr()
         {
-            string result = Name + "*";
-            result += Id;
+            string result = Name.Replace("@","^") + "~";
+            result += Id.Replace("@", "^");
 
             return result;
         }

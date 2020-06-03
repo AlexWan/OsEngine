@@ -82,6 +82,11 @@ namespace OsEngine.Logging
 
                 for (int i = 0; i < LogsToCheck.Count; i++)
                 {
+                    if (LogsToCheck[i] == null)
+                    {
+                        continue;
+                    }
+
                     LogsToCheck[i].TrySaveLog();
                     LogsToCheck[i].TryPaintLog();
                 }
@@ -176,6 +181,38 @@ namespace OsEngine.Logging
             _grid = null;
 
             _messageses = null;
+        }
+
+        /// <summary>
+        /// clear the object
+        /// очистить объект от данных и сообщений
+        /// </summary>
+        public void Clear()
+        {
+            if (_grid != null &&
+                _grid.InvokeRequired)
+            {
+                _grid.Invoke(new Action(Clear));
+                return;
+            }
+
+            try
+            {
+                if (_messageses != null)
+                {
+                    _messageses.Clear();
+                }
+
+                _incomingMessages = new ConcurrentQueue<LogMessage>();
+                if (_grid != null)
+                {
+                    _grid.Rows.Clear();
+                }
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         /// <summary>

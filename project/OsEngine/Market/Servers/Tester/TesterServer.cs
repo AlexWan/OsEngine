@@ -270,11 +270,6 @@ namespace OsEngine.Market.Servers.Tester
 
             TimeNow = TimeStart;
 
-            while (TimeNow.Hour != 10)
-            {
-               TimeNow = TimeNow.AddHours(-1);
-            }
-
             while (TimeNow.Minute != 0)
             {
                TimeNow = TimeNow.AddMinutes(-1);
@@ -1861,6 +1856,34 @@ namespace OsEngine.Market.Servers.Tester
                 return false;
             }
 
+            if (order.IsStopOrProfit)
+            {
+                int slipage = 0;
+                if (_slipageToStopOrder > 0)
+                {
+                    slipage = _slipageToStopOrder;
+                }
+                decimal realPrice = order.Price;
+                if (order.Side == Side.Buy)
+                {
+                    if (minPrice > realPrice)
+                    {
+                        realPrice = minPrice;
+                    }
+                }
+                if (order.Side == Side.Sell)
+                {
+                    if (maxPrice < realPrice)
+                    {
+                        realPrice = maxPrice;
+                    }
+                }
+
+                ExecuteOnBoardOrder(order, realPrice, time, slipage);
+                return true;
+            }
+
+
             // check whether the order passed / проверяем, прошёл ли ордер
             if (order.Side == Side.Buy)
             {
@@ -3389,17 +3412,21 @@ namespace OsEngine.Market.Servers.Tester
 
             if (orderOnBoard.IsStopOrProfit)
             {
-                SecurityTester security = SecuritiesTester.Find(tester => tester.Security.Name == order.SecurityNameCode);
+                SecurityTester security = _candleSeriesTesterActivate.Find(tester => tester.Security.Name == order.SecurityNameCode);
                 if (security.DataType == SecurityTesterDataType.Candle)
                 { // testing with using candles / прогон на свечках
-                    CheckOrdersInCandleTest(order, security.LastCandle);
+                    if (CheckOrdersInCandleTest(orderOnBoard, security.LastCandle))
+                    {
+                        OrdersActiv.Remove(orderOnBoard);
+                    }
                 }
                 else if (security.DataType == SecurityTesterDataType.Tick)
                 { // testing with using candles / прогон на свечках
-                    CheckOrdersInTickTest(order, security.LastTrade,true);
+                    if (CheckOrdersInTickTest(orderOnBoard, security.LastTrade, true))
+                    {
+                        OrdersActiv.Remove(orderOnBoard);
+                    }
                 }
-
-
             }
         }
 

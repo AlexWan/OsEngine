@@ -70,6 +70,10 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
                 for (int i = 0; i < TabsToCheck.Count; i++)
                 {
+                    if (TabsToCheck[i] == null)
+                    {
+                        continue;
+                    }
                     TabsToCheck[i].CheckPositions();
                 }
 
@@ -148,8 +152,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                     ProfitIsOn = Convert.ToBoolean(reader.ReadLine());
                     ProfitDistance = reader.ReadLine().ToDecimal();
                     ProfitSlipage = reader.ReadLine().ToDecimal();
-                    TimeSpan.TryParse(reader.ReadLine(), out SecondToOpen);
-                    TimeSpan.TryParse(reader.ReadLine(), out SecondToClose);
+                    TimeSpan.TryParse(reader.ReadLine(), out _secondToOpen);
+                    TimeSpan.TryParse(reader.ReadLine(), out _secondToClose);
 
                     DoubleExitIsOn = Convert.ToBoolean(reader.ReadLine());
 
@@ -293,11 +297,30 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// </summary>
         public bool SecondToOpenIsOn;
 
+
         /// <summary>
         /// time to open a position in seconds, after which the order will be recalled / 
         /// время на открытие позиции в секундах, после чего ордер будет отозван
         /// </summary>
-        public TimeSpan SecondToOpen;
+        public TimeSpan SecondToOpen
+        {
+            get
+            {
+                if (SecondToOpenIsOn)
+                {
+                    return _secondToOpen;
+                }
+                else
+                {
+                    return new TimeSpan(1, 0, 0, 0);
+                }
+            }
+            set
+            {
+                _secondToOpen = value;
+            }
+        }
+        private TimeSpan _secondToOpen;
 
         /// <summary>
         /// closed orders life time is enabled /
@@ -309,7 +332,25 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// time to close a position in seconds, after which the order will be recalled / 
         /// время на закрытие позиции в секундах, после чего ордер будет отозван
         /// </summary>
-        public TimeSpan SecondToClose;
+        public TimeSpan SecondToClose
+        {
+            get
+            {
+                if (SecondToCloseIsOn)
+                {
+                    return _secondToClose;
+                }
+                else
+                {
+                    return new TimeSpan(1, 0, 0, 0);
+                }
+            }
+            set
+            {
+                _secondToClose = value;
+            }
+        }
+        private TimeSpan _secondToClose;
 
         /// <summary>
         /// whether re-issuance of the request for closure is included if the first has been withdrawn /

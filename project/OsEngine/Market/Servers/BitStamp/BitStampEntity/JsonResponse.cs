@@ -78,4 +78,15 @@ namespace OsEngine.Market.Servers.BitStamp.BitStampEntity
         public string status { get; set; }
         public string reason { get; set; }
     }
+
+    public class BitstampData
+    {
+        public string data;
+
+        public string Event;
+
+        public string channel;
+
+        public string security;
+    }
 }

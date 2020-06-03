@@ -1,7 +1,7 @@
 ﻿<Window x:Class="OsEngine.OsData.NewSecurityUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      Title="Add security" Height="285" Width="303" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Topmost="True">
+      Title="Add security" Height="380" Width="300" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Topmost="True">
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
         <Label Name="Label1" Content="Class" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" />

@@ -285,7 +285,7 @@ namespace OsEngine.Market.Servers.Optimizer
         /// </summary>
         private void WorkThreadArea()
         {
-            Thread.Sleep(2000);
+            Thread.Sleep(100);
             while (true)
             {
                 try
@@ -316,7 +316,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                     if (_testerRegime == TesterRegime.Pause)
                     {
-                        Thread.Sleep(2000);
+                        Thread.Sleep(20);
                         continue;
                     }
 
@@ -365,7 +365,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
             if (newStorage == null)
             {
-                Thread.Sleep(500);
+                Thread.Sleep(200);
                 newStorage = _storagePrime.GetStorageToSecurity(security, timeFrame, timeStart, timeEnd);
 
                 if (newStorage == null)
@@ -585,6 +585,30 @@ namespace OsEngine.Market.Servers.Optimizer
                 //CanselOnBoardOrder(order);
                 return false;
             }
+
+            if (order.IsStopOrProfit)
+            {
+
+                decimal realPrice = order.Price;
+                if (order.Side == Side.Buy)
+                {
+                    if (minPrice > realPrice)
+                    {
+                        realPrice = minPrice;
+                    }
+                }
+                if (order.Side == Side.Sell)
+                {
+                    if (maxPrice < realPrice)
+                    {
+                        realPrice = maxPrice;
+                    }
+                }
+
+                ExecuteOnBoardOrder(order, realPrice, time, 0);
+                return true;
+            }
+
 
             // check whether the order passed / проверяем, прошёл ли ордер
             if (order.Side == Side.Buy)
@@ -1732,25 +1756,16 @@ namespace OsEngine.Market.Servers.Optimizer
                 NewOrderIncomeEvent(orderOnBoard);
             }
 
-            if (_candleSeriesTesterActivate[0].DataType == SecurityTesterDataType.Tick)
-            {
-                SecurityOptimizer security = _candleSeriesTesterActivate[0];
-
-                decimal f = order.Price/security.LastTradeSeries[security.LastTradeSeries.Count - 1].Price;
-                if (f > 1.02m ||
-                    f < 0.98m)
-                {
-                    
-                }
-
-                //CheckOrdersInTickTest(orderOnBoard, security.LastTradeSeries[security.LastTradeSeries.Count - 1].Price, toMarket);
-                
-            }
-
             if (orderOnBoard.IsStopOrProfit)
             {
-                SecurityOptimizer security = _candleSeriesTesterActivate[0];
-                CheckOrdersInCandleTest(order, security.LastCandle);
+                SecurityOptimizer security = _candleSeriesTesterActivate.Find(tester => tester.Security.Name == order.SecurityNameCode);
+                if (security.DataType == SecurityTesterDataType.Candle)
+                { // testing with using candles / прогон на свечках
+                    if (CheckOrdersInCandleTest(orderOnBoard, security.LastCandle))
+                    {
+                        OrdersActiv.Remove(orderOnBoard);
+                    }
+                }
             }
         }
 
@@ -1945,11 +1960,11 @@ namespace OsEngine.Market.Servers.Optimizer
     {
         public SecurityOptimizer()
         {
-            if (ServerMaster.GetServers() != null &&
+            /*if (ServerMaster.GetServers() != null &&
                 ServerMaster.GetServers()[0] != null)
             {
                 ServerMaster.GetServers()[0].NewCandleIncomeEvent += SecurityTester_NewCandleIncomeEvent;
-            }
+            }*/
         }
 
         /// <summary>
@@ -2200,6 +2215,11 @@ namespace OsEngine.Market.Servers.Optimizer
             if (_lastCandleIndex >= Candles.Count)
             {
                 return;
+            }
+
+            if (_lastCandleIndex == 0)
+            {
+                _lastCandle = null;
             }
 
             if (LastCandle != null &&

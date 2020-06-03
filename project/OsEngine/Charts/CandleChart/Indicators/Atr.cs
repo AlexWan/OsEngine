@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using OsEngine.Entity;
+using OsEngine.Indicators;
 
 namespace OsEngine.Charts.CandleChart.Indicators
 {
@@ -16,7 +17,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
     /// Indicator ATR. Average True Range
     /// индикатор ATR. Average True Range
     /// </summary>
-    public class Atr : IIndicatorCandle
+    public class Atr : IIndicator
     {
 
         /// <summary>
@@ -29,7 +30,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             Name = uniqName;
             Lenght = 14;
-            TypeIndicator = IndicatorOneCandleChartType.Line;
+            TypeIndicator = IndicatorChartPaintType.Line;
             ColorBase = Color.DodgerBlue;
             PaintOn = true;
             CanDelete = canDelete;
@@ -47,7 +48,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             Name = Guid.NewGuid().ToString();
 
             Lenght = 14;
-            TypeIndicator = IndicatorOneCandleChartType.Line;
+            TypeIndicator = IndicatorChartPaintType.Line;
             ColorBase = Color.DodgerBlue;
             PaintOn = true;
             CanDelete = canDelete;
@@ -57,7 +58,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// all indicator values
         /// все значения индикатора
         /// </summary>
-        List<List<decimal>> IIndicatorCandle.ValuesToChart
+        List<List<decimal>> IIndicator.ValuesToChart
         {
             get
             {
@@ -71,7 +72,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator colors
         /// цвета для индикатора
         /// </summary>
-        List<Color> IIndicatorCandle.Colors
+        List<Color> IIndicator.Colors
         {
             get
             {
@@ -92,7 +93,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator drawing type
         /// тип прорисовки индикатора
         /// </summary>
-        public IndicatorOneCandleChartType TypeIndicator { get; set; }
+        public IndicatorChartPaintType TypeIndicator { get; set; }
 
         /// <summary>
         /// name of data series on which indicator will be drawn
@@ -289,7 +290,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator needs to be redrawn
         /// индикатор нужно перерисовать
         /// </summary>
-        public event Action<IIndicatorCandle> NeadToReloadEvent;
+        public event Action<IIndicator> NeadToReloadEvent;
 
         /// <summary>
         /// load only last candle
@@ -392,62 +393,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _trueRange[_trueRange.Count - 1] = Math.Max(Math.Max(hiToLow, closeToHigh), closeToLow);
         }
 
-        private List<decimal> MovingAverageHard(List<decimal> valuesSeries, List<decimal> moving, int length, int index)
-        {
-            if (moving == null || length > valuesSeries.Count)
-            {
-                moving = new List<decimal>();
-                for (int i = 0; i < index + 1; i++)
-                {
-                    moving.Add(0);
-                }
-            }
-            else if (length == valuesSeries.Count)
-            {
-                // it's first value. Calculate as MA
-                // это первое значение. Рассчитываем как простую машку
-
-                decimal lastMoving = 0;
-
-                for (int i = index; i > valuesSeries.Count - 1 - length; i--)
-                {
-                    lastMoving += valuesSeries[i];
-                }
-                if (lastMoving != 0)
-                {
-                    moving.Add(lastMoving / length);
-                }
-                else
-                {
-                    moving.Add(0);
-                }
-
-            }
-            else
-            {
-                //decimal a = Math.Round(2.0m / (length * 2), 5);
-                decimal a = Math.Round(2.0m / (Lenght + 1), 7);
-
-                decimal lastValueMoving;
-                decimal lastValueSeries = Math.Round(valuesSeries[valuesSeries.Count - 1], 7);
-
-                if (index > moving.Count - 1)
-                {
-                    lastValueMoving = moving[moving.Count - 1];
-                    moving.Add(0);
-                }
-                else
-                {
-                    lastValueMoving = moving[moving.Count - 2];
-                }
-
-                moving[moving.Count - 1] = Math.Round(lastValueMoving + a * (lastValueSeries - lastValueMoving), 7);
-
-            }
-
-            return moving;
-        }
-
         private List<decimal> MovingAverageWild(List<decimal> valuesSeries, List<decimal> moving, int length, int index)
         {
             if (moving == null || length > valuesSeries.Count)
@@ -501,7 +446,5 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             return moving;
         }
-
-
     }
 }

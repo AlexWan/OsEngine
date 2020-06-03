@@ -1,0 +1,13 @@
+﻿<Window x:Class="OsEngine.Charts.CandleChart.Indicators.TickVolumeUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+       Title="Volume" Height="158" Width="285" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Topmost="True" Icon="/Images/OsLogo.ico">
+    <Grid>
+        <Rectangle Margin="5,5,5,37"/>
+        <Button x:Name ="ButtonAccept"  Content="Accept" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="114" Click="ButtonAccept_Click"/>
+        <Button x:Name="ButtonColorUp" Content="Color up" HorizontalAlignment="Left" Margin="21,20,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorUp_Click" />
+        <WindowsFormsHost x:Name="HostColorUp" Height="22" Margin="155,20,19,0" VerticalAlignment="Top"/>
+        <Button x:Name="ButtonColorDown" Content="Color down" HorizontalAlignment="Left" Margin="21,47,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorDown_Click" />
+        <WindowsFormsHost x:Name="HostColorDown" Height="22" Margin="155,47,19,0" VerticalAlignment="Top"/>
+    </Grid>
+</Window>

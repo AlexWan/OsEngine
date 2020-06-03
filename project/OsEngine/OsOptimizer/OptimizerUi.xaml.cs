@@ -1,7 +1,6 @@
 ﻿using OsEngine.Entity;
 using OsEngine.Journal;
 using OsEngine.Language;
-using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels;
@@ -11,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
+using OsEngine.Robots;
 using MessageBox = System.Windows.MessageBox;
 using ProgressBar = System.Windows.Controls.ProgressBar;
 
@@ -26,8 +26,9 @@ namespace OsEngine.OsOptimizer
         {
             InitializeComponent();
 
+            BotFactory.GetNamesStrategyWithParameters();
+
             _master = new OptimizerMaster();
-            _master.StrategyNamesReadyEvent += _master_StrategyNamesReadyEvent;
             _master.StartPaintLog(HostLog);
             _master.NewSecurityEvent += _master_NewSecurityEvent;
             _master.DateTimeStartEndChange += _master_DateTimeStartEndChange;
@@ -119,10 +120,11 @@ namespace OsEngine.OsOptimizer
             CheckBoxFilterMiddleProfitIsOn.Content = OsLocalization.Optimizer.Label26;
             CheckBoxFilterWinPositonIsOn.Content = OsLocalization.Optimizer.Label27;
             CheckBoxFilterProfitFactorIsOn.Content = OsLocalization.Optimizer.Label28;
-            TabItemResults.Header= OsLocalization.Optimizer.Label29;
+            TabItemResults.Header = OsLocalization.Optimizer.Label29;
             Label30.Content = OsLocalization.Optimizer.Label30;
             Label31.Content = OsLocalization.Optimizer.Label31;
             CheckBoxFilterDealsCount.Content = OsLocalization.Optimizer.Label34;
+            ButtonStrategySelect.Content = OsLocalization.Optimizer.Label35;
         }
 
 
@@ -191,8 +193,7 @@ namespace OsEngine.OsOptimizer
         private List<BotPanel> _botsOutOfSample;
 
 
-// work on drawing progress bars
-// работа по рисованию прогресс Баров
+        // work on drawing progress bars / работа по рисованию прогресс Баров
 
         /// <summary>
         /// the user has changed the number of threads that will be optimized
@@ -365,7 +366,7 @@ namespace OsEngine.OsOptimizer
         }
 
 
-// processing controls by clicking on them by the user/обработка контролов по нажатию их пользователем
+        // processing controls by clicking on them by the user/обработка контролов по нажатию их пользователем
 
         /// <summary>
         /// the user has clicked on the start and stop optimization button
@@ -443,7 +444,7 @@ namespace OsEngine.OsOptimizer
                 TextBoxFilterDealsCount.Text = _master.FilterDealsCountValue.ToString();
             }
         }
-        
+
         void CheckBoxFilterIsOn_Click(object sender, RoutedEventArgs e)
         {
             _master.FilterProfitIsOn = CheckBoxFilterProfitIsOn.IsChecked.Value;
@@ -459,14 +460,23 @@ namespace OsEngine.OsOptimizer
             PaintTableTabsSimple();
         }
 
-        void ComboBoxNameStrategyToOptimization_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void ButtonStrategySelect_Click(object sender, RoutedEventArgs e)
         {
-            if(ComboBoxNameStrategyToOptimization.SelectedItem == null)
+            BotCreateUi ui = new BotCreateUi(
+                BotFactory.GetNamesStrategyWithParameters(), BotFactory.GetScriptsNamesStrategy(),
+                StartProgram.IsOsOptimizer);
+
+            ui.ShowDialog();
+
+            if (ui.IsAccepted == false)
             {
                 return;
             }
-            string name = ComboBoxNameStrategyToOptimization.SelectedItem.ToString();
-            _master.StrategyName = name;
+
+            _master.StrategyName = ui.NameStrategy;
+            _master.IsScript = ui.IsScript;
+            TextBoxStrategyName.Text = ui.NameStrategy;
+
             _parameters = _master.Parameters;
             _parametrsActiv = _master.ParametersOn;
             PaintTableTabsSimple();
@@ -483,7 +493,7 @@ namespace OsEngine.OsOptimizer
                     throw new Exception();
                 }
             }
-            catch 
+            catch
             {
                 TextBoxStartPortfolio.Text = _master.StartDepozit.ToString();
                 return;
@@ -497,45 +507,7 @@ namespace OsEngine.OsOptimizer
             _master.ShowDataStorageDialog();
         }
 
-// events from the server
-// события из сервера
-
-        /// <summary>
-        /// inbound event: changed the number of strategies available for optimization
-        /// входящее событие: изменилось кол-во стратегий доступных для оптимизации
-        /// </summary>
-        private void _master_StrategyNamesReadyEvent(List<string> strategy)
-        {
-
-            if (!ComboBoxNameStrategyToOptimization.Dispatcher.CheckAccess())
-            {
-                ComboBoxNameStrategyToOptimization.Dispatcher.Invoke(
-                    new Action<List<string>>(_master_StrategyNamesReadyEvent), strategy);
-                return;
-            }
-
-            if (strategy.Count == ComboBoxNameStrategyToOptimization.Items.Count)
-            {
-                return;
-            }
-
-            _master.SendLogMessage(OsLocalization.Optimizer.Message19 + strategy.Count, LogMessageType.System);
-
-            ComboBoxNameStrategyToOptimization.Items.Clear();
-
-            for (int i = 0; i < strategy.Count; i++)
-            {
-                ComboBoxNameStrategyToOptimization.Items.Add(strategy[i]);
-            }
-            ComboBoxNameStrategyToOptimization.SelectionChanged += ComboBoxNameStrategyToOptimization_SelectionChanged;
-            ComboBoxNameStrategyToOptimization.SelectedItem = _master.StrategyName;
-
-            if (ComboBoxNameStrategyToOptimization.SelectedItem != null)
-            {
-                PaintTableParametrs();
-            }
-
-        }
+        // events from the server / события из сервера
 
         /// <summary>
         /// inbound event: the start or end time of the data in the server has changed
@@ -552,8 +524,7 @@ namespace OsEngine.OsOptimizer
             DatePickerEnd.SelectedDate = _master.TimeEnd;
         }
 
-// Table of Papers and Time Frames for ordinary tabs
-// таблица Бумаг и таймФреймов для обычных вкладок
+        // Table of Papers and Time Frames for ordinary tabs / таблица Бумаг и таймФреймов для обычных вкладок
 
         /// <summary>
         /// table with settings entries for the usual tabs of the robot
@@ -616,7 +587,7 @@ namespace OsEngine.OsOptimizer
 
             List<SecurityTester> securities = _master.SecurityTester;
 
-            if(securities == null)
+            if (securities == null)
             {
                 return;
             }
@@ -678,7 +649,8 @@ namespace OsEngine.OsOptimizer
             int countTab = 0;
             string nameBot = _master.StrategyName;
 
-            BotPanel bot = PanelCreator.GetStrategyForName(nameBot, "",StartProgram.IsOsOptimizer);
+            BotPanel bot = BotFactory.GetStrategyForName(nameBot, "", StartProgram.IsOsOptimizer, _master.IsScript);
+
             if (bot == null)
             {
                 return;
@@ -722,14 +694,14 @@ namespace OsEngine.OsOptimizer
         /// пользователь поменял что-то в таблице обычных вкладок робота
         /// </summary>
         void _grid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
-        
+
         {
             for (int i = 0; i < _gridTableTabsSimple.Rows.Count; i++)
             {
-                if(_gridTableTabsSimple.Rows[i].Cells[1].Value == null ||
+                if (_gridTableTabsSimple.Rows[i].Cells[1].Value == null ||
                     _gridTableTabsSimple.Rows[i].Cells[2].Value == null)
                 {
-                   return;
+                    return;
                 }
             }
 
@@ -749,8 +721,8 @@ namespace OsEngine.OsOptimizer
             _master.TabsSimpleNamesAndTimeFrames = _tabs;
         }
 
-// table of papers and time frames for indexes
-// таблица Бумаг и таймФреймов для индексов
+        // table of papers and time frames for indexes
+        // таблица Бумаг и таймФреймов для индексов
 
         /// <summary>
         /// table with tab settings with indexes
@@ -764,7 +736,7 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         private void CreateTableTabsIndex()
         {
-            _gridTableTabsIndex  = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, DataGridViewAutoSizeRowsMode.None);
+            _gridTableTabsIndex = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, DataGridViewAutoSizeRowsMode.None);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = _gridTableTabsIndex.DefaultCellStyle;
@@ -822,7 +794,8 @@ namespace OsEngine.OsOptimizer
             int countTab = 0;
             string nameBot = _master.StrategyName;
 
-            BotPanel bot = PanelCreator.GetStrategyForName(nameBot, "", StartProgram.IsOsOptimizer);
+            BotPanel bot = BotFactory.GetStrategyForName(nameBot, "", StartProgram.IsOsOptimizer, _master.IsScript);
+
             _master.TabsIndexNamesAndTimeFrames = new List<TabIndexEndTimeFrame>();
 
             if (bot == null)
@@ -882,7 +855,7 @@ namespace OsEngine.OsOptimizer
         }
 
 
-// test phase table/таблица этапов тестирования
+        // test phase table/таблица этапов тестирования
 
         /// <summary>
         /// handler for clicking on the button for creating optimization steps
@@ -980,7 +953,7 @@ namespace OsEngine.OsOptimizer
                 DataGridViewRow row = new DataGridViewRow();
 
                 row.Cells.Add(new DataGridViewTextBoxCell());
-                row.Cells[0].Value = i+1;
+                row.Cells[0].Value = i + 1;
 
                 DataGridViewTextBoxCell cell = new DataGridViewTextBoxCell();
                 cell.Value = fazes[i].TypeFaze;
@@ -1002,7 +975,7 @@ namespace OsEngine.OsOptimizer
             }
         }
 
-// parameter table/таблица параметров
+        // parameter table/таблица параметров
 
         /// <summary>
         /// parameters for optimizing the current robot
@@ -1101,7 +1074,7 @@ namespace OsEngine.OsOptimizer
                 return;
             }
             _gridParametrs.Rows.Clear();
-           
+
             _gridParametrs.CellValueChanged -= _gridParametrs_CellValueChanged;
 
             List<IIStrategyParameter> fazes = _parameters;
@@ -1135,7 +1108,7 @@ namespace OsEngine.OsOptimizer
                 row.Cells.Add(new DataGridViewTextBoxCell());
                 row.Cells[2].Value = _parameters[i].Type;
 
-// default value. For bool and string/значение по умолчанию. Для Булл и Стринг
+                // default value. For bool and string/значение по умолчанию. Для Булл и Стринг
 
                 if (_parameters[i].Type == StrategyParameterType.Bool)
                 {
@@ -1148,7 +1121,7 @@ namespace OsEngine.OsOptimizer
                 else if (_parameters[i].Type == StrategyParameterType.String)
                 {
                     DataGridViewComboBoxCell cell = new DataGridViewComboBoxCell();
-                    StrategyParameterString param = (StrategyParameterString) _parameters[i];
+                    StrategyParameterString param = (StrategyParameterString)_parameters[i];
 
                     for (int i2 = 0; i2 < param.ValuesString.Count; i2++)
                     {
@@ -1168,7 +1141,7 @@ namespace OsEngine.OsOptimizer
                     row.Cells.Add(cell);
                 }
 
-// starting value. For bool and String, the only one is manual! field/стартовое значение. Для Булл и Стринг единственное настрамое вручную! поле
+                // starting value. For bool and String, the only one is manual! field/стартовое значение. Для Булл и Стринг единственное настрамое вручную! поле
                 if (_parameters[i].Type == StrategyParameterType.Bool)
                 {
                     DataGridViewTextBoxCell cell = new DataGridViewTextBoxCell();
@@ -1198,7 +1171,7 @@ namespace OsEngine.OsOptimizer
                     row.Cells.Add(cell);
                 }
 
-// value for increment. For bool and String is not available/значение для приращения. Для Булл и Стринг не доступно
+                // value for increment. For bool and String is not available/значение для приращения. Для Булл и Стринг не доступно
 
                 if (_parameters[i].Type == StrategyParameterType.Bool)
                 {
@@ -1225,7 +1198,7 @@ namespace OsEngine.OsOptimizer
                     row.Cells.Add(cell);
                 }
 
-// value for the final element of the collection. For bool and String is not available/значение для завершающего элемента коллекции. Для Булл и Стринг не доступно
+                // value for the final element of the collection. For bool and String is not available/значение для завершающего элемента коллекции. Для Булл и Стринг не доступно
 
                 if (_parameters[i].Type == StrategyParameterType.Bool)
                 {
@@ -1368,7 +1341,7 @@ namespace OsEngine.OsOptimizer
             SaveParamsFromTable();
         }
 
-// phase table for switching after testing/таблица фаз для переключения после тестирования
+        // phase table for switching after testing/таблица фаз для переключения после тестирования
 
         /// <summary>
         /// table with optimization steps on the totals tab
@@ -1492,7 +1465,7 @@ namespace OsEngine.OsOptimizer
         }
 
 
-// optimization results table/таблица результатов оптимизации
+        // optimization results table/таблица результатов оптимизации
 
         /// <summary>
         /// table with optimization steps
@@ -1679,7 +1652,7 @@ namespace OsEngine.OsOptimizer
                 _sortBotsType = SortBotsType.MiddleProfit;
                 PaintTableResults();
             }
-            
+
         }
 
         /// <summary>
@@ -1694,13 +1667,13 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         void _gridResults_CellMouseClick(object sender, DataGridViewCellMouseEventArgs e)
         {
-            if (e.RowIndex<0)
+            if (e.RowIndex < 0)
             {
                 return;
             }
 
             if (e.ColumnIndex != 3 &&
-                e.ColumnIndex != 4 && 
+                e.ColumnIndex != 4 &&
                 e.ColumnIndex != 5)
             {
                 return;
@@ -1728,7 +1701,7 @@ namespace OsEngine.OsOptimizer
                 {
                     for (int i2 = 1; i2 < bots.Count; i2++)
                     {
-                        if (bots[i2].TotalProfitInPersent > bots[i2-1].TotalProfitInPersent)
+                        if (bots[i2].TotalProfitInPersent > bots[i2 - 1].TotalProfitInPersent)
                         {
                             BotPanel bot = bots[i2];
                             bots[i2] = bots[i2 - 1];
@@ -1769,27 +1742,27 @@ namespace OsEngine.OsOptimizer
 
                 List<Journal.Journal> journals = bots[e.RowIndex].GetJournals();
 
-                    if (journals == null)
-                    {
-                       return;
-                    }
+                if (journals == null)
+                {
+                    return;
+                }
 
-                    BotPanelJournal botPanel = new BotPanelJournal();
-                    botPanel.BotName = bots[e.RowIndex].NameStrategyUniq;
-                    botPanel._Tabs = new List<BotTabJournal>();
+                BotPanelJournal botPanel = new BotPanelJournal();
+                botPanel.BotName = bots[e.RowIndex].NameStrategyUniq;
+                botPanel._Tabs = new List<BotTabJournal>();
 
-                    for (int i2 = 0; journals != null && i2 < journals.Count; i2++)
-                    {
-                        BotTabJournal botTabJournal = new BotTabJournal();
-                        botTabJournal.TabNum = i2;
-                        botTabJournal.Journal = journals[i2];
-                        botPanel._Tabs.Add(botTabJournal);
-                    }
+                for (int i2 = 0; journals != null && i2 < journals.Count; i2++)
+                {
+                    BotTabJournal botTabJournal = new BotTabJournal();
+                    botTabJournal.TabNum = i2;
+                    botTabJournal.Journal = journals[i2];
+                    botPanel._Tabs.Add(botTabJournal);
+                }
 
-                    panelsJournal.Add(botPanel);
-                
+                panelsJournal.Add(botPanel);
 
-                _journalUi = new JournalUi(panelsJournal,StartProgram.IsOsOptimizer);
+
+                _journalUi = new JournalUi(panelsJournal, StartProgram.IsOsOptimizer);
                 _journalUi.Closed += _journalUi_Closed;
                 _journalUi.Show();
             }
@@ -1814,7 +1787,6 @@ namespace OsEngine.OsOptimizer
             _journalUi.IsErase = true;
             _journalUi = null;
         }
-
     }
 
     /// <summary>
