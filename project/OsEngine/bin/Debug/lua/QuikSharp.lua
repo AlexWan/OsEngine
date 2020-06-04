@@ -4,45 +4,49 @@
 function is_quik()
     if getScriptPath then return true else return false end
 end
+
+quikVersion = nil
+
 script_path = "."
+
 if is_quik() then
     script_path = getScriptPath()
+    
+	quikVersion = getInfoParam("VERSION")
 
-	-- Получаем текущюю версию Quik
-	local qver = getInfoParam("VERSION")
-
-	-- Если запрос выполнен удачно, - выделим номер версии
-	if qver ~= nil then
-		qver = tonumber(qver:match("%d+"))
+	if quikVersion ~= nil then
+		quikVersion = tonumber(quikVersion:match("%d+%.%d+"))
 	end
 
-	-- Если преобразование выполнено корректно, - определяем папку хранения библиотек
-	if qver == nil then
-		message("QuikSharp! Не удалось определить версию QUIK", 3)
+	if quikVersion == nil then
+		message("QUIK# cannot detect QUIK version", 3)
 		return
 	else
 		libPath = "\\clibs"
 	end
-
-	-- Если версия Quik 8 и выше, добавляем к наименованию папки 64, иначе оставляем существующий путь
-	if qver >= 8 then
-		libPath = libPath .. "64\\"
+    
+    -- MD dynamic, requires MSVCRT
+    -- MT static, MSVCRT is linked statically with luasocket
+    -- package.cpath contains info.exe working directory, which has MSVCRT, so MT should not be needed in theory, 
+    -- but in one issue someone said it doesn't work on machines that do not have Visual Studio. 
+    local linkage = "MD"
+    
+	if quikVersion >= 8.5 then
+        libPath = libPath .. "64\\53_"..linkage.."\\"
+	elseif quikVersion >= 8 then
+        libPath = libPath .. "64\\5.1_"..linkage.."\\"
 	else
-		libPath = "\\clibs\\"
+		libPath = "\\clibs\\5.1_"..linkage.."\\"
 	end
-
-	-- Если версия Quik 7 будет загружена существующая WIN32 библиотека 
-	-- Если версия Quik 8 будет загружена WIN64 библиотека, - которую нужно положить в папку clibs64  
-	package.loadlib(getScriptPath()  .. libPath .. "lua51.dll", "main")
-	--package.loadlib(getScriptPath()  .. "\\clibs\\lua51.dll", "main")
 end
 package.path = package.path .. ";" .. script_path .. "\\?.lua;" .. script_path .. "\\?.luac"..";"..".\\?.lua;"..".\\?.luac"
---package.cpath = package.cpath .. ";" .. script_path .. '\\clibs\\?.dll'..";"..'.\\clibs\\?.dll'
 package.cpath = package.cpath .. ";" .. script_path .. libPath .. '?.dll'..";".. '.' .. libPath .. '?.dll'
 
 local util = require("qsutils")
 local qf = require("qsfunctions")
 require("qscallbacks")
+
+log("Detected Quik version: ".. quikVersion .." and using cpath: "..package.cpath  , 0)
 
 local is_started = true
 
@@ -81,7 +85,7 @@ function main()
 end
 
 if not is_quik() then
-    log("Hello, QuikSharp! Running outside Quik.")
+    log("Hello, QUIK#! Running outside Quik.")
     do_main()
     logfile:close()
 end
