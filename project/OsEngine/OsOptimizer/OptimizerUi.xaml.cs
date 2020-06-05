@@ -26,7 +26,7 @@ namespace OsEngine.OsOptimizer
         {
             InitializeComponent();
 
-            BotFactory.GetNamesStrategyWithParameters();
+            BotFactory.GetNamesStrategy();
 
             _master = new OptimizerMaster();
             _master.StartPaintLog(HostLog);
@@ -463,7 +463,7 @@ namespace OsEngine.OsOptimizer
         private void ButtonStrategySelect_Click(object sender, RoutedEventArgs e)
         {
             BotCreateUi ui = new BotCreateUi(
-                BotFactory.GetNamesStrategyWithParameters(), BotFactory.GetScriptsNamesStrategy(),
+                BotFactory.GetNamesStrategy(), BotFactory.GetScriptsNamesStrategy(),
                 StartProgram.IsOsOptimizer);
 
             ui.ShowDialog();

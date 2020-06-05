@@ -50,8 +50,6 @@ namespace OsEngine.OsOptimizer
 
             _fazeCount = 1;
 
-            SendLogMessage(OsLocalization.Optimizer.Message11, LogMessageType.System);
-
             _optimizerExecutor = new OptimizerExecutor(this);
             _optimizerExecutor.LogMessageEvent += SendLogMessage;
             _optimizerExecutor.TestingProgressChangeEvent += _optimizerExecutor_TestingProgressChangeEvent;
