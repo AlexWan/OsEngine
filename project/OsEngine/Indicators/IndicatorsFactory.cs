@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Windows;
 using Microsoft.CSharp;
+using OsEngine.Entity;
 
 namespace OsEngine.Indicators
 {
@@ -155,11 +156,20 @@ namespace OsEngine.Indicators
                 });
 
                 CompilerParameters cp = new CompilerParameters(res);
-
                 cp.IncludeDebugInformation = true;
-
                 cp.GenerateInMemory = true;
                 cp.TempFiles.KeepFiles = false;
+                
+
+               /* string folderCur = AppDomain.CurrentDomain.BaseDirectory + "Engine\\Temp";
+
+                if (Directory.Exists(folderCur) == false)
+                {
+                    Directory.CreateDirectory(folderCur);
+                }
+
+                cp.OutputAssembly = folderCur + "\\tempInd" + nameClass +
+                                    NumberGen.GetNumberDeal(StartProgram.IsOsTrader);*/
 
                 CompilerResults results = prov.CompileAssemblyFromSource(cp, fileStr);
 

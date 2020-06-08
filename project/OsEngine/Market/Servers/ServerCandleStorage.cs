@@ -90,7 +90,7 @@ namespace OsEngine.Market.Servers
             {
                 try
                 {
-                    Thread.Sleep(15000);
+                    Thread.Sleep(60000);
 
                     if (MainWindow.ProccesIsWorked == false)
                     {
