@@ -37,6 +37,8 @@ using OsEngine.Market.Servers.Tester;
 using OsEngine.Market.Servers.Transaq;
 using OsEngine.Market.Servers.ZB;
 using OsEngine.Market.Servers.Hitbtc;
+using OsEngine.Market.Servers.Huobi.Futures;
+using OsEngine.Market.Servers.Huobi.Spot;
 using OsEngine.Market.Servers.MFD;
 using OsEngine.Market.Servers.MOEX;
 using OsEngine.Market.Servers.Tinkoff;
@@ -92,6 +94,8 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Exmo);
                 serverTypes.Add(ServerType.Zb);
                 serverTypes.Add(ServerType.Hitbtc);
+                serverTypes.Add(ServerType.HuobiSpot);
+                serverTypes.Add(ServerType.HuobiFutures);
 
                 serverTypes.Add(ServerType.InteractivBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
@@ -188,6 +192,14 @@ namespace OsEngine.Market
                 }
 
                 IServer newServer = null;
+                if (type == ServerType.HuobiFutures)
+                {
+                    newServer = new HuobiFuturesServer();
+                }
+                if (type == ServerType.HuobiSpot)
+                {
+                    newServer = new HuobiSpotServer();
+                }
                 if (type == ServerType.MfdWeb)
                 {
                     newServer = new MfdServer();
@@ -874,6 +886,13 @@ namespace OsEngine.Market
         /// MFD web server
         /// </summary>
         MfdWeb,
+
+        /// <summary>
+        /// Huobi
+        /// </summary>
+        HuobiSpot,
+
+        HuobiFutures,
     }
 
 }
