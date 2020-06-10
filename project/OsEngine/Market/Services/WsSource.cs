@@ -52,7 +52,7 @@ namespace OsEngine.Market.Services
 
         private void WsClientOnDataReceived(object sender, DataReceivedEventArgs e)
         {
-            MessageEvent?.Invoke(WsMessageType.ByteData, e.Data.ToString());
+            ByteDataEvent?.Invoke(WsMessageType.ByteData, e.Data);
         }
 
         private void WsClientOnMessageReceived(object sender, MessageReceivedEventArgs e)
@@ -95,6 +95,8 @@ namespace OsEngine.Market.Services
         }
 
         public event Action<WsMessageType, string> MessageEvent;
+
+        public event Action<WsMessageType, byte[]> ByteDataEvent;
     }
 
     public enum WsMessageType
