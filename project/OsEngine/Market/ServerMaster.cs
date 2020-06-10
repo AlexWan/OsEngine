@@ -435,6 +435,30 @@ namespace OsEngine.Market
 
                 return serverPermission;
             }
+            if (type == ServerType.HuobiSpot)
+            {
+                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
+
+                if (serverPermission == null)
+                {
+                    serverPermission = new HuobiSpotServerPermission();
+                    _serversPermissions.Add(serverPermission);
+                }
+
+                return serverPermission;
+            }
+            if (type == ServerType.HuobiFutures)
+            {
+                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
+
+                if (serverPermission == null)
+                {
+                    serverPermission = new HuobiFuturesServerPermission();
+                    _serversPermissions.Add(serverPermission);
+                }
+
+                return serverPermission;
+            }
 
             return null;
         }

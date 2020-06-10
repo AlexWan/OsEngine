@@ -305,15 +305,7 @@ namespace OsEngine.Indicators
 
         public void ShowDialog()
         {
-            AIndicatorUi ui = new AIndicatorUi(this);
-            ui.ShowDialog();
 
-            if (ui.IsAccepted)
-            {
-                Reload();
-
-                Save();
-            }
         }
 
         #region встроенные индикаторы для прогрузки свечками

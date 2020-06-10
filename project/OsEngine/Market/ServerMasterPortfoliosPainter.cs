@@ -329,20 +329,32 @@ namespace OsEngine.Market
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[nRow.Cells.Count - 1].Value = "Нет позиций";
+                    nRow.Cells[nRow.Cells.Count - 1].Value = "No positions";
 
                     _gridPosition.Rows.Add(nRow);
                 }
                 else
                 {
+                    bool havePoses = false;
+
                     for (int i = 0; i < positionsOnBoard.Count; i++)
                     {
+                        PositionOnBoard pos = positionsOnBoard[i];
+
+                        if (positionsOnBoard[i].SecurityNameCode == "usdt")
+                        {
+
+                        }
+
+
                         if (positionsOnBoard[i].ValueBegin == 0 &&
                             positionsOnBoard[i].ValueCurrent == 0 &&
                             positionsOnBoard[i].ValueBlocked == 0)
                         {
                             continue;
                         }
+
+                        havePoses = true;
                         DataGridViewRow nRow = new DataGridViewRow();
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
@@ -360,6 +372,19 @@ namespace OsEngine.Market
 
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
                         nRow.Cells[7].Value = positionsOnBoard[i].ValueBlocked.ToString().ToDecimal();
+
+                        _gridPosition.Rows.Add(nRow);
+                    }
+
+                    if (havePoses == false)
+                    {
+                        DataGridViewRow nRow = new DataGridViewRow();
+                        nRow.Cells.Add(new DataGridViewTextBoxCell());
+                        nRow.Cells.Add(new DataGridViewTextBoxCell());
+                        nRow.Cells.Add(new DataGridViewTextBoxCell());
+                        nRow.Cells.Add(new DataGridViewTextBoxCell());
+                        nRow.Cells.Add(new DataGridViewTextBoxCell());
+                        nRow.Cells[nRow.Cells.Count - 1].Value = "No positions";
 
                         _gridPosition.Rows.Add(nRow);
                     }

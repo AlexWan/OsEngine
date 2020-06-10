@@ -1,19 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OsEngine.Market.Servers.MFD
+﻿namespace OsEngine.Market.Servers.Huobi.Spot
 {
-    public class MfdServerPermission : IServerPermission
+    public class HuobiSpotServerPermission : IServerPermission
     {
         public ServerType ServerType
         {
-            get { return ServerType.MfdWeb; }
+            get { return ServerType.HuobiSpot; }
         }
 
         #region DataFeedPermissions
+
         public bool DataFeedTf1SecondCanLoad
         {
             get { return false; }
@@ -56,7 +51,7 @@ namespace OsEngine.Market.Servers.MFD
         }
         public bool DataFeedTf10MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf15MinuteCanLoad
         {
@@ -76,26 +71,22 @@ namespace OsEngine.Market.Servers.MFD
         }
         public bool DataFeedTf4HourCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
         public bool DataFeedTfTickCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTfMarketDepthCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion
-
-        #region Trade permission
 
         public bool IsTradeServer
         {
-            get { return false; }
+            get { return true; }
         }
-
-        #endregion
     }
 }

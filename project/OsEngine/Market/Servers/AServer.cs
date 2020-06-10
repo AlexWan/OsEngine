@@ -609,6 +609,12 @@ namespace OsEngine.Market.Servers
                         SendLogMessage(OsLocalization.Market.Message8, LogMessageType.System);
                         ServerRealization.Dispose();
 
+                        if (Portfolios != null &&
+                            Portfolios.Count != 0)
+                        {
+                            Portfolios.Clear();
+                        }
+
                         if (_candleManager != null)
                         {
                             _candleManager.Dispose();

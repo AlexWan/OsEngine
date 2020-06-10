@@ -486,7 +486,8 @@
     <Compile Include="Market\Servers\Huobi\Futures\Entities\PlaceFuturesOrderResponse.cs" />
     <Compile Include="Market\Servers\Huobi\Futures\Entities\TradeInfo.cs" />
     <Compile Include="Market\Servers\Huobi\Futures\HuobiFuturesServer.cs" />
-    <Compile Include="Market\Servers\Huobi\Futures\HuobiFuturesServerRealization.cs" />
+    <Compile Include="Market\Servers\Huobi\Futures\HuobiFuturesServerPermission.cs" />
+    <Compile Include="Market\Servers\Huobi\Spot\HuobiSpotServerPermission.cs" />
     <Compile Include="Market\Servers\Huobi\Request\GetRequest.cs" />
     <Compile Include="Market\Servers\Huobi\Request\PrivateUrlBuilder.cs" />
     <Compile Include="Market\Servers\Huobi\Request\PublicUrlBuilder.cs" />
@@ -500,7 +501,6 @@
     <Compile Include="Market\Servers\Huobi\Response\SubscribeDepthResponse.cs" />
     <Compile Include="Market\Servers\Huobi\Response\SubscribeTradeResponse.cs" />
     <Compile Include="Market\Servers\Huobi\Response\WebSocketResponseBase.cs" />
-    <Compile Include="Market\Servers\Huobi\Spot\HuobiServerRealization.cs" />
     <Compile Include="Market\Servers\Huobi\Spot\HuobiSpotSecurityCreator.cs" />
     <Compile Include="Market\Servers\Huobi\Spot\HuobiSpotServer.cs" />
     <Compile Include="Market\Servers\InteractivBrokers\IbClient.cs" />
