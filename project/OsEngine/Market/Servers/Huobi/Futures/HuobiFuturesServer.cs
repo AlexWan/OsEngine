@@ -52,8 +52,6 @@ namespace OsEngine.Market.Servers.Huobi.Futures
         private readonly string _host;
         private readonly string _path;
 
-        private readonly HuobiSpotSecurityCreator _securityCreator;
-
         /// <summary>
         /// словарь таймфреймов, поддерживаемых этой биржей
         /// </summary>
@@ -70,8 +68,6 @@ namespace OsEngine.Market.Servers.Huobi.Futures
 
             _host = host;
             _path = path;
-
-            _securityCreator = new HuobiSpotSecurityCreator();
         }
 
         //1min, 5min, 15min, 30min, 60min, 4hour, 1day, 1mon, 1week, 1year
@@ -221,7 +217,7 @@ namespace OsEngine.Market.Servers.Huobi.Futures
                             }
                             else if (channel == "auth")
                             {
-                                SendLogMessage("Успешная аутентификация в системе", LogMessageType.Connect);
+                                SendLogMessage("Successful authentication in the system", LogMessageType.Connect);
                             }
                             else if (channel == "notify")
                             {
@@ -343,6 +339,7 @@ namespace OsEngine.Market.Servers.Huobi.Futures
 
         private async void MarketDataReader(CancellationToken token)
         {
+            _lastTimeUpdateSocket = DateTime.MinValue;
             while (!token.IsCancellationRequested)
             {
                 try
@@ -357,7 +354,6 @@ namespace OsEngine.Market.Servers.Huobi.Futures
 
                             if (pingMessage != null && pingMessage.ping != 0)
                             {
-                                _lastTimeUpdateSocket = DateTime.Now;
                                 string pongData = $"{{\"pong\":{pingMessage.ping}}}";
                                 _marketDataSource.SendMessage(pongData);
                             }
@@ -644,11 +640,17 @@ namespace OsEngine.Market.Servers.Huobi.Futures
 
                 string result = response.Content.ReadAsStringAsync().Result;
 
+                if (result.Contains("Incorrect Access key"))
+                {
+                    SendLogMessage("Huobi: Incorrect Access API key",LogMessageType.Error);
+                    return;
+                }
+
                 FuturesAccountInfo accountInfo = JsonConvert.DeserializeObject<FuturesAccountInfo>(result);
 
                 portfolio.ClearPositionOnBoard();
 
-                for (int i = 0; i < accountInfo.data.Count; i++)
+                for (int i = 0; accountInfo.data != null && i < accountInfo.data.Count; i++)
                 {
                     var currentData = accountInfo.data[i];
 
@@ -694,7 +696,14 @@ namespace OsEngine.Market.Servers.Huobi.Futures
             jsonContent.Add("direction", order.Side == Side.Buy ? "buy" : "sell");
 
             // если ордер открывающий позицию - тут "open", если закрывающий - "close"
-            jsonContent.Add("offset", "open");
+            if (order.PositionConditionType == OrderPositionConditionType.Close)
+            {
+                jsonContent.Add("offset", "close");
+            }
+            else
+            {
+                jsonContent.Add("offset", "open");
+            }
 
             jsonContent.Add("lever_rate", "10");
             jsonContent.Add("order_price_type", "limit");
@@ -818,7 +827,7 @@ namespace OsEngine.Market.Servers.Huobi.Futures
 
                 List<Candle> newCandles = GetCandles(oldInterval, security.Name, actualTime, midTime);
 
-                if (candles.Count != 0 && newCandles.Count != 0)
+                if (candles.Count != 0 && newCandles != null && newCandles.Count != 0)
                 {
                     for (int i = 0; i < newCandles.Count; i++)
                     {

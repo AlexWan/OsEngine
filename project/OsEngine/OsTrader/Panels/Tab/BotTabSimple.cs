@@ -2384,7 +2384,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
 
                 Order newOrder = _dealCreator.CreateOrder(Side.Sell, price, volume, OrderPriceType.Limit,
-                    ManualPositionSupport.SecondToOpen,StartProgram);
+                    ManualPositionSupport.SecondToOpen,StartProgram,OrderPositionConditionType.Open);
                 newOrder.IsStopOrProfit = isStopOrProfit;
                 newOrder.LifeTime = timeLife;
                 position.AddNewOpenOrder(newOrder);
@@ -2503,7 +2503,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 Order newOrder = _dealCreator.CreateOrder(Side.Buy, price, volume, OrderPriceType.Limit,
-                    ManualPositionSupport.SecondToOpen,StartProgram);
+                    ManualPositionSupport.SecondToOpen,StartProgram,OrderPositionConditionType.Open);
                 newOrder.IsStopOrProfit = isStopOrProfit;
                 newOrder.LifeTime = timeLife;
                 position.AddNewOpenOrder(newOrder);

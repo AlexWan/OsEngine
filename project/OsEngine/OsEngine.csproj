@@ -478,6 +478,8 @@
     <Compile Include="Market\Servers\Huobi\Entities\GetAccountBalanceResponse.cs" />
     <Compile Include="Market\Servers\Huobi\Entities\GetAccountInfoResponse.cs" />
     <Compile Include="Market\Servers\Huobi\Entities\GetSymbolsResponse.cs" />
+    <Compile Include="Market\Servers\Huobi\FuturesSwap\HuobiFuturesSwapServer.cs" />
+    <Compile Include="Market\Servers\Huobi\FuturesSwap\HuobiFuturesSwapServerPermission.cs" />
     <Compile Include="Market\Servers\Huobi\Futures\Entities\CancelFuturesOrderResponse.cs" />
     <Compile Include="Market\Servers\Huobi\Futures\Entities\FuturesAccountInfo.cs" />
     <Compile Include="Market\Servers\Huobi\Futures\Entities\FuturesPing.cs" />
@@ -1417,6 +1419,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\MainWIndow\gear.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Market\Servers\Huobi\FuturesSwap\Entities\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -25,6 +25,7 @@ using OsEngine.Market.Servers.Transaq;
 using OsEngine.Market.Servers.ZB;
 using OsEngine.Market.Servers.Hitbtc;
 using OsEngine.Market.Servers.Huobi.Futures;
+using OsEngine.Market.Servers.Huobi.FuturesSwap;
 using OsEngine.Market.Servers.Huobi.Spot;
 using OsEngine.Market.Servers.Tinkoff;
 
@@ -581,7 +582,7 @@ namespace OsEngine.Entity
                         }
                         else if (serverType == ServerType.HuobiFutures)
                         {
-                            HuobiFuturesServer huobiSpot = (HuobiFuturesServer)_server;
+                            HuobiFuturesServer huobi = (HuobiFuturesServer)_server;
                             if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
                                 series.TimeFrameSpan.TotalMinutes < 1)
                             {
@@ -590,7 +591,28 @@ namespace OsEngine.Entity
                             }
                             else
                             {
-                                List<Candle> candles = huobiSpot.GetCandleHistory(series.Security.Name,
+                                List<Candle> candles = huobi.GetCandleHistory(series.Security.Name,
+                                    series.TimeFrameSpan);
+                                if (candles != null)
+                                {
+                                    series.CandlesAll = candles;
+                                }
+                            }
+                            series.UpdateAllCandles();
+                            series.IsStarted = true;
+                        }
+                        else if (serverType == ServerType.HuobiFuturesSwap)
+                        {
+                            HuobiFuturesSwapServer huobi = (HuobiFuturesSwapServer)_server;
+                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
+                                series.TimeFrameSpan.TotalMinutes < 1)
+                            {
+                                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
+                                series.PreLoad(allTrades);
+                            }
+                            else
+                            {
+                                List<Candle> candles = huobi.GetCandleHistory(series.Security.Name,
                                     series.TimeFrameSpan);
                                 if (candles != null)
                                 {
