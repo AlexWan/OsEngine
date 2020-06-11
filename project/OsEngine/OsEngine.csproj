@@ -663,6 +663,7 @@
     <Compile Include="Robots\CounterTrend\ClusterCountertrend.cs" />
     <Compile Include="Robots\Engines\CandleEngine.cs" />
     <Compile Include="Robots\Engines\ClusterEngine.cs" />
+    <Compile Include="Robots\HammerBot\RobotHammer.cs" />
     <Compile Include="Robots\High Frequency\Fisher.cs" />
     <Compile Include="Robots\High Frequency\HighFrequencyTrader.cs" />
     <Compile Include="Robots\MarketMaker\PairTraderSimple.cs" />
@@ -682,6 +683,7 @@
     <Compile Include="Robots\OnScriptIndicators\PriceChannelVolatility.cs" />
     <Compile Include="Robots\OnScriptIndicators\RsiTrade.cs" />
     <Compile Include="Robots\OnScriptIndicators\RviTrade.cs" />
+    <Compile Include="Robots\Soldier\SoldierBot.cs" />
     <Compile Include="Robots\Trend\EnvelopTrend.cs" />
     <Compile Include="Robots\Trend\MomentumMacd.cs" />
     <Compile Include="Robots\MarketMaker\PairTraderSpreadSma.cs" />
@@ -1374,6 +1376,7 @@
   <ItemGroup>
     <Resource Include="Images\MainWIndow\gear.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

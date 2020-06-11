@@ -24,6 +24,7 @@ using OsEngine.Robots.Trend;
 using OsEngine.Robots.OnScriptIndicators;
 using System.Runtime;
 using OsEngine.Robots.HammerBot;
+using OsEngine.Robots.Soldier;
 
 namespace OsEngine.Robots
 {
@@ -36,6 +37,7 @@ namespace OsEngine.Robots
         public static List<string> GetNamesStrategy()
         {
             List<string> result = new List<string>();
+            result.Add("SoldierBot");
             result.Add("HammerBot");
             result.Add("Fisher");
             result.Add("Engine");
@@ -114,7 +116,10 @@ namespace OsEngine.Robots
                 return bot;
             }
 
-
+            if (nameClass == "SoldierBot")
+            {
+                bot = new SoldierBot(name, startProgram);
+            }
             if (nameClass == "HammerBot")
             {
                 bot = new RobotHammer(name, startProgram);
