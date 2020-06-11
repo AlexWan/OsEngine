@@ -293,6 +293,28 @@ namespace OsEngine.Market.Servers.Huobi.Futures
 
         #region Разбор рыночных данных
 
+        private DateTime _lastTimeUpdateSocket;
+
+        private async void SourceAliveCheckerThread(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested)
+            {
+                await Task.Delay(200);
+                if (_lastTimeUpdateSocket == DateTime.MinValue)
+                {
+                    continue;
+                }
+
+                if (_lastTimeUpdateSocket.AddSeconds(60) < DateTime.Now)
+                {
+                    SendLogMessage("The websocket is disabled. Restart", LogMessageType.Error);
+                    Dispose();
+                    OnDisconnectEvent();
+                    return;
+                }
+            }
+        }
+
         private void MarketDataSourceOnMessageEvent(WsMessageType msgType, byte[] data)
         {
             switch (msgType)
@@ -316,6 +338,7 @@ namespace OsEngine.Market.Servers.Huobi.Futures
         private void StartMarketDataReader()
         {
             Task.Run(() => MarketDataReader(_cancelTokenSource.Token), _cancelTokenSource.Token);
+            Task.Run(() => SourceAliveCheckerThread(_cancelTokenSource.Token), _cancelTokenSource.Token);
         }
 
         private async void MarketDataReader(CancellationToken token)
@@ -334,6 +357,7 @@ namespace OsEngine.Market.Servers.Huobi.Futures
 
                             if (pingMessage != null && pingMessage.ping != 0)
                             {
+                                _lastTimeUpdateSocket = DateTime.Now;
                                 string pongData = $"{{\"pong\":{pingMessage.ping}}}";
                                 _marketDataSource.SendMessage(pongData);
                             }
@@ -345,8 +369,8 @@ namespace OsEngine.Market.Servers.Huobi.Futures
 
                                     if (channel == "trade")
                                     {
+                                        _lastTimeUpdateSocket = DateTime.Now;
                                         var response = JsonConvert.DeserializeObject<TradeInfo>(mes);
-
                                         foreach (var trade in CreateTrades(security, response))
                                         {
                                             OnTradeEvent(trade);
@@ -354,8 +378,8 @@ namespace OsEngine.Market.Servers.Huobi.Futures
                                     }
                                     else if (channel == "depth")
                                     {
+                                        _lastTimeUpdateSocket = DateTime.Now;
                                         var response = JsonConvert.DeserializeObject<SubscribeDepthResponse>(mes);
-
                                         OnMarketDepthEvent(CreateMarketDepth(security, response));
                                     }
                                 }
@@ -630,6 +654,7 @@ namespace OsEngine.Market.Servers.Huobi.Futures
 
                     PositionOnBoard pos = new PositionOnBoard();
                     pos.SecurityNameCode = currentData.symbol;
+                    pos.ValueBegin = currentData.margin_available;
                     pos.ValueCurrent = currentData.margin_available;
                     pos.ValueBlocked = currentData.margin_frozen;
 

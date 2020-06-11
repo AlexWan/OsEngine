@@ -69,7 +69,9 @@ namespace OsEngine.Entity
                 {
                     if (_positionOnBoard[i].SecurityNameCode == position.SecurityNameCode)
                     {
-                        _positionOnBoard[i] = position;
+                        _positionOnBoard[i].ValueCurrent = position.ValueCurrent;
+                        _positionOnBoard[i].ValueBlocked = position.ValueBlocked;
+
                         return;
                     }
                 }
