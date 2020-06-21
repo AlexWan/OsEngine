@@ -1173,7 +1173,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
         /// <param name="e"></param>
         private void WsError(object sender, EventArgs e)
         {
-            if (e.ToString().Contains("Unknown order send"))
+            if (e.ToString().Contains("Unknown order"))
             {
                 return;
             }
