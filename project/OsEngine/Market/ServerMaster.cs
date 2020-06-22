@@ -44,6 +44,7 @@ using OsEngine.Market.Servers.MFD;
 using OsEngine.Market.Servers.MOEX;
 using OsEngine.Market.Servers.Tinkoff;
 using MessageBox = System.Windows.MessageBox;
+using OsEngine.Market.Servers.GateIo.Futures;
 
 namespace OsEngine.Market
 {
@@ -84,6 +85,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.MfdWeb);
 
                 serverTypes.Add(ServerType.GateIo);
+                serverTypes.Add(ServerType.GateIoFutures);
                 serverTypes.Add(ServerType.BitMax);
                 serverTypes.Add(ServerType.Binance);
                 serverTypes.Add(ServerType.BinanceFutures);
@@ -225,6 +227,10 @@ namespace OsEngine.Market
                 if (type == ServerType.GateIo)
                 {
                     newServer = new GateIoServer();
+                }
+                if (type == ServerType.GateIoFutures)
+                {
+                    newServer = new GateIoFuturesServer();
                 }
                 if (type == ServerType.Zb)
                 {
@@ -477,7 +483,19 @@ namespace OsEngine.Market
 
                 return serverPermission;
             }
-            
+            if (type == ServerType.GateIoFutures)
+            {
+                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
+
+                if (serverPermission == null)
+                {
+                    serverPermission = new GateIoFuturesServerPermission();
+                    _serversPermissions.Add(serverPermission);
+                }
+
+                return serverPermission;
+            }
+
 
             return null;
         }
@@ -776,6 +794,12 @@ namespace OsEngine.Market
         /// биржа криптовалют Gate.io
         /// </summary>
         GateIo,
+
+        /// <summary>
+        /// Futures of cryptocurrency exchange Gate.io
+        /// Фьючерсы биржи криптовалют Gate.io
+        /// </summary>
+        GateIoFutures,
 
         /// <summary>
         /// cryptocurrency exchange ZB
