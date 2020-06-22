@@ -28,6 +28,7 @@ using OsEngine.Market.Servers.Huobi.Futures;
 using OsEngine.Market.Servers.Huobi.FuturesSwap;
 using OsEngine.Market.Servers.Huobi.Spot;
 using OsEngine.Market.Servers.Tinkoff;
+using OsEngine.Market.Servers.GateIo.Futures;
 
 namespace OsEngine.Entity
 {
@@ -530,6 +531,27 @@ namespace OsEngine.Entity
                             {
                                 List<Candle> candles = gateIoServer.GetCandleHistory(series.Security.Name, series.TimeFrameSpan);
 
+                                if (candles != null)
+                                {
+                                    series.CandlesAll = candles;
+                                }
+                            }
+                            series.UpdateAllCandles();
+                            series.IsStarted = true;
+                        }
+                        else if (serverType == ServerType.GateIoFutures)
+                        {
+                            GateIoFuturesServer gateIoFutures = (GateIoFuturesServer)_server;
+                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
+                                series.TimeFrameSpan.TotalMinutes < 1)
+                            {
+                                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
+                                series.PreLoad(allTrades);
+                            }
+                            else
+                            {
+                                List<Candle> candles = gateIoFutures.GetCandleHistory(series.Security.Name,
+                                    series.TimeFrameSpan);
                                 if (candles != null)
                                 {
                                     series.CandlesAll = candles;
