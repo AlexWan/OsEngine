@@ -70,9 +70,15 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             column4.CellTemplate = cell0;
             column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             column4.ReadOnly = false;
-            // column1.Width = 150;
             column4.HeaderText = OsLocalization.Market.Label46;
             _grid.Columns.Add(column4);
+
+            DataGridViewColumn column5 = new DataGridViewColumn();
+            column5.CellTemplate = cell0;
+            column5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            column5.ReadOnly = false;
+            column5.HeaderText = OsLocalization.Market.Label60;
+            _grid.Columns.Add(column5);
 
 
             _grid.Rows.Add(null, null);
@@ -125,6 +131,13 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[4].Value = SecToSubscrible[i].PrimaryExch;
 
+                DataGridViewComboBoxCell cell = new DataGridViewComboBoxCell();
+                cell.Items.Add(true.ToString());
+                cell.Items.Add(false.ToString());
+                cell.Value = SecToSubscrible[i].CreateMarketDepthFromTrades.ToString();
+
+                nRow.Cells.Add(cell);
+
                 _grid.Rows.Add(nRow);
             }
         }
@@ -146,10 +159,9 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 security.SecType = Convert.ToString(_grid.Rows[i].Cells[2].Value);
                 security.LocalSymbol = Convert.ToString(_grid.Rows[i].Cells[3].Value);
                 security.PrimaryExch = Convert.ToString(_grid.Rows[i].Cells[4].Value);
+                security.CreateMarketDepthFromTrades = Convert.ToBoolean(_grid.Rows[i].Cells[5].Value);
             }
         }
-
-
 
         void _grid_Click(object sender, EventArgs e)
         {

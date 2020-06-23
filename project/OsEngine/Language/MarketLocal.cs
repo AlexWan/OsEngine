@@ -701,6 +701,10 @@ namespace OsEngine.Language
             "Eng:Save trades array in Candle_" +
             "Ru:Сохранять трейды в свече_");
 
+        public string Label60 => OsLocalization.ConvertToLocString(
+            "Eng:MD is internal?_" +
+            "Ru:Стаканы эмулируются?_");
+
         public string ServerParam1 => OsLocalization.ConvertToLocString(
             "Eng:Keep trade history_" +
             "Ru:Сохранять историю трейдов_");
@@ -753,6 +757,8 @@ namespace OsEngine.Language
         public string ServerParam7 => OsLocalization.ConvertToLocString(
             "Eng:Bid Ask in trades_" +
             "Ru:Грузим данные bid/ask в трейды_");
+
+
 
     }
 }
