@@ -2384,7 +2384,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
 
                 Order newOrder = _dealCreator.CreateOrder(Side.Sell, price, volume, OrderPriceType.Limit,
-                    ManualPositionSupport.SecondToOpen,StartProgram);
+                    ManualPositionSupport.SecondToOpen,StartProgram,OrderPositionConditionType.Open);
                 newOrder.IsStopOrProfit = isStopOrProfit;
                 newOrder.LifeTime = timeLife;
                 position.AddNewOpenOrder(newOrder);
@@ -2503,7 +2503,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 Order newOrder = _dealCreator.CreateOrder(Side.Buy, price, volume, OrderPriceType.Limit,
-                    ManualPositionSupport.SecondToOpen,StartProgram);
+                    ManualPositionSupport.SecondToOpen,StartProgram,OrderPositionConditionType.Open);
                 newOrder.IsStopOrProfit = isStopOrProfit;
                 newOrder.LifeTime = timeLife;
                 position.AddNewOpenOrder(newOrder);
@@ -2918,6 +2918,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                         position.ProfitOrderIsActiv = false;
                         position.StopOrderIsActiv = false;
 
+                        SetNewLogMessage(
+                            "Close Position at Stop. StopPrice: " +
+                            position.StopOrderRedLine 
+                            + " LastMarketPrice: " + lastTrade, 
+                            LogMessageType.System);
+
                         CloseDeal(position, OrderPriceType.Limit, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true);
                         PositionStopActivateEvent?.Invoke(position);
                         return true;
@@ -2928,6 +2934,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         position.StopOrderIsActiv = false;
                         position.ProfitOrderIsActiv = false;
+
+                        SetNewLogMessage(
+                            "Close Position at Stop. StopPrice: " +
+                            position.StopOrderRedLine
+                            + " LastMarketPrice: " + lastTrade,
+                            LogMessageType.System);
+
                         CloseDeal(position, OrderPriceType.Limit, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true);
                         PositionStopActivateEvent?.Invoke(position);
                         return true;
@@ -2942,6 +2955,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                         position.StopOrderIsActiv = false;
                         position.ProfitOrderIsActiv = false;
 
+                        SetNewLogMessage(
+                            "Close Position at Profit. ProfitPrice: " +
+                            position.ProfitOrderRedLine
+                            + " LastMarketPrice: " + lastTrade,
+                            LogMessageType.System);
+
                         CloseDeal(position, OrderPriceType.Limit, position.ProfitOrderPrice, ManualPositionSupport.SecondToClose, true);
                         PositionProfitActivateEvent?.Invoke(position);
                         return true;
@@ -2952,6 +2971,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         position.StopOrderIsActiv = false;
                         position.ProfitOrderIsActiv = false;
+
+                        SetNewLogMessage(
+                            "Close Position at Profit. ProfitPrice: " +
+                            position.ProfitOrderRedLine
+                            + " LastMarketPrice: " + lastTrade,
+                            LogMessageType.System);
+
                         CloseDeal(position, OrderPriceType.Limit, position.ProfitOrderPrice, ManualPositionSupport.SecondToClose, true);
                         PositionProfitActivateEvent?.Invoke(position);
                         return true;
@@ -2973,6 +2999,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if (_alerts == null)
+                {
+                    return;
+                }
+
                 AlertSignal signal = _alerts.CheckAlerts();
 
                 if (signal == null)
@@ -3250,6 +3281,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                             PositionOpenerToStop opener = _stopsOpener[i];
                             Position pos = LongCreate(_stopsOpener[i].PriceOrder, _stopsOpener[i].Volume, OrderPriceType.Limit,
                                 ManualPositionSupport.SecondToOpen, true);
+                           
+                            if (_stopsOpener.Count == 0)
+                            { // пользователь может удалить сам из слоя увидив что сделка открыается
+                                return;
+                            }
+
                             _stopsOpener.RemoveAt(i);
                             i--;
                             if (PositionBuyAtStopActivateEvent != null && pos != null)
@@ -3261,6 +3298,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                             PositionOpenerToStop opener = _stopsOpener[i];
                             Position pos = ShortCreate(_stopsOpener[i].PriceOrder, _stopsOpener[i].Volume, OrderPriceType.Limit,
                                 ManualPositionSupport.SecondToOpen, true);
+                           
+                            if (_stopsOpener.Count == 0)
+                            { // пользователь может удалить сам из слоя увидив что сделка открыается
+                                return;
+                            }
+
                             _stopsOpener.RemoveAt(i);
                             i--;
 
@@ -3506,7 +3549,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                     CancelStopOpenerByNewCandle(candles);
                 }
 
-                _chartMaster.SetCandles(candles);
+                if (_chartMaster != null)
+                {
+                    _chartMaster.SetCandles(candles);
+                }
 
                 try
                 {

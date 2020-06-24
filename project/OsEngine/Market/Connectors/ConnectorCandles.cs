@@ -13,6 +13,7 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
+using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Tester;
 
 namespace OsEngine.Market.Connectors
@@ -484,6 +485,8 @@ namespace OsEngine.Market.Connectors
         /// </summary>
         public ServerType ServerType;
 
+        public int ServerUid;
+
         /// <summary>
         /// trade server
         /// сервер через который идёт торговля
@@ -728,7 +731,23 @@ namespace OsEngine.Market.Connectors
 
                     try
                     {
-                        _myServer = servers.Find(server => server.ServerType == ServerType);
+                        if (ServerType == ServerType.Optimizer &&
+                            this.ServerUid != 0)
+                        {
+                            for (int i = 0; i < servers.Count; i++)
+                            {
+                                if (servers[i].ServerType == ServerType.Optimizer &&
+                                    ((OptimizerServer)servers[i]).NumberServer == this.ServerUid)
+                                {
+                                    _myServer = servers[i];
+                                    break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            _myServer = servers.Find(server => server.ServerType == ServerType);
+                        }
                     }
                     catch
                     {
@@ -746,21 +765,7 @@ namespace OsEngine.Market.Connectors
                     }
                     else
                     {
-                        _myServer.NewBidAscIncomeEvent -= ConnectorBotNewBidAscIncomeEvent;
-                        _myServer.NewMyTradeEvent -= ConnectorBot_NewMyTradeEvent;
-                        _myServer.NewOrderIncomeEvent -= ConnectorBot_NewOrderIncomeEvent;
-                        _myServer.NewMarketDepthEvent -= ConnectorBot_NewMarketDepthEvent;
-                        _myServer.NewTradeEvent -= ConnectorBot_NewTradeEvent;
-                        _myServer.TimeServerChangeEvent -= myServer_TimeServerChangeEvent;
-                        _myServer.NeadToReconnectEvent -= _myServer_NeadToReconnectEvent;
-
-                        _myServer.NewBidAscIncomeEvent += ConnectorBotNewBidAscIncomeEvent;
-                        _myServer.NewMyTradeEvent += ConnectorBot_NewMyTradeEvent;
-                        _myServer.NewOrderIncomeEvent += ConnectorBot_NewOrderIncomeEvent;
-                        _myServer.NewMarketDepthEvent += ConnectorBot_NewMarketDepthEvent;
-                        _myServer.NewTradeEvent += ConnectorBot_NewTradeEvent;
-                        _myServer.TimeServerChangeEvent += myServer_TimeServerChangeEvent;
-                        _myServer.NeadToReconnectEvent += _myServer_NeadToReconnectEvent;
+                        SubscribleOnServer(_myServer);
 
                         if (_myServer.ServerType == ServerType.Tester)
                         {
@@ -790,6 +795,23 @@ namespace OsEngine.Market.Connectors
 
                                 Thread.Sleep(100);
                                 _mySeries = _myServer.StartThisSecurity(_namePaper, TimeFrameBuilder);
+
+                                if (_mySeries == null &&
+                                    _myServer.ServerType == ServerType.Optimizer &&
+                                    ((OptimizerServer)_myServer).NumberServer != ServerUid)
+                                {
+                                    for (int i = 0; i < servers.Count; i++)
+                                    {
+                                        if (servers[i].ServerType == ServerType.Optimizer &&
+                                            ((OptimizerServer)servers[i]).NumberServer == this.ServerUid)
+                                        {
+                                            UnSubscribleOnServer(_myServer);
+                                            _myServer = servers[i];
+                                            SubscribleOnServer(_myServer);
+                                            break;
+                                        }
+                                    }
+                                }
                             }
 
 
@@ -812,6 +834,36 @@ namespace OsEngine.Market.Connectors
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        private void UnSubscribleOnServer(IServer server)
+        {
+            server.NewBidAscIncomeEvent -= ConnectorBotNewBidAscIncomeEvent;
+            server.NewMyTradeEvent -= ConnectorBot_NewMyTradeEvent;
+            server.NewOrderIncomeEvent -= ConnectorBot_NewOrderIncomeEvent;
+            server.NewMarketDepthEvent -= ConnectorBot_NewMarketDepthEvent;
+            server.NewTradeEvent -= ConnectorBot_NewTradeEvent;
+            server.TimeServerChangeEvent -= myServer_TimeServerChangeEvent;
+            server.NeadToReconnectEvent -= _myServer_NeadToReconnectEvent;
+        }
+
+        private void SubscribleOnServer(IServer server)
+        {
+            server.NewBidAscIncomeEvent -= ConnectorBotNewBidAscIncomeEvent;
+            server.NewMyTradeEvent -= ConnectorBot_NewMyTradeEvent;
+            server.NewOrderIncomeEvent -= ConnectorBot_NewOrderIncomeEvent;
+            server.NewMarketDepthEvent -= ConnectorBot_NewMarketDepthEvent;
+            server.NewTradeEvent -= ConnectorBot_NewTradeEvent;
+            server.TimeServerChangeEvent -= myServer_TimeServerChangeEvent;
+            server.NeadToReconnectEvent -= _myServer_NeadToReconnectEvent;
+
+            server.NewBidAscIncomeEvent += ConnectorBotNewBidAscIncomeEvent;
+            server.NewMyTradeEvent += ConnectorBot_NewMyTradeEvent;
+            server.NewOrderIncomeEvent += ConnectorBot_NewOrderIncomeEvent;
+            server.NewMarketDepthEvent += ConnectorBot_NewMarketDepthEvent;
+            server.NewTradeEvent += ConnectorBot_NewTradeEvent;
+            server.TimeServerChangeEvent += myServer_TimeServerChangeEvent;
+            server.NeadToReconnectEvent += _myServer_NeadToReconnectEvent;
         }
 
         void _myServer_NeadToReconnectEvent()

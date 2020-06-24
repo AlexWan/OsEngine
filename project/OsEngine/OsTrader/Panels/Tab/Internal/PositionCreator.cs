@@ -28,7 +28,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             newDeal.Direction = direction;
             newDeal.State = PositionStateType.Opening;
 
-            newDeal.AddNewOpenOrder(CreateOrder(direction, priceOrder, volume, priceType, timeLife, startProgram));
+            newDeal.AddNewOpenOrder(CreateOrder(direction, priceOrder, volume, priceType, timeLife, startProgram,OrderPositionConditionType.Open));
 
             newDeal.NameBot = botName;
             newDeal.Lots = security.Lot;
@@ -43,7 +43,10 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// create order / 
         /// создать ордер
         /// </summary>
-        public Order CreateOrder(Side direction, decimal priceOrder, decimal volume, OrderPriceType priceType, TimeSpan timeLife, StartProgram startProgram)
+        public Order CreateOrder(
+            Side direction, decimal priceOrder, decimal volume, 
+            OrderPriceType priceType, TimeSpan timeLife, StartProgram startProgram,
+                OrderPositionConditionType positionConditionType)
         {
             Order newOrder = new Order();
             newOrder.NumberUser = NumberGen.GetNumberOrder(startProgram);
@@ -52,6 +55,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             newOrder.Volume = volume;
             newOrder.TypeOrder = priceType;
             newOrder.LifeTime = timeLife;
+            newOrder.PositionConditionType = positionConditionType;
 
             return newOrder;
         }
@@ -88,6 +92,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             newOrder.Volume = volume;
             newOrder.TypeOrder = priceType;
             newOrder.LifeTime = timeLife;
+            newOrder.PositionConditionType = OrderPositionConditionType.Close;
 
             return newOrder;
         }

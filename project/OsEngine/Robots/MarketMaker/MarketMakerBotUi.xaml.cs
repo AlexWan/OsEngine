@@ -23,8 +23,7 @@ namespace OsEngine.Robots.MarketMaker
             ComboBoxRegime.Items.Add(BotTradeRegime.Off);
             ComboBoxRegime.Items.Add(BotTradeRegime.On);
             ComboBoxRegime.Items.Add(BotTradeRegime.OnlyClosePosition);
-            ComboBoxRegime.Items.Add(BotTradeRegime.OnlyLong);
-            ComboBoxRegime.Items.Add(BotTradeRegime.OnlyShort);
+
             ComboBoxRegime.SelectedItem = _strategy.Regime;
             TextBoxVolumeOne.Text = _strategy.Volume.ToString();
             TextBoxSpreadBeetwenLine.Text = _strategy.PersentToSpreadLines.ToString();

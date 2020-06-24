@@ -18,16 +18,7 @@
         <CheckBox x:Name="CheckBoxTf1MinuteIsOn" Content="1 min" HorizontalAlignment="Left" Margin="148,121,0,0" VerticalAlignment="Top" />
         <CheckBox x:Name="CheckBoxTf2MinuteIsOn" Content="2 min" HorizontalAlignment="Left" Margin="148,142,0,0" VerticalAlignment="Top" />
         <CheckBox x:Name="CheckBoxTf5MinuteIsOn" Content="5 min" HorizontalAlignment="Left" Margin="148,163,0,0" VerticalAlignment="Top" />
-        <CheckBox x:Name="CheckBoxTf10MinuteIsOn" Content="10 min" HorizontalAlignment="Left" Margin="148,184,0,0" VerticalAlignment="Top">
-            <CheckBox.RenderTransform>
-                <TransformGroup>
-                    <ScaleTransform/>
-                    <SkewTransform AngleX="-3.18"/>
-                    <RotateTransform/>
-                    <TranslateTransform X="0.444"/>
-                </TransformGroup>
-            </CheckBox.RenderTransform>
-        </CheckBox>
+        <CheckBox x:Name="CheckBoxTf10MinuteIsOn" Content="10 min" HorizontalAlignment="Left" Margin="148,184,0,0" VerticalAlignment="Top"/>
         <CheckBox x:Name="CheckBoxTf15MinuteIsOn" Content="15 min" HorizontalAlignment="Left" Margin="148,205,0,0" VerticalAlignment="Top" />
         <CheckBox x:Name="CheckBoxTf30MinuteIsOn" Content="30 min" HorizontalAlignment="Left" Margin="270,100,0,0" VerticalAlignment="Top" />
         <CheckBox x:Name="CheckBoxTf1HourIsOn" Content="1 hour" HorizontalAlignment="Left" Margin="270,121,0,0" VerticalAlignment="Top" />

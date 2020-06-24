@@ -704,11 +704,6 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
 
-                if (ComboBoxClass.Items.Count != 0)
-                {
-                    ComboBoxClass.Items.Clear();
-                }
-
                 var securities = server.Securities;
 
                 ComboBoxClass.Items.Clear();
@@ -725,29 +720,8 @@ namespace OsEngine.Market.Connectors
                         continue;
                     }
                     string clas = securities[i1].NameClass;
-
-                    if (ComboBoxClass.Items.Count == 0)
-                    {
+                    if (ComboBoxClass.Items.IndexOf(clas) == -1)
                         ComboBoxClass.Items.Add(clas);
-                        continue;
-                    }
-
-                    bool isInArray = false;
-
-                    for (int i = 0; i < ComboBoxClass.Items.Count; i++)
-                    {
-                        string item = ComboBoxClass.Items[i].ToString();
-                        if (item == clas)
-                        {
-                            isInArray = true;
-                            break;
-                        }
-                    }
-
-                    if (isInArray == false)
-                    {
-                        ComboBoxClass.Items.Add(clas);
-                    }
                 }
                 if (_connectorBot.Security != null)
                 {
@@ -795,7 +769,7 @@ namespace OsEngine.Market.Connectors
                             continue;
                         }
                         string classSec = securities[i].NameClass;
-                        if (ComboBoxClass.SelectedItem != null && classSec == ComboBoxClass.SelectedItem.ToString())
+                        if (ComboBoxClass.SelectedItem != null && ComboBoxClass.SelectedItem.Equals(classSec))
                         {
                             ComboBoxSecurities.Items.Add(securities[i].Name);
                             ComboBoxSecurities.SelectedItem = securities[i].Name;

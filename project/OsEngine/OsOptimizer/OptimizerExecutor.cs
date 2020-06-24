@@ -656,6 +656,7 @@ namespace OsEngine.OsOptimizer
             {
                 bot.TabsSimple[i].Connector.ServerType = ServerType.Optimizer;
                 bot.TabsSimple[i].Connector.PortfolioName = server.Portfolios[0].Number;
+                bot.TabsSimple[i].Connector.ServerUid = server.NumberServer;
                 bot.TabsSimple[i].Connector.NamePaper = _master.TabsSimpleNamesAndTimeFrames[i].NameSecurity;
                 bot.TabsSimple[i].Connector.TimeFrame =
                     _master.TabsSimpleNamesAndTimeFrames[i].TimeFrame;
@@ -684,6 +685,7 @@ namespace OsEngine.OsOptimizer
 
                     bot.TabsIndex[i].Tabs[i2].ServerType = ServerType.Optimizer;
                     bot.TabsIndex[i].Tabs[i2].PortfolioName = server.Portfolios[0].Number;
+                    bot.TabsIndex[i].Tabs[i2].ServerUid = server.NumberServer;
                     bot.TabsIndex[i].Tabs[i2].NamePaper = _master.TabsIndexNamesAndTimeFrames[i].NamesSecurity[i2];
                     bot.TabsIndex[i].Tabs[i2].TimeFrame =
                         _master.TabsIndexNamesAndTimeFrames[i].TimeFrame;

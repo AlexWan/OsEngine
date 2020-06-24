@@ -766,6 +766,11 @@ namespace OsEngine.Market.Servers.Optimizer
 
             List<string[]> array = LoadSecurityDopSettings(folderName + "\\SecuritiesSettings.txt");
 
+            if (array == null)
+            {
+                array = LoadSecurityDopSettings(_activSet + "\\SecuritiesSettings.txt");
+            }
+
             for (int i = 0; array != null && i < array.Count; i++)
             {
                 Security secu = Securities.Find(s => s.Name == array[i][0]);

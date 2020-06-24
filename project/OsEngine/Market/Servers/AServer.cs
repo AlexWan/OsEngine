@@ -609,6 +609,12 @@ namespace OsEngine.Market.Servers
                         SendLogMessage(OsLocalization.Market.Message8, LogMessageType.System);
                         ServerRealization.Dispose();
 
+                        if (Portfolios != null &&
+                            Portfolios.Count != 0)
+                        {
+                            Portfolios.Clear();
+                        }
+
                         if (_candleManager != null)
                         {
                             _candleManager.Dispose();
@@ -1316,10 +1322,6 @@ namespace OsEngine.Market.Servers
 
             for (int i = 0; _securities != null && i < _securities.Count; i++)
             {
-                if (_securities[i].Name.StartsWith("@RTS"))
-                {
-
-                }
                 if (_securities[i].Name == namePaper ||
                     _securities[i].NameId == namePaper)
                 {

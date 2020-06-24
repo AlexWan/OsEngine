@@ -285,7 +285,7 @@ namespace OsEngine.Market.Servers.Optimizer
         /// </summary>
         private void WorkThreadArea()
         {
-            Thread.Sleep(2000);
+            Thread.Sleep(100);
             while (true)
             {
                 try
@@ -316,7 +316,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                     if (_testerRegime == TesterRegime.Pause)
                     {
-                        Thread.Sleep(2000);
+                        Thread.Sleep(20);
                         continue;
                     }
 
@@ -365,7 +365,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
             if (newStorage == null)
             {
-                Thread.Sleep(500);
+                Thread.Sleep(200);
                 newStorage = _storagePrime.GetStorageToSecurity(security, timeFrame, timeStart, timeEnd);
 
                 if (newStorage == null)
@@ -1960,11 +1960,11 @@ namespace OsEngine.Market.Servers.Optimizer
     {
         public SecurityOptimizer()
         {
-            if (ServerMaster.GetServers() != null &&
+            /*if (ServerMaster.GetServers() != null &&
                 ServerMaster.GetServers()[0] != null)
             {
                 ServerMaster.GetServers()[0].NewCandleIncomeEvent += SecurityTester_NewCandleIncomeEvent;
-            }
+            }*/
         }
 
         /// <summary>
@@ -2215,6 +2215,11 @@ namespace OsEngine.Market.Servers.Optimizer
             if (_lastCandleIndex >= Candles.Count)
             {
                 return;
+            }
+
+            if (_lastCandleIndex == 0)
+            {
+                _lastCandle = null;
             }
 
             if (LastCandle != null &&
