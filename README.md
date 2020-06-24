@@ -46,15 +46,17 @@ The layer for creating robots is similar to the Wealth-Lab script and Ninja Scri
 
 1) Binance
 2) Bitmex
-3) Bitstamp
-4) Bitfinex
-5) Kraken
-6) BitMax
-7) LiveCoin
-8) ExMo
-9) ZB
-10) Gate IO
-11) HitBtc
+3) Huobi
+4) Bitstamp
+5) Bitfinex
+6) Kraken
+7) BitMax
+8) LiveCoin
+9) ExMo
+10) ZB
+11) Gate IO
+12) HitBtc
+
 
 *Available connections for Forex*
 
@@ -120,15 +122,16 @@ Forum http://o-s-a.net/eng/forum
 
 1) Binance
 2) Bitmex
-3) Bitstamp
-4) Bitfinex
-5) Kraken
-6) BitMax
-7) LiveCoin
-8) ExMo
-9) ZB
-10) Gate IO
-11) HitBtc
+3) Huobi
+4) Bitstamp
+5) Bitfinex
+6) Kraken
+7) BitMax
+8) LiveCoin
+9) ExMo
+10) ZB
+11) Gate IO
+12) HitBtc
 
 *Доступные подключения для форекс*
 

@@ -580,7 +580,7 @@ namespace OsEngine.Entity
             colum0.CellTemplate = cell0;
             colum0.HeaderText = OsLocalization.Entity.ColumnServers1;
             colum0.ReadOnly = true;
-            colum0.Width = 100;
+            colum0.Width = 150;
             newGrid.Columns.Add(colum0);
 
             DataGridViewColumn colu = new DataGridViewColumn();

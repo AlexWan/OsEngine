@@ -47,15 +47,6 @@ namespace OsEngine.Robots
 
             UpdateGrids();
 
-            if (startProgram == StartProgram.IsOsOptimizer)
-            {
-                BotFactory.LoadNamesWithParamEndEvent += delegate (List<string> list)
-                {
-                    _botsIncluded = list;
-                    UpdateGrids();
-                };
-            }
-
             ItemInclude.Header = OsLocalization.Charts.Label6;
             ItemScript.Header = OsLocalization.Charts.Label7;
         }

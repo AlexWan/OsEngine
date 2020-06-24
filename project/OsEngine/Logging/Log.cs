@@ -80,7 +80,7 @@ namespace OsEngine.Logging
             {
                 await Task.Delay(2000);
 
-                for (int i = 0; i < LogsToCheck.Count; i++)
+                for (int i = 0; i < Math.Min(LogsToCheck.Count, LogsToCheck.Capacity); i++)// не потокобезопасная работа с LogsToCheck приводит к Capacity<Count
                 {
                     if (LogsToCheck[i] == null)
                     {
@@ -161,9 +161,9 @@ namespace OsEngine.Logging
         /// </summary>
         public void Delete()
         {
-            for (int i = 0; i < LogsToCheck.Count; i++)
+            for (int i = 0; i < Math.Min(LogsToCheck.Count, LogsToCheck.Capacity); i++)// не потокобезопасная работа с LogsToCheck приводит к Capacity<Count
             {
-                if (LogsToCheck[i]._uniqName == this._uniqName)
+                if (LogsToCheck[i]?._uniqName == this._uniqName)//проверка на null
                 {
                     LogsToCheck.RemoveAt(i);
                     break;

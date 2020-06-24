@@ -90,7 +90,7 @@ namespace OsEngine.Market.Servers
             {
                 try
                 {
-                    Thread.Sleep(15000);
+                    Thread.Sleep(60000);
 
                     if (MainWindow.ProccesIsWorked == false)
                     {
@@ -157,6 +157,11 @@ namespace OsEngine.Market.Servers
             }
 
             mySaveInfo.InsertCandles(series.CandlesAll);
+
+            if (Directory.Exists(_pathName) == false)
+            {
+                Directory.CreateDirectory(_pathName);
+            }
 
             StreamWriter writer = new StreamWriter(_pathName + "\\" + series.Specification + ".txt");
 

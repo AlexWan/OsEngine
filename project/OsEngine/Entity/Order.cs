@@ -127,11 +127,18 @@ namespace OsEngine.Entity
         }
 
         private OrderStateType _state;
+
         /// <summary>
         /// order price type. Limit, Market
         /// тип цены ордера. Limit, Market
         /// </summary>
         public OrderPriceType TypeOrder;
+
+        /// <summary>
+        /// why the order was created in the context of the position. Open is the opening order. Close is the closing order
+        /// для чего создан ордер в контексте позиции. Open - для открытия позиции. Close - для закрытия позиции
+        /// </summary>
+        public OrderPositionConditionType PositionConditionType;
 
         /// <summary>
         /// user comment
@@ -517,5 +524,12 @@ namespace OsEngine.Entity
         /// отменён
         /// </summary>
         Cancel
+    }
+
+    public enum OrderPositionConditionType
+    {
+        None,
+        Open,
+        Close
     }
 }

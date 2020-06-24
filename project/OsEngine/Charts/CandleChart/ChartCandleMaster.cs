@@ -1402,17 +1402,17 @@ namespace OsEngine.Charts.CandleChart
         /// <param name="serverType">server type/тип сервера</param>
         public void SetNewSecurity(string security, TimeFrameBuilder timeFrameBuilder, string portfolioName, ServerType serverType)
         {
-            if (ChartCandle != null)
-            {
-                ChartCandle.ClearDataPointsAndSizeValue();
-                ChartCandle.SetNewTimeFrame(timeFrameBuilder.TimeFrameTimeSpan, timeFrameBuilder.TimeFrame);
-            }
-
             if (_securityOnThisChart == security &&
                 _timeFrameSecurity == timeFrameBuilder.TimeFrame &&
                 serverType == _serverType)
             {
                 return;
+            }
+
+            if (ChartCandle != null)
+            {
+                ChartCandle.ClearDataPointsAndSizeValue();
+                ChartCandle.SetNewTimeFrame(timeFrameBuilder.TimeFrameTimeSpan, timeFrameBuilder.TimeFrame);
             }
 
             string lastSecurity = _securityOnThisChart;

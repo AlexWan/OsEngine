@@ -37,10 +37,14 @@ using OsEngine.Market.Servers.Tester;
 using OsEngine.Market.Servers.Transaq;
 using OsEngine.Market.Servers.ZB;
 using OsEngine.Market.Servers.Hitbtc;
+using OsEngine.Market.Servers.Huobi.Futures;
+using OsEngine.Market.Servers.Huobi.Spot;
+using OsEngine.Market.Servers.Huobi.FuturesSwap;
 using OsEngine.Market.Servers.MFD;
 using OsEngine.Market.Servers.MOEX;
 using OsEngine.Market.Servers.Tinkoff;
 using MessageBox = System.Windows.MessageBox;
+using OsEngine.Market.Servers.GateIo.Futures;
 
 namespace OsEngine.Market
 {
@@ -81,6 +85,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.MfdWeb);
 
                 serverTypes.Add(ServerType.GateIo);
+                serverTypes.Add(ServerType.GateIoFutures);
                 serverTypes.Add(ServerType.BitMax);
                 serverTypes.Add(ServerType.Binance);
                 serverTypes.Add(ServerType.BinanceFutures);
@@ -92,6 +97,9 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Exmo);
                 serverTypes.Add(ServerType.Zb);
                 serverTypes.Add(ServerType.Hitbtc);
+                serverTypes.Add(ServerType.HuobiSpot);
+                serverTypes.Add(ServerType.HuobiFutures);
+                serverTypes.Add(ServerType.HuobiFuturesSwap);
 
                 serverTypes.Add(ServerType.InteractivBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
@@ -188,6 +196,18 @@ namespace OsEngine.Market
                 }
 
                 IServer newServer = null;
+                if (type == ServerType.HuobiFuturesSwap)
+                {
+                    newServer = new HuobiFuturesSwapServer();
+                }
+                if (type == ServerType.HuobiFutures)
+                {
+                    newServer = new HuobiFuturesServer();
+                }
+                if (type == ServerType.HuobiSpot)
+                {
+                    newServer = new HuobiSpotServer();
+                }
                 if (type == ServerType.MfdWeb)
                 {
                     newServer = new MfdServer();
@@ -207,6 +227,10 @@ namespace OsEngine.Market
                 if (type == ServerType.GateIo)
                 {
                     newServer = new GateIoServer();
+                }
+                if (type == ServerType.GateIoFutures)
+                {
+                    newServer = new GateIoFuturesServer();
                 }
                 if (type == ServerType.Zb)
                 {
@@ -423,6 +447,55 @@ namespace OsEngine.Market
 
                 return serverPermission;
             }
+            if (type == ServerType.HuobiSpot)
+            {
+                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
+
+                if (serverPermission == null)
+                {
+                    serverPermission = new HuobiSpotServerPermission();
+                    _serversPermissions.Add(serverPermission);
+                }
+
+                return serverPermission;
+            }
+            if (type == ServerType.HuobiFutures)
+            {
+                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
+
+                if (serverPermission == null)
+                {
+                    serverPermission = new HuobiFuturesServerPermission();
+                    _serversPermissions.Add(serverPermission);
+                }
+
+                return serverPermission;
+            }
+            if (type == ServerType.HuobiFuturesSwap)
+            {
+                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
+
+                if (serverPermission == null)
+                {
+                    serverPermission = new HuobiFuturesSwapServerPermission();
+                    _serversPermissions.Add(serverPermission);
+                }
+
+                return serverPermission;
+            }
+            if (type == ServerType.GateIoFutures)
+            {
+                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
+
+                if (serverPermission == null)
+                {
+                    serverPermission = new GateIoFuturesServerPermission();
+                    _serversPermissions.Add(serverPermission);
+                }
+
+                return serverPermission;
+            }
+
 
             return null;
         }
@@ -723,6 +796,12 @@ namespace OsEngine.Market
         GateIo,
 
         /// <summary>
+        /// Futures of cryptocurrency exchange Gate.io
+        /// Фьючерсы биржи криптовалют Gate.io
+        /// </summary>
+        GateIoFutures,
+
+        /// <summary>
         /// cryptocurrency exchange ZB
         /// биржа криптовалют ZB
         /// </summary>
@@ -874,6 +953,21 @@ namespace OsEngine.Market
         /// MFD web server
         /// </summary>
         MfdWeb,
+
+        /// <summary>
+        /// Huobi Spot
+        /// </summary>
+        HuobiSpot,
+
+        /// <summary>
+        /// Huobi Futures
+        /// </summary>
+        HuobiFutures,
+
+        /// <summary>
+        /// Huobi Futures Swap
+        /// </summary>
+        HuobiFuturesSwap
     }
 
 }

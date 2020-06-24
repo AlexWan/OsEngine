@@ -259,15 +259,26 @@ namespace OsEngine.Market
                     return;
                 }
 
-                // clear old data from grid
-                // очищаем старые данные с грида
-
-                _gridPosition.Rows.Clear();
-
                 if (_portfolios == null)
                 {
+                    _gridPosition.Rows.Clear();
                     return;
                 }
+
+                int curUpRow = 0;
+                int curSelectRow = 0;
+
+                if (_gridPosition.RowCount != 0)
+                {
+                    curUpRow = _gridPosition.FirstDisplayedScrollingRowIndex;
+                }
+
+                if (_gridPosition.SelectedRows.Count != 0)
+                {
+                    curSelectRow = _gridPosition.SelectedRows[0].Index;
+                }
+
+                _gridPosition.Rows.Clear();
 
                 // send portfolios to draw
                 // отправляем портфели на прорисовку
@@ -282,6 +293,22 @@ namespace OsEngine.Market
                         
                     }
                 }
+
+               /* int curUpRow = 0;
+                int curSelectRow = 0;*/
+
+               if (curUpRow != 0 && curUpRow != -1)
+               {
+                   _gridPosition.FirstDisplayedScrollingRowIndex = curUpRow;
+               }
+
+               if (curSelectRow != 0 &&
+                   _gridPosition.Rows.Count > curSelectRow
+                   && curSelectRow != -1)
+               {
+                   _gridPosition.Rows[curSelectRow].Selected = true;
+               }
+
             }
             catch (Exception error)
             {
@@ -329,20 +356,26 @@ namespace OsEngine.Market
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[nRow.Cells.Count - 1].Value = "Нет позиций";
+                    nRow.Cells[nRow.Cells.Count - 1].Value = "No positions";
 
                     _gridPosition.Rows.Add(nRow);
                 }
                 else
                 {
+                    bool havePoses = false;
+
                     for (int i = 0; i < positionsOnBoard.Count; i++)
                     {
+                        PositionOnBoard pos = positionsOnBoard[i];
+
                         if (positionsOnBoard[i].ValueBegin == 0 &&
                             positionsOnBoard[i].ValueCurrent == 0 &&
                             positionsOnBoard[i].ValueBlocked == 0)
                         {
                             continue;
                         }
+
+                        havePoses = true;
                         DataGridViewRow nRow = new DataGridViewRow();
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
@@ -360,6 +393,19 @@ namespace OsEngine.Market
 
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
                         nRow.Cells[7].Value = positionsOnBoard[i].ValueBlocked.ToString().ToDecimal();
+
+                        _gridPosition.Rows.Add(nRow);
+                    }
+
+                    if (havePoses == false)
+                    {
+                        DataGridViewRow nRow = new DataGridViewRow();
+                        nRow.Cells.Add(new DataGridViewTextBoxCell());
+                        nRow.Cells.Add(new DataGridViewTextBoxCell());
+                        nRow.Cells.Add(new DataGridViewTextBoxCell());
+                        nRow.Cells.Add(new DataGridViewTextBoxCell());
+                        nRow.Cells.Add(new DataGridViewTextBoxCell());
+                        nRow.Cells[nRow.Cells.Count - 1].Value = "No positions";
 
                         _gridPosition.Rows.Add(nRow);
                     }
