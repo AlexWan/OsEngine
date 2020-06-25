@@ -1370,8 +1370,6 @@ namespace OsEngine.Journal.Internal
                     return;
                 }
                 
-                Position position = GetPositionForNumber(number);
-                SendNewLogMessage($"{number} - {position.Number} - {position.TimeCreate}", LogMessageType.System);
                 if (UserSelectActionEvent != null)
                 {
                     UserSelectActionEvent(GetPositionForNumber(number), SignalType.FindPosition);
