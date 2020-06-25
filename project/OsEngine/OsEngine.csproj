@@ -466,6 +466,14 @@
     <Compile Include="Market\Servers\FixProtocolEntities\FixEntity.cs" />
     <Compile Include="Market\Servers\FixProtocolEntities\FixMessage.cs" />
     <Compile Include="Market\Servers\FixProtocolEntities\StandartHeaderSettings.cs" />
+    <Compile Include="Market\Servers\FTX\Entities\AuthenticationRequest.cs" />
+    <Compile Include="Market\Servers\FTX\Entities\BasicRequest.cs" />
+    <Compile Include="Market\Servers\FTX\Entities\BasicResponse.cs" />
+    <Compile Include="Market\Servers\FTX\Entities\ChannelTypeEnum.cs" />
+    <Compile Include="Market\Servers\FTX\Entities\OperationTypeEnum.cs" />
+    <Compile Include="Market\Servers\FTX\Entities\PingRequest.cs" />
+    <Compile Include="Market\Servers\FTX\Entities\TypeEnum.cs" />
+    <Compile Include="Market\Servers\FTX\FTXServer.cs" />
     <Compile Include="Market\Servers\GateIo\EntityCreators\GateMarketDepthCreator.cs" />
     <Compile Include="Market\Servers\GateIo\EntityCreators\GateOrderCreator.cs" />
     <Compile Include="Market\Servers\GateIo\EntityCreators\GatePortfolioCreator.cs" />
