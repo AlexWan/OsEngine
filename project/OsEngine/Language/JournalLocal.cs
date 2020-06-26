@@ -42,7 +42,7 @@ namespace OsEngine.Language
         public string PositionMenuItem9 => OsLocalization.ConvertToLocString(
             "Eng:Delete selected_" +
             "Ru:Удалить выбранную_");
-        
+
         public string PositionMenuItem10 => OsLocalization.ConvertToLocString(
             "Eng:Delete all_" +
             "Ru:Удалить все_");
@@ -50,6 +50,10 @@ namespace OsEngine.Language
         public string PositionMenuItem11 => OsLocalization.ConvertToLocString(
             "Eng:Save in fail_" +
             "Ru:Сохранить в файл_");
+
+        public string PositionMenuItem12 => OsLocalization.ConvertToLocString(
+            "Eng:Find on chart_" +
+            "Ru:Найти на графике_");
 
         public string TitleJournalUi => OsLocalization.ConvertToLocString(
             "Eng:Journal_" +

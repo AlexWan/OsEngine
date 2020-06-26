@@ -108,6 +108,12 @@ namespace OsEngine.Alerts
         /// delete position
         /// удалить позицию
         /// </summary>
-        DeletePos
+        DeletePos,
+        
+        /// <summary>
+        /// find position
+        /// найти позицию
+        /// </summary>
+        FindPosition
     }
 }

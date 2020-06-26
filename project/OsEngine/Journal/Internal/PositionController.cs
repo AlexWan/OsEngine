@@ -15,7 +15,7 @@ using OsEngine.Alerts;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
-using OsEngine.Market;
+using MessageBox = System.Windows.MessageBox;
 
 namespace OsEngine.Journal.Internal
 {
@@ -995,8 +995,10 @@ namespace OsEngine.Journal.Internal
         {
             _gridOpenDeal = CreateNewTable();
             _gridCloseDeal = CreateNewTable();
-            _gridOpenDeal.Click += _gridOpenDeal_Click;
+            _gridCloseDeal.ScrollBars = ScrollBars.Vertical;
 
+            _gridOpenDeal.Click += _gridOpenDeal_Click;
+            _gridCloseDeal.Click += _gridCloseDeal_Click;
         }
 
         /// <summary>
@@ -1319,6 +1321,65 @@ namespace OsEngine.Journal.Internal
             }
             return null;
         }
+        
+        /// <summary>
+        /// the user clicked on the table of closed trades
+        /// пользователь кликнул по таблице закрытых сделок
+        /// </summary>
+        void _gridCloseDeal_Click(object sender, EventArgs e)
+        {
+            MouseEventArgs mouse = (MouseEventArgs)e;
+            if (mouse.Button != MouseButtons.Right)
+            {
+                return;
+            }
+
+            try
+            {
+                MenuItem[] items = new MenuItem[1];
+
+                items[0] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem12 };
+                items[0].Click += PositionScrollOnChart_Click;
+
+                ContextMenu menu = new ContextMenu(items);
+
+                _gridCloseDeal.ContextMenu = menu;
+                _gridCloseDeal.ContextMenu.Show(_gridCloseDeal, new Point(mouse.X, mouse.Y));
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+        
+        /// <summary>
+        /// the user has ordered to find position on chart 
+        /// пользователь заказал найти позиции на графике
+        /// </summary>
+        void PositionScrollOnChart_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                int number;
+                try
+                {
+                    number = Convert.ToInt32(_gridCloseDeal.Rows[_gridCloseDeal.CurrentCell.RowIndex].Cells[0].Value);
+                }
+                catch (Exception)
+                {
+                    return;
+                }
+                
+                if (UserSelectActionEvent != null)
+                {
+                    UserSelectActionEvent(GetPositionForNumber(number), SignalType.FindPosition);
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
 
         /// <summary>
         /// the user clicked on the table of open trades
@@ -1574,7 +1635,7 @@ namespace OsEngine.Journal.Internal
             }
             else if (type == LogMessageType.Error)
             {
-                System.Windows.MessageBox.Show(message);
+                MessageBox.Show(message);
             }
         }
 
