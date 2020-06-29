@@ -54,7 +54,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
         private RestRequestBuilder _requestREST;
         private WsSource _wsSource;
         private Signer _signer;
-        public  List<Portfolio> Portfolios;
+        public List<Portfolio> Portfolios;
         private readonly GfMarketDepthCreator _mDepthCreator;
         private readonly GfOrderCreator _orderCreator;
         private DateTime _lastTimeUpdateSocket;
@@ -79,11 +79,6 @@ namespace OsEngine.Market.Servers.GateIo.Futures
             ServerStatus = ServerConnectStatus.Disconnect;
             _mDepthCreator = new GfMarketDepthCreator();
             _orderCreator = new GfOrderCreator(PortfolioNumber);
-        }
-
-        private void OrderCreatorOnNewMyTrade(MyTrade myTrade)
-        {
-            OnMyTradeEvent(myTrade);
         }
 
         private Dictionary<int, string> CreateIntervalDictionary()
@@ -130,6 +125,8 @@ namespace OsEngine.Market.Servers.GateIo.Futures
             if (_baseWallet == "BTC")
                 _wallet = "/btc";
 
+            _requestREST = new RestRequestBuilder();
+
             _cancelTokenSource = new CancellationTokenSource();
 
             StartMessageReader();
@@ -139,8 +136,6 @@ namespace OsEngine.Market.Servers.GateIo.Futures
             _wsSource = new WsSource(_baseUrlWss + _wallet);
             _wsSource.MessageEvent += WsSourceOnMessageEvent;
             _wsSource.Start();
-
-            _requestREST = new RestRequestBuilder();
         }
 
         private void WsSourceOnMessageEvent(WsMessageType msgType, string message)
@@ -292,7 +287,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
 
                                 foreach (var myTrade in myTrades)
                                 {
-                                    OnMyTradeEvent(myTrade); 
+                                    OnMyTradeEvent(myTrade);
                                 }
                             }
                             else
@@ -324,8 +319,77 @@ namespace OsEngine.Market.Servers.GateIo.Futures
             _wsSource = null;
         }
 
-        #region Запросы
+        public override void Dispose()
+        {
+            try
+            {
+                if (_wsSource != null)
+                {
+                    UnInitialize();
+                }
 
+                if (_cancelTokenSource != null && !_cancelTokenSource.IsCancellationRequested)
+                {
+                    _cancelTokenSource.Cancel();
+                }
+            }
+            catch (Exception e)
+            {
+                SendLogMessage("GateIo dispose error: " + e, LogMessageType.Error);
+            }
+        }
+
+
+        #region исследование плеча 
+
+        public void ChangeLeverage(string securityName, decimal leverage)
+        {
+            string timeStamp = TimeManager.GetUnixTimeStampSeconds().ToString();
+            var headers = new Dictionary<string, string>();
+            _requestREST.ClearParams();
+            _requestREST.AddParam("leverage", leverage.ToString().Replace(",", "."));
+
+            headers.Add("Timestamp", timeStamp);
+            headers.Add("KEY", _publicKey);
+            headers.Add("SIGN", _signer.GetSignStringRest("POST", _host + _path + _wallet + "/positions/" + securityName + "/leverage", _requestREST.BuildParams(), "", timeStamp));
+
+            var result = _requestREST.SendPostQuery("POST", _host + _path + _wallet, "/positions/" + securityName + "/leverage", new byte[0], headers);
+        }
+
+        public decimal GetLeverage(string securityName)
+        {
+            string timeStamp = TimeManager.GetUnixTimeStampSeconds().ToString();
+            var headers = new Dictionary<string, string>();
+
+            headers.Add("Timestamp", timeStamp);
+            headers.Add("KEY", _publicKey);
+            headers.Add("SIGN", _signer.GetSignStringRest("GET", _host + _path + _wallet + "/positions/" + securityName, "", "", timeStamp));
+
+            var jsecPosition = _requestREST.SendGetQuery("GET", _host + _path + _wallet + "/positions/" + securityName, "", headers);
+
+            var secPosition = JsonConvert.DeserializeObject<GfPosition>(jsecPosition);
+
+            return Converter.StringToDecimal(secPosition.Leverage);
+        }
+
+        public decimal GetMaxLeverage(string securityName)
+        {
+            string timeStamp = TimeManager.GetUnixTimeStampSeconds().ToString();
+            var headers = new Dictionary<string, string>();
+
+            headers.Add("Timestamp", timeStamp);
+            headers.Add("KEY", _publicKey);
+            headers.Add("SIGN", _signer.GetSignStringRest("GET", _host + _path + _wallet + "/positions/" + securityName, "", "", timeStamp));
+
+            var jsecPosition = _requestREST.SendGetQuery("GET", _host + _path + _wallet + "/positions/" + securityName, "", headers);
+
+            var secPosition = JsonConvert.DeserializeObject<GfPosition>(jsecPosition);
+
+            return Converter.StringToDecimal(secPosition.LeverageMax);
+        }
+        #endregion 
+
+        #region Запросы
         public override void GetSecurities()
         {
             string timeStamp = TimeManager.GetUnixTimeStampSeconds().ToString();
@@ -497,7 +561,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
             }
         }
 
-        public override void CanselOrder(Order order)
+        public override void CancelOrder(Order order)
         {
             string timeStamp = TimeManager.GetUnixTimeStampSeconds().ToString();
             var headers = new Dictionary<string, string>();
@@ -622,7 +686,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
 
                 actualTime = candles[candles.Count - 1].TimeStart.AddMinutes(oldInterval);
                 midTime = actualTime + step;
-                Thread.Sleep(1000);          
+                Thread.Sleep(100);
             }
 
             if (candles.Count == 0)
@@ -681,7 +745,8 @@ namespace OsEngine.Market.Servers.GateIo.Futures
                     var newCandles = CandlesCreator.CreateCandlesRequiredInterval(needInterval, oldInterval, oldCandles);
 
                     return newCandles;
-                } catch 
+                }
+                catch
                 {
                     SendLogMessage(OsLocalization.Market.Message95 + security, LogMessageType.Error);
 
@@ -710,26 +775,122 @@ namespace OsEngine.Market.Servers.GateIo.Futures
 
             return candles;
         }
-        #endregion
 
-        public override void Dispose()
+        public override List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-            try
+            List<Trade> trades = new List<Trade>();
+
+            DateTime endOver = endTime;
+
+            while (true)
             {
-                if (_wsSource != null)
+                if (endOver <= startTime)
                 {
-                    UnInitialize();
+                    break;
                 }
 
-                if (_cancelTokenSource != null && !_cancelTokenSource.IsCancellationRequested)
-                {
-                    _cancelTokenSource.Cancel();
-                }
+                List<Trade> newTrades = GetTrades(security.Name, endOver);
+
+                if (newTrades != null && newTrades.Count != 0)
+                    trades.AddRange(newTrades);
+                else
+                    break;
+
+                endOver = trades[trades.Count - 1].Time.AddSeconds(-1);
+                Thread.Sleep(100);
             }
-            catch (Exception e)
+
+            if (trades.Count == 0)
             {
-                SendLogMessage("GateIo dispose error: " + e, LogMessageType.Error);
+                return null;
+            }
+
+
+            while (trades.Last().Time < startTime)
+            {
+                trades.Remove(trades.Last());
+            }
+
+            trades.Reverse();
+
+            return trades;
+        }
+
+        private List<Trade> GetTrades(string security, DateTime endTime)
+        {
+            lock (_locker)
+            {
+                try
+                {
+                    var to = TimeManager.GetTimeStampSecondsToDateTime(endTime);
+
+                    string timeStamp = TimeManager.GetUnixTimeStampSeconds().ToString();
+                    var headers = new Dictionary<string, string>();
+                    headers.Add("Timestamp", timeStamp);
+
+                    RestRequestBuilder requestBuilder = new RestRequestBuilder();
+                    requestBuilder.AddParam("contract", security);
+                    requestBuilder.AddParam("limit", "1000");
+                    requestBuilder.AddParam("to", to.ToString());
+
+                    PublicUrlBuilder urlBuilder = new PublicUrlBuilder(_host, _path, _wallet);
+
+                    var tradesJson = _requestREST.SendGetQuery("GET", "", urlBuilder.Build("/trades", requestBuilder), headers);
+
+                    var tradesOut = JsonConvert.DeserializeObject<GfTrade[]>(tradesJson);
+
+                    var oldTrades = CreateTradesFromJson(tradesOut);
+
+                    return oldTrades;
+                }
+                catch
+                {
+                    SendLogMessage(OsLocalization.Market.Message95 + security, LogMessageType.Error);
+
+                    return null;
+                }
             }
         }
+
+        private List<Trade> CreateTradesFromJson(GfTrade[] gfTrades)
+        {
+            List<Trade> trades = new List<Trade>();
+
+            foreach (var jtTrade in gfTrades)
+            {
+                var trade = new Trade();
+
+                trade.Time = TimeManager.GetDateTimeFromTimeStampSeconds(jtTrade.CreateTime);
+                trade.Price = Converter.StringToDecimal(jtTrade.Price);
+                trade.MicroSeconds = 0;
+                trade.Id = jtTrade.Id.ToString();
+                trade.Volume = Math.Abs(jtTrade.Size);
+                trade.SecurityNameCode = jtTrade.Contract;
+
+                if (jtTrade.Size >= 0)
+                {
+                    trade.Side = Side.Buy;
+                    trade.Ask = 0;
+                    trade.AsksVolume = 0;
+                    trade.Bid = trade.Price;
+                    trade.BidsVolume = trade.Volume;
+                }
+                else if (jtTrade.Size < 0)
+                {
+                    trade.Side = Side.Sell;
+                    trade.Ask = trade.Price;
+                    trade.AsksVolume = trade.Volume;
+                    trade.Bid = 0;
+                    trade.BidsVolume = 0;
+                }
+
+
+                trades.Add(trade);
+            }
+
+            return trades;
+        }
+
+        #endregion
     }
 }

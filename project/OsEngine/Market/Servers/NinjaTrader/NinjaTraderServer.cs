@@ -96,9 +96,9 @@ namespace OsEngine.Market.Servers.NinjaTrader
             _client.ExecuteOrder(order);
         }
 
-        public void CanselOrder(Order order)
+        public void CancelOrder(Order order)
         {
-            _client.CanselOrder(order);
+            _client.CancelOrder(order);
         }
 
         public void Subscrible(Security security)

@@ -840,7 +840,7 @@ namespace OsEngine.Market.Servers.Tinkoff
         /// cancel order
         /// отменить ордер
         /// </summary>
-        public void CanselOrder(Order order)
+        public void CancelOrder(Order order)
         {
             lock (_lockOrder)
             {

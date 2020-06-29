@@ -79,7 +79,7 @@ namespace OsEngine.Market.Servers.MOEX
 
         }
 
-        public void CanselOrder(Order order)
+        public void CancelOrder(Order order)
         {
 
         }

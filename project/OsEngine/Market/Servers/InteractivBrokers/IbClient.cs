@@ -563,7 +563,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// cancel order
         /// отозвать ордер
         /// </summary>
-        public void CanselOrder(Order order)
+        public void CancelOrder(Order order)
         {
             // _twsServer.cancelOrder(Convert.ToInt32(order.NumberMarket));
             try

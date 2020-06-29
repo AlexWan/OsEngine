@@ -108,7 +108,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
 		/// cancel order
         /// отозвать ордер
         /// </summary>
-        public void CanselOrder(Order order)
+        public void CancelOrder(Order order)
         {
             string orderMes = "OrderCancel" + "@";
             orderMes += order.SecurityNameCode + "#";

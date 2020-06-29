@@ -1948,7 +1948,7 @@ namespace OsEngine.Market.Servers.SmartCom
         /// <summary>
         /// отменить ордер
         /// </summary>
-        public void CanselOrder(Order order)
+        public void CancelOrder(Order order)
         {
             _ordersToCansel.Enqueue(order);
         }

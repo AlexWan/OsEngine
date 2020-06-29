@@ -41,7 +41,7 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public DateTime ServerTime { get; set; }
 
-        public virtual void CanselOrder(Order order)
+        public virtual void CancelOrder(Order order)
         {
             throw new NotImplementedException();
         }

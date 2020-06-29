@@ -528,7 +528,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private List<Order> _ordersAllReadyCanseled = new List<Order>();
 
-        public void CanselOrder(Order order)
+        public void CancelOrder(Order order)
         {
             _ordersAllReadyCanseled.Add(order);
 

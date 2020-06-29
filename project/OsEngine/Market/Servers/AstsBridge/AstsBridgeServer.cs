@@ -1457,11 +1457,11 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// cancel order
         /// отменить ордер
         /// </summary>
-        public void CanselOrder(Order order)
+        public void CancelOrder(Order order)
         {
             if (AstsServer != null)
             {
-                AstsServer.CanselOrder(order);
+                AstsServer.CancelOrder(order);
             }
         }
 

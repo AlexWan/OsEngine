@@ -412,6 +412,7 @@
     <Compile Include="Market\Servers\Binance\Futures\BinanceClientFutures.cs" />
     <Compile Include="Market\Servers\Binance\Futures\BinanceServerFutures.cs" />
     <Compile Include="Market\Servers\Binance\Futures\Entity\AccountResponseFutures.cs" />
+    <Compile Include="Market\Servers\Binance\Futures\Entity\AgregatedHistoryTrade.cs" />
     <Compile Include="Market\Servers\Binance\Futures\Entity\BinanceFutureseDepthResponse.cs" />
     <Compile Include="Market\Servers\Binance\Futures\Entity\OrderUpdResponse.cs" />
     <Compile Include="Market\Servers\Binance\Spot\BinanceClientSpot.cs" />
@@ -491,8 +492,10 @@
     <Compile Include="Market\Servers\GateIo\Futures\Response\GfCandle.cs" />
     <Compile Include="Market\Servers\GateIo\Futures\Response\GfMyTrade.cs" />
     <Compile Include="Market\Servers\GateIo\Futures\Response\GfOrders.cs" />
+    <Compile Include="Market\Servers\GateIo\Futures\Response\GfPosition.cs" />
     <Compile Include="Market\Servers\GateIo\Futures\Response\GfSubscribeDepthResponse.cs" />
     <Compile Include="Market\Servers\GateIo\Futures\Response\GfTick.cs" />
+    <Compile Include="Market\Servers\GateIo\Futures\Response\GfTrade.cs" />
     <Compile Include="Market\Servers\GateIo\Futures\Response\GfTrades.cs" />
     <Compile Include="Market\Servers\GateIo\GateIoServer.cs" />
     <Compile Include="Market\Servers\Hitbtc\HitbtcClient.cs" />

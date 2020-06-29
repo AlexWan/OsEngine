@@ -723,7 +723,7 @@ namespace OsEngine.Market
                         IServer server = ServerMaster.GetServers().Find(server1 => server1.ServerType == _orders[i].ServerType);
                         if (server != null)
                         {
-                            server.CanselOrder(_orders[i]);
+                            server.CancelOrder(_orders[i]);
                         }
                     }
                 }
@@ -756,7 +756,7 @@ namespace OsEngine.Market
                     IServer server = ServerMaster.GetServers().Find(server1 => server1.ServerType == order.ServerType);
                     if (server != null)
                     {
-                        server.CanselOrder(order);
+                        server.CancelOrder(order);
                     }
                 }
             }
