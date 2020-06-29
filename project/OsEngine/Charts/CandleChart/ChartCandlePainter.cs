@@ -854,6 +854,28 @@ namespace OsEngine.Charts.CandleChart
 
                 if (_neadToDelete)
                 {
+                    _colorKeeper.LogMessageEvent -= SendLogMessage;
+                    _colorKeeper.NeedToRePaintFormEvent -= _colorKeeper_NeedToRePaintFormEvent;
+                    _chart.AxisScrollBarClicked -= _chart_AxisScrollBarClicked;
+                    _chart.AxisViewChanged -= _chart_AxisViewChanged; 
+                    _chart.Click -= _chart_Click;
+                    _chart.MouseDown -= _chartForCandle_MouseDown;
+                    _chart.MouseUp -= _chartForCandle_MouseUp;
+                    _chart.MouseMove -= _chartForCandle_MouseMove;
+                    _chart.MouseMove -= _chartForCandle_MouseMove2ChartElement;
+                    _chart.MouseDown -= _chartForCandle_MouseDown2ChartElement;
+                    _chart.MouseUp -= _chartForCandle_MouseUp2ChartElement;
+                    _chart.MouseLeave -= _chart_MouseLeave;
+
+                    _myCandles = null;
+                    _chart = null;
+                    _areaPositions = null;
+                    _areaSizes = null;
+                    _chartElements = null;
+                    _colorKeeper = null;
+                    _labelSeries = null;
+                    _timePoints = null;
+
                     return;
                 }
 
@@ -1413,6 +1435,11 @@ namespace OsEngine.Charts.CandleChart
         /// <param name="trades">ticks/тики</param>
         private void PaintTrades(List<Trade> trades)
         {
+            if (_startProgram == StartProgram.IsOsOptimizer)
+            {
+                return;
+            }
+
             if (_mouseDown == true)
             {
                 return;

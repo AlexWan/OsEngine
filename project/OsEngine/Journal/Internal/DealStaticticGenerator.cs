@@ -723,11 +723,36 @@ namespace OsEngine.Journal.Internal
             return profitFactor;
         }
 
+        public static decimal GetPayOffRatio(Position[] deals)
+        {
+            decimal avProfit = 0;
+            decimal avLoss = 0;
+
+            for (int i = 0; i < deals.Length; i++)
+            {
+                if (deals[i].ProfitOperationPunkt > 0)
+                {
+                    avProfit += deals[i].ProfitOperationPunkt;
+                }
+                else
+                {
+                    avLoss += deals[i].ProfitOperationPunkt;
+                }
+            }
+
+            if (avLoss != 0)
+            {
+                return avProfit / avLoss;
+            }
+
+            return 0;
+        }
+
         /// <summary>
         /// take recovery
         /// взять Recovery
         /// </summary>
-        private static decimal GetRecovery(Position[] deals)
+        public static decimal GetRecovery(Position[] deals)
         {
             decimal recovery = 0m;
             decimal maxLossPunkt = 0m;
@@ -743,6 +768,38 @@ namespace OsEngine.Journal.Internal
             if (profit != 0 && maxLossPunkt != 0) recovery = Math.Abs(profit / maxLossPunkt);
 
             return recovery;
+        }
+
+        public static List<Position> SortByTime(List<Position> positionsAll)
+        {
+            List<Position> newPositionsAll = new List<Position>();
+
+            for (int i = 0; i < positionsAll.Count; i++)
+            {
+                if (newPositionsAll.Count == 0 ||
+                    newPositionsAll[newPositionsAll.Count - 1].TimeCreate < positionsAll[i].TimeCreate)
+                {
+                    newPositionsAll.Add(positionsAll[i]);
+                }
+                else if (newPositionsAll[0].TimeCreate >= positionsAll[i].TimeCreate)
+                {
+                    newPositionsAll.Insert(0, positionsAll[i]);
+                }
+                else
+                {
+                    for (int i2 = 0; i2 < newPositionsAll.Count - 1; i2++)
+                    {
+                        if (newPositionsAll[i2].TimeCreate <= positionsAll[i].TimeCreate &&
+                            newPositionsAll[i2 + 1].TimeCreate >= positionsAll[i].TimeCreate)
+                        {
+                            newPositionsAll.Insert(i2 + 1, positionsAll[i]);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return newPositionsAll;
         }
     }
 }

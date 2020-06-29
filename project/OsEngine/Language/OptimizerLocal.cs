@@ -24,8 +24,8 @@ namespace OsEngine.Language
             "Ru:Запрошено экстренное завершение оптимизации. Ждите остановки процессов_");
 
         public string Message4 => OsLocalization.ConvertToLocString(
-            "Eng:The number of bots for tests -_" +
-            "Ru:Количество ботов для обхода-_");
+            "Eng:Max count of bots for tests -_" +
+            "Ru:Максимальное количество ботов для обхода-_");
 
         public string Message5 => OsLocalization.ConvertToLocString(
             "Eng:InSample stage is complete. Filtering data ..._" +
@@ -50,6 +50,10 @@ namespace OsEngine.Language
         public string Message10 => OsLocalization.ConvertToLocString(
             "Eng:Too long waiting for the robot to connect to the data server. Something went wrong!_" +
             "Ru:Слишком долгое ожидание подклчючения робота к серверу данных. Что-то пошло не так!_");
+
+        public string Message11 => OsLocalization.ConvertToLocString(
+            "Eng:We start checking all strategies in the system for the presence of parameters_" +
+            "Ru:Начинаем проверку всех стратегий в системе на наличие параметров_");
 
         public string Message12 => OsLocalization.ConvertToLocString(
             "Eng:The number of days in history is too small to optimize._" +

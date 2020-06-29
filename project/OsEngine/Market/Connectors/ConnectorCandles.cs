@@ -55,9 +55,12 @@ namespace OsEngine.Market.Connectors
                 _subscrabler.Start();
             }
 
-            _emulator = new OrderExecutionEmulator();
-            _emulator.MyTradeEvent += ConnectorBot_NewMyTradeEvent;
-            _emulator.OrderChangeEvent += ConnectorBot_NewOrderIncomeEvent;
+            if (StartProgram != StartProgram.IsOsOptimizer)
+            {
+                _emulator = new OrderExecutionEmulator();
+                _emulator.MyTradeEvent += ConnectorBot_NewMyTradeEvent;
+                _emulator.OrderChangeEvent += ConnectorBot_NewOrderIncomeEvent;
+            }
         }
 
         /// <summary>
@@ -144,6 +147,13 @@ namespace OsEngine.Market.Connectors
             if (_mySeries != null)
             {
                 _mySeries.Stop();
+                _mySeries.Clear();
+            }
+
+            if (_emulator != null)
+            {
+                _emulator.MyTradeEvent += ConnectorBot_NewMyTradeEvent;
+                _emulator.OrderChangeEvent += ConnectorBot_NewOrderIncomeEvent;
             }
 
             if (_myServer != null)

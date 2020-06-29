@@ -1434,6 +1434,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
 
         void _ibClient_NewMarketDepth(int id, int position, int operation, int side, decimal price, int size)
         {
+
             try
             {
                 // take all the necessary data / берём все нужные данные
@@ -1686,6 +1687,11 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         {
             try
             {
+                if (trade.Price <= 0)
+                {
+                    return;
+                }
+
                 SecurityIb contractIb =
                     _secIB.Find(
                         contract =>

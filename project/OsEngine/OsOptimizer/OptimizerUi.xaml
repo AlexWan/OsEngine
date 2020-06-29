@@ -1,7 +1,7 @@
 ﻿<Window x:Class="OsEngine.OsOptimizer.OptimizerUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Optimizer" Height="500" Width="990" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" MinWidth="1000" MinHeight="500" Icon="/Images/OsLogo.ico">
+        Title="Optimizer" Height="700"  Width="1200" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" MinWidth="1000" MinHeight="500" Icon="/Images/OsLogo.ico">
     <Grid Name="GridPrime">
         <Grid.RowDefinitions>
             <RowDefinition Height="119*" />
@@ -23,17 +23,18 @@
                         <TextBox Name="TextBoxStartPortfolio" HorizontalAlignment="Left" Height="28" Margin="12,131,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="204"/>
                         <Label Name="Label13" Content="Initial funds" HorizontalAlignment="Left" Margin="12,106,0,0" VerticalAlignment="Top"/>
                         <WindowsFormsHost Name="HostLog" Margin="10,164,10,10" Foreground="Black"/>
-                        <Rectangle Name="RectangleTimeFramesAndSecurities" Margin="231,0,0,0" Height="164" VerticalAlignment="Top"/>
+                        <Rectangle Name="RectangleTimeFramesAndSecurities" Margin="231,0,10,0" Height="164" VerticalAlignment="Top"/>
                         <WindowsFormsHost x:Name="HostTabsSimple" Foreground="Black" Height="133" Margin="247,26,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="352"/>
                         <Label Name="LabelTabsEndTimeFrames" Content="Tabs securities" HorizontalAlignment="Left" Margin="247,1,0,0" VerticalAlignment="Top"/>
                         <Rectangle Name="RectangleServerData" HorizontalAlignment="Left" Height="55" Margin="10,1,0,0" VerticalAlignment="Top" Width="206"/>
                         <Button x:Name="ButtonServerDialog" Content="Data Server Settings" HorizontalAlignment="Left" Margin="12,10,0,0" VerticalAlignment="Top" Width="204" Height="39" Click="ButtonServerDialog_Click"/>
-                        <Rectangle Name="RectangleStrategyName" HorizontalAlignment="Left" Height="58" Margin="10,48,0,0"  VerticalAlignment="Top" Width="216"/>
+                        <Rectangle Name="RectangleStrategyName" HorizontalAlignment="Left" Height="58" Margin="10,48,0,0"  VerticalAlignment="Top" Width="206"/>
                         <Label Name="Label12" Content="Optimization strategy" HorizontalAlignment="Left" Margin="12,48,0,0" VerticalAlignment="Top"/>
                         <WindowsFormsHost x:Name="HostTabsIndex" Foreground="Black"  Height="133" Margin="604,26,10,0" VerticalAlignment="Top"/>
                         <Label Name="Label15" Content="Index" HorizontalAlignment="Left" Margin="604,1,0,0" VerticalAlignment="Top"/>
-                        <Button Name="ButtonStrategySelect" Content="Select" HorizontalAlignment="Left" Margin="156,71,0,0" VerticalAlignment="Top" Width="60" Click="ButtonStrategySelect_Click"/>
+                        <Button Name="ButtonStrategySelect" Content="Select" HorizontalAlignment="Left" Margin="156,54,0,0" VerticalAlignment="Top" Width="60" Click="ButtonStrategySelect_Click"/>
                         <TextBox Name="TextBoxStrategyName" HorizontalAlignment="Left" IsReadOnly="True" Margin="24,71,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Height="25"/>
+                        <Button x:Name="ButtonStrategyReload" Content="Reload" HorizontalAlignment="Left" Margin="156,81,0,0" VerticalAlignment="Top" Width="60" Click="ButtonStrategyReload_Click"/>
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItemParams" Header="Parameters" FontSize="14" Width="120">
@@ -44,13 +45,15 @@
                 </TabItem>
                 <TabItem Name="TabItemFazes" Header="Fazes" FontSize="14" Width="120">
                     <Grid Name="GridFazes" >
-                        <Button Name="ButtonCreateOptimizeFazes" Content="Create optimization scheme" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="201" Height="54" Click="ButtonCreateOptimizeFazes_Click"/>
-                        <WindowsFormsHost Name="HostStepsOptimize"  Foreground="Black" Margin="10,69,10,10"/>
-                        <DatePicker Name="DatePickerStart" HorizontalAlignment="Center" Margin="230,27,570,0" VerticalAlignment="Top" Width="156"/>
-                        <DatePicker Name="DatePickerEnd" HorizontalAlignment="Center" Margin="403,27,397,0" VerticalAlignment="Top" Width="156"/>
-                        <Label Name="Label20" Content="Test period" HorizontalAlignment="Center" Margin="304,4,490,0" VerticalAlignment="Top"/>
-                        <TextBox Name="TextBoxPercentFiltration" Height="23" Margin="0,29,10,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Right" Width="183"/>
-                        <Label Name="Label21" Content="% of time OutOfSample" HorizontalAlignment="Right" Margin="0,4,25,0" VerticalAlignment="Top"/>
+                        <Button Name="ButtonCreateOptimizeFazes" Content="Create optimization scheme" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="256" Height="42" Click="ButtonCreateOptimizeFazes_Click"/>
+                        <WindowsFormsHost Name="HostStepsOptimize"  Foreground="Black" Margin="10,72,10,10"/>
+                        <DatePicker Name="DatePickerStart" HorizontalAlignment="Center" Margin="297,27,530,0" VerticalAlignment="Top" Width="131"/>
+                        <DatePicker Name="DatePickerEnd" HorizontalAlignment="Center" Margin="433,27,405,0" VerticalAlignment="Top" Width="120"/>
+                        <Label Name="Label20" Content="Test period" HorizontalAlignment="Center" Margin="390,4,496,0" VerticalAlignment="Top"/>
+                        <TextBox Name="TextBoxPercentFiltration" Height="23" Margin="0,29,10,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Right" Width="144"/>
+                        <Label Name="Label21" Content="% of time OutOfSample" HorizontalAlignment="Right" Margin="0,4,10,0" VerticalAlignment="Top"/>
+                        <TextBox x:Name="TextBoxIterationCount" Height="23" Margin="0,29,181,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Right" Width="144"/>
+                        <Label x:Name="Label23" Content="Iteration count ???" HorizontalAlignment="Right" Margin="0,4,204,0" VerticalAlignment="Top"/>
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItemFilters" Header="Filters" FontSize="14" Width="120">
@@ -59,15 +62,13 @@
                         <CheckBox Name="CheckBoxFilterProfitIsOn" Content="Profit in % of the deposit >" HorizontalAlignment="Left" Margin="281,88,0,0" VerticalAlignment="Top"/>
                         <CheckBox Name="CheckBoxFilterMaxDrowDownIsOn" Content="Maximum drawDown % >" HorizontalAlignment="Left" Margin="281,116,0,0" VerticalAlignment="Top"/>
                         <CheckBox Name="CheckBoxFilterMiddleProfitIsOn" Content="Average profit in % >" HorizontalAlignment="Left" Margin="281,144,0,0" VerticalAlignment="Top" />
-                        <CheckBox Name="CheckBoxFilterWinPositonIsOn" Content="Profit deals in % >" HorizontalAlignment="Left" Margin="281,172,0,0" VerticalAlignment="Top"/>
-                        <CheckBox Name="CheckBoxFilterProfitFactorIsOn" Content="Profit factor >" HorizontalAlignment="Left" Margin="281,200,0,0" VerticalAlignment="Top"/>
+                        <CheckBox Name="CheckBoxFilterProfitFactorIsOn" Content="Profit factor >" HorizontalAlignment="Left" Margin="281,172,0,0" VerticalAlignment="Top"/>
                         <TextBox Name="TextBoxFilterProfitValue" HorizontalAlignment="Left" Height="23" Margin="491,88,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
                         <TextBox Name="TextBoxMaxDrowDownValue" HorizontalAlignment="Left" Height="23" Margin="491,116,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
                         <TextBox Name="TextBoxFilterMiddleProfitValue" HorizontalAlignment="Left" Height="23" Margin="491,144,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
-                        <TextBox Name="TextBoxFilterWinPositionValue" HorizontalAlignment="Left" Height="23" Margin="491,172,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
-                        <TextBox Name="TextBoxFilterProfitFactorValue" HorizontalAlignment="Left" Height="23" Margin="491,200,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
-                        <CheckBox Name="CheckBoxFilterDealsCount" Content="Position count &gt;" HorizontalAlignment="Left" Margin="281,228,0,0" VerticalAlignment="Top"/>
-                        <TextBox Name="TextBoxFilterDealsCount" HorizontalAlignment="Left" Height="23" Margin="491,228,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
+                        <TextBox Name="TextBoxFilterProfitFactorValue" HorizontalAlignment="Left" Height="23" Margin="491,172,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
+                        <CheckBox Name="CheckBoxFilterDealsCount" Content="Position count &gt;" HorizontalAlignment="Left" Margin="281,200,0,0" VerticalAlignment="Top"/>
+                        <TextBox Name="TextBoxFilterDealsCount" HorizontalAlignment="Left" Height="23" Margin="491,200,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItemResults" Header="Results" FontSize="14"  Width="120">

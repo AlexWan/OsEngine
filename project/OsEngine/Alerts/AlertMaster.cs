@@ -262,11 +262,15 @@ namespace OsEngine.Alerts
                     return;
                 }
 
-                for (int i = 0; i < _alertArray.Count; i++)
+                for (int i = 0; _alertArray != null &&
+                                i < _alertArray.Count; i++)
                 {
                     _alertArray[i].Delete();
                 }
                 _alertArray = new List<IIAlert>();
+
+                _connector = null;
+                _chartMaster = null;
             }
             catch (Exception error)
             {
@@ -836,7 +840,6 @@ namespace OsEngine.Alerts
         /// алерт достижения цены
         /// </summary>
         PriceAlert
-
     }
 
     /// <summary>

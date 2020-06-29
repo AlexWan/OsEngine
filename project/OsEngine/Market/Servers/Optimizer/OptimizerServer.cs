@@ -125,7 +125,37 @@ namespace OsEngine.Market.Servers.Optimizer
         /// </summary>
         public void Clear()
         {
+            if (_allTrades != null)
+            {
+                for (int i = 0; i < _allTrades.Length; i++)
+                {
+                    _allTrades[i].Clear();
+                }
+                _allTrades = null;
+            }
+            _candleManager.Clear();
+            _candleManager.Dispose();
+            
+            _logMaster.Clear();
+
+            _securities.Clear();
+
+            if (_candleSeriesTesterActivate != null)
+            {
+                for (int i = 0; i < _candleSeriesTesterActivate.Count; i++)
+                {
+                    _candleSeriesTesterActivate[i].Clear();
+                }
+            }
+
+            _candleSeriesTesterActivate = null;
+
+            _myTrades.Clear();
+            _storagePrime = null;
             _cleared = true;
+
+
+
         }
         private bool _cleared;
 
@@ -298,7 +328,8 @@ namespace OsEngine.Market.Servers.Optimizer
                         //_candleManager.Clear();
                         _candleManager = null;
 
-                        for (int i = 0; i < _candleSeriesTesterActivate.Count; i++)
+                        for (int i = 0; _candleSeriesTesterActivate != null &&
+                                        i < _candleSeriesTesterActivate.Count; i++)
                         {
                             _candleSeriesTesterActivate[i].Clear();
                         }

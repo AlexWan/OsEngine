@@ -281,6 +281,14 @@ namespace OsEngine.Indicators
             {
                 IncludeIndicators[i].Delete();
             }
+
+            for (int i = 0; DataSeries != null &&
+                            i < DataSeries.Count; i++)
+            {
+                DataSeries[i].Clear();
+            }
+
+            DataSeries = new List<IndicatorDataSeries>();
         }
 
         public void Load()
@@ -730,6 +738,11 @@ namespace OsEngine.Indicators
             Enum.TryParse(array[2], out ChartPaintType);
 
             IsPaint = Convert.ToBoolean(array[3]);
+        }
+
+        public void Clear()
+        {
+            Values.Clear();
         }
     }
 

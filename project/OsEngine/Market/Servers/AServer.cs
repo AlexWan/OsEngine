@@ -1615,6 +1615,11 @@ namespace OsEngine.Market.Servers
         {
             try
             {
+                if (trade.Price <= 0)
+                {
+                    return;
+                }
+
                 if (_needToLoadBidAskInTrades.Value)
                 {
                     BathTradeMarketDepthData(trade);
@@ -1647,6 +1652,16 @@ namespace OsEngine.Market.Servers
                                 return;
                             }
 
+                            Trade tradeBeforeCur = _allTrades[i][_allTrades[i].Count - 1];
+
+                            if (tradeBeforeCur.SecurityNameCode != trade.SecurityNameCode ||
+                                (tradeBeforeCur.Time.AddMinutes(30) > trade.Time &&
+                                 (tradeBeforeCur.Price / trade.Price > 1.1m ||
+                                  tradeBeforeCur.Price / trade.Price < 0.9m)))
+                            {
+                                return;
+                            }
+
                             _allTrades[i].Add(trade);
                             myList = _allTrades[i];
                             isSave = true;
@@ -1667,8 +1682,6 @@ namespace OsEngine.Market.Servers
                         myList = allTradesNew[allTradesNew.Length - 1];
                         _allTrades = allTradesNew;
                     }
-
-
 
                     _tradesToSend.Enqueue(myList);
                 }

@@ -31,7 +31,6 @@ namespace OsEngine.OsTrader.Panels.Tab
     /// </summary>
     public class BotTabIndex : IIBotTab
     {
-
         public BotTabIndex(string name, StartProgram  startProgram)
         {
             TabName = name;
@@ -49,7 +48,6 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// программа создавшая робота
         /// </summary>
         private StartProgram _startProgram;
-
 
         /// <summary>
         /// chart

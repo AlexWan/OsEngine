@@ -1532,6 +1532,8 @@ namespace OsEngine.Market.Servers.Optimizer
                     }
                     storage = LoadCandlesFromFolder(security, timeFrame, timeStart, timeEnd);
 
+                    storage.TimeFrame = timeFrame;
+
                     if (storage == null)
                     {
                         SendLogMessage(OsLocalization.Market.Message29 + security.Name + OsLocalization.Market.Message30 + _typeTesterData, LogMessageType.Error);

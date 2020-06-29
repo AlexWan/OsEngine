@@ -49,6 +49,7 @@ namespace OsEngine.Robots
             result.Add("Williams Band");
             result.Add("TwoLegArbitrage");
             result.Add("ThreeSoldier");
+            result.Add("TimeOfDayBot");
             result.Add("PriceChannelTrade");
             result.Add("SmaStochastic");
             result.Add("ClusterCountertrend");
@@ -113,6 +114,10 @@ namespace OsEngine.Robots
             }
 
             
+            if (nameClass == "TimeOfDayBot")
+            {
+                bot = new TimeOfDayBot(name, startProgram);
+            }
             if (nameClass == "Fisher")
             {
                 bot = new Fisher(name, startProgram);
@@ -469,6 +474,127 @@ namespace OsEngine.Robots
 
             return result;
         }
+
+// Names Include Bots With Params
+
+        public static List<string> GetNamesStrategyWithParametersSync()
+        {
+            if (NeadToReload == false &&
+                (_namesWithParam == null ||
+                 _namesWithParam.Count == 0))
+            {
+                LoadBotsNames();
+            }
+
+            if (NeadToReload == false &&
+                _namesWithParam != null &&
+                _namesWithParam.Count != 0)
+            {
+                return _namesWithParam;
+            }
+
+            NeadToReload = false;
+
+            List<Thread> workers = new List<Thread>();
+
+            _namesWithParam = new List<string>();
+
+            for (int i = 0; i < 3; i++)
+            {
+                Thread worker = new Thread(LoadNamesWithParam);
+                worker.Name = i.ToString();
+                workers.Add(worker);
+                worker.Start();
+            }
+
+            while (workers.Find(w => w.IsAlive) != null)
+            {
+                Thread.Sleep(100);
+            }
+
+            SaveBotsNames();
+
+            return _namesWithParam;
+        }
+
+        public static bool NeadToReload;
+
+        private static void LoadBotsNames()
+        {
+            _namesWithParam.Clear();
+
+            if (File.Exists("Engine\\OptimizerBots.txt") == false)
+            {
+                return;
+            }
+
+            using (StreamReader reader = new StreamReader("Engine\\OptimizerBots.txt"))
+            {
+                while (reader.EndOfStream == false)
+                {
+                    _namesWithParam.Add(reader.ReadLine());
+
+                }
+                reader.Close();
+            }
+        }
+
+        private static void SaveBotsNames()
+        {
+            using (StreamWriter writer = new StreamWriter("Engine\\OptimizerBots.txt"))
+            {
+                for (int i = 0; i < _namesWithParam.Count; i++)
+                {
+                    writer.WriteLine(_namesWithParam[i]);
+                }
+
+                writer.Close();
+            }
+        }
+
+        private static List<string> _namesWithParam = new List<string>();
+
+        private static void LoadNamesWithParam()
+        {
+            List<string> names = GetNamesStrategy();
+
+            int numThread = Convert.ToInt32(Thread.CurrentThread.Name);
+
+            for (int i = numThread; i < names.Count; i += 3)
+            {
+                try
+                {
+                    BotPanel bot = GetStrategyForName(names[i], numThread.ToString(), StartProgram.IsOsOptimizer, false);
+
+                    if (bot.Parameters == null ||
+                        bot.Parameters.Count == 0)
+                    {
+                        //SendLogMessage("We are not optimizing. Without parameters/Не оптимизируем. Без параметров: " + bot.GetNameStrategyType(), LogMessageType.System);
+                    }
+                    else
+                    {
+                        // SendLogMessage("With parameters/С параметрами: " + bot.GetNameStrategyType(), LogMessageType.System);
+                        _namesWithParam.Add(names[i]);
+                    }
+                    if (numThread == 2)
+                    {
+
+                    }
+                    bot.Delete();
+                }
+                catch
+                {
+                    continue;
+                }
+            }
+
+            if (LoadNamesWithParamEndEvent != null)
+            {
+                LoadNamesWithParamEndEvent(_namesWithParam);
+            }
+        }
+
+        public static event Action<List<string>> LoadNamesWithParamEndEvent;
 
     }
 }

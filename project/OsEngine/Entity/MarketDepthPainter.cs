@@ -101,7 +101,8 @@ namespace OsEngine.Entity
         {
             for (int i = 0; i < MarketDepthsToCheck.Count; i++)
             {
-                if (MarketDepthsToCheck[i]._name == _name)
+                if (MarketDepthsToCheck[i] == null ||
+                    MarketDepthsToCheck[i]._name == _name)
                 {
                     MarketDepthsToCheck.RemoveAt(i);
                     return;

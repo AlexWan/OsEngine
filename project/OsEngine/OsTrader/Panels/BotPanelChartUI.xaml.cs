@@ -82,8 +82,6 @@ namespace OsEngine.OsTrader.Panels
             ButtonCloseLimit.Content = OsLocalization.Trader.Label34;
             LabelGeneralSettings.Content = OsLocalization.Trader.Label35;
             ButtonJournalCommunity.Content = OsLocalization.Trader.Label40;
-            ButtonStrategSettingsIndividual.Content = OsLocalization.Trader.Label43;
-            ButtonRedactTab.Content = OsLocalization.Trader.Label44;
             ButtonStrategParametr.Content = OsLocalization.Trader.Label45;
             ButtonRiskManager.Content = OsLocalization.Trader.Label46;
             ButtonStrategSettings.Content = OsLocalization.Trader.Label47;
@@ -132,11 +130,6 @@ namespace OsEngine.OsTrader.Panels
 
         // manual control of the position
         // ручное управление позицией
-
-        private void ButtonStrategIndividualSettings_Click(object sender, RoutedEventArgs e)
-        {
-            _panel.ShowIndividualSettingsDialog();
-        }
 
         private void ButtonBuyLimit_Click(object sender, RoutedEventArgs e)
         {
@@ -274,16 +267,6 @@ namespace OsEngine.OsTrader.Panels
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-        }
-
-        private void ButtonRedactTab_Click(object sender, RoutedEventArgs e)
-        {
-            if (_panel.ActivTab.GetType().Name != "BotTabSimple")
-            {
-                return;
-            }
-
-            ((BotTabSimple)_panel.ActivTab).ShowConnectorDialog();
         }
 
         private void ButtonRiskManager_Click(object sender, RoutedEventArgs e)

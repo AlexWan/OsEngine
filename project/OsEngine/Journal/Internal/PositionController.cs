@@ -79,7 +79,7 @@ namespace OsEngine.Journal.Internal
         }
         // service
         // сервис
-        public PositionController(string name, StartProgram  startProgram)
+        public PositionController(string name, StartProgram startProgram)
         {
             _name = name;
             _startProgram = startProgram;
@@ -195,7 +195,7 @@ namespace OsEngine.Journal.Internal
             }
             catch (Exception error)
             {
-                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -215,6 +215,12 @@ namespace OsEngine.Journal.Internal
 
                 for (int i = 0; i < ControllersToCheck.Count; i++)
                 {
+                    if (ControllersToCheck[i] == null)
+                    {
+                        ControllersToCheck.RemoveAt(i);
+                        i--;
+                        continue;
+                    }
                     if (ControllersToCheck[i]._name == _name)
                     {
                         ControllersToCheck.RemoveAt(i);
@@ -267,13 +273,13 @@ namespace OsEngine.Journal.Internal
             get { return _comissionType; }
             set
             {
-                if(value == _comissionType)
+                if (value == _comissionType)
                 {
                     return;
                 }
                 _comissionType = value;
 
-                for(int i = 0; AllPositions != null && i < AllPositions.Count;i++)
+                for (int i = 0; AllPositions != null && i < AllPositions.Count; i++)
                 {
                     AllPositions[i].ComissionType = _comissionType;
                 }
@@ -330,7 +336,7 @@ namespace OsEngine.Journal.Internal
                     StringBuilder result = new StringBuilder();
 
                     result.Append(_comissionType + "\r\n");
-                    result.Append(_comissionValue+ "\r\n");
+                    result.Append(_comissionValue + "\r\n");
 
                     if (_startProgram != StartProgram.IsOsTrader)
                     {
@@ -469,7 +475,7 @@ namespace OsEngine.Journal.Internal
                         {
                             isCloseOrder = true;
                             break;
-                        } 
+                        }
                     }
                 }
 
@@ -972,9 +978,9 @@ namespace OsEngine.Journal.Internal
                         _positionsToPaint.RemoveAt(0);
                     }
                 }
-                catch 
+                catch
                 {
-                   // ignore
+                    // ignore
                 }
             }
             catch (Exception error)
@@ -995,8 +1001,8 @@ namespace OsEngine.Journal.Internal
         {
             _gridOpenDeal = CreateNewTable();
             _gridCloseDeal = CreateNewTable();
-            _gridCloseDeal.ScrollBars = ScrollBars.Vertical;
 
+            _gridCloseDeal.ScrollBars = ScrollBars.Vertical;
             _gridOpenDeal.Click += _gridOpenDeal_Click;
             _gridCloseDeal.Click += _gridCloseDeal_Click;
         }
@@ -1070,7 +1076,7 @@ namespace OsEngine.Journal.Internal
             _hostCloseDeal = dataGridCloseDeal;
             if (!_hostCloseDeal.Dispatcher.CheckAccess())
             {
-                _hostCloseDeal.Dispatcher.Invoke(new Action<WindowsFormsHost,WindowsFormsHost>(StartPaint),dataGridOpenDeal,dataGridCloseDeal);
+                _hostCloseDeal.Dispatcher.Invoke(new Action<WindowsFormsHost, WindowsFormsHost>(StartPaint), dataGridOpenDeal, dataGridCloseDeal);
                 return;
             }
 
@@ -1321,65 +1327,6 @@ namespace OsEngine.Journal.Internal
             }
             return null;
         }
-        
-        /// <summary>
-        /// the user clicked on the table of closed trades
-        /// пользователь кликнул по таблице закрытых сделок
-        /// </summary>
-        void _gridCloseDeal_Click(object sender, EventArgs e)
-        {
-            MouseEventArgs mouse = (MouseEventArgs)e;
-            if (mouse.Button != MouseButtons.Right)
-            {
-                return;
-            }
-
-            try
-            {
-                MenuItem[] items = new MenuItem[1];
-
-                items[0] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem12 };
-                items[0].Click += PositionScrollOnChart_Click;
-
-                ContextMenu menu = new ContextMenu(items);
-
-                _gridCloseDeal.ContextMenu = menu;
-                _gridCloseDeal.ContextMenu.Show(_gridCloseDeal, new Point(mouse.X, mouse.Y));
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-        
-        /// <summary>
-        /// the user has ordered to find position on chart 
-        /// пользователь заказал найти позиции на графике
-        /// </summary>
-        void PositionScrollOnChart_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                int number;
-                try
-                {
-                    number = Convert.ToInt32(_gridCloseDeal.Rows[_gridCloseDeal.CurrentCell.RowIndex].Cells[0].Value);
-                }
-                catch (Exception)
-                {
-                    return;
-                }
-                
-                if (UserSelectActionEvent != null)
-                {
-                    UserSelectActionEvent(GetPositionForNumber(number), SignalType.FindPosition);
-                }
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
 
         /// <summary>
         /// the user clicked on the table of open trades
@@ -1428,6 +1375,67 @@ namespace OsEngine.Journal.Internal
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
+        /// <summary>
+        /// the user clicked on the table of closed trades
+        /// пользователь кликнул по таблице закрытых сделок
+        /// </summary>
+        void _gridCloseDeal_Click(object sender, EventArgs e)
+        {
+            MouseEventArgs mouse = (MouseEventArgs)e;
+            if (mouse.Button != MouseButtons.Right)
+            {
+                return;
+            }
+
+            try
+            {
+                MenuItem[] items = new MenuItem[1];
+
+                items[0] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem12 };
+                items[0].Click += PositionScrollOnChart_Click;
+
+                ContextMenu menu = new ContextMenu(items);
+
+                _gridCloseDeal.ContextMenu = menu;
+                _gridCloseDeal.ContextMenu.Show(_gridCloseDeal, new Point(mouse.X, mouse.Y));
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// the user has ordered to find position on chart 
+        /// пользователь заказал найти позиции на графике
+        /// </summary>
+        void PositionScrollOnChart_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                int number;
+                try
+                {
+                    number = Convert.ToInt32(_gridCloseDeal.Rows[_gridCloseDeal.CurrentCell.RowIndex].Cells[0].Value);
+                }
+                catch (Exception)
+                {
+                    return;
+                }
+
+                if (UserSelectActionEvent != null)
+                {
+                    UserSelectActionEvent(GetPositionForNumber(number), SignalType.FindPosition);
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+
         // work with context menu
         // работа с контекстным меню
 
@@ -1635,7 +1643,7 @@ namespace OsEngine.Journal.Internal
             }
             else if (type == LogMessageType.Error)
             {
-                MessageBox.Show(message);
+                System.Windows.MessageBox.Show(message);
             }
         }
 

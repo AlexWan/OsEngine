@@ -324,22 +324,22 @@ namespace OsEngine.Charts.CandleChart
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @".txt", false))
                 {
 
-                    if (_indicatorsCandles != null)
+                    if (_indicators != null)
                     {
-                        for (int i = 0; i < _indicatorsCandles.Count; i++)
+                        for (int i = 0; i < _indicators.Count; i++)
                         {
-                            if (_indicatorsCandles[i].ValuesToChart != null &&
-                                _indicatorsCandles[i].ValuesToChart.Count != 0)
+                            if (_indicators[i].ValuesToChart != null &&
+                                _indicators[i].ValuesToChart.Count != 0)
                             {
-                                writer.WriteLine(_indicatorsCandles[i].GetType().Name + "@" +
-                                                 _indicatorsCandles[i].Name + "@" + _indicatorsCandles[i].NameArea +
-                                                 "@" + _indicatorsCandles[i].CanDelete);
+                                writer.WriteLine(_indicators[i].GetType().Name + "@" +
+                                                 _indicators[i].Name + "@" + _indicators[i].NameArea +
+                                                 "@" + _indicators[i].CanDelete);
                             }
                             else
                             {
-                                writer.WriteLine(_indicatorsCandles[i].GetType().Name + "@" +
-                                                 _indicatorsCandles[i].Name + "@" + _indicatorsCandles[i].NameArea +
-                                                 "@" + _indicatorsCandles[i].CanDelete + "@IsScript");
+                                writer.WriteLine(_indicators[i].GetType().Name + "@" +
+                                                 _indicators[i].Name + "@" + _indicators[i].NameArea +
+                                                 "@" + _indicators[i].CanDelete + "@IsScript");
                             }
                         }
                     }
@@ -365,9 +365,9 @@ namespace OsEngine.Charts.CandleChart
         {
             try
             {
-                for (int i = 0; _indicatorsCandles != null && i < _indicatorsCandles.Count; i++)
+                for (int i = 0; _indicators != null && i < _indicators.Count; i++)
                 {
-                    _indicatorsCandles[i].Delete();
+                    _indicators[i].Delete();
                 }
 
                 if (File.Exists(@"Engine\" + Name + @".txt"))
@@ -378,6 +378,13 @@ namespace OsEngine.Charts.CandleChart
                 {
                     ChartCandle.Delete();
                 }
+
+                _myCandles = null;
+                _chartElements = null;
+                _alertArray = null;
+                _indicators = null;
+                _myPosition = null;
+                
             }
             catch (Exception error)
             {
@@ -436,17 +443,17 @@ namespace OsEngine.Charts.CandleChart
 
                 List<MenuItem> menuDelete = null;
 
-                if (_indicatorsCandles != null)
+                if (_indicators != null)
                 {
                     menuRedact = new List<MenuItem>();
                     menuDelete = new List<MenuItem>();
-                    for (int i = 0; i < _indicatorsCandles.Count; i++)
+                    for (int i = 0; i < _indicators.Count; i++)
                     {
-                        menuRedact.Add(new MenuItem(_indicatorsCandles[i].GetType().Name));
+                        menuRedact.Add(new MenuItem(_indicators[i].GetType().Name));
                         menuRedact[menuRedact.Count - 1].Click += RedactContextMenu_Click;
-                        if (_indicatorsCandles[i].CanDelete)
+                        if (_indicators[i].CanDelete)
                         {
-                            menuDelete.Add(new MenuItem(_indicatorsCandles[i].GetType().Name));
+                            menuDelete.Add(new MenuItem(_indicators[i].GetType().Name));
                             menuDelete[menuDelete.Count - 1].Click += DeleteContextMenu_Click;
                         }
                     }
@@ -599,8 +606,8 @@ namespace OsEngine.Charts.CandleChart
             try
             {
                 MenuItem item = (MenuItem)sender;
-                _indicatorsCandles[item.Index].ShowDialog();
-                _indicatorsCandles[item.Index].Save();
+                _indicators[item.Index].ShowDialog();
+                _indicators[item.Index].Save();
             }
             catch (Exception error)
             {
@@ -624,12 +631,12 @@ namespace OsEngine.Charts.CandleChart
                 }
                 int number = ((MenuItem)sender).Index;
 
-                if ((_indicatorsCandles == null || _indicatorsCandles.Count <= number))
+                if ((_indicators == null || _indicators.Count <= number))
                 {
                     return;
                 }
 
-                List<IIndicator> indicators = _indicatorsCandles.FindAll(candle => candle.CanDelete == true);
+                List<IIndicator> indicators = _indicators.FindAll(candle => candle.CanDelete == true);
                 if (number < indicators.Count)
                 {
                     DeleteIndicator(indicators[number]);
@@ -717,9 +724,9 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         public List<IIndicator> Indicators
         {
-            get { return _indicatorsCandles; }
+            get { return _indicators; }
         }
-        private List<IIndicator> _indicatorsCandles;
+        private List<IIndicator> _indicators;
 
         /// <summary>
         /// to create an area for drawing ticks on chart
@@ -744,15 +751,15 @@ namespace OsEngine.Charts.CandleChart
             {
                 indicator.NameArea = nameArea;
 
-                if (_indicatorsCandles != null)
+                if (_indicators != null)
                 {
                     // check if there is such indicator in the collection
                     // проверяем, есть ли такой индикатор в коллекции
-                    for (int i = 0; i < _indicatorsCandles.Count; i++)
+                    for (int i = 0; i < _indicators.Count; i++)
                     {
-                        if (_indicatorsCandles[i].Name == indicator.Name)
+                        if (_indicators[i].Name == indicator.Name)
                         {
-                            return _indicatorsCandles[i];
+                            return _indicators[i];
                         }
                     }
                 }
@@ -816,14 +823,14 @@ namespace OsEngine.Charts.CandleChart
 
 
 
-                if (_indicatorsCandles == null)
+                if (_indicators == null)
                 {
-                    _indicatorsCandles = new List<IIndicator>();
-                    _indicatorsCandles.Add(indicator);
+                    _indicators = new List<IIndicator>();
+                    _indicators.Add(indicator);
                 }
                 else
                 {
-                    _indicatorsCandles.Add(indicator);
+                    _indicators.Add(indicator);
                 }
 
                 Save();
@@ -876,13 +883,13 @@ namespace OsEngine.Charts.CandleChart
 
                 indicator.Delete();
 
-                if (_indicatorsCandles.Count == 1)
+                if (_indicators.Count == 1)
                 {
-                    _indicatorsCandles = null;
+                    _indicators = null;
                 }
                 else
                 {
-                    _indicatorsCandles.Remove(indicator);
+                    _indicators.Remove(indicator);
                 }
                 Save();
                 ReloadContext();
@@ -1156,15 +1163,15 @@ namespace OsEngine.Charts.CandleChart
 
                     }
 
-                    if (_indicatorsCandles != null)
+                    if (_indicators != null)
                     {
-                        for (int i = 0; i < _indicatorsCandles.Count; i++)
+                        for (int i = 0; i < _indicators.Count; i++)
                         {
-                            _indicatorsCandles[i].Process(candles);
+                            _indicators[i].Process(candles);
 
                             if (canReload)
                             {
-                                ChartCandle.ProcessIndicator(_indicatorsCandles[i]);
+                                ChartCandle.ProcessIndicator(_indicators[i]);
                             }
                         }
                     }
@@ -1248,9 +1255,9 @@ namespace OsEngine.Charts.CandleChart
 
                 ChartCandle.ProcessCandles(_myCandles);
 
-                for (int i = 0; _indicatorsCandles != null && i < _indicatorsCandles.Count; i++)
+                for (int i = 0; _indicators != null && i < _indicators.Count; i++)
                 {
-                    ChartCandle.ProcessIndicator(_indicatorsCandles[i]);
+                    ChartCandle.ProcessIndicator(_indicators[i]);
                 }
 
                 for (int i = 0; _chartElements != null && i < _chartElements.Count; i++)
@@ -1300,11 +1307,13 @@ namespace OsEngine.Charts.CandleChart
             _myPosition = null;
 
 
-            for (int i = 0; _indicatorsCandles != null && i < _indicatorsCandles.Count; i++)
+            for (int i = 0; _indicators != null && i < _indicators.Count; i++)
             {
-                _indicatorsCandles[i].Clear();
+                _indicators[i].Clear();
             }
         }
+
+        
 
         /// <summary>
         /// get chart
