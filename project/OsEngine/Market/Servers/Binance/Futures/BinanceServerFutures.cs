@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using OsEngine.Entity;
 using OsEngine.Language;
@@ -152,9 +153,9 @@ namespace OsEngine.Market.Servers.Binance.Futures
         /// cancel order
         /// отозвать ордер
         /// </summary>
-        public void CanselOrder(Order order)
+        public void CanсelOrder(Order order)
         {
-            _client.CanselOrder(order);
+            _client.CanсelOrder(order);
         }
 
         /// <summary>
@@ -220,41 +221,48 @@ namespace OsEngine.Market.Servers.Binance.Futures
         /// </summary>
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime lastDate)
         {
-            List<Trade> lastTrades = new List<Trade>();
+            string markerDateTime = "";
 
-            string tradeId = "";
+            List<Trade> trades = new List<Trade>();
 
-            DateTime lastTradeTime = DateTime.MaxValue;
+            DateTime startOver = startTime;
 
-            while (lastTradeTime > startTime)
+            while (true)
             {
-                lastDate = TimeZoneInfo.ConvertTimeToUtc(lastDate);
-
-                List<Trade> trades = _client.GetTickHistoryToSecurity(security, tradeId);
-
-                if (trades == null ||
-                    trades.Count == 0)
+                if (startOver >= endTime)
                 {
-                    lastTradeTime = lastDate.AddSeconds(-1);
-                    Thread.Sleep(2000);
-                    continue;
+                    break;
                 }
 
-                DateTime uniTime = trades[trades.Count - 1].Time.ToUniversalTime();
+                List<Trade> newTrades = _client.GetTickHistoryToSecurity(security.Name, startOver);
 
-                lastTradeTime = trades[0].Time;
+                if (newTrades != null && newTrades.Count != 0)
+                    trades.AddRange(newTrades);
+                else
+                    break;
 
-                for (int i2 = 0; i2 < trades.Count; i2++)
+                startOver = trades[trades.Count - 1].Time.AddMilliseconds(1);
+
+
+                if (markerDateTime != startOver.ToShortDateString())
                 {
-                    lastTrades.Insert(i2, trades[i2]);
+                    markerDateTime = startOver.ToShortDateString();
+                    SendLogMessage(security.Name + " Binance Futures start loading: " + markerDateTime, LogMessageType.System);
                 }
-
-                tradeId = (Convert.ToInt32(trades[0].Id) - 1000).ToString();
 
                 Thread.Sleep(100);
             }
 
-            return lastTrades;
+            if (trades.Count == 0)
+            {
+                return null;
+            }
+
+            while (trades.Last().Time >= endTime)
+                trades.Remove(trades.Last());
+
+
+            return trades;
         }
 
         /// <summary>

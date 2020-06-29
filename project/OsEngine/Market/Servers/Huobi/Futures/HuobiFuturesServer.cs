@@ -738,7 +738,7 @@ namespace OsEngine.Market.Servers.Huobi.Futures
             }
         }
 
-        public override void CanselOrder(Order order)
+        public override void CanсelOrder(Order order)
         {
             JsonObject jsonContent = new JsonObject();
 

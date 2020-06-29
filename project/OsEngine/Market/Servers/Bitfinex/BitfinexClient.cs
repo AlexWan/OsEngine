@@ -273,7 +273,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         /// cancel order
         /// отменить оредр
         /// </summary>
-        public void CanselOrder(Order order)
+        public void CanсelOrder(Order order)
         {
             lock (_lockOrder)
             {

@@ -1737,7 +1737,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// cancel order
         /// отменить ордер
         /// </summary>
-        public void CanselOrder(Order order)
+        public void CanсelOrder(Order order)
         {
             if (_canselledOrders == null)
             {

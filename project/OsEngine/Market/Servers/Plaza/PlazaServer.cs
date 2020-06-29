@@ -81,7 +81,7 @@ namespace OsEngine.Market.Servers.Plaza
             _plazaController.ExecuteOrder(order);
         }
 
-        public void CanselOrder(Order order)
+        public void CanсelOrder(Order order)
         {
             _plazaController.CancelOrder(order);
         }

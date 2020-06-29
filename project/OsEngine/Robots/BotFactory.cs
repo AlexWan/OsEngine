@@ -112,7 +112,7 @@ namespace OsEngine.Robots
                 return bot;
             }
 
-            
+
             if (nameClass == "Fisher")
             {
                 bot = new Fisher(name, startProgram);

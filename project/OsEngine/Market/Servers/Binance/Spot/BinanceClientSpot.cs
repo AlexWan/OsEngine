@@ -1031,7 +1031,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
         /// cancel order
         /// отменить ордер
         /// </summary>
-        public void CanselOrder(Order order)
+        public void CanсelOrder(Order order)
         {
             lock (_lockOrder)
             {

@@ -1825,7 +1825,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                         {
                             lock (_serverLocker)
                             {
-                                _ibClient.CanselOrder(order);
+                                _ibClient.CanсelOrder(order);
                             }
                         }
                     }
@@ -1878,7 +1878,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// cancel order
         /// отменить ордер
         /// </summary>
-        public void CanselOrder(Order order)
+        public void CanсelOrder(Order order)
         {
             _ordersToCansel.Enqueue(order);
         }

@@ -783,7 +783,7 @@ namespace OsEngine.Market.Servers.BitStamp
         /// cancel order
         /// отменить оредр
         /// </summary>
-        public void CanselOrder(Order order)
+        public void CanсelOrder(Order order)
         {
             if (CancelOrder(order.NumberMarket))
             {

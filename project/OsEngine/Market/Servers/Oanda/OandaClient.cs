@@ -446,7 +446,7 @@ namespace OsEngine.Market.Servers.Oanda
         /// cancel order
         /// отозвать ордер
         /// </summary>
-        public void CanselOrder(Order order)
+        public void CanсelOrder(Order order)
         {
             if (string.IsNullOrWhiteSpace(order.NumberMarket))
             {

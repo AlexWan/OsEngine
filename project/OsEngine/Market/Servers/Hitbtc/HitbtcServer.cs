@@ -215,7 +215,7 @@ namespace OsEngine.Market.Servers.Hitbtc
         /// отозвать ордер из торговой системы
         /// </summary>
         /// <param name="order">order/ордер</param>
-        public void CanselOrder(Order order)
+        public void CanсelOrder(Order order)
         {
             if (order == null)
             {

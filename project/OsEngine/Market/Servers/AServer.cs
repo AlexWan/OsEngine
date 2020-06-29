@@ -1341,9 +1341,7 @@ namespace OsEngine.Market.Servers
 
             if (timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Simple)
             {
-                series.CandlesAll =
-                    ServerRealization.GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime,
-                        actualTime);
+                series.CandlesAll = ServerRealization.GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime, actualTime);
             }
 
             if (series.CandlesAll == null)
@@ -1801,7 +1799,7 @@ namespace OsEngine.Market.Servers
                             }
                             else if (order.OrderSendType == OrderSendType.Cancel)
                             {
-                                ServerRealization.CanselOrder(order.Order);
+                                ServerRealization.CanсelOrder(order.Order);
                             }
                         }
                     }
@@ -1894,7 +1892,7 @@ namespace OsEngine.Market.Servers
         /// отозвать ордер из торговой системы
         /// </summary>
         /// <param name="order"> order / ордер </param>
-        public void CanselOrder(Order order)
+        public void CanсelOrder(Order order)
         {
             if (UserSetOrderOnCancel != null)
             {

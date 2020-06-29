@@ -654,7 +654,7 @@ namespace OsEngine.Market.Servers.Tinkoff
 
         private List<MyTrade> _myTrades = new List<MyTrade>();
 
-        private List<Order> _canselOrders = new List<Order>();
+        private List<Order> _CanсelOrders = new List<Order>();
 
         public void UpdateMyTrades()
         {
@@ -693,7 +693,7 @@ namespace OsEngine.Market.Servers.Tinkoff
                     {
                         newOrder.State = OrderStateType.Cancel;
 
-                        if (_canselOrders.Find(ord => ord.NumberMarket == newOrder.NumberMarket) == null &&
+                        if (_CanсelOrders.Find(ord => ord.NumberMarket == newOrder.NumberMarket) == null &&
                             MyOrderEvent != null)
                         {
                             string figa = order.SelectToken("figi").ToString();
@@ -703,7 +703,7 @@ namespace OsEngine.Market.Servers.Tinkoff
                                 newOrder.SecurityNameCode = security.Name;
                             }
 
-                            _canselOrders.Add(newOrder);
+                            _CanсelOrders.Add(newOrder);
                             MyOrderEvent(newOrder);
                         }
                     }
@@ -840,7 +840,7 @@ namespace OsEngine.Market.Servers.Tinkoff
         /// cancel order
         /// отменить ордер
         /// </summary>
-        public void CanselOrder(Order order)
+        public void CanсelOrder(Order order)
         {
             lock (_lockOrder)
             {

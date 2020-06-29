@@ -1285,7 +1285,7 @@ namespace OsEngine.Market.Connectors
                 }
                 else
                 {
-                    _myServer.CanselOrder(order);
+                    _myServer.CanсelOrder(order);
                 }
             }
             catch (Exception error)

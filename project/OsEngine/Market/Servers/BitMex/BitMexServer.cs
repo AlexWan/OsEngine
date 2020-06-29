@@ -1657,7 +1657,7 @@ namespace OsEngine.Market.Servers.BitMex
                             {
                                 MyOrderEvent(_ordersToCheck[i]);
                             }
-                            CanselOrder(_ordersToCheck[i]);
+                            CanсelOrder(_ordersToCheck[i]);
                             _ordersToCheck.RemoveAt(i);
 
                             i--;
@@ -2006,7 +2006,7 @@ namespace OsEngine.Market.Servers.BitMex
         /// отозвать ордер из торговой системы
         /// </summary>
         /// <param name="order">order/ордер</param>
-        public void CanselOrder(Order order)
+        public void CanсelOrder(Order order)
         {
             _ordersToCansel.Enqueue(order);
             _ordersCanseled.Add(order);

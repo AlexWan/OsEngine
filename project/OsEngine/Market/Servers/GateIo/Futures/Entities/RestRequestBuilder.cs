@@ -91,11 +91,6 @@ namespace OsEngine.Market.Servers.GateIo.Futures.Entities
         {
             Uri uri = new Uri(baseUri + endPoint);
 
-            if (uri.ToString().Contains("?"))
-            {
-                var t = 6;
-            }
-
             var httpWebRequest = (HttpWebRequest)WebRequest.Create(uri);
 
             httpWebRequest.Method = method;

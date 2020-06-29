@@ -81,7 +81,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
         }
         public bool DataFeedTfTickCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
         public bool DataFeedTfMarketDepthCanLoad
         {

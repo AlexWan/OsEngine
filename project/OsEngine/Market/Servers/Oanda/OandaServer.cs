@@ -164,9 +164,9 @@ namespace OsEngine.Market.Servers.Oanda
             _client.ExecuteOrder(order);
         }
 
-        public void CanselOrder(Order order)
+        public void CanсelOrder(Order order)
         {
-            _client.CanselOrder(order);
+            _client.CanсelOrder(order);
         }
 
         public void Subscrible(Security security)

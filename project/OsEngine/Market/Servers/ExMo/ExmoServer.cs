@@ -134,9 +134,9 @@ namespace OsEngine.Market.Servers.ExMo
         /// cancel order
         /// отозвать ордер
         /// </summary>
-        public void CanselOrder(Order order)
+        public void CanсelOrder(Order order)
         {
-            _client.CanselOrder(order);
+            _client.CanсelOrder(order);
         }
 
         /// <summary>
