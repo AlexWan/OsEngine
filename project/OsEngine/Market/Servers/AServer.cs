@@ -1371,8 +1371,7 @@ namespace OsEngine.Market.Servers
         /// take ticks data for a period
         /// взять тиковые данные за период
         /// </summary>
-        public bool GetTickDataToSecurity(string namePaper, DateTime startTime, DateTime endTime, DateTime actualTime,
-            bool neadToUpdete)
+        public bool GetTickDataToSecurity(string namePaper, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdete)
         {
             if (Portfolios == null || Securities == null)
             {
