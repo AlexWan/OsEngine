@@ -523,7 +523,7 @@ namespace OsEngine.OsData
                     if (_regime == DataSetState.On && _setIsActive == false)
                     {
                         // user requested enable/пользователь запросил включение
-                        StartSets();
+                        await StartSets();
                         continue;
                     }
 
@@ -669,9 +669,8 @@ namespace OsEngine.OsData
         /// <summary>
         /// create a series of candles and subscribe to the data/создать серии свечек и подписаться на данные
         /// </summary>
-        private async void StartSets()
+        private async Task StartSets()
         {
-
             // server first/сначала сервер
 
             if (_myServer != null)
