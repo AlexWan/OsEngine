@@ -1416,7 +1416,7 @@ namespace OsEngine.Market.Servers.Finam
         /// cancel order
         /// отменить ордер
         /// </summary>
-        public void CanselOrder(Order order)
+        public void CancelOrder(Order order)
         {
 
         }

@@ -160,7 +160,7 @@ namespace OsEngine.Market.Servers.Livecoin
             _client.SendOrder(order);
         }
 
-        public void CanselOrder(OsEngine.Entity.Order order)
+        public void CancelOrder(OsEngine.Entity.Order order)
         {
             _client.CancelLimitOrder(order);
         }

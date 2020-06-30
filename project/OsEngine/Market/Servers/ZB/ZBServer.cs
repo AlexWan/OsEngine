@@ -420,7 +420,7 @@ namespace OsEngine.Market.Servers.ZB
             _wsSource?.SendMessage(jsonContent.ToString());
         }
 
-        public override void CanselOrder(Order order)
+        public override void CancelOrder(Order order)
         {
             JsonObject jsonContent = new JsonObject();
 

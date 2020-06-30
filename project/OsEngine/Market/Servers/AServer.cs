@@ -1371,8 +1371,7 @@ namespace OsEngine.Market.Servers
         /// take ticks data for a period
         /// взять тиковые данные за период
         /// </summary>
-        public bool GetTickDataToSecurity(string namePaper, DateTime startTime, DateTime endTime, DateTime actualTime,
-            bool neadToUpdete)
+        public bool GetTickDataToSecurity(string namePaper, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdete)
         {
             if (Portfolios == null || Securities == null)
             {
@@ -1814,7 +1813,7 @@ namespace OsEngine.Market.Servers
                             }
                             else if (order.OrderSendType == OrderSendType.Cancel)
                             {
-                                ServerRealization.CanselOrder(order.Order);
+                                ServerRealization.CancelOrder(order.Order);
                             }
                         }
                     }
@@ -1907,7 +1906,7 @@ namespace OsEngine.Market.Servers
         /// отозвать ордер из торговой системы
         /// </summary>
         /// <param name="order"> order / ордер </param>
-        public void CanselOrder(Order order)
+        public void CancelOrder(Order order)
         {
             if (UserSetOrderOnCancel != null)
             {

@@ -646,7 +646,7 @@ namespace OsEngine.Market.Servers.Quik
         /// cancel order
         /// отозвать ордер
         /// </summary>
-        public void CanselOrder(Order order)
+        public void CancelOrder(Order order)
         {
             string command = ConvertToKillQuikOrder(order);
 

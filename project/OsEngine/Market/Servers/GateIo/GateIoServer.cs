@@ -427,7 +427,7 @@ namespace OsEngine.Market.Servers.GateIo
             }
         }
 
-        public override void CanselOrder(Order order)
+        public override void CancelOrder(Order order)
         {
             StringBuilder builder = new StringBuilder();
 

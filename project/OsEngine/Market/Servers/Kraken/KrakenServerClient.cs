@@ -970,7 +970,7 @@ namespace OsEngine.Market.Servers.Kraken
         /// cancel order
         /// отозвать ордер
         /// </summary>
-        public void CanselOrder(Order order)
+        public void CancelOrder(Order order)
         {
             try
             {

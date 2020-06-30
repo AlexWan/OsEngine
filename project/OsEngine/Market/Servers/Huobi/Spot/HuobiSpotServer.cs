@@ -692,7 +692,7 @@ namespace OsEngine.Market.Servers.Huobi.Spot
             }
         }
 
-        public override void CanselOrder(Order order)
+        public override void CancelOrder(Order order)
         {
             string url = _privateUriBuilder.Build("POST", "/v1/order/orders/submitCancelClientOrder");
 

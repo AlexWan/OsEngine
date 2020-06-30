@@ -81,7 +81,7 @@ namespace OsEngine.Market.Servers.MFD
 
         }
 
-        public void CanselOrder(Order order)
+        public void CancelOrder(Order order)
         {
 
         }
