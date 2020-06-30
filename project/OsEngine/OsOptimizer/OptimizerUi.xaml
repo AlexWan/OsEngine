@@ -53,7 +53,7 @@
                         <TextBox Name="TextBoxPercentFiltration" Height="23" Margin="0,29,10,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Right" Width="144"/>
                         <Label Name="Label21" Content="% of time OutOfSample" HorizontalAlignment="Right" Margin="0,4,10,0" VerticalAlignment="Top"/>
                         <TextBox x:Name="TextBoxIterationCount" Height="23" Margin="0,29,181,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Right" Width="144"/>
-                        <Label x:Name="Label23" Content="Iteration count ???" HorizontalAlignment="Right" Margin="0,4,204,0" VerticalAlignment="Top"/>
+                        <Label x:Name="Label23" Content="Iteration count" HorizontalAlignment="Right" Margin="0,4,204,0" VerticalAlignment="Top"/>
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItemFilters" Header="Filters" FontSize="14" Width="120">

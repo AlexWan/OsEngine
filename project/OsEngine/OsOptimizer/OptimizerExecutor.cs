@@ -55,6 +55,7 @@ namespace OsEngine.OsOptimizer
             _serverNum = 0;
 
             _primeThreadWorker = new Thread(PrimeThreadWorkerPlace);
+            _primeThreadWorker.Name = "OptimizerExecutorThread";
             _primeThreadWorker.Start();
 
             return true;
@@ -416,14 +417,14 @@ namespace OsEngine.OsOptimizer
             {
                 while (_servers.Count >= _master.ThreadsCount)
                 {
-                    Thread.Sleep(100);
+                    Thread.Sleep(50);
                 }
 
                 if (_neadToStop)
                 {
                     while (true)
                     {
-                        Thread.Sleep(100);
+                        Thread.Sleep(50);
                         if (_servers.Count == 0)
                         {
                             break;
@@ -658,7 +659,6 @@ namespace OsEngine.OsOptimizer
             server.TestingEndEvent += server_TestingEndEvent;
             server.TypeTesterData = _master.Storage.TypeTesterData;
             server.TestintProgressChangeEvent += server_TestintProgressChangeEvent;
-            server.NumberServer = _serverNum;
 
             for (int i = 0; _master.TabsSimpleNamesAndTimeFrames != null 
                             && i < _master.TabsSimpleNamesAndTimeFrames.Count; i++)

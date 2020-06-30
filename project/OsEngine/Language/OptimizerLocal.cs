@@ -314,5 +314,10 @@ namespace OsEngine.Language
             "Eng:Select_" +
             "Ru:Выбрать_");
 
+        public string Label36 => OsLocalization.ConvertToLocString(
+            "Eng:Iteration count_" +
+            "Ru:Кол-во итераций_");
+        
+
     }
 }

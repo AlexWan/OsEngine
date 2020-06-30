@@ -141,6 +141,7 @@ namespace OsEngine.OsOptimizer
             Label31.Content = OsLocalization.Optimizer.Label31;
             CheckBoxFilterDealsCount.Content = OsLocalization.Optimizer.Label34;
             ButtonStrategySelect.Content = OsLocalization.Optimizer.Label35;
+            Label23.Content = OsLocalization.Optimizer.Label36;
         }
 
         /// <summary>
