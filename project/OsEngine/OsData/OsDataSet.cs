@@ -506,15 +506,13 @@ namespace OsEngine.OsData
                 {
                     await Task.Delay(10000);
 
-                    if (_regime == DataSetState.Off &&
-                        _setIsActive == false)
+                    if (_regime == DataSetState.Off && _setIsActive == false)
                     {
                         // completely off/полностью выключены
                         continue;
                     }
 
-                    if (_regime == DataSetState.Off &&
-                        _setIsActive == true)
+                    if (_regime == DataSetState.Off && _setIsActive == true)
                     {
                         // user requested to disable downloading/пользователь запросил отключить скачивание
                         _setIsActive = false;
@@ -522,18 +520,14 @@ namespace OsEngine.OsData
                         continue;
                     }
 
-                    if (_regime == DataSetState.On &&
-                        _setIsActive == false)
+                    if (_regime == DataSetState.On && _setIsActive == false)
                     {
                         // user requested enable/пользователь запросил включение
-                        StartSets();
+                        await StartSets();
                         continue;
                     }
 
-
-
-                    if (_regime == DataSetState.On &&
-                        _setIsActive == true)
+                    if (_regime == DataSetState.On && _setIsActive == true)
                     {
                         // here, in theory, you can save/тут по идее можно сохранять 
                         SaveData();
@@ -675,9 +669,8 @@ namespace OsEngine.OsData
         /// <summary>
         /// create a series of candles and subscribe to the data/создать серии свечек и подписаться на данные
         /// </summary>
-        private async void StartSets()
+        private async Task StartSets()
         {
-
             // server first/сначала сервер
 
             if (_myServer != null)
@@ -1019,6 +1012,12 @@ namespace OsEngine.OsData
                         }
 
                         string path = pathToSet + SecuritiesNames[i].Name.Replace("/", "").Replace("*", "");
+                        string pathToFolder = path + "\\" + "Tick";
+
+                        if (!Directory.Exists(pathToFolder))
+                        {
+                            Directory.CreateDirectory(pathToFolder);
+                        }
 
                         for (int i2 = 0; i2 < trades.Count; i2++)
                         {
@@ -1400,11 +1399,6 @@ namespace OsEngine.OsData
         /// <param name="securityName">security Name/имя бумаги</param>
         private void SaveThisTick(Trade tradeLast, string pathToFolder, string securityName, StreamWriter writer, string pathToFile, bool isLastTick)
         {
-            if (!Directory.Exists(pathToFolder))
-            {
-                Directory.CreateDirectory(pathToFolder);
-            }
-
             if (_tradeSaveInfo == null)
             {
                 _tradeSaveInfo = new List<TradeSaveInfo>();
@@ -1502,11 +1496,8 @@ namespace OsEngine.OsData
                 }
                 else
                 {
-                    using (StreamWriter writer2 = new StreamWriter(pathToFolder + "\\" + securityName.Replace("/", "") + ".txt", true))
-                    {
-                        table_ticks_second.Add(tradeLast.GetSaveString());
-                        SaveTicksData(writer2, table_ticks_second, isLastTick);
-                    }
+                    table_ticks_second.Add(tradeLast.GetSaveString());
+                    SaveTicksData(pathToFolder + "\\" + securityName.Replace("/", "") + ".txt", table_ticks_second, isLastTick);
                 }
             }
             catch (Exception error)
@@ -1528,6 +1519,20 @@ namespace OsEngine.OsData
                 var result = String.Join(Environment.NewLine, table_ticks);
                 writer.WriteLine(result);
 
+                table_ticks.Clear();
+            }
+        }
+
+        private void SaveTicksData(string path, List<string> table_ticks, bool isLastTick)
+        {
+            if (table_ticks.Count >= 10000 || isLastTick)
+            {
+                var result = String.Join(Environment.NewLine, table_ticks);
+                using (StreamWriter writer = new StreamWriter(path, true))
+                {
+                    writer.WriteLine(result);
+                }
+                
                 table_ticks.Clear();
             }
         }
