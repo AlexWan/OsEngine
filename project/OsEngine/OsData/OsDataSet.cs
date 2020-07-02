@@ -1463,7 +1463,6 @@ namespace OsEngine.OsData
             {
                 using (StreamWriter writer2 = new StreamWriter(pathToFolder + "\\" + securityName.Replace("/", "") + ".txt", true))
                 {
-                    table_ticks_second.Add(tradeLast.GetSaveString());
                     SaveTicksData(writer2, table_ticks_second, isLastTick);
                 }
                 return;

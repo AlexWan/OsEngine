@@ -250,7 +250,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     SendLogMessage(security.Name + " Binance Futures start loading: " + markerDateTime, LogMessageType.System);
                 }
 
-                Thread.Sleep(100);
+                Thread.Sleep(10);
             }
 
             if (trades.Count == 0)
