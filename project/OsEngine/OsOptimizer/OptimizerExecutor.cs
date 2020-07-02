@@ -391,7 +391,7 @@ namespace OsEngine.OsOptimizer
                     Thread.Sleep(50);
                 }
 
-                SendLogMessage("BotInSample" ,LogMessageType.System);
+                //SendLogMessage("BotInSample" ,LogMessageType.System);
 
                 StartNewBot(_parameters, optimizeParamCurrent, report, " InSample");
             }
@@ -443,7 +443,7 @@ namespace OsEngine.OsOptimizer
                 {
                     Thread.Sleep(50);
                 }
-                SendLogMessage("Bot Out of Sample", LogMessageType.System);
+               // SendLogMessage("Bot Out of Sample", LogMessageType.System);
                 StartNewBot(reportInSample.Reports[i].GetParameters(), new List<IIStrategyParameter>(), report,
                     reportInSample.Reports[i].BotName.Replace(" InSample", "") + " OutOfSample");
             }

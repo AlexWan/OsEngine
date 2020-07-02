@@ -148,14 +148,13 @@ namespace OsEngine.Market.Servers.Optimizer
                 }
             }
 
-            _candleSeriesTesterActivate = null;
+            if (_myTrades != null)
+            {
+                _myTrades.Clear();
+            }
 
-            _myTrades.Clear();
             _storagePrime = null;
             _cleared = true;
-
-
-
         }
         private bool _cleared;
 

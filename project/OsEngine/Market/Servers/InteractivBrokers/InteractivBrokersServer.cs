@@ -1806,6 +1806,11 @@ namespace OsEngine.Market.Servers.InteractivBrokers
 
         void _ibClient_NewMyTradeEvent(MyTrade trade)
         {
+            if (trade.Price <= 0)
+            {
+                return;
+            }
+
             if (_myTrades == null)
             {
                 _myTrades = new List<MyTrade>();

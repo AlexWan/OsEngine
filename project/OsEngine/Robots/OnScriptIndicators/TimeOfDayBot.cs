@@ -80,7 +80,7 @@ namespace OsEngine.Robots.OnScriptIndicators
                 return;
             }
 
-            if (TimeToInter.Value > trade.Time)
+            if (TimeToInter.Value < trade.Time)
             {
                 LogicOpenPosition();
             }

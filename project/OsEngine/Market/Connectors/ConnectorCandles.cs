@@ -824,7 +824,6 @@ namespace OsEngine.Market.Connectors
                                 }
                             }
 
-
                             _mySeries.СandleUpdeteEvent += MySeries_СandleUpdeteEvent;
                             _mySeries.СandleFinishedEvent += MySeries_СandleFinishedEvent;
                             _subscrabler = null;
