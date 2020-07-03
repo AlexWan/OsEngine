@@ -69,11 +69,11 @@ namespace OsEngine.OsMiner.Patterns
                 _chart = new ChartCandleMaster(_name,StartProgram.IsOsMiner);
                 _chart.ClickToIndexEvent += _chart_ClickToIndexEvent;
 
-                _chartTempPattern = new ChartCandlePainter(_name + "TempPattern",StartProgram.IsOsMiner);
+                _chartTempPattern = new WinFormsChartPainter(_name + "TempPattern",StartProgram.IsOsMiner);
                 _chartTempPattern.IsPatternChart = true;
-                _chartSingleOpenPattern = new ChartCandlePainter(_name + "OpenSinglePattern", StartProgram.IsOsMiner);
+                _chartSingleOpenPattern = new WinFormsChartPainter(_name + "OpenSinglePattern", StartProgram.IsOsMiner);
                 _chartSingleOpenPattern.IsPatternChart = true;
-                _chartSingleClosePattern = new ChartCandlePainter(_name + "CloseSinglePattern", StartProgram.IsOsMiner);
+                _chartSingleClosePattern = new WinFormsChartPainter(_name + "CloseSinglePattern", StartProgram.IsOsMiner);
                 _chartSingleClosePattern.IsPatternChart = true;
             }
         }
@@ -158,11 +158,11 @@ namespace OsEngine.OsMiner.Patterns
             _chart = new ChartCandleMaster(_name,StartProgram.IsOsMiner);
             _chart.ClickToIndexEvent += _chart_ClickToIndexEvent;
 
-            _chartTempPattern = new ChartCandlePainter(_name + "TempPattern", StartProgram.IsOsMiner);
+            _chartTempPattern = new WinFormsChartPainter(_name + "TempPattern", StartProgram.IsOsMiner);
             _chartTempPattern.IsPatternChart = true;
-            _chartSingleOpenPattern = new ChartCandlePainter(_name + "OpenSinglePattern", StartProgram.IsOsMiner);
+            _chartSingleOpenPattern = new WinFormsChartPainter(_name + "OpenSinglePattern", StartProgram.IsOsMiner);
             _chartSingleOpenPattern.IsPatternChart = true;
-            _chartSingleClosePattern = new ChartCandlePainter(_name + "CloseSinglePattern", StartProgram.IsOsMiner);
+            _chartSingleClosePattern = new WinFormsChartPainter(_name + "CloseSinglePattern", StartProgram.IsOsMiner);
             _chartSingleClosePattern.IsPatternChart = true;
 
             if (PatternsToOpen.Count != 0)
@@ -1554,19 +1554,19 @@ namespace OsEngine.OsMiner.Patterns
         /// chart for drawing a temporary pattern
         /// чарт для отрисовки временного паттерна
         /// </summary>
-        private ChartCandlePainter _chartTempPattern;
+        private WinFormsChartPainter _chartTempPattern;
 
         /// <summary>
         /// chart for drawing a single entry pattern
         /// чарт для отрисовки одиночного паттерна на вход
         /// </summary>
-        private ChartCandlePainter _chartSingleOpenPattern;
+        private WinFormsChartPainter _chartSingleOpenPattern;
 
         /// <summary>
         /// chart for drawing a single exit pattern
         /// чарт для отрисовки одиночного паттерна на выход
         /// </summary>
-        private ChartCandlePainter _chartSingleClosePattern;
+        private WinFormsChartPainter _chartSingleClosePattern;
 
         /// <summary>
         /// volume indicator
@@ -1736,7 +1736,7 @@ namespace OsEngine.OsMiner.Patterns
         /// draw a pattern on his individual chart
         /// прорисовать паттерн на его индивидуальном чарте
         /// </summary>
-        private void PaintSinglePattern(IPattern pattern, ChartCandlePainter chart)
+        private void PaintSinglePattern(IPattern pattern, WinFormsChartPainter chart)
         {
             chart.ClearDataPointsAndSizeValue();
             chart.ClearSeries();

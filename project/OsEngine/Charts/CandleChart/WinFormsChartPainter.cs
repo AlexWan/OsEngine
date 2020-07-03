@@ -31,7 +31,7 @@ namespace OsEngine.Charts.CandleChart
     ///Candles drawing wizard
     /// Мастер прорисовки свечного графика
     /// </summary>
-    public class ChartCandlePainter : IChartPainter
+    public class WinFormsChartPainter : IChartPainter
     {
         //service сервис
 
@@ -41,7 +41,7 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         /// <param name="name">name of robot that owns chart/имя робота, которому принадлежит чарт</param>
         /// <param name="startProgram"> program that creates a class object/программа создающая объект класса</param>
-        public ChartCandlePainter(string name, StartProgram startProgram)
+        public WinFormsChartPainter(string name, StartProgram startProgram)
         {
             try
             {

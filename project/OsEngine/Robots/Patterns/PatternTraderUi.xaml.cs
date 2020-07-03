@@ -38,9 +38,9 @@ namespace OsEngine.Robots.Patterns
             CreateGridPatternsGrid(_gridPatternsToOpen, HostGridPatternsToOpen);
             CreateGridPatternsGrid(_gridPatternsToClose, HostGridPatternToClose);
 
-            _chartSingleOpenPattern = new ChartCandlePainter("OpenSinglePattern", bot.StartProgram);
+            _chartSingleOpenPattern = new WinFormsChartPainter("OpenSinglePattern", bot.StartProgram);
             _chartSingleOpenPattern.IsPatternChart = true;
-            _chartSingleClosePattern = new ChartCandlePainter("CloseSinglePattern", bot.StartProgram);
+            _chartSingleClosePattern = new WinFormsChartPainter("CloseSinglePattern", bot.StartProgram);
             _chartSingleClosePattern.IsPatternChart = true;
 
             _chartSingleOpenPattern.StartPaintPrimeChart(null,HostSinglePatternToOpen, new Rectangle());
@@ -491,13 +491,13 @@ namespace OsEngine.Robots.Patterns
         /// chart for drawing a single entry pattern
         /// чарт для отрисовки одиночного паттерна на вход
         /// </summary>
-        private ChartCandlePainter _chartSingleOpenPattern;
+        private WinFormsChartPainter _chartSingleOpenPattern;
 
         /// <summary>
         /// chart for drawing a single exit pattern
         /// чарт для отрисовки одиночного паттерна на выход
         /// </summary>
-        private ChartCandlePainter _chartSingleClosePattern;
+        private WinFormsChartPainter _chartSingleClosePattern;
 
         void CreateGridPatternsGrid(DataGridView grid, WindowsFormsHost host)
         {
@@ -712,7 +712,7 @@ namespace OsEngine.Robots.Patterns
         /// draw a pattern on his individual chart
         /// прорисовать паттерн на его индивидуальном чарте
         /// </summary>
-        private void PaintSinglePattern(IPattern pattern, ChartCandlePainter chart)
+        private void PaintSinglePattern(IPattern pattern, WinFormsChartPainter chart)
         {
             chart.ClearDataPointsAndSizeValue();
             chart.ClearSeries();

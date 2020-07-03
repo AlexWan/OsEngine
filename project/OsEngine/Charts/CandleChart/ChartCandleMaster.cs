@@ -41,7 +41,7 @@ namespace OsEngine.Charts.CandleChart
             _name = nameBoss + "ChartMaster";
             _startProgram = startProgram;
 
-            ChartCandle = new ChartCandlePainter(nameBoss, startProgram);
+            ChartCandle = new WinFormsChartPainter(nameBoss, startProgram);
             ChartCandle.ChartClickEvent += ChartCandle_ChartClickEvent;
             ChartCandle.LogMessageEvent += NewLogMessage;
             ChartCandle.ClickToIndexEvent += _chartCandle_ClickToIndexEvent;

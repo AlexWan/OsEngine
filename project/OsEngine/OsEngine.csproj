@@ -323,7 +323,7 @@
     </Compile>
     <Compile Include="Charts\ClusterChart\ChartClusterMaster.cs" />
     <Compile Include="Charts\ClusterChart\ChartClusterPainter.cs" />
-    <Compile Include="Charts\CandleChart\ChartCandlePainter.cs" />
+    <Compile Include="Charts\CandleChart\WinFormsChartPainter.cs" />
     <Compile Include="Charts\ColorKeeper\ChartMasterColorKeeper.cs" />
     <Compile Include="Charts\CandleChart\ChartCandleMaster.cs" />
     <Compile Include="Charts\CandleChart\Indicators\IndicarotCreateUi.xaml.cs">
