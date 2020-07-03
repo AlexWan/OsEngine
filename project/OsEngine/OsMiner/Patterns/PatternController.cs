@@ -345,9 +345,9 @@ namespace OsEngine.OsMiner.Patterns
         /// </summary>
         public void PaintController(WindowsFormsHost hostTempPattern, WindowsFormsHost hostSinglePatternToOpen, WindowsFormsHost hostSinglePatternToClose)
         {
-            _chartSingleOpenPattern.StartPaintPrimeChart(hostSinglePatternToOpen, new Rectangle());
-            _chartSingleClosePattern.StartPaintPrimeChart(hostSinglePatternToClose, new Rectangle());
-            _chartTempPattern.StartPaintPrimeChart(hostTempPattern, new Rectangle());
+            _chartSingleOpenPattern.StartPaintPrimeChart(null,hostSinglePatternToOpen, new Rectangle());
+            _chartSingleClosePattern.StartPaintPrimeChart(null,hostSinglePatternToClose, new Rectangle());
+            _chartTempPattern.StartPaintPrimeChart(null,hostTempPattern, new Rectangle());
 
             PaintTempPattern();
         }
@@ -1593,7 +1593,7 @@ namespace OsEngine.OsMiner.Patterns
             }
 
             _chart.Clear();
-            _chart.StartPaint(_chartHost,_rectChart);
+            _chart.StartPaint(null,_chartHost,_rectChart);
 
             if (CandleSeries == null)
             {
@@ -1673,7 +1673,7 @@ namespace OsEngine.OsMiner.Patterns
                 return;
             }
 
-            _chart.StartPaint(_chartHost, _rectChart);
+            _chart.StartPaint(null, _chartHost, _rectChart);
 
 
             MinerCandleSeries series = CandleSeries.Find(ser => ser.Security.Name == SecurityToInter);
@@ -1738,11 +1738,6 @@ namespace OsEngine.OsMiner.Patterns
         /// </summary>
         private void PaintSinglePattern(IPattern pattern, ChartCandlePainter chart)
         {
-            if (chart.GetChart().InvokeRequired)
-            {
-                chart.GetChart().Invoke(new Action<IPattern, ChartCandlePainter>(PaintSinglePattern), pattern, chart);
-                return;
-            }
             chart.ClearDataPointsAndSizeValue();
             chart.ClearSeries();
 
@@ -1764,7 +1759,7 @@ namespace OsEngine.OsMiner.Patterns
                 {
                     if (chart.IndicatorIsCreate(pat.Indicators[i].Name + "0") == false)
                     {
-                        chart.CreateSeries(chart.GetChartArea(pat.Indicators[i].NameArea), pat.Indicators[i].TypeIndicator, pat.Indicators[i].NameSeries + "0");
+                        chart.CreateSeries(pat.Indicators[i].NameArea, pat.Indicators[i].TypeIndicator, pat.Indicators[i].NameSeries + "0");
                     }
 
                     chart.ProcessIndicator(pat.Indicators[i]);

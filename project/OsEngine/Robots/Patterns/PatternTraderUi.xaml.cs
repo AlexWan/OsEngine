@@ -43,8 +43,8 @@ namespace OsEngine.Robots.Patterns
             _chartSingleClosePattern = new ChartCandlePainter("CloseSinglePattern", bot.StartProgram);
             _chartSingleClosePattern.IsPatternChart = true;
 
-            _chartSingleOpenPattern.StartPaintPrimeChart(HostSinglePatternToOpen, new Rectangle());
-            _chartSingleClosePattern.StartPaintPrimeChart(HostSinglePatternToClose, new Rectangle());
+            _chartSingleOpenPattern.StartPaintPrimeChart(null,HostSinglePatternToOpen, new Rectangle());
+            _chartSingleClosePattern.StartPaintPrimeChart(null,HostSinglePatternToClose, new Rectangle());
 
             InitializePrimeSettings();
             InitializePattarnsToOpenTab();
@@ -714,11 +714,6 @@ namespace OsEngine.Robots.Patterns
         /// </summary>
         private void PaintSinglePattern(IPattern pattern, ChartCandlePainter chart)
         {
-            if (chart.GetChart().InvokeRequired)
-            {
-                chart.GetChart().Invoke(new Action<IPattern, ChartCandlePainter>(PaintSinglePattern), pattern, chart);
-                return;
-            }
             chart.ClearDataPointsAndSizeValue();
             chart.ClearSeries();
 
@@ -738,7 +733,7 @@ namespace OsEngine.Robots.Patterns
                 {
                     if (chart.IndicatorIsCreate(pat.Indicators[i].Name + "0") == false)
                     {
-                        chart.CreateSeries(chart.GetChartArea(pat.Indicators[i].NameArea), pat.Indicators[i].TypeIndicator, pat.Indicators[i].NameSeries + "0");
+                        chart.CreateSeries(pat.Indicators[i].NameArea, pat.Indicators[i].TypeIndicator, pat.Indicators[i].NameSeries + "0");
                     }
 
                     chart.ProcessIndicator(pat.Indicators[i]);

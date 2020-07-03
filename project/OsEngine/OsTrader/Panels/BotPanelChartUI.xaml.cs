@@ -28,7 +28,7 @@ namespace OsEngine.OsTrader.Panels
             InitializeComponent();
             _panel = panel;
 
-            _panel.StartPaint(ChartHostPanel, HostGlass, HostOpenPosition,
+            _panel.StartPaint(GridChart, ChartHostPanel, HostGlass, HostOpenPosition,
                 HostClosePosition, HostBotLog, RectChart,
                 HostAllert, TabControlBotTab, TextBoxPrice, GreedChartPanel);
 

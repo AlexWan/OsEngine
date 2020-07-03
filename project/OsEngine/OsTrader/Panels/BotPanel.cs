@@ -145,7 +145,7 @@ namespace OsEngine.OsTrader.Panels
         /// start drawing this robot / 
         /// начать прорисовку этого робота
         /// </summary> 
-        public void StartPaint(WindowsFormsHost hostChart, WindowsFormsHost glass, WindowsFormsHost hostOpenDeals,
+        public void StartPaint(Grid gridChart, WindowsFormsHost hostChart, WindowsFormsHost glass, WindowsFormsHost hostOpenDeals,
             WindowsFormsHost hostCloseDeals, WindowsFormsHost boxLog, Rectangle rectangle, WindowsFormsHost hostAlerts,
             TabControl tabBotTab, TextBox textBoxLimitPrice, Grid gridChartControlPanel)
         {
@@ -154,6 +154,7 @@ namespace OsEngine.OsTrader.Panels
                 return;
             }
 
+            _gridChart = gridChart;
             _tabBotTab = tabBotTab;
             _hostChart = hostChart;
             _hostGlass = glass;
@@ -168,9 +169,9 @@ namespace OsEngine.OsTrader.Panels
             {
                 if (!_tabBotTab.Dispatcher.CheckAccess())
                 {
-                    _tabBotTab.Dispatcher.Invoke(new Action<WindowsFormsHost, WindowsFormsHost, WindowsFormsHost,
+                    _tabBotTab.Dispatcher.Invoke(new Action<Grid,WindowsFormsHost, WindowsFormsHost, WindowsFormsHost,
                     WindowsFormsHost, WindowsFormsHost, Rectangle, WindowsFormsHost, TabControl, TextBox, Grid>
-                    (StartPaint), hostChart, glass, hostOpenDeals, hostCloseDeals, boxLog, rectangle, hostAlerts, tabBotTab, textBoxLimitPrice);
+                    (StartPaint), gridChart, hostChart, glass, hostOpenDeals, hostCloseDeals, boxLog, rectangle, hostAlerts, tabBotTab, textBoxLimitPrice);
                     return;
                 }
 
@@ -258,6 +259,7 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
+        private Grid _gridChart;
         private WindowsFormsHost _hostChart;
         private WindowsFormsHost _hostGlass;
         private WindowsFormsHost _hostOpenDeals;
@@ -1224,12 +1226,12 @@ position => position.State != PositionStateType.OpeningFail
 
                 if (ActivTab.GetType().Name == "BotTabSimple")
                 {
-                    ((BotTabSimple)ActivTab).StartPaint(_hostChart, _hostGlass, _hostOpenDeals, _hostCloseDeals,
+                    ((BotTabSimple)ActivTab).StartPaint(_gridChart,_hostChart, _hostGlass, _hostOpenDeals, _hostCloseDeals,
                         _rectangle, _hostAlerts, _textBoxLimitPrice, _gridChartControlPanel);
                 }
                 else if (ActivTab.GetType().Name == "BotTabIndex")
                 {
-                    ((BotTabIndex)ActivTab).StartPaint(_hostChart, _rectangle);
+                    ((BotTabIndex)ActivTab).StartPaint(_gridChart, _hostChart, _rectangle);
                 }
                 else if (ActivTab.GetType().Name == "BotTabCluster")
                 {

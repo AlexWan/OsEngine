@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Forms.Integration;
 using System.Windows.Shapes;
 using OsEngine.Charts;
@@ -137,9 +138,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// start drawing this robot / 
         /// начать прорисовку этого робота
         /// </summary> 
-        public void StartPaint(WindowsFormsHost host, Rectangle rectangle)
+        public void StartPaint(Grid grid, WindowsFormsHost host, Rectangle rectangle)
         {
-            _chartMaster.StartPaint(host,rectangle);
+            _chartMaster.StartPaint(grid, host, rectangle);
         }
 
         /// <summary>
@@ -1325,15 +1326,6 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
-
-        /// <summary>
-        /// get chart
-        /// взять чарт
-        /// </summary>
-        public Chart GetChart()
-        {
-            return _chartMaster.GetChart();
-        }
 
         /// <summary>
         /// get chart information

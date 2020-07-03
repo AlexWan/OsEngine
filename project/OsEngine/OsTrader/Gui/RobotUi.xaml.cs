@@ -26,7 +26,7 @@ namespace OsEngine.OsTrader.Gui
         {
             InitializeComponent();
             ServerMaster.SetHostTable(HostPositionOnBoard, HostOrdersOnBoard);
-            _strategyKeeper = new OsTraderMaster( ChartHostPanel, HostGlass, HostOpenPosition, HostClosePosition, HostAllPosition,
+            _strategyKeeper = new OsTraderMaster(GridChart, ChartHostPanel, HostGlass, HostOpenPosition, HostClosePosition, HostAllPosition,
                                          HostBotLog, HostBotLogPrime, RectChart, HostAllert, TabControlBotsName,TabControlBotTab,TextBoxPrice,GridChartControlPanel, StartProgram.IsOsTrader);
             Closing += RobotUi_Closing;
            
@@ -126,18 +126,6 @@ namespace OsEngine.OsTrader.Gui
 
         private OsTraderMaster _strategyKeeper;
 
-        /// <summary>
-        /// get list of charts for by bot name
-        /// получить список чартов по имени бота
-        /// </summary>
-        /// <param name="botName">bot name / имя бота</param>
-        /// <returns>
-        /// chart, tab name, chart information / чарт, имя таба, информация о чарте
-        /// </returns>
-        public List<Tuple<Chart, string, string>> GetCharts(string botName)
-        {
-            return _strategyKeeper.GetCharts(botName);
-        }
 
 // main menu
 // главное меню 

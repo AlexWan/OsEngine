@@ -149,6 +149,7 @@
     </Compile>
     <Compile Include="Charts\CandleChart\Elements\IChartElement.cs" />
     <Compile Include="Charts\CandleChart\Elements\PointElement.cs" />
+    <Compile Include="Charts\CandleChart\IChartPainter.cs" />
     <Compile Include="Charts\CandleChart\Indicators\AccumulationDistribution.cs" />
     <Compile Include="Charts\CandleChart\Indicators\AccumulationDistributionUi.xaml.cs">
       <DependentUpon>AccumulationDistributionUi.xaml</DependentUpon>

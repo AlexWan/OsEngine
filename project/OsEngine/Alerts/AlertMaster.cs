@@ -39,8 +39,7 @@ namespace OsEngine.Alerts
             _name = name;
             _connector = connector;
             _chartMaster = chartMaster;
-            chartMaster.GetChart().Click += AlertMaster_Click;
-
+            chartMaster.ChartClickEvent += ChartMaster_ChartClickEvent;
             Load();
 
             CreateGrid();
@@ -626,11 +625,11 @@ namespace OsEngine.Alerts
         /// cursor position on chart has changed
         /// изменилась позиция курсора на чарте
         /// </summary>
-        void AlertMaster_Click(object sender, EventArgs e)
+        private void ChartMaster_ChartClickEvent(ChartClickType clickType)
         {
             // check to see if you need to download information from cursor to alert window
             // проверить, не надо ли сейчас загрузить информацию с курсора в окно Алерта
-            CheckAlert(); 
+            CheckAlert();
         }
 
         /// <summary>
@@ -650,13 +649,11 @@ namespace OsEngine.Alerts
                 decimal pricePoint;
                 // crutch does not always help
                 // костыль не всегда помогает
-                try 
+                try
                 {
-                    ChartArea candleArea = _chartMaster.GetChartArea("Prime");
-
-                    numberCandle = Convert.ToInt32(candleArea.CursorX.Position);
-                    pricePoint = Convert.ToDecimal(candleArea.CursorY.Position);
-                    candleArea.CursorY.Position = double.NaN;
+                    numberCandle = _chartMaster.GetSelectCandleNumber();
+                    pricePoint = _chartMaster.GetCursorSelectPrice();
+                    _chartMaster.RemoveCursor();
                 }
                 catch (Exception)
                 {

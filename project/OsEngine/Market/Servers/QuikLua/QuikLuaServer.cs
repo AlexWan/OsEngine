@@ -417,7 +417,8 @@ namespace OsEngine.Market.Servers.QuikLua
                         }
                         else
                         {
-                            // TODO make information on futures limits for accounts without EBU / сделать получение информации по фьючерсным лимитам для счетов без ЕБС
+                            // TODO make information on futures limits for accounts without EBU
+                            // сделать получение информации по фьючерсным лимитам для счетов без ЕБС
                         }
 
                         _portfolios.Add(myPortfolio);
