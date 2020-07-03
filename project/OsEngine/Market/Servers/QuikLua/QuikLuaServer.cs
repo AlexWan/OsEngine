@@ -387,7 +387,8 @@ namespace OsEngine.Market.Servers.QuikLua
 
                         myPortfolio.Number = accaunts[i].TrdaccId;
 
-                        if (myPortfolio.Number.Remove(6) != "SPBFUT")
+                        if (myPortfolio.Number.Length > 6 && 
+                            myPortfolio.Number.Remove(6) != "SPBFUT")
                         {
                             var qPortfolio = QuikLua.Trading.GetPortfolioInfo(accaunts[i].Firmid, clientCode).Result;
 
