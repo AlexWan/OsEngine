@@ -325,6 +325,11 @@ namespace OsEngine.Journal.Internal
                 return;
             }
 
+            if (_startProgram != StartProgram.IsOsTrader)
+            {
+                return;
+            }
+
             _neadToSave = false;
 
             try
@@ -337,12 +342,6 @@ namespace OsEngine.Journal.Internal
 
                     result.Append(_comissionType + "\r\n");
                     result.Append(_comissionValue + "\r\n");
-
-                    if (_startProgram != StartProgram.IsOsTrader)
-                    {
-                        writer.Write(result);
-                        return;
-                    }
 
                     for (int i = 0; deals != null && i < deals.Count; i++)
                     {

@@ -33,7 +33,7 @@ namespace OsEngine.OsOptimizer
             _master.DateTimeStartEndChange += _master_DateTimeStartEndChange;
             _master.TestReadyEvent += _master_TestReadyEvent;
 
-            Task.Run(StrategyLoader);
+            Task.Run(new Action(StrategyLoader));
 
             CreateTableTabsSimple();
             CreateTableTabsIndex();
@@ -1955,7 +1955,7 @@ namespace OsEngine.OsOptimizer
         {
             BotFactory.NeadToReload = true;
 
-            Task.Run(StrategyLoader);
+            Task.Run(new Action(StrategyLoader));
         }
 
         private void StrategyLoader()
