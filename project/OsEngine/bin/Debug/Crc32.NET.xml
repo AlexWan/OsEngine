@@ -1,0 +1,220 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Crc32.NET</name>
+    </assembly>
+    <members>
+        <member name="T:Force.Crc32.Crc32CAlgorithm">
+            <summary>
+            Implementation of CRC-32C (Castagnoli).
+            This class supports several convenient static methods returning the CRC as UInt32.
+            </summary>
+        </member>
+        <member name="M:Force.Crc32.Crc32CAlgorithm.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Force.Crc32.Crc32CAlgorithm"/> class. 
+            </summary>
+        </member>
+        <member name="M:Force.Crc32.Crc32CAlgorithm.#ctor(System.Boolean)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Force.Crc32.Crc32CAlgorithm"/> class. 
+            </summary>
+            <param name="isBigEndian">Should return bytes result as big endian or little endian</param>
+        </member>
+        <member name="M:Force.Crc32.Crc32CAlgorithm.Append(System.UInt32,System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Computes CRC-32C from multiple buffers.
+            Call this method multiple times to chain multiple buffers.
+            </summary>
+            <param name="initial">
+            Initial CRC value for the algorithm. It is zero for the first buffer.
+            Subsequent buffers should have their initial value set to CRC value returned by previous call to this method.
+            </param>
+            <param name="input">Input buffer with data to be checksummed.</param>
+            <param name="offset">Offset of the input data within the buffer.</param>
+            <param name="length">Length of the input data in the buffer.</param>
+            <returns>Accumulated CRC-32C of all buffers processed so far.</returns>
+        </member>
+        <member name="M:Force.Crc32.Crc32CAlgorithm.Append(System.UInt32,System.Byte[])">
+            <summary>
+            Computes CRC-32C from multiple buffers.
+            Call this method multiple times to chain multiple buffers.
+            </summary>
+            <param name="initial">
+            Initial CRC value for the algorithm. It is zero for the first buffer.
+            Subsequent buffers should have their initial value set to CRC value returned by previous call to this method.
+            </param>
+            <param name="input">Input buffer containing data to be checksummed.</param>
+            <returns>Accumulated CRC-32C of all buffers processed so far.</returns>
+        </member>
+        <member name="M:Force.Crc32.Crc32CAlgorithm.Compute(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Computes CRC-32C from input buffer.
+            </summary>
+            <param name="input">Input buffer with data to be checksummed.</param>
+            <param name="offset">Offset of the input data within the buffer.</param>
+            <param name="length">Length of the input data in the buffer.</param>
+            <returns>CRC-32C of the data in the buffer.</returns>
+        </member>
+        <member name="M:Force.Crc32.Crc32CAlgorithm.Compute(System.Byte[])">
+            <summary>
+            Computes CRC-32C from input buffer.
+            </summary>
+            <param name="input">Input buffer containing data to be checksummed.</param>
+            <returns>CRC-32C of the buffer.</returns>
+        </member>
+        <member name="M:Force.Crc32.Crc32CAlgorithm.ComputeAndWriteToEnd(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Computes CRC-32C from input buffer and writes it after end of data (buffer should have 4 bytes reserved space for it). Can be used in conjunction with <see cref="M:Force.Crc32.Crc32CAlgorithm.IsValidWithCrcAtEnd(System.Byte[],System.Int32,System.Int32)"/>
+            </summary>
+            <param name="input">Input buffer with data to be checksummed.</param>
+            <param name="offset">Offset of the input data within the buffer.</param>
+            <param name="length">Length of the input data in the buffer.</param>
+            <returns>CRC-32C of the data in the buffer.</returns>
+        </member>
+        <member name="M:Force.Crc32.Crc32CAlgorithm.ComputeAndWriteToEnd(System.Byte[])">
+            <summary>
+            Computes CRC-32C from input buffer - 4 bytes and writes it as last 4 bytes of buffer. Can be used in conjunction with <see cref="M:Force.Crc32.Crc32CAlgorithm.IsValidWithCrcAtEnd(System.Byte[])"/>
+            </summary>
+            <param name="input">Input buffer with data to be checksummed.</param>
+            <returns>CRC-32C of the data in the buffer.</returns>
+        </member>
+        <member name="M:Force.Crc32.Crc32CAlgorithm.IsValidWithCrcAtEnd(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Validates correctness of CRC-32C data in source buffer with assumption that CRC-32C data located at end of buffer in reverse bytes order. Can be used in conjunction with <see cref="M:Force.Crc32.Crc32CAlgorithm.ComputeAndWriteToEnd(System.Byte[],System.Int32,System.Int32)"/>
+            </summary>
+            <param name="input">Input buffer with data to be checksummed.</param>
+            <param name="offset">Offset of the input data within the buffer.</param>
+            <param name="lengthWithCrc">Length of the input data in the buffer with CRC-32C bytes.</param>
+            <returns>Is checksum valid.</returns>
+        </member>
+        <member name="M:Force.Crc32.Crc32CAlgorithm.IsValidWithCrcAtEnd(System.Byte[])">
+            <summary>
+            Validates correctness of CRC-32C data in source buffer with assumption that CRC-32C data located at end of buffer in reverse bytes order. Can be used in conjunction with <see cref="M:Force.Crc32.Crc32CAlgorithm.ComputeAndWriteToEnd(System.Byte[],System.Int32,System.Int32)"/>
+            </summary>
+            <param name="input">Input buffer with data to be checksummed.</param>
+            <returns>Is checksum valid.</returns>
+        </member>
+        <member name="M:Force.Crc32.Crc32CAlgorithm.Initialize">
+            <summary>
+            Resets internal state of the algorithm. Used internally.
+            </summary>
+        </member>
+        <member name="M:Force.Crc32.Crc32CAlgorithm.HashCore(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Appends CRC-32C from given buffer
+            </summary>
+        </member>
+        <member name="M:Force.Crc32.Crc32CAlgorithm.HashFinal">
+            <summary>
+            Computes CRC-32C from <see cref="M:Force.Crc32.Crc32CAlgorithm.HashCore(System.Byte[],System.Int32,System.Int32)"/>
+            </summary>
+        </member>
+        <member name="T:Force.Crc32.Crc32Algorithm">
+            <summary>
+            Implementation of CRC-32.
+            This class supports several convenient static methods returning the CRC as UInt32.
+            </summary>
+        </member>
+        <member name="M:Force.Crc32.Crc32Algorithm.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Force.Crc32.Crc32Algorithm"/> class. 
+            </summary>
+        </member>
+        <member name="M:Force.Crc32.Crc32Algorithm.#ctor(System.Boolean)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Force.Crc32.Crc32Algorithm"/> class. 
+            </summary>
+            <param name="isBigEndian">Should return bytes result as big endian or little endian</param>
+        </member>
+        <member name="M:Force.Crc32.Crc32Algorithm.Append(System.UInt32,System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Computes CRC-32 from multiple buffers.
+            Call this method multiple times to chain multiple buffers.
+            </summary>
+            <param name="initial">
+            Initial CRC value for the algorithm. It is zero for the first buffer.
+            Subsequent buffers should have their initial value set to CRC value returned by previous call to this method.
+            </param>
+            <param name="input">Input buffer with data to be checksummed.</param>
+            <param name="offset">Offset of the input data within the buffer.</param>
+            <param name="length">Length of the input data in the buffer.</param>
+            <returns>Accumulated CRC-32 of all buffers processed so far.</returns>
+        </member>
+        <member name="M:Force.Crc32.Crc32Algorithm.Append(System.UInt32,System.Byte[])">
+            <summary>
+            Computes CRC-32 from multiple buffers.
+            Call this method multiple times to chain multiple buffers.
+            </summary>
+            <param name="initial">
+            Initial CRC value for the algorithm. It is zero for the first buffer.
+            Subsequent buffers should have their initial value set to CRC value returned by previous call to this method.
+            </param>
+            <param name="input">Input buffer containing data to be checksummed.</param>
+            <returns>Accumulated CRC-32 of all buffers processed so far.</returns>
+        </member>
+        <member name="M:Force.Crc32.Crc32Algorithm.Compute(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Computes CRC-32 from input buffer.
+            </summary>
+            <param name="input">Input buffer with data to be checksummed.</param>
+            <param name="offset">Offset of the input data within the buffer.</param>
+            <param name="length">Length of the input data in the buffer.</param>
+            <returns>CRC-32 of the data in the buffer.</returns>
+        </member>
+        <member name="M:Force.Crc32.Crc32Algorithm.Compute(System.Byte[])">
+            <summary>
+            Computes CRC-32 from input buffer.
+            </summary>
+            <param name="input">Input buffer containing data to be checksummed.</param>
+            <returns>CRC-32 of the buffer.</returns>
+        </member>
+        <member name="M:Force.Crc32.Crc32Algorithm.ComputeAndWriteToEnd(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Computes CRC-32 from input buffer and writes it after end of data (buffer should have 4 bytes reserved space for it). Can be used in conjunction with <see cref="M:Force.Crc32.Crc32Algorithm.IsValidWithCrcAtEnd(System.Byte[],System.Int32,System.Int32)"/>
+            </summary>
+            <param name="input">Input buffer with data to be checksummed.</param>
+            <param name="offset">Offset of the input data within the buffer.</param>
+            <param name="length">Length of the input data in the buffer.</param>
+            <returns>CRC-32 of the data in the buffer.</returns>
+        </member>
+        <member name="M:Force.Crc32.Crc32Algorithm.ComputeAndWriteToEnd(System.Byte[])">
+            <summary>
+            Computes CRC-32 from input buffer - 4 bytes and writes it as last 4 bytes of buffer. Can be used in conjunction with <see cref="M:Force.Crc32.Crc32Algorithm.IsValidWithCrcAtEnd(System.Byte[])"/>
+            </summary>
+            <param name="input">Input buffer with data to be checksummed.</param>
+            <returns>CRC-32 of the data in the buffer.</returns>
+        </member>
+        <member name="M:Force.Crc32.Crc32Algorithm.IsValidWithCrcAtEnd(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Validates correctness of CRC-32 data in source buffer with assumption that CRC-32 data located at end of buffer in reverse bytes order. Can be used in conjunction with <see cref="M:Force.Crc32.Crc32Algorithm.ComputeAndWriteToEnd(System.Byte[],System.Int32,System.Int32)"/>
+            </summary>
+            <param name="input">Input buffer with data to be checksummed.</param>
+            <param name="offset">Offset of the input data within the buffer.</param>
+            <param name="lengthWithCrc">Length of the input data in the buffer with CRC-32 bytes.</param>
+            <returns>Is checksum valid.</returns>
+        </member>
+        <member name="M:Force.Crc32.Crc32Algorithm.IsValidWithCrcAtEnd(System.Byte[])">
+            <summary>
+            Validates correctness of CRC-32 data in source buffer with assumption that CRC-32 data located at end of buffer in reverse bytes order. Can be used in conjunction with <see cref="M:Force.Crc32.Crc32Algorithm.ComputeAndWriteToEnd(System.Byte[],System.Int32,System.Int32)"/>
+            </summary>
+            <param name="input">Input buffer with data to be checksummed.</param>
+            <returns>Is checksum valid.</returns>
+        </member>
+        <member name="M:Force.Crc32.Crc32Algorithm.Initialize">
+            <summary>
+            Resets internal state of the algorithm. Used internally.
+            </summary>
+        </member>
+        <member name="M:Force.Crc32.Crc32Algorithm.HashCore(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Appends CRC-32 from given buffer
+            </summary>
+        </member>
+        <member name="M:Force.Crc32.Crc32Algorithm.HashFinal">
+            <summary>
+            Computes CRC-32 from <see cref="M:Force.Crc32.Crc32Algorithm.HashCore(System.Byte[],System.Int32,System.Int32)"/>
+            </summary>
+        </member>
+    </members>
+</doc>

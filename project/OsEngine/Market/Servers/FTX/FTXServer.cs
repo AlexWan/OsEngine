@@ -1,13 +1,17 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using OsEngine.Market.Servers.FTX.Entities;
+using OsEngine.Market.Servers.FTX.EntityCreators;
+using OsEngine.Market.Servers.FTX.FtxApi;
 using OsEngine.Market.Services;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
@@ -28,24 +32,64 @@ namespace OsEngine.Market.Servers.FTX
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
         }
+
+        /// <summary>
+        /// instrument history query
+        /// запрос истории по инструменту
+        /// </summary>
+        public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf)
+        {
+            return ((FTXServerRealization)ServerRealization).GetCandleHistory(nameSec, tf);
+        }
     }
 
     public class FTXServerRealization : AServerRealization
     {
+        #region private constants
+        private const int candlesDownloadLimit = 1000;
+        #endregion
+
         #region private fields
-        private string _apiKey;
-        private string _secretKey;
         private readonly string _webSocketEndpointUrl = "wss://ftx.com/ws/";
+
+        /// <summary>
+        /// словарь таймфреймов, поддерживаемых этой биржей
+        /// </summary>
+        private readonly Dictionary<int, string> _supportedIntervals = new Dictionary<int, string>
+        {
+            { 15, "15sec" },
+            { 60, "1min" },
+            { 300, "5min" },
+            { 900, "15min" },
+            { 3600, "1hour" },
+            { 14400, "4hour" },
+            { 86400, "1day" }
+        };
 
         private WsSource _wsSource;
 
         private CancellationTokenSource _cancelTokenSource;
 
         private readonly ConcurrentQueue<string> _queueMessagesReceivedFromExchange = new ConcurrentQueue<string>();
+        private readonly Dictionary<string, Action<JToken>> _responseHandlers;
 
+        private FTXSecurityCreator _securitiesCreator;
+        private FTXPortfolioCreator _portfoliosCreator;
+        private FTXMarketDepthCreator _marketDepthCreator;
+        private FTXTradesCreator _tradesCreator;
+        private FTXOrderCreator _orderCreator;
+        private FTXCandlesCreator _candlesCreator;
         private DateTime _lastTimeUpdateSocket;
 
-        private DateTime _timeStartSocket;
+        private bool _isPortfolioSubscribed = false;
+
+        private FtxRestApi _ftxRestApi;
+
+        private Client _client;
+
+        private readonly List<string> _subscribedSecurities = new List<string>();
+
+        private object _locker = new object();
         #endregion
 
         #region public properties
@@ -53,9 +97,17 @@ namespace OsEngine.Market.Servers.FTX
         #endregion
 
         #region private methods
-        private void WsSourceByteDataEvent(WsMessageType messageType, byte[] data)
+        private void WsSourceByteDataEvent(WsMessageType msgType, byte[] data)
         {
-            throw new NotImplementedException();
+            switch (msgType)
+            {
+                case WsMessageType.ByteData:
+                    //string message = GZipDecompresser.Decompress(data);
+                    //_queueMessagesReceivedFromExchange.Enqueue(message);
+                    break;
+                default:
+                    throw new NotSupportedException(data.ToString());
+            }
         }
 
         private void WsSourceMessageEvent(WsMessageType msgType, string message)
@@ -95,20 +147,15 @@ namespace OsEngine.Market.Servers.FTX
                     if (!_queueMessagesReceivedFromExchange.IsEmpty &&
                         _queueMessagesReceivedFromExchange.TryDequeue(out string mes))
                     {
-                        var response = JsonConvert.DeserializeObject<BasicResponse>(mes);
-
-                        switch (response.Type)
+                        var response = JToken.Parse(mes);
+                        var type = response.SelectToken("type").ToString();
+                        if (_responseHandlers.ContainsKey(type))
                         {
-                            case TypeEnum.Pong:
-                                _lastTimeUpdateSocket = DateTime.Now;
-                                SendLogMessage(mes, LogMessageType.NoName);
-                                break;
-                            case TypeEnum.Error:
-                                SendLogMessage(mes, LogMessageType.Error);
-                                break;
-                            default:
-                                SendLogMessage(mes, LogMessageType.System);
-                                break;
+                            _responseHandlers[type].Invoke(response);
+                        }
+                        else
+                        {
+                            SendLogMessage(mes, LogMessageType.System);
                         }
                     }
                     else
@@ -135,7 +182,7 @@ namespace OsEngine.Market.Servers.FTX
             while (!token.IsCancellationRequested)
             {
                 await Task.Delay(15000);
-                _wsSource.SendMessage(pingMessage);
+                _wsSource?.SendMessage(pingMessage);
 
                 if (_lastTimeUpdateSocket == DateTime.MinValue)
                 {
@@ -153,36 +200,210 @@ namespace OsEngine.Market.Servers.FTX
 
         private void SendLoginMessage()
         {
-            var start = new DateTime(1970, 1, 1);
-            var nowUTC = TimeManager.GetExchangeTime("UTC");
-            long time = Convert.ToInt64((nowUTC - start).TotalMilliseconds);
-
-            var hashMaker = new HMACSHA256(Encoding.UTF8.GetBytes(_secretKey));
-            var signaturePayload = $"{time}websocket_login";
-            var hash = hashMaker.ComputeHash(Encoding.UTF8.GetBytes(signaturePayload));
-            var hashString = BitConverter.ToString(hash).Replace("-", string.Empty);
-            var signature = hashString.ToLower();
-
-            var authenticationRequest = new AuthenticationRequest(_apiKey, signature, time.ToString());
-
-            var json = JsonConvert.SerializeObject(authenticationRequest);
-
-            _wsSource.SendMessage(json);
+            var loginMessage = FtxWebSockerRequestGenerator.GetAuthRequest(_client);
+            _wsSource.SendMessage(loginMessage);
         }
+
+        private List<Candle> GetCandles(int oldInterval, string securityName, DateTime startTime, DateTime endTime)
+        {
+            List<Candle> candles = new List<Candle>();
+            var step = new TimeSpan(0, 0, (int)(oldInterval * candlesDownloadLimit));
+
+            var needIntervalForQuery =
+                CandlesCreator.DetermineAppropriateIntervalForRequest(oldInterval, _supportedIntervals,
+                    out var needInterval);
+
+            var actualTime = startTime;
+
+            var midTime = actualTime + step;
+
+            while (true)
+            {
+                if (actualTime >= endTime)
+                {
+                    break;
+                }
+
+                if (midTime > endTime)
+                {
+                    midTime = endTime;
+                }
+
+                var histaricalPrices = _ftxRestApi.GetHistoricalPricesAsync(securityName, needInterval, candlesDownloadLimit, actualTime, midTime).Result;
+
+                List<Candle> newCandles = _candlesCreator.Create(histaricalPrices);
+
+                if (newCandles != null && newCandles.Count != 0)
+                    candles.AddRange(newCandles);
+
+                actualTime = candles[candles.Count - 1].TimeStart.AddMinutes(oldInterval);
+                midTime = actualTime + step;
+                Thread.Sleep(1000);
+            }
+
+            if (candles.Count == 0)
+            {
+                return null;
+            }
+
+            if (oldInterval == needInterval)
+            {
+                return candles;
+            }
+
+            var requiredIntervalCandles =
+                CandlesCreator.CreateCandlesRequiredInterval(needInterval, oldInterval, candles);
+
+            return requiredIntervalCandles;
+        }
+
+        private void Resubscribe(string channel, string market)
+        {
+            lock (_locker)
+            {
+                var unsubscribeChannel = FtxWebSockerRequestGenerator.GetUnsubscribeRequest(channel, market);
+                _wsSource.SendMessage(unsubscribeChannel);
+
+                var subscribeChannel = FtxWebSockerRequestGenerator.GetSubscribeRequest(channel, market);
+                _wsSource.SendMessage(unsubscribeChannel);
+            }
+        }
+
+        #region message handlers
+        private void HandlePongMessage(JToken response)
+        {
+            _lastTimeUpdateSocket = DateTime.Now;
+        }
+
+        private void HandleErrorMessage(JToken response)
+        {
+            SendLogMessage(response.ToString(), LogMessageType.Error);
+        }
+
+        private void HandleSubscribedMessage(JToken response)
+        {
+            SendLogMessage(response.ToString(), LogMessageType.NoName);
+            var channel = response.SelectToken("channel").ToString();
+            switch (channel)
+            {
+                case "trades":
+                    var securityName = response.SelectToken("market").ToString();
+                    _subscribedSecurities.Add(securityName);
+                    break;
+                case "fills":
+                    _isPortfolioSubscribed = true;
+                    break;
+                default:
+                    break;
+            }      
+        }
+
+        private void HandleUnsubscribedMessage(JToken response)
+        {
+            SendLogMessage(response.ToString(), LogMessageType.NoName);
+            var channel = response.SelectToken("channel").ToString();
+            switch (channel)
+            {
+                case "trades":
+                    var securityName = response.SelectToken("market").ToString();
+                    _subscribedSecurities.Remove(securityName);
+                    break;
+                case "fills":
+                    _isPortfolioSubscribed = false;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void HandleInfoMessage(JToken response)
+        {
+            SendLogMessage(response.ToString(), LogMessageType.NoName);
+        }
+
+        private void HandlePartialMessage(JToken response)
+        {
+            var channel = response.SelectToken("channel").ToString();
+            switch (channel)
+            {
+                case "orderbook":
+                    OnMarketDepthEvent(_marketDepthCreator.Create(response));
+                    break;
+                case "trades":
+                    OnTradeEvent(_tradesCreator.Create(response));
+                    break;
+                case "ticker":
+                    break;
+                case "fills":
+                    break;
+                case "orders":
+                    break;
+                default:
+                    SendLogMessage("Unhandeled channel :" + channel, LogMessageType.System);
+                    break;
+            }
+        }
+
+        private void HandleUpdateMessage(JToken response)
+        {
+            var channel = response.SelectToken("channel").ToString();
+            switch (channel)
+            {
+                case "orderbook":
+                    OnMarketDepthEvent(_marketDepthCreator.Update(response));
+                    break;
+                case "trades":
+                    OnTradeEvent(_tradesCreator.Create(response));
+                    break;
+                case "ticker":
+                    break;
+                case "fills":
+                    OnMyTradeEvent(_tradesCreator.CreateMyTrade(response));
+                    break;
+                case "orders":
+                    OnOrderEvent(_orderCreator.Create(response));
+                    break;
+                default:
+                    SendLogMessage("Unhandeled channel :" + channel, LogMessageType.System);
+                    break;
+            }
+        }
+        #endregion
         #endregion
 
         #region public methods
+        public FTXServerRealization() : base()
+        {
+            _responseHandlers = new Dictionary<string, Action<JToken>>();
+            _responseHandlers.Add("pong", HandlePongMessage);
+            _responseHandlers.Add("error", HandleErrorMessage);
+            _responseHandlers.Add("subscribed", HandleSubscribedMessage);
+            _responseHandlers.Add("unsubscribed", HandleUnsubscribedMessage);
+            _responseHandlers.Add("info", HandleInfoMessage);
+            _responseHandlers.Add("partial", HandlePartialMessage);
+            _responseHandlers.Add("update", HandleUpdateMessage);
+        }
+
         public override void CanselOrder(Order order)
         {
-            base.CanselOrder(order);
+            
         }
 
         public override void Connect()
         {
-            _apiKey = ((ServerParameterString)ServerParameters[0]).Value;
-            _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
+            _securitiesCreator = new FTXSecurityCreator();
+            _portfoliosCreator = new FTXPortfolioCreator("main");
+            _marketDepthCreator = new FTXMarketDepthCreator();
+            _tradesCreator = new FTXTradesCreator();
+            _orderCreator = new FTXOrderCreator();
+            _candlesCreator = new FTXCandlesCreator();
+
+            _client = new Client(
+                ((ServerParameterString)ServerParameters[0]).Value,
+                ((ServerParameterPassword)ServerParameters[1]).Value);
 
             _cancelTokenSource = new CancellationTokenSource();
+            _ftxRestApi = new FtxRestApi(_client);
 
             StartMessageReader();
 
@@ -190,7 +411,6 @@ namespace OsEngine.Market.Servers.FTX
             _wsSource.MessageEvent += WsSourceMessageEvent;
             _wsSource.ByteDataEvent += WsSourceByteDataEvent;
             _wsSource.Start();
-            _timeStartSocket = DateTime.UtcNow;
         }
 
         public override void Dispose()
@@ -199,10 +419,44 @@ namespace OsEngine.Market.Servers.FTX
             {
                 if(_wsSource != null)
                 {
+                    if (_isPortfolioSubscribed)
+                    {
+                        var fillsRequest = FtxWebSockerRequestGenerator.GetUnsubscribeRequest("fills");
+                        _wsSource.SendMessage(fillsRequest);
+
+                        var ordersRequest = FtxWebSockerRequestGenerator.GetUnsubscribeRequest("orders");
+                        _wsSource.SendMessage(ordersRequest);
+
+                        _isPortfolioSubscribed = false;
+                    }
+
+                    if (_subscribedSecurities.Any())
+                    {
+                        foreach(var security in _subscribedSecurities)
+                        {
+                            var unsubscribeMarket = FtxWebSockerRequestGenerator.GetUnsubscribeRequest("market", security);
+                            _wsSource.SendMessage(unsubscribeMarket);
+
+                            var unsubscribeOrderbook = FtxWebSockerRequestGenerator.GetUnsubscribeRequest("orderbook", security);
+                            _wsSource.SendMessage(unsubscribeOrderbook);
+                        }
+                        _subscribedSecurities.Clear();
+                    }
+
                     _wsSource.Dispose();
                     _wsSource.MessageEvent -= WsSourceMessageEvent;
                     _wsSource.ByteDataEvent -= WsSourceByteDataEvent;
                     _wsSource = null;
+
+                    _securitiesCreator = null;
+                    _portfoliosCreator = null;
+                    _marketDepthCreator = null;
+                    _tradesCreator = null;
+                    _orderCreator = null;
+                    _candlesCreator = null;
+
+                    _client = null;
+                    _ftxRestApi = null;
                 }
 
                 if (_cancelTokenSource != null && !_cancelTokenSource.IsCancellationRequested)
@@ -219,43 +473,87 @@ namespace OsEngine.Market.Servers.FTX
 
         public override List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-            return base.GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime, actualTime);
+            int oldInterval = Convert.ToInt32(timeFrameBuilder.TimeFrameTimeSpan.TotalSeconds);
+            return GetCandles(oldInterval, security.Name, startTime, endTime);
+        }
+
+
+        public List<Candle> GetCandleHistory(string nameSec, TimeSpan interval)
+        {
+            int oldInterval = Convert.ToInt32(interval.TotalSeconds);
+            var diff = new TimeSpan(0, (int)(interval.TotalMinutes * candlesDownloadLimit), 0);
+            return GetCandles(oldInterval, nameSec, DateTime.Now - diff, DateTime.Now);
         }
 
         public override void GetOrdersState(List<Order> orders)
         {
-            base.GetOrdersState(orders);
         }
 
-        public override void GetPortfolios()
+        public async override void GetPortfolios()
         {
-            base.GetPortfolios();
+            if (!_isPortfolioSubscribed)
+            {
+                var fillsRequest = FtxWebSockerRequestGenerator.GetSubscribeRequest("fills");
+                _wsSource.SendMessage(fillsRequest);
+
+                var ordersRequest = FtxWebSockerRequestGenerator.GetSubscribeRequest("orders");
+                _wsSource.SendMessage(ordersRequest);
+
+                var accountResponse = await _ftxRestApi.GetAccountInfoAsync();
+
+                OnPortfolioEvent(_portfoliosCreator.Create(accountResponse));
+            }
         }
 
-        public override void GetSecurities()
+        public async override void GetSecurities()
         {
-            base.GetSecurities();
+            var marketsResponse = await _ftxRestApi.GetMarketsAsync();
+            OnSecurityEvent(_securitiesCreator.Create(marketsResponse));
         }
 
-        public override List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
+        public async override void SendOrder(Order order)
         {
-            return base.GetTickDataToSecurity(security, startTime, endTime, actualTime);
-        }
+            if(order.TypeOrder == OrderPriceType.Iceberg)
+            {
+                SendLogMessage("FTX does't support iceberg orders", LogMessageType.Error);
+                return;
+            }
 
-        public override void SendOrder(Order order)
-        {
-            base.SendOrder(order);
+            var placeOrderResponse = await _ftxRestApi.PlaceOrderAsync(order.SecurityNameCode, order.Side, order.Price, order.TypeOrder, order.Volume);
+
+            var isSuccessful = placeOrderResponse.SelectToken("success").Value<bool>();
+            if (isSuccessful)
+            {
+                SendLogMessage($"Order num {order.NumberUser} on exchange.", LogMessageType.Trade);
+                _orderCreator.AddMyOrder(order, placeOrderResponse);
+            }
+            else
+            {
+                string errorMsg = placeOrderResponse.SelectToken("error").ToString();
+
+                SendLogMessage($"Order exchange error num {order.NumberUser} : {errorMsg}", LogMessageType.Error);
+
+                order.State = OrderStateType.Fail;
+
+                OnOrderEvent(order);
+            }
         }
 
         public override void Subscrible(Security security)
         {
-            base.Subscrible(security);
+           if(!_subscribedSecurities.Contains(security.Name))
+            {
+                var subscribeMarket = FtxWebSockerRequestGenerator.GetSubscribeRequest("trades", security.Name);
+                _wsSource.SendMessage(subscribeMarket);
+
+                var subscribeOrderbook = FtxWebSockerRequestGenerator.GetSubscribeRequest("orderbook", security.Name);
+                _wsSource.SendMessage(subscribeOrderbook);
+            }
         }
         #endregion
 
-
-        #region public events
-        public override event Action ConnectEvent;
+        #region private events
+        private event Action<string, string> ResubscribeEvent;
         #endregion
     }
 }

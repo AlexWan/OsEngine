@@ -63,6 +63,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\Debug\cgate_net64.dll</HintPath>
     </Reference>
+    <Reference Include="Crc32.NET, Version=1.0.0.0, Culture=neutral, PublicKeyToken=dc0b95cf99bf4e99, processorArchitecture=MSIL">
+      <HintPath>..\packages\Crc32.NET.1.2.0\lib\net20\Crc32.NET.dll</HintPath>
+    </Reference>
     <Reference Include="Jayrock">
       <HintPath>..\..\..\OsEngineTepm\6Кракен\Jayrock-master\Jayrock-master\bin\net-4.0\debug\Jayrock.dll</HintPath>
     </Reference>
@@ -106,6 +109,9 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Net.Http, Version=4.1.1.3, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Net.Http.4.3.4\lib\net46\System.Net.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.Extensions">
+      <HintPath>..\packages\System.Runtime.Extensions.4.3.1\lib\net462\System.Runtime.Extensions.dll</HintPath>
     </Reference>
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security.Cryptography.Algorithms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -470,9 +476,21 @@
     <Compile Include="Market\Servers\FTX\Entities\BasicRequest.cs" />
     <Compile Include="Market\Servers\FTX\Entities\BasicResponse.cs" />
     <Compile Include="Market\Servers\FTX\Entities\ChannelTypeEnum.cs" />
+    <Compile Include="Market\Servers\FTX\Entities\MarketResponse.cs" />
     <Compile Include="Market\Servers\FTX\Entities\OperationTypeEnum.cs" />
     <Compile Include="Market\Servers\FTX\Entities\PingRequest.cs" />
+    <Compile Include="Market\Servers\FTX\Entities\Response.cs" />
     <Compile Include="Market\Servers\FTX\Entities\TypeEnum.cs" />
+    <Compile Include="Market\Servers\FTX\EntityCreators\FTXCandlesCreator.cs" />
+    <Compile Include="Market\Servers\FTX\EntityCreators\FTXPortfolioCreator.cs" />
+    <Compile Include="Market\Servers\FTX\EntityCreators\FTXMarketDepthCreator.cs" />
+    <Compile Include="Market\Servers\FTX\EntityCreators\FTXOrderCreator.cs" />
+    <Compile Include="Market\Servers\FTX\EntityCreators\FTXSecurityCreator.cs" />
+    <Compile Include="Market\Servers\FTX\EntityCreators\FTXTradesCreator.cs" />
+    <Compile Include="Market\Servers\FTX\FTXApi\Client.cs" />
+    <Compile Include="Market\Servers\FTX\FTXApi\FtxRestApi.cs" />
+    <Compile Include="Market\Servers\FTX\FTXApi\Util\FtxWebSockerRequestGenerator.cs" />
+    <Compile Include="Market\Servers\FTX\FTXApi\Util\Util.cs" />
     <Compile Include="Market\Servers\FTX\FTXServer.cs" />
     <Compile Include="Market\Servers\GateIo\EntityCreators\GateMarketDepthCreator.cs" />
     <Compile Include="Market\Servers\GateIo\EntityCreators\GateOrderCreator.cs" />

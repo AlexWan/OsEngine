@@ -29,6 +29,7 @@ using OsEngine.Market.Servers.Huobi.FuturesSwap;
 using OsEngine.Market.Servers.Huobi.Spot;
 using OsEngine.Market.Servers.Tinkoff;
 using OsEngine.Market.Servers.GateIo.Futures;
+using OsEngine.Market.Servers.FTX;
 
 namespace OsEngine.Entity
 {
@@ -635,6 +636,27 @@ namespace OsEngine.Entity
                             else
                             {
                                 List<Candle> candles = huobi.GetCandleHistory(series.Security.Name,
+                                    series.TimeFrameSpan);
+                                if (candles != null)
+                                {
+                                    series.CandlesAll = candles;
+                                }
+                            }
+                            series.UpdateAllCandles();
+                            series.IsStarted = true;
+                        }
+                        else if (serverType == ServerType.FTX)
+                        {
+                            FTXServer ftxServer = (FTXServer)_server;
+                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
+                                series.TimeFrameSpan.TotalMinutes < 1)
+                            {
+                                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
+                                series.PreLoad(allTrades);
+                            }
+                            else
+                            {
+                                List<Candle> candles = ftxServer.GetCandleHistory(series.Security.Name,
                                     series.TimeFrameSpan);
                                 if (candles != null)
                                 {

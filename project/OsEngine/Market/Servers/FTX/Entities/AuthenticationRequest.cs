@@ -1,9 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OsEngine.Market.Servers.FTX.Entities
 {
@@ -13,17 +8,29 @@ namespace OsEngine.Market.Servers.FTX.Entities
         public OperationTypeEnum Operation { get; }
 
         [JsonProperty("args")]
-        public Dictionary<string, string> Args { get; }
+        public AuthenticationArgs Args { get; }
 
-        public AuthenticationRequest(string apiKey, string signature, string time)
+        public AuthenticationRequest(string apiKey, string signature, long time)
         {
             Operation = OperationTypeEnum.Login;
-            Args = new Dictionary<string, string>()
+            Args = new AuthenticationArgs
             {
-                {"key", apiKey },
-                {"sign", signature },
-                {"time", time }
+                Key = apiKey,
+                Sign = signature,
+                Time = time
             };
+        }
+
+        public class AuthenticationArgs
+        {
+            [JsonProperty("key")]
+            public string Key { get; set; }
+
+            [JsonProperty("sign")]
+            public string Sign { get; set; }
+
+            [JsonProperty("time")]
+            public long Time { get; set; }
         }
     }
 }
