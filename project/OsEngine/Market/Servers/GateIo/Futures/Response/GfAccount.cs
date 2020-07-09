@@ -40,7 +40,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures.Request
     public partial class CanselOrderResponseHistory
     {
         [JsonProperty("dnw")]
-        public long Dnw { get; set; }
+        public decimal Dnw { get; set; }
 
         [JsonProperty("pnl")]
         public string Pnl { get; set; }
