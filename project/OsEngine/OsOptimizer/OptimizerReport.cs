@@ -231,6 +231,5 @@ namespace OsEngine.OsOptimizer
         public decimal PayOffRatio;
 
         public decimal Recovery;
-
     }
 }

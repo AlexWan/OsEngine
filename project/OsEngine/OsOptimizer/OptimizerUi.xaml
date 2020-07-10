@@ -72,13 +72,31 @@
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItemResults" Header="Results" FontSize="14"  Width="120">
+
                     <Grid>
-                        <WindowsFormsHost Name="WindowsFormsHostFazeNumOnTubResult"  Foreground="Black" Height="92" Margin="10,27,10,0" VerticalAlignment="Top"/>
-                        <Label Name="Label30" Content="Optimization series" HorizontalAlignment="Left"   Margin="10,2,0,0" VerticalAlignment="Top"/>
-                        <WindowsFormsHost Name="WindowsFormsHostResults"  Foreground="Black" Margin="10,144,10,10"/>
-                        <Label Name="Label31" Content="Result table" HorizontalAlignment="Left" Margin="10,119,0,0" VerticalAlignment="Top"/>
+                        <TabControl  Name="TabControlResults" Margin="0,0,0,0">
+                            <TabItem Name="TabControlResultsSeries"  Header="Series and Results">
+                                <Grid >
+                                    <WindowsFormsHost x:Name="WindowsFormsHostFazeNumOnTubResult"  Foreground="Black" Height="92" Margin="0,34,8,0" VerticalAlignment="Top"/>
+                                    <Label x:Name="Label30" Content="Optimization series" HorizontalAlignment="Left"   Margin="0,6,0,0" VerticalAlignment="Top" Height="22"/>
+                                    <WindowsFormsHost x:Name="WindowsFormsHostResults"  Foreground="Black" Margin="0,154,8,0"/>
+                                    <Label x:Name="Label31" Content="Result table" HorizontalAlignment="Left" Margin="0,126,0,0" VerticalAlignment="Top" Height="22"/>
+                                </Grid>
+                            </TabItem>
+                            <TabItem Name="TabControlResultsOutOfSampleResults" Header="Out of sample statistic">
+                                <Grid >
+                                    <WindowsFormsHost x:Name="WindowsFormsHostDependences"  Foreground="Black" Margin="0,37,0,222"/>
+                                    <ComboBox Name="ComboBoxSortDependencesResults" HorizontalAlignment="Left" Margin="182,10,0,0" VerticalAlignment="Top" Width="214" Height="22"/>
+                                    <Label Name="LabelSortBy" Content="Sort by" HorizontalAlignment="Left" Margin="117,9,0,0" VerticalAlignment="Top"/>
+                                    <WindowsFormsHost x:Name="WindowsFormsHostColumnsResults"  Foreground="Black" Margin="0,0,588,10" Height="207" VerticalAlignment="Bottom"/>
+                                    <WindowsFormsHost x:Name="WindowsFormsHostPieResults"  Foreground="Black" Margin="0,0,0,10" Height="207" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="583"/>
+
+                                </Grid>
+                            </TabItem>
+                        </TabControl>
                     </Grid>
                 </TabItem>
+
             </TabControl>
             <Rectangle Fill="#FCEE21" Height="174" Stroke="Black" StrokeThickness="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="20" RenderTransformOrigin="0.5,0.5" Margin="1,0,0,0" Grid.Row="1">
                 <Rectangle.RenderTransform>

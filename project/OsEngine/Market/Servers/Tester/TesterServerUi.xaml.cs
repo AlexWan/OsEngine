@@ -741,6 +741,7 @@ namespace OsEngine.Market.Servers.Tester
             HostSecurities.Child = _myGridView;
             HostSecurities.Child.Show();
             _myGridView.Rows.Add();
+            _myGridView.CellValueChanged += _myGridView_CellValueChanged;
         }
 
         /// <summary>
@@ -775,8 +776,33 @@ namespace OsEngine.Market.Servers.Tester
                     nRow.Cells[0].Value = securities[i].FileAdress;
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
                     nRow.Cells[1].Value = securities[i].Security.Name;
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[2].Value = securities[i].DataType;
+
+                    if (securities[i].DataType == SecurityTesterDataType.Candle)
+                    {
+                        DataGridViewComboBoxCell comboBox = new DataGridViewComboBoxCell();
+
+                        comboBox.Items.Add(TimeFrame.Day.ToString());
+                        comboBox.Items.Add(TimeFrame.Hour1.ToString());
+                        comboBox.Items.Add(TimeFrame.Hour2.ToString());
+                        comboBox.Items.Add(TimeFrame.Hour4.ToString());
+                        comboBox.Items.Add(TimeFrame.Min1.ToString());
+                        comboBox.Items.Add(TimeFrame.Min2.ToString());
+                        comboBox.Items.Add(TimeFrame.Min5.ToString());
+                        comboBox.Items.Add(TimeFrame.Min3.ToString());
+                        comboBox.Items.Add(TimeFrame.Min10.ToString());
+                        comboBox.Items.Add(TimeFrame.Min15.ToString());
+                        comboBox.Items.Add(TimeFrame.Min30.ToString());
+                        comboBox.Items.Add(TimeFrame.Min45.ToString());
+
+                        nRow.Cells.Add(comboBox);
+                        nRow.Cells[2].Value = securities[i].TimeFrame.ToString();
+                    }
+                    else
+                    {
+                        nRow.Cells.Add(new DataGridViewTextBoxCell());
+                        nRow.Cells[2].Value = securities[i].DataType;
+                    }
+
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
                     nRow.Cells[3].Value = securities[i].Security.PriceStep;
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
@@ -808,6 +834,22 @@ namespace OsEngine.Market.Servers.Tester
 
             SliderFrom.ValueChanged += SliderFrom_ValueChanged;
             SliderTo.ValueChanged += SliderTo_ValueChanged;
+        }
+
+
+        private void _myGridView_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            List<SecurityTester> securities = _server.SecuritiesTester;
+
+            for (int i = 0; i < securities.Count && i < _myGridView.Rows.Count; i++)
+            {
+                TimeFrame frame;
+
+                if (Enum.TryParse(_myGridView.Rows[i].Cells[2].Value.ToString(), out frame))
+                {
+                    securities[i].TimeFrame = frame;
+                }
+            }
         }
 
         /// <summary>

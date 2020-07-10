@@ -317,7 +317,19 @@ namespace OsEngine.Language
         public string Label36 => OsLocalization.ConvertToLocString(
             "Eng:Iteration count_" +
             "Ru:Кол-во итераций_");
-        
+
+        public string Label37=> OsLocalization.ConvertToLocString(
+            "Eng:Series and Results_" +
+            "Ru:Серии и результаты_");
+
+        public string Label38 => OsLocalization.ConvertToLocString(
+            "Eng:Out of sample statistic_" +
+            "Ru:Статистика по Out of sample_");
+
+        public string Label39 => OsLocalization.ConvertToLocString(
+            "Eng:Sort by_" +
+            "Ru:Метод сортировки_");
+
 
     }
 }

@@ -399,8 +399,8 @@ namespace OsEngine.OsOptimizer
             while (true)
             {
                 Thread.Sleep(50);
-                if (_servers.Count == 0 
-                    || _botsInTest.Count == 0)
+                if (_servers.Count == 0 )
+                 //   || _botsInTest.Count == 0)
                 {
                     break;
                 }
@@ -451,7 +451,7 @@ namespace OsEngine.OsOptimizer
             while (true)
             {
                 Thread.Sleep(50);
-                if (_servers.Count == 0 || _botsInTest.Count == 0)
+                if (_servers.Count == 0)// && _botsInTest.Count == 0)
                 {
                     break;
                 }
@@ -612,7 +612,7 @@ namespace OsEngine.OsOptimizer
 
             try
             {
-               decimal num = Convert.ToDecimal(botName[0]);
+               decimal num = Convert.ToDecimal(botName.Substring(0,1));
             }
             catch
             {
@@ -892,6 +892,19 @@ namespace OsEngine.OsOptimizer
 
             lock (_serverRemoveLocker)
             {
+                GC.Collect();
+                BotPanel bot = _botsInTest.Find(b => b.TabsSimple[0].Connector.ServerUid == serverNum);
+
+                if (bot != null)
+                {
+                    // записываем результаты тестов, когда они пройдут
+                    ReportsToFazes[ReportsToFazes.Count - 1].Load(bot);
+                    // уничтожаем робота
+                    bot.Clear();
+                    bot.Delete();
+                    _botsInTest.Remove(bot);
+                }
+
                 for (int i = 0; i < _servers.Count; i++)
                 {
                     if (_servers[i].NumberServer == serverNum)
@@ -902,19 +915,6 @@ namespace OsEngine.OsOptimizer
                         _servers.RemoveAt(i);
                         break;
                     }
-                }
-
-                GC.Collect();
-                BotPanel bot = _botsInTest.Find(b => b.NameStrategyUniq.StartsWith(serverNum.ToString()));
-
-                if (bot != null)
-                {
-                    // записываем результаты тестов, когда они пройдут
-                    ReportsToFazes[ReportsToFazes.Count - 1].Load(bot);
-                    // уничтожаем робота
-                    bot.Clear();
-                    bot.Delete();
-                    _botsInTest.Remove(bot);
                 }
 
                 GC.Collect();

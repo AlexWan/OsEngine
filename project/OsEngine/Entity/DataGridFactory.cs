@@ -619,7 +619,7 @@ namespace OsEngine.Entity
             DataGridViewColumn column = new DataGridViewColumn();
             column.CellTemplate = cell0;
             column.HeaderText = OsLocalization.Entity.ColumnDataSource3;
-            column.ReadOnly = true;
+            column.ReadOnly = false;
             column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
             myGridView.Columns.Add(column);

@@ -142,7 +142,18 @@ namespace OsEngine.OsOptimizer
             CheckBoxFilterDealsCount.Content = OsLocalization.Optimizer.Label34;
             ButtonStrategySelect.Content = OsLocalization.Optimizer.Label35;
             Label23.Content = OsLocalization.Optimizer.Label36;
+
+            TabControlResultsSeries.Header = OsLocalization.Optimizer.Label37;
+            TabControlResultsOutOfSampleResults.Header = OsLocalization.Optimizer.Label38;
+            LabelSortBy.Content = OsLocalization.Optimizer.Label39;
+
+
+            _resultsCharting = new OptimizerReportCharting(
+                WindowsFormsHostDependences, WindowsFormsHostColumnsResults, 
+                WindowsFormsHostPieResults, ComboBoxSortDependencesResults);
         }
+
+        private OptimizerReportCharting _resultsCharting;
 
         /// <summary>
         /// an object containing data for optimization
@@ -177,6 +188,7 @@ namespace OsEngine.OsOptimizer
 
             ButtonGo.Content = OsLocalization.Optimizer.Label9;
             TabControlPrime.SelectedItem = TabControlPrime.Items[4];
+            TabControlResults.SelectedItem = TabControlResults.Items[1];
             TabControlPrime.IsEnabled = true;
             ComboBoxThreadsCount.IsEnabled = true;
         }
@@ -188,10 +200,18 @@ namespace OsEngine.OsOptimizer
         void _master_TestReadyEvent(List<OptimazerFazeReport> reports)
         {
             _reports = reports;
+
+            for (int i = 0; i < reports.Count; i++)
+            {
+                SortResults(reports[i].Reports);
+            }
+
             PaintEndOnAllProgressBars();
             PaintTableFazes();
             PaintTableResults();
             StartUserActivity();
+
+            _resultsCharting.ReLoad(reports);
         }
 
         private List<OptimazerFazeReport> _reports;
@@ -1485,7 +1505,7 @@ namespace OsEngine.OsOptimizer
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;
-            column0.HeaderText = "Security";
+            column0.HeaderText = "Bot Name";
             column0.ReadOnly = true;
             column0.Width = 150;
 
@@ -1657,8 +1677,6 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
-            SortResults(fazeReport.Reports);
-
             for (int i = 0; i < fazeReport.Reports.Count; i++)
             {
                 if (fazeReport.Reports[i] == null ||
@@ -1673,7 +1691,7 @@ namespace OsEngine.OsOptimizer
 
                 if (fazeReport.Reports[i].TabsReports.Count == 1)
                 {
-                    row.Cells[0].Value = fazeReport.Reports[i].TabsReports[0].SecurityName;
+                    row.Cells[0].Value = fazeReport.Reports[i].BotName;
                 }
                 else
                 {
@@ -1973,6 +1991,7 @@ namespace OsEngine.OsOptimizer
 
             ReloadStrategy();
         }
+
 
     }
 
