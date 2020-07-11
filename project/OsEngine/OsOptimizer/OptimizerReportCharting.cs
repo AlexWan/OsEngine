@@ -596,6 +596,11 @@ namespace OsEngine.OsOptimizer
                 }
             }
 
+            if (countProfitBots + countLossBots == 0)
+            {
+                return;
+            }
+
             decimal profitPercent = Math.Round((Convert.ToDecimal(countProfitBots) / (countProfitBots + countLossBots) * 100),0);
 
             decimal lossPercent = Math.Round((Convert.ToDecimal(countLossBots) / (countProfitBots + countLossBots) * 100), 0);
