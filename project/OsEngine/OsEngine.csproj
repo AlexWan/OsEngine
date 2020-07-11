@@ -63,9 +63,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\Debug\cgate_net64.dll</HintPath>
     </Reference>
-    <Reference Include="Crc32.NET, Version=1.0.0.0, Culture=neutral, PublicKeyToken=dc0b95cf99bf4e99, processorArchitecture=MSIL">
-      <HintPath>..\packages\Crc32.NET.1.2.0\lib\net20\Crc32.NET.dll</HintPath>
-    </Reference>
     <Reference Include="Jayrock">
       <HintPath>..\..\..\OsEngineTepm\6Кракен\Jayrock-master\Jayrock-master\bin\net-4.0\debug\Jayrock.dll</HintPath>
     </Reference>
@@ -472,15 +469,6 @@
     <Compile Include="Market\Servers\FixProtocolEntities\FixEntity.cs" />
     <Compile Include="Market\Servers\FixProtocolEntities\FixMessage.cs" />
     <Compile Include="Market\Servers\FixProtocolEntities\StandartHeaderSettings.cs" />
-    <Compile Include="Market\Servers\FTX\Entities\AuthenticationRequest.cs" />
-    <Compile Include="Market\Servers\FTX\Entities\BasicRequest.cs" />
-    <Compile Include="Market\Servers\FTX\Entities\BasicResponse.cs" />
-    <Compile Include="Market\Servers\FTX\Entities\ChannelTypeEnum.cs" />
-    <Compile Include="Market\Servers\FTX\Entities\MarketResponse.cs" />
-    <Compile Include="Market\Servers\FTX\Entities\OperationTypeEnum.cs" />
-    <Compile Include="Market\Servers\FTX\Entities\PingRequest.cs" />
-    <Compile Include="Market\Servers\FTX\Entities\Response.cs" />
-    <Compile Include="Market\Servers\FTX\Entities\TypeEnum.cs" />
     <Compile Include="Market\Servers\FTX\EntityCreators\FTXCandlesCreator.cs" />
     <Compile Include="Market\Servers\FTX\EntityCreators\FTXPortfolioCreator.cs" />
     <Compile Include="Market\Servers\FTX\EntityCreators\FTXMarketDepthCreator.cs" />

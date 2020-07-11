@@ -3,7 +3,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using Force.Crc32;
 using System.Globalization;
 
 namespace OsEngine.Market.Servers.FTX.FtxApi.Util
@@ -13,7 +12,6 @@ namespace OsEngine.Market.Servers.FTX.FtxApi.Util
         private const int orderCountLimit = 100;
 
         private static DateTime _epochTime = new DateTime(1970, 1, 1, 0, 0, 0);
-        private static Crc32CAlgorithm crc32 = new Crc32CAlgorithm();
         private static UTF8Encoding encoding = new UTF8Encoding();
         
         private static uint Crc32(string input)

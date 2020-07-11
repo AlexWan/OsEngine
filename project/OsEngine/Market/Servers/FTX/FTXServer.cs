@@ -4,9 +4,9 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
-using OsEngine.Market.Servers.FTX.Entities;
 using OsEngine.Market.Servers.FTX.EntityCreators;
 using OsEngine.Market.Servers.FTX.FtxApi;
+using OsEngine.Market.Servers.FTX.FtxApi.Util;
 using OsEngine.Market.Services;
 using System;
 using System.Collections.Concurrent;
@@ -177,8 +177,7 @@ namespace OsEngine.Market.Servers.FTX
 
         private async void SourceAliveCheckerThread(CancellationToken token)
         {
-            var pingRequest = new PingRequest();
-            var pingMessage = JsonConvert.SerializeObject(pingRequest);
+            var pingMessage = FtxWebSockerRequestGenerator.GetPingRequest();
             while (!token.IsCancellationRequested)
             {
                 await Task.Delay(15000);
