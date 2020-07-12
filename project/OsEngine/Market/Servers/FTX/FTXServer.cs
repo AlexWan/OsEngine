@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
@@ -46,11 +47,12 @@ namespace OsEngine.Market.Servers.FTX
     public class FTXServerRealization : AServerRealization
     {
         #region private constants
-        private const int candlesDownloadLimit = 1000;
+        private const int CandlesDownloadLimit = 5000;
+        private const int TradesDownloadLimit = 100;
+        private const string WebSocketEndpointUrl = "wss://ftx.com/ws/";
         #endregion
 
         #region private fields
-        private readonly string _webSocketEndpointUrl = "wss://ftx.com/ws/";
 
         /// <summary>
         /// словарь таймфреймов, поддерживаемых этой биржей
@@ -97,19 +99,6 @@ namespace OsEngine.Market.Servers.FTX
         #endregion
 
         #region private methods
-        private void WsSourceByteDataEvent(WsMessageType msgType, byte[] data)
-        {
-            switch (msgType)
-            {
-                case WsMessageType.ByteData:
-                    //string message = GZipDecompresser.Decompress(data);
-                    //_queueMessagesReceivedFromExchange.Enqueue(message);
-                    break;
-                default:
-                    throw new NotSupportedException(data.ToString());
-            }
-        }
-
         private void WsSourceMessageEvent(WsMessageType msgType, string message)
         {
             switch (msgType)
@@ -205,12 +194,18 @@ namespace OsEngine.Market.Servers.FTX
 
         private List<Candle> GetCandles(int oldInterval, string securityName, DateTime startTime, DateTime endTime)
         {
-            List<Candle> candles = new List<Candle>();
-            var step = new TimeSpan(0, 0, (int)(oldInterval * candlesDownloadLimit));
+            if(oldInterval < _supportedIntervals.First().Key)
+            {
+                return null;
+            }
 
+            List<Candle> candles = new List<Candle>();
+            
             var needIntervalForQuery =
                 CandlesCreator.DetermineAppropriateIntervalForRequest(oldInterval, _supportedIntervals,
                     out var needInterval);
+
+            var step = new TimeSpan(0, 0, (int)(needInterval * CandlesDownloadLimit));
 
             var actualTime = startTime;
 
@@ -228,14 +223,14 @@ namespace OsEngine.Market.Servers.FTX
                     midTime = endTime;
                 }
 
-                var histaricalPrices = _ftxRestApi.GetHistoricalPricesAsync(securityName, needInterval, candlesDownloadLimit, actualTime, midTime).Result;
+                var histaricalPrices = _ftxRestApi.GetHistoricalPricesAsync(securityName, needInterval, CandlesDownloadLimit, actualTime, midTime).Result;
 
                 List<Candle> newCandles = _candlesCreator.Create(histaricalPrices);
 
                 if (newCandles != null && newCandles.Count != 0)
                     candles.AddRange(newCandles);
 
-                actualTime = candles[candles.Count - 1].TimeStart.AddMinutes(oldInterval);
+                actualTime = candles[candles.Count - 1].TimeStart.AddSeconds(oldInterval);
                 midTime = actualTime + step;
                 Thread.Sleep(1000);
             }
@@ -256,18 +251,6 @@ namespace OsEngine.Market.Servers.FTX
             return requiredIntervalCandles;
         }
 
-        private void Resubscribe(string channel, string market)
-        {
-            lock (_locker)
-            {
-                var unsubscribeChannel = FtxWebSockerRequestGenerator.GetUnsubscribeRequest(channel, market);
-                _wsSource.SendMessage(unsubscribeChannel);
-
-                var subscribeChannel = FtxWebSockerRequestGenerator.GetSubscribeRequest(channel, market);
-                _wsSource.SendMessage(unsubscribeChannel);
-            }
-        }
-
         #region message handlers
         private void HandlePongMessage(JToken response)
         {
@@ -276,12 +259,16 @@ namespace OsEngine.Market.Servers.FTX
 
         private void HandleErrorMessage(JToken response)
         {
+            var errorMessage = response.SelectToken("msg").ToString();
+            if(errorMessage == "Already subscribed")
+            {
+                return;
+            }
             SendLogMessage(response.ToString(), LogMessageType.Error);
         }
 
         private void HandleSubscribedMessage(JToken response)
         {
-            SendLogMessage(response.ToString(), LogMessageType.NoName);
             var channel = response.SelectToken("channel").ToString();
             switch (channel)
             {
@@ -299,7 +286,6 @@ namespace OsEngine.Market.Servers.FTX
 
         private void HandleUnsubscribedMessage(JToken response)
         {
-            SendLogMessage(response.ToString(), LogMessageType.NoName);
             var channel = response.SelectToken("channel").ToString();
             switch (channel)
             {
@@ -383,9 +369,24 @@ namespace OsEngine.Market.Servers.FTX
             _responseHandlers.Add("update", HandleUpdateMessage);
         }
 
-        public override void CanselOrder(Order order)
+        public override async void CanselOrder(Order order)
         {
-            
+            var cancelOrderResponse = await _ftxRestApi.CancelOrderAsync(order.NumberMarket);
+
+            var isSuccessful = cancelOrderResponse.SelectToken("success").Value<bool>();
+
+            if (isSuccessful)
+            {
+                SendLogMessage($"Order num {order.NumberUser} canceled.", LogMessageType.Trade);
+                order.State = OrderStateType.Cancel;
+                OnOrderEvent(order);
+            }
+            else
+            {
+                string errorMsg = cancelOrderResponse.SelectToken("error").ToString();
+
+                SendLogMessage($"Error on order cancel num {order.NumberUser} : {errorMsg}", LogMessageType.Error);
+            }
         }
 
         public override void Connect()
@@ -406,9 +407,8 @@ namespace OsEngine.Market.Servers.FTX
 
             StartMessageReader();
 
-            _wsSource = new WsSource(_webSocketEndpointUrl);
+            _wsSource = new WsSource(WebSocketEndpointUrl);
             _wsSource.MessageEvent += WsSourceMessageEvent;
-            _wsSource.ByteDataEvent += WsSourceByteDataEvent;
             _wsSource.Start();
         }
 
@@ -444,7 +444,6 @@ namespace OsEngine.Market.Servers.FTX
 
                     _wsSource.Dispose();
                     _wsSource.MessageEvent -= WsSourceMessageEvent;
-                    _wsSource.ByteDataEvent -= WsSourceByteDataEvent;
                     _wsSource = null;
 
                     _securitiesCreator = null;
@@ -470,6 +469,39 @@ namespace OsEngine.Market.Servers.FTX
             }
         }
 
+        public override List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            var trades = new List<Trade>();
+
+            if(startTime > actualTime)
+            {
+                actualTime = startTime;
+            }
+
+            var lastTradeTime = endTime;
+
+            while(lastTradeTime > actualTime)
+            {
+                var marketTradesResponse = _ftxRestApi.GetMarketTradesAsync(security.Name, TradesDownloadLimit, actualTime, lastTradeTime).Result;
+
+                var newTrades = _tradesCreator.Create(marketTradesResponse, security.Name);
+
+                if(newTrades != null && newTrades.Any())
+                {
+                    trades.InsertRange(0, newTrades);
+                }
+                else
+                {
+                    break;
+                }
+
+                lastTradeTime = trades.First().Time;
+                Thread.Sleep(100);
+            }
+
+            return trades;
+        }
+
         public override List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             int oldInterval = Convert.ToInt32(timeFrameBuilder.TimeFrameTimeSpan.TotalSeconds);
@@ -480,7 +512,7 @@ namespace OsEngine.Market.Servers.FTX
         public List<Candle> GetCandleHistory(string nameSec, TimeSpan interval)
         {
             int oldInterval = Convert.ToInt32(interval.TotalSeconds);
-            var diff = new TimeSpan(0, (int)(interval.TotalMinutes * candlesDownloadLimit), 0);
+            var diff = new TimeSpan(0, (int)(interval.TotalMinutes * CandlesDownloadLimit), 0);
             return GetCandles(oldInterval, nameSec, DateTime.Now - diff, DateTime.Now);
         }
 
@@ -549,10 +581,6 @@ namespace OsEngine.Market.Servers.FTX
                 _wsSource.SendMessage(subscribeOrderbook);
             }
         }
-        #endregion
-
-        #region private events
-        private event Action<string, string> ResubscribeEvent;
         #endregion
     }
 }

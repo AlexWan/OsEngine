@@ -27,11 +27,13 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
             var trades = new List<Trade>();
             var jProperties = jt.SelectTokens(ResultPath).Children();
 
-            foreach (var jProperty in jProperties)
+            foreach (var jProperty in jProperties.Reverse())
             {
                 var newTrade = new Trade();
 
-                newTrade.Time = jProperty.SelectToken(TimePath).Value<DateTime>();
+                var time = DateTime.Parse(jProperty.SelectToken(TimePath).ToString()).ToUniversalTime();
+
+                newTrade.Time = time;
                 newTrade.SecurityNameCode = securityName;
                 newTrade.Price = jProperty.SelectToken(PricePath).Value<decimal>();
                 newTrade.Id = jProperty.SelectToken(IdPath).ToString();

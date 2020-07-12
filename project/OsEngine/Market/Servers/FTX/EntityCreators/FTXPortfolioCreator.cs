@@ -6,12 +6,16 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
 {
     public class FTXPortfolioCreator
     {
-        private const string SearchPath = "result.positions";
-        private const string PathForName = "future";
-        private const string PathForEntryPrice = "entryPrice";
-        private const string PathForPnl = "realizedPnl";
+        private const string ResultPath = "result";
+        private const string PositionsPath = "positions";
+        private const string NamePath = "future";
+        private const string CostPath = "cost";
+        private const string PnlPricePath = "realizedPnl";
+        private const string CollateralUsedPath = "collateralUsed";
 
-        private const string PathForValueBlocked = "size";
+        private const string FreeCollateralPath = "freeCollateral";
+        private const string CollateralPath = "collateral";
+        private const string TotalAccountValuePath = "totalAccountValue";
 
         private Portfolio _headPortfolio;
         private List<Portfolio> _portfolios;
@@ -24,19 +28,27 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
 
         public List<Portfolio> Create(JToken jt)
         {
-            var needLevel = jt.SelectTokens(SearchPath).Children();
+            var result = jt.SelectToken(ResultPath);
 
-            foreach (var jtPosition in needLevel)
+            var collateral = result.SelectToken(CollateralPath).Value<decimal>();
+            var freeCollateral = result.SelectToken(FreeCollateralPath).Value<decimal>();
+
+            _headPortfolio.ValueCurrent = result.SelectToken(TotalAccountValuePath).Value<decimal>();
+            _headPortfolio.ValueBlocked = collateral - freeCollateral;
+
+            var positions = result.SelectTokens(PositionsPath).Children();
+
+            foreach (var jtPosition in positions)
             {
                 PositionOnBoard pos = new PositionOnBoard();
 
                 pos.PortfolioName = _headPortfolio.Number;
-                pos.SecurityNameCode = jtPosition.SelectToken(PathForName).ToString();
-                var entryPrice = jtPosition.SelectToken(PathForEntryPrice).Value<decimal>();
-                var realizedPnl = jtPosition.SelectToken(PathForPnl).Value<decimal>();
-                pos.ValueBegin = entryPrice;
-                pos.ValueCurrent = entryPrice + realizedPnl;
-                pos.ValueBlocked = jtPosition.SelectToken(PathForValueBlocked).Value<decimal>();
+                pos.SecurityNameCode = jtPosition.SelectToken(NamePath).ToString();
+                var cost = jtPosition.SelectToken(CostPath).Value<decimal>();
+                var realizedPnl = jtPosition.SelectToken(PnlPricePath).Value<decimal>();
+                pos.ValueBegin = cost;
+                pos.ValueCurrent = cost + realizedPnl;
+                pos.ValueBlocked = jtPosition.SelectToken(CollateralUsedPath).Value<decimal>();
 
                 if (pos.ValueCurrent > 0 || pos.ValueBlocked > 0)
                 {

@@ -280,7 +280,7 @@ namespace OsEngine.Market.Servers.FTX.FtxApi
             var body =
                 $"{{\"market\": \"{instrument}\"," +
                 $"\"side\": \"{side.ToString().ToLower()}\"," +
-                $"\"triggerPrice\": {triggerPrice}," +
+                $"\"triggerPrice\": {triggerPrice.ToString(CultureInfo.InvariantCulture)}," +
                 $"\"type\": \"stop\"," +
                 $"\"size\": {amount.ToString(CultureInfo.InvariantCulture)}," +
                 $"\"reduceOnly\": {reduceOnly.ToString().ToLower()}}}";
