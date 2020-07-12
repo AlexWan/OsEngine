@@ -9,6 +9,7 @@ using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
 using OsEngine.Language;
+using OsEngine.Logging;
 
 namespace OsEngine.OsOptimizer
 {
@@ -99,16 +100,23 @@ namespace OsEngine.OsOptimizer
 
         public void ReLoad(List<OptimazerFazeReport> reports)
         {
-            _reports = reports;
-
-            for (int i = 0; i < reports.Count; i++)
+            try
             {
-                SortResults(reports[i].Reports);
-            }
+                _reports = reports;
 
-            UpdGridDep();
-            UpdateColumns();
-            UpdatePie();
+                for (int i = 0; i < reports.Count; i++)
+                {
+                    SortResults(reports[i].Reports);
+                }
+
+                UpdGridDep();
+                UpdateColumns();
+                UpdatePie();
+            }
+            catch (Exception e)
+            {
+                SendLogMessage(e.ToString(), LogMessageType.Error);
+            }
         }
 
         private void SortResults(List<OptimizerReport> reports)
@@ -620,5 +628,31 @@ namespace OsEngine.OsOptimizer
                 _chartPie.Series[0].Points.Add(point2);
             }
         }
+
+
+        // логирование
+
+        // logging/логирование
+
+        /// <summary>
+        /// send up a new message
+        /// выслать наверх новое сообщение
+        /// </summary>
+        /// <param name="message">Message text/текст сообщения</param>
+        /// <param name="type">message type/тип сообщения</param>
+        private void SendLogMessage(string message, LogMessageType type)
+        {
+            if (LogMessageEvent != null)
+            {
+                LogMessageEvent(message, type);
+            }
+        }
+
+        /// <summary>
+        /// event: new message for log
+        /// событие: новое сообщение для лога
+        /// </summary>
+        public event Action<string, LogMessageType> LogMessageEvent;
+
     }
 }
