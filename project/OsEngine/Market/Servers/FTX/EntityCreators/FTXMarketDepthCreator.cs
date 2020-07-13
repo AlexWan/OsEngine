@@ -3,7 +3,6 @@ using OsEngine.Entity;
 using OsEngine.Market.Servers.Entity;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace OsEngine.Market.Servers.FTX.EntityCreators
 {

@@ -1,21 +1,15 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using OsEngine.Charts.CandleChart.Indicators;
+﻿using Newtonsoft.Json.Linq;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using OsEngine.Market.Servers.FTX.EntityCreators;
 using OsEngine.Market.Servers.FTX.FtxApi;
-using OsEngine.Market.Servers.FTX.FtxApi.Util;
 using OsEngine.Market.Services;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,8 +17,6 @@ namespace OsEngine.Market.Servers.FTX
 {
     public class FTXServer : AServer
     {
-        private const string APIKey = "u02JwwSZxGxWGc1hldEeDDrcS3kCENVKdaOO4S_h";
-        private const string APISecret = "SVeIMHxG-vjfSV5H7kESQ6oHpbLWqgGXQKlWo3TS";
         public FTXServer()
         {
             FTXServerRealization realization = new FTXServerRealization();
@@ -345,7 +337,12 @@ namespace OsEngine.Market.Servers.FTX
                     OnMyTradeEvent(_tradesCreator.CreateMyTrade(response));
                     break;
                 case "orders":
-                    OnOrderEvent(_orderCreator.Create(response));
+                    var order = _orderCreator.Create(response);
+                    if(order.State == OrderStateType.Done)
+                    {
+                        _orderCreator.RemoveMyOrder(order);
+                    }
+                    OnOrderEvent(order);
                     break;
                 default:
                     SendLogMessage("Unhandeled channel :" + channel, LogMessageType.System);
@@ -378,6 +375,7 @@ namespace OsEngine.Market.Servers.FTX
             {
                 SendLogMessage($"Order num {order.NumberUser} canceled.", LogMessageType.Trade);
                 order.State = OrderStateType.Cancel;
+                _orderCreator.RemoveMyOrder(order);
                 OnOrderEvent(order);
             }
             else
@@ -394,7 +392,7 @@ namespace OsEngine.Market.Servers.FTX
             _loginFailed = false;
 
             _securitiesCreator = new FTXSecurityCreator();
-            _portfoliosCreator = new FTXPortfolioCreator("main");
+            _portfoliosCreator = new FTXPortfolioCreator();
             _marketDepthCreator = new FTXMarketDepthCreator();
             _tradesCreator = new FTXTradesCreator();
             _orderCreator = new FTXOrderCreator();
@@ -529,6 +527,7 @@ namespace OsEngine.Market.Servers.FTX
                 var accountResponse = await _ftxRestApi.GetAccountInfoAsync();
 
                 var isSuccessfull = accountResponse.SelectToken("success").Value<bool>();
+                var portfolios = new List<Portfolio>();
                 if (isSuccessfull)
                 {
                     var fillsRequest = FtxWebSockerRequestGenerator.GetSubscribeRequest("fills");
@@ -537,14 +536,15 @@ namespace OsEngine.Market.Servers.FTX
                     var ordersRequest = FtxWebSockerRequestGenerator.GetSubscribeRequest("orders");
                     _wsSource.SendMessage(ordersRequest);
 
-                    OnPortfolioEvent(_portfoliosCreator.Create(accountResponse));
+                    portfolios.Add(_portfoliosCreator.CreatePortfolio(accountResponse, "main"));
                 }
                 else
                 {
                     _loginFailed = true;
                     SendLogMessage($"Can not get portfolios info.", LogMessageType.Error);
-                    OnPortfolioEvent(new List<Portfolio>() { new Portfolio() { Number = "undefined" } });
+                    portfolios.Add(_portfoliosCreator.CreatePortfolio("undefined"));
                 }
+                OnPortfolioEvent(portfolios);
             }
         }
 
@@ -573,9 +573,7 @@ namespace OsEngine.Market.Servers.FTX
             else
             {
                 string errorMsg = placeOrderResponse.SelectToken("error").ToString();
-
                 SendLogMessage($"Order exchange error num {order.NumberUser} : {errorMsg}", LogMessageType.Error);
-
                 order.State = OrderStateType.Fail;
 
                 OnOrderEvent(order);

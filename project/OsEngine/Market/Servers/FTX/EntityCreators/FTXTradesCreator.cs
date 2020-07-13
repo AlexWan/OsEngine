@@ -1,7 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
-using OkonkwoOandaV20.TradeLibrary.DataTypes.Pricing;
 using OsEngine.Entity;
-using OsEngine.Market.Servers.Entity;
 using System;
 using System.Collections.Generic;
 using System.Linq;

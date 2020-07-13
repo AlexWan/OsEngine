@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using OsEngine.Entity;
-using QuikSharp;
 
 namespace OsEngine.Market.Servers.FTX.FtxApi
 {

@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
 using OsEngine.Entity;
-using System.Collections.Generic;
 
 namespace OsEngine.Market.Servers.FTX.EntityCreators
 {
@@ -17,24 +16,17 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
         private const string CollateralPath = "collateral";
         private const string TotalAccountValuePath = "totalAccountValue";
 
-        private Portfolio _headPortfolio;
-        private List<Portfolio> _portfolios;
-
-        public FTXPortfolioCreator(string portfolioName)
+        public Portfolio CreatePortfolio(JToken jt, string portfolioName)
         {
-            _headPortfolio = new Portfolio() { Number = portfolioName };
-            _portfolios = new List<Portfolio> { _headPortfolio };
-        }
+            var defaultPortfolio = new Portfolio() { Number = portfolioName };
 
-        public List<Portfolio> Create(JToken jt)
-        {
             var result = jt.SelectToken(ResultPath);
 
             var collateral = result.SelectToken(CollateralPath).Value<decimal>();
             var freeCollateral = result.SelectToken(FreeCollateralPath).Value<decimal>();
 
-            _headPortfolio.ValueCurrent = result.SelectToken(TotalAccountValuePath).Value<decimal>();
-            _headPortfolio.ValueBlocked = collateral - freeCollateral;
+            defaultPortfolio.ValueCurrent = result.SelectToken(TotalAccountValuePath).Value<decimal>();
+            defaultPortfolio.ValueBlocked = collateral - freeCollateral;
 
             var positions = result.SelectTokens(PositionsPath).Children();
 
@@ -42,7 +34,7 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
             {
                 PositionOnBoard pos = new PositionOnBoard();
 
-                pos.PortfolioName = _headPortfolio.Number;
+                pos.PortfolioName = defaultPortfolio.Number;
                 pos.SecurityNameCode = jtPosition.SelectToken(NamePath).ToString();
                 var cost = jtPosition.SelectToken(CostPath).Value<decimal>();
                 var realizedPnl = jtPosition.SelectToken(PnlPricePath).Value<decimal>();
@@ -52,11 +44,16 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
 
                 if (pos.ValueCurrent > 0 || pos.ValueBlocked > 0)
                 {
-                    _portfolios[0].SetNewPosition(pos);
+                    defaultPortfolio.SetNewPosition(pos);
                 }
             }
 
-            return _portfolios;
+            return defaultPortfolio;
+        }
+
+        public Portfolio CreatePortfolio(string portfolioName)
+        {
+            return new Portfolio { Number = portfolioName };
         }
     }
 }

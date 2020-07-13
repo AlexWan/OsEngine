@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
 using OsEngine.Entity;
-using OsEngine.Market.Servers.Entity;
 using System;
 using System.Collections.Generic;
 
@@ -13,10 +12,6 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
         private const string IdPath = "id";
         private const string TimePath = "createdAt";
         private const string StatusPath = "status";
-        private const string FilledSizePath = "filledSize";
-        private const string PricePath = "price";
-        private const string SizePath = "size";
-        private const string SidePath = "side";
 
         private readonly Dictionary<string, Order> _myOrders = new Dictionary<string, Order>();
 
@@ -32,9 +27,9 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
             _myOrders.Add(orderMarketId, order);
         }
 
-        public void RemoveMyOrder(Order order, JToken jt)
+        public void RemoveMyOrder(Order order)
         {
-
+            _myOrders.Remove(order.NumberMarket);
         }
 
         public Order Create(JToken jt)
