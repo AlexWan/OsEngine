@@ -84,14 +84,13 @@ namespace OsEngine.Market.Servers.FTX
         private DateTime _lastTimeUpdateSocket;
 
         private bool _isPortfolioSubscribed = false;
+        private bool _loginFailed = false;
 
         private FtxRestApi _ftxRestApi;
 
         private Client _client;
 
         private readonly List<string> _subscribedSecurities = new List<string>();
-
-        private object _locker = new object();
         #endregion
 
         #region public properties
@@ -230,7 +229,7 @@ namespace OsEngine.Market.Servers.FTX
                 if (newCandles != null && newCandles.Count != 0)
                     candles.AddRange(newCandles);
 
-                actualTime = candles[candles.Count - 1].TimeStart.AddSeconds(oldInterval);
+                actualTime = candles[candles.Count - 1].TimeStart.AddSeconds(needInterval);
                 midTime = actualTime + step;
                 Thread.Sleep(1000);
             }
@@ -264,7 +263,7 @@ namespace OsEngine.Market.Servers.FTX
             {
                 return;
             }
-            SendLogMessage(response.ToString(), LogMessageType.Error);
+            SendLogMessage(errorMessage, LogMessageType.Error);
         }
 
         private void HandleSubscribedMessage(JToken response)
@@ -391,6 +390,9 @@ namespace OsEngine.Market.Servers.FTX
 
         public override void Connect()
         {
+            _isPortfolioSubscribed = false;
+            _loginFailed = false;
+
             _securitiesCreator = new FTXSecurityCreator();
             _portfoliosCreator = new FTXPortfolioCreator("main");
             _marketDepthCreator = new FTXMarketDepthCreator();
@@ -522,17 +524,27 @@ namespace OsEngine.Market.Servers.FTX
 
         public async override void GetPortfolios()
         {
-            if (!_isPortfolioSubscribed)
+            if (!_isPortfolioSubscribed && !_loginFailed)
             {
-                var fillsRequest = FtxWebSockerRequestGenerator.GetSubscribeRequest("fills");
-                _wsSource.SendMessage(fillsRequest);
-
-                var ordersRequest = FtxWebSockerRequestGenerator.GetSubscribeRequest("orders");
-                _wsSource.SendMessage(ordersRequest);
-
                 var accountResponse = await _ftxRestApi.GetAccountInfoAsync();
 
-                OnPortfolioEvent(_portfoliosCreator.Create(accountResponse));
+                var isSuccessfull = accountResponse.SelectToken("success").Value<bool>();
+                if (isSuccessfull)
+                {
+                    var fillsRequest = FtxWebSockerRequestGenerator.GetSubscribeRequest("fills");
+                    _wsSource.SendMessage(fillsRequest);
+
+                    var ordersRequest = FtxWebSockerRequestGenerator.GetSubscribeRequest("orders");
+                    _wsSource.SendMessage(ordersRequest);
+
+                    OnPortfolioEvent(_portfoliosCreator.Create(accountResponse));
+                }
+                else
+                {
+                    _loginFailed = true;
+                    SendLogMessage($"Can not get portfolios info.", LogMessageType.Error);
+                    OnPortfolioEvent(new List<Portfolio>() { new Portfolio() { Number = "undefined" } });
+                }
             }
         }
 
