@@ -21,14 +21,13 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
             var defaultPortfolio = new Portfolio() { Number = portfolioName };
 
             var result = jt.SelectToken(ResultPath);
-
             var collateral = result.SelectToken(CollateralPath).Value<decimal>();
             var freeCollateral = result.SelectToken(FreeCollateralPath).Value<decimal>();
+            var positions = result.SelectTokens(PositionsPath).Children();
 
             defaultPortfolio.ValueCurrent = result.SelectToken(TotalAccountValuePath).Value<decimal>();
             defaultPortfolio.ValueBlocked = collateral - freeCollateral;
 
-            var positions = result.SelectTokens(PositionsPath).Children();
 
             foreach (var jtPosition in positions)
             {

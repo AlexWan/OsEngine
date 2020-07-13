@@ -19,22 +19,15 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
         public MarketDepth Create(JToken jt)
         {
             var securityNameCode = jt.SelectToken(NamePath).ToString();
-
             var marketDepth = new MarketDepth();
-
             var data = jt.SelectToken(DataPath);
-
             var time = data.SelectToken(TimePath).Value<decimal>();
+            var bids = data.SelectTokens(BidsPath).Children();
+            var asks = data.SelectTokens(AsksPath).Children();
 
             marketDepth = new MarketDepth();
-
             marketDepth.Time = TimeManager.GetDateTimeFromTimeStampSeconds(Convert.ToInt64(time));
-
             marketDepth.SecurityNameCode = securityNameCode;
-
-            var bids = data.SelectTokens(BidsPath).Children();
-
-            var asks = data.SelectTokens(AsksPath).Children();
 
             foreach (var bid in bids)
             {
@@ -69,18 +62,13 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
         public MarketDepth Update(JToken jt)
         {
             var securityNameCode = jt.SelectToken(NamePath).ToString();
-
             var marketDepth = _securityMarketDepths[securityNameCode];
-
             var data = jt.SelectToken(DataPath);
-
             var time = data.SelectToken(TimePath).Value<decimal>();
+            var bids = data.SelectTokens(BidsPath).Children();
+            var asks = data.SelectTokens(AsksPath).Children();
 
             marketDepth.Time = TimeManager.GetDateTimeFromTimeStampSeconds(Convert.ToInt64(time));
-
-            var bids = data.SelectTokens(BidsPath).Children();
-
-            var asks = data.SelectTokens(AsksPath).Children();
 
             foreach (var bid in bids)
             {
@@ -139,7 +127,6 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
             }
 
             return marketDepth.GetCopy();
-
         }
     }
 }

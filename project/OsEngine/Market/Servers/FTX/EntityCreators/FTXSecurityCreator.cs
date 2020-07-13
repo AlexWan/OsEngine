@@ -18,6 +18,7 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
         {
             var securities = new List<Security>();
             var jProperties = jt.SelectToken(ResultPath).Children();
+
             foreach (var jProperty in jProperties)
             {
                 try
