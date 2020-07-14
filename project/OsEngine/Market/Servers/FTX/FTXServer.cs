@@ -47,6 +47,7 @@ namespace OsEngine.Market.Servers.FTX
         #region private fields
 
         /// <summary>
+        /// Available timeframes in FTX.
         /// словарь таймфреймов, поддерживаемых этой биржей
         /// </summary>
         private readonly Dictionary<int, string> _supportedIntervals = new Dictionary<int, string>
