@@ -45,6 +45,7 @@ using OsEngine.Market.Servers.MOEX;
 using OsEngine.Market.Servers.Tinkoff;
 using MessageBox = System.Windows.MessageBox;
 using OsEngine.Market.Servers.GateIo.Futures;
+using OsEngine.Market.Servers.FTX;
 
 namespace OsEngine.Market
 {
@@ -100,6 +101,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.HuobiSpot);
                 serverTypes.Add(ServerType.HuobiFutures);
                 serverTypes.Add(ServerType.HuobiFuturesSwap);
+                serverTypes.Add(ServerType.FTX);
 
                 serverTypes.Add(ServerType.InteractivBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
@@ -196,6 +198,10 @@ namespace OsEngine.Market
                 }
 
                 IServer newServer = null;
+                if (type == ServerType.FTX)
+                {
+                    newServer = new FTXServer();
+                }
                 if (type == ServerType.HuobiFuturesSwap)
                 {
                     newServer = new HuobiFuturesSwapServer();
@@ -788,6 +794,12 @@ namespace OsEngine.Market
         /// биржа криптовалют Hitbtc
         /// </summary>
         Hitbtc,
+
+        /// <summary>
+        /// cryptocurrency exchange FTX
+        /// биржа криптовалют FTX
+        /// </summary>
+        FTX,
 
         /// <summary>
         /// cryptocurrency exchange Gate.io
