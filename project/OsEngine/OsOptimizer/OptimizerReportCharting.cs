@@ -104,6 +104,11 @@ namespace OsEngine.OsOptimizer
             {
                 _reports = reports;
 
+                if (_reports.Count <= 1)
+                {
+                    return;
+                }
+
                 for (int i = 0; i < reports.Count; i++)
                 {
                     SortResults(reports[i].Reports);
@@ -275,6 +280,11 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
+            if (_reports.Count <= 1)
+            {
+                return;
+            }
+
             int num = 0;
 
             OptimizerReport inSampleReport = null;
@@ -410,6 +420,11 @@ namespace OsEngine.OsOptimizer
             int countWorst20 = 0;
 
             if (_reports == null)
+            {
+                return;
+            }
+
+            if (_reports.Count <= 1)
             {
                 return;
             }
@@ -555,6 +570,11 @@ namespace OsEngine.OsOptimizer
             int countLossBots = 0;
 
             if (_reports == null)
+            {
+                return;
+            }
+
+            if (_reports.Count <= 1)
             {
                 return;
             }
