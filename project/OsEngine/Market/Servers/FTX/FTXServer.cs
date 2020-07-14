@@ -536,13 +536,13 @@ namespace OsEngine.Market.Servers.FTX
                     var ordersRequest = FtxWebSockerRequestGenerator.GetSubscribeRequest("orders");
                     _wsSource.SendMessage(ordersRequest);
 
-                    portfolios.Add(_portfoliosCreator.CreatePortfolio(accountResponse, "main"));
+                    portfolios.Add(_portfoliosCreator.Create(accountResponse, "main"));
                 }
                 else
                 {
                     _loginFailed = true;
                     SendLogMessage($"Can not get portfolios info.", LogMessageType.Error);
-                    portfolios.Add(_portfoliosCreator.CreatePortfolio("undefined"));
+                    portfolios.Add(_portfoliosCreator.Create("undefined"));
                 }
                 OnPortfolioEvent(portfolios);
             }

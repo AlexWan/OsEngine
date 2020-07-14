@@ -16,7 +16,7 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
         private const string CollateralPath = "collateral";
         private const string TotalAccountValuePath = "totalAccountValue";
 
-        public Portfolio CreatePortfolio(JToken jt, string portfolioName)
+        public Portfolio Create(JToken jt, string portfolioName)
         {
             var portfolio = new Portfolio() { Number = portfolioName };
 
@@ -50,7 +50,7 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
             return portfolio;
         }
 
-        public Portfolio CreatePortfolio(string portfolioName)
+        public Portfolio Create(string portfolioName)
         {
             return new Portfolio { Number = portfolioName };
         }
