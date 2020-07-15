@@ -285,6 +285,12 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
+            if (_reports.Count == 2 &&
+                _reports[1].Reports.Count == 0)
+            {
+                return;
+            }
+
             int num = 0;
 
             OptimizerReport inSampleReport = null;
@@ -425,6 +431,12 @@ namespace OsEngine.OsOptimizer
             }
 
             if (_reports.Count <= 1)
+            {
+                return;
+            }
+
+            if (_reports.Count == 2 &&
+                _reports[1].Reports.Count == 0)
             {
                 return;
             }
@@ -575,6 +587,12 @@ namespace OsEngine.OsOptimizer
             }
 
             if (_reports.Count <= 1)
+            {
+                return;
+            }
+
+            if (_reports.Count == 2 &&
+                _reports[1].Reports.Count == 0)
             {
                 return;
             }

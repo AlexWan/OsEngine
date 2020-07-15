@@ -319,7 +319,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                     if (Candles.Count > 1 && 
                         Candles[Candles.Count - 1].TimeStart == Candles[Candles.Count - 2].TimeStart)
                     {
-                        Candles.RemoveAt(Candles.Count - 1);
+                        try
+                        {
+                            Candles.RemoveAt(Candles.Count - 1);
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
                     }
 
                     _chartMaster.SetCandles(Candles);
