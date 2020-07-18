@@ -7,7 +7,6 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
 {
     public class FTXCandlesCreator
     {
-        private const string ResultPath = "result";
         private const string StartTimePath = "startTime";
         private const string OpenPath = "open";
         private const string ClosePath = "close";
@@ -15,11 +14,11 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
         private const string HighPath = "high";
         private const string VolumePath = "volume";
 
-        public List<Candle> Create(JToken jt)
+        public List<Candle> Create(JToken data)
         {
             var candles = new List<Candle>();
 
-            var JProperties = jt.SelectTokens(ResultPath).Children();
+            var JProperties = data.Children();
 
             foreach(var jProperty in JProperties)
             {

@@ -1,46 +1,39 @@
 ﻿using Newtonsoft.Json.Linq;
 using OsEngine.Entity;
 using System;
-using System.Collections.Generic;
 
 namespace OsEngine.Market.Servers.FTX.EntityCreators
 {
     class FTXOrderCreator
     {
-        private const string ResultPath = "result";
-        private const string DataPath = "data";
         private const string IdPath = "id";
         private const string TimePath = "createdAt";
         private const string StatusPath = "status";
+        private const string PricePath = "price";
+        private const string SizePath = "size";
+        private const string SecurityNamePath = "market";
+        private const string SidePath = "side";
+        private const string OrderTypePath = "type";
 
-        private readonly Dictionary<string, Order> _myOrders = new Dictionary<string, Order>();
-
-        public void AddMyOrder(Order order, JToken jt)
+        public Order Create(JToken data)
         {
-            var result = jt.SelectToken(ResultPath);
-            var orderMarketId = result.SelectToken(IdPath).ToString();
-
-            order.NumberMarket = orderMarketId;
-            order.TimeCallBack = result.SelectToken(TimePath).Value<DateTime>();
-            order.TimeCreate= result.SelectToken(TimePath).Value<DateTime>();
-
-            _myOrders.Add(orderMarketId, order);
-        }
-
-        public void RemoveMyOrder(Order order)
-        {
-            _myOrders.Remove(order.NumberMarket);
-        }
-
-        public Order Create(JToken jt)
-        {
-            var data = jt.SelectToken(DataPath);
+            var order = new Order();
             var orderMarketId = data.SelectToken(IdPath).ToString();
-            var order = _myOrders[orderMarketId];
             var status = data.SelectToken(StatusPath).ToString();
 
+            order.NumberMarket = orderMarketId;
+            order.TimeCallBack = data.SelectToken(TimePath).Value<DateTime>();
+            order.Price = data.SelectToken(PricePath).Value<decimal>();
+            order.SecurityNameCode = data.SelectToken(SecurityNamePath).ToString();
+            order.Side = data.SelectToken(SidePath).ToString() == "sell" ?
+                Side.Sell :
+                Side.Buy;
+            order.Volume = data.SelectToken(SizePath).Value<decimal>();
+            order.TypeOrder = data.SelectToken(OrderTypePath).ToString() == "limit" ?
+                OrderPriceType.Limit :
+                OrderPriceType.Market;
             order.State = ConvertOrderStatus(status);
-            
+
             return order;
         }
 
@@ -49,9 +42,9 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
             switch (status)
             {
                 case "new":
-                    return OrderStateType.Pending;
-                case "open":
                     return OrderStateType.Activ;
+                case "open":
+                    return OrderStateType.Patrial;
                 case "closed":
                     return OrderStateType.Done;
                 default:

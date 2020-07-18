@@ -7,17 +7,16 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
 {
     public class FTXSecurityCreator
     {
-        private const string ResultPath = "result";
         private const string TypePath = "type";
         private const string StatePath = "enabled";
         private const string PriceStepPath = "priceIncrement";
         private const string NamePath = "name";
         private const string LotPath = "minProvideSize";
 
-        public List<Security> Create(JToken jt)
+        public List<Security> Create(JToken data)
         {
             var securities = new List<Security>();
-            var jProperties = jt.SelectToken(ResultPath).Children();
+            var jProperties = data.Children();
 
             foreach (var jProperty in jProperties)
             {

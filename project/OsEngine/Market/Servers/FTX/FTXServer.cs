@@ -84,6 +84,8 @@ namespace OsEngine.Market.Servers.FTX
         private Client _client;
 
         private readonly List<string> _subscribedSecurities = new List<string>();
+        private readonly Dictionary<string, Order> _myOrders = new Dictionary<string, Order>();
+        private readonly Dictionary<string, MarketDepth> _securityMarketDepths = new Dictionary<string, MarketDepth>();
         #endregion
 
         #region public properties
@@ -215,9 +217,9 @@ namespace OsEngine.Market.Servers.FTX
                     midTime = endTime;
                 }
 
-                var histaricalPrices = _ftxRestApi.GetHistoricalPricesAsync(securityName, needInterval, CandlesDownloadLimit, actualTime, midTime).Result;
+                var histaricalPricesResponse = _ftxRestApi.GetHistoricalPricesAsync(securityName, needInterval, CandlesDownloadLimit, actualTime, midTime).Result;
 
-                List<Candle> newCandles = _candlesCreator.Create(histaricalPrices);
+                List<Candle> newCandles = _candlesCreator.Create(histaricalPricesResponse.SelectToken("result"));
 
                 if (newCandles != null && newCandles.Count != 0)
                     candles.AddRange(newCandles);
@@ -301,13 +303,24 @@ namespace OsEngine.Market.Servers.FTX
         private void HandlePartialMessage(JToken response)
         {
             var channel = response.SelectToken("channel").ToString();
+            var data = response.SelectToken("data");
+            var securityName = response.SelectToken("market").ToString();
             switch (channel)
             {
                 case "orderbook":
-                    OnMarketDepthEvent(_marketDepthCreator.Create(response));
+                    var marketDepth = _marketDepthCreator.Create(data);
+                    marketDepth.SecurityNameCode = securityName;
+                    if (_securityMarketDepths.ContainsKey(marketDepth.SecurityNameCode))
+                    {
+                        _securityMarketDepths[marketDepth.SecurityNameCode] = marketDepth;
+                    }
+                    else
+                    {
+                        _securityMarketDepths.Add(marketDepth.SecurityNameCode, marketDepth);
+                    }
+                    OnMarketDepthEvent(marketDepth);
                     break;
                 case "trades":
-                    OnTradeEvent(_tradesCreator.Create(response));
                     break;
                 case "ticker":
                     break;
@@ -324,30 +337,122 @@ namespace OsEngine.Market.Servers.FTX
         private void HandleUpdateMessage(JToken response)
         {
             var channel = response.SelectToken("channel").ToString();
+            var data = response.SelectToken("data");
+            var securityName = response.SelectToken("market")?.ToString();
             switch (channel)
             {
                 case "orderbook":
-                    OnMarketDepthEvent(_marketDepthCreator.Update(response));
+                    HandleUpdateMarketDepthMessage(data, securityName);
                     break;
                 case "trades":
-                    OnTradeEvent(_tradesCreator.Create(response));
+                    var trades = _tradesCreator.Create(data, securityName);
+                    foreach(var trade in trades)
+                    {
+                        OnTradeEvent(trade);
+                    }
                     break;
                 case "ticker":
                     break;
                 case "fills":
-                    OnMyTradeEvent(_tradesCreator.CreateMyTrade(response));
+                    OnMyTradeEvent(_tradesCreator.CreateMyTrade(data));
                     break;
                 case "orders":
-                    var order = _orderCreator.Create(response);
-                    if(order.State == OrderStateType.Done)
-                    {
-                        _orderCreator.RemoveMyOrder(order);
-                    }
-                    OnOrderEvent(order);
+                    HandleUpdateOrderMessage(data);
                     break;
                 default:
                     SendLogMessage("Unhandeled channel :" + channel, LogMessageType.System);
                     break;
+            }
+        }
+
+        private void HandleUpdateOrderMessage(JToken data)
+        {
+            var order = _orderCreator.Create(data);
+            var localOrder = _myOrders[order.NumberMarket];
+            if (order.State != localOrder.State)
+            {
+                var currentTime = DateTime.Now;
+                if (order.State == OrderStateType.Done)
+                {
+                    if (localOrder.State == OrderStateType.Cancel)
+                    {
+                        localOrder.TimeCancel = currentTime;
+                        SendLogMessage($"Order num {localOrder.NumberUser} is canceled.", LogMessageType.Trade);
+                    }
+                    else
+                    {
+                        localOrder.TimeDone = currentTime;
+                    }
+                    _myOrders.Remove(localOrder.NumberMarket);
+                }
+                else
+                {
+                    localOrder.State = order.State;
+                }
+                OnOrderEvent(localOrder);
+            }
+        }
+
+        private void HandleUpdateMarketDepthMessage(JToken data, string securityName)
+        {
+            if (_securityMarketDepths.TryGetValue(securityName,out var localMarketDepth))
+            {
+                var marketDepth = _marketDepthCreator.Create(data);
+                localMarketDepth.Time = marketDepth.Time;
+
+                foreach (var marketDepthLevel in marketDepth.Bids)
+                {
+                    var marketDepthLevelForUpdate = localMarketDepth.Bids.Find(x => x.Price == marketDepthLevel.Price);
+
+                    if (marketDepthLevelForUpdate != null)
+                    {
+                        if (marketDepthLevel.Bid != 0)
+                        {
+                            marketDepthLevelForUpdate.Bid = marketDepthLevel.Bid;
+                        }
+                        else
+                        {
+                            localMarketDepth.Bids.Remove(marketDepthLevelForUpdate);
+                        }
+                    }
+                    else
+                    {
+                        var index = localMarketDepth.Bids.FindIndex(x => x.Price < marketDepthLevel.Price);
+                        localMarketDepth.Bids.Insert(index >= 0 ? index : localMarketDepth.Bids.Count, new MarketDepthLevel()
+                        {
+                            Price = marketDepthLevel.Price,
+                            Bid = marketDepthLevel.Bid,
+                        });
+                    }
+                }
+
+                foreach (var marketDepthLevel in marketDepth.Asks)
+                {
+                    var marketDepthLevelForUpdate = localMarketDepth.Asks.Find(x => x.Price == marketDepthLevel.Price);
+
+                    if (marketDepthLevelForUpdate != null)
+                    {
+                        if (marketDepthLevel.Ask != 0)
+                        {
+                            marketDepthLevelForUpdate.Ask = marketDepthLevel.Ask;
+                        }
+                        else
+                        {
+                            localMarketDepth.Asks.Remove(marketDepthLevelForUpdate);
+                        }
+                    }
+                    else
+                    {
+                        var index = localMarketDepth.Asks.FindIndex(x => x.Price > marketDepthLevel.Price);
+                        localMarketDepth.Asks.Insert(index >= 0 ? index : localMarketDepth.Asks.Count, new MarketDepthLevel()
+                        {
+                            Price = marketDepthLevel.Price,
+                            Ask = marketDepthLevel.Ask,
+                        });
+                    }
+                }
+
+                OnMarketDepthEvent(localMarketDepth);
             }
         }
         #endregion
@@ -374,10 +479,7 @@ namespace OsEngine.Market.Servers.FTX
 
             if (isSuccessful)
             {
-                SendLogMessage($"Order num {order.NumberUser} canceled.", LogMessageType.Trade);
-                order.State = OrderStateType.Cancel;
-                _orderCreator.RemoveMyOrder(order);
-                OnOrderEvent(order);
+                _myOrders[order.NumberMarket].State = OrderStateType.Cancel;
             }
             else
             {
@@ -389,9 +491,6 @@ namespace OsEngine.Market.Servers.FTX
 
         public override void Connect()
         {
-            _isPortfolioSubscribed = false;
-            _loginFailed = false;
-
             _securitiesCreator = new FTXSecurityCreator();
             _portfoliosCreator = new FTXPortfolioCreator();
             _marketDepthCreator = new FTXMarketDepthCreator();
@@ -428,6 +527,7 @@ namespace OsEngine.Market.Servers.FTX
                         _wsSource.SendMessage(ordersRequest);
 
                         _isPortfolioSubscribed = false;
+                        _loginFailed = false;
                     }
 
                     if (_subscribedSecurities.Any())
@@ -456,6 +556,8 @@ namespace OsEngine.Market.Servers.FTX
 
                     _client = null;
                     _ftxRestApi = null;
+                    _myOrders.Clear();
+                    _securityMarketDepths.Clear();
                 }
 
                 if (_cancelTokenSource != null && !_cancelTokenSource.IsCancellationRequested)
@@ -484,8 +586,13 @@ namespace OsEngine.Market.Servers.FTX
             while(lastTradeTime > actualTime)
             {
                 var marketTradesResponse = _ftxRestApi.GetMarketTradesAsync(security.Name, TradesDownloadLimit, actualTime, lastTradeTime).Result;
+                
+                var newTrades = _tradesCreator.Create(
+                    marketTradesResponse.SelectToken("result"),
+                    security.Name,
+                    isUtcTime: true);
 
-                var newTrades = _tradesCreator.Create(marketTradesResponse, security.Name);
+                newTrades.Reverse();
 
                 if(newTrades != null && newTrades.Any())
                 {
@@ -537,7 +644,9 @@ namespace OsEngine.Market.Servers.FTX
                     var ordersRequest = FtxWebSockerRequestGenerator.GetSubscribeRequest("orders");
                     _wsSource.SendMessage(ordersRequest);
 
-                    portfolios.Add(_portfoliosCreator.Create(accountResponse, "main"));
+                    portfolios.Add(_portfoliosCreator.Create(
+                        accountResponse.SelectToken("result"),
+                        "main"));
                 }
                 else
                 {
@@ -552,7 +661,7 @@ namespace OsEngine.Market.Servers.FTX
         public async override void GetSecurities()
         {
             var marketsResponse = await _ftxRestApi.GetMarketsAsync();
-            OnSecurityEvent(_securitiesCreator.Create(marketsResponse));
+            OnSecurityEvent(_securitiesCreator.Create(marketsResponse.SelectToken("result")));
         }
 
         public async override void SendOrder(Order order)
@@ -569,7 +678,19 @@ namespace OsEngine.Market.Servers.FTX
             if (isSuccessful)
             {
                 SendLogMessage($"Order num {order.NumberUser} on exchange.", LogMessageType.Trade);
-                _orderCreator.AddMyOrder(order, placeOrderResponse);
+                var data = placeOrderResponse.SelectToken("result");
+                var createdOrder = _orderCreator.Create(data);
+
+                createdOrder.NumberUser = order.NumberUser;
+                createdOrder.PortfolioNumber = order.PortfolioNumber;
+                createdOrder.PositionConditionType = order.PositionConditionType;
+                createdOrder.TimeCreate = order.TimeCreate;
+                createdOrder.IsStopOrProfit = order.IsStopOrProfit;
+                createdOrder.Comment = order.Comment;
+                createdOrder.LifeTime = order.LifeTime;
+
+                _myOrders.Add(createdOrder.NumberMarket, createdOrder);
+                OnOrderEvent(createdOrder);
             }
             else
             {
