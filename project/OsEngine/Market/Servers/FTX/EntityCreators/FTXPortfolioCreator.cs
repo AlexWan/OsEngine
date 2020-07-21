@@ -5,7 +5,6 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
 {
     public class FTXPortfolioCreator
     {
-        private const string ResultPath = "result";
         private const string PositionsPath = "positions";
         private const string NamePath = "future";
         private const string CostPath = "cost";
@@ -16,16 +15,15 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
         private const string CollateralPath = "collateral";
         private const string TotalAccountValuePath = "totalAccountValue";
 
-        public Portfolio Create(JToken jt, string portfolioName)
+        public Portfolio Create(JToken data, string portfolioName)
         {
-            var portfolio = new Portfolio() { Number = portfolioName };
+            var portfolio = Create(portfolioName);
 
-            var result = jt.SelectToken(ResultPath);
-            var collateral = result.SelectToken(CollateralPath).Value<decimal>();
-            var freeCollateral = result.SelectToken(FreeCollateralPath).Value<decimal>();
-            var positions = result.SelectTokens(PositionsPath).Children();
+            var collateral = data.SelectToken(CollateralPath).Value<decimal>();
+            var freeCollateral = data.SelectToken(FreeCollateralPath).Value<decimal>();
+            var positions = data.SelectTokens(PositionsPath).Children();
 
-            portfolio.ValueCurrent = result.SelectToken(TotalAccountValuePath).Value<decimal>();
+            portfolio.ValueCurrent = data.SelectToken(TotalAccountValuePath).Value<decimal>();
             portfolio.ValueBlocked = collateral - freeCollateral;
 
 
