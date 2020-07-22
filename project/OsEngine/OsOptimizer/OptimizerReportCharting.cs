@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
-using OsEngine.Language;
 using OsEngine.Logging;
 
 namespace OsEngine.OsOptimizer
@@ -198,7 +194,7 @@ namespace OsEngine.OsOptimizer
         private WindowsFormsHost _hostColumnsResult;
         private WindowsFormsHost _hostPieChartResult;
 
-// таблица
+        // таблица
 
         private DataGridView _gridDep;
 
@@ -323,10 +319,15 @@ namespace OsEngine.OsOptimizer
                     reportToPaint = curReport.Reports.Find(rep => rep.BotName.StartsWith(botName));
                 }
 
+                if (reportToPaint == null)
+                {
+                    continue;
+                }
+
                 DataGridViewRow row = new DataGridViewRow();
                 row.Cells.Add(new DataGridViewTextBoxCell());
                 row.Cells[0].Value = curReport.Faze.TypeFaze.ToString();
-                
+
 
                 DataGridViewTextBoxCell cell2 = new DataGridViewTextBoxCell();
                 cell2.Value = curReport.Faze.TimeStart.ToShortDateString();
@@ -357,7 +358,9 @@ namespace OsEngine.OsOptimizer
 
                     for (int i2 = 0; i2 < curReport.Reports.Count; i2++)
                     {
-                        if (curReport.Reports[i2].BotName.StartsWith(botName))
+                        string curName = curReport.Reports[i2].BotName.Replace(" InSample", "").Replace(" OutOfSample", "");
+
+                        if (curName == botName)
                         {
                             cell6.Value = (i2 + 1).ToString();
                             break;
@@ -375,7 +378,7 @@ namespace OsEngine.OsOptimizer
             }
         }
 
-// столбики
+        // столбики
 
         private Chart _chart;
 
@@ -474,7 +477,7 @@ namespace OsEngine.OsOptimizer
 
                             if (botNum <= 20)
                             {
-                                countBestTwenty +=1;
+                                countBestTwenty += 1;
                             }
                             else if (botNum > 20 && botNum <= 40)
                             {
@@ -488,7 +491,7 @@ namespace OsEngine.OsOptimizer
                             {
                                 count60_80 += 1;
                             }
-                            else if (botNum > 80 )
+                            else if (botNum > 80)
                             {
                                 countWorst20 += 1;
                             }
@@ -534,7 +537,7 @@ namespace OsEngine.OsOptimizer
             _chart.Series[0].Points.Add(point5);
         }
 
-// пирог
+        // пирог
 
         private Chart _chartPie;
 
@@ -647,7 +650,7 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
-            decimal profitPercent = Math.Round((Convert.ToDecimal(countProfitBots) / (countProfitBots + countLossBots) * 100),0);
+            decimal profitPercent = Math.Round((Convert.ToDecimal(countProfitBots) / (countProfitBots + countLossBots) * 100), 0);
 
             decimal lossPercent = Math.Round((Convert.ToDecimal(countLossBots) / (countProfitBots + countLossBots) * 100), 0);
 

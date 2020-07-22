@@ -1,7 +1,5 @@
 ﻿using OsEngine.Entity;
-using OsEngine.Journal;
 using OsEngine.Language;
-using OsEngine.Market;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels;
 using System;
@@ -149,7 +147,7 @@ namespace OsEngine.OsOptimizer
 
 
             _resultsCharting = new OptimizerReportCharting(
-                WindowsFormsHostDependences, WindowsFormsHostColumnsResults, 
+                WindowsFormsHostDependences, WindowsFormsHostColumnsResults,
                 WindowsFormsHostPieResults, ComboBoxSortDependencesResults);
             _resultsCharting.LogMessageEvent += _master.SendLogMessage;
         }
@@ -1663,12 +1661,17 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
-            int num = 0;
-
-            if (_gridFazesEnd.CurrentCell != null
-                && _gridFazesEnd.CurrentCell.RowIndex < _reports.Count)
+            if (_gridFazesEnd.CurrentCell == null)
             {
-                num = _gridFazesEnd.CurrentCell.RowIndex;
+                return;
+            }
+
+            int num = 0;
+            num = _gridFazesEnd.CurrentCell.RowIndex;
+
+            if (num >= _reports.Count)
+            {
+                return;
             }
 
             OptimazerFazeReport fazeReport = _reports[num];
@@ -1759,7 +1762,7 @@ namespace OsEngine.OsOptimizer
         {
             for (int i = 0; i < reports.Count; i++)
             {
-                for (int i2 = 0; i2 < reports.Count-1; i2++)
+                for (int i2 = 0; i2 < reports.Count - 1; i2++)
                 {
                     if (FirstLessSecond(reports[i2], reports[i2 + 1], _sortBotsType))
                     {
