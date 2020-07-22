@@ -500,7 +500,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
             pos.SecurityNameCode = accountInfo.Currency;
             pos.ValueBegin = Converter.StringToDecimal(accountInfo.Total);
             pos.ValueCurrent = Converter.StringToDecimal(accountInfo.Available);
-            pos.ValueBlocked = Converter.StringToDecimal(accountInfo.PositionMargin + accountInfo.OrderMargin);
+            pos.ValueBlocked = Converter.StringToDecimal(accountInfo.PositionMargin) + Converter.StringToDecimal(accountInfo.OrderMargin);
 
             portfolio.SetNewPosition(pos);
 
