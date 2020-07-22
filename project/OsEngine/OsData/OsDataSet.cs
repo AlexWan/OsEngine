@@ -13,6 +13,7 @@ using OsEngine.Market.Servers.Finam;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms.Integration;
 using System.Windows.Shapes;
@@ -1033,8 +1034,7 @@ namespace OsEngine.OsData
                     { // Finam/Финам
                         List<string> trades = ((FinamServer)_myServer).GetAllFilesWhithTradeToSecurity(SecuritiesNames[i].Name);
 
-                         SaveThisTickFromFiles(trades,
-                            pathToSet + SecuritiesNames[i].Name.Replace("*", "").Replace("/", "") + "\\" + "Tick" + "\\", SecuritiesNames[i].Name.Replace("*", ""));
+                         SaveThisTickFromFiles(trades, pathToSet + SecuritiesNames[i].Name.Replace("*", "").Replace("/", "") + "\\" + "Tick" + "\\", SecuritiesNames[i].Name.Replace("*", ""));
 
                     }
                 }
@@ -1463,14 +1463,14 @@ namespace OsEngine.OsData
             {
                 using (StreamWriter writer2 = new StreamWriter(pathToFolder + "\\" + securityName.Replace("/", "") + ".txt", true))
                 {
-                    SaveTicksData(writer2, table_ticks_second, isLastTick);
+                    SaveTicksData(writer2, null, isLastTick);
                 }
                 return;
             }
 
             else if (tradeLast == null && writer != null && isLastTick == true)
             {
-                SaveTicksData(writer, table_ticks_first, isLastTick);
+                SaveTicksData(writer, null, isLastTick);
                 return;
             }
 
@@ -1490,13 +1490,11 @@ namespace OsEngine.OsData
             {
                 if (writer != null)
                 {
-                    table_ticks_first.Add(tradeLast.GetSaveString());
-                    SaveTicksData(writer, table_ticks_first, isLastTick);
+                    SaveTicksData(writer, tradeLast.GetSaveString(), isLastTick);
                 }
                 else
                 {
-                    table_ticks_second.Add(tradeLast.GetSaveString());
-                    SaveTicksData(pathToFolder + "\\" + securityName.Replace("/", "") + ".txt", table_ticks_second, isLastTick);
+                    SaveTicksData(pathToFolder + "\\" + securityName.Replace("/", "") + ".txt", tradeLast.GetSaveString(), isLastTick);
                 }
             }
             catch (Exception error)
@@ -1508,31 +1506,56 @@ namespace OsEngine.OsData
             }
         }
 
-        private List<string> table_ticks_first = new List<string>();
-        private List<string> table_ticks_second = new List<string>();
 
-        private void SaveTicksData(StreamWriter writer, List<string> table_ticks, bool isLastTick)
+        List<string> table_to_load_first = new List<string>();
+        List<string> table_to_load_second = new List<string>();
+        private void SaveTicksData(StreamWriter writer, string tradeLast, bool isLastTick)
         {
-            if (table_ticks.Count >= 10000 || isLastTick)
-            {
-                var result = String.Join(Environment.NewLine, table_ticks);
-                writer.WriteLine(result);
+            if(tradeLast != null)
+                table_to_load_first.Add(tradeLast);
 
-                table_ticks.Clear();
+            if (table_to_load_first.Count >= 10000 || isLastTick)
+            {
+                if (table_to_load_first.Count() > 1)
+                {
+                    var result = String.Join(Environment.NewLine, table_to_load_first);
+                    writer.WriteLine(result);
+                }
+
+                if (table_to_load_first.Count() == 1)
+                {
+                    writer.WriteLine(table_to_load_first.First());
+                }
+
+                table_to_load_first.Clear();
             }
         }
 
-        private void SaveTicksData(string path, List<string> table_ticks, bool isLastTick)
+        private void SaveTicksData(string path, string tradeLast, bool isLastTick)
         {
-            if (table_ticks.Count >= 10000 || isLastTick)
+            if (tradeLast != null)
+                table_to_load_second.Add(tradeLast);
+
+            if (table_to_load_second.Count >= 10000 || isLastTick)
             {
-                var result = String.Join(Environment.NewLine, table_ticks);
-                using (StreamWriter writer = new StreamWriter(path, true))
+                if (table_to_load_second.Count() > 1)
                 {
-                    writer.WriteLine(result);
+                    var result = String.Join(Environment.NewLine, table_to_load_second);
+                    using (StreamWriter writer = new StreamWriter(path, true))
+                    {
+                        writer.WriteLine(result);
+                    }
                 }
-                
-                table_ticks.Clear();
+
+                if (table_to_load_second.Count() == 1)
+                {
+                    using (StreamWriter writer = new StreamWriter(path, true))
+                    {
+                        writer.WriteLine(table_to_load_second.First());
+                    }
+                }
+
+                table_to_load_second.Clear();
             }
         }
 
@@ -1589,10 +1612,10 @@ namespace OsEngine.OsData
                     {
                         newTrade.SetTradeFromString(reader.ReadLine());
 
-                        if (newTrade.Time.Hour < 10)
-                        {
-                            continue;
-                        }
+                        //if (newTrade.Time.Hour < 10)
+                        //{
+                        //    continue;
+                        //}
 
                         SaveThisTick(newTrade, path, securityName, writer, path + securityName.Replace("/", "") + ".txt", false);
                     }
