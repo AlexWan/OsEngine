@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Threading;
 using OsEngine.Entity;
 using OsEngine.Language;
@@ -199,7 +198,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     }
                 }
 
-                if (newCandles == null)
+                if(newCandles == null)
                 {
                     continue;
                 }
@@ -228,66 +227,42 @@ namespace OsEngine.Market.Servers.Binance.Spot
         /// </summary>
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime lastDate)
         {
-            string markerDateTime = "";
+            List<Trade> lastTrades = new List<Trade>();
 
-            List<Trade> trades = new List<Trade>();
+            string tradeId = "";
 
-            DateTime startOver = startTime;
-            long lastId = 0;
+            DateTime lastTradeTime = DateTime.MaxValue;
 
-            while (true)
+            while (lastTradeTime > startTime)
             {
-                if (startOver >= endTime)
+                lastDate = TimeZoneInfo.ConvertTimeToUtc(lastDate);
+
+                List<Trade> trades = _client.GetTickHistoryToSecurity(security, tradeId);
+
+                if (trades == null ||
+                    trades.Count == 0)
                 {
-                    break;
+                    lastTradeTime = lastDate.AddSeconds(-1);
+                    Thread.Sleep(2000);
+                    continue;
                 }
 
-                List<Trade> newTrades = new List<Trade>();
+                DateTime uniTime = trades[trades.Count - 1].Time.ToUniversalTime();
 
-                if (lastId == 0)
+                lastTradeTime = trades[0].Time;
+
+                for (int i2 = 0; i2 < trades.Count; i2++)
                 {
-                    newTrades = _client.GetTickHistoryToSecurity(security.Name, startOver, startOver.AddSeconds(300), 0);
-
-                    lastId = Convert.ToInt64(newTrades.First().Id) - 1;
-                    newTrades = new List<Trade>();
-                }
-                else
-                {
-                    newTrades = _client.GetTickHistoryToSecurity(security.Name, new DateTime(), new DateTime(), lastId + 1);
-
-                    lastId = Convert.ToInt64(newTrades[newTrades.Count - 1].Id);
+                    lastTrades.Insert(i2, trades[i2]);
                 }
 
-                if (newTrades != null && newTrades.Count != 0)
-                    trades.AddRange(newTrades);
-                else
-                    break;
+                tradeId = (Convert.ToInt32(trades[0].Id) - 1000).ToString();
 
-                startOver = trades[trades.Count - 1].Time.AddMilliseconds(1);
-
-
-                if (markerDateTime != startOver.ToShortDateString())
-                {
-                    markerDateTime = startOver.ToShortDateString();
-                    SendLogMessage(security.Name + " Binance Spot start loading: " + markerDateTime, LogMessageType.System);
-                }
-
-                Thread.Sleep(10);
+                Thread.Sleep(100);
             }
 
-            if (trades.Count == 0)
-            {
-                return null;
-            }
-
-            while (trades.Last().Time >= endTime)
-                trades.Remove(trades.Last());
-
-
-            return trades;
+            return lastTrades;
         }
-
-
 
         /// <summary>
         /// request order state

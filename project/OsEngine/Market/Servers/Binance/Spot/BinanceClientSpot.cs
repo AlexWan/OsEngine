@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading;
 using Newtonsoft.Json;
 using OsEngine.Entity;
-using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Binance.Spot.BinanceSpotEntity;
 using OsEngine.Market.Servers.Entity;
@@ -502,7 +501,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 param.Add("symbol=" + nameSec.ToUpper(), "&interval=" + needTf + "&startTime=" + startTime + "&endTime=" + endTime);
 
                 var res = CreateQuery(BinanceExchangeType.SpotExchange, Method.GET, endPoint, param, false);
-                if (res == "")
+                if(res == "")
                 {
                     return null;
                 }
@@ -791,7 +790,8 @@ namespace OsEngine.Market.Servers.Binance.Spot
         /// method sends a request and returns a response from the server
         /// метод отправляет запрос и возвращает ответ от сервера
         /// </summary>
-        public string CreateQuery(BinanceExchangeType startUri, Method method, string endpoint, Dictionary<string, string> param = null, bool auth = false)
+        public string CreateQuery(BinanceExchangeType startUri, Method method, string endpoint, Dictionary<string, string> param = null,
+            bool auth = false)
         {
             try
             {
@@ -1686,93 +1686,6 @@ namespace OsEngine.Market.Servers.Binance.Spot
         public event Action<string, LogMessageType> LogMessageEvent;
 
         #endregion
-
-        public List<Trade> GetTickHistoryToSecurity(string security, DateTime startTime, DateTime endTime, long fromId)
-        {
-            try
-            {
-                string timeStamp = TimeManager.GetUnixTimeStampMilliseconds().ToString();
-                Dictionary<string, string> param = new Dictionary<string, string>();
-
-                if (startTime != new DateTime() && endTime != new DateTime())
-                {
-                    long from = TimeManager.GetTimeStampMilliSecondsToDateTime(startTime);
-                    long to = TimeManager.GetTimeStampMilliSecondsToDateTime(endTime);
-
-                    param.Add("symbol=", security);
-                    param.Add("&startTime=", from.ToString());
-                    param.Add("&endTime=", to.ToString());
-                    param.Add("&limit=", "1000");
-                }
-                else if (fromId != 0)
-                {
-                    param.Add("symbol=", security);
-                    param.Add("&fromId=", fromId.ToString());
-                    param.Add("&limit=", "1000");
-                }
-
-                string endPoint = "api/v3/aggTrades";
-
-                var res2 = CreateQuery(BinanceExchangeType.SpotExchange, Method.GET, endPoint, param, false);
-
-                AgregatedHistoryTrade[] tradeHistory = JsonConvert.DeserializeObject<AgregatedHistoryTrade[]>(res2);
-
-                var oldTrades = CreateTradesFromJson(security, tradeHistory);
-
-                return oldTrades;
-            }
-            catch
-            {
-                SendLogMessage(OsLocalization.Market.Message95 + security, LogMessageType.Error);
-
-                return null;
-            }
-        }
-
-        public decimal StringToDecimal(string value)
-        {
-            string sep = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
-            return Convert.ToDecimal(value.Replace(",", sep).Replace(".", sep));
-        }
-
-        private List<Trade> CreateTradesFromJson(string secName, AgregatedHistoryTrade[] binTrades)
-        {
-            List<Trade> trades = new List<Trade>();
-
-            foreach (var jtTrade in binTrades)
-            {
-                var trade = new Trade();
-
-                trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(jtTrade.T));
-                trade.Price = StringToDecimal(jtTrade.P);
-                trade.MicroSeconds = 0;
-                trade.Id = jtTrade.A.ToString();
-                trade.Volume = Math.Abs(StringToDecimal(jtTrade.Q));
-                trade.SecurityNameCode = secName;
-
-                if (StringToDecimal(jtTrade.Q) >= 0)
-                {
-                    trade.Side = Side.Buy;
-                    trade.Ask = 0;
-                    trade.AsksVolume = 0;
-                    trade.Bid = trade.Price;
-                    trade.BidsVolume = trade.Volume;
-                }
-                else if (StringToDecimal(jtTrade.Q) < 0)
-                {
-                    trade.Side = Side.Sell;
-                    trade.Ask = trade.Price;
-                    trade.AsksVolume = trade.Volume;
-                    trade.Bid = 0;
-                    trade.BidsVolume = 0;
-                }
-
-
-                trades.Add(trade);
-            }
-
-            return trades;
-        }
     }
 
     public class BinanceUserMessage
@@ -1788,29 +1701,5 @@ namespace OsEngine.Market.Servers.Binance.Spot
         SpotExchange,
         FuturesExchange,
         MarginExchange
-    }
-
-    public class AgregatedHistoryTrade
-    {
-        [JsonProperty("a")]
-        public long A { get; set; }
-
-        [JsonProperty("p")]
-        public string P { get; set; }
-
-        [JsonProperty("q")]
-        public string Q { get; set; }
-
-        [JsonProperty("f")]
-        public long F { get; set; }
-
-        [JsonProperty("l")]
-        public long L { get; set; }
-
-        [JsonProperty("T")]
-        public long T { get; set; }
-
-        [JsonProperty("m")]
-        public bool M { get; set; }
     }
 }
