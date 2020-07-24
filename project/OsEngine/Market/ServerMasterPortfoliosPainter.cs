@@ -328,7 +328,28 @@ namespace OsEngine.Market
                     && portfolio.ValueCurrent == 0 
                     && portfolio.ValueBlocked == 0)
                 {
-                    return;
+                    List<PositionOnBoard> poses = portfolio.GetPositionOnBoard();
+
+                    if (poses == null)
+                    {
+                        return;
+                    }
+
+                    bool haveNoneZeroPoses = false;
+
+                    for (int i = 0; i < poses.Count; i++)
+                    {
+                        if (poses[i].ValueCurrent != 0)
+                        {
+                            haveNoneZeroPoses = true;
+                            break;
+                        }
+                    }
+
+                    if (haveNoneZeroPoses == false)
+                    {
+                        return;
+                    }
                 }
 
                 DataGridViewRow secondRow = new DataGridViewRow();

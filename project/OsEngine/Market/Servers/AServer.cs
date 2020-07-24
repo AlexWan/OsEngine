@@ -1028,6 +1028,11 @@ namespace OsEngine.Market.Servers
                         }
                     }
 
+                    if (portf[i].ValueCurrent != 0)
+                    {
+
+                    }
+
                     curPortfolio.Profit = portf[i].Profit;
                     curPortfolio.ValueBegin = portf[i].ValueBegin;
                     curPortfolio.ValueCurrent = portf[i].ValueCurrent;
