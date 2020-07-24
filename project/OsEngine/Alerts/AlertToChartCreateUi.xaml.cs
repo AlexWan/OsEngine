@@ -527,7 +527,7 @@ namespace OsEngine.Alerts
         {
             try
             {
-                Convert.ToInt32(TextBoxVolumeReaction.Text);
+                TextBoxVolumeReaction.Text.ToDecimal();
             }
             catch (Exception)
             {
@@ -555,7 +555,7 @@ namespace OsEngine.Alerts
             Enum.TryParse(ComboBoxType.Text, true, out MyAlert.Type);
 
             Enum.TryParse(ComboBoxSignalType.Text, true, out MyAlert.SignalType);
-            MyAlert.VolumeReaction = Convert.ToInt32(TextBoxVolumeReaction.Text);
+            MyAlert.VolumeReaction = TextBoxVolumeReaction.Text.ToDecimal();
 
             MyAlert.Slippage = Convert.ToDecimal(TextBoxSlippage.Text);
             MyAlert.NumberClosePosition = Convert.ToInt32(TextBoxClosePosition.Text);
@@ -845,12 +845,6 @@ namespace OsEngine.Alerts
                 l0423value1 = onePoint - devider * onePoint * 4.23m;
                 l0423value2 = twoPoint - devider * twoPoint * 4.23m;
             }
-
-
-
-
-
-
 
             // 2 alerts
 

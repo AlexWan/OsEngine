@@ -23,7 +23,7 @@ namespace OsEngine.Alerts
         /// volume
         /// объём
         /// </summary>
-        public int Volume;
+        public decimal Volume;
 
         /// <summary>
         /// slippage
