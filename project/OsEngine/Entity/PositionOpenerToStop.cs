@@ -86,5 +86,10 @@ namespace OsEngine.Entity
         /// </summary>
         public DateTime LastCandleTime;
 
+        /// <summary>
+        /// тип сигнала на открытие
+        /// </summary>
+        public string SignalType;
+
     }
 }

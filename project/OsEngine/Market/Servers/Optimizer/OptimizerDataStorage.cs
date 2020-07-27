@@ -268,6 +268,15 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+        /// очистить данные
+        /// </summary>
+        public void ClearStorages()
+        {
+            _storages.Clear();
+        }
+
+
+        /// <summary>
 		/// path to folder with data
         /// путь к папке с данными
         /// </summary>

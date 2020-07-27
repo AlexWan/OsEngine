@@ -394,6 +394,24 @@ namespace OsEngine.Market
             }
         }
 
+        public static void RemoveOptimizerServer(OptimizerServer server)
+        {
+            for (int i = 0; _servers != null && i < _servers.Count; i++)
+            {
+                if (_servers[i] == null)
+                {
+                    _servers.RemoveAt(i);
+                    i--;
+                }
+                if (_servers[i].ServerType == ServerType.Optimizer &&
+                    ((OptimizerServer)_servers[i]).NumberServer == server.NumberServer)
+                {
+                    _servers.RemoveAt(i);
+                    break;
+                }
+            }
+        }
+
         /// <summary>
         /// take the server
         /// взять сервер
