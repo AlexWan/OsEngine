@@ -49,6 +49,7 @@ namespace OsEngine.Robots.Trend
         {
             _envelop.Deviation = EnvelopDeviation.ValueDecimal;
             _envelop.MovingAverage.Lenght = EnvelopMovingLength.ValueInt;
+            _envelop.Reload();
         }
 
         // public settings / настройки публичные

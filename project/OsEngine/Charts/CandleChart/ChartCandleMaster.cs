@@ -1309,11 +1309,15 @@ namespace OsEngine.Charts.CandleChart
             ChartCandle.ClearDataPointsAndSizeValue();
             _myPosition = null;
 
-
             for (int i = 0; _indicators != null && i < _indicators.Count; i++)
             {
                 _indicators[i].Clear();
             }
+        }
+
+        public void ClearTimePoints()
+        {
+            ChartCandle.ClearDataPointsAndSizeValue();
         }
 
         public int GetSelectCandleNumber()

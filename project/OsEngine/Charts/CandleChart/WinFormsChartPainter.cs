@@ -1400,7 +1400,7 @@ namespace OsEngine.Charts.CandleChart
 
             if (_startProgram == StartProgram.IsOsTrader)
             {
-                candleSeries.Points[candleSeries.Points.Count - 1].ToolTip = history[candleSeries.Points.Count - 1].ToolTip;
+                candleSeries.Points[candleSeries.Points.Count - 1].ToolTip = history[index].ToolTip;
             }
             // candleSeries.Points[candleSeries.Points.Count - 1].AxisLabel = history[lastIndex].TimeStart.ToString(_culture);
 
@@ -2171,7 +2171,7 @@ namespace OsEngine.Charts.CandleChart
             {
                 _timePoints = new List<TimeAxisXPoint>();
             }
-            TimeAxisXPoint point = _timePoints.Find(po => po.PositionTime == time);
+            TimeAxisXPoint point = _timePoints.Find(po => po != null && po.PositionTime == time);
 
             if (point != null)
             {

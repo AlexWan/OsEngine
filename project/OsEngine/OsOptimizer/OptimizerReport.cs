@@ -145,7 +145,10 @@ namespace OsEngine.OsOptimizer
                 tab.PositionsCount = positions.Count;
                 tab.TotalProfit = PositionStaticticGenerator.GetAllProfitInPunkt(posesArray);
                 tab.MaxDrowDawn = PositionStaticticGenerator.GetMaxDownPersent(posesArray);
-                tab.AverageProfit = PositionStaticticGenerator.GetMidleProfitInPunkt(posesArray);
+                if (posesArray.Length != 0)
+                {
+                    tab.AverageProfit = tab.TotalProfit / posesArray.Length;
+                }
                 tab.AverageProfitPercent = PositionStaticticGenerator.GetMidleProfitInPersent(posesArray);
 
                 tab.ProfitFactor = PositionStaticticGenerator.GetProfitFactor(posesArray);
