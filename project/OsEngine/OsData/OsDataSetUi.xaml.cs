@@ -207,29 +207,39 @@ namespace OsEngine.OsData
                 }
                 else
                 {
-                    CheckBoxTf1MinuteIsOn.IsEnabled = permission.DataFeedTf1MinuteCanLoad;
-                    CheckBoxTf2MinuteIsOn.IsEnabled = permission.DataFeedTf2MinuteCanLoad;
-                    CheckBoxTf5MinuteIsOn.IsEnabled = permission.DataFeedTf5MinuteCanLoad;
-                    CheckBoxTf10MinuteIsOn.IsEnabled = permission.DataFeedTf10MinuteCanLoad;
-                    CheckBoxTf15MinuteIsOn.IsEnabled = permission.DataFeedTf15MinuteCanLoad;
-                    CheckBoxTf30MinuteIsOn.IsEnabled = permission.DataFeedTf30MinuteCanLoad;
-                    CheckBoxTf1HourIsOn.IsEnabled = permission.DataFeedTf1HourCanLoad;
-                    CheckBoxTf2HourIsOn.IsEnabled = permission.DataFeedTf2HourCanLoad;
-                    CheckBoxTf4HourIsOn.IsEnabled = permission.DataFeedTf4HourCanLoad;
+                    UpdComboBoxToPermission(CheckBoxTf1MinuteIsOn, permission.DataFeedTf1MinuteCanLoad);
+                    UpdComboBoxToPermission(CheckBoxTf2MinuteIsOn,permission.DataFeedTf2MinuteCanLoad);
+                    UpdComboBoxToPermission(CheckBoxTf5MinuteIsOn,permission.DataFeedTf5MinuteCanLoad);
+                    UpdComboBoxToPermission(CheckBoxTf10MinuteIsOn,permission.DataFeedTf10MinuteCanLoad);
+                    UpdComboBoxToPermission(CheckBoxTf15MinuteIsOn,permission.DataFeedTf15MinuteCanLoad);
+                    UpdComboBoxToPermission(CheckBoxTf30MinuteIsOn,permission.DataFeedTf30MinuteCanLoad);
+                    UpdComboBoxToPermission(CheckBoxTf1HourIsOn,permission.DataFeedTf1HourCanLoad);
+                    UpdComboBoxToPermission(CheckBoxTf2HourIsOn,permission.DataFeedTf2HourCanLoad);
+                    UpdComboBoxToPermission(CheckBoxTf4HourIsOn,permission.DataFeedTf4HourCanLoad);
 
-                    CheckBoxTf1SecondIsOn.IsEnabled = permission.DataFeedTf1SecondCanLoad;
-                    CheckBoxTf2SecondIsOn.IsEnabled = permission.DataFeedTf2SecondCanLoad;
-                    CheckBoxTf5SecondIsOn.IsEnabled = permission.DataFeedTf5SecondCanLoad;
-                    CheckBoxTf10SecondIsOn.IsEnabled = permission.DataFeedTf10SecondCanLoad;
-                    CheckBoxTf15SecondIsOn.IsEnabled = permission.DataFeedTf15SecondCanLoad;
-                    CheckBoxTf20SecondIsOn.IsEnabled = permission.DataFeedTf20SecondCanLoad;
-                    CheckBoxTf30SecondIsOn.IsEnabled = permission.DataFeedTf30SecondCanLoad;
+                    UpdComboBoxToPermission(CheckBoxTf1SecondIsOn,permission.DataFeedTf1SecondCanLoad);
+                    UpdComboBoxToPermission(CheckBoxTf2SecondIsOn,permission.DataFeedTf2SecondCanLoad);
+                    UpdComboBoxToPermission(CheckBoxTf5SecondIsOn,permission.DataFeedTf5SecondCanLoad);
+                    UpdComboBoxToPermission(CheckBoxTf10SecondIsOn,permission.DataFeedTf10SecondCanLoad);
+                    UpdComboBoxToPermission(CheckBoxTf15SecondIsOn,permission.DataFeedTf15SecondCanLoad);
+                    UpdComboBoxToPermission(CheckBoxTf20SecondIsOn,permission.DataFeedTf20SecondCanLoad);
+                    UpdComboBoxToPermission(CheckBoxTf30SecondIsOn, permission.DataFeedTf30SecondCanLoad);
 
-                    CheckBoxTfMarketDepthIsOn.IsEnabled = permission.DataFeedTfMarketDepthCanLoad;
-                    CheckBoxTfTickIsOn.IsEnabled = permission.DataFeedTfTickCanLoad;
+                    UpdComboBoxToPermission(CheckBoxTfMarketDepthIsOn,permission.DataFeedTfMarketDepthCanLoad);
+                    UpdComboBoxToPermission(CheckBoxTfTickIsOn,permission.DataFeedTfTickCanLoad);
                 }
             }
         }
+
+        private void UpdComboBoxToPermission(System.Windows.Controls.CheckBox box, bool permission)
+        {
+            box.IsEnabled = permission;
+            if (permission == false)
+            {
+                box.IsChecked = false;
+            }
+        }
+
 
         /// <summary>
         /// allow user to touch controls

@@ -459,6 +459,18 @@ namespace OsEngine.Market
 
                 return serverPermission;
             }
+            if (type == ServerType.Finam)
+            {
+                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
+
+                if (serverPermission == null)
+                {
+                    serverPermission = new FinamServerPermission();
+                    _serversPermissions.Add(serverPermission);
+                }
+
+                return serverPermission;
+            }
             if (type == ServerType.Tinkoff)
             {
                 serverPermission = _serversPermissions.Find(s => s.ServerType == type);
