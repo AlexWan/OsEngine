@@ -8,6 +8,10 @@ namespace OsEngine.Entity
     {
         public static decimal ToDecimal(this string value)
         {
+            if(value == null)
+            {
+                return 0;
+            }
             if (value.Contains("E"))
             {
                 return Convert.ToDecimal(value.ToDouble());

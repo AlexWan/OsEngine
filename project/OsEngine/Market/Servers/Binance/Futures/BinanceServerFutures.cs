@@ -323,7 +323,13 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     return;
                 }
                 Trade trade = new Trade();
-                trade.SecurityNameCode = trades.data.s;
+                trade.SecurityNameCode = trades.stream.ToString().ToUpper().Split('@')[0];
+
+                if (trade.SecurityNameCode != trades.data.s)
+                {
+                    return;
+                }
+
                 trade.Price =
                         trades.data.p.ToDecimal();
                 trade.Id = trades.data.t.ToString();

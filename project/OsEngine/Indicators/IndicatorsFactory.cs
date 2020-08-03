@@ -133,6 +133,8 @@ namespace OsEngine.Indicators
             return Indicator;
         }
 
+        private static bool _isFirstTime = true;
+
         private static Aindicator Serialize(string path, string nameClass, string name, bool canDelete)
         {
             try
@@ -158,18 +160,44 @@ namespace OsEngine.Indicators
                 CompilerParameters cp = new CompilerParameters(res);
                 cp.IncludeDebugInformation = true;
                 cp.GenerateInMemory = true;
-                cp.TempFiles.KeepFiles = false;
-                
 
-               /* string folderCur = AppDomain.CurrentDomain.BaseDirectory + "Engine\\Temp";
+                string folderCur = AppDomain.CurrentDomain.BaseDirectory + "Engine\\Temp";
 
                 if (Directory.Exists(folderCur) == false)
                 {
                     Directory.CreateDirectory(folderCur);
                 }
 
-                cp.OutputAssembly = folderCur + "\\tempInd" + nameClass +
-                                    NumberGen.GetNumberDeal(StartProgram.IsOsTrader);*/
+                folderCur += "\\Indicators";
+
+                if (Directory.Exists(folderCur) == false)
+                {
+                    Directory.CreateDirectory(folderCur);
+                }
+
+                if (_isFirstTime)
+                {
+                    _isFirstTime = false;
+
+                    string[] files = Directory.GetFiles(folderCur);
+
+                    for (int i = 0; i < files.Length; i++)
+                    {
+                        try
+                        {
+                            File.Delete(files[i]);
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
+                    }
+                }
+
+                // cp.OutputAssembly = folderCur + "\\tempInd" + nameClass +
+                //                    NumberGen.GetNumberDeal(StartProgram.IsOsTrader);
+
+                cp.TempFiles = new TempFileCollection(folderCur, false);
 
                 CompilerResults results = prov.CompileAssemblyFromSource(cp, fileStr);
 

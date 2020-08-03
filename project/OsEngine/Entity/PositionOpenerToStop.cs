@@ -19,12 +19,12 @@ namespace OsEngine.Entity
             ExpiresBars = 0;
         }
 
-        public PositionOpenerToStop(int thisBarNumber, int expiresBars)
+        public PositionOpenerToStop(int thisBarNumber, int expiresBars, DateTime serverTime)
         {
             OrderCreateBarNumber = thisBarNumber;
             ExpiresBars = expiresBars;
+            TimeCreate = serverTime;
         }
-
 
         /// <summary>
         /// order price
@@ -91,5 +91,9 @@ namespace OsEngine.Entity
         /// </summary>
         public string SignalType;
 
+        /// <summary>
+        /// время создания приказа
+        /// </summary>
+        public DateTime TimeCreate;
     }
 }

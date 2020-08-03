@@ -1351,7 +1351,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                PositionOpenerToStop positionOpener = new PositionOpenerToStop(CandlesFinishedOnly.Count, expiresBars);
+                PositionOpenerToStop positionOpener = 
+                    new PositionOpenerToStop(CandlesFinishedOnly.Count, expiresBars,TimeServerCurrent);
                 positionOpener.Volume = volume;
                 positionOpener.PriceOrder = priceLimit;
                 positionOpener.PriceRedLine = priceRedLine;
@@ -1810,7 +1811,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                PositionOpenerToStop positionOpener = new PositionOpenerToStop(CandlesFinishedOnly.Count, expiresBars);
+                PositionOpenerToStop positionOpener = 
+                    new PositionOpenerToStop(CandlesFinishedOnly.Count, expiresBars, TimeServerCurrent);
+
                 positionOpener.Volume = volume;
                 positionOpener.PriceOrder = priceLimit;
                 positionOpener.PriceRedLine = priceRedLine;

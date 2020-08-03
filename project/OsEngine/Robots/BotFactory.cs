@@ -377,6 +377,8 @@ namespace OsEngine.Robots
             return bot;
         }
 
+        private static bool _isFirstTime = true;
+
         private static BotPanel Serialize(string path, string nameClass, string name, StartProgram startProgram)
         {
             try
@@ -405,8 +407,43 @@ namespace OsEngine.Robots
                 // Помечаем сборку, как временную
                 cp.GenerateInMemory = true;
                 cp.IncludeDebugInformation = true;
-              
-               
+                cp.TempFiles.KeepFiles = false;
+
+                string folderCur = AppDomain.CurrentDomain.BaseDirectory + "Engine\\Temp";
+
+                if (Directory.Exists(folderCur) == false)
+                {
+                    Directory.CreateDirectory(folderCur);
+                }
+
+                folderCur += "\\Bots";
+
+                if (Directory.Exists(folderCur) == false)
+                {
+                    Directory.CreateDirectory(folderCur);
+                }
+
+                if (_isFirstTime)
+                {
+                    _isFirstTime = false;
+
+                    string[] files = Directory.GetFiles(folderCur);
+
+                    for (int i = 0; i < files.Length; i++)
+                    {
+                        try
+                        {
+                            File.Delete(files[i]);
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
+                    }
+                }
+
+                cp.TempFiles = new TempFileCollection(folderCur, false);
+
                 // Обрабатываем CSC компилятором
                 CompilerResults results = prov.CompileAssemblyFromSource(cp, fileStr);
 
