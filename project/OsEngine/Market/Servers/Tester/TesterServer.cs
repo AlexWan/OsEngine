@@ -27,8 +27,8 @@ namespace OsEngine.Market.Servers.Tester
     /// </summary>
     public class TesterServer: IServer
     {
-// service		
-// сервис
+
+        private static readonly CultureInfo CultureInfo = new CultureInfo("ru-RU");
 
         /// <summary>
 		/// constructor
@@ -56,7 +56,7 @@ namespace OsEngine.Market.Servers.Tester
             if (_worker == null)
             {
                 _worker = new Thread(WorkThreadArea);
-                _worker.CurrentCulture = new CultureInfo("ru-RU");
+                _worker.CurrentCulture = CultureInfo;
                 _worker.IsBackground = true;
                 _worker.Name = "TesterServerThread";
                 _worker.Start();
@@ -199,8 +199,86 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-// additional part from standart servers
-// аппендикс от нормальных серверов
+        /// <summary>
+        /// save security test settings
+        /// сохранить тестовые настройки инструмента
+        /// </summary>
+        public void SaveSecurityTestSettings()
+        {
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(GetSecurityTestSettingsPath(), false))
+                {
+                    writer.WriteLine(TimeStart.ToString(CultureInfo));
+                    writer.WriteLine(TimeEnd.ToString(CultureInfo));
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+
+        /// <summary>
+        /// load security test settings
+        /// загрузить тестовые настройки инструмента
+        /// </summary>
+        public void LoadSecurityTestSettings()
+        {
+            try
+            {
+                string pathToSettings = GetSecurityTestSettingsPath();
+                if (!File.Exists(pathToSettings))
+                {
+                    return;
+                }
+
+                using (StreamReader reader = new StreamReader(pathToSettings))
+                {
+                    string timeStart = reader.ReadLine();
+                    if (timeStart != null)
+                    {
+                        TimeStart = Convert.ToDateTime(timeStart, CultureInfo);
+                    }
+                    string timeEnd = reader.ReadLine();
+                    if (timeEnd != null)
+                    {
+                        TimeEnd = Convert.ToDateTime(timeEnd, CultureInfo);
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+
+        private string GetSecurityTestSettingsPath()
+        {
+            string pathToSettings;
+            
+            if (SourceDataType == TesterSourceDataType.Set)
+            {
+                if (string.IsNullOrWhiteSpace(_activSet))
+                {
+                    return "";
+                }
+                pathToSettings = _activSet + "\\SecurityTestSettings.txt";
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(_pathToFolder))
+                {
+                    return "";
+                }
+                pathToSettings = _pathToFolder + "\\SecurityTestSettings.txt";
+            }
+
+            return pathToSettings;
+        }
+
+        // additional part from standart servers
+        // аппендикс от нормальных серверов
 
         /// <summary>
 		/// isn't used in the test server
@@ -942,7 +1020,7 @@ namespace OsEngine.Market.Servers.Tester
                     decimal minPriceStep = decimal.MaxValue;
                     int countFive = 0;
 
-                    CultureInfo culture = new CultureInfo("ru-RU");
+                    CultureInfo culture = CultureInfo;
 
                     for (int i2 = 0; i2 < 20; i2++)
                     {
@@ -1262,7 +1340,7 @@ namespace OsEngine.Market.Servers.Tester
                     decimal minPriceStep = decimal.MaxValue;
                     int countFive = 0;
 
-                    CultureInfo culture = new CultureInfo("ru-RU");
+                    CultureInfo culture = CultureInfo;
 
                     for (int i2 = 0; i2 < 20; i2++)
                     {
@@ -1510,7 +1588,7 @@ namespace OsEngine.Market.Servers.Tester
                     decimal minPriceStep = decimal.MaxValue;
                     int countFive = 0;
 
-                    CultureInfo culture = new CultureInfo("ru-RU");
+                    CultureInfo culture = CultureInfo;
 
                     for (int i2 = 0; i2 < 20; i2++)
                     {
@@ -2401,7 +2479,7 @@ namespace OsEngine.Market.Servers.Tester
                 saves = new List<string[]>();
             }
 
-            CultureInfo culture = new CultureInfo("ru-RU");
+            CultureInfo culture = CultureInfo;
 
             for (int i = 0; i < saves.Count; i++)
             { // delete the same / удаляем совпадающие
