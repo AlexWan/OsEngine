@@ -105,7 +105,7 @@ namespace OsEngine.Alerts
 
             Enum.TryParse(ComboBoxOrderType.SelectedItem.ToString(), out MyAlert.OrderPriceType);
 
-            MyAlert.VolumeReaction = Convert.ToInt32(TextBoxVolumeReaction.Text);
+            MyAlert.VolumeReaction = TextBoxVolumeReaction.Text.ToDecimal();
 
             MyAlert.Slippage = Convert.ToDecimal(TextBoxSlippage.Text);
 

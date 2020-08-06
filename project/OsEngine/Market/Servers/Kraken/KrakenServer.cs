@@ -1437,7 +1437,7 @@ namespace OsEngine.Market.Servers.Kraken
                         {
                             lock (_serverLocker)
                             {
-                                _krakenClient.CanselOrder(order);
+                                _krakenClient.CancelOrder(order);
                             }
                         }
                     }
@@ -1490,7 +1490,7 @@ namespace OsEngine.Market.Servers.Kraken
         /// cancel order
         /// отменить ордер
         /// </summary>
-        public void CanselOrder(Order order)
+        public void CancelOrder(Order order)
         {
             _ordersToCansel.Enqueue(order);
         }

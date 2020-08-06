@@ -499,6 +499,11 @@ namespace OsEngine.Entity
         {
             bool isInArray = false;
 
+            if (collection == null)
+            {
+                collection = new List<string>();
+            }
+
             for (int i = 0; i < collection.Count; i++)
             {
                 if (collection[i] == value)

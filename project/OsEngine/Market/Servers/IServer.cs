@@ -234,7 +234,7 @@ namespace OsEngine.Market.Servers
         /// отозвать ордер из торговой системы
         /// </summary>
         /// <param name="order"> order / ордер </param>
-        void CanselOrder(Order order);
+        void CancelOrder(Order order);
 
         /// <summary>
         /// order changed

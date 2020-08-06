@@ -89,7 +89,6 @@ namespace OsEngine.Market.Servers.MFD
 
         #endregion
 
-
         #region Trade permission
 
         public bool IsTradeServer

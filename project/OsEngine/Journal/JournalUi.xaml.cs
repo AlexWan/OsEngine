@@ -1657,6 +1657,11 @@ namespace OsEngine.Journal
         /// </summary>
         void OpenDealDelete_Click(object sender, EventArgs e)
         {
+            if (_openPositionGrid.Rows.Count == 0)
+            {
+                return;
+            }
+
             int number;
             try
             {
@@ -1724,6 +1729,11 @@ namespace OsEngine.Journal
         /// </summary>
         void _closePositionGrid_DoubleClick(object sender, EventArgs e)
         {
+            if (_closePositionGrid.Rows.Count == 0)
+            {
+                return;
+            }
+
             int number;
             try
             {

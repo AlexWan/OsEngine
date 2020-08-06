@@ -75,7 +75,7 @@ namespace OsEngine.Market.Servers
         /// cancel order
         /// отозвать ордер
         /// </summary>
-        void CanselOrder(Order order);
+        void CancelOrder(Order order);
 
         /// <summary>
         /// subscribe to candles

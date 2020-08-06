@@ -120,7 +120,7 @@ namespace OsEngine.Logging
             LogsToCheck.Add(this);
 
             _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders);
-
+            _grid.ScrollBars = ScrollBars.Vertical;
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = _grid.DefaultCellStyle;
 

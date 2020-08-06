@@ -160,7 +160,7 @@ namespace OsEngine.Market.Servers.Livecoin
             _client.SendOrder(order);
         }
 
-        public void CanselOrder(OsEngine.Entity.Order order)
+        public void CancelOrder(OsEngine.Entity.Order order)
         {
             _client.CancelLimitOrder(order);
         }
@@ -201,9 +201,9 @@ namespace OsEngine.Market.Servers.Livecoin
             {
                 Security security = new Security();
                 security.Name = sec.currencyPair.Replace('/','_');
-                security.NameFull = sec.currencyPair;
+                security.NameFull = security.Name;
                 security.NameClass = GetCurrency(sec.currencyPair);
-                security.NameId = sec.currencyPair + "_" + security.NameClass;
+                security.NameId = security.Name + "_" + security.NameClass;
                 security.SecurityType = SecurityType.CurrencyPair;
                 security.Lot = Convert.ToDecimal(sec.minLimitQuantity.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
                 security.Decimals = Convert.ToInt32(sec.priceScale);
@@ -441,6 +441,16 @@ namespace OsEngine.Market.Servers.Livecoin
                     }
                 });
                 _needSortBids = false;
+            }
+
+            while (needDepth.Asks.Count > 20)
+            {
+                needDepth.Asks.RemoveAt(needDepth.Asks.Count-1);
+            }
+
+            while (needDepth.Bids.Count > 20)
+            {
+                needDepth.Bids.RemoveAt(needDepth.Bids.Count - 1);
             }
 
             if (MarketDepthEvent != null)

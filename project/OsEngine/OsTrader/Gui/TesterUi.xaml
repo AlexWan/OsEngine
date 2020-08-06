@@ -116,6 +116,7 @@
         </TabControl>
         <Grid Grid.Row="0" x:Name="GreedChartPanel" Margin="0,26,308,10">
             <Rectangle x:Name="RectChart"/>
+            <Grid x:Name="GridChart"/>
             <WindowsFormsHost x:Name="ChartHostPanel" Margin="26,23,0,0"/>
             <TabControl x:Name="TabControlBotTab" HorizontalAlignment="Left" TabStripPlacement="Left" Margin="0,33,0,10" Width="28">
                 <TabItem Header=" 1" Margin="0,0,0,0" >

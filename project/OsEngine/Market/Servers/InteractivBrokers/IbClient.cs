@@ -563,7 +563,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// cancel order
         /// отозвать ордер
         /// </summary>
-        public void CanselOrder(Order order)
+        public void CancelOrder(Order order)
         {
             // _twsServer.cancelOrder(Convert.ToInt32(order.NumberMarket));
             try
@@ -952,7 +952,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
 ***		TickGeneric = 45,
 ***		TickString = 46,
 ***		TickEfp = 47,
-		CurrentTime = 49,
+---		CurrentTime = 49,
 		RealTimeBars = 50,
 		FundamentalData = 51,
 ***		SecurityInfoEnd = 52,
@@ -1081,6 +1081,11 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 return true;
             }
             else if (typeMessage == 62)
+            {
+                TcpReadInt();
+                return true;
+            }
+            else if (typeMessage == 49)
             {
                 TcpReadInt();
                 return true;
@@ -1290,7 +1295,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
 
             if (NewTradeEvent != null)
             {
-                NewTradeEvent(trade);
+                NewTradeEvent(trade, security);
             }
         }
 
@@ -1788,7 +1793,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// new trade
         /// новый трейд
         /// </summary>
-        public event Action<Trade> NewTradeEvent;
+        public event Action<Trade, SecurityIb> NewTradeEvent;
 
         /// <summary>
         /// new order in the system

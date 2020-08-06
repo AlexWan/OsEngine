@@ -210,17 +210,7 @@ namespace OsEngine.Logging
         /// </summary>
         public void Send()
         {
-            byte[] screenshot;
-
-            if (MustSendScreenshotFor(Message))
-            {
-                Thread.Sleep(5000);
-                screenshot = GetChartScreenshotBytes(NameBot, Message.Message);
-            }
-            else
-            {
-                screenshot = null;
-            };
+            byte[] screenshot = null;
 
             lock (ServerWebhook.GetServer().LokerMessanger)
             {
@@ -652,109 +642,6 @@ namespace OsEngine.Logging
             {
                 StringEscapeHandling = StringEscapeHandling.EscapeNonAscii
             });
-        }
-
-        /// <summary>
-        /// get chart image for the message 
-        /// получить картинку чарта для сообщения
-        /// </summary>
-        /// <param name="message"> message / сообщение </param>
-        /// <param name="botName"> bot name / имя бота</param>
-        private static byte[] GetChartScreenshotBytes(string botName, string message)
-        {
-            return Application.Current.Dispatcher.Invoke(
-                () =>
-                {
-                    var trader = Application.Current.Windows.OfType<RobotUi>().FirstOrDefault();
-                    MemoryStream stream = new MemoryStream();
-
-                    // get all charts for the bot / получить все чарты для бота
-                    List<Tuple<Chart, string, string>> charts = trader.GetCharts(botName);
-
-                    
-                    if (charts.Count > 0)
-                    {
-                        List<Tuple<Chart, string, string>> chartsToRender = new List<Tuple<Chart, string, string>>();
-
-                        for (int i = 0; i < charts.Count; i++)
-                        { // looking for a chart for the message (tab) / ищем чарт для сообщения (taba)
-                            if (message.StartsWith(charts[i].Item2)) // tab name / имя таба
-                            {
-                                chartsToRender.Add(charts[i]);
-                            }
-                        }
-
-                        if (chartsToRender.Count == 0)
-                        { // render all charts if there are no charts for the message
-                          // прорисовываем все чарты если нет чартов для этого сообщения
-
-                            chartsToRender = charts;
-                        }
-
-                        int tabNumber = 1;
-                        var imageList = new List<Image>();
-                        foreach (var c in chartsToRender)
-                        { // convert charts to images / конвертировать чарты в изображения
-
-                            var ms = new MemoryStream();
-                            // create bmp from chart / создаем картинку из чарта
-                            c.Item1.SaveImage(ms, ChartImageFormat.Png);
-                            var bmp = System.Drawing.Bitmap.FromStream(ms);
-
-                            // add title / добавляем заголовок
-                            Graphics g = Graphics.FromImage(bmp);
-
-                            string chartlabel = "📈 " + $"{botName} / Tab {tabNumber}"; // tab info
-                            if (!string.IsNullOrEmpty(c.Item3))
-                            {
-                                chartlabel += "  ⚙ " + c.Item3; // chart info
-                            }
-                            Color color = Color.FromArgb(255, 83, 0);
-                            Font font = new Font("Arial", 12);
-                            TextFormatFlags flags = TextFormatFlags.HorizontalCenter | TextFormatFlags.Top | TextFormatFlags.WordBreak;
-                            Rectangle renderPlace = new Rectangle(10, 10, bmp.Width - 20, bmp.Height - 20);
-
-                            TextRenderer.DrawText(g, chartlabel, font, renderPlace, color, flags);
-
-                            // save bmp to list / сохраняем картинку в список
-                            imageList.Add(bmp);
-                            g.Dispose();
-
-                            tabNumber ++;
-                        }
-
-                        // merge charts images / склеиваем картинки чартов
-                        var finalSize = new System.Drawing.Size();
-                        foreach (var image in imageList)
-                        {
-                            if (image.Width > finalSize.Width)
-                            {
-                                finalSize.Width = image.Width;
-                            }
-                            finalSize.Height += image.Height;
-                        }
-                        var outputImage = new Bitmap(finalSize.Width, finalSize.Height);
-                        using (var gfx = Graphics.FromImage(outputImage))
-                        {
-                            var y = 0;
-                            foreach (var image in imageList)
-                            {
-                                gfx.DrawImage(image, 0, y);
-                                y += image.Height;
-                            }
-                        }
-
-                        outputImage.Save(stream, ImageFormat.Png);
-
-                        // return image with merged charts / возвращаем картинку со склеенными чартами
-                        return stream.ToArray();
-                    }
-
-                    // if bot doesnt have charts / если у бота нет чартов
-                    return null;
-
-                    }
-                , DispatcherPriority.Normal);
         }
 
         private string MessageColor(LogMessage message, string format = "hexadecimal")

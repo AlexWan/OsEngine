@@ -35,8 +35,8 @@ namespace OsEngine.Entity
         private List<Order> _openOrders;
 
         /// <summary>
-        /// load a new order to a position
-        /// загрузить в позицию новый ордер закрывающий позицию
+        /// load a new order to open a position
+        /// загрузить в позицию новый ордер открывающий позицию
         /// </summary>
         /// <param name="openOrder"></param>
         public void AddNewOpenOrder(Order openOrder)

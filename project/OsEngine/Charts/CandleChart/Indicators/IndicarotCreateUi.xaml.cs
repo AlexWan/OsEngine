@@ -126,9 +126,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
             column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridViewAreas.Columns.Add(column1);
 
-            string[] areas = chartMaster.GetChartAreas();
+            List<string> areas = chartMaster.GetChartAreas();
 
-            for (int i = 0; i < areas.Length; i++)
+            for (int i = 0; i < areas.Count; i++)
             {
                 if (areas[i] != "TradeArea")
                 {

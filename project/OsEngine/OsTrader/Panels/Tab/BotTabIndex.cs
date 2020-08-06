@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Forms.Integration;
 using System.Windows.Shapes;
 using OsEngine.Charts;
@@ -31,7 +32,6 @@ namespace OsEngine.OsTrader.Panels.Tab
     /// </summary>
     public class BotTabIndex : IIBotTab
     {
-
         public BotTabIndex(string name, StartProgram  startProgram)
         {
             TabName = name;
@@ -49,7 +49,6 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// программа создавшая робота
         /// </summary>
         private StartProgram _startProgram;
-
 
         /// <summary>
         /// chart
@@ -139,9 +138,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// start drawing this robot / 
         /// начать прорисовку этого робота
         /// </summary> 
-        public void StartPaint(WindowsFormsHost host, Rectangle rectangle)
+        public void StartPaint(Grid grid, WindowsFormsHost host, Rectangle rectangle)
         {
-            _chartMaster.StartPaint(host,rectangle);
+            _chartMaster.StartPaint(grid, host, rectangle);
         }
 
         /// <summary>
@@ -320,7 +319,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                     if (Candles.Count > 1 && 
                         Candles[Candles.Count - 1].TimeStart == Candles[Candles.Count - 2].TimeStart)
                     {
-                        Candles.RemoveAt(Candles.Count - 1);
+                        try
+                        {
+                            Candles.RemoveAt(Candles.Count - 1);
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
                     }
 
                     _chartMaster.SetCandles(Candles);
@@ -1327,15 +1333,6 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
-
-        /// <summary>
-        /// get chart
-        /// взять чарт
-        /// </summary>
-        public Chart GetChart()
-        {
-            return _chartMaster.GetChart();
-        }
 
         /// <summary>
         /// get chart information

@@ -229,6 +229,9 @@ namespace OsEngine.OsTrader.RiskManager
                 {
                     File.Delete(@"Engine\" + _name + @".txt");
                 }
+
+                RiskManagersToCheck.Remove(this);
+                ClearJournals();
             }
             catch (Exception error)
             {

@@ -463,7 +463,7 @@ namespace OsEngine.Market.Servers.Transaq
         /// cancel order
         /// отменить ордер
         /// </summary>
-        public void CanselOrder(Order order)
+        public void CancelOrder(Order order)
         {
             string cmd = "<command id=\"cancelorder\">";
             cmd += "<transactionid>" + order.NumberUser + "</transactionid>";

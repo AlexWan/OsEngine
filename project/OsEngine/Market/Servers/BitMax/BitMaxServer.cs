@@ -194,7 +194,7 @@ namespace OsEngine.Market.Servers.BitMax
         /// cancel order
         /// отозвать ордер
         /// </summary>
-        public void CanselOrder(Order order)
+        public void CancelOrder(Order order)
         {
             var guid = Guid.NewGuid().ToString().Replace('-', '0');
 

@@ -24,12 +24,10 @@ namespace OsEngine.Robots.CounterTrend
             _tab = TabsSimple[0];
 
             _bollinger = new Bollinger(name + "Bollinger", false);
-            _bollinger = (Bollinger)_tab.CreateCandleIndicator(_bollinger, "Prime");
-            _bollinger.Save();
+            _bollinger = _tab.CreateIndicator(_bollinger);
 
             _moving = new MovingAverage(name + "Moving", false) { Lenght = 15 };
-            _moving = (MovingAverage)_tab.CreateCandleIndicator(_moving, "Prime");
-            _moving.Save();
+            _moving = _tab.CreateIndicator(_moving);
 
             _tab.CandleFinishedEvent += Bot_CandleFinishedEvent;
 

@@ -1010,6 +1010,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                         saveStr += _secIB[i].Strike + "@";
                         saveStr += _secIB[i].Symbol + "@";
                         saveStr += _secIB[i].TradingClass + "@";
+                        saveStr += _secIB[i].CreateMarketDepthFromTrades + "@";
                         //saveStr += _secToSubscrible[i].UnderComp + "@";
 
                         writer.WriteLine(saveStr);
@@ -1062,6 +1063,12 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                         security.Symbol = contrStrings[14];
                         security.TradingClass = contrStrings[15];
 
+                        if (contrStrings.Length > 15 &&
+                            string.IsNullOrEmpty(contrStrings[16]) == false)
+                        {
+                            security.CreateMarketDepthFromTrades = Convert.ToBoolean(contrStrings[16]);
+                        }
+                        
                         _secIB.Add(security);
                     }
 
@@ -1423,10 +1430,11 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// all depths
         /// все стаканы
         /// </summary>
-        private List<MarketDepth> _depths;
+        private List<MarketDepth> _depths = new List<MarketDepth>();
 
         void _ibClient_NewMarketDepth(int id, int position, int operation, int side, decimal price, int size)
         {
+
             try
             {
                 // take all the necessary data / берём все нужные данные
@@ -1479,7 +1487,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 List<MarketDepthLevel> bids  = myDepth.Bids;
                 List<MarketDepthLevel> asks = myDepth.Asks;
 
-                if (asks == null || asks.Count == 0)
+                if (asks == null || asks.Count < 10)
                 {
                     asks = new List<MarketDepthLevel>();
                     bids = new List<MarketDepthLevel>();
@@ -1618,14 +1626,82 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             get { return _allTrades; }
         }
 
+        private void SendMdFromTrade(Trade trade)
+        {
+            MarketDepth myDepth = _depths.Find(depth => depth.SecurityNameCode == trade.SecurityNameCode);
+
+            if (myDepth == null)
+            {
+                myDepth = new MarketDepth();
+                myDepth.SecurityNameCode = trade.SecurityNameCode;
+                _depths.Add(myDepth);
+            }
+
+            myDepth.Time = DateTime.Now;
+
+            Security mySecurity = Securities.Find(security => security.Name == myDepth.SecurityNameCode);
+
+            if (mySecurity == null)
+            {
+                return;
+            }
+
+            List<MarketDepthLevel> bids = myDepth.Bids;
+            List<MarketDepthLevel> asks = myDepth.Asks;
+
+            if (asks == null || asks.Count == 0)
+            {
+                asks = new List<MarketDepthLevel>();
+                bids = new List<MarketDepthLevel>();
+
+                asks.Add(new MarketDepthLevel()); 
+                bids.Add(new MarketDepthLevel());
+                
+                myDepth.Bids = bids;
+                myDepth.Asks = asks;
+            }
+
+            if (myDepth.Bids.Count > 1 &&
+                myDepth.Asks.Count > 1)
+            {
+                return;
+            }
+
+            myDepth.Asks[0].Price = trade.Price + mySecurity.PriceStep;
+            myDepth.Bids[0].Price = trade.Price - mySecurity.PriceStep;
+
+            myDepth.Asks[0].Ask = 1;
+            myDepth.Bids[0].Bid = 1;
+
+            if (NewMarketDepthEvent != null)
+            {
+                NewMarketDepthEvent(myDepth.GetCopy());
+            }
+        }
+
         /// <summary>
         /// incoming ticks from the system
         /// входящие тики из системы
         /// </summary>
-        private void AddTick(Trade trade)
+        private void AddTick(Trade trade, SecurityIb sec)
         {
             try
             {
+                if (trade.Price <= 0)
+                {
+                    return;
+                }
+
+                SecurityIb contractIb =
+                    _secIB.Find(
+                        contract =>
+                            contract.ConId == sec.ConId);
+
+                if (contractIb != null && contractIb.CreateMarketDepthFromTrades)
+                {
+                    SendMdFromTrade(trade);
+                }
+
                 BathTradeMarketDepthData(trade);
                 ServerTime = trade.Time;
                 // save/сохраняем
@@ -1730,6 +1806,11 @@ namespace OsEngine.Market.Servers.InteractivBrokers
 
         void _ibClient_NewMyTradeEvent(MyTrade trade)
         {
+            if (trade.Price <= 0)
+            {
+                return;
+            }
+
             if (_myTrades == null)
             {
                 _myTrades = new List<MyTrade>();
@@ -1825,7 +1906,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                         {
                             lock (_serverLocker)
                             {
-                                _ibClient.CanselOrder(order);
+                                _ibClient.CancelOrder(order);
                             }
                         }
                     }
@@ -1878,7 +1959,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// cancel order
         /// отменить ордер
         /// </summary>
-        public void CanselOrder(Order order)
+        public void CancelOrder(Order order)
         {
             _ordersToCansel.Enqueue(order);
         }
@@ -1973,6 +2054,12 @@ namespace OsEngine.Market.Servers.InteractivBrokers
     /// </summary>
     public class SecurityIb
     {
+        /// <summary>
+        /// создавать для этой бумаги бид с аском по последнему трейду
+        /// и не ждать стакана
+        /// </summary>
+        public bool CreateMarketDepthFromTrades;
+
         /// <summary>
         /// number
         /// номер

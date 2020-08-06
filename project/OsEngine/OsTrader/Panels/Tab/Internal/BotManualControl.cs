@@ -232,6 +232,9 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 {
                     File.Delete(@"Engine\" + _name + @"StrategSettings.txt");
                 }
+
+                TabsToCheck.Remove(this);
+
             }
             catch (Exception)
             {

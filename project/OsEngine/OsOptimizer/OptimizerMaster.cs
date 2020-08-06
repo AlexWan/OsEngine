@@ -8,6 +8,7 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
+using OsEngine.Market.Servers.Kraken;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels;
@@ -27,7 +28,7 @@ namespace OsEngine.OsOptimizer
             _log.Listen(this);
 
             _threadsCount = 1;
-            _startDepozit = 1000000;
+            _startDepozit = 100000;
 
             Storage = new OptimizerDataStorage("Prime");
             Storage.SecuritiesChangeEvent += _storage_SecuritiesChangeEvent;
@@ -39,16 +40,12 @@ namespace OsEngine.OsOptimizer
             _filterMaxDrowDownIsOn = false;
             _filterMiddleProfitValue = 0.001m;
             _filterMiddleProfitIsOn = false;
-            _filterWinPositionValue = 40;
-            _filterWinPositionIsOn = false;
             _filterProfitFactorValue = 1;
             _filterProfitFactorIsOn = false;
 
             _percentOnFilration = 30;
 
             Load();
-
-            _fazeCount = 1;
 
             _optimizerExecutor = new OptimizerExecutor(this);
             _optimizerExecutor.LogMessageEvent += SendLogMessage;
@@ -81,20 +78,17 @@ namespace OsEngine.OsOptimizer
                     writer.WriteLine(_filterMaxDrowDownIsOn);
                     writer.WriteLine(_filterMiddleProfitValue);
                     writer.WriteLine(_filterMiddleProfitIsOn);
-                    writer.WriteLine(_filterWinPositionValue);
-                    writer.WriteLine(_filterWinPositionIsOn);
                     writer.WriteLine(_filterProfitFactorValue);
                     writer.WriteLine(_filterProfitFactorIsOn);
 
-
                     writer.WriteLine(_timeStart);
                     writer.WriteLine(_timeEnd);
-                    writer.WriteLine(_fazeCount);
                     writer.WriteLine(_percentOnFilration);
 
                     writer.WriteLine(_filterDealsCountValue);
                     writer.WriteLine(_filterDealsCountIsOn);
-                    writer.WriteLine(IsScript);
+                    writer.WriteLine(_isScript);
+                    writer.WriteLine(_iterationCount);
 
                     writer.Close();
                 }
@@ -128,19 +122,18 @@ namespace OsEngine.OsOptimizer
                     _filterMaxDrowDownIsOn = Convert.ToBoolean(reader.ReadLine());
                     _filterMiddleProfitValue = Convert.ToDecimal(reader.ReadLine());
                     _filterMiddleProfitIsOn = Convert.ToBoolean(reader.ReadLine());
-                    _filterWinPositionValue = Convert.ToDecimal(reader.ReadLine());
-                    _filterWinPositionIsOn = Convert.ToBoolean(reader.ReadLine());
                     _filterProfitFactorValue = Convert.ToDecimal(reader.ReadLine());
                     _filterProfitFactorIsOn = Convert.ToBoolean(reader.ReadLine());
 
                     _timeStart = Convert.ToDateTime(reader.ReadLine());
                     _timeEnd = Convert.ToDateTime(reader.ReadLine());
-                    _fazeCount = Convert.ToInt32(reader.ReadLine());
                     _percentOnFilration = Convert.ToDecimal(reader.ReadLine());
 
                     _filterDealsCountValue = Convert.ToInt32(reader.ReadLine());
                     _filterDealsCountIsOn = Convert.ToBoolean(reader.ReadLine());
                     _isScript = Convert.ToBoolean(reader.ReadLine());
+                    _iterationCount = Convert.ToInt32(reader.ReadLine());
+
                     reader.Close();
                 }
             }
@@ -170,12 +163,12 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         /// <param name="bots">InSample robots/роботы InSample</param>
         /// <param name="botsOutOfSample">OutOfSample</param>
-        void _optimizerExecutor_TestReadyEvent(List<BotPanel> bots, List<BotPanel> botsOutOfSample)
+        void _optimizerExecutor_TestReadyEvent(List<OptimazerFazeReport> reports)
         {
             PrimeProgressBarStatus.CurrentValue = PrimeProgressBarStatus.MaxValue;
             if (TestReadyEvent != null)
             {
-                TestReadyEvent(bots, botsOutOfSample);
+                TestReadyEvent(reports);
             }
         }
 
@@ -183,7 +176,7 @@ namespace OsEngine.OsOptimizer
         /// event: testing ended
         /// событие: тестирование завершилось
         /// </summary>
-        public event Action<List<BotPanel>, List<BotPanel>> TestReadyEvent;
+        public event Action<List<OptimazerFazeReport>> TestReadyEvent;
 
         /// <summary>
         /// Progress on a specific robot has changed
@@ -449,36 +442,6 @@ namespace OsEngine.OsOptimizer
         private bool _filterMiddleProfitIsOn;
 
         /// <summary>
-        /// value of the percentage of transactions won filter
-        /// значение фильтра процента выигранных сделок
-        /// </summary>
-        public decimal FilterWinPositionValue
-        {
-            get { return _filterWinPositionValue; }
-            set
-            {
-                _filterWinPositionValue = value;
-                Save();
-            }
-        }
-        private decimal _filterWinPositionValue;
-
-        /// <summary>
-        /// whether the percentage of transactions won filter is enabled
-        /// включен ли фильтр процента выигранных сделок
-        /// </summary>
-        public bool FilterWinPositionIsOn
-        {
-            get { return _filterWinPositionIsOn; }
-            set
-            {
-                _filterWinPositionIsOn = value;
-                Save();
-            }
-        }
-        private bool _filterWinPositionIsOn;
-
-        /// <summary>
         /// filter value by profit factor
         /// значение фильтра по профит фактору
         /// </summary>
@@ -589,21 +552,6 @@ namespace OsEngine.OsOptimizer
         private DateTime _timeEnd;
 
         /// <summary>
-        /// number of optimization phases
-        /// количество фаз оптимизации
-        /// </summary>
-        public int FazeCount
-        {
-            get { return _fazeCount; }
-            set
-            {
-                _fazeCount = value;
-                Save();
-            }
-        }
-        private int _fazeCount;
-
-        /// <summary>
         /// percentage of time on outofsample
         /// процент времени на OutOfSample
         /// </summary>
@@ -618,20 +566,37 @@ namespace OsEngine.OsOptimizer
         }
         private decimal _percentOnFilration;
 
+        public int IterationCount
+        {
+            get { return _iterationCount; }
+            set
+            {
+                _iterationCount = value;
+                Save();
+            }
+        }
+
+        private int _iterationCount = 1;
+
         /// <summary>
         /// break the total time into phases
         /// разбить общее время на фазы
         /// </summary>
         public void ReloadFazes()
         {
-            int fazeCount = _fazeCount;
+            int fazeCount = IterationCount;
 
             if (fazeCount < 1)
             {
                 fazeCount = 1;
             }
 
-            fazeCount *= 2;
+            if (TimeEnd == DateTime.MinValue ||
+                TimeStart == DateTime.MinValue)
+            {
+                SendLogMessage(OsLocalization.Optimizer.Message12, LogMessageType.System);
+                return;
+            }
 
             int dayAll = Convert.ToInt32((TimeEnd - TimeStart).TotalDays);
 
@@ -641,58 +606,11 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
-            while (dayAll / fazeCount < 1)
-            {
-                fazeCount -= 2;
-            }
+            int daysOnIteration = dayAll / fazeCount;
 
-            int dayOutOfSample = Convert.ToInt32(dayAll * (_percentOnFilration / 100)) / (fazeCount / 2);
-            if (dayOutOfSample < 1)
-            {
-                dayOutOfSample = 1;
-            }
+            int daysOnForward = Convert.ToInt32(daysOnIteration * (_percentOnFilration / 100));
 
-            int dayInSample = (dayAll - (dayOutOfSample * (fazeCount / 2))) / (fazeCount / 2);
-            if (dayInSample < 0)
-            {
-                dayInSample = 1;
-            }
-
-            List<int> fazesLenght = new List<int>();
-
-            for (int i = 0; i < fazeCount; i++)
-            {
-                if (i % 2 == 0)
-                {
-                    fazesLenght.Add(dayInSample);
-                }
-                else
-                {
-                    fazesLenght.Add(dayOutOfSample);
-                }
-            }
-
-            while (fazesLenght.Sum() > dayAll)
-            {
-                for (int i = 0; i < fazesLenght.Count; i++)
-                {
-                    if (fazesLenght[i] != 1)
-                    {
-                        fazesLenght[i] -= 1;
-                        break;
-                    }
-                    if (i + 1 == fazesLenght.Count)
-                    {
-                        SendLogMessage(OsLocalization.Optimizer.Message13, LogMessageType.System);
-                        return;
-                    }
-                }
-            }
-
-            while (fazesLenght.Sum() < dayAll)
-            {
-                fazesLenght[0] += 1;
-            }
+            int daysOnInSample = (dayAll - daysOnForward) / fazeCount;
 
 
             Fazes = new List<OptimizerFaze>();
@@ -702,22 +620,64 @@ namespace OsEngine.OsOptimizer
             for (int i = 0; i < fazeCount; i++)
             {
                 OptimizerFaze newFaze = new OptimizerFaze();
+                newFaze.TypeFaze = OptimizerFazeType.InSample;
                 newFaze.TimeStart = time;
-                time = time.AddDays(fazesLenght[i]);
-                newFaze.TimeEnd = time;
-                newFaze.Days = fazesLenght[i];
-
-                if (i % 2 != 0)
-                {
-                    newFaze.TypeFaze = OptimizerFazeType.OutOfSample;
-                }
-                else
-                {
-                    newFaze.TypeFaze = OptimizerFazeType.InSample;
-                }
-
+                time = time.AddDays(daysOnInSample);
+                newFaze.Days = daysOnInSample;
                 Fazes.Add(newFaze);
+
+                OptimizerFaze newFazeOut = new OptimizerFaze();
+                newFazeOut.TypeFaze = OptimizerFazeType.OutOfSample;
+                newFazeOut.TimeStart = time;
+                newFazeOut.Days = daysOnForward;
+                Fazes.Add(newFazeOut);
             }
+
+
+            while (DaysInFazes(Fazes) != dayAll)
+            {
+                int daysGone = DaysInFazes(Fazes) - dayAll;
+
+                for (int i = 0; i < Fazes.Count && daysGone != 0; i++)
+                {
+
+                    if (daysGone > 0)
+                    {
+                        Fazes[i].Days--;
+                        if (Fazes[i].TypeFaze == OptimizerFazeType.InSample)
+                        {
+                            Fazes[i + 1].TimeStart = Fazes[i + 1].TimeStart.AddDays(-1);
+                        }
+                        daysGone--;
+                    }
+                    else if (daysGone < 0)
+                    {
+                        Fazes[i].Days++;
+                        if (Fazes[i].TypeFaze == OptimizerFazeType.InSample)
+                        {
+                            Fazes[i + 1].TimeStart = Fazes[i + 1].TimeStart.AddDays(+1);
+                        }
+                        daysGone++;
+                    }
+                }
+            }
+        }
+
+        private int DaysInFazes(List<OptimizerFaze> fazes)
+        {
+            int result = 0;
+
+            for (int i = 0; i < fazes.Count; i++)
+            {
+                if (fazes[i].TypeFaze == OptimizerFazeType.InSample ||
+                    i + 1 == fazes.Count)
+                {
+                    result += fazes[i].Days;
+                }
+
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -923,6 +883,13 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         public event Action<NeadToMoveUiTo> NeadToMoveUiToEvent;
 
+        // прогрузка одного робота по параметрам
+
+        public BotPanel TestBot(OptimazerFazeReport faze, OptimizerReport report)
+        {
+            return _optimizerExecutor.TestBot(faze, report);
+        }
+
         // logging/логирование
 
         /// <summary>
@@ -1061,7 +1028,10 @@ namespace OsEngine.OsOptimizer
         /// completion time
         /// время завершения
         /// </summary>
-        public DateTime TimeEnd;
+        public DateTime TimeEnd
+        {
+            get { return TimeStart.AddDays(Days); }
+        }
 
         /// <summary>
         /// days per phase

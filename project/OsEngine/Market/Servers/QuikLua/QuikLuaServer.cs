@@ -383,46 +383,56 @@ namespace OsEngine.Market.Servers.QuikLua
                         if (myPortfolio == null)
                         {
                             myPortfolio = new Portfolio();
+                            _portfolios.Add(myPortfolio);
                         }
 
                         myPortfolio.Number = accaunts[i].TrdaccId;
 
-                        if (myPortfolio.Number.Remove(6) != "SPBFUT")
+                        PortfolioInfo qPortfolio =
+                            QuikLua.Trading.GetPortfolioInfo(accaunts[i].Firmid, clientCode).Result;
+
+                        if (qPortfolio.Assets == null ||
+                            qPortfolio.Assets.ToDecimal() == 0)
                         {
-                            var qPortfolio = QuikLua.Trading.GetPortfolioInfo(accaunts[i].Firmid, clientCode).Result;
+                            PortfolioInfoEx qPortfolioEx =
+                                QuikLua.Trading.GetPortfolioInfoEx(accaunts[i].Firmid, myPortfolio.Number, 0).Result;
 
-                            if (qPortfolio != null && qPortfolio.InAssets != null)
+                            if (qPortfolioEx != null &&
+                                qPortfolioEx.StartLimitOpenPos != null)
                             {
-                                var begin = qPortfolio.InAssets.Replace('.', separator);
-                                myPortfolio.ValueBegin = Convert.ToDecimal(begin.Remove(begin.Length - 4));
+                                qPortfolio.InAssets = qPortfolioEx.StartLimitOpenPos;
                             }
-
-                            if (qPortfolio != null && qPortfolio.Assets != null)
+                            if (qPortfolioEx != null &&
+                                qPortfolioEx.TotalLimitOpenPos != null)
                             {
-                                var current = qPortfolio.Assets.Replace('.', separator);
-                                myPortfolio.ValueCurrent = Convert.ToDecimal(current.Remove(current.Length - 4));
-                            }
-
-                            if (qPortfolio != null && qPortfolio.TotalLockedMoney != null)
-                            {
-                                var blocked = qPortfolio.TotalLockedMoney.Replace('.', separator);
-                                myPortfolio.ValueBlocked = Convert.ToDecimal(blocked.Remove(blocked.Length - 4));
-                            }
-
-                            if (qPortfolio != null && qPortfolio.ProfitLoss != null)
-                            {
-                                var profit = qPortfolio.ProfitLoss.Replace('.', separator);
-                                myPortfolio.Profit = Convert.ToDecimal(profit.Remove(profit.Length - 4));
+                                qPortfolio.Assets = qPortfolioEx.TotalLimitOpenPos;
                             }
                         }
-                        else
+
+                        if (qPortfolio != null && qPortfolio.InAssets != null)
                         {
-                            // TODO make information on futures limits for accounts without EBU / сделать получение информации по фьючерсным лимитам для счетов без ЕБС
+                            var begin = qPortfolio.InAssets.Replace('.', separator);
+                            myPortfolio.ValueBegin = Convert.ToDecimal(begin.Remove(begin.Length - 4));
                         }
 
-                        _portfolios.Add(myPortfolio);
+                        if (qPortfolio != null && qPortfolio.Assets != null)
+                        {
+                            var current = qPortfolio.Assets.Replace('.', separator);
+                            myPortfolio.ValueCurrent = Convert.ToDecimal(current.Remove(current.Length - 4));
+                        }
+
+                        if (qPortfolio != null && qPortfolio.TotalLockedMoney != null)
+                        {
+                            var blocked = qPortfolio.TotalLockedMoney.Replace('.', separator);
+                            myPortfolio.ValueBlocked = Convert.ToDecimal(blocked.Remove(blocked.Length - 4));
+                        }
+
+                        if (qPortfolio != null && qPortfolio.ProfitLoss != null)
+                        {
+                            var profit = qPortfolio.ProfitLoss.Replace('.', separator);
+                            myPortfolio.Profit = Convert.ToDecimal(profit.Remove(profit.Length - 4));
+                        }
                     }
-
 
                     if (PortfolioEvent != null)
                     {
@@ -528,7 +538,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private List<Order> _ordersAllReadyCanseled = new List<Order>();
 
-        public void CanselOrder(Order order)
+        public void CancelOrder(Order order)
         {
             _ordersAllReadyCanseled.Add(order);
 

@@ -158,6 +158,11 @@ namespace OsEngine.Market.Servers
 
             mySaveInfo.InsertCandles(series.CandlesAll);
 
+            if (Directory.Exists(_pathName) == false)
+            {
+                Directory.CreateDirectory(_pathName);
+            }
+
             StreamWriter writer = new StreamWriter(_pathName + "\\" + series.Specification + ".txt");
 
             for (int i = 0; i < mySaveInfo.AllCandlesInFile.Count; i++)

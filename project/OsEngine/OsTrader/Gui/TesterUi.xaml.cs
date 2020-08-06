@@ -22,7 +22,7 @@ namespace OsEngine.OsTrader.Gui
             ServerMaster.CreateServer(ServerType.Tester,false);
             ServerMaster.GetServers();
 
-            _strategyKeeper = new OsTraderMaster(
+            _strategyKeeper = new OsTraderMaster(GridChart,
                 ChartHostPanel, HostGlass, HostOpenPosition, HostClosePosition, HostAllPosition,
                 HostBotLog, HostBotLogPrime, RectChart, HostAllert, TabControlBotsName, TabControlBotTab, TextBoxPrice,
                 GridChartControlPanel,StartProgram.IsTester);

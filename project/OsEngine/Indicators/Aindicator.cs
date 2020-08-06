@@ -98,6 +98,28 @@ namespace OsEngine.Indicators
         }
 
         /// <summary>
+        /// create string parameter / 
+        /// создать параметр типа String
+        /// </summary>
+        /// <param name="name">param name / Имя параметра</param>
+        /// <param name="value">default value / Значение по умолчанию</param>
+        /// <param name="collection">values / Возможные значения для параметра</param>
+        public IndicatorParameterString CreateParameterString(string name, string value)
+        {
+            IndicatorParameter newParameter = _parameters.Find(p => p.Name == name);
+
+            if (newParameter != null)
+            {
+                return (IndicatorParameterString)newParameter;
+            }
+
+            newParameter = new IndicatorParameterString(name, value);
+
+            return (IndicatorParameterString)LoadParameterValues(newParameter);
+        }
+
+
+        /// <summary>
         /// create bool type parameter / 
         /// создать параметр типа Bool
         /// </summary>
@@ -259,6 +281,14 @@ namespace OsEngine.Indicators
             {
                 IncludeIndicators[i].Delete();
             }
+
+            for (int i = 0; DataSeries != null &&
+                            i < DataSeries.Count; i++)
+            {
+                DataSeries[i].Clear();
+            }
+
+            DataSeries = new List<IndicatorDataSeries>();
         }
 
         public void Load()
@@ -708,6 +738,11 @@ namespace OsEngine.Indicators
             Enum.TryParse(array[2], out ChartPaintType);
 
             IsPaint = Convert.ToBoolean(array[3]);
+        }
+
+        public void Clear()
+        {
+            Values.Clear();
         }
     }
 

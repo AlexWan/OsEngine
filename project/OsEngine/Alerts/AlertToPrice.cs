@@ -66,7 +66,7 @@ namespace OsEngine.Alerts
                     Enum.TryParse(reader.ReadLine(), out MusicType);
 
                     Enum.TryParse(reader.ReadLine(), true, out SignalType);
-                    VolumeReaction = Convert.ToInt32(reader.ReadLine());
+                    VolumeReaction = reader.ReadLine().ToDecimal();
                     Slippage = reader.ReadLine().ToDecimal();
                     NumberClosePosition = Convert.ToInt32(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), true, out OrderPriceType);
@@ -154,7 +154,7 @@ namespace OsEngine.Alerts
         /// execution volume
         /// объём для исполнения
         /// </summary>
-        public int VolumeReaction;
+        public decimal VolumeReaction;
 
         /// <summary>
         /// slippage

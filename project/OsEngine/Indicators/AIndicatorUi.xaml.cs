@@ -103,17 +103,24 @@ namespace OsEngine.Indicators
                 }
                 else if (_indicator.Parameters[i].Type == IndicatorParameterType.String)
                 {
-                    DataGridViewComboBoxCell cell = new DataGridViewComboBoxCell();
-
                     IndicatorParameterString param = (IndicatorParameterString)_indicator.Parameters[i];
 
-                    for (int i2 = 0; i2 < param.ValuesString.Count; i2++)
+                    if (param.ValuesString.Count > 1)
                     {
-                        cell.Items.Add(param.ValuesString[i2]);
+                        DataGridViewComboBoxCell cell = new DataGridViewComboBoxCell();
+                        for (int i2 = 0; i2 < param.ValuesString.Count; i2++)
+                        {
+                            cell.Items.Add(param.ValuesString[i2]);
+                        }
+                        cell.Value = param.ValueString;
+                        row.Cells.Add(cell);
                     }
-
-                    cell.Value = param.ValueString;
-                    row.Cells.Add(cell);
+                    else
+                    {
+                        DataGridViewTextBoxCell cell = new DataGridViewTextBoxCell();
+                        cell.Value = param.ValueString.ToString();
+                        row.Cells.Add(cell);
+                    }
                 }
                 else if (_indicator.Parameters[i].Type == IndicatorParameterType.Int)
                 {

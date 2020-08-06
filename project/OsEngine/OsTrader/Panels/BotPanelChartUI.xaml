@@ -31,12 +31,10 @@
                 <TabItem Name="TabItemControl" Header="Control" Width="90" >
                     <Grid>
                         <Label Name="LabelGeneralSettings" Content="General settings" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,6,0,0" FontSize="18"/>
-                        <Button Name="ButtonStrategSettings" Content="Position support"  HorizontalAlignment="Left" Margin="65,234,0,0" VerticalAlignment="Top" Width="161" Click="buttonStrategManualSettings_Click"/>
-                        <Button Name="ButtonStrategSettingsIndividual" Content="Bot trade settings" HorizontalAlignment="Left" Margin="66,127,0,0" VerticalAlignment="Top" Width="161" Click="ButtonStrategIndividualSettings_Click" Height="24"/>
-                        <Button Name="ButtonRedactTab" Content="Data settings"  HorizontalAlignment="Left" Margin="66,180,0,0" VerticalAlignment="Top" Width="161" Click="ButtonRedactTab_Click"  />
+                        <Button Name="ButtonStrategSettings" Content="Position support"  HorizontalAlignment="Left" Margin="66,187,0,0" VerticalAlignment="Top" Width="161" Click="buttonStrategManualSettings_Click"/>
                         <Button Name="ButtonJournalCommunity" Content="Journal" HorizontalAlignment="Left" Margin="66,97,0,0" VerticalAlignment="Top" Width="161" Click="ButtonJournalCommunity_Click"/>
-                        <Button Name="ButtonStrategParametr" Content="Parameters"  HorizontalAlignment="Left" Margin="66,153,0,0" VerticalAlignment="Top" Width="161" Click="ButtonStrategParametr_Click" />
-                        <Button Name="ButtonRiskManager" Content="Risk manager" HorizontalAlignment="Left" Margin="65,207,0,0" VerticalAlignment="Top" Width="161" Click="ButtonRiskManager_Click" />
+                        <Button Name="ButtonStrategParametr" Content="Parameters"  HorizontalAlignment="Left" Margin="66,127,0,0" VerticalAlignment="Top" Width="161" Click="ButtonStrategParametr_Click" />
+                        <Button Name="ButtonRiskManager" Content="Risk manager" HorizontalAlignment="Left" Margin="66,157,0,0" VerticalAlignment="Top" Width="161" Click="ButtonRiskManager_Click" />
                     </Grid>
                 </TabItem>
             </TabControl>
@@ -101,6 +99,7 @@
             <Grid Name="GridChartControlPanel" Height="23" Margin="26,0,4,0" VerticalAlignment="Top"/>
 
         </Grid>
+        <Grid x:Name="GridChart" Margin="25,26,315,10"/>
         <WindowsFormsHost x:Name="ChartHostPanel" Margin="25,26,315,10" />
     </Grid>
 </Window>

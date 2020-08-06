@@ -23,7 +23,7 @@ namespace OsEngine.Alerts
         /// volume
         /// объём
         /// </summary>
-        public int Volume;
+        public decimal Volume;
 
         /// <summary>
         /// slippage
@@ -108,6 +108,12 @@ namespace OsEngine.Alerts
         /// delete position
         /// удалить позицию
         /// </summary>
-        DeletePos
+        DeletePos,
+        
+        /// <summary>
+        /// find position
+        /// найти позицию
+        /// </summary>
+        FindPosition
     }
 }

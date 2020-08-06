@@ -25,7 +25,7 @@ namespace OsEngine.Market.Servers.Huobi.Spot
                     security.Name = symbol.symbol;
                     security.NameFull = security.Name;
                     security.NameClass = symbol.quoteCurrency;
-                    security.NameId = Guid.NewGuid().ToString();
+                    security.NameId = symbol.symbol;
                     security.SecurityType = SecurityType.CurrencyPair;
                     security.Decimals = symbol.pricePrecision;
                     security.PriceStep = security.Decimals.GetValueByDecimals();

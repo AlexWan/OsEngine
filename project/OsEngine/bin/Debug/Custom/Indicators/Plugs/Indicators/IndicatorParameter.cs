@@ -39,7 +39,6 @@ namespace OsEngine.Indicators
             if (param.Type != Type)
             {
                 throw new Exception("Can`t bind param with not equals types");
-                return;
             }
 
             if (param.Type == IndicatorParameterType.Bool)
@@ -493,6 +492,26 @@ namespace OsEngine.Indicators
             _valueString = value;
             _valueStringDefault = value;
             _setStringValues = collection;
+            _type = IndicatorParameterType.String;
+        }
+
+        /// <summary>
+        /// constructor to create a parameter storing variables of String type
+        /// конструктор для создания параметра хранящего переменные типа String
+        /// </summary>
+        /// <param name="name">Parameter name/Имя параметра</param>
+        /// <param name="value">Default value/Значение по умолчанию</param>
+        public IndicatorParameterString(string name, string value)
+        {
+            if (value == null)
+            {
+                value = "";
+            }
+
+            _name = name;
+            _valueString = value;
+            _valueStringDefault = value;
+            _setStringValues = new List<string>() { value };
             _type = IndicatorParameterType.String;
         }
 
