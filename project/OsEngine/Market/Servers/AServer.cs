@@ -1658,10 +1658,9 @@ namespace OsEngine.Market.Servers
 
                             Trade tradeBeforeCur = _allTrades[i][_allTrades[i].Count - 1];
 
-                            if (tradeBeforeCur.SecurityNameCode != trade.SecurityNameCode ||
-                                (tradeBeforeCur.Time.AddMinutes(30) > trade.Time &&
-                                 (tradeBeforeCur.Price / trade.Price > 1.1m ||
-                                  tradeBeforeCur.Price / trade.Price < 0.9m)))
+                            if (tradeBeforeCur.Time.AddMinutes(5) > trade.Time &&
+                                (tradeBeforeCur.Price / trade.Price > 1.03m ||
+                                 tradeBeforeCur.Price / trade.Price < 0.97m))
                             {
                                 return;
                             }

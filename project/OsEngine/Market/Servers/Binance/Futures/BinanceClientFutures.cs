@@ -1431,11 +1431,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
         /// </summary>
         public void Converter()
         {
-
             while (true)
             {
                 try
                 {
+
                     if (!_newMessage.IsEmpty)
                     {
                         string mes;
