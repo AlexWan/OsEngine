@@ -35,6 +35,7 @@ namespace OsEngine.Market.Servers.Tester
         {
             InitializeComponent();
             _server = server;
+            _server.LoadSecurityTestSettings();
             LabelStatus.Content = _server.ServerStatus;
 
             _server.ConnectStatusChangeEvent += _server_ConnectStatusChangeEvent;
@@ -901,6 +902,7 @@ namespace OsEngine.Market.Servers.Tester
 
             DateTime to = DateTime.MinValue.AddMinutes(SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value);
             _server.TimeEnd= to;
+            _server.SaveSecurityTestSettings();
             TextBoxTo.Text = to.ToString(new CultureInfo("RU-ru"));
 
             if (SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value < SliderFrom.Value)
@@ -916,6 +918,7 @@ namespace OsEngine.Market.Servers.Tester
 
             DateTime from = DateTime.MinValue.AddMinutes(SliderFrom.Value);
             _server.TimeStart = from;
+            _server.SaveSecurityTestSettings();
             TextBoxFrom.Text = from.ToString(new CultureInfo("RU-ru"));
 
             if (SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value < SliderFrom.Value)
