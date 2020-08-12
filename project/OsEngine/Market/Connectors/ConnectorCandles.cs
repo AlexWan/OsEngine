@@ -1102,6 +1102,7 @@ namespace OsEngine.Market.Connectors
             {
                 // it's hard to catch the error here. Who will understand what is wrong - well done 
                 // ошибка сдесь трудноуловимая. Кто поймёт что не так - молодец
+                return;
             }
 
             try
