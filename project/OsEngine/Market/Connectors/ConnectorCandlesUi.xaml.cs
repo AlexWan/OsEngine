@@ -251,14 +251,9 @@ namespace OsEngine.Market.Connectors
             ComboBoxSecurities.Items.Add(findStr);
             ComboBoxSecurities.SelectedItem = findStr;
 
-            needSecurities = server.Securities.FindAll(
-                sec => sec.Name.StartsWith(ComboBoxSecurities.Text, StringComparison.CurrentCultureIgnoreCase));
-
-
-            for (int i = 0;
-                needSecurities != null &&
-                i < needSecurities.Count;
-                i++)
+            needSecurities = server.Securities.FindAll( sec => sec!= null && sec.Name.StartsWith(ComboBoxSecurities.Text, StringComparison.CurrentCultureIgnoreCase));
+            
+            for (int i = 0; needSecurities != null && i < needSecurities.Count; i++)
             {
                 string classSec = needSecurities[i].NameClass;
                 if (ComboBoxClass.SelectedItem != null && classSec == ComboBoxClass.SelectedItem.ToString())
@@ -901,6 +896,10 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
+                if (string.IsNullOrEmpty(ComboBoxSecurities.Text))
+                {
+                    return;
+                }
                 _connectorBot.PortfolioName = ComboBoxPortfolio.Text;
                 if (CheckBoxIsEmulator.IsChecked != null)
                 {
