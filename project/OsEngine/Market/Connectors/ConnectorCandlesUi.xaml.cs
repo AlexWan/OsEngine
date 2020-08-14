@@ -901,6 +901,10 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
+                if (string.IsNullOrEmpty(ComboBoxSecurities.Text))
+                {
+                    return;
+                }
                 _connectorBot.PortfolioName = ComboBoxPortfolio.Text;
                 if (CheckBoxIsEmulator.IsChecked != null)
                 {
