@@ -12,6 +12,8 @@ namespace CustomIndicators.Scripts
         private IndicatorParameterInt _period;
         private IndicatorDataSeries _seriesZigZag;
         private IndicatorDataSeries _seriesToLine;
+        private IndicatorDataSeries _seriesZigZagHighs;
+        private IndicatorDataSeries _seriesZigZagLows;
 
         public override void OnStateChange(IndicatorState state)
         {
@@ -21,6 +23,13 @@ namespace CustomIndicators.Scripts
 
             _seriesToLine = CreateSeries("ZigZagLine", Color.CornflowerBlue, IndicatorChartPaintType.Point, true);
             _seriesToLine.CanReBuildHistoricalValues = true;
+
+            _seriesZigZagHighs = CreateSeries("_seriesZigZagHighs", Color.GreenYellow, IndicatorChartPaintType.Point, false);
+            _seriesZigZagHighs.CanReBuildHistoricalValues = true;
+
+            _seriesZigZagLows = CreateSeries("_seriesZigZagLows", Color.Red, IndicatorChartPaintType.Point, false);
+            _seriesZigZagLows.CanReBuildHistoricalValues = true;
+
         }
 
         private decimal currentZigZagHigh = 0;
@@ -86,19 +95,29 @@ namespace CustomIndicators.Scripts
             if (addHigh || addLow || updateHigh || updateLow)
             {
                 if (updateHigh && lastSwingIndex >= 0)
+                {
                     _seriesZigZag.Values[lastSwingIndex] = 0; // тут в оригинале double.NaN
+                    _seriesZigZagHighs.Values[lastSwingIndex] = 0;
+                }
                 else if (updateLow && lastSwingIndex >= 0)
+                {
                     _seriesZigZag.Values[lastSwingIndex] = 0; // тут в оригинале double.NaN
+                    _seriesZigZagLows.Values[lastSwingIndex] = 0;
+                }
 
                 if (addHigh || updateHigh)
                 {
                     currentZigZagHigh = saveValue;
                     _seriesZigZag.Values[index] = currentZigZagHigh;
+                    _seriesZigZagHighs.Values[index] = currentZigZagHigh;
+
                 }
                 else if (addLow || updateLow)
                 {
                     currentZigZagLow = saveValue;
                     _seriesZigZag.Values[index] = currentZigZagLow;
+                    _seriesZigZagLows.Values[index] = currentZigZagLow;
+
                 }
 
                 lastSwingIndex = index;
