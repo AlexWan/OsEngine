@@ -48,7 +48,7 @@ namespace OsEngine.Language
             "Ru:Удалить все_");
 
         public string PositionMenuItem11 => OsLocalization.ConvertToLocString(
-            "Eng:Save in fail_" +
+            "Eng:Save to file_" +
             "Ru:Сохранить в файл_");
 
         public string PositionMenuItem12 => OsLocalization.ConvertToLocString(
