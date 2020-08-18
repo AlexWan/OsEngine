@@ -169,8 +169,29 @@ namespace OsEngine.Market.Servers.Bitfinex
                     var res = CreateQuery(_baseUrlV2, Method.GET, "candles", param);
 
                     return res;
-                    //var parsSecurities = JsonConvert.DeserializeAnonymousType(res, new List<BitfinexSecurity>());
                 }                
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.Message, LogMessageType.Error);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// request trades
+        /// запросить трейды
+        /// </summary>
+        public string GetTrades(Dictionary<string, string> param)
+        {
+            try
+            {
+                lock (_candlesLocker)
+                {
+                    var res = CreateQuery(_baseUrlV2, Method.GET, "trades", param);
+
+                    return res;
+                }
             }
             catch (Exception ex)
             {
@@ -198,7 +219,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                     NewOrderPayload newOrder = new NewOrderPayload();
 
-                    if (isMarginTrading == false)
+                    if (isMarginTrading == false && order.SecurityNameCode.Contains(":") == false)
                     {
                         newOrder.type = "exchange limit";
                     }
@@ -408,7 +429,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         {
             DateTime yearBegin = new DateTime(1970, 1, 1);
             var timeStamp = DateTime.UtcNow - yearBegin;
-            var r = timeStamp.TotalMilliseconds;
+            var r = timeStamp.TotalMilliseconds*1000;
             var re = Convert.ToInt64(r);
             return re.ToString();
         }
