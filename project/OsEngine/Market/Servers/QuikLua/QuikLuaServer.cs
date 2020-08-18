@@ -36,6 +36,17 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             return ((QuikLuaServerRealization) ServerRealization).GetQuikLuaCandleHistory(security, timeSpan);
         }
+
+        /// <summary>
+        /// get tick data by instrument
+        /// взять тиковые данные по инструменту
+        /// </summary>
+        /// <param name="security"> short security name/короткое название бумаги</param>
+        /// <returns>failure will return null/в случае неудачи вернётся null</returns>
+        public List<Trade> GetQuikLuaTickHistory(string security)
+        {
+            return ((QuikLuaServerRealization)ServerRealization).GetQuikLuaTickHistory(security);
+        }
     }
 
     public class QuikLuaServerRealization : IServerRealization
@@ -599,6 +610,55 @@ namespace OsEngine.Market.Servers.QuikLua
         {
         }
 
+        /// <summary>
+        /// ticks downloaded using method GetQuikLuaTickHistory
+        /// тиковые данные скаченные из метода GetQuikLuaTickHistory
+        /// </summary>
+        private List<Trade> _trades;
+
+        /// <summary>
+        /// download all ticks by instrument
+        /// скачать все тиковые данные по инструменту
+        /// </summary>
+        /// <param name="security"> short security name/короткое название бумаги</param>
+        /// <returns>failure will return null/в случае неудачи вернётся null</returns>
+        public List<Trade> GetQuikLuaTickHistory(string security)
+        {
+            try
+            {
+                var needSec = _securities.Find(sec => sec.Name == security);
+                _trades = new List<Trade>();
+
+                if (needSec != null)
+                {
+                    string classCode = needSec.NameClass;
+
+                    var allCandlesForSec = QuikLua.Candles.GetAllCandles(classCode, needSec.Name, CandleInterval.TICK).Result;
+
+                    for (int i = 0; i < allCandlesForSec.Count; i++)
+                    {
+                        if (allCandlesForSec[i] != null)
+                        {
+                            Trade newTrade = new Trade();
+                            newTrade.Price = allCandlesForSec[i].Close;
+                            newTrade.Volume = allCandlesForSec[i].Volume;
+                            newTrade.Time = (DateTime)allCandlesForSec[i].Datetime;
+                            newTrade.MicroSeconds = allCandlesForSec[i].Datetime.mcs;
+                            newTrade.SecurityNameCode = allCandlesForSec[i].SecCode;
+                            _trades.Add(newTrade);
+                        }
+                    }
+                }
+
+                return _trades;
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+                return null;
+            }
+        }
+
         private object _getCandlesLocker = new object();
 
         /// <summary>
@@ -614,7 +674,7 @@ namespace OsEngine.Market.Servers.QuikLua
             {
                 lock (_getCandlesLocker)
                 {
-                    if (timeSpan.TotalMinutes > 60 ||
+                    if (timeSpan.TotalMinutes > 1440 ||
                         timeSpan.TotalMinutes < 1)
                     {
                         return null;
@@ -654,7 +714,14 @@ namespace OsEngine.Market.Servers.QuikLua
                     {
                         tf = CandleInterval.H2;
                     }
-
+                    else if (Convert.ToInt32(timeSpan.TotalMinutes) == 240)
+                    {
+                        tf = CandleInterval.H4;
+                    }
+                    else if (Convert.ToInt32(timeSpan.TotalMinutes) == 1440)
+                    {
+                        tf = CandleInterval.D1;
+                    }
 
                     #region MyRegion
 

@@ -324,9 +324,11 @@ namespace OsEngine.Entity
                             if (series.CandleCreateMethodType != CandleCreateMethodType.Simple || 
                                 series.TimeFrameSpan.TotalMinutes < 1)
                             {
-                                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
-
-                                series.PreLoad(allTrades);
+                                List<Trade> allTrades = luaServ.GetQuikLuaTickHistory(series.Security.Name);
+                                if (allTrades != null && allTrades.Count != 0)
+                                {
+                                    series.PreLoad(allTrades);
+                                }
                             }
                             else
                             {
