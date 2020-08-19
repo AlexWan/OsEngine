@@ -89,9 +89,9 @@
     <Reference Include="PusherClient">
       <HintPath>..\..\..\OsEngineTepm\12BitStamp\pusher-websocket-dotnet-master\pusher-websocket-dotnet-master\PusherClient\bin\Debug\PusherClient.dll</HintPath>
     </Reference>
-    <Reference Include="qC, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="qc, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\qC.dll</HintPath>
+      <HintPath>..\..\..\OsEngineTepm\9quikConnect\quikConnect\bin\Release\qc.dll</HintPath>
     </Reference>
     <Reference Include="QUIKSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=eb70e0fec970faf8, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
