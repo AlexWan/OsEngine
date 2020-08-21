@@ -1393,7 +1393,8 @@ namespace OsEngine.Charts.CandleChart
         {
             if (_securityOnThisChart == security &&
                 _timeFrameSecurity == timeFrameBuilder.TimeFrame &&
-                serverType == _serverType)
+                serverType == _serverType &&
+                _candleCreateMethodTypeOnThisChart == timeFrameBuilder.CandleCreateMethodType)
             {
                 return;
             }
@@ -1401,7 +1402,14 @@ namespace OsEngine.Charts.CandleChart
             if (ChartCandle != null)
             {
                 ChartCandle.ClearDataPointsAndSizeValue();
-                ChartCandle.SetNewTimeFrame(timeFrameBuilder.TimeFrameTimeSpan, timeFrameBuilder.TimeFrame);
+                if (timeFrameBuilder.CandleCreateMethodType != CandleCreateMethodType.Simple)
+                {
+                    ChartCandle.SetNewTimeFrame(TimeSpan.FromSeconds(1), timeFrameBuilder.TimeFrame);
+                }
+                else
+                {
+                    ChartCandle.SetNewTimeFrame(timeFrameBuilder.TimeFrameTimeSpan, timeFrameBuilder.TimeFrame);
+                }
             }
 
             string lastSecurity = _securityOnThisChart;
@@ -1410,6 +1418,7 @@ namespace OsEngine.Charts.CandleChart
             _securityOnThisChart = security;
             _timeFrameSecurity = timeFrameBuilder.TimeFrame;
             _serverType = serverType;
+            _candleCreateMethodTypeOnThisChart = timeFrameBuilder.CandleCreateMethodType;
 
             Clear();
             PaintLabelOnSlavePanel();
@@ -1435,6 +1444,12 @@ namespace OsEngine.Charts.CandleChart
         /// таймфрейм бумаги этого чарта
         /// </summary>
         private TimeFrame _timeFrameSecurity;
+
+        /// <summary>
+        /// candles built method
+        /// метод построения свечей на чарте
+        /// </summary>
+        private CandleCreateMethodType _candleCreateMethodTypeOnThisChart;
 
         private System.Windows.Controls.Label _label;
 
