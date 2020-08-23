@@ -1132,6 +1132,18 @@ namespace OsEngine.OsTrader.Panels.Tab
         // standard public functions for position management
         // стандартные публичные функции для управления позицией
 
+        private bool IsMarketOrderSupport()
+        {
+            if (_connector.ServerType == ServerType.InteractivBrokers ||
+                _connector.ServerType == ServerType.Lmax ||
+                _connector.ServerType == ServerType.BitMax)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// enter a long position at any price / 
         /// войти в позицию Лонг по любой цене
@@ -1155,7 +1167,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 TimeSpan timeLife = ManualPositionSupport.SecondToOpen;
 
-                if (_connector.ServerType == ServerType.InteractivBrokers || _connector.ServerType == ServerType.Lmax)
+                if (IsMarketOrderSupport())
                 {
                     return LongCreate(price, volume, type, timeLife, false);
                 }
@@ -1617,7 +1629,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 TimeSpan timeLife = ManualPositionSupport.SecondToOpen;
 
-                if (_connector.ServerType == ServerType.InteractivBrokers || _connector.ServerType == ServerType.Lmax)
+                if (IsMarketOrderSupport())
                 {
                     return ShortCreate(price, volume, type, timeLife, false);
                 }
@@ -2109,7 +2121,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                if (_connector.ServerType == ServerType.InteractivBrokers || _connector.ServerType == ServerType.Lmax)
+                if (IsMarketOrderSupport())
                 {
                     if (position.OpenVolume <= volume)
                     {

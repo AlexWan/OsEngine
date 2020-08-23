@@ -12,16 +12,15 @@ using OsEngine.Market.Servers.Entity;
 
 namespace OsEngine.Market.Servers.BitMax
 {
-    public class BitMaxServer : AServer
+    public class BitMaxProServer : AServer
     {
-        public BitMaxServer()
+        public BitMaxProServer()
         {
-            BitMaxServerRealization realization = new BitMaxServerRealization();
+            BitMaxProServerRealization realization = new BitMaxProServerRealization();
             ServerRealization = realization;
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
-            CreateParameterBoolean(OsLocalization.Market.ServerParam4, false);
         }
 
         /// <summary>
@@ -30,13 +29,13 @@ namespace OsEngine.Market.Servers.BitMax
         /// </summary>
         public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf)
         {
-            return ((BitMaxServerRealization)ServerRealization).GetCandleHistory(nameSec, tf);
+            return ((BitMaxProServerRealization)ServerRealization).GetCandleHistory(nameSec, tf);
         }
     }
 
-    public class BitMaxServerRealization : IServerRealization
+    public class BitMaxProServerRealization : IServerRealization
     {
-        public BitMaxServerRealization()
+        public BitMaxProServerRealization()
         {
             ServerStatus = ServerConnectStatus.Disconnect;
         }
@@ -71,7 +70,7 @@ namespace OsEngine.Market.Servers.BitMax
         /// <summary>
         /// bitMax Client
         /// </summary>
-        private BitMaxClient _client;
+        private BitMaxProClient _client;
 
         #region requests / запросы
 
@@ -83,14 +82,14 @@ namespace OsEngine.Market.Servers.BitMax
         {
             if (_client == null)
             {
-                _client = new BitMaxClient(((ServerParameterString)ServerParameters[0]).Value,
-                    ((ServerParameterPassword)ServerParameters[1]).Value,
-                    ((ServerParameterBool)ServerParameters[2]).Value);
+                _client = new BitMaxProClient(((ServerParameterString)ServerParameters[0]).Value,
+                    ((ServerParameterPassword)ServerParameters[1]).Value);
 
                 _client.Connected += Client_Connected;
                 _client.UpdateSecurities += ClientReceivedSecurities;
                 _client.Disconnected += Client_Disconnected;
                 _client.NewPortfoliosEvent += ClientPortfoliosEvent;
+                _client.NewSpotPortfoliosEvent += ClientOnNewSpotPortfoliosEvent;
                 _client.UpdateMarketDepth += ClientUpdateMarketDepth;
                 _client.NewTradesEvent += ClientNewTradesEvent;
                 _client.MyOrderEvent += ClientMyOrderEvent;
@@ -99,6 +98,8 @@ namespace OsEngine.Market.Servers.BitMax
 
             _client.Connect();
         }
+
+        
 
         /// <summary>
         /// release API
@@ -114,6 +115,7 @@ namespace OsEngine.Market.Servers.BitMax
                 _client.UpdateSecurities -= ClientReceivedSecurities;
                 _client.Disconnected -= Client_Disconnected;
                 _client.NewPortfoliosEvent -= ClientPortfoliosEvent;
+                _client.NewSpotPortfoliosEvent -= ClientOnNewSpotPortfoliosEvent;
                 _client.UpdateMarketDepth -= ClientUpdateMarketDepth;
                 _client.NewTradesEvent -= ClientNewTradesEvent;
                 _client.MyOrderEvent -= ClientMyOrderEvent;
@@ -150,7 +152,11 @@ namespace OsEngine.Market.Servers.BitMax
             {
                 while (true)
                 {
-                    Thread.Sleep(10000);
+                    Thread.Sleep(1000);
+                    if (_client == null)
+                    {
+                        return;
+                    }
                     if (!_client.IsConnected)
                     {
                         continue;
@@ -158,6 +164,32 @@ namespace OsEngine.Market.Servers.BitMax
                     _client.GetPortfolios();
                 }
             });
+        }
+
+        public List<ReferencePrice> GetRefPrices()
+        {
+            var result = _client.GetRefPrices();
+
+            return ConvertReferencePrices(result);
+        }
+
+        private List<ReferencePrice> ConvertReferencePrices(string values)
+        {
+            var referencePrices = new List<ReferencePrice>();
+
+            var strings = values.Trim(new[] { '{', '}' }).Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var s in strings)
+            {
+                var data = s.Split(':');
+                referencePrices.Add(new ReferencePrice()
+                {
+                    Asset = data[0].Trim('"'),
+                    Price = data[1].Trim('"').ToDecimal(),
+                });
+            }
+
+            return referencePrices;
         }
 
         /// <summary>
@@ -168,25 +200,48 @@ namespace OsEngine.Market.Servers.BitMax
         {
             var guid = Guid.NewGuid().ToString().Replace('-', '0');
 
-            var needId = guid.Remove(0, guid.Length - 32);
+            string needId = guid;
+
+            while (needId.Length > 32)
+            {
+                needId = needId.Remove(needId.Length - 1);
+            }
 
             var result = _client.SendOrder(order, needId);
 
-            if (result.code == 0)
-            {
-                _couplers.Add(new OrderCoupler()
-                {
-                    OsOrderNumberUser = order.NumberUser,
-                    OrderNumberMarket = needId,
-                });
-            }
-            else
+            if (result == null || result.Code != 0)
             {
                 order.State = OrderStateType.Fail;
 
                 MyOrderEvent?.Invoke(order);
 
-                SendLogMessage($"Order placement error № {result.code} : {result.message}", LogMessageType.Error);
+                SendLogMessage($"Order placement error № {result?.Code}.", LogMessageType.Error);
+            }
+            else if (result.Data.Status == "Ack")
+            {
+                var newCoupler = new OrderCoupler()
+                {
+                    OsOrderNumberUser = order.NumberUser,
+                    OrderNumberMarket = result.Data.Info.OrderId,
+                };
+
+                _couplers.Add(newCoupler);
+                order.State = OrderStateType.Activ;
+                order.NumberMarket = result.Data.Info.OrderId;
+                MyOrderEvent?.Invoke(order);
+            }
+            else if (result.Data.Status == "DONE")
+            {
+                var newCoupler = new OrderCoupler()
+                {
+                    OsOrderNumberUser = order.NumberUser,
+                    OrderNumberMarket = result.Data.Info.OrderId,
+                };
+
+                _couplers.Add(newCoupler);
+                order.State = OrderStateType.Done;
+                order.NumberMarket = result.Data.Info.OrderId;
+                MyOrderEvent?.Invoke(order);
             }
         }
 
@@ -198,30 +253,20 @@ namespace OsEngine.Market.Servers.BitMax
         {
             var guid = Guid.NewGuid().ToString().Replace('-', '0');
 
-            var needId = guid.Remove(0, guid.Length - 32);
+            string needId = guid;
 
-            var result = _client.CancelOrder(order, needId);
-
-            if (result.code == 0)
+            while (needId.Length > 32)
             {
-                var needCoupler = _couplers.Find(c => c.OrderNumberMarket == order.NumberMarket);
-                if (needCoupler != null)
-                {
-                    needCoupler.OrderCancelId = needId;
-                }
-                else
-                {
-                    SendLogMessage($"Order cancellation  error № {result.code} : {result.message}", LogMessageType.Error);
-                }
+                needId = needId.Remove(needId.Length - 1);
             }
-            else
+
+            var needCoupler = _couplers.Find(c => c.OrderNumberMarket == order.NumberMarket);
+            if (needCoupler != null)
             {
-                SendLogMessage($"Order cancellation  error № {result.code} : {result.message}", LogMessageType.Error);
-
-                order.State = OrderStateType.Cancel;
-
-                MyOrderEvent?.Invoke(order);
+                needCoupler.OrderCancelId = needId;
             }
+            
+            _client.CancelOrder(order, needId);
         }
 
         /// <summary>
@@ -305,26 +350,17 @@ namespace OsEngine.Market.Servers.BitMax
 
             List<Candle> newCandles = new List<Candle>();
 
-            foreach (var bitMaxCandle in bitMaxCandles)
+            foreach (var bitMaxCandle in bitMaxCandles.Candles)
             {
                 newCandles.Add(new Candle()
                 {
-                    Open = 
-                        bitMaxCandle.o.ToDecimal()
-                    ,
-                    High = 
-                        bitMaxCandle.h.ToDecimal()
-                    ,
-                    Low = 
-                        bitMaxCandle.l.ToDecimal()
-                    ,
-                    Close = 
-                        bitMaxCandle.c.ToDecimal()
-                    ,
-                    Volume = 
-                        bitMaxCandle.v.ToDecimal()
-                    ,
-                    TimeStart = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(bitMaxCandle.t.ToString().Replace(",",
+                    Open = bitMaxCandle.Candle.O.ToDecimal(),
+                    High = bitMaxCandle.Candle.H.ToDecimal(),
+                    Low = bitMaxCandle.Candle.L.ToDecimal(),
+                    Close = bitMaxCandle.Candle.C.ToDecimal(),
+                    Volume = bitMaxCandle.Candle.V.ToDecimal(),
+                    TimeStart = TimeManager.GetDateTimeFromTimeStamp(
+                        Convert.ToInt64(bitMaxCandle.Candle.Ts.ToString().Replace(",",
                             CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
                         CultureInfo.InvariantCulture)),
                     State = CandleState.None,
@@ -452,7 +488,7 @@ namespace OsEngine.Market.Servers.BitMax
             {
                 DisconnectEvent();
             }
-            _depths.Clear();
+
             ServerStatus = ServerConnectStatus.Disconnect;
         }
 
@@ -462,37 +498,83 @@ namespace OsEngine.Market.Servers.BitMax
         /// updated portfolio information
         /// обновилась информация о портфелях
         /// </summary>
-        /// <param name="accaunt"></param>
-        private void ClientPortfoliosEvent(Accaunt accaunt)
+        private void ClientPortfoliosEvent(Wallets wallets)
         {
-            foreach (var wallet in accaunt.data)
+            try
             {
-                var needPortfolio = _portfolios.Find(p => p.Number == wallet.assetCode);
-                if (needPortfolio != null)
-                {
-                    needPortfolio.ValueCurrent =
-                        wallet.totalAmount.ToDecimal();
-                    needPortfolio.ValueBlocked = 
-                        wallet.inOrderAmount.ToDecimal();
-                }
-                else
-                {
-                    var valueCurrent = 
-                        wallet.totalAmount.ToDecimal();
+                Portfolio myPortfolio = _portfolios.Find(p => p.Number == "BitMaxMargin");
 
-                    var valueBlocked = 
-                        wallet.inOrderAmount.ToDecimal();
-                    if (valueCurrent != 0 || valueBlocked != 0)
-                    {
-                        _portfolios.Add(new Portfolio
-                        {
-                            Number = wallet.assetCode,
-                            ValueCurrent = valueCurrent,
-                            ValueBlocked = valueBlocked,
-                        });
-                    }
+                if (myPortfolio == null)
+                {
+                    Portfolio newPortf = new Portfolio();
+                    newPortf.Number = "BitMaxMargin";
+                    newPortf.ValueBegin = 1;
+                    newPortf.ValueCurrent = 1;
+                    _portfolios.Add(newPortf);
+                    myPortfolio = newPortf;
                 }
+
+                if (wallets.Data == null)
+                {
+                    return;
+                }
+
+                UpdatePortfolio(myPortfolio, wallets);
             }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ClientOnNewSpotPortfoliosEvent(Wallets wallets)
+        {
+            try
+            {
+                Portfolio myPortfolio = _portfolios.Find(p => p.Number == "BitMaxSpot");
+
+                if (myPortfolio == null)
+                {
+                    Portfolio newPortf = new Portfolio();
+                    newPortf.Number = "BitMaxSpot";
+                    newPortf.ValueBegin = 1;
+                    newPortf.ValueCurrent = 1;
+                    _portfolios.Add(newPortf);
+                    myPortfolio = newPortf;
+                }
+
+                if (wallets.Data == null)
+                {
+                    return;
+                }
+
+                UpdatePortfolio(myPortfolio, wallets);
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void UpdatePortfolio(Portfolio myPortfolio, Wallets wallets)
+        {
+            myPortfolio.ClearPositionOnBoard();
+
+            foreach (var wallet in wallets.Data)
+            {
+                PositionOnBoard newPortf = new PositionOnBoard();
+
+                var valueCurrent = wallet.AvailableBalance.ToDecimal();
+
+                newPortf.SecurityNameCode = wallet.Asset;
+
+                newPortf.ValueBegin = wallet.TotalBalance.ToDecimal();
+                newPortf.ValueCurrent = wallet.AvailableBalance.ToDecimal();
+                newPortf.ValueBlocked = wallet.TotalBalance.ToDecimal() - valueCurrent;
+
+                myPortfolio.SetNewPosition(newPortf);
+            }
+
             PortfolioEvent?.Invoke(_portfolios);
         }
 
@@ -500,24 +582,25 @@ namespace OsEngine.Market.Servers.BitMax
         /// получены инструменты с сервера
         /// </summary>
         /// <param name="products"></param>
-        private void ClientReceivedSecurities(List<Product> products)
+        private void ClientReceivedSecurities(RootProducts products)
         {
             List<Security> securities = new List<Security>();
 
-            foreach (var product in products)
+            foreach (var product in products.Data)
             {
                 var newSec = new Security();
 
-                newSec.Name = product.baseAsset + "-" + product.quoteAsset;
-                newSec.NameClass = product.quoteAsset;
-                newSec.NameFull = product.symbol;
-                newSec.NameId = product.symbol;
-                newSec.Decimals = product.priceScale;
+                newSec.Name = product.Symbol;
+                newSec.NameClass = product.QuoteAsset;
+                newSec.NameFull = product.Symbol;
+                newSec.NameId = product.Symbol;
+                newSec.Decimals = product.TickSize.DecimalsCount();
                 newSec.SecurityType = SecurityType.CurrencyPair;
-                newSec.State = product.status == "Normal" ? SecurityStateType.Activ : SecurityStateType.Close;
-                newSec.Lot = product.qtyScale.GetValueByDecimals();
-                newSec.PriceStep = product.priceScale.GetValueByDecimals();
+                newSec.State = product.Status == "Normal" ? SecurityStateType.Activ : SecurityStateType.Close;
+                newSec.Lot = product.LotSize.ToDecimal();
+                newSec.PriceStep = product.TickSize.ToDecimal();
                 newSec.PriceStepCost = newSec.PriceStep;
+                newSec.Go = product.MinNotional.ToDecimal();
 
                 securities.Add(newSec);
             }
@@ -526,234 +609,46 @@ namespace OsEngine.Market.Servers.BitMax
         }
 
         /// <summary>
-        /// multi-threaded access locker to ticks
-        /// блокиратор многопоточного доступа к тикам
-        /// </summary>
-        private readonly object _newTradesLoker = new object();
-
-        /// <summary>
         /// new trades event
         /// новые сделки на бирже
         /// </summary>
         /// <param name="trades"></param>
-        private void ClientNewTradesEvent(Trades trades)
+        private void ClientNewTradesEvent(TradeInfo trades)
         {
-            lock (_newTradesLoker)
+            if (trades.Data == null)
             {
-                if (trades.trades == null)
+                return;
+            }
+            foreach (var trade in trades.Data)
+            {
+                Trade newTrade = new Trade();
+                newTrade.SecurityNameCode = trades.Symbol;
+                newTrade.Price = trade.P.ToDecimal();
+                newTrade.Id = trade.Seqnum.ToString();
+                newTrade.Time = TimeManager.GetDateTimeFromTimeStamp(trade.Ts);
+                newTrade.Volume = trade.Q.ToDecimal();
+                newTrade.Side = trade.Bm == true ? Side.Sell : Side.Buy;
+
+                ServerTime = newTrade.Time;
+
+                if (NewTradesEvent != null)
                 {
-                    return;
-                }
-                foreach (var trade in trades.trades)
-                {
-                    Trade newTrade = new Trade();
-                    newTrade.SecurityNameCode = trades.s.Replace('/', '-');
-                    newTrade.Price =
-                            trade.p.ToDecimal();
-
-                    newTrade.Id = trade.t.ToString();
-                    newTrade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(trade.t));
-                    newTrade.Volume =
-                            trade.q.ToDecimal();
-                    newTrade.Side = trade.bm == true ? Side.Sell : Side.Buy;
-
-                    ServerTime = newTrade.Time;
-
-                    if (NewTradesEvent != null)
-                    {
-                        NewTradesEvent(newTrade);
-                    }
+                    NewTradesEvent(newTrade);
                 }
             }
         }
 
         /// <summary>
-        /// all depths
-        /// все стаканы
-        /// </summary>
-        private List<MarketDepth> _depths;
-
-        private bool _needSortAsks = false;
-        private bool _needSortBids = false;
-
-        private readonly object _depthLocker = new object();
-
-        /// <summary>
         /// updated market depth
         /// обновился стакан котировок
         /// </summary>
-        /// <param name="bitMaxDepth"></param>
-        private void ClientUpdateMarketDepth(Depth bitMaxDepth)
+        private void ClientUpdateMarketDepth(MarketDepth marketDepth)
         {
             try
             {
-                lock (_depthLocker)
+                if (MarketDepthEvent != null)
                 {
-                    if (_depths == null)
-                    {
-                        _depths = new List<MarketDepth>();
-                    }
-
-                    if (bitMaxDepth.asks == null ||
-                        bitMaxDepth.bids == null)
-                    {
-                        return;
-                    }
-
-                    var needDepth = _depths.Find(depth =>
-                        depth.SecurityNameCode == bitMaxDepth.s.Replace('/', '-'));
-
-                    if (needDepth == null)
-                    {
-                        needDepth = new MarketDepth();
-                        needDepth.SecurityNameCode = bitMaxDepth.s.Replace('/', '-');
-                        _depths.Add(needDepth);
-                    }
-
-                    for (int i = 0; i < bitMaxDepth.asks.Count; i++)
-                    {
-                        var needPrice = 
-                            bitMaxDepth.asks[i][0].ToDecimal();
-
-                        var needLevel = needDepth.Asks.Find(l => l.Price == needPrice);
-
-                        var qty = 
-                            bitMaxDepth.asks[i][1].ToDecimal();
-
-                        if (needLevel != null)
-                        {
-                            if (qty == 0)
-                            {
-                                needDepth.Asks.Remove(needLevel);
-                                needLevel = needDepth.Bids.Find(l => l.Price == needPrice);
-
-                                if (needLevel != null)
-                                {
-                                    needDepth.Bids.Remove(needLevel);
-                                }
-                            }
-                            else
-                            {
-                                needLevel.Ask = qty;
-                            }
-                        }
-                        else
-                        {
-                            if (qty == 0)
-                            {
-                                continue;
-                            }
-                            needDepth.Asks.Add(new MarketDepthLevel()
-                            {
-                                Ask = qty,
-                                Price = needPrice,
-                            });
-                            _needSortAsks = true;
-                        }
-                    }
-
-                    for (int i = 0; i < bitMaxDepth.bids.Count; i++)
-                    {
-                        var needPrice = 
-                            bitMaxDepth.bids[i][0].ToDecimal();
-
-                        var needLevel = needDepth.Bids.Find(l => l.Price == needPrice);
-
-                        var qty = 
-                            bitMaxDepth.bids[i][1].ToDecimal();
-
-                        if (needLevel != null)
-                        {
-                            if (qty == 0)
-                            {
-                                needDepth.Bids.Remove(needLevel);
-                                needLevel = needDepth.Asks.Find(l => l.Price == needPrice);
-
-                                if (needLevel != null)
-                                {
-                                    needDepth.Asks.Remove(needLevel);
-                                }
-                            }
-                            else
-                            {
-                                needLevel.Bid = qty;
-                            }
-                        }
-                        else
-                        {
-                            if (qty == 0)
-                            {
-                                continue;
-                            }
-
-                            needDepth.Bids.Add(new MarketDepthLevel()
-                            {
-                                Bid = qty,
-                                Price = needPrice,
-                            });
-                            _needSortBids = true;
-                        }
-                    }
-
-                    if (_needSortAsks)
-                    {
-                        needDepth.Asks.Sort((a, b) =>
-                        {
-                            if (a.Price > b.Price)
-                            {
-                                return 1;
-                            }
-                            else if (a.Price < b.Price)
-                            {
-                                return -1;
-                            }
-                            else
-                            {
-                                return 0;
-                            }
-                        });
-                        _needSortAsks = false;
-                    }
-
-                    if (_needSortBids)
-                    {
-                        needDepth.Bids.Sort((a, b) =>
-                        {
-                            if (a.Price > b.Price)
-                            {
-                                return -1;
-                            }
-                            else if (a.Price < b.Price)
-                            {
-                                return 1;
-                            }
-                            else
-                            {
-                                return 0;
-                            }
-                        });
-                        _needSortBids = false;
-                    }
-                    if (needDepth.Asks.Count > 20)
-                    {
-                        needDepth.Asks.RemoveRange(20, needDepth.Asks.Count - 20);
-                    }
-                    if (needDepth.Bids.Count > 20)
-                    {
-                        needDepth.Bids.RemoveRange(20, needDepth.Bids.Count - 20);
-                    }
-
-                    needDepth.Time = ServerTime;
-
-                    if (needDepth.Time == DateTime.MinValue)
-                    {
-                        return;
-                    }
-
-                    if (MarketDepthEvent != null)
-                    {
-                        MarketDepthEvent(needDepth.GetCopy());
-                    }
+                    MarketDepthEvent(marketDepth);
                 }
             }
             catch (Exception error)
@@ -769,85 +664,73 @@ namespace OsEngine.Market.Servers.BitMax
         /// пришел ордер и трейд
         /// </summary>
         /// <param name="bitMaxOrder"></param>
-        private void ClientMyOrderEvent(BitMaxOrder bitMaxOrder)
+        private void ClientMyOrderEvent(OrderState bitMaxOrder)
         {
-            OrderCoupler needCoupler;
+            var data = bitMaxOrder.Data;
 
-            if (bitMaxOrder.status == "Canceled")
-            {
-                needCoupler = _couplers.Find(c => c.OrderCancelId == bitMaxOrder.coid);
-            }
-            else
-            {
-                needCoupler = _couplers.Find(c => c.OrderNumberMarket == bitMaxOrder.coid);
-            }
+            OrderCoupler needCoupler = _couplers.Find(c => c.OrderNumberMarket == data.OrderId);
 
             if (needCoupler == null)
             {
                 return;
             }
 
-            if (bitMaxOrder.status == "PartiallyFilled" || bitMaxOrder.status == "Filled")
-            {
-                var partialVolume = 
-                    bitMaxOrder.f.ToDecimal();
+            Order order = new Order();
+            order.NumberUser = needCoupler.OsOrderNumberUser;
+            order.NumberMarket = data.OrderId;
+            order.PortfolioNumber = data.S.Split('/')[1];
+            order.Price = data.P.ToDecimal();
+            order.Volume = data.Q.ToDecimal();
+            order.Side = data.Sd == "Buy" ? Side.Buy : Side.Sell;
+            order.SecurityNameCode = data.S;
+            order.ServerType = ServerType;
+            order.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(data.T));
+            order.TypeOrder = OrderPriceType.Limit;
 
-                var tradeVolume = partialVolume - needCoupler.CurrentVolume;
+            if (data.St == "New")
+            {
+                order.State = OrderStateType.Activ;
+            }
+            else if (data.St == "Canceled")
+            {
+                order.State = OrderStateType.Cancel;
+                _couplers.Remove(needCoupler);
+            }
+            else if (data.St == "PartiallyFilled")
+            {
+                order.State = OrderStateType.Patrial;
+            }
+            else if (data.St == "Filled")
+            {
+                order.State = OrderStateType.Done;
+                _couplers.Remove(needCoupler);
+            }
+            else if (data.St == "Rejected")
+            {
+                order.State = OrderStateType.Fail;
+            }
+
+            if (bitMaxOrder.Data.St == "PartiallyFilled" || bitMaxOrder.Data.St == "Filled")
+            {
+                var cumVolume = data.Cfq.ToDecimal();
+
+                var tradeVolume = cumVolume - needCoupler.CurrentVolume;
                 needCoupler.CurrentVolume += tradeVolume;
 
-                MyTrade myTrade = new MyTrade()
+                MyTrade myTrade = new MyTrade
                 {
-                    NumberOrderParent = bitMaxOrder.coid,
-                    Side = bitMaxOrder.side == "Sell" ? Side.Sell : Side.Buy,
-                    NumberPosition = bitMaxOrder.coid,
-                    SecurityNameCode = bitMaxOrder.s.Replace('/', '-'),
-                    Price = 
-                        bitMaxOrder.p.ToDecimal()
-                    ,
+                    NumberOrderParent = data.OrderId,
+                    Side = data.Sd == "Buy" ? Side.Buy : Side.Sell,
+                    SecurityNameCode = data.S,
+                    Price = data.Ap.ToDecimal(),
                     Volume = tradeVolume,
-                    NumberTrade = Guid.NewGuid().ToString(),
-                    Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(bitMaxOrder.t)),
+                    NumberTrade = data.Sn.ToString(),
+                    Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(data.T)),
                 };
 
                 MyTradeEvent?.Invoke(myTrade);
             }
 
-            Order order = new Order();
-            order.NumberUser = needCoupler.OsOrderNumberUser;
-            order.NumberMarket = bitMaxOrder.coid;
-            order.PortfolioNumber = bitMaxOrder.s.Split('/')[1];
-            order.Price = 
-                bitMaxOrder.p.ToDecimal();
-            order.Volume = 
-                bitMaxOrder.q.ToDecimal();
-            order.Side = bitMaxOrder.side == "Sell" ? Side.Sell : Side.Buy;
-            order.SecurityNameCode = bitMaxOrder.s.Replace('/', '-');
-            order.ServerType = ServerType;
-            order.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(bitMaxOrder.t));
-            order.TypeOrder = OrderPriceType.Limit;
-
-            if (bitMaxOrder.status == "New")
-            {
-                order.State = OrderStateType.Activ;
-            }
-            else if (bitMaxOrder.status == "PartiallyFilled")
-            {
-                order.State = OrderStateType.Patrial;
-            }
-            else if (bitMaxOrder.status == "Filled")
-            {
-                order.State = OrderStateType.Done;
-                _couplers.Remove(needCoupler);
-            }
-            else if (bitMaxOrder.status == "Canceled")
-            {
-                order.State = OrderStateType.Cancel;
-                _couplers.Remove(needCoupler);
-            }
-            else if (bitMaxOrder.status == "Rejected")
-            {
-                order.State = OrderStateType.Fail;
-            }
             MyOrderEvent?.Invoke(order);
         }
 
@@ -907,5 +790,4 @@ namespace OsEngine.Market.Servers.BitMax
             public decimal CurrentVolume = 0;
         }
     }
-
 }
