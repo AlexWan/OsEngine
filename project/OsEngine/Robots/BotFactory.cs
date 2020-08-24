@@ -13,7 +13,6 @@ using System.Reflection;
 using System.Threading;
 using Microsoft.CSharp;
 using OsEngine.Entity;
-using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
 using OsEngine.Robots.CounterTrend;
 using OsEngine.Robots.Engines;
@@ -22,7 +21,6 @@ using OsEngine.Robots.MarketMaker;
 using OsEngine.Robots.Patterns;
 using OsEngine.Robots.Trend;
 using OsEngine.Robots.OnScriptIndicators;
-using System.Runtime;
 
 namespace OsEngine.Robots
 {
@@ -427,6 +425,7 @@ namespace OsEngine.Robots
                 cp.GenerateInMemory = true;
                 cp.IncludeDebugInformation = true;
                 cp.TempFiles.KeepFiles = false;
+             
 
                 string folderCur = AppDomain.CurrentDomain.BaseDirectory + "Engine\\Temp";
 
@@ -489,13 +488,13 @@ namespace OsEngine.Robots
                 param.Add(startProgram);
 
                 result = (BotPanel)results.CompiledAssembly.CreateInstance(
-                    results.CompiledAssembly.DefinedTypes.ElementAt(0).FullName, false, BindingFlags.Default, null,
+                    results.CompiledAssembly.DefinedTypes.ElementAt(0).FullName, false, BindingFlags.CreateInstance, null,
                     param.ToArray(), CultureInfo.CurrentCulture, null);
 
                 if (result == null)
                 {
                     string errorString = "Error! Robot script runTime compilation problem! \n";
-                    errorString += "Path to indicator: " + path + " \n";
+                    errorString += "Path to robot: " + path + " \n";
 
                     int errorNum = 1;
 
