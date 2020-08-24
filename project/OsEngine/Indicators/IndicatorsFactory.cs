@@ -135,48 +135,55 @@ namespace OsEngine.Indicators
 
         private static bool _isFirstTime = true;
 
+        private static string[] linksToDll;
+
         private static Aindicator Serialize(string path, string nameClass, string name, bool canDelete)
         {
             try
             {
-                Aindicator result = null;
-
-                string fileStr = ReadFile(path);
-
-                CSharpCodeProvider prov = new CSharpCodeProvider();
-
-                var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-
-                var res = Array.ConvertAll<Assembly, string>(assemblies, (x) =>
+                if (linksToDll == null)
                 {
-                    if (!x.IsDynamic)
+                    var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+
+                    var res = Array.ConvertAll<Assembly, string>(assemblies, (x) =>
                     {
-                        return x.Location;
+                        if (!x.IsDynamic)
+                        {
+                            return x.Location;
+                        }
+
+                        return null;
+                    });
+
+                    for (int i = 0; i < res.Length; i++)
+                    {
+                        if (string.IsNullOrEmpty(res[i]))
+                        {
+                            List<string> list = res.ToList();
+                            list.RemoveAt(i);
+                            res = list.ToArray();
+                            i--;
+                        }
+                        else if (res[i].Contains("System.Runtime.Serialization")
+                                 || i > 24)
+                        {
+                            List<string> list = res.ToList();
+                            list.RemoveAt(i);
+                            res = list.ToArray();
+                            i--;
+                        }
                     }
 
-                    return null;
-                });
+                    string dllPath = AppDomain.CurrentDomain.BaseDirectory + "System.Runtime.Serialization.dll";
 
-                for (int i = 0; i < res.Length; i++)
-                {
-                    if (string.IsNullOrEmpty(res[i]))
-                    {
-                        List<string> list = res.ToList();
-                        list.RemoveAt(i);
-                        res = list.ToArray();
-                        i--;
-                    }
+                    List<string> listRes = res.ToList();
+                    listRes.Add(dllPath);
+                    res = listRes.ToArray();
 
-                    if (res[i].Contains("System.Runtime.Serialization"))
-                    {
-                        List<string> list = res.ToList();
-                        list.RemoveAt(i);
-                        res = list.ToArray();
-                        i--;
-                    }
+                    linksToDll = res;
                 }
 
-                CompilerParameters cp = new CompilerParameters(res);
+                CompilerParameters cp = new CompilerParameters(linksToDll);
                 cp.IncludeDebugInformation = true;
                 cp.GenerateInMemory = true;
 
@@ -213,10 +220,13 @@ namespace OsEngine.Indicators
                     }
                 }
 
-                // cp.OutputAssembly = folderCur + "\\tempInd" + nameClass +
-                //                    NumberGen.GetNumberDeal(StartProgram.IsOsTrader);
-
                 cp.TempFiles = new TempFileCollection(folderCur, false);
+
+                Aindicator result = null;
+
+                string fileStr = ReadFile(path);
+
+                CSharpCodeProvider prov = new CSharpCodeProvider();
 
                 CompilerResults results = prov.CompileAssemblyFromSource(cp, fileStr);
 

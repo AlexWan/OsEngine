@@ -377,55 +377,60 @@ namespace OsEngine.Robots
 
         private static bool _isFirstTime = true;
 
+        private static string[] linksToDll;
+
         private static BotPanel Serialize(string path, string nameClass, string name, StartProgram startProgram)
         {
             try
             {
-                BotPanel result = null;
-
-                string fileStr = ReadFile(path);
-
-                //Объявляем провайдер кода С#
-                CSharpCodeProvider prov = new CSharpCodeProvider();
-
-                var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-
-                var res = Array.ConvertAll<Assembly, string>(assemblies, (x) =>
+                if (linksToDll == null)
                 {
-                    if (!x.IsDynamic)
+                    var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+
+                    string[] res = Array.ConvertAll<Assembly, string>(assemblies, (x) =>
                     {
-                        return x.Location;
+                        if (!x.IsDynamic)
+                        {
+                            return x.Location;
+                        }
+
+                        return null;
+                    });
+
+                    for (int i = 0; i < res.Length; i++)
+                    {
+                        if (string.IsNullOrEmpty(res[i]))
+                        {
+                            List<string> list = res.ToList();
+                            list.RemoveAt(i);
+                            res = list.ToArray();
+                            i--;
+                        }
+                        else if (res[i].Contains("System.Runtime.Serialization")
+                                 || i > 24)
+                        {
+                            List<string> list = res.ToList();
+                            list.RemoveAt(i);
+                            res = list.ToArray();
+                            i--;
+                        }
                     }
 
-                    return null;
-                });
+                    string dllPath = AppDomain.CurrentDomain.BaseDirectory + "System.Runtime.Serialization.dll";
 
-                for (int i = 0; i < res.Length; i++)
-                {
-                    if (string.IsNullOrEmpty(res[i]))
-                    {
-                        List<string> list = res.ToList();
-                        list.RemoveAt(i);
-                        res = list.ToArray();
-                        i--;
-                    }
-
-                    if (res[i].Contains("System.Runtime.Serialization"))
-                    {
-                        List<string> list = res.ToList();
-                        list.RemoveAt(i);
-                        res = list.ToArray();
-                        i--;
-                    }
+                    List<string> listRes = res.ToList();
+                    listRes.Add(dllPath);
+                    res = listRes.ToArray();
+                    linksToDll = res;
                 }
 
-                CompilerParameters cp = new CompilerParameters(res);
+                CompilerParameters cp = new CompilerParameters(linksToDll);
 
                 // Помечаем сборку, как временную
                 cp.GenerateInMemory = true;
                 cp.IncludeDebugInformation = true;
                 cp.TempFiles.KeepFiles = false;
-             
+
 
                 string folderCur = AppDomain.CurrentDomain.BaseDirectory + "Engine\\Temp";
 
@@ -461,6 +466,13 @@ namespace OsEngine.Robots
                 }
 
                 cp.TempFiles = new TempFileCollection(folderCur, false);
+
+                BotPanel result = null;
+
+                string fileStr = ReadFile(path);
+
+                //Объявляем провайдер кода С#
+                CSharpCodeProvider prov = new CSharpCodeProvider();
 
                 // Обрабатываем CSC компилятором
                 CompilerResults results = prov.CompileAssemblyFromSource(cp, fileStr);
@@ -530,7 +542,7 @@ namespace OsEngine.Robots
             return result;
         }
 
-// Names Include Bots With Params
+        // Names Include Bots With Params
 
         public static List<string> GetNamesStrategyWithParametersSync()
         {
