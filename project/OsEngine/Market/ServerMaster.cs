@@ -252,7 +252,7 @@ namespace OsEngine.Market
                 }
                 if (type == ServerType.BitMax)
                 {
-                    newServer = new BitMaxServer();
+                    newServer = new BitMaxProServer();
                 }
                 if (type == ServerType.Transaq)
                 {

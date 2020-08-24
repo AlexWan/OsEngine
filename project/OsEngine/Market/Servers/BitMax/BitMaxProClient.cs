@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -10,7 +9,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OsEngine.Entity;
@@ -19,22 +17,19 @@ using OsEngine.Market.Servers.Entity;
 using RestSharp;
 using WebSocket4Net;
 
-
 namespace OsEngine.Market.Servers.BitMax
 {
-
-    public class BitMaxClient
+    public class BitMaxProClient
     {
-        public BitMaxClient(string pubKey, string secKey, bool isMargin)
+        public BitMaxProClient(string pubKey, string secKey)
         {
             _apiKey = pubKey;
             _secretKey = secKey;
-            _isMargin = isMargin;
         }
 
         private readonly string _apiKey;
         private readonly string _secretKey;
-        private readonly bool _isMargin;
+        //private readonly bool _isMargin;
 
         private readonly string _baseUrl = "https://bitmax.io/";
 
@@ -51,7 +46,7 @@ namespace OsEngine.Market.Servers.BitMax
             }
 
             // check server availability for HTTP communication with it / проверяем доступность сервера для HTTP общения с ним
-            Uri uri = new Uri(_baseUrl + "api/v1/assets");
+            Uri uri = new Uri(_baseUrl + "api/pro/v1/assets");
             try
             {
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
@@ -64,7 +59,7 @@ namespace OsEngine.Market.Servers.BitMax
                 return;
             }
 
-            _accountGroup = GetAccountGroup();
+            _accountGroup = GetAccountGroup().Account.AccountGroup;
 
             IsConnected = true;
 
@@ -78,7 +73,14 @@ namespace OsEngine.Market.Servers.BitMax
             converter.IsBackground = true;
             converter.Start();
 
-            CreateUserDataStream("ETH-BTC");
+            Thread publicConverter = new Thread(PublicDataConverter);
+            publicConverter.CurrentCulture = new CultureInfo("ru-RU");
+            publicConverter.IsBackground = true;
+            publicConverter.Start();
+
+            CreateDataStream();
+            Thread.Sleep(1000);
+            CreateUserDataStream();
         }
 
         /// <summary>
@@ -99,24 +101,28 @@ namespace OsEngine.Market.Servers.BitMax
         /// </summary>
         public void Dispose()
         {
-            foreach (var ws in _wsStreams)
+            if (_wsClient != null)
             {
-                ws.Opened -= StreamConnect;
-                ws.Closed -= Disconnect;
-                ws.Error -= WsError;
-                ws.MessageReceived -= GetRes;
-
-                ws.Close();
-                ws.Dispose();
+                _wsClient.Opened -= StreamConnect;
+                _wsClient.Closed -= Disconnect;
+                _wsClient.Error -= WsError;
+                _wsClient.MessageReceived -= GetRes;
+                _wsClient.Close();
+                _wsClient.Dispose();
             }
-            _wsStreams.Clear();
+
+            if (_privateStream != null)
+            {
+                _privateStream.Opened -= Connect;
+                _privateStream.Closed -= Disconnect;
+                _privateStream.Error -= WsError;
+                _privateStream.MessageReceived -= GetResUserData;
+                _privateStream.Close();
+                _privateStream.Dispose();
+            }
+
             IsConnected = false;
             _isDisposed = true;
-
-            if (Disconnected != null)
-            {
-                Disconnected();
-            }
         }
 
         private int _accountGroup;
@@ -124,11 +130,11 @@ namespace OsEngine.Market.Servers.BitMax
         /// <summary>
         /// получить групу, к которой принадлежит аккаунт
         /// </summary>
-        private int GetAccountGroup()
+        private AccountGroup GetAccountGroup()
         {
-            var userInfoMsg = GetData("user/info", true);
+            var userInfoMsg = GetData("info", true);
 
-            return JsonConvert.DeserializeAnonymousType(userInfoMsg, new AccGroup()).AccountGroup;
+            return JsonConvert.DeserializeAnonymousType(userInfoMsg, new AccountGroup());
         }
 
         public void GetSecurities()
@@ -136,7 +142,7 @@ namespace OsEngine.Market.Servers.BitMax
             try
             {
                 var result = GetData("products");
-                var securities = JsonConvert.DeserializeAnonymousType(result, new List<Product>());
+                var securities = JsonConvert.DeserializeAnonymousType(result, new RootProducts());
 
                 UpdateSecurities?.Invoke(securities);
             }
@@ -150,10 +156,17 @@ namespace OsEngine.Market.Servers.BitMax
         {
             try
             {
-                var result = GetData("balance", true, _accountGroup.ToString());
-                var portfolios = JsonConvert.DeserializeAnonymousType(result, new Accaunt());
+                var result = GetData( "margin/balance" , true, _accountGroup.ToString());
+
+                var portfolios = JsonConvert.DeserializeAnonymousType(result, new Wallets());
 
                 NewPortfoliosEvent?.Invoke(portfolios);
+
+                result = GetData("cash/balance", true, _accountGroup.ToString());
+
+                portfolios = JsonConvert.DeserializeAnonymousType(result, new Wallets());
+
+                NewSpotPortfoliosEvent?.Invoke(portfolios);
             }
             catch (Exception e)
             {
@@ -161,9 +174,24 @@ namespace OsEngine.Market.Servers.BitMax
             }
         }
 
+        public string GetRefPrices()
+        {
+            try
+            {
+                var result = GetData("margin/ref-price");
+                return result;
+            }
+            catch (Exception e)
+            {
+                SendLogMessage("An error occurred while trying to retrieve a ref-price. " + e.Message, LogMessageType.Error);
+                return null;
+            }
+        }
+
+
         string _candlesEndPoint = "barhist";
 
-        public List<BitMaxCandle> GetCandles(string security, string timeFrame, long startTimeStamp, long endTimeStamp)
+        public CandlesInfo GetCandles(string security, string timeFrame, long startTimeStamp, long endTimeStamp)
         {
             try
             {
@@ -171,7 +199,7 @@ namespace OsEngine.Market.Servers.BitMax
 
                 var res = GetData(_candlesEndPoint + candlesQuery);
 
-                return JsonConvert.DeserializeObject<List<BitMaxCandle>>(res);
+                return JsonConvert.DeserializeObject<CandlesInfo>(res);
             }
             catch (Exception e)
             {
@@ -184,48 +212,76 @@ namespace OsEngine.Market.Servers.BitMax
         /// execute order
         /// исполнить ордер
         /// </summary>
-        /// <param name="order"></param>
-        public OrderSendResult SendOrder(Order order, string needId)
+        public OrderPlaceResponse SendOrder(Order order, string needId)
         {
             var time = TimeManager.GetUnixTimeStampMilliseconds();
 
             JsonObject jsonContent = new JsonObject();
-            jsonContent.Add("coid", needId);
+            jsonContent.Add("id", needId);
             jsonContent.Add("time", time);
             jsonContent.Add("symbol", order.SecurityNameCode.Replace('-', '/'));
-            jsonContent.Add("orderPrice", order.Price.ToString(CultureInfo.InvariantCulture)
-                .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
             jsonContent.Add("orderQty", order.Volume.ToString(CultureInfo.InvariantCulture)
                 .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
-            jsonContent.Add("orderType", order.TypeOrder == OrderPriceType.Limit ? "limit" : "market");
+
+            if (order.TypeOrder == OrderPriceType.Limit)
+            {
+                jsonContent.Add("orderPrice", order.Price.ToString(CultureInfo.InvariantCulture)
+                    .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
+            }
+            string orderType = order.TypeOrder == OrderPriceType.Limit ? "limit" :
+                order.TypeOrder == OrderPriceType.Market ? "market" : "none";
+
+            jsonContent.Add("orderType", orderType);
             jsonContent.Add("side", order.Side == Side.Buy ? "buy" : "sell");
 
-            string endPoint = _isMargin ? "margin/order" : "order";
+            string endPoint = order.PortfolioNumber == "BitMaxMargin" ? "margin/order" : "cash/order";
 
             var res = GetData(endPoint, true, _accountGroup.ToString(), jsonContent.ToString(), needId, time.ToString(), Method.POST);
 
-            return JsonConvert.DeserializeObject<OrderSendResult>(res);
+            if (res == null)
+            {
+                return null;
+            }
+
+            return JsonConvert.DeserializeObject<OrderPlaceResponse>(res);
+        }
+
+        public OrdersHistoryResult CheckOrderState(Order order)
+        {
+            //GET <account-group>/api/pro/v1/{account-category}/order/hist/current
+            var time = TimeManager.GetUnixTimeStampMilliseconds();
+
+            JsonObject jsonContent = new JsonObject();
+            jsonContent.Add("n", 10);
+            jsonContent.Add("symbol", order.SecurityNameCode.Replace('-', '/'));
+
+
+            string endPoint = order.PortfolioNumber == "BitMaxMargin" ? "margin/order/hist/current" : "cash/order/hist/current";
+
+            var res = GetData(endPoint, true, _accountGroup.ToString(), null, null, time.ToString(), need: true);
+
+            return JsonConvert.DeserializeObject<OrdersHistoryResult>(res);
         }
 
         /// <summary>
         /// cancel order
         /// отменить ордер
         /// </summary>
-        public OrderSendResult CancelOrder(Order order, string needId)
+        public OrderPlaceResponse CancelOrder(Order order, string needId)
         {
             var time = TimeManager.GetUnixTimeStampMilliseconds();
 
             JsonObject jsonContent = new JsonObject();
-            jsonContent.Add("coid", needId);
+            jsonContent.Add("id", needId);
             jsonContent.Add("time", time);
-            jsonContent.Add("symbol", order.SecurityNameCode.Replace('-', '/'));
-            jsonContent.Add("origCoid", order.NumberMarket);
+            jsonContent.Add("symbol", order.SecurityNameCode);
+            jsonContent.Add("orderId", order.NumberMarket);
 
-            string endPoint = _isMargin ? "margin/order" : "order";
+            string endPoint = order.PortfolioNumber == "BitMaxMargin" ? "margin/order" : "cash/order";
 
             var res = GetData(endPoint, true, _accountGroup.ToString(), jsonContent.ToString(), needId, time.ToString(), Method.DELETE);
 
-            return JsonConvert.DeserializeObject<OrderSendResult>(res);
+            return JsonConvert.DeserializeObject<OrderPlaceResponse>(res);
         }
 
         /// <summary>
@@ -255,7 +311,8 @@ namespace OsEngine.Market.Servers.BitMax
         /// <param name="time">timestamp / временная метка</param>
         /// <param name="method">request method / метод запроса</param>
         /// <returns>server response / ответ от сервера</returns>
-        private string GetData(string apiPath, bool auth = false, string accGroup = null, string jsonContent = null, string orderId = null, string time = null, Method method = Method.GET)
+        private string GetData(string apiPath, bool auth = false, string accGroup = null, string jsonContent = null,
+            string orderId = null, string time = null, Method method = Method.GET, bool need = false)
         {
             lock (_queryLocker)
             {
@@ -267,7 +324,7 @@ namespace OsEngine.Market.Servers.BitMax
 
                     if (!auth)
                     {
-                        uri = new Uri(_baseUrl + "api/v1/" + apiPath);
+                        uri = new Uri(_baseUrl + "api/pro/v1/" + apiPath);
 
                         httpWebRequest = (HttpWebRequest)WebRequest.Create(uri);
                     }
@@ -275,11 +332,18 @@ namespace OsEngine.Market.Servers.BitMax
                     {
                         if (accGroup == null)
                         {
-                            uri = new Uri(_baseUrl + "api/v1/" + apiPath);
+                            uri = new Uri(_baseUrl + "api/pro/v1/" + apiPath);
                         }
                         else
                         {
-                            uri = new Uri(_baseUrl + accGroup + "/" + "api/v1/" + apiPath);
+                            var str = _baseUrl + accGroup + "/" + "api/pro/v1/" + apiPath;
+
+                            if (need)
+                            {
+                                str += "?n=10&executedOnly=True";
+                            }
+
+                            uri = new Uri(str);
                         }
 
                         string timestamp;
@@ -301,7 +365,20 @@ namespace OsEngine.Market.Servers.BitMax
                         }
                         else
                         {
-                            signatureMsg = timestamp + "+" + apiPath + "+" + orderId;
+                            //signatureMsg = timestamp + "+" + apiPath + "+" + orderId;
+                            signatureMsg = timestamp + "+" + "order";
+                        }
+
+                        if (signatureMsg.EndsWith("cash/balance"))
+                        {
+                            signatureMsg = signatureMsg.Replace("cash/", "");
+                            //signatureMsg = signatureMsg.Remove(signatureMsg.Length - 11, 4);
+                        }
+
+                        if (signatureMsg.EndsWith("margin/balance"))
+                        {
+                            signatureMsg = signatureMsg.Replace("margin/", "");
+                            //signatureMsg = signatureMsg.Remove(signatureMsg.Length - 13, 6);
                         }
 
 
@@ -367,10 +444,19 @@ namespace OsEngine.Market.Servers.BitMax
         #region Data streams
 
         /// <summary>
-        /// data stream collection
-        /// коллекция потоков данных
+        /// subscribe this security to get depths and trades
+        /// подписать данную бумагу на получение стаканов и трейдов
         /// </summary>
-        private List<WebSocket> _wsStreams = new List<WebSocket>();
+        public void SubscribeTradesAndDepths(string security)
+        {
+            var subMsg = SubscribeMsg.Replace("message",$"depth:{security}");
+            _wsClient?.Send(subMsg);
+
+            subMsg = SubscribeMsg.Replace("message", $"trades:{security}");
+            _wsClient?.Send(subMsg);
+        }
+
+        private WebSocket _wsClient;
 
         private string _wsUri = "wss://bitmax.io/";
 
@@ -378,67 +464,19 @@ namespace OsEngine.Market.Servers.BitMax
         /// create data stream
         /// создать поток данных
         /// </summary>
-        private void CreateDataStream(string security)
+        private void CreateDataStream()
         {
+            _wsClient = new WebSocket(_wsUri + "api/pro/v1/stream");
 
-            WebSocket wsClient = new WebSocket(_wsUri + "/api/public/" + security);
+            _wsClient.Opened += StreamConnect;
 
-            wsClient.Opened += StreamConnect;
+            _wsClient.Closed += Disconnect;
 
-            wsClient.Closed += Disconnect;
+            _wsClient.Error += WsError;
 
-            wsClient.Error += WsError;
+            _wsClient.MessageReceived += GetRes;
 
-            wsClient.MessageReceived += GetRes;
-
-            wsClient.Open();
-
-            _wsStreams.Add(wsClient);
-        }
-
-        private WebSocket _privateStream;
-
-        /// <summary>
-        /// create data stream
-        /// создать поток данных
-        /// </summary>
-        private void CreateUserDataStream(string security)
-        {
-            var timeStamp = TimeManager.GetUnixTimeStampMilliseconds();
-            var msg = $"{timeStamp}+api/stream";
-
-            List<KeyValuePair<string, string>> headers = new List<KeyValuePair<string, string>>();
-
-            headers.Add(new KeyValuePair<string, string>("x-auth-key", _apiKey));
-            headers.Add(new KeyValuePair<string, string>("x-auth-signature", CreateSignature(msg)));
-            headers.Add(new KeyValuePair<string, string>("x-auth-timestamp", timeStamp.ToString()));
-
-            _privateStream = new WebSocket(_wsUri + _accountGroup + "/api/stream/" + security, customHeaderItems: headers);
-
-            _privateStream.Opened += Connect;
-
-            _privateStream.Closed += Disconnect;
-
-            _privateStream.Error += WsError;
-
-            _privateStream.MessageReceived += GetRes;
-
-            _privateStream.Open();
-
-            _wsStreams.Add(_privateStream);
-        }
-
-        private const string SubscribeMsg = "{\"messageType\": \"subscribe\" ,\"marketDepthLevel\": 20, \"recentTradeMaxCount\": 1 }";
-
-        /// <summary>
-        /// ws-connection is opened
-        /// соединение по ws открыто
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void Connect(object sender, EventArgs e)
-        {
-
+            _wsClient.Open();
         }
 
         /// <summary>
@@ -449,16 +487,87 @@ namespace OsEngine.Market.Servers.BitMax
         /// <param name="e"></param>
         private void StreamConnect(object sender, EventArgs e)
         {
-            var stream = (WebSocket)sender;
-            var needStream = _wsStreams.Find(ws => ws.Equals(stream));
-
-            if (needStream == null)
-            {
-                return;
-            }
-
-            needStream.Send(SubscribeMsg);
+            SendLogMessage("Public data channel open: " + e, LogMessageType.Connect);
         }
+
+        /// <summary>
+        /// error from ws4net
+        /// ошибка из ws4net
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void WsError(object sender, EventArgs e)
+        {
+            SendLogMessage("Error from ws4net : " + e, LogMessageType.Error);
+        }
+
+        private WebSocket _privateStream;
+
+        /// <summary>
+        /// create data stream
+        /// создать поток данных
+        /// </summary>
+        private void CreateUserDataStream()
+        {
+            //var timeStamp = TimeManager.GetUnixTimeStampMilliseconds();
+            //var msg = $"{timeStamp}+api/pro/v1/stream";
+
+            //List<KeyValuePair<string, string>> headers = new List<KeyValuePair<string, string>>();
+
+            //headers.Add(new KeyValuePair<string, string>("x-auth-key", _apiKey));
+            //headers.Add(new KeyValuePair<string, string>("x-auth-signature", CreateSignature(msg)));
+            //headers.Add(new KeyValuePair<string, string>("x-auth-timestamp", timeStamp.ToString()));
+
+            //_privateStream = new WebSocket(_wsUri + _accountGroup + "/api/pro/v1/stream", customHeaderItems: headers);
+
+            _privateStream = new WebSocket(_wsUri + _accountGroup + "/api/pro/v1/stream");
+
+            _privateStream.Opened += Connect;
+
+            _privateStream.Closed += Disconnect;
+
+            _privateStream.Error += WsPrivateError;
+
+            _privateStream.MessageReceived += GetResUserData;
+
+            _privateStream.Open();
+
+        }
+
+        private void WsPrivateError(object sender, EventArgs e)
+        {
+            SendLogMessage("Error from private ws4net : " + e, LogMessageType.Error);
+        }
+
+        private string _privateSubscribeMsg = "{ \"op\": \"sub\", \"ch\":\"order:*\" }";
+
+        /// <summary>
+        /// ws-connection is opened
+        /// соединение по ws открыто
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Connect(object sender, EventArgs e)
+        {
+            //{"op":"auth", "t": 1596191045220, "key": "8NGs9CWYwP9XZq3aIsl1EGtgOg6XMy1H", "sig": "n6GO+C3LxF5PspGVp+VV4QuBRJUX6GSAJBEbbrCHgU0="}
+            var timeStamp = TimeManager.GetUnixTimeStampMilliseconds();
+
+            var msg = $"{timeStamp}+stream";
+
+            var auth = $"{{\"op\":\"auth\", \"t\": {timeStamp}, \"key\": \"{_apiKey}\", \"sig\": \"{CreateSignature(msg)}\"}}";
+
+            _privateStream.Send(auth);
+            
+            var subStr = _privateSubscribeMsg.Replace("*", "margin");
+
+            _privateStream.Send(subStr);
+
+            subStr = _privateSubscribeMsg.Replace("*", "cash");
+
+            _privateStream.Send(subStr);
+        }
+
+        private const string SubscribeMsg = "{\"op\":\"sub\" ,\"ch\":\"message\",  }";
 
         /// <summary>
         /// ws-connection is closed
@@ -480,54 +589,100 @@ namespace OsEngine.Market.Servers.BitMax
         }
 
         /// <summary>
-        /// error from ws4net
-        /// ошибка из ws4net
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void WsError(object sender, EventArgs e)
-        {
-            SendLogMessage("Error from ws4net : " + e, LogMessageType.Error);
-        }
-
-        /// <summary>
         /// queue of new messages from the exchange server
         /// очередь новых сообщений, пришедших с сервера биржи
         /// </summary>
-        private ConcurrentQueue<string> _newMessage = new ConcurrentQueue<string>();
-
-        private readonly object _resLocker = new object();
-
+        private readonly ConcurrentQueue<string> _newMessage = new ConcurrentQueue<string>();
+        
         /// <summary>
         /// takes messages that came through ws and puts them in a general queue
         /// берет пришедшие через ws сообщения и кладет их в общую очередь
         /// </summary>        
         private void GetRes(object sender, MessageReceivedEventArgs e)
         {
-            lock (_resLocker)
-            {
-                if (_isDisposed)
-                {
-                    return;
-                }
-                _newMessage.Enqueue(e.Message);
+            if (_isDisposed)
+            { 
+                return;
             }
+            _newMessage.Enqueue(e.Message);
         }
 
         /// <summary>
-        /// subscribe this security to get depths and trades
-        /// подписать данную бумагу на получение стаканов и трейдов
-        /// </summary>
-        public void SubscribeTradesAndDepths(string security)
+        /// takes messages that came through ws and puts them in a general queue
+        /// берет пришедшие через ws сообщения и кладет их в общую очередь
+        /// </summary>        
+        private void GetResUserData(object sender, MessageReceivedEventArgs e)
         {
-            CreateDataStream(security);
+            if (_isDisposed)
+            {
+                return;
+            }
+            _newPrivateMessage.Enqueue(e.Message);
         }
 
+        private BitMaxMarketDepthCreator _depthCreator = new BitMaxMarketDepthCreator();
+
+        private readonly ConcurrentQueue<string> _newPrivateMessage = new ConcurrentQueue<string>();
+        
         /// <summary>
         /// takes messages from the general queue, converts them to C # classes and sends them to up
         /// берет сообщения из общей очереди, конвертирует их в классы C# и отправляет на верх
         /// </summary>
         public void Converter()
+        {
+            while (true)
+            {
+                try
+                {
+                    if (!_newPrivateMessage.IsEmpty)
+                    {
+                        string mes;
+
+                        if (_newPrivateMessage.TryDequeue(out mes))
+                        {
+                            if (mes.StartsWith("{\"m\"" + ":" + "\"ping\""))
+                            {
+                                _privateStream.Send("{ \"op\": \"pong\" }");
+                                continue;
+                            }
+                            if (mes.StartsWith("{\"m\"" + ":" + "\"order\""))
+                            {
+                                var order = JsonConvert.DeserializeAnonymousType(mes, new OrderState());
+
+                                if (MyOrderEvent != null)
+                                {
+                                    MyOrderEvent(order);
+                                }
+                                continue;
+                            }
+                            if (mes.StartsWith("{\"m\"" + ":" + "\"disconnected\""))
+                            {
+                                Disconnected?.Invoke();
+                            }
+                            if (mes.Contains("error"))
+                            {
+                                SendLogMessage(mes, LogMessageType.Error);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (_isDisposed)
+                        {
+                            return;
+                        }
+                        Thread.Sleep(1);
+                    }
+                }
+
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                }
+            }
+        }
+
+        public void PublicDataConverter()
         {
             while (true)
             {
@@ -539,20 +694,22 @@ namespace OsEngine.Market.Servers.BitMax
 
                         if (_newMessage.TryDequeue(out mes))
                         {
+                            if (mes.StartsWith("{\"m\"" + ":" + "\"ping\""))
+                            {
+                                _wsClient.Send("{ \"op\": \"pong\" }");
+                                continue;
+                            }
                             if (mes.StartsWith("{\"m\"" + ":" + "\"depth\""))
                             {
-                                var depth = JsonConvert.DeserializeAnonymousType(mes, new Depth());
-
                                 if (UpdateMarketDepth != null)
                                 {
-                                    UpdateMarketDepth(depth);
+                                    UpdateMarketDepth(_depthCreator.Create(mes));
                                 }
                                 continue;
                             }
-
-                            if (mes.StartsWith("{\"m\"" + ":" + "\"marketTrades\""))
+                            if (mes.StartsWith("{\"m\"" + ":" + "\"trades\""))
                             {
-                                var quotes = JsonConvert.DeserializeAnonymousType(mes, new Trades());
+                                var quotes = JsonConvert.DeserializeAnonymousType(mes, new TradeInfo());
 
                                 if (NewTradesEvent != null)
                                 {
@@ -560,18 +717,14 @@ namespace OsEngine.Market.Servers.BitMax
                                 }
                                 continue;
                             }
-
-                            if (mes.StartsWith("{\"m\"" + ":" + "\"order\""))
+                            if (mes.StartsWith("{\"m\":\"summary\""))
                             {
-                                var order = JsonConvert.DeserializeAnonymousType(mes, new BitMaxOrder());
-
-                                if (NewTradesEvent != null)
-                                {
-                                    MyOrderEvent(order);
-                                }
                                 continue;
                             }
-
+                            if (mes.StartsWith("{\"m\":\"bar\""))
+                            {
+                                continue;
+                            }
                             if (mes.Contains("error"))
                             {
                                 SendLogMessage(mes, LogMessageType.Error);
@@ -602,31 +755,37 @@ namespace OsEngine.Market.Servers.BitMax
         /// my new orders
         /// новые мои ордера
         /// </summary>
-        public event Action<BitMaxOrder> MyOrderEvent;
+        public event Action<OrderState> MyOrderEvent;
 
         /// <summary>
         /// new portfolios
         /// новые портфели
         /// </summary>
-        public event Action<Accaunt> NewPortfoliosEvent;
+        public event Action<Wallets> NewPortfoliosEvent;
+
+        /// <summary>
+        /// new portfolios
+        /// новые портфели
+        /// </summary>
+        public event Action<Wallets> NewSpotPortfoliosEvent;
 
         /// <summary>
         /// new security in the system
         /// новые бумаги в системе
         /// </summary>
-        public event Action<List<Product>> UpdateSecurities;
+        public event Action<RootProducts> UpdateSecurities;
 
         /// <summary>
         /// depth updated
         /// обновился стакан
         /// </summary>
-        public event Action<Depth> UpdateMarketDepth;
+        public event Action<MarketDepth> UpdateMarketDepth;
 
         /// <summary>
         /// ticks updated
         /// обновились тики
         /// </summary>
-        public event Action<Trades> NewTradesEvent;
+        public event Action<TradeInfo> NewTradesEvent;
 
         /// <summary>
         /// API connection established

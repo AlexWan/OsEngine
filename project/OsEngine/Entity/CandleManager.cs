@@ -431,7 +431,7 @@ namespace OsEngine.Entity
                         }
                         else if (serverType == ServerType.BitMax)
                         {
-                            BitMaxServer bitMax = (BitMaxServer)_server;
+                            BitMaxProServer bitMax = (BitMaxProServer)_server;
                             if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
                                 series.TimeFrameSpan.TotalMinutes < 1)
                             {
