@@ -402,6 +402,25 @@ namespace OsEngine.Robots
                     return null;
                 });
 
+                for (int i = 0; i < res.Length; i++)
+                {
+                    if (string.IsNullOrEmpty(res[i]))
+                    {
+                        List<string> list = res.ToList();
+                        list.RemoveAt(i);
+                        res = list.ToArray();
+                        i--;
+                    }
+
+                    if (res[i].Contains("System.Runtime.Serialization"))
+                    {
+                        List<string> list = res.ToList();
+                        list.RemoveAt(i);
+                        res = list.ToArray();
+                        i--;
+                    }
+                }
+
                 CompilerParameters cp = new CompilerParameters(res);
 
                 // Помечаем сборку, как временную
@@ -450,7 +469,7 @@ namespace OsEngine.Robots
                 if (results.Errors != null && results.Errors.Count != 0)
                 {
                     string errorString = "Error! Robot script runTime compilation problem! \n";
-                    errorString += "Path to indicator: " + path + " \n";
+                    errorString += "Path to Robot: " + path + " \n";
 
                     int errorNum = 1;
 

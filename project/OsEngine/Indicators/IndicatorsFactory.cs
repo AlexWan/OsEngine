@@ -157,6 +157,25 @@ namespace OsEngine.Indicators
                     return null;
                 });
 
+                for (int i = 0; i < res.Length; i++)
+                {
+                    if (string.IsNullOrEmpty(res[i]))
+                    {
+                        List<string> list = res.ToList();
+                        list.RemoveAt(i);
+                        res = list.ToArray();
+                        i--;
+                    }
+
+                    if (res[i].Contains("System.Runtime.Serialization"))
+                    {
+                        List<string> list = res.ToList();
+                        list.RemoveAt(i);
+                        res = list.ToArray();
+                        i--;
+                    }
+                }
+
                 CompilerParameters cp = new CompilerParameters(res);
                 cp.IncludeDebugInformation = true;
                 cp.GenerateInMemory = true;
