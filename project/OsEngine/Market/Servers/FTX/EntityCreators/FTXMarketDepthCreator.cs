@@ -18,7 +18,7 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
             var bids = data.SelectTokens(BidsPath).Children();
             var asks = data.SelectTokens(AsksPath).Children();
 
-            marketDepth.Time = TimeManager.GetDateTimeFromTimeStampSeconds(Convert.ToInt64(time));
+            marketDepth.Time = TimeManager.GetDateTimeFromTimeStampSeconds(Convert.ToInt64(time)).ToLocalTime();
 
             foreach (var bid in bids)
             {
