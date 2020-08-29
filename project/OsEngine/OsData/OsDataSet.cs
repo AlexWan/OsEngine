@@ -2076,15 +2076,9 @@ namespace OsEngine.OsData
                 {
                     return;
                 }
-                if ( _selectedTf != TimeFrame.Sec1 &&
-                    _selectedTf != TimeFrame.Sec2 &&
-                    _selectedTf != TimeFrame.Sec5 &&
-                    _selectedTf != TimeFrame.Sec10 &&
-                    _selectedTf != TimeFrame.Sec15 &&
-                    _selectedTf != TimeFrame.Sec30)
-                {
-                    _chartMaster.SetCandles(series.Candles);
-                }
+                
+                _chartMaster.SetCandles(series.Candles);
+                
                 
             }
             catch (Exception error)
