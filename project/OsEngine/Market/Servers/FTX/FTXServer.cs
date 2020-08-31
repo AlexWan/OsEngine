@@ -173,7 +173,6 @@ namespace OsEngine.Market.Servers.FTX
                 if (_lastTimeUpdateSocket.AddSeconds(60) < DateTime.Now)
                 {
                     SendLogMessage("The websocket is disabled. Restart", LogMessageType.Error);
-                    Dispose();
                     OnDisconnectEvent();
                     return;
                 }
@@ -222,10 +221,12 @@ namespace OsEngine.Market.Servers.FTX
                 List<Candle> newCandles = _candlesCreator.Create(histaricalPricesResponse.SelectToken("result"));
 
                 if (newCandles != null && newCandles.Count != 0)
+                {
                     candles.AddRange(newCandles);
 
-                actualTime = candles[candles.Count - 1].TimeStart.AddSeconds(needInterval);
-                midTime = actualTime + step;
+                    actualTime = candles[candles.Count - 1].TimeStart.AddSeconds(needInterval);
+                    midTime = actualTime + step;
+                }
                 Thread.Sleep(1000);
             }
 
@@ -592,10 +593,9 @@ namespace OsEngine.Market.Servers.FTX
                     security.Name,
                     isUtcTime: true);
 
-                newTrades.Reverse();
-
                 if(newTrades != null && newTrades.Any())
                 {
+                    newTrades.Reverse();
                     trades.InsertRange(0, newTrades);
                 }
                 else

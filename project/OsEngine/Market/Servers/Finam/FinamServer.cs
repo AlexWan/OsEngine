@@ -434,6 +434,7 @@ namespace OsEngine.Market.Servers.Finam
             for (int i = 0; i < arrayIds.Length; i++)
             {
                 _finamSecurities.Add(new FinamSecurity());
+
                 _finamSecurities[i].Code = arrayCodes[i].TrimStart('\'').TrimEnd('\''); 
                 _finamSecurities[i].Decp = arrayDecp[i].Split(':')[1];
                 _finamSecurities[i].EmitentChild = arrayEmitentChild[i];
@@ -442,6 +443,23 @@ namespace OsEngine.Market.Servers.Finam
                 _finamSecurities[i].Url = arrayEmitentUrls[i].Split(':')[1];
 
                 _finamSecurities[i].MarketId = arrayMarkets[i];
+
+                if (_finamSecurities[i].MarketId == "7")
+                {
+                    _finamSecurities[i].Name =
+                        _finamSecurities[i].Name.Replace("*", "")
+                            .Replace("-", "")
+                            .Replace("_", "")
+                            .ToUpper();
+
+                    _finamSecurities[i].Code = _finamSecurities[i].Name;
+
+                    if (_finamSecurities[i].Name == "MINI D&JFUT")
+                    {
+                        _finamSecurities[i].Code = "DANDI.MINIFUT";
+                    }
+
+                }
 
                 if (Convert.ToInt32(arrayMarkets[i]) == 200)
                 {
@@ -593,6 +611,7 @@ namespace OsEngine.Market.Servers.Finam
                 {
                     continue;
                 }
+
                 Security sec = new Security();
                 sec.NameFull = _finamSecurities[i].Code;
                 sec.Name = _finamSecurities[i].Name;
@@ -1765,8 +1784,58 @@ namespace OsEngine.Market.Servers.Finam
             //http://195.128.78.52/GBPUSD_141201_141206.csv?market=5&em=86&code=GBPUSD&df=1&mf=11&yf=2014&from=01.12.2014&dt=6&mt=11&yt=2014&to=06.12.2014&
             //p=2&f=GBPUSD_141201_141206&e=.csv&cn=GBPUSD&dtf=1&tmf=3&MSOR=1&mstime=on&mstimever=1&sep=3&sep2=1&datf=5&at=1
 
-            string timeStartInStrToName = timeStart.Year.ToString()[2].ToString() + timeStart.Year.ToString()[3].ToString() + timeStart.Month + TimeStart.Day;
-            string timeEndInStrToName = timeEnd.Year.ToString()[2].ToString() + timeEnd.Year.ToString()[3].ToString() + timeEnd.Month + TimeStart.Day;
+            string monthStart = "";
+            string dayStart = "";
+
+            if (timeStart.Month.ToString().Length == 1)
+            {
+                monthStart += "0" + timeStart.Month;
+            }
+            else
+            {
+                monthStart += timeStart.Month;
+            }
+
+            if (TimeStart.Day.ToString().Length == 1)
+            {
+                dayStart += "0" + TimeStart.Day;
+            }
+            else
+            {
+                dayStart += TimeStart.Day;
+            }
+
+
+            string timeStartInStrToName =
+                timeStart.Year.ToString()[2].ToString()
+                + timeStart.Year.ToString()[3].ToString()
+                + monthStart + dayStart;
+
+            string monthEnd = "";
+            string dayEnd = "";
+
+            if (timeEnd.Month.ToString().Length == 1)
+            {
+                monthEnd += "0" + timeEnd.Month;
+            }
+            else
+            {
+                monthEnd += timeEnd.Month;
+            }
+
+            if (timeEnd.Day.ToString().Length == 1)
+            {
+                dayEnd += "0" + timeEnd.Day;
+            }
+            else
+            {
+                dayEnd += timeEnd.Day;
+            }
+
+            string timeEndInStrToName = timeEnd.Year.ToString()[2].ToString()
+                                        + timeEnd.Year.ToString()[3].ToString()
+                                        + monthEnd
+                                        + dayEnd;
 
             string timeFrom = timeStart.ToShortDateString();
             string timeTo = timeEnd.ToShortDateString();

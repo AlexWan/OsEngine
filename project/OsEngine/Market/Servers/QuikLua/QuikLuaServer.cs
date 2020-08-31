@@ -164,6 +164,7 @@ namespace OsEngine.Market.Servers.QuikLua
             }
 
             DateTime lastWriteTime = File.GetLastWriteTime(SecuritiesCachePath);
+           
             return DateTime.Now < lastWriteTime.AddHours(1);
         }
 
@@ -257,7 +258,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     newSec.SecurityType = SecurityType.Stock;
                 }
 
-                newSec.Name = oneSec.SecCode + "@" + oneSec.ClassCode;
+                newSec.Name = oneSec.SecCode + "_" + oneSec.ClassCode;
                 newSec.NameFull = oneSec.Name;
                 newSec.NameId = oneSec.Name;
 
@@ -514,7 +515,7 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             QuikSharp.DataStructures.Transaction.Order qOrder = new QuikSharp.DataStructures.Transaction.Order();
 
-            qOrder.SecCode = order.SecurityNameCode.Split('@')[0];
+            qOrder.SecCode = order.SecurityNameCode.Split('_')[0];
             qOrder.Account = order.PortfolioNumber;
             qOrder.ClassCode = _securities.Find(sec => sec.Name == order.SecurityNameCode).NameClass;
             qOrder.Quantity = Convert.ToInt32(order.Volume);
@@ -555,7 +556,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
             QuikSharp.DataStructures.Transaction.Order qOrder = new QuikSharp.DataStructures.Transaction.Order();
 
-            qOrder.SecCode = order.SecurityNameCode.Split('@')[0];
+            qOrder.SecCode = order.SecurityNameCode.Split('_')[0];
             qOrder.Account = order.PortfolioNumber;
             qOrder.ClassCode = _securities.Find(sec => sec.Name == order.SecurityNameCode).NameClass;
 
@@ -586,7 +587,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
             lock (_serverLocker)
             {
-                QuikLua.OrderBook.Subscribe(security.NameClass, security.Name.Split('@')[0]);
+                QuikLua.OrderBook.Subscribe(security.NameClass, security.Name.Split('_')[0]);
                 subscribedBook.Add(security.Name);
                 QuikLua.Events.OnAllTrade -= EventsOnOnAllTrade;
                 QuikLua.Events.OnAllTrade += EventsOnOnAllTrade;
@@ -608,6 +609,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
         public void GetOrdersState(List<Order> orders)
         {
+
         }
 
         /// <summary>
@@ -635,7 +637,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 {
                     string classCode = needSec.NameClass;
 
-                    var allCandlesForSec = QuikLua.Candles.GetAllCandles(classCode, needSec.Name.Split('@')[0], CandleInterval.TICK).Result;
+                    var allCandlesForSec = QuikLua.Candles.GetAllCandles(classCode, needSec.Name.Split('_')[0], CandleInterval.TICK).Result;
 
                     for (int i = 0; i < allCandlesForSec.Count; i++)
                     {
@@ -740,7 +742,7 @@ namespace OsEngine.Market.Servers.QuikLua
                         _candles = new List<Candle>();
                         string classCode = needSec.NameClass;
 
-                        var allCandlesForSec = QuikLua.Candles.GetAllCandles(classCode, needSec.Name.Split('@')[0], tf).Result;
+                        var allCandlesForSec = QuikLua.Candles.GetAllCandles(classCode, needSec.Name.Split('_')[0], tf).Result;
 
                         for (int i = 0; i < allCandlesForSec.Count; i++)
                         {
@@ -810,7 +812,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 lock (_newTradesLoker)
                 {
                     Trade trade = new Trade();
-                    trade.SecurityNameCode = allTrade.SecCode + "@" + allTrade.ClassCode;
+                    trade.SecurityNameCode = allTrade.SecCode + "_" + allTrade.ClassCode;
                     trade.Id = allTrade.TradeNum.ToString();
                     trade.Price = Convert.ToDecimal(allTrade.Price);
                     trade.Volume = Convert.ToInt32(allTrade.Qty);
@@ -911,7 +913,7 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             lock (quoteLock)
             {
-                string curName = orderBook.sec_code + "@" + orderBook.class_code;
+                string curName = orderBook.sec_code + "_" + orderBook.class_code;
 
                 if (subscribedBook.Find(name => name == curName) == null)
                 {
@@ -976,7 +978,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     order.NumberUser = Convert.ToInt32(qOrder.TransID); //Convert.qOrder.OrderNum;TransID
                     order.NumberMarket = qOrder.OrderNum.ToString(new CultureInfo("ru-RU"));
                     order.TimeCallBack = ServerTime;
-                    order.SecurityNameCode = qOrder.SecCode + "@" + qOrder.ClassCode;
+                    order.SecurityNameCode = qOrder.SecCode + "_" + qOrder.ClassCode;
                     order.Price = qOrder.Price;
                     order.Volume = qOrder.Quantity;
                     order.VolumeExecute = qOrder.Quantity - qOrder.Balance;
@@ -1050,7 +1052,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 {
                     MyTrade trade = new MyTrade();
                     trade.NumberTrade = qTrade.TradeNum.ToString();
-                    trade.SecurityNameCode = qTrade.SecCode + "@" + qTrade.ClassCode;
+                    trade.SecurityNameCode = qTrade.SecCode + "_" + qTrade.ClassCode;
                     trade.NumberOrderParent = qTrade.OrderNum.ToString();
                     trade.Price = Convert.ToDecimal(qTrade.Price);
                     trade.Volume = qTrade.Quantity;

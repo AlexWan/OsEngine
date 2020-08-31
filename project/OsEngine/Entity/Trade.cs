@@ -110,8 +110,13 @@ namespace OsEngine.Entity
             result += Price.ToString(CultureInfo.InvariantCulture) + ",";
             result += Volume.ToString(CultureInfo.InvariantCulture) + ",";
             result += Side + ",";
-            result += MicroSeconds + ",";
-            result += Id;
+            result += MicroSeconds;
+
+            if (Id != null)
+            {
+                result += ",";
+                result += Id;
+            }
 
             if (Bid != 0 && Ask != 0 &&
                 BidsVolume != 0 && AsksVolume != 0)

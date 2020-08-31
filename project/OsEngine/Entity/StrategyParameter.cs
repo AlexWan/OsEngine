@@ -852,8 +852,6 @@ namespace OsEngine.Entity
         public event Action UserClickOnButtonEvent;
     }
 
-
-
     /// <summary>
     /// parameter type
     /// тип параметра
