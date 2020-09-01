@@ -39,23 +39,7 @@ namespace CustomIndicators.Scripts
             }
 
             decimal value = 0;
-            if (_candlePoint.ValueString == "Close")
-            {
-                value = (candles[index].Close / candles[index - _length.ValueInt].Close) * 100;
-            }
-            if (_candlePoint.ValueString == "Open")
-            {
-                value = candles[index].Open / candles[index - _length.ValueInt].Open * 100;
-            }
-            if (_candlePoint.ValueString == "High")
-            {
-                value = candles[index].High / candles[index - _length.ValueInt].High * 100;
-            }
-            if (_candlePoint.ValueString == "Low")
-            {
-                value = candles[index].Low / candles[index - _length.ValueInt].Low * 100;
-            }
-
+            value = (candles[index].GetPoint(_candlePoint.ValueString) / candles[index - _length.ValueInt].GetPoint(_candlePoint.ValueString)) * 100;
 
             return Math.Round(value, 2);
         }

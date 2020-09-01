@@ -14,6 +14,7 @@ namespace CustomIndicators.Scripts
         private IndicatorDataSeries _seriesToLine;
         private IndicatorDataSeries _seriesZigZagHighs;
         private IndicatorDataSeries _seriesZigZagLows;
+        private StartProgram _startProgram;
 
         public override void OnStateChange(IndicatorState state)
         {
@@ -123,7 +124,7 @@ namespace CustomIndicators.Scripts
                 lastSwingIndex = index;
                 lastSwingPrice = saveValue;
 
-                if (updateHigh || updateLow)
+                if (_startProgram == StartProgram.IsOsTrader && (updateHigh || updateLow))
                 {
                     ReBuildLine(_seriesZigZag.Values, _seriesToLine.Values);
                 }
