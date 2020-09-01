@@ -83,20 +83,9 @@ namespace OsEngine.Market.Servers.FTX.FtxApi
 
             return ParseResponce(result);
         }
-
-        public async Task<JToken> GetHistoricalPricesAsync(string futureName, int resolution, int limit, DateTime start, DateTime end)
-        {
-            var resultString = $"api/futures/{futureName}/mark_candles?resolution={resolution}&limit={limit}&start_time={Util.Util.GetSecondsFromEpochStart(start)}&end_time={Util.Util.GetSecondsFromEpochStart(end)}";
-
-            var result = await CallAsync(HttpMethod.Get, resultString);
-
-            return ParseResponce(result);
-        }
-
         #endregion
 
         #region Markets
-
         public async Task<JToken> GetMarketsAsync()
         {
             var resultString = $"api/markets";
@@ -133,10 +122,18 @@ namespace OsEngine.Market.Servers.FTX.FtxApi
             return ParseResponce(result);
         }
 
+        public async Task<JToken> GetHistoricalPricesAsync(string marketName, int resolution, int limit, DateTime start, DateTime end)
+        {
+            var resultString = $"api/markets/{marketName}/candles?resolution={resolution}&limit={limit}&start_time={Util.Util.GetSecondsFromEpochStart(start)}&end_time={Util.Util.GetSecondsFromEpochStart(end)}";
+
+            var result = await CallAsync(HttpMethod.Get, resultString);
+
+            return ParseResponce(result);
+        }
         #endregion
 
         #region Account
-        
+
         public async Task<JToken> GetAccountInfoAsync()
         {
             var resultString = $"api/account";

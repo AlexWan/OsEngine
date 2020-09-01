@@ -1161,7 +1161,14 @@ namespace OsEngine.Market.Servers.Transaq
                         decimal.TryParse(securityData.Point_cost, NumberStyles.Float, CultureInfo.InvariantCulture, out pointCost);
                     }
 
-                    security.PriceStepCost = security.PriceStep * pointCost / 100;
+                    if (security.PriceStep > 1)
+                    {
+                        security.PriceStepCost = security.PriceStep * pointCost / 100;
+                    }
+                    else
+                    {
+                        security.PriceStepCost = pointCost / 100;
+                    }
 
                     security.State = securityData.Active == "true" ? SecurityStateType.Activ : SecurityStateType.Close;
 

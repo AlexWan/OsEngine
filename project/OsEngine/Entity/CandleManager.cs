@@ -324,13 +324,15 @@ namespace OsEngine.Entity
                             if (series.CandleCreateMethodType != CandleCreateMethodType.Simple || 
                                 series.TimeFrameSpan.TotalMinutes < 1)
                             {
-                                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
-
-                                series.PreLoad(allTrades);
+                                List<Trade> allTrades = luaServ.GetQuikLuaTickHistory(series.Security);
+                                if (allTrades != null && allTrades.Count != 0)
+                                {
+                                    series.PreLoad(allTrades);
+                                }
                             }
                             else
                             {
-                                List<Candle> candles = luaServ.GetQuikLuaCandleHistory(series.Security.Name,
+                                List<Candle> candles = luaServ.GetQuikLuaCandleHistory(series.Security,
                                     series.TimeFrameSpan);
                                 if (candles != null)
                                 {
@@ -429,7 +431,7 @@ namespace OsEngine.Entity
                         }
                         else if (serverType == ServerType.BitMax)
                         {
-                            BitMaxServer bitMax = (BitMaxServer)_server;
+                            BitMaxProServer bitMax = (BitMaxProServer)_server;
                             if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
                                 series.TimeFrameSpan.TotalMinutes < 1)
                             {

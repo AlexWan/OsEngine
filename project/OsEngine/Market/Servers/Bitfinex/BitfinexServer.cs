@@ -35,7 +35,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         /// <returns></returns>
         public List<Candle> GetCandleHistory(string securityName, TimeSpan seriesTimeFrameSpan)
         {
-           return ((BitfinexServerRealization)ServerRealization).GetCandleHistory(securityName, seriesTimeFrameSpan, 500);
+           return ((BitfinexServerRealization)ServerRealization).GetCandleHistory(securityName, seriesTimeFrameSpan, 500, DateTime.MinValue, DateTime.MinValue);
         }
     }
 
@@ -213,7 +213,29 @@ namespace OsEngine.Market.Servers.Bitfinex
                     security.Name = sec.pair.ToUpper();
                     security.NameFull = sec.pair;
                     security.NameId = sec.pair;
-                    security.NameClass = sec.pair.Substring(3);
+
+                    if (sec.pair.Contains(":") == false)
+                    {
+                        security.NameClass = sec.pair.Substring(3);
+                        security.SecurityType = SecurityType.CurrencyPair;
+                    }
+                    else
+                    {
+                        security.NameClass = sec.pair.Split(':')[0];
+                        security.SecurityType = SecurityType.Futures;
+                    }
+
+                    /*
+                     sec.price_precision - для любого инструмента битфайнекс выдаёт 5(пять) что не соответствует действительности
+                     security.Decimals = sec.price_precision;
+                     security.PriceStep = sec.price_precision;
+
+                     security.PriceStepCost = sec.price_precision;
+
+                     if (sec.price_precision != 5)
+                     {
+
+                     }*/
 
                     security.Lot = 1m;
 
@@ -316,25 +338,6 @@ namespace OsEngine.Market.Servers.Bitfinex
         {
             SetPriceStepInSecurity(security);
             _client.SubscribleTradesAndDepths(security);
-        }
-
-        /// <summary>
-        /// take candle history for period
-        /// взять историю свечек за период
-        /// </summary>
-        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime,
-            DateTime actualTime)
-        {
-           return GetCandleHistory(security.Name, timeFrameBuilder.TimeFrameTimeSpan, 5000);
-        }
-
-        /// <summary>
-        /// take ticks data on instrument for period
-        /// взять тиковые данные по инструменту за период
-        /// </summary>
-        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
-        {
-            return null;
         }
 
         /// <summary>
@@ -779,10 +782,162 @@ namespace OsEngine.Market.Servers.Bitfinex
         private readonly object _candlesLocker = new object();
 
         /// <summary>
+        /// take ticks data on instrument for period
+        /// взять тиковые данные по инструменту за период
+        /// </summary>
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            List<Trade> trades = new List<Trade>();
+
+            List<Trade> lastTrades =
+                GetBitFinexTrades(security.Name, 5000, DateTime.MaxValue);
+
+            trades.AddRange(lastTrades);
+
+            DateTime curEnd = trades[0].Time;
+
+            DateTime cu = trades[trades.Count-1].Time;
+
+            while (curEnd <= startTime == false)
+            {
+                List<Trade> newTrades =
+                    GetBitFinexTrades(security.Name, 2000, curEnd);
+
+                if (trades.Count != 0 && newTrades.Count != 0)
+                {
+                    if (newTrades[newTrades.Count - 1].Time >= trades[0].Time)
+                    {
+                        newTrades.RemoveAt(newTrades.Count - 1);
+                    }
+                }
+
+                if (newTrades.Count == 0)
+                {
+                    return trades;
+                }
+
+                trades.InsertRange(0, newTrades);
+
+                curEnd = trades[0].Time;
+            }
+
+            if (trades.Count == 0)
+            {
+                return null;
+            }
+
+            return trades;
+        }
+
+        private List<Trade> GetBitFinexTrades(string security, int count, DateTime end)
+        {
+            try
+            {
+                Thread.Sleep(8000);
+                Dictionary<string, string> param = new Dictionary<string, string>();
+
+                if (end == DateTime.MaxValue)
+                {
+                    param.Add("","t" + security + "/hist" + "?"
+                                  + "limit=" + count);
+                }
+                else
+                {
+                    param.Add("", "t" + security + "/hist" + "?"
+                                  + "limit=" + count
+                                  + "&end=" + (end - new DateTime(1970, 1, 1)).TotalMilliseconds);
+                }
+
+                var response = _client.GetTrades(param);
+
+                var tradesHist = Candles.FromJson(response);
+
+                List<Trade> trades = new List<Trade>();
+
+                for (int i = 0; i < tradesHist.Count; i++)
+                {
+                    DateTime time = new DateTime(1970, 1, 1) + TimeSpan.FromMilliseconds(tradesHist[i][1]);
+
+                    Trade newTrade = new Trade();
+                    newTrade.Time = time;
+                    newTrade.SecurityNameCode = security;
+                    double vol = tradesHist[i][2];
+                    newTrade.Volume= Math.Abs(Convert.ToDecimal(vol));
+                    newTrade.Price = Convert.ToDecimal(tradesHist[i][3]);
+                    if (vol > 0)
+                    {
+                        newTrade.Side = Side.Buy;
+                    }
+                    else
+                    {
+                        newTrade.Side = Side.Sell;
+                    }
+
+                    trades.Insert(0,newTrade);
+                }
+
+                return trades;
+
+            }
+            catch (Exception e)
+            {
+                SendLogMessage(e.ToString(), LogMessageType.Error);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// take candle history for period
+        /// взять историю свечек за период
+        /// </summary>
+        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime,
+            DateTime actualTime)
+        {
+            List<Candle> candles = new List<Candle>();
+
+            List<Candle> lastCandles =
+                GetCandleHistory(security.Name, timeFrameBuilder.TimeFrameTimeSpan, 5000, DateTime.MinValue, DateTime.MaxValue);
+
+            candles.AddRange(lastCandles);
+
+            DateTime curEnd = candles[0].TimeStart;
+
+            while (curEnd <= startTime == false)
+            {
+                List<Candle> newCandles =
+                    GetCandleHistory(security.Name, timeFrameBuilder.TimeFrameTimeSpan, 2000, startTime, curEnd);
+
+                if (candles.Count != 0 && newCandles.Count != 0)
+                {
+                    if (newCandles[newCandles.Count - 1].TimeStart >= candles[0].TimeStart)
+                    {
+                        newCandles.RemoveAt(newCandles.Count - 1);
+                    }
+                }
+
+                if (newCandles.Count == 0)
+                {
+                    return candles;
+                }
+
+                candles.InsertRange(0, newCandles);
+
+                curEnd = candles[0].TimeStart;
+            }
+
+            if (candles.Count == 0)
+            {
+                return null;
+            }
+
+            return candles;
+        }
+
+        /// <summary>
         /// take candles on instruments
         /// взять свечи по инструменту
         /// </summary>
-        public List<Candle> GetCandleHistory(string securityName, TimeSpan seriesTimeFrameSpan, int count)
+        public List<Candle> GetCandleHistory(string securityName, TimeSpan seriesTimeFrameSpan, int count, DateTime start, DateTime end)
         {
             try
             {
@@ -797,31 +952,31 @@ namespace OsEngine.Market.Servers.Bitfinex
                     if (tf == 1 || tf == 2 || tf == 3)
                     {
                         // building candles from 1 minute / строим свечи из минуток
-                        var rawCandles = GetBitfinexCandles("1m", securityName, count);
+                        var rawCandles = GetBitfinexCandles("1m", securityName, count, start, end);
                         newCandles = TransformCandles(1, tf, rawCandles);
                     }
                     else if (tf == 5 || tf == 10 || tf == 20)
                     {
                         // building candles from 5 minutes / строим свечи из 5минуток
-                        var rawCandles = GetBitfinexCandles("5m", securityName, count);
+                        var rawCandles = GetBitfinexCandles("5m", securityName, count, start, end);
                         newCandles = TransformCandles(5, tf, rawCandles);
                     }
                     else if (tf == 15 || tf == 30 || tf == 45)
                     {
                         // building candles from 15 minutes / строим свечи из 15минуток
-                        var rawCandles = GetBitfinexCandles("15m", securityName, count);
+                        var rawCandles = GetBitfinexCandles("15m", securityName, count, start, end);
                         newCandles = TransformCandles(15, tf, rawCandles);
                     }
                     else if (tf == 60 || tf == 120 || tf == 240)
                     {
                         // building candles from 1 hour / строим свечи из часовиков
-                        var rawCandles = GetBitfinexCandles("1h", securityName, count);
+                        var rawCandles = GetBitfinexCandles("1h", securityName, count, start, end);
                         newCandles = TransformCandles(60, tf, rawCandles);
                     }
                     else if (tf == 1440)
                     {
                         // building candles from 1 day / строим свечи из дневок
-                        var rawCandles = GetBitfinexCandles("1D", securityName, count);
+                        var rawCandles = GetBitfinexCandles("1D", securityName, count, start, end);
 
                         List<Candle> daily = new List<Candle>();
 
@@ -859,22 +1014,27 @@ namespace OsEngine.Market.Servers.Bitfinex
         /// <param name="tf"></param>
         /// <param name="security"></param>
         /// <returns></returns>
-        private List<List<double>> GetBitfinexCandles(string tf, string security, int count)
+        private List<List<double>> GetBitfinexCandles(string tf, string security, int count, DateTime start, DateTime end)
         {
             try
             {
                 Thread.Sleep(8000);
                 Dictionary<string, string> param = new Dictionary<string, string>();
-                param.Add("trade:" + tf, ":t" + security + "/hist" + "?limit=" + count);
+
+                if (start != DateTime.MinValue)
+                {
+                    param.Add("trade:" + tf, ":t" + security + "/hist" + "?"
+                                             + "limit=" + count
+                                             //+ "&start=" + (start - new DateTime(1970, 1, 1)).TotalMilliseconds);
+                                             + "&end=" + (end - new DateTime(1970, 1, 1)).TotalMilliseconds);
+                }
+                else
+                {
+                    param.Add("trade:" + tf, ":t" + security + "/hist" + "?limit=" + count);
+                }
+
                 var candles = _client.GetCandles(param);
                 var candleHist = Candles.FromJson(candles);
-
-               /* param = new Dictionary<string, string>();
-                param.Add("trade:" + tf, ":t" + security + "/last");
-                var lastCandle = _client.GetCandles(param);
-                var candleLast = LastCandle.FromJson(lastCandle);
-
-                candleHist.Add(candleLast);*/
 
                 return candleHist;
             }

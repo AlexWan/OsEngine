@@ -252,7 +252,7 @@ namespace OsEngine.Market
                 }
                 if (type == ServerType.BitMax)
                 {
-                    newServer = new BitMaxServer();
+                    newServer = new BitMaxProServer();
                 }
                 if (type == ServerType.Transaq)
                 {
@@ -435,6 +435,20 @@ namespace OsEngine.Market
         {
             IServerPermission serverPermission = null;
 
+
+            if (type == ServerType.Bitfinex)
+            {
+                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
+
+                if (serverPermission == null)
+                {
+                    serverPermission = new BitFinexServerPermission();
+                    _serversPermissions.Add(serverPermission);
+                }
+
+                return serverPermission;
+            }
+
             if (type == ServerType.MoexDataServer)
             {
                 serverPermission = _serversPermissions.Find(s => s.ServerType == type);
@@ -614,12 +628,19 @@ namespace OsEngine.Market
                 _needServerTypes = new List<ServerType>();
             }
 
-            for (int i = 0; i < _needServerTypes.Count; i++)
+            try
             {
-                if (_needServerTypes[i] == type)
+                for (int i = 0; i < _needServerTypes.Count; i++)
                 {
-                    return;
+                    if (_needServerTypes[i] == type)
+                    {
+                        return;
+                    }
                 }
+            }
+            catch
+            {
+                // ignore
             }
 
             _needServerTypes.Add(type);
