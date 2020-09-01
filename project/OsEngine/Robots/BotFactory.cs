@@ -337,6 +337,15 @@ namespace OsEngine.Robots
                 }
             }
 
+            for (int i = 0; i < results.Count; i++)
+            {
+                if (results.Contains("Dlls"))
+                {
+                    results.RemoveAt(i);
+                    i--;
+                }
+            }
+
             return results;
         }
 
