@@ -683,6 +683,24 @@ position => position.State != PositionStateType.OpeningFail
         }
 
         /// <summary>
+        /// create string parameter / 
+        /// создать параметр типа String
+        /// </summary>
+        /// <param name="name">param name / Имя параметра</param>
+        /// <param name="value">default value / Значение по умолчанию</param>
+        public StrategyParameterString CreateParameter(string name, string value)
+        {
+            StrategyParameterString newParameter = new StrategyParameterString(name, value);
+
+            if (_parameters.Find(p => p.Name == name) != null)
+            {
+                throw new Exception(OsLocalization.Trader.Label52);
+            }
+
+            return (StrategyParameterString)LoadParameterValues(newParameter);
+        }
+
+        /// <summary>
         /// create bool type parameter / 
         /// создать параметр типа Bool
         /// </summary>
