@@ -1860,12 +1860,27 @@ namespace OsEngine.Charts.CandleChart
 
                         if (trades[indTrades].Side == Side.Buy)
                         {
-                            buySellSeries.Points[buySellSeries.Points.Count - 1].Color = Color.Aqua;
+                            if (deals[i].CloseOrders != null
+                                && deals[i].CloseOrders.FindAll(x => x.NumberMarket == trades[indTrades].NumberOrderParent).Count > 0)
+                            {
+                                buySellSeries.Points[buySellSeries.Points.Count - 1].Color = Color.BlueViolet;
+                            }
+                            else
+                            {
+                                buySellSeries.Points[buySellSeries.Points.Count - 1].Color = Color.Aqua;
+                            }
                         }
                         else
                         {
-                            buySellSeries.Points[buySellSeries.Points.Count - 1].Color = Color.DarkRed;
-
+                            if (deals[i].CloseOrders != null
+                                && deals[i].CloseOrders.FindAll(x => x.NumberMarket == trades[indTrades].NumberOrderParent).Count > 0)
+                            {
+                                buySellSeries.Points[buySellSeries.Points.Count - 1].Color = Color.Yellow;
+                            }
+                            else
+                            {
+                                buySellSeries.Points[buySellSeries.Points.Count - 1].Color = Color.DarkRed;
+                            }
                         }
                     }
                 }
