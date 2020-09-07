@@ -1318,6 +1318,12 @@ namespace OsEngine.Journal.Internal
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[16].Value = position.ProfitOrderPrice.ToStringWithNoEndZero();
 
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+                nRow.Cells[17].Value = position.SignalTypeOpen;
+
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+                nRow.Cells[18].Value = position.SignalTypeClose;
+
                 return nRow;
             }
             catch (Exception error)
