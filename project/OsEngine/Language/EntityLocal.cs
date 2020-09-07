@@ -127,6 +127,14 @@ namespace OsEngine.Language
             "Eng:Profit Price_" +
             "Ru:Профит цена_");
 
+        public string PositionColumn18 => OsLocalization.ConvertToLocString(
+            "Eng:Signal Type Open_" +
+            "Ru:Тип Сигнала на Открытие_");
+
+        public string PositionColumn19 => OsLocalization.ConvertToLocString(
+            "Eng:Signal Type Close_" +
+            "Ru:Тип Сигнала на Закрытие_");
+
         public string OrderColumn1 => OsLocalization.ConvertToLocString(
             "Eng:ID_" +
             "Ru:ID_");
