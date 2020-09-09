@@ -369,6 +369,11 @@ namespace OsEngine.Market.Servers.FTX
         private void HandleUpdateOrderMessage(JToken data)
         {
             var order = _orderCreator.Create(data);
+            if (!_myOrders.ContainsKey(order.NumberMarket))
+            {
+                return;
+            }
+
             var localOrder = _myOrders[order.NumberMarket];
             if (order.State != localOrder.State)
             {
