@@ -9,7 +9,6 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
     {
         private const string TypePath = "type";
         private const string StatePath = "enabled";
-        private const string PricePath = "price";
         private const string PriceStepPath = "priceIncrement";
         private const string NamePath = "name";
         private const string LotPath = "minProvideSize";
@@ -26,14 +25,13 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
                     var security = new Security();
                     bool isFuture = jProperty.SelectToken(TypePath).ToString() == "future";
                     var name = jProperty.SelectToken(NamePath).ToString();
-                    var price = jProperty.SelectToken(PricePath).Value<decimal>();
                     security.NameId = name;
                     security.NameFull = name;
                     security.Name = name;
                     security.NameClass = name.Split(isFuture ? '-' : '/')[0];
                     security.SecurityType = isFuture ? SecurityType.Futures : SecurityType.CurrencyPair;
                     security.PriceStep = jProperty.SelectToken(PriceStepPath).Value<decimal>();
-                    security.PriceStepCost = price * security.PriceStep;
+                    security.PriceStepCost = security.PriceStep;
                     security.State = jProperty.SelectToken(StatePath).Value<bool>() ?
                         SecurityStateType.Activ :
                         SecurityStateType.Close;
