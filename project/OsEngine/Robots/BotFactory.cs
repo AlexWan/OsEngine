@@ -36,6 +36,13 @@ namespace OsEngine.Robots
 
             //
             //dr6uer6uw
+            result.Add("Taxist");
+            result.Add("Setka");
+            result.Add("Depozit");
+            result.Add("Ver_01");
+            result.Add("C_indikatorom");
+            result.Add("Arbit_ma_Volum");
+
             result.Add("Fisher");
             result.Add("Engine");
             result.Add("ClusterEngine");

@@ -744,6 +744,13 @@
     <Compile Include="Robots\MarketMaker\PairTraderSimpleUi.xaml.cs">
       <DependentUpon>PairTraderSimpleUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Robots\MoiRoboti\Depozit.cs" />
+    <Compile Include="Robots\MoiRoboti\Setka.cs" />
+    <Compile Include="Robots\MoiRoboti\Taxist.cs" />
+    <Compile Include="Robots\MoiRoboti\Ver_01.cs" />
+    <Compile Include="Robots\MoiRoboti\Ver_01_Ui.xaml.cs">
+      <DependentUpon>Ver_01_Ui.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Robots\OnScriptIndicators\BbPowerTrade.cs" />
     <Compile Include="Robots\OnScriptIndicators\BollingerRevers.cs" />
     <Compile Include="Robots\OnScriptIndicators\BollingerTrailing.cs" />
@@ -1230,6 +1237,10 @@
     <Page Include="Robots\MarketMaker\PairTraderSimpleUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Robots\MoiRoboti\Ver_01_Ui.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Robots\Trend\MomentumMacdUi.xaml">
       <SubType>Designer</SubType>
