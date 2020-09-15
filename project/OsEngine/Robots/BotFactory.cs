@@ -21,6 +21,7 @@ using OsEngine.Robots.MarketMaker;
 using OsEngine.Robots.Patterns;
 using OsEngine.Robots.Trend;
 using OsEngine.Robots.OnScriptIndicators;
+using OsEngine.Robots.MoiRoboti;
 
 namespace OsEngine.Robots
 {
@@ -34,15 +35,11 @@ namespace OsEngine.Robots
         {
             List<string> result = new List<string>();
 
-            //
-            //dr6uer6uw
             result.Add("Taxist");
             result.Add("Setka");
             result.Add("Depozit");
             result.Add("Ver_01");
-            result.Add("C_indikatorom");
-            result.Add("Arbit_ma_Volum");
-
+            
             result.Add("Fisher");
             result.Add("Engine");
             result.Add("ClusterEngine");
@@ -120,8 +117,24 @@ namespace OsEngine.Robots
                 bot = CreateScriptStrategyByName(nameClass, name, startProgram);
                 return bot;
             }
+            if (nameClass == "Setka")
+            {
+                bot = new Setka(name, startProgram);
+            }
+            if (nameClass == "Depozit")
+            {
+                bot = new Depozit(name, startProgram);
+            }
+            if (nameClass == "Ver_01")
+            {
+                bot = new Ver_01(name, startProgram);
+            }
+            if (nameClass == "Taxist")
+            {
+                bot = new Taxist(name, startProgram);
+            }
 
-            
+
             if (nameClass == "TimeOfDayBot")
             {
                 bot = new TimeOfDayBot(name, startProgram);

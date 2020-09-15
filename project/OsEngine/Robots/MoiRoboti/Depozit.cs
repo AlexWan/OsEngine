@@ -1,17 +1,9 @@
 ﻿using OsEngine.OsTrader.Panels;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 using OsEngine.Entity;
-using OsEngine.Market;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Charts.CandleChart.Indicators;
-using System.Threading;
-using RestSharp.Extensions;
-using System.Security.Cryptography.X509Certificates;
 
 namespace OsEngine.Robots.MoiRoboti
 {
@@ -50,8 +42,7 @@ namespace OsEngine.Robots.MoiRoboti
         public decimal _mnog; // множитель 
         public decimal _kom; // для хранения величины комиссии биржи 
         public int vol_dv;  // изменяемое значение доли депо
-        bool zahodili = false;
-
+  
         public Depozit(string name, StartProgram startProgram) // конструктор робота
              : base(name, startProgram)
         {
@@ -93,13 +84,10 @@ namespace OsEngine.Robots.MoiRoboti
             _vklad.PositionOpeningSuccesEvent += _vklad_PositionOpeningSuccesEvent; // событие успешного закрытия позиции 
 
         }
-
         private void _vklad_PositionOpeningSuccesEvent(Position position) // успешное закрытие позиции
         {
             _mnog = 1;
-            zahodili = false;
         }
-
         public decimal Price_kon_trade()  // получает значение цены последних трейдов, если их нет возвращает цену рынка 
         {
             if (_vklad.PositionsLast.MyTrades.Count != 0)
@@ -114,32 +102,10 @@ namespace OsEngine.Robots.MoiRoboti
             Percent_birgi(); // расчет величины в пунктах  процента биржи 
             List<Position> positions = _vklad.PositionsOpenAll;
 
-            /*if (_vklad.MarketDepth.Bids[0].Price > _vklad.PositionsLast.EntryPrice + profit.ValueInt  + _kom + slippage.ValueInt) 
-            {
-                _vklad.CloseAtTrailingStop(positions[0], _vklad.MarketDepth.Asks[0].Price - _kom, _vklad.MarketDepth.Asks[0].Price - _kom - slippage.ValueInt);
-                Console.WriteLine("ставлю трейлинг");
-                Console.WriteLine("цена активации");
-                Console.WriteLine(_vklad.MarketDepth.Bids[0].Price + _kom);
-                Console.WriteLine("цена ордера");
-                Console.WriteLine(_vklad.MarketDepth.Asks[0].Price - slippage.ValueInt);
-            
-            }*/
-
-            
-            if (!zahodili)
+            if (_vklad.MarketDepth.Bids[0].Price > _vklad.PositionsLast.EntryPrice + profit.ValueInt + _kom + slippage.ValueInt)
             {
                 _vklad.CloseAtTrailingStop(positions[0], _vklad.MarketDepth.Bids[0].Price - _kom - slippage.ValueInt, _vklad.MarketDepth.Asks[0].Price - _kom);
-                //Console.WriteLine("ставлю трейлинг");
-                Console.WriteLine("цена активации");
-                Console.WriteLine(_vklad.MarketDepth.Bids[0].Price - _kom - slippage.ValueInt);
-                Console.WriteLine("цена ордера");
-                Console.WriteLine(_vklad.MarketDepth.Asks[0].Price - _kom);
-                zahodili = false;
             }
-
-
-
-
         }
         private void _vklad_MarketDepthUpdateEvent(MarketDepth marketDepth) // логика работы запускается тут 
         {
@@ -154,7 +120,7 @@ namespace OsEngine.Robots.MoiRoboti
             {
                 return;
             }
-            if ( _vklad.PositionsOpenAll.Count != 0)
+            if (_vklad.PositionsOpenAll.Count != 0)
             {
                 if (_vklad.MarketDepth.Asks[0].Price < _vklad.PositionsLast.EntryPrice) //цена ниже закупки усредняемся 
                 {
@@ -166,7 +132,7 @@ namespace OsEngine.Robots.MoiRoboti
             {
                 if (_vklad.PositionsOpenAll.Count == 0) // если  не в рынке, открываемся по рынку 
                 {
-                    
+
                     if (volum_ma < _vklad.MarketDepth.Asks[0].Price) // если цена выше уровня машки
                     {
                         if (last_hi_candl < _vklad.MarketDepth.Asks[0].Price) // если цена выше последнего хая 
@@ -175,7 +141,6 @@ namespace OsEngine.Robots.MoiRoboti
                             Rac4et_baz_bal();
                             if (tek_bal_potfela / dola_depa.ValueInt > 10.1m)
                             {
-                                zahodili = false;
                                 _vklad.BuyAtMarket(Okreglenie(Depo / dola_depa.ValueInt));
                             }
                         }
@@ -284,14 +249,12 @@ namespace OsEngine.Robots.MoiRoboti
             Kol_Trad();
             if (Price_kon_trade() > _vklad.MarketDepth.Asks[0].Price + deltaUsredn.ValueDecimal * _mnog + _kom)
             {
-
                 if (volum_ma < _vklad.MarketDepth.Asks[0].Price)
                 {
                     ZaprosBalahca();
                     Rac4et_baz_bal();
                     if (tek_bal_potfela / Dola_depa() * veli4_usrednen.ValueDecimal > 10.1m)
                     {
-                        zahodili = false;
                         _vklad.BuyAtMarketToPosition(positions[0], Okreglenie(Depo / Dola_depa() * veli4_usrednen.ValueDecimal));
                         Kol_Trad();
                         Mnog();
