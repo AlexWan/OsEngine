@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Charts.CandleChart.Indicators;
+using System.Threading;
 
 namespace OsEngine.Robots.MoiRoboti
 {
@@ -82,8 +83,16 @@ namespace OsEngine.Robots.MoiRoboti
             _vklad.NewTickEvent += _vklad_NewTickEvent;     // тики
             _vklad.MarketDepthUpdateEvent += _vklad_MarketDepthUpdateEvent; // событие пришел стакан
             _vklad.PositionOpeningSuccesEvent += _vklad_PositionOpeningSuccesEvent; // событие успешного закрытия позиции 
+            _vklad.PositionNetVolumeChangeEvent += _vklad_PositionNetVolumeChangeEvent;
 
         }
+
+        private void _vklad_PositionNetVolumeChangeEvent(Position position)
+        {
+            Price_kon_trade();
+            Kol_Trad();    
+        }
+
         private void _vklad_PositionOpeningSuccesEvent(Position position) // успешное закрытие позиции
         {
             _mnog = 1;
@@ -104,7 +113,7 @@ namespace OsEngine.Robots.MoiRoboti
 
             if (_vklad.MarketDepth.Bids[0].Price > _vklad.PositionsLast.EntryPrice + profit.ValueInt + _kom + slippage.ValueInt)
             {
-                _vklad.CloseAtTrailingStop(positions[0], _vklad.MarketDepth.Bids[0].Price - _kom - slippage.ValueInt, _vklad.MarketDepth.Asks[0].Price - _kom);
+                _vklad.CloseAtTrailingStop(positions[0], _vklad.MarketDepth.Bids[0].Price - _kom , _vklad.MarketDepth.Asks[0].Price - _kom);
             }
         }
         private void _vklad_MarketDepthUpdateEvent(MarketDepth marketDepth) // логика работы запускается тут 
@@ -247,10 +256,11 @@ namespace OsEngine.Robots.MoiRoboti
             List<Position> positions = _vklad.PositionsOpenAll;
             Percent_birgi();
             Kol_Trad();
-            if (Price_kon_trade() > _vklad.MarketDepth.Asks[0].Price + deltaUsredn.ValueDecimal * _mnog + _kom)
+            if (Price_kon_trade() > _vklad.MarketDepth.Asks[0].Price + (deltaUsredn.ValueDecimal + _kom) * _mnog)
             {
                 if (volum_ma < _vklad.MarketDepth.Asks[0].Price)
                 {
+                    Price_kon_trade();
                     ZaprosBalahca();
                     Rac4et_baz_bal();
                     if (tek_bal_potfela / Dola_depa() * veli4_usrednen.ValueDecimal > 10.1m)
@@ -258,6 +268,8 @@ namespace OsEngine.Robots.MoiRoboti
                         _vklad.BuyAtMarketToPosition(positions[0], Okreglenie(Depo / Dola_depa() * veli4_usrednen.ValueDecimal));
                         Kol_Trad();
                         Mnog();
+                        Price_kon_trade();
+                        Thread.Sleep(1500);
                     }
                 }
             }
