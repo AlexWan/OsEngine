@@ -11,34 +11,34 @@ namespace OsEngine.Robots.MoiRoboti
     public class Depozit : BotPanel
     {
         // поля для хранения данных 
-        public MovingAverage _ma; // поле хранения индикатора МА
+        public MovingAverage _ma;     // поле хранения индикатора МА
         private BotTabSimple _vklad; // поле хранения вкладки робота 
         private StrategyParameterDecimal slippage; // величина проскальзывание при установки ордеров  
         private StrategyParameterBool vkl_Robota; // поле включения бокса 
-        private StrategyParameterInt zn_stop_los;  // через сколько позиций усреднения фиксировать убыток
+        private StrategyParameterInt zn_stop_los;    // через сколько позиций усреднения фиксировать убыток
         private StrategyParameterBool vkl_stop_los; // отключение функции стоплоса
-        private StrategyParameterInt profit; // расстояние до профита тейкпрофита
+        private StrategyParameterInt profit;       // расстояние до профита тейкпрофита
         private StrategyParameterBool vkl_profit; // отключение функции выставления профита
         private StrategyParameterDecimal komis_birgi; // указывать комиссию биржи в процентах
         private StrategyParameterDecimal veli4_usrednen; // величина усреднения
-        private StrategyParameterBool vkl_usrednen; // отключение функции усреднения
-        private StrategyParameterInt dola_depa;  // количество частей для входа 
-        private StrategyParameterDecimal deltaVerx; // количество шагов вверх для выставления профита
-        private StrategyParameterBool vkl_piramid; // отключение функции пирамиды
-        private StrategyParameterDecimal deltaUsredn; //на сколько ниже осуществлять усреднение 
+        private StrategyParameterBool vkl_usrednen;     // отключение функции усреднения
+        private StrategyParameterInt dola_depa;        // количество частей для входа 
+        private StrategyParameterDecimal deltaVerx;   // количество шагов вверх для выставления профита
+        private StrategyParameterBool vkl_piramid;   // отключение функции пирамиды
+        private StrategyParameterDecimal deltaUsredn;   //на сколько ниже осуществлять усреднение 
         private StrategyParameterInt count_candels_hi; // сколько хаев свечей учитывать
-        private StrategyParameterInt stop; // расстояние до стоплоса
-        private StrategyParameterDecimal volum;  //  объем входа 
+        private StrategyParameterInt stop;            // расстояние до стоплоса
+        private StrategyParameterDecimal volum;      //  объем входа 
         private StrategyParameterInt vel_ma; // какое значение индикатора махa использовать
         private StrategyParameterInt n_min; // количество минут для метода подсчета объема
         private StrategyParameterBool vkl_vol_trade; // выключение подсчета объемов торгов
 
         // глобальные переменные используемые в логике
-        public decimal last_hi_candl; // значение хая последних свечей
+        public decimal last_hi_candl;    // значение хая последних свечей
         public decimal tek_bal_potfela; // текущий баланс портфеля квотируемой валюты
-        public decimal Depo; // текущий баланс портфеля базовой 
+        public decimal Depo;      // текущий баланс портфеля базовой 
         public decimal volum_ma; // последние значение индикатора MA  
-        public decimal _mnog; // множитель 
+        public decimal _mnog;   // множитель 
         public decimal _kom; // для хранения величины комиссии биржи 
         public int vol_dv;  // изменяемое значение доли депо
   
@@ -56,7 +56,7 @@ namespace OsEngine.Robots.MoiRoboti
             dola_depa = CreateParameter("Часть депозита на вход", 10, 5, 100, 1);
             vkl_piramid = CreateParameter("ПИРАМИДА Включена ЛИ?", false);
             deltaVerx = CreateParameter("ПИРАМИДИТЬСЯ через ", 10m, 5m, 50m, 5m);
-            vkl_stop_los = CreateParameter("Включен ЛИ СТОПЛОС ?", false);
+            vkl_stop_los = CreateParameter("Включен ЛИ СТОПЛОС ?", true);
             zn_stop_los = CreateParameter("СТОП после скок УСРЕД ", 10, 5, 50, 5);
             stop = CreateParameter("СТОПЛОС ниже на", 25, 5, 100, 5);
             vel_ma = CreateParameter("MA", 7, 3, 50, 1);  // записываем в переменную параметры 
@@ -82,22 +82,17 @@ namespace OsEngine.Robots.MoiRoboti
             _vklad.PositionNetVolumeChangeEvent += _vklad_PositionNetVolumeChangeEvent; // изменился объем в позиции
 
         }
-        private void _vklad_PositionNetVolumeChangeEvent(Position position) // изменился объем в позиции
-        {
-            Price_kon_trade();
-            Kol_Trad();    
-        }
-        private void _vklad_PositionOpeningSuccesEvent(Position position) // успешное закрытие позиции
-        {
-            _mnog = 1;
-        }
         private void _vklad_MarketDepthUpdateEvent(MarketDepth marketDepth) // логика работы запускается тут 
         {
             if (_vklad.PositionsOpenAll.Count != 0) //
             {
                 if (_vklad.MarketDepth.Bids[0].Price > _vklad.PositionsLast.EntryPrice) // цена выше закупки профитимся
                 {
-                    Save_prifit();
+                    Save_prifit(); // забрать профит
+                }
+                else if (vkl_Robota.ValueBool == false)
+                {
+                    StopLoss(); // фиксировать убыток
                 }
             }
             if (vkl_Robota.ValueBool == false) // выключаем работу робота
@@ -109,6 +104,7 @@ namespace OsEngine.Robots.MoiRoboti
                 if (_vklad.MarketDepth.Asks[0].Price < _vklad.PositionsLast.EntryPrice) //цена ниже закупки усредняемся 
                 {
                     Usrednenie();
+                    StopLoss(); // фиксировать убыток
                 }
             }
             if (volum_ma > 0)
@@ -130,6 +126,16 @@ namespace OsEngine.Robots.MoiRoboti
                 }
             }
         }
+        private void _vklad_PositionNetVolumeChangeEvent(Position position) // изменился объем в позиции
+        {
+            Price_kon_trade();
+            Kol_Trad();    
+        }
+        private void _vklad_PositionOpeningSuccesEvent(Position position) // успешное закрытие позиции
+        {
+            _mnog = 1;
+        }
+
         private DateTime dateTrade; // время трейда
         decimal bid_vol_tr;  // объем покупок
         decimal ask_vol_tr; // объем продаж
@@ -231,6 +237,25 @@ namespace OsEngine.Robots.MoiRoboti
                 }
             }
         }
+        void StopLoss() // фиксация  убытков 
+        {
+            if (vkl_stop_los.ValueBool == false)
+            {
+                return;
+            }
+            List<Position> positions = _vklad.PositionsOpenAll;
+            if (_vklad.MarketDepth.Asks[0].Price + stop.ValueInt < _vklad.PositionsLast.EntryPrice) //
+            {
+                Kol_Trad();
+                int znach = Kol_Trad();
+                if (znach == zn_stop_los.ValueInt)
+                {
+                    _vklad.CloseAtStop(positions[0], _vklad.MarketDepth.Asks[0].Price, _vklad.MarketDepth.Asks[0].Price - slippage.ValueDecimal);
+                    Thread.Sleep(3000);
+                    vkl_Robota.ValueBool = false; // после выставления стоплоса выключаем робот 
+                }
+            }
+        }
         decimal Okreglenie(decimal vol) // округляет децимал до 6 чисел после запятой 
         {
             decimal value = vol;
@@ -272,8 +297,8 @@ namespace OsEngine.Robots.MoiRoboti
         }
         decimal ZaprosBalahca()   // запрос квотируемых средств в портфеле (в USDT) 
         {
-            List<PositionOnBoard> poses = _vklad.Portfolio.GetPositionOnBoard();
 
+            List<PositionOnBoard> poses = _vklad.Portfolio.GetPositionOnBoard();
             decimal vol_usdt = 0;
             for (int i = 0; i < poses.Count; i++)
             {
