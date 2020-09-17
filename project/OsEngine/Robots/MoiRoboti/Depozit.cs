@@ -32,6 +32,8 @@ namespace OsEngine.Robots.MoiRoboti
         private StrategyParameterInt vel_ma; // какое значение индикатора махa использовать
         private StrategyParameterInt n_min; // количество минут для метода подсчета объема
         private StrategyParameterBool vkl_vol_trade; // выключение подсчета объемов торгов
+        private StrategyParameterInt volum_alarm;  // величина объема при достижении которого все выключается 
+        private StrategyParameterInt volum_piramid; // величина объема при достижении которого включается пирамида
 
         // глобальные переменные используемые в логике
         public decimal last_hi_candl;    // значение хая последних свечей
@@ -39,9 +41,11 @@ namespace OsEngine.Robots.MoiRoboti
         public decimal Depo;      // текущий баланс портфеля базовой 
         public decimal volum_ma; // последние значение индикатора MA  
         public decimal _mnog;   // множитель 
-        public decimal _kom; // для хранения величины комиссии биржи 
+        public decimal _kom; // для хранения величины комиссии биржи  
         public int vol_dv;  // изменяемое значение доли депо
-  
+        bool piramid_stop = true;  // для отключение усреднения по объему 
+        bool alarm = true;
+
         public Depozit(string name, StartProgram startProgram) // конструктор робота
              : base(name, startProgram)
         {
@@ -65,6 +69,9 @@ namespace OsEngine.Robots.MoiRoboti
             vkl_vol_trade = CreateParameter("СЧИТАТЬ ЛИ объем торгов", true);
             n_min = CreateParameter("скок минут считать объем", 1, 1, 20, 1);
             count_candels_hi = CreateParameter("Скок.Хаев.св.читать(вход)", 2, 1, 50, 1);
+            volum_alarm = CreateParameter("АВАРИЙНЫЙ ОБЪЕМ ПРОДАЖ", 450, 150, 1000, 50);
+            volum_piramid = CreateParameter("Объем покуп.для ПИрамиды", 350, 150, 550, 50);
+
 
             TabCreate(BotTabType.Simple);       // создание простой вкладки
             _vklad = TabsSimple[0]; // записываем первую вкладку в поле
@@ -134,18 +141,22 @@ namespace OsEngine.Robots.MoiRoboti
         private void _vklad_PositionOpeningSuccesEvent(Position position) // успешное закрытие позиции
         {
             _mnog = 1;
+            piramid_stop = true;
+            alarm = true;
         }
 
         private DateTime dateTrade; // время трейда
         decimal bid_vol_tr;  // объем покупок
         decimal ask_vol_tr; // объем продаж
         decimal all_volum_trade_min; //все объемы за N минуту
+        
         private void _vklad_NewTickEvent(Trade trade) // событие новых тиков для счета объема торгов
         {
             if (vkl_vol_trade.ValueBool == false)
             {
                 return;
             }
+            List<Position> positions = _vklad.PositionsOpenAll;
             DateTime time_add_n_min;
             time_add_n_min = dateTrade.AddMinutes(n_min.ValueInt);
             if (trade.Time < time_add_n_min)
@@ -169,13 +180,39 @@ namespace OsEngine.Robots.MoiRoboti
                 bid_vol_tr = 0;
                 ask_vol_tr = 0;
             }
-            if (ask_vol_tr > bid_vol_tr * 2)
+            if ( bid_vol_tr >  volum_piramid.ValueInt)
             {
-                // че-то  делаем, на забор например 
+                Price_kon_trade();
+                if (volum_ma > Price_kon_trade() && positions.Count > 0)
+                {
+                    if (piramid_stop == false)
+                    {
+                        return;
+                    }
+                    _vklad.BuyAtMarketToPosition(positions[0], Okreglenie(Depo / Dola_depa() * veli4_usrednen.ValueDecimal));
+                    Kol_Trad();
+                    Mnog();
+                    // Console.WriteLine("Усреднились по объему больше volum_piramid.ValueInt по- " + Price_kon_trade());
+                    piramid_stop = false;
+                    bid_vol_tr = 0;
+                }
             }
-            if (all_volum_trade_min > 450)
+ 
+            if (ask_vol_tr > volum_alarm.ValueInt && positions.Count > 0)
             {
-                // че - то  делаем
+                if (alarm == false )
+                {
+                    return;
+                }
+                slippage.ValueDecimal = slippage.ValueDecimal + 1m;
+                _vklad.CloseAtStop(positions[0], _vklad.MarketDepth.Asks[0].Price, _vklad.MarketDepth.Asks[0].Price - slippage.ValueDecimal);
+                vkl_Robota.ValueBool = false; // после выставления стопа выключаем робот 
+                // Console.WriteLine(" ОБЪЕМЫ продаж больше 80!!! РОБОТ ВЫКЛЮЧЕН по цене -" + Price_kon_trade());
+                if (positions.Count == 0)
+                {
+                    alarm = false;
+                    bid_vol_tr = 0;
+                }
             }
         }
         private void _vklad_CandleFinishedEvent(List<Candle> candles) // тут присваивается значения индикатору МА и величине хая последних свечей
