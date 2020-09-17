@@ -90,7 +90,7 @@ namespace OsEngine.Robots.MoiRoboti
                 {
                     Save_prifit(); // забрать профит
                 }
-                else if (vkl_Robota.ValueBool == false)
+                if (vkl_Robota.ValueBool == false)
                 {
                     StopLoss(); // фиксировать убыток
                 }
@@ -239,7 +239,7 @@ namespace OsEngine.Robots.MoiRoboti
         }
         void StopLoss() // фиксация  убытков 
         {
-            if (vkl_stop_los.ValueBool == false)
+            if (vkl_stop_los.ValueBool == false) // если в настройках выбрано фальшь метод не работает
             {
                 return;
             }
@@ -252,7 +252,14 @@ namespace OsEngine.Robots.MoiRoboti
                 {
                     _vklad.CloseAtStop(positions[0], _vklad.MarketDepth.Asks[0].Price, _vklad.MarketDepth.Asks[0].Price - slippage.ValueDecimal);
                     Thread.Sleep(3000);
-                    vkl_Robota.ValueBool = false; // после выставления стоплоса выключаем робот 
+                    vkl_Robota.ValueBool = false; // после выставления стопа выключаем робот 
+                }
+            }
+            if (_vklad.MarketDepth.Asks[0].Price < _vklad.PositionsLast.EntryPrice) // когда рынок ниже закупки позиции
+            {
+                if (vkl_Robota.ValueBool == false && positions.Count >0) // когда робот вЫключен и осталась открытая позиция выставляется стоп
+                {
+                    _vklad.CloseAtStop(positions[0], _vklad.MarketDepth.Asks[0].Price , _vklad.MarketDepth.Asks[0].Price - slippage.ValueDecimal);
                 }
             }
         }
@@ -297,7 +304,6 @@ namespace OsEngine.Robots.MoiRoboti
         }
         decimal ZaprosBalahca()   // запрос квотируемых средств в портфеле (в USDT) 
         {
-
             List<PositionOnBoard> poses = _vklad.Portfolio.GetPositionOnBoard();
             decimal vol_usdt = 0;
             for (int i = 0; i < poses.Count; i++)
