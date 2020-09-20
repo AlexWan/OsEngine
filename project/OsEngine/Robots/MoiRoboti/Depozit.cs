@@ -87,7 +87,6 @@ namespace OsEngine.Robots.MoiRoboti
             _vklad.MarketDepthUpdateEvent += _vklad_MarketDepthUpdateEvent; // событие пришел стакан
             _vklad.PositionOpeningSuccesEvent += _vklad_PositionOpeningSuccesEvent; // событие успешного закрытия позиции 
             _vklad.PositionNetVolumeChangeEvent += _vklad_PositionNetVolumeChangeEvent; // изменился объем в позиции
-
             
         }
         private void _vklad_MarketDepthUpdateEvent(MarketDepth marketDepth) // логика работы запускается тут 
@@ -129,6 +128,7 @@ namespace OsEngine.Robots.MoiRoboti
                             if (tek_bal_potfela / dola_depa.ValueInt > min_lot.ValueDecimal)
                             {
                                 _vklad.BuyAtMarket(Okreglenie(Depo / dola_depa.ValueInt));
+                                Console.WriteLine("Открылись по цене" + _vklad.PriceBestAsk + " НА - " + (Depo / dola_depa.ValueInt) * _vklad.PriceBestAsk + " $");
                             }
                         }
                     }
@@ -197,7 +197,7 @@ namespace OsEngine.Robots.MoiRoboti
                     Kol_Trad();
                     Mnog();
                     Console.WriteLine("Докупились при объеме покупок больше "+ volum_piramid.ValueInt +" по- " + Price_kon_trade()+ "НА " + VolumForUsred()*_vklad.PriceBestAsk);
-                    //piramid_stop = false;
+                    piramid_stop = false;
                     bid_vol_tr = 0;
                 }
             }
@@ -275,6 +275,7 @@ namespace OsEngine.Robots.MoiRoboti
                         Kol_Trad();
                         Mnog();
                         Price_kon_trade();
+                        Console.WriteLine("Усреднились НА - " + VolumForUsred()*_vklad.PriceBestAsk+" $");
                         Thread.Sleep(1500);
                     }
                 }
@@ -310,6 +311,10 @@ namespace OsEngine.Robots.MoiRoboti
         {
             decimal vol = 0;
             vol = _vklad.PositionsLast.MaxVolume;
+            if (Depo < vol && Depo > min_lot.ValueDecimal)
+            {
+                return Depo;
+            }
             return vol * veli4_usrednen.ValueDecimal;
         }
         decimal Okreglenie(decimal vol) // округляет децимал до 6 чисел после запятой 
@@ -341,16 +346,6 @@ namespace OsEngine.Robots.MoiRoboti
         public void Сount_volum()  // счетчик объема торгов по тикам 
         {
         }
-        /*int Dola_depa() // уменьшает значение  доли входа на количество осуществленных трейдов  
-        {
-            vol_dv = dola_depa.ValueInt;
-            int a = vol_dv - Kol_Trad();
-            if (a >= 1)
-            {
-                return vol_dv = a;
-            }
-            return 1;
-        }*/
         decimal ZaprosBalahca()   // запрос квотируемых средств в портфеле (в USDT) 
         {
             List<PositionOnBoard> poses = _vklad.Portfolio.GetPositionOnBoard();
@@ -372,9 +367,9 @@ namespace OsEngine.Robots.MoiRoboti
         decimal Lot() // расчет минимального лота 
         {
             decimal price = _vklad.MarketDepth.Asks[0].Price;
-            min_lot.ValueDecimal = 10.1m / price;
+            min_lot.ValueDecimal = Okreglenie( 10.1m / price);
             Console.WriteLine(" Минимальный лот = " + min_lot.ValueDecimal);
-            return 10.1m / price;
+            return Okreglenie( 10.1m / price);
         }
         decimal Rac4et_baz_bal() // расчет базовой валюты в портфеле и запись его в поле Depo
         {

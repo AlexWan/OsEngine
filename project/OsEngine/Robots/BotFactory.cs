@@ -39,7 +39,8 @@ namespace OsEngine.Robots
             result.Add("Setka");
             result.Add("Depozit");
             result.Add("Ver_01");
-            
+            result.Add("Storog");
+
             result.Add("Fisher");
             result.Add("Engine");
             result.Add("ClusterEngine");
@@ -120,6 +121,10 @@ namespace OsEngine.Robots
             if (nameClass == "Setka")
             {
                 bot = new Setka(name, startProgram);
+            }
+            if (nameClass == "Storog")
+            {
+                bot = new Storog(name, startProgram);
             }
             if (nameClass == "Depozit")
             {
