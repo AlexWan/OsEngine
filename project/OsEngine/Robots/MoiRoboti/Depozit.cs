@@ -311,7 +311,7 @@ namespace OsEngine.Robots.MoiRoboti
         {
             decimal vol = 0;
             vol = _vklad.PositionsLast.MaxVolume;
-            if (Depo < vol && Depo > min_lot.ValueDecimal)
+            if (Depo < vol* veli4_usrednen.ValueDecimal)
             {
                 return Depo;
             }
