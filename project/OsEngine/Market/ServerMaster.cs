@@ -46,6 +46,7 @@ using OsEngine.Market.Servers.Tinkoff;
 using MessageBox = System.Windows.MessageBox;
 using OsEngine.Market.Servers.GateIo.Futures;
 using OsEngine.Market.Servers.FTX;
+using OsEngine.Market.Servers.Bybit;
 
 namespace OsEngine.Market
 {
@@ -102,6 +103,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.HuobiFutures);
                 serverTypes.Add(ServerType.HuobiFuturesSwap);
                 serverTypes.Add(ServerType.FTX);
+                serverTypes.Add(ServerType.Bybit);
 
                 serverTypes.Add(ServerType.InteractivBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
@@ -237,6 +239,10 @@ namespace OsEngine.Market
                 if (type == ServerType.GateIoFutures)
                 {
                     newServer = new GateIoFuturesServer();
+                }
+                if (type == ServerType.Bybit)
+                {
+                    newServer = new BybitServer();
                 }
                 if (type == ServerType.Zb)
                 {
@@ -545,7 +551,18 @@ namespace OsEngine.Market
 
                 return serverPermission;
             }
+            if (type == ServerType.Bybit)
+            {
+                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
 
+                if (serverPermission == null)
+                {
+                    serverPermission = new BybitServerPermission();
+                    _serversPermissions.Add(serverPermission);
+                }
+
+                return serverPermission;
+            }
 
             return null;
         }
@@ -1030,7 +1047,11 @@ namespace OsEngine.Market
         /// <summary>
         /// Huobi Futures Swap
         /// </summary>
-        HuobiFuturesSwap
-    }
+        HuobiFuturesSwap,
 
+        /// <summary>
+        /// Bybit exchange
+        /// </summary>
+        Bybit
+    }
 }

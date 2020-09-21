@@ -243,6 +243,21 @@ namespace OsEngine.Entity
 
             newGrid.Columns.Add(colum12);
 
+            DataGridViewColumn colum13 = new DataGridViewColumn();
+            colum13.CellTemplate = cell0;
+            colum13.HeaderText = OsLocalization.Entity.PositionColumn18;
+            colum13.ReadOnly = true;
+            colum13.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+            newGrid.Columns.Add(colum13);
+
+            DataGridViewColumn colum14 = new DataGridViewColumn();
+            colum14.CellTemplate = cell0;
+            colum14.HeaderText = OsLocalization.Entity.PositionColumn19;
+            colum14.ReadOnly = true;
+            colum14.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+            newGrid.Columns.Add(colum14);
 
             return newGrid;
         }

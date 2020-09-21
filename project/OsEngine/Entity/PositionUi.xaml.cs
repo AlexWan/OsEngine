@@ -120,25 +120,31 @@ namespace OsEngine.Entity
             nRow.Cells[9].Value = position.WaitVolume;
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[10].Value = position.EntryPrice;
+            nRow.Cells[10].Value = position.EntryPrice.ToStringWithNoEndZero();
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[11].Value = position.ClosePrice;
+            nRow.Cells[11].Value = position.ClosePrice.ToStringWithNoEndZero();
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[12].Value = position.ProfitPortfolioPunkt;
+            nRow.Cells[12].Value = position.ProfitPortfolioPunkt.ToStringWithNoEndZero();
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[13].Value = position.StopOrderRedLine;
+            nRow.Cells[13].Value = position.StopOrderRedLine.ToStringWithNoEndZero();
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[14].Value = position.StopOrderPrice;
+            nRow.Cells[14].Value = position.StopOrderPrice.ToStringWithNoEndZero();
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[15].Value = position.ProfitOrderRedLine;
+            nRow.Cells[15].Value = position.ProfitOrderRedLine.ToStringWithNoEndZero();
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[16].Value = position.ProfitOrderPrice;
+            nRow.Cells[16].Value = position.ProfitOrderPrice.ToStringWithNoEndZero();
+
+            nRow.Cells.Add(new DataGridViewTextBoxCell());
+            nRow.Cells[17].Value = position.SignalTypeOpen;
+
+            nRow.Cells.Add(new DataGridViewTextBoxCell());
+            nRow.Cells[18].Value = position.SignalTypeClose;
 
             return nRow;
         }
@@ -216,10 +222,10 @@ namespace OsEngine.Entity
             nRow.Cells[6].Value = order.State;
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[7].Value = order.Price;
+            nRow.Cells[7].Value = order.Price.ToStringWithNoEndZero();
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[8].Value = order.PriceReal;
+            nRow.Cells[8].Value = order.PriceReal.ToStringWithNoEndZero();
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[9].Value = order.Volume;
@@ -301,7 +307,7 @@ namespace OsEngine.Entity
             nRow.Cells[3].Value = trade.Time;
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[4].Value = trade.Price;
+            nRow.Cells[4].Value = trade.Price.ToStringWithNoEndZero();
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[5].Value = trade.Volume;

@@ -325,29 +325,27 @@ namespace OsEngine.Journal.Internal
                 return;
             }
 
-            if (_startProgram != StartProgram.IsOsTrader)
-            {
-                return;
-            }
-
             _neadToSave = false;
 
             try
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + _name + @"DealController.txt", false))
                 {
-                    List<Position> deals = _deals;
-
                     StringBuilder result = new StringBuilder();
 
                     result.Append(_comissionType + "\r\n");
                     result.Append(_comissionValue + "\r\n");
 
-                    for (int i = 0; deals != null && i < deals.Count; i++)
+                    if (_startProgram == StartProgram.IsOsTrader)
                     {
-                        result.Append(deals[i].GetStringForSave() + "\r\n");
-                    }
+                        List<Position> deals = _deals;
 
+                        for (int i = 0; deals != null && i < deals.Count; i++)
+                        {
+                            result.Append(deals[i].GetStringForSave() + "\r\n");
+                        }
+                    }
+                    
                     writer.Write(result);
                 }
             }
@@ -1317,6 +1315,12 @@ namespace OsEngine.Journal.Internal
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[16].Value = position.ProfitOrderPrice.ToStringWithNoEndZero();
+
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+                nRow.Cells[17].Value = position.SignalTypeOpen;
+
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+                nRow.Cells[18].Value = position.SignalTypeClose;
 
                 return nRow;
             }

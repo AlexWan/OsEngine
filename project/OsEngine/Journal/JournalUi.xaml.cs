@@ -1548,25 +1548,31 @@ namespace OsEngine.Journal
                 nRow.Cells[9].Value = position.WaitVolume;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[10].Value = position.EntryPrice;
+                nRow.Cells[10].Value = position.EntryPrice.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[11].Value = position.ClosePrice;
+                nRow.Cells[11].Value = position.ClosePrice.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[12].Value = position.ProfitPortfolioPunkt;
+                nRow.Cells[12].Value = position.ProfitPortfolioPunkt.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[13].Value = position.StopOrderRedLine;
+                nRow.Cells[13].Value = position.StopOrderRedLine.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[14].Value = position.StopOrderPrice;
+                nRow.Cells[14].Value = position.StopOrderPrice.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[15].Value = position.ProfitOrderRedLine;
+                nRow.Cells[15].Value = position.ProfitOrderRedLine.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[16].Value = position.ProfitOrderPrice;
+                nRow.Cells[16].Value = position.ProfitOrderPrice.ToStringWithNoEndZero();
+
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+                nRow.Cells[17].Value = position.SignalTypeOpen;
+
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+                nRow.Cells[18].Value = position.SignalTypeClose;
 
                 return nRow;
             }
@@ -1821,7 +1827,9 @@ namespace OsEngine.Journal
                 workSheet.Append(OsLocalization.Entity.PositionColumn14);
                 workSheet.Append(OsLocalization.Entity.PositionColumn15);
                 workSheet.Append(OsLocalization.Entity.PositionColumn16);
-                workSheet.Append(OsLocalization.Entity.PositionColumn17 +"\r\n");
+                workSheet.Append(OsLocalization.Entity.PositionColumn17);
+                workSheet.Append(OsLocalization.Entity.PositionColumn18);
+                workSheet.Append(OsLocalization.Entity.PositionColumn19 + "\r\n");
 
                 for (int i = 0; i < _closePositionGrid.Rows.Count; i++)
                 {
@@ -1842,7 +1850,9 @@ namespace OsEngine.Journal
                     workSheet.Append(_closePositionGrid.Rows[i].Cells[13].Value + ";");
                     workSheet.Append(_closePositionGrid.Rows[i].Cells[14].Value + ";");
                     workSheet.Append(_closePositionGrid.Rows[i].Cells[15].Value + ";");
-                    workSheet.Append(_closePositionGrid.Rows[i].Cells[16].Value + "\r\n");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[16].Value + ";");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[17].Value + ";");
+                    workSheet.Append(_closePositionGrid.Rows[i].Cells[18].Value + "\r\n");
                 }
 
                 string fileName = myDialog.FileName;
