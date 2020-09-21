@@ -54,12 +54,16 @@ namespace OsEngine.Market.Servers.Transaq
             converter.Start();
         }
 
+        private bool _loadSecInfoUpdate = false;
+
         /// <summary>
         /// connecto to the exchange
         /// установить соединение с биржей 
         /// </summary>
-        public void Connect()
+        public void Connect(bool loadSecInfoUpdate)
         {
+            _loadSecInfoUpdate = loadSecInfoUpdate;
+
             ConnectorInitialize();
             Thread.Sleep(1000);
 
@@ -213,6 +217,8 @@ namespace OsEngine.Market.Servers.Transaq
             return result;
         }
 
+        private List<string> _securityInfos = new List<string>();
+
         /// <summary>
         /// takes messages from the shared queue, converts them to C# classes, and sends them to up
         /// берет сообщения из общей очереди, конвертирует их в классы C# и отправляет на верх
@@ -241,7 +247,12 @@ namespace OsEngine.Market.Servers.Transaq
 
                             if (data.StartsWith("<sec_info_upd>"))
                             {
-                                UpdateSecurity?.Invoke(data);
+                                if (!_loadSecInfoUpdate)
+                                {
+                                    continue;
+                                }
+                                _securityInfos.Add(data);
+                                continue;
                             }
                             else if (data.StartsWith("<securities>"))
                             {
@@ -310,6 +321,8 @@ namespace OsEngine.Market.Servers.Transaq
                             }
                             else if (data.StartsWith("<server_status"))
                             {
+                                UpdateSecurity?.Invoke(_securityInfos);
+
                                 ServerStatus status = Deserialize<ServerStatus>(data);
 
                                 if (status.Connected == "true")
@@ -446,7 +459,8 @@ namespace OsEngine.Market.Servers.Transaq
         /// updated security
         /// обновились данные по инструменту
         /// </summary>
-        public event Action<string> UpdateSecurity;
+        public event Action<List<string>> UpdateSecurity;
+
 
         #endregion
 

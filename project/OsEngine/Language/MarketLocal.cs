@@ -777,5 +777,9 @@ namespace OsEngine.Language
         public string UseOther => OsLocalization.ConvertToLocString(
             "Eng:Other_" +
             "Ru:Другое_");
+
+        public string UseSecInfoUpdates => OsLocalization.ConvertToLocString(
+            "Eng:Use sec info updates_" +
+            "Ru:Включить обновления инструментов_");
     }
 }
