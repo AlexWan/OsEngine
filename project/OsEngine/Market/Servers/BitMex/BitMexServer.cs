@@ -459,6 +459,7 @@ namespace OsEngine.Market.Servers.BitMex
             {
                 lock (_lockerStarter)
                 {
+                    _client_SendLogMessage("LOAD BLOCK: "+endTime.ToString(), LogMessageType.System);
                     List<Trade> trades = new List<Trade>();
 
                     Dictionary<string, string> param = new Dictionary<string, string>();

@@ -31,6 +31,7 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
                     security.NameClass = name.Split(isFuture ? '-' : '/')[0];
                     security.SecurityType = isFuture ? SecurityType.Futures : SecurityType.CurrencyPair;
                     security.PriceStep = jProperty.SelectToken(PriceStepPath).Value<decimal>();
+                    security.PriceStepCost = security.PriceStep;
                     security.State = jProperty.SelectToken(StatePath).Value<bool>() ?
                         SecurityStateType.Activ :
                         SecurityStateType.Close;

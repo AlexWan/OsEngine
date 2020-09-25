@@ -86,16 +86,25 @@ namespace OsEngine.Entity
                 }
                 else if (_parameters[i].Type == StrategyParameterType.String)
                 {
-                    DataGridViewComboBoxCell cell = new DataGridViewComboBoxCell();
-
                     StrategyParameterString param = (StrategyParameterString)_parameters[i];
 
-                    for (int i2 = 0; i2 < param.ValuesString.Count; i2++)
+                    if (param.ValuesString.Count > 1)
                     {
-                        cell.Items.Add(param.ValuesString[i2]);
+                        DataGridViewComboBoxCell cell = new DataGridViewComboBoxCell();
+
+                        for (int i2 = 0; i2 < param.ValuesString.Count; i2++)
+                        {
+                            cell.Items.Add(param.ValuesString[i2]);
+                        }
+                        cell.Value = param.ValueString;
+                        row.Cells.Add(cell);
                     }
-                    cell.Value = param.ValueString;
-                    row.Cells.Add(cell);
+                    else if(param.ValuesString.Count == 1)
+                    {
+                        DataGridViewTextBoxCell cell = new DataGridViewTextBoxCell();
+                        cell.Value = param.ValueString;
+                        row.Cells.Add(cell);
+                    }
                 }
                 else if (_parameters[i].Type == StrategyParameterType.Int)
                 {

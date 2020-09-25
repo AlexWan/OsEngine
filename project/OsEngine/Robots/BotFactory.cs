@@ -337,6 +337,15 @@ namespace OsEngine.Robots
                 }
             }
 
+            for (int i = 0; i < results.Count; i++)
+            {
+                if (results.Contains("Dlls"))
+                {
+                    results.RemoveAt(i);
+                    i--;
+                }
+            }
+
             return results;
         }
 
@@ -424,7 +433,24 @@ namespace OsEngine.Robots
                     linksToDll = res;
                 }
 
-                CompilerParameters cp = new CompilerParameters(linksToDll);
+                List<string> dllsToCompiler = linksToDll.ToList();
+
+                List<string> dllsFromPath = GetDllsPathFromFolder(path);
+
+                if (dllsFromPath != null && dllsFromPath.Count != 0)
+                {
+                    for (int i = 0; i < dllsFromPath.Count; i++)
+                    {
+                        string dll = dllsFromPath[i].Split('\\')[dllsFromPath[i].Split('\\').Length - 1];
+
+                        if (dllsToCompiler.Find(d => d.Contains(dll)) == null)
+                        {
+                            dllsToCompiler.Add(dllsFromPath[i]);
+                        }
+                    }
+                }
+
+                CompilerParameters cp = new CompilerParameters(dllsToCompiler.ToArray());
 
                 // Помечаем сборку, как временную
                 cp.GenerateInMemory = true;
@@ -527,6 +553,34 @@ namespace OsEngine.Robots
                 string errorString = e.ToString();
                 throw new Exception(errorString);
             }
+        }
+
+        private static List<string> GetDllsPathFromFolder(string path)
+        {
+            string folderPath = path.Remove(path.LastIndexOf('\\'), path.Length - path.LastIndexOf('\\'));
+
+            if (Directory.Exists(folderPath + "\\Dlls") == false)
+            {
+                return null;
+            }
+
+            string[] filesInFolder = Directory.GetFiles(folderPath + "\\Dlls");
+
+            List<string> dlls = new List<string>();
+
+            for (int i = 0; i < filesInFolder.Length; i++)
+            {
+                if (filesInFolder[i].EndsWith(".dll") == false)
+                {
+                    continue;
+                }
+
+                string dllPath = AppDomain.CurrentDomain.BaseDirectory + filesInFolder[i];
+
+                dlls.Add(dllPath);
+            }
+
+            return dlls;
         }
 
         private static string ReadFile(string path)

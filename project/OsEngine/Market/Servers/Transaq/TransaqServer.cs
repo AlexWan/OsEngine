@@ -43,6 +43,8 @@ namespace OsEngine.Market.Servers.Transaq
             CreateParameterBoolean(OsLocalization.Market.UseCurrency, true);
             CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
             CreateParameterBoolean(OsLocalization.Market.UseOther, false);
+            CreateParameterBoolean(OsLocalization.Market.UseSecInfoUpdates, false);
+
         }
 
         public ServerWorkingTimeSettings WorkingTimeSettings;
@@ -188,6 +190,7 @@ namespace OsEngine.Market.Servers.Transaq
             _useCurrency = ((ServerParameterBool)ServerParameters[6]).Value;
             _useOptions = ((ServerParameterBool)ServerParameters[7]).Value;
             _useOther = ((ServerParameterBool)ServerParameters[8]).Value;
+            var useSecUpdates = ((ServerParameterBool)ServerParameters[9]).Value;
 
             _client.Connected += _client_Connected;
             _client.Disconnected += _client_Disconnected;
@@ -205,7 +208,7 @@ namespace OsEngine.Market.Servers.Transaq
             _client.NeedChangePassword += NeedChangePassword;
             _client.UpdateSecurity += ClientOnUpdateSecurityInfo;
 
-            _client.Connect();
+            _client.Connect(useSecUpdates);
 
             _cancellationTokenSource = new CancellationTokenSource();
 
@@ -315,9 +318,11 @@ namespace OsEngine.Market.Servers.Transaq
 
             _transaqSecurities = new ConcurrentBag<string>();
 
+            _portfoliosHandlerTask = null;
+
             _securities = new List<Security>();
 
-            _securityInfos = new ConcurrentBag<string>();
+            _securityInfos = new List<string>();
 
             _client = null;
 
@@ -375,22 +380,22 @@ namespace OsEngine.Market.Servers.Transaq
                     continue;
                 }
 
-                if (_clients[0].Union != null)
+               foreach (var client in _clients)
                 {
-                    command = $"<command id=\"get_united_portfolio\" union=\"{_clients[0].Union}\"/>";
-
-                    string res = _client.ConnectorSendCommand(command);
-
-                    if (res != "<result success=\"true\"/>")
+                    if (client.Union != null)
                     {
-                        SendLogMessage(res, LogMessageType.Error);
-                    }
+                        command = $"<command id=\"get_united_portfolio\" union=\"{client.Union}\"/>";
 
-                    Thread.Sleep(10000);
-                }
-                else
-                {
-                    foreach (var client in _clients)
+                        string res = _client.ConnectorSendCommand(command);
+
+                        if (res != "<result success=\"true\"/>")
+                        {
+                            SendLogMessage(res, LogMessageType.Error);
+                        }
+
+                        Thread.Sleep(10000);
+                    }
+                    else
                     {
                         command = $"<command id=\"get_client_limits\" client=\"{client.Id}\"/>";
                         string res = _client.ConnectorSendCommand(command);
@@ -1046,15 +1051,15 @@ namespace OsEngine.Market.Servers.Transaq
             HandleSecurities(securities);
         }
 
-        private ConcurrentBag<string> _securityInfos = new ConcurrentBag<string>();
+        private List<string> _securityInfos = new List<string>();
 
         /// <summary>
         /// obtained additional data on the security
         /// получены дополнительные данные по инструменту
         /// </summary>
-        private void ClientOnUpdateSecurityInfo(string securityInfo)
+        private void ClientOnUpdateSecurityInfo(List<string> securityInfo)
         {
-            _securityInfos.Add(securityInfo);
+            _securityInfos = securityInfo;
         }
 
         private void UpdateSecuritiesParallel()
