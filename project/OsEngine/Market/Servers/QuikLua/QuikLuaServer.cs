@@ -830,6 +830,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
                     trade.Time = new DateTime(allTrade.Datetime.year, allTrade.Datetime.month, allTrade.Datetime.day,
                         allTrade.Datetime.hour, allTrade.Datetime.min, allTrade.Datetime.sec);
+                    trade.MicroSeconds = allTrade.Datetime.mcs;
                     if (NewTradesEvent != null)
                     {
                         NewTradesEvent(trade);
@@ -1059,6 +1060,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     trade.Time = new DateTime(qTrade.QuikDateTime.year, qTrade.QuikDateTime.month,
                         qTrade.QuikDateTime.day, qTrade.QuikDateTime.hour,
                         qTrade.QuikDateTime.min, qTrade.QuikDateTime.sec);
+                    trade.MicroSeconds = qTrade.QuikDateTime.mcs;
                     trade.Side = qTrade.Flags == OrderTradeFlags.IsSell ? Side.Sell : Side.Buy;
 
                     if (MyTradeEvent != null)

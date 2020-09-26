@@ -57,6 +57,12 @@ namespace OsEngine.Entity
         public DateTime Time;
 
         /// <summary>
+        /// microseconds
+        /// микросекунды
+        /// </summary>
+        public int MicroSeconds;
+
+        /// <summary>
         /// party to the transaction
         /// сторона сделки
         /// </summary>
