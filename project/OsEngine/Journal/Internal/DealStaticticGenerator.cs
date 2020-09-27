@@ -558,7 +558,14 @@ namespace OsEngine.Journal.Internal
             {
                 return loss;
             }
-            return Math.Round(loss / GetLossDial(deals), 6);
+
+            decimal lossDeals = GetLossDial(deals);
+            if (lossDeals == 0)
+            {
+                return lossDeals;
+            }
+
+            return Math.Round(loss / lossDeals, 6);
         }
 
         /// <summary>
