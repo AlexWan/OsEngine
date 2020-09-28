@@ -87,7 +87,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
 		/// initialization string of the Listner responsible for receiving ticks
         /// строка инициализации листнера отвечающего за приём тиков
         /// </summary>
-        private const string ListenTradeString = "p2repl://FORTS_DEALS_REPL;scheme=|FILE|Plaza/Schemas/fut-deals.ini|CustReplScheme";
+        private const string ListenTradeString = "p2repl://FORTS_DEALS_REPL;scheme=|FILE|Plaza/Schemas/deals.ini|CustReplScheme";
 
         /// <summary>
 		/// initialization string of the Listner responsible for receiving my trades and my orders
@@ -751,9 +751,12 @@ namespace OsEngine.Market.Servers.Plaza.Internal
 
                                     security.PriceStepCost = Convert.ToDecimal(replmsg["step_price"].asDecimal());
 
-                                    security.PriceLimitLow = Convert.ToDecimal(replmsg["last_cl_quote"].asDecimal()) - Convert.ToDecimal(replmsg["limit_down"].asDecimal());
+                                    // From Spectra 6.5 "last_cl_quote" was deleted
+                                    //security.PriceLimitLow = Convert.ToDecimal(replmsg["last_cl_quote"].asDecimal()) - Convert.ToDecimal(replmsg["limit_down"].asDecimal());
+                                    security.PriceLimitLow = Convert.ToDecimal(replmsg["settlement_price"].asDecimal()) - Convert.ToDecimal(replmsg["limit_down"].asDecimal());
 
-                                    security.PriceLimitHigh = Convert.ToDecimal(replmsg["last_cl_quote"].asDecimal()) + Convert.ToDecimal(replmsg["limit_up"].asDecimal());
+                                    //security.PriceLimitHigh = Convert.ToDecimal(replmsg["last_cl_quote"].asDecimal()) + Convert.ToDecimal(replmsg["limit_up"].asDecimal());
+                                    security.PriceLimitHigh = Convert.ToDecimal(replmsg["settlement_price"].asDecimal()) + Convert.ToDecimal(replmsg["limit_up"].asDecimal());
 
                                     security.Lot = 1; //Convert.ToDecimal(replmsg["lot_volume"].asInt());
 
@@ -1224,8 +1227,12 @@ Connection conn, Listener listener, Message msg)
                                     trade.Time = replmsg["moment"].asDateTime();
                                     trade.Volume = replmsg["xamount"].asInt();
 
-                                    long numberBuyOrder = replmsg["id_ord_buy"].asLong();
-                                    long numberSellOrder = replmsg["id_ord_sell"].asLong();
+                                    //From Spectra 6.5 "id_ord_buy" and "id_ord_sell" was changed to "public_order_id_buy" and "public_order_id_sell"
+                                    //long numberBuyOrder = replmsg["id_ord_buy"].asLong();
+                                    //long numberSellOrder = replmsg["id_ord_sell"].asLong();
+                                    long numberBuyOrder = replmsg["public_order_id_buy"].asLong();
+                                    long numberSellOrder = replmsg["public_order_id_sell"].asLong();
+
 
                                     if (numberBuyOrder > numberSellOrder)
                                     {
@@ -1628,7 +1635,8 @@ Connection conn, Listener listener, Message msg)
                                     {
                                         if (_portfolios != null && _portfolios.Find(portfolio => portfolio.Number == portfolioBuy) != null)
                                         {
-                                            trade.NumberOrderParent = replmsg["id_ord_buy"].asLong().ToString();
+                                            //trade.NumberOrderParent = replmsg["id_ord_buy"].asLong().ToString();
+                                            trade.NumberOrderParent = replmsg["public_order_id_buy"].asLong().ToString();
                                             trade.Side = Side.Buy;
                                         }
                                     }
@@ -1636,7 +1644,8 @@ Connection conn, Listener listener, Message msg)
                                     {
                                         if (_portfolios != null && _portfolios.Find(portfolio => portfolio.Number == portfolioSell) != null)
                                         {
-                                            trade.NumberOrderParent = replmsg["id_ord_sell"].asLong().ToString();
+                                            //trade.NumberOrderParent = replmsg["id_ord_sell"].asLong().ToString();
+                                            trade.NumberOrderParent = replmsg["public_order_id_sell"].asLong().ToString();
                                             trade.Side = Side.Sell;
                                         }
                                     }
