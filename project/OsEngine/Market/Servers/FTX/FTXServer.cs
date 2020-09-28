@@ -380,6 +380,7 @@ namespace OsEngine.Market.Servers.FTX
             var order = _orderCreator.Create(data);
             if (!_myOrders.ContainsKey(order.NumberMarket))
             {
+                SendLogMessage($"Order with number {order.NumberUser} has been removed from the FTXServer cache.", LogMessageType.Error);
                 return;
             }
 
@@ -494,7 +495,13 @@ namespace OsEngine.Market.Servers.FTX
 
             if (isSuccessful)
             {
+                if (!_myOrders.ContainsKey(order.NumberMarket))
+                {
+                    SendLogMessage($"Order with number {order.NumberUser} has been removed from the FTXServer cache.", LogMessageType.Error);
+                    return;
+                }
                 _myOrders[order.NumberMarket].State = OrderStateType.Cancel;
+                OnOrderEvent(order);
             }
             else
             {
@@ -558,7 +565,6 @@ namespace OsEngine.Market.Servers.FTX
 
                     _client = null;
                     _ftxRestApi = null;
-                    _myOrders.Clear();
                     _securityMarketDepths.Clear();
                 }
 
