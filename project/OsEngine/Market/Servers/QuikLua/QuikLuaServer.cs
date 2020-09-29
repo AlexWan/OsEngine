@@ -1045,6 +1045,8 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private object myTradeLocker = new object();
 
+        private List<MyTrade> _myTrades = new List<MyTrade>();
+
         private void EventsOnOnTrade(QuikSharp.DataStructures.Transaction.Trade qTrade)
         {
             lock (myTradeLocker)
@@ -1059,13 +1061,35 @@ namespace OsEngine.Market.Servers.QuikLua
                     trade.Volume = qTrade.Quantity;
                     trade.Time = new DateTime(qTrade.QuikDateTime.year, qTrade.QuikDateTime.month,
                         qTrade.QuikDateTime.day, qTrade.QuikDateTime.hour,
-                        qTrade.QuikDateTime.min, qTrade.QuikDateTime.sec);
-                    trade.MicroSeconds = qTrade.QuikDateTime.mcs;
+                        qTrade.QuikDateTime.min, qTrade.QuikDateTime.sec, qTrade.QuikDateTime.ms);
                     trade.Side = qTrade.Flags == OrderTradeFlags.IsSell ? Side.Sell : Side.Buy;
+
+                    MyTrade tradeWithSameNumber = _myTrades.Find(t => t.NumberTrade == qTrade.TradeNum.ToString());
+
+                    if (tradeWithSameNumber != null)
+                    { // нашли трейд с тем же номером.
+                        if (tradeWithSameNumber.Time == trade.Time
+                            && tradeWithSameNumber.Price == trade.Price &&
+                            tradeWithSameNumber.Volume == trade.Volume)
+                        { // повтор
+                            return;
+                        }
+                        else
+                        { // ошибка в КвикШарп по номеру сделки. Даём ей свою
+                            trade.NumberTrade = NumberGen.GetNumberOrder(StartProgram.IsOsTrader).ToString();
+                        }
+                    }
+
+                    _myTrades.Add(trade);
 
                     if (MyTradeEvent != null)
                     {
                         MyTradeEvent(trade);
+                    }
+
+                    if (_myTrades.Count > 1000)
+                    {
+                        _myTrades.RemoveAt(0);
                     }
                 }
                 catch (Exception error)

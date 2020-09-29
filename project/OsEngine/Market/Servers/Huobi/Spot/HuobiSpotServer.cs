@@ -548,45 +548,52 @@ namespace OsEngine.Market.Servers.Huobi.Spot
 
         private async void PortfolioRequester(CancellationToken token)
         {
-            string url = _privateUriBuilder.Build("GET", "/v1/account/accounts");
-
-            var httpClient = new HttpClient();
-
-            string response = httpClient.GetStringAsync(url).Result;
-
-            Portfolios = new List<Portfolio>();
-
-            GetAccountInfoResponse accountInfo = JsonConvert.DeserializeObject<GetAccountInfoResponse>(response);
-
-            foreach (var info in accountInfo.data)
+            try
             {
-                var portfolio = new Portfolio();
-                portfolio.Number = info.type + "_" + info.id;
-                portfolio.ValueBegin = 1;
-                portfolio.ValueCurrent = 1;
-                portfolio.ValueBlocked = 1;
+                string url = _privateUriBuilder.Build("GET", "/v1/account/accounts");
 
-                Portfolios.Add(portfolio);
+                var httpClient = new HttpClient();
+
+                string response = httpClient.GetStringAsync(url).Result;
+
+                Portfolios = new List<Portfolio>();
+
+                GetAccountInfoResponse accountInfo = JsonConvert.DeserializeObject<GetAccountInfoResponse>(response);
+
+                foreach (var info in accountInfo.data)
+                {
+                    var portfolio = new Portfolio();
+                    portfolio.Number = info.type + "_" + info.id;
+                    portfolio.ValueBegin = 1;
+                    portfolio.ValueCurrent = 1;
+                    portfolio.ValueBlocked = 1;
+
+                    Portfolios.Add(portfolio);
+                }
+
+                OnPortfolioEvent(Portfolios);
+
+                while (!token.IsCancellationRequested)
+                {
+                    try
+                    {
+                        await Task.Delay(5000, token);
+
+                        GetPortfolios();
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        return;
+                    }
+                    catch (Exception exception)
+                    {
+                        SendLogMessage("MessageReader error: " + exception, LogMessageType.Error);
+                    }
+                }
             }
-
-            OnPortfolioEvent(Portfolios);
-
-            while (!token.IsCancellationRequested)
+            catch (Exception e)
             {
-                try
-                {
-                    await Task.Delay(5000, token);
-
-                    GetPortfolios();
-                }
-                catch (TaskCanceledException)
-                {
-                    return;
-                }
-                catch (Exception exception)
-                {
-                    SendLogMessage("MessageReader error: " + exception, LogMessageType.Error);
-                }
+                SendLogMessage(e.ToString(), LogMessageType.Error);
             }
         }
 
