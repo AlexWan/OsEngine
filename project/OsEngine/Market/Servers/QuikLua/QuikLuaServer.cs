@@ -1063,6 +1063,7 @@ namespace OsEngine.Market.Servers.QuikLua
                         qTrade.QuikDateTime.day, qTrade.QuikDateTime.hour,
                         qTrade.QuikDateTime.min, qTrade.QuikDateTime.sec, qTrade.QuikDateTime.ms);
                     trade.Side = qTrade.Flags == OrderTradeFlags.IsSell ? Side.Sell : Side.Buy;
+                    trade.MicroSeconds = qTrade.QuikDateTime.mcs;
 
                     MyTrade tradeWithSameNumber = _myTrades.Find(t => t.NumberTrade == qTrade.TradeNum.ToString());
 
@@ -1070,7 +1071,8 @@ namespace OsEngine.Market.Servers.QuikLua
                     { // нашли трейд с тем же номером.
                         if (tradeWithSameNumber.Time == trade.Time
                             && tradeWithSameNumber.Price == trade.Price &&
-                            tradeWithSameNumber.Volume == trade.Volume)
+                            tradeWithSameNumber.Volume == trade.Volume &&
+                            tradeWithSameNumber.MicroSeconds == trade.MicroSeconds)
                         { // повтор
                             return;
                         }
