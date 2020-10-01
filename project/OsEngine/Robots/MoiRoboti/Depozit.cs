@@ -51,7 +51,7 @@ namespace OsEngine.Robots.MoiRoboti
         {
             // инициализация переменных содержащих параметры стратегий 
             vkl_Robota = CreateParameter("РОБОТ Включен?", false);
-            slippage = CreateParameter("Велич. проскаль.у ордеров", 0.1m, 1m, 50m, 5m);
+            slippage = CreateParameter("Велич. проскаль.у ордеров", 1m, 1m, 50m, 5m);
             profit = CreateParameter("ТЭЙКПРОФИТ от рынка На ", 10, 5, 50, 5);
             vkl_profit = CreateParameter("ТЕЙКПРОФИТ включен ЛИ ?", true);
             veli4_usrednen = CreateParameter("ОБЪ.усред Уваел.НА ", 1m, 1m, 5m, 0.1m);
@@ -248,9 +248,9 @@ namespace OsEngine.Robots.MoiRoboti
             Percent_birgi(); // расчет величины в пунктах  процента биржи 
             List<Position> positions = _vklad.PositionsOpenAll;
 
-            if (_vklad.MarketDepth.Bids[0].Price > _vklad.PositionsLast.EntryPrice + profit.ValueInt + _kom + slippage.ValueDecimal)
+            if (_vklad.MarketDepth.Bids[0].Price > _vklad.PositionsLast.EntryPrice + profit.ValueInt + _kom + slippage.ValueDecimal * _vklad.Securiti.PriceStep)
             {
-                _vklad.CloseAtTrailingStop(positions[0], _vklad.MarketDepth.Bids[0].Price - profit.ValueInt, _vklad.MarketDepth.Asks[0].Price - profit.ValueInt - slippage.ValueDecimal);
+                _vklad.CloseAtTrailingStop(positions[0], _vklad.MarketDepth.Bids[0].Price - profit.ValueInt, _vklad.MarketDepth.Asks[0].Price - profit.ValueInt - slippage.ValueDecimal * _vklad.Securiti.PriceStep);
             }
         }
         void Usrednenie() // усреднение позиций при снижении рынка 
@@ -294,7 +294,7 @@ namespace OsEngine.Robots.MoiRoboti
                 int znach = Kol_Trad();
                 if (znach == zn_stop_los.ValueInt)
                 {
-                    _vklad.CloseAtStop(positions[0], _vklad.MarketDepth.Asks[0].Price, _vklad.MarketDepth.Asks[0].Price - slippage.ValueDecimal);
+                    _vklad.CloseAtStop(positions[0], _vklad.MarketDepth.Asks[0].Price, _vklad.MarketDepth.Asks[0].Price - slippage.ValueDecimal* _vklad.Securiti.PriceStep);
                     Thread.Sleep(3000);
                     vkl_Robota.ValueBool = false; // после выставления стопа выключаем робот 
                 }
@@ -303,7 +303,7 @@ namespace OsEngine.Robots.MoiRoboti
             {
                 if (vkl_Robota.ValueBool == false && positions.Count >0) // когда робот вЫключен и осталась открытая позиция выставляется стоп
                 {
-                    _vklad.CloseAtStop(positions[0], _vklad.MarketDepth.Asks[0].Price , _vklad.MarketDepth.Asks[0].Price - slippage.ValueDecimal);
+                    _vklad.CloseAtStop(positions[0], _vklad.MarketDepth.Asks[0].Price , _vklad.MarketDepth.Asks[0].Price - slippage.ValueDecimal*_vklad.Securiti.PriceStep);
                 }
             }
         }

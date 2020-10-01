@@ -46,7 +46,7 @@ namespace OsEngine.Robots.MoiRoboti
             _kom = 0;
             vkl_Robota = CreateParameter("РОБОТ Включен?", false);
             _uroven = CreateParameter("УРОВЕНЬ Работы", 10000m, 100m, 1000m, 50m);
-            slippage = CreateParameter("Велич. проскаль.у ордеров", 0.1m, 1m, 50m, 5m);
+            slippage = CreateParameter("Велич. проскаль.у ордеров", 1m, 1m, 50m, 5m);
             part_tovara = CreateParameter("ИСПОЛЬЗ Товара Часть(1/?)", 10, 2, 50, 1);
             do_piram = CreateParameter(" РАСТ. до Пирамиды", 5m,5m,100m,5m );
             profit = CreateParameter("ПРОФИТ от рынка На ", 5, 5, 200, 5);
@@ -91,13 +91,13 @@ namespace OsEngine.Robots.MoiRoboti
             }
             if (_tab.PositionsOpenAll.Count == 0)
             {
-                if (price > _uroven.ValueDecimal + dvig.ValueInt)
+                if (price > _uroven.ValueDecimal + dvig.ValueInt) // сдвиг уровня работы 
                 {
                     _uroven.ValueDecimal = price - ot_rinka.ValueInt - _kom;
                     Console.WriteLine(" Позиций нет, уровень поднялся  _uroven.ValueDecimal , теперь  " + _uroven.ValueDecimal);
                 }
             }
-            decimal priceOrder = price + profit.ValueInt + slippage.ValueDecimal;
+            decimal priceOrder = price + profit.ValueInt + slippage.ValueDecimal*_tab.Securiti.PriceStep;
             decimal priceActivation = price + profit.ValueInt;
             if (positions.Count != 0)
             {
@@ -167,9 +167,9 @@ namespace OsEngine.Robots.MoiRoboti
         void StopLoss() // фиксация  убытков 
         {
             List<Position> positions = _tab.PositionsOpenAll;
-            if (positions.Count != 0) // когда рынок ниже закупки позиции
+            if (positions.Count != 0) 
             {
-                if (price > _tab.PositionsLast.EntryPrice + _kom )
+                if (price > _tab.PositionsLast.EntryPrice + _kom) // когда рынок выше закупки позиции
                 {
                     Console.WriteLine("Вошли в условие выставление стопа цена стала  выше " + (_tab.PositionsLast.EntryPrice + _kom));
 
