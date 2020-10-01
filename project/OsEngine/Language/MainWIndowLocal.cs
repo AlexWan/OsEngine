@@ -13,8 +13,8 @@ namespace OsEngine.Language
             "Ru:Главное меню_");
 
         public string BlockDataLabel => OsLocalization.ConvertToLocString(
-            "Eng:   Work \n with data_"+
-            "Ru:    Работа \nс данными_");
+            "Eng:Work with data_"+
+            "Ru:Работа с данными_");
 
         public string BlockTestingLabel => OsLocalization.ConvertToLocString(
             "Eng:Testing_"+

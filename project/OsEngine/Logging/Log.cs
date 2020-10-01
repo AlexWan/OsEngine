@@ -315,6 +315,11 @@ namespace OsEngine.Logging
             master.LogMessageEvent += ProcessMessage;
         }
 
+        public void Listen(CandleConverter master)
+        {
+            master.LogMessageEvent += ProcessMessage;
+        }
+
         /// <summary>
         /// start listening to the router
         /// начать прослушку роутера
