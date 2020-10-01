@@ -41,7 +41,7 @@ namespace OsEngine.Robots.MoiRoboti
             TabCreate(BotTabType.Simple);  // создание простой вкладки
             _tab = TabsSimple[0]; // записываем первую вкладку в поле
 
-            // инициализация переменных
+            // инициализация переменных и параметров 
             price = 0;
             _kom = 0;
             vkl_Robota = CreateParameter("РОБОТ Включен?", false);
@@ -50,8 +50,8 @@ namespace OsEngine.Robots.MoiRoboti
             part_tovara = CreateParameter("ИСПОЛЬЗ Товара Часть(1/?)", 10, 2, 50, 1);
             do_piram = CreateParameter(" РАСТ. до Пирамиды", 5m,5m,100m,5m );
             profit = CreateParameter("ПРОФИТ от рынка На ", 5, 5, 200, 5);
-            dvig = CreateParameter("Движение верх забрать ", 55, 5, 200, 5);
-            ot_rinka = CreateParameter(" Держаться от рынка", 20, 10,150,10);
+            dvig = CreateParameter("Движение верх забрать ", 60, 5, 200, 5);
+            ot_rinka = CreateParameter(" Держаться от рынка", 50, 10,150,10);
             //part_depo = CreateParameter("ИСПОЛЬЗ Часть ДЕПО(1/?)", 10, 2, 50, 1);
             komis_birgi = CreateParameter("КОМ биржи в %", 0.2m, 0, 0.1m, 0.1m);
             min_lot = CreateParameter("МИН объ.орд у биржи(базовой)", 0.001m, 0.001m, 0.05m, 0.001m);
@@ -89,7 +89,6 @@ namespace OsEngine.Robots.MoiRoboti
                     StopLoss();
                 }
             }
-
             if (_tab.PositionsOpenAll.Count == 0)
             {
                 if (price > _uroven.ValueDecimal + dvig.ValueInt)
@@ -108,7 +107,6 @@ namespace OsEngine.Robots.MoiRoboti
                     Console.WriteLine(" Включился Трейлинг Профит CloseAtTrailingStop по - " + priceActivation);
                 }
             }
-
             if (vkl_Robota.ValueBool == false)
             {
                 return;
@@ -121,7 +119,7 @@ namespace OsEngine.Robots.MoiRoboti
                 decimal vol = tovar / part_tovara.ValueInt;
                 if (_tab.PositionsOpenAll.Count == 0)
                 {
-                    if (vol > Lot())
+                    if (vol > Lot()+ min_lot.ValueDecimal / 4)
                     {
   //объем входа- >>     
                         _tab.SellAtMarket(Okruglenie(vol - min_lot.ValueDecimal / 4));
@@ -238,7 +236,6 @@ namespace OsEngine.Robots.MoiRoboti
         {
             return "Storog";
         }
-
         public override void ShowIndividualSettingsDialog()
         {
 
