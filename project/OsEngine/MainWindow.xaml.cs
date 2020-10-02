@@ -351,5 +351,23 @@ namespace OsEngine
         }
 
         private PrimeSettingsMasterUi _settingsUi;
+
+        private void CandleConverter_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Hide();
+                OsCandleConverterUi ui = new OsCandleConverterUi();
+                ui.ShowDialog();
+                Close();
+                ProccesIsWorked = false;
+                Thread.Sleep(10000);
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.ToString());
+            }
+            Process.GetCurrentProcess().Kill();
+        }
     }
 }
