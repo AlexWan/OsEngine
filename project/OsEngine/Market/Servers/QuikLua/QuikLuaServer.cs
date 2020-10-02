@@ -1065,22 +1065,6 @@ namespace OsEngine.Market.Servers.QuikLua
                     trade.Side = qTrade.Flags == OrderTradeFlags.IsSell ? Side.Sell : Side.Buy;
                     trade.MicroSeconds = qTrade.QuikDateTime.mcs;
 
-                    MyTrade tradeWithSameNumber = _myTrades.Find(t => t.NumberTrade == qTrade.TradeNum.ToString());
-
-                    if (tradeWithSameNumber != null)
-                    { // нашли трейд с тем же номером.
-                        if (tradeWithSameNumber.Time == trade.Time
-                            && tradeWithSameNumber.Price == trade.Price &&
-                            tradeWithSameNumber.Volume == trade.Volume &&
-                            tradeWithSameNumber.MicroSeconds == trade.MicroSeconds)
-                        { // повтор
-                            return;
-                        }
-                        else
-                        { // ошибка в КвикШарп по номеру сделки. Даём ей свою
-                            trade.NumberTrade = NumberGen.GetNumberOrder(StartProgram.IsOsTrader).ToString();
-                        }
-                    }
 
                     _myTrades.Add(trade);
 
