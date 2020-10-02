@@ -681,6 +681,9 @@
     <Compile Include="Market\Services\CandlesCreator.cs" />
     <Compile Include="Market\Services\RestChannel.cs" />
     <Compile Include="Market\Services\WsSource.cs" />
+    <Compile Include="OsConverter\OsCandleConverterUi.xaml.cs">
+      <DependentUpon>OsCandleConverterUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="OsMiner\OsMinerMaster.cs" />
     <Compile Include="OsMiner\OsMinerSet.cs" />
     <Compile Include="OsMiner\OsMinerSetUi.xaml.cs">
@@ -1186,6 +1189,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Market\Servers\Transaq\ChangeTransaqPassword.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsConverter\OsCandleConverterUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
