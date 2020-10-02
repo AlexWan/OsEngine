@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using Newtonsoft.Json;
 using OsEngine.Entity;
@@ -602,9 +603,54 @@ namespace OsEngine.Market.Servers.QuikLua
         }
 
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime,
-            DateTime actualTime)
+             DateTime actualTime)
         {
-            return null;
+            List<Trade> AllHistoricalTrades = new List<Trade>();
+
+            //скачаем новые данные из квика. (доступна только текущая сессия. с 19.00 вчерашнего по 18.45 текущего дня)
+            List<Trade> newTrades = GetQuikLuaTickHistory(security);
+
+            //сохраним новые данные
+            if (!Directory.Exists(@"Data\Temp\"))
+            {
+                Directory.CreateDirectory(@"Data\Temp\");
+            }
+
+            DateTime fileNameDate = DateTime.Now.TimeOfDay.Hours < 19 ? DateTime.Now.Date : DateTime.Now.Date.AddDays(1);
+            string fileName = @"Data\Temp\" + security.Name + "_QuikLuaServer_" + fileNameDate.ToShortDateString() + ".txt";
+
+            StreamWriter writer = new StreamWriter(fileName, false);
+            for (int i = 0; i < newTrades.Count; i++)
+            {
+                writer.WriteLine(newTrades[i].GetSaveString());
+            }
+            writer.Close();
+
+
+            // объединим со старыми данными, если они есть
+            List<string> files = Directory.GetFiles(@"Data\Temp\", "*").ToList().FindAll(x => x.Contains(security.Name + "_QuikLuaServer_"));
+
+            for (int i = 0; i < files.Count; i++)
+            {
+                StreamReader reader = new StreamReader(files[i]);
+
+                while (!reader.EndOfStream)
+                {
+                    try
+                    {
+                        Trade newTrade = new Trade();
+                        newTrade.SetTradeFromString(reader.ReadLine());
+                        newTrade.SecurityNameCode = security.Name;
+                        AllHistoricalTrades.Add(newTrade);
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                }
+                reader.Close();
+            }
+            return AllHistoricalTrades;
         }
 
         public void GetOrdersState(List<Order> orders)
@@ -829,7 +875,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     }
 
                     trade.Time = new DateTime(allTrade.Datetime.year, allTrade.Datetime.month, allTrade.Datetime.day,
-                        allTrade.Datetime.hour, allTrade.Datetime.min, allTrade.Datetime.sec);
+                        allTrade.Datetime.hour, allTrade.Datetime.min, allTrade.Datetime.sec, allTrade.Datetime.ms);
                     trade.MicroSeconds = allTrade.Datetime.mcs;
                     if (NewTradesEvent != null)
                     {
