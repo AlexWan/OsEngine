@@ -174,6 +174,14 @@ public class BbPowerTrade : BotPanel
     /// </summary>
     private void LogicClosePosition(List<Candle> candles, Position position)
     {
+        if (position.State == PositionStateType.Closing ||
+            position.State == PositionStateType.Opening ||
+            position.CloseActiv == true ||
+            (position.CloseOrders != null && position.CloseOrders.Count > 0))
+        {
+            return;
+        }
+
         if (position.Direction == Side.Buy)
         {
             if (_lastBullsPrice + _lastBearsPrice < -Step.ValueDecimal)
