@@ -5,7 +5,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -92,6 +91,8 @@ namespace OsEngine
 
             ChangeText();
             OsLocalization.LocalizationTypeChangeEvent += ChangeText;
+            
+            CommandLineInterfaceProcess();
         }
 
         private void ChangeText()
@@ -351,5 +352,14 @@ namespace OsEngine
         }
 
         private PrimeSettingsMasterUi _settingsUi;
+        
+        private void CommandLineInterfaceProcess()
+        {
+            string[] args = Environment.GetCommandLineArgs();
+            if (Array.Exists(args, a => a.Equals("-robots")))
+            {
+                ButtonRobotCandleOne_Click(this, default);
+            }
+        }
     }
 }
