@@ -28,9 +28,9 @@ namespace OsEngine.Language
             "Ru:Звук по сделке_");
 
         public string TextBoxMessageToUsers => OsLocalization.ConvertToLocString(
-            "Eng: We apologize for any inconvenience with the translation. \nSupport our Open Source project and it will become better. \nOur bitcoin wallet \n13QyxgsGrMtTB3SggPx7hqjW3yHi68QeYz"
+            "Eng: We apologize for any inconvenience with the translation. \nSupport our Open Source project and it will become better._"
             +
-            "_Ru:Помогите нам стать лучше! Напишите на наш форум если нашли ошибку. А лучше переведите разработчикам немного биткойнов.\nКошелёк \n13QyxgsGrMtTB3SggPx7hqjW3yHi68QeYz_");
+            "_Ru: Напишите на наш форум если нашли ошибку. Поддержите разработку проекта и вместе мы станем лучше._");
 
         public string LabelServerTestingIsActive => OsLocalization.ConvertToLocString(
             "Eng:Server Testing Is Active_" +

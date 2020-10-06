@@ -340,14 +340,14 @@ namespace OsEngine.Entity
 
         public void Load()
         {
-            if (!File.Exists("Engine\\Converter.txt"))
+            if (!File.Exists("Engine\\CandleConverter.txt"))
             {
                 return;
             }
 
             try
             {
-                using (StreamReader reader = new StreamReader("Engine\\Converter.txt"))
+                using (StreamReader reader = new StreamReader("Engine\\CandleConverter.txt"))
                 {
                     Enum.TryParse(reader.ReadLine(), out TimeFrame);
                     _sourceFile = reader.ReadLine();
@@ -369,7 +369,7 @@ namespace OsEngine.Entity
         {
             try
             {
-                using (StreamWriter writer = new StreamWriter("Engine\\Converter.txt", false))
+                using (StreamWriter writer = new StreamWriter("Engine\\CandleConverter.txt", false))
                 {
                     writer.WriteLine(TimeFrame);
                     writer.WriteLine(_sourceFile);

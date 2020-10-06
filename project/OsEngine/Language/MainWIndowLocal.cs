@@ -32,6 +32,12 @@ namespace OsEngine.Language
             "Eng:Converter_"+
             "Ru:Конвертер");
 
+        public string OsCandleConverter => OsLocalization.ConvertToLocString(
+            "Eng:Candle Converter_" +
+            "Ru:Конвертер свечей");
+
+ 
+
         public string OsTesterName => OsLocalization.ConvertToLocString(
             "Eng:Tester_"+
             "Ru:Тестер");

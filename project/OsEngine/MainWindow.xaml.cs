@@ -108,6 +108,7 @@ namespace OsEngine
             ButtonMiner.Content = OsLocalization.MainWindow.OsMinerName;
 
             ButtonRobot.Content = OsLocalization.MainWindow.OsBotStationName;
+            ButtonCandleConverter.Content = OsLocalization.MainWindow.OsCandleConverter;
         }
 
         /// <summary>

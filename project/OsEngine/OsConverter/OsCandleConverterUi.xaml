@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.OsConverter"
         mc:Ignorable="d"
-        Title="OsCandleConverterUi" Height="410" Width="620" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" MinWidth="610" MinHeight="400" Icon="/Images/OsLogo.ico">
+        Title="Converter: 1 min candles to another candles" Height="410" Width="620" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" MinWidth="610" MinHeight="400" Icon="/Images/OsLogo.ico">
 
     <Grid>
         <Rectangle Margin="5,5,5,0" Height="85" VerticalAlignment="Top"/>
