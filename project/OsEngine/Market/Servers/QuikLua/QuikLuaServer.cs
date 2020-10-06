@@ -97,6 +97,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 QuikLua.Events.OnQuote += EventsOnOnQuote;
                 QuikLua.Events.OnFuturesClientHolding += EventsOnOnFuturesClientHolding;
                 QuikLua.Events.OnFuturesLimitChange += EventsOnOnFuturesLimitChange;
+                QuikLua.Events.OnTransReply += Events_OnTransReply;
 
                 QuikLua.Service.QuikService.Start();
                 ServerStatus = ServerConnectStatus.Connect;
@@ -129,6 +130,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 QuikLua.Events.OnQuote -= EventsOnOnQuote;
                 QuikLua.Events.OnFuturesClientHolding -= EventsOnOnFuturesClientHolding;
                 QuikLua.Events.OnFuturesLimitChange -= EventsOnOnFuturesLimitChange;
+                QuikLua.Events.OnTransReply -= Events_OnTransReply;
             }
 
             ServerStatus = ServerConnectStatus.Disconnect;
@@ -547,6 +549,26 @@ namespace OsEngine.Market.Servers.QuikLua
                     }
                 }
             }
+        }
+
+        private void Events_OnTransReply(TransactionReply transReply)
+        {
+            if (transReply.Status != 4)
+            {
+                return;
+            }
+
+            Order order = new Order();
+            order.NumberUser = transReply.TransID;
+            order.State = OrderStateType.Fail;
+            order.SecurityNameCode = transReply.SecCode;
+
+            if (MyOrderEvent != null)
+            {
+                MyOrderEvent(order);
+            }
+
+            SendLogMessage("Transaction  " + order.NumberUser + "  error: " + transReply.ResultMsg, LogMessageType.Error);
         }
 
         private List<Order> _ordersAllReadyCanseled = new List<Order>();
