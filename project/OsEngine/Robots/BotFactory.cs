@@ -27,8 +27,7 @@ namespace OsEngine.Robots
 {
     public class BotFactory
     {
-        private static readonly Dictionary<string, Type> BotsWithAttribute
-            = GetTypesWithBotAttribute(Assembly.GetAssembly(typeof(BotPanel)));
+        private static readonly Dictionary<string, Type> BotsWithAttribute = GetTypesWithBotAttribute();
         
         /// <summary>
         /// list robots name / 
@@ -267,7 +266,9 @@ namespace OsEngine.Robots
             return bot;
         }
         
-        static Dictionary<string, Type> GetTypesWithBotAttribute(Assembly assembly) {
+        static Dictionary<string, Type> GetTypesWithBotAttribute()
+        {
+            Assembly assembly = Assembly.GetAssembly(typeof(BotPanel));
             Dictionary<string, Type> bots = new Dictionary<string, Type>();
             foreach(Type type in assembly.GetTypes())
             {
@@ -282,7 +283,6 @@ namespace OsEngine.Robots
         }
 
         // Scripts
-
         public static List<string> GetScriptsNamesStrategy()
         {
             if (Directory.Exists(@"Custom") == false)
