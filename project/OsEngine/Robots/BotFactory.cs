@@ -14,6 +14,7 @@ using System.Threading;
 using Microsoft.CSharp;
 using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.Robots.CounterTrend;
 using OsEngine.Robots.Engines;
 using OsEngine.Robots.High_Frequency;
@@ -26,6 +27,8 @@ namespace OsEngine.Robots
 {
     public class BotFactory
     {
+        private static readonly Dictionary<string, Type> BotsWithAttribute = GetTypesWithBotAttribute();
+        
         /// <summary>
         /// list robots name / 
         /// список доступных роботов
@@ -42,7 +45,6 @@ namespace OsEngine.Robots
             result.Add("MarketMakerBot");
             result.Add("PatternTrader");
             result.Add("HighFrequencyTrader");
-            result.Add("Bollinger");
             result.Add("EnvelopTrend");
             result.Add("Williams Band");
             result.Add("TwoLegArbitrage");
@@ -69,6 +71,7 @@ namespace OsEngine.Robots
             result.Add("PriceChannelVolatility");
             result.Add("RsiTrade");
             result.Add("RviTrade");
+            result.AddRange(BotsWithAttribute.Keys);
 
             List<string> resultTrue = new List<string>();
 
@@ -110,7 +113,6 @@ namespace OsEngine.Robots
                 bot = CreateScriptStrategyByName(nameClass, name, startProgram);
                 return bot;
             }
-
             
             if (nameClass == "TimeOfDayBot")
             {
@@ -219,10 +221,6 @@ namespace OsEngine.Robots
             {
                 bot = new MarketMakerBot(name, startProgram);
             }
-            if (nameClass == "Bollinger")
-            {
-                bot = new StrategyBollinger(name, startProgram);
-            }
             if (nameClass == "ParabolicSarTrade")
             {
                 bot = new ParabolicSarTrade(name, startProgram);
@@ -259,13 +257,32 @@ namespace OsEngine.Robots
             {
                 bot = new PairTraderSpreadSma(name, startProgram);
             }
-
+            if (BotsWithAttribute.ContainsKey(nameClass))
+            {
+                Type botType = BotsWithAttribute[nameClass];
+                bot = (BotPanel) Activator.CreateInstance(botType, name, startProgram);
+            }
 
             return bot;
         }
+        
+        static Dictionary<string, Type> GetTypesWithBotAttribute()
+        {
+            Assembly assembly = Assembly.GetAssembly(typeof(BotPanel));
+            Dictionary<string, Type> bots = new Dictionary<string, Type>();
+            foreach(Type type in assembly.GetTypes())
+            {
+                object[] attributes = type.GetCustomAttributes(typeof(BotAttribute), false);
+                if (attributes.Length > 0)
+                {
+                    bots[((BotAttribute) attributes[0]).Name] = type;
+                }
+            }
+
+            return bots;
+        }
 
         // Scripts
-
         public static List<string> GetScriptsNamesStrategy()
         {
             if (Directory.Exists(@"Custom") == false)
