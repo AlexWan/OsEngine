@@ -190,12 +190,6 @@ namespace OsEngine.Market.Servers.QuikLua
                     continue;
                 }
 
-                if (classesList[i].EndsWith("SPBFUT") == false &&
-                    classesList[i].EndsWith("QJSIM") == false)
-                {
-                    continue;
-                }
-
                 string[] secCodes = QuikLua.Class.GetClassSecurities(classesList[i]).Result;
                 for (int j = 0; j < secCodes.Length; j++)
                 {
