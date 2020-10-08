@@ -519,8 +519,14 @@ namespace OsEngine.Entity
                 {
                     if (CloseOrders[i].NumberUser == newOrder.NumberUser)
                     {
-                        if (CloseOrders[i].State == OrderStateType.Fail &&newOrder.State == OrderStateType.Fail ||
-                            CloseOrders[i].State == OrderStateType.Cancel && newOrder.State == OrderStateType.Cancel)
+                        if (
+                                (
+                                (CloseOrders[i].State == OrderStateType.Fail && newOrder.State == OrderStateType.Fail) 
+                                ||
+                                (CloseOrders[i].State == OrderStateType.Cancel && newOrder.State == OrderStateType.Cancel)
+                                )
+                                &&
+                                State == PositionStateType.ClosingFail)
                         {
                             return;
                         }

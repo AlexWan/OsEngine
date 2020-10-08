@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Entity.Utils;
@@ -35,7 +35,7 @@ namespace OsEngine.Market.Servers.QuikLua
         /// <returns>failure will return null/в случае неудачи вернётся null</returns>
         public List<Candle> GetQuikLuaCandleHistory(Security security, TimeSpan timeSpan)
         {
-            return ((QuikLuaServerRealization) ServerRealization).GetQuikLuaCandleHistory(security, timeSpan);
+            return ((QuikLuaServerRealization)ServerRealization).GetQuikLuaCandleHistory(security, timeSpan);
         }
 
         /// <summary>
@@ -58,13 +58,14 @@ namespace OsEngine.Market.Servers.QuikLua
 
             Thread updateSpotPos = new Thread(UpdateSpotPosition);
             updateSpotPos.CurrentCulture = new CultureInfo("ru-RU");
-            updateSpotPos.IsBackground = true;
             updateSpotPos.Start();
 
             Thread getPos = new Thread(GetPortfoliosArea);
             getPos.CurrentCulture = new CultureInfo("ru-RU");
-            getPos.IsBackground = true;
             getPos.Start();
+
+            Thread worker3 = new Thread(ThreadCheckOrdersState);
+            worker3.Start();
         }
 
         public ServerType ServerType => ServerType.QuikLua;
@@ -80,7 +81,7 @@ namespace OsEngine.Market.Servers.QuikLua
         private object _serverLocker = new object();
 
         private static readonly Char Separator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator[0];
-        
+
         private static readonly string SecuritiesCachePath = @"Engine\QuikLuaSecuritiesCache.txt";
 
         public void Connect()
@@ -167,7 +168,7 @@ namespace OsEngine.Market.Servers.QuikLua
             }
 
             DateTime lastWriteTime = File.GetLastWriteTime(SecuritiesCachePath);
-           
+
             return DateTime.Now < lastWriteTime.AddHours(1);
         }
 
@@ -185,6 +186,12 @@ namespace OsEngine.Market.Servers.QuikLua
             for (int i = 0; i < classesList.Length; i++)
             {
                 if (classesList[i].EndsWith("INFO"))
+                {
+                    continue;
+                }
+
+                if (classesList[i].EndsWith("SPBFUT") == false &&
+                    classesList[i].EndsWith("QJSIM") == false)
                 {
                     continue;
                 }
@@ -308,7 +315,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-        
+
         private void SaveToCache(List<Security> list)
         {
             if (list == null)
@@ -514,6 +521,109 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
+        private async void ThreadCheckOrdersState()
+        {
+            while (true)
+            {
+                Thread.Sleep(5000);
+
+                if (MainWindow.ProccesIsWorked == false)
+                {
+                    return;
+                }
+
+                if (QuikLua == null ||
+                    ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    for (int i = 0; i < _myOrdersInMarket.Count; i++)
+                    {
+                        await CheckOrder(_myOrdersInMarket[i]);
+                    }
+                }
+                catch (Exception e)
+                {
+                    SendLogMessage(e.ToString(), LogMessageType.Error);
+                }
+            }
+        }
+
+        List<Order> _nullOrders = new List<Order>();
+
+        private async Task CheckOrder(Order ord)
+        {
+            try
+            {
+                QuikSharp.DataStructures.Transaction.Order order =
+                    await QuikLua.Orders.GetOrder_by_transID(
+                        ord.SecurityNameCode.Split('_')[1],
+                        ord.SecurityNameCode.Split('_')[0]
+                        , ord.NumberUser);
+
+                if (order != null)
+                {
+                    if (order.OrderNum == 0)
+                    {
+                        return;
+                    }
+
+                    EventsOnOnOrder(order);
+                }
+                else if (order == null)
+                {
+                    List<Order> nullOrders = _nullOrders.FindAll(o => o.NumberUser == ord.NumberUser);
+
+                    if (nullOrders.Count > 5)
+                    {
+                        for (int i = 0; i < _myOrdersInMarket.Count; i++)
+                        {
+                            Order o = _myOrdersInMarket[i];
+
+                            if (o.NumberUser == ord.NumberUser)
+                            {
+                                _myOrdersInMarket.RemoveAt(i);
+                                break;
+                            }
+                        }
+
+                        ord.State = OrderStateType.Fail;
+
+                        if (MyOrderEvent != null)
+                        {
+                            MyOrderEvent(ord);
+                        }
+                    }
+
+                    _nullOrders.Add(ord);
+                }
+
+                if (order != null &&
+                    (order.State == State.Canceled ||
+                     order.State == State.Completed))
+                {
+                    for (int i = 0; i < _myOrdersInMarket.Count; i++)
+                    {
+                        if (_myOrdersInMarket[i].NumberUser == ord.NumberUser)
+                        {
+                            _myOrdersInMarket.RemoveAt(i);
+                            return;
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                SendLogMessage(e.ToString(), LogMessageType.Error);
+            }
+
+        }
+
+        private List<Order> _myOrdersInMarket = new List<Order>();
+
         public void SendOrder(Order order)
         {
             QuikSharp.DataStructures.Transaction.Order qOrder = new QuikSharp.DataStructures.Transaction.Order();
@@ -533,6 +643,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 if (res > 0)
                 {
                     order.NumberUser = Convert.ToInt32(res);
+                    _myOrdersInMarket.Add(order);
 
                     if (MyOrderEvent != null)
                     {
@@ -553,7 +664,8 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private void Events_OnTransReply(TransactionReply transReply)
         {
-            if (transReply.Status != 4)
+            if (transReply.Status != 4 &&
+                transReply.Status != 6)
             {
                 return;
             }
@@ -625,54 +737,9 @@ namespace OsEngine.Market.Servers.QuikLua
         }
 
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime,
-             DateTime actualTime)
+            DateTime actualTime)
         {
-            List<Trade> AllHistoricalTrades = new List<Trade>();
-
-            //скачаем новые данные из квика. (доступна только текущая сессия. с 19.00 вчерашнего по 18.45 текущего дня)
-            List<Trade> newTrades = GetQuikLuaTickHistory(security);
-
-            //сохраним новые данные
-            if (!Directory.Exists(@"Data\Temp\"))
-            {
-                Directory.CreateDirectory(@"Data\Temp\");
-            }
-
-            DateTime fileNameDate = DateTime.Now.TimeOfDay.Hours < 19 ? DateTime.Now.Date : DateTime.Now.Date.AddDays(1);
-            string fileName = @"Data\Temp\" + security.Name + "_QuikLuaServer_" + fileNameDate.ToShortDateString() + ".txt";
-
-            StreamWriter writer = new StreamWriter(fileName, false);
-            for (int i = 0; i < newTrades.Count; i++)
-            {
-                writer.WriteLine(newTrades[i].GetSaveString());
-            }
-            writer.Close();
-
-
-            // объединим со старыми данными, если они есть
-            List<string> files = Directory.GetFiles(@"Data\Temp\", "*").ToList().FindAll(x => x.Contains(security.Name + "_QuikLuaServer_"));
-
-            for (int i = 0; i < files.Count; i++)
-            {
-                StreamReader reader = new StreamReader(files[i]);
-
-                while (!reader.EndOfStream)
-                {
-                    try
-                    {
-                        Trade newTrade = new Trade();
-                        newTrade.SetTradeFromString(reader.ReadLine());
-                        newTrade.SecurityNameCode = security.Name;
-                        AllHistoricalTrades.Add(newTrade);
-                    }
-                    catch
-                    {
-                        // ignore
-                    }
-                }
-                reader.Close();
-            }
-            return AllHistoricalTrades;
+            return null;
         }
 
         public void GetOrdersState(List<Order> orders)
@@ -696,7 +763,7 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             try
             {
-                var needSec = _securities.Find(sec => 
+                var needSec = _securities.Find(sec =>
                     sec.Name == security.Name && sec.NameClass == security.NameClass);
 
                 _trades = new List<Trade>();
@@ -897,7 +964,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     }
 
                     trade.Time = new DateTime(allTrade.Datetime.year, allTrade.Datetime.month, allTrade.Datetime.day,
-                        allTrade.Datetime.hour, allTrade.Datetime.min, allTrade.Datetime.sec, allTrade.Datetime.ms);
+                        allTrade.Datetime.hour, allTrade.Datetime.min, allTrade.Datetime.sec);
                     trade.MicroSeconds = allTrade.Datetime.mcs;
                     if (NewTradesEvent != null)
                     {
@@ -1103,6 +1170,8 @@ namespace OsEngine.Market.Servers.QuikLua
                     {
                         MyOrderEvent(order);
                     }
+
+                    CreateMyTrades(qOrder);
                 }
                 catch (Exception error)
                 {
@@ -1111,9 +1180,31 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
+        private async Task CreateMyTrades(QuikSharp.DataStructures.Transaction.Order qOrder)
+        {
+            try
+            {
+                List<QuikSharp.DataStructures.Transaction.Trade> trades =
+                    await QuikLua.Trading.GetTrades_by_OdrerNumber(Convert.ToInt64(qOrder.OrderNum));
+
+                if (trades != null && trades.Count != 0)
+                {
+                    for (int i = 0; i < trades.Count; i++)
+                    {
+                        EventsOnOnTrade(trades[i]);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                SendLogMessage(e.ToString(), LogMessageType.Error);
+            }
+        }
+
         private object myTradeLocker = new object();
 
-        private List<MyTrade> _myTrades = new List<MyTrade>();
+        private List<QuikSharp.DataStructures.Transaction.Trade> _myTradesFromQuik =
+            new List<QuikSharp.DataStructures.Transaction.Trade>();
 
         private void EventsOnOnTrade(QuikSharp.DataStructures.Transaction.Trade qTrade)
         {
@@ -1121,6 +1212,13 @@ namespace OsEngine.Market.Servers.QuikLua
             {
                 try
                 {
+                    if (_myTradesFromQuik.Find(t => t.TradeNum == qTrade.TradeNum) != null)
+                    {
+                        return;
+                    }
+
+                    _myTradesFromQuik.Add(qTrade);
+
                     MyTrade trade = new MyTrade();
                     trade.NumberTrade = qTrade.TradeNum.ToString();
                     trade.SecurityNameCode = qTrade.SecCode + "_" + qTrade.ClassCode;
@@ -1133,17 +1231,9 @@ namespace OsEngine.Market.Servers.QuikLua
                     trade.Side = qTrade.Flags == OrderTradeFlags.IsSell ? Side.Sell : Side.Buy;
                     trade.MicroSeconds = qTrade.QuikDateTime.mcs;
 
-
-                    _myTrades.Add(trade);
-
                     if (MyTradeEvent != null)
                     {
                         MyTradeEvent(trade);
-                    }
-
-                    if (_myTrades.Count > 1000)
-                    {
-                        _myTrades.RemoveAt(0);
                     }
                 }
                 catch (Exception error)
