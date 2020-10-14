@@ -794,6 +794,13 @@ namespace OsEngine.Market.Servers.Tester
                         comboBox.Items.Add(TimeFrame.Min15.ToString());
                         comboBox.Items.Add(TimeFrame.Min30.ToString());
                         comboBox.Items.Add(TimeFrame.Min45.ToString());
+                        comboBox.Items.Add(TimeFrame.Sec1.ToString());
+                        comboBox.Items.Add(TimeFrame.Sec2.ToString());
+                        comboBox.Items.Add(TimeFrame.Sec5.ToString());
+                        comboBox.Items.Add(TimeFrame.Sec10.ToString());
+                        comboBox.Items.Add(TimeFrame.Sec15.ToString());
+                        comboBox.Items.Add(TimeFrame.Sec20.ToString());
+                        comboBox.Items.Add(TimeFrame.Sec30.ToString());
 
                         nRow.Cells.Add(comboBox);
                         nRow.Cells[2].Value = securities[i].TimeFrame.ToString();
