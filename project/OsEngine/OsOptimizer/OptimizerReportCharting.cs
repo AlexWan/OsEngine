@@ -230,36 +230,71 @@ namespace OsEngine.OsOptimizer
 
             DataGridViewColumn column2 = new DataGridViewColumn();
             column2.CellTemplate = cell0;
-            column2.HeaderText = "Best bot number InSample";
+            column2.HeaderText = "Best bot number InSample (Back test)";
             column2.ReadOnly = false;
             column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridDep.Columns.Add(column2);
 
             DataGridViewColumn column3 = new DataGridViewColumn();
             column3.CellTemplate = cell0;
-            column3.HeaderText = "Parameters";
+            column3.HeaderText = "Best bot Parameters";
             column3.ReadOnly = false;
             column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridDep.Columns.Add(column3);
 
             DataGridViewColumn column4 = new DataGridViewColumn();
             column4.CellTemplate = cell0;
-            column4.HeaderText = "Bot results in OutOfSample";
+            column4.HeaderText = "Bot results in OutOfSample (Fwd test)";
             column4.ReadOnly = false;
             column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridDep.Columns.Add(column4);
 
             DataGridViewColumn column5 = new DataGridViewColumn();
             column5.CellTemplate = cell0;
-            column5.HeaderText = "Profit";
+            column5.HeaderText = "Best bot Profit";
             column5.ReadOnly = false;
             column5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridDep.Columns.Add(column5);
+
+            DataGridViewColumn column6 = new DataGridViewColumn();
+            column6.CellTemplate = cell0;
+            column6.HeaderText = "2nd check Best bot number (Back test + Fwd test)";
+            column6.ReadOnly = false;
+            column6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridDep.Columns.Add(column6);
+
+            DataGridViewColumn column7 = new DataGridViewColumn();
+            column7.CellTemplate = cell0;
+            column7.HeaderText = "2nd check Best bot results in InSample";
+            column7.ReadOnly = false;
+            column7.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridDep.Columns.Add(column7);
+
+            DataGridViewColumn column8 = new DataGridViewColumn();
+            column8.CellTemplate = cell0;
+            column8.HeaderText = "2nd check Best bot profit";
+            column8.ReadOnly = false;
+            column8.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridDep.Columns.Add(column8);
+
+            DataGridViewColumn column9 = new DataGridViewColumn();
+            column9.CellTemplate = cell0;
+            column9.HeaderText = "2nd check Best bot params";
+            column9.ReadOnly = false;
+            column9.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridDep.Columns.Add(column9);
 
             _gridDep.Rows.Add(null, null);
 
             _hostDataGrid.Child = _gridDep;
         }
+
+        OptimizerReport inSampRep;
+        OptimizerReport outOfSampRep;
+        OptimizerReport paramsRep;
+        LastMax lastMax = new LastMax();
+        OptimazerFazeReport outOfSampleReps = new OptimazerFazeReport();
+        OptimazerFazeReport inSampleReps = new OptimazerFazeReport();
 
         private void UpdGridDep()
         {
@@ -373,6 +408,88 @@ namespace OsEngine.OsOptimizer
                 cell7.Value = reportToPaint.TotalProfit;
                 row.Cells.Add(cell7);
 
+                DataGridViewTextBoxCell cell8 = new DataGridViewTextBoxCell();      
+
+                if (curReport.Faze.TypeFaze == OptimizerFazeType.OutOfSample)
+                {
+
+                    inSampleReps = _reports[0];
+                    outOfSampleReps = _reports[1];
+
+                    int i3 = outOfSampleReps.Reports.Count - 1;
+
+                    while (i3 > 0)
+                    {
+                        string repBotName = outOfSampleReps.Reports[i3].BotName.Replace(" OutOfSample", "");
+                        inSampRep = inSampleReps.Reports.Find(rep => rep.BotName.Equals(repBotName + " InSample"));
+                        outOfSampRep = outOfSampleReps.Reports.Find(rep => rep.BotName.Equals(repBotName + " OutOfSample"));
+
+                        if ((outOfSampRep.TotalProfit > 0) && inSampRep.TotalProfit > lastMax.totalProfitInSample &&
+                            outOfSampRep.TotalProfit > lastMax.totalProfitOutOfSample)
+                        {
+                            lastMax.BotName = repBotName;
+                            lastMax.totalProfitInSample = inSampRep.TotalProfit;
+                            lastMax.totalProfitOutOfSample = outOfSampRep.TotalProfit;
+                        }
+                        i3--;
+                    }
+
+                    if (lastMax.BotName == null)
+                    {
+                        cell8.Value = "2nd check Best bot not found!";
+                    }
+                    else
+                    {
+                        cell8.Value = lastMax.BotName;
+                    }
+                }
+                row.Cells.Add(cell8);
+
+                DataGridViewTextBoxCell cell9 = new DataGridViewTextBoxCell();
+
+                if (curReport.Faze.TypeFaze == OptimizerFazeType.OutOfSample)
+                {
+                    for (int i3 = 0; i3 < inSampleReps.Reports.Count; i3++)
+                    {
+                        string curRepName = inSampleReps.Reports[i3].BotName.Replace(" InSample", "");
+
+                        if (curRepName == lastMax.BotName)
+                        {
+                            cell9.Value = (i3 + 1).ToString();
+                            break;
+                        }
+                        else
+                        {
+                            cell9.Value = "2nd check Best bot not found!";
+                        }
+                    }
+                }
+                row.Cells.Add(cell9);
+
+                DataGridViewTextBoxCell cell10 = new DataGridViewTextBoxCell();
+
+                if (curReport.Faze.TypeFaze == OptimizerFazeType.OutOfSample)
+                {
+                    cell10.Value = $"InSample profit ={lastMax.totalProfitInSample}\n" +
+                                  $"OutOfSample profit ={lastMax.totalProfitOutOfSample}";
+                }
+                row.Cells.Add(cell10);
+
+                DataGridViewTextBoxCell cell11 = new DataGridViewTextBoxCell();
+
+                if (curReport.Faze.TypeFaze == OptimizerFazeType.OutOfSample)
+                {
+                    if (lastMax.BotName == null)
+                    {
+                        cell11.Value = "2nd check Best bot not found!";
+                    }
+                    else
+                    {
+                        paramsRep = outOfSampleReps.Reports.Find(rep => rep.BotName.Equals(lastMax.BotName + " OutOfSample"));
+                        cell11.Value = paramsRep.GetParamsToDataTable();
+                    } 
+                }
+                row.Cells.Add(cell11);
 
                 _gridDep.Rows.Add(row);
             }
@@ -695,5 +812,12 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
+    }
+
+    public class LastMax
+    {
+        public string BotName = null;
+        public decimal totalProfitInSample = 0.0m;
+        public decimal totalProfitOutOfSample = 0.0m;
     }
 }
