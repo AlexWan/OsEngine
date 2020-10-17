@@ -251,7 +251,7 @@ namespace OsEngine.Market.Servers.FTX.FtxApi
 
         #region Orders
 
-        public async Task<JToken> PlaceOrderAsync(string instrument, Side side, decimal price, OrderPriceType orderType, decimal amount, bool reduceOnly = false)
+        public async Task<JToken> PlaceOrderAsync(string instrument, Side side, decimal price, OrderPriceType orderType, decimal amount, bool reduceOnly = true)
         {
             var path = $"api/orders";
 
