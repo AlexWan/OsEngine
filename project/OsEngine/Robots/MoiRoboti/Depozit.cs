@@ -45,6 +45,7 @@ namespace OsEngine.Robots.MoiRoboti
         public int vol_dv;  // изменяемое значение доли депо
         bool piramid_stop = true;  // для отключение усреднения по объему 
         bool alarm = true;
+        public decimal price; // записываем текущую цену рынка
 
         public Depozit(string name, StartProgram startProgram) // конструктор робота
              : base(name, startProgram)
@@ -125,7 +126,7 @@ namespace OsEngine.Robots.MoiRoboti
                             Lot();
                             ZaprosBalahca();
                             Rac4et_baz_bal();
-                            if (tek_bal_potfela / dola_depa.ValueInt > min_lot.ValueDecimal)
+                            if (tek_bal_potfela / dola_depa.ValueInt > min_lot.ValueDecimal*price)
                             {
                                 _vklad.BuyAtMarket(Okreglenie(Depo / dola_depa.ValueInt));
                                 Console.WriteLine("Открылись по цене" + _vklad.PriceBestAsk + " НА - " + (Depo / dola_depa.ValueInt) * _vklad.PriceBestAsk + " $");
@@ -156,6 +157,7 @@ namespace OsEngine.Robots.MoiRoboti
         
         private void _vklad_NewTickEvent(Trade trade) // событие новых тиков для счета объема торгов
         {
+            price = _vklad.PriceCenterMarketDepth; // записываем текущую цену рынка
             if (vkl_vol_trade.ValueBool == false)
             {
                 return;
@@ -326,7 +328,8 @@ namespace OsEngine.Robots.MoiRoboti
         }
         public decimal Price_kon_trade()  // получает значение цены последних трейдов, если их нет возвращает цену рынка 
         {
-            if (_vklad.PositionsLast.MyTrades.Count != 0)
+ // ругается тут на отсутствие объекта 
+            if (_vklad.PositionsLast.MyTrades.Count != 0) 
             {
                 int asd = _vklad.PositionsLast.MyTrades.Count;
                 return _vklad.PositionsLast.MyTrades[asd - 1].Price;
@@ -366,7 +369,7 @@ namespace OsEngine.Robots.MoiRoboti
         }
         decimal Lot() // расчет минимального лота 
         {
-            decimal price = _vklad.MarketDepth.Asks[0].Price;
+            price = _vklad.PriceCenterMarketDepth;
             min_lot.ValueDecimal = Okreglenie( 10.1m / price);
             Console.WriteLine(" Минимальный лот = " + min_lot.ValueDecimal);
             return Okreglenie( 10.1m / price);

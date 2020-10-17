@@ -35,6 +35,7 @@ namespace OsEngine.Robots.MoiRoboti
         public decimal tovar; // количество товара  в портфеле
         public decimal volum_ma; // последние значение индикатора MA  
         public decimal price_position = 1; // хранение цены последней открытой позиции
+        public decimal zakritie; 
 
         public Storog(string name, StartProgram startProgram) : base(name, startProgram) // конструктор робота тут  
         {
@@ -44,6 +45,7 @@ namespace OsEngine.Robots.MoiRoboti
             // инициализация переменных и параметров 
             price = 0;
             _kom = 0;
+            zakritie = 0; //последняя позиция закрылась по цене 
             vkl_Robota = CreateParameter("РОБОТ Включен?", false);
             _uroven = CreateParameter("УРОВЕНЬ Работы", 10000m, 100m, 1000m, 50m);
             slippage = CreateParameter("Велич. проскаль.у ордеров", 1m, 1m, 50m, 5m);
@@ -69,9 +71,9 @@ namespace OsEngine.Robots.MoiRoboti
             _tab.PositionOpeningSuccesEvent += _tab_PositionOpeningSuccesEvent; // событие успешного открытия позиции 
             _tab.PositionClosingSuccesEvent += _tab_PositionClosingSuccesEvent; // событие успешного закрытия позиции 
         }
-        private void _tab_PositionClosingSuccesEvent(Position position) //закрылась позиция 
+        private void _tab_PositionClosingSuccesEvent(Position position) //закрылась позиция? перезаписали уровень срабатывания 
         {
-            decimal zakritie = _tab.PositionsLast.ClosePrice;
+            zakritie = _tab.PositionsLast.ClosePrice;
             _uroven.ValueDecimal = zakritie - _kom;
             Console.WriteLine("Перезаписали  уровень _uroven.ValueDecimal, по закрытию позиции на  " + _uroven.ValueDecimal);
         }
@@ -87,14 +89,6 @@ namespace OsEngine.Robots.MoiRoboti
                 if (price > _tab.PositionsLast.EntryPrice)
                 {
                     StopLoss();
-                }
-            }
-            if (_tab.PositionsOpenAll.Count == 0)
-            {
-                if (price > _uroven.ValueDecimal + dvig.ValueInt) // сдвиг уровня работы 
-                {
-                    _uroven.ValueDecimal = price - ot_rinka.ValueInt - _kom;
-                    Console.WriteLine(" Позиций нет, уровень поднялся  _uroven.ValueDecimal , теперь  " + _uroven.ValueDecimal);
                 }
             }
             decimal priceOrder = price + profit.ValueInt + slippage.ValueDecimal*_tab.Securiti.PriceStep;
@@ -130,6 +124,18 @@ namespace OsEngine.Robots.MoiRoboti
                 if (price < _tab.PositionsLast.EntryPrice - _kom - do_piram.ValueDecimal && positions.Count != 0)
                 {
                     Piramid();
+                }
+            }
+            if (_tab.PositionsOpenAll.Count == 0) // сдвиг уровня работы 
+            {
+                if (price > _uroven.ValueDecimal  ) // цена выше уровня работы + величина движения + комиссия 
+                {
+                    decimal r = price - _uroven.ValueDecimal; // вычисляем разницу (на сколько изменилась цена)
+                    if (r>dvig.ValueInt)
+                    {
+                        _uroven.ValueDecimal = _uroven.ValueDecimal +(r - ot_rinka.ValueInt);
+                        Console.WriteLine(" Позиций нет, уровень поднялся  _uroven.ValueDecimal , теперь  " + _uroven.ValueDecimal);
+                    }
                 }
             }
         }
