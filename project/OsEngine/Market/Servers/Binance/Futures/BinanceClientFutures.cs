@@ -976,9 +976,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     namesSec.Add(oldOpenOrders[i].SecurityNameCode);
                 }
             }
-
-
-            string endPoint = "/fapi/v1/allOrder";
+            
+            string endPoint = "/fapi/v1/allOrders";
 
             List<HistoryOrderReport> allOrders = new List<HistoryOrderReport>();
 
@@ -1353,12 +1352,13 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                                     MyTrade trade = new MyTrade();
                                     trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.T));
-                                    trade.NumberOrderParent = order.i.ToString();
-                                    trade.NumberTrade = order.t.ToString();
+                                    trade.NumberOrderParent = order.i;
+                                    trade.NumberTrade = order.t;
                                     trade.Volume = order.l.ToDecimal();
                                     trade.Price = order.L.ToDecimal();
                                     trade.SecurityNameCode = order.s;
                                     trade.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
+                                    trade.Commission = Convert.ToDecimal(order.n, CultureInfo.InvariantCulture);
 
                                     if (MyTradeEvent != null)
                                     {

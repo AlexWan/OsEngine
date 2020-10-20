@@ -5,6 +5,7 @@
 
 using System;
 using System.Globalization;
+using System.Linq;
 
 namespace OsEngine.Entity
 {
@@ -67,6 +68,14 @@ namespace OsEngine.Entity
         /// сторона сделки
         /// </summary>
         public Side Side;
+        
+        /// <summary>
+        /// Commission
+        /// Комиссия
+        /// </summary>
+        public decimal Commission;
+        
+        private static readonly CultureInfo CultureInfo = new CultureInfo("ru-RU");
 
         /// <summary>
         /// to take a line to save
@@ -76,14 +85,15 @@ namespace OsEngine.Entity
         {
             string result = "";
 
-            result += Volume.ToString(new CultureInfo("ru-RU")) + "&";
-            result += Price.ToString(new CultureInfo("ru-RU")) + "&";
-            result += NumberOrderParent.ToString(new CultureInfo("ru-RU")) + "&";
-            result += Time.ToString(new CultureInfo("ru-RU")) + "&";
-            result += NumberTrade.ToString(new CultureInfo("ru-RU")) + "&";
+            result += Volume.ToString(CultureInfo) + "&";
+            result += Price.ToString(CultureInfo) + "&";
+            result += NumberOrderParent.ToString(CultureInfo) + "&";
+            result += Time.ToString(CultureInfo) + "&";
+            result += NumberTrade.ToString(CultureInfo) + "&";
             result += Side + "&";
             result += SecurityNameCode + "&";
             result += NumberPosition + "&";
+            result += Commission.ToString(CultureInfo) + "&";
             return result;
         }
 
@@ -103,6 +113,7 @@ namespace OsEngine.Entity
             Enum.TryParse(arraySave[5], out Side);
             SecurityNameCode = arraySave[6];
             NumberPosition = arraySave[7];
+            Commission = Convert.ToDecimal(arraySave.ElementAtOrDefault(8));
         }
 
         /// <summary>
