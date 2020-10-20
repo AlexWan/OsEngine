@@ -56,6 +56,7 @@ The layer for creating robots is similar to the Wealth-Lab script and Ninja Scri
 10) ZB
 11) Gate IO
 12) HitBtc
+13) ByBit
 
 
 *Available connections for Forex*

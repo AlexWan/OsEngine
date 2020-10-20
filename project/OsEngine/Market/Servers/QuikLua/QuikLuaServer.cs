@@ -1267,7 +1267,16 @@ namespace OsEngine.Market.Servers.QuikLua
                     trade.Time = new DateTime(qTrade.QuikDateTime.year, qTrade.QuikDateTime.month,
                         qTrade.QuikDateTime.day, qTrade.QuikDateTime.hour,
                         qTrade.QuikDateTime.min, qTrade.QuikDateTime.sec, qTrade.QuikDateTime.ms);
-                    trade.Side = qTrade.Flags == OrderTradeFlags.IsSell ? Side.Sell : Side.Buy;
+
+                    if (qTrade.Flags.ToString().Contains("IsSell"))
+                    {
+                        trade.Side = Side.Sell;
+                    }
+                    else
+                    {
+                        trade.Side = Side.Buy;
+                    }
+
                     trade.MicroSeconds = qTrade.QuikDateTime.mcs;
 
                     if (MyTradeEvent != null)

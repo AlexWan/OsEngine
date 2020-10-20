@@ -1358,7 +1358,6 @@ namespace OsEngine.Market.Servers.Binance.Futures
                                     trade.Price = order.L.ToDecimal();
                                     trade.SecurityNameCode = order.s;
                                     trade.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
-                                    trade.Commission = Convert.ToDecimal(order.n, CultureInfo.InvariantCulture);
 
                                     if (MyTradeEvent != null)
                                     {
