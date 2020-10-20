@@ -42,35 +42,35 @@ namespace OsEngine.OsTrader
 
                 List<string> sourceFiles = SeekForSourceFiles(bot);
 
-                BotPanel result = null;
+                HotUpdateResult<BotPanel>? result = null;
                 string botClassPath = default;
                 foreach (string sourceFile in sourceFiles)
                 {
-                    BotPanel updatedBot = Execute(() =>
+                    HotUpdateResult<BotPanel> updatedBotResult = Execute(() =>
                         Instantiate<BotPanel>(sourceFile, bot.NameStrategyUniq, bot.StartProgram));
+                    BotPanel updatedBot = updatedBotResult.UpdatedObject;
                     if (updatedBot != null && updatedBot.GetNameStrategyType().Equals(bot.GetNameStrategyType()))
                     {
                         // Two bot classes with the same class name and strategy name
-                        if (result != null)
+                        if (result?.UpdatedObject != null)
                         {
                             string errorMessage =
                                 $"Duplicated classes with a name = \"{bot.GetType().Name}\" and strategy = \"{bot.GetNameStrategyType()}\" ";
                             return new HotUpdateResult<BotPanel>(null, HotUpdateResultStatus.Error, errorMessage);
                         }
 
-                        result = updatedBot;
                         botClassPath = sourceFile;
                     }
+                    result = updatedBotResult;
                 }
 
                 if (result != null)
                 {
                     _classPathCache.Remove(GetBotUniqName(bot));
                     _classPathCache[GetBotUniqName(bot)] = botClassPath;
-                    return new HotUpdateResult<BotPanel>(result, HotUpdateResultStatus.Success);
                 }
 
-                return ErrorResult;
+                return result ?? ErrorResult;
             }
             catch (Exception e)
             {
@@ -142,15 +142,16 @@ namespace OsEngine.OsTrader
             }
         }
 
-        private static T Execute<T>(Func<T> func)
+        private static HotUpdateResult<T> Execute<T>(Func<T> func)
         {
             try
             {
-                return func();
+                T result = func();
+                return new HotUpdateResult<T>(result, HotUpdateResultStatus.Success);
             }
             catch (Exception e)
             {
-                return default;
+                return new HotUpdateResult<T>(default, HotUpdateResultStatus.Error, e.Message);
             }
         }
     }

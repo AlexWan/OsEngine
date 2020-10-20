@@ -379,6 +379,10 @@ namespace OsEngine
             {
                 ButtonRobotCandleOne_Click(this, default);
             }
+            else if (Array.Exists(args, a => a.Equals("-tester")))
+            {
+                ButtonTesterCandleOne_Click(this, default);
+            }
         }
     }
 }
