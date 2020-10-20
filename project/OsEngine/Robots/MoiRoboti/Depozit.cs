@@ -55,7 +55,7 @@ namespace OsEngine.Robots.MoiRoboti
             slippage = CreateParameter("Велич. проскаль.у ордеров", 1m, 1m, 50m, 5m);
             profit = CreateParameter("ТЭЙКПРОФИТ от рынка На ", 10, 5, 50, 5);
             vkl_profit = CreateParameter("ТЕЙКПРОФИТ включен ЛИ ?", true);
-            veli4_usrednen = CreateParameter("ОБЪ.усред Уваел.НА ", 1m, 1m, 5m, 0.1m);
+            veli4_usrednen = CreateParameter("Усред.уваелич в раз ", 0.3m, 1m, 5m, 0.1m);
             vkl_usrednen = CreateParameter("УСРЕДНЕНИЕ включено ЛИ?", true);
             deltaUsredn = CreateParameter("УСРЕДнять через", 10m, 5m, 50m, 5m);
             dola_depa = CreateParameter("Часть депозита на вход", 10, 5, 100, 1);
@@ -213,7 +213,7 @@ namespace OsEngine.Robots.MoiRoboti
                 slippage.ValueDecimal = slippage.ValueDecimal + 1m;
                 _vklad.CloseAtStop(positions[0], _vklad.MarketDepth.Asks[0].Price, _vklad.MarketDepth.Asks[0].Price - slippage.ValueDecimal);
                 vkl_Robota.ValueBool = false; // после выставления стопа выключаем робот 
-                Console.WriteLine(" Аварийное выключение!!! ОБЪЕМЫ продаж больше "+ volum_alarm.ValueInt+ "  РОБОТ ВЫКЛЮЧЕН по цене - " + Price_kon_trade());
+                Console.WriteLine(" Аварийное выключение!!! ОБЪЕМЫ продаж больше "+ volum_alarm.ValueInt+ " РОБОТ ВЫКЛЮЧЕН по цене - " + Price_kon_trade());
                 slippage.ValueDecimal = slippage.ValueDecimal - 1m;
                 Console.WriteLine("Вернули проскальзыванию начальное значение - " + slippage.ValueDecimal);
                 if (positions.Count == 0)
@@ -311,13 +311,19 @@ namespace OsEngine.Robots.MoiRoboti
         }
         decimal VolumForUsred()
         {
-            decimal vol = 0;
-            vol = _vklad.PositionsLast.MaxVolume;
-            if (Depo < vol* veli4_usrednen.ValueDecimal)
+            Rac4et_baz_bal();
+            if (_vklad.PositionsOpenAll.Count == 0)
+            {
+                return Okreglenie(Depo / dola_depa.ValueInt);
+            }    
+            decimal uge = _vklad.PositionsLast.MaxVolume; // максимальный объем в позиции
+            decimal dob = uge * veli4_usrednen.ValueDecimal; // добавляем объема 
+            decimal vol = uge + dob;
+            if (Depo < vol)
             {
                 return Depo;
             }
-            return vol * veli4_usrednen.ValueDecimal;
+            else return vol;
         }
         decimal Okreglenie(decimal vol) // округляет децимал до 6 чисел после запятой 
         {

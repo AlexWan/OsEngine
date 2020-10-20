@@ -75,7 +75,7 @@ namespace OsEngine.Robots.MoiRoboti
         {
             zakritie = _tab.PositionsLast.ClosePrice;
             _uroven.ValueDecimal = zakritie - _kom;
-            Console.WriteLine("Перезаписали  уровень _uroven.ValueDecimal, по закрытию позиции на  " + _uroven.ValueDecimal);
+            Console.WriteLine("По закрытию позиции уровень срабатывания переписали на  " + _uroven.ValueDecimal);
         }
         private void _tab_PositionOpeningSuccesEvent(Position position) // позиция успешно открылась
         {
@@ -98,7 +98,7 @@ namespace OsEngine.Robots.MoiRoboti
                 if (price < _tab.PositionsLast.EntryPrice - profit.ValueInt - _kom - slippage.ValueDecimal)
                 {
                     _tab.CloseAtTrailingStop(positions[0], priceActivation, priceOrder);
-                    Console.WriteLine(" Включился Трейлинг Профит CloseAtTrailingStop по - " + priceActivation);
+                    Console.WriteLine(" Включился Трейлинг Профит по - " + priceActivation);
                 }
             }
             if (vkl_Robota.ValueBool == false)
@@ -117,7 +117,7 @@ namespace OsEngine.Robots.MoiRoboti
                     {
   //объем входа- >>     
                         _tab.SellAtMarket(Okruglenie(vol - min_lot.ValueDecimal / 4));
-                        Console.WriteLine(" начали продавать часть битка) по  " + price + " На объем " + vol * price);
+                        Console.WriteLine(" начали продавать часть товара) по цене " + price + " На объем " + (vol - min_lot.ValueDecimal / 4) * price);
                         Thread.Sleep(1500);
                     }
                 }
@@ -134,7 +134,7 @@ namespace OsEngine.Robots.MoiRoboti
                     if (r>dvig.ValueInt)
                     {
                         _uroven.ValueDecimal = _uroven.ValueDecimal +(r - ot_rinka.ValueInt);
-                        Console.WriteLine(" Позиций нет, уровень поднялся  _uroven.ValueDecimal , теперь  " + _uroven.ValueDecimal);
+                        Console.WriteLine(" Позиций нет, уровень срабатывания поднимаем, теперь  " + _uroven.ValueDecimal);
                     }
                 }
             }
@@ -157,7 +157,7 @@ namespace OsEngine.Robots.MoiRoboti
             Percent_birgi();
             if (price < _tab.PositionsLast.EntryPrice - _kom - do_piram.ValueDecimal)
             {
-                Console.WriteLine("Цена опустилась НА  - " + (_tab.PositionsLast.EntryPrice - _kom - do_piram.ValueDecimal));
+                Console.WriteLine("Цена опустилась НА - " + (_tab.PositionsLast.EntryPrice - _kom - do_piram.ValueDecimal));
                 if (positions.Count !=0)
                 {
                     decimal vol = tovar / part_tovara.ValueInt;
@@ -177,10 +177,9 @@ namespace OsEngine.Robots.MoiRoboti
             {
                 if (price > _tab.PositionsLast.EntryPrice + _kom) // когда рынок выше закупки позиции
                 {
-                    Console.WriteLine("Вошли в условие выставление стопа цена стала  выше " + (_tab.PositionsLast.EntryPrice + _kom));
-
+                    Console.WriteLine("Вошли в условие выставление стопа " + (_tab.PositionsLast.EntryPrice + _kom));
                     _tab.CloseAtStop(positions[0], price, price );
-                    Console.WriteLine("Выставили  СТОПлос CloseAtStop по Активация " + price + " с ордером " + (price + slippage.ValueDecimal));
+                    Console.WriteLine("Выставили СТОПлос по Активация " + price + " с ордером " + (price + slippage.ValueDecimal));
                 }
             }
         }
@@ -188,7 +187,6 @@ namespace OsEngine.Robots.MoiRoboti
         {
             price = _tab.PriceCenterMarketDepth;
             min_lot.ValueDecimal = Okruglenie(10.1m / price);
-            Console.WriteLine(" Минимальный лот = " + min_lot.ValueDecimal);
             return Okruglenie(10.1m / price);
         }
         decimal Balans_kvot()   // запрос квотируемых средств в портфеле (в USDT) 
