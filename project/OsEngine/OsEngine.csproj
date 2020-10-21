@@ -751,10 +751,9 @@
       <DependentUpon>PairTraderSimpleUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Robots\MoiRoboti\Depozit.cs" />
+    <Compile Include="Robots\MoiRoboti\Frank.cs" />
     <Compile Include="Robots\MoiRoboti\MyBlanks.cs" />
-    <Compile Include="Robots\MoiRoboti\Setka.cs" />
     <Compile Include="Robots\MoiRoboti\Storog.cs" />
-    <Compile Include="Robots\MoiRoboti\Taxist.cs" />
     <Compile Include="Robots\MoiRoboti\Ver_01.cs" />
     <Compile Include="Robots\MoiRoboti\Ver_01_Ui.xaml.cs">
       <DependentUpon>Ver_01_Ui.xaml</DependentUpon>

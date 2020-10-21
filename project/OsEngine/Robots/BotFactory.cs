@@ -35,8 +35,7 @@ namespace OsEngine.Robots
         {
             List<string> result = new List<string>();
 
-            result.Add("Taxist");
-            result.Add("Setka");
+            result.Add("Frank");
             result.Add("Depozit");
             result.Add("Ver_01");
             result.Add("Storog");
@@ -118,9 +117,9 @@ namespace OsEngine.Robots
                 bot = CreateScriptStrategyByName(nameClass, name, startProgram);
                 return bot;
             }
-            if (nameClass == "Setka")
+            if (nameClass == "Frank")
             {
-                bot = new Setka(name, startProgram);
+                bot = new Storog(name, startProgram);
             }
             if (nameClass == "Storog")
             {
@@ -134,12 +133,7 @@ namespace OsEngine.Robots
             {
                 bot = new Ver_01(name, startProgram);
             }
-            if (nameClass == "Taxist")
-            {
-                bot = new Taxist(name, startProgram);
-            }
-
-
+ 
             if (nameClass == "TimeOfDayBot")
             {
                 bot = new TimeOfDayBot(name, startProgram);

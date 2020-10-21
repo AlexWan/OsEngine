@@ -49,15 +49,15 @@ namespace OsEngine.Robots.MoiRoboti
             vkl_Robota = CreateParameter("РОБОТ Включен?", false);
             _uroven = CreateParameter("УРОВЕНЬ Работы", 10000m, 100m, 1000m, 50m);
             slippage = CreateParameter("Велич. проскаль.у ордеров", 1m, 1m, 50m, 5m);
-            part_tovara = CreateParameter("ИСПОЛЬЗ Товара Часть(1/?)", 10, 2, 50, 1);
+            part_tovara = CreateParameter("ИСПОЛЬЗ Товара Часть(1/?)", 2, 2, 50, 1);
             do_piram = CreateParameter(" РАСТ. до Пирамиды", 5m,5m,100m,5m );
             profit = CreateParameter("ПРОФИТ от рынка На ", 5, 5, 200, 5);
-            dvig = CreateParameter("Движение верх забрать ", 60, 5, 200, 5);
+            dvig = CreateParameter("Движение верх забрать ", 70, 5, 200, 5);
             ot_rinka = CreateParameter(" Держаться от рынка", 50, 10,150,10);
             //part_depo = CreateParameter("ИСПОЛЬЗ Часть ДЕПО(1/?)", 10, 2, 50, 1);
             komis_birgi = CreateParameter("КОМ биржи в %", 0.2m, 0, 0.1m, 0.1m);
             min_lot = CreateParameter("МИН объ.орд у биржи(базовой)", 0.001m, 0.001m, 0.05m, 0.001m);
-            vel_ma = CreateParameter("MA", 7, 3, 50, 1);  // записываем в переменную параметры 
+            vel_ma = CreateParameter("MA", 2, 3, 50, 1);  // записываем в переменную параметры 
 
             // создание и инициализация индикатора МА
             _ma = new MovingAverage(name + "Ma", false);

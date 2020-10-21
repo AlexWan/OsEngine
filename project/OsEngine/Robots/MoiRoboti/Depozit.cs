@@ -53,7 +53,7 @@ namespace OsEngine.Robots.MoiRoboti
             // инициализация переменных содержащих параметры стратегий 
             vkl_Robota = CreateParameter("РОБОТ Включен?", false);
             slippage = CreateParameter("Велич. проскаль.у ордеров", 1m, 1m, 50m, 5m);
-            profit = CreateParameter("ТЭЙКПРОФИТ от рынка На ", 10, 5, 50, 5);
+            profit = CreateParameter("ТЭЙКПРОФИТ от рынка На ", 15, 5, 50, 5);
             vkl_profit = CreateParameter("ТЕЙКПРОФИТ включен ЛИ ?", true);
             veli4_usrednen = CreateParameter("Усред.уваелич в раз ", 0.3m, 1m, 5m, 0.1m);
             vkl_usrednen = CreateParameter("УСРЕДНЕНИЕ включено ЛИ?", true);
