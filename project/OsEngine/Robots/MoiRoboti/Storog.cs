@@ -27,6 +27,7 @@ namespace OsEngine.Robots.MoiRoboti
         private StrategyParameterInt vel_ma; // какое значение индикатора махa использовать
         private StrategyParameterDecimal do_piram; // сколько пропустить да пирамиды
         private StrategyParameterInt ot_rinka; // расстояние от рынка (+комиссия)
+        private StrategyParameterDecimal do_stopa; // сколько пропустить да срабатывания стопа
 
         public decimal _vol_stop; // объем проданного товара по стопу 
         public decimal price; // текущая  цена центра стакана 
@@ -47,11 +48,12 @@ namespace OsEngine.Robots.MoiRoboti
             _kom = 0;
             zakritie = 0; //последняя позиция закрылась по цене 
             vkl_Robota = CreateParameter("РОБОТ Включен?", false);
+            do_stopa = CreateParameter(" РАСТ. до СТОПА", 10m, 5m, 100m, 5m);
             _uroven = CreateParameter("УРОВЕНЬ Работы", 10000m, 100m, 1000m, 50m);
             slippage = CreateParameter("Велич. проскаль.у ордеров", 1m, 1m, 50m, 5m);
             part_tovara = CreateParameter("ИСПОЛЬЗ Товара Часть(1/?)", 2, 2, 50, 1);
-            do_piram = CreateParameter(" РАСТ. до Пирамиды", 5m,5m,100m,5m );
-            profit = CreateParameter("ПРОФИТ от рынка На ", 5, 5, 200, 5);
+            do_piram = CreateParameter(" РАСТ. до Пирамиды", 10m,5m,100m,5m );
+            profit = CreateParameter("ПРОФИТ от рынка На ", 3, 5, 200, 5);
             dvig = CreateParameter("Движение верх забрать ", 70, 5, 200, 5);
             ot_rinka = CreateParameter(" Держаться от рынка", 50, 10,150,10);
             //part_depo = CreateParameter("ИСПОЛЬЗ Часть ДЕПО(1/?)", 10, 2, 50, 1);
@@ -60,7 +62,7 @@ namespace OsEngine.Robots.MoiRoboti
             vel_ma = CreateParameter("MA", 2, 3, 50, 1);  // записываем в переменную параметры 
 
             // создание и инициализация индикатора МА
-            _ma = new MovingAverage(name + "Ma", false);
+            _ma = new MovingAverage(name + "Ma", true);
             _ma = (MovingAverage)_tab.CreateCandleIndicator(_ma, "Prime");
             _ma.Lenght = vel_ma.ValueInt; // присвоение значения 
             _ma.Save();
@@ -74,8 +76,12 @@ namespace OsEngine.Robots.MoiRoboti
         private void _tab_PositionClosingSuccesEvent(Position position) //закрылась позиция? перезаписали уровень срабатывания 
         {
             zakritie = _tab.PositionsLast.ClosePrice;
-            _uroven.ValueDecimal = zakritie - _kom;
-            Console.WriteLine("По закрытию позиции уровень срабатывания переписали на  " + _uroven.ValueDecimal);
+            if (zakritie < _uroven.ValueDecimal)
+            {
+                _uroven.ValueDecimal = zakritie - _kom;
+                Console.WriteLine("По закрытию позиции уровень срабатывания переписали на  " + _uroven.ValueDecimal);
+            }
+ 
         }
         private void _tab_PositionOpeningSuccesEvent(Position position) // позиция успешно открылась
         {
@@ -175,11 +181,11 @@ namespace OsEngine.Robots.MoiRoboti
             List<Position> positions = _tab.PositionsOpenAll;
             if (positions.Count != 0) 
             {
-                if (price > _tab.PositionsLast.EntryPrice + _kom) // когда рынок выше закупки позиции
+                if (price > _tab.PositionsLast.EntryPrice + do_stopa.ValueDecimal) // когда рынок выше закупки позиции
                 {
-                    Console.WriteLine("Вошли в условие выставление стопа " + (_tab.PositionsLast.EntryPrice + _kom));
+                    Console.WriteLine("Вошли в условие выставление стопа " + (_tab.PositionsLast.EntryPrice + do_stopa.ValueDecimal));
                     _tab.CloseAtStop(positions[0], price, price );
-                    Console.WriteLine("Выставили СТОПлос по Активация " + price + " с ордером " + (price + slippage.ValueDecimal));
+                    Console.WriteLine("Выставили СТОПлос по Активация " + price + " с ордером " + price);
                 }
             }
         }
