@@ -8,11 +8,12 @@
         <Rectangle Margin="10,7,409,0" Height="205" VerticalAlignment="Top" />
         <Button  x:Name="ButtonRobot" Content="Bot Station" Margin="448,171,0,0" VerticalAlignment="Top" Click="ButtonRobotCandleOne_Click" HorizontalAlignment="Left" Width="146" Height="28" />
         <Button  x:Name="ButtonTester" Content="Tester" Margin="246,105,0,0" VerticalAlignment="Top" Click="ButtonTesterCandleOne_Click" HorizontalAlignment="Left" Width="146" Height="28"   />
-        <Button  x:Name="ButtonData" Content="Data" Margin="36,138,0,0" VerticalAlignment="Top" Click="ButtonData_Click" HorizontalAlignment="Left" Width="146" Height="28" />
-        <Button  x:Name="ButtonConverter" Content="Converter" Margin="35,171,0,0" VerticalAlignment="Top" Click="ButtonConverter_Click" Height="28" HorizontalAlignment="Left" Width="146" />
+        <Button  x:Name="ButtonData" Content="Data" Margin="37,105,0,0" VerticalAlignment="Top" Click="ButtonData_Click" HorizontalAlignment="Left" Width="146" Height="28" />
+        <Button  x:Name="ButtonCandleConverter" Content="Candle Converter" HorizontalAlignment="Left" Margin="37,172,0,0" VerticalAlignment="Top" Width="145" Click="CandleConverter_Click"/>
+        <Button  x:Name="ButtonConverter" Content="Converter" Margin="37,138,0,0" VerticalAlignment="Top" Click="ButtonConverter_Click" Height="28" HorizontalAlignment="Left" Width="146" />
         <Button  x:Name="ButtonOptimizer" Content="Optimizer" Margin="246,138,0,0" VerticalAlignment="Top" Click="ButtonOptimizer_Click" HorizontalAlignment="Left" Width="146" Height="28"  />
         <Button  x:Name="ButtonMiner" Content="Miner" Margin="246,171,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="146" Height="28" Click="ButtonMiner_Click"  />
-        <Label Name="BlockDataLabel" Content="    Work &#xD;&#xA; with data" HorizontalAlignment="Center" HorizontalContentAlignment="Center"  Margin="10,56,409,0" VerticalAlignment="Top" Width="202" Height="82" FontSize="28" Foreground="#FFA7A8AA"/>
+        <Label Name="BlockDataLabel" Content="Work with data" HorizontalAlignment="Center" HorizontalContentAlignment="Center"  Margin="12,36,408.667,0" VerticalAlignment="Top" Width="202" Height="82" FontSize="28" Foreground="#FFA7A8AA"/>
         <Label Name="BlockTestingLabel" Content="Testing" HorizontalAlignment="Center" HorizontalContentAlignment="Center" Margin="222,56,202,0" VerticalAlignment="Top" Width="197" FontSize="28" Foreground="#FFA7A8AA" Height="49"/>
         <Label Name="BlockTradingLabel" Content="Trading" HorizontalAlignment="Center" HorizontalContentAlignment="Center"  Margin="429,54,10,0" VerticalAlignment="Top"  FontSize="28" Foreground="#FFA7A8AA" Height="51" Width="182"/>
         <Image HorizontalAlignment="Left" Source="Images/MainWIndow/test.png" Height="60" Margin="292,7,0,0" VerticalAlignment="Top" Width="60"/>

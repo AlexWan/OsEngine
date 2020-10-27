@@ -1485,6 +1485,9 @@ namespace OsEngine.Market.Servers
         /// </summary>
         private List<MarketDepth> _depths = new List<MarketDepth>();
 
+        private decimal _currentBestBid;
+        private decimal _currentBestAsk;
+        
         /// <summary>
         /// came a new depth
         /// пришел обновленный стакан
@@ -1509,15 +1512,24 @@ namespace OsEngine.Market.Servers
 
                     if (myDepth.Asks.Count != 0 && myDepth.Bids.Count != 0)
                     {
-                        Security sec = GetSecurityForName(myDepth.SecurityNameCode);
-                        if (sec != null)
+                        decimal besBid = myDepth.Bids[0].Price;
+                        decimal bestAsk = myDepth.Asks[0].Price;
+
+                        if (_currentBestBid != besBid || _currentBestAsk != bestAsk)
                         {
-                            _bidAskToSend.Enqueue(new BidAskSender
+                            Security sec = GetSecurityForName(myDepth.SecurityNameCode);
+                            if (sec != null)
                             {
-                                Bid = myDepth.Bids[0].Price,
-                                Ask = myDepth.Asks[0].Price,
-                                Security = sec
-                            });
+                                _currentBestBid = besBid;
+                                _currentBestAsk = bestAsk;
+                            
+                                _bidAskToSend.Enqueue(new BidAskSender
+                                {
+                                    Bid = besBid,
+                                    Ask = bestAsk,
+                                    Security = sec
+                                });
+                            }
                         }
                     }
                 }

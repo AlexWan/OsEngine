@@ -619,6 +619,11 @@ namespace OsEngine.Charts.CandleChart
 
                     int totalLenght = 100 - allHeght - height;
 
+                    if (totalLenght < 0)
+                    {
+                        totalLenght = 1;
+                    }
+
                     primeArea.Position.Height = totalLenght;
                     primeArea.Position.Width = 100;
                     primeArea.Position.Y = 0;
@@ -3338,7 +3343,7 @@ namespace OsEngine.Charts.CandleChart
         private void RePaintLikePointLast(List<decimal> values, string nameSeries)
         {
             Series mySeries = FindSeriesByNameSafe(nameSeries);
-            decimal point2 = Convert.ToDecimal(values[values.Count - 2]);
+            decimal point2 = Convert.ToDecimal(values[values.Count - 1]);
             mySeries.Points[mySeries.Points.Count - 1].YValues = new[] { Convert.ToDouble(point2) };
             // mySeries.Points[mySeries.Points.Count - 1].ToolTip = point2.ToString();
         }

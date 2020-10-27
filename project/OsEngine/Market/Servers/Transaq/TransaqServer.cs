@@ -380,22 +380,22 @@ namespace OsEngine.Market.Servers.Transaq
                     continue;
                 }
 
-                if (_clients[0].Union != null)
+               foreach (var client in _clients)
                 {
-                    command = $"<command id=\"get_united_portfolio\" union=\"{_clients[0].Union}\"/>";
-
-                    string res = _client.ConnectorSendCommand(command);
-
-                    if (res != "<result success=\"true\"/>")
+                    if (client.Union != null)
                     {
-                        SendLogMessage(res, LogMessageType.Error);
-                    }
+                        command = $"<command id=\"get_united_portfolio\" union=\"{client.Union}\"/>";
 
-                    Thread.Sleep(10000);
-                }
-                else
-                {
-                    foreach (var client in _clients)
+                        string res = _client.ConnectorSendCommand(command);
+
+                        if (res != "<result success=\"true\"/>")
+                        {
+                            SendLogMessage(res, LogMessageType.Error);
+                        }
+
+                        Thread.Sleep(10000);
+                    }
+                    else
                     {
                         command = $"<command id=\"get_client_limits\" client=\"{client.Id}\"/>";
                         string res = _client.ConnectorSendCommand(command);

@@ -1,4 +1,5 @@
---~ // Licensed under the Apache License, Version 2.0. See LICENSE.txt in the project root for license information.
+--~ Copyright (c) 2014-2020 QUIKSharp Authors https://github.com/finsight/QUIKSharp/blob/master/AUTHORS.md. All rights reserved.
+--~ Licensed under the Apache License, Version 2.0. See LICENSE.txt in the project root for license information.
 
 local socket = require ("socket")
 local json = require ("dkjson")
@@ -24,6 +25,16 @@ function timemsec()
     end
 end
 
+-- Returns the name of the file that calls this function (without extension)
+function scriptFilename()
+    -- Check that Lua runtime was built with debug information enabled
+    if not debug or not debug.getinfo then
+        return nil
+    end
+    local full_path = debug.getinfo(2, "S").source:sub(2)
+    return string.gsub(full_path, "^.*\\(.*)[.]lua[c]?$", "%1")
+end
+
 -- when true will show QUIK message for log(...,0)
 is_debug = false
 
@@ -36,6 +47,56 @@ function openLog()
         lf = io.open (script_path.. "\\QUIK#_"..os.date("%Y%m%d")..".log", "a")
     end
     return lf
+end
+
+-- Returns contents of config.json file or nil if no such file exists
+function readConfigAsJson()
+    local conf = io.open (script_path.. "\\config.json", "r")
+    if not conf then
+        return nil
+    end
+    local content = conf:read "*a"
+    conf:close()
+    return from_json(content)
+end
+
+function paramsFromConfig(scriptName)
+    local params = {}
+    -- just default values
+    table.insert(params, "127.0.0.1") -- responseHostname
+    table.insert(params, 34130)       -- responsePort
+    table.insert(params, "127.0.0.1") -- callbackHostname
+    table.insert(params, 34131)       -- callbackPort
+
+    local config = readConfigAsJson()
+    if not config or not config.servers then
+        return nil
+    end
+    local found = false
+    for i=1,#config.servers do
+        local server = config.servers[i]
+        if server.scriptName == scriptName then
+            found = true
+            if server.responseHostname then
+                params[1] = server.responseHostname
+            end
+            if server.responsePort then
+                params[2] = server.responsePort
+            end
+            if server.callbackHostname then
+                params[3] = server.callbackHostname
+            end
+            if server.callbackPort then
+                params[4] = server.callbackPort
+            end
+        end
+    end
+
+    if found then
+        return params
+    else
+        return nil
+    end
 end
 
 -- closes log
@@ -100,13 +161,8 @@ end
 
 -- current connection state
 is_connected = false
-local port = 34130
-local callback_port = port + 1
--- we need two ports since callbacks and responses conflict and write to the same socket at the same time
--- I do not know how to make locking in Lua, it is just simpler to have two independent connections
--- To connect to a remote terminal - replace 'localhost' with the terminal ip-address
-local response_server = socket.bind('127.0.0.1', port, 1)
-local callback_server = socket.bind('127.0.0.1', callback_port, 1)
+local response_server
+local callback_server
 local response_client
 local callback_client
 
@@ -143,7 +199,14 @@ local function getCallbackClient()
 	end
 end
 
-function qsutils.connect()
+function qsutils.connect(response_host, response_port, callback_host, callback_port)
+    if not response_server then
+        response_server = socket.bind(response_host, response_port, 1)
+    end
+    if not callback_server then
+        callback_server = socket.bind(callback_host, callback_port, 1)
+    end
+
     if not is_connected then
         log('QUIK# is waiting for client connection...', 1)
         if response_client then

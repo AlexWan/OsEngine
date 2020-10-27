@@ -1,5 +1,7 @@
---~ // Licensed under the Apache License, Version 2.0. See LICENSE.txt in the project root for license information.
+--~ Copyright (c) 2014-2020 QUIKSharp Authors https://github.com/finsight/QUIKSharp/blob/master/AUTHORS.md. All rights reserved.
+--~ Licensed under the Apache License, Version 2.0. See LICENSE.txt in the project root for license information.
 
+local json = require ("dkjson")
 local qsfunctions = {}
 
 function qsfunctions.dispatch_and_process(msg)
@@ -205,6 +207,28 @@ function qsfunctions.getSecurityInfo(msg)
     return msg
 end
 
+--- Функция берет на вход список из элементов в формате class_code|sec_code и возвращает список ответов функции getSecurityInfo. 
+-- Если какая-то из бумаг не будет найдена, вместо ее значения придет null
+function qsfunctions.getSecurityInfoBulk(msg)
+	local result = {}
+	for i=1,#msg.data do
+		local spl = split(msg.data[i], "|")
+		local class_code, sec_code = spl[1], spl[2]
+
+		local status, security = pcall(getSecurityInfo, class_code, sec_code)
+		if status and security then
+			table.insert(result, security)
+		else
+			if not status then
+				log("Error happened while calling getSecurityInfoBulk with ".. class_code .. "|".. sec_code .. ": ".. security)
+			end
+			table.insert(result, json.null)
+		end
+	end
+	msg.data = result
+	return msg
+end
+
 --- Функция предназначена для определения класса по коду инструмента из заданного списка классов.
 function qsfunctions.getSecurityClass(msg)
     local spl = split(msg.data, "|")
@@ -334,12 +358,38 @@ function qsfunctions.paramRequest(msg)
     return msg
 end
 
+--- Функция принимает список строк (JSON Array) в формате class_code|sec_code|param_name, вызывает функцию paramRequest для каждой строки. 
+-- Возвращает список ответов в том же порядке
+function qsfunctions.paramRequestBulk(msg)
+	local result = {}
+	for i=1,#msg.data do
+		local spl = split(msg.data[i], "|")
+		local class_code, sec_code, param_name = spl[1], spl[2], spl[3]
+		table.insert(result, ParamRequest(class_code, sec_code, param_name))
+	end
+	msg.data = result
+	return msg
+end
+
 --- Функция отменяет заказ на получение параметров Таблицы текущих торгов. В случае успешного завершения функция возвращает «true», иначе – «false»
 function qsfunctions.cancelParamRequest(msg)
     local spl = split(msg.data, "|")
     local class_code, sec_code, param_name = spl[1], spl[2], spl[3]
     msg.data = CancelParamRequest(class_code, sec_code, param_name)
     return msg
+end
+
+--- Функция принимает список строк (JSON Array) в формате class_code|sec_code|param_name, вызывает функцию CancelParamRequest для каждой строки.
+-- Возвращает список ответов в том же порядке
+function qsfunctions.cancelParamRequestBulk(msg)
+	local result = {}
+	for i=1,#msg.data do
+		local spl = split(msg.data[i], "|")
+		local class_code, sec_code, param_name = spl[1], spl[2], spl[3]
+		table.insert(result, CancelParamRequest(class_code, sec_code, param_name))
+	end
+	msg.data = result
+	return msg
 end
 
 --- Функция предназначена для получения значений всех параметров биржевой информации из Таблицы текущих значений параметров.
@@ -359,6 +409,19 @@ function qsfunctions.getParamEx2(msg)
     local spl = split(msg.data, "|")
     local class_code, sec_code, param_name = spl[1], spl[2], spl[3]
     msg.data = getParamEx2(class_code, sec_code, param_name)
+    return msg
+end
+
+--- Функция принимает список строк (JSON Array) в формате class_code|sec_code|param_name и возвращает результаты вызова
+-- функции getParamEx2 для каждой строки запроса в виде списка в таком же порядке, как в запросе
+function qsfunctions.getParamEx2Bulk(msg)
+	local result = {}
+	for i=1,#msg.data do
+		local spl = split(msg.data[i], "|")
+		local class_code, sec_code, param_name = spl[1], spl[2], spl[3]
+		table.insert(result, getParamEx2(class_code, sec_code, param_name))
+	end
+	msg.data = result
     return msg
 end
 

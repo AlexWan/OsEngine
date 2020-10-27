@@ -500,7 +500,10 @@ namespace OsEngine.Alerts
                     return null;
                 }
 
-                //PaintAlertOnChart();
+                if (_connector == null)
+                {
+                    return null;
+                }
 
                 List<Candle> candles = _connector.Candles(false);
 
@@ -816,6 +819,10 @@ namespace OsEngine.Alerts
         /// </summary>
         private void PaintAlertOnChart()
         {
+            if (_chartMaster == null)
+            {
+                return;
+            }
             _chartMaster.PaintAlerts(_alertArray);
         }
     }

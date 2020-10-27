@@ -705,6 +705,10 @@ namespace OsEngine.Language
             "Eng:MD is internal?_" +
             "Ru:Стаканы эмулируются?_");
 
+        public string Label61 => OsLocalization.ConvertToLocString(
+            "Eng:Currency_" +
+            "Ru:Валюта_");
+
         public string ServerParam1 => OsLocalization.ConvertToLocString(
             "Eng:Keep trade history_" +
             "Ru:Сохранять историю трейдов_");

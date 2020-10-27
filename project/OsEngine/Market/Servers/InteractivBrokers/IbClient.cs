@@ -309,7 +309,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 TcpWrite(null); // Right
                 TcpWrite(""); // Multiplier
                 TcpWrite(contract.Exchange);
-                TcpWrite(""); // PrimaryEx
+                TcpWrite(contract.PrimaryExch); // PrimaryEx
                 TcpWrite(contract.Currency);
                 TcpWrite(contract.LocalSymbol);
                 TcpWrite(null);

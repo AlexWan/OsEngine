@@ -1197,6 +1197,8 @@ position => position.State != PositionStateType.OpeningFail
                     return;
                 }
 
+                _botTabs[index].Delete();
+
                 _botTabs.RemoveAt(index);
                 if (_botTabs != null && _botTabs.Count != 0)
                 {

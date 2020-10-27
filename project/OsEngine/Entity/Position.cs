@@ -162,6 +162,7 @@ namespace OsEngine.Entity
 
                 if (CloseOrders.Find(order => order.State == OrderStateType.Activ 
                                               || order.State == OrderStateType.Pending
+                                              || order.State == OrderStateType.None
                                               || order.State == OrderStateType.Patrial) != null
                     )
                 {
@@ -518,8 +519,14 @@ namespace OsEngine.Entity
                 {
                     if (CloseOrders[i].NumberUser == newOrder.NumberUser)
                     {
-                        if (CloseOrders[i].State == OrderStateType.Fail &&newOrder.State == OrderStateType.Fail ||
-                            CloseOrders[i].State == OrderStateType.Cancel && newOrder.State == OrderStateType.Cancel)
+                        if (
+                                (
+                                (CloseOrders[i].State == OrderStateType.Fail && newOrder.State == OrderStateType.Fail) 
+                                ||
+                                (CloseOrders[i].State == OrderStateType.Cancel && newOrder.State == OrderStateType.Cancel)
+                                )
+                                &&
+                                State == PositionStateType.ClosingFail)
                         {
                             return;
                         }
@@ -943,41 +950,49 @@ namespace OsEngine.Entity
                     return 0;
                 }
 
-                decimal comisAbsolute = 0;
-
-                if(ComissionType != ComissionType.None && ComissionValue != 0)
-                {
-                    if (ComissionType == ComissionType.Percent)
-                    {
-                        if(EntryPrice != 0 && ClosePrice == 0)
-                        {
-                            comisAbsolute = MaxVolume * EntryPrice * (ComissionValue / 100);
-                        }
-                        else if(EntryPrice != 0 && ClosePrice != 0)
-                        {
-                            comisAbsolute = MaxVolume * EntryPrice * (ComissionValue / 100) +
-                            MaxVolume * ClosePrice * (ComissionValue / 100);
-                        }
-                    }
-                    if(ComissionType == ComissionType.OneLotFix)
-                    {
-                        if (EntryPrice != 0 && ClosePrice == 0)
-                        {
-                            comisAbsolute = MaxVolume * ComissionValue;
-                        }
-                        else if (EntryPrice != 0 && ClosePrice != 0)
-                        {
-                            comisAbsolute = MaxVolume * ComissionValue *2;
-                        }
-                    }
-                }
-
-                decimal profit =
-                    (ProfitOperationPunkt / PriceStep) * PriceStepCost * MaxVolume - comisAbsolute;
-
+                decimal profit = (ProfitOperationPunkt / PriceStep) * PriceStepCost * MaxVolume - CommissionTotal();
 
                 return profit; //  Lots;
             }
+        }
+
+        /// <summary>
+        /// the amount of total position's commission
+        /// количество суммарной комиссия по позиции
+        /// </summary>
+        public decimal CommissionTotal()
+        {
+            decimal commissionTotal = 0;
+
+            if (ComissionType != ComissionType.None && ComissionValue != 0)
+            {
+                if (ComissionType == ComissionType.Percent)
+                {
+                    if (EntryPrice != 0 && ClosePrice == 0)
+                    {
+                        commissionTotal = MaxVolume * EntryPrice * (ComissionValue / 100);
+                    }
+                    else if (EntryPrice != 0 && ClosePrice != 0)
+                    {
+                        commissionTotal = MaxVolume * EntryPrice * (ComissionValue / 100) +
+                                          MaxVolume * ClosePrice * (ComissionValue / 100);
+                    }
+                }
+
+                if (ComissionType == ComissionType.OneLotFix)
+                {
+                    if (EntryPrice != 0 && ClosePrice == 0)
+                    {
+                        commissionTotal = MaxVolume * ComissionValue;
+                    }
+                    else if (EntryPrice != 0 && ClosePrice != 0)
+                    {
+                        commissionTotal = MaxVolume * ComissionValue * 2;
+                    }
+                }
+            }
+
+            return commissionTotal;
         }
 
         /// <summary>

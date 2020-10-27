@@ -565,7 +565,9 @@ namespace OsEngine.Logging
         {
             return new TelegramMessage()
             {
-                Text = $@"<b>&#129302; {botName}</b><pre>{FormattedMessage(message)}</pre><i>&#9881; {message.Type} &#8987; {message.Time}</i>",
+                Text = $"<b>{botName}</b>" +
+                       $"\n\n<pre>{FormattedMessage(message)}</pre>" +
+                       $"\n\n<i>{MessageEntityCode(message)} {message.Type}</i>",
                 Parse_mode = "HTML",
                 Disable_notification = false
             };
@@ -674,6 +676,35 @@ namespace OsEngine.Logging
                 default:
                     return hexColor;
             }
+        }
+        
+        private string MessageEntityCode(LogMessage message)
+        {
+            string entityCode;
+
+            switch (message.Type)
+            {
+                case LogMessageType.Trade:
+                    entityCode = "&#9989;";
+                    break;
+                case LogMessageType.Signal:
+                    entityCode = "&#9889;";
+                    break;
+                case LogMessageType.Error:
+                    entityCode = "&#10060;";
+                    break;
+                case LogMessageType.User:
+                    entityCode = "&#129333;";
+                    break;
+                case LogMessageType.Connect:
+                    entityCode = "&#128279;";
+                    break;
+                default:
+                    entityCode = "&#9881;";
+                    break;
+            }
+
+            return entityCode;
         }
 
         private string FormattedBotName(string nameBot)

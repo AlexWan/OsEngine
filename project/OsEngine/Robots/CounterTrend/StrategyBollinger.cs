@@ -10,11 +10,13 @@ using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.Robots.CounterTrend
 {
 
+    [Bot("Bollinger")]
     public class StrategyBollinger : BotPanel
     {
         public StrategyBollinger(string name, StartProgram startProgram)

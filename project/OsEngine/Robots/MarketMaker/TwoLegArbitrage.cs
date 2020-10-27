@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Market;
@@ -26,8 +27,9 @@ namespace OsEngine.Robots.MarketMaker
             TabCreate(BotTabType.Simple);
             _tab2 = TabsSimple[1];
 
-            _tab1.CandleFinishedEvent += Strateg_CandleFinishedEvent;
-            _tab2.CandleFinishedEvent += Strateg_CandleFinishedEvent;
+            _tab1.CandleFinishedEvent += Tab1_CandleFinishedEvent;
+            _tab2.CandleFinishedEvent += Tab2_CandleFinishedEvent;
+            _tabIndex.SpreadChangeEvent += TabIndex_CandleFinishedEvent;
 
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
             Upline = CreateParameter("Upline", 10, 50, 80, 3);
@@ -134,21 +136,74 @@ namespace OsEngine.Robots.MarketMaker
 
         private decimal _lastRsi;
 
-        // logic логика
-
-        /// <summary>
-        /// candle finished event
-        /// событие завершения свечи
-        /// </summary>
-        private void Strateg_CandleFinishedEvent(List<Candle> candles)
+        #region sync tabs
+        // синхронизация вкладок.
+        private void TabIndex_CandleFinishedEvent(List<Candle> candlesIndex)
         {
-            if (Regime.ValueString == "Off")
+            if (_tab1.CandlesFinishedOnly.Count == 0
+                || _tab2.CandlesFinishedOnly.Count == 0
+                || _tabIndex.Candles.Count == 0)
             {
                 return;
             }
 
-            if (_tabIndex.Candles.Count == 0 ||
-                _tab1.CandlesFinishedOnly.Count != _tab2.CandlesFinishedOnly.Count)
+            List<Candle> candlesTab1 = _tab1.CandlesFinishedOnly;
+            List<Candle> candlesTab2 = _tab2.CandlesFinishedOnly;
+
+            if (candlesIndex.Last().TimeStart == candlesTab1.Last().TimeStart
+                && candlesIndex.Last().TimeStart == candlesTab2.Last().TimeStart)
+            {
+                TradeLogic(candlesTab1, candlesTab2, candlesIndex);
+            }
+        }
+
+        private void Tab1_CandleFinishedEvent(List<Candle> candlesTab1)
+        {
+            if (_tab1.CandlesFinishedOnly.Count == 0
+                || _tab2.CandlesFinishedOnly.Count == 0
+                || _tabIndex.Candles.Count == 0)
+            {
+                return;
+            }
+
+            List<Candle> candlesIndex = _tabIndex.Candles;
+            List<Candle> candlesTab2 = _tab2.CandlesFinishedOnly;
+
+            if (candlesIndex.Last().TimeStart == candlesTab1.Last().TimeStart
+                && candlesIndex.Last().TimeStart == candlesTab2.Last().TimeStart)
+            {
+                TradeLogic(candlesTab1, candlesTab2, candlesIndex);
+            }
+        }
+
+
+        private void Tab2_CandleFinishedEvent(List<Candle> candlesTab2)
+        {
+            if (_tab1.CandlesFinishedOnly.Count == 0
+                || _tab2.CandlesFinishedOnly.Count == 0
+                || _tabIndex.Candles.Count == 0)
+            {
+                return;
+            }
+
+            List<Candle> candlesIndex = _tabIndex.Candles;
+            List<Candle> candlesTab1 = _tab1.CandlesFinishedOnly;
+
+            if (candlesIndex.Last().TimeStart == candlesTab1.Last().TimeStart
+                && candlesIndex.Last().TimeStart == candlesTab2.Last().TimeStart)
+            {
+                TradeLogic(candlesTab1, candlesTab2, candlesIndex);
+            }
+        }
+        #endregion
+
+        /// <summary>
+        /// trade logic
+        /// торговая логика
+        /// </summary>
+        private void TradeLogic(List<Candle> candlesTab1, List<Candle> candlesTab2, List<Candle> candlesIndex)
+        {
+            if (Regime.ValueString == "Off")
             {
                 return;
             }
@@ -173,7 +228,7 @@ namespace OsEngine.Robots.MarketMaker
                 {
                     for (int i = 0; i < openPositions.Count; i++)
                     {
-                        LogicClosePosition(openPositions[i], TabsSimple[j]);
+                        LogicClosePosition(openPositions[i], TabsSimple[j], _lastRsi);
                     }
                 }
                 if (Regime.ValueString == "OnlyClosePosition")
@@ -182,7 +237,7 @@ namespace OsEngine.Robots.MarketMaker
                 }
                 if (openPositions == null || openPositions.Count == 0)
                 {
-                    LogicOpenPosition(TabsSimple[j]);
+                    LogicOpenPosition(TabsSimple[j], _lastRsi);
                 }
             }
         }
@@ -191,13 +246,13 @@ namespace OsEngine.Robots.MarketMaker
         /// logic opening first position
         /// логика открытия первой позиции
         /// </summary>
-        private void LogicOpenPosition(BotTabSimple tab)
+        private void LogicOpenPosition(BotTabSimple tab, decimal lastRsi)
         {
-            if (_lastRsi > Upline.ValueInt && Regime.ValueString != "OnlyLong")
+            if (lastRsi > Upline.ValueInt && Regime.ValueString != "OnlyLong")
             {
                 tab.SellAtLimit(Volume.ValueInt, tab.PriceBestBid - Slippage.ValueInt * tab.Securiti.PriceStep);
             }
-            if (_lastRsi < Downline.ValueInt && Regime.ValueString != "OnlyShort")
+            if (lastRsi < Downline.ValueInt && Regime.ValueString != "OnlyShort")
             {
                 tab.BuyAtLimit(Volume.ValueInt, tab.PriceBestAsk + Slippage.ValueInt * tab.Securiti.PriceStep);
             }
@@ -207,18 +262,18 @@ namespace OsEngine.Robots.MarketMaker
         /// logic close position
         /// логика зыкрытия позиции и открытие по реверсивной системе
         /// </summary>
-        private void LogicClosePosition(Position position, BotTabSimple tab)
+        private void LogicClosePosition(Position position, BotTabSimple tab, decimal lastRsi)
         {
             if (position.Direction == Side.Buy)
             {
-                if (_lastRsi > Upline.ValueInt)
+                if (lastRsi > Upline.ValueInt)
                 {
                     tab.CloseAtLimit(position, tab.PriceBestBid - Slippage.ValueInt * tab.Securiti.PriceStep, position.OpenVolume);
                 }
             }
             if (position.Direction == Side.Sell)
             {
-                if (_lastRsi < Downline.ValueInt)
+                if (lastRsi < Downline.ValueInt)
                 {
                     tab.CloseAtLimit(position, tab.PriceBestAsk + Slippage.ValueInt * tab.Securiti.PriceStep, position.OpenVolume);
                 }
