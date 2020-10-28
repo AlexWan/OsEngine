@@ -11,8 +11,9 @@ namespace OsEngine.Robots.MoiRoboti
 {
     public class Frank : BotPanel
     {
+        MyBlanks blanks = new MyBlanks("Frank", StartProgram.IsOsTrader); // создание экземпляра класса MyBlanks
         private BotTabSimple _tab; // поле хранения вкладки робота 
-        public MyBlanks blanks = new MyBlanks();
+        
 
         public Frank(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -25,7 +26,8 @@ namespace OsEngine.Robots.MoiRoboti
 
         private void _tab_NewTickEvent(Trade trade) // тест 
         {
-            
+           
+            // Console.WriteLine(" "); 
         }
         public override string GetNameStrategyType()
         {

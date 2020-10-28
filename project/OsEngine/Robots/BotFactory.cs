@@ -119,7 +119,7 @@ namespace OsEngine.Robots
             }
             if (nameClass == "Frank")
             {
-                bot = new Storog(name, startProgram);
+                bot = new Frank (name, startProgram);
             }
             if (nameClass == "Storog")
             {

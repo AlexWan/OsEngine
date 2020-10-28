@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace OsEngine.Robots.MoiRoboti
 {
-    public class MyBlanks 
+    public class MyBlanks : BotPanel
     {
         private BotTabSimple _tab; // поле хранения вкладки робота 
         private StrategyParameterDecimal slippage; // величина проскальзывание при установки ордеров  
@@ -24,13 +24,22 @@ namespace OsEngine.Robots.MoiRoboti
         public decimal volum_ma; // последние значение индикатора MA  
         public decimal price_position = 1; // хранение цены последней открытой позиции
 
-        public MyBlanks() 
+        public MyBlanks (string name, StartProgram startProgram) : base(name, startProgram) // конструктор робота тут  
         {
- 
+
             // инициализация переменных и параметров 
-            price = 0;
+            price = 1;
             _kom = 0;
- 
+
+            min_lot = CreateParameter("МИН объ.орд у биржи(базовой)", 0.001m, 0.001m, 0.05m, 0.001m);
+            part_tovara = CreateParameter("ИСПОЛЬЗ Товара Часть(1/?)", 2, 2, 50, 1);
+            slippage = CreateParameter("Велич. проскаль.у ордеров", 1m, 1m, 50m, 5m);
+            komis_birgi = CreateParameter("КОМ биржи в %", 0.2m, 0, 0.1m, 0.1m);
+
+
+            TabCreate(BotTabType.Simple);  // создание простой вкладки
+            _tab = TabsSimple[0]; // записываем первую вкладку в поле
+
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
             _tab.MarketDepthUpdateEvent += _tab_MarketDepthUpdateEvent;    
         }
@@ -50,7 +59,6 @@ namespace OsEngine.Robots.MoiRoboti
         }
         public decimal Lot() // расчет минимального лота 
         {
-            price = _tab.PriceCenterMarketDepth;
             min_lot.ValueDecimal = Okruglenie(10.1m / price);
             return Okruglenie(10.1m / price);
         }
@@ -94,6 +102,15 @@ namespace OsEngine.Robots.MoiRoboti
             price = _tab.PriceCenterMarketDepth; // записываем текущую цену рынка
         }
         private void _tab_CandleFinishedEvent(List<Candle> candles) { }
- 
+
+        public override string GetNameStrategyType()
+        {
+            return "Frank";
+        }
+
+        public override void ShowIndividualSettingsDialog()
+        {
+            
+        }
     }
 }
