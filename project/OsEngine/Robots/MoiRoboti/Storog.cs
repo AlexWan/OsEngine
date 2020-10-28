@@ -27,6 +27,7 @@ namespace OsEngine.Robots.MoiRoboti
         private StrategyParameterInt vel_ma; // какое значение индикатора махa использовать
         private StrategyParameterDecimal do_piram; // сколько пропустить да пирамиды
         private StrategyParameterInt ot_rinka; // расстояние от рынка (+комиссия)
+        private StrategyParameterBool vkl_stopa; // поле включения стопа 
         private StrategyParameterDecimal do_stopa; // сколько пропустить да срабатывания стопа
 
         public decimal _vol_stop; // объем проданного товара по стопу 
@@ -48,14 +49,15 @@ namespace OsEngine.Robots.MoiRoboti
             _kom = 0;
             zakritie = 0; //последняя позиция закрылась по цене 
             vkl_Robota = CreateParameter("РОБОТ Включен?", false);
+            vkl_stopa = CreateParameter("Стоп Включен?", true);
             do_stopa = CreateParameter(" РАСТ. до СТОПА", 10m, 5m, 100m, 5m);
             _uroven = CreateParameter("УРОВЕНЬ Работы", 10000m, 100m, 1000m, 50m);
             slippage = CreateParameter("Велич. проскаль.у ордеров", 1m, 1m, 50m, 5m);
             part_tovara = CreateParameter("ИСПОЛЬЗ Товара Часть(1/?)", 2, 2, 50, 1);
             do_piram = CreateParameter(" РАСТ. до Пирамиды", 10m,5m,100m,5m );
             profit = CreateParameter("ПРОФИТ от рынка На ", 3, 5, 200, 5);
-            dvig = CreateParameter("Движение верх забрать ", 70, 5, 200, 5);
-            ot_rinka = CreateParameter(" Держаться от рынка", 50, 10,150,10);
+            dvig = CreateParameter("Движение верх забрать ", 130, 5, 200, 5);
+            ot_rinka = CreateParameter(" Держаться от рынка", 110, 10,150,10);
             //part_depo = CreateParameter("ИСПОЛЬЗ Часть ДЕПО(1/?)", 10, 2, 50, 1);
             komis_birgi = CreateParameter("КОМ биржи в %", 0.2m, 0, 0.1m, 0.1m);
             min_lot = CreateParameter("МИН объ.орд у биржи(базовой)", 0.001m, 0.001m, 0.05m, 0.001m);
@@ -178,6 +180,10 @@ namespace OsEngine.Robots.MoiRoboti
         }
         void StopLoss() // фиксация  убытков 
         {
+            if (vkl_stopa.ValueBool == false)
+            {
+                return;
+            }
             List<Position> positions = _tab.PositionsOpenAll;
             if (positions.Count != 0) 
             {

@@ -1,4 +1,5 @@
 ﻿using OsEngine.Entity;
+using OsEngine.OsMiner.Patterns;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
@@ -6,7 +7,7 @@ using System.Collections.Generic;
 
 namespace OsEngine.Robots.MoiRoboti
 {
-    public class MyBlanks : BotPanel
+    public class MyBlanks 
     {
         private BotTabSimple _tab; // поле хранения вкладки робота 
         private StrategyParameterDecimal slippage; // величина проскальзывание при установки ордеров  
@@ -23,42 +24,37 @@ namespace OsEngine.Robots.MoiRoboti
         public decimal volum_ma; // последние значение индикатора MA  
         public decimal price_position = 1; // хранение цены последней открытой позиции
 
-        public MyBlanks(string name, StartProgram startProgram) : base(name, startProgram)
+        public MyBlanks() 
         {
-            TabCreate(BotTabType.Simple);  // создание простой вкладки
-            _tab = TabsSimple[0]; // записываем первую вкладку в поле
-
+ 
             // инициализация переменных и параметров 
             price = 0;
             _kom = 0;
-            slippage = CreateParameter("Велич. проскаль.у ордеров", 1m, 1m, 50m, 5m);
-            part_tovara = CreateParameter("ИСПОЛЬЗ Товара Часть(1/?)", 10, 2, 50, 1);
-            //part_depo = CreateParameter("ИСПОЛЬЗ Часть ДЕПО(1/?)", 10, 2, 50, 1);
-            komis_birgi = CreateParameter("КОМ биржи в %", 0.2m, 0, 0.1m, 0.1m);
-            min_lot = CreateParameter("МИН объ.орд у биржи(базовой)", 0.001m, 0.001m, 0.05m, 0.001m);
-
+ 
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
             _tab.MarketDepthUpdateEvent += _tab_MarketDepthUpdateEvent;    
         }
-        decimal Percent_birgi() // вычисление % биржи в пунктах для учета в расчетах выставления ордеров 
+
+ 
+        public decimal Percent_birgi() // вычисление % биржи в пунктах для учета в расчетах выставления ордеров 
         {
             decimal price = _tab.PriceCenterMarketDepth;
             return _kom = price / 100 * komis_birgi.ValueDecimal;
         }
-        decimal Okruglenie(decimal vol) // округляет децимал до 6 чисел после запятой 
+        public static decimal Okruglenie(decimal vol) // округляет децимал до 6 чисел после запятой 
         {
             decimal value = vol;
             int N = 6;
             decimal chah = decimal.Round(value, N, MidpointRounding.ToEven);
             return chah;
         }
-        decimal Lot() // расчет минимального лота 
+        public decimal Lot() // расчет минимального лота 
         {
             price = _tab.PriceCenterMarketDepth;
             min_lot.ValueDecimal = Okruglenie(10.1m / price);
             return Okruglenie(10.1m / price);
         }
-        decimal Balans_kvot()   // запрос квотируемых средств в портфеле (в USDT) 
+        public decimal Balans_kvot()   // запрос квотируемых средств в портфеле (в USDT) 
         {
             List<PositionOnBoard> poses = _tab.Portfolio.GetPositionOnBoard();
             decimal vol_kvot = 0;
@@ -76,7 +72,7 @@ namespace OsEngine.Robots.MoiRoboti
             }
             return depo;
         }
-        decimal Balans_tovara()   // запрос торгуемых средств в портфеле (в BTC ) 
+        public decimal Balans_tovara()   // запрос торгуемых средств в портфеле (в BTC ) 
         {
             List<PositionOnBoard> poses = _tab.Portfolio.GetPositionOnBoard();
             decimal vol_instr = 0;
@@ -97,11 +93,7 @@ namespace OsEngine.Robots.MoiRoboti
         {
             price = _tab.PriceCenterMarketDepth; // записываем текущую цену рынка
         }
-        private void _tab_CandleFinishedEvent(List<Candle> obj) { }
-        public override string GetNameStrategyType()
-        {
-            return "my";
-        }
-        public override void ShowIndividualSettingsDialog() { }
+        private void _tab_CandleFinishedEvent(List<Candle> candles) { }
+ 
     }
 }
