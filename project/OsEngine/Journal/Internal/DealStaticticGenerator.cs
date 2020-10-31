@@ -330,7 +330,7 @@ namespace OsEngine.Journal.Internal
                 return profitDeal;
             }
 
-            return profitDeal/ deals.Length * 100;
+            return profitDeal / deals.Length * 100;
 
         }
 
@@ -355,6 +355,11 @@ namespace OsEngine.Journal.Internal
                 return profit;
             }
 
+            if (GetProfitDial(deals) == 0)
+            {
+                return 0;
+            }
+
             return Math.Round(profit / GetProfitDial(deals), 6);
         }
 
@@ -377,6 +382,12 @@ namespace OsEngine.Journal.Internal
             {
                 return profit;
             }
+
+            if (GetProfitDial(deals) == 0)
+            {
+                return 0;
+            }
+
             return profit / GetProfitDial(deals);
         }
 
@@ -401,6 +412,11 @@ namespace OsEngine.Journal.Internal
                 return profit;
             }
 
+            if (GetProfitDial(deals) == 0)
+            {
+                return 0;
+            }
+
             return Math.Round(profit / GetProfitDial(deals), 6);
         }
 
@@ -423,6 +439,12 @@ namespace OsEngine.Journal.Internal
             {
                 return profit;
             }
+
+            if (GetProfitDial(deals) == 0)
+            {
+                return 0;
+            }
+
             return profit / GetProfitDial(deals);
         }
 
