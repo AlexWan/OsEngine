@@ -45,7 +45,7 @@ namespace OsEngine.Robots.MoiRoboti
             _tab = TabsSimple[0]; // записываем первую вкладку в поле
 
             // инициализация переменных и параметров 
-            price = 0;
+            price = 1;
             _kom = 0;
             zakritie = 0; //последняя позиция закрылась по цене 
             vkl_Robota = CreateParameter("РОБОТ Включен?", false);
@@ -129,9 +129,12 @@ namespace OsEngine.Robots.MoiRoboti
                         Thread.Sleep(1500);
                     }
                 }
-                if (price < _tab.PositionsLast.EntryPrice - _kom - do_piram.ValueDecimal && positions.Count != 0)
+                if (positions.Count != 0)
                 {
-                    Piramid();
+                    if (price < _tab.PositionsLast.EntryPrice - _kom - do_piram.ValueDecimal)
+                    {
+                        Piramid();
+                    }
                 }
             }
             if (_tab.PositionsOpenAll.Count == 0) // сдвиг уровня работы 

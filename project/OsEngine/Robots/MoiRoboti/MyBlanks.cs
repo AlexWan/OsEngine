@@ -10,9 +10,10 @@ namespace OsEngine.Robots.MoiRoboti
     public class MyBlanks : BotPanel
     {
         private BotTabSimple _tab; // поле хранения вкладки робота 
-        private StrategyParameterDecimal slippage; // величина проскальзывание при установки ордеров  
+
+        private StrategyParameterString kvot_val; // квотируемая валюта - инструмент
+        private StrategyParameterString tovar_val; // Базовая валюта - товар
         private StrategyParameterDecimal komis_birgi; // комиссия биржи в %
-        //private StrategyParameterInt  part_depo;  // часть депозита для входа
         private StrategyParameterInt part_tovara; // часть товара для продажи
         private StrategyParameterDecimal min_lot;    //  минимальный объем для входа на бирже
 
@@ -31,16 +32,16 @@ namespace OsEngine.Robots.MoiRoboti
             price = 1;
             _kom = 0;
 
+            kvot_val = CreateParameter("КвотВалюта-Инструмент", "USDT");
+            tovar_val = CreateParameter("Базовая Валюта-Товар", "BTC");
             min_lot = CreateParameter("МИН объ.орд у биржи(базовой)", 0.001m, 0.001m, 0.05m, 0.001m);
             part_tovara = CreateParameter("ИСПОЛЬЗ Товара Часть(1/?)", 2, 2, 50, 1);
-            slippage = CreateParameter("Велич. проскаль.у ордеров", 1m, 1m, 50m, 5m);
             komis_birgi = CreateParameter("КОМ биржи в %", 0.2m, 0, 0.1m, 0.1m);
 
 
             TabCreate(BotTabType.Simple);  // создание простой вкладки
             _tab = TabsSimple[0]; // записываем первую вкладку в поле
 
-            _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
             _tab.MarketDepthUpdateEvent += _tab_MarketDepthUpdateEvent;    
         }
 
@@ -49,13 +50,6 @@ namespace OsEngine.Robots.MoiRoboti
         {
             decimal price = _tab.PriceCenterMarketDepth;
             return _kom = price / 100 * komis_birgi.ValueDecimal;
-        }
-        public static decimal Okruglenie(decimal vol) // округляет децимал до 6 чисел после запятой 
-        {
-            decimal value = vol;
-            int N = 6;
-            decimal chah = decimal.Round(value, N, MidpointRounding.ToEven);
-            return chah;
         }
         public decimal Lot() // расчет минимального лота 
         {
@@ -101,16 +95,21 @@ namespace OsEngine.Robots.MoiRoboti
         {
             price = _tab.PriceCenterMarketDepth; // записываем текущую цену рынка
         }
-        private void _tab_CandleFinishedEvent(List<Candle> candles) { }
-
         public override string GetNameStrategyType()
         {
             return "Frank";
         }
-
         public override void ShowIndividualSettingsDialog()
         {
             
+        }
+ // Static методы 
+        public static decimal Okruglenie(decimal vol) // округляет децимал до 6 чисел после запятой 
+        {
+            decimal value = vol;
+            int N = 6;
+            decimal chah = decimal.Round(value, N, MidpointRounding.ToEven);
+            return chah;
         }
     }
 }
