@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 
