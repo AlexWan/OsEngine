@@ -16,6 +16,8 @@ namespace OsEngine.Robots.MoiRoboti
         public string tovar_name; // название базовая валюты - товара
         MyBlanks blanks = new MyBlanks("Frank", StartProgram.IsOsTrader); // создание экземпляра класса MyBlanks
         private BotTabSimple _tab; // поле хранения вкладки робота 
+        public decimal percent_tovara; // поле хранения % товара 
+        public decimal start_sum; // поле хранения стартовой суммы депозита 
         public decimal depo; // количество квотируемой в портфеле
         public decimal tovar; // количество товара  в портфеле
 
@@ -27,23 +29,34 @@ namespace OsEngine.Robots.MoiRoboti
             kvot_name = "USDT";  // тут надо указать - инициализировать название квотируемой валюты
             tovar_name = "BTC"; // тут надо указать - инициализировать название товара 
 
-            _tab.NewTickEvent += _tab_NewTickEvent; // событие новых тиков
+            _tab.BestBidAskChangeEvent += _tab_BestBidAskChangeEvent; // событие изменения лучших цен
             
         }
 
-        private void _tab_NewTickEvent(Trade trade) // тики 
+        private void _tab_BestBidAskChangeEvent(decimal arg1, decimal arg2) // событие изменения лучших цен
         {
             market_prise = blanks.price;
             decimal b = blanks.Balans_kvot();
-            
-            Console.WriteLine(" цена портфеля - " + Start_sum());
-         }
-        public decimal Start_sum() // расчет и запись начального состояния портфеля
+
+            Console.WriteLine(" стартовая сумма = " + Start_sum() + " $ ");
+            Console.WriteLine(" в портфеле потрачено = " + Percent_tovara() + " % ");
+        }
+        public decimal Percent_tovara() // расчет % объема купленного товара в портфеле 
+        {
+            decimal st = Start_sum();
+            decimal kv = Balans_kvot(kvot_name);
+            decimal rasxod = st - kv;
+            decimal per = rasxod / st * 100;
+            percent_tovara = MyBlanks.Okruglenie(per) ;
+            return percent_tovara;
+        }
+
+        public decimal Start_sum() // расчет начального состояния портфеля
         {
             Balans_kvot(kvot_name);
             Balans_tovara(tovar_name);
-            decimal start_sum = depo + tovar* market_prise;
-            return MyBlanks.Okruglenie (start_sum);
+            start_sum = MyBlanks.Okruglenie(depo + tovar * market_prise);
+            return start_sum;
         }
         
         public decimal Balans_kvot(string kvot_name)   // запрос квотируемых средств в портфеле - название присваивается в kvot_name
