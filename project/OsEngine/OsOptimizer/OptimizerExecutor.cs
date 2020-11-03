@@ -738,6 +738,8 @@ namespace OsEngine.OsOptimizer
                 bot.TabsSimple[i].Connector.TimeFrame =
                     _master.TabsSimpleNamesAndTimeFrames[i].TimeFrame;
                 bot.TabsSimple[i].Connector.ServerUid = server.NumberServer;
+                bot.TabsSimple[i].ComissionType = _master.CommissionType;
+                bot.TabsSimple[i].ComissionValue = _master.CommissionValue;
 
                 if (server.TypeTesterData == TesterDataType.Candle)
                 {

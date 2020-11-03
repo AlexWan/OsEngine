@@ -22,7 +22,11 @@
                     <Grid >
                         <TextBox Name="TextBoxStartPortfolio" HorizontalAlignment="Left" Height="28" Margin="12,131,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="204"/>
                         <Label Name="Label13" Content="Initial funds" HorizontalAlignment="Left" Margin="12,106,0,0" VerticalAlignment="Top"/>
-                        <WindowsFormsHost Name="HostLog" Margin="10,164,10,10" Foreground="Black"/>
+                        <Label Name="CommissionTypeLabel" Content="Commission Type" HorizontalAlignment="Left" Margin="12,164,0,0" VerticalAlignment="Top"/>
+                        <ComboBox Name="CommissionTypeComboBox" Margin="12,190,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="110" Height="28"/>
+                        <Label  Name="CommissionValueLabel" Content="Commission Value" HorizontalAlignment="Left" Margin="125,164,0,0" VerticalAlignment="Top"/>
+                        <TextBox Name="CommissionValueTextBox" Margin="125,190,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="100" Height="28"/>
+                        <WindowsFormsHost Name="HostLog" Margin="10,224,10,10" Foreground="Black"/>
                         <Rectangle Name="RectangleTimeFramesAndSecurities" Margin="231,0,10,0" Height="164" VerticalAlignment="Top"/>
                         <WindowsFormsHost x:Name="HostTabsSimple" Foreground="Black" Height="133" Margin="247,26,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="352"/>
                         <Label Name="LabelTabsEndTimeFrames" Content="Tabs securities" HorizontalAlignment="Left" Margin="247,1,0,0" VerticalAlignment="Top"/>

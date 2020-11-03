@@ -52,6 +52,17 @@ namespace OsEngine.OsOptimizer
             TextBoxStartPortfolio.Text = _master.StartDepozit.ToString();
             TextBoxStartPortfolio.TextChanged += TextBoxStartPortfolio_TextChanged;
 
+            CommissionTypeLabel.Content = OsLocalization.Optimizer.Label40;
+            CommissionTypeComboBox.Items.Add(ComissionType.None.ToString());
+            CommissionTypeComboBox.Items.Add(ComissionType.OneLotFix.ToString());
+            CommissionTypeComboBox.Items.Add(ComissionType.Percent.ToString());
+            CommissionTypeComboBox.SelectedItem = _master.CommissionType.ToString();
+            CommissionTypeComboBox.SelectionChanged += CommissionTypeComboBoxOnSelectionChanged;
+
+            CommissionValueLabel.Content = OsLocalization.Optimizer.Label41;
+            CommissionValueTextBox.Text = _master.CommissionValue.ToString();
+            CommissionValueTextBox.TextChanged += CommissionValueTextBoxOnTextChanged;
+
             // filters/фильтры
             CheckBoxFilterProfitIsOn.IsChecked = _master.FilterProfitIsOn;
             CheckBoxFilterMaxDrowDownIsOn.IsChecked = _master.FilterMaxDrowDownIsOn;
@@ -523,6 +534,33 @@ namespace OsEngine.OsOptimizer
             }
 
             _master.StartDepozit = Convert.ToInt32(TextBoxStartPortfolio.Text);
+        }
+        
+        private void CommissionValueTextBoxOnTextChanged(object sender, TextChangedEventArgs e)
+        {
+            decimal commissionValue;
+            try
+            {
+                var isParsed = decimal.TryParse(CommissionValueTextBox.Text,  out commissionValue);
+                if (!isParsed || commissionValue < 0)
+                {
+                    throw new Exception();
+                }
+            }
+            catch
+            {
+                CommissionValueTextBox.Text = _master.CommissionValue.ToString();
+                return;
+            }
+
+            _master.CommissionValue = commissionValue;
+        }
+
+        private void CommissionTypeComboBoxOnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ComissionType commissionType = (ComissionType) Enum.Parse(typeof(ComissionType),
+                (string) CommissionTypeComboBox.SelectedItem);
+            _master.CommissionType = commissionType;
         }
 
         private void ButtonServerDialog_Click(object sender, RoutedEventArgs e)
