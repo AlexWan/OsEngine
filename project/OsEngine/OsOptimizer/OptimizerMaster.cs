@@ -89,6 +89,8 @@ namespace OsEngine.OsOptimizer
                     writer.WriteLine(_filterDealsCountIsOn);
                     writer.WriteLine(_isScript);
                     writer.WriteLine(_iterationCount);
+                    writer.WriteLine(_commissionType);
+                    writer.WriteLine(_commissionValue);
 
                     writer.Close();
                 }
@@ -133,6 +135,9 @@ namespace OsEngine.OsOptimizer
                     _filterDealsCountIsOn = Convert.ToBoolean(reader.ReadLine());
                     _isScript = Convert.ToBoolean(reader.ReadLine());
                     _iterationCount = Convert.ToInt32(reader.ReadLine());
+                    _commissionType = (ComissionType) Enum.Parse(typeof(ComissionType), 
+                        reader.ReadLine() ?? ComissionType.None.ToString());
+                    _commissionValue = Convert.ToDecimal(reader.ReadLine());
 
                     reader.Close();
                 }
@@ -327,6 +332,36 @@ namespace OsEngine.OsOptimizer
             }
         }
         private decimal _startDepozit;
+        
+        /// <summary>
+        /// commission type
+        /// тип комиссии
+        /// </summary>
+        public ComissionType CommissionType
+        {
+            get => _commissionType;
+            set
+            {
+                _commissionType = value;
+                Save();
+            }
+        }
+        private ComissionType _commissionType;      
+        
+        /// <summary>
+        /// commission value
+        /// размер комиссии
+        /// </summary>
+        public decimal CommissionValue
+        {
+            get => _commissionValue;
+            set
+            {
+                _commissionValue = value;
+                Save();
+            }
+        }
+        private decimal _commissionValue;
 
         /// <summary>
         /// connection settings for robot usual tabs
