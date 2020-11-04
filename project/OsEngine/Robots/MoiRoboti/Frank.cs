@@ -17,10 +17,16 @@ namespace OsEngine.Robots.MoiRoboti
         private MyBlanks blanks = new MyBlanks("Frank", StartProgram.IsOsTrader); // создание экземпляра класса MyBlanks
         private BotTabSimple _tab; // поле хранения вкладки робота 
         public decimal percent_tovara; // поле хранения % товара 
-        public decimal start_sum; // поле хранения стартовой суммы депозита 
+        public decimal portfolio_sum; // поле хранения суммы в портфеле 
+        public decimal start_sum; // поле хранения суммы на старт работы 
+        public decimal start_prise; // поле хранения цены товара на старт работы 
         public decimal depo; // количество квотируемой в портфеле
         public decimal tovar; // количество товара  в портфеле
+        public decimal min_lot; // поле хранящее величину минимального лота для биржи
 
+        private StrategyParameterBool vkl_Robota; // поле включения бота 
+        private StrategyParameterInt start_per_depo; // какую часть депозита использовать при старте робота в % 
+        private StrategyParameterDecimal min_sum;    //  минимальный сумма для входа на бирже
 
         public Frank(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -29,23 +35,55 @@ namespace OsEngine.Robots.MoiRoboti
             kvot_name = "USDT";  // тут надо указать - инициализировать название квотируемой валюты (деньги)
             tovar_name = "BTC"; // тут надо указать - инициализировать название товара 
 
+            vkl_Robota = CreateParameter("РОБОТ Включен?", false);
+            start_per_depo = CreateParameter("Начинать с ? % депо)", 5, 5, 20, 5);
+            min_sum = CreateParameter("МИН сумма орд.на бирже($)", 10.1m, 10.1m, 10.1m, 10.1m);
+
             _tab.BestBidAskChangeEvent += _tab_BestBidAskChangeEvent; // событие изменения лучших цен
             _tab.OrderUpdateEvent += _tab_OrderUpdateEvent;
             
         }
-
-        private void _tab_OrderUpdateEvent(Order obj)
+        private void _tab_OrderUpdateEvent(Order order)
         {
             Switching_mode();
         }
-
-        private void _tab_BestBidAskChangeEvent(decimal arg1, decimal arg2) // событие изменения лучших цен
+        private void _tab_BestBidAskChangeEvent(decimal bid, decimal ask) // событие изменения лучших цен
         {
             market_prise = blanks.price;
-            // decimal b = blanks.Balans_kvot();
+            min_lot = blanks.Lot(min_sum.ValueDecimal);
+            Start();
 
-            Console.WriteLine(" стартовая сумма = " + Start_sum() + " $ ");
+            Console.WriteLine(" минимальный лот  = " + min_lot + " BTC  ");
+            Console.WriteLine(" стартовая сумма = " + start_sum + " $ ");
             Console.WriteLine(" в портфеле потрачено = " + Percent_tovara() + " % ");
+        }
+        void Start()
+        {
+            Percent_tovara();
+            int a = start_per_depo.ValueInt;
+            if ( a < percent_tovara )
+            {
+                return;
+            }
+            List<Position> positions = _tab.PositionsOpenAll;
+            if (positions.Count != 0)
+            {
+                return;
+            }
+            if (vkl_Robota.ValueBool == false)
+            {
+                return;
+            }
+            start_sum = Portfolio_sum();
+            start_prise = market_prise;
+            decimal vol = MyBlanks.Okruglenie(blanks.Balans_kvot() / 100 * a, 2);
+            if (vol > min_lot)
+            {
+                _tab.BuyAtLimit(vol, market_prise);
+                Console.WriteLine(" Стартуем ордером на = " + vol + " $ по цене " + market_prise);
+            }
+            //vkl_Robota.ValueBool = false;
+            Console.WriteLine(" выключили робот");
         }
         void Switching_mode()
         {
@@ -67,22 +105,6 @@ namespace OsEngine.Robots.MoiRoboti
 
             }
 
-        }
-        public decimal Percent_tovara() // расчет % объема купленного товара в портфеле 
-        {
-            decimal st = Start_sum();
-            decimal kv = Balans_kvot(kvot_name);
-            decimal rasxod = st - kv;
-            decimal per = rasxod / st * 100;
-            percent_tovara = MyBlanks.Okruglenie(per) ;
-            return percent_tovara;
-        }
-        public decimal Start_sum() // расчет начального состояния портфеля
-        {
-            Balans_kvot(kvot_name);
-            Balans_tovara(tovar_name);
-            start_sum = MyBlanks.Okruglenie(depo + tovar * market_prise);
-            return start_sum;
         }
         public decimal Balans_kvot(string kvot_name)   // запрос квотируемых средств в портфеле - название присваивается в kvot_name
         {
@@ -122,6 +144,22 @@ namespace OsEngine.Robots.MoiRoboti
                 tovar = vol_instr + vol_instr_blok;
             }
             return tovar;
+        }
+        public decimal Portfolio_sum() // расчет начального состояния портфеля по торгуемой паре
+        {
+            Balans_kvot(kvot_name);
+            Balans_tovara(tovar_name);
+            portfolio_sum = MyBlanks.Okruglenie(depo + tovar * market_prise, 2);
+            return portfolio_sum;
+        }
+        public decimal Percent_tovara() // расчет % объема купленного товара в портфеле 
+        {
+            decimal st = Portfolio_sum();
+            decimal kv = Balans_kvot(kvot_name);
+            decimal rasxod = st - kv;
+            decimal per = rasxod / st * 100;
+            percent_tovara = MyBlanks.Okruglenie(per, 2);
+            return percent_tovara;
         }
         public override string GetNameStrategyType()
         {

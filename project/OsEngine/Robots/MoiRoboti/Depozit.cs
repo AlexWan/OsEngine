@@ -14,7 +14,7 @@ namespace OsEngine.Robots.MoiRoboti
         public MovingAverage _ma;     // поле хранения индикатора МА
         private BotTabSimple _vklad; // поле хранения вкладки робота 
         private StrategyParameterDecimal slippage; // величина проскальзывание при установки ордеров  
-        private StrategyParameterBool vkl_Robota; // поле включения бокса 
+        private StrategyParameterBool vkl_Robota; // поле включения бота 
         private StrategyParameterInt zn_stop_los;    // через сколько позиций усреднения фиксировать убыток
         private StrategyParameterBool vkl_stop_los; // отключение функции стоплоса
         private StrategyParameterInt profit;       // расстояние до профита тейкпрофита
