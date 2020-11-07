@@ -52,11 +52,10 @@ namespace CustomIndicators.Scripts
                 return;
             }
 
-            if (index > _seriesLong.DataSeries[0].Values[index] && index > _seriesShort.DataSeries[0].Values[index])
-            {
+
                 _seriesLine.Values[index] =
                     _seriesShort.DataSeries[0].Values[index] - _seriesLong.DataSeries[0].Values[index];
-            }
+            
         }
     }
 }

@@ -669,10 +669,6 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private void Events_OnTransReply(TransactionReply transReply)
         {
-            return;
-            // где-то у нас с Вами ложные Fail ордера у некоторых пользователей.
-            // Пока заблокируем.
-
             if (transReply.Status != 4 &&
                 transReply.Status != 6)
             {
@@ -1244,7 +1240,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 {
                     for (int i = 0; i < trades.Count; i++)
                     {
-                        EventsOnOnTrade(trades[i]);
+                       // EventsOnOnTrade(trades[i]);
                     }
                 }
             }
