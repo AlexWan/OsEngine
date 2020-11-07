@@ -14,8 +14,10 @@ namespace OsEngine.Robots.MoiRoboti
         private StrategyParameterString kvot_val; // квотируемая валюта - инструмент
         private StrategyParameterString tovar_val; // Базовая валюта - товар
         private StrategyParameterDecimal komis_birgi; // комиссия биржи в %
-        
-        
+        private StrategyParameterDecimal veli4_usrednen; // величина усреднения
+        private StrategyParameterInt dola_depa;     // количество частей для входа 
+
+
         public decimal _vol_stop; // объем проданного товара по стопу 
         public decimal price; // текущая  цена центра стакана 
         public decimal _kom; // поле для хранения величины комиссии биржи в пунктах
@@ -49,6 +51,7 @@ namespace OsEngine.Robots.MoiRoboti
         }
         public decimal Lot(decimal _min_sum) // расчет минимального лота 
         {
+            price = _tab.PriceCenterMarketDepth; 
             _min_lot = Okruglenie(_min_sum / price,6);
             return _min_lot;
         }

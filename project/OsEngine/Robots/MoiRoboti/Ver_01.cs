@@ -168,7 +168,7 @@ namespace OsEngine.Robots.MoiRoboti
                         }
                     }
                 }
-                 Save_prifit();
+                 Save_profit();
             }*/
         }
         void StopLoss() // фиксация  убытков 

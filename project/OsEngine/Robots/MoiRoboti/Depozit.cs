@@ -323,7 +323,7 @@ namespace OsEngine.Robots.MoiRoboti
             {
                 return Depo;
             }
-            else return vol;
+            return vol;
         }
         decimal Okreglenie(decimal vol) // округляет децимал до 6 чисел после запятой 
         {
