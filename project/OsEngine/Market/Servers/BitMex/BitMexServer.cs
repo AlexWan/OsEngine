@@ -1421,7 +1421,7 @@ namespace OsEngine.Market.Servers.BitMex
                 security.NameClass = sec.typ;
                 security.NameId = sec.symbol + sec.expiry;
                 security.SecurityType = SecurityType.CurrencyPair;
-                security.Lot = sec.lotSize.ToString().ToDecimal();
+                security.Lot = 1;
                 security.PriceStep = sec.tickSize;
                 security.PriceStepCost = sec.tickSize;
 

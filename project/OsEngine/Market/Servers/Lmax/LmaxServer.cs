@@ -270,7 +270,7 @@ namespace OsEngine.Market.Servers.Lmax
                             Name = lmaxSec.Name.Replace("/", "-") + "_2",
                             NameId = lmaxSec.Id.ToString(),
                             NameClass = lmaxSec.Contract.Currency,
-                            Lot = lmaxSec.OrderBook.QuantityIncrement,
+                            Lot = 1,
                             PriceStep = lmaxSec.OrderBook.PriceIncrement,
                             PriceStepCost = lmaxSec.OrderBook.PriceIncrement,
                         });
@@ -288,7 +288,7 @@ namespace OsEngine.Market.Servers.Lmax
                         Name = lmaxSec.Name.Replace("/", "-"),
                         NameId = lmaxSec.Id.ToString(),
                         NameClass = lmaxSec.Contract.Currency,
-                        Lot = lmaxSec.OrderBook.QuantityIncrement,
+                        Lot = 1,
                         PriceStep = lmaxSec.OrderBook.PriceIncrement,
                         PriceStepCost = lmaxSec.OrderBook.PriceIncrement
                     });

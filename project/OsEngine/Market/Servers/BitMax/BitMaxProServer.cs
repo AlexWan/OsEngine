@@ -597,7 +597,7 @@ namespace OsEngine.Market.Servers.BitMax
                 newSec.Decimals = product.TickSize.DecimalsCount();
                 newSec.SecurityType = SecurityType.CurrencyPair;
                 newSec.State = product.Status == "Normal" ? SecurityStateType.Activ : SecurityStateType.Close;
-                newSec.Lot = product.LotSize.ToDecimal();
+                newSec.Lot = 1;
                 newSec.PriceStep = product.TickSize.ToDecimal();
                 newSec.PriceStepCost = newSec.PriceStep;
                 newSec.Go = product.MinNotional.ToDecimal();

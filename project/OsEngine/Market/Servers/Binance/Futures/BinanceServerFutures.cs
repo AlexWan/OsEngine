@@ -590,7 +590,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 security.NameId = sec.symbol + sec.quoteAsset;
                 security.SecurityType = SecurityType.Futures;
                 // sec.filters[1] - минимальный объем равный цена * объем
-                security.Lot = sec.filters[2].stepSize.ToDecimal();
+                security.Lot = 1;
                 security.PriceStep = sec.filters[0].tickSize.ToDecimal();
                 security.PriceStepCost = security.PriceStep;
 

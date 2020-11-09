@@ -205,7 +205,7 @@ namespace OsEngine.Market.Servers.Livecoin
                 security.NameClass = GetCurrency(sec.currencyPair);
                 security.NameId = security.Name + "_" + security.NameClass;
                 security.SecurityType = SecurityType.CurrencyPair;
-                security.Lot = Convert.ToDecimal(sec.minLimitQuantity.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                security.Lot = 1;
                 security.Decimals = Convert.ToInt32(sec.priceScale);
                 security.PriceStep = CalculatePriceStep(security.Decimals);
                 security.PriceStepCost = security.PriceStep;

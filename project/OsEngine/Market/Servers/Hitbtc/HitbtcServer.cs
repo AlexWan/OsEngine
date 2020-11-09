@@ -702,7 +702,7 @@ namespace OsEngine.Market.Servers.Hitbtc
                 security.NameClass = symbol.quoteCurrency;
                 security.NameId = symbol.id;
                 security.SecurityType = SecurityType.CurrencyPair;
-                security.Lot = symbol.quantityIncrement.ToDecimal();
+                security.Lot = 1;
                 security.PriceStep = symbol.tickSize.ToDecimal();
                 security.PriceStepCost = security.PriceStep;
 
