@@ -1,0 +1,2778 @@
+<doc>
+    <assembly>
+        <name>HarfBuzzSharp</name>
+    </assembly>
+    <members>
+        <member name="T:HarfBuzzSharp.Blob">
+            <summary>Represents a blob of data in memory.</summary>
+            <remarks />
+        </member>
+        <member name="C:HarfBuzzSharp.Blob(System.IntPtr,System.Int32,HarfBuzzSharp.MemoryMode)">
+            <param name="data">The data to wrap.</param>
+            <param name="length">The length of the data being wrapped.</param>
+            <param name="mode">The memory mode to use.</param>
+            <summary>Creates a new <see cref="T:HarfBuzzSharp.Blob" /> instance, wrapping the specified data.</summary>
+            <remarks>If there was a problem creating the blob, or if the data length was zero, then an empty blob will be created.</remarks>
+        </member>
+        <member name="C:HarfBuzzSharp.Blob(System.IntPtr,System.Int32,HarfBuzzSharp.MemoryMode,HarfBuzzSharp.ReleaseDelegate)">
+            <param name="data">The data to wrap.</param>
+            <param name="length">The length of the data being wrapped.</param>
+            <param name="mode">The memory mode to use.</param>
+            <param name="releaseDelegate">The delegate to invoke when the data is not needed anymore.</param>
+            <summary>Creates a new <see cref="T:HarfBuzzSharp.Blob" /> instance, wrapping the specified data.</summary>
+            <remarks>If there was a problem creating the blob, or if the data length was zero, then an empty blob will be created.</remarks>
+        </member>
+        <member name="C:HarfBuzzSharp.Blob(System.IntPtr,System.UInt32,HarfBuzzSharp.MemoryMode,System.Object,HarfBuzzSharp.BlobReleaseDelegate)">
+            <param name="data">The data to wrap.</param>
+            <param name="length">The length of the data being wrapped.</param>
+            <param name="mode">The memory mode to use.</param>
+            <param name="userData">The user data to pass to the release delegate.</param>
+            <param name="releaseDelegate">The delegate to invoke when the data is not needed anymore.</param>
+            <summary>Creates a new <see cref="T:HarfBuzzSharp.Blob" /> instance, wrapping the specified data.</summary>
+            <remarks>If there was a problem creating the blob, or if the data length was zero, then an empty blob will be created.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Blob.AsSpan">
+            <summary>Returns a span that wraps the data.</summary>
+            <returns>Returns the span that wraps the data.</returns>
+            <remarks>If the data is released, then the span becomes invalid.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Blob.AsStream">
+            <summary>Returns a stream that wraps the data.</summary>
+            <returns>Returns the stream that wraps the data.</returns>
+            <remarks>If the data is released, then the stream becomes invalid.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Blob.Dispose(System.Boolean)">
+            <param name="disposing">
+                <see langword="true" /> to release both managed and unmanaged resources; <see langword="false" /> to release only unmanaged resources.</param>
+            <summary>Releases the unmanaged resources used by the <see cref="T:HarfBuzzSharp.Blob" /> and optionally releases the managed resources.</summary>
+            <remarks>Always dispose the object before you release your last reference to the <see cref="T:HarfBuzzSharp.Blob" />. Otherwise, the resources it is using will not be freed until the garbage collector calls the finalizer.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Blob.DisposeHandler">
+            <summary>Releases the unmanaged resources used.</summary>
+            <remarks />
+        </member>
+        <member name="P:HarfBuzzSharp.Blob.Empty">
+            <summary>Gets a reference to the empty <see cref="T:HarfBuzzSharp.Blob" /> instance.</summary>
+            <value />
+            <remarks />
+        </member>
+        <member name="P:HarfBuzzSharp.Blob.FaceCount">
+            <summary>Gets the number of faces in this blob.</summary>
+            <value />
+            <remarks />
+        </member>
+        <member name="M:HarfBuzzSharp.Blob.FromFile(System.String)">
+            <param name="fileName">The path to the file to load.</param>
+            <summary>Creates a new <see cref="T:HarfBuzzSharp.Blob" /> instance from the contents of the file.</summary>
+            <returns>Returns the new <see cref="T:HarfBuzzSharp.Blob" /> instance.</returns>
+            <remarks />
+        </member>
+        <member name="M:HarfBuzzSharp.Blob.FromStream(System.IO.Stream)">
+            <param name="stream">The stream to use.</param>
+            <summary>Creates a new <see cref="T:HarfBuzzSharp.Blob" /> instance from the contents of the stream.</summary>
+            <returns>Returns the new <see cref="T:HarfBuzzSharp.Blob" /> instance.</returns>
+            <remarks />
+        </member>
+        <member name="P:HarfBuzzSharp.Blob.IsImmutable">
+            <summary>Gets the value indicating whether the blob is immutable.</summary>
+            <value />
+            <remarks />
+        </member>
+        <member name="P:HarfBuzzSharp.Blob.Length">
+            <summary>Gets the length of blob data in bytes.</summary>
+            <value />
+            <remarks />
+        </member>
+        <member name="M:HarfBuzzSharp.Blob.MakeImmutable">
+            <summary>Makes the blob immutable.</summary>
+            <remarks />
+        </member>
+        <member name="T:HarfBuzzSharp.BlobReleaseDelegate">
+            <param name="context">The user data passed to <see cref="M:HarfBuzzSharp.Blob.#ctor(System.IntPtr,System.UInt32,HarfBuzzSharp.MemoryMode,System.Object,HarfBuzzSharp.BlobReleaseDelegate)" />.</param>
+            <summary>The delegate that will be invoked when a blob is ready to be discarded.</summary>
+            <remarks />
+        </member>
+        <member name="T:HarfBuzzSharp.Buffer">
+            <summary>Represents a text buffer in memory.</summary>
+            <remarks />
+        </member>
+        <member name="C:HarfBuzzSharp.Buffer">
+            <summary>Creates a new <see cref="M:HarfBuzzSharp.Buffer.#ctor" /> with default values.</summary>
+            <remarks />
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.Add(System.Int32,System.Int32)">
+            <param name="codepoint">To be added.</param>
+            <param name="cluster">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.Add(System.UInt32,System.UInt32)">
+            <param name="codepoint">The Unicode code point.</param>
+            <param name="cluster">The cluster value of the code point.</param>
+            <summary>Appends a character with the Unicode value and gives it the initial cluster value.</summary>
+            <remarks>This function does not check the validity of the codepoint.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.AddCodepoints(System.ReadOnlySpan{System.Int32})">
+            <param name="text">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.AddCodepoints(System.ReadOnlySpan{System.UInt32})">
+            <param name="text">The span of Unicode code points to append.</param>
+            <summary>Appends characters from the span to the buffer.</summary>
+            <remarks>This function does not check the validity of the characters.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.AddCodepoints(System.IntPtr,System.Int32)">
+            <param name="text">To be added.</param>
+            <param name="textLength">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.AddCodepoints(System.ReadOnlySpan{System.Int32},System.Int32,System.Int32)">
+            <param name="text">To be added.</param>
+            <param name="itemOffset">To be added.</param>
+            <param name="itemLength">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.AddCodepoints(System.ReadOnlySpan{System.UInt32},System.Int32,System.Int32)">
+            <param name="text">To be added.</param>
+            <param name="itemOffset">To be added.</param>
+            <param name="itemLength">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.AddCodepoints(System.IntPtr,System.Int32,System.Int32,System.Int32)">
+            <param name="text">To be added.</param>
+            <param name="textLength">To be added.</param>
+            <param name="itemOffset">To be added.</param>
+            <param name="itemLength">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.AddUtf16(System.ReadOnlySpan{System.Byte})">
+            <param name="text">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.AddUtf16(System.ReadOnlySpan{System.Char})">
+            <param name="text">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.AddUtf16(System.String)">
+            <param name="text">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.AddUtf16(System.IntPtr,System.Int32)">
+            <param name="text">To be added.</param>
+            <param name="textLength">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.AddUtf16(System.ReadOnlySpan{System.Char},System.Int32,System.Int32)">
+            <param name="text">To be added.</param>
+            <param name="itemOffset">To be added.</param>
+            <param name="itemLength">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.AddUtf16(System.String,System.Int32,System.Int32)">
+            <param name="text">To be added.</param>
+            <param name="itemOffset">To be added.</param>
+            <param name="itemLength">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.AddUtf16(System.IntPtr,System.Int32,System.Int32,System.Int32)">
+            <param name="text">To be added.</param>
+            <param name="textLength">To be added.</param>
+            <param name="itemOffset">To be added.</param>
+            <param name="itemLength">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.AddUtf32(System.ReadOnlySpan{System.Byte})">
+            <param name="text">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.AddUtf32(System.ReadOnlySpan{System.Int32})">
+            <param name="text">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.AddUtf32(System.ReadOnlySpan{System.UInt32})">
+            <param name="text">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.AddUtf32(System.String)">
+            <param name="text">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.AddUtf32(System.IntPtr,System.Int32)">
+            <param name="text">To be added.</param>
+            <param name="textLength">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.AddUtf32(System.ReadOnlySpan{System.Int32},System.Int32,System.Int32)">
+            <param name="text">To be added.</param>
+            <param name="itemOffset">To be added.</param>
+            <param name="itemLength">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.AddUtf32(System.ReadOnlySpan{System.UInt32},System.Int32,System.Int32)">
+            <param name="text">To be added.</param>
+            <param name="itemOffset">To be added.</param>
+            <param name="itemLength">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.AddUtf32(System.IntPtr,System.Int32,System.Int32,System.Int32)">
+            <param name="text">To be added.</param>
+            <param name="textLength">To be added.</param>
+            <param name="itemOffset">To be added.</param>
+            <param name="itemLength">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.AddUtf8(System.Byte[])">
+            <param name="bytes">The array of UTF-8 character bytes to append.</param>
+            <summary>Appends the specified text bytes to the buffer.</summary>
+            <remarks />
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.AddUtf8(System.ReadOnlySpan{System.Byte})">
+            <param name="text">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.AddUtf8(System.String)">
+            <param name="utf8text">The array of UTF-8 characters to append.</param>
+            <summary>Appends the specified text to the buffer.</summary>
+            <remarks />
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.AddUtf8(System.IntPtr,System.Int32)">
+            <param name="text">To be added.</param>
+            <param name="textLength">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.AddUtf8(System.ReadOnlySpan{System.Byte},System.Int32,System.Int32)">
+            <param name="text">To be added.</param>
+            <param name="itemOffset">To be added.</param>
+            <param name="itemLength">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.AddUtf8(System.IntPtr,System.Int32,System.Int32,System.Int32)">
+            <param name="text">To be added.</param>
+            <param name="textLength">To be added.</param>
+            <param name="itemOffset">To be added.</param>
+            <param name="itemLength">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.Append(HarfBuzzSharp.Buffer)">
+            <param name="buffer">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.Append(HarfBuzzSharp.Buffer,System.Int32,System.Int32)">
+            <param name="buffer">To be added.</param>
+            <param name="start">To be added.</param>
+            <param name="end">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.ClearContents">
+            <summary>Clears the buffer's contents.</summary>
+            <remarks>This operation preserves the Unicode functions and replacement code point.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.Buffer.ClusterLevel">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.Buffer.ContentType">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="F:HarfBuzzSharp.Buffer.DefaultReplacementCodepoint">
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.DeserializeGlyphs(System.String)">
+            <param name="data">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.DeserializeGlyphs(System.String,HarfBuzzSharp.Font)">
+            <param name="data">To be added.</param>
+            <param name="font">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.DeserializeGlyphs(System.String,HarfBuzzSharp.Font,HarfBuzzSharp.SerializeFormat)">
+            <param name="data">To be added.</param>
+            <param name="font">To be added.</param>
+            <param name="format">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.Buffer.Direction">
+            <summary>Get or sets the text flow direction of the buffer.</summary>
+            <value />
+            <remarks>No shaping can happen without setting the direction, or invoking <see cref="M:HarfBuzzSharp.Buffer.GuessSegmentProperties" />.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.Dispose(System.Boolean)">
+            <param name="disposing">
+                <see langword="true" /> to release both managed and unmanaged resources; <see langword="false" /> to release only unmanaged resources.</param>
+            <summary>Releases the unmanaged resources used by the <see cref="T:HarfBuzzSharp.Buffer" /> and optionally releases the managed resources.</summary>
+            <remarks>Always dispose the object before you release your last reference to the <see cref="T:HarfBuzzSharp.Buffer" />. Otherwise, the resources it is using will not be freed until the garbage collector calls the finalizer.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.DisposeHandler">
+            <summary>Releases the unmanaged resources used.</summary>
+            <remarks />
+        </member>
+        <member name="P:HarfBuzzSharp.Buffer.Flags">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.GetGlyphInfoSpan">
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.GetGlyphPositionSpan">
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.Buffer.GlyphInfos">
+            <summary>Gets the buffer glyph information array.</summary>
+            <value />
+            <remarks>The information is valid as long as buffer contents are not modified.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.Buffer.GlyphPositions">
+            <summary>Gets the buffer glyph position array.</summary>
+            <value />
+            <remarks>The positions are valid as long as buffer contents are not modified.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.GuessSegmentProperties">
+            <summary>Sets the unset buffer segment properties based on the buffer's Unicode contents.</summary>
+            <remarks />
+        </member>
+        <member name="P:HarfBuzzSharp.Buffer.InvisibleGlyph">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.Buffer.Language">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.Buffer.Length">
+            <summary>Gets or sets the size of the buffer.</summary>
+            <value />
+            <remarks>If the new length is greater that the current length, more memory will be allocated. If the new length is less than the current length, the extra items will be cleared.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.NormalizeGlyphs">
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.Buffer.ReplacementCodepoint">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.Reset">
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.Reverse">
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.ReverseClusters">
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.ReverseRange(System.Int32,System.Int32)">
+            <param name="start">To be added.</param>
+            <param name="end">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.Buffer.Script">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.SerializeGlyphs">
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.SerializeGlyphs(HarfBuzzSharp.Font)">
+            <param name="font">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.SerializeGlyphs(System.Int32,System.Int32)">
+            <param name="start">To be added.</param>
+            <param name="end">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.SerializeGlyphs(HarfBuzzSharp.Font,HarfBuzzSharp.SerializeFormat,HarfBuzzSharp.SerializeFlag)">
+            <param name="font">To be added.</param>
+            <param name="format">To be added.</param>
+            <param name="flags">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Buffer.SerializeGlyphs(System.Int32,System.Int32,HarfBuzzSharp.Font,HarfBuzzSharp.SerializeFormat,HarfBuzzSharp.SerializeFlag)">
+            <param name="start">To be added.</param>
+            <param name="end">To be added.</param>
+            <param name="font">To be added.</param>
+            <param name="format">To be added.</param>
+            <param name="flags">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.Buffer.UnicodeFunctions">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="T:HarfBuzzSharp.BufferFlags">
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="F:HarfBuzzSharp.BufferFlags.BeginningOfText">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.BufferFlags.Default">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.BufferFlags.DoNotInsertDottedCircle">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.BufferFlags.EndOfText">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.BufferFlags.PreserveDefaultIgnorables">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.BufferFlags.RemoveDefaultIgnorables">
+            <summary>To be added.</summary>
+        </member>
+        <member name="T:HarfBuzzSharp.ClusterLevel">
+            <summary>The various levels of buffer clustering.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.ClusterLevel.Characters">
+            <summary>Don't group cluster values.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.ClusterLevel.Default">
+            <summary>Default cluster level (<see cref="F:HarfBuzzSharp.ClusterLevel.MonotoneGraphemes" />).</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.ClusterLevel.MonotoneCharacters">
+            <summary>Cluster values grouped into monotone order.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.ClusterLevel.MonotoneGraphemes">
+            <summary>Cluster values grouped by graphemes into monotone order.</summary>
+        </member>
+        <member name="T:HarfBuzzSharp.CombiningClassDelegate">
+            <param name="ufuncs">To be added.</param>
+            <param name="unicode">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="T:HarfBuzzSharp.ComposeDelegate">
+            <param name="ufuncs">To be added.</param>
+            <param name="a">To be added.</param>
+            <param name="b">To be added.</param>
+            <param name="ab">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="T:HarfBuzzSharp.ContentType">
+            <summary>The various types of buffer contents.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.ContentType.Glyphs">
+            <summary>The buffer contains output glyphs (after shaping).</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.ContentType.Invalid">
+            <summary>Initial value for new buffer.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.ContentType.Unicode">
+            <summary>The buffer contains input characters (before shaping).</summary>
+        </member>
+        <member name="T:HarfBuzzSharp.DecomposeDelegate">
+            <param name="ufuncs">To be added.</param>
+            <param name="ab">To be added.</param>
+            <param name="a">To be added.</param>
+            <param name="b">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="T:HarfBuzzSharp.Direction">
+            <summary>Various text directions that can be set via <see cref="P:HarfBuzzSharp.Buffer.Direction" />.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Direction.BottomToTop">
+            <summary>Text is set vertically from bottom to top.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.Direction.Invalid">
+            <summary>Initial, unset direction.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.Direction.LeftToRight">
+            <summary>Text is set horizontally from left to right.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.Direction.RightToLeft">
+            <summary>Text is set horizontally from right to left.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.Direction.TopToBottom">
+            <summary>Text is set vertically from top to bottom.</summary>
+        </member>
+        <member name="T:HarfBuzzSharp.Face">
+            <summary>Represents a typeface.</summary>
+            <remarks />
+        </member>
+        <member name="C:HarfBuzzSharp.Face(HarfBuzzSharp.GetTableDelegate)">
+            <param name="getTable">The delegate to retrieve the table data.</param>
+            <summary>Creates a new <see cref="T:HarfBuzzSharp.Face" /> instance, using the delegate to assemble the data.</summary>
+            <remarks />
+        </member>
+        <member name="C:HarfBuzzSharp.Face(HarfBuzzSharp.Blob,System.Int32)">
+            <param name="blob">The typeface data.</param>
+            <param name="index">The zero-based face index in a collection.</param>
+            <summary>Creates a new <see cref="T:HarfBuzzSharp.Face" /> instance, using the specified typeface blob.</summary>
+            <remarks />
+        </member>
+        <member name="C:HarfBuzzSharp.Face(HarfBuzzSharp.Blob,System.UInt32)">
+            <param name="blob">The typeface data.</param>
+            <param name="index">The zero-based face index in a collection.</param>
+            <summary>Creates a new <see cref="T:HarfBuzzSharp.Face" /> instance, using the specified typeface blob.</summary>
+            <remarks />
+        </member>
+        <member name="C:HarfBuzzSharp.Face(HarfBuzzSharp.GetTableDelegate,HarfBuzzSharp.ReleaseDelegate)">
+            <param name="getTable">To be added.</param>
+            <param name="destroy">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Face.Dispose(System.Boolean)">
+            <param name="disposing">
+                <see langword="true" /> to release both managed and unmanaged resources; <see langword="false" /> to release only unmanaged resources.</param>
+            <summary>Releases the unmanaged resources used by the <see cref="T:HarfBuzzSharp.Face" /> and optionally releases the managed resources.</summary>
+            <remarks>Always dispose the object before you release your last reference to the <see cref="T:HarfBuzzSharp.Face" />. Otherwise, the resources it is using will not be freed until the garbage collector calls the finalizer.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Face.DisposeHandler">
+            <summary>Releases the unmanaged resources used.</summary>
+            <remarks />
+        </member>
+        <member name="P:HarfBuzzSharp.Face.Empty">
+            <summary>Gets a reference to the empty <see cref="T:HarfBuzzSharp.Face" /> instance.</summary>
+            <value />
+            <remarks />
+        </member>
+        <member name="P:HarfBuzzSharp.Face.GlyphCount">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.Face.Index">
+            <summary>Gets or sets the zero-based face index in a collection.</summary>
+            <value />
+            <remarks />
+        </member>
+        <member name="P:HarfBuzzSharp.Face.IsImmutable">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Face.MakeImmutable">
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Face.ReferenceTable(HarfBuzzSharp.Tag)">
+            <param name="table">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.Face.Tables">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.Face.UnitsPerEm">
+            <summary>Gets or sets the units per EM.</summary>
+            <value />
+            <remarks />
+        </member>
+        <member name="T:HarfBuzzSharp.Feature">
+            <summary>Various font features and variations.</summary>
+            <remarks />
+        </member>
+        <member name="C:HarfBuzzSharp.Feature(HarfBuzzSharp.Tag)">
+            <param name="tag">The tag to use.</param>
+            <summary>Creates a new <see cref="T:HarfBuzzSharp.Feature" /> instance with the specified tag.</summary>
+            <remarks />
+        </member>
+        <member name="C:HarfBuzzSharp.Feature(HarfBuzzSharp.Tag,System.UInt32)">
+            <param name="tag">The tag to use.</param>
+            <param name="value">The value to use.</param>
+            <summary>Creates a new <see cref="T:HarfBuzzSharp.Feature" /> instance with the specified tag.</summary>
+            <remarks />
+        </member>
+        <member name="C:HarfBuzzSharp.Feature(HarfBuzzSharp.Tag,System.UInt32,System.UInt32,System.UInt32)">
+            <param name="tag">The tag to use.</param>
+            <param name="value">The value to use.</param>
+            <param name="start">The start value.</param>
+            <param name="end">The end value.</param>
+            <summary>Creates a new <see cref="T:HarfBuzzSharp.Feature" /> instance with the specified tag.</summary>
+            <remarks />
+        </member>
+        <member name="P:HarfBuzzSharp.Feature.End">
+            <summary>Gets or sets the end.</summary>
+            <value />
+            <remarks />
+        </member>
+        <member name="M:HarfBuzzSharp.Feature.Parse(System.String)">
+            <param name="s">The feature string to parse.</param>
+            <summary>Parses a feature string.</summary>
+            <returns>Returns the new feature.</returns>
+            <remarks />
+        </member>
+        <member name="P:HarfBuzzSharp.Feature.Start">
+            <summary>Gets or sets the start.</summary>
+            <value />
+            <remarks />
+        </member>
+        <member name="P:HarfBuzzSharp.Feature.Tag">
+            <summary>Gets or sets the tag.</summary>
+            <value />
+            <remarks />
+        </member>
+        <member name="M:HarfBuzzSharp.Feature.ToString">
+            <summary>Returns the string representation of the feature.</summary>
+            <returns>Returns the string representation of the feature.</returns>
+            <remarks />
+        </member>
+        <member name="M:HarfBuzzSharp.Feature.TryParse(System.String,HarfBuzzSharp.Feature@)">
+            <param name="s">The feature string to parse.</param>
+            <param name="feature">The feature.</param>
+            <summary>Tries to parse the feature string.</summary>
+            <returns>Returns true on success, otherwise false.</returns>
+            <remarks />
+        </member>
+        <member name="P:HarfBuzzSharp.Feature.Value">
+            <summary>Gets or sets the value.</summary>
+            <value />
+            <remarks />
+        </member>
+        <member name="T:HarfBuzzSharp.Font">
+            <summary>Represents a specific font face.</summary>
+            <remarks />
+        </member>
+        <member name="C:HarfBuzzSharp.Font(HarfBuzzSharp.Face)">
+            <param name="face">The face to use.</param>
+            <summary>Creates a new <see cref="T:HarfBuzzSharp.Font" /> using a specific font face.</summary>
+            <remarks />
+        </member>
+        <member name="C:HarfBuzzSharp.Font(HarfBuzzSharp.Font)">
+            <param name="parent">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.Dispose(System.Boolean)">
+            <param name="disposing">
+                <see langword="true" /> to release both managed and unmanaged resources; <see langword="false" /> to release only unmanaged resources.</param>
+            <summary>Releases the unmanaged resources used by the <see cref="T:HarfBuzzSharp.Font" /> and optionally releases the managed resources.</summary>
+            <remarks>Always dispose the object before you release your last reference to the <see cref="T:HarfBuzzSharp.Font" />. Otherwise, the resources it is using will not be freed until the garbage collector calls the finalizer.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.DisposeHandler">
+            <summary>Releases the unmanaged resources used.</summary>
+            <remarks />
+        </member>
+        <member name="M:HarfBuzzSharp.Font.GetFontExtentsForDirection(HarfBuzzSharp.Direction)">
+            <param name="direction">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.GetGlyphAdvanceForDirection(System.UInt32,HarfBuzzSharp.Direction,System.Int32@,System.Int32@)">
+            <param name="glyph">To be added.</param>
+            <param name="direction">To be added.</param>
+            <param name="x">To be added.</param>
+            <param name="y">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.GetGlyphAdvancesForDirection(System.ReadOnlySpan{System.UInt32},HarfBuzzSharp.Direction)">
+            <param name="glyphs">To be added.</param>
+            <param name="direction">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.GetGlyphAdvancesForDirection(System.IntPtr,System.Int32,HarfBuzzSharp.Direction)">
+            <param name="firstGlyph">To be added.</param>
+            <param name="count">To be added.</param>
+            <param name="direction">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.GetHorizontalGlyphAdvance(System.UInt32)">
+            <param name="glyph">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.GetHorizontalGlyphAdvances(System.ReadOnlySpan{System.UInt32})">
+            <param name="glyphs">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.GetHorizontalGlyphAdvances(System.IntPtr,System.Int32)">
+            <param name="firstGlyph">To be added.</param>
+            <param name="count">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.GetHorizontalGlyphKerning(System.UInt32,System.UInt32)">
+            <param name="leftGlyph">To be added.</param>
+            <param name="rightGlyph">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.GetScale(System.Int32@,System.Int32@)">
+            <param name="xScale">The scale along the x-axis.</param>
+            <param name="yScale">The scale along the y-axis.</param>
+            <summary>Retrieves the font scale.</summary>
+            <remarks />
+        </member>
+        <member name="M:HarfBuzzSharp.Font.GetVerticalGlyphAdvance(System.UInt32)">
+            <param name="glyph">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.GetVerticalGlyphAdvances(System.ReadOnlySpan{System.UInt32})">
+            <param name="glyphs">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.GetVerticalGlyphAdvances(System.IntPtr,System.Int32)">
+            <param name="firstGlyph">To be added.</param>
+            <param name="count">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.GlyphToString(System.UInt32)">
+            <param name="glyph">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.Font.OpenTypeMetrics">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.Font.Parent">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.SetFontFunctions(HarfBuzzSharp.FontFunctions)">
+            <param name="fontFunctions">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.SetFontFunctions(HarfBuzzSharp.FontFunctions,System.Object)">
+            <param name="fontFunctions">To be added.</param>
+            <param name="fontData">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.SetFontFunctions(HarfBuzzSharp.FontFunctions,System.Object,HarfBuzzSharp.ReleaseDelegate)">
+            <param name="fontFunctions">To be added.</param>
+            <param name="fontData">To be added.</param>
+            <param name="destroy">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.SetFunctionsOpenType">
+            <summary>Sets the font functions to that of OpenType.</summary>
+            <remarks />
+        </member>
+        <member name="M:HarfBuzzSharp.Font.SetScale(System.Int32,System.Int32)">
+            <param name="xScale">The scale along the x-axis.</param>
+            <param name="yScale">The scale along the y-axis.</param>
+            <summary>Sets the font scale.</summary>
+            <remarks />
+        </member>
+        <member name="M:HarfBuzzSharp.Font.Shape(HarfBuzzSharp.Buffer,HarfBuzzSharp.Feature[])">
+            <param name="buffer">The buffer to shape.</param>
+            <param name="features">The features to control the shaping process.</param>
+            <summary>Shapes the specified buffer using the current font.</summary>
+            <remarks />
+        </member>
+        <member name="M:HarfBuzzSharp.Font.Shape(HarfBuzzSharp.Buffer,System.Collections.Generic.IReadOnlyList{HarfBuzzSharp.Feature},System.Collections.Generic.IReadOnlyList{System.String})">
+            <param name="buffer">To be added.</param>
+            <param name="features">To be added.</param>
+            <param name="shapers">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.Font.SupportedShapers">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.TryGetGlyph(System.Int32,System.UInt32@)">
+            <param name="unicode">To be added.</param>
+            <param name="glyph">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.TryGetGlyph(System.UInt32,System.UInt32@)">
+            <param name="unicode">To be added.</param>
+            <param name="glyph">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.TryGetGlyph(System.Int32,System.UInt32,System.UInt32@)">
+            <param name="unicode">To be added.</param>
+            <param name="variationSelector">To be added.</param>
+            <param name="glyph">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.TryGetGlyph(System.UInt32,System.UInt32,System.UInt32@)">
+            <param name="unicode">To be added.</param>
+            <param name="variationSelector">To be added.</param>
+            <param name="glyph">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.TryGetGlyphContourPoint(System.UInt32,System.UInt32,System.Int32@,System.Int32@)">
+            <param name="glyph">To be added.</param>
+            <param name="pointIndex">To be added.</param>
+            <param name="x">To be added.</param>
+            <param name="y">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.TryGetGlyphContourPointForOrigin(System.UInt32,System.UInt32,HarfBuzzSharp.Direction,System.Int32@,System.Int32@)">
+            <param name="glyph">To be added.</param>
+            <param name="pointIndex">To be added.</param>
+            <param name="direction">To be added.</param>
+            <param name="x">To be added.</param>
+            <param name="y">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.TryGetGlyphExtents(System.UInt32,HarfBuzzSharp.GlyphExtents@)">
+            <param name="glyph">To be added.</param>
+            <param name="extents">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.TryGetGlyphFromName(System.String,System.UInt32@)">
+            <param name="name">To be added.</param>
+            <param name="glyph">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.TryGetGlyphFromString(System.String,System.UInt32@)">
+            <param name="s">To be added.</param>
+            <param name="glyph">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.TryGetGlyphName(System.UInt32,System.String@)">
+            <param name="glyph">To be added.</param>
+            <param name="name">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.TryGetHorizontalFontExtents(HarfBuzzSharp.FontExtents@)">
+            <param name="extents">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.TryGetHorizontalGlyphOrigin(System.UInt32,System.Int32@,System.Int32@)">
+            <param name="glyph">To be added.</param>
+            <param name="xOrigin">To be added.</param>
+            <param name="yOrigin">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.TryGetNominalGlyph(System.Int32,System.UInt32@)">
+            <param name="unicode">To be added.</param>
+            <param name="glyph">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.TryGetNominalGlyph(System.UInt32,System.UInt32@)">
+            <param name="unicode">To be added.</param>
+            <param name="glyph">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.TryGetVariationGlyph(System.Int32,System.UInt32@)">
+            <param name="unicode">To be added.</param>
+            <param name="glyph">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.TryGetVariationGlyph(System.UInt32,System.UInt32@)">
+            <param name="unicode">To be added.</param>
+            <param name="glyph">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.TryGetVariationGlyph(System.Int32,System.UInt32,System.UInt32@)">
+            <param name="unicode">To be added.</param>
+            <param name="variationSelector">To be added.</param>
+            <param name="glyph">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.TryGetVariationGlyph(System.UInt32,System.UInt32,System.UInt32@)">
+            <param name="unicode">To be added.</param>
+            <param name="variationSelector">To be added.</param>
+            <param name="glyph">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.TryGetVerticalFontExtents(HarfBuzzSharp.FontExtents@)">
+            <param name="extents">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Font.TryGetVerticalGlyphOrigin(System.UInt32,System.Int32@,System.Int32@)">
+            <param name="glyph">To be added.</param>
+            <param name="xOrigin">To be added.</param>
+            <param name="yOrigin">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="T:HarfBuzzSharp.FontExtents">
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.FontExtents.Ascender">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.FontExtents.Descender">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.FontExtents.LineGap">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="T:HarfBuzzSharp.FontExtentsDelegate">
+            <param name="font">The font.</param>
+            <param name="fontData">The additional data passed to <see cref="M:HarfBuzzSharp.Font.SetFontFunctions(HarfBuzzSharp.FontFunctions,System.Object,HarfBuzzSharp.ReleaseDelegate)" /> when the functions were set.</param>
+            <param name="extents">The font extents.</param>
+            <summary>The delegate that is invoked when <see cref="M:HarfBuzzSharp.Font.TryGetHorizontalFontExtents(HarfBuzzSharp.FontExtents@)" /> or <see cref="M:HarfBuzzSharp.Font.TryGetVerticalFontExtents(HarfBuzzSharp.FontExtents@)" /> is invoked.</summary>
+            <returns>Return true if the <see cref="T:HarfBuzzSharp.Font" /> has extents, otherwise false.</returns>
+            <remarks />
+        </member>
+        <member name="T:HarfBuzzSharp.FontFunctions">
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="C:HarfBuzzSharp.FontFunctions">
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.FontFunctions.Dispose(System.Boolean)">
+            <param name="disposing">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.FontFunctions.DisposeHandler">
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.FontFunctions.Empty">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.FontFunctions.IsImmutable">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.FontFunctions.MakeImmutable">
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.FontFunctions.SetGlyphContourPointDelegate(HarfBuzzSharp.GlyphContourPointDelegate,HarfBuzzSharp.ReleaseDelegate)">
+            <param name="del">To be added.</param>
+            <param name="destroy">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.FontFunctions.SetGlyphExtentsDelegate(HarfBuzzSharp.GlyphExtentsDelegate,HarfBuzzSharp.ReleaseDelegate)">
+            <param name="del">To be added.</param>
+            <param name="destroy">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.FontFunctions.SetGlyphFromNameDelegate(HarfBuzzSharp.GlyphFromNameDelegate,HarfBuzzSharp.ReleaseDelegate)">
+            <param name="del">To be added.</param>
+            <param name="destroy">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.FontFunctions.SetGlyphNameDelegate(HarfBuzzSharp.GlyphNameDelegate,HarfBuzzSharp.ReleaseDelegate)">
+            <param name="del">To be added.</param>
+            <param name="destroy">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.FontFunctions.SetHorizontalFontExtentsDelegate(HarfBuzzSharp.FontExtentsDelegate,HarfBuzzSharp.ReleaseDelegate)">
+            <param name="del">To be added.</param>
+            <param name="destroy">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.FontFunctions.SetHorizontalGlyphAdvanceDelegate(HarfBuzzSharp.GlyphAdvanceDelegate,HarfBuzzSharp.ReleaseDelegate)">
+            <param name="del">To be added.</param>
+            <param name="destroy">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.FontFunctions.SetHorizontalGlyphAdvancesDelegate(HarfBuzzSharp.GlyphAdvancesDelegate,HarfBuzzSharp.ReleaseDelegate)">
+            <param name="del">To be added.</param>
+            <param name="destroy">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.FontFunctions.SetHorizontalGlyphKerningDelegate(HarfBuzzSharp.GlyphKerningDelegate,HarfBuzzSharp.ReleaseDelegate)">
+            <param name="del">To be added.</param>
+            <param name="destroy">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.FontFunctions.SetHorizontalGlyphOriginDelegate(HarfBuzzSharp.GlyphOriginDelegate,HarfBuzzSharp.ReleaseDelegate)">
+            <param name="del">To be added.</param>
+            <param name="destroy">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.FontFunctions.SetNominalGlyphDelegate(HarfBuzzSharp.NominalGlyphDelegate,HarfBuzzSharp.ReleaseDelegate)">
+            <param name="del">To be added.</param>
+            <param name="destroy">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.FontFunctions.SetNominalGlyphsDelegate(HarfBuzzSharp.NominalGlyphsDelegate,HarfBuzzSharp.ReleaseDelegate)">
+            <param name="del">To be added.</param>
+            <param name="destroy">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.FontFunctions.SetVariationGlyphDelegate(HarfBuzzSharp.VariationGlyphDelegate,HarfBuzzSharp.ReleaseDelegate)">
+            <param name="del">To be added.</param>
+            <param name="destroy">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.FontFunctions.SetVerticalFontExtentsDelegate(HarfBuzzSharp.FontExtentsDelegate,HarfBuzzSharp.ReleaseDelegate)">
+            <param name="del">To be added.</param>
+            <param name="destroy">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.FontFunctions.SetVerticalGlyphAdvanceDelegate(HarfBuzzSharp.GlyphAdvanceDelegate,HarfBuzzSharp.ReleaseDelegate)">
+            <param name="del">To be added.</param>
+            <param name="destroy">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.FontFunctions.SetVerticalGlyphAdvancesDelegate(HarfBuzzSharp.GlyphAdvancesDelegate,HarfBuzzSharp.ReleaseDelegate)">
+            <param name="del">To be added.</param>
+            <param name="destroy">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.FontFunctions.SetVerticalGlyphOriginDelegate(HarfBuzzSharp.GlyphOriginDelegate,HarfBuzzSharp.ReleaseDelegate)">
+            <param name="del">To be added.</param>
+            <param name="destroy">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="T:HarfBuzzSharp.GeneralCategoryDelegate">
+            <param name="ufuncs">To be added.</param>
+            <param name="unicode">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="T:HarfBuzzSharp.GetTableDelegate">
+            <param name="face">To be added.</param>
+            <param name="tag">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="T:HarfBuzzSharp.GlyphAdvanceDelegate">
+            <param name="font">The font.</param>
+            <param name="fontData">The additional data passed to <see cref="M:HarfBuzzSharp.Font.SetFontFunctions(HarfBuzzSharp.FontFunctions,System.Object,HarfBuzzSharp.ReleaseDelegate)" /> when the functions were set.</param>
+            <param name="glyph">The glyph.</param>
+            <summary>The delegate that is invoked when <see cref="M:HarfBuzzSharp.Font.GetHorizontalGlyphAdvance(System.UInt32)" /> or <see cref="M:HarfBuzzSharp.Font.GetVerticalGlyphAdvance(System.UInt32)" /> is invoked.</summary>
+            <returns>Return the advance amount.</returns>
+            <remarks />
+        </member>
+        <member name="T:HarfBuzzSharp.GlyphAdvancesDelegate">
+            <param name="font">To be added.</param>
+            <param name="fontData">To be added.</param>
+            <param name="count">To be added.</param>
+            <param name="glyphs">To be added.</param>
+            <param name="advances">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="T:HarfBuzzSharp.GlyphContourPointDelegate">
+            <param name="font">To be added.</param>
+            <param name="fontData">To be added.</param>
+            <param name="glyph">To be added.</param>
+            <param name="pointIndex">To be added.</param>
+            <param name="x">To be added.</param>
+            <param name="y">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="T:HarfBuzzSharp.GlyphExtents">
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.GlyphExtents.Height">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.GlyphExtents.Width">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.GlyphExtents.XBearing">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.GlyphExtents.YBearing">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="T:HarfBuzzSharp.GlyphExtentsDelegate">
+            <param name="font">To be added.</param>
+            <param name="fontData">To be added.</param>
+            <param name="glyph">To be added.</param>
+            <param name="extents">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="T:HarfBuzzSharp.GlyphFlags">
+            <summary>Represents the various glyph flags of a <see cref="T:HarfBuzzSharp.GlyphInfo" />.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.GlyphFlags.Defined">
+            <summary>All the currently defined flags.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.GlyphFlags.UnsafeToBreak">
+            <summary>If input text is broken at the beginning of the cluster this glyph is part of, then both sides need to be re-shaped, as the result might be different.</summary>
+        </member>
+        <member name="T:HarfBuzzSharp.GlyphFromNameDelegate">
+            <param name="font">To be added.</param>
+            <param name="fontData">To be added.</param>
+            <param name="name">To be added.</param>
+            <param name="glyph">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="T:HarfBuzzSharp.GlyphInfo">
+            <summary>Represents a glyph and its relation to the input text.</summary>
+            <remarks />
+        </member>
+        <member name="P:HarfBuzzSharp.GlyphInfo.Cluster">
+            <summary>Gets or sets the index of the character in the original text.</summary>
+            <value />
+            <remarks />
+        </member>
+        <member name="P:HarfBuzzSharp.GlyphInfo.Codepoint">
+            <summary>Gets or sets the Unicode code point (or the glyph index after shaping).</summary>
+            <value />
+            <remarks>This represents either a Unicode code point (before shaping) or a glyph index (after shaping).</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.GlyphInfo.GlyphFlags">
+            <summary>Gets the <see cref="T:HarfBuzzSharp.GlyphFlags" /> for this instance.</summary>
+            <value />
+            <remarks />
+        </member>
+        <member name="P:HarfBuzzSharp.GlyphInfo.Mask">
+            <summary>Gets or sets the glyph mask.</summary>
+            <value />
+            <remarks />
+        </member>
+        <member name="T:HarfBuzzSharp.GlyphKerningDelegate">
+            <param name="font">To be added.</param>
+            <param name="fontData">To be added.</param>
+            <param name="firstGlyph">To be added.</param>
+            <param name="secondGlyph">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="T:HarfBuzzSharp.GlyphNameDelegate">
+            <param name="font">To be added.</param>
+            <param name="fontData">To be added.</param>
+            <param name="glyph">To be added.</param>
+            <param name="name">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="T:HarfBuzzSharp.GlyphOriginDelegate">
+            <param name="font">To be added.</param>
+            <param name="fontData">To be added.</param>
+            <param name="glyph">To be added.</param>
+            <param name="x">To be added.</param>
+            <param name="y">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="T:HarfBuzzSharp.GlyphPosition">
+            <summary>Represents the position of a glyph, relative to the current point.</summary>
+            <remarks />
+        </member>
+        <member name="P:HarfBuzzSharp.GlyphPosition.XAdvance">
+            <summary>Gets or sets how much the line advances after drawing this glyph when setting text in horizontal direction.</summary>
+            <value />
+            <remarks />
+        </member>
+        <member name="P:HarfBuzzSharp.GlyphPosition.XOffset">
+            <summary>Gets or sets how much the glyph moves horizontally before drawing it.</summary>
+            <value />
+            <remarks>This should not affect how much the line advances.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.GlyphPosition.YAdvance">
+            <summary>Gets or sets how much the line advances after drawing this glyph when setting text in vertical direction.</summary>
+            <value />
+            <remarks />
+        </member>
+        <member name="P:HarfBuzzSharp.GlyphPosition.YOffset">
+            <summary>Gets or sets how much the glyph moves horizontally before drawing it.</summary>
+            <value />
+            <remarks>This should not affect how much the line advances.</remarks>
+        </member>
+        <member name="T:HarfBuzzSharp.Language">
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="C:HarfBuzzSharp.Language(System.Globalization.CultureInfo)">
+            <param name="culture">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="C:HarfBuzzSharp.Language(System.String)">
+            <param name="name">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.Language.Default">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Language.Equals(System.Object)">
+            <param name="obj">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Language.GetHashCode">
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.Language.Name">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Language.ToString">
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="T:HarfBuzzSharp.MemoryMode">
+            <summary>Various memory modes for  <see cref="T:HarfBuzzSharp.Blob" /></summary>
+            <remarks>In no case shall the HarfBuzz client modify memory that is passed to HarfBuzz in a blob. If there is any such possibility, <see cref="F:HarfBuzzSharp.MemoryMode.Duplicate" /> should be used such that HarfBuzz makes a copy immediately.</remarks>
+        </member>
+        <member name="F:HarfBuzzSharp.MemoryMode.Duplicate">
+            <summary>HarfBuzz makes a copy immediately.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.MemoryMode.ReadOnly">
+            <summary>Default mode indicating that the memory won't be changed.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.MemoryMode.ReadOnlyMayMakeWriteable">
+            <summary>The font file was mmap()ed, but <see cref="F:HarfBuzzSharp.MemoryMode.ReadOnly" /> should still be used.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.MemoryMode.Writeable">
+            <summary>Indicates that the data was copied solely for the purpose of passing to HarfBuzz.</summary>
+        </member>
+        <member name="T:HarfBuzzSharp.MirroringDelegate">
+            <param name="ufuncs">To be added.</param>
+            <param name="unicode">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="T:HarfBuzzSharp.NativeObject">
+            <summary>Represents a native object.</summary>
+            <remarks />
+        </member>
+        <member name="M:HarfBuzzSharp.NativeObject.Dispose">
+            <summary>Releases all resources used by this <see cref="T:HarfBuzzSharp.NativeObject" />.</summary>
+            <remarks>Always dispose the object before you release your last reference to the <see cref="T:HarfBuzzSharp.NativeObject" />. Otherwise, the resources it is using will not be freed until the garbage collector calls the finalizer.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.NativeObject.Dispose(System.Boolean)">
+            <param name="disposing">
+                <see langword="true" /> to release both managed and unmanaged resources; <see langword="false" /> to release only unmanaged resources.</param>
+            <summary>Releases the unmanaged resources used by the <see cref="T:HarfBuzzSharp.NativeObject" /> and optionally releases the managed resources.</summary>
+            <remarks>Always dispose the object before you release your last reference to the <see cref="T:HarfBuzzSharp.NativeObject" />. Otherwise, the resources it is using will not be freed until the garbage collector calls the finalizer.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.NativeObject.DisposeHandler">
+            <summary>Releases the unmanaged resources used.</summary>
+            <remarks />
+        </member>
+        <member name="M:HarfBuzzSharp.NativeObject.Finalize">
+            <summary>Allows an object to try to free resources and perform other cleanup operations before it is reclaimed by garbage collection.</summary>
+            <remarks />
+        </member>
+        <member name="P:HarfBuzzSharp.NativeObject.Handle">
+            <summary>Gets or sets the handle to the underlying native object.</summary>
+            <value />
+            <remarks />
+        </member>
+        <member name="T:HarfBuzzSharp.NominalGlyphDelegate">
+            <param name="font">To be added.</param>
+            <param name="fontData">To be added.</param>
+            <param name="unicode">To be added.</param>
+            <param name="glyph">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="T:HarfBuzzSharp.NominalGlyphsDelegate">
+            <param name="font">To be added.</param>
+            <param name="fontData">To be added.</param>
+            <param name="count">To be added.</param>
+            <param name="codepoints">To be added.</param>
+            <param name="glyphs">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="T:HarfBuzzSharp.OpenTypeMetrics">
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="C:HarfBuzzSharp.OpenTypeMetrics(System.IntPtr)">
+            <param name="font">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.OpenTypeMetrics.GetVariation(HarfBuzzSharp.OpenTypeMetricsTag)">
+            <param name="metricsTag">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.OpenTypeMetrics.GetXVariation(HarfBuzzSharp.OpenTypeMetricsTag)">
+            <param name="metricsTag">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.OpenTypeMetrics.GetYVariation(HarfBuzzSharp.OpenTypeMetricsTag)">
+            <param name="metricsTag">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.OpenTypeMetrics.TryGetPosition(HarfBuzzSharp.OpenTypeMetricsTag,System.Int32@)">
+            <param name="metricsTag">To be added.</param>
+            <param name="position">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="T:HarfBuzzSharp.OpenTypeMetricsTag">
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="F:HarfBuzzSharp.OpenTypeMetricsTag.CapHeight">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.OpenTypeMetricsTag.HorizontalAscender">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.OpenTypeMetricsTag.HorizontalCaretOffset">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.OpenTypeMetricsTag.HorizontalCaretRise">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.OpenTypeMetricsTag.HorizontalCaretRun">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.OpenTypeMetricsTag.HorizontalClippingAscent">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.OpenTypeMetricsTag.HorizontalClippingDescent">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.OpenTypeMetricsTag.HorizontalDescender">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.OpenTypeMetricsTag.HorizontalLineGap">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.OpenTypeMetricsTag.StrikeoutOffset">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.OpenTypeMetricsTag.StrikeoutSize">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.OpenTypeMetricsTag.SubScriptEmXOffset">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.OpenTypeMetricsTag.SubScriptEmXSize">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.OpenTypeMetricsTag.SubScriptEmYOffset">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.OpenTypeMetricsTag.SubScriptEmYSize">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.OpenTypeMetricsTag.SuperScriptEmXOffset">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.OpenTypeMetricsTag.SuperScriptEmXSize">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.OpenTypeMetricsTag.SuperScriptEmYOffset">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.OpenTypeMetricsTag.SuperScriptEmYSize">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.OpenTypeMetricsTag.UnderlineOffset">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.OpenTypeMetricsTag.UnderlineSize">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.OpenTypeMetricsTag.VerticalAscender">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.OpenTypeMetricsTag.VerticalCaretOffset">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.OpenTypeMetricsTag.VerticalCaretRise">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.OpenTypeMetricsTag.VerticalCaretRun">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.OpenTypeMetricsTag.VerticalDescender">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.OpenTypeMetricsTag.VerticalLineGap">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.OpenTypeMetricsTag.XHeight">
+            <summary>To be added.</summary>
+        </member>
+        <member name="T:HarfBuzzSharp.ReleaseDelegate">
+            <summary>The delegate that will be invoked when a resource is ready to be discarded.</summary>
+            <remarks />
+        </member>
+        <member name="T:HarfBuzzSharp.Script">
+            <summary>Represents a particular Unicode script.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Adlam">
+            <summary>The Adlam (Adlm) script typically used with text in the Fulah (ff) language originating from Guinea.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Ahom">
+            <summary>The Ahom (Ahom) script typically used with text in the Ahom (aho) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.AnatolianHieroglyphs">
+            <summary>The Anatolian Hieroglyphs (Hluw) script typically used with text in the Hieroglyphic Luwian (hlu) language originating from Turkey.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Arabic">
+            <summary>The Arabic (Arab) script typically used with text in the Arabic (ar) language originating from Saudi Arabia.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Armenian">
+            <summary>The Armenian (Armn) script typically used with text in the Armenian (hy) language originating from Armenia.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Avestan">
+            <summary>The Avestan (Avst) script typically used with text in the Avestan (ae) language originating from Iran.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Balinese">
+            <summary>The Balinese (Bali) script typically used with text in the Balinese (ban) language originating from Indonesia.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Bamum">
+            <summary>The Bamum (Bamu) script typically used with text in the Bamun (bax) language originating from Cameroon.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.BassaVah">
+            <summary>The Bassa Vah (Bass) script typically used with text in the Bassa (bsq) language originating from Liberia.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Batak">
+            <summary>The Batak (Batk) script typically used with text in the Batak Toba (bbc) language originating from Indonesia.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Bengali">
+            <summary>The Bengali (Beng) script typically used with text in the Bengali (bn) language originating from Bangladesh.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Bhaiksuki">
+            <summary>The Bhaiksuki (Bhks) script typically used with text in the Sanskrit (sa) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Bopomofo">
+            <summary>The Bopomofo (Bopo) script typically used with text in the Chinese (zh) language originating from China.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Brahmi">
+            <summary>The Brahmi (Brah) script typically used with text in the Ardhamāgadhī Prākrit (pka) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Braille">
+            <summary>The Braille (Brai) script typically used with text in the Braille language originating from France.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Buginese">
+            <summary>The Buginese (Bugi) script typically used with text in the Buginese (bug) language originating from Indonesia.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Buhid">
+            <summary>The Buhid (Buhd) script typically used with text in the Buhid (bku) language originating from Philippines.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.CanadianSyllabics">
+            <summary>The Unified Canadian Aboriginal Syllabics (Cans) script typically used with text in the Cree (cr) language originating from Canada.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Carian">
+            <summary>The Carian (Cari) script typically used with text in the Carian (xcr) language originating from Turkey.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.CaucasianAlbanian">
+            <summary>The Caucasian Albanian (Aghb) script typically used with text in the Lezgian (lez) language originating from Russia.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Chakma">
+            <summary>The Chakma (Cakm) script typically used with text in the Chakma (ccp) language originating from Bangladesh.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Cham">
+            <summary>The Cham (Cham) script typically used with text in the Eastern Cham (cjm) language originating from Vietnam.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Cherokee">
+            <summary>The Cherokee (Cher) script typically used with text in the Cherokee (chr) language originating from United States.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Common">
+            <summary>The Common (Zyyy) script used to indicate an undetermined script.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Coptic">
+            <summary>The Coptic (Copt) script typically used with text in the Coptic (cop) language originating from Egypt.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Cuneiform">
+            <summary>The Cuneiform (Xsux) script typically used with text in the Akkadian (akk) language originating from Iraq.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Cypriot">
+            <summary>The Cypriot (Cprt) script typically used with text in the Ancient Greek (grc) language originating from Cyprus.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Cyrillic">
+            <summary>The Cyrillic (Cyrl) script typically used with text in the Russian (ru) language originating from Bulgaria.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Deseret">
+            <summary>The Deseret (Dsrt) script typically used with text in the English (en) language originating from United States.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Devanagari">
+            <summary>The Devanagari (Deva) script typically used with text in the Hindi (hi) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Dogra">
+            <summary>The Dogra (Dogr) script typically used with text in the Dogri (doi) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Duployan">
+            <summary>The Duployan (Dupl) script typically used with text in the French (fr) language originating from France.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.EgyptianHieroglyphs">
+            <summary>The Egyptian Hieroglyphs (Egyp) script typically used with text in the Ancient Egyptian (egy) language originating from Egypt.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Elbasan">
+            <summary>The Elbasan (Elba) script typically used with text in the Albanian (sq) language originating from Albania.</summary>
+            <remarks />
+        </member>
+        <member name="M:HarfBuzzSharp.Script.Equals(HarfBuzzSharp.Script)">
+            <param name="other">An object to compare to this instance.</param>
+            <summary>Returns a value indicating whether this instance and a specified <see cref="T:HarfBuzzSharp.Script" /> object represent the same value.</summary>
+            <returns>Returns true if the other value is equal to this instance, otherwise false.</returns>
+            <remarks />
+        </member>
+        <member name="M:HarfBuzzSharp.Script.Equals(System.Object)">
+            <param name="obj">An object to compare to this instance.</param>
+            <summary>Returns a value indicating whether this instance and a specified <see cref="T:HarfBuzzSharp.Script" /> object represent the same value.</summary>
+            <returns>Returns true if the other value is equal to this instance, otherwise false.</returns>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Ethiopic">
+            <summary>The Ethiopic (Ethi) script typically used with text in the Amharic (am) language originating from Ethiopia.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Georgian">
+            <summary>The Georgian (Geor) script typically used with text in the Georgian (ka) language originating from Georgia.</summary>
+            <remarks />
+        </member>
+        <member name="M:HarfBuzzSharp.Script.GetHashCode">
+            <summary>Returns the hash code for this instance.</summary>
+            <returns>Returns the hash code for this instance.</returns>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Glagolitic">
+            <summary>The Glagolitic (Glag) script typically used with text in the Church Slavic (cu) language originating from Bulgaria.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Gothic">
+            <summary>The Gothic (Goth) script typically used with text in the Gothic (got) language originating from Ukraine.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Grantha">
+            <summary>The Grantha (Gran) script typically used with text in the Sanskrit (sa) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Greek">
+            <summary>The Greek (Grek) script typically used with text in the Greek (el) language originating from Greece.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Gujarati">
+            <summary>The Gujarati (Gujr) script typically used with text in the Gujarati (gu) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.GunjalaGondi">
+            <summary>The Gunjala Gondi (Gong) script typically used with text in the Adilabad Gondi (wsg) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Gurmukhi">
+            <summary>The Gurmukhi (Guru) script typically used with text in the Punjabi (pa) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Han">
+            <summary>The Han (Hani) script typically used with text in the Chinese (zh) language originating from China.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Hangul">
+            <summary>The Hangul (Hang) script typically used with text in the Korean (ko) language originating from Republic of Korea.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.HanifiRohingya">
+            <summary>The Hanifi Rohingya (Rohg) script typically used with text in the Rohingya (rhg) language originating from Myanmar.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Hanunoo">
+            <summary>The Hanunoo (Hano) script typically used with text in the Hanunoo (hnn) language originating from Philippines.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Hatran">
+            <summary>The Hatran (Hatr) script typically used with text in the Uncoded Languages (mis) language originating from Iraq.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Hebrew">
+            <summary>The Hebrew (Hebr) script typically used with text in the Hebrew (he) language originating from Israel.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Hiragana">
+            <summary>The Hiragana (Hira) script typically used with text in the Japanese (ja) language originating from Japan.</summary>
+            <remarks />
+        </member>
+        <member name="P:HarfBuzzSharp.Script.HorizontalDirection">
+            <summary>Gets the horizontal direction of this script.</summary>
+            <value />
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.ImperialAramaic">
+            <summary>The Imperial Aramaic (Armi) script typically used with text in the Aramaic (arc) language originating from Iran.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Inherited">
+            <summary>The Inherited (Zinh) script used to indicate an inherited script.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.InscriptionalPahlavi">
+            <summary>The Inscriptional Pahlavi (Phli) script typically used with text in the Pahlavi (pal) language originating from Iran.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.InscriptionalParthian">
+            <summary>The Inscriptional Parthian (Prti) script typically used with text in the Parthian (xpr) language originating from Iran.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Invalid">
+            <summary>The script used to indicate an invalid or no script.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Javanese">
+            <summary>The Javanese (Java) script typically used with text in the Javanese (jv) language originating from Indonesia.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Kaithi">
+            <summary>The Kaithi (Kthi) script typically used with text in the Bhojpuri (bho) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Kannada">
+            <summary>The Kannada (Knda) script typically used with text in the Kannada (kn) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Katakana">
+            <summary>The Katakana (Kana) script typically used with text in the Japanese (ja) language originating from Japan.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.KayahLi">
+            <summary>The Kayah Li (Kali) script typically used with text in the Eastern Kayah (eky) language originating from Myanmar.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Kharoshthi">
+            <summary>The Kharoshthi (Khar) script typically used with text in the Gandhari (pra) language originating from Pakistan.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Khmer">
+            <summary>The Khmer (Khmr) script typically used with text in the Khmer (km) language originating from Cambodia.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Khojki">
+            <summary>The Khojki (Khoj) script typically used with text in the Sindhi (sd) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Khudawadi">
+            <summary>The Khudawadi (Sind) script typically used with text in the Sindhi (sd) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Lao">
+            <summary>The Lao (Laoo) script typically used with text in the Lao (lo) language originating from Laos.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Latin">
+            <summary>The Latin (Latn) script typically used with text in the English (en) language originating from Italy.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Lepcha">
+            <summary>The Lepcha (Lepc) script typically used with text in the Lepcha (lep) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Limbu">
+            <summary>The Limbu (Limb) script typically used with text in the Limbu (lif) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.LinearA">
+            <summary>The Linear A (Lina) script typically used with text in the Linear A (lab) language originating from Greece.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.LinearB">
+            <summary>The Linear B (Linb) script typically used with text in the Ancient Greek (grc) language originating from Greece.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Lisu">
+            <summary>The Lisu (Lisu) script typically used with text in the Lisu (lis) language originating from China.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Lycian">
+            <summary>The Lycian (Lyci) script typically used with text in the Lycian (xlc) language originating from Turkey.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Lydian">
+            <summary>The Lydian (Lydi) script typically used with text in the Lydian (xld) language originating from Turkey.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Mahajani">
+            <summary>The Mahajani (Mahj) script typically used with text in the Hindi (hi) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Makasar">
+            <summary>The Makasar (Maka) script typically used with text in the Makasar (mak) language originating from Indonesia.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Malayalam">
+            <summary>The Malayalam (Mlym) script typically used with text in the Malayalam (ml) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Mandaic">
+            <summary>The Mandaic (Mand) script typically used with text in the Classical Mandaic (myz) language originating from Iran.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Manichaean">
+            <summary>The Manichaean (Mani) script typically used with text in the Manichaean Middle Persian (xmn) language originating from China.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Marchen">
+            <summary>The Marchen (Marc) script typically used with text in the Tibetan (bo) language originating from China.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.MasaramGondi">
+            <summary>The Masaram Gondi (Gonm) script typically used with text in the Aheri Gondi (esg) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.MaxValue">
+            <summary>The dummy script used to prevent undefined behavior.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.MaxValueSigned">
+            <summary>The dummy script used to prevent undefined behavior.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Medefaidrin">
+            <summary>The Medefaidrin (Medf) script typically used with text in the Medefaidrin (mis) language originating from Nigeria.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.MeeteiMayek">
+            <summary>The Meetei Mayek (Mtei) script typically used with text in the Manipuri (mni) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.MendeKikakui">
+            <summary>The Mende Kikakui (Mend) script typically used with text in the Mende (men) language originating from Sierra Leone.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.MeroiticCursive">
+            <summary>The Meroitic Cursive (Merc) script typically used with text in the Meroitic (xmr) language originating from Sudan.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.MeroiticHieroglyphs">
+            <summary>The Meroitic Hieroglyphs (Mero) script typically used with text in the Meroitic (xmr) language originating from Sudan.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Miao">
+            <summary>The Miao (Plrd) script typically used with text in the Large Flowery Miao (hmd) language originating from China.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Modi">
+            <summary>The Modi (Modi) script typically used with text in the Marathi (mr) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Mongolian">
+            <summary>The Mongolian (Mong) script typically used with text in the Mongolian (mn) language originating from Mongolia.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Mro">
+            <summary>The Mro (Mroo) script typically used with text in the Mru (mro) language originating from Bangladesh.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Multani">
+            <summary>The Multani (Mult) script typically used with text in the Seraiki (skr) language originating from Pakistan.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Myanmar">
+            <summary>The Myanmar (Mymr) script typically used with text in the Burmese (my) language originating from Myanmar.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Nabataean">
+            <summary>The Nabataean (Nbat) script typically used with text in the Official Aramaic (700-300 BCE) (arc) language originating from Jordan.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Newa">
+            <summary>The Newa (Newa) script typically used with text in the Newari (new) language originating from Nepal.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.NewTaiLue">
+            <summary>The New Tai Lue (Talu) script typically used with text in the Lü (khb) language originating from China.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Nko">
+            <summary>The Nko (Nkoo) script typically used with text in the Manding (man) language originating from Guinea.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Nushu">
+            <summary>The Nushu (Nshu) script typically used with text in the Chinese language family (zhx) language originating from China.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Ogham">
+            <summary>The Ogham (Ogam) script typically used with text in the Old Irish (sga) language originating from Ireland.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.OlChiki">
+            <summary>The Ol Chiki (Olck) script typically used with text in the Santali (sat) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.OldHungarian">
+            <summary>The Old Hungarian (Hung) script typically used with text in the Hungarian (hu) language originating from Hungary.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.OldItalic">
+            <summary>The Old Italic (Ital) script typically used with text in the Etruscan (ett) language originating from Italy.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.OldNorthArabian">
+            <summary>The Old North Arabian (Narb) script typically used with text in the Ancient North Arabian (xna) language originating from Saudi Arabia.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.OldPermic">
+            <summary>The Old Permic (Perm) script typically used with text in the Komi (kv) language originating from Russia.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.OldPersian">
+            <summary>The Old Persian (Xpeo) script typically used with text in the Old Persian (peo) language originating from Iran.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.OldSogdian">
+            <summary>The Old Sogdian (Sogo) script typically used with text in the Sogdian (sog) language originating from Uzbekistan.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.OldSouthArabian">
+            <summary>The Old South Arabian (Sarb) script typically used with text in the Sabaean (xsa) language originating from Yemen.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.OldTurkic">
+            <summary>The Old Turkic (Orkh) script typically used with text in the Old Turkish (otk) language originating from Mongolia.</summary>
+            <remarks />
+        </member>
+        <member name="M:HarfBuzzSharp.Script.op_Implicit(HarfBuzzSharp.Script)~System.UInt32">
+            <param name="script">The script to be converted into a tag.</param>
+            <summary>Defines an implicit conversion of a <see cref="T:HarfBuzzSharp.Script" /> to a <see cref="T:System.UInt32" /> tag.</summary>
+            <returns>Returns the tag that corresponds to the script.</returns>
+            <remarks />
+        </member>
+        <member name="M:HarfBuzzSharp.Script.op_Implicit(System.UInt32)~HarfBuzzSharp.Script">
+            <param name="tag">The tag to be converted into a script.</param>
+            <summary>Defines an implicit conversion of a <see cref="T:System.UInt32" /> tag to a <see cref="T:HarfBuzzSharp.Script" />.</summary>
+            <returns>Returns the script that corresponds to the tag.</returns>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Oriya">
+            <summary>The Oriya (Orya) script typically used with text in the Oriya (or) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Osage">
+            <summary>The Osage (Osge) script typically used with text in the Osage (osa) language originating from United States.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Osmanya">
+            <summary>The Osmanya (Osma) script typically used with text in the Somali (so) language originating from Somalia.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.PahawhHmong">
+            <summary>The Pahawh Hmong (Hmng) script typically used with text in the Hmong Njua (hnj) language originating from Laos.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Palmyrene">
+            <summary>The Palmyrene (Palm) script typically used with text in the Official Aramaic (700-300 BCE) (arc) language originating from Syria.</summary>
+            <remarks />
+        </member>
+        <member name="M:HarfBuzzSharp.Script.Parse(System.String)">
+            <param name="str">The ISO 15924 script tag to parse.</param>
+            <summary>Parses the ISO 15924 script tag into the corresponding <see cref="T:HarfBuzzSharp.Script" />.</summary>
+            <returns>Returns the <see cref="T:HarfBuzzSharp.Script" /> that corresponds the script tag that was parsed.</returns>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.PauCinHau">
+            <summary>The Pau Cin Hau (Pauc) script typically used with text in the Tedim Chin (ctd) language originating from Myanmar.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.PhagsPa">
+            <summary>The Phags Pa (Phag) script typically used with text in the Literary Chinese (lzh) language originating from China.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Phoenician">
+            <summary>The Phoenician (Phnx) script typically used with text in the Phoenician (phn) language originating from Lebanon.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.PsalterPahlavi">
+            <summary>The Psalter Pahlavi (Phlp) script typically used with text in the Pahlavi (pal) language originating from China.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Rejang">
+            <summary>The Rejang (Rjng) script typically used with text in the Rejang (rej) language originating from Indonesia.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Runic">
+            <summary>The Runic (Runr) script typically used with text in the Old Norse (non) language originating from Sweden.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Samaritan">
+            <summary>The Samaritan (Samr) script typically used with text in the Samaritan Hebrew (smp) language originating from Israel.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Saurashtra">
+            <summary>The Saurashtra (Saur) script typically used with text in the Saurashtra (saz) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Sharada">
+            <summary>The Sharada (Shrd) script typically used with text in the Sanskrit (sa) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Shavian">
+            <summary>The Shavian (Shaw) script typically used with text in the English (en) language originating from United Kingdom.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Siddham">
+            <summary>The Siddham (Sidd) script typically used with text in the Sanskrit (sa) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Signwriting">
+            <summary>The Sign Writing (Sgnw) script typically used with text in the American Sign Language (ase) language originating from United States.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Sinhala">
+            <summary>The Sinhala (Sinh) script typically used with text in the Sinhala (si) language originating from Sri Lanka.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Sogdian">
+            <summary>The Sogdian (Sogd) script typically used with text in the Sogdian (sog) language originating from Uzbekistan.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.SoraSompeng">
+            <summary>The Sora Sompeng (Sora) script typically used with text in the Sora (srb) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Soyombo">
+            <summary>The Soyombo (Soyo) script typically used with text in the Classical Mongolian (cmg) language originating from Mongolia.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Sundanese">
+            <summary>The Sundanese (Sund) script typically used with text in the Sundanese (su) language originating from Indonesia.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.SylotiNagri">
+            <summary>The Syloti Nagri (Sylo) script typically used with text in the Sylheti (syl) language originating from Bangladesh.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Syriac">
+            <summary>The Syriac (Syrc) script typically used with text in the Syriac (syr) language originating from Syria.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Tagalog">
+            <summary>The Tagalog (Tglg) script typically used with text in the Filipino (fil) language originating from Philippines.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Tagbanwa">
+            <summary>The Tagbanwa (Tagb) script typically used with text in the Tagbanwa (tbw) language originating from Philippines.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.TaiLe">
+            <summary>The Tai Le (Tale) script typically used with text in the Tai Nüa (tdd) language originating from China.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.TaiTham">
+            <summary>The Tai Tham (Lana) script typically used with text in the Northern Thai (nod) language originating from Thailand.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.TaiViet">
+            <summary>The Tai Viet (Tavt) script typically used with text in the Tai Dam (blt) language originating from Vietnam.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Takri">
+            <summary>The Takri (Takr) script typically used with text in the Dogri (doi) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Tamil">
+            <summary>The Tamil (Taml) script typically used with text in the Tamil (ta) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Tangut">
+            <summary>The Tangut (Tang) script typically used with text in the Tangut (txg) language originating from China.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Telugu">
+            <summary>The Telugu (Telu) script typically used with text in the Telugu (te) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Thaana">
+            <summary>The Thaana (Thaa) script typically used with text in the Divehi (dv) language originating from Maldives.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Thai">
+            <summary>The Thai (Thai) script typically used with text in the Thai (th) language originating from Thailand.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Tibetan">
+            <summary>The Tibetan (Tibt) script typically used with text in the Tibetan (bo) language originating from China.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Tifinagh">
+            <summary>The Tifinagh (Tfng) script typically used with text in the Standard Moroccan Tamazight (zgh) language originating from Morocco.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Tirhuta">
+            <summary>The Tirhuta (Tirh) script typically used with text in the Maithili (mai) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="M:HarfBuzzSharp.Script.ToString">
+            <summary>Returns a string representation of the value of this instance of the <see cref="T:HarfBuzzSharp.Script" />.</summary>
+            <returns>Returns a string representation.</returns>
+            <remarks />
+        </member>
+        <member name="M:HarfBuzzSharp.Script.TryParse(System.String,HarfBuzzSharp.Script@)">
+            <param name="str">To be added.</param>
+            <param name="script">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Ugaritic">
+            <summary>The Ugaritic (Ugar) script typically used with text in the Ugaritic (uga) language originating from Syria.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Unknown">
+            <summary>The Unknown (Zzzz) script used to indicate an uncoded script.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Vai">
+            <summary>The Vai (Vaii) script typically used with text in the Vai (vai) language originating from Liberia.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.WarangCiti">
+            <summary>The Warang Citi (Wara) script typically used with text in the Ho (hoc) language originating from India.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.Yi">
+            <summary>The Yi (Yiii) script typically used with text in the Sichuan Yi (ii) language originating from China.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.Script.ZanabazarSquare">
+            <summary>The Zanabazar Square (Zanb) script typically used with text in the Classical Mongolian (cmg) language originating from Mongolia.</summary>
+            <remarks />
+        </member>
+        <member name="T:HarfBuzzSharp.ScriptDelegate">
+            <param name="ufuncs">To be added.</param>
+            <param name="unicode">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="T:HarfBuzzSharp.SerializeFlag">
+            <summary>The various flags that control what glyph information are serialized by <see cref="M:HarfBuzzSharp.Buffer.SerializeGlyphs(System.Int32,System.Int32,HarfBuzzSharp.Font,HarfBuzzSharp.SerializeFormat,HarfBuzzSharp.SerializeFlag)" />.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.SerializeFlag.Default">
+            <summary>Serialize glyph names, clusters and position information.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.SerializeFlag.GlyphExtents">
+            <summary>Serialize glyph extents.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.SerializeFlag.GlyphFlags">
+            <summary>Serialize glyph flags.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.SerializeFlag.NoAdvances">
+            <summary>Do not serialize glyph advances (glyph offsets will reflect absolute glyph positions).</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.SerializeFlag.NoClusters">
+            <summary>Do not serialize glyph clusters.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.SerializeFlag.NoGlyphNames">
+            <summary>Do not serialize glyph names.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.SerializeFlag.NoPositions">
+            <summary>Do not serialize glyph position information.</summary>
+        </member>
+        <member name="T:HarfBuzzSharp.SerializeFormat">
+            <summary>The various serialization and de-serialization formats.</summary>
+            <remarks />
+        </member>
+        <member name="F:HarfBuzzSharp.SerializeFormat.Invalid">
+            <summary>The format is invalid.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.SerializeFormat.Json">
+            <summary>A machine-readable JSON format.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.SerializeFormat.Text">
+            <summary>A human-readable, plain text format.</summary>
+        </member>
+        <member name="T:HarfBuzzSharp.Tag">
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="C:HarfBuzzSharp.Tag(System.Char,System.Char,System.Char,System.Char)">
+            <param name="c1">To be added.</param>
+            <param name="c2">To be added.</param>
+            <param name="c3">To be added.</param>
+            <param name="c4">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Tag.Equals(HarfBuzzSharp.Tag)">
+            <param name="other">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Tag.Equals(System.Object)">
+            <param name="obj">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Tag.GetHashCode">
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="F:HarfBuzzSharp.Tag.Max">
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="F:HarfBuzzSharp.Tag.MaxSigned">
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="F:HarfBuzzSharp.Tag.None">
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Tag.op_Implicit(HarfBuzzSharp.Tag)~System.UInt32">
+            <param name="tag">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Tag.op_Implicit(System.UInt32)~HarfBuzzSharp.Tag">
+            <param name="tag">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.Tag.Parse(System.String)">
+            <param name="tag">The ISO 15924 tag to parse.</param>
+            <summary>Parses the ISO 15924 tag into the corresponding <see cref="T:HarfBuzzSharp.Tag" />.</summary>
+            <returns>Returns the <see cref="T:HarfBuzzSharp.Tag" /> that corresponds the tag that was parsed.</returns>
+            <remarks />
+        </member>
+        <member name="M:HarfBuzzSharp.Tag.ToString">
+            <summary>Returns a string representation of the value of this instance of the <see cref="T:HarfBuzzSharp.Tag" />.</summary>
+            <returns>Returns a string representation.</returns>
+            <remarks />
+        </member>
+        <member name="T:HarfBuzzSharp.UnicodeCombiningClass">
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.Above">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.AboveLeft">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.AboveRight">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.AttachedAbove">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.AttachedAboveRight">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.AttachedBelow">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.AttachedBelowLeft">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.Below">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.BelowLeft">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.BelowRight">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC10">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC103">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC107">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC11">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC118">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC12">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC122">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC129">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC13">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC130">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC133">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC14">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC15">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC16">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC17">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC18">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC19">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC20">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC21">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC22">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC23">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC24">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC25">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC26">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC27">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC28">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC29">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC30">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC31">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC32">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC33">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC34">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC35">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC36">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC84">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.CCC91">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.DoubleAbove">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.DoubleBelow">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.Invalid">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.IotaSubscript">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.KanaVoicing">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.Left">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.NotReordered">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.Nukta">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.Overlay">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.Right">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeCombiningClass.Virama">
+            <summary>To be added.</summary>
+        </member>
+        <member name="T:HarfBuzzSharp.UnicodeFunctions">
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="C:HarfBuzzSharp.UnicodeFunctions(HarfBuzzSharp.UnicodeFunctions)">
+            <param name="parent">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.UnicodeFunctions.Default">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.UnicodeFunctions.Dispose(System.Boolean)">
+            <param name="disposing">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.UnicodeFunctions.DisposeHandler">
+            <summary>Releases the unmanaged resources used.</summary>
+            <remarks />
+        </member>
+        <member name="P:HarfBuzzSharp.UnicodeFunctions.Empty">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.UnicodeFunctions.GetCombiningClass(System.Int32)">
+            <param name="unicode">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.UnicodeFunctions.GetCombiningClass(System.UInt32)">
+            <param name="unicode">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.UnicodeFunctions.GetGeneralCategory(System.Int32)">
+            <param name="unicode">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.UnicodeFunctions.GetGeneralCategory(System.UInt32)">
+            <param name="unicode">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.UnicodeFunctions.GetMirroring(System.Int32)">
+            <param name="unicode">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.UnicodeFunctions.GetMirroring(System.UInt32)">
+            <param name="unicode">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.UnicodeFunctions.GetScript(System.Int32)">
+            <param name="unicode">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.UnicodeFunctions.GetScript(System.UInt32)">
+            <param name="unicode">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.UnicodeFunctions.IsImmutable">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.UnicodeFunctions.MakeImmutable">
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="P:HarfBuzzSharp.UnicodeFunctions.Parent">
+            <summary>To be added.</summary>
+            <value>To be added.</value>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.UnicodeFunctions.SetCombiningClassDelegate(HarfBuzzSharp.CombiningClassDelegate,HarfBuzzSharp.ReleaseDelegate)">
+            <param name="del">To be added.</param>
+            <param name="destroy">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.UnicodeFunctions.SetComposeDelegate(HarfBuzzSharp.ComposeDelegate,HarfBuzzSharp.ReleaseDelegate)">
+            <param name="del">To be added.</param>
+            <param name="destroy">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.UnicodeFunctions.SetDecomposeDelegate(HarfBuzzSharp.DecomposeDelegate,HarfBuzzSharp.ReleaseDelegate)">
+            <param name="del">To be added.</param>
+            <param name="destroy">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.UnicodeFunctions.SetGeneralCategoryDelegate(HarfBuzzSharp.GeneralCategoryDelegate,HarfBuzzSharp.ReleaseDelegate)">
+            <param name="del">To be added.</param>
+            <param name="destroy">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.UnicodeFunctions.SetMirroringDelegate(HarfBuzzSharp.MirroringDelegate,HarfBuzzSharp.ReleaseDelegate)">
+            <param name="del">To be added.</param>
+            <param name="destroy">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.UnicodeFunctions.SetScriptDelegate(HarfBuzzSharp.ScriptDelegate,HarfBuzzSharp.ReleaseDelegate)">
+            <param name="del">To be added.</param>
+            <param name="destroy">To be added.</param>
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.UnicodeFunctions.TryCompose(System.Int32,System.Int32,System.Int32@)">
+            <param name="a">To be added.</param>
+            <param name="b">To be added.</param>
+            <param name="ab">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.UnicodeFunctions.TryCompose(System.UInt32,System.UInt32,System.UInt32@)">
+            <param name="a">To be added.</param>
+            <param name="b">To be added.</param>
+            <param name="ab">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.UnicodeFunctions.TryDecompose(System.Int32,System.Int32@,System.Int32@)">
+            <param name="ab">To be added.</param>
+            <param name="a">To be added.</param>
+            <param name="b">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:HarfBuzzSharp.UnicodeFunctions.TryDecompose(System.UInt32,System.UInt32@,System.UInt32@)">
+            <param name="ab">To be added.</param>
+            <param name="a">To be added.</param>
+            <param name="b">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="T:HarfBuzzSharp.UnicodeGeneralCategory">
+            <summary>To be added.</summary>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.ClosePunctuation">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.ConnectPunctuation">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.Control">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.CurrencySymbol">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.DashPunctuation">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.DecimalNumber">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.EnclosingMark">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.FinalPunctuation">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.Format">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.InitialPunctuation">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.LetterNumber">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.LineSeparator">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.LowercaseLetter">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.MathSymbol">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.ModifierLetter">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.ModifierSymbol">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.NonSpacingMark">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.OpenPunctuation">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.OtherLetter">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.OtherNumber">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.OtherPunctuation">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.OtherSymbol">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.ParagraphSeparator">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.PrivateUse">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.SpaceSeparator">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.SpacingMark">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.Surrogate">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.TitlecaseLetter">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.Unassigned">
+            <summary>To be added.</summary>
+        </member>
+        <member name="F:HarfBuzzSharp.UnicodeGeneralCategory.UppercaseLetter">
+            <summary>To be added.</summary>
+        </member>
+        <member name="T:HarfBuzzSharp.VariationGlyphDelegate">
+            <param name="font">To be added.</param>
+            <param name="fontData">To be added.</param>
+            <param name="unicode">To be added.</param>
+            <param name="variationSelector">To be added.</param>
+            <param name="glyph">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,127 @@
+<doc>
+    <assembly>
+        <name>SkiaSharp.HarfBuzz</name>
+    </assembly>
+    <members>
+        <member name="T:SkiaSharp.HarfBuzz.BlobExtensions">
+            <summary>Various extension methods to integrate SkiaSharp and a HarfBuzz <see cref="T:HarfBuzzSharp.Blob" />.</summary>
+            <remarks />
+        </member>
+        <member name="M:SkiaSharp.HarfBuzz.BlobExtensions.ToHarfBuzzBlob(SkiaSharp.SKStreamAsset)">
+            <param name="asset">The stream to convert into a <see cref="T:HarfBuzzSharp.Blob" />.</param>
+            <summary>Converts a seekable stream into a <see cref="T:HarfBuzzSharp.Blob" />.</summary>
+            <returns>Returns the new <see cref="T:HarfBuzzSharp.Blob" /> instance.</returns>
+            <remarks />
+        </member>
+        <member name="T:SkiaSharp.HarfBuzz.CanvasExtensions">
+            <summary>Various extension methods to integrate a SkiaSharp <see cref="T:SkiaSharp.SKCanvas" /> and HarfBuzz.</summary>
+            <remarks />
+        </member>
+        <member name="M:SkiaSharp.HarfBuzz.CanvasExtensions.DrawShapedText(SkiaSharp.SKCanvas,SkiaSharp.HarfBuzz.SKShaper,System.String,System.Single,System.Single,SkiaSharp.SKPaint)">
+            <param name="canvas">The canvas to draw on.</param>
+            <param name="shaper">The text shaper to use when shaping the text.</param>
+            <param name="text">The text to draw.</param>
+            <param name="x">The x-coordinate of the origin of the text being drawn.</param>
+            <param name="y">The y-coordinate of the origin of the text being drawn.</param>
+            <param name="paint">The paint to use when drawing the text.</param>
+            <summary>Draws shaped text on the canvas at the specified coordinates.</summary>
+            <remarks />
+        </member>
+        <member name="T:SkiaSharp.HarfBuzz.FontExtensions">
+            <summary>Various extension methods to integrate SkiaSharp and a HarfBuzz <see cref="T:HarfBuzzSharp.Font" />.</summary>
+            <remarks />
+        </member>
+        <member name="M:SkiaSharp.HarfBuzz.FontExtensions.GetScale(HarfBuzzSharp.Font)">
+            <param name="font">The font to retrieve the scale.</param>
+            <summary>Retrieves the font scale.</summary>
+            <returns>Returns the font scale.</returns>
+            <remarks />
+        </member>
+        <member name="M:SkiaSharp.HarfBuzz.FontExtensions.SetScale(HarfBuzzSharp.Font,SkiaSharp.SKSizeI)">
+            <param name="font">The font to set the scale.</param>
+            <param name="scale">The scale to set.</param>
+            <summary>Sets the font scale.</summary>
+            <remarks />
+        </member>
+        <member name="T:SkiaSharp.HarfBuzz.SKShaper">
+            <summary>Encapsulates basic text shaping.</summary>
+            <remarks />
+        </member>
+        <member name="C:SkiaSharp.HarfBuzz.SKShaper(SkiaSharp.SKTypeface)">
+            <param name="typeface">The typeface to use for the text shaping.</param>
+            <summary>Creates a new <see cref="T:SkiaSharp.HarfBuzz.SKShaper" /> instance using the specified typeface.</summary>
+            <remarks />
+        </member>
+        <member name="M:SkiaSharp.HarfBuzz.SKShaper.Dispose">
+            <summary>Releases all resources used by this <see cref="T:SkiaSharp.HarfBuzz.SKShaper" />.</summary>
+            <remarks>Always dispose the object before you release your last reference to the <see cref="T:SkiaSharp.HarfBuzz.SKShaper" />. Otherwise, the resources it is using will not be freed until the garbage collector calls the finalizer.</remarks>
+        </member>
+        <member name="M:SkiaSharp.HarfBuzz.SKShaper.Shape(HarfBuzzSharp.Buffer,SkiaSharp.SKPaint)">
+            <param name="buffer">To be added.</param>
+            <param name="paint">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:SkiaSharp.HarfBuzz.SKShaper.Shape(System.String,SkiaSharp.SKPaint)">
+            <param name="text">The text to shape.</param>
+            <param name="paint">The paint to use.</param>
+            <summary>Shapes the specified text using the properties from the paint.</summary>
+            <returns>Returns the results of the shaping operation.</returns>
+            <remarks />
+        </member>
+        <member name="M:SkiaSharp.HarfBuzz.SKShaper.Shape(HarfBuzzSharp.Buffer,System.Single,System.Single,SkiaSharp.SKPaint)">
+            <param name="buffer">To be added.</param>
+            <param name="xOffset">To be added.</param>
+            <param name="yOffset">To be added.</param>
+            <param name="paint">To be added.</param>
+            <summary>To be added.</summary>
+            <returns>To be added.</returns>
+            <remarks>To be added.</remarks>
+        </member>
+        <member name="M:SkiaSharp.HarfBuzz.SKShaper.Shape(System.String,System.Single,System.Single,SkiaSharp.SKPaint)">
+            <param name="text">The text to shape.</param>
+            <param name="xOffset">The x-offset to use when creating the shaping result.</param>
+            <param name="yOffset">The y-offset to use when creating the shaping result.</param>
+            <param name="paint">The paint to use.</param>
+            <summary>Shapes the specified text using the properties from the paint.</summary>
+            <returns>Returns the results of the shaping operation.</returns>
+            <remarks />
+        </member>
+        <member name="P:SkiaSharp.HarfBuzz.SKShaper.Typeface">
+            <summary>Gets the typeface used when creating the shaper.</summary>
+            <value />
+            <remarks />
+        </member>
+        <member name="T:SkiaSharp.HarfBuzz.SKShaper+Result">
+            <summary>Represents the result of a shaping operation.</summary>
+            <remarks />
+        </member>
+        <member name="C:SkiaSharp.HarfBuzz.SKShaper+Result">
+            <summary>Creates a new <see cref="T:SkiaSharp.HarfBuzz.SKShaper.Result" /> instance using empty values.</summary>
+            <remarks />
+        </member>
+        <member name="C:SkiaSharp.HarfBuzz.SKShaper+Result(System.UInt32[],System.UInt32[],SkiaSharp.SKPoint[])">
+            <param name="codepoints">The glyph Unicode code points.</param>
+            <param name="clusters">The glyph clusters.</param>
+            <param name="points">The glyph positions.</param>
+            <summary>Creates a new <see cref="T:SkiaSharp.HarfBuzz.SKShaper.Result" /> instance using the specified values.</summary>
+            <remarks />
+        </member>
+        <member name="P:SkiaSharp.HarfBuzz.SKShaper+Result.Clusters">
+            <summary>Gets the glyph clusters.</summary>
+            <value />
+            <remarks />
+        </member>
+        <member name="P:SkiaSharp.HarfBuzz.SKShaper+Result.Codepoints">
+            <summary>Gets the glyph Unicode code points.</summary>
+            <value />
+            <remarks />
+        </member>
+        <member name="P:SkiaSharp.HarfBuzz.SKShaper+Result.Points">
+            <summary>Gets the glyph positions.</summary>
+            <value />
+            <remarks />
+        </member>
+    </members>
+</doc>
