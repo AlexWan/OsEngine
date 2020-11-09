@@ -124,7 +124,7 @@ namespace CustomIndicators.Scripts
                 _seriesUpperband.Values[i] = _seriesCentralLine.Values[i] +
                                              (standartError * _upDeviation.ValueDecimal);
 
-                _seriesLowerband.Values[i] = _seriesCentralLine.Values[i] +
+                _seriesLowerband.Values[i] = _seriesCentralLine.Values[i] -
                                              (standartError * _downDeviation.ValueDecimal);
 
             }

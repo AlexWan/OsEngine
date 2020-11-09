@@ -379,8 +379,15 @@ namespace OsEngine.Market
 
                 for (int i = 0; i < _servers.Count; i++)
                 {
-                    if (_servers[i].ServerType == ServerType.Optimizer &&
-                        ((OptimizerServer)_servers[i]).NumberServer == serv.NumberServer)
+                    IServer ser = _servers[i];
+
+                    if (ser == null)
+                    {
+                        continue;
+                    }
+
+                    if (ser.ServerType == ServerType.Optimizer &&
+                        ((OptimizerServer)ser).NumberServer == serv.NumberServer)
                     {
                         _servers[i] = serv;
                         isInArray = true;
