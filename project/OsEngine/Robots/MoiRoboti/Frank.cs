@@ -14,7 +14,7 @@ namespace OsEngine.Robots.MoiRoboti
         public decimal market_price; // рыночная стоимость товара
         public string kvot_name ; // название квотируемой валюты - инструмента
         public string tovar_name; // название базовая валюты - товара
-        private MyBlanks blanks = new MyBlanks("Frank", StartProgram.IsOsTrader); // создание экземпляра класса MyBlanks
+        // private MyBlanks blanks = new MyBlanks("Frank", StartProgram.IsOsTrader); // создание экземпляра класса MyBlanks
         private BotTabSimple _tab; // поле хранения вкладки робота 
         public decimal percent_tovara; // поле хранения % товара 
         public decimal portfolio_sum; // поле хранения суммы в портфеле 
@@ -27,13 +27,15 @@ namespace OsEngine.Robots.MoiRoboti
         public decimal _kom; // поле хранения значения комиссия биржи 
 
         private StrategyParameterBool vkl_Robota; // поле включения бота 
-        private StrategyParameterDecimal veli4_usrednen; // величина усреднения
+        private StrategyParameterDecimal velich_usrednen; // величина усреднения
         private StrategyParameterDecimal deltaUsredn;   //на сколько ниже осуществлять усреднение
         private StrategyParameterInt start_per_depo; // какую часть депозита использовать при старте робота в % 
         private StrategyParameterDecimal min_sum;    //  минимальная сумма возможного ордера на бирже
         private StrategyParameterDecimal do_piram; // сколько пропустить да пирамиды
         private StrategyParameterDecimal slippage; // величина проскальзывание при установки ордеров 
         private StrategyParameterInt profit;       // расстояние до профита тейкпрофита
+        private StrategyParameterDecimal komis_birgi; // комиссия биржи в %
+
 
         public Frank(string name, StartProgram startProgram) : base(name, startProgram) // конструктор
         {
@@ -46,11 +48,12 @@ namespace OsEngine.Robots.MoiRoboti
             vkl_Robota = CreateParameter("РОБОТ Включен?", false);
             slippage = CreateParameter("Велич. проскаль.у ордеров", 5m, 1m, 200m, 5m);
             profit = CreateParameter("ТЭЙКПРОФИТ от рынка На ", 15, 5, 50, 5);
-            veli4_usrednen = CreateParameter("Усред.уваелич в раз ", 0.1m, 0.1m, 0.5m, 0.1m);
+            velich_usrednen = CreateParameter("Усред.уваелич в раз ", 0.1m, 0.1m, 0.5m, 0.1m);
             do_piram = CreateParameter(" РАСТ. до Пирамиды", 20m, 5m, 200m, 5m);
             deltaUsredn = CreateParameter("УСРЕДнять через", 20m, 5m, 50m, 5m);
             start_per_depo = CreateParameter("Начинать с ? % депо)", 5, 5, 20, 5);
             min_sum = CreateParameter("МИН сумма орд.на бирже($)", 10.1m, 10.1m, 10.1m, 10.1m);
+            komis_birgi = CreateParameter("КОМ биржи в %", 0.2m, 0, 0.1m, 0.1m);
 
             _tab.BestBidAskChangeEvent += _tab_BestBidAskChangeEvent; // событие изменения лучших цен
             _tab.OrderUpdateEvent += _tab_OrderUpdateEvent; // событие обновления ордеров 
@@ -64,30 +67,34 @@ namespace OsEngine.Robots.MoiRoboti
         private void _tab_OrderUpdateEvent(Order order) // событие обновления ордера 
         {
             Switching_mode();
+            Price_kon_trade();
             Console.WriteLine(" Событие обновления ордера!");
         }
-        private void _tab_BestBidAskChangeEvent(decimal bid, decimal ask) // событие изменения лучших цен
+        private void _tab_BestBidAskChangeEvent(decimal bid, decimal ask) // ЛОГИКА тут (в событие изменения лучших цен)
         {
-            
+            List<Position> positions = _tab.PositionsOpenAll;
             if (vkl_Robota.ValueBool == false )
             {
                 return;
             }
             Start();
-  
-            if (start_price +_kom <= market_price)
+            if (positions.Count != 0)
             {
-                Save_profit();
-                Piramid();
-            }
-            else if (start_price - _kom > market_price)
-            {
-                Usrednenie();
+                decimal q = _tab.PositionsLast.EntryPrice;
+                if (q + _kom > market_price)
+                {
+                    Usrednenie();
+                }
+                if (q - _kom < market_price)
+                {
+                    Save_profit();
+                    Piramida();
+                }
             }
         }
         void Save_profit() // для выставления профита портфеля 
         {
-            blanks.Percent_birgi(); // расчет величины в пунктах  процента биржи 
+            Percent_birgi(); // расчет величины в пунктах  процента биржи 
             List<Position> positions = _tab.PositionsOpenAll;
             if (positions.Count != 0)
             {
@@ -125,17 +132,16 @@ namespace OsEngine.Robots.MoiRoboti
             }
             start_sum = Portfolio_sum();
             Console.WriteLine(" записали сумму портфеля "+ start_sum);
+            market_price = _tab.PriceCenterMarketDepth;
             start_price = market_price;
             Console.WriteLine(" записали стартовую цену  " + start_price);
 
-            decimal vol = MyBlanks.Okruglenie(blanks.Balans_kvot() / 100 * a, 2);
-            if (vol > min_sum.ValueDecimal)
+            decimal vol_1 = MyBlanks.Okruglenie(Balans_kvot(kvot_name) / 100 * a, 6);
+            if (vol_1 > min_sum.ValueDecimal)
             {
-                market_price = _tab.PriceCenterMarketDepth;
-                vol = vol / market_price;
-                vol = MyBlanks.Okruglenie(vol,5);
-                _tab.BuyAtLimit(vol, market_price);
-                Console.WriteLine(" Стартуем ордером на = " + MyBlanks.Okruglenie(vol * market_price, 5)  + " $ по цене " + market_price);
+                decimal w = MyBlanks.Okruglenie(vol_1 / market_price, 6);
+                _tab.BuyAtLimit(w, market_price);
+                Console.WriteLine(" Стартуем ордером на = " + MyBlanks.Okruglenie(w * market_price, 6)  + " $ по цене " + market_price);
             }
             if (positions.Count != 0)
             {
@@ -174,24 +180,32 @@ namespace OsEngine.Robots.MoiRoboti
         void Usrednenie() // усреднение позиций при снижении рынка 
         {
             List<Position> positions = _tab.PositionsOpenAll;
-            if (Price_kon_trade() > market_price + deltaUsredn.ValueDecimal + blanks.Percent_birgi() )
+            decimal per = Percent_birgi();
+            Price_kon_trade();
+            Thread.Sleep(1000);
+            decimal z = Price_kon_trade();
+            if (z > market_price + deltaUsredn.ValueDecimal + per)
             {
-                min_lot = blanks.Lot(min_sum.ValueDecimal);
+                min_lot = Lot(min_sum.ValueDecimal);
                 Balans_kvot(kvot_name);
                 Balans_tovara(tovar_name);
-                if (VolumForUsred() > min_lot)
+                decimal v = VolumForUsred();
+                if (v > min_lot)
                 {
-                    _tab.BuyAtMarketToPosition(positions[0], MyBlanks.Okruglenie(VolumForUsred(), 2));
-
-                    Console.WriteLine("Усреднились НА - " + VolumForUsred() * _tab.PriceBestAsk + " $");
-                    // Thread.Sleep(1500);
+                    if (_tab.PositionsLast.MyTrades.Count != 0)
+                    {
+                        _tab.BuyAtMarketToPosition(positions[0], MyBlanks.Okruglenie(v, 6));
+                    }
+                    Price_kon_trade();
+                    Console.WriteLine("Усреднились НА - " + v * _tab.PriceBestAsk + " $");
+                    Thread.Sleep(1500);
                 }
             }
         }
-        void Piramid() // докуп в позицию 
+        void Piramida() // докуп в позицию 
         {
             List<Position> positions = _tab.PositionsOpenAll;
-            blanks.Percent_birgi();
+            Percent_birgi();
             if (positions.Count != 0) 
             {
                 decimal zen = _tab.PositionsLast.EntryPrice;
@@ -200,9 +214,11 @@ namespace OsEngine.Robots.MoiRoboti
                     decimal vol = VolumForPiramid();
                     if (vol > min_lot)
                     {
-                        _tab.BuyAtMarketToPosition(positions[0], MyBlanks.Okruglenie(vol,8));
-                        Console.WriteLine(" Пирамида- докупили НА - " + MyBlanks.Okruglenie(vol, 8) * market_price + " $");
-                        //Thread.Sleep(1500);
+                        _tab.BuyAtMarketToPosition(positions[0], MyBlanks.Okruglenie(vol,6));
+                        Price_kon_trade();
+                        VolumForPiramid();
+                        Console.WriteLine(" Пирамида- докупили НА - " + MyBlanks.Okruglenie(vol, 6) * market_price + " $");
+                        Thread.Sleep(1500);
                     }
                 }
             }
@@ -224,7 +240,7 @@ namespace OsEngine.Robots.MoiRoboti
             }
             return _tab.PriceCenterMarketDepth; 
         }
-        decimal Balans_kvot(string kvot_name)   // запрос квотируемых средств в портфеле - название присваивается в kvot_name
+        decimal Balans_kvot(string kvot_name)   // запрос квотируемых  средств (денег) в портфеле - название присваивается в kvot_name
         {
             List<PositionOnBoard> poses = _tab.Portfolio.GetPositionOnBoard();
             decimal vol_kvot = 0;
@@ -286,7 +302,7 @@ namespace OsEngine.Robots.MoiRoboti
         {
             Balans_tovara(tovar_name);
             decimal uge = _tab.PositionsLast.MaxVolume; // максимальный объем в позиции
-            decimal dob = uge * veli4_usrednen.ValueDecimal; // добавляем объема 
+            decimal dob = uge * velich_usrednen.ValueDecimal; // добавляем объема 
             decimal vol = uge + dob;
             if (depo < vol)
             {
@@ -301,19 +317,35 @@ namespace OsEngine.Robots.MoiRoboti
             {
                 Balans_kvot(kvot_name);
                 decimal vol = depo / 100 * start_per_depo.ValueInt;
+                if (vol <= min_sum.ValueDecimal)
+                {
+                    return min_sum.ValueDecimal;
+                }
                 return vol / market_price;
             }
             if (start_per_depo.ValueInt <= percent_tovara && percent_tovara < 30) // режим набора товара
             {
                 decimal uge = _tab.PositionsLast.MaxVolume; // максимальный объем в позиции
                 decimal vol = uge / 2;
+                Lot(min_sum.ValueDecimal);
                 if (vol <= min_lot)
                 {
                     return min_lot;
                 }
-                return vol;
+                else return vol;
             }
             return min_lot ;
+        }
+        public decimal Lot(decimal min_sum) // расчет минимального лота 
+        {
+            market_price = _tab.PriceCenterMarketDepth;
+            min_lot = MyBlanks.Okruglenie(min_sum / market_price, 6);
+            return min_lot;
+        }
+        public decimal Percent_birgi() // вычисление % биржи в пунктах для учета в расчетах выставления ордеров 
+        {
+            market_price = _tab.PriceCenterMarketDepth;
+            return _kom = market_price / 100 * komis_birgi.ValueDecimal;
         }
         public override string GetNameStrategyType()
         {
