@@ -131,7 +131,7 @@ namespace OsEngine.Journal.Internal
                 // 1 count the number of transactions in the file
                 //1 считаем кол-во сделок в файле
 
-                int countDeal = 0;
+                List<string> deals = new List<string>();
 
                 using (StreamReader reader = new StreamReader(@"Engine\" + _name + @"DealController.txt"))
                 {
@@ -147,13 +147,11 @@ namespace OsEngine.Journal.Internal
 
                     while (!reader.EndOfStream)
                     {
-                        countDeal++;
-                        reader.ReadLine();
+                        deals.Add(reader.ReadLine());
                     }
-                    reader.Close();
                 }
 
-                if (countDeal == 0)
+                if (deals.Count == 0)
                 {
                     return;
                 }
@@ -161,26 +159,21 @@ namespace OsEngine.Journal.Internal
                 List<Position> positions = new List<Position>();
 
                 int i = 0;
-
-                using (StreamReader reader = new StreamReader(@"Engine\" + _name + @"DealController.txt"))
+                foreach (string deal in deals)
                 {
-                    while (!reader.EndOfStream)
+                    try
                     {
-                        try
-                        {
-                            positions.Add(new Position());
-                            positions[i].SetDealFromString(reader.ReadLine());
-                            UpdeteOpenPositionArray(positions[i]);
-                        }
-                        catch (Exception)
-                        {
-                            positions.Remove(positions[i]);
-                            i--;
-                        }
-
-                        i++;
+                        positions.Add(new Position());
+                        positions[i].SetDealFromString(deal);
+                        UpdeteOpenPositionArray(positions[i]);
                     }
-                    reader.Close();
+                    catch (Exception)
+                    {
+                        positions.Remove(positions[i]);
+                        i--;
+                    }
+
+                    i++;
                 }
 
                 _deals = positions;
@@ -208,9 +201,17 @@ namespace OsEngine.Journal.Internal
             try
             {
                 _neadToSave = false;
-                if (File.Exists(@"Engine\" + _name + @"DealController.txt"))
+                string dealControllerPath = @"Engine\" + _name + @"DealController.txt";
+                if (File.Exists(dealControllerPath))
                 {
-                    File.Delete(@"Engine\" + _name + @"DealController.txt");
+                    try
+                    {
+                        File.Delete(dealControllerPath);
+                    }
+                    catch (Exception error)
+                    {
+                        SendNewLogMessage(error.ToString(), LogMessageType.System);
+                    }
                 }
 
                 for (int i = 0; i < ControllersToCheck.Count; i++)
@@ -329,30 +330,36 @@ namespace OsEngine.Journal.Internal
 
             try
             {
+                string positionsString = PositionsToString();
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + _name + @"DealController.txt", false))
                 {
-                    StringBuilder result = new StringBuilder();
-
-                    result.Append(_comissionType + "\r\n");
-                    result.Append(_comissionValue + "\r\n");
-
-                    if (_startProgram == StartProgram.IsOsTrader)
-                    {
-                        List<Position> deals = _deals;
-
-                        for (int i = 0; deals != null && i < deals.Count; i++)
-                        {
-                            result.Append(deals[i].GetStringForSave() + "\r\n");
-                        }
-                    }
-                    
-                    writer.Write(result);
+                    writer.Write(positionsString);
                 }
             }
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        private string PositionsToString()
+        {
+            StringBuilder result = new StringBuilder();
+
+            result.Append(_comissionType + "\r\n");
+            result.Append(_comissionValue + "\r\n");
+
+            if (_startProgram == StartProgram.IsOsTrader)
+            {
+                List<Position> deals = _deals;
+
+                for (int i = 0; deals != null && i < deals.Count; i++)
+                {
+                    result.Append(deals[i].GetStringForSave() + "\r\n");
+                }
+            }
+
+            return result.ToString();
         }
 
         /// <summary>

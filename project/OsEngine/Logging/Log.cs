@@ -10,6 +10,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Media;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
@@ -48,7 +49,7 @@ namespace OsEngine.Logging
         /// logs that need to be serviced
         /// логи которые нужно обслуживать
         /// </summary>
-        public static List<Log> LogsToCheck = new List<Log>();
+        public static readonly List<Log> LogsToCheck = new List<Log>();
 
         private static object _activatorLocker = new object();
 
@@ -117,7 +118,7 @@ namespace OsEngine.Logging
                 Activate();
             }
 
-            LogsToCheck.Add(this);
+            AddToLogsToCheck(this);
 
             _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders);
             _grid.ScrollBars = ScrollBars.Vertical;
@@ -161,14 +162,7 @@ namespace OsEngine.Logging
         /// </summary>
         public void Delete()
         {
-            for (int i = 0; i < Math.Min(LogsToCheck.Count, LogsToCheck.Capacity); i++)// не потокобезопасная работа с LogsToCheck приводит к Capacity<Count
-            {
-                if (LogsToCheck[i]?._uniqName == this._uniqName)//проверка на null
-                {
-                    LogsToCheck.RemoveAt(i);
-                    break;
-                }
-            }
+            DeleteFromLogsToCheck(this);
             _isDelete = true;
 
             string date = DateTime.Now.Year + "_" + DateTime.Now.Month + "_" + DateTime.Now.Day;
@@ -181,6 +175,31 @@ namespace OsEngine.Logging
             _grid = null;
 
             _messageses = null;
+        }
+
+        private static readonly object LogLocker = new object();
+        
+        private static void AddToLogsToCheck(Log log)
+        {
+            lock (LogLocker)
+            {
+                LogsToCheck.Add(log);
+            }
+        }       
+        
+        private static void DeleteFromLogsToCheck(Log log)
+        {
+            lock (LogLocker)
+            {
+                for (int i = 0; i < LogsToCheck.Count; i++)
+                {
+                    if (log._uniqName.Equals(LogsToCheck[i]?._uniqName))
+                    {
+                        LogsToCheck.RemoveAt(i);
+                        break;
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -457,18 +476,17 @@ namespace OsEngine.Logging
                     return;
                 }
 
+                StringBuilder logsString = new StringBuilder();
+                for (int i = _lastAreaCount; _messageses != null && i < _messageses.Count; i++)
+                {
+                    logsString.Append(_messageses[i].GetString()).Append("\r\n");
+                }
+                
                 string date = DateTime.Now.Year + "_" + DateTime.Now.Month + "_" + DateTime.Now.Day;
-
-                using (
-                    StreamWriter writer = new StreamWriter(
+                using (StreamWriter writer = new StreamWriter(
                         @"Engine\Log\" + _uniqName + @"Log_" + date + ".txt", true))
                 {
-                    string str = "";
-                    for (int i = _lastAreaCount; _messageses != null && i < _messageses.Count; i++)
-                    {
-                        str += _messageses[i].GetString() + "\r\n";
-                    }
-                    writer.Write(str);
+                    writer.Write(logsString);
                 }
                 _lastAreaCount = _messageses.Count;
             }
