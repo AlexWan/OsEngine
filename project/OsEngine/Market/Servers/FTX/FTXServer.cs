@@ -678,7 +678,16 @@ namespace OsEngine.Market.Servers.FTX
                 return;
             }
 
-            var placeOrderResponse = await _ftxRestApi.PlaceOrderAsync(order.SecurityNameCode, order.Side, order.Price, order.TypeOrder, order.Volume);
+            var reduceOnly = true;
+            var placeOrderResponse = await _ftxRestApi.PlaceOrderAsync(
+                order.SecurityNameCode,
+                order.Side,
+                order.Price,
+                order.TypeOrder,
+                order.Volume,
+                order.PositionConditionType == OrderPositionConditionType.Open ?
+                    !reduceOnly :
+                    reduceOnly);
 
             var isSuccessful = placeOrderResponse.SelectToken("success").Value<bool>();
             if (isSuccessful)
