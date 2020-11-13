@@ -62,8 +62,17 @@ namespace OsEngine.Robots.MoiRoboti
             _tab.BestBidAskChangeEvent += _tab_BestBidAskChangeEvent; // событие изменения лучших цен
             _tab.OrderUpdateEvent += _tab_OrderUpdateEvent; // событие обновления ордеров 
             _tab.MarketDepthUpdateEvent += _tab_MarketDepthUpdateEvent;
+            _tab.PositionClosingSuccesEvent += _tab_PositionClosingSuccesEvent;
  
-        }
+        } // конструктор
+        private void _tab_PositionClosingSuccesEvent(Position position)
+        {
+            Price_kon_trade(); // перепроверяем цену последних сделок
+            Percent_tovara(); // смотрим процент купленного товара 
+            Switching_mode(); // смотрим условия переключения режимов работы 
+            Portfolio_sum(); // сумма в портфеле 
+            Console.WriteLine("СРАБОТАЛО Событие закрытия позиции");
+        } // Событие закрытия позиции
         private void _tab_MarketDepthUpdateEvent(MarketDepth marketDepth) // событие стакана
         {
             market_price = _tab.PriceCenterMarketDepth;
@@ -100,6 +109,9 @@ namespace OsEngine.Robots.MoiRoboti
             else if (positions.Count == 0)
             {
                 Portfolio_sum();
+                Percent_tovara();
+                Balans_tovara(tovar_name);
+                Start();
             }
         }
         void Save_profit() // для выставления профита портфеля 
@@ -179,22 +191,42 @@ namespace OsEngine.Robots.MoiRoboti
             {
                 sav_profit_metod_vkl = true;
             }
-            if ( 70 >= percent_tovara && percent_tovara < 90 ) //  режим фиксации прибыли
+            if ( 70 <= percent_tovara && percent_tovara < 90 ) //  режим фиксации прибыли
             {
-                sav_profit_metod_vkl = true; 
+                Console.WriteLine(" включился режим фиксации прибыли от 70 %");
+                sav_profit_metod_vkl = true;
+                profit.ValueInt = 10;
+                Console.WriteLine(" до профита " + profit.ValueInt);
+                do_piram.ValueDecimal = 60m;
+                Console.WriteLine(" расстояние до пирамиды изменено на " + do_piram.ValueDecimal);
+                deltaUsredn.ValueDecimal = 70m;
+                Console.WriteLine("Расстояние до Усреднения теперь " + deltaUsredn.ValueDecimal);
             }
             if (50 <= percent_tovara && percent_tovara < 70) // режим разворота и ожидания прибыли
             {
-                Console.WriteLine(" включился режим разворота и ожидания прибыли ");
+                Console.WriteLine(" включился режим разворота и ожидания прибыли до 70 %");
                 sav_profit_metod_vkl = true;
                 Console.WriteLine(" включили метод выставления профита");
                 piramid_metod_vkl = false;
+                profit.ValueInt = 25;
+                Console.WriteLine(" до профита " + profit.ValueInt);
+                do_piram.ValueDecimal = 50m;
+                Console.WriteLine(" расстояние до пирамиды изменено на " + do_piram.ValueDecimal);
+                deltaUsredn.ValueDecimal = 50m;
+                Console.WriteLine("Расстояние до Усреднения теперь " + deltaUsredn.ValueDecimal);
             }
             if (30 <= percent_tovara && percent_tovara < 50) // режим набора товара и ожидания прибыли
             {
+
                 sav_profit_metod_vkl = true;
                 piramid_metod_vkl = true;
                 Console.WriteLine(" включился режим набора товара до 50%");
+                profit.ValueInt = 15;
+                Console.WriteLine(" до профита " + profit.ValueInt);
+                do_piram.ValueDecimal = 30m;
+                Console.WriteLine(" расстояние до пирамиды изменено на " + do_piram.ValueDecimal);
+                deltaUsredn.ValueDecimal = 30m;
+                Console.WriteLine("Расстояние до Усреднения теперь " + deltaUsredn.ValueDecimal);
             }
             if (start_per_depo.ValueInt <= percent_tovara && percent_tovara < 30) // режим набора товара
             {
@@ -206,8 +238,12 @@ namespace OsEngine.Robots.MoiRoboti
             {
                 Console.WriteLine(" включен режим старт");
                 sav_profit_metod_vkl = false;
-                Console.WriteLine(" выключили метод выставления профита");
+                Console.WriteLine(" ВЫКЛючили метод выставления профита");
                 piramid_metod_vkl = true;
+                do_piram.ValueDecimal = 5m;
+                Console.WriteLine(" расстояние до пирамиды "+ do_piram.ValueDecimal);
+                deltaUsredn.ValueDecimal = 5m;
+                Console.WriteLine("Расстояние до Усреднения "+ deltaUsredn.ValueDecimal);
                 if (positions.Count == 0)
                 {
                     Console.WriteLine("нет товара и открытых позиций, разрешаем метод старт - ");
@@ -368,13 +404,19 @@ namespace OsEngine.Robots.MoiRoboti
         }
         decimal VolumForUsred() // рассчитывает объем для усреднения покупок 
         {
-            Balans_tovara(tovar_name);
+            Balans_kvot(kvot_name);
+            market_price = _tab.PriceCenterMarketDepth;
             decimal uge = _tab.PositionsLast.MaxVolume; // максимальный объем в позиции
             decimal dob = uge * velich_usrednen.ValueDecimal; // добавляем объема 
             decimal vol = uge + dob;
-            if (depo <= vol)
+            if (depo/market_price <= vol)
             {
-                return depo;
+                decimal d1 = depo / market_price / 2;
+                if (d1> min_lot)
+                {
+                    return d1;
+                }
+                return min_lot;
             }
             else return vol;
         }
@@ -408,8 +450,8 @@ namespace OsEngine.Robots.MoiRoboti
         }
         public decimal Lot(decimal min_sum) // расчет минимального лота 
         {
-            market_price = 1m;
-
+ // костыль 
+            market_price = 1m; 
             market_price = _tab.PriceCenterMarketDepth;
             min_lot = MyBlanks.Okruglenie(min_sum / market_price, 6);
             return min_lot;
