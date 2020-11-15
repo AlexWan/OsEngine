@@ -251,14 +251,14 @@ namespace OsEngine.Market.Servers.FTX.FtxApi
 
         #region Orders
 
-        public async Task<JToken> PlaceOrderAsync(string instrument, Side side, decimal price, OrderPriceType orderType, decimal amount, bool reduceOnly = true)
+        public async Task<JToken> PlaceOrderAsync(string instrument, Side side, decimal? price, OrderPriceType orderType, decimal amount, bool reduceOnly = true)
         {
             var path = $"api/orders";
 
             var body =
                 $"{{\"market\": \"{instrument}\"," +
                 $"\"side\": \"{side.ToString().ToLower()}\"," +
-                $"\"price\": {price.ToString(CultureInfo.InvariantCulture)}," +
+                $"\"price\": {price?.ToString(CultureInfo.InvariantCulture) ?? "null" }," +
                 $"\"type\": \"{orderType.ToString().ToLower()}\"," +
                 $"\"size\": {amount.ToString(CultureInfo.InvariantCulture)}," +
                 $"\"reduceOnly\": {reduceOnly.ToString().ToLower()}}}";

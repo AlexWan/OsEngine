@@ -1136,7 +1136,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             if (_connector.ServerType == ServerType.InteractivBrokers ||
                 _connector.ServerType == ServerType.Lmax ||
-                _connector.ServerType == ServerType.BitMax)
+                _connector.ServerType == ServerType.BitMax ||
+                _connector.ServerType == ServerType.FTX)
             {
                 return true;
             }
