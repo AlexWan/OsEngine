@@ -8,11 +8,11 @@ namespace OsEngine.Language
     public class PrimeSettingsMasterUiLocal
     {
         public string Title => OsLocalization.ConvertToLocString(
-            "Eng:Configuration_"+
+            "Eng:Configuration_" +
             "Ru:Общие настройки_");
 
         public string LanguageLabel => OsLocalization.ConvertToLocString(
-            "Eng:Language"+
+            "Eng:Language" +
             "_Ru:Язык_");
 
         public string ShowExtraLogWindowLabel => OsLocalization.ConvertToLocString(
@@ -24,7 +24,7 @@ namespace OsEngine.Language
             "Ru:Звук экстренного лога_");
 
         public string TransactionSoundLabel => OsLocalization.ConvertToLocString(
-            "Eng:Transaction sound_"+
+            "Eng:Transaction sound_" +
             "Ru:Звук по сделке_");
 
         public string TextBoxMessageToUsers => OsLocalization.ConvertToLocString(
@@ -39,5 +39,13 @@ namespace OsEngine.Language
         public string LabelServerTestingToopTip => OsLocalization.ConvertToLocString(
             "Eng:This will significantly slow down the application, but it may help to find errors in the trade server. Do not turn on during daily trading_" +
             "Ru:Это существенно замедлит работу приложения но возможно поможет найти ошибки в работе сервера. Не включайте во время ежедневной торговли_");
+
+        public string LabelOxyPlotChart => OsLocalization.ConvertToLocString(
+            "Eng:Use OxyPlot Chart_" +
+            "Ru:Использовать OxyPlot_");
+
+        public string LabelOxyPlotChartToolTip => OsLocalization.ConvertToLocString(
+            "Eng:This will replace the standard chart plotting with beta plotting with OxyPlot_" +
+            "Ru:Это заменит стандартную отрисовку чарта на бета версию отрисовки с помощью OxyPlot_");
     }
 }

@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>OxyPlot.SkiaSharp.Wpf</name>
+    </assembly>
+    <members>
+        <member name="T:OxyPlot.SkiaSharp.Wpf.PlotView">
+            <summary>
+            Represents a control that displays a <see cref="T:OxyPlot.PlotModel" />. This <see cref="T:OxyPlot.IPlotView"/> is based on <see cref="T:OxyPlot.SkiaSharp.SkiaRenderContext"/>.
+            </summary>
+        </member>
+        <member name="P:OxyPlot.SkiaSharp.Wpf.PlotView.SkiaRenderContext">
+            <summary>
+            Gets the SkiaRenderContext.
+            </summary>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.Wpf.PlotView.ClearBackground">
+            <inheritdoc/>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.Wpf.PlotView.CreatePlotPresenter">
+            <inheritdoc/>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.Wpf.PlotView.CreateRenderContext">
+            <inheritdoc/>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.Wpf.PlotView.RenderOverride">
+            <inheritdoc/>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.Wpf.PlotView.UpdateDpi">
+            <inheritdoc/>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.Wpf.PlotView.SkElement_PaintSurface(System.Object,SkiaSharp.Views.Desktop.SKPaintSurfaceEventArgs)">
+            <summary>
+            This is called when the SKElement paints its surface.
+            </summary>
+            <param name="sender">The sender.</param>
+            <param name="e">The surface paint event args.</param>
+        </member>
+    </members>
+</doc>

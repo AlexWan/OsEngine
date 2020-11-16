@@ -15,8 +15,10 @@
         <Label x:Name="ExtraLogSound" Content="Emergency log sound" HorizontalAlignment="Left" Margin="86,85,0,0" VerticalAlignment="Top"/>
         <CheckBox x:Name="CheckBoxTransactionSound" Margin="0,113,74,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
         <Label x:Name="TransactionSoundLabel" Content="Transaction sound" HorizontalAlignment="Left" Margin="86,113,0,0" VerticalAlignment="Top"/>
-        <TextBox Name="TextBoxMessageToUsers" IsReadOnly="True" HorizontalAlignment="Left" Margin="43,195,0,0" TextWrapping="Wrap" Text="Our company has made the translation of this program due to its capabilities. We apologize for any inconvenience this may cause. &#xD;&#xA;Support our common Open Source project and it will become better." VerticalAlignment="Top" Width="323" Height="166" />
+        <TextBox Name="TextBoxMessageToUsers" IsReadOnly="True" HorizontalAlignment="Left" Margin="43,218,0,0" TextWrapping="Wrap" Text="Our company has made the translation of this program due to its capabilities. We apologize for any inconvenience this may cause. &#xD;&#xA;Support our common Open Source project and it will become better." VerticalAlignment="Top" Width="323" Height="143" />
         <CheckBox x:Name="CheckBoxServerTestingIsActive" Margin="0,141,74,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
         <Label x:Name="LabelServerTestingIsActive" Content="Server Testing Is Active" HorizontalAlignment="Left" Margin="86,141,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="CheckBoxOxyPlotChart" Margin="0,169,74,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
+        <Label x:Name="LabelOxyPlotChart" Content="Use OxyPlot Chart" HorizontalAlignment="Left" Margin="86,169,0,0" VerticalAlignment="Top"/>
     </Grid>
 </Window>

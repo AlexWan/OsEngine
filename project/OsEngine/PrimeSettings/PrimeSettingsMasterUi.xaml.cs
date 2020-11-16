@@ -39,11 +39,13 @@ namespace OsEngine.PrimeSettings
             CheckBoxExtraLogWindow.IsChecked = PrimeSettingsMaster.ErrorLogMessageBoxIsActiv;
             CheckBoxExtraLogSound.IsChecked = PrimeSettingsMaster.ErrorLogBeepIsActiv;
             CheckBoxTransactionSound.IsChecked = PrimeSettingsMaster.TransactionBeepIsActiv;
+            CheckBoxOxyPlotChart.IsChecked = PrimeSettingsMaster.UseOxyPlotChart;
 
             CheckBoxExtraLogWindow.Click += CheckBoxExtraLogWindow_Click;
             CheckBoxExtraLogSound.Click += CheckBoxExtraLogSound_Click;
             CheckBoxTransactionSound.Click += CheckBoxTransactionSound_Click;
             CheckBoxServerTestingIsActive.Click += CheckBoxServerTestingIsActive_Click;
+            CheckBoxOxyPlotChart.Click += CheckBoxOxyPlotChart_Click;
 
             ChangeText();
             OsLocalization.LocalizationTypeChangeEvent += ChangeText;
@@ -60,12 +62,16 @@ namespace OsEngine.PrimeSettings
             LabelServerTestingIsActive.Content = OsLocalization.PrimeSettings.LabelServerTestingIsActive;
             LabelServerTestingIsActive.ToolTip = OsLocalization.PrimeSettings.LabelServerTestingToopTip;
             CheckBoxServerTestingIsActive.ToolTip = OsLocalization.PrimeSettings.LabelServerTestingToopTip;
+            LabelOxyPlotChart.Content = OsLocalization.PrimeSettings.LabelOxyPlotChart;
+            LabelOxyPlotChart.ToolTip = OsLocalization.PrimeSettings.LabelOxyPlotChartToolTip;
+            CheckBoxOxyPlotChart.ToolTip = OsLocalization.PrimeSettings.LabelOxyPlotChartToolTip;
         }
 
         private void CheckBoxServerTestingIsActive_Click(object sender, RoutedEventArgs e)
         {
             if (CheckBoxServerTestingIsActive.IsChecked != null)
                 PrimeSettingsMaster.ServerTestingIsActive = CheckBoxServerTestingIsActive.IsChecked.Value;
+             
 
         }
 
@@ -85,6 +91,12 @@ namespace OsEngine.PrimeSettings
         {
             if (CheckBoxExtraLogWindow.IsChecked != null)
                 PrimeSettingsMaster.ErrorLogMessageBoxIsActiv = CheckBoxExtraLogWindow.IsChecked.Value;
+        }
+
+        private void CheckBoxOxyPlotChart_Click(object sender, RoutedEventArgs e)
+        {
+            if (CheckBoxOxyPlotChart.IsChecked != null)
+                PrimeSettingsMaster.UseOxyPlotChart = CheckBoxOxyPlotChart.IsChecked.Value;
         }
     }
 }

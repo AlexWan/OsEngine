@@ -1,0 +1,554 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>OxyPlot.SkiaSharp</name>
+    </assembly>
+    <members>
+        <member name="T:OxyPlot.SkiaSharp.JpegExporter">
+            <summary>
+            Provides functionality to export plots to jpeg using the SkiaSharp renderer.
+            </summary>
+        </member>
+        <member name="P:OxyPlot.SkiaSharp.JpegExporter.Dpi">
+            <summary>
+            Gets or sets the DPI.
+            </summary>
+        </member>
+        <member name="P:OxyPlot.SkiaSharp.JpegExporter.Height">
+            <summary>
+            Gets or sets the export height (in pixels).
+            </summary>
+        </member>
+        <member name="P:OxyPlot.SkiaSharp.JpegExporter.Width">
+            <summary>
+            Gets or sets the export width (in pixels).
+            </summary>
+        </member>
+        <member name="P:OxyPlot.SkiaSharp.JpegExporter.Quality">
+            <summary>
+            Gets or sets the export quality (0-100).
+            </summary>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.JpegExporter.Export(OxyPlot.IPlotModel,System.String,System.Int32,System.Int32,System.Int32,System.Single)">
+            <summary>
+            Exports the specified model to a file.
+            </summary>
+            <param name="model">The model.</param>
+            <param name="path">The path.</param>
+            <param name="width">The width (points).</param>
+            <param name="height">The height (points).</param>
+            <param name="quality">The export quality (0-100).</param>
+            <param name="dpi">The DPI (dots per inch).</param>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.JpegExporter.Export(OxyPlot.IPlotModel,System.IO.Stream,System.Int32,System.Int32,System.Int32,System.Single)">
+            <summary>
+            Exports the specified model to a stream.
+            </summary>
+            <param name="model">The model.</param>
+            <param name="stream">The output stream.</param>
+            <param name="width">The width (points).</param>
+            <param name="height">The height (points).</param>
+            <param name="quality">The export quality (0-100).</param>
+            <param name="dpi">The DPI (dots per inch).</param>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.JpegExporter.Export(OxyPlot.IPlotModel,System.IO.Stream)">
+            <inheritdoc/>
+        </member>
+        <member name="T:OxyPlot.SkiaSharp.PdfExporter">
+            <summary>
+            Provides functionality to export plots to pdf using the SkiaSharp renderer.
+            </summary>
+        </member>
+        <member name="P:OxyPlot.SkiaSharp.PdfExporter.Height">
+            <summary>
+            Gets or sets the export height (in points, where 1 point equals 1/72 inch).
+            </summary>
+        </member>
+        <member name="P:OxyPlot.SkiaSharp.PdfExporter.Width">
+            <summary>
+            Gets or sets the export width (in points, where 1 point equals 1/72 inch).
+            </summary>
+        </member>
+        <member name="P:OxyPlot.SkiaSharp.PdfExporter.UseTextShaping">
+            <summary>
+            Gets or sets a value indicating whether text shaping should be used when rendering text.
+            </summary>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.PdfExporter.Export(OxyPlot.IPlotModel,System.String,System.Single,System.Single)">
+            <summary>
+            Exports the specified model to a file.
+            </summary>
+            <param name="model">The model.</param>
+            <param name="path">The path.</param>
+            <param name="width">The width (points).</param>
+            <param name="height">The height (points).</param>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.PdfExporter.Export(OxyPlot.IPlotModel,System.IO.Stream,System.Single,System.Single)">
+            <summary>
+            Exports the specified model to a stream.
+            </summary>
+            <param name="model">The model.</param>
+            <param name="stream">The output stream.</param>
+            <param name="width">The width (points).</param>
+            <param name="height">The height (points).</param>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.PdfExporter.Export(OxyPlot.IPlotModel,System.IO.Stream)">
+            <inheritdoc/>
+        </member>
+        <member name="T:OxyPlot.SkiaSharp.PngExporter">
+            <summary>
+            Provides functionality to export plots to png using the SkiaSharp renderer.
+            </summary>
+        </member>
+        <member name="P:OxyPlot.SkiaSharp.PngExporter.Dpi">
+            <summary>
+            Gets or sets the DPI.
+            </summary>
+        </member>
+        <member name="P:OxyPlot.SkiaSharp.PngExporter.Height">
+            <summary>
+            Gets or sets the export height (in pixels).
+            </summary>
+        </member>
+        <member name="P:OxyPlot.SkiaSharp.PngExporter.Width">
+            <summary>
+            Gets or sets the export width (in pixels).
+            </summary>
+        </member>
+        <member name="P:OxyPlot.SkiaSharp.PngExporter.UseTextShaping">
+            <summary>
+            Gets or sets a value indicating whether text shaping should be used when rendering text.
+            </summary>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.PngExporter.Export(OxyPlot.IPlotModel,System.String,System.Int32,System.Int32,System.Single)">
+            <summary>
+            Exports the specified model to a file.
+            </summary>
+            <param name="model">The model.</param>
+            <param name="path">The path.</param>
+            <param name="width">The width (points).</param>
+            <param name="height">The height (points).</param>
+            <param name="dpi">The DPI (dots per inch).</param>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.PngExporter.Export(OxyPlot.IPlotModel,System.IO.Stream,System.Int32,System.Int32,System.Single)">
+            <summary>
+            Exports the specified model to a stream.
+            </summary>
+            <param name="model">The model.</param>
+            <param name="stream">The output stream.</param>
+            <param name="width">The width (points).</param>
+            <param name="height">The height (points).</param>
+            <param name="dpi">The DPI (dots per inch).</param>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.PngExporter.Export(OxyPlot.IPlotModel,System.IO.Stream)">
+            <inheritdoc/>
+        </member>
+        <member name="T:OxyPlot.SkiaSharp.RenderTarget">
+            <summary>
+            Defines a render target for <see cref="T:OxyPlot.SkiaSharp.SkiaRenderContext"/>.
+            </summary>
+        </member>
+        <member name="F:OxyPlot.SkiaSharp.RenderTarget.Screen">
+            <summary>
+            Indicates that the <see cref="T:OxyPlot.SkiaSharp.SkiaRenderContext"/> renders to a screen.
+            </summary>
+            <remarks>
+            The render context may try to snap shapes to device pixels and will use sub-pixel text rendering.
+            </remarks>
+        </member>
+        <member name="F:OxyPlot.SkiaSharp.RenderTarget.PixelGraphic">
+            <summary>
+            Indicates that the <see cref="T:OxyPlot.SkiaSharp.SkiaRenderContext"/> renders to a pixel graphic.
+            </summary>
+            <remarks>
+            The render context may try to snap shapes to pixels, but will not use sub-pixel text rendering.
+            </remarks>
+        </member>
+        <member name="F:OxyPlot.SkiaSharp.RenderTarget.VectorGraphic">
+            <summary>
+            Indicates that the <see cref="T:OxyPlot.SkiaSharp.SkiaRenderContext"/> renders to a vector graphic.
+            </summary>
+            <remarks>
+            The render context will not use any rendering enhancements that are specific to pixel graphics.
+            </remarks>
+        </member>
+        <member name="T:OxyPlot.SkiaSharp.SkiaExtensions">
+            <summary>
+            Provides extension methods for conversion between SkiaSharp and oxyplot objects.
+            </summary>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaExtensions.ToOxyColor(SkiaSharp.SKColor)">
+            <summary>
+            Converts a <see cref="T:OxyPlot.OxyColor"/> to a <see cref="T:SkiaSharp.SKColor"/>;
+            </summary>
+            <param name="color">The <see cref="T:OxyPlot.OxyColor"/>.</param>
+            <returns>The <see cref="T:SkiaSharp.SKColor"/>.</returns>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaExtensions.ToSKColor(OxyPlot.OxyColor)">
+            <summary>
+            Converts a <see cref="T:SkiaSharp.SKColor"/> to a <see cref="T:OxyPlot.OxyColor"/>;
+            </summary>
+            <param name="color">The <see cref="T:SkiaSharp.SKColor"/>.</param>
+            <returns>The <see cref="T:OxyPlot.OxyColor"/>.</returns>
+        </member>
+        <member name="T:OxyPlot.SkiaSharp.SkiaRenderContext">
+            <summary>
+            Implements <see cref="T:OxyPlot.IRenderContext" /> based on SkiaSharp.
+            </summary>
+        </member>
+        <member name="P:OxyPlot.SkiaSharp.SkiaRenderContext.DpiScale">
+            <summary>
+            Gets or sets the DPI scaling factor. A value of 1 corresponds to 96 DPI (dots per inch).
+            </summary>
+        </member>
+        <member name="P:OxyPlot.SkiaSharp.SkiaRenderContext.RendersToScreen">
+            <inheritdoc />
+        </member>
+        <member name="P:OxyPlot.SkiaSharp.SkiaRenderContext.RenderTarget">
+            <summary>
+            Gets or sets the render target.
+            </summary>
+        </member>
+        <member name="P:OxyPlot.SkiaSharp.SkiaRenderContext.SkCanvas">
+            <summary>
+            Gets or sets the <see cref="T:SkiaSharp.SKCanvas"/> the <see cref="T:OxyPlot.SkiaSharp.SkiaRenderContext"/> renders to. This must be set before any draw calls.
+            </summary>
+        </member>
+        <member name="P:OxyPlot.SkiaSharp.SkiaRenderContext.UseTextShaping">
+            <summary>
+            Gets or sets a value indicating whether text shaping should be used when rendering text.
+            </summary>
+        </member>
+        <member name="P:OxyPlot.SkiaSharp.SkiaRenderContext.MiterLimit">
+            <summary>
+            Gets or sets the Miter limit. This is the maximum ratio between Miter length and stroke thickness. When this ration is exceeded, the join falls back to a Bevel. The default value is 10.
+            </summary>
+        </member>
+        <member name="P:OxyPlot.SkiaSharp.SkiaRenderContext.RendersToPixels">
+            <summary>
+            Gets a value indicating whether the context renders to pixels.
+            </summary>
+            <value><c>true</c> if the context renders to pixels; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:OxyPlot.SkiaSharp.SkiaRenderContext.ClipCount">
+            <inheritdoc/>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.CleanUp">
+            <inheritdoc/>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.DrawEllipse(OxyPlot.OxyRect,OxyPlot.OxyColor,OxyPlot.OxyColor,System.Double,OxyPlot.EdgeRenderingMode)">
+            <inheritdoc/>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.DrawEllipses(System.Collections.Generic.IList{OxyPlot.OxyRect},OxyPlot.OxyColor,OxyPlot.OxyColor,System.Double,OxyPlot.EdgeRenderingMode)">
+            <inheritdoc/>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.DrawImage(OxyPlot.OxyImage,System.Double,System.Double,System.Double,System.Double,System.Double,System.Double,System.Double,System.Double,System.Double,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.DrawLine(System.Collections.Generic.IList{OxyPlot.ScreenPoint},OxyPlot.OxyColor,System.Double,OxyPlot.EdgeRenderingMode,System.Double[],OxyPlot.LineJoin)">
+            <inheritdoc/>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.DrawLineSegments(System.Collections.Generic.IList{OxyPlot.ScreenPoint},OxyPlot.OxyColor,System.Double,OxyPlot.EdgeRenderingMode,System.Double[],OxyPlot.LineJoin)">
+            <inheritdoc/>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.DrawPolygon(System.Collections.Generic.IList{OxyPlot.ScreenPoint},OxyPlot.OxyColor,OxyPlot.OxyColor,System.Double,OxyPlot.EdgeRenderingMode,System.Double[],OxyPlot.LineJoin)">
+            <inheritdoc/>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.DrawPolygons(System.Collections.Generic.IList{System.Collections.Generic.IList{OxyPlot.ScreenPoint}},OxyPlot.OxyColor,OxyPlot.OxyColor,System.Double,OxyPlot.EdgeRenderingMode,System.Double[],OxyPlot.LineJoin)">
+            <inheritdoc/>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.DrawRectangle(OxyPlot.OxyRect,OxyPlot.OxyColor,OxyPlot.OxyColor,System.Double,OxyPlot.EdgeRenderingMode)">
+            <inheritdoc/>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.DrawRectangles(System.Collections.Generic.IList{OxyPlot.OxyRect},OxyPlot.OxyColor,OxyPlot.OxyColor,System.Double,OxyPlot.EdgeRenderingMode)">
+            <inheritdoc/>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.DrawText(OxyPlot.ScreenPoint,System.String,OxyPlot.OxyColor,System.String,System.Double,System.Double,System.Double,OxyPlot.HorizontalAlignment,OxyPlot.VerticalAlignment,System.Nullable{OxyPlot.OxySize})">
+            <inheritdoc/>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.MeasureText(System.String,System.String,System.Double,System.Double)">
+            <inheritdoc/>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.PopClip">
+            <inheritdoc/>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.PushClip(OxyPlot.OxyRect)">
+            <inheritdoc/>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.SetToolTip(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.Dispose(System.Boolean)">
+            <summary>
+            Disposes managed resources.
+            </summary>
+            <param name="disposing">A value indicating whether this method is called from the Dispose method.</param>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.AddPoints(System.Collections.Generic.IEnumerable{SkiaSharp.SKPoint},SkiaSharp.SKPath)">
+            <summary>
+            Adds the <see cref="T:SkiaSharp.SKPoint"/>s to the <see cref="T:SkiaSharp.SKPath"/> as a series of connected lines.
+            </summary>
+            <param name="points">The points.</param>
+            <param name="path">The path.</param>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.GetSnapOffset(System.Single)">
+            <summary>
+            Gets the pixel offset that a line with the specified thickness should snap to.
+            </summary>
+            <remarks>
+            This takes into account that lines with even stroke thickness should be snapped to the border between two pixels while lines with odd stroke thickness should be snapped to the middle of a pixel.
+            </remarks>
+            <param name="thickness">The line thickness.</param>
+            <returns>The snap offset.</returns>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.Snap(System.Single,System.Single)">
+            <summary>
+            Snaps a value to a pixel with the specified offset.
+            </summary>
+            <param name="value">The value.</param>
+            <param name="offset">The offset.</param>
+            <returns>The snapped value.</returns>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.Convert(OxyPlot.OxyRect)">
+            <summary>
+            Converts a <see cref="T:OxyPlot.OxyRect"/> to a <see cref="T:SkiaSharp.SKRect"/>, taking into account DPI scaling.
+            </summary>
+            <param name="rect">The rectangle.</param>
+            <returns>The converted rectangle.</returns>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.Convert(System.Double)">
+            <summary>
+            Converts a <see cref="T:System.Double"/> to a <see cref="T:System.Single"/>, taking into account DPI scaling.
+            </summary>
+            <param name="value">The value.</param>
+            <returns>The converted value.</returns>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.Convert(OxyPlot.ScreenPoint)">
+            <summary>
+            Converts <see cref="T:OxyPlot.ScreenPoint"/> to a <see cref="T:SkiaSharp.SKPoint"/>, taking into account DPI scaling.
+            </summary>
+            <param name="point">The point.</param>
+            <returns>The converted point.</returns>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.ConvertBack(System.Single)">
+            <summary>
+            Converts a <see cref="T:System.Single"/> to a <see cref="T:System.Double"/>, applying reversed DPI scaling.
+            </summary>
+            <param name="value">The value.</param>
+            <returns>The converted value.</returns>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.ConvertDashArray(System.Double[],System.Single)">
+            <summary>
+            Converts <see cref="T:System.Double"/> dash array to a <see cref="T:System.Single"/> array, taking into account DPI scaling.
+            </summary>
+            <param name="values">The array of values.</param>
+            <param name="strokeThickness">The stroke thickness.</param>
+            <returns>The array of converted values.</returns>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.ConvertSnap(OxyPlot.OxyRect,System.Single)">
+            <summary>
+            Converts a <see cref="T:OxyPlot.OxyRect"/> to a <see cref="T:SkiaSharp.SKRect"/>, taking into account DPI scaling and snapping the corners to pixels.
+            </summary>
+            <param name="rect">The rectangle.</param>
+            <param name="snapOffset">The snapping offset.</param>
+            <returns>The converted rectangle.</returns>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.ConvertSnap(System.Double,System.Single)">
+            <summary>
+            Converts a <see cref="T:System.Double"/> to a <see cref="T:System.Single"/>, taking into account DPI scaling and snapping the value to a pixel.
+            </summary>
+            <param name="value">The value.</param>
+            <param name="snapOffset">The snapping offset.</param>
+            <returns>The converted value.</returns>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.ConvertSnap(OxyPlot.ScreenPoint,System.Single)">
+            <summary>
+            Converts <see cref="T:OxyPlot.ScreenPoint"/> to a <see cref="T:SkiaSharp.SKPoint"/>, taking into account DPI scaling and snapping the point to a pixel.
+            </summary>
+            <param name="point">The point.</param>
+            <param name="snapOffset">The snapping offset.</param>
+            <returns>The converted point.</returns>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.GetActualPoints(System.Collections.Generic.IList{OxyPlot.ScreenPoint},System.Double,OxyPlot.EdgeRenderingMode)">
+            <summary>
+            Gets the <see cref="T:SkiaSharp.SKPoint"/>s that should actually be rendered from the list of <see cref="T:OxyPlot.ScreenPoint"/>s, taking into account DPI scaling and snapping if necessary.
+            </summary>
+            <param name="screenPoints">The points.</param>
+            <param name="strokeThickness">The stroke thickness.</param>
+            <param name="edgeRenderingMode">The edge rendering mode.</param>
+            <returns>The actual points.</returns>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.GetActualRect(OxyPlot.OxyRect,System.Double,OxyPlot.EdgeRenderingMode)">
+            <summary>
+            Gets the <see cref="T:SkiaSharp.SKRect"/> that should actually be rendered from the <see cref="T:OxyPlot.OxyRect"/>, taking into account DPI scaling and snapping if necessary.
+            </summary>
+            <param name="rect">The rectangle.</param>
+            <param name="strokeThickness">The stroke thickness.</param>
+            <param name="edgeRenderingMode">The edge rendering mode.</param>
+            <returns>The actual rectangle.</returns>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.GetActualRects(System.Collections.Generic.IEnumerable{OxyPlot.OxyRect},System.Double,OxyPlot.EdgeRenderingMode)">
+            <summary>
+            Gets the <see cref="T:SkiaSharp.SKRect"/>s that should actually be rendered from the list of <see cref="T:OxyPlot.OxyRect"/>s, taking into account DPI scaling and snapping if necessary.
+            </summary>
+            <param name="rects">The rectangles.</param>
+            <param name="strokeThickness">The stroke thickness.</param>
+            <param name="edgeRenderingMode">The edge rendering mode.</param>
+            <returns>The actual rectangles.</returns>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.GetActualThickness(System.Double,OxyPlot.EdgeRenderingMode)">
+            <summary>
+            Gets the stroke thickness that should actually be used for rendering, taking into account DPI scaling and snapping if necessary.
+            </summary>
+            <param name="strokeThickness">The stroke thickness.</param>
+            <param name="edgeRenderingMode">The edge rendering mode.</param>
+            <returns>The actual stroke thickness.</returns>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.GetFillPaint(OxyPlot.OxyColor,OxyPlot.EdgeRenderingMode)">
+            <summary>
+            Gets a <see cref="T:SkiaSharp.SKPaint"/> containing information needed to render the fill of a shape.
+            </summary>
+            <remarks>
+            This modifies and returns the local <see cref="F:OxyPlot.SkiaSharp.SkiaRenderContext.paint"/> instance.
+            </remarks>
+            <param name="fillColor">The fill color.</param>
+            <param name="edgeRenderingMode">The edge rendering mode.</param>
+            <returns>The paint.</returns>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.GetImagePaint(System.Double,System.Boolean)">
+            <summary>
+            Gets a <see cref="T:SkiaSharp.SKPaint"/> containing information needed to render an image.
+            </summary>
+            <remarks>
+            This modifies and returns the local <see cref="F:OxyPlot.SkiaSharp.SkiaRenderContext.paint"/> instance.
+            </remarks>
+            <param name="opacity">The opacity.</param>
+            <param name="interpolate">A value indicating whether interpolation should be used.</param>
+            <returns>The paint.</returns>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.GetLinePaint(OxyPlot.OxyColor,System.Double,OxyPlot.EdgeRenderingMode,System.Double[],OxyPlot.LineJoin)">
+            <summary>
+            Gets a <see cref="T:SkiaSharp.SKPaint"/> containing information needed to render a line.
+            </summary>
+            <remarks>
+            This modifies and returns the local <see cref="F:OxyPlot.SkiaSharp.SkiaRenderContext.paint"/> instance.
+            </remarks>
+            <param name="strokeColor">The stroke color.</param>
+            <param name="strokeThickness">The stroke thickness.</param>
+            <param name="edgeRenderingMode">The edge rendering mode.</param>
+            <param name="dashArray">The dash array.</param>
+            <param name="lineJoin">The line join.</param>
+            <returns>The paint.</returns>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.GetPath">
+            <summary>
+            Gets an empty <see cref="T:SkiaSharp.SKPath"/>.
+            </summary>
+            <remarks>
+            This clears and returns the local <see cref="F:OxyPlot.SkiaSharp.SkiaRenderContext.path"/> instance.
+            </remarks>
+            <returns>The path.</returns>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.GetSnapOffset(System.Double,OxyPlot.EdgeRenderingMode)">
+            <summary>
+            Gets the snapping offset for the specified stroke thickness.
+            </summary>
+            <remarks>
+            This takes into account that lines with even stroke thickness should be snapped to the border between two pixels while lines with odd stroke thickness should be snapped to the middle of a pixel.
+            </remarks>
+            <param name="thickness">The stroke thickness.</param>
+            <param name="edgeRenderingMode">The edge rendering mode.</param>
+            <returns>The snap offset.</returns>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.GetStrokePaint(OxyPlot.OxyColor,System.Double,OxyPlot.EdgeRenderingMode)">
+            <summary>
+            Gets a <see cref="T:SkiaSharp.SKPaint"/> containing information needed to render a stroke.
+            </summary>
+            <remarks>
+            This modifies and returns the local <see cref="F:OxyPlot.SkiaSharp.SkiaRenderContext.paint"/> instance.
+            </remarks>
+            <param name="strokeColor">The stroke color.</param>
+            <param name="strokeThickness">The stroke thickness.</param>
+            <param name="edgeRenderingMode">The edge rendering mode.</param>
+            <returns>The paint.</returns>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.GetTextPaint(System.String,System.Double,System.Double,SkiaSharp.HarfBuzz.SKShaper@)">
+            <summary>
+            Gets a <see cref="T:SkiaSharp.SKPaint"/> containing information needed to render text.
+            </summary>
+            <remarks>
+            This modifies and returns the local <see cref="F:OxyPlot.SkiaSharp.SkiaRenderContext.paint"/> instance.
+            </remarks>
+            <param name="fontFamily">The font family.</param>
+            <param name="fontSize">The font size.</param>
+            <param name="fontWeight">The font weight.</param>
+            <param name="shaper">The font shaper.</param>
+            <returns>The paint.</returns>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.MeasureText(System.String,SkiaSharp.HarfBuzz.SKShaper,SkiaSharp.SKPaint)">
+            <summary>
+            Measures text using the specified <see cref="T:SkiaSharp.HarfBuzz.SKShaper"/> and <see cref="T:SkiaSharp.SKPaint"/>.
+            </summary>
+            <param name="text">The text to measure.</param>
+            <param name="shaper">The text shaper.</param>
+            <param name="paint">The paint.</param>
+            <returns>The width of the text when rendered using the specified shaper and paint.</returns>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.ShouldUseAntiAliasing(OxyPlot.EdgeRenderingMode)">
+            <summary>
+            Gets a value indicating whether anti-aliasing should be used taking in account the specified edge rendering mode.
+            </summary>
+            <param name="edgeRenderingMode">The edge rendering mode.</param>
+            <returns><c>true</c> if anti-aliasing should be used; <c>false</c> otherwise.</returns>
+        </member>
+        <member name="T:OxyPlot.SkiaSharp.SkiaRenderContext.FontDescriptor">
+            <summary>
+            Represents a font description.
+            </summary>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.FontDescriptor.#ctor(System.String,System.Double)">
+            <summary>
+            Initializes a new instance of the <see cref="T:OxyPlot.SkiaSharp.SkiaRenderContext.FontDescriptor"/> struct.
+            </summary>
+            <param name="fontFamily">The font family.</param>
+            <param name="fontWeight">The font weight.</param>
+        </member>
+        <member name="P:OxyPlot.SkiaSharp.SkiaRenderContext.FontDescriptor.FontFamily">
+            <summary>
+            The font family.
+            </summary>
+        </member>
+        <member name="P:OxyPlot.SkiaSharp.SkiaRenderContext.FontDescriptor.FontWeight">
+            <summary>
+            The font weight.
+            </summary>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.FontDescriptor.Equals(System.Object)">
+            <inheritdoc/>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SkiaRenderContext.FontDescriptor.GetHashCode">
+            <inheritdoc/>
+        </member>
+        <member name="T:OxyPlot.SkiaSharp.SvgExporter">
+            <summary>
+            Provides functionality to export plots to scalable vector graphics using the SkiaSharp SVG canvas.
+            </summary>
+        </member>
+        <member name="P:OxyPlot.SkiaSharp.SvgExporter.Height">
+            <summary>
+            Gets or sets the height (in user units) of the output area.
+            </summary>
+        </member>
+        <member name="P:OxyPlot.SkiaSharp.SvgExporter.Width">
+            <summary>
+            Gets or sets the width (in user units) of the output area.
+            </summary>
+        </member>
+        <member name="M:OxyPlot.SkiaSharp.SvgExporter.Export(OxyPlot.IPlotModel,System.IO.Stream)">
+            <inheritdoc/>
+        </member>
+    </members>
+</doc>
