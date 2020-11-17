@@ -10,7 +10,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
     {
         public ServerType ServerType
         {
-            get { return ServerType.GateIoFutures; }
+            get { return ServerType.Bybit; }
         }
 
         #region DataFeedPermissions

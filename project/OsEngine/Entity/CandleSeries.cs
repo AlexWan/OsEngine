@@ -331,6 +331,10 @@ namespace OsEngine.Entity
 
             for (int i = 0; i < trades.Count; i++)
             {
+                if (trades[i] == null)
+                {
+                    continue;
+                }
                 UpDateCandle(trades[i].Time, trades[i].Price, trades[i].Volume, false, trades[i].Side);
 
                 List<Trade> tradesInCandle = CandlesAll[CandlesAll.Count - 1].Trades;

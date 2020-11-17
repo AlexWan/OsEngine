@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Forms;
@@ -66,6 +67,23 @@ namespace OsEngine.Market
             CheckBoxServerAutoOpen.Content = OsLocalization.Market.Label20;
 
             ServerMaster.ServerCreateEvent += ServerMasterOnServerCreateEvent;
+
+            Closing += delegate (object sender, CancelEventArgs args)
+            {
+                ServerMaster.ServerCreateEvent -= ServerMasterOnServerCreateEvent;
+
+                for (int i = 0; servers != null && i < servers.Count; i++)
+                {
+                    IServer serv = servers[i];
+
+                    if (serv == null)
+                    {
+                        continue;
+                    }
+
+                    serv.ConnectStatusChangeEvent -= ServerStatusChangeEvent;
+                }
+            };
         }
 
         private void ServerMasterOnServerCreateEvent(IServer newServer)
