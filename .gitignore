@@ -14,7 +14,6 @@
 
 # Build results
 [Dd]ebugPublic/
-[Dd]ebug/*.xml
 [Rr]elease/
 [Rr]eleases/
 x64/
@@ -31,6 +30,7 @@ Plaza/Log/
 Data/
 lua/logs/
 Custom/Indicators/bin/
+**/[Dd]ebug/**.xml
 
 # Visual Studio 2015 cache/options directory
 .vs/
@@ -55,6 +55,7 @@ project.lock.json
 project.fragment.lock.json
 artifacts/
 **/Properties/launchSettings.json
+
 
 *_i.c
 *_p.c
@@ -197,6 +198,7 @@ _pkginfo.txt
 *.[Cc]ache
 # but keep track of directories ending in .cache
 !*.[Cc]ache/
+
 
 # Others
 ClientBin/
