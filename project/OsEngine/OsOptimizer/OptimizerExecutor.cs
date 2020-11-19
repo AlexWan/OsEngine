@@ -541,32 +541,7 @@ namespace OsEngine.OsOptimizer
 
             for (int i = 0; i < bots.Reports.Count; i++)
             {
-                if (_master.FilterMiddleProfitIsOn &&
-                    bots.Reports[i].AverageProfitPercent < _master.FilterMiddleProfitValue)
-                {
-
-                }
-                else if (_master.FilterProfitIsOn &&
-                         bots.Reports[i].TotalProfit < _master.FilterProfitValue)
-                {
-
-                }
-                else if (_master.FilterMaxDrowDownIsOn &&
-                         bots.Reports[i].MaxDrowDawn < _master.FilterMaxDrowDownValue)
-                {
-
-                }
-                else if (_master.FilterProfitFactorIsOn &&
-                         bots.Reports[i].ProfitFactor < _master.FilterProfitFactorValue)
-                {
-
-                }
-                else if (_master.FilterDealsCountIsOn &&
-                         bots.Reports[i].PositionsCount < _master.FilterDealsCountValue)
-                {
-
-                }
-                else
+                if (_master.IsAcceptedByFilter(bots.Reports[i]))
                 {
                     botsToOutOfSample.Reports.Add(bots.Reports[i]);
                 }
