@@ -542,6 +542,40 @@ namespace OsEngine.OsOptimizer
         // tab 5, optimization phases/вкладка 5, фазы оптимизации
 
         /// <summary>
+        /// Check is provided report accepted by filters
+        /// Проверяет допускается ли фильтрами переданный отчет 
+        /// </summary>
+        public bool IsAcceptedByFilter(OptimizerReport report)
+        {
+            if (FilterMiddleProfitIsOn && report.AverageProfitPercent < FilterMiddleProfitValue)
+            {
+                return false;
+            }
+
+            if (FilterProfitIsOn && report.TotalProfit < FilterProfitValue)
+            {
+                return false;
+            }
+
+            if (FilterMaxDrowDownIsOn && report.MaxDrowDawn < FilterMaxDrowDownValue)
+            {
+                return false;
+            }
+
+            if (FilterProfitFactorIsOn && report.ProfitFactor < FilterProfitFactorValue)
+            {
+                return false;
+            }
+
+            if (FilterDealsCountIsOn && report.PositionsCount < FilterDealsCountValue)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// optimization phases
         /// фазы оптимизации
         /// </summary>

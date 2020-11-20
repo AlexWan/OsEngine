@@ -76,7 +76,7 @@ namespace OsEngine.OsOptimizer
             CheckBoxFilterProfitFactorIsOn.Click += CheckBoxFilterIsOn_Click;
             CheckBoxFilterDealsCount.Click += CheckBoxFilterIsOn_Click;
 
-            TextBoxFilterProfitValue.Text = _master.FilterProfitFactorValue.ToString();
+            TextBoxFilterProfitValue.Text = _master.FilterProfitValue.ToString();
             TextBoxMaxDrowDownValue.Text = _master.FilterMaxDrowDownValue.ToString();
             TextBoxFilterMiddleProfitValue.Text = _master.FilterMiddleProfitValue.ToString();
             TextBoxFilterProfitFactorValue.Text = _master.FilterProfitFactorValue.ToString();
@@ -459,7 +459,7 @@ namespace OsEngine.OsOptimizer
         {
             try
             {
-                _master.FilterProfitFactorValue = Convert.ToDecimal(TextBoxFilterProfitValue.Text);
+                _master.FilterProfitValue = Convert.ToDecimal(TextBoxFilterProfitValue.Text);
                 _master.FilterMaxDrowDownValue = Convert.ToDecimal(TextBoxMaxDrowDownValue.Text);
                 _master.FilterMiddleProfitValue = Convert.ToDecimal(TextBoxFilterMiddleProfitValue.Text);
                 _master.FilterProfitFactorValue = Convert.ToDecimal(TextBoxFilterProfitFactorValue.Text);
@@ -467,7 +467,7 @@ namespace OsEngine.OsOptimizer
             }
             catch
             {
-                TextBoxFilterProfitValue.Text = _master.FilterProfitFactorValue.ToString();
+                TextBoxFilterProfitValue.Text = _master.FilterProfitValue.ToString();
                 TextBoxMaxDrowDownValue.Text = _master.FilterMaxDrowDownValue.ToString();
                 TextBoxFilterMiddleProfitValue.Text = _master.FilterMiddleProfitValue.ToString();
                 TextBoxFilterProfitFactorValue.Text = _master.FilterProfitFactorValue.ToString();
@@ -1731,19 +1731,20 @@ namespace OsEngine.OsOptimizer
 
             for (int i = 0; i < fazeReport.Reports.Count; i++)
             {
-                if (fazeReport.Reports[i] == null ||
-                    fazeReport.Reports[i].TabsReports.Count == 0)
+                OptimizerReport report = fazeReport.Reports[i];
+                if (report == null ||
+                    report.TabsReports.Count == 0 ||
+                    !_master.IsAcceptedByFilter(report))
                 {
                     continue;
                 }
 
-
                 DataGridViewRow row = new DataGridViewRow();
                 row.Cells.Add(new DataGridViewTextBoxCell());
 
-                if (fazeReport.Reports[i].TabsReports.Count == 1)
+                if (report.TabsReports.Count == 1)
                 {
-                    row.Cells[0].Value = fazeReport.Reports[i].BotName;
+                    row.Cells[0].Value = report.BotName;
                 }
                 else
                 {
@@ -1751,39 +1752,39 @@ namespace OsEngine.OsOptimizer
                 }
 
                 DataGridViewTextBoxCell cell2 = new DataGridViewTextBoxCell();
-                cell2.Value = fazeReport.Reports[i].GetParamsToDataTable();
+                cell2.Value = report.GetParamsToDataTable();
                 row.Cells.Add(cell2);
 
                 DataGridViewTextBoxCell cell3 = new DataGridViewTextBoxCell();
-                cell3.Value = fazeReport.Reports[i].PositionsCount;
+                cell3.Value = report.PositionsCount;
                 row.Cells.Add(cell3);
 
                 DataGridViewTextBoxCell cell4 = new DataGridViewTextBoxCell();
-                cell4.Value = fazeReport.Reports[i].TotalProfit;
+                cell4.Value = report.TotalProfit;
                 row.Cells.Add(cell4);
 
                 DataGridViewTextBoxCell cell5 = new DataGridViewTextBoxCell();
-                cell5.Value = fazeReport.Reports[i].MaxDrowDawn;
+                cell5.Value = report.MaxDrowDawn;
                 row.Cells.Add(cell5);
 
                 DataGridViewTextBoxCell cell6 = new DataGridViewTextBoxCell();
-                cell6.Value = fazeReport.Reports[i].AverageProfit;
+                cell6.Value = report.AverageProfit;
                 row.Cells.Add(cell6);
 
                 DataGridViewTextBoxCell cell7 = new DataGridViewTextBoxCell();
-                cell7.Value = fazeReport.Reports[i].AverageProfitPercent;
+                cell7.Value = report.AverageProfitPercent;
                 row.Cells.Add(cell7);
 
                 DataGridViewTextBoxCell cell8 = new DataGridViewTextBoxCell();
-                cell8.Value = fazeReport.Reports[i].ProfitFactor;
+                cell8.Value = report.ProfitFactor;
                 row.Cells.Add(cell8);
 
                 DataGridViewTextBoxCell cell9 = new DataGridViewTextBoxCell();
-                cell9.Value = fazeReport.Reports[i].PayOffRatio;
+                cell9.Value = report.PayOffRatio;
                 row.Cells.Add(cell9);
 
                 DataGridViewTextBoxCell cell10 = new DataGridViewTextBoxCell();
-                cell10.Value = fazeReport.Reports[i].Recovery;
+                cell10.Value = report.Recovery;
                 row.Cells.Add(cell10);
 
 
@@ -1793,11 +1794,11 @@ namespace OsEngine.OsOptimizer
 
                 _gridResults.Rows.Add(row);
 
-                if (fazeReport.Reports[i].TabsReports.Count > 1)
+                if (report.TabsReports.Count > 1)
                 {
-                    for (int i2 = 0; i2 < fazeReport.Reports[i].TabsReports.Count; i2++)
+                    for (int i2 = 0; i2 < report.TabsReports.Count; i2++)
                     {
-                        _gridResults.Rows.Add(GetRowResult(fazeReport.Reports[i].TabsReports[i2]));
+                        _gridResults.Rows.Add(GetRowResult(report.TabsReports[i2]));
                     }
                 }
             }
