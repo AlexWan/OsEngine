@@ -209,19 +209,26 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         void _master_TestReadyEvent(List<OptimazerFazeReport> reports)
         {
-            _reports = reports;
-
-            for (int i = 0; i < reports.Count; i++)
+            try
             {
-                SortResults(reports[i].Reports);
+                _reports = reports;
+
+                for (int i = 0; i < reports.Count; i++)
+                {
+                    SortResults(reports[i].Reports);
+                }
+
+                PaintEndOnAllProgressBars();
+                PaintTableFazes();
+                PaintTableResults();
+                StartUserActivity();
+
+                _resultsCharting.ReLoad(reports);
             }
-
-            PaintEndOnAllProgressBars();
-            PaintTableFazes();
-            PaintTableResults();
-            StartUserActivity();
-
-            _resultsCharting.ReLoad(reports);
+            catch (Exception error)
+            {
+                _master.SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         private List<OptimazerFazeReport> _reports;
@@ -1692,6 +1699,11 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         private void PaintTableResults()
         {
+            if (_gridResults == null)
+            {
+                return;
+            }
+
             if (_gridResults.InvokeRequired)
             {
                 _gridResults.Invoke(new Action(PaintTableResults));

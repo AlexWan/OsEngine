@@ -234,13 +234,20 @@ namespace OsEngine.Robots.Trend
         /// </summary>
         private void LogicClosePosition(List<Candle> candles, Position position)
         {
+            if(position.State != PositionStateType.Open)
+            {
+                return;
+            }
+
             if (position.Direction == Side.Buy)
             {
                 if (_lastPriceL < _lastPriceChDown)
                 {
                     _tab.CloseAtLimit(position, _lastPriceC - Slipage, position.OpenVolume);
 
-                    if (Regime != BotTradeRegime.OnlyLong && Regime != BotTradeRegime.OnlyClosePosition)
+                    if (Regime != BotTradeRegime.OnlyLong 
+                        && Regime != BotTradeRegime.OnlyClosePosition
+                        && _tab.PositionsOpenAll.Count < 3)
                     {
                         _tab.SellAtLimit(VolumeFix, _lastPriceC - Slipage);
                     }
@@ -253,7 +260,9 @@ namespace OsEngine.Robots.Trend
                 {
                     _tab.CloseAtLimit(position, _lastPriceC + Slipage, position.OpenVolume);
 
-                    if (Regime != BotTradeRegime.OnlyShort && Regime != BotTradeRegime.OnlyClosePosition)
+                    if (Regime != BotTradeRegime.OnlyShort && Regime 
+                        != BotTradeRegime.OnlyClosePosition
+                        && _tab.PositionsOpenAll.Count < 3)
                     {
                         _tab.BuyAtLimit(VolumeFix, _lastPriceC + Slipage);
                     }

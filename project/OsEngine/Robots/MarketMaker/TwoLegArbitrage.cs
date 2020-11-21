@@ -140,6 +140,13 @@ namespace OsEngine.Robots.MarketMaker
         // синхронизация вкладок.
         private void TabIndex_CandleFinishedEvent(List<Candle> candlesIndex)
         {
+            if (_tab1.CandlesFinishedOnly == null ||
+                _tab2.CandlesFinishedOnly == null ||
+                _tabIndex.Candles == null)
+            {
+                return;
+            }
+
             if (_tab1.CandlesFinishedOnly.Count == 0
                 || _tab2.CandlesFinishedOnly.Count == 0
                 || _tabIndex.Candles.Count == 0)
@@ -159,6 +166,13 @@ namespace OsEngine.Robots.MarketMaker
 
         private void Tab1_CandleFinishedEvent(List<Candle> candlesTab1)
         {
+            if(_tab1.CandlesFinishedOnly == null ||
+                _tab2.CandlesFinishedOnly == null ||
+                _tabIndex.Candles == null)
+            {
+                return;
+            }
+
             if (_tab1.CandlesFinishedOnly.Count == 0
                 || _tab2.CandlesFinishedOnly.Count == 0
                 || _tabIndex.Candles.Count == 0)
@@ -179,6 +193,12 @@ namespace OsEngine.Robots.MarketMaker
 
         private void Tab2_CandleFinishedEvent(List<Candle> candlesTab2)
         {
+            if (_tab1.CandlesFinishedOnly == null ||
+                _tab2.CandlesFinishedOnly == null ||
+                _tabIndex.Candles == null)
+            {
+                return;
+            }
             if (_tab1.CandlesFinishedOnly.Count == 0
                 || _tab2.CandlesFinishedOnly.Count == 0
                 || _tabIndex.Candles.Count == 0)
