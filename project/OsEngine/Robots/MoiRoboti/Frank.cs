@@ -25,7 +25,6 @@ namespace OsEngine.Robots.MoiRoboti
         public decimal min_lot; // поле хранящее величину минимального лота для биржи
         bool start_metod_vkl; // поле переключения состояния метода старт 
         bool sav_profit_metod_vkl; // поле переключения состояния метода  сохранения профита
-        bool piramid_metod_vkl; // поле переключения состояния метода  пирамида 
         public decimal _kom; // поле хранения значения комиссия биржи 
         public decimal _temp_greed; // поле для хранения временного значения жадности 
 
@@ -40,7 +39,9 @@ namespace OsEngine.Robots.MoiRoboti
         private StrategyParameterDecimal komis_birgi; // комиссия биржи в %
         private StrategyParameterBool uchet_blok_sred_vkl; // учет блокированных средств в портфеле
         private StrategyParameterDecimal greed; // жадность - процент включения для получения прибыли 
+        private StrategyParameterDecimal greed_max; // максимальная жадность - процент включения для получения прибыли 
         private StrategyParameterDecimal pir_of; // когда выключать пирамиду
+        private StrategyParameterBool vkl_piramid; // поле включения метода пирамида  
         private StrategyParameterDecimal prof_on; // когда включать профит
         private StrategyParameterInt n_min; // количество минут для метода подсчета прошедшего времени 
         private StrategyParameterInt volum_alarm;  // величина объема при достижении которого закроются убытки 
@@ -59,11 +60,13 @@ namespace OsEngine.Robots.MoiRoboti
             vkl_Robota = CreateParameter("РОБОТ Включен?", false);
             slippage = CreateParameter("Велич. проскаль.у ордеров", 1m, 1m, 200m, 5m);
             profit = CreateParameter("ТЭЙКПРОФИТ от рынка На ", 10, 5, 50, 5);
-            greed = CreateParameter("Сколько прибыли ожидать в сделке на каждые 100$ ", 0.25m, 0.25m, 1.5m, 0.01m); // жадность
+            greed = CreateParameter("Сколько минимум прибыли ожидать в сделке на каждые 100$ ", 0.55m, 0.25m, 5.5m, 0.05m); // жадность
+            greed_max = CreateParameter("Сколько Максимум прибыли ожидать в сделке на каждые 100$ ", 1.25m, 0.25m, 5.5m, 0.05m); // жадность
             velich_usrednen = CreateParameter("Усред.уваелич в раз ", 0.01m, 0.01m, 0.5m, 0.01m);
             do_piram = CreateParameter(" РАСТ. до Пирамиды", 20m, 5m, 200m, 5m);
-            pir_of = CreateParameter(" ОТКлючить  Пирамиду при % товара", 35m, 5m, 100m, 5m);
-            prof_on = CreateParameter("Забирать профит с % ", 25m, 5m, 100m, 5m);
+            pir_of = CreateParameter(" ОТКлючить  Пирамиду при % товара", 10m, 5m, 100m, 5m);
+            vkl_piramid = CreateParameter("Пирамида включена?", false);
+            prof_on = CreateParameter("Забирать профит с % ", 10m, 5m, 100m, 5m);
             deltaUsredn = CreateParameter("УСРЕДнять через", 20m, 5m, 50m, 5m);
             start_per_depo = CreateParameter("Начинать с ? % депо)", 5, 5, 20, 5);
             min_sum = CreateParameter("МИН сумма орд.на бирже($)", 10.1m, 10.1m, 10.1m, 10.1m);
@@ -197,7 +200,7 @@ namespace OsEngine.Robots.MoiRoboti
             Console.WriteLine(" до выставления профита сделали "+ profit.ValueInt);
             sav_profit_metod_vkl = false;
             Console.WriteLine(" ВЫКЛючили метод выставления профита");
-            piramid_metod_vkl = true;
+            vkl_piramid.ValueBool = true;
             Console.WriteLine(" Режим пирамиды включен");
         }
         void Save_profit() // для выставления профита портфеля 
@@ -365,11 +368,12 @@ namespace OsEngine.Robots.MoiRoboti
         }
         void Switching_mode() // метод переключения режимов работы 
         {
+            decimal greed_average = MyBlanks.Okruglenie(greed_max.ValueDecimal + greed.ValueDecimal / 2, 2); // расчет среднего значения жадности
             Percent_tovara();
             List<Position> positions = _tab.PositionsOpenAll;
             if (pir_of.ValueDecimal <= percent_tovara) // место отключения режима пирамида
             {
-                piramid_metod_vkl = false;
+                vkl_piramid.ValueBool = false; 
                 Console.WriteLine(" после набора " + pir_of.ValueDecimal + " %  отключили  режим набора пирамидой");
             }
             if (prof_on.ValueDecimal <= percent_tovara) // место включения режима профит
@@ -386,7 +390,7 @@ namespace OsEngine.Robots.MoiRoboti
                 Console.WriteLine(" расстояние до пирамиды изменено на " + do_piram.ValueDecimal);
                 deltaUsredn.ValueDecimal = 90m;
                 Console.WriteLine("Расстояние до Усреднения теперь " + deltaUsredn.ValueDecimal);
-                _temp_greed = 1m;
+                _temp_greed = greed_max.ValueDecimal;
                 Console.WriteLine("Жадность теперь " + _temp_greed);
             }
             if (50 <= percent_tovara && percent_tovara < 70) // режим разворота и ожидания прибыли
@@ -399,7 +403,7 @@ namespace OsEngine.Robots.MoiRoboti
                 Console.WriteLine(" расстояние до пирамиды изменено на " + do_piram.ValueDecimal);
                 deltaUsredn.ValueDecimal = 70m;
                 Console.WriteLine("Расстояние до Усреднения теперь " + deltaUsredn.ValueDecimal);
-                _temp_greed = 0.75m; //  = 0.45m
+                _temp_greed = greed_average; //  средняя жадность 
                 Console.WriteLine("Жадность теперь " + _temp_greed);
             }
             if (prof_on.ValueDecimal <= percent_tovara && percent_tovara < 50) // режим набора товара и ожидания прибыли
@@ -461,7 +465,7 @@ namespace OsEngine.Robots.MoiRoboti
             Percent_birgi();
             Lot(min_sum.ValueDecimal);
             VolumForPiramid();
-            if (piramid_metod_vkl == false)
+            if (vkl_piramid.ValueBool == false)
             {
                 return;
             }
