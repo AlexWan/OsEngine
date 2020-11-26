@@ -63,12 +63,15 @@ namespace OsEngine.Journal.Internal
 
                 for (int i = 0; i < ControllersToCheck.Count; i++)
                 {
-                    if (ControllersToCheck[i] == null)
+                    PositionController controller = ControllersToCheck[i];
+
+                    if (controller == null)
                     {
                         continue;
                     }
-                    ControllersToCheck[i].SavePositions();
-                    ControllersToCheck[i].TryPaintPositions();
+
+                    controller.SavePositions();
+                    controller.TryPaintPositions();
                 }
 
                 if (!MainWindow.ProccesIsWorked)
