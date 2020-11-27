@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Windows;
 using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
+using OsEngine.Entity;
 
 namespace OsEngine.Robots.Trend
 {
@@ -21,7 +22,7 @@ namespace OsEngine.Robots.Trend
 
             TextBoxVolumeOne.Text = _strategy.VolumeFix.ToString();
 
-            TextBoxSlipage.Text = _strategy.Slipage.ToString(new CultureInfo("ru-RU"));
+            TextBoxSlipage.Text = _strategy.Slipage.ToString();
 
 
             ComboBoxRegime.Items.Add(BotTradeRegime.Off);
@@ -42,12 +43,11 @@ namespace OsEngine.Robots.Trend
             try
             {
 
-                if (Convert.ToDecimal(TextBoxVolumeOne.Text) <= 0 ||
-                     Convert.ToDecimal(TextBoxSlipage.Text) < 0)
+                if (TextBoxVolumeOne.Text.ToDecimal() <= 0 ||
+                     TextBoxSlipage.Text.ToDecimal() < 0)
                 {
                     throw new Exception("");
                 }
-               
             }
             catch (Exception)
             {
@@ -55,8 +55,8 @@ namespace OsEngine.Robots.Trend
                 return;
             }
 
-            _strategy.VolumeFix = Convert.ToDecimal(TextBoxVolumeOne.Text);
-            _strategy.Slipage = Convert.ToDecimal(TextBoxSlipage.Text);
+            _strategy.VolumeFix = TextBoxVolumeOne.Text.ToDecimal();
+            _strategy.Slipage = TextBoxSlipage.Text.ToDecimal();
 
             Enum.TryParse(ComboBoxRegime.Text, true, out _strategy.Regime);
 

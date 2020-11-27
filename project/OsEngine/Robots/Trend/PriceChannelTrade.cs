@@ -127,8 +127,8 @@ namespace OsEngine.Robots.Trend
             {
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
-                    Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
+                    Slipage = reader.ReadLine().ToDecimal();
+                    VolumeFix = reader.ReadLine().ToDecimal();
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
 
 
