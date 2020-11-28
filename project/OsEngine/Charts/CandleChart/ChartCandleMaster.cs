@@ -282,7 +282,14 @@ namespace OsEngine.Charts.CandleChart
                         {
                             CreateIndicator(new TradeThread(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-
+                        if (indicator[0] == "LinearRegressionCurve")
+                        {
+                            CreateIndicator(new LinearRegressionCurve(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                        }
+                        if (indicator[0] == "SimpleVWAP")
+                        {
+                            CreateIndicator(new SimpleVWAP(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                        }
                     }
 
                     reader.Close();
