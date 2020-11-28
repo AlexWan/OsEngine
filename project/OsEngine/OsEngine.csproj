@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>OsEngine</RootNamespace>
     <AssemblyName>OsEngine</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
@@ -43,6 +43,7 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>x64</PlatformTarget>
@@ -230,6 +231,10 @@
       <DependentUpon>KalmanFilterUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Charts\CandleChart\Indicators\Line.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\LinearRegressionCurve.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\LinearRegressionCurveUi.xaml.cs">
+      <DependentUpon>LinearRegressionCurveUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Charts\CandleChart\Indicators\MacdHistogram.cs" />
     <Compile Include="Charts\CandleChart\Indicators\MacdHistogramUi.xaml.cs">
       <DependentUpon>MacdHistogramUi.xaml</DependentUpon>
@@ -246,6 +251,7 @@
     <Compile Include="Charts\CandleChart\Indicators\MoneyFlowIndexUi.xaml.cs">
       <DependentUpon>MoneyFlowIndexUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\MovingAverage.cs" />
     <Compile Include="Charts\CandleChart\Indicators\OnBalanceVolume.cs" />
     <Compile Include="Charts\CandleChart\Indicators\OnBalanceVolumeUi.xaml.cs">
       <DependentUpon>OnBalanceVolumeUi.xaml</DependentUpon>
@@ -278,6 +284,8 @@
     <Compile Include="Charts\CandleChart\Indicators\RviUi.xaml.cs">
       <DependentUpon>RviUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\SimpleVWAP.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\SimpleVWAPUi.xaml.cs" />
     <Compile Include="Charts\CandleChart\Indicators\StandardDeviation.cs" />
     <Compile Include="Charts\CandleChart\Indicators\StandardDeviationUi.xaml.cs">
       <DependentUpon>StandardDeviationUi.xaml</DependentUpon>
@@ -646,7 +654,6 @@
       <DependentUpon>FractalUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Indicators\IIndicator.cs" />
-    <Compile Include="Charts\CandleChart\Indicators\MovingAverage.cs" />
     <Compile Include="Charts\CandleChart\Indicators\MovingAverageUi.xaml.cs">
       <DependentUpon>MovingAverageUi.xaml</DependentUpon>
     </Compile>
@@ -969,6 +976,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Charts\CandleChart\Indicators\LinearRegressionCurveUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Charts\CandleChart\Indicators\MacdHistogramUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -1016,6 +1027,10 @@
     <Page Include="Charts\CandleChart\Indicators\RviUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\SimpleVWAPUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
     </Page>
     <Page Include="Charts\CandleChart\Indicators\StandardDeviationUi.xaml">
       <SubType>Designer</SubType>

@@ -1,0 +1,19 @@
+﻿<Window x:Class="OsEngine.Charts.CandleChart.Indicators.LinearRegressionCurveUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Linear Regression Curve" Height="237" Width="330" WindowStartupLocation="CenterScreen" Topmost="True" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico">
+    <Grid>
+        <Rectangle Margin="5,5,5,37"/>
+        <Button x:Name ="ButtonAccept"  Content="Accept" Height="22" FontSize="14" FontFamily="Calibri"  HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="152" Click="ButtonAccept_Click"/>
+        <TextBox x:Name ="TextBoxLenght" HorizontalAlignment="Left" Height="23" Margin="152,17,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <Label Name="LabelIndicatorPeriod" Content="Period" HorizontalAlignment="Left" Margin="19,17,0,0" VerticalAlignment="Top"/>
+        <Button x:Name="ButtonColor" Content="Color" Height="22" FontSize="14" FontFamily="Calibri"  HorizontalAlignment="Left" Margin="19,107,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"/>
+        <WindowsFormsHost x:Name="HostColor" HorizontalAlignment="Left" Height="22" Margin="152,107,0,0" VerticalAlignment="Top" Width="120"/>
+        <CheckBox Name="CheckBoxPaintOnOff" Content="Is visible" HorizontalAlignment="Left" Margin="152,137,0,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name="ComboBoxPriceField" HorizontalAlignment="Left" Margin="152,74,0,0" VerticalAlignment="Top" Width="120"/>
+        <Label Name="LabelIndicatorCandleType" Content="Candle type" HorizontalAlignment="Left" Margin="19,74,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name ="TextBoxLag" HorizontalAlignment="Left" Height="23" Margin="152,45,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <Label x:Name="LabelIndicatorLag" Content="Lag" HorizontalAlignment="Left" Margin="19,45,0,0" VerticalAlignment="Top"/>
+
+    </Grid>
+</Window>
