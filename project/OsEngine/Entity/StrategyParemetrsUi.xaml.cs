@@ -34,8 +34,7 @@ namespace OsEngine.Entity
 
         private void CreateTable()
         {
-            _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect,
-                DataGridViewAutoSizeRowsMode.None);
+            _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.None);
             _grid.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
@@ -191,7 +190,7 @@ namespace OsEngine.Entity
                 string[] array = new[] { "", _grid.Rows[index].Cells[1].EditedFormattedValue.ToString() };
                 param.LoadParamFromString(array);
             }
-            catch (Exception exception)
+            catch (Exception)
             {
 
                 _grid.Rows[index].Cells[1].Value = ((StrategyParameterTimeOfDay)_parameters[index]).Value.ToString();

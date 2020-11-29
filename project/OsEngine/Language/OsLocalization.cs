@@ -18,16 +18,16 @@ namespace OsEngine.Language
 
             Ru,
 
-            Eng,
+            Eng
         }
 
         public static List<OsLocalType> GetExistLocalizationTypes()
         {
-            List<OsLocalType> localizations = new List<OsLocalType>();
-
-            localizations.Add(OsLocalType.Eng);
-            localizations.Add(OsLocalType.Ru);
-
+            List<OsLocalType> localizations = new List<OsLocalType>
+            {
+                OsLocalType.Eng, 
+                OsLocalType.Ru
+            };
             return localizations;
         }
 
@@ -75,9 +75,10 @@ namespace OsEngine.Language
                     writer.Close();
                 }
             }
+
             catch
             {
-               
+                // ignored
             }
         }
 
@@ -98,9 +99,9 @@ namespace OsEngine.Language
                     reader.Close();
                 }
             }
-            catch 
+            catch
             {
-               
+                // ignored
             }
         }
 
@@ -116,14 +117,14 @@ namespace OsEngine.Language
 
                 string engLoc = "";
 
-                for (int i = 0; i < locStrings.Length; i++)
+                foreach (string locString in locStrings)
                 {
-                    if (locStrings[i] == "" || locStrings[i] == " ")
+                    if (locString == "" || locString == " ")
                     {
                         continue;
                     }
 
-                    string [] locCur = locStrings[i].Split(':');
+                    string [] locCur = locString.Split(':');
 
                     OsLocalType cultureTypeCur;
                     if (Enum.TryParse(locCur[0], out cultureTypeCur))

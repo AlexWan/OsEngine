@@ -22,43 +22,22 @@ using OsEngine.OsTrader.RiskManager;
 
 namespace OsEngine.OsTrader.Panels
 {
-
-    /// <summary>
-    /// types of tabs for the robot / 
-    /// типы вкладок для робота
-    /// </summary>
+    /// <summary> типы вкладок для робота </summary>
     public enum BotTabType
     {
-        /// <summary>
-        /// for trading one instrument / 
-        /// простая для торговли одного инструмента
-        /// </summary>
+        /// <summary> простая для торговли одного инструмента </summary>
         Simple,
 
-        /// <summary>
-        /// index / 
-        /// индекс
-        /// </summary>
+        /// <summary> индекс </summary>
         Index,
 
-        /// <summary>
-        /// clusters / 
-        /// кластеры
-        /// </summary>
+        /// <summary> кластеры </summary>
         Cluster
-
     }
 
-    /// <summary>
-    /// Robot / 
-    /// Робот
-    /// </summary>
+    /// <summary> Робот </summary>
     public abstract class BotPanel
     {
-        /// <summary>
-        /// constructor / 
-        /// конструктор
-        /// </summary>
         protected BotPanel(string name, StartProgram startProgram)
         {
             NameStrategyUniq = name;
@@ -73,31 +52,20 @@ namespace OsEngine.OsTrader.Panels
             _log.Listen(this);
         }
 
-        /// <summary>
-        /// unique robot name / 
-        /// уникальное имя робота
-        /// </summary>
+        /// <summary> уникальное имя робота </summary>
         public string NameStrategyUniq;
 
-        /// <summary>
-        /// название файла если это робот из файловой системы
-        /// </summary>
+        /// <summary> название файла если это робот из файловой системы </summary>
         public string FileName;
 
-        /// <summary>
-        /// the program that launched the robot. Tester  Robot  Optimizer / 
-        /// программа которая запустила робота. Тестер  Робот  Оптимизатор
-        /// </summary>
+        /// <summary> программа которая запустила робота. Тестер  Робот  Оптимизатор </summary>
         public StartProgram StartProgram;
 
         public bool IsScript;
 
-        // control / управление
+        //  управление
 
-        /// <summary>
-        /// take logs panel / 
-        /// взять журналы панели
-        /// </summary>
+        /// <summary> взять журналы панели </summary>
         public List<Journal.Journal> GetJournals()
         {
             List<Journal.Journal> journals = new List<Journal.Journal>();
@@ -113,10 +81,7 @@ namespace OsEngine.OsTrader.Panels
             return journals;
         }
 
-        /// <summary>
-        /// show the chart window with deals / 
-        /// показать окно графиков со сделками
-        /// </summary>
+        /// <summary> показать окно графиков со сделками </summary>
         public void ShowChartDialog()
         {
             if (_chartUi == null)
@@ -135,16 +100,10 @@ namespace OsEngine.OsTrader.Panels
         }
 
 
-        /// <summary>
-        /// is drawing included / 
-        /// включена ли прорисовка 
-        /// </summary>
+        /// <summary> включена ли прорисовка </summary>
         private bool _isPainting;
 
-        /// <summary>
-        /// start drawing this robot / 
-        /// начать прорисовку этого робота
-        /// </summary> 
+        /// <summary> начать прорисовку этого робота </summary> 
         public void StartPaint(Grid gridChart, WindowsFormsHost hostChart, WindowsFormsHost glass, WindowsFormsHost hostOpenDeals,
             WindowsFormsHost hostCloseDeals, WindowsFormsHost boxLog, Rectangle rectangle, WindowsFormsHost hostAlerts,
             TabControl tabBotTab, TextBox textBoxLimitPrice, Grid gridChartControlPanel)
@@ -207,10 +166,7 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
-        /// <summary>
-        /// stop drawing this robot / 
-        /// остановить прорисовку этого робота
-        /// </summary>
+        /// <summary> остановить прорисовку этого робота </summary>
         public void StopPaint()
         {
             if (_isPainting == false)
@@ -269,16 +225,10 @@ namespace OsEngine.OsTrader.Panels
         private TextBox _textBoxLimitPrice;
         private Grid _gridChartControlPanel;
 
-        /// <summary>
-        /// bot name / 
-        /// название робота
-        /// </summary>
+        /// <summary> название робота </summary>
         public abstract string GetNameStrategyType();
 
-        /// <summary>
-        /// has the robot connected to the exchange of all tabs / 
-        /// подключился ли робот к бирже всеми вкладкам
-        /// </summary>
+        /// <summary> подключился ли робот к бирже всеми вкладкам </summary>
         public bool IsConnected
         {
             get
@@ -308,10 +258,7 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
-        /// <summary>
-        /// clear data / 
-        /// очистить данные
-        /// </summary>
+        /// <summary> очистить данные </summary>
         public void Clear()
         {
             try
@@ -338,10 +285,7 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
-        /// <summary>
-        /// remove the robot and all child structures / 
-        /// удалить робота и все дочерние структуры
-        /// </summary>
+        /// <summary> удалить робота и все дочерние структуры </summary>
         public void Delete()
         {
             try
@@ -376,10 +320,7 @@ namespace OsEngine.OsTrader.Panels
 
         // robot trading figures / показатели торговли робота
 
-        /// <summary>
-        /// total profit / 
-        /// итоговая прибыль
-        /// </summary>
+        /// <summary> итоговая прибыль </summary>
         public decimal TotalProfitInPersent
         {
             get
@@ -412,10 +353,7 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        /// <summary>
-        /// average profit from the transaction / 
-        /// средняя прибыль со сделки
-        /// </summary>
+        /// <summary> средняя прибыль со сделки </summary>
         public decimal MiddleProfitInPersent
         {
             get
@@ -448,10 +386,7 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        /// <summary>
-        /// profit factor / 
-        /// профит фактор
-        /// </summary>
+        /// <summary> профит фактор </summary>
         public decimal ProfitFactor
         {
             get
@@ -479,10 +414,7 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        /// <summary>
-        /// maximum drawdown / 
-        /// максимальная просадка
-        /// </summary>
+        /// <summary> максимальная просадка </summary>
         public decimal MaxDrowDown
         {
             get
@@ -510,10 +442,7 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        /// <summary>
-        /// profit position count / 
-        /// кол-во выигранных сделок
-        /// </summary>
+        /// <summary> кол-во выигранных сделок </summary>
         public decimal WinPositionPersent
         {
             get
@@ -546,10 +475,7 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        /// <summary>
-        /// the number of positions at the tabs of the robot / 
-        /// количество позиций у вкладок робота
-        /// </summary>
+        /// <summary> количество позиций у вкладок робота </summary>
         public int PositionsCount
         {
             get
@@ -581,12 +507,9 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        // working with strategy parameters / работа с параметрами стратегии
+        // работа с параметрами стратегии
 
-        /// <summary>
-        /// show parameter settings window / 
-        /// показать окно настроек параметров
-        /// </summary>
+        /// <summary> показать окно настроек параметров </summary>
         public void ShowParametrDialog()
         {
             if (_parameters == null ||
@@ -599,15 +522,12 @@ position => position.State != PositionStateType.OpeningFail
             ui.ShowDialog();
         }
 
-        /// <summary>
-        /// create a Decimal type parameter / 
-        /// создать параметр типа Decimal
-        /// </summary>
-        /// <param name="name">param name / Имя параметра</param>
-        /// <param name="value">default value / Значение по умолчанию</param>
-        /// <param name="start">first value / Первое значение при оптимизации</param>
-        /// <param name="stop">last value / Последнее значение при оптимизации</param>
-        /// <param name="step">value step / Шаг изменения при оптимизации</param>
+        /// <summary> создать параметр типа Decimal </summary>
+        /// <param name="name"> Имя параметра</param>
+        /// <param name="value"> Значение по умолчанию</param>
+        /// <param name="start"> Первое значение при оптимизации</param>
+        /// <param name="stop"> Последнее значение при оптимизации</param>
+        /// <param name="step"> Шаг изменения при оптимизации</param>
         public StrategyParameterDecimal CreateParameter(string name, decimal value, decimal start, decimal stop, decimal step)
         {
             StrategyParameterDecimal newParameter = new StrategyParameterDecimal(name, value, start, stop, step);
@@ -620,15 +540,12 @@ position => position.State != PositionStateType.OpeningFail
             return (StrategyParameterDecimal)LoadParameterValues(newParameter);
         }
 
-        /// <summary>
-        /// create a Decimal type parameter / 
-        /// создать параметр типа Decimal
-        /// </summary>
-        /// <param name="name">param name / Имя параметра</param>
-        /// <param name="value">default value / Значение по умолчанию</param>
-        /// <param name="start">first value / Первое значение при оптимизации</param>
-        /// <param name="stop">last value / Последнее значение при оптимизации</param>
-        /// <param name="step">value step / Шаг изменения при оптимизации</param>
+        /// <summary> создать параметр типа Decimal </summary>
+        /// <param name="name"> Имя параметра</param>
+        /// <param name="value"> Значение по умолчанию</param>
+        /// <param name="start"> Первое значение при оптимизации</param>
+        /// <param name="stop"> Последнее значение при оптимизации</param>
+        /// <param name="step"> Шаг изменения при оптимизации</param>
         public StrategyParameterTimeOfDay CreateParameterTimeOfDay(string name, int hour, int minute, int second, int millisecond)
         {
             StrategyParameterTimeOfDay newParameter =
@@ -642,15 +559,12 @@ position => position.State != PositionStateType.OpeningFail
             return (StrategyParameterTimeOfDay)LoadParameterValues(newParameter);
         }
 
-        /// <summary>
-        /// create int parameter / 
-        /// создать параметр типа Int
-        /// </summary>
-        /// <param name="name">param name / Имя параметра</param>
-        /// <param name="value">default value / Значение по умолчанию</param>
-        /// <param name="start">first value / Первое значение при оптимизации</param>
-        /// <param name="stop">last value / Последнее значение при оптимизации</param>
-        /// <param name="step">value step / Шаг изменения при оптимизации</param>
+        /// <summary> создать параметр типа Int </summary>
+        /// <param name="name">Имя параметра</param>
+        /// <param name="value"> Значение по умолчанию</param>
+        /// <param name="start"> Первое значение при оптимизации</param>
+        /// <param name="stop"> Последнее значение при оптимизации</param>
+        /// <param name="step"> Шаг изменения при оптимизации</param>
         public StrategyParameterInt CreateParameter(string name, int value, int start, int stop, int step)
         {
             StrategyParameterInt newParameter = new StrategyParameterInt(name, value, start, stop, step);
@@ -663,13 +577,10 @@ position => position.State != PositionStateType.OpeningFail
             return (StrategyParameterInt)LoadParameterValues(newParameter);
         }
 
-        /// <summary>
-        /// create string parameter / 
-        /// создать параметр типа String
-        /// </summary>
-        /// <param name="name">param name / Имя параметра</param>
-        /// <param name="value">default value / Значение по умолчанию</param>
-        /// <param name="collection">values / Возможные значения для параметра</param>
+        /// <summary> создать параметр типа String </summary>
+        /// <param name="name"> Имя параметра</param>
+        /// <param name="value"> Значение по умолчанию</param>
+        /// <param name="collection"> Возможные значения для параметра</param>
         public StrategyParameterString CreateParameter(string name, string value, string[] collection)
         {
             StrategyParameterString newParameter = new StrategyParameterString(name, value, collection.ToList());
@@ -682,12 +593,9 @@ position => position.State != PositionStateType.OpeningFail
             return (StrategyParameterString)LoadParameterValues(newParameter);
         }
 
-        /// <summary>
-        /// create string parameter / 
-        /// создать параметр типа String
-        /// </summary>
-        /// <param name="name">param name / Имя параметра</param>
-        /// <param name="value">default value / Значение по умолчанию</param>
+        /// <summary> создать параметр типа String </summary>
+        /// <param name="name">Имя параметра</param>
+        /// <param name="value">Значение по умолчанию</param>
         public StrategyParameterString CreateParameter(string name, string value)
         {
             StrategyParameterString newParameter = new StrategyParameterString(name, value);
@@ -700,12 +608,9 @@ position => position.State != PositionStateType.OpeningFail
             return (StrategyParameterString)LoadParameterValues(newParameter);
         }
 
-        /// <summary>
-        /// create bool type parameter / 
-        /// создать параметр типа Bool
-        /// </summary>
-        /// <param name="name">param name / Имя параметра</param>
-        /// <param name="value">default value / Значение по умолчанию</param>
+        /// <summary> создать параметр типа Bool </summary>
+        /// <param name="name">Имя параметра</param>
+        /// <param name="value">Значение по умолчанию</param>
         public StrategyParameterBool CreateParameter(string name, bool value)
         {
             StrategyParameterBool newParameter = new StrategyParameterBool(name, value);
@@ -718,10 +623,7 @@ position => position.State != PositionStateType.OpeningFail
             return (StrategyParameterBool)LoadParameterValues(newParameter);
         }
 
-        /// <summary>
-        /// create button type parameter / 
-        /// создать параметр типа Button
-        /// </summary>
+        /// <summary> создать параметр типа Button </summary>
         public StrategyParameterButton CreateParameterButton(string buttonLabel)
         {
             StrategyParameterButton newParameter = new StrategyParameterButton(buttonLabel);
@@ -734,11 +636,8 @@ position => position.State != PositionStateType.OpeningFail
             return (StrategyParameterButton)LoadParameterValues(newParameter);
         }
 
-        /// <summary>
-        /// load parameter settings / 
-        /// загрузить настройки параметра
-        /// </summary>
-        /// <param name="newParameter">setting parameter you want to load / параметр настройки которого нужно загрузить</param>
+        /// <summary> загрузить настройки параметра </summary>
+        /// <param name="newParameter">параметр настройки которого нужно загрузить</param>
         private IIStrategyParameter LoadParameterValues(IIStrategyParameter newParameter)
         {
             if (StartProgram != StartProgram.IsOsOptimizer)
@@ -753,10 +652,7 @@ position => position.State != PositionStateType.OpeningFail
             return newParameter;
         }
 
-        /// <summary>
-        /// load parameter settings from file / 
-        /// загрузить настройки параметра из файла
-        /// </summary>
+        /// <summary> загрузить настройки параметра из файла </summary>
         private void GetValueParameterSaveByUser(IIStrategyParameter parameter)
         {
             if (!File.Exists(@"Engine\" + NameStrategyUniq + @"Parametrs.txt"))
@@ -785,20 +681,14 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        /// <summary>
-        /// the list of options available in the panel / 
-        /// список параметров доступных у панели
-        /// </summary>
+        /// <summary> список параметров доступных у панели </summary>
         public List<IIStrategyParameter> Parameters
         {
             get { return _parameters; }
         }
         private List<IIStrategyParameter> _parameters = new List<IIStrategyParameter>();
 
-        /// <summary>
-        /// parameter has changed settings / 
-        /// у параметра изменились настройки
-        /// </summary>
+        /// <summary> у параметра изменились настройки </summary>
         void Parameter_ValueChange()
         {
             if (StartProgram != StartProgram.IsOsOptimizer)
@@ -812,10 +702,7 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        /// <summary>
-        /// save parameter values / 
-        /// сохранить значения параметров
-        /// </summary>
+        /// <summary> сохранить значения параметров </summary>
         private void SaveParametrs()
         {
             if (_parameters == null ||
@@ -825,8 +712,7 @@ position => position.State != PositionStateType.OpeningFail
             }
             try
             {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"Parametrs.txt", false)
-                    )
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"Parametrs.txt", false))
                 {
                     for (int i = 0; i < _parameters.Count; i++)
                     {
@@ -842,24 +728,15 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        /// <summary>
-        /// parameter has changed state / 
-        /// у параметра изменилось состояние
-        /// </summary>
+        /// <summary> у параметра изменилось состояние </summary>
         public event Action ParametrsChangeByUser;
 
-        // risk manager panel / риск менеджер панели
+        // риск менеджер панели
 
-        /// <summary>
-        /// risk manager / 
-        /// риск менеджер
-        /// </summary>
+        /// <summary> риск менеджер </summary>
         private RiskManager.RiskManager _riskManager;
 
-        /// <summary>
-        /// an alert came from a risk manager / 
-        /// пришло оповещение от риск менеджера
-        /// </summary>
+        /// <summary> пришло оповещение от риск менеджера </summary>
         void _riskManager_RiskManagerAlarmEvent(RiskManagerReactionType reactionType)
         {
             try
@@ -880,10 +757,7 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        /// <summary>
-        /// draw a window with a message in a new thread
-        /// прорисовать окошко с сообщением в новом потоке
-        /// </summary>
+        /// <summary> прорисовать окошко с сообщением в новом потоке </summary>
         private void ShowMessageInNewThread(string message)
         {
             try
@@ -903,10 +777,7 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        /// <summary>
-        /// emergency closing of all positions / 
-        /// экстренное закрытие всех позиций
-        /// </summary>
+        /// <summary> экстренное закрытие всех позиций </summary>
         public void CloseAndOffAllToMarket()
         {
             try
@@ -930,30 +801,18 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        // tab management / управление вкладками
+        // управление вкладками
 
-        /// <summary>
-        /// tabbed tabs / 
-        /// загруженые в панель вкладки
-        /// </summary>
+        /// <summary> загруженые в панель вкладки </summary>
         private List<IIBotTab> _botTabs;
 
-        /// <summary>
-        /// active tab
-        /// активная вкладка
-        /// </summary>
+        /// <summary> активная вкладка </summary>
         public IIBotTab ActivTab;
 
-        /// <summary>
-        /// control which tabs are located / 
-        /// контрол на котором расположены вкладки
-        /// </summary>
+        /// <summary> контрол на котором расположены вкладки </summary>
         private TabControl _tabBotTab;
 
-        /// <summary>
-        /// open tab number / 
-        /// номер открытой вкладки
-        /// </summary>
+        /// <summary> номер открытой вкладки </summary>
         public int ActivTabNumber
         {
             get
@@ -978,10 +837,7 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        /// <summary>
-        /// trade tabs / 
-        /// простые вкладки для торговли
-        /// </summary>
+        /// <summary> простые вкладки для торговли </summary>
         public List<BotTabSimple> TabsSimple
         {
             get
@@ -1008,10 +864,7 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        /// <summary>
-        /// index tabs
-        /// вкладки со спредами между инструментами
-        /// </summary>
+        /// <summary> вкладки со спредами между инструментами </summary>
         public List<BotTabIndex> TabsIndex
         {
             get
@@ -1038,10 +891,7 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        /// <summary>
-        /// clustered tabs / 
-        /// вкладки с кластерными графиками
-        /// </summary>
+        /// <summary> вкладки с кластерными графиками </summary>
         public List<BotTabCluster> TabsCluster
         {
             get
@@ -1068,10 +918,7 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        /// <summary>
-        /// user toggled tabs / 
-        /// пользователь переключил вкладки
-        /// </summary>
+        /// <summary> пользователь переключил вкладки </summary>
         void _tabBotTab_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             try
@@ -1087,10 +934,7 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        /// <summary>
-        /// create tab / 
-        /// создать вкладку
-        /// </summary>
+        /// <summary> создать вкладку </summary>
         public void TabCreate(BotTabType tabType)
         {
             try
@@ -1119,21 +963,19 @@ position => position.State != PositionStateType.OpeningFail
                 }
                 IIBotTab newTab;
 
-                if (tabType == BotTabType.Simple)
+                switch (tabType)
                 {
-                    newTab = new BotTabSimple(nameTab, StartProgram);
-                }
-                else if (tabType == BotTabType.Index)
-                {
-                    newTab = new BotTabIndex(nameTab, StartProgram);
-                }
-                else if (tabType == BotTabType.Cluster)
-                {
-                    newTab = new BotTabCluster(nameTab, StartProgram);
-                }
-                else
-                {
-                    return;
+                    case BotTabType.Simple:
+                        newTab = new BotTabSimple(nameTab, StartProgram);
+                        break;
+                    case BotTabType.Index:
+                        newTab = new BotTabIndex(nameTab, StartProgram);
+                        break;
+                    case BotTabType.Cluster:
+                        newTab = new BotTabCluster(nameTab, StartProgram);
+                        break;
+                    default:
+                        return;
                 }
 
                 _botTabs.Add(newTab);
@@ -1151,10 +993,7 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        /// <summary>
-        /// delete active tab / 
-        /// удалить активную вкладку
-        /// </summary>
+        /// <summary> удалить активную вкладку </summary>
         public void TabDelete()
         {
             try
@@ -1179,10 +1018,7 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        /// <summary>
-        /// delete tab for num / 
-        /// удалить вкладку по номеру
-        /// </summary>
+        /// <summary> удалить вкладку по номеру </summary>
         public void TabDelete(int index)
         {
             try
@@ -1213,10 +1049,7 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        /// <summary>
-        /// set new active tab / 
-        /// установить новую активную вкладку
-        /// </summary>
+        /// <summary> установить новую активную вкладку </summary>
         private void ChangeActivTab(int tabNumber)
         {
             try
@@ -1265,10 +1098,7 @@ position => position.State != PositionStateType.OpeningFail
 
         }
 
-        /// <summary>
-        /// reload tabs on control / 
-        /// перезагрузить вкладки на контроле
-        /// </summary>
+        /// <summary> перезагрузить вкладки на контроле </summary>
         private void ReloadTab()
         {
             try
@@ -1322,9 +1152,7 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        /// <summary>
-        /// убрать все вкладки
-        /// </summary>
+        /// <summary> убрать все вкладки </summary>
         public void ClearTabs()
         {
             for (int i = 0; TabsSimple != null && i < TabsSimple.Count; i++)
@@ -1348,13 +1176,10 @@ position => position.State != PositionStateType.OpeningFail
             ActivTab = null;
         }
 
-        // call control windows / вызыв окон управления
+        //  вызыв окон управления
 
 
-        /// <summary>
-        /// show general risk manager window / 
-        /// показать окно общего для панели рискМенеджера
-        /// </summary>
+        /// <summary> показать окно общего для панели рискМенеджера </summary>
         public void ShowPanelRiskManagerDialog()
         {
             try
@@ -1371,20 +1196,14 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        /// <summary>
-        /// show individual settings / 
-        /// показать индивидуальные настройки
-        /// </summary>
+        /// <summary> показать индивидуальные настройки </summary>
         public abstract void ShowIndividualSettingsDialog();
 
-        // log / сообщения в лог 
+        // сообщения в лог 
 
         private Log _log;
 
-        /// <summary>
-        /// send new message / 
-        /// выслать новое сообщение на верх
-        /// </summary>
+        /// <summary> выслать новое сообщение на верх </summary>
         protected void SendNewLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
@@ -1397,54 +1216,30 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        /// <summary>
-        /// log message event
-        /// исходящее сообщение для лога
-        /// </summary>
+        /// <summary> исходящее сообщение для лога </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        /// <summary>
-        /// delete bot event
-        /// событие удаления робота
-        /// </summary>
+        /// <summary> событие удаления робота </summary>
         public event Action DeleteEvent;
 
     }
 
-    /// <summary>
-    /// robot trade regime
-    /// режим работы робота
-    /// </summary>
+    /// <summary> режим работы робота </summary>
     public enum BotTradeRegime
     {
-        /// <summary>
-        /// is on
-        /// включен
-        /// </summary>
+        /// <summary> включен </summary>
         On,
 
-        /// <summary>
-        /// on only long position
-        /// включен только лонг
-        /// </summary>
+        /// <summary> включен только лонг </summary>
         OnlyLong,
 
-        /// <summary>
-        /// on only short position
-        /// включен только шорт
-        /// </summary>
+        /// <summary> включен только шорт </summary>
         OnlyShort,
 
-        /// <summary>
-        /// on only close position
-        /// только закрытие позиции
-        /// </summary>
+        /// <summary> только закрытие позиции </summary>
         OnlyClosePosition,
 
-        /// <summary>
-        /// robot is off
-        /// выключен
-        /// </summary>
+        /// <summary> выключен </summary>
         Off
     }
 }

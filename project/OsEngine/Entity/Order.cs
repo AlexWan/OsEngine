@@ -238,11 +238,7 @@ namespace OsEngine.Entity
         /// </summary>
         public void SetTrade(MyTrade trade)
         {
-            if ((trade.NumberOrderParent != NumberMarket &&
-                ServerType != ServerType.Oanda) ||
-                (ServerType == ServerType.Oanda &&
-                trade.NumberOrderParent != NumberMarket &&
-                trade.NumberOrderParent != NumberUser.ToString()))
+            if (trade.NumberOrderParent != NumberMarket)
             {
                 return;
             }
@@ -253,7 +249,7 @@ namespace OsEngine.Entity
                 {
                     if (tradeInArray.NumberTrade == trade.NumberTrade)
                     {
-                        // / such an application is already in storage, a stupid API is poisoning with toxic data, we exit
+                        // such an application is already in storage, a stupid API is poisoning with toxic data, we exit
                         // такая заявка уже в хранилище, глупое АПИ травит токсичными данными, выходим
                         return;
                     }

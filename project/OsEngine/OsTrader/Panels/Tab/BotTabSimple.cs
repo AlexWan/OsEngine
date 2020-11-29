@@ -1134,10 +1134,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private bool IsMarketOrderSupport()
         {
-            if (_connector.ServerType == ServerType.InteractivBrokers ||
-                _connector.ServerType == ServerType.Lmax ||
-                _connector.ServerType == ServerType.BitMax ||
-                _connector.ServerType == ServerType.FTX)
+            if (_connector.ServerType == ServerType.InteractivBrokers)
             {
                 return true;
             }
@@ -1172,10 +1169,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     return LongCreate(price, volume, type, timeLife, false);
                 }
-                else
-                {
-                    return BuyAtLimit(volume, price);
-                }
+                return BuyAtLimit(volume, price);
             }
             catch (Exception error)
             {

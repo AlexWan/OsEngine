@@ -1,51 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OsEngine.Entity
+﻿namespace OsEngine.Entity
 {
-    /// <summary>
-    /// what program start the class
-    /// какая программа запустила класс
-    /// </summary>
+    /// <summary> какая программа запустила класс </summary>
     public enum StartProgram
     {
-        /// <summary>
-        /// tester
-        /// тестер
-        /// </summary>
+        /// <summary> тестер </summary>
         IsTester,
 
-        /// <summary>
-        /// optimizator
-        /// оптимизатор
-        /// </summary>
+        /// <summary> оптимизатор </summary>
         IsOsOptimizer,
 
-        /// <summary>
-        /// data downloading
-        /// качалка данных
-        /// </summary>
+        /// <summary> качалка данных </summary>
         IsOsData,
 
-        /// <summary>
-        /// terminal
-        /// терминал
-        /// </summary>
+        /// <summary> терминал </summary>
         IsOsTrader,
 
-        /// <summary>
-        /// ticks to candles converter
-        /// конвертер тиков в свечи
-        /// </summary>
+        /// <summary> конвертер тиков в свечи </summary>
         IsOsConverter,
 
-        /// <summary>
-        /// pattern miner
-        /// майнер паттернов
-        /// </summary>
+        /// <summary> майнер паттернов </summary>
         IsOsMiner
     }
 }

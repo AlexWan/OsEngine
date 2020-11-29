@@ -1512,40 +1512,36 @@ namespace OsEngine.Market.Servers.Finam
             {
                 _timeFrame = value;
 
-                if (_timeFrame == TimeFrame.Day)
+                switch (_timeFrame)
                 {
-                    _timeFrameFinam = 8.ToString();
-                    _timeFrameSpan = new TimeSpan(24, 0, 0, 0);
-                }
-                else if (_timeFrame == TimeFrame.Hour1)
-                {
-                    _timeFrameFinam = 7.ToString();
-                    _timeFrameSpan = new TimeSpan(0, 1, 0, 0);
-                }
-                else if (_timeFrame == TimeFrame.Min30)
-                {
-                    _timeFrameFinam = 6.ToString();
-                    _timeFrameSpan = new TimeSpan(0, 0, 30, 0);
-                }
-                else if (_timeFrame == TimeFrame.Min15)
-                {
-                    _timeFrameFinam = 5.ToString();
-                    _timeFrameSpan = new TimeSpan(0, 0, 15, 0);
-                }
-                else if (_timeFrame == TimeFrame.Min10)
-                {
-                    _timeFrameFinam = 4.ToString();
-                    _timeFrameSpan = new TimeSpan(0, 0, 10, 0);
-                }
-                else if (_timeFrame == TimeFrame.Min5)
-                {
-                    _timeFrameFinam = 3.ToString();
-                    _timeFrameSpan = new TimeSpan(0, 0, 5, 0);
-                }
-                else if (_timeFrame == TimeFrame.Min1)
-                {
-                    _timeFrameFinam = 2.ToString();
-                    _timeFrameSpan = new TimeSpan(0, 0, 1, 0);
+                    case TimeFrame.Day:
+                        _timeFrameFinam = 8.ToString();
+                        _timeFrameSpan = new TimeSpan(24, 0, 0, 0);
+                        break;
+                    case TimeFrame.Hour1:
+                        _timeFrameFinam = 7.ToString();
+                        _timeFrameSpan = new TimeSpan(0, 1, 0, 0);
+                        break;
+                    case TimeFrame.Min30:
+                        _timeFrameFinam = 6.ToString();
+                        _timeFrameSpan = new TimeSpan(0, 0, 30, 0);
+                        break;
+                    case TimeFrame.Min15:
+                        _timeFrameFinam = 5.ToString();
+                        _timeFrameSpan = new TimeSpan(0, 0, 15, 0);
+                        break;
+                    case TimeFrame.Min10:
+                        _timeFrameFinam = 4.ToString();
+                        _timeFrameSpan = new TimeSpan(0, 0, 10, 0);
+                        break;
+                    case TimeFrame.Min5:
+                        _timeFrameFinam = 3.ToString();
+                        _timeFrameSpan = new TimeSpan(0, 0, 5, 0);
+                        break;
+                    case TimeFrame.Min1:
+                        _timeFrameFinam = 2.ToString();
+                        _timeFrameSpan = new TimeSpan(0, 0, 1, 0);
+                        break;
                 }
             }
         }

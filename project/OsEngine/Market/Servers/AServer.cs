@@ -404,19 +404,6 @@ namespace OsEngine.Market.Servers
         /// </summary>
         private IServerParameter LoadParam(IServerParameter param)
         {
-            try
-            {
-                if (ServerType == ServerType.Binance)
-                {
-
-                }
-            }
-            catch (Exception)
-            {
-                throw new Exception("You try create Parameter befor create realization. Set CreateParam method after create ServerRealization");
-            }
-
-
             if (!File.Exists(@"Engine\" + ServerType + @"Params.txt"))
             {
                 return param;

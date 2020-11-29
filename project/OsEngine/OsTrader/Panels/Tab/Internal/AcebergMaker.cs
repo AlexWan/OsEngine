@@ -13,7 +13,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
     /// <summary>
     /// class to create iceberg
-    /// класс для создания айсберг заявок
+    /// класс для создания айсберг-заявок
     /// </summary>
     public class AcebergMaker
     {
@@ -549,6 +549,6 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// modification by sale /
         /// модификация через продажу
         /// </summary>
-        ModificateSell,
+        ModificateSell
     }
 }

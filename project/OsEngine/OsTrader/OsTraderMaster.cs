@@ -31,7 +31,6 @@ namespace OsEngine.OsTrader
 {
 
     /// <summary>
-    /// class manager for robots
     /// класс менеджер управления для роботов
     /// </summary>
     public class OsTraderMaster
@@ -43,7 +42,6 @@ namespace OsEngine.OsTrader
         #endregion
 
         /// <summary>
-        /// create a robot manager
         /// создать менеджера роботов
         /// </summary>
         /// <param name="gridChart">chart area wpf / область для чарта</param>

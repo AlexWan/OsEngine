@@ -13,40 +13,18 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.AstsBridge;
-using OsEngine.Market.Servers.Binance.Futures;
-using OsEngine.Market.Servers.Binance.Spot;
-using OsEngine.Market.Servers.Bitfinex;
-using OsEngine.Market.Servers.BitMax;
-using OsEngine.Market.Servers.BitMex;
-using OsEngine.Market.Servers.BitStamp;
-using OsEngine.Market.Servers.ExMo;
 using OsEngine.Market.Servers.Finam;
-using OsEngine.Market.Servers.GateIo;
 using OsEngine.Market.Servers.InteractivBrokers;
-using OsEngine.Market.Servers.Kraken;
-using OsEngine.Market.Servers.Livecoin;
-using OsEngine.Market.Servers.Lmax;
 using OsEngine.Market.Servers.NinjaTrader;
-using OsEngine.Market.Servers.Oanda;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Plaza;
 using OsEngine.Market.Servers.Quik;
 using OsEngine.Market.Servers.QuikLua;
-using OsEngine.Market.Servers.SmartCom;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.Market.Servers.Transaq;
-using OsEngine.Market.Servers.ZB;
-using OsEngine.Market.Servers.Hitbtc;
-using OsEngine.Market.Servers.Huobi.Futures;
-using OsEngine.Market.Servers.Huobi.Spot;
-using OsEngine.Market.Servers.Huobi.FuturesSwap;
 using OsEngine.Market.Servers.MFD;
 using OsEngine.Market.Servers.MOEX;
-using OsEngine.Market.Servers.Tinkoff;
 using MessageBox = System.Windows.MessageBox;
-using OsEngine.Market.Servers.GateIo.Futures;
-using OsEngine.Market.Servers.FTX;
-using OsEngine.Market.Servers.Bybit;
 
 namespace OsEngine.Market
 {
@@ -78,7 +56,6 @@ namespace OsEngine.Market
 
                 serverTypes.Add(ServerType.QuikDde);
                 serverTypes.Add(ServerType.QuikLua);
-                serverTypes.Add(ServerType.SmartCom);
                 serverTypes.Add(ServerType.Plaza);
                 serverTypes.Add(ServerType.Transaq);
                 serverTypes.Add(ServerType.Tinkoff);
@@ -86,29 +63,8 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.MoexDataServer);
                 serverTypes.Add(ServerType.MfdWeb);
 
-                serverTypes.Add(ServerType.GateIo);
-                serverTypes.Add(ServerType.GateIoFutures);
-                serverTypes.Add(ServerType.BitMax);
-                serverTypes.Add(ServerType.Binance);
-                serverTypes.Add(ServerType.BinanceFutures);
-                serverTypes.Add(ServerType.BitMex);
-                serverTypes.Add(ServerType.BitStamp);
-                serverTypes.Add(ServerType.Bitfinex);
-                serverTypes.Add(ServerType.Kraken);
-                serverTypes.Add(ServerType.Livecoin);
-                serverTypes.Add(ServerType.Exmo);
-                serverTypes.Add(ServerType.Zb);
-                serverTypes.Add(ServerType.Hitbtc);
-                serverTypes.Add(ServerType.HuobiSpot);
-                serverTypes.Add(ServerType.HuobiFutures);
-                serverTypes.Add(ServerType.HuobiFuturesSwap);
-                serverTypes.Add(ServerType.FTX);
-                serverTypes.Add(ServerType.Bybit);
-
                 serverTypes.Add(ServerType.InteractivBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
-                serverTypes.Add(ServerType.Lmax);
-                serverTypes.Add(ServerType.Oanda);
 
                 serverTypes.Add(ServerType.AstsBridge);
 
@@ -200,22 +156,6 @@ namespace OsEngine.Market
                 }
 
                 IServer newServer = null;
-                if (type == ServerType.FTX)
-                {
-                    newServer = new FTXServer();
-                }
-                if (type == ServerType.HuobiFuturesSwap)
-                {
-                    newServer = new HuobiFuturesSwapServer();
-                }
-                if (type == ServerType.HuobiFutures)
-                {
-                    newServer = new HuobiFuturesServer();
-                }
-                if (type == ServerType.HuobiSpot)
-                {
-                    newServer = new HuobiSpotServer();
-                }
                 if (type == ServerType.MfdWeb)
                 {
                     newServer = new MfdServer();
@@ -224,81 +164,13 @@ namespace OsEngine.Market
                 {
                     newServer = new MoexDataServer();
                 }
-                if (type == ServerType.Tinkoff)
-                {
-                    newServer = new TinkoffServer();
-                }
-                if (type == ServerType.Hitbtc)
-                {
-                    newServer = new HitbtcServer();
-                }
-                if (type == ServerType.GateIo)
-                {
-                    newServer = new GateIoServer();
-                }
-                if (type == ServerType.GateIoFutures)
-                {
-                    newServer = new GateIoFuturesServer();
-                }
-                if (type == ServerType.Bybit)
-                {
-                    newServer = new BybitServer();
-                }
-                if (type == ServerType.Zb)
-                {
-                    newServer = new ZbServer();
-                }
-                if (type == ServerType.Exmo)
-                {
-                    newServer = new ExmoServer();
-                }
-                if (type == ServerType.Livecoin)
-                {
-                    newServer = new LivecoinServer();
-                }
-                if (type == ServerType.BitMax)
-                {
-                    newServer = new BitMaxProServer();
-                }
                 if (type == ServerType.Transaq)
                 {
                     newServer = new TransaqServer();
                 }
-                if (type == ServerType.Lmax)
-                {
-                    newServer = new LmaxServer();
-                }
-                if (type == ServerType.Bitfinex)
-                {
-                    newServer = new BitfinexServer();
-                }
-                if (type == ServerType.Binance)
-                {
-                    newServer = new BinanceServer();
-                }
-                if (type == ServerType.BinanceFutures)
-                {
-                    newServer = new BinanceServerFutures();
-                }
                 if (type == ServerType.NinjaTrader)
                 {
                     newServer = new NinjaTraderServer();
-                }
-                if (type == ServerType.BitStamp)
-                {
-                    newServer = new BitStampServer();
-                }
-                if (type == ServerType.Kraken)
-                {
-                    newServer = new KrakenServer(neadLoadTicks);
-                }
-                if (type == ServerType.Oanda)
-                {
-                    newServer = new OandaServer();
-                }
-                if (type == ServerType.BitMex)
-                {
-                    newServer = new BitMexServer();
                 }
                 if (type == ServerType.QuikLua)
                 {
@@ -311,10 +183,6 @@ namespace OsEngine.Market
                 if (type == ServerType.InteractivBrokers)
                 {
                     newServer = new InteractivBrokersServer();
-                }
-                else if (type == ServerType.SmartCom)
-                {
-                    newServer = new SmartComServer();
                 }
                 else if (type == ServerType.Plaza)
                 {
@@ -448,20 +316,6 @@ namespace OsEngine.Market
         {
             IServerPermission serverPermission = null;
 
-
-            if (type == ServerType.Bitfinex)
-            {
-                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
-
-                if (serverPermission == null)
-                {
-                    serverPermission = new BitFinexServerPermission();
-                    _serversPermissions.Add(serverPermission);
-                }
-
-                return serverPermission;
-            }
-
             if (type == ServerType.MoexDataServer)
             {
                 serverPermission = _serversPermissions.Find(s => s.ServerType == type);
@@ -498,79 +352,6 @@ namespace OsEngine.Market
 
                 return serverPermission;
             }
-            if (type == ServerType.Tinkoff)
-            {
-                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
-
-                if (serverPermission == null)
-                {
-                    serverPermission = new TinkoffServerPermission();
-                    _serversPermissions.Add(serverPermission);
-                }
-
-                return serverPermission;
-            }
-            if (type == ServerType.HuobiSpot)
-            {
-                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
-
-                if (serverPermission == null)
-                {
-                    serverPermission = new HuobiSpotServerPermission();
-                    _serversPermissions.Add(serverPermission);
-                }
-
-                return serverPermission;
-            }
-            if (type == ServerType.HuobiFutures)
-            {
-                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
-
-                if (serverPermission == null)
-                {
-                    serverPermission = new HuobiFuturesServerPermission();
-                    _serversPermissions.Add(serverPermission);
-                }
-
-                return serverPermission;
-            }
-            if (type == ServerType.HuobiFuturesSwap)
-            {
-                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
-
-                if (serverPermission == null)
-                {
-                    serverPermission = new HuobiFuturesSwapServerPermission();
-                    _serversPermissions.Add(serverPermission);
-                }
-
-                return serverPermission;
-            }
-            if (type == ServerType.GateIoFutures)
-            {
-                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
-
-                if (serverPermission == null)
-                {
-                    serverPermission = new GateIoFuturesServerPermission();
-                    _serversPermissions.Add(serverPermission);
-                }
-
-                return serverPermission;
-            }
-            if (type == ServerType.Bybit)
-            {
-                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
-
-                if (serverPermission == null)
-                {
-                    serverPermission = new BybitServerPermission();
-                    _serversPermissions.Add(serverPermission);
-                }
-
-                return serverPermission;
-            }
-
             return null;
         }
 
@@ -865,112 +646,16 @@ namespace OsEngine.Market
         Tinkoff,
 
         /// <summary>
-        /// cryptocurrency exchange Hitbtc
-        /// биржа криптовалют Hitbtc
-        /// </summary>
-        Hitbtc,
-
-        /// <summary>
-        /// cryptocurrency exchange FTX
-        /// биржа криптовалют FTX
-        /// </summary>
-        FTX,
-
-        /// <summary>
-        /// cryptocurrency exchange Gate.io
-        /// биржа криптовалют Gate.io
-        /// </summary>
-        GateIo,
-
-        /// <summary>
-        /// Futures of cryptocurrency exchange Gate.io
-        /// Фьючерсы биржи криптовалют Gate.io
-        /// </summary>
-        GateIoFutures,
-
-        /// <summary>
-        /// cryptocurrency exchange ZB
-        /// биржа криптовалют ZB
-        /// </summary>
-        Zb,
-
-        /// <summary>
-        /// Livecoin exchange
-        /// биржа Livecoin
-        /// </summary>
-        Livecoin,
-
-        /// <summary>
-        /// BitMax exchange
-        /// биржа BitMax
-        /// </summary>
-        BitMax,
-
-        /// <summary>
         /// transaq
         /// транзак
         /// </summary>
         Transaq,
 
         /// <summary>
-        /// LMax exchange
-        /// биржа LMax
-        /// </summary>
-        Lmax,
-
-        /// <summary>
-        /// cryptocurrency exchange Bitfinex
-        /// биржа криптовалют Bitfinex
-        /// </summary>
-        Bitfinex,
-
-        /// <summary>
-        /// cryptocurrency exchange Binance
-        /// биржа криптовалют Binance
-        /// </summary>
-        Binance,
-
-        /// <summary>
-        /// cryptocurrency exchange Binance Futures
-        /// биржа криптовалют Binance, секция фьючеры
-        /// </summary>
-        BinanceFutures,
-
-        /// <summary>
-        /// cryptocurrency exchange Exmo
-        /// биржа криптовалют Exmo
-        /// </summary>
-        Exmo,
-
-        /// <summary>
         /// terminal Ninja Trader
         /// нинзя трейдер
         /// </summary>
         NinjaTrader,
-
-        /// <summary>
-        /// cryptocurrency exchange Kraken
-        /// биржа криптовалют Kraken
-        /// </summary>
-        Kraken,
-
-        /// <summary>
-        /// forex broker Oanda
-        /// форекс брокер Oanda
-        /// </summary>
-        Oanda,
-
-        /// <summary>
-        /// cryptocurrency exchange BitMEX
-        /// биржа криптовалют BitMEX
-        /// </summary>
-        BitMex,
-
-        /// <summary>
-        /// cryptocurrency exchange BitStamp
-        /// биржа криптовалют BitStamp
-        /// </summary>
-        BitStamp,
 
         /// <summary>
         /// optimizer
@@ -995,12 +680,6 @@ namespace OsEngine.Market
         /// Квик
         /// </summary>
         QuikDde,
-
-        /// <summary>
-        /// SmartCom
-        /// Смарт-Ком
-        /// </summary>
-        SmartCom,
 
         /// <summary>
         /// Plaza 2
@@ -1039,26 +718,6 @@ namespace OsEngine.Market
         /// <summary>
         /// MFD web server
         /// </summary>
-        MfdWeb,
-
-        /// <summary>
-        /// Huobi Spot
-        /// </summary>
-        HuobiSpot,
-
-        /// <summary>
-        /// Huobi Futures
-        /// </summary>
-        HuobiFutures,
-
-        /// <summary>
-        /// Huobi Futures Swap
-        /// </summary>
-        HuobiFuturesSwap,
-
-        /// <summary>
-        /// Bybit exchange
-        /// </summary>
-        Bybit
+        MfdWeb
     }
 }
