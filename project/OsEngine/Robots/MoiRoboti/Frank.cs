@@ -55,6 +55,7 @@ namespace OsEngine.Robots.MoiRoboti
         private StrategyParameterInt n_min_lesion; // через сколько минут закрывать убыточную сделку 
         private StrategyParameterInt sprint; // объем торгов достигнув который включится  быстрый режим 
         private StrategyParameterDecimal turbo_shift ; // величина сдвига в турбо режиме 
+        private StrategyParameterInt alarn_persent; // с каким использованным % депо можно закрывать убыточную сделку 
 
         public Frank(string name, StartProgram startProgram) : base(name, startProgram) // конструктор
         {
@@ -86,6 +87,7 @@ namespace OsEngine.Robots.MoiRoboti
             Itogo = CreateParameter("Итого Заработано ", 0m, 0m, 0m, 0m);
             n_min_lesion = CreateParameter("Закрывать убыток через N минут ",120, 30, 360, 20);
             sprint = CreateParameter("Большие объемы это когда больше = ", 101, 50, 200, 50);
+            alarn_persent = CreateParameter("% купленного можно сливать = ", 49, 50, 100, 1);
 
             _vol = new Volume(name + "Volum", false);
             _vol = (Volume)_tab.CreateCandleIndicator(_vol, "nameArea");
@@ -246,14 +248,13 @@ namespace OsEngine.Robots.MoiRoboti
         }
         void Fix_loss() // метод выхода из позиции с убытком 
         {
-
             List<Position> positions = _tab.PositionsOpenAll;
             if (positions.Count != 0)
             {
                 decimal loss = _tab.PositionsLast.ProfitPortfolioPunkt; // смотрим есть ли убыток
                 Percent_tovara();
                 if (loss < kpit_sum.ValueDecimal &&  // если убыток достиг kpit_sum.ValueDecimal
-                    percent_tovara > 77 &&      // если товара куплено больше 77%
+                    percent_tovara > alarn_persent.ValueInt &&      // если товара куплено больше %
                     ask_vol_tr > volum_alarm.ValueInt) // если объемы продаж выше аварийных 
                 {
                     _tab.CloseAllAtMarket();
@@ -277,7 +278,7 @@ namespace OsEngine.Robots.MoiRoboti
                 DateTime last_tred_time = _tab.PositionsLast.MyTrades[ups - 1].Time; // берем время последнего трейда позиции 
                 DateTime time_expectation = last_tred_time.AddMinutes(n_min_lesion.ValueInt); // добавляем время ожидания 
                 if (time_expectation < real_time &&          // если вышло время ожидания
-                    percent_tovara > 77 &&              // если товара куплено > 77 %
+                    percent_tovara > alarn_persent.ValueInt &&      // если товара куплено > alarn_persent %
                    loss > kpit_sum.ValueDecimal &&      // если убыток меньше критического
                    loss < kpit_sum.ValueDecimal/2)      // но убыток больше  половины критического
                 {
