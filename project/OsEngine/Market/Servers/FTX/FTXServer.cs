@@ -161,8 +161,11 @@ namespace OsEngine.Market.Servers.FTX
             while (!token.IsCancellationRequested)
             {
                 await Task.Delay(15000);
-                _wsSource?.SendMessage(pingMessage);
-
+                if(_wsSource != null)
+                {
+                    _wsSource.SendMessage(pingMessage);
+                }
+                
                 if (_lastTimeUpdateSocket == DateTime.MinValue)
                 {
                     if(sourceAliveCheckerStart.AddSeconds(60) < DateTime.Now)
