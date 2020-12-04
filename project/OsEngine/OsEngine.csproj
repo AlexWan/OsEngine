@@ -752,6 +752,7 @@
       <DependentUpon>PairTraderSimpleUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Robots\MoiRoboti\Depozit.cs" />
+    <Compile Include="Robots\MoiRoboti\Frank_2.cs" />
     <Compile Include="Robots\MoiRoboti\Frank.cs" />
     <Compile Include="Robots\MoiRoboti\MyBlanks.cs" />
     <Compile Include="Robots\MoiRoboti\Storog.cs" />

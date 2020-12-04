@@ -36,6 +36,7 @@ namespace OsEngine.Robots
             List<string> result = new List<string>();
 
             result.Add("Frank");
+            result.Add("Frank_2");
             result.Add("Depozit");
             result.Add("Ver_01");
             result.Add("Storog");
@@ -116,6 +117,10 @@ namespace OsEngine.Robots
             {
                 bot = CreateScriptStrategyByName(nameClass, name, startProgram);
                 return bot;
+            }
+            if (nameClass == "Frank_2")
+            {
+                bot = new Frank_2(name, startProgram);
             }
             if (nameClass == "Frank")
             {
