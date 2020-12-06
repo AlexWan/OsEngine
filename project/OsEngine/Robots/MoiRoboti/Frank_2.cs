@@ -11,7 +11,6 @@ namespace OsEngine.Robots.MoiRoboti
 {
     public class Frank_2 : BotPanel
     {
-        public decimal market_price; // рыночная стоимость товара
         public string kvot_name ; // название квотируемой валюты - инструмента
         public string tovar_name; // название базовая валюты - товара
         // private MyBlanks blanks = new MyBlanks("Frank", StartProgram.IsOsTrader); // создание экземпляра класса MyBlanks
@@ -25,13 +24,15 @@ namespace OsEngine.Robots.MoiRoboti
         decimal min_lot; // поле хранящее величину минимального лота для биржи
         bool start_metod_vkl; // поле переключения состояния метода старт 
         bool sav_profit_metod_vkl; // поле переключения состояния метода  сохранения профита
+        bool block_in; // поле переключения блокировки на усреднение и старт 
         decimal _kom; // поле хранения значения комиссия биржи 
         decimal _temp_greed; // поле для хранения временного значения жадности 
         decimal _do_piram; // поле для хранения временного
         decimal _deltaUsredn; // поле для хранения временного
 
         public Volume _vol;
-        public Bollinger _bolin;
+        //public Bollinger _bolin;
+        public MovingAverage _ma;     // поле хранения индикатора МА
 
         private StrategyParameterBool vkl_Robota; // поле включения бота 
         private StrategyParameterDecimal velich_usrednen; // величина усреднения
@@ -88,13 +89,21 @@ namespace OsEngine.Robots.MoiRoboti
             Itogo = CreateParameter("Итого Заработано ", 0m, 0m, 0m, 0m);
             n_min_lesion = CreateParameter("Закрывать убыток через N минут ",120, 30, 360, 20);
             sprint = CreateParameter("Большие объемы это когда больше = ", 101, 50, 200, 50);
-            alarn_persent = CreateParameter("% купленного можно сливать = ", 49, 50, 100, 1);
+            alarn_persent = CreateParameter("% купленного можно сливать = ", 25, 50, 100, 1);
 
+            /*
             _bolin = new Bollinger(name + "Bollinger", false);
             _bolin.Lenght = 20;
             _bolin.Deviation = 2.2m;
             _bolin = (Bollinger)_tab.CreateCandleIndicator(_bolin, "Prime");
             _bolin.Save();
+            */
+            block_in = true; // инициализируем значение блокировки 
+
+            _ma = new MovingAverage(name + "Ma", false);
+            _ma = (MovingAverage)_tab.CreateCandleIndicator(_ma, "Prime");
+            _ma.Lenght = 5; // присвоение значения 
+            _ma.Save();
 
             _vol = new Volume(name + "Volum", false);
             _vol = (Volume)_tab.CreateCandleIndicator(_vol, "nameArea");
@@ -106,7 +115,7 @@ namespace OsEngine.Robots.MoiRoboti
             _tab.PositionNetVolumeChangeEvent += _tab_PositionNetVolumeChangeEvent; // у позиции изменился объем 
             _tab.PositionClosingSuccesEvent += _tab_PositionClosingSuccesEvent; // позиция успешно закрыта 
             _tab.NewTickEvent += _tab_NewTickEvent; // событие новых тиков
-
+            
         } // конструктор
 
         private void _tab_PositionNetVolumeChangeEvent(Position position) // у позиции изменился объем 
@@ -116,18 +125,15 @@ namespace OsEngine.Robots.MoiRoboti
             Console.WriteLine(" В позиции изменился объем ");
         }
 
+        public decimal market_price; // рыночная стоимость товара
         public DateTime real_time;
         private DateTime dateTrade; // время трейда
         decimal bid_vol_tr;  // объем покупок
         decimal ask_vol_tr; // объем продаж
         decimal all_volum_trade_min; //все объемы за N минуту
-        public decimal bol_Up; // последние значение верхнего уровня   болинждера  
-        public decimal bol_Down; // последние значение нижнего уровня  болинждера 
         private void _tab_NewTickEvent(Trade trade)  // событие новых тиков + счет объема торгов
         {
-            bol_Up = _bolin.ValuesUp[_bolin.ValuesUp.Count - 1]; // последние значение верхнего уровня болинждера  
-            bol_Down = _bolin.ValuesDown[_bolin.ValuesDown.Count - 1]; // последние значение нижнего уровня болинждера  
-
+            market_price = trade.Price;
             real_time = trade.Time; // время последнего трейда 
 
             DateTime time_add_n_min;
@@ -154,14 +160,33 @@ namespace OsEngine.Robots.MoiRoboti
                 ask_vol_tr = 0;
             }
         }
-        private void _tab_PositionClosingSuccesEvent(Position position) // Событие закрытия позиции
+
+        private void _tab_PositionClosingSuccesEvent(Position position) // Событие закрытия позиции (блок старта)
         {
             Console.WriteLine("произошло Событие закрытия позиции " );
-        } 
+            block_in = true;
+            Console.WriteLine(" Закрыли позицию, старт ожидает машку ");
+        }
+
+        public decimal volum_ma; // последние значение индикатора MA  
         private void _tab_MarketDepthUpdateEvent(MarketDepth marketDepth) // событие стакана
         {
+            /* 
+            public decimal bol_Up; // последние значение верхнего уровня   болинждера  
+            public decimal bol_Down; // последние значение нижнего уровня  болинждера 
             market_price = _tab.PriceCenterMarketDepth;
+            bol_Up = _bolin.ValuesUp[_bolin.ValuesUp.Count - 1]; // последние значение верхнего уровня болинждера  
+            bol_Down = _bolin.ValuesDown[_bolin.ValuesDown.Count - 1]; // последние значение нижнего уровня болинждера 
+            */
+            volum_ma = _ma.Values[_ma.Values.Count - 1]; // записывается значение индикатора MA 
+
+            if (volum_ma < market_price)
+            {
+                block_in = false;
+                Console.WriteLine("Значение МА допустимое, блокировка старта выключена ");
+            }
         }
+
         private void _tab_OrderUpdateEvent(Order order) // событие обновления ордера 
         {
             Price_kon_trade(); // перепроверяем цену последних сделок
@@ -169,6 +194,7 @@ namespace OsEngine.Robots.MoiRoboti
             Portfolio_sum(); // сумма в портфеле 
             Console.WriteLine(" Событие обновления ордера!");
         }
+
         private void _tab_BestBidAskChangeEvent(decimal bid, decimal ask) //  ЛОГИКА тут (в событии изменения лучших цен)
         {
             MiddleMarketVolumeCalculat();
@@ -181,20 +207,12 @@ namespace OsEngine.Robots.MoiRoboti
                 if (q - _kom > market_price)
                 {
                     Fix_loss();
-                }
-                if (bol_Down > market_price && q - _kom > market_price)
-                {
-                    Console.WriteLine(" Разрешено усреднение - " + bol_Down + " цена рынка ниже болинджера " + market_price);
                     Usrednenie();
                 }
                 if (q - _kom < market_price)
                 {
                     Piramida();
-                }
-                if (q - _kom < market_price && bol_Up <  market_price)
-                {
                     Save_profit();
-                    Console.WriteLine(" Можно забирать прибыть , market_price " + market_price + "  выше " + bol_Up );
                 }
             }
             if (positions.Count == 0)
@@ -213,6 +231,7 @@ namespace OsEngine.Robots.MoiRoboti
                 }
             }
         }
+
         decimal Payment_profit() //  рассчитывает прибыльность (баланса)
         {
             decimal start = start_sum;
@@ -271,20 +290,31 @@ namespace OsEngine.Robots.MoiRoboti
             List<Position> positions = _tab.PositionsOpenAll;
             if (positions.Count != 0)
             {
-                decimal loss = _tab.PositionsLast.ProfitPortfolioPunkt; // смотрим есть ли убыток
-                Percent_tovara();
-                if (loss < kpit_sum.ValueDecimal &&  // если убыток достиг kpit_sum.ValueDecimal
-                    percent_tovara > alarn_persent.ValueInt &&      // если товара куплено больше %
+                if (percent_tovara > alarn_persent.ValueInt && // если товара куплено больше % alarn_persent.ValueInt
                     ask_vol_tr > volum_alarm.ValueInt) // если объемы продаж выше аварийных 
                 {
                     _tab.CloseAllAtMarket();
-                    Payment_profit();
-                    Console.WriteLine(" АВАРИЯ ! закрылись с убытком " + temp_profit);
                     Console.WriteLine(" АВАРийные объемы продаж были  " + ask_vol_tr);
+                    Console.WriteLine(" Закрыли сделку! товара было на  " + percent_tovara + " %");
+                    block_in = true; // включаем блокировку усреднения и старта 
+                    Thread.Sleep(1500);
+                    Payment_profit();
+                    Console.WriteLine(" АВАРИЯ! закрылись с убытком " + temp_profit);
+                }
+                if (ask_vol_tr > volum_alarm.ValueInt) // если объемы продаж выше аварийных 
+                {
+                    block_in = true; // включаем блокировку усреднения и старта 
+                    Console.WriteLine("АВАРийный объем продаж!!!! " + ask_vol_tr + " БЛОКИРОВАЛИ усреднение и старт робота ");
+                }
+                if (percent_tovara > alarn_persent.ValueInt && // если товара куплено больше % alarn_persent.ValueInt
+                   ask_vol_tr > volum_alarm.ValueInt) // если объемы продаж выше аварийных 
+                {
+                    _tab.CloseAllAtMarket(); // закрываемся с убытком 
+                    Payment_profit();
+                    Console.WriteLine("Закрылись с убытком!!! " + temp_profit);
+                    Console.WriteLine("АВАРийный объем продаж " + ask_vol_tr + " выше " + volum_alarm.ValueInt);
                     Console.WriteLine(" товара было на  " + percent_tovara + " %");
                     Thread.Sleep(1500);
-                    //vkl_Robota.ValueBool = false;
-                    //Console.WriteLine("РОБОТ ВЫКЛЮЧЕН ! ");
                 }
                 int ups = _tab.PositionsLast.MyTrades.Count;
                 if (ups <= 1)
@@ -295,6 +325,7 @@ namespace OsEngine.Robots.MoiRoboti
                 {
                     return;
                 }
+                decimal loss = _tab.PositionsLast.ProfitPortfolioPunkt; // смотрим есть ли убыток
                 DateTime last_tred_time = _tab.PositionsLast.MyTrades[ups - 1].Time; // берем время последнего трейда позиции 
                 DateTime time_expectation = last_tred_time.AddMinutes(n_min_lesion.ValueInt); // добавляем время ожидания 
                 if (time_expectation < real_time &&          // если вышло время ожидания
@@ -332,7 +363,7 @@ namespace OsEngine.Robots.MoiRoboti
             Portfolio_sum(); // сумма в портфеле 
             start_sum = portfolio_sum; // запись старта портфеля 
             Console.WriteLine(" записали сумму портфеля "+ start_sum);
-            market_price = _tab.PriceCenterMarketDepth;
+            //market_price = _tab.PriceCenterMarketDepth;
             decimal vol_start = MyBlanks.Okruglenie(Balans_kvot(kvot_name) / 100 * start_per_depo.ValueInt, 6);
             if (vol_start > min_sum.ValueDecimal)
             {
@@ -340,7 +371,12 @@ namespace OsEngine.Robots.MoiRoboti
                 {
                     return;
                 }
-                if (_tab.PositionsOpenAll.Count == 0 && bol_Down > market_price)
+                if (block_in == true)
+                {
+                    Console.WriteLine("Включилась блокировка старта");
+                    return;
+                }
+                if (_tab.PositionsOpenAll.Count == 0 && volum_ma < market_price)
                 {
                     decimal w = MyBlanks.Okruglenie(vol_start / market_price, 6);
                     _tab.BuyAtLimit(w, market_price);
@@ -450,9 +486,9 @@ namespace OsEngine.Robots.MoiRoboti
                     Console.WriteLine(" включился режим набора товара от " + prof_on.ValueDecimal + " до 50%");
                     profit.ValueInt = 8;
                     Console.WriteLine(" до профита " + profit.ValueInt);
-                    _do_piram = do_piram.ValueDecimal * 1.5m;
+                    _do_piram = do_piram.ValueDecimal;
                     Console.WriteLine(" расстояние до пирамиды изменено на " + _do_piram);
-                    _deltaUsredn = deltaUsredn.ValueDecimal * 2;
+                    _deltaUsredn = deltaUsredn.ValueDecimal;
                     Console.WriteLine("Расстояние до Усреднения теперь " + _deltaUsredn);
                     _temp_greed = greed.ValueDecimal;
                     Console.WriteLine("Жадность теперь " + _temp_greed);
@@ -510,9 +546,9 @@ namespace OsEngine.Robots.MoiRoboti
                 if (start_per_depo.ValueInt <= percent_tovara && percent_tovara < prof_on.ValueDecimal) // режим набора товара
                 {
                     Console.WriteLine(" включился режим набора товара до " + prof_on.ValueDecimal + " %");
-                    _do_piram = do_piram.ValueDecimal/2;
+                    _do_piram = do_piram.ValueDecimal;
                     Console.WriteLine(" расстояние до пирамиды " + _do_piram);
-                    _deltaUsredn = deltaUsredn.ValueDecimal/2;
+                    _deltaUsredn = deltaUsredn.ValueDecimal;
                     Console.WriteLine("Расстояние до Усреднения " + _deltaUsredn);
                     _temp_greed = greed.ValueDecimal;
                     Console.WriteLine("Жадность теперь " + _temp_greed);
@@ -526,7 +562,7 @@ namespace OsEngine.Robots.MoiRoboti
             Price_kon_trade();
             Lot(min_sum.ValueDecimal);
             decimal z = Price_kon_trade();
-            if (z > market_price + _deltaUsredn + per)
+            if (z > market_price + _deltaUsredn + per && volum_ma < market_price) // если цена ниже последнего трейда и выше машки 
             {
                 min_lot = Lot(min_sum.ValueDecimal);
                 Balans_kvot(kvot_name);
