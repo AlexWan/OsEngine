@@ -22,6 +22,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
+            CreateParameterBoolean("HedgeMode", false);
         }
 
         /// <summary>
@@ -118,7 +119,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 _client.MyOrderEvent += _client_MyOrderEvent;
                 _client.LogMessageEvent += SendLogMessage;
             }
-
+            _client.HedgeMode = ((ServerParameterBool)ServerParameters[2]).Value;
             _client.Connect();
         }
 
@@ -619,6 +620,10 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         void _client_Connected()
         {
+
+            //Выставить HedgeMode
+            _client.SetPositionMode();
+
             if (ConnectEvent != null)
             {
                 ConnectEvent();
