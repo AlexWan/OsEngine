@@ -228,6 +228,11 @@ namespace OsEngine.Market.Servers.FTX
                     midTime = endTime;
                 }
 
+                if(_ftxRestApi == null)
+                {
+                    break;
+                }
+
                 var histaricalPricesResponse = _ftxRestApi.GetHistoricalPricesAsync(securityName, needInterval, CandlesDownloadLimit, actualTime, midTime).Result;
 
                 List<Candle> newCandles = _candlesCreator.Create(histaricalPricesResponse.SelectToken("result"));
