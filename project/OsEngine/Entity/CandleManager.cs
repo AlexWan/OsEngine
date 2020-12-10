@@ -31,6 +31,7 @@ using OsEngine.Market.Servers.Tinkoff;
 using OsEngine.Market.Servers.GateIo.Futures;
 using OsEngine.Market.Servers.FTX;
 using OsEngine.Market.Servers.Bybit;
+using OsEngine.Market.Servers.InteractivBrokers;
 
 namespace OsEngine.Entity
 {
@@ -241,10 +242,7 @@ namespace OsEngine.Entity
                                  serverType == ServerType.QuikDde ||
                                  serverType == ServerType.AstsBridge ||
                                  serverType == ServerType.NinjaTrader ||
-                                 serverType == ServerType.Lmax ||
-
-                                 (serverType == ServerType.InteractivBrokers
-                                  && (series.CandlesAll == null || series.CandlesAll.Count == 0)))
+                                 serverType == ServerType.Lmax)
                         {
                             series.CandlesAll = null;
                             // further, we try to load candles with ticks
@@ -311,7 +309,6 @@ namespace OsEngine.Entity
                             series.IsStarted = true;
                         }
                         else if (serverType == ServerType.Tester ||
-                                 serverType == ServerType.InteractivBrokers ||
                                  serverType == ServerType.Optimizer ||
                                  serverType == ServerType.Oanda||
                                  serverType == ServerType.BitStamp
@@ -400,6 +397,27 @@ namespace OsEngine.Entity
                             {
                                 List<Candle> candles = binance.GetCandleHistory(series.Security.Name,
                                     series.TimeFrameSpan);
+                                if (candles != null)
+                                {
+                                    series.CandlesAll = candles;
+                                }
+                            }
+                            series.UpdateAllCandles();
+                            series.IsStarted = true;
+                        }
+                        else if (serverType == ServerType.InteractivBrokers)
+                        {
+                            InteractiveBrokersServer server = (InteractiveBrokersServer)_server;
+                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
+                                series.TimeFrameSpan.TotalMinutes < 1)
+                            {
+                                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
+                                series.PreLoad(allTrades);
+                            }
+                            else
+                            {
+                                List<Candle> candles = server.GetCandleHistory(series.Security.Name,
+                                    series.TimeFrame);
                                 if (candles != null)
                                 {
                                     series.CandlesAll = candles;

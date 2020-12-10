@@ -365,6 +365,28 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// create Button server parameter
+        /// создать параметр сервера типа кнопка
+        /// </summary>
+        public void CreateParameterButton(string name)
+        {
+            ServerParameterButton newParam = new ServerParameterButton();
+            newParam.Name = name;
+
+            newParam = (ServerParameterButton)LoadParam(newParam);
+            if (_serverIsStart)
+            {
+                ServerParameters.Insert(ServerParameters.Count - 6, newParam);
+            }
+            else
+            {
+                ServerParameters.Add(newParam);
+            }
+
+            newParam.ValueChange += newParam_ValueChange;
+        }
+
+        /// <summary>
         /// changed parameter state
         /// изменилось состояние параметра
         /// </summary>
