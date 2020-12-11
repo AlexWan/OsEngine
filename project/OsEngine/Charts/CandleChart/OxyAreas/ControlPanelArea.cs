@@ -29,6 +29,9 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
 
         public ControlPanelArea(OxyAreaSettings settings, List<OxyArea> all_areas, OxyChartPainter owner) : base(settings, owner)
         {
+            area_settings = settings;
+            this.all_areas = all_areas;
+
             if (owner.start_program == StartProgram.IsTester)
             {
                 speed_lable = new CustomTextAnnotation()
@@ -121,10 +124,6 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
 
             plot_model.Annotations.Add(percent_button);
             plot_model.Annotations.Add(menu_button);
-
-
-            area_settings = settings;
-            this.all_areas = all_areas;
 
             if (owner.start_program == StartProgram.IsTester)
             {
@@ -297,6 +296,8 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
                 minus_button.TextPosition = new ScreenPoint(65, plot_view.ActualHeight - 12);
                 plus_button.TextPosition = new ScreenPoint(80, plot_view.ActualHeight - 12);
                 speed_state_lable.TextPosition = new ScreenPoint(100, plot_view.ActualHeight - 12);
+                percent_button.TextPosition = new ScreenPoint(plot_view.ActualWidth - 25, plot_view.ActualHeight - 12);
+                menu_button.TextPosition = new ScreenPoint(plot_view.ActualWidth - 80, plot_view.ActualHeight - 12);
             }
 
             if (owner.start_program == StartProgram.IsOsTrader)
