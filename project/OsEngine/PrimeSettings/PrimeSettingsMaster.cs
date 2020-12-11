@@ -83,6 +83,25 @@ namespace OsEngine.PrimeSettings
 
         private static bool _serverTestingIsActiv;
 
+        public static bool UseOxyPlotChart
+        {
+            get
+            {
+                if (_isLoad == false)
+                {
+                    Load();
+                }
+                return _useOxyPlotChart;
+            }
+            set
+            {
+                _useOxyPlotChart = value;
+                Save();
+            }
+        }
+
+        private static bool _useOxyPlotChart;
+
         /// <summary>
         /// save settings
         /// сохранить настройки
@@ -98,6 +117,7 @@ namespace OsEngine.PrimeSettings
                     writer.WriteLine(_errorLogBeepIsActiv);
                     writer.WriteLine(_errorLogMessageBoxIsActiv);
                     writer.WriteLine(_serverTestingIsActiv);
+                    writer.WriteLine(_useOxyPlotChart);
                     writer.Close();
                 }
             }
@@ -128,6 +148,7 @@ namespace OsEngine.PrimeSettings
                     _errorLogBeepIsActiv = Convert.ToBoolean(reader.ReadLine());
                     _errorLogMessageBoxIsActiv = Convert.ToBoolean(reader.ReadLine());
                     _serverTestingIsActiv = Convert.ToBoolean(reader.ReadLine());
+                    _useOxyPlotChart = Convert.ToBoolean(reader.ReadLine());
 
                     reader.Close();
                 }

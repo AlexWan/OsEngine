@@ -19,6 +19,7 @@ using OsEngine.Indicators;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
+using OsEngine.PrimeSettings;
 
 namespace OsEngine.Charts.CandleChart
 {
@@ -38,10 +39,12 @@ namespace OsEngine.Charts.CandleChart
         /// <param name="startProgram">program that created class/программа создавшая класс</param>
         public ChartCandleMaster(string nameBoss, StartProgram startProgram)
         {
-            _name = nameBoss + "ChartMaster";
-            _startProgram = startProgram;
+            if (PrimeSettingsMaster.UseOxyPlotChart == false)
+                ChartCandle = new WinFormsChartPainter(nameBoss, startProgram);
 
-            ChartCandle = new WinFormsChartPainter(nameBoss, startProgram);
+            else if (PrimeSettingsMaster.UseOxyPlotChart == true)
+                ChartCandle = new OxyChartPainter(nameBoss, startProgram);
+
             ChartCandle.ChartClickEvent += ChartCandle_ChartClickEvent;
             ChartCandle.LogMessageEvent += NewLogMessage;
             ChartCandle.ClickToIndexEvent += _chartCandle_ClickToIndexEvent;

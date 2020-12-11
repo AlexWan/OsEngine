@@ -39,11 +39,13 @@ namespace OsEngine.PrimeSettings
             CheckBoxExtraLogWindow.IsChecked = PrimeSettingsMaster.ErrorLogMessageBoxIsActiv;
             CheckBoxExtraLogSound.IsChecked = PrimeSettingsMaster.ErrorLogBeepIsActiv;
             CheckBoxTransactionSound.IsChecked = PrimeSettingsMaster.TransactionBeepIsActiv;
+            CheckBoxOxyPlotCharting.IsChecked = PrimeSettingsMaster.UseOxyPlotChart;
 
             CheckBoxExtraLogWindow.Click += CheckBoxExtraLogWindow_Click;
             CheckBoxExtraLogSound.Click += CheckBoxExtraLogSound_Click;
             CheckBoxTransactionSound.Click += CheckBoxTransactionSound_Click;
             CheckBoxServerTestingIsActive.Click += CheckBoxServerTestingIsActive_Click;
+            CheckBoxOxyPlotCharting.Click += CheckBoxOxyPlotCharting_Click;
 
             ChangeText();
             OsLocalization.LocalizationTypeChangeEvent += ChangeText;
@@ -85,6 +87,12 @@ namespace OsEngine.PrimeSettings
         {
             if (CheckBoxExtraLogWindow.IsChecked != null)
                 PrimeSettingsMaster.ErrorLogMessageBoxIsActiv = CheckBoxExtraLogWindow.IsChecked.Value;
+        }
+
+        private void CheckBoxOxyPlotCharting_Click(object sender, RoutedEventArgs e)
+        {
+            if (CheckBoxOxyPlotCharting.IsChecked != null)
+                PrimeSettingsMaster.UseOxyPlotChart = CheckBoxOxyPlotCharting.IsChecked.Value;
         }
     }
 }
