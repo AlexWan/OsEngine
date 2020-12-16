@@ -32,7 +32,8 @@ namespace OsEngine.Robots.MoiRoboti
 
         public Volume _vol;
         //public Bollinger _bolin;
-        public MovingAverage _ma;     // поле хранения индикатора МА
+        public MovingAverage _ma_short;     // поле хранения индикатора МА
+        public MovingAverage _ma_long;     // поле хранения индикатора МА
 
         private StrategyParameterBool vkl_Robota; // поле включения бота 
         private StrategyParameterDecimal velich_usrednen; // величина усреднения
@@ -100,10 +101,15 @@ namespace OsEngine.Robots.MoiRoboti
             */
             block_in = true; // инициализируем значение блокировки 
 
-            _ma = new MovingAverage(name + "Ma", false);
-            _ma = (MovingAverage)_tab.CreateCandleIndicator(_ma, "Prime");
-            _ma.Lenght = 5; // присвоение значения 
-            _ma.Save();
+            _ma_short = new MovingAverage(name + "Ma5", false);
+            _ma_short = (MovingAverage)_tab.CreateCandleIndicator(_ma_short, "Prime");
+            _ma_short.Lenght = 5; // присвоение значения 
+            _ma_short.Save();
+
+            _ma_long = new MovingAverage(name + "Ma20", false);
+            _ma_long = (MovingAverage)_tab.CreateCandleIndicator(_ma_long, "Prime");
+            _ma_long.Lenght = 20; // присвоение значения 
+            _ma_long.Save();
 
             _vol = new Volume(name + "Volum", false);
             _vol = (Volume)_tab.CreateCandleIndicator(_vol, "nameArea");
@@ -168,7 +174,8 @@ namespace OsEngine.Robots.MoiRoboti
             Console.WriteLine(" Закрыли позицию, старт ожидает машку ");
         }
 
-        public decimal volum_ma; // последние значение индикатора MA  
+        public decimal volum_ma_short; // последние значение индикатора MA  
+        public decimal volum_ma_long; // последние значение индикатора MA  
         private void _tab_MarketDepthUpdateEvent(MarketDepth marketDepth) // событие стакана
         {
             /* 
@@ -178,9 +185,10 @@ namespace OsEngine.Robots.MoiRoboti
             bol_Up = _bolin.ValuesUp[_bolin.ValuesUp.Count - 1]; // последние значение верхнего уровня болинждера  
             bol_Down = _bolin.ValuesDown[_bolin.ValuesDown.Count - 1]; // последние значение нижнего уровня болинждера 
             */
-            volum_ma = _ma.Values[_ma.Values.Count - 1]; // записывается значение индикатора MA 
+            volum_ma_short = _ma_short.Values[_ma_short.Values.Count - 1]; // записывается значение индикатора MA 
+            volum_ma_long = _ma_long.Values[_ma_long.Values.Count - 1]; // записывается значение индикатора MA 
 
-            if (volum_ma < market_price)
+            if (volum_ma_short < market_price)
             {
                 block_in = false;
                 Console.WriteLine("Значение МА допустимое, блокировка старта выключена ");
@@ -376,7 +384,9 @@ namespace OsEngine.Robots.MoiRoboti
                     Console.WriteLine("Включилась блокировка старта");
                     return;
                 }
-                if (_tab.PositionsOpenAll.Count == 0 && volum_ma < market_price)
+                if (_tab.PositionsOpenAll.Count == 0 // нет открытых позиций
+                    && volum_ma_short < market_price      // рынок выше короткой машки
+                    && volum_ma_long > market_price)   // рынок ниже длинной машки
                 {
                     decimal w = MyBlanks.Okruglenie(vol_start / market_price, 6);
                     _tab.BuyAtLimit(w, market_price);
@@ -562,7 +572,7 @@ namespace OsEngine.Robots.MoiRoboti
             Price_kon_trade();
             Lot(min_sum.ValueDecimal);
             decimal z = Price_kon_trade();
-            if (z > market_price + _deltaUsredn + per && volum_ma < market_price) // если цена ниже последнего трейда и выше машки 
+            if (z > market_price + _deltaUsredn + per && volum_ma_short < market_price) // если цена ниже последнего трейда и выше машки 
             {
                 min_lot = Lot(min_sum.ValueDecimal);
                 Balans_kvot(kvot_name);
