@@ -3,16 +3,6 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Forms.DataVisualization.Charting;
-using System.Windows.Forms.Integration;
-using System.Windows.Shapes;
 using OsEngine.Alerts;
 using OsEngine.Entity;
 using OsEngine.Journal;
@@ -21,10 +11,21 @@ using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Connectors;
 using OsEngine.Market.Servers.Tester;
+using OsEngine.OsTrader.AdminPanelApi;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.RiskManager;
 using OsEngine.Robots;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Forms.Integration;
+using System.Windows.Shapes;
+using OsEngine.PrimeSettings;
 using Grid = System.Windows.Controls.Grid;
 
 namespace OsEngine.OsTrader
@@ -39,6 +40,7 @@ namespace OsEngine.OsTrader
         #region Static Part
 
         public static OsTraderMaster Master;
+        public static AdminApiMaster ApiMaster;
 
         #endregion
 
@@ -125,6 +127,11 @@ namespace OsEngine.OsTrader
             _globalController.StartPaint();
 
             Master = this;
+
+            if (_startProgram == StartProgram.IsOsTrader && PrimeSettingsMaster.AutoStartApi)
+            {
+                ApiMaster = new AdminApiMaster(Master);
+            }
         }
 
         private WindowsFormsHost _hostLogPrime;
@@ -153,7 +160,7 @@ namespace OsEngine.OsTrader
         /// bots array
         /// массив роботов
         /// </summary>
-        public List<BotPanel> _panelsArray;
+        public List<BotPanel> PanelsArray;
 
         /// <summary>
         /// the bot to which the interface is currently connected
@@ -191,7 +198,7 @@ namespace OsEngine.OsTrader
                 return;
             }
 
-            _panelsArray = new List<BotPanel>();
+            PanelsArray = new List<BotPanel>();
 
             int botIterator = 0;
             using (StreamReader reader = new StreamReader(@"Engine\Settings" + _typeWorkKeeper + "Keeper.txt"))
@@ -221,18 +228,18 @@ namespace OsEngine.OsTrader
 
                     if (bot != null)
                     {
-                        _panelsArray.Add(bot);
-                        _tabBotNames.Items.Add(" " + _panelsArray[botIterator].NameStrategyUniq + " ");
-                        SendNewLogMessage(OsLocalization.Trader.Label2 + _panelsArray[botIterator].NameStrategyUniq,
+                        PanelsArray.Add(bot);
+                        _tabBotNames.Items.Add(" " + PanelsArray[botIterator].NameStrategyUniq + " ");
+                        SendNewLogMessage(OsLocalization.Trader.Label2 + PanelsArray[botIterator].NameStrategyUniq,
                             LogMessageType.System);
                         botIterator++;
                     }
 
                 }
             }
-            if (_panelsArray.Count != 0)
+            if (PanelsArray.Count != 0)
             {
-                ReloadActivBot(_panelsArray[0]);
+                ReloadActivBot(PanelsArray[0]);
             }
         }
 
@@ -247,18 +254,18 @@ namespace OsEngine.OsTrader
                 using (StreamWriter writer = new StreamWriter(@"Engine\Settings" + _typeWorkKeeper + "Keeper.txt", false))
                 {
 
-                    for (int i = 0; _panelsArray != null && i < _panelsArray.Count; i++)
+                    for (int i = 0; PanelsArray != null && i < PanelsArray.Count; i++)
                     {
-                        if(_panelsArray[i].IsScript == false)
+                        if(PanelsArray[i].IsScript == false)
                         {
-                            writer.WriteLine(_panelsArray[i].NameStrategyUniq + "@" +
-                                             _panelsArray[i].GetNameStrategyType() +
+                            writer.WriteLine(PanelsArray[i].NameStrategyUniq + "@" +
+                                             PanelsArray[i].GetNameStrategyType() +
                                               "@" + false);
                         }
                         else
                         {
-                            writer.WriteLine(_panelsArray[i].NameStrategyUniq + "@" +
-                            _panelsArray[i].FileName +
+                            writer.WriteLine(PanelsArray[i].NameStrategyUniq + "@" +
+                            PanelsArray[i].FileName +
                             "@" + true);
                         }
                     }
@@ -371,13 +378,13 @@ namespace OsEngine.OsTrader
         {
             try
             {
-                if (_panelsArray != null)
+                if (PanelsArray != null)
                 {
-                    for (int i = 0; i < _panelsArray.Count; i++)
+                    for (int i = 0; i < PanelsArray.Count; i++)
                     {
-                        if (_panelsArray[i].NameStrategyUniq.Replace(" ", "") == newBotName.Replace(" ", ""))
+                        if (PanelsArray[i].NameStrategyUniq.Replace(" ", "") == newBotName.Replace(" ", ""))
                         {
-                            ReloadActivBot(_panelsArray[i]);
+                            ReloadActivBot(PanelsArray[i]);
                             return;
                         }
                     }
@@ -433,11 +440,11 @@ namespace OsEngine.OsTrader
                 _riskManager.ClearJournals();
                 _globalController.ClearJournals();
 
-                if (_panelsArray != null)
+                if (PanelsArray != null)
                 {
-                    for (int i = 0; i < _panelsArray.Count; i++)
+                    for (int i = 0; i < PanelsArray.Count; i++)
                     {
-                        List<Journal.Journal> journals = _panelsArray[i].GetJournals();
+                        List<Journal.Journal> journals = PanelsArray[i].GetJournals();
 
                         for (int i2 = 0; journals != null && i2 < journals.Count; i2++)
                         {
@@ -462,14 +469,14 @@ namespace OsEngine.OsTrader
         {
             try
             {
-                if (_panelsArray == null)
+                if (PanelsArray == null)
                 {
                     return;
                 }
 
-                for (int i = 0; i < _panelsArray.Count; i++)
+                for (int i = 0; i < PanelsArray.Count; i++)
                 {
-                    _panelsArray[i].CloseAndOffAllToMarket();
+                    PanelsArray[i].CloseAndOffAllToMarket();
                 }
             }
             catch (Exception error)
@@ -538,8 +545,8 @@ namespace OsEngine.OsTrader
         {
             try
             {
-                if (_panelsArray == null ||
-                _panelsArray.Count == 0)
+                if (PanelsArray == null ||
+                PanelsArray.Count == 0)
                 {
                     return;
                 }
@@ -552,9 +559,9 @@ namespace OsEngine.OsTrader
 
                 List<BotPanelJournal> panelsJournal = new List<BotPanelJournal>();
 
-                for (int i = 0; i < _panelsArray.Count; i++)
+                for (int i = 0; i < PanelsArray.Count; i++)
                 {
-                    List<Journal.Journal> journals = _panelsArray[i].GetJournals();
+                    List<Journal.Journal> journals = PanelsArray[i].GetJournals();
 
                     if (journals == null)
                     {
@@ -562,7 +569,7 @@ namespace OsEngine.OsTrader
                     }
 
                     BotPanelJournal botPanel = new BotPanelJournal();
-                    botPanel.BotName = _panelsArray[i].NameStrategyUniq;
+                    botPanel.BotName = PanelsArray[i].NameStrategyUniq;
                     botPanel._Tabs = new List<BotTabJournal>();
 
                     for (int i2 = 0; journals != null && i2 < journals.Count; i2++)
@@ -605,7 +612,7 @@ namespace OsEngine.OsTrader
         /// send a new message 
         /// выслать новое сообщение на верх
         /// </summary>
-        private void SendNewLogMessage(string message, LogMessageType type)
+        public void SendNewLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
             {
@@ -665,16 +672,16 @@ namespace OsEngine.OsTrader
 
                 _fastRegimeOn = false;
 
-                if (_panelsArray != null)
+                if (PanelsArray != null)
                 {
-                    for (int i = 0; i < _panelsArray.Count; i++)
+                    for (int i = 0; i < PanelsArray.Count; i++)
                     {
-                        _panelsArray[i].Clear();
+                        PanelsArray[i].Clear();
                     }
                 }
-                if (_panelsArray != null)
+                if (PanelsArray != null)
                 {
-                    ((TesterServer)ServerMaster.GetServers()[0]).SynhSecurities(_panelsArray.ToList());
+                    ((TesterServer)ServerMaster.GetServers()[0]).SynhSecurities(PanelsArray.ToList());
                 }
             }
             catch (Exception error)
@@ -771,7 +778,7 @@ namespace OsEngine.OsTrader
         {
             try
             {
-                if (_panelsArray == null ||
+                if (PanelsArray == null ||
                _activPanel == null)
                 {
                     return;
@@ -791,7 +798,7 @@ namespace OsEngine.OsTrader
 
                 SendNewLogMessage(OsLocalization.Trader.Label5 + _activPanel.NameStrategyUniq, LogMessageType.System);
 
-                _panelsArray.Remove(_activPanel);
+                PanelsArray.Remove(_activPanel);
 
                 _activPanel = null;
 
@@ -799,14 +806,14 @@ namespace OsEngine.OsTrader
 
                 _tabBotNames.Items.Clear();
 
-                if (_panelsArray != null && _panelsArray.Count != 0)
+                if (PanelsArray != null && PanelsArray.Count != 0)
                 {
-                    for (int i = 0; i < _panelsArray.Count; i++)
+                    for (int i = 0; i < PanelsArray.Count; i++)
                     {
-                        _tabBotNames.Items.Add(" " + _panelsArray[i].NameStrategyUniq + " ");
+                        _tabBotNames.Items.Add(" " + PanelsArray[i].NameStrategyUniq + " ");
                     }
 
-                    ReloadActivBot(_panelsArray[0]);
+                    ReloadActivBot(PanelsArray[0]);
                 }
 
                 ReloadRiskJournals();
@@ -885,11 +892,11 @@ namespace OsEngine.OsTrader
 
                 BotPanel newRobot = BotFactory.GetStrategyForName(ui.NameStrategy, ui.NameBot, _startProgram, ui.IsScript);
 
-                if (_panelsArray == null)
+                if (PanelsArray == null)
                 {
-                    _panelsArray = new List<BotPanel>();
+                    PanelsArray = new List<BotPanel>();
                 }
-                _panelsArray.Add(newRobot);
+                PanelsArray.Add(newRobot);
 
                 SendNewLogMessage(OsLocalization.Trader.Label9 + newRobot.NameStrategyUniq, LogMessageType.System);
 
@@ -1200,13 +1207,13 @@ namespace OsEngine.OsTrader
         {
             try
             {
-                if (_panelsArray != null)
+                if (PanelsArray != null)
                 {
-                    for (int i = 0; i < _panelsArray.Count; i++)
+                    for (int i = 0; i < PanelsArray.Count; i++)
                     {
-                        if (_panelsArray[i].NameStrategyUniq.Replace(" ", "") == botName.Replace(" ", ""))
+                        if (PanelsArray[i].NameStrategyUniq.Replace(" ", "") == botName.Replace(" ", ""))
                         {
-                            return _panelsArray[i];
+                            return PanelsArray[i];
                         }
                     }
                 }

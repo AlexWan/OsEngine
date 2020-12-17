@@ -44,6 +44,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         int TabNum { get; set; }
 
+        DateTime LastTimeCandleUpdate { get; set; }
+        
         event Action<string, LogMessageType> LogMessageEvent;
     }
 }

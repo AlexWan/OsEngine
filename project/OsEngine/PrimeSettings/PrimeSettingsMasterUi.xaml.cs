@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Windows;
+using System.Windows.Controls;
 using OsEngine.Language;
 
 
@@ -39,11 +40,16 @@ namespace OsEngine.PrimeSettings
             CheckBoxExtraLogWindow.IsChecked = PrimeSettingsMaster.ErrorLogMessageBoxIsActiv;
             CheckBoxExtraLogSound.IsChecked = PrimeSettingsMaster.ErrorLogBeepIsActiv;
             CheckBoxTransactionSound.IsChecked = PrimeSettingsMaster.TransactionBeepIsActiv;
+            TextBoxToken.Text = PrimeSettingsMaster.Token;
+            TextBoxIp.Text = PrimeSettingsMaster.Ip;
+            TextBoxPort.Text = PrimeSettingsMaster.Port;
+            AutoStartChb.IsChecked = PrimeSettingsMaster.AutoStartApi;
 
             CheckBoxExtraLogWindow.Click += CheckBoxExtraLogWindow_Click;
             CheckBoxExtraLogSound.Click += CheckBoxExtraLogSound_Click;
             CheckBoxTransactionSound.Click += CheckBoxTransactionSound_Click;
             CheckBoxServerTestingIsActive.Click += CheckBoxServerTestingIsActive_Click;
+            AutoStartChb.Click += AutoStartChb_Click;
 
             ChangeText();
             OsLocalization.LocalizationTypeChangeEvent += ChangeText;
@@ -51,7 +57,7 @@ namespace OsEngine.PrimeSettings
 
         private void ChangeText()
         {
-            Title = OsLocalization.PrimeSettings.Title;
+            MainItem.Header = OsLocalization.PrimeSettings.Title;
             LanguageLabel.Content = OsLocalization.PrimeSettings.LanguageLabel;
             ShowExtraLogWindowLabel.Content = OsLocalization.PrimeSettings.ShowExtraLogWindowLabel;
             ExtraLogSound.Content = OsLocalization.PrimeSettings.ExtraLogSoundLabel;
@@ -60,13 +66,20 @@ namespace OsEngine.PrimeSettings
             LabelServerTestingIsActive.Content = OsLocalization.PrimeSettings.LabelServerTestingIsActive;
             LabelServerTestingIsActive.ToolTip = OsLocalization.PrimeSettings.LabelServerTestingToopTip;
             CheckBoxServerTestingIsActive.ToolTip = OsLocalization.PrimeSettings.LabelServerTestingToopTip;
+            AdminItem.Header = OsLocalization.PrimeSettings.Title2;
+
+            LabelState.Content = OsLocalization.PrimeSettings.LblState;
+            LabelToken.Content = OsLocalization.PrimeSettings.LblToken;
+            LabelIp.Content = OsLocalization.PrimeSettings.LblIp;
+            LabelPort.Content = OsLocalization.PrimeSettings.LblPort;
+
+            LabelConfirm.Content = OsLocalization.PrimeSettings.LblAdminPanel;
         }
 
         private void CheckBoxServerTestingIsActive_Click(object sender, RoutedEventArgs e)
         {
             if (CheckBoxServerTestingIsActive.IsChecked != null)
                 PrimeSettingsMaster.ServerTestingIsActive = CheckBoxServerTestingIsActive.IsChecked.Value;
-
         }
 
         private void CheckBoxTransactionSound_Click(object sender, RoutedEventArgs e)
@@ -85,6 +98,29 @@ namespace OsEngine.PrimeSettings
         {
             if (CheckBoxExtraLogWindow.IsChecked != null)
                 PrimeSettingsMaster.ErrorLogMessageBoxIsActiv = CheckBoxExtraLogWindow.IsChecked.Value;
+        }
+
+        private void AutoStartChb_Click(object sender, RoutedEventArgs e)
+        {
+            if (AutoStartChb.IsChecked != null)
+                PrimeSettingsMaster.AutoStartApi = AutoStartChb.IsChecked.Value;
+        }
+
+        private void BtnGenerateToken_OnClick(object sender, RoutedEventArgs e)
+        {
+            string token = Guid.NewGuid().ToString();
+            TextBoxToken.Text = token;
+            PrimeSettingsMaster.Token = TextBoxToken.Text;
+        }
+
+        private void TextBoxIp_OnTextChanged(object sender, TextChangedEventArgs e)
+        {
+            PrimeSettingsMaster.Ip = TextBoxIp.Text;
+        }
+
+        private void TextBoxPort_OnTextChanged(object sender, TextChangedEventArgs e)
+        {
+            PrimeSettingsMaster.Port = TextBoxPort.Text;
         }
     }
 }

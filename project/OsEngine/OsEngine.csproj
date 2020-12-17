@@ -715,6 +715,13 @@
     <Compile Include="OsOptimizer\TabIndexOptimizerUi.xaml.cs">
       <DependentUpon>TabIndexOptimizerUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="OsTrader\AdminPanelApi\AdminApiMaster.cs" />
+    <Compile Include="OsTrader\AdminPanelApi\AdminPanelClient.cs" />
+    <Compile Include="OsTrader\AdminPanelApi\Authorization.cs" />
+    <Compile Include="OsTrader\AdminPanelApi\Counter.cs" />
+    <Compile Include="OsTrader\AdminPanelApi\IApiServer.cs" />
+    <Compile Include="OsTrader\AdminPanelApi\ServerModel.cs" />
+    <Compile Include="OsTrader\AdminPanelApi\TcpServer.cs" />
     <Compile Include="OsTrader\GlobalPosition.cs" />
     <Compile Include="Journal\Journal.cs" />
     <Compile Include="Logging\MessageSender.cs" />
@@ -1467,6 +1474,9 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Market\Servers\Huobi\FuturesSwap\Entities\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\generateButton.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
