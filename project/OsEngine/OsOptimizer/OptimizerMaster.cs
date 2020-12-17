@@ -89,6 +89,8 @@ namespace OsEngine.OsOptimizer
                     writer.WriteLine(_filterDealsCountIsOn);
                     writer.WriteLine(_isScript);
                     writer.WriteLine(_iterationCount);
+                    writer.WriteLine(_commissionType);
+                    writer.WriteLine(_commissionValue);
 
                     writer.Close();
                 }
@@ -133,6 +135,9 @@ namespace OsEngine.OsOptimizer
                     _filterDealsCountIsOn = Convert.ToBoolean(reader.ReadLine());
                     _isScript = Convert.ToBoolean(reader.ReadLine());
                     _iterationCount = Convert.ToInt32(reader.ReadLine());
+                    _commissionType = (ComissionType) Enum.Parse(typeof(ComissionType), 
+                        reader.ReadLine() ?? ComissionType.None.ToString());
+                    _commissionValue = Convert.ToDecimal(reader.ReadLine());
 
                     reader.Close();
                 }
@@ -327,6 +332,36 @@ namespace OsEngine.OsOptimizer
             }
         }
         private decimal _startDepozit;
+        
+        /// <summary>
+        /// commission type
+        /// тип комиссии
+        /// </summary>
+        public ComissionType CommissionType
+        {
+            get => _commissionType;
+            set
+            {
+                _commissionType = value;
+                Save();
+            }
+        }
+        private ComissionType _commissionType;      
+        
+        /// <summary>
+        /// commission value
+        /// размер комиссии
+        /// </summary>
+        public decimal CommissionValue
+        {
+            get => _commissionValue;
+            set
+            {
+                _commissionValue = value;
+                Save();
+            }
+        }
+        private decimal _commissionValue;
 
         /// <summary>
         /// connection settings for robot usual tabs
@@ -505,6 +540,40 @@ namespace OsEngine.OsOptimizer
 
 
         // tab 5, optimization phases/вкладка 5, фазы оптимизации
+
+        /// <summary>
+        /// Check is provided report accepted by filters
+        /// Проверяет допускается ли фильтрами переданный отчет 
+        /// </summary>
+        public bool IsAcceptedByFilter(OptimizerReport report)
+        {
+            if (FilterMiddleProfitIsOn && report.AverageProfitPercent < FilterMiddleProfitValue)
+            {
+                return false;
+            }
+
+            if (FilterProfitIsOn && report.TotalProfit < FilterProfitValue)
+            {
+                return false;
+            }
+
+            if (FilterMaxDrowDownIsOn && report.MaxDrowDawn < FilterMaxDrowDownValue)
+            {
+                return false;
+            }
+
+            if (FilterProfitFactorIsOn && report.ProfitFactor < FilterProfitFactorValue)
+            {
+                return false;
+            }
+
+            if (FilterDealsCountIsOn && report.PositionsCount < FilterDealsCountValue)
+            {
+                return false;
+            }
+
+            return true;
+        }
 
         /// <summary>
         /// optimization phases

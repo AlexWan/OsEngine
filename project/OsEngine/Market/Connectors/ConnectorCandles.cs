@@ -1287,7 +1287,9 @@ namespace OsEngine.Market.Connectors
                 order.ServerType = ServerType;
                 order.TimeCreate = MarketTime;
 
-                if (EmulatorIsOn || _myServer.ServerType == ServerType.Finam)
+                if (StartProgram != StartProgram.IsTester &&
+                    StartProgram != StartProgram.IsOsOptimizer &&
+                    (EmulatorIsOn || _myServer.ServerType == ServerType.Finam))
                 {
                     _emulator.OrderExecute(order);
                 }

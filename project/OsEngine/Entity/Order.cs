@@ -260,6 +260,8 @@ namespace OsEngine.Entity
                 }
             }
 
+
+
             _volumeExecuteChange = true;
 
             if (_trades == null)

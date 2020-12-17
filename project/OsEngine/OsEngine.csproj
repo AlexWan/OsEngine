@@ -552,10 +552,8 @@
     <Compile Include="Market\Servers\InteractivBrokers\IbContractStorageUi.xaml.cs">
       <DependentUpon>IbContractStorageUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Market\Servers\InteractivBrokers\InteractivBrokersServer.cs" />
-    <Compile Include="Market\Servers\InteractivBrokers\InteractivBrokersUi.xaml.cs">
-      <DependentUpon>InteractivBrokersUi.xaml</DependentUpon>
-    </Compile>
+    <Compile Include="Market\Servers\InteractivBrokers\InteractiveBrokersServer.cs" />
+    <Compile Include="Market\Servers\InteractivBrokers\InteractiveBrokersServerPermission.cs" />
     <Compile Include="Market\Servers\IServer.cs" />
     <Compile Include="Market\Servers\IServerPermission.cs" />
     <Compile Include="Market\Servers\IServerRealization.cs" />
@@ -1113,10 +1111,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Market\Servers\InteractivBrokers\InteractivBrokersUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Market\Servers\Kraken\KrakenServerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -1217,10 +1211,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="OsOptimizer\OptimizerUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="OsConverter\OsConverterUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -1234,6 +1224,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="OsData\OsDataUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsOptimizer\OptimizerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

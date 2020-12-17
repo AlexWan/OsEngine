@@ -40,7 +40,7 @@ namespace OsEngine.Market.Servers.ZB.EntityCreators
                     security.PriceStepCost = security.PriceStep;
                     security.State = SecurityStateType.Activ;
                     int volumeScale = jProperty.Value.SelectToken(PathForDecimalsVolume).Value<int>();
-                    security.Lot = volumeScale.GetValueByDecimals();
+                    security.Lot = 1;
 
                     _securities.Add(security);
                 }

@@ -160,9 +160,14 @@ namespace OsEngine.Market.Servers.Quik
                             securities[i].State = SecurityStateType.UnKnown;
                         }
 
-                        if (!string.IsNullOrEmpty(table[i, 4].ToString()))
+                        if (!string.IsNullOrEmpty(table[i, 4].ToString()) &&
+                            securities[i].NameClass != "SPBFUT")
                         {
                             securities[i].Lot = ToDecimal(table[i, 4]);
+                        }
+                        else
+                        {
+                            securities[i].Lot = 1;
                         }
 
                         if (!string.IsNullOrEmpty(table[i, 5].ToString()))

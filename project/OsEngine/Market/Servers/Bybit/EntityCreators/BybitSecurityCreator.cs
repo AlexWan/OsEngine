@@ -32,7 +32,7 @@ namespace OsEngine.Market.Servers.Bybit.EntityCreators
                         security.NameClass = jProperty.SelectToken("quote_currency").Value<string>();
                         security.PriceStep = jProperty.SelectToken("price_filter").SelectToken("tick_size").Value<decimal>();
                         security.PriceStepCost = jProperty.SelectToken("price_filter").SelectToken("tick_size").Value<decimal>();
-                        security.Lot = jProperty.SelectToken("lot_size_filter").SelectToken("qty_step").Value<decimal>();
+                        security.Lot = 1;
                         security.Decimals = jProperty.SelectToken("price_scale").Value<int>();
                         
                         securities.Add(security);
@@ -46,7 +46,7 @@ namespace OsEngine.Market.Servers.Bybit.EntityCreators
                         security.NameClass = jProperty.SelectToken("quote_currency").Value<string>();
                         security.PriceStep = jProperty.SelectToken("price_filter").SelectToken("tick_size").Value<decimal>();
                         security.PriceStepCost = jProperty.SelectToken("price_filter").SelectToken("tick_size").Value<decimal>();
-                        security.Lot = jProperty.SelectToken("lot_size_filter").SelectToken("qty_step").Value<decimal>();
+                        security.Lot = 1;
                         security.Decimals = jProperty.SelectToken("price_scale").Value<int>();
 
                         securities.Add(security);

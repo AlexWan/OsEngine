@@ -594,7 +594,10 @@ namespace OsEngine.Market.Servers.Hitbtc
                         reser = balance.reserved.ToDecimal();
 
                     var allPos = needPortfolio.GetPositionOnBoard();
-                    var needPos = allPos.Find(pos => pos.SecurityNameCode == balance.currency);
+                    
+                    PositionOnBoard needPos = null;
+                    if(allPos!=null)
+                    needPos = allPos.Find(pos => pos.SecurityNameCode == balance.currency);
 
                     if (needPos == null)
                     {
@@ -702,7 +705,7 @@ namespace OsEngine.Market.Servers.Hitbtc
                 security.NameClass = symbol.quoteCurrency;
                 security.NameId = symbol.id;
                 security.SecurityType = SecurityType.CurrencyPair;
-                security.Lot = symbol.quantityIncrement.ToDecimal();
+                security.Lot = 1;
                 security.PriceStep = symbol.tickSize.ToDecimal();
                 security.PriceStepCost = security.PriceStep;
 

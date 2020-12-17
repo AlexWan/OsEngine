@@ -4,13 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OsEngine.Market.Servers.GateIo.Futures
+namespace OsEngine.Market.Servers.InteractivBrokers
 {
-    public class BybitServerPermission : IServerPermission
+    class InteractiveBrokersServerPermission : IServerPermission
     {
         public ServerType ServerType
         {
-            get { return ServerType.Bybit; }
+            get { return ServerType.InteractivBrokers; }
         }
 
         #region DataFeedPermissions
@@ -45,7 +45,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
         }
         public bool DataFeedTf1MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf2MinuteCanLoad
         {
@@ -53,7 +53,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
         }
         public bool DataFeedTf5MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf10MinuteCanLoad
         {
@@ -61,38 +61,42 @@ namespace OsEngine.Market.Servers.GateIo.Futures
         }
         public bool DataFeedTf15MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf30MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf1HourCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf2HourCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf4HourCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTfTickCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTfMarketDepthCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         #endregion
+
+        #region Trade permission
 
         public bool IsTradeServer
         {
             get { return true; }
         }
+
+        #endregion
     }
 }

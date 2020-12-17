@@ -18,8 +18,10 @@ namespace OsEngine.OsData
         OsDataMaster _osDataMaster;
         public OsDataUi()
         {
+            
             InitializeComponent();
-            _osDataMaster = new OsDataMaster(ChartHostPanel, HostLog, HostSource, HostSet, ComboBoxSecurity,ComboBoxTimeFrame,RectChart);
+            _osDataMaster = new OsDataMaster(ChartHostPanel, HostLog, HostSource,
+                HostSet, ComboBoxSecurity,ComboBoxTimeFrame,RectChart, GreedChartPanel);
             CheckBoxPaintOnOff.IsChecked = _osDataMaster.IsPaintEnabled;
             CheckBoxPaintOnOff.Click += CheckBoxPaintOnOff_Click;
             LabelOsa.Content = "V_" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;

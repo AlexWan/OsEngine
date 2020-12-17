@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using System.Windows.Forms.Integration;
 using System.Windows.Shapes;
 
@@ -1859,17 +1860,18 @@ namespace OsEngine.OsData
         /// <summary>
         /// enable drawing of this set/включить прорисовку этого сета
         /// </summary>
-        public void StartPaint(WindowsFormsHost hostChart, Rectangle rectangle)
+        public void StartPaint(WindowsFormsHost hostChart, Rectangle rectangle, Grid chartGrid)
         {
             try
             {
                 if (!_comboBoxTimeFrame.Dispatcher.CheckAccess())
                 {
-                    _comboBoxTimeFrame.Dispatcher.Invoke(new Action<WindowsFormsHost, Rectangle>(StartPaint), hostChart, rectangle);
+                    _comboBoxTimeFrame.Dispatcher.Invoke(
+                        new Action<WindowsFormsHost, Rectangle, Grid>(StartPaint), hostChart, rectangle, chartGrid);
                     return;
                 }
                 _chartMaster.Clear();
-                _chartMaster.StartPaint(null,hostChart, rectangle);
+                _chartMaster.StartPaint(chartGrid, hostChart, rectangle);
 
                 ReBuildComboBox();
 

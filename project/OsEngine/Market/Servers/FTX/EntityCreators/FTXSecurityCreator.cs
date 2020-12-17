@@ -35,7 +35,7 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
                     security.State = jProperty.SelectToken(StatePath).Value<bool>() ?
                         SecurityStateType.Activ :
                         SecurityStateType.Close;
-                    security.Lot = jProperty.SelectToken(LotPath).Value<decimal>();
+                    security.Lot = 1;
 
                     securities.Add(security);
                 }

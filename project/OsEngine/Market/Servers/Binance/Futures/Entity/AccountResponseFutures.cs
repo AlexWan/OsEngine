@@ -83,4 +83,8 @@ namespace OsEngine.Market.Servers.Binance.Futures.Entity
         public string mt; //":"isolated",              // Margin Type
         public string iw; //":"0.06391979"         // Isolated Wallet (if isolated position)
     }
+    public class HedgeModeResponse
+    {
+        public bool dualSidePosition;
+    }
 }

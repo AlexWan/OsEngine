@@ -161,8 +161,11 @@ namespace OsEngine.Market.Servers.FTX
             while (!token.IsCancellationRequested)
             {
                 await Task.Delay(15000);
-                _wsSource?.SendMessage(pingMessage);
-
+                if(_wsSource != null)
+                {
+                    _wsSource.SendMessage(pingMessage);
+                }
+                
                 if (_lastTimeUpdateSocket == DateTime.MinValue)
                 {
                     if(sourceAliveCheckerStart.AddSeconds(60) < DateTime.Now)
@@ -223,6 +226,11 @@ namespace OsEngine.Market.Servers.FTX
                 if (midTime > endTime)
                 {
                     midTime = endTime;
+                }
+
+                if(_ftxRestApi == null)
+                {
+                    break;
                 }
 
                 var histaricalPricesResponse = _ftxRestApi.GetHistoricalPricesAsync(securityName, needInterval, CandlesDownloadLimit, actualTime, midTime).Result;
@@ -386,10 +394,10 @@ namespace OsEngine.Market.Servers.FTX
 
             var localOrder = _myOrders[order.NumberMarket];
             if (order.State != localOrder.State)
-            {
-                var currentTime = DateTime.Now;
+            {          
                 if (order.State == OrderStateType.Done)
                 {
+                    var currentTime = DateTime.Now;
                     if (localOrder.State == OrderStateType.Cancel)
                     {
                         localOrder.TimeCancel = currentTime;
@@ -401,10 +409,9 @@ namespace OsEngine.Market.Servers.FTX
                     }
                     _myOrders.Remove(localOrder.NumberMarket);
                 }
-                else
-                {
-                    localOrder.State = order.State;
-                }
+                
+                localOrder.State = order.State;
+
                 OnOrderEvent(localOrder);
             }
         }
@@ -471,6 +478,11 @@ namespace OsEngine.Market.Servers.FTX
                 OnMarketDepthEvent(localMarketDepth);
             }
         }
+
+        private bool IsSpot(string securityName)
+        {
+            return securityName.Contains("/");
+        }
         #endregion
         #endregion
 
@@ -500,12 +512,20 @@ namespace OsEngine.Market.Servers.FTX
                     SendLogMessage($"Order with number {order.NumberUser} has been removed from the FTXServer cache.", LogMessageType.Error);
                     return;
                 }
-                _myOrders[order.NumberMarket].State = OrderStateType.Cancel;
-                OnOrderEvent(order);
+                Order localOrder = _myOrders[order.NumberMarket];
+                localOrder.State = OrderStateType.Cancel;
+                OnOrderEvent(localOrder);
             }
             else
             {
                 string errorMsg = cancelOrderResponse.SelectToken("error").ToString();
+
+                if(errorMsg.Equals("Order already closed"))
+                {
+                    order.State = OrderStateType.Cancel;
+                    OnOrderEvent(order);
+                    return;
+                }
 
                 SendLogMessage($"Error on order cancel num {order.NumberUser} : {errorMsg}", LogMessageType.Error);
             }
@@ -678,7 +698,20 @@ namespace OsEngine.Market.Servers.FTX
                 return;
             }
 
-            var placeOrderResponse = await _ftxRestApi.PlaceOrderAsync(order.SecurityNameCode, order.Side, order.Price, order.TypeOrder, order.Volume);
+            var reduceOnly = !IsSpot(order.SecurityNameCode) &&
+                order.PositionConditionType == OrderPositionConditionType.Close ? 
+                    true : 
+                    false;
+
+            var placeOrderResponse = await _ftxRestApi.PlaceOrderAsync(
+                order.SecurityNameCode,
+                order.Side,
+                order.TypeOrder == OrderPriceType.Limit ?
+                    new decimal?(order.Price) :
+                    null,
+                order.TypeOrder,
+                order.Volume,
+                reduceOnly);
 
             var isSuccessful = placeOrderResponse.SelectToken("success").Value<bool>();
             if (isSuccessful)
@@ -694,6 +727,11 @@ namespace OsEngine.Market.Servers.FTX
                 createdOrder.IsStopOrProfit = order.IsStopOrProfit;
                 createdOrder.Comment = order.Comment;
                 createdOrder.LifeTime = order.LifeTime;
+
+                if(createdOrder.TypeOrder == OrderPriceType.Market)
+                {
+                    createdOrder.Price = order.Price;
+                }
 
                 _myOrders.Add(createdOrder.NumberMarket, createdOrder);
                 OnOrderEvent(createdOrder);

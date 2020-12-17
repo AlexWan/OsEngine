@@ -57,6 +57,9 @@ namespace OsEngine.Market.Servers
                 CreateParameterBoolean(OsLocalization.Market.ServerParam7, false);
                 _needToLoadBidAskInTrades = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
 
+                CreateParameterBoolean(OsLocalization.Market.ServerParam8, false);
+                _needToRemoveTradesFromMemory = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
+
                 _serverRealization.ServerParameters = ServerParameters;
 
                 _tickStorage = new ServerTickStorage(this);
@@ -193,6 +196,8 @@ namespace OsEngine.Market.Servers
 
         private ServerParameterBool _needToLoadBidAskInTrades;
 
+        private ServerParameterBool _needToRemoveTradesFromMemory;
+
         public bool NeedToHideParams = false;
 
         /// <summary>
@@ -214,7 +219,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterString)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 5, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 6, newParam);
             }
             else
             {
@@ -237,7 +242,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterInt)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 5, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 6, newParam);
             }
             else
             {
@@ -257,7 +262,7 @@ namespace OsEngine.Market.Servers
 
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 5, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 6, newParam);
             }
             else
             {
@@ -280,7 +285,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterDecimal)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 5, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 6, newParam);
             }
             else
             {
@@ -303,7 +308,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterBool)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 5, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 6, newParam);
             }
             else
             {
@@ -327,7 +332,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterPassword)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 5, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 6, newParam);
             }
             else
             {
@@ -349,7 +354,29 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterPath)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 5, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 6, newParam);
+            }
+            else
+            {
+                ServerParameters.Add(newParam);
+            }
+
+            newParam.ValueChange += newParam_ValueChange;
+        }
+
+        /// <summary>
+        /// create Button server parameter
+        /// создать параметр сервера типа кнопка
+        /// </summary>
+        public void CreateParameterButton(string name)
+        {
+            ServerParameterButton newParam = new ServerParameterButton();
+            newParam.Name = name;
+
+            newParam = (ServerParameterButton)LoadParam(newParam);
+            if (_serverIsStart)
+            {
+                ServerParameters.Insert(ServerParameters.Count - 6, newParam);
             }
             else
             {
@@ -1696,6 +1723,12 @@ namespace OsEngine.Market.Servers
                         allTradesNew[allTradesNew.Length - 1].Add(trade);
                         myList = allTradesNew[allTradesNew.Length - 1];
                         _allTrades = allTradesNew;
+                    }
+
+                    if (_needToRemoveTradesFromMemory.Value == true &&
+                        myList.Count > 100)
+                    {
+                        myList[myList.Count - 100] = null;
                     }
 
                     _tradesToSend.Enqueue(myList);

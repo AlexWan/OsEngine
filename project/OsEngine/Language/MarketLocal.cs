@@ -762,6 +762,10 @@ namespace OsEngine.Language
             "Eng:Bid Ask in trades_" +
             "Ru:Грузим данные bid/ask в трейды_");
 
+        public string ServerParam8 => OsLocalization.ConvertToLocString(
+            "Eng:Remove Trades From Memory_" +
+            "Ru:Удалять трейды из памяти_");
+
         public string UseStock => OsLocalization.ConvertToLocString(
             "Eng:Stock_" +
             "Ru:Акции_");

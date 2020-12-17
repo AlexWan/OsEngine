@@ -415,7 +415,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
                     security.NameClass = SecurityType.Futures.ToString();
                     security.SecurityType = SecurityType.Futures;
                     security.Decimals = jSec.MarkPriceRound.Split('.')[1].Count();
-                    security.Lot = jSec.OrderSizeMin;
+                    security.Lot = 1;
                     security.PriceStep = Converter.StringToDecimal(jSec.MarkPriceRound);
                     security.PriceStepCost = Converter.StringToDecimal(jSec.MarkPriceRound);
                     security.State = SecurityStateType.Activ;

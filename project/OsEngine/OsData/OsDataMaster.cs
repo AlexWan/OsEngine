@@ -13,8 +13,12 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
+using ContextMenu = System.Windows.Forms.ContextMenu;
+using DataGrid = System.Windows.Forms.DataGrid;
+using MenuItem = System.Windows.Forms.MenuItem;
 using MessageBox = System.Windows.Forms.MessageBox;
 using Point = System.Drawing.Point;
 
@@ -38,7 +42,7 @@ namespace OsEngine.OsData
         /// <param name="rectangle">square for substrate/квадрат для подложки</param>
         public OsDataMaster(WindowsFormsHost hostChart, WindowsFormsHost hostLog,
             WindowsFormsHost hostSource, WindowsFormsHost hostSets, System.Windows.Controls.ComboBox comboBoxSecurity,
-            System.Windows.Controls.ComboBox comboBoxTimeFrame, System.Windows.Shapes.Rectangle rectangle)
+            System.Windows.Controls.ComboBox comboBoxTimeFrame, System.Windows.Shapes.Rectangle rectangle, Grid greedChartPanel)
         {
             _hostChart = hostChart;
             _hostSource = hostSource;
@@ -46,7 +50,7 @@ namespace OsEngine.OsData
             _comboBoxSecurity = comboBoxSecurity;
             _comboBoxTimeFrame = comboBoxTimeFrame;
             _rectangle = rectangle;
-
+            _greedChartPanel = greedChartPanel;
             _log = new Log("OsDataMaster", StartProgram.IsOsData);
             _log.StartPaint(hostLog);
             _log.Listen(this);
@@ -98,7 +102,7 @@ namespace OsEngine.OsData
 			_isPaintEnabled = true;
             if (_selectSet != null)
             {
-                _selectSet.StartPaint(_hostChart, _rectangle);
+                _selectSet.StartPaint(_hostChart, _rectangle, _greedChartPanel);
             }
             
         }
@@ -122,6 +126,11 @@ namespace OsEngine.OsData
         /// host for sets/хост для сетов
         /// </summary>
         private WindowsFormsHost _hostSets;
+
+        /// <summary>
+        /// дата грид для других видов чарта
+        /// </summary>
+        private Grid _greedChartPanel;
 
         /// <summary>
         /// rectangle for the substrate/прямоугольник для подложки
@@ -569,7 +578,7 @@ namespace OsEngine.OsData
             _selectSet = currentSet;
             if (_isPaintEnabled)
             {
-                currentSet.StartPaint(_hostChart, _rectangle);
+                currentSet.StartPaint(_hostChart, _rectangle, _greedChartPanel);
             }
         }
 

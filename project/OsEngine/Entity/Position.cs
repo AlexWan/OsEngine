@@ -950,7 +950,12 @@ namespace OsEngine.Entity
                     return 0;
                 }
 
-                decimal profit = (ProfitOperationPunkt / PriceStep) * PriceStepCost * MaxVolume - CommissionTotal();
+                if (Lots == 0)
+                {
+                    Lots = 1;
+                }
+
+                decimal profit = (ProfitOperationPunkt / PriceStep) * PriceStepCost * MaxVolume * Lots - CommissionTotal();
 
                 return profit; //  Lots;
             }
