@@ -9,8 +9,7 @@
       "AdminPanel/1.0.0": {
         "dependencies": {
           "Newtonsoft.Json": "12.0.3",
-          "TLSharp": "0.1.0.574",
-          "NetCoreServer": "3.0.21.0"
+          "TLSharp": "0.1.0.574"
         },
         "runtime": {
           "AdminPanel.dll": {}
@@ -35,14 +34,6 @@
             "fileVersion": "1.0.0.0"
           }
         }
-      },
-      "NetCoreServer/3.0.21.0": {
-        "runtime": {
-          "NetCoreServer.dll": {
-            "assemblyVersion": "3.0.21.0",
-            "fileVersion": "3.0.21.0"
-          }
-        }
       }
     }
   },
@@ -65,11 +56,6 @@
       "sha512": "sha512-OzLvXyTIZsHkJbX3iZRSb1vQdnkyO5yNcdPK80Snbrpm4kab59FdtijFGQRhe2NVjjKe5TabzxNPH3M0B64Lyw==",
       "path": "tlsharp/0.1.0.574",
       "hashPath": "tlsharp.0.1.0.574.nupkg.sha512"
-    },
-    "NetCoreServer/3.0.21.0": {
-      "type": "reference",
-      "serviceable": false,
-      "sha512": ""
     }
   }
 }

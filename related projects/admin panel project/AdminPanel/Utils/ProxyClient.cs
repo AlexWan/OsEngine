@@ -129,7 +129,7 @@ namespace AdminPanel.Utils
                             else
                             {
                                 HandleData(_stringBuilder.ToString());
-                                _stringBuilder = new StringBuilder(1000);
+                                _stringBuilder = new StringBuilder(1024);
                             }
                         }
                     }

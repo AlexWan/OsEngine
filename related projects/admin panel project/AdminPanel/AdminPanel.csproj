@@ -22,12 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="NetCoreServer">
-      <HintPath>bin\Debug\netcoreapp3.1\NetCoreServer.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
     <Resource Include="Images\down.bmp" />
     <Resource Include="Images\OsLogo.ico" />
     <Resource Include="Images\up.bmp" />
