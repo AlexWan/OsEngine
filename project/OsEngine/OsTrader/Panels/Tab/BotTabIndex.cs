@@ -273,12 +273,16 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        public DateTime LastTimeCandleUpdate { get; set; }
+
         /// <summary>
         /// new data came from the connector / 
         /// из коннектора пришли новые данные
         /// </summary>
         private void BotTabIndex_NewCandlesChangeEvent(List<Candle> candles)
         {
+            LastTimeCandleUpdate = DateTime.Now;
+
             for (int i = 0; i < Tabs.Count; i++)
             {
                 List<Candle> myCandles = Tabs[i].Candles(true);

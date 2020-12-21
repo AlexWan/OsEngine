@@ -3691,6 +3691,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        public DateTime LastTimeCandleUpdate { get; set; }
+
         /// <summary>
         /// candle is update / 
         /// обновилась последняя свеча
@@ -3699,6 +3701,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                LastTimeCandleUpdate = DateTime.Now;
+
                 AlertControlPosition();
 
                 _chartMaster.SetCandles(candles);

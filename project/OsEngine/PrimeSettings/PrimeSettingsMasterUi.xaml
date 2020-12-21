@@ -7,16 +7,57 @@
         mc:Ignorable="d"
         Title="Configuration" Style="{StaticResource WindowStyleNoResize}" Height="407" Width="404" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid>
-        <ComboBox x:Name="ComboBoxLocalization" Margin="190,29,74,0" VerticalAlignment="Top" Height="23"/>
-        <Label Name="LanguageLabel"  Content="Language" HorizontalAlignment="Left" Margin="86,29,0,0" VerticalAlignment="Top"/>
-        <CheckBox Name="CheckBoxExtraLogWindow" Margin="0,57,74,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23" />
-        <Label Name="ShowExtraLogWindowLabel" Content="Show emergency log window" HorizontalAlignment="Left" Margin="86,57,0,0" VerticalAlignment="Top"/>
-        <CheckBox x:Name="CheckBoxExtraLogSound" Margin="0,85,74,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
-        <Label x:Name="ExtraLogSound" Content="Emergency log sound" HorizontalAlignment="Left" Margin="86,85,0,0" VerticalAlignment="Top"/>
-        <CheckBox x:Name="CheckBoxTransactionSound" Margin="0,113,74,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
-        <Label x:Name="TransactionSoundLabel" Content="Transaction sound" HorizontalAlignment="Left" Margin="86,113,0,0" VerticalAlignment="Top"/>
-        <TextBox Name="TextBoxMessageToUsers" IsReadOnly="True" HorizontalAlignment="Left" Margin="43,195,0,0" TextWrapping="Wrap" Text="Our company has made the translation of this program due to its capabilities. We apologize for any inconvenience this may cause. &#xD;&#xA;Support our common Open Source project and it will become better." VerticalAlignment="Top" Width="323" Height="166" />
-        <CheckBox x:Name="CheckBoxServerTestingIsActive" Margin="0,141,74,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
-        <Label x:Name="LabelServerTestingIsActive" Content="Server Testing Is Active" HorizontalAlignment="Left" Margin="86,141,0,0" VerticalAlignment="Top"/>
+        <TabControl>
+            <TabItem Name="MainItem" Header="Main" Width="150">
+                <Grid>
+                    <ComboBox x:Name="ComboBoxLocalization" Margin="190,29,74,0" VerticalAlignment="Top" Height="23"/>
+                    <Label Name="LanguageLabel"  Content="Language" HorizontalAlignment="Left" Margin="86,29,0,0" VerticalAlignment="Top"/>
+                    <CheckBox Name="CheckBoxExtraLogWindow" Margin="0,57,74,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23" />
+                    <Label Name="ShowExtraLogWindowLabel" Content="Show emergency log window" HorizontalAlignment="Left" Margin="86,57,0,0" VerticalAlignment="Top"/>
+                    <CheckBox x:Name="CheckBoxExtraLogSound" Margin="0,85,74,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
+                    <Label x:Name="ExtraLogSound" Content="Emergency log sound" HorizontalAlignment="Left" Margin="86,85,0,0" VerticalAlignment="Top"/>
+                    <CheckBox x:Name="CheckBoxTransactionSound" Margin="0,113,74,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
+                    <Label x:Name="TransactionSoundLabel" Content="Transaction sound" HorizontalAlignment="Left" Margin="86,113,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxMessageToUsers" IsReadOnly="True" HorizontalAlignment="Left" Margin="43,195,0,0" TextWrapping="Wrap" Text="Our company has made the translation of this program due to its capabilities. We apologize for any inconvenience this may cause. &#xD;&#xA;Support our common Open Source project and it will become better." VerticalAlignment="Top" Width="323" Height="166" />
+                    <CheckBox x:Name="CheckBoxServerTestingIsActive" Margin="0,141,74,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
+                    <Label x:Name="LabelServerTestingIsActive" Content="Server Testing Is Active" HorizontalAlignment="Left" Margin="86,141,0,0" VerticalAlignment="Top"/>
+                </Grid>
+            </TabItem>
+            <TabItem Name="AdminItem" Header="Admin panel access" Width="150">
+                <Grid>
+                    <Label Name="LabelState" HorizontalAlignment="Left"
+                           VerticalAlignment="Top" Margin="25,23,0,0" Width="79" Content="State"/>
+                    <Label Name="LabelStateValue" HorizontalAlignment="Left"
+                           VerticalAlignment="Top" Margin="109,23,0,0" Width="73" Content=""/>
+                    <Label Name="LabelToken" HorizontalAlignment="Left"
+                           VerticalAlignment="Top" Margin="25,51,0,0" Width="54" Content="Token"/>
+                    <TextBox Name="TextBoxToken" HorizontalAlignment="Left" IsReadOnly="True"
+                             VerticalAlignment="Top" Margin="97,51,0,0" Width="205"></TextBox>
+                    <Label Name="LabelIp" HorizontalAlignment="Left"
+                           VerticalAlignment="Top" Margin="25,79,0,0" Width="67" Content="IP"/>
+                    <TextBox Name="TextBoxIp" HorizontalAlignment="Left"
+                             VerticalAlignment="Top" Margin="97,79,0,0" Width="205"
+                             TextChanged="TextBoxIp_OnTextChanged"/>
+                    <CheckBox Name="AutoStartChb" HorizontalAlignment="Left"
+                              VerticalAlignment="Top" Margin="269,165,0,0" Width="17" Height="23" />
+                    <Label Name="LabelConfirm" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                           Margin="25,165,0,0" Width="228" Content="Start admin panel API automatically"/>
+                    <Label x:Name="LabelPort" HorizontalAlignment="Left"
+                        VerticalAlignment="Top" Margin="25,107,0,0" Width="67" Content="PORT"/>
+                    <TextBox x:Name="TextBoxPort" HorizontalAlignment="Left"
+                        VerticalAlignment="Top" Margin="97,107,0,0" Width="205"
+                        TextChanged="TextBoxPort_OnTextChanged"/>
+                    <Button x:Name="BtnGenerateToken" HorizontalAlignment="Left"
+                        VerticalAlignment="Top" Margin="316,51,0,0" Width="50"  Height="23"
+                        Click="BtnGenerateToken_OnClick">
+                        <Button.Background>
+                            <ImageBrush ImageSource="/Images/generateButton.png" />
+                        </Button.Background>
+                    </Button>
+
+                </Grid>
+            </TabItem>
+        </TabControl>
+
     </Grid>
 </Window>

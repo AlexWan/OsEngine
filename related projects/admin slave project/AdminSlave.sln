@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30523.141
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdminSlave", "AdminSlave.csproj", "{B256AF13-FE86-4EEE-90F6-7277E6BB6785}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B256AF13-FE86-4EEE-90F6-7277E6BB6785}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B256AF13-FE86-4EEE-90F6-7277E6BB6785}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B256AF13-FE86-4EEE-90F6-7277E6BB6785}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B256AF13-FE86-4EEE-90F6-7277E6BB6785}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7C2BBAA3-A585-46EC-912D-07BFBE432F62}
+	EndGlobalSection
+EndGlobal

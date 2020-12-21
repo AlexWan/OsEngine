@@ -938,6 +938,11 @@ position => position.State != PositionStateType.OpeningFail
         /// </summary>
         private List<IIBotTab> _botTabs;
 
+        public List<IIBotTab> GetTabs()
+        {
+            return _botTabs;
+        }
+
         /// <summary>
         /// active tab
         /// активная вкладка
@@ -1380,6 +1385,11 @@ position => position.State != PositionStateType.OpeningFail
         // log / сообщения в лог 
 
         private Log _log;
+
+        public List<LogMessage> GetLogMessages()
+        {
+            return _log.GetLogMessages();
+        }
 
         /// <summary>
         /// send new message / 
