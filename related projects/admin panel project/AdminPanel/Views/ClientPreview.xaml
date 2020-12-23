@@ -36,46 +36,46 @@
         <Button Content="Go" Grid.Row="5"  Grid.Column="4" Width="100" HorizontalAlignment="Left" VerticalAlignment="Center" Height="24" Click="GoToPortfoliosClick"/>
         <Button Content="Go" Grid.Row="6"  Grid.Column="4" Width="100" HorizontalAlignment="Left" VerticalAlignment="Center" Height="24" Click="GoToOrdersClick"/>
 
-        
-        <Label Content="OsEngine" Grid.Row="0" Grid.Column="2" HorizontalAlignment="Left" 
+
+        <Label Content="{Binding OsEngineHeader}" Grid.Row="0" Grid.Column="2" HorizontalAlignment="Left" 
                VerticalAlignment="Center" Margin="2,0,0,0" Height="22" Width="138"/>
         <Label Content="{Binding EngineStatus}" Grid.Row="0" Grid.Column="3" HorizontalAlignment="Center" 
                VerticalAlignment="Center" Height="22" Width="100" Style="{StaticResource BoldLabel}"
                Foreground="{Binding EngineStatus, Converter={StaticResource StatusColorConverter}}"/>
 
-        
-        <Label Content="Slave" Grid.Row="1" Grid.Column="2" HorizontalAlignment="Left" 
+
+        <Label Content="{Binding SlaveHeader}" Grid.Row="1" Grid.Column="2" HorizontalAlignment="Left" 
                VerticalAlignment="Center" Margin="2,0,0,0" Height="22" Width="138"/>
         <Label Content="{Binding SlaveStatus}" Grid.Row="1" Grid.Column="3" HorizontalAlignment="Center" 
                VerticalAlignment="Center" Height="22" Width="100" Style="{StaticResource BoldLabel}"
                Foreground="{Binding SlaveStatus, Converter={StaticResource StatusColorConverter}}"/>
-        
 
-        <Label Content="Servers" HorizontalAlignment="Left" VerticalAlignment="Center" 
+
+        <Label Content="{Binding ServersHeader}" HorizontalAlignment="Left" VerticalAlignment="Center" 
                Margin="2,0,0,0" Height="34" Width="114" Grid.Row="2" Grid.Column="2"/>
         <Label Content="{Binding ServersStatus}" HorizontalAlignment="Center" VerticalAlignment="Center" 
                Height="22" Width="100" Grid.Column="3" Grid.Row="2" Style="{StaticResource BoldLabel}"
                Foreground="{Binding ServersStatus, Converter={StaticResource StatusColorConverter}}"/>
 
-        <Label Content="Robots" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="2,0,0,0" 
+        <Label Content="{Binding RobotsHeader}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="2,0,0,0" 
                Height="22" Width="78" Grid.Column="2" Grid.Row="3"/>
         <Label Content="{Binding RobotsStatus}" HorizontalAlignment="Center" VerticalAlignment="Center" 
                Height="22" Width="100" Grid.Column="3" Grid.Row="3" Style="{StaticResource BoldLabel}"
                Foreground="{Binding RobotsStatus, Converter={StaticResource StatusColorConverter}}"/>
 
-        <Label Content="All positions" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="2,0,0,0" 
+        <Label Content="{Binding AllPositionsHeader}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="2,0,0,0" 
                Height="22" Width="78" Grid.Column="2" Grid.Row="4"/>
         <Label Content="{Binding AllPositionsStatus}" HorizontalAlignment="Center" VerticalAlignment="Center" 
                Height="22" Width="100" Grid.Column="3" Grid.Row="4" Style="{StaticResource BoldLabel}"
                Foreground="{Binding AllPositionsStatus, Converter={StaticResource StatusColorConverter}}"/>
 
-        <Label Content="Portfolio" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="2,0,0,0" 
+        <Label Content="{Binding PortfoliosHeader}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="2,0,0,0" 
                Height="22" Width="78" Grid.Column="2" Grid.Row="5"/>
         <Label Content="{Binding PortfolioStatus}" HorizontalAlignment="Center" VerticalAlignment="Center" 
                Height="22" Width="100" Grid.Column="3" Grid.Row="5" Style="{StaticResource BoldLabel}"
                Foreground="{Binding PortfolioStatus, Converter={StaticResource StatusColorConverter}}"/>
 
-        <Label Content="Orders" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="2,0,0,0" 
+        <Label Content="{Binding OrdersHeader}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="2,0,0,0" 
                Height="22" Width="78" Grid.Column="2" Grid.Row="6"/>
         <Label Content="{Binding OrdersStatus}" HorizontalAlignment="Center" VerticalAlignment="Center" 
                Height="22" Width="100" Grid.Column="3" Grid.Row="6" Style="{StaticResource BoldLabel}"

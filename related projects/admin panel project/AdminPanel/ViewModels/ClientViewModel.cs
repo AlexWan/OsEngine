@@ -380,6 +380,14 @@ namespace AdminPanel.ViewModels
             BtnAddContent = OsLocalization.Entity.BtnAdd;
             BtnEditContent = OsLocalization.Entity.BtnEdit;
             BtnDeleteContent = OsLocalization.Entity.BtnDelete;
+
+            OsEngineHeader = OsLocalization.Entity.OsEngineHeader;
+            SlaveHeader = OsLocalization.Entity.SlaveHeader;
+            ServersHeader = OsLocalization.Entity.ServersHeader;
+            RobotsHeader = OsLocalization.Entity.RobotsHeader;
+            AllPositionsHeader = OsLocalization.Entity.AllPositionsHeader;
+            PortfoliosHeader = OsLocalization.Entity.PortfoliosHeader;
+            OrdersHeader = OsLocalization.Entity.OrdersHeader;
         }
 
         public void ChangeLocal()
@@ -389,6 +397,59 @@ namespace AdminPanel.ViewModels
             {
                 engineViewModel.ChangeLocal();
             }
+        }
+
+        #endregion
+
+        #region Preview
+
+        private string _osEngineHeader = OsLocalization.Entity.OsEngineHeader;
+        public string OsEngineHeader
+        {
+            get { return _osEngineHeader; }
+            set{ SetProperty(ref _osEngineHeader, value, () => OsEngineHeader); }
+        }
+
+        private string _slaveHeader = OsLocalization.Entity.SlaveHeader;
+        public string SlaveHeader
+        {
+            get { return _slaveHeader; }
+            set { SetProperty(ref _slaveHeader, value, () => SlaveHeader); }
+        }
+
+        private string _serversHeader = OsLocalization.Entity.ServersHeader;
+        public string ServersHeader
+        {
+            get { return _serversHeader; }
+            set { SetProperty(ref _serversHeader, value, () => ServersHeader); }
+        }
+
+        private string _robotsHeader = OsLocalization.Entity.RobotsHeader;
+        public string RobotsHeader
+        {
+            get { return _robotsHeader; }
+            set { SetProperty(ref _robotsHeader, value, () => RobotsHeader); }
+        }
+
+        private string _allPositionsHeader = OsLocalization.Entity.AllPositionsHeader;
+        public string AllPositionsHeader
+        {
+            get { return _allPositionsHeader; }
+            set { SetProperty(ref _allPositionsHeader, value, () => AllPositionsHeader); }
+        }
+
+        private string _portfoliosHeader = OsLocalization.Entity.PortfoliosHeader;
+        public string PortfoliosHeader
+        {
+            get { return _portfoliosHeader; }
+            set { SetProperty(ref _portfoliosHeader, value, () => PortfoliosHeader); }
+        }
+
+        private string _ordersHeader = OsLocalization.Entity.OrdersHeader;
+        public string OrdersHeader
+        {
+            get { return _ordersHeader; }
+            set { SetProperty(ref _ordersHeader, value, () => OrdersHeader); }
         }
 
         #endregion

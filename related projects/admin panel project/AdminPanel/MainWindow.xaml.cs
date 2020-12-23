@@ -174,6 +174,13 @@ namespace AdminPanel
 
         private async void BtnLogIn_OnClick(object sender, RoutedEventArgs e)
         {
+            if (string.IsNullOrEmpty(TextBoxKey.Text) ||
+                string.IsNullOrEmpty(TextBoxToken.Text) ||
+                string.IsNullOrEmpty(TextBoxPhone.Text))
+            {
+                return;
+            }
+
             var key = Convert.ToInt32(TextBoxKey.Text);
             var token = TextBoxToken.Text;
             var phone = TextBoxPhone.Text;

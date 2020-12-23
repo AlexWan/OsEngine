@@ -107,7 +107,7 @@ namespace AdminPanel.ViewModels
             }
         }
 
-        private bool _needSave = false;
+        private bool _needSave = true;
         public void Save()
         {
             if (!_needSave)
@@ -148,14 +148,14 @@ namespace AdminPanel.ViewModels
 
         public void Load()
         {
-            _needSave = false;
-
             if (!File.Exists(@"Engine\Clients.txt"))
             {
                 return;
             }
             try
             {
+                _needSave = false;
+
                 if (Clients == null)
                 {
                     Clients = new ObservableCollection<ClientViewModel>();

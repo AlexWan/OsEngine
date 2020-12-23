@@ -413,5 +413,33 @@
         public string TransferHeader => OsLocalization.ConvertToLocString(
             "Eng:Transfer_" +
             "Ru:Перейти_");
+
+        public string OsEngineHeader => OsLocalization.ConvertToLocString(
+            "Eng:OsEngines_" +
+            "Ru:Терминалы_");
+
+        public string SlaveHeader => OsLocalization.ConvertToLocString(
+            "Eng:Slave_" +
+            "Ru:Помощник_");
+
+        public string ServersHeader => OsLocalization.ConvertToLocString(
+            "Eng:Servers_" +
+            "Ru:Сервера_");
+
+        public string RobotsHeader => OsLocalization.ConvertToLocString(
+            "Eng:Robots_" +
+            "Ru:Роботы_");
+
+        public string AllPositionsHeader => OsLocalization.ConvertToLocString(
+            "Eng:All positions_" +
+            "Ru:Все позиции_");
+
+        public string PortfoliosHeader => OsLocalization.ConvertToLocString(
+            "Eng:Portfolios_" +
+            "Ru:Портфели_");
+
+        public string OrdersHeader => OsLocalization.ConvertToLocString(
+            "Eng:Orders_" +
+            "Ru:Ордера_");
     }
 }
