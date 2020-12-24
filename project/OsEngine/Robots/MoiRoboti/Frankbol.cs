@@ -31,6 +31,7 @@ namespace OsEngine.Robots.MoiRoboti
         decimal _deltaUsredn; // поле для хранения временного
         decimal _tmpArarm; // временное значение аварийного объема продаж
         decimal _gde_stop_tmp; // временное значения расстояния от стопа
+        decimal _do_profit_temp; // поле хранения расстояния до профит ордера 
 
         public Volume _vol;
         public Bollinger _bolin;
@@ -52,7 +53,7 @@ namespace OsEngine.Robots.MoiRoboti
         private StrategyParameterDecimal pir_of; // когда выключать пирамиду
         private StrategyParameterBool vkl_piramid; // поле включения метода пирамида  
         private StrategyParameterDecimal prof_on; // когда включать профит
-        private StrategyParameterDecimal gde_stop; // на каком расстоянии выставить стоп 
+        private StrategyParameterDecimal ckok_profit_stop; // на каком расстоянии выставить стоп 
         private StrategyParameterBool vkl_stopa; // поле включения стопа 
         private StrategyParameterInt n_min; // количество минут для метода подсчета прошедшего времени 
         private StrategyParameterInt volum_alarm;  // величина объема при достижении которого закроются убытки 
@@ -82,7 +83,7 @@ namespace OsEngine.Robots.MoiRoboti
             pir_of = CreateParameter(" ОТКлючить  Пирамиду при % товара", 10m, 5m, 100m, 5m);
             vkl_piramid = CreateParameter("Пирамида включена?", false);
             prof_on = CreateParameter("Забирать профит с % ", 10m, 5m, 100m, 5m);
-            gde_stop = CreateParameter("Сколько отступить до стоп ордера ", 0.05m, 0.01m, 10m, 0.01m);
+            ckok_profit_stop = CreateParameter("Сколько ПРИБЫЛИ закрывать стоп ордером? ", 1m, 0.01m, 10m, 0.01m);
             vkl_stopa = CreateParameter("Стоп Включен?", true);
             deltaUsredn = CreateParameter("УСРЕДнять через", 20m, 5m, 50m, 5m);
             start_per_depo = CreateParameter("Начинать с ? % депо)", 5, 5, 20, 5);
@@ -283,20 +284,20 @@ namespace OsEngine.Robots.MoiRoboti
                 market_price = _tab.PriceCenterMarketDepth;
                 decimal pr_poz = _tab.PositionsLast.EntryPrice;
 
-                if (pr_poz < market_price + _kom / 2 + profit.ValueInt) // цена открытия позиции ниже рынка +комиссия + расстояние от профита
+                if (pr_poz < market_price + _kom / 2 + _do_profit_temp) // цена открытия позиции ниже рынка +комиссия + расстояние от профита
                 {
                     if (zn > g) // прибыль больше жадности 
                     {
-                        _tab.CloseAtTrailingStop(positions[0], market_price - profit.ValueInt,
-                        market_price - profit.ValueInt - slippage.ValueDecimal * _tab.Securiti.PriceStep);
+                        _tab.CloseAtTrailingStop(positions[0], market_price - _do_profit_temp,
+                        market_price - _do_profit_temp - slippage.ValueDecimal * _tab.Securiti.PriceStep);
                         Console.WriteLine(" прибыль больше жадности  - включился трейлинг Прибыли от " + _temp_greed + " $ "
-                        + (_tab.PriceCenterMarketDepth - profit.ValueInt - slippage.ValueDecimal * _tab.Securiti.PriceStep));
+                        + (_tab.PriceCenterMarketDepth - _do_profit_temp - slippage.ValueDecimal * _tab.Securiti.PriceStep));
                     }
                 }
                 else if (zn > g && prof_on.ValueDecimal <= percent_tovara) // если товара уже больше значения prof_on  и есть прибыль в сделке - выставляем трейлик стоп прибыли  
                 {
-                    _tab.CloseAtTrailingStop(positions[0], market_price - _kom / 2 - profit.ValueInt,
-                    market_price - _kom / 2 - profit.ValueInt - slippage.ValueDecimal * _tab.Securiti.PriceStep);
+                    _tab.CloseAtTrailingStop(positions[0], market_price - _kom / 2 - _do_profit_temp,
+                    market_price - _kom / 2 - _do_profit_temp - slippage.ValueDecimal * _tab.Securiti.PriceStep);
                     Console.WriteLine(" сработал else if - товара больше " + prof_on.ValueDecimal + " %, Включили трейлинг Прибыли от _gde_stop_tmp  ");
                 }
             }
@@ -317,11 +318,11 @@ namespace OsEngine.Robots.MoiRoboti
                 decimal zn = _tab.PositionsLast.ProfitPortfolioPunkt; // смотрим прибыльность
                 Percent_birgi();
                 market_price = _tab.PriceCenterMarketDepth;
-                if (zn > gde_stop.ValueDecimal) // если есть прибыль в сделке - выставляем стоп прибыли  
+                if (zn > ckok_profit_stop.ValueDecimal) // если есть прибыль в сделке - выставляем стоп прибыли  
                 {
                     sav_profit_metod_vkl = true;
-                    _tab.CloseAtStop(positions[0], market_price - _kom / 2 + slippage.ValueDecimal * _tab.Securiti.PriceStep, market_price - _kom / 2);
-                    Console.WriteLine(" товара больше " + prof_on.ValueDecimal + " %, включили выставление профит ордера ");
+                    _tab.CloseAtStop(positions[0], market_price - _do_profit_temp + slippage.ValueDecimal * _tab.Securiti.PriceStep, market_price - _do_profit_temp);
+                    Console.WriteLine(" Прибыль больше " + ckok_profit_stop.ValueDecimal + " $ , включил выставление профит ордера ");
                 }
             }
         }
@@ -484,11 +485,14 @@ namespace OsEngine.Robots.MoiRoboti
             decimal greed_average = MyBlanks.Okruglenie(greed_max.ValueDecimal + greed.ValueDecimal / 2, 2); // расчет среднего значения жадности
             Percent_tovara();
              
-            _gde_stop_tmp = gde_stop.ValueDecimal * percent_tovara; // вычисляем и устанавливаем расстояние до стоп 
+            _gde_stop_tmp = ckok_profit_stop.ValueDecimal * percent_tovara; // вычисляем и устанавливаем расстояние до стоп 
             Console.WriteLine(" _gde_stop_tmp = " + _gde_stop_tmp );
 
             decimal g = Greed(); // вычисляет жадность
             Console.WriteLine(" Жадность g = " + MyBlanks.Okruglenie(g, 3));
+
+            _do_profit_temp = MyBlanks.Okruglenie(profit.ValueInt / g, 2); // динамическое вычисление расстояния до профит ордера 
+            Console.WriteLine(" До профит ордера расстояние = " + _do_profit_temp);
 
             if (pir_of.ValueDecimal <= percent_tovara) // место отключения режима пирамида
             {
