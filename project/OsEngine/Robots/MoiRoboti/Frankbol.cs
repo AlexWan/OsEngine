@@ -9,7 +9,7 @@ using Microsoft.SqlServer.Server;
 
 namespace OsEngine.Robots.MoiRoboti
 {
-    public class Frank_2 : BotPanel
+    public class Frankbol : BotPanel
     {
         public string kvot_name ; // название квотируемой валюты - инструмента
         public string tovar_name; // название базовая валюты - товара
@@ -30,8 +30,10 @@ namespace OsEngine.Robots.MoiRoboti
         decimal _do_piram; // поле для хранения временного
         decimal _deltaUsredn; // поле для хранения временного
         decimal _tmpArarm; // временное значение аварийного объема продаж
+        decimal _gde_stop_tmp; // временное значения расстояния от стопа
 
         public Volume _vol;
+        public Bollinger _bolin;
         public MovingAverage _ma_short;     // поле хранения индикатора МА
         public MovingAverage _ma_long;     // поле хранения индикатора МА
 
@@ -62,7 +64,7 @@ namespace OsEngine.Robots.MoiRoboti
         private StrategyParameterDecimal turbo_shift ; // величина сдвига в турбо режиме 
         private StrategyParameterInt alarn_persent; // с каким использованным % депо можно закрывать убыточную сделку 
 
-        public Frank_2(string name, StartProgram startProgram) : base(name, startProgram) // конструктор
+        public Frankbol (string name, StartProgram startProgram) : base(name, startProgram) // конструктор
         {
             TabCreate(BotTabType.Simple);  // создание простой вкладки
             _tab = TabsSimple[0]; // записываем первую вкладку в поле
@@ -96,9 +98,15 @@ namespace OsEngine.Robots.MoiRoboti
             sprint = CreateParameter("Большие объемы это когда больше = ", 101, 50, 200, 50);
             alarn_persent = CreateParameter("% купленного можно сливать = ", 25, 50, 100, 1);
 
-             block_in = true; // инициализируем значение блокировки 
+            _bolin = new Bollinger(name + "Bollinger", false);
+            _bolin.Lenght = 20;
+            _bolin.Deviation = 2.2m;
+            _bolin = (Bollinger)_tab.CreateCandleIndicator(_bolin, "Prime");
+            _bolin.Save();
 
-            _ma_short = new MovingAverage(name + "Ma5", false);
+            block_in = true; // инициализируем значение блокировки 
+
+            _ma_short = new MovingAverage(name + "Ma5", true);
             _ma_short = (MovingAverage)_tab.CreateCandleIndicator(_ma_short, "Prime");
             _ma_short.Lenght = 5; // присвоение значения 
             _ma_short.Save();
@@ -179,6 +187,8 @@ namespace OsEngine.Robots.MoiRoboti
         private void _tab_MarketDepthUpdateEvent(MarketDepth marketDepth) // событие стакана
         {
             market_price = _tab.PriceCenterMarketDepth;
+            bol_Up = _bolin.ValuesUp[_bolin.ValuesUp.Count - 2]; // последние значение верхнего уровня болинждера  
+            bol_Down = _bolin.ValuesDown[_bolin.ValuesDown.Count - 2]; // последние значение нижнего уровня болинждера 
             
             volum_ma_short = _ma_short.Values[_ma_short.Values.Count - 1]; // записывается значение индикатора MA 
             volum_ma_long = _ma_long.Values[_ma_long.Values.Count - 1]; // записывается значение индикатора MA 
@@ -207,12 +217,12 @@ namespace OsEngine.Robots.MoiRoboti
             {
                 Switching_mode(); // смотрим условия переключения режимов работы 
                 decimal q = _tab.PositionsLast.EntryPrice;
-                if (q - _kom > market_price )
+                if (q - _kom > market_price && bol_Down > market_price )
                 {
                     Fix_loss();
                     Usrednenie();
                 }
-                if (q - _kom < market_price )
+                if (q - _kom < market_price && bol_Up < market_price)
                 {
                     Piramida();
                     Save_profit();
@@ -264,7 +274,7 @@ namespace OsEngine.Robots.MoiRoboti
                 return;
             }
             List<Position> positions = _tab.PositionsOpenAll;
-            
+
             if (positions.Count != 0)
             {
                 decimal g = Greed(); // вычисляет жадность
@@ -273,7 +283,7 @@ namespace OsEngine.Robots.MoiRoboti
                 market_price = _tab.PriceCenterMarketDepth;
                 decimal pr_poz = _tab.PositionsLast.EntryPrice;
 
-                if (pr_poz < market_price + _kom/2 + profit.ValueInt) // цена открытия позиции ниже рынка +комиссия + расстояние от профита
+                if (pr_poz < market_price + _kom / 2 + profit.ValueInt) // цена открытия позиции ниже рынка +комиссия + расстояние от профита
                 {
                     if (zn > g) // прибыль больше жадности 
                     {
@@ -307,10 +317,10 @@ namespace OsEngine.Robots.MoiRoboti
                 decimal zn = _tab.PositionsLast.ProfitPortfolioPunkt; // смотрим прибыльность
                 Percent_birgi();
                 market_price = _tab.PriceCenterMarketDepth;
-                if (zn > gde_stop.ValueDecimal ) // если есть прибыль в сделке - выставляем стоп прибыли  
+                if (zn > gde_stop.ValueDecimal) // если есть прибыль в сделке - выставляем стоп прибыли  
                 {
                     sav_profit_metod_vkl = true;
-                    _tab.CloseAtStop(positions[0], market_price - _kom/2 + slippage.ValueDecimal * _tab.Securiti.PriceStep, market_price - _kom/2 );
+                    _tab.CloseAtStop(positions[0], market_price - _kom / 2 + slippage.ValueDecimal * _tab.Securiti.PriceStep, market_price - _kom / 2);
                     Console.WriteLine(" товара больше " + prof_on.ValueDecimal + " %, включили выставление профит ордера ");
                 }
             }
@@ -404,9 +414,8 @@ namespace OsEngine.Robots.MoiRoboti
                     return;
                 }
                 if (_tab.PositionsOpenAll.Count == 0 // нет открытых позиций
-                     && volum_ma_short < market_price      // рынок выше короткой машки
-                     && volum_ma_long > market_price)   // рынок ниже длинной машки
-
+                    && volum_ma_long > market_price )     // рынок ниже нижнего значения болинджера 
+                   
                 {
                     decimal w = MyBlanks.Okruglenie(vol_start / market_price, 6);
                     _tab.BuyAtLimit(w, market_price);
@@ -474,7 +483,10 @@ namespace OsEngine.Robots.MoiRoboti
         {
             decimal greed_average = MyBlanks.Okruglenie(greed_max.ValueDecimal + greed.ValueDecimal / 2, 2); // расчет среднего значения жадности
             Percent_tovara();
- 
+             
+            _gde_stop_tmp = gde_stop.ValueDecimal * percent_tovara; // вычисляем и устанавливаем расстояние до стоп 
+            Console.WriteLine(" _gde_stop_tmp = " + _gde_stop_tmp );
+
             decimal g = Greed(); // вычисляет жадность
             Console.WriteLine(" Жадность g = " + MyBlanks.Okruglenie(g, 3));
 
@@ -571,7 +583,8 @@ namespace OsEngine.Robots.MoiRoboti
             Price_kon_trade();
             Lot(min_sum.ValueDecimal);
             decimal z = _tab.PositionsLast.EntryPrice;
-            if (z > market_price + _deltaUsredn + per && volum_ma_short < market_price) // если цена ниже последнего трейда и выше машки 
+            if (z > market_price + _deltaUsredn + per && bol_Down > market_price) // если цена ниже последнего трейда и выше машки 
+                //if (z > market_price + _deltaUsredn + per && volum_ma_short < market_price) // если цена ниже последнего трейда и выше машки 
                 {
                 min_lot = Lot(min_sum.ValueDecimal);
                 Balans_kvot(kvot_name);
@@ -604,8 +617,8 @@ namespace OsEngine.Robots.MoiRoboti
                 return;
             }
             List<Position> positions = _tab.PositionsOpenAll;
-            
-            if (positions.Count != 0) 
+
+            if (positions.Count != 0)
             {
                 decimal zen = _tab.PositionsLast.EntryPrice;
                 if (Greed() < _tab.PositionsLast.ProfitPortfolioPunkt)
@@ -804,7 +817,7 @@ namespace OsEngine.Robots.MoiRoboti
         }
         public override string GetNameStrategyType()
         {
-            return "Frank_2";
+            return "Frankbol";
         }
         public override void ShowIndividualSettingsDialog()
         {
