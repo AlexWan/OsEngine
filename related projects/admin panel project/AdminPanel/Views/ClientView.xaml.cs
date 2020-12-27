@@ -93,6 +93,10 @@ namespace AdminPanel.Views
 
         private void ButtonAdd_Click(object sender, RoutedEventArgs e)
         {
+            if (_vm == null)
+            {
+                return;
+            }
             var engine = new EngineViewModel();
             AddEngineForm form = new AddEngineForm(OsLocalization.Entity.BtnAdd, engine, _vm.Engines.ToList());
             var result = form.ShowDialog();
@@ -106,6 +110,10 @@ namespace AdminPanel.Views
 
         private void ButtonRemove_Click(object sender, RoutedEventArgs e)
         {
+            if (_vm == null)
+            {
+                return;
+            }
             if (ShowAcceptDialog(OsLocalization.MainWindow.DeleteLabel2) == false)
             {
                 return;
@@ -124,6 +132,10 @@ namespace AdminPanel.Views
 
         private void ButtonEdit_Click(object sender, RoutedEventArgs e)
         {
+            if (_vm == null)
+            {
+                return;
+            }
             AddEngineForm form = new AddEngineForm(OsLocalization.Entity.BtnEdit, _vm.SelectedEngine, null);
             var result = form.ShowDialog();
             _vm.OnChanged();

@@ -50,7 +50,6 @@ namespace AdminPanel.Entity
                 return false;
             }
             if (string.IsNullOrEmpty(_engine.EngineName) ||
-                !IPAddress.TryParse(_engine.Ip, out _) ||
                 !Int32.TryParse(_engine.Port, out _) ||
                 string.IsNullOrEmpty(_engine.Token) ||
                 _engine.RebootRam <= 0)
