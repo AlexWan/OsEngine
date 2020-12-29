@@ -273,7 +273,7 @@ namespace OsEngine.Robots.MoiRoboti
                 market_price = _tab.PriceCenterMarketDepth;
                 decimal pr_poz = _tab.PositionsLast.EntryPrice;
 
-                if (pr_poz < market_price + _kom/2 + _do_profit_temp) // цена открытия позиции ниже рынка +комиссия + расстояние от профита
+                if (pr_poz < market_price - _kom/2 - _do_profit_temp) // цена открытия позиции ниже рынка -комиссия - расстояние от профита
                 {
                     if (zn > g) // прибыль больше жадности 
                     {
@@ -283,12 +283,12 @@ namespace OsEngine.Robots.MoiRoboti
                         + (_tab.PriceCenterMarketDepth - _do_profit_temp - slippage.ValueDecimal * _tab.Securiti.PriceStep));
                     }
                 }
-                else if (zn > g && prof_on.ValueDecimal <= percent_tovara) // если товара уже больше значения prof_on  и есть прибыль в сделке - выставляем трейлик стоп прибыли  
+                /*else if (zn > g && prof_on.ValueDecimal <= percent_tovara) // если товара уже больше значения prof_on  и есть прибыль в сделке - выставляем трейлик стоп прибыли  
                 {
                     _tab.CloseAtTrailingStop(positions[0], market_price - _kom / 2 - _do_profit_temp,
                     market_price - _kom / 2 - _do_profit_temp - slippage.ValueDecimal * _tab.Securiti.PriceStep);
                     Console.WriteLine(" сработал else if - товара больше " + prof_on.ValueDecimal + " %, Включили трейлинг Прибыли от _gde_stop_tmp  ");
-                }
+                }*/
             }
         }
         void StopLoss() // ограничение   убытков 
@@ -310,7 +310,7 @@ namespace OsEngine.Robots.MoiRoboti
                 if (zn > ckok_profit_stop.ValueDecimal ) // если есть прибыль в сделке - выставляем стоп прибыли  
                 {
                     sav_profit_metod_vkl = true;
-                    _tab.CloseAtStop(positions[0], market_price - _do_profit_temp + slippage.ValueDecimal * _tab.Securiti.PriceStep, market_price - _do_profit_temp);
+                    _tab.CloseAtTrailingStop(positions[0], market_price - _do_profit_temp + slippage.ValueDecimal * _tab.Securiti.PriceStep, market_price - _do_profit_temp);
                     Console.WriteLine(" Прибыль больше " + ckok_profit_stop.ValueDecimal + " $ , включил выставление профит ордера ");
                 }
             }
@@ -467,8 +467,12 @@ namespace OsEngine.Robots.MoiRoboti
         {
             decimal v = _tab.PositionsLast.MaxVolume; // максимальный объем в позиции
             decimal c = v * market_price; // переводим в баксы (деньги)
-            decimal g = c/100 * _temp_greed; // вычисляем сколько денег ждать на эту сумму
-            return g;
+            decimal g = c / 100 * _temp_greed; // вычисляем сколько денег ждать на эту сумму
+            if (g <= 0)
+            {
+                return 1;
+            }
+            else return g;
         }
         void Switching_mode() // метод переключения режимов работы 
         {
@@ -522,7 +526,7 @@ namespace OsEngine.Robots.MoiRoboti
                     _temp_greed = greed.ValueDecimal;
                     Console.WriteLine("Жадность теперь " + _temp_greed);
                 }
-                if (start_per_depo.ValueInt <= percent_tovara && percent_tovara < prof_on.ValueDecimal) // режим набора товара
+                if (start_per_depo.ValueInt/2 <= percent_tovara && percent_tovara < prof_on.ValueDecimal) // режим набора товара
                 {
                     Console.WriteLine(" включился режим набора товара до " + prof_on.ValueDecimal + " %");
                     _temp_greed = greed.ValueDecimal;
@@ -559,7 +563,7 @@ namespace OsEngine.Robots.MoiRoboti
                     _temp_greed = greed.ValueDecimal + 0.1m;
                     Console.WriteLine("Жадность теперь " + _temp_greed);
                 }
-                if (start_per_depo.ValueInt <= percent_tovara && percent_tovara < prof_on.ValueDecimal) // режим набора товара
+                if (start_per_depo.ValueInt/2 <= percent_tovara && percent_tovara < prof_on.ValueDecimal) // режим набора товара
                 {
                     Console.WriteLine(" включился режим набора товара до " + prof_on.ValueDecimal + " %");
                     _temp_greed = greed.ValueDecimal;
@@ -611,10 +615,11 @@ namespace OsEngine.Robots.MoiRoboti
             if (positions.Count != 0) 
             {
                 decimal zen = _tab.PositionsLast.EntryPrice;
-                if (Greed() < _tab.PositionsLast.ProfitPortfolioPunkt)
+                decimal greed = Greed();
+                if (greed < _tab.PositionsLast.ProfitPortfolioPunkt)
                 {
                     zen = _tab.PositionsLast.EntryPrice;
-                    if (market_price > zen + _kom + _do_piram)
+                    if (market_price > zen + _kom/2 + _do_piram)
                     {
                         decimal vol = VolumForPiramid();
                         if (vol >= min_lot)

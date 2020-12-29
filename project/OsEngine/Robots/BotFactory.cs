@@ -38,6 +38,7 @@ namespace OsEngine.Robots
             result.Add("Frank");
             result.Add("Frank_2");
             result.Add("Frankbol");
+            result.Add("Frankbol_for_bnb");
             result.Add("Depozit");
             result.Add("Ver_01");
             result.Add("Storog");
@@ -121,7 +122,11 @@ namespace OsEngine.Robots
             }
             if (nameClass == "Frank_2")
             {
-                bot = new Frank_2(name, startProgram);
+                bot = new Frank_2 (name, startProgram);
+            }
+            if (nameClass == "Frankbol_for_bnb")
+            {
+                bot = new Frankbol_for_bnb (name, startProgram);
             }
             if (nameClass == "Frankbol")
             {
