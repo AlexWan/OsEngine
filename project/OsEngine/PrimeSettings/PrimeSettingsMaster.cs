@@ -162,6 +162,25 @@ namespace OsEngine.PrimeSettings
        
         private static string _port;
 
+        public static bool UseOxyPlotChart
+        {
+            get
+            {
+                if (_isLoad == false)
+                {
+                    Load();
+                }
+                return _useOxyPlotChart;
+            }
+            set
+            {
+                _useOxyPlotChart = value;
+                Save();
+            }
+        }
+
+        private static bool _useOxyPlotChart;
+
         /// <summary>
         /// save settings
         /// сохранить настройки
@@ -180,6 +199,7 @@ namespace OsEngine.PrimeSettings
                     writer.WriteLine(_token);
                     writer.WriteLine(_ip);
                     writer.WriteLine(_port);
+                    writer.WriteLine(_useOxyPlotChart);
 
                     writer.Close();
                 }
@@ -215,6 +235,7 @@ namespace OsEngine.PrimeSettings
                     _token = reader.ReadLine();
                     _ip = reader.ReadLine();
                     _port = reader.ReadLine();
+                    _useOxyPlotChart = Convert.ToBoolean(reader.ReadLine());
 
                     reader.Close();
                 }
