@@ -12,6 +12,7 @@ using OxyPlot.Annotations;
 using OxyPlot.Axes;
 using OxyPlot.Series;
 using OxyPlot.SkiaSharp.Wpf;
+using OxyPlot.Wpf;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -31,42 +32,53 @@ namespace OsEngine.Charts.CandleChart
 {
     public class OxyChartPainter : IChartPainter
     {
-        public List<IndicatorSeria> series = new List<IndicatorSeria>();
-        public bool IsPatternChart { get; set; }
-
         public event Action<string, LogMessageType> LogMessageEvent;
         public event Action<int> ClickToIndexEvent;
         public event Action<int> SizeAxisXChangeEvent;
         public event Action<ChartClickType> ChartClickEvent;
 
+        public bool IsPatternChart { get; set; }
+        private WindowsFormsHost host;
         public StartProgram start_program;
+        public string chart_name;
+        public string bot_name;
+        public int bot_tab;
         private ChartMasterColorKeeper color_keeper;
-        WindowsFormsHost host;
         private System.Windows.Forms.Panel panel_winforms;
-
-        private List<OxyArea> all_areas = new List<OxyArea>();
-        private List<GridSplitter> splitters = new List<GridSplitter>();
-        private List<IChartElement> ann_elements_list = new List<IChartElement>();
-
         private bool isPaint = false;
-        private bool nead_no_delete = false;
         private System.Windows.Controls.Grid main_grid_chart;
-      
         public TimeSpan time_frame_span = new TimeSpan();
         public TimeFrame time_frame = new TimeFrame();
 
-        private int skipper = 0;
-        private int last_deals_count = 0;
+        private List<GridSplitter> splitters = new List<GridSplitter>();
+        public OxyMediator mediator;
 
-        private int series_counter = 0;
-        private bool have_indicators = false;
+        public List<IndicatorSeria> series = new List<IndicatorSeria>();
+        private List<OxyArea> all_areas = new List<OxyArea>();
 
-        public object seria_locker = new object();
+        public event Action UpdateCandlesEvent;
+        public event Action UpdateIndicatorEvent;
+
+        public bool can_draw = false;
 
         public OxyChartPainter(string name, StartProgram startProgram)
         {
+            this.chart_name = name;
+            this.bot_name = name.Replace("tab", ";").Split(';')[0];
+            this.bot_tab = Convert.ToInt32(name.Replace("tab", ";").Split(';')[1]);
             start_program = startProgram;
             color_keeper = new ChartMasterColorKeeper(name);
+            mediator = new OxyMediator(this);
+        }
+
+        public void SendCandlesUpdated()
+        {
+            UpdateCandlesEvent?.Invoke();
+        }
+
+        public void SendIndicatorsUpdated()
+        {
+            UpdateIndicatorEvent?.Invoke();
         }
 
         public void MainChartMouseButtonClick(ChartClickType click_type)
@@ -74,11 +86,16 @@ namespace OsEngine.Charts.CandleChart
             ChartClickEvent?.Invoke(click_type);
         }
 
-        public bool AreaIsCreate(string name)
+        public bool AreaIsCreate(string area_name)
         {
+            if (area_name == "Prime")
+                return true;
+
             foreach (var area in all_areas)
-                if (area.Tag == (object)name)
+            {
+                if (area.Tag == (object)area_name)
                     return true;
+            }
 
             return false;
         }
@@ -90,26 +107,12 @@ namespace OsEngine.Charts.CandleChart
 
         public void ClearDataPointsAndSizeValue()
         {
+           
             for (int i = 0; i < all_areas.Count; i++)
             {
-                if (all_areas[i] is CandleStickArea)
+                if (all_areas[i].chart_name == this.chart_name)
                 {
-                    ((CandleStickArea)all_areas[i]).Dispose();
-                }
-
-                if (all_areas[i] is ScrollBarArea)
-                {
-                    ((ScrollBarArea)all_areas[i]).Dispose();
-                }
-
-                if (all_areas[i] is IndicatorArea)
-                {
-                    ((IndicatorArea)all_areas[i]).Dispose();
-                }
-
-                if (all_areas[i] is ControlPanelArea)
-                {
-                    ((ControlPanelArea)all_areas[i]).Dispose();
+                    all_areas[i].Dispose();
                 }
             }
         }
@@ -142,6 +145,9 @@ namespace OsEngine.Charts.CandleChart
                 brush_background = "#111721"
             }, all_areas, nameArea, this);
 
+            indicator_chart.indicator_name = nameArea.Replace("Area", ";").Split(';')[0];
+            indicator_chart.bot_tab = this.bot_tab;
+
             indicator_chart.plot_model.Axes[0].TextColor = OxyColors.Transparent;
             indicator_chart.plot_model.Axes[0].TicklineColor = OxyColors.Transparent;
             indicator_chart.plot_model.Axes[0].AxisDistance = -50;
@@ -154,17 +160,24 @@ namespace OsEngine.Charts.CandleChart
             indicator_chart.plot_view.Margin = new System.Windows.Thickness(0, 0, indicator_chart.plot_view.Margin.Right, 0);
 
             all_areas.Add(indicator_chart);
+            mediator.AddOxyArea(indicator_chart);
 
             return nameArea;
         }
 
-        public string CreateSeries(string areaName, IndicatorChartPaintType indicatorType, string name)
+        public string CreateSeries(string areaName, IndicatorChartPaintType indicatorType, string seria_name)
         {
+            if (series.Exists(x => (string)x.SeriaName == seria_name))
+            {
+                return seria_name;
+            }
+
             var new_seria = new IndicatorSeria()
             {
                 AreaName = areaName,
                 IndicatorType = indicatorType,
-                SeriaName = name
+                SeriaName = seria_name,
+                BotTab = this.bot_tab
             };
 
             if (!series.Contains(new_seria))
@@ -173,11 +186,12 @@ namespace OsEngine.Charts.CandleChart
                 {
                     AreaName = areaName,
                     IndicatorType = indicatorType,
-                    SeriaName = name
+                    SeriaName = seria_name,
+                    BotTab = this.bot_tab
                 });
             }
 
-            return name;
+            return seria_name;
         }
 
         public void CreateTickArea()
@@ -187,41 +201,34 @@ namespace OsEngine.Charts.CandleChart
 
         public void Delete()
         {
+            Task delay = new Task(() =>
+            {
+                Thread.Sleep(1000);
+            });
+
+            delay.Start();
+            delay.Wait();
+
+
             color_keeper.Delete();
 
             series.Clear();
             time_frame_span = new TimeSpan();
             time_frame = new TimeFrame();
-            skipper = 0;
-            series_counter = 0;
-            have_indicators = false;
 
             for (int i = 0; i < all_areas.Count; i++)
             {
-                if (all_areas[i] is CandleStickArea)
+                if (all_areas[i].chart_name == this.chart_name)
                 {
-                    ((CandleStickArea)all_areas[i]).Dispose();
-                }
-
-                if (all_areas[i] is ScrollBarArea)
-                {
-                    ((ScrollBarArea)all_areas[i]).Dispose();
-                }
-
-                if (all_areas[i] is IndicatorArea)
-                {
-                    ((IndicatorArea)all_areas[i]).Dispose();
-                }
-
-                if (all_areas[i] is ControlPanelArea)
-                {
-                    ((ControlPanelArea)all_areas[i]).Dispose();
+                    all_areas[i].Dispose();
                 }
 
                 all_areas[i] = null;
             }
 
+            mediator.Dispose();
             all_areas.Clear();
+            
 
             if (main_grid_chart != null)
             {
@@ -233,30 +240,24 @@ namespace OsEngine.Charts.CandleChart
 
         public void DeleteIndicator(IIndicator indicator)
         {
-            if (indicator.NameArea == "Prime")
-            {
-                series.Remove(series.Find(x => x.SeriaName == indicator.NameSeries));
-                return;
-            }
-
             series.Remove(series.Find(x => x.SeriaName == indicator.NameSeries));
 
-            var area = all_areas.Find(x => ((string)x.Tag).Contains(indicator.NameArea));
+            if (indicator.NameArea == "Prime")              
+                return;
+            
+            var area = all_areas.Find(x => ((string)x.Tag).Contains(indicator.NameArea) &&  x.chart_name == this.chart_name);
             var splitter = splitters.Find(x => (string)x.Tag == indicator.NameArea);
 
             ((IndicatorArea)area).Dispose();
 
-            lock (seria_locker)
-            {
-                all_areas.Remove(area);
-            }
+            mediator.RemoveOxyArea(area);
+            all_areas.Remove(area);
             splitters.Remove(splitter);
 
             main_grid_chart.Children.Clear();
             main_grid_chart.RowDefinitions.Clear();
 
             MakeChart(main_grid_chart);
-
         }
 
         public void DeleteTickArea()
@@ -281,9 +282,7 @@ namespace OsEngine.Charts.CandleChart
 
         public void GoChartToIndex(int index)
         {
-            var main_area = all_areas.Find(x => (string)x.Tag == "Prime");
-
-            GoChartToTime(main_area.my_candles[index].TimeStart);
+            GoChartToTime(OxyArea.my_candles[index].TimeStart);
         }
 
         public void GoChartToTime(DateTime time)
@@ -295,7 +294,7 @@ namespace OsEngine.Charts.CandleChart
                     if (area is CandleStickArea)
                     {
                         var main_area = (CandleStickArea)area;
-                        main_area.BuildCandleSeries(area.my_candles);
+                        mediator.PrimeChart_BuildCandleSeries();
                         main_area.Calculate(area.owner.time_frame_span, area.owner.time_frame);
                     }
 
@@ -308,7 +307,7 @@ namespace OsEngine.Charts.CandleChart
 
                     List<double> max_min = new List<double>();
 
-                    if (area.Tag == (object)"Prime")
+                    if (area is CandleStickArea)
                         max_min = area.GetHighLow(true, main_volume - (last_value - first_value) / 2, main_volume + (last_value - first_value) / 2);
                     else
                         max_min = area.GetHighLow(false, main_volume - (last_value - first_value) / 2, main_volume + (last_value - first_value) / 2);
@@ -331,9 +330,7 @@ namespace OsEngine.Charts.CandleChart
             if (series.Exists(x => x.SeriaName == name))
                 return true;
             else
-            {
-                return false;
-            }    
+                return false;            
         }
 
         public void PaintAlert(AlertToChart alert)
@@ -371,236 +368,66 @@ namespace OsEngine.Charts.CandleChart
             throw new NotImplementedException();
         }
 
+
         public void ProcessCandles(List<Candle> history)
         {
-
-            if (skipper > 0)
-            {
-                skipper -= 1;
-                return;
-            }
-
             if (isPaint == false)
             {
                 return;
             }
 
-            if (series.Count > 0)
+            if (mediator.count_skiper > 0)
+                mediator.count_skiper--;
+
+            if (mediator.count_skiper > 0)
             {
-                foreach (var seria in series)
+                can_draw = false;
+                return;
+            }
+
+            if (mediator.factor < 1)
+            {
+                Task delay = new Task(() =>
                 {
-                    seria.series_counter = 1;
-                }
-            }
-            else
-                series_counter = 1;
+                    Thread.Sleep((int)(50 / mediator.factor - 50));
+                });
 
-
-            if (all_areas.Exists(x => x.Tag == (object)"Prime"))
-            {
-                var main_area = (CandleStickArea)all_areas.Find(x => x.Tag == (object)"Prime");
-
-                if (main_area.factor > 1)
-                {
-                    skipper = (int)main_area.factor;
-                }
+                delay.Start();
+                delay.Wait();
             }
 
 
+            can_draw = true;
 
-            foreach (var area in all_areas)
-            {
-                area.my_candles = history;
-            }
+            OxyArea.my_candles = history;
+     
+            if (mediator.prime_chart != null)
+            mediator.PrimeChart_BuildCandleSeries();
 
-            if (all_areas.Exists(x => x.Tag == (object)"Prime"))
-            {
-                var main_chart = ((CandleStickArea)all_areas.Find(x => x.Tag == (object)"Prime"));
-                main_chart.BuildCandleSeries(history);
-
-                if (!have_indicators)
-                {
-                    main_chart.Calculate(time_frame_span, time_frame);
-                    DrawChart();
-                }
-
-                AnnotationAdd();
-            }
+            if (mediator.prime_chart != null)
+            UpdateCandlesEvent?.Invoke();
         }
 
         public void ProcessClearElem(IChartElement element)
         {
-            
-
-            if (!all_areas.Exists(x => (string)x.Tag == "Prime"))
-                return;
-
-            if (!((CandleStickArea)all_areas.Find(x => (string)x.Tag == "Prime")).has_candles)
-                return;
-
-            if (element is LineHorisontal)
-            {
-                var area = all_areas.Find(x => (string)x.Tag == element.Area);
-
-                var annotations = area.plot_model.Annotations.ToList();
-
-                if (annotations.Exists(x => (string)x.Tag == element.UniqName))
-                    area.plot_model.Annotations.Remove(annotations.Find(x => (string)x.Tag == element.UniqName));
-            }
-        }
-
-        private void Element_DeleteEvent(IChartElement element)
-        {
-            element.UpdeteEvent -= Element_UpdeteEvent;
-            element.DeleteEvent -= Element_DeleteEvent;
-
-            if (ann_elements_list.Exists(x => x.UniqName == element.UniqName && x.Area == element.Area))
-                ann_elements_list.Remove(element);
-
-            if (!all_areas.Exists(x => (string)x.Tag == element.Area))
-                return;
-
-            var area = all_areas.Find(x => (string)x.Tag == element.Area);
-
-            if (area.plot_model.Annotations.ToList().Exists(x => (string)x.Tag == element.UniqName))
-                area.plot_model.Annotations.Remove(area.plot_model.Annotations.ToList().Find(x => (string)x.Tag == element.UniqName));
-        }
-
-        private void Element_UpdeteEvent(IChartElement element)
-        {
-            if (ann_elements_list.Exists(x => x.UniqName == element.UniqName && x.Area == element.Area))
-                ann_elements_list.Remove(element);
-
-            ann_elements_list.Add(element);
-
-            if (!all_areas.Exists(x => (string)x.Tag == element.Area))
-                return;
-
-            var area = all_areas.Find(x => (string)x.Tag == element.Area);
-
-            if (area.plot_model.Annotations.ToList().Exists(x => (string)x.Tag == element.UniqName))
-                area.plot_model.Annotations.Remove(area.plot_model.Annotations.ToList().Find(x => (string)x.Tag == element.UniqName));
-
-            var annotation = ElementToAnnotation(element);
-
-            area.plot_model.Annotations.Add(annotation);
+            throw new NotImplementedException();
         }
 
         public void ProcessElem(IChartElement element)
         {
-            element.UpdeteEvent += Element_UpdeteEvent;
-            element.DeleteEvent += Element_DeleteEvent;
+            if (isPaint == false || can_draw == false)
+                return;
 
-            if (ann_elements_list.Exists(x => x.UniqName == element.UniqName && x.Area == element.Area))
-                ann_elements_list.Remove(element);
-
-            ann_elements_list.Add(element);
-
-        }
-
-        public void AnnotationAdd()
-        {
-            foreach (var element in ann_elements_list)
-            {
-                var area = all_areas.Find(x => (string)x.Tag == element.Area);
-
-                if (area.plot_model.Annotations.ToList().Exists(x => (string)x.Tag == element.UniqName))
-                    return;
-                    //area.plot_model.Annotations.Remove(area.plot_model.Annotations.ToList().Find(x => (string)x.Tag == element.UniqName));
-
-                var annotation = ElementToAnnotation(element);
-
-                area.plot_model.Annotations.Add(annotation);
-            }
-        }
-
-        private OxyPlot.Annotations.Annotation ElementToAnnotation(IChartElement element)
-        {
-            OxyPlot.Annotations.Annotation result = null;
-
-            if (element is LineHorisontal)
-            {
-                result = new OxyPlot.Annotations.LineAnnotation()
-                    {
-                        Tag = (object)element.UniqName,
-                        Color = OxyColor.FromArgb(((LineHorisontal)element).Color.A, ((LineHorisontal)element).Color.R, ((LineHorisontal)element).Color.G, ((LineHorisontal)element).Color.B),
-                        LineStyle = LineStyle.Solid,
-                        MinimumX = DateTimeAxis.ToDouble(((LineHorisontal)element).TimeStart),
-                        MaximumX = DateTimeAxis.ToDouble(((LineHorisontal)element).TimeEnd),
-                        Type = LineAnnotationType.Horizontal,
-                        Y = (double)((LineHorisontal)element).Value,
-                        Layer = AnnotationLayer.AboveSeries,
-                        StrokeThickness = 1
-                };
-            }
-
-            if(element is PointElement)
-            {
-                MarkerType marker = MarkerType.Circle;
-
-                if (((PointElement)element).Style == MarkerStyle.Cross)
-                    marker = MarkerType.Cross;
-
-                if (((PointElement)element).Style == MarkerStyle.Diamond)
-                    marker = MarkerType.Diamond;
-
-                if (((PointElement)element).Style == MarkerStyle.Square)
-                    marker = MarkerType.Square;
-
-                if (((PointElement)element).Style == MarkerStyle.None)
-                    marker = MarkerType.None;
-
-                if (((PointElement)element).Style == MarkerStyle.Star10)
-                    marker = MarkerType.Star;
-
-                if (((PointElement)element).Style == MarkerStyle.Star4)
-                    marker = MarkerType.Star;
-
-                if (((PointElement)element).Style == MarkerStyle.Triangle)
-                    marker = MarkerType.Triangle;
-
-                result = new PointAnnotation()
-                {
-                    Tag = (object)element.UniqName,
-                    Fill = OxyColor.FromArgb(((PointElement)element).Color.A, ((PointElement)element).Color.R, ((PointElement)element).Color.G, ((PointElement)element).Color.B),
-                     Layer = AnnotationLayer.AboveSeries,
-                      Size = ((PointElement)element).Size,
-                       X = DateTimeAxis.ToDouble(((PointElement)element).TimePoint),
-                        Shape = marker,
-                         Y = (double)((PointElement)element).Y
-                };
-            }
-
-            return result;
+            mediator.ProcessElem(element);
         }
 
         public void ProcessIndicator(IIndicator indicator)
         {
-            if (series.Count > 0)
-            {
-                var seria_indi = series.Find(x => x.AreaName == indicator.NameArea);
-
-                seria_indi.series_counter -= 1;
-
-                if (seria_indi.series_counter != 0)
-                {
-                    return;
-                }
-            }
-            else
-            {
-                series_counter -= 1;
-
-                if (series_counter != 0)
-                {
-                    return;
-                }
-            }
-
-            if (isPaint == false || (string.IsNullOrWhiteSpace(indicator.NameSeries) && indicator.ValuesToChart != null))
-            {
+            if (isPaint == false || can_draw == false)
                 return;
-            }
+
+            if (!series.Exists(x => x.AreaName == indicator.NameArea))
+                return;
 
             OxyArea area = all_areas.Find(x => (string)x.Tag == indicator.NameArea);
 
@@ -608,19 +435,14 @@ namespace OsEngine.Charts.CandleChart
             {
                 if (indicator.PaintOn == false)
                 {
-                    List<List<decimal>> values = indicator.ValuesToChart;
-
-                    for (int i = 0; i < values.Count; i++)
-                    {
-                        //var seria = series.Find(x => x.SeriaName == name + i.ToString());
-                    }
-
+                    UpdateIndicatorEvent?.Invoke(); // тут может быть косяк так как некоторые индюки нужно прорисовывать даже на false
                     return;
                 }
 
                 List<List<decimal>> val_list = indicator.ValuesToChart;
                 List<Color> colors = indicator.Colors;
                 string name = indicator.Name;
+
 
                 Parallel.For(0, val_list.Count, i =>
                 {
@@ -629,28 +451,31 @@ namespace OsEngine.Charts.CandleChart
                         return;
                     }
 
-
                     var seria = series.Find(x => x.SeriaName == name + i.ToString());
 
                     if (seria.OxyColor != null)
                         seria.OxyColor = OxyColor.FromArgb(colors[i].A, colors[i].R, colors[i].G, colors[i].B);
-                    
+
                     seria.Count = val_list.Count;
 
-                    area.BuildIndicatorSeries(seria, val_list[i], time_frame_span);
+                    try
+                    {
+                        if (area != null)
+                            area.BuildIndicatorSeries(seria, val_list[i], time_frame_span);
+                    }
+                    catch { return; }
                 });
 
-                have_indicators = true;
 
-                DrawChart();
+
+                UpdateIndicatorEvent?.Invoke();
 
                 return;
             }
 
-
             Aindicator ind = (Aindicator)indicator;
-
             List<IndicatorDataSeries> indi_series = ind.DataSeries;
+
 
             Parallel.For(0, indi_series.Count, i =>
             {
@@ -662,26 +487,27 @@ namespace OsEngine.Charts.CandleChart
                 seria.OxyColor = OxyColor.FromArgb(indi_series[i].Color.A, indi_series[i].Color.R, indi_series[i].Color.G, indi_series[i].Color.B);
 
                 seria.Count = indi_series.Count;
-
-                area.BuildIndicatorSeries(seria, indi_series[i].Values, time_frame_span);
+                try
+                {
+                    if (area != null)
+                        mediator.BuildIndicatorSeries(area, seria, indi_series[i].Values, time_frame_span);
+                }
+                catch { return; }
             });
 
-            have_indicators = true;
 
-            DrawChart();
+            UpdateIndicatorEvent?.Invoke();
         }
 
         public void ProcessPositions(List<Position> deals)
         {
-            if (isPaint == false || deals == null || deals.Count == 0 )
-            {
+            if (isPaint == false || can_draw == false)
                 return;
-            }
 
-            last_deals_count = deals.Count;
+            if (deals == null || deals.Count == 0)
+                return;          
 
-            if (all_areas.Exists(x => x.Tag == (object)"Prime"))
-                ((CandleStickArea)all_areas.Find(x => x.Tag == (object)"Prime")).ProcessPositions(deals);
+            mediator.ProcessPositions(deals);
         }
 
         public void ProcessTrades(List<Trade> trades)
@@ -701,51 +527,150 @@ namespace OsEngine.Charts.CandleChart
 
         public void RePaintIndicator(IIndicator indicatorCandle)
         {
-            if (!indicatorCandle.PaintOn || indicatorCandle == null || indicatorCandle.NameArea == "Prime")
+            if (isPaint == false || can_draw == false)
                 return;
 
-            if (!all_areas.Exists(x => (string)x.Tag == indicatorCandle.NameArea))
+            if (indicatorCandle == null)
+                return;
+
+            if (indicatorCandle.NameSeries != null)
             {
-                var indicator_chart = new IndicatorArea(new OxyAreaSettings()
+                if (!indicatorCandle.PaintOn)
+                    return;
+
+                if (!all_areas.Exists(x => (string)x.Tag == indicatorCandle.NameArea) && indicatorCandle.NameArea != "Prime")
                 {
-                    cursor_X_is_active = true,
-                    cursor_Y_is_active = true,
-                    Tag = indicatorCandle.NameArea,
-                    AbsoluteMinimum = double.MinValue,
-                    Y_Axies_is_visible = true,
-                    X_Axies_is_visible = true,
-                    brush_background = "#111721"
-                }, all_areas, indicatorCandle.NameArea, this);
+                    var indicator_chart = new IndicatorArea(new OxyAreaSettings()
+                    {
+                        cursor_X_is_active = true,
+                        cursor_Y_is_active = true,
+                        Tag = indicatorCandle.NameArea,
+                        AbsoluteMinimum = double.MinValue,
+                        Y_Axies_is_visible = true,
+                        X_Axies_is_visible = true,
+                        brush_background = "#111721"
+                    }, all_areas, indicatorCandle.NameArea, this);
 
-                indicator_chart.plot_model.Axes[0].TextColor = OxyColors.Transparent;
-                indicator_chart.plot_model.Axes[0].TicklineColor = OxyColors.Transparent;
-                indicator_chart.plot_model.Axes[0].AxisDistance = -50;
-                indicator_chart.plot_model.Axes[1].IntervalLength = 10;
-                indicator_chart.plot_model.Axes[1].MinorGridlineStyle = LineStyle.None;
-                indicator_chart.plot_model.PlotMargins = new OxyThickness(0, indicator_chart.plot_model.PlotMargins.Top, indicator_chart.plot_model.PlotMargins.Right, indicator_chart.plot_model.PlotMargins.Bottom);
-                indicator_chart.plot_model.Padding = new OxyThickness(0, 0, indicator_chart.plot_model.Padding.Right, 0);
-                indicator_chart.plot_model.PlotMargins = new OxyThickness(0, 0, indicator_chart.plot_model.PlotMargins.Right, 0);
-                indicator_chart.plot_view.Padding = new System.Windows.Thickness(0, 0, indicator_chart.plot_view.Padding.Right, 0);
-                indicator_chart.plot_view.Margin = new System.Windows.Thickness(0, 0, indicator_chart.plot_view.Margin.Right, 0);
+                    indicator_chart.indicator_name = indicatorCandle.NameArea.Replace("Area", ";").Split(';')[0];
+                    indicator_chart.bot_tab = this.bot_tab;
+                    indicator_chart.bot_name = this.bot_name;
 
-                all_areas.Add(indicator_chart);
+                    indicator_chart.plot_model.Axes[0].TextColor = OxyColors.Transparent;
+                    indicator_chart.plot_model.Axes[0].TicklineColor = OxyColors.Transparent;
+                    indicator_chart.plot_model.Axes[0].AxisDistance = -50;
+                    indicator_chart.plot_model.Axes[1].IntervalLength = 10;
+                    indicator_chart.plot_model.Axes[1].MinorGridlineStyle = LineStyle.None;
+                    indicator_chart.plot_model.PlotMargins = new OxyThickness(0, indicator_chart.plot_model.PlotMargins.Top, indicator_chart.plot_model.PlotMargins.Right, indicator_chart.plot_model.PlotMargins.Bottom);
+                    indicator_chart.plot_model.Padding = new OxyThickness(0, 0, indicator_chart.plot_model.Padding.Right, 0);
+                    indicator_chart.plot_model.PlotMargins = new OxyThickness(0, 0, indicator_chart.plot_model.PlotMargins.Right, 0);
+                    indicator_chart.plot_view.Padding = new System.Windows.Thickness(0, 0, indicator_chart.plot_view.Padding.Right, 0);
+                    indicator_chart.plot_view.Margin = new System.Windows.Thickness(0, 0, indicator_chart.plot_view.Margin.Right, 0);
+
+                    all_areas.Add(indicator_chart);
+                    mediator.AddOxyArea(indicator_chart);
+                }
+
+                if (!series.Exists(x => x.SeriaName == indicatorCandle.NameSeries && x.AreaName == indicatorCandle.NameArea))
+                {
+                    var indi_area = all_areas.FindLast(x => (string)x.Tag == indicatorCandle.NameArea);
+
+                    if (indi_area == null)
+                        return;
+
+                    if (!indicatorCandle.NameSeries.StartsWith(this.bot_name))
+                        return;
+
+                    var new_seria = new IndicatorSeria()
+                    {
+                        AreaName = indicatorCandle.NameArea,
+                        IndicatorType = indicatorCandle.TypeIndicator,
+                        SeriaName = indicatorCandle.NameSeries,
+                        BotTab = this.bot_tab
+                    };
+
+                    if (!series.Contains(new_seria))
+                    {
+                        series.Add(new IndicatorSeria()
+                        {
+                            AreaName = indicatorCandle.NameArea,
+                            IndicatorType = indicatorCandle.TypeIndicator,
+                            SeriaName = indicatorCandle.NameSeries,
+                            BotTab = this.bot_tab
+                        });
+                    }
+                }
             }
-
-            if (!series.Exists(x => x.SeriaName == indicatorCandle.NameSeries && x.AreaName == indicatorCandle.NameArea))
+            else
             {
-                var new_seria = new IndicatorSeria()
+                foreach (var ser_name in ((Aindicator)indicatorCandle).DataSeries)
                 {
-                    AreaName = indicatorCandle.NameArea,
-                    IndicatorType = indicatorCandle.TypeIndicator,
-                    SeriaName = indicatorCandle.NameSeries
-                };
+                    if (!ser_name.IsPaint)
+                        continue;
 
-                series.Add(new IndicatorSeria()
-                {
-                    AreaName = indicatorCandle.NameArea,
-                    IndicatorType = indicatorCandle.TypeIndicator,
-                    SeriaName = indicatorCandle.NameSeries
-                });
+                    string seria_name = ser_name.NameSeries;
+
+                    if (!all_areas.Exists(x => (string)x.Tag == indicatorCandle.NameArea) && indicatorCandle.NameArea != "Prime")
+                    {
+                        var indicator_chart = new IndicatorArea(new OxyAreaSettings()
+                        {
+                            cursor_X_is_active = true,
+                            cursor_Y_is_active = true,
+                            Tag = indicatorCandle.NameArea,
+                            AbsoluteMinimum = double.MinValue,
+                            Y_Axies_is_visible = true,
+                            X_Axies_is_visible = true,
+                            brush_background = "#111721"
+                        }, all_areas, indicatorCandle.NameArea, this);
+
+                        indicator_chart.indicator_name = indicatorCandle.NameArea.Replace("Area", ";").Split(';')[0];
+                        indicator_chart.bot_tab = this.bot_tab;
+                        indicator_chart.bot_name = this.bot_name;
+
+                        indicator_chart.plot_model.Axes[0].TextColor = OxyColors.Transparent;
+                        indicator_chart.plot_model.Axes[0].TicklineColor = OxyColors.Transparent;
+                        indicator_chart.plot_model.Axes[0].AxisDistance = -50;
+                        indicator_chart.plot_model.Axes[1].IntervalLength = 10;
+                        indicator_chart.plot_model.Axes[1].MinorGridlineStyle = LineStyle.None;
+                        indicator_chart.plot_model.PlotMargins = new OxyThickness(0, indicator_chart.plot_model.PlotMargins.Top, indicator_chart.plot_model.PlotMargins.Right, indicator_chart.plot_model.PlotMargins.Bottom);
+                        indicator_chart.plot_model.Padding = new OxyThickness(0, 0, indicator_chart.plot_model.Padding.Right, 0);
+                        indicator_chart.plot_model.PlotMargins = new OxyThickness(0, 0, indicator_chart.plot_model.PlotMargins.Right, 0);
+                        indicator_chart.plot_view.Padding = new System.Windows.Thickness(0, 0, indicator_chart.plot_view.Padding.Right, 0);
+                        indicator_chart.plot_view.Margin = new System.Windows.Thickness(0, 0, indicator_chart.plot_view.Margin.Right, 0);
+
+                        all_areas.Add(indicator_chart);
+                        mediator.AddOxyArea(indicator_chart);
+                    }
+
+                    if (!series.Exists(x => x.SeriaName == seria_name && x.AreaName == indicatorCandle.NameArea))
+                    {
+                        var indi_area = all_areas.FindLast(x => (string)x.Tag == indicatorCandle.NameArea);
+
+                        if (indi_area == null)
+                            return;
+
+                        if (!seria_name.StartsWith(this.bot_name))
+                            return;
+
+                        var new_seria = new IndicatorSeria()
+                        {
+                            AreaName = indicatorCandle.NameArea,
+                            IndicatorType = indicatorCandle.TypeIndicator,
+                            SeriaName = seria_name,
+                            BotTab = this.bot_tab
+                        };
+
+                        if (!series.Contains(new_seria))
+                        {
+                            series.Add(new IndicatorSeria()
+                            {
+                                AreaName = indicatorCandle.NameArea,
+                                IndicatorType = indicatorCandle.TypeIndicator,
+                                SeriaName = seria_name,
+                                BotTab = this.bot_tab
+                            });
+                        }
+                    }
+                }
             }
 
             if (main_grid_chart != null)
@@ -764,8 +689,14 @@ namespace OsEngine.Charts.CandleChart
 
         public void SetNewTimeFrame(TimeSpan timeFrameSpan, TimeFrame timeFrame)
         {
-            time_frame_span = timeFrameSpan;
-            time_frame = timeFrame;
+            this.time_frame_span = timeFrameSpan;
+            this.time_frame = timeFrame;
+
+            foreach (var area in all_areas)
+            {
+                area.time_frame_span = timeFrameSpan;
+                area.time_frame = timeFrame;
+            }
         }
 
         public void SetPointSize(ChartPositionTradeSize pointSize)
@@ -822,8 +753,6 @@ namespace OsEngine.Charts.CandleChart
 
             this.host.Child = panel_winforms;
 
-            AnnotationAdd();
-
             MakeChart(grid_chart);
         }
 
@@ -849,20 +778,23 @@ namespace OsEngine.Charts.CandleChart
                 brush_background = "#111721"
             }, all_areas, this);
 
+            main_chart.chart_name = this.chart_name;
             main_chart.date_time_axis_X.MaximumMargin = 0;
             main_chart.date_time_axis_X.MinimumMargin = 0;
             main_chart.plot_view.Margin = new Thickness(0, main_chart.plot_view.Margin.Top, main_chart.plot_view.Margin.Right, main_chart.plot_view.Margin.Bottom);
             main_chart.plot_model.PlotMargins = new OxyThickness(0, main_chart.plot_model.PlotMargins.Top, main_chart.plot_model.PlotMargins.Right, main_chart.plot_model.PlotMargins.Bottom);
             main_chart.plot_model.Padding = new OxyThickness(0, main_chart.plot_model.Padding.Top, main_chart.plot_model.Padding.Right, main_chart.plot_model.Padding.Bottom);
+            main_chart.time_frame = this.time_frame;
+            main_chart.time_frame_span = this.time_frame_span;
 
 
-            if (all_areas.Exists(x => (string)x.Tag == "Prime"))
+            if (all_areas.Exists(x => (string)x.Tag == "Prime" && x.chart_name == this.chart_name))
             {
-                var area_prime = all_areas.Find(x => (string)x.Tag == "Prime");
+                OxyArea area_prime = all_areas.Find(x => (string)x.Tag == "Prime" && x.chart_name == this.chart_name);
 
-                ((CandleStickArea)area_prime).Dispose();
+                area_prime.Dispose();
 
-                all_areas.Remove(all_areas.Find(x => (string)x.Tag == "Prime"));
+                all_areas.Remove(all_areas.Find(x => (string)x.Tag == "Prime" && x.chart_name == this.chart_name));
             }
 
             System.Windows.Controls.Grid.SetRow(main_chart.GetViewUI(), 0);
@@ -871,8 +803,11 @@ namespace OsEngine.Charts.CandleChart
             main_grid_chart.Children.Add(main_chart.GetViewUI());
 
             all_areas.Add(main_chart);
+            mediator.AddOxyArea(main_chart);
 
-            foreach (var area in all_areas.Where(x => (string)x.Tag != "Prime" && (string)x.Tag != "ScrollChart" && (string)x.Tag != "ControlPanel"))
+            var indi_areas = all_areas.Where(x => x is IndicatorArea);
+
+            foreach (var area in indi_areas)
             {
                 main_grid_chart.RowDefinitions.Add(new RowDefinition()
                 {
@@ -919,13 +854,14 @@ namespace OsEngine.Charts.CandleChart
             }
 
             var scroll_chart = new ScrollBarArea(new OxyAreaSettings()
-            {
+            {            
                 brush_background = "#282E38",
                 brush_scroll_bacground = "#282E38",
                 cursor_X_is_active = true,
                 Tag = "ScrollChart",
             }, all_areas, this);
 
+            scroll_chart.chart_name = this.chart_name;
             scroll_chart.date_time_axis_X.MaximumPadding = 0;
             scroll_chart.date_time_axis_X.MinimumPadding = 0;
             scroll_chart.plot_model.Padding = new OxyThickness(0, 0, 0, 0);
@@ -945,17 +881,18 @@ namespace OsEngine.Charts.CandleChart
             main_grid_chart.Children.Add(scroll_chart.GetViewUI());
 
             all_areas.Add(scroll_chart);
-
-
+            mediator.AddOxyArea(scroll_chart);
 
             if (start_program != StartProgram.IsOsData)
             {
                 var control_panel = new ControlPanelArea(new OxyAreaSettings()
-                {
+                {                  
                     brush_background = "#111721",
                     Tag = "ControlPanel",
                 }, all_areas, this);
 
+                control_panel.chart_name = this.chart_name;
+                control_panel.plot_view.Height = 50;
 
                 if (all_areas.Exists(x => (string)x.Tag == "ControlPanel"))
                 {
@@ -979,12 +916,11 @@ namespace OsEngine.Charts.CandleChart
                 main_grid_chart.Children.Add(control_panel.GetViewUI());
 
                 all_areas.Add(control_panel);
+                mediator.AddOxyArea(control_panel);
 
-                control_panel.Calculate(time_frame_span, time_frame);
-                control_panel.Redraw();
                 control_panel.plot_model.InvalidatePlot(true);
-
-                
+                control_panel.Calculate(time_frame_span, time_frame);
+                control_panel.Redraw();                   
             }
 
             if (all_areas.Count > 3)
@@ -1012,55 +948,13 @@ namespace OsEngine.Charts.CandleChart
                     }
                 }
             }
-
-            foreach (var area in all_areas.Where(x => x is IndicatorArea))
-            {
-                main_chart.Visible_Area_Updated += ((IndicatorArea)area).Main_area_cursor_Y_Changed;
-            }
-        }
-
-
-        private void DrawChart()
-        {
-            foreach (var area in all_areas)
-            {
-                area.Calculate(time_frame_span, time_frame);
-            }
-
-            var main_area = ((CandleStickArea)all_areas.Find(x => (string)x.Tag == "Prime"));
-
-            foreach (var seria in series)
-            {
-                if (seria.DataPoints.Count != main_area.items_oxy_candles.Count && seria.DataPoints.Count != 0 ||
-                    seria.IndicatorHistogramPoints.Count != main_area.items_oxy_candles.Count && seria.IndicatorHistogramPoints.Count != 0 ||
-                    seria.IndicatorPoints.Count != main_area.items_oxy_candles.Count && seria.IndicatorPoints.Count != 0 ||
-                    seria.IndicatorScatterPoints.Count != main_area.items_oxy_candles.Count && seria.IndicatorScatterPoints.Count != 0)
-                {
-                    return;
-                }
-            }
-
-            foreach (var area in all_areas.Where(x => (string)x.Tag != "ScrollChart"))
-            {
-                    area.Redraw();
-            }
-
-
-            if (main_area.factor < 1)
-            {
-                Task task = new Task(() =>
-                {
-                    Thread.Sleep((int)(10 / main_area.factor));
-                });
-
-                task.Start();
-                task.Wait();
-            }
         }
 
         public void StopPaint()
         {
             isPaint = false;
+
+           
 
             if (main_grid_chart != null)
             {

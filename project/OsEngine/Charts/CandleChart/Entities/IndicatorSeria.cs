@@ -11,7 +11,9 @@ namespace OsEngine.Charts.CandleChart.Entities
 {
     public class IndicatorSeria
     {
+        public string ChartName { get; set; }
         public string AreaName { get; set; }
+        public int BotTab { get; set; }
         public IndicatorChartPaintType IndicatorType { get; set; }
         public string SeriaName { get; set; }
         public List<decimal> DataPoints { get; set; } = new List<decimal>();

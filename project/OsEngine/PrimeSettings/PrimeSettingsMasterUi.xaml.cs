@@ -70,6 +70,7 @@ namespace OsEngine.PrimeSettings
             LabelServerTestingIsActive.ToolTip = OsLocalization.PrimeSettings.LabelServerTestingToopTip;
             CheckBoxServerTestingIsActive.ToolTip = OsLocalization.PrimeSettings.LabelServerTestingToopTip;
             AdminItem.Header = OsLocalization.PrimeSettings.Title2;
+            LabelOxyPlotCharting.Content = OsLocalization.PrimeSettings.LabelOxyPlotCharting;
 
             LabelState.Content = OsLocalization.PrimeSettings.LblState;
             LabelToken.Content = OsLocalization.PrimeSettings.LblToken;

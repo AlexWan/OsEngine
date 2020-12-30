@@ -24,7 +24,12 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
         public double top_value = 0;
         public double bottom_value = 0;
 
-        public object locker_drawler = new object();
+        bool moveStartPoint = false;
+        bool moveEndPoint = false;
+
+        DataPoint last_point = DataPoint.Undefined;
+
+        public LineSeries line_seria = new LineSeries();
 
         public ScrollBarArea(OxyAreaSettings settings, List<OxyArea> all_areas, OxyChartPainter owner) : base(settings, owner)
         {
@@ -32,6 +37,8 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
             this.all_areas = all_areas;
 
             plot_view.DefaultTrackerTemplate = new System.Windows.Controls.ControlTemplate();
+
+            
 
             screen_viewer_polygon = new PolygonAnnotation()
             {
@@ -50,159 +57,147 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
                 new OxyPlot.DataPoint(0, 0),
             });
 
-            plot_view.MouseRightButtonDown += Plot_view_MouseRightButtonDown;
 
             plot_model.MouseDown += Plot_model_scroll_chart_MouseDown;
             plot_model.MouseUp += Plot_model_scroll_chart_MouseUp;
             plot_model.MouseLeave += Plot_model_scroll_chart_MouseLeave;
             plot_model.MouseMove += Plot_model_scroll_chart_MouseMove;
+
+            plot_model.Updated += Plot_model_Updated;
         }
 
-        
+        private void Plot_model_Updated(object sender, EventArgs e)
+        {
+            
+        }
+
         private void Plot_model_scroll_chart_MouseMove(object sender, OxyMouseEventArgs e)
         {
-            if (!scroll_chart_left_mouse_is_down)
+            if (!scroll_chart_left_mouse_is_down || !owner.mediator.prime_chart.isFreeze)
                 return;
 
             Action screen_rect_move = () =>
             {
-                Axis yAxis = linear_axis_Y;
-                DataPoint dataPoint_event = date_time_axis_X.InverseTransform(e.Position.X, e.Position.Y, yAxis);
+                var thisPoint = date_time_axis_X.InverseTransform(e.Position.X, e.Position.Y, linear_axis_Y);
+                double dx = thisPoint.X - last_point.X;
 
-                double delta_scroll = dataPoint_event.X - scroll_mouse_down_value_X;
-                scroll_mouse_down_value_X = dataPoint_event.X;
 
-                List<DataPoint> new_points = new List<DataPoint>();
+                top_value = plot_model.Axes[1].ActualMaximum;
+                bottom_value = plot_model.Axes[1].ActualMinimum;
 
-                foreach (var point in screen_viewer_polygon.Points)
-                {
-                    new_points.Add(new OxyPlot.DataPoint(point.X + delta_scroll, point.Y));
-                }
+                List<DataPoint> new_points = new List<DataPoint>()
+                { 
+                        new DataPoint(screen_viewer_polygon.Points[0].X + dx, top_value),
+                        new DataPoint(screen_viewer_polygon.Points[1].X + dx, top_value),
+                        new DataPoint(screen_viewer_polygon.Points[2].X + dx, bottom_value),
+                        new DataPoint(screen_viewer_polygon.Points[3].X + dx, bottom_value)
+                };
+
 
                 screen_viewer_polygon.Points.Clear();
                 screen_viewer_polygon.Points.AddRange(new_points);
 
-                SetAllChartByScreenPoligon();
+                last_point = thisPoint;
 
-                plot_view.InvalidatePlot(true);
+                owner.mediator.RedrawScroll(false);
+
+
+                owner.mediator.ZoomIndicators(screen_viewer_polygon.Points[0].X, screen_viewer_polygon.Points[1].X);
+
+                owner.mediator.ZoomPrime(screen_viewer_polygon.Points[0].X, screen_viewer_polygon.Points[1].X);
+
             };
 
             plot_view.Dispatcher.Invoke(screen_rect_move);
 
+            e.Handled = true;
         }
 
-        public void SetAllChartByScreenPoligon()
+        public void SetPrimeChartByScreenPoligon()
         {
-           
-            foreach (var area in all_areas.Where(x => x.Tag != (object)"ScrollChart"))
-            {
-                if (area.plot_model.Axes[0].ActualMinimum == plot_model.Axes[0].ActualMinimum &&
-                   area.plot_model.Axes[0].ActualMaximum == plot_model.Axes[0].ActualMaximum)
-                {
-                    return;
-                }
+            double first_candle_value = screen_viewer_polygon.Points[0].X;
+            double last_candle_value = screen_viewer_polygon.Points[1].X;
 
-                Action action = () =>
-                {
-                    if (area is CandleStickArea)
-                    {
-                        var main_area = (CandleStickArea)area;
-                        main_area.BuildCandleSeries(my_candles);
-                        main_area.Calculate(owner.time_frame_span, owner.time_frame);
-                    }
-
-                    double first_candle_value = screen_viewer_polygon.Points[0].X;
-                    double last_candle_value = screen_viewer_polygon.Points[1].X;
-
-                    area.date_time_axis_X.Zoom(first_candle_value, last_candle_value);
-
-                    List<double> max_min = new List<double>();
-
-                    if (area.Tag == (object)"Prime")
-                        max_min = area.GetHighLow(true, first_candle_value, last_candle_value);
-                    else
-                        max_min = area.GetHighLow(false, first_candle_value, last_candle_value);
-
-
-
-                    area.linear_axis_Y.Zoom(max_min[0], max_min[1]);
-                };
-
-                plot_view.Dispatcher.Invoke(action);
-            }
+            owner.mediator.ZoomPrime(first_candle_value, last_candle_value);
         }
 
         private void Plot_model_scroll_chart_MouseLeave(object sender, OxyMouseEventArgs e)
         {
             scroll_chart_left_mouse_is_down = false;
             scroll_mouse_down_value_X = 0;
+            e.Handled = true;
         }
 
         private void Plot_model_scroll_chart_MouseUp(object sender, OxyMouseEventArgs e)
         {
-            scroll_chart_left_mouse_is_down = false;
             scroll_mouse_down_value_X = 0;
+            scroll_chart_left_mouse_is_down = false;
 
-            foreach (var area in all_areas.Where(x => (string)x.Tag != "ScrollChart"))
-            {
-                Action action = () =>
-                {
-                    area.plot_model.InvalidatePlot(true);
-                };
-
-                area.plot_view.Dispatcher.Invoke(action);
-            }
-
+            e.Handled = true;
         }
 
         private void Plot_model_scroll_chart_MouseDown(object sender, OxyMouseDownEventArgs e)
         {
-            scroll_chart_left_mouse_is_down = true;
-
-            Axis yAxis = linear_axis_Y;
-            DataPoint dataPoint_event = date_time_axis_X.InverseTransform(e.Position.X, e.Position.Y, yAxis);
-
-            scroll_mouse_down_value_X = dataPoint_event.X;
-        }
-
-        private void Plot_view_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            Action action_rb_down = () =>
+            Action action = () =>
             {
-                if (all_areas.Find(x => (string)x.Tag == "Prime").isFreeze == false)
-                {
-                    all_areas.Find(x => (string)x.Tag == "Prime").isFreeze = true;
-                    plot_view.Background = area_settings.Brush_scroll_freeze_bacground;
-                    screen_viewer_polygon.Selectable = true;
-
-                }
-                else
-                {
-                    all_areas.Find(x => (string)x.Tag == "Prime").isFreeze = false;
-                    plot_view.Background = area_settings.Brush_scroll_bacground; 
-                    screen_viewer_polygon.Selectable = false;
-                }
-
-                plot_view.InvalidatePlot(true);
             };
 
+            if (e.ChangedButton == OxyMouseButton.Left)
+            {
+                last_point = date_time_axis_X.InverseTransform(e.Position.X, e.Position.Y, linear_axis_Y);
+                scroll_chart_left_mouse_is_down = true;
+            }
 
-            plot_view.Dispatcher.Invoke(action_rb_down);
+            if (e.ChangedButton == OxyMouseButton.Right)
+            {
+                action = () =>
+                {
+                    if (owner.mediator.prime_chart.isFreeze == false)
+                    {
+                        owner.mediator.prime_chart.isFreeze = true;
+                        plot_view.Background = area_settings.Brush_scroll_freeze_bacground;
+                        screen_viewer_polygon.Selectable = true;
 
+                    }
+                    else
+                    {
+                        owner.mediator.prime_chart.isFreeze = false;
+                        plot_view.Background = area_settings.Brush_scroll_bacground;
+                        screen_viewer_polygon.Selectable = false;
+                    }
 
+                    owner.mediator.RedrawScroll( true); 
+                };        
+            }
 
+            plot_view.Dispatcher.Invoke(action);
+
+            e.Handled = true;
         }
 
 
         public override void Calculate(TimeSpan time_frame_span, TimeFrame time_frame)
         {
+            this.time_frame = time_frame;
+            this.time_frame_span = time_frame_span;
+
+            for (int i = 0; i < actions_to_calculate.Count; i++)
+            {
+                Action action = new Action(() => { });
+
+                bool result = actions_to_calculate.TryDequeue(out action);
+
+                if (result)
+                    plot_view.Dispatcher.Invoke(action);
+            }
+
             Action action_scroll = () =>
             {
                 if (my_candles == null || my_candles.Count == 0)
                     return;
 
-                var main_area = ((CandleStickArea)all_areas.Find(x => (string)x.Tag == "Prime"));
-
+                
+                    var main_area = ((CandleStickArea)all_areas.Find(x => x is CandleStickArea));
 
                 var area_series_parallel = new LineSeries()
                 {
@@ -210,62 +205,122 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
                     EdgeRenderingMode = EdgeRenderingMode.PreferSharpness
                 };
 
-                var items = my_candles.AsParallel().AsOrdered().Select(x => new DataPoint(DateTimeAxis.ToDouble(x.TimeStart), (double)x.Close));
+                var items = my_candles.Select(x => new DataPoint(DateTimeAxis.ToDouble(x.TimeStart), (double)x.Close));
 
-                if (plot_model == null)
-                    return;
+                line_seria = new LineSeries()
+                {
+                    Color = OxyColor.Parse("#FF5500"),
+                     MarkerStrokeThickness = 1,
+                      StrokeThickness = 1,
+                };
 
-                if (plot_model.Series.ToList().Exists(x => x.SeriesGroupName == "ScrollPoints"))
-                    plot_model.Series.Remove(plot_model.Series.First(x => x.SeriesGroupName == "ScrollPoints"));
+                try
+                {
+                    line_seria.Points.Clear();
+                    line_seria.Points.AddRange(items);
+                }
+                catch { return; }
 
-                area_series_parallel.Points.AddRange(items);
-                area_series_parallel.SeriesGroupName = "ScrollPoints";
+                    var X_start = DateTimeAxis.ToDouble(my_candles.First().TimeStart);
+                    var X_end = DateTimeAxis.ToDouble(my_candles.Last().TimeStart);
+
+                    date_time_axis_X.Zoom(X_start, X_end);
+
+                    if (plot_model == null)
+                        return;
+
+                    if (plot_model.Series.ToList().Exists(x => x.SeriesGroupName == "ScrollPoints"))
+                        plot_model.Series.Remove(plot_model.Series.First(x => x.SeriesGroupName == "ScrollPoints"));
+
+                try
+                {
+                    area_series_parallel.Points.AddRange(items);
+                    area_series_parallel.SeriesGroupName = "ScrollPoints";
+                }
+                catch { return; }
 
                 plot_model.Series.Add(area_series_parallel);
 
 
-                if (plot_model.Annotations.ToList().Exists(x => x.Tag == (object)"screen_viewer_polygon"))
-                    plot_model.Annotations.Remove(plot_model.Annotations.First(x => (object)x.Tag == "screen_viewer_polygon"));
+                    if (plot_model.Annotations.ToList().Exists(x => x.Tag == (object)"screen_viewer_polygon"))
+                        plot_model.Annotations.Remove(plot_model.Annotations.First(x => (object)x.Tag == "screen_viewer_polygon"));
 
-                top_value = plot_model.Axes[1].ActualMaximum;
-                bottom_value = plot_model.Axes[1].ActualMinimum;
 
-                double first_candle_X = main_area.plot_model.Axes[0].ActualMinimum;
-                double last_candle_X = main_area.plot_model.Axes[0].ActualMaximum;
 
-                List<DataPoint> new_points = new List<DataPoint>()
-                {
+                    if (!owner.mediator.prime_chart.isFreeze)
+                    {
+                        double first_candle_X = main_area.plot_model.Axes[0].ActualMinimum;
+                        double last_candle_X = main_area.plot_model.Axes[0].ActualMaximum;
+
+                        top_value = plot_model.Axes[1].ActualMaximum;
+                        bottom_value = plot_model.Axes[1].ActualMinimum;
+
+                        List<DataPoint> new_points = new List<DataPoint>()
+                    {
                         new DataPoint(first_candle_X, top_value),
                         new DataPoint(last_candle_X, top_value),
                         new DataPoint(last_candle_X, bottom_value),
                         new DataPoint(first_candle_X, bottom_value)
-                };
+                    };
 
-                screen_viewer_polygon.Points.Clear();
-                screen_viewer_polygon.Points.AddRange(new_points);
 
-                plot_model.Annotations.Add(screen_viewer_polygon);
+                        screen_viewer_polygon.Points.Clear();
+                        screen_viewer_polygon.Points.AddRange(new_points);
+                    }
+                    else
+                    {
+                        double first_candle_X = main_area.plot_model.Axes[0].ActualMinimum;
+                        double last_candle_X = main_area.plot_model.Axes[0].ActualMaximum;
 
-                plot_view.InvalidatePlot(true);
+                        top_value = plot_model.Axes[1].ActualMaximum;
+                        bottom_value = plot_model.Axes[1].ActualMinimum;
+
+                        List<DataPoint> new_points = new List<DataPoint>()
+                    {
+                        new DataPoint(screen_viewer_polygon.Points[0].X, top_value),
+                        new DataPoint(screen_viewer_polygon.Points[1].X, top_value),
+                        new DataPoint(screen_viewer_polygon.Points[2].X, bottom_value),
+                        new DataPoint(screen_viewer_polygon.Points[3].X, bottom_value)
+                    };
+
+
+                        screen_viewer_polygon.Points.Clear();
+                        screen_viewer_polygon.Points.AddRange(new_points);
+                    }
+
+                    plot_model.Annotations.Add(screen_viewer_polygon);
+                
             };
 
+            lock (series_locker)
+            {
                 plot_view.Dispatcher.Invoke(action_scroll);
+            }
         }
 
-        public void Dispose()
+        public override void Redraw()
         {
 
-            scatter_series_list = new List<ScatterSeries>();
-            lines_series_list = new List<LineSeries>();
-            area_seriies_list = new List<AreaSeries>();
-            bar_series_list = new List<BarSeries>();
-            volume_series_list = new List<VolumeSeries>();
-            histogram_series_list = new List<HistogramSeries>();
-            linear_bar_series_list = new List<LinearBarSeries>();
-            my_candles = new List<Candle>();
-            items_oxy_candles = new List<HighLowItem>();
+            Action action = () =>
+            {
+                lock (series_locker)
+                {
+                    plot_model.Series.Clear();
+
+                    plot_model.Series.Add(line_seria);
+
+                    plot_view.InvalidatePlot(true);
+                }
+            };
+
+            plot_view.Dispatcher.Invoke(action);
         }
 
-        
+        public override void Dispose()
+        {
+            line_seria = new LineSeries();
+            my_candles = new List<Candle>();
+            items_oxy_candles = new List<HighLowItem>();
+        }  
     }
 }
