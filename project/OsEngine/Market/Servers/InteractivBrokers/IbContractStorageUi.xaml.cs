@@ -23,10 +23,13 @@ namespace OsEngine.Market.Servers.InteractivBrokers
     {
         private DataGridView _grid;
 
-        public IbContractStorageUi(List<SecurityIb> secToSubscrible)
+        private InteractiveBrokersServerRealization _server;
+
+        public IbContractStorageUi(List<SecurityIb> secToSubscrible, InteractiveBrokersServerRealization server)
         {
             InitializeComponent();
             SecToSubscrible = secToSubscrible;
+            _server = server;
 
             _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
 
@@ -218,5 +221,13 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             SecToSubscrible.Add(new SecurityIb());
             LoadSecOnTable();
         }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            SaveSecFromTable();
+            _server.GetSecurities();
+            _server.SaveIbSecurities();
+        }
     }
 }
+

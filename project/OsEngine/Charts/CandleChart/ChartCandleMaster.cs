@@ -19,6 +19,7 @@ using OsEngine.Indicators;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
+using OsEngine.PrimeSettings;
 
 namespace OsEngine.Charts.CandleChart
 {
@@ -41,7 +42,12 @@ namespace OsEngine.Charts.CandleChart
             _name = nameBoss + "ChartMaster";
             _startProgram = startProgram;
 
-            ChartCandle = new WinFormsChartPainter(nameBoss, startProgram);
+            if (PrimeSettingsMaster.UseOxyPlotChart == false)
+                ChartCandle = new WinFormsChartPainter(nameBoss, startProgram);
+
+            else if (PrimeSettingsMaster.UseOxyPlotChart == true)
+                ChartCandle = new OxyChartPainter(nameBoss, startProgram);
+
             ChartCandle.ChartClickEvent += ChartCandle_ChartClickEvent;
             ChartCandle.LogMessageEvent += NewLogMessage;
             ChartCandle.ClickToIndexEvent += _chartCandle_ClickToIndexEvent;
@@ -788,7 +794,7 @@ namespace OsEngine.Charts.CandleChart
                         }
                         else
                         {
-                            string area = ChartCandle.CreateArea(nameArea, 10);
+                            string area = ChartCandle.CreateArea(nameArea, 15);
                             indicator.NameSeries = ChartCandle.CreateSeries(area,
                                 indicator.TypeIndicator, indicator.Name + i);
                         }
@@ -817,7 +823,7 @@ namespace OsEngine.Charts.CandleChart
                         }
                         else
                         {
-                            string area = ChartCandle.CreateArea(nameArea, 10);
+                            string area = ChartCandle.CreateArea(nameArea, 15);
 
                             series[i].NameSeries = ChartCandle.CreateSeries(area,
                                 series[i].ChartPaintType, indicator.Name + i);

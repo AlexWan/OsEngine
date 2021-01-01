@@ -1,0 +1,32 @@
+﻿<Window x:Class="AdminPanel.Entity.AddEngineForm"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Add engine"  Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Height="400" Width="600">
+    <Grid Margin="0,0,-2,-2">
+        <Rectangle Margin="10,10,10,35"/>
+        <Label Name="LabelName" HorizontalAlignment="Left"
+               VerticalAlignment="Top" Margin="27,42,0,0" Width="70" Content="Name"/>
+        <TextBox HorizontalAlignment="Left" Text="{Binding EngineName}"
+                 VerticalAlignment="Top" Margin="110,42,0,0" Width="174"/>
+        <Label x:Name="LabelPort" HorizontalAlignment="Left"
+               VerticalAlignment="Top" Margin="27,80,0,0" Width="49" Content="Port"/>
+        <TextBox  HorizontalAlignment="Left" Text="{Binding Port}"
+                  VerticalAlignment="Top" Margin="110,80,0,0" Width="174"/>
+        <Label x:Name="LabelToken" HorizontalAlignment="Left"
+               VerticalAlignment="Top" Margin="27,119,0,0" Width="49" Content="Token"/>
+        <TextBox  HorizontalAlignment="Left" Text="{Binding Token}"
+                  VerticalAlignment="Top" Margin="110,119,0,0" Width="174"/>
+
+        <Button Name ="BtnAccept" Content="Accept" VerticalAlignment="Bottom"
+                HorizontalAlignment="Right" Height="20"
+                MaxWidth="100" Margin="0,0,18,10" Width="108" Click="Button_Click" />
+
+        <Label x:Name="LabelRebootRam" HorizontalAlignment="Left"
+            VerticalAlignment="Top" Margin="27,157,0,0" Width="83" Content="Reboot RAM"/>
+        <TextBox  HorizontalAlignment="Left" Text="{Binding RebootRam}"
+            VerticalAlignment="Top" Margin="110,157,0,0" Width="174"/>
+    </Grid>
+</Window>

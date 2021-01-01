@@ -310,7 +310,7 @@ namespace OsEngine.Market
                 }
                 if (type == ServerType.InteractivBrokers)
                 {
-                    newServer = new InteractivBrokersServer();
+                    newServer = new InteractiveBrokersServer();
                 }
                 else if (type == ServerType.SmartCom)
                 {
@@ -570,6 +570,20 @@ namespace OsEngine.Market
 
                 return serverPermission;
             }
+            if (type == ServerType.InteractivBrokers)
+            {
+                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
+
+                if (serverPermission == null)
+                {
+                    serverPermission = new InteractiveBrokersServerPermission();
+                    _serversPermissions.Add(serverPermission);
+                }
+
+                return serverPermission;
+            }
+
+            
 
             return null;
         }

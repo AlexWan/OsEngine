@@ -133,7 +133,11 @@ namespace OsEngine.Market.Servers.Hitbtc
                 {
                     var result = CreateQuery("GET", "/api/2/trading/balance", _pubKey, _secKey, true);
 
-                    List<Balances> balances = JsonConvert.DeserializeAnonymousType(result, new List<Balances>());
+                    List<Balances> balances;
+                    if (result != null)
+                        balances = JsonConvert.DeserializeAnonymousType(result, new List<Balances>());
+                    else
+                        balances = new List<Balances>();
 
                     BalanceInfo balanceinfo = new BalanceInfo();
 

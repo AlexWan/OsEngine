@@ -131,9 +131,28 @@ namespace OsEngine.Market.Servers
                 {
                     newRow = GetEnumParamRow((ServerParameterEnum)param[i]);
                 }
+                else if (param[i].Type == ServerParameterType.Button)
+                {
+                    newRow = GetButtonParamRow((ServerParameterButton)param[i]);
+                }
 
                 _newGrid.Rows.Add(newRow);
             }
+        }
+
+        private DataGridViewRow GetButtonParamRow(ServerParameterButton param)
+        {
+            DataGridViewRow nRow = new DataGridViewRow();
+
+            nRow.Cells.Add(new DataGridViewTextBoxCell());
+            nRow.Cells[0].Value = "";
+
+            DataGridViewButtonCell comboBox = new DataGridViewButtonCell();
+
+            nRow.Cells.Add(comboBox);
+            nRow.Cells[1].Value = param.Name;
+
+            return nRow;
         }
 
         private DataGridViewRow GetEnumParamRow(ServerParameterEnum param)
@@ -266,7 +285,12 @@ namespace OsEngine.Market.Servers
                 ((ServerParameterPath)param[clickRow]).ShowPathDialog();
                 UpdateParamDataGrid();
             }
-
+            if (clickRow < param.Count &&
+                param[clickRow].Type == ServerParameterType.Button &&
+                clickColumn == 1)
+            {
+                ((ServerParameterButton)param[clickRow]).ActivateButtonClick();
+            }
         }
 
         public void SaveParam()

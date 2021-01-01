@@ -798,7 +798,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                     var response = new RestClient(baseUrl).Execute(request).Content;
 
-                    if (response.Contains("code"))
+                    if (response.Contains("code") && !response.Contains("code\": 200"))
                     {
                         var error = JsonConvert.DeserializeAnonymousType(response, new ErrorMessage());
                         throw new Exception(error.msg);
@@ -880,15 +880,31 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                     param.Add("symbol=", order.SecurityNameCode.ToUpper());
                     param.Add("&side=", order.Side == Side.Buy ? "BUY" : "SELL");
-                    param.Add("&type=", "LIMIT");
-                    param.Add("&timeInForce=", "GTC");
+                    if (HedgeMode)
+                    {
+                        if (order.PositionConditionType == OrderPositionConditionType.Close)
+                        {
+                            param.Add("&positionSide=", order.Side == Side.Buy ? "SHORT" : "LONG");
+                        }
+                        else
+                        {
+                            param.Add("&positionSide=", order.Side == Side.Buy ? "LONG" : "SHORT");
+                        }
+                    }
+                    param.Add("&type=", order.TypeOrder == OrderPriceType.Limit ? "LIMIT" : "MARKET");
+                    //param.Add("&timeInForce=", "GTC");
                     param.Add("&newClientOrderId=", order.NumberUser.ToString());
                     param.Add("&quantity=",
                         order.Volume.ToString(CultureInfo.InvariantCulture)
                             .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
-                    param.Add("&price=",
-                        order.Price.ToString(CultureInfo.InvariantCulture)
-                            .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
+                    if (order.TypeOrder == OrderPriceType.Limit)
+                    {
+                        param.Add("&timeInForce=", "GTC");
+                        param.Add("&price=",
+                            order.Price.ToString(CultureInfo.InvariantCulture)
+                                .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
+
+                    }
 
                     var res = CreateQuery(Method.POST, "/fapi/v1/order", param, true);
 
@@ -1492,6 +1508,34 @@ namespace OsEngine.Market.Servers.Binance.Futures
             }
         }
 
+        public bool HedgeMode;
+        public void SetPositionMode()
+        {
+            try
+            {
+                if (IsConnected == false)
+                {
+                    return;
+                }
+                var rs = CreateQuery(Method.GET, "/fapi/v1/positionSide/dual", new Dictionary<string, string>(),true);
+                if (rs != null)
+                {
+                    var modeNow = JsonConvert.DeserializeAnonymousType(rs, new HedgeModeResponse());
+                    if(modeNow.dualSidePosition != HedgeMode)
+                    {
+                        var param = new Dictionary<string, string>();
+                        param.Add("dualSidePosition=", HedgeMode.ToString().ToLower());
+                        CreateQuery(Method.POST, "/fapi/v1/positionSide/dual", param, true);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+
+            }
+
+        }
         #region outgoing events / исходящие события
 
         /// <summary>

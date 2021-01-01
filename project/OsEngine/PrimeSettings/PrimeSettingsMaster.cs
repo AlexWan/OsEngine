@@ -5,11 +5,13 @@
 
 using System;
 using System.IO;
+using OsEngine.OsTrader.AdminPanelApi;
 
 namespace OsEngine.PrimeSettings
 {
     public class PrimeSettingsMaster
     {
+        public static ApiState ApiState { get; set; }
 
         public static bool ErrorLogMessageBoxIsActiv
         {
@@ -83,6 +85,102 @@ namespace OsEngine.PrimeSettings
 
         private static bool _serverTestingIsActiv;
 
+        public static bool AutoStartApi
+        {
+            get
+            {
+                if (_isLoad == false)
+                {
+                    Load();
+                }
+                return _autoStartApi;
+            }
+            set
+            {
+                _autoStartApi = value;
+                Save();
+            }
+        }
+
+        private static bool _autoStartApi;
+
+        public static string Token
+        {
+            get
+            {
+                if (_isLoad == false)
+                {
+                    Load();
+                }
+                return _token;
+            }
+            set
+            {
+                _token = value;
+                Save();
+            }
+        }
+
+        private static string _token;
+
+        public static string Ip
+        {
+            get
+            {
+                if (_isLoad == false)
+                {
+                    Load();
+                }
+                return _ip;
+            }
+            set
+            {
+                _ip = value;
+                Save();
+            }
+        }
+
+        private static string _ip;
+
+        public static string Port
+        {
+            get
+            {
+                if (_isLoad == false)
+                {
+                    Load();
+                }
+                return _port;
+            }
+            set
+            {
+                _port = value;
+                Save();
+            }
+        }
+
+       
+        private static string _port;
+
+        public static bool UseOxyPlotChart
+        {
+            get
+            {
+                if (_isLoad == false)
+                {
+                    Load();
+                }
+                return _useOxyPlotChart;
+            }
+            set
+            {
+                _useOxyPlotChart = value;
+                Save();
+            }
+        }
+
+        private static bool _useOxyPlotChart;
+
         /// <summary>
         /// save settings
         /// сохранить настройки
@@ -91,13 +189,18 @@ namespace OsEngine.PrimeSettings
         {
             try
             {
-                using (StreamWriter writer = new StreamWriter(@"Engine\PrimeSettings.txt", false)
-                )
+                using (StreamWriter writer = new StreamWriter(@"Engine\PrimeSettings.txt", false))
                 {
                     writer.WriteLine(_transactionBeepIsActiv);
                     writer.WriteLine(_errorLogBeepIsActiv);
                     writer.WriteLine(_errorLogMessageBoxIsActiv);
                     writer.WriteLine(_serverTestingIsActiv);
+                    writer.WriteLine(_autoStartApi);
+                    writer.WriteLine(_token);
+                    writer.WriteLine(_ip);
+                    writer.WriteLine(_port);
+                    writer.WriteLine(_useOxyPlotChart);
+
                     writer.Close();
                 }
             }
@@ -128,6 +231,11 @@ namespace OsEngine.PrimeSettings
                     _errorLogBeepIsActiv = Convert.ToBoolean(reader.ReadLine());
                     _errorLogMessageBoxIsActiv = Convert.ToBoolean(reader.ReadLine());
                     _serverTestingIsActiv = Convert.ToBoolean(reader.ReadLine());
+                    _autoStartApi = Convert.ToBoolean(reader.ReadLine());
+                    _token = reader.ReadLine();
+                    _ip = reader.ReadLine();
+                    _port = reader.ReadLine();
+                    _useOxyPlotChart = Convert.ToBoolean(reader.ReadLine());
 
                     reader.Close();
                 }

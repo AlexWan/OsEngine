@@ -31,6 +31,8 @@
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x64</PlatformTarget>
@@ -63,6 +65,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\Debug\cgate_net64.dll</HintPath>
     </Reference>
+    <Reference Include="HarfBuzzSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <HintPath>..\packages\HarfBuzzSharp.2.6.1.4\lib\net45\HarfBuzzSharp.dll</HintPath>
+    </Reference>
     <Reference Include="Jayrock">
       <HintPath>..\..\..\OsEngineTepm\6Кракен\Jayrock-master\Jayrock-master\bin\net-4.0\debug\Jayrock.dll</HintPath>
     </Reference>
@@ -82,6 +87,18 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\OsEngineTepm\7 OANDA\OandaV20-master\OkonkwoOandaV20\OkonkwoOandaV20\bin\Debug\OkonkwoOandaV20.dll</HintPath>
     </Reference>
+    <Reference Include="OxyPlot, Version=2.1.0.0, Culture=neutral, PublicKeyToken=638079a8f0bd61e9, processorArchitecture=MSIL">
+      <HintPath>..\packages\OxyPlot.Core.2.1.0-Preview1\lib\net45\OxyPlot.dll</HintPath>
+    </Reference>
+    <Reference Include="OxyPlot.SkiaSharp, Version=2.1.0.0, Culture=neutral, PublicKeyToken=75e952ba404cdbb0, processorArchitecture=MSIL">
+      <HintPath>..\packages\OxyPlot.SkiaSharp.2.1.0-Preview1\lib\net45\OxyPlot.SkiaSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="OxyPlot.SkiaSharp.Wpf, Version=2.1.0.0, Culture=neutral, PublicKeyToken=75e952ba404cdbb0, processorArchitecture=MSIL">
+      <HintPath>..\packages\OxyPlot.SkiaSharp.Wpf.2.1.0-Preview1\lib\net45\OxyPlot.SkiaSharp.Wpf.dll</HintPath>
+    </Reference>
+    <Reference Include="OxyPlot.Wpf.Shared, Version=2.1.0.0, Culture=neutral, PublicKeyToken=75e952ba404cdbb0, processorArchitecture=MSIL">
+      <HintPath>..\packages\OxyPlot.Wpf.Shared.2.1.0-Preview1\lib\net45\OxyPlot.Wpf.Shared.dll</HintPath>
+    </Reference>
     <Reference Include="protobuf-net, Version=2.4.0.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
       <HintPath>..\..\..\Роботы на заказ\62 Ликвидность BShort\devAzure\OsEngine\bin\Debug\protobuf-net.dll</HintPath>
       <EmbedInteropTypes>False</EmbedInteropTypes>
@@ -100,11 +117,29 @@
     <Reference Include="RestSharp">
       <HintPath>..\..\..\OsEngineTepm\12BitStamp\Rokolab.BitstampClient-master (хороший HHTP клиент. Больше ничего )\Rokolab.BitstampClient\bin\Debug\RestSharp.dll</HintPath>
     </Reference>
+    <Reference Include="SkiaSharp, Version=1.68.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <HintPath>..\packages\SkiaSharp.1.68.3\lib\net45\SkiaSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="SkiaSharp.HarfBuzz, Version=1.68.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <HintPath>..\packages\SkiaSharp.HarfBuzz.1.68.3\lib\net45\SkiaSharp.HarfBuzz.dll</HintPath>
+    </Reference>
+    <Reference Include="SkiaSharp.Views.Desktop.Common, Version=1.68.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <HintPath>..\packages\SkiaSharp.Views.Desktop.Common.1.68.3\lib\net45\SkiaSharp.Views.Desktop.Common.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Buffers.4.4.0\lib\netstandard1.1\System.Buffers.dll</HintPath>
+    </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.4.5.3\lib\netstandard1.1\System.Memory.dll</HintPath>
+    </Reference>
     <Reference Include="System.Net.Http" />
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.5.2\lib\netstandard1.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
     <Reference Include="System.Runtime.Serialization">
       <Private>True</Private>
     </Reference>
@@ -151,6 +186,10 @@
     </Compile>
     <Compile Include="Charts\CandleChart\Elements\IChartElement.cs" />
     <Compile Include="Charts\CandleChart\Elements\PointElement.cs" />
+    <Compile Include="Charts\CandleChart\Entities\CustomTextAnnotation.cs" />
+    <Compile Include="Charts\CandleChart\Entities\IndicatorSeria.cs" />
+    <Compile Include="Charts\CandleChart\Entities\OxyAreaSettings.cs" />
+    <Compile Include="Charts\CandleChart\Entities\OxyMediator.cs" />
     <Compile Include="Charts\CandleChart\IChartPainter.cs" />
     <Compile Include="Charts\CandleChart\Indicators\AccumulationDistribution.cs" />
     <Compile Include="Charts\CandleChart\Indicators\AccumulationDistributionUi.xaml.cs">
@@ -323,6 +362,12 @@
     <Compile Include="Charts\CandleChart\Indicators\WilliamsRangeUi.xaml.cs">
       <DependentUpon>WilliamsRangeUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Charts\CandleChart\OxyAreas\CandleStickArea.cs" />
+    <Compile Include="Charts\CandleChart\OxyAreas\ControlPanelArea.cs" />
+    <Compile Include="Charts\CandleChart\OxyAreas\IndicatorArea.cs" />
+    <Compile Include="Charts\CandleChart\OxyAreas\OxyArea.cs" />
+    <Compile Include="Charts\CandleChart\OxyAreas\ScrollBarArea.cs" />
+    <Compile Include="Charts\CandleChart\OxyChartPainter.cs" />
     <Compile Include="Charts\ClusterChart\ChartClusterMaster.cs" />
     <Compile Include="Charts\ClusterChart\ChartClusterPainter.cs" />
     <Compile Include="Charts\CandleChart\WinFormsChartPainter.cs" />
@@ -552,10 +597,8 @@
     <Compile Include="Market\Servers\InteractivBrokers\IbContractStorageUi.xaml.cs">
       <DependentUpon>IbContractStorageUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Market\Servers\InteractivBrokers\InteractivBrokersServer.cs" />
-    <Compile Include="Market\Servers\InteractivBrokers\InteractivBrokersUi.xaml.cs">
-      <DependentUpon>InteractivBrokersUi.xaml</DependentUpon>
-    </Compile>
+    <Compile Include="Market\Servers\InteractivBrokers\InteractiveBrokersServer.cs" />
+    <Compile Include="Market\Servers\InteractivBrokers\InteractiveBrokersServerPermission.cs" />
     <Compile Include="Market\Servers\IServer.cs" />
     <Compile Include="Market\Servers\IServerPermission.cs" />
     <Compile Include="Market\Servers\IServerRealization.cs" />
@@ -717,6 +760,13 @@
     <Compile Include="OsOptimizer\TabIndexOptimizerUi.xaml.cs">
       <DependentUpon>TabIndexOptimizerUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="OsTrader\AdminPanelApi\AdminApiMaster.cs" />
+    <Compile Include="OsTrader\AdminPanelApi\AdminPanelClient.cs" />
+    <Compile Include="OsTrader\AdminPanelApi\Authorization.cs" />
+    <Compile Include="OsTrader\AdminPanelApi\Counter.cs" />
+    <Compile Include="OsTrader\AdminPanelApi\IApiServer.cs" />
+    <Compile Include="OsTrader\AdminPanelApi\ServerModel.cs" />
+    <Compile Include="OsTrader\AdminPanelApi\TcpServer.cs" />
     <Compile Include="OsTrader\GlobalPosition.cs" />
     <Compile Include="Journal\Journal.cs" />
     <Compile Include="Logging\MessageSender.cs" />
@@ -1113,10 +1163,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Market\Servers\InteractivBrokers\InteractivBrokersUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Market\Servers\Kraken\KrakenServerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -1377,6 +1423,7 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -1474,7 +1521,22 @@
   <ItemGroup>
     <Folder Include="Market\Servers\Huobi\FuturesSwap\Entities\" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\generateButton.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\OsEngine_logo_transpared.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\packages\HarfBuzzSharp.2.6.1.4\build\net45\HarfBuzzSharp.targets" Condition="Exists('..\packages\HarfBuzzSharp.2.6.1.4\build\net45\HarfBuzzSharp.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>Данный проект ссылается на пакеты NuGet, отсутствующие на этом компьютере. Используйте восстановление пакетов NuGet, чтобы скачать их.  Дополнительную информацию см. по адресу: http://go.microsoft.com/fwlink/?LinkID=322105. Отсутствует следующий файл: {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\HarfBuzzSharp.2.6.1.4\build\net45\HarfBuzzSharp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\HarfBuzzSharp.2.6.1.4\build\net45\HarfBuzzSharp.targets'))" />
+    <Error Condition="!Exists('..\packages\SkiaSharp.1.68.3\build\net45\SkiaSharp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SkiaSharp.1.68.3\build\net45\SkiaSharp.targets'))" />
+  </Target>
+  <Import Project="..\packages\SkiaSharp.1.68.3\build\net45\SkiaSharp.targets" Condition="Exists('..\packages\SkiaSharp.1.68.3\build\net45\SkiaSharp.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

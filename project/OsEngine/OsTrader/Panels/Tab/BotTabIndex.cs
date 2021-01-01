@@ -273,12 +273,16 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        public DateTime LastTimeCandleUpdate { get; set; }
+
         /// <summary>
         /// new data came from the connector / 
         /// из коннектора пришли новые данные
         /// </summary>
         private void BotTabIndex_NewCandlesChangeEvent(List<Candle> candles)
         {
+            LastTimeCandleUpdate = DateTime.Now;
+
             for (int i = 0; i < Tabs.Count; i++)
             {
                 List<Candle> myCandles = Tabs[i].Candles(true);
@@ -1171,31 +1175,31 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             if (sign == "+")
             {
-                oldCandle.High = Math.Round(candleOne.High + valueTwo, 5);
-                oldCandle.Low = Math.Round(candleOne.Low + valueTwo, 5);
-                oldCandle.Open = Math.Round(candleOne.Open + valueTwo, 5);
-                oldCandle.Close = Math.Round(candleOne.Close + valueTwo, 5);
+                oldCandle.High = Math.Round(candleOne.High + valueTwo, 8);
+                oldCandle.Low = Math.Round(candleOne.Low + valueTwo, 8);
+                oldCandle.Open = Math.Round(candleOne.Open + valueTwo, 8);
+                oldCandle.Close = Math.Round(candleOne.Close + valueTwo, 8);
             }
             else if (sign == "-")
             {
-                oldCandle.High = Math.Round(candleOne.High - valueTwo, 5);
-                oldCandle.Low = Math.Round(candleOne.Low - valueTwo, 5);
-                oldCandle.Open = Math.Round(candleOne.Open - valueTwo, 5);
-                oldCandle.Close = Math.Round(candleOne.Close - valueTwo, 5);
+                oldCandle.High = Math.Round(candleOne.High - valueTwo, 8);
+                oldCandle.Low = Math.Round(candleOne.Low - valueTwo, 8);
+                oldCandle.Open = Math.Round(candleOne.Open - valueTwo, 8);
+                oldCandle.Close = Math.Round(candleOne.Close - valueTwo, 8);
             }
             else if (sign == "*")
             {
-                oldCandle.High = Math.Round(candleOne.High * valueTwo, 5);
-                oldCandle.Low = Math.Round(candleOne.Low * valueTwo, 5);
-                oldCandle.Open = Math.Round(candleOne.Open * valueTwo, 5);
-                oldCandle.Close = Math.Round(candleOne.Close * valueTwo, 5);
+                oldCandle.High = Math.Round(candleOne.High * valueTwo, 8);
+                oldCandle.Low = Math.Round(candleOne.Low * valueTwo, 8);
+                oldCandle.Open = Math.Round(candleOne.Open * valueTwo, 8);
+                oldCandle.Close = Math.Round(candleOne.Close * valueTwo, 8);
             }
             else if (sign == "/")
             {
-                oldCandle.High = Math.Round(candleOne.High / valueTwo, 5);
-                oldCandle.Low = Math.Round(candleOne.Low / valueTwo, 5);
-                oldCandle.Open = Math.Round(candleOne.Open / valueTwo, 5);
-                oldCandle.Close = Math.Round(candleOne.Close / valueTwo, 5);
+                oldCandle.High = Math.Round(candleOne.High / valueTwo, 8);
+                oldCandle.Low = Math.Round(candleOne.Low / valueTwo, 8);
+                oldCandle.Open = Math.Round(candleOne.Open / valueTwo, 8);
+                oldCandle.Close = Math.Round(candleOne.Close / valueTwo, 8);
             }
 
             return oldCandle;
@@ -1211,31 +1215,31 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             if (sign == "+")
             {
-                oldCandle.High = Math.Round(valOne + candleTwo.High, 5);
-                oldCandle.Low = Math.Round(valOne + candleTwo.Low, 5);
-                oldCandle.Open = Math.Round(valOne + candleTwo.Open, 5);
-                oldCandle.Close = Math.Round(valOne + candleTwo.Close, 5);
+                oldCandle.High = Math.Round(valOne + candleTwo.High, 8);
+                oldCandle.Low = Math.Round(valOne + candleTwo.Low, 8);
+                oldCandle.Open = Math.Round(valOne + candleTwo.Open, 8);
+                oldCandle.Close = Math.Round(valOne + candleTwo.Close, 8);
             }
             else if (sign == "-")
             {
-                oldCandle.High = Math.Round(valOne - candleTwo.High, 5);
-                oldCandle.Low = Math.Round(valOne - candleTwo.Low, 5);
-                oldCandle.Open = Math.Round(valOne - candleTwo.Open, 5);
-                oldCandle.Close = Math.Round(valOne - candleTwo.Close, 5);
+                oldCandle.High = Math.Round(valOne - candleTwo.High, 8);
+                oldCandle.Low = Math.Round(valOne - candleTwo.Low, 8);
+                oldCandle.Open = Math.Round(valOne - candleTwo.Open, 8);
+                oldCandle.Close = Math.Round(valOne - candleTwo.Close, 8);
             }
             else if (sign == "*")
             {
-                oldCandle.High = Math.Round(valOne * candleTwo.High, 5);
-                oldCandle.Low = Math.Round(valOne * candleTwo.Low, 5);
-                oldCandle.Open = Math.Round(valOne * candleTwo.Open, 5);
-                oldCandle.Close = Math.Round(valOne * candleTwo.Close, 5);
+                oldCandle.High = Math.Round(valOne * candleTwo.High, 8);
+                oldCandle.Low = Math.Round(valOne * candleTwo.Low, 8);
+                oldCandle.Open = Math.Round(valOne * candleTwo.Open, 8);
+                oldCandle.Close = Math.Round(valOne * candleTwo.Close, 8);
             }
             else if (sign == "/")
             {
-                oldCandle.High = Math.Round(valOne / candleTwo.High, 5);
-                oldCandle.Low = Math.Round(valOne / candleTwo.Low, 5);
-                oldCandle.Open = Math.Round(valOne / candleTwo.Open, 5);
-                oldCandle.Close = Math.Round(valOne / candleTwo.Close, 5);
+                oldCandle.High = Math.Round(valOne / candleTwo.High, 8);
+                oldCandle.Low = Math.Round(valOne / candleTwo.Low, 8);
+                oldCandle.Open = Math.Round(valOne / candleTwo.Open, 8);
+                oldCandle.Close = Math.Round(valOne / candleTwo.Close, 8);
             }
 
             return oldCandle;
@@ -1251,31 +1255,31 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             if (sign == "+")
             {
-                oldCandle.High = Math.Round(candleOne.High + candleTwo.High, 5);
-                oldCandle.Low = Math.Round(candleOne.Low + candleTwo.Low, 5);
-                oldCandle.Open = Math.Round(candleOne.Open + candleTwo.Open, 5);
-                oldCandle.Close = Math.Round(candleOne.Close + candleTwo.Close, 5);
+                oldCandle.High = Math.Round(candleOne.High + candleTwo.High, 8);
+                oldCandle.Low = Math.Round(candleOne.Low + candleTwo.Low, 8);
+                oldCandle.Open = Math.Round(candleOne.Open + candleTwo.Open, 8);
+                oldCandle.Close = Math.Round(candleOne.Close + candleTwo.Close, 8);
             }
             else if (sign == "-")
             {
-                oldCandle.High = Math.Round(candleOne.High - candleTwo.High, 5);
-                oldCandle.Low = Math.Round(candleOne.Low - candleTwo.Low, 5);
-                oldCandle.Open = Math.Round(candleOne.Open - candleTwo.Open, 5);
-                oldCandle.Close = Math.Round(candleOne.Close - candleTwo.Close, 5);
+                oldCandle.High = Math.Round(candleOne.High - candleTwo.High, 8);
+                oldCandle.Low = Math.Round(candleOne.Low - candleTwo.Low, 8);
+                oldCandle.Open = Math.Round(candleOne.Open - candleTwo.Open, 8);
+                oldCandle.Close = Math.Round(candleOne.Close - candleTwo.Close, 8);
             }
             else if (sign == "*")
             {
-                oldCandle.High = Math.Round(candleOne.High * candleTwo.High, 5);
-                oldCandle.Low = Math.Round(candleOne.Low * candleTwo.Low, 5);
-                oldCandle.Open = Math.Round(candleOne.Open * candleTwo.Open, 5);
-                oldCandle.Close = Math.Round(candleOne.Close * candleTwo.Close, 5);
+                oldCandle.High = Math.Round(candleOne.High * candleTwo.High, 8);
+                oldCandle.Low = Math.Round(candleOne.Low * candleTwo.Low, 8);
+                oldCandle.Open = Math.Round(candleOne.Open * candleTwo.Open, 8);
+                oldCandle.Close = Math.Round(candleOne.Close * candleTwo.Close, 8);
             }
             else if (sign == "/")
             {
-                oldCandle.High = Math.Round(candleOne.High / candleTwo.High, 5);
-                oldCandle.Low = Math.Round(candleOne.Low / candleTwo.Low, 5);
-                oldCandle.Open = Math.Round(candleOne.Open / candleTwo.Open, 5);
-                oldCandle.Close = Math.Round(candleOne.Close / candleTwo.Close, 5);
+                oldCandle.High = Math.Round(candleOne.High / candleTwo.High, 8);
+                oldCandle.Low = Math.Round(candleOne.Low / candleTwo.Low, 8);
+                oldCandle.Open = Math.Round(candleOne.Open / candleTwo.Open, 8);
+                oldCandle.Close = Math.Round(candleOne.Close / candleTwo.Close, 8);
             }
 
             return oldCandle;

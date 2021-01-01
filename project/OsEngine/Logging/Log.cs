@@ -455,6 +455,11 @@ namespace OsEngine.Logging
         /// </summary>
         private List<LogMessage> _messageses;
 
+        public List<LogMessage> GetLogMessages()
+        {
+            return _messageses;
+        }
+
         private int _lastAreaCount;
 
         /// <summary>

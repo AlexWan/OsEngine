@@ -33,7 +33,8 @@ namespace OsEngine.Market.Servers.Entity
         Decimal,
         Path,
         Password,
-        Enum
+        Enum,
+        Button
     }
 
     /// <summary>
@@ -430,5 +431,45 @@ namespace OsEngine.Market.Servers.Entity
 
         public event Action ValueChange;
 
+    }
+
+    /// <summary>
+    /// string server parameter
+    /// строковый параметр сервера
+    /// </summary>
+    public class ServerParameterButton : IServerParameter
+    {
+        public string Name
+        {
+            get { return _name; }
+            set { _name = value.Replace("^", ""); }
+        }
+
+        private string _name;
+
+        public string GetStringToSave()
+        {
+            return Type + "^" + Name;
+        }
+
+        public void LoadFromStr(string value)
+        {
+            string[] values = value.Split('^');
+            _name = values[1];
+        }
+
+        public ServerParameterType Type
+        {
+            get { return ServerParameterType.Button; }
+        }
+
+        public event Action ValueChange;
+
+        public void ActivateButtonClick()
+        {
+            UserClickButton?.Invoke();
+        }
+
+        public event Action UserClickButton;
     }
 }

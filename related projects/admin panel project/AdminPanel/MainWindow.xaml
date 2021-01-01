@@ -1,0 +1,165 @@
+﻿<Window x:Class="AdminPanel.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AdminPanel"
+        xmlns:viewModels="clr-namespace:AdminPanel.ViewModels"
+        xmlns:views="clr-namespace:AdminPanel.Views"
+        xmlns:utils="clr-namespace:AdminPanel.Utils"
+        mc:Ignorable="d"
+        Title="Admin panel" Height="800" Width="1350" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" MinWidth="700" MinHeight="500" Icon="Images/OsLogo.ico">
+    <Window.Resources>
+        <utils:AngelConverter  x:Key="AngelConverter"/>
+        <utils:StatusColorConverter  x:Key="StatusColorConverter"/>
+    </Window.Resources>
+    <Grid>
+        <TabControl Margin="5" x:Name="TabControlPrime" TabStripPlacement="Top" >
+            <TabItem Name="TabOverview" Header="Overview" Width="140">
+                <DataGrid Name="ClientsGrid" Margin="100, 0, 100, 0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                  ItemsSource="{Binding Clients}" SelectionMode="Single" RowDetailsVisibilityMode="Collapsed"
+                  GridLinesVisibility = "None" CellStyle="{DynamicResource DataGridCellStyle1}">
+                    <DataGrid.RowDetailsTemplate>
+                        <DataTemplate>
+                            <views:ClientPreview DataContext="{Binding}"/>
+                        </DataTemplate>
+                    </DataGrid.RowDetailsTemplate>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Binding="{Binding Path=Name}" Width="150">
+                            <DataGridTextColumn.HeaderTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding DataContext.NameHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"/>
+                                </DataTemplate>
+                            </DataGridTextColumn.HeaderTemplate>
+                        </DataGridTextColumn>
+                        <DataGridTemplateColumn Width="30">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Button Style="{StaticResource ArrowBtn}" Background="Transparent" BorderThickness="0" Click="ButtonBase_OnClick">
+                                            <Grid>
+                                                <Ellipse x:Name="circle" Fill="{StaticResource Expander.Static.Circle.Fill}" HorizontalAlignment="Center" Height="19" Stroke="{StaticResource Expander.Static.Circle.Stroke}" VerticalAlignment="Center" Width="19"/>
+                                                <Path x:Name="arrow" Data="M 1,1.5 L 4.5,5 L 8,1.5" HorizontalAlignment="Center" SnapsToDevicePixels="false" StrokeThickness="2" Stroke="{StaticResource Expander.Static.Arrow.Stroke}" VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Button>
+                                        <Grid.LayoutTransform>
+                                            <TransformGroup>
+                                                <TransformGroup.Children>
+                                                    <TransformCollection>
+                                                        <RotateTransform Angle="{Binding Path=DetailsVisibility, 
+                                                    RelativeSource={RelativeSource AncestorType={x:Type DataGridRow }},
+                                                    Converter={StaticResource AngelConverter}}"/>
+                                                    </TransformCollection>
+                                                </TransformGroup.Children>
+                                            </TransformGroup>
+                                        </Grid.LayoutTransform>
+                                    </Grid>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Width="150">
+                            <DataGridTextColumn.HeaderTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding DataContext.SystemHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"/>
+                                </DataTemplate>
+                            </DataGridTextColumn.HeaderTemplate>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Binding="{Binding Path=Status}" Width="100">
+                            <DataGridTextColumn.CellStyle>
+                                <Style TargetType="DataGridCell" BasedOn="{StaticResource DataGridCellStyle1}">
+                                    <Setter Property="Foreground" Value="{Binding Path=Status, Converter={StaticResource StatusColorConverter}}"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="Selector.IsSelectionActive" Value="false">
+                                            <Setter Property="Foreground" Value="{Binding Path=Status, Converter={StaticResource StatusColorConverter}}"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGridTextColumn.CellStyle>
+                            <DataGridTextColumn.HeaderTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding DataContext.StatusHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"/>
+                                </DataTemplate>
+                            </DataGridTextColumn.HeaderTemplate>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Binding="{Binding Path=Name1}" Width="*">
+                            <DataGridTextColumn.HeaderTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding DataContext.TransferHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"/>
+                                </DataTemplate>
+                            </DataGridTextColumn.HeaderTemplate>
+                        </DataGridTextColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+            <TabItem x:Name="TabClients" Header="Clients" Width="140">
+                <Grid>
+                    <ComboBox Name="CbCurrentClient" 
+                              ItemsSource="{Binding Clients}"
+                              SelectedItem="{Binding SelectedClient, Mode=TwoWay}" 
+                              HorizontalAlignment="Left"
+                              VerticalAlignment="Top" Width="210" Margin="5,5,0,0"/>
+                    <Button Name="BtnAddClient" HorizontalAlignment="Left"
+                            VerticalAlignment="Top" Margin="232,5,0,0" Width="139" Content="Add" Height="23" Click="BtnAddClient_Click"/>
+                    <Button Name="BtnDeleteClient" HorizontalAlignment="Left"
+                            VerticalAlignment="Top" Margin="376,5,0,0" Width="139" Content="Delete" Height="23" Click="BtnDeleteClient_Click"/>
+                    <views:ClientView x:Name="ClientMainView" DataContext="{Binding SelectedClient, Mode=TwoWay}"/>
+                </Grid>
+            </TabItem>
+            <TabItem Name="TabSettings" Header="Settings" Width="140">
+                <Grid>
+                    <Label Name="LabelTelegramMessages" HorizontalAlignment="Left"
+                           VerticalAlignment="Top" Margin="56,23,0,0" Width="177" Content="Telegram messages"/>
+                    <CheckBox Name="CheckBoxUseTelegram" HorizontalAlignment="Left" 
+                        VerticalAlignment="Top" Margin="108,51,0,0" Width="17" IsChecked="{Binding UseTelegram}" />
+                    <Label HorizontalAlignment="Left" VerticalAlignment="Top" 
+                           Margin="130,51,0,0" Width="48" Content="On/Off"/>
+                    <Label Name="LabelKey" HorizontalAlignment="Left"
+                           VerticalAlignment="Top" Margin="108,79,0,0" Width="54" Content="Key"/>
+                    <TextBox Name="TextBoxKey" HorizontalAlignment="Left"
+                             VerticalAlignment="Top" Margin="194,79,0,0" Width="262" Text="{Binding Path=Key}"/>
+                    <Label Name="LabelToken" HorizontalAlignment="Left"
+                           VerticalAlignment="Top" Margin="108,107,0,0" Width="54" Content="Token"/>
+                    <TextBox Name="TextBoxToken" HorizontalAlignment="Left" Text="{Binding Path=Token}"
+                             VerticalAlignment="Top" Margin="194,107,0,0" Width="262"/>
+                    <Button Name="BtnTestMsg" HorizontalAlignment="Left"
+                            VerticalAlignment="Top" Margin="209,258,0,0" Width="176" Content="Test message" Click="BtnTestMsg_OnClick"/>
+
+                    <Label Name="LabelSound" HorizontalAlignment="Left"
+                           VerticalAlignment="Top" Margin="60,324,0,0" Width="122" Content="Sound"/>
+                    <CheckBox Name="CheckBoxUseSound" HorizontalAlignment="Left" IsChecked="{Binding UseSound}"
+                              VerticalAlignment="Top" Margin="108,352,0,0" Width="17" />
+                    <Label HorizontalAlignment="Left" VerticalAlignment="Top" 
+                           Margin="130,352,0,0" Width="48" Content="On/Off"/>
+
+                    <Label Name="LabelAlertsType" HorizontalAlignment="Left"
+                           VerticalAlignment="Top" Margin="60,407,0,0" Width="122" Content="Alerts type"/>
+                    <CheckBox Name="CheckBoxDanger" HorizontalAlignment="Left"  IsChecked="{Binding UseDanger}"
+                              VerticalAlignment="Top" Margin="108,442,0,0" Width="18" />
+                    <Label Name="LabelDanger" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                           Margin="130,442,0,0" Width="82" Content="Danger"/>
+                    <CheckBox Name="CheckBoxErrors" HorizontalAlignment="Left" IsChecked="{Binding UseErrors}"
+                              VerticalAlignment="Top" Margin="108,470,0,0" Width="18" />
+                    <Label Name="LabelErrors" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                           Margin="130,470,0,0" Width="82" Content="Errors"/>
+
+                    <Label Name="LabelLanguage" HorizontalAlignment="Left"
+                           VerticalAlignment="Top" Margin="60,533,0,0" Width="106" Content="Language"/>
+                    <ComboBox Name="ComboBoxLocalization" HorizontalAlignment="Left"
+                              VerticalAlignment="Top" Margin="209,533,0,0" Width="138"></ComboBox>
+                    <Button x:Name="BtnConnect" HorizontalAlignment="Left"
+                        VerticalAlignment="Top" Margin="209,215,0,0" Width="176" Content="Log in" Click="BtnLogIn_OnClick"/>
+                    <Label x:Name="LabelState" HorizontalAlignment="Left"
+                        VerticalAlignment="Top" Margin="209,23,0,0" Width="122" Content="Disconnected"/>
+                    <Label x:Name="LabelPhone" HorizontalAlignment="Left"
+                        VerticalAlignment="Top" Margin="108,135,0,0" Width="86" Content="Phone"/>
+                    <TextBox x:Name="TextBoxPhone" HorizontalAlignment="Left" Text="{Binding Path=Phone}"
+                        VerticalAlignment="Top" Margin="194,135,0,0" Width="262"/>
+                    <Label x:Name="LabelReceiver" HorizontalAlignment="Left"
+                        VerticalAlignment="Top" Margin="108,163,0,0" Width="86" Content="Receiver"/>
+                    <TextBox x:Name="TextBoxReceiver" HorizontalAlignment="Left" Text="{Binding Path=Receiver}"
+                        VerticalAlignment="Top" Margin="194,163,0,0" Width="262"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>
