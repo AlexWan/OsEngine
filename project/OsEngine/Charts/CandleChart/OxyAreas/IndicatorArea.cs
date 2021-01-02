@@ -98,7 +98,7 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
 
             lock (series_locker)
             {
-                if (main_chart != null && (main_chart.axis_Y_type == "linear" || (string)Tag != "Prime"))
+                if (main_chart != null && (string)Tag != "Prime")
                 {
                     if (indi_seria.IndicatorType == IndicatorChartPaintType.Column)
                     {

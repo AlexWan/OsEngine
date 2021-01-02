@@ -50,7 +50,6 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
         public bool mouse_on_main_chart = false;
         public bool has_candles = false;
 
-        public string axis_Y_type = "linear";
         public OxyPlot.DataPoint mouse_point = new DataPoint();
 
         private object candle_locker = new object();
@@ -264,7 +263,7 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
 
         public void ProcessPositions(List<Position> deals)
         {
-            if (deals == null || axis_Y_type == "percent")
+            if (deals == null)
                 return;
 
             Action positions_action = () =>
@@ -456,83 +455,48 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
             {
                 has_candles = true;
 
-                if (axis_Y_type == "linear")
+
+                try
                 {
-                    try
+                    if (my_candles.Count == items_oxy_candles.Count)
                     {
-                        if (my_candles.Count == items_oxy_candles.Count)
-                        {
-                            Candle last_candle = my_candles.Last();
+                        Candle last_candle = my_candles.Last();
 
-                            items_oxy_candles[items_oxy_candles.Count - 1] = new HighLowItem()
-                            {
-                                X = DateTimeAxis.ToDouble(last_candle.TimeStart),
-                                Open = (double)last_candle.Open,
-                                High = (double)last_candle.High,
-                                Low = (double)last_candle.Low,
-                                Close = (double)last_candle.Close,
-                            };
-                        }
-                        else if (my_candles.Count == items_oxy_candles.Count + 1)
+                        items_oxy_candles[items_oxy_candles.Count - 1] = new HighLowItem()
                         {
-                            Candle last_candle = my_candles.Last();
-
-                            items_oxy_candles.Add(new HighLowItem()
-                            {
-                                X = DateTimeAxis.ToDouble(last_candle.TimeStart),
-                                Open = (double)last_candle.Open,
-                                High = (double)last_candle.High,
-                                Low = (double)last_candle.Low,
-                                Close = (double)last_candle.Close,
-                            });
-                        }
-                        else
-                        {
-                            items_oxy_candles = my_candles.Select(x => new HighLowItem()
-                            {
-                                X = DateTimeAxis.ToDouble(x.TimeStart),
-                                Open = (double)x.Open,
-                                High = (double)x.High,
-                                Low = (double)x.Low,
-                                Close = (double)x.Close,
-                            }).ToList();
-                        }
+                            X = DateTimeAxis.ToDouble(last_candle.TimeStart),
+                            Open = (double)last_candle.Open,
+                            High = (double)last_candle.High,
+                            Low = (double)last_candle.Low,
+                            Close = (double)last_candle.Close,
+                        };
                     }
-                    catch { return; }
-                }
-
-                if (axis_Y_type == "percent")
-                {
-                    items_oxy_candles = my_candles.Select(x => new HighLowItem()
+                    else if (my_candles.Count == items_oxy_candles.Count + 1)
                     {
-                        X = DateTimeAxis.ToDouble(x.TimeStart),
-                        Open = (double)x.Open,
-                        High = (double)x.High,
-                        Low = (double)x.Low,
-                        Close = (double)x.Close,
-                    }).ToList();
+                        Candle last_candle = my_candles.Last();
 
-
-
-                    var start_time = DateTimeAxis.InverseTransform(new ScreenPoint(plot_model.PlotArea.Left, plot_model.PlotArea.Top), date_time_axis_X, linear_axis_Y);
-                    var end_time = DateTimeAxis.InverseTransform(new ScreenPoint(plot_model.PlotArea.Right, plot_model.PlotArea.Top), date_time_axis_X, linear_axis_Y);
-
-
-
-                    candle_on_screen = items_oxy_candles.Where(x => x.X >= start_time.X && x.X <= end_time.X).ToList();
-
-                    if (candle_on_screen.Count == 0)
-                        return;
-
-                    items_oxy_candles = items_oxy_candles.Select(x => new HighLowItem()
+                        items_oxy_candles.Add(new HighLowItem()
+                        {
+                            X = DateTimeAxis.ToDouble(last_candle.TimeStart),
+                            Open = (double)last_candle.Open,
+                            High = (double)last_candle.High,
+                            Low = (double)last_candle.Low,
+                            Close = (double)last_candle.Close,
+                        });
+                    }
+                    else
                     {
-                        X = x.X,
-                        Open = ((candle_on_screen[0].Open * 100 / x.Open) - 100) * -1,
-                        High = ((candle_on_screen[0].Open * 100 / x.High) - 100) * -1,
-                        Low = ((candle_on_screen[0].Open * 100 / x.Low) - 100) * -1,
-                        Close = ((candle_on_screen[0].Open * 100 / x.Close) - 100) * -1,
-                    }).ToList();
+                        items_oxy_candles = my_candles.Select(x => new HighLowItem()
+                        {
+                            X = DateTimeAxis.ToDouble(x.TimeStart),
+                            Open = (double)x.Open,
+                            High = (double)x.High,
+                            Low = (double)x.Low,
+                            Close = (double)x.Close,
+                        }).ToList();
+                    }
                 }
+                catch { return; }
             }
         }
 
@@ -764,199 +728,191 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
             {
                 var main_chart = (CandleStickArea)all_areas.Find(x => (string)x.Tag == "Prime");
 
-                if (main_chart.axis_Y_type == "linear" || (string)Tag != "Prime")
+                if (indi_seria.IndicatorType == IndicatorChartPaintType.Column)
                 {
-                    if (indi_seria.IndicatorType == IndicatorChartPaintType.Column)
+                    if (indi_seria.DataPoints.Count == indi_seria.IndicatorPoints.Count)
                     {
-                        if (indi_seria.DataPoints.Count == indi_seria.IndicatorPoints.Count)
+                        double last_point = (double)indi_seria.DataPoints.Last();
+
+                        if (last_point == 0)
+                            last_point = double.NaN;
+
+                        indi_seria.IndicatorHistogramPoints[indi_seria.IndicatorHistogramPoints.Count - 1] = new DataPoint(items_oxy_candles.Last().X, last_point);
+                    }
+                    else if (indi_seria.DataPoints.Count == indi_seria.IndicatorPoints.Count + 1)
+                    {
+                        double last_point = (double)indi_seria.DataPoints.Last();
+
+                        if (last_point == 0)
+                            last_point = double.NaN;
+
+                        indi_seria.IndicatorHistogramPoints.Add(new DataPoint(items_oxy_candles.Last().X, last_point));
+
+                    }
+                    else
+                    {
+                        indi_seria.IndicatorHistogramPoints.Clear();
+
+                        List<DataPoint> points = new List<DataPoint>();
+
+                        for (int i = 0; i < indi_seria.DataPoints.Count; i++)
                         {
-                            double last_point = (double)indi_seria.DataPoints.Last();
+                            double last_point = (double)indi_seria.DataPoints[i];
 
                             if (last_point == 0)
                                 last_point = double.NaN;
 
-                            indi_seria.IndicatorHistogramPoints[indi_seria.IndicatorHistogramPoints.Count - 1] = new DataPoint(items_oxy_candles.Last().X, last_point);
-                        }
-                        else if (indi_seria.DataPoints.Count == indi_seria.IndicatorPoints.Count + 1)
-                        {
-                            double last_point = (double)indi_seria.DataPoints.Last();
-
-                            if (last_point == 0)
-                                last_point = double.NaN;
-
-                            indi_seria.IndicatorHistogramPoints.Add(new DataPoint(items_oxy_candles.Last().X, last_point));
-
-                        }
-                        else
-                        {
-                            indi_seria.IndicatorHistogramPoints.Clear();
-
-                            List<DataPoint> points = new List<DataPoint>();
-
-                            for (int i = 0; i < indi_seria.DataPoints.Count; i++)
-                            {
-                                double last_point = (double)indi_seria.DataPoints[i];
-
-                                if (last_point == 0)
-                                    last_point = double.NaN;
-
-                                points.Add(new DataPoint(items_oxy_candles[i].X, last_point));
-                            };
-
-                            indi_seria.IndicatorHistogramPoints = points.AsParallel().OrderBy(x => x.X).ToList();
-                        }
-
-
-
-                        LinearBarSeries linear_bar_seria = new LinearBarSeries()
-                        {
-                            StrokeThickness = 1,
-                            StrokeColor = OxyColor.FromArgb(255, 55, 219, 186),
-                            FillColor = OxyColor.FromArgb(69, 55, 219, 186),
-                            NegativeFillColor = OxyColor.FromArgb(69, 235, 96, 47),
-                            NegativeStrokeColor = OxyColor.FromArgb(255, 235, 96, 47),
-                            Tag = indi_seria.SeriaName
+                            points.Add(new DataPoint(items_oxy_candles[i].X, last_point));
                         };
 
-
-                        linear_bar_seria.Points.AddRange(indi_seria.IndicatorHistogramPoints);
-
-
-                        if (linear_bar_series_list.Exists(x => (string)x.Tag == indi_seria.SeriaName))
-                            linear_bar_series_list.Remove(linear_bar_series_list.Find(x => (string)x.Tag == indi_seria.SeriaName));
-
-                        linear_bar_series_list.Add(linear_bar_seria);
-
+                        indi_seria.IndicatorHistogramPoints = points.AsParallel().OrderBy(x => x.X).ToList();
                     }
 
 
 
-                    if (indi_seria.IndicatorType == IndicatorChartPaintType.Line)
+                    LinearBarSeries linear_bar_seria = new LinearBarSeries()
                     {
-                        if (indi_seria.DataPoints.Count == indi_seria.IndicatorPoints.Count)
-                        {
-                            double last_point = (double)indi_seria.DataPoints.Last();
-
-                            if (last_point == 0)
-                                last_point = double.NaN;
-
-
-                            indi_seria.IndicatorPoints[indi_seria.IndicatorPoints.Count - 1] = new DataPoint(items_oxy_candles.Last().X, last_point);
-
-                            indi_seria.IndicatorPoints[indi_seria.IndicatorPoints.Count - 1] = new DataPoint(items_oxy_candles.Last().X, last_point);
-                        }
-                        else if (indi_seria.DataPoints.Count == indi_seria.IndicatorPoints.Count + 1)
-                        {
-                            double last_point = (double)indi_seria.DataPoints.Last();
-
-                            if (last_point == 0)
-                                last_point = double.NaN;
+                        StrokeThickness = 1,
+                        StrokeColor = OxyColor.FromArgb(255, 55, 219, 186),
+                        FillColor = OxyColor.FromArgb(69, 55, 219, 186),
+                        NegativeFillColor = OxyColor.FromArgb(69, 235, 96, 47),
+                        NegativeStrokeColor = OxyColor.FromArgb(255, 235, 96, 47),
+                        Tag = indi_seria.SeriaName
+                    };
 
 
-                            indi_seria.IndicatorPoints.Add(new DataPoint(items_oxy_candles.Last().X, last_point));
-                        }
-                        else
-                        {
-                            indi_seria.IndicatorPoints.Clear();
-
-                            List<DataPoint> points = new List<DataPoint>();
-
-                            for (int i = 0; i < indi_seria.DataPoints.Count; i++)
-                            {
-                                double last_point = (double)indi_seria.DataPoints[i];
-
-                                if (last_point == 0)
-                                    last_point = double.NaN;
-
-                                points.Add(new DataPoint(items_oxy_candles[i].X, last_point));
-
-                            };
-
-                            indi_seria.IndicatorPoints = points.AsParallel().OrderBy(x => x.X).ToList();
-                        }
+                    linear_bar_seria.Points.AddRange(indi_seria.IndicatorHistogramPoints);
 
 
-                        LineSeries line_seria = new LineSeries()
-                        {
-                            StrokeThickness = 1,
-                            LineStyle = LineStyle.Solid,
-                            Color = indi_seria.OxyColor,
-                            Tag = indi_seria.SeriaName
-                        };
+                    if (linear_bar_series_list.Exists(x => (string)x.Tag == indi_seria.SeriaName))
+                        linear_bar_series_list.Remove(linear_bar_series_list.Find(x => (string)x.Tag == indi_seria.SeriaName));
 
-                        line_seria.Points.AddRange(indi_seria.IndicatorPoints);
+                    linear_bar_series_list.Add(linear_bar_seria);
 
-
-                        if (lines_series_list.Exists(x => (string)x.Tag == indi_seria.SeriaName))
-                            lines_series_list.Remove(lines_series_list.Find(x => (string)x.Tag == indi_seria.SeriaName));
-
-                        lines_series_list.Add(line_seria);
-
-                    }
-
-
-                    if (indi_seria.IndicatorType == IndicatorChartPaintType.Point)
-                    {
-                        if (indi_seria.DataPoints.Count == indi_seria.IndicatorScatterPoints.Count)
-                        {
-                            double last_point = (double)indi_seria.DataPoints.Last();
-
-                            if (last_point == 0)
-                                last_point = double.NaN;
-
-                            indi_seria.IndicatorScatterPoints[indi_seria.IndicatorScatterPoints.Count - 1] = new ScatterPoint(items_oxy_candles.Last().X, last_point);
-                        }
-                        else if (indi_seria.DataPoints.Count == indi_seria.IndicatorScatterPoints.Count + 1)
-                        {
-                            double last_point = (double)indi_seria.DataPoints.Last();
-
-                            if (last_point == 0)
-                                last_point = double.NaN;
-
-                            indi_seria.IndicatorScatterPoints.Add(new ScatterPoint(items_oxy_candles.Last().X, last_point));
-                        }
-                        else
-                        {
-                            indi_seria.IndicatorScatterPoints.Clear();
-
-                            List<ScatterPoint> points = new List<ScatterPoint>();
-
-                            for (int i = 0; i < indi_seria.DataPoints.Count; i++)
-                            {
-                                double last_point = (double)indi_seria.DataPoints[i];
-
-                                if (last_point == 0)
-                                    last_point = double.NaN;
-
-                                points.Add(new ScatterPoint(items_oxy_candles[i].X, last_point));
-                            };
-
-                            indi_seria.IndicatorScatterPoints = points.AsParallel().OrderBy(x => x.X).ToList();
-
-                        }
-
-                        ScatterSeries scatter_seria = new ScatterSeries()
-                        {
-                            MarkerType = MarkerType.Circle,
-                            MarkerFill = indi_seria.OxyColor,
-                            MarkerSize = 2,
-                            MarkerStrokeThickness = 0,
-                            Tag = indi_seria.SeriaName
-                        };
-
-                        scatter_seria.Points.AddRange(indi_seria.IndicatorScatterPoints);
-
-
-                        if (scatter_series_list.Exists(x => (string)x.Tag == indi_seria.SeriaName))
-                            scatter_series_list.Remove(scatter_series_list.Find(x => (string)x.Tag == indi_seria.SeriaName));
-
-                        scatter_series_list.Add(scatter_seria);
-
-                    }
                 }
 
-                if (main_chart.axis_Y_type == "percent" && (string)Tag == "Prime")
+
+
+                if (indi_seria.IndicatorType == IndicatorChartPaintType.Line)
                 {
+                    if (indi_seria.DataPoints.Count == indi_seria.IndicatorPoints.Count)
+                    {
+                        double last_point = (double)indi_seria.DataPoints.Last();
+
+                        if (last_point == 0)
+                            last_point = double.NaN;
+
+
+                        indi_seria.IndicatorPoints[indi_seria.IndicatorPoints.Count - 1] = new DataPoint(items_oxy_candles.Last().X, last_point);
+
+                        indi_seria.IndicatorPoints[indi_seria.IndicatorPoints.Count - 1] = new DataPoint(items_oxy_candles.Last().X, last_point);
+                    }
+                    else if (indi_seria.DataPoints.Count == indi_seria.IndicatorPoints.Count + 1)
+                    {
+                        double last_point = (double)indi_seria.DataPoints.Last();
+
+                        if (last_point == 0)
+                            last_point = double.NaN;
+
+
+                        indi_seria.IndicatorPoints.Add(new DataPoint(items_oxy_candles.Last().X, last_point));
+                    }
+                    else
+                    {
+                        indi_seria.IndicatorPoints.Clear();
+
+                        List<DataPoint> points = new List<DataPoint>();
+
+                        for (int i = 0; i < indi_seria.DataPoints.Count; i++)
+                        {
+                            double last_point = (double)indi_seria.DataPoints[i];
+
+                            if (last_point == 0)
+                                last_point = double.NaN;
+
+                            points.Add(new DataPoint(items_oxy_candles[i].X, last_point));
+
+                        };
+
+                        indi_seria.IndicatorPoints = points.AsParallel().OrderBy(x => x.X).ToList();
+                    }
+
+
+                    LineSeries line_seria = new LineSeries()
+                    {
+                        StrokeThickness = 1,
+                        LineStyle = LineStyle.Solid,
+                        Color = indi_seria.OxyColor,
+                        Tag = indi_seria.SeriaName
+                    };
+
+                    line_seria.Points.AddRange(indi_seria.IndicatorPoints);
+
+
+                    if (lines_series_list.Exists(x => (string)x.Tag == indi_seria.SeriaName))
+                        lines_series_list.Remove(lines_series_list.Find(x => (string)x.Tag == indi_seria.SeriaName));
+
+                    lines_series_list.Add(line_seria);
+
+                }
+
+
+                if (indi_seria.IndicatorType == IndicatorChartPaintType.Point)
+                {
+                    if (indi_seria.DataPoints.Count == indi_seria.IndicatorScatterPoints.Count)
+                    {
+                        double last_point = (double)indi_seria.DataPoints.Last();
+
+                        if (last_point == 0)
+                            last_point = double.NaN;
+
+                        indi_seria.IndicatorScatterPoints[indi_seria.IndicatorScatterPoints.Count - 1] = new ScatterPoint(items_oxy_candles.Last().X, last_point);
+                    }
+                    else if (indi_seria.DataPoints.Count == indi_seria.IndicatorScatterPoints.Count + 1)
+                    {
+                        double last_point = (double)indi_seria.DataPoints.Last();
+
+                        if (last_point == 0)
+                            last_point = double.NaN;
+
+                        indi_seria.IndicatorScatterPoints.Add(new ScatterPoint(items_oxy_candles.Last().X, last_point));
+                    }
+                    else
+                    {
+                        indi_seria.IndicatorScatterPoints.Clear();
+
+                        List<ScatterPoint> points = new List<ScatterPoint>();
+
+                        for (int i = 0; i < indi_seria.DataPoints.Count; i++)
+                        {
+                            double last_point = (double)indi_seria.DataPoints[i];
+
+                            if (last_point == 0)
+                                last_point = double.NaN;
+
+                            points.Add(new ScatterPoint(items_oxy_candles[i].X, last_point));
+                        };
+
+                        indi_seria.IndicatorScatterPoints = points.AsParallel().OrderBy(x => x.X).ToList();
+
+                    }
+
+                    ScatterSeries scatter_seria = new ScatterSeries()
+                    {
+                        MarkerType = MarkerType.Circle,
+                        MarkerFill = indi_seria.OxyColor,
+                        MarkerSize = 2,
+                        MarkerStrokeThickness = 0,
+                        Tag = indi_seria.SeriaName
+                    };
+
+                    scatter_seria.Points.AddRange(indi_seria.IndicatorScatterPoints);
+
+
+                    if (scatter_series_list.Exists(x => (string)x.Tag == indi_seria.SeriaName))
+                        scatter_series_list.Remove(scatter_series_list.Find(x => (string)x.Tag == indi_seria.SeriaName));
+
+                    scatter_series_list.Add(scatter_seria);
 
                 }
             }
