@@ -40,6 +40,7 @@ namespace OsEngine.Charts.CandleChart.Entities
         public int factor_selector = 6;
         public double factor = 1;
         public int count_skiper;
+        public bool is_first_start = true;
 
         public object in_progress = new object();
 
@@ -88,16 +89,20 @@ namespace OsEngine.Charts.CandleChart.Entities
                 if (factor > 1)
                     count_skiper = (int)factor;
 
-
-                if (indicators_list.Select(x => x.plot_model.ActualPlotMargins.Right == 0) != null)
+                if (is_first_start == true && indicators_list.Select(x => x.plot_model.ActualPlotMargins.Right == 0) != null)
                 {
-                    Task update_margin = new Task(() =>
-                    {
-                        RedrawIndiAreas(null, false);
-                        Delay(50).Wait();
+                    is_first_start = false;
+
+                    delay = new Task(() =>
+                    {           
+                        Delay(500).Wait(1000);
+
+                        RedrawAll(null);
+
+                        Delay(500).Wait(1000);
                     });
 
-                    update_margin.Start();
+                    delay.Start();
                 }
             }
         }
@@ -282,11 +287,11 @@ namespace OsEngine.Charts.CandleChart.Entities
 
                     delay = new Task(() =>
                     {
-                        Delay(25).Wait(25);
+                        Delay(25).Wait(50);
                     });
 
                     delay.Start();
-                    delay.Wait();
+                    delay.Wait(100);
 
                     can_redraw_all = true;
                 }
@@ -301,11 +306,11 @@ namespace OsEngine.Charts.CandleChart.Entities
 
                         delay = new Task(() =>
                         {
-                            Delay(25).Wait(25);
+                            Delay(25).Wait(50);
                         });
 
                         delay.Start();
-                        delay.Wait();
+                        delay.Wait(100);
 
                         can_redraw_all = true;
                     });
@@ -338,11 +343,11 @@ namespace OsEngine.Charts.CandleChart.Entities
             {
                 delay = new Task(() =>
                 {
-                    Delay(25).Wait(25);
+                    Delay(25).Wait(50);
                 });
 
                 delay.Start();
-                delay.Wait();
+                delay.Wait(100);
             }
 
             can_redraw_prime = true;
@@ -373,13 +378,13 @@ namespace OsEngine.Charts.CandleChart.Entities
 
             if (nead_to_delay)
             {
-                Task delay = new Task(() =>
+                delay = new Task(() =>
                 {
-                    Delay(50).Wait();
+                    Delay(25).Wait(50);
                 });
 
                 delay.Start();
-                delay.Wait();
+                delay.Wait(100);
             }
 
             can_redraw_indicators = true;
@@ -408,11 +413,11 @@ namespace OsEngine.Charts.CandleChart.Entities
             {
                 delay = new Task(() =>
                 {
-                    Delay(25).Wait(25);
+                    Delay(25).Wait(50);
                 });
 
                 delay.Start();
-                delay.Wait();
+                delay.Wait(100);
             }
 
             can_redraw_scroll = true;
@@ -434,11 +439,11 @@ namespace OsEngine.Charts.CandleChart.Entities
             {
                 delay = new Task(() =>
                 {
-                    Delay(25).Wait(25);
+                    Delay(25).Wait(50);
                 });
 
                 delay.Start();
-                delay.Wait();
+                delay.Wait(100);
             }
         }
 

@@ -36,6 +36,7 @@ namespace OsEngine.Charts.CandleChart
         public event Action<int> ClickToIndexEvent;
         public event Action<int> SizeAxisXChangeEvent;
         public event Action<ChartClickType> ChartClickEvent;
+        public Task delay = new Task(() => { return; });
 
         public bool IsPatternChart { get; set; }
         private WindowsFormsHost host;
@@ -394,6 +395,14 @@ namespace OsEngine.Charts.CandleChart
 
                 delay.Start();
                 delay.Wait();
+
+                delay = new Task(() =>
+                {
+                    Delay((int)(50 / mediator.factor - 50)).Wait((int)(50 / mediator.factor - 50) + 50);
+                });
+
+                delay.Start();
+                delay.Wait((int)(50 / mediator.factor - 50) + 100);
             }
 
 
@@ -406,6 +415,11 @@ namespace OsEngine.Charts.CandleChart
 
             if (mediator.prime_chart != null)
             UpdateCandlesEvent?.Invoke();
+        }
+
+        private async Task Delay(int millisec)
+        {
+            await Task.Delay(millisec);
         }
 
         public void ProcessClearElem(IChartElement element)
@@ -775,7 +789,8 @@ namespace OsEngine.Charts.CandleChart
                 cursor_X_is_active = true,
                 cursor_Y_is_active = true,
                 Tag = "Prime",
-                brush_background = "#111721"
+                brush_background = "#111721",
+                AxislineStyle = LineStyle.Solid,
             }, all_areas, this);
 
             main_chart.chart_name = this.chart_name;
@@ -953,8 +968,12 @@ namespace OsEngine.Charts.CandleChart
         public void StopPaint()
         {
             isPaint = false;
+            mediator.is_first_start = true;
 
-           
+            foreach (var area in all_areas)
+            {
+                area.Dispose();
+            }
 
             if (main_grid_chart != null)
             {

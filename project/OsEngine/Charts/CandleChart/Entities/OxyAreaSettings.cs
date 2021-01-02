@@ -19,7 +19,8 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
         public double MinorGridlineThickness = 1;
         public EdgeRenderingMode EdgeRenderingMode = EdgeRenderingMode.PreferSharpness;
         public double AbsoluteMinimum = 0;
-
+        public LineStyle AxislineStyle = LineStyle.None;
+        public OxyColor AxislineColor = OxyColor.FromArgb(10, 238, 239, 255);
 
         public OxyColor ScrollBarColor = OxyColor.FromArgb(100, 192, 197, 201);
 

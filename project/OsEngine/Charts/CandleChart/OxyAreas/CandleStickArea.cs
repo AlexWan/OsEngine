@@ -90,10 +90,8 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
                 EdgeRenderingMode = EdgeRenderingMode.PreferSpeed
             };
 
-            plot_view.LayoutUpdated += Plot_view_LayoutUpdated;
             plot_view.MouseLeave += Plot_view_main_chart_MouseLeave;
             plot_view.MouseMove += Plot_view_main_chart_MouseMove;
-            plot_view.MouseWheel += Plot_view_main_chart_MouseWheel;
 
             plot_model.Updated += Plot_model_Updated;
             plot_model.MouseDown += Plot_model_MouseDown;
@@ -103,7 +101,8 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
 
         private void Plot_model_MouseUp(object sender, OxyMouseEventArgs e)
         {
-            
+            SetViewPoligonByMainChart();
+            owner.mediator.RedrawScroll(false);
         }
 
         private void Plot_model_MouseDown(object sender, OxyMouseDownEventArgs e)
@@ -117,7 +116,12 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
         private void Plot_model_Updated(object sender, EventArgs e)
         {
             owner.mediator.ZoomIndicators(plot_model.Axes[0].ActualMinimum, plot_model.Axes[0].ActualMaximum);
-            owner.mediator.RedrawScroll(false);
+
+            if (!owner.mediator.scroll_bar.scroll_chart_left_mouse_is_down)
+            {
+                SetViewPoligonByMainChart();
+                owner.mediator.RedrawScroll(false);
+            }
         }
 
         private void Plot_view_main_chart_MouseLeave(object sender, MouseEventArgs e)
@@ -132,8 +136,8 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
                 if (last_X != 0 && last_Y != 0)
                 {
                     cursor_Y.X = last_X;
-                    cursor_Y.Y = 0;
-                    cursor_X.X = 0;
+                    cursor_Y.Y = double.MinValue;
+                    cursor_X.X = double.MinValue;
                     cursor_X.Y = last_Y;
 
                     foreach (var area in all_areas.Where(x => x is IndicatorArea))
@@ -184,10 +188,6 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
             owner.mediator.RedrawPrime(false);
         }
 
-        private void Plot_view_LayoutUpdated(object sender, EventArgs e)
-        {
-
-        }
 
         private void Plot_view_main_chart_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
         {
@@ -205,8 +205,8 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
                 DataPoint dataPoint_event = date_time_axis_X.InverseTransform(e.GetPosition(plot_view).X, e.GetPosition(plot_view).Y, yAxis);
 
                 cursor_Y.X = dataPoint_event.X;
-                cursor_Y.Y = 0;
-                cursor_X.X = 0;
+                cursor_Y.Y = double.MinValue;
+                cursor_X.X = double.MinValue;
                 cursor_X.Y = dataPoint_event.Y;
 
 
@@ -236,10 +236,7 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
             e.Handled = true;
         }
 
-        private void Plot_view_main_chart_MouseWheel(object sender, MouseWheelEventArgs e)
-        {
-            SetViewPoligonByMainChart();
-        }
+
 
         private void SetViewPoligonByMainChart()
         {
@@ -262,9 +259,7 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
                 scroll_area.screen_viewer_polygon.Points.AddRange(new_points);
             };
 
-            scroll_area.actions_to_calculate.Enqueue(action_move_polygon_viewer);
-
-            owner.mediator.RedrawScroll(false);
+            scroll_area.plot_view.Dispatcher.Invoke(action_move_polygon_viewer);    
         }
 
         public void ProcessPositions(List<Position> deals)
@@ -1081,6 +1076,6 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
             linear_bar_series_list = new List<LinearBarSeries>();
             my_candles = new List<Candle>();
             items_oxy_candles = new List<HighLowItem>();
-        }     
+        }
     }
 }

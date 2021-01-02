@@ -132,6 +132,9 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
             date_time_axis_X = new DateTimeAxis()
             {
                 TicklineColor = area_settings.TicklineColor,
+                AxislineStyle = area_settings.AxislineStyle,
+                AxislineThickness = 1,
+                AxislineColor = area_settings.AxislineColor,
                 MajorGridlineColor = area_settings.MajorGridlineColor,
                 MajorGridlineStyle = area_settings.MajorGridlineStyle,
                 MajorGridlineThickness = area_settings.MajorGridlineThickness,
@@ -148,6 +151,9 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
             linear_axis_Y = new LinearAxis()
             {
                 TicklineColor = area_settings.TicklineColor,
+                AxislineStyle = area_settings.AxislineStyle,
+                AxislineThickness = 1,
+                AxislineColor = area_settings.AxislineColor,
                 MajorGridlineColor = area_settings.MajorGridlineColor,
                 MajorGridlineStyle = area_settings.MajorGridlineStyle,
                 MajorGridlineThickness = area_settings.MajorGridlineThickness,
@@ -170,9 +176,10 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
                     Selectable = false,
                     ClipByYAxis = false,
                     X = double.MinValue,
-                    StrokeThickness = 1,
+                    StrokeThickness = 0.5,
                     Layer = AnnotationLayer.BelowSeries,
                     EdgeRenderingMode = EdgeRenderingMode.Automatic,
+                    LineStyle = LineStyle.LongDash
                      
                 };
             }
@@ -186,9 +193,10 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
                     ClipByXAxis = false,
                     Selectable = false,
                     Y = double.MinValue,
-                    StrokeThickness = 1,
+                    StrokeThickness = 0.5,
                     Layer = AnnotationLayer.BelowSeries,
-                    EdgeRenderingMode = EdgeRenderingMode.PreferSharpness
+                    EdgeRenderingMode = EdgeRenderingMode.Automatic,
+                    LineStyle = LineStyle.LongDash
                 };
             }
 
@@ -225,6 +233,11 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
         public virtual void BuildIndicatorSeries(IndicatorSeria indi_seria, List<decimal> data_points, TimeSpan time_frame_span)
         {
             
+        }
+
+        public virtual void CreateIndicatorLegend()
+        {
+
         }
 
         public virtual List<double> GetHighLow(bool isPrime, double start, double end)
