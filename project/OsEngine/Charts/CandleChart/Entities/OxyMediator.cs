@@ -449,20 +449,32 @@ namespace OsEngine.Charts.CandleChart.Entities
 
         public void Dispose()
         {
-            owner.UpdateCandlesEvent -= Owner_UpdateCandlesEvent;
-            owner.UpdateIndicatorEvent -= Owner_UpdateIndicatorEvent;
+            if (owner != null)
+            {
+                owner.UpdateCandlesEvent -= Owner_UpdateCandlesEvent;
+                owner.UpdateIndicatorEvent -= Owner_UpdateIndicatorEvent;
+            }
 
-            prime_chart.Redrawed -= RedrawDoneEvent;
-            prime_chart.Updated -= UpdateDoneEvent;
+            if (prime_chart != null)
+            {
+                prime_chart.Redrawed -= RedrawDoneEvent;
+                prime_chart.Updated -= UpdateDoneEvent;
+            }
 
             for (int i = 0; i < indicators_list.Count; i++)
             {
-                indicators_list[i].Redrawed -= RedrawDoneEvent;
-                indicators_list[i].Updated -= UpdateDoneEvent;
+                if (indicators_list[i] != null)
+                {
+                    indicators_list[i].Redrawed -= RedrawDoneEvent;
+                    indicators_list[i].Updated -= UpdateDoneEvent;
+                }
             }
 
-            scroll_bar.Redrawed -= RedrawDoneEvent;
-            scroll_bar.Updated -= UpdateDoneEvent;
+            if (scroll_bar != null)
+            {
+                scroll_bar.Redrawed -= RedrawDoneEvent;
+                scroll_bar.Updated -= UpdateDoneEvent;
+            }
 
             prime_chart = null;
 
