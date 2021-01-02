@@ -452,6 +452,20 @@
     <Compile Include="Market\Servers\BitStamp\BitStampEntity\RequestAuthenticator.cs" />
     <Compile Include="Market\Servers\BitStamp\BitStampServer.cs" />
     <Compile Include="Market\Servers\BitStamp\BitStampEntity\JsonResponse.cs" />
+    <Compile Include="Market\Servers\Bybit\BybitServer.cs" />
+    <Compile Include="Market\Servers\Bybit\BybitServerPermission.cs" />
+    <Compile Include="Market\Servers\Bybit\Entities\Client.cs" />
+    <Compile Include="Market\Servers\Bybit\EntityCreators\BybitCandlesCreator.cs" />
+    <Compile Include="Market\Servers\Bybit\EntityCreators\BybitMarketDepthCreator.cs" />
+    <Compile Include="Market\Servers\Bybit\EntityCreators\BybitOrderCreator.cs" />
+    <Compile Include="Market\Servers\Bybit\EntityCreators\BybitPortfolioCreator.cs" />
+    <Compile Include="Market\Servers\Bybit\EntityCreators\BybitSecurityCreator.cs" />
+    <Compile Include="Market\Servers\Bybit\EntityCreators\BybitTradesCreator.cs" />
+    <Compile Include="Market\Servers\Bybit\Utilities\BybitRestRequestBuilder.cs" />
+    <Compile Include="Market\Servers\Bybit\Utilities\BybitSigner.cs" />
+    <Compile Include="Market\Servers\Bybit\Utilities\BybitWsRequestBuilder.cs" />
+    <Compile Include="Market\Servers\Bybit\Utilities\Signer.cs" />
+    <Compile Include="Market\Servers\Bybit\Utilities\Utils.cs" />
     <Compile Include="Market\Servers\Entity\BidAskSender.cs" />
     <Compile Include="Market\Servers\Entity\OrderSender.cs" />
     <Compile Include="Market\Servers\Entity\PositionOnBoardSander.cs" />
@@ -545,10 +559,8 @@
     <Compile Include="Market\Servers\InteractivBrokers\IbContractStorageUi.xaml.cs">
       <DependentUpon>IbContractStorageUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Market\Servers\InteractivBrokers\InteractivBrokersServer.cs" />
-    <Compile Include="Market\Servers\InteractivBrokers\InteractivBrokersUi.xaml.cs">
-      <DependentUpon>InteractivBrokersUi.xaml</DependentUpon>
-    </Compile>
+    <Compile Include="Market\Servers\InteractivBrokers\InteractiveBrokersServer.cs" />
+    <Compile Include="Market\Servers\InteractivBrokers\InteractiveBrokersServerPermission.cs" />
     <Compile Include="Market\Servers\IServer.cs" />
     <Compile Include="Market\Servers\IServerPermission.cs" />
     <Compile Include="Market\Servers\IServerRealization.cs" />
@@ -674,6 +686,9 @@
     <Compile Include="Market\Services\CandlesCreator.cs" />
     <Compile Include="Market\Services\RestChannel.cs" />
     <Compile Include="Market\Services\WsSource.cs" />
+    <Compile Include="OsConverter\OsCandleConverterUi.xaml.cs">
+      <DependentUpon>OsCandleConverterUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="OsMiner\OsMinerMaster.cs" />
     <Compile Include="OsMiner\OsMinerSet.cs" />
     <Compile Include="OsMiner\OsMinerSetUi.xaml.cs">
@@ -738,6 +753,7 @@
       <DependentUpon>OsDataUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="OsTrader\HotUpdateManager.cs" />
+    <Compile Include="OsTrader\Panels\Attributes\BotAttribute.cs" />
     <Compile Include="OsTrader\Panels\BotPanelChartUI.xaml.cs">
       <DependentUpon>BotPanelChartUI.xaml</DependentUpon>
     </Compile>
@@ -1113,10 +1129,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Market\Servers\InteractivBrokers\InteractivBrokersUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Market\Servers\Kraken\KrakenServerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -1193,6 +1205,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="OsConverter\OsCandleConverterUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="OsMiner\OsMinerSetUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -1213,10 +1229,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="OsOptimizer\OptimizerUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="OsConverter\OsConverterUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -1230,6 +1242,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="OsData\OsDataUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsOptimizer\OptimizerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

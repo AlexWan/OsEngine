@@ -656,7 +656,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 security.NameId = sec.symbol + sec.quoteAsset;
                 security.SecurityType = SecurityType.CurrencyPair;
                 // sec.filters[1] - минимальный объем равный цена * объем
-                security.Lot = sec.filters[2].stepSize.ToDecimal();
+                security.Lot = 1;
                 security.PriceStep = sec.filters[0].tickSize.ToDecimal();
                 security.PriceStepCost = security.PriceStep;
 

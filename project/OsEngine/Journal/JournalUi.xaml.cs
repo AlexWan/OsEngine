@@ -540,7 +540,7 @@ namespace OsEngine.Journal
                 column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
                 _gridStatistics.Columns.Add(column3);
 
-                for (int i = 0; i < 27; i++)
+                for (int i = 0; i < 28; i++)
                 {
                     _gridStatistics.Rows.Add(); //string addition/ добавление строки
                 }
@@ -593,42 +593,42 @@ namespace OsEngine.Journal
 
             if (positionsAllState == null)
             {
-                for (int i = 0; i < 27; i++)
+                for (int i = 0; i < 28; i++)
                 {
                     _gridStatistics.Rows[i].Cells[1].Value = "";
                 }
             }
             if (positionsLongState == null)
             {
-                for (int i = 0; i < 27; i++)
+                for (int i = 0; i < 28; i++)
                 {
                     _gridStatistics.Rows[i].Cells[2].Value = "";
                 }
             }
             if (positionsShortState == null)
             {
-                for (int i = 0; i < 27; i++)
+                for (int i = 0; i < 28; i++)
                 {
                     _gridStatistics.Rows[i].Cells[3].Value = "";
                 }
             }
             if (positionsLongState != null)
             {
-                for (int i = 0; i < 27; i++)
+                for (int i = 0; i < 28; i++)
                 {
                     _gridStatistics.Rows[i].Cells[2].Value = positionsLongState[i].ToString();
                 }
             }
             if (positionsShortState != null)
             {
-                for (int i = 0; i < 27; i++)
+                for (int i = 0; i < 28; i++)
                 {
                     _gridStatistics.Rows[i].Cells[3].Value = positionsShortState[i].ToString();
                 }
             }
             if (positionsAllState != null)
             {
-                for (int i = 0; i < 27; i++)
+                for (int i = 0; i < 28; i++)
                 {
                     _gridStatistics.Rows[i].Cells[1].Value = positionsAllState[i].ToString();
                 }

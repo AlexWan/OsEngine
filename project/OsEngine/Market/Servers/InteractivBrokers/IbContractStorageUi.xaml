@@ -5,6 +5,7 @@
     <Grid>
         <Rectangle Margin="5,5,5,29" />
         <WindowsFormsHost x:Name="Host" Margin="10,10,10,34"/>
+        <Button Content="Button" Visibility="Hidden" HorizontalAlignment="Left" Margin="490,177,0,0" VerticalAlignment="Top" Width="119" Click="Button_Click"/>
 
     </Grid>
 </Window>

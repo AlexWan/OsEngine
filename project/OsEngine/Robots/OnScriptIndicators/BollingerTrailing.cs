@@ -38,9 +38,11 @@ public class BollingerTrailing : BotPanel
 
     void Event_ParametrsChangeByUser()
     {
-        if (IndLenght.ValueInt != _bollinger.ParametersDigit[0].Value)
+        if (IndLenght.ValueInt != _bollinger.ParametersDigit[0].Value ||
+            BollingerDeviation.ValueDecimal != _bollinger.ParametersDigit[1].Value)
         {
             _bollinger.ParametersDigit[0].Value = IndLenght.ValueInt;
+            _bollinger.ParametersDigit[1].Value = BollingerDeviation.ValueDecimal;
             _bollinger.Reload();
         }
     }

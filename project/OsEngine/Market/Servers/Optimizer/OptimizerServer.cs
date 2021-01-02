@@ -1788,6 +1788,10 @@ namespace OsEngine.Market.Servers.Optimizer
 
             if (orderOnBoard.IsStopOrProfit)
             {
+                if (_candleSeriesTesterActivate == null)
+                {
+                    return;
+                }
                 SecurityOptimizer security = _candleSeriesTesterActivate.Find(tester => tester.Security.Name == order.SecurityNameCode);
                 if (security.DataType == SecurityTesterDataType.Candle)
                 { // testing with using candles / прогон на свечках

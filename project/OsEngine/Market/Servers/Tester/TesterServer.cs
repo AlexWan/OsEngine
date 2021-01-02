@@ -2696,6 +2696,12 @@ namespace OsEngine.Market.Servers.Tester
         {
             List<PositionOnBoard> positions = _portfolios[0].GetPositionOnBoard();
 
+            if(positions == null ||
+                orderExecute == null)
+            {
+                return;
+            }
+
             PositionOnBoard myPositioin =
                 positions.Find(board => board.SecurityNameCode == orderExecute.SecurityNameCode);
 

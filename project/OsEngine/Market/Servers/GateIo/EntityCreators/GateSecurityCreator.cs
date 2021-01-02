@@ -35,7 +35,7 @@ namespace OsEngine.Market.Servers.GateIo.EntityCreators
                     security.PriceStep = security.Decimals.GetValueByDecimals();
                     security.PriceStepCost = security.PriceStep;
                     security.State = SecurityStateType.Activ;
-                    security.Lot = jProperty.Value.SelectToken("min_amount").Value<decimal>();
+                    security.Lot = 1;
                     security.Go = jProperty.Value.SelectToken("min_amount_b").Value<decimal>();
 
                     _securities.Add(security);

@@ -149,7 +149,7 @@ namespace OsEngine.Journal.Internal
                 profit += deals[i].ProfitPortfolioPunkt;
             }
 
-            return profit;
+            return Round(profit);
         }
 
         /// <summary>
@@ -214,7 +214,7 @@ namespace OsEngine.Journal.Internal
                 }
             }
 
-            return Math.Round(profit / deals.Length, 6);
+            return Round(profit / deals.Length);
         }
 
         /// <summary>
@@ -330,7 +330,7 @@ namespace OsEngine.Journal.Internal
                 return profitDeal;
             }
 
-            return profitDeal/ deals.Length * 100;
+            return profitDeal / deals.Length * 100;
 
         }
 
@@ -355,6 +355,11 @@ namespace OsEngine.Journal.Internal
                 return profit;
             }
 
+            if (GetProfitDial(deals) == 0)
+            {
+                return 0;
+            }
+
             return Math.Round(profit / GetProfitDial(deals), 6);
         }
 
@@ -377,6 +382,12 @@ namespace OsEngine.Journal.Internal
             {
                 return profit;
             }
+
+            if (GetProfitDial(deals) == 0)
+            {
+                return 0;
+            }
+
             return profit / GetProfitDial(deals);
         }
 
@@ -401,6 +412,11 @@ namespace OsEngine.Journal.Internal
                 return profit;
             }
 
+            if (GetProfitDial(deals) == 0)
+            {
+                return 0;
+            }
+
             return Math.Round(profit / GetProfitDial(deals), 6);
         }
 
@@ -423,6 +439,12 @@ namespace OsEngine.Journal.Internal
             {
                 return profit;
             }
+
+            if (GetProfitDial(deals) == 0)
+            {
+                return 0;
+            }
+
             return profit / GetProfitDial(deals);
         }
 
@@ -558,7 +580,14 @@ namespace OsEngine.Journal.Internal
             {
                 return loss;
             }
-            return Math.Round(loss / GetLossDial(deals), 6);
+
+            decimal lossDeals = GetLossDial(deals);
+            if (lossDeals == 0)
+            {
+                return lossDeals;
+            }
+
+            return Math.Round(loss / lossDeals, 6);
         }
 
         /// <summary>
@@ -693,7 +722,7 @@ namespace OsEngine.Journal.Internal
                 return 0;
             }
 
-            return maxDown;
+            return Round(maxDown);
         }
 
         /// <summary>
@@ -720,7 +749,7 @@ namespace OsEngine.Journal.Internal
 
             if (commonLossPunkt != 0 && commonProfitPunkt != 0) profitFactor = Math.Abs(commonProfitPunkt / commonLossPunkt);
 
-            return profitFactor;
+            return Round(profitFactor);
         }
 
         public static decimal GetPayOffRatio(Position[] deals)
@@ -767,7 +796,7 @@ namespace OsEngine.Journal.Internal
             decimal profit = GetAllProfitInPunkt(deals);
             if (profit != 0 && maxLossPunkt != 0) recovery = Math.Abs(profit / maxLossPunkt);
 
-            return recovery;
+            return Round(recovery);
         }
 
         public static List<Position> SortByTime(List<Position> positionsAll)
@@ -800,6 +829,11 @@ namespace OsEngine.Journal.Internal
             }
 
             return newPositionsAll;
+        }
+
+        private static decimal Round(decimal number)
+        {
+            return Decimal.Round(number, 6);
         }
     }
 }

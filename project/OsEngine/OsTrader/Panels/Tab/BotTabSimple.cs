@@ -1136,7 +1136,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             if (_connector.ServerType == ServerType.InteractivBrokers ||
                 _connector.ServerType == ServerType.Lmax ||
-                _connector.ServerType == ServerType.BitMax)
+                _connector.ServerType == ServerType.BitMax ||
+                _connector.ServerType == ServerType.FTX)
             {
                 return true;
             }
@@ -3956,14 +3957,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void _connector_BestBidAskChangeEvent(decimal bestBid, decimal bestAsk)
         {
-            _journal.SetNewBidAsk(bestBid, bestAsk);
-
-            _marketDepthPainter.ProcessBidAsk(bestBid, bestAsk);
-
-            if (BestBidAskChangeEvent != null)
-            {
-                BestBidAskChangeEvent(bestBid, bestAsk);
-            }
+            _journal?.SetNewBidAsk(bestBid, bestAsk);
+            _marketDepthPainter?.ProcessBidAsk(bestBid, bestAsk);
+            BestBidAskChangeEvent?.Invoke(bestBid, bestAsk);
         }
 
         // исходящие события. Обработчики для стратегии

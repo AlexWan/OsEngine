@@ -1,4 +1,5 @@
---~ // Licensed under the Apache License, Version 2.0. See LICENSE.txt in the project root for license information.
+--~ Copyright (c) 2014-2020 QUIKSharp Authors https://github.com/finsight/QUIKSharp/blob/master/AUTHORS.md. All rights reserved.
+--~ Licensed under the Apache License, Version 2.0. See LICENSE.txt in the project root for license information.
 
 -- is running from Quik
 function is_quik()
@@ -50,11 +51,20 @@ log("Detected Quik version: ".. quikVersion .." and using cpath: "..package.cpat
 
 local is_started = true
 
+-- we need two ports since callbacks and responses conflict and write to the same socket at the same time
+-- I do not know how to make locking in Lua, it is just simpler to have two independent connections
+-- To connect to a remote terminal - replace '127.0.0.1' with the terminal ip-address
+-- All this values could be replaced with values from config.json
+local response_host = '127.0.0.1'
+local response_port = 34130
+local callback_host = '127.0.0.1'
+local callback_port = response_port + 1
+
 function do_main()
     log("Entered main function", 0)
     while is_started do
         -- if not connected, connect
-        util.connect()
+        util.connect(response_host, response_port, callback_host, callback_port)
         -- when connected, process queue
         -- receive message,
         local requestMsg = receiveRequest()
@@ -74,8 +84,13 @@ function do_main()
     end
 end
 
---- catch errors
 function main()
+    setup("QuikSharp")
+    run()
+end
+
+--- catch errors
+function run()
     local status, err = pcall(do_main)
     if status then
         log("finished")
@@ -84,8 +99,37 @@ function main()
     end
 end
 
+function setup(script_name)
+    if not script_name then
+        log("File name of this script is unknown. Please, set it explicity instead of scriptFilename() call inside your custom file", 3)
+        return false
+    end
+
+    local list = paramsFromConfig(script_name)
+    if list then
+        response_host = list[1]
+        response_port = list[2]
+        callback_host = list[3]
+        callback_port = list[4]
+        printRunningMessage(script_name)
+    elseif script_name == "QuikSharp" then
+        -- use default values for this file in case no custom config found for it
+        printRunningMessage(script_name)
+    else -- do nothing when config is not found
+        log("File config.json is not found or contains no entries for this script name: " .. script_name, 3)
+        return false
+    end
+
+    return true
+end
+
+function printRunningMessage(script_name)
+    log("Running from ".. script_name .. ", params: response " .. response_host .. ":" .. response_port ..", callback ".. " ".. callback_host ..":".. callback_port)
+end
+
 if not is_quik() then
     log("Hello, QUIK#! Running outside Quik.")
+    setup("QuikSharp")
     do_main()
     logfile:close()
 end

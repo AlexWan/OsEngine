@@ -788,7 +788,7 @@ namespace OsEngine.Charts.CandleChart
                         }
                         else
                         {
-                            string area = ChartCandle.CreateArea(nameArea, 15);
+                            string area = ChartCandle.CreateArea(nameArea, 10);
                             indicator.NameSeries = ChartCandle.CreateSeries(area,
                                 indicator.TypeIndicator, indicator.Name + i);
                         }
@@ -817,7 +817,7 @@ namespace OsEngine.Charts.CandleChart
                         }
                         else
                         {
-                            string area = ChartCandle.CreateArea(nameArea, 15);
+                            string area = ChartCandle.CreateArea(nameArea, 10);
 
                             series[i].NameSeries = ChartCandle.CreateSeries(area,
                                 series[i].ChartPaintType, indicator.Name + i);

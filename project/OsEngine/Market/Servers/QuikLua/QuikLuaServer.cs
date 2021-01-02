@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Entity.Utils;
@@ -34,7 +36,7 @@ namespace OsEngine.Market.Servers.QuikLua
         /// <returns>failure will return null/в случае неудачи вернётся null</returns>
         public List<Candle> GetQuikLuaCandleHistory(Security security, TimeSpan timeSpan)
         {
-            return ((QuikLuaServerRealization) ServerRealization).GetQuikLuaCandleHistory(security, timeSpan);
+            return ((QuikLuaServerRealization)ServerRealization).GetQuikLuaCandleHistory(security, timeSpan);
         }
 
         /// <summary>
@@ -57,13 +59,14 @@ namespace OsEngine.Market.Servers.QuikLua
 
             Thread updateSpotPos = new Thread(UpdateSpotPosition);
             updateSpotPos.CurrentCulture = new CultureInfo("ru-RU");
-            updateSpotPos.IsBackground = true;
             updateSpotPos.Start();
 
             Thread getPos = new Thread(GetPortfoliosArea);
             getPos.CurrentCulture = new CultureInfo("ru-RU");
-            getPos.IsBackground = true;
             getPos.Start();
+
+            Thread worker3 = new Thread(ThreadCheckOrdersState);
+            worker3.Start();
         }
 
         public ServerType ServerType => ServerType.QuikLua;
@@ -79,7 +82,7 @@ namespace OsEngine.Market.Servers.QuikLua
         private object _serverLocker = new object();
 
         private static readonly Char Separator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator[0];
-        
+
         private static readonly string SecuritiesCachePath = @"Engine\QuikLuaSecuritiesCache.txt";
 
         public void Connect()
@@ -96,6 +99,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 QuikLua.Events.OnQuote += EventsOnOnQuote;
                 QuikLua.Events.OnFuturesClientHolding += EventsOnOnFuturesClientHolding;
                 QuikLua.Events.OnFuturesLimitChange += EventsOnOnFuturesLimitChange;
+                QuikLua.Events.OnTransReply += Events_OnTransReply;
 
                 QuikLua.Service.QuikService.Start();
                 ServerStatus = ServerConnectStatus.Connect;
@@ -128,6 +132,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 QuikLua.Events.OnQuote -= EventsOnOnQuote;
                 QuikLua.Events.OnFuturesClientHolding -= EventsOnOnFuturesClientHolding;
                 QuikLua.Events.OnFuturesLimitChange -= EventsOnOnFuturesLimitChange;
+                QuikLua.Events.OnTransReply -= Events_OnTransReply;
             }
 
             ServerStatus = ServerConnectStatus.Disconnect;
@@ -164,7 +169,7 @@ namespace OsEngine.Market.Servers.QuikLua
             }
 
             DateTime lastWriteTime = File.GetLastWriteTime(SecuritiesCachePath);
-           
+
             return DateTime.Now < lastWriteTime.AddHours(1);
         }
 
@@ -258,12 +263,21 @@ namespace OsEngine.Market.Servers.QuikLua
                     newSec.SecurityType = SecurityType.Stock;
                 }
 
-                newSec.Name = oneSec.SecCode + "_" + oneSec.ClassCode;
+                newSec.Name = oneSec.SecCode + "+" + oneSec.ClassCode;
                 newSec.NameFull = oneSec.Name;
                 newSec.NameId = oneSec.Name;
 
                 newSec.Decimals = Convert.ToInt32(oneSec.Scale);
-                newSec.Lot = Convert.ToDecimal(oneSec.LotSize);
+
+                if (oneSec.ClassCode != "SPBFUT")
+                {
+                    newSec.Lot = Convert.ToDecimal(oneSec.LotSize);
+                }
+                else
+                {
+                    newSec.Lot = 1;
+                }
+
                 newSec.NameClass = oneSec.ClassCode;
 
                 newSec.PriceLimitHigh = Convert.ToDecimal(QuikLua.Trading
@@ -295,7 +309,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
                 if (newSec.PriceStepCost == 0)
                 {
-                    newSec.PriceStepCost = 1;
+                    newSec.PriceStepCost = newSec.PriceStep;
                 }
 
                 securities.Add(newSec);
@@ -305,7 +319,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-        
+
         private void SaveToCache(List<Security> list)
         {
             if (list == null)
@@ -511,11 +525,124 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
+        private async void ThreadCheckOrdersState()
+        {
+            while (true)
+            {
+                Thread.Sleep(10000);
+
+                if (MainWindow.ProccesIsWorked == false)
+                {
+                    return;
+                }
+
+                if (QuikLua == null ||
+                    ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    for (int i = 0; i < _myOrdersInMarket.Count; i++)
+                    {
+                        await CheckOrder(_myOrdersInMarket[i]);
+                    }
+                }
+                catch (Exception e)
+                {
+                    SendLogMessage(e.ToString(), LogMessageType.Error);
+                }
+            }
+        }
+
+        List<Order> _nullOrders = new List<Order>();
+
+        private async Task CheckOrder(Order ord)
+        {
+            try
+            {
+                QuikSharp.DataStructures.Transaction.Order order =
+                    await QuikLua.Orders.GetOrder_by_transID(
+                        ord.SecurityNameCode.Split('+')[1],
+                        ord.SecurityNameCode.Split('+')[0]
+                        , ord.NumberUser);
+
+                if (order != null)
+                {
+                    if (order.OrderNum == 0)
+                    {
+                        return;
+                    }
+
+                    EventsOnOnOrder(order);
+                }
+                else //if (order == null)
+                {
+                    List<Order> nullOrders = _nullOrders.FindAll(o => o.NumberUser == ord.NumberUser);
+
+                    if (nullOrders.Count > 5)
+                    {
+                        for (int i = 0; i < _myOrdersInMarket.Count; i++)
+                        {
+                            Order o = _myOrdersInMarket[i];
+
+                            if (o.NumberUser == ord.NumberUser)
+                            {
+                                _myOrdersInMarket.RemoveAt(i);
+                                break;
+                            }
+                        }
+
+                        if (_notFailOrders.Find(o => o.NumberUser == ord.NumberUser) == null)
+                        {
+                            ord.State = OrderStateType.Fail;
+
+                            if (MyOrderEvent != null)
+                            {
+                                MyOrderEvent(ord);
+                            }
+                        }
+                    }
+
+                    _nullOrders.Add(ord);
+                }
+
+                if (order != null &&
+                    _notFailOrders.Find(o => o.NumberUser == ord.NumberUser) == null)
+                {
+                    _notFailOrders.Add(ord);
+                }
+
+                if (order != null &&
+                    (order.State == State.Canceled ||
+                     order.State == State.Completed))
+                {
+                    for (int i = 0; i < _myOrdersInMarket.Count; i++)
+                    {
+                        if (_myOrdersInMarket[i].NumberUser == ord.NumberUser)
+                        {
+                            _myOrdersInMarket.RemoveAt(i);
+                            return;
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                SendLogMessage(e.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private List<Order> _notFailOrders = new List<Order>();
+
+        private List<Order> _myOrdersInMarket = new List<Order>();
+
         public void SendOrder(Order order)
         {
             QuikSharp.DataStructures.Transaction.Order qOrder = new QuikSharp.DataStructures.Transaction.Order();
 
-            qOrder.SecCode = order.SecurityNameCode.Split('_')[0];
+            qOrder.SecCode = order.SecurityNameCode.Split('+')[0];
             qOrder.Account = order.PortfolioNumber;
             qOrder.ClassCode = _securities.Find(sec => sec.Name == order.SecurityNameCode).NameClass;
             qOrder.Quantity = Convert.ToInt32(order.Volume);
@@ -530,6 +657,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 if (res > 0)
                 {
                     order.NumberUser = Convert.ToInt32(res);
+                    _myOrdersInMarket.Add(order);
 
                     if (MyOrderEvent != null)
                     {
@@ -548,6 +676,27 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
+        private void Events_OnTransReply(TransactionReply transReply)
+        {
+            if (transReply.Status != 4 &&
+                transReply.Status != 6)
+            {
+                return;
+            }
+
+            Order order = new Order();
+            order.NumberUser = transReply.TransID;
+            order.State = OrderStateType.Fail;
+            order.SecurityNameCode = transReply.SecCode;
+
+            if (MyOrderEvent != null)
+            {
+                MyOrderEvent(order);
+            }
+
+            SendLogMessage("Transaction  " + order.NumberUser + "  error: " + transReply.ResultMsg, LogMessageType.Error);
+        }
+
         private List<Order> _ordersAllReadyCanseled = new List<Order>();
 
         public void CancelOrder(Order order)
@@ -556,7 +705,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
             QuikSharp.DataStructures.Transaction.Order qOrder = new QuikSharp.DataStructures.Transaction.Order();
 
-            qOrder.SecCode = order.SecurityNameCode.Split('_')[0];
+            qOrder.SecCode = order.SecurityNameCode.Split('+')[0];
             qOrder.Account = order.PortfolioNumber;
             qOrder.ClassCode = _securities.Find(sec => sec.Name == order.SecurityNameCode).NameClass;
 
@@ -587,7 +736,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
             lock (_serverLocker)
             {
-                QuikLua.OrderBook.Subscribe(security.NameClass, security.Name.Split('_')[0]);
+                QuikLua.OrderBook.Subscribe(security.NameClass, security.Name.Split('+')[0]);
                 subscribedBook.Add(security.Name);
                 QuikLua.Events.OnAllTrade -= EventsOnOnAllTrade;
                 QuikLua.Events.OnAllTrade += EventsOnOnAllTrade;
@@ -604,7 +753,51 @@ namespace OsEngine.Market.Servers.QuikLua
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime,
             DateTime actualTime)
         {
-            return null;
+            List<Trade> AllHistoricalTrades = new List<Trade>();
+
+            //скачаем новые данные из квика. (доступна только текущая сессия. с 19.00 вчерашнего по 18.45 текущего дня)	
+            List<Trade> newTrades = GetQuikLuaTickHistory(security);
+
+            //сохраним новые данные	
+            if (!Directory.Exists(@"Data\Temp\"))
+            {
+                Directory.CreateDirectory(@"Data\Temp\");
+            }
+
+            DateTime fileNameDate = DateTime.Now.TimeOfDay.Hours < 19 ? DateTime.Now.Date : DateTime.Now.Date.AddDays(1);
+            string fileName = @"Data\Temp\" + security.Name + "_QuikLuaServer_" + fileNameDate.ToShortDateString() + ".txt";
+
+            StreamWriter writer = new StreamWriter(fileName, false);
+            for (int i = 0; i < newTrades.Count; i++)
+            {
+                writer.WriteLine(newTrades[i].GetSaveString());
+            }
+            writer.Close();
+
+            // объединим со старыми данными, если они есть	
+            List<string> files = Directory.GetFiles(@"Data\Temp\", "*").ToList().FindAll(x => x.Contains(security.Name + "_QuikLuaServer_"));
+
+            for (int i = 0; i < files.Count; i++)
+            {
+                StreamReader reader = new StreamReader(files[i]);
+
+                while (!reader.EndOfStream)
+                {
+                    try
+                    {
+                        Trade newTrade = new Trade();
+                        newTrade.SetTradeFromString(reader.ReadLine());
+                        newTrade.SecurityNameCode = security.Name;
+                        AllHistoricalTrades.Add(newTrade);
+                    }
+                    catch
+                    {
+                        // ignore	
+                    }
+                }
+                reader.Close();
+            }
+            return AllHistoricalTrades;
         }
 
         public void GetOrdersState(List<Order> orders)
@@ -628,7 +821,7 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             try
             {
-                var needSec = _securities.Find(sec => 
+                var needSec = _securities.Find(sec =>
                     sec.Name == security.Name && sec.NameClass == security.NameClass);
 
                 _trades = new List<Trade>();
@@ -637,7 +830,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 {
                     string classCode = needSec.NameClass;
 
-                    var allCandlesForSec = QuikLua.Candles.GetAllCandles(classCode, needSec.Name.Split('_')[0], CandleInterval.TICK).Result;
+                    var allCandlesForSec = QuikLua.Candles.GetAllCandles(classCode, needSec.Name.Split('+')[0], CandleInterval.TICK).Result;
 
                     for (int i = 0; i < allCandlesForSec.Count; i++)
                     {
@@ -742,7 +935,7 @@ namespace OsEngine.Market.Servers.QuikLua
                         _candles = new List<Candle>();
                         string classCode = needSec.NameClass;
 
-                        var allCandlesForSec = QuikLua.Candles.GetAllCandles(classCode, needSec.Name.Split('_')[0], tf).Result;
+                        var allCandlesForSec = QuikLua.Candles.GetAllCandles(classCode, needSec.Name.Split('+')[0], tf).Result;
 
                         for (int i = 0; i < allCandlesForSec.Count; i++)
                         {
@@ -812,7 +1005,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 lock (_newTradesLoker)
                 {
                     Trade trade = new Trade();
-                    trade.SecurityNameCode = allTrade.SecCode + "_" + allTrade.ClassCode;
+                    trade.SecurityNameCode = allTrade.SecCode + "+" + allTrade.ClassCode;
                     trade.Id = allTrade.TradeNum.ToString();
                     trade.Price = Convert.ToDecimal(allTrade.Price);
                     trade.Volume = Convert.ToInt32(allTrade.Qty);
@@ -830,6 +1023,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
                     trade.Time = new DateTime(allTrade.Datetime.year, allTrade.Datetime.month, allTrade.Datetime.day,
                         allTrade.Datetime.hour, allTrade.Datetime.min, allTrade.Datetime.sec);
+                    trade.MicroSeconds = allTrade.Datetime.mcs;
                     if (NewTradesEvent != null)
                     {
                         NewTradesEvent(trade);
@@ -913,7 +1107,7 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             lock (quoteLock)
             {
-                string curName = orderBook.sec_code + "_" + orderBook.class_code;
+                string curName = orderBook.sec_code + "+" + orderBook.class_code;
 
                 if (subscribedBook.Find(name => name == curName) == null)
                 {
@@ -978,7 +1172,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     order.NumberUser = Convert.ToInt32(qOrder.TransID); //Convert.qOrder.OrderNum;TransID
                     order.NumberMarket = qOrder.OrderNum.ToString(new CultureInfo("ru-RU"));
                     order.TimeCallBack = ServerTime;
-                    order.SecurityNameCode = qOrder.SecCode + "_" + qOrder.ClassCode;
+                    order.SecurityNameCode = qOrder.SecCode + "+" + qOrder.ClassCode;
                     order.Price = qOrder.Price;
                     order.Volume = qOrder.Quantity;
                     order.VolumeExecute = qOrder.Quantity - qOrder.Balance;
@@ -1034,6 +1228,8 @@ namespace OsEngine.Market.Servers.QuikLua
                     {
                         MyOrderEvent(order);
                     }
+
+                    CreateMyTrades(qOrder);
                 }
                 catch (Exception error)
                 {
@@ -1042,7 +1238,31 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
+        private async Task CreateMyTrades(QuikSharp.DataStructures.Transaction.Order qOrder)
+        {
+            try
+            {
+                List<QuikSharp.DataStructures.Transaction.Trade> trades =
+                    await QuikLua.Trading.GetTrades_by_OdrerNumber(Convert.ToInt64(qOrder.OrderNum));
+
+                if (trades != null && trades.Count != 0)
+                {
+                    for (int i = 0; i < trades.Count; i++)
+                    {
+                       // EventsOnOnTrade(trades[i]);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                SendLogMessage(e.ToString(), LogMessageType.Error);
+            }
+        }
+
         private object myTradeLocker = new object();
+
+        private List<QuikSharp.DataStructures.Transaction.Trade> _myTradesFromQuik =
+            new List<QuikSharp.DataStructures.Transaction.Trade>();
 
         private void EventsOnOnTrade(QuikSharp.DataStructures.Transaction.Trade qTrade)
         {
@@ -1050,16 +1270,33 @@ namespace OsEngine.Market.Servers.QuikLua
             {
                 try
                 {
+                    if (_myTradesFromQuik.Find(t => t.TradeNum == qTrade.TradeNum) != null)
+                    {
+                        return;
+                    }
+
+                    _myTradesFromQuik.Add(qTrade);
+
                     MyTrade trade = new MyTrade();
                     trade.NumberTrade = qTrade.TradeNum.ToString();
-                    trade.SecurityNameCode = qTrade.SecCode + "_" + qTrade.ClassCode;
+                    trade.SecurityNameCode = qTrade.SecCode + "+" + qTrade.ClassCode;
                     trade.NumberOrderParent = qTrade.OrderNum.ToString();
                     trade.Price = Convert.ToDecimal(qTrade.Price);
                     trade.Volume = qTrade.Quantity;
                     trade.Time = new DateTime(qTrade.QuikDateTime.year, qTrade.QuikDateTime.month,
                         qTrade.QuikDateTime.day, qTrade.QuikDateTime.hour,
-                        qTrade.QuikDateTime.min, qTrade.QuikDateTime.sec);
-                    trade.Side = qTrade.Flags == OrderTradeFlags.IsSell ? Side.Sell : Side.Buy;
+                        qTrade.QuikDateTime.min, qTrade.QuikDateTime.sec, qTrade.QuikDateTime.ms);
+
+                    if (qTrade.Flags.ToString().Contains("IsSell"))
+                    {
+                        trade.Side = Side.Sell;
+                    }
+                    else
+                    {
+                        trade.Side = Side.Buy;
+                    }
+
+                    trade.MicroSeconds = qTrade.QuikDateTime.mcs;
 
                     if (MyTradeEvent != null)
                     {

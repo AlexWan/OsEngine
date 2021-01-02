@@ -1,7 +1,7 @@
 ﻿<Window x:Class="OsEngine.Journal.JournalUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Journal" Height="730" Width="1350" MinWidth="400" MinHeight="300" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
+        Title="Journal" Height="780" Width="1350" MinWidth="400" MinHeight="300" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
     <Grid>
         <TabControl Grid.Row="0" x:Name="TabBots"  Margin="28,0,10,0" VerticalAlignment="Top">
             <TabItem Header="Empty" >

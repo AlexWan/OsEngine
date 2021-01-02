@@ -19,14 +19,17 @@ namespace OsEngine.Market.Servers.InteractivBrokers
     /// Interaction logic for IbContractStorageUi.xaml
     /// Логика взаимодействия для IbContractStorageUi.xaml
     /// </summary>
-    public partial class IbContractStorageUi 
+    public partial class IbContractStorageUi
     {
         private DataGridView _grid;
 
-        public IbContractStorageUi(List<SecurityIb> secToSubscrible)
+        private InteractiveBrokersServerRealization _server;
+
+        public IbContractStorageUi(List<SecurityIb> secToSubscrible, InteractiveBrokersServerRealization server)
         {
             InitializeComponent();
             SecToSubscrible = secToSubscrible;
+            _server = server;
 
             _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
 
@@ -38,7 +41,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             column0.HeaderText = OsLocalization.Market.Label42;
             column0.ReadOnly = false;
             column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-           // column0.Width = 150;
+            // column0.Width = 150;
 
             _grid.Columns.Add(column0);
 
@@ -47,14 +50,14 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             column.HeaderText = OsLocalization.Market.Label43;
             column.ReadOnly = false;
             column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-           // column.Width = 150;
+            // column.Width = 150;
             _grid.Columns.Add(column);
 
             DataGridViewColumn column1 = new DataGridViewColumn();
             column1.CellTemplate = cell0;
             column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             column1.ReadOnly = false;
-           // column1.Width = 150;
+            // column1.Width = 150;
             column1.HeaderText = OsLocalization.Market.Label44;
             _grid.Columns.Add(column1);
 
@@ -72,6 +75,13 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             column4.ReadOnly = false;
             column4.HeaderText = OsLocalization.Market.Label46;
             _grid.Columns.Add(column4);
+
+            DataGridViewColumn column6 = new DataGridViewColumn();
+            column6.CellTemplate = cell0;
+            column6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            column6.ReadOnly = false;
+            column6.HeaderText = OsLocalization.Market.Label61;
+            _grid.Columns.Add(column6);
 
             DataGridViewColumn column5 = new DataGridViewColumn();
             column5.CellTemplate = cell0;
@@ -131,6 +141,9 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[4].Value = SecToSubscrible[i].PrimaryExch;
 
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+                nRow.Cells[5].Value = SecToSubscrible[i].Currency;
+
                 DataGridViewComboBoxCell cell = new DataGridViewComboBoxCell();
                 cell.Items.Add(true.ToString());
                 cell.Items.Add(false.ToString());
@@ -159,7 +172,8 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 security.SecType = Convert.ToString(_grid.Rows[i].Cells[2].Value);
                 security.LocalSymbol = Convert.ToString(_grid.Rows[i].Cells[3].Value);
                 security.PrimaryExch = Convert.ToString(_grid.Rows[i].Cells[4].Value);
-                security.CreateMarketDepthFromTrades = Convert.ToBoolean(_grid.Rows[i].Cells[5].Value);
+                security.Currency = Convert.ToString(_grid.Rows[i].Cells[5].Value);
+                security.CreateMarketDepthFromTrades = Convert.ToBoolean(_grid.Rows[i].Cells[6].Value);
             }
         }
 
@@ -207,5 +221,13 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             SecToSubscrible.Add(new SecurityIb());
             LoadSecOnTable();
         }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            SaveSecFromTable();
+            _server.GetSecurities();
+            _server.SaveIbSecurities();
+        }
     }
 }
+

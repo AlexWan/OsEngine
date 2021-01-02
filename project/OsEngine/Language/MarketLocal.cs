@@ -705,6 +705,10 @@ namespace OsEngine.Language
             "Eng:MD is internal?_" +
             "Ru:Стаканы эмулируются?_");
 
+        public string Label61 => OsLocalization.ConvertToLocString(
+            "Eng:Currency_" +
+            "Ru:Валюта_");
+
         public string ServerParam1 => OsLocalization.ConvertToLocString(
             "Eng:Keep trade history_" +
             "Ru:Сохранять историю трейдов_");
@@ -758,6 +762,10 @@ namespace OsEngine.Language
             "Eng:Bid Ask in trades_" +
             "Ru:Грузим данные bid/ask в трейды_");
 
+        public string ServerParam8 => OsLocalization.ConvertToLocString(
+            "Eng:Remove Trades From Memory_" +
+            "Ru:Удалять трейды из памяти_");
+
         public string UseStock => OsLocalization.ConvertToLocString(
             "Eng:Stock_" +
             "Ru:Акции_");
@@ -777,5 +785,9 @@ namespace OsEngine.Language
         public string UseOther => OsLocalization.ConvertToLocString(
             "Eng:Other_" +
             "Ru:Другое_");
+
+        public string UseSecInfoUpdates => OsLocalization.ConvertToLocString(
+            "Eng:Use sec info updates_" +
+            "Ru:Включить обновления инструментов_");
     }
 }

@@ -31,7 +31,7 @@ namespace OsEngine.Market.Servers.Huobi.Spot
                     security.PriceStep = security.Decimals.GetValueByDecimals();
                     security.PriceStepCost = security.PriceStep;
                     security.State = symbol.state == "online" ? SecurityStateType.Activ : SecurityStateType.Close;
-                    security.Lot = symbol.amountPrecision.GetValueByDecimals();
+                    security.Lot = 1;
 
                     _securities.Add(security);
                 }

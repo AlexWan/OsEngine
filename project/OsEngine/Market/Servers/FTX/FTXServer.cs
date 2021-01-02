@@ -45,7 +45,6 @@ namespace OsEngine.Market.Servers.FTX
         #endregion
 
         #region private fields
-
         /// <summary>
         /// Available timeframes in FTX.
         /// словарь таймфреймов, поддерживаемых этой биржей
@@ -60,32 +59,26 @@ namespace OsEngine.Market.Servers.FTX
             { 14400, "4hour" },
             { 86400, "1day" }
         };
-
-        private WsSource _wsSource;
-
-        private CancellationTokenSource _cancelTokenSource;
-
         private readonly ConcurrentQueue<string> _queueMessagesReceivedFromExchange = new ConcurrentQueue<string>();
         private readonly Dictionary<string, Action<JToken>> _responseHandlers;
-
-        private FTXSecurityCreator _securitiesCreator;
-        private FTXPortfolioCreator _portfoliosCreator;
-        private FTXMarketDepthCreator _marketDepthCreator;
-        private FTXTradesCreator _tradesCreator;
-        private FTXOrderCreator _orderCreator;
-        private FTXCandlesCreator _candlesCreator;
-        private DateTime _lastTimeUpdateSocket;
-
-        private bool _isPortfolioSubscribed = false;
-        private bool _loginFailed = false;
-
-        private FtxRestApi _ftxRestApi;
-
-        private Client _client;
-
         private readonly List<string> _subscribedSecurities = new List<string>();
         private readonly Dictionary<string, Order> _myOrders = new Dictionary<string, Order>();
         private readonly Dictionary<string, MarketDepth> _securityMarketDepths = new Dictionary<string, MarketDepth>();
+        private readonly FTXSecurityCreator _securitiesCreator = new FTXSecurityCreator();
+        private readonly FTXPortfolioCreator _portfoliosCreator = new FTXPortfolioCreator();
+        private readonly FTXMarketDepthCreator _marketDepthCreator = new FTXMarketDepthCreator();
+        private readonly FTXTradesCreator _tradesCreator = new FTXTradesCreator();
+        private readonly FTXOrderCreator _orderCreator = new FTXOrderCreator();
+        private readonly FTXCandlesCreator _candlesCreator = new FTXCandlesCreator();
+        private readonly object _locker = new object();
+
+        private WsSource _wsSource;
+        private CancellationTokenSource _cancelTokenSource;
+        private DateTime _lastTimeUpdateSocket;
+        private bool _isPortfolioSubscribed = false;
+        private bool _loginFailed = false;
+        private FtxRestApi _ftxRestApi;
+        private Client _client;
         #endregion
 
         #region public properties
@@ -134,7 +127,10 @@ namespace OsEngine.Market.Servers.FTX
                         var type = response.SelectToken("type").ToString();
                         if (_responseHandlers.ContainsKey(type))
                         {
-                            _responseHandlers[type].Invoke(response);
+                            lock (_locker)
+                            {
+                                _responseHandlers[type].Invoke(response);
+                            }                        
                         }
                         else
                         {
@@ -161,20 +157,36 @@ namespace OsEngine.Market.Servers.FTX
         private async void SourceAliveCheckerThread(CancellationToken token)
         {
             var pingMessage = FtxWebSockerRequestGenerator.GetPingRequest();
+            var sourceAliveCheckerStart = DateTime.Now;
             while (!token.IsCancellationRequested)
             {
                 await Task.Delay(15000);
-                _wsSource?.SendMessage(pingMessage);
-
+                if(_wsSource != null)
+                {
+                    _wsSource.SendMessage(pingMessage);
+                }
+                
                 if (_lastTimeUpdateSocket == DateTime.MinValue)
                 {
+                    if(sourceAliveCheckerStart.AddSeconds(60) < DateTime.Now)
+                    {
+                        break;
+                    }
                     continue;
                 }
                 if (_lastTimeUpdateSocket.AddSeconds(60) < DateTime.Now)
                 {
-                    SendLogMessage("The websocket is disabled. Restart", LogMessageType.Error);
+                    break;
+                }
+            }
+
+            if (!token.IsCancellationRequested)
+            {
+                SendLogMessage("The websocket is disabled. Restart", LogMessageType.Error);
+
+                lock (_locker)
+                {
                     OnDisconnectEvent();
-                    return;
                 }
             }
         }
@@ -214,6 +226,11 @@ namespace OsEngine.Market.Servers.FTX
                 if (midTime > endTime)
                 {
                     midTime = endTime;
+                }
+
+                if(_ftxRestApi == null)
+                {
+                    break;
                 }
 
                 var histaricalPricesResponse = _ftxRestApi.GetHistoricalPricesAsync(securityName, needInterval, CandlesDownloadLimit, actualTime, midTime).Result;
@@ -371,15 +388,16 @@ namespace OsEngine.Market.Servers.FTX
             var order = _orderCreator.Create(data);
             if (!_myOrders.ContainsKey(order.NumberMarket))
             {
+                SendLogMessage($"Order with number {order.NumberUser} has been removed from the FTXServer cache.", LogMessageType.Error);
                 return;
             }
 
             var localOrder = _myOrders[order.NumberMarket];
             if (order.State != localOrder.State)
-            {
-                var currentTime = DateTime.Now;
+            {          
                 if (order.State == OrderStateType.Done)
                 {
+                    var currentTime = DateTime.Now;
                     if (localOrder.State == OrderStateType.Cancel)
                     {
                         localOrder.TimeCancel = currentTime;
@@ -391,10 +409,9 @@ namespace OsEngine.Market.Servers.FTX
                     }
                     _myOrders.Remove(localOrder.NumberMarket);
                 }
-                else
-                {
-                    localOrder.State = order.State;
-                }
+                
+                localOrder.State = order.State;
+
                 OnOrderEvent(localOrder);
             }
         }
@@ -461,6 +478,11 @@ namespace OsEngine.Market.Servers.FTX
                 OnMarketDepthEvent(localMarketDepth);
             }
         }
+
+        private bool IsSpot(string securityName)
+        {
+            return securityName.Contains("/");
+        }
         #endregion
         #endregion
 
@@ -485,11 +507,25 @@ namespace OsEngine.Market.Servers.FTX
 
             if (isSuccessful)
             {
-                _myOrders[order.NumberMarket].State = OrderStateType.Cancel;
+                if (!_myOrders.ContainsKey(order.NumberMarket))
+                {
+                    SendLogMessage($"Order with number {order.NumberUser} has been removed from the FTXServer cache.", LogMessageType.Error);
+                    return;
+                }
+                Order localOrder = _myOrders[order.NumberMarket];
+                localOrder.State = OrderStateType.Cancel;
+                OnOrderEvent(localOrder);
             }
             else
             {
                 string errorMsg = cancelOrderResponse.SelectToken("error").ToString();
+
+                if(errorMsg.Equals("Order already closed"))
+                {
+                    order.State = OrderStateType.Cancel;
+                    OnOrderEvent(order);
+                    return;
+                }
 
                 SendLogMessage($"Error on order cancel num {order.NumberUser} : {errorMsg}", LogMessageType.Error);
             }
@@ -497,13 +533,6 @@ namespace OsEngine.Market.Servers.FTX
 
         public override void Connect()
         {
-            _securitiesCreator = new FTXSecurityCreator();
-            _portfoliosCreator = new FTXPortfolioCreator();
-            _marketDepthCreator = new FTXMarketDepthCreator();
-            _tradesCreator = new FTXTradesCreator();
-            _orderCreator = new FTXOrderCreator();
-            _candlesCreator = new FTXCandlesCreator();
-
             _client = new Client(
                 ((ServerParameterString)ServerParameters[0]).Value,
                 ((ServerParameterPassword)ServerParameters[1]).Value);
@@ -552,17 +581,10 @@ namespace OsEngine.Market.Servers.FTX
                     _wsSource.Dispose();
                     _wsSource.MessageEvent -= WsSourceMessageEvent;
                     _wsSource = null;
-
-                    _securitiesCreator = null;
-                    _portfoliosCreator = null;
-                    _marketDepthCreator = null;
-                    _tradesCreator = null;
-                    _orderCreator = null;
-                    _candlesCreator = null;
+                    _lastTimeUpdateSocket = DateTime.MinValue;
 
                     _client = null;
                     _ftxRestApi = null;
-                    _myOrders.Clear();
                     _securityMarketDepths.Clear();
                 }
 
@@ -621,7 +643,6 @@ namespace OsEngine.Market.Servers.FTX
             return GetCandles(oldInterval, security.Name, startTime, endTime);
         }
 
-
         public List<Candle> GetCandleHistory(string nameSec, TimeSpan interval)
         {
             int oldInterval = Convert.ToInt32(interval.TotalSeconds);
@@ -677,7 +698,20 @@ namespace OsEngine.Market.Servers.FTX
                 return;
             }
 
-            var placeOrderResponse = await _ftxRestApi.PlaceOrderAsync(order.SecurityNameCode, order.Side, order.Price, order.TypeOrder, order.Volume);
+            var reduceOnly = !IsSpot(order.SecurityNameCode) &&
+                order.PositionConditionType == OrderPositionConditionType.Close ? 
+                    true : 
+                    false;
+
+            var placeOrderResponse = await _ftxRestApi.PlaceOrderAsync(
+                order.SecurityNameCode,
+                order.Side,
+                order.TypeOrder == OrderPriceType.Limit ?
+                    new decimal?(order.Price) :
+                    null,
+                order.TypeOrder,
+                order.Volume,
+                reduceOnly);
 
             var isSuccessful = placeOrderResponse.SelectToken("success").Value<bool>();
             if (isSuccessful)
@@ -693,6 +727,11 @@ namespace OsEngine.Market.Servers.FTX
                 createdOrder.IsStopOrProfit = order.IsStopOrProfit;
                 createdOrder.Comment = order.Comment;
                 createdOrder.LifeTime = order.LifeTime;
+
+                if(createdOrder.TypeOrder == OrderPriceType.Market)
+                {
+                    createdOrder.Price = order.Price;
+                }
 
                 _myOrders.Add(createdOrder.NumberMarket, createdOrder);
                 OnOrderEvent(createdOrder);

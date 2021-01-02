@@ -23,7 +23,7 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
 
             order.NumberMarket = orderMarketId;
             order.TimeCallBack = data.SelectToken(TimePath).Value<DateTime>();
-            order.Price = data.SelectToken(PricePath).Value<decimal>();
+            order.Price = data.SelectToken(PricePath).Value<decimal?>() ?? default;
             order.SecurityNameCode = data.SelectToken(SecurityNamePath).ToString();
             order.Side = data.SelectToken(SidePath).ToString() == "sell" ?
                 Side.Sell :
