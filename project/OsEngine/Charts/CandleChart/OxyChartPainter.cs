@@ -65,8 +65,6 @@ namespace OsEngine.Charts.CandleChart
         public OxyChartPainter(string name, StartProgram startProgram)
         {
             this.chart_name = name;
-            this.bot_name = name.Replace("tab", ";").Split(';')[0];
-            this.bot_tab = Convert.ToInt32(name.Replace("tab", ";").Split(';')[1]);
             start_program = startProgram;
             color_keeper = new ChartMasterColorKeeper(name);
             mediator = new OxyMediator(this);
