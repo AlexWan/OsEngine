@@ -125,7 +125,7 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
 
         private void Plot_model_MouseDown(object sender, OxyMouseDownEventArgs e)
         {
-            owner.mediator.RedrawControlPanel( false);
+            owner.mediator.RedrawControlPanel(false);
 
             e.Handled = true;
         }
@@ -137,7 +137,7 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
                 menu_button.Background = OxyColors.Transparent;
                 owner.MainChartMouseButtonClick(ChartClickType.RightButton);
 
-                owner.mediator.RedrawControlPanel( false);
+                owner.mediator.RedrawControlPanel(false);
             }
 
             e.Handled = true;
@@ -181,7 +181,7 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
             e.Handled = true;
         }
 
-        
+
         private void Plus_button_MouseDown(object sender, OxyMouseDownEventArgs e)
         {
             if (sender != null)
@@ -216,7 +216,7 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
 
                 speed_state_lable.Text = "x" + owner.mediator.factor_array[owner.mediator.factor_selector].ToString();
             }
-            owner.mediator.RedrawControlPanel( false);
+            owner.mediator.RedrawControlPanel(false);
             e.Handled = true;
         }
 
@@ -238,7 +238,7 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
 
             if (owner.start_program == StartProgram.IsOsTrader)
             {
-                if ( menu_button == null)
+                if (menu_button == null)
                     return;
 
                 menu_button.TextPosition = new ScreenPoint(plot_view.ActualWidth - 55, plot_view.ActualHeight - 20);

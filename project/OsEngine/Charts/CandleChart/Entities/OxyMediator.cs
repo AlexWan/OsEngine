@@ -50,8 +50,8 @@ namespace OsEngine.Charts.CandleChart.Entities
         {
             this.owner = owner;
 
-            owner.UpdateCandlesEvent += Owner_UpdateCandlesEvent;
-            owner.UpdateIndicatorEvent += Owner_UpdateIndicatorEvent;
+            owner.UpdateCandlesEvent += Owner_UpdateCandlesEvent; 
+            owner.UpdateIndicatorEvent += Owner_UpdateIndicatorEvent; 
         }
 
         private void Owner_UpdateIndicatorEvent()
@@ -71,7 +71,7 @@ namespace OsEngine.Charts.CandleChart.Entities
         }
 
         public void MainRedraw()
-        {
+        {        
             bool need_to_redraw = true;
 
             foreach (var seria in owner.series)
@@ -95,7 +95,7 @@ namespace OsEngine.Charts.CandleChart.Entities
                     is_first_start = false;
 
                     delay = new Task(() =>
-                    {
+                    {           
                         Delay(500).Wait(1000);
 
                         RedrawAll(null);
@@ -127,7 +127,7 @@ namespace OsEngine.Charts.CandleChart.Entities
         public void ProcessPositions(List<Position> positions)
         {
             if (prime_chart != null)
-                prime_chart.ProcessPositions(positions);
+            prime_chart.ProcessPositions(positions);
         }
 
         public void AddOxyArea(OxyArea oxy_area)
@@ -324,7 +324,7 @@ namespace OsEngine.Charts.CandleChart.Entities
             await Task.Delay(millisec);
         }
 
-        public void RedrawPrime(bool nead_to_delay)
+        public void RedrawPrime( bool nead_to_delay)
         {
             if (!can_redraw_prime)
                 return;
@@ -337,8 +337,8 @@ namespace OsEngine.Charts.CandleChart.Entities
                 return;
             }
 
-            prime_chart.Calculate(owner.time_frame_span, owner.time_frame);
-            prime_chart.Redraw();
+                prime_chart.Calculate(owner.time_frame_span, owner.time_frame);
+                prime_chart.Redraw();
 
             if (nead_to_delay)
             {
@@ -424,7 +424,7 @@ namespace OsEngine.Charts.CandleChart.Entities
             can_redraw_scroll = true;
         }
 
-        public void RedrawControlPanel(bool nead_to_delay)
+        public void RedrawControlPanel( bool nead_to_delay)
         {
             try
             {
@@ -448,7 +448,7 @@ namespace OsEngine.Charts.CandleChart.Entities
             }
         }
 
-
+        
 
         public void ProcessElem(IChartElement element)
         {
@@ -521,6 +521,7 @@ namespace OsEngine.Charts.CandleChart.Entities
                     Size = size,
                     StrokeThickness = stroke_thickness,
                     Stroke = OxyColor.FromArgb(((PointElement)element).Color.A, ((PointElement)element).Color.R, ((PointElement)element).Color.G, ((PointElement)element).Color.B),
+                    Tag = "point"
                 };
 
 

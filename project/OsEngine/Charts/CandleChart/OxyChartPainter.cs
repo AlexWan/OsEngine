@@ -968,6 +968,8 @@ namespace OsEngine.Charts.CandleChart
             isPaint = false;
             mediator.is_first_start = true;
 
+
+
             foreach (var area in all_areas)
             {
                 area.Dispose();

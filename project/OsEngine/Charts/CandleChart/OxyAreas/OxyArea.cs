@@ -43,7 +43,9 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
 
         public CustomTextAnnotation annotation_price;
         public CustomTextAnnotation annotation_date_time;
-     
+        public CustomTextAnnotation drawed_name;
+
+
         public ScreenPoint mouse_screen_point = new ScreenPoint();
         public System.Windows.Input.MouseEventArgs mouse_event_args;
         public static List<Candle> my_candles = new List<Candle>();
@@ -95,7 +97,18 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
                 Background = area_settings.Brush_background,
             };
 
-            
+            drawed_name = new CustomTextAnnotation()
+            {
+                Text = (string)Tag,
+                TextColor = OxyColor.FromArgb(255, 98, 103, 113),
+                Background = OxyColors.Transparent,
+                Stroke = OxyColors.Transparent,
+                Tag = "drawed_name",
+                Layer = OxyPlot.Annotations.AnnotationLayer.AboveSeries,
+                TextHorizontalAlignment = HorizontalAlignment.Left,
+                TextVerticalAlignment = VerticalAlignment.Middle,
+                FontSize = 24,
+            };
 
             annotation_price = new CustomTextAnnotation()
             {
@@ -257,6 +270,16 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
 
         public virtual void Dispose()
         {
+            List<Annotation> point_annotations = new List<Annotation>();
+
+            foreach (var annotation in plot_model.Annotations)
+            {
+                if (annotation.Tag == (object)"point")
+                    point_annotations.Add(annotation);
+            }
+
+            foreach (var ann in point_annotations)
+                plot_model.Annotations.Remove(ann);
 
         }
     }

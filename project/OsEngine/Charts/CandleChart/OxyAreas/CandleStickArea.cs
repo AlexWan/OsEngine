@@ -244,7 +244,7 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
             Action action_move_polygon_viewer = () =>
             {
                 double first_candle_X = plot_model.Axes[0].ActualMinimum;
-                double last_candle_X = plot_model.Axes[0].ActualMaximum; 
+                double last_candle_X = plot_model.Axes[0].ActualMaximum;
 
                 List<OxyPlot.DataPoint> new_points = new List<OxyPlot.DataPoint>()
                 {
@@ -258,7 +258,7 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
                 scroll_area.screen_viewer_polygon.Points.AddRange(new_points);
             };
 
-            scroll_area.plot_view.Dispatcher.Invoke(action_move_polygon_viewer);    
+            scroll_area.plot_view.Dispatcher.Invoke(action_move_polygon_viewer);
         }
 
         public void ProcessPositions(List<Position> deals)
@@ -378,8 +378,8 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
                 scatter_series_list.Add(close_long_deals_series);
                 scatter_series_list.Add(close_short_deals_series);
 
-                
-                
+
+
 
                 var profit_line_long = new LineSeries()
                 {
@@ -391,7 +391,7 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
                     Tag = "profit_line_long"
                 };
 
-                
+
                 var loss_line_short = new LineSeries()
                 {
                     LineStyle = LineStyle.LongDash,
@@ -980,7 +980,7 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
 
                     plot_model.Series.Clear();
 
-                    plot_model.Series.Add(candle_stick_seria);            
+                    plot_model.Series.Add(candle_stick_seria);
 
                     foreach (var linear_bar_series in linear_bar_series_list)
                     {
@@ -1007,6 +1007,8 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
 
         public override void Dispose()
         {
+            base.Dispose();
+
             List<ScatterSeries> new_scatter_series_list = new List<ScatterSeries>();
 
             for (int i = 0; i < scatter_series_list.Count; i++)
