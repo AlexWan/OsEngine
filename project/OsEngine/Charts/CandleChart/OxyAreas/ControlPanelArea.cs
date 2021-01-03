@@ -233,7 +233,7 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
                 plus_button.TextPosition = new ScreenPoint(80, plot_view.ActualHeight - 20);
                 speed_state_lable.TextPosition = new ScreenPoint(100, plot_view.ActualHeight - 20);
 
-                menu_button.TextPosition = new ScreenPoint(plot_view.ActualWidth - 25, plot_view.ActualHeight - 20);
+                menu_button.TextPosition = new ScreenPoint(plot_view.ActualWidth - 55, plot_view.ActualHeight - 20);
             }
 
             if (owner.start_program == StartProgram.IsOsTrader)
@@ -241,7 +241,7 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
                 if ( menu_button == null)
                     return;
 
-                menu_button.TextPosition = new ScreenPoint(plot_view.ActualWidth - 25, plot_view.ActualHeight - 20);
+                menu_button.TextPosition = new ScreenPoint(plot_view.ActualWidth - 55, plot_view.ActualHeight - 20);
             }
         }
 
