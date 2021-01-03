@@ -3,6 +3,7 @@ using OsEngine.Charts.CandleChart.OxyAreas;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OxyPlot;
+using OxyPlot.Annotations;
 using OxyPlot.Axes;
 using OxyPlot.Series;
 using System;
@@ -49,8 +50,8 @@ namespace OsEngine.Charts.CandleChart.Entities
         {
             this.owner = owner;
 
-            owner.UpdateCandlesEvent += Owner_UpdateCandlesEvent; 
-            owner.UpdateIndicatorEvent += Owner_UpdateIndicatorEvent; 
+            owner.UpdateCandlesEvent += Owner_UpdateCandlesEvent;
+            owner.UpdateIndicatorEvent += Owner_UpdateIndicatorEvent;
         }
 
         private void Owner_UpdateIndicatorEvent()
@@ -70,7 +71,7 @@ namespace OsEngine.Charts.CandleChart.Entities
         }
 
         public void MainRedraw()
-        {        
+        {
             bool need_to_redraw = true;
 
             foreach (var seria in owner.series)
@@ -94,7 +95,7 @@ namespace OsEngine.Charts.CandleChart.Entities
                     is_first_start = false;
 
                     delay = new Task(() =>
-                    {           
+                    {
                         Delay(500).Wait(1000);
 
                         RedrawAll(null);
@@ -126,7 +127,7 @@ namespace OsEngine.Charts.CandleChart.Entities
         public void ProcessPositions(List<Position> positions)
         {
             if (prime_chart != null)
-            prime_chart.ProcessPositions(positions);
+                prime_chart.ProcessPositions(positions);
         }
 
         public void AddOxyArea(OxyArea oxy_area)
@@ -323,7 +324,7 @@ namespace OsEngine.Charts.CandleChart.Entities
             await Task.Delay(millisec);
         }
 
-        public void RedrawPrime( bool nead_to_delay)
+        public void RedrawPrime(bool nead_to_delay)
         {
             if (!can_redraw_prime)
                 return;
@@ -336,8 +337,8 @@ namespace OsEngine.Charts.CandleChart.Entities
                 return;
             }
 
-                prime_chart.Calculate(owner.time_frame_span, owner.time_frame);
-                prime_chart.Redraw();
+            prime_chart.Calculate(owner.time_frame_span, owner.time_frame);
+            prime_chart.Redraw();
 
             if (nead_to_delay)
             {
@@ -423,7 +424,7 @@ namespace OsEngine.Charts.CandleChart.Entities
             can_redraw_scroll = true;
         }
 
-        public void RedrawControlPanel( bool nead_to_delay)
+        public void RedrawControlPanel(bool nead_to_delay)
         {
             try
             {
@@ -444,6 +445,98 @@ namespace OsEngine.Charts.CandleChart.Entities
 
                 delay.Start();
                 delay.Wait(100);
+            }
+        }
+
+
+
+        public void ProcessElem(IChartElement element)
+        {
+            if (element is LineHorisontal)
+            {
+                var indi_area = indicators_list.Find(x => (string)x.Tag == element.Area);
+
+                if (indi_area.lines_series_list.Exists(x => (string)x.Tag == element.UniqName + "HorLine"))
+                    indi_area.lines_series_list.Remove(indi_area.lines_series_list.Find(x => (string)x.Tag == element.UniqName + "HorLine"));
+
+                var line = new LineSeries()
+                {
+                    Color = OxyColor.FromArgb(((LineHorisontal)element).Color.A, ((LineHorisontal)element).Color.R, ((LineHorisontal)element).Color.G, ((LineHorisontal)element).Color.B),
+                    MarkerStrokeThickness = 1,
+                    StrokeThickness = 1,
+                    MarkerStroke = OxyColor.FromArgb(((LineHorisontal)element).Color.A, ((LineHorisontal)element).Color.R, ((LineHorisontal)element).Color.G, ((LineHorisontal)element).Color.B),
+                    Tag = (object)(element.UniqName + "HorLine"),
+                };
+
+                line.Points.AddRange(new List<DataPoint>() {
+                    new DataPoint(DateTimeAxis.ToDouble(((LineHorisontal)element).TimeStart), (double)((LineHorisontal)element).Value),
+                    new DataPoint(DateTimeAxis.ToDouble(((LineHorisontal)element).TimeEnd), (double)((LineHorisontal)element).Value)
+                });
+
+                indi_area.lines_series_list.Add(line);
+            }
+
+            if (element is PointElement)
+            {
+                MarkerType shape = MarkerType.None;
+
+                int size = (int)(((PointElement)element).Size / 2);
+
+                double stroke_thickness = 1;
+
+                if (((PointElement)element).Style == System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Circle)
+                    shape = MarkerType.Circle;
+
+                else if (((PointElement)element).Style == System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Diamond)
+                    shape = MarkerType.Diamond;
+
+                else if (((PointElement)element).Style == System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Square)
+                    shape = MarkerType.Square;
+
+                else if (((PointElement)element).Style == System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Cross)
+                {
+                    shape = MarkerType.Cross;
+                    stroke_thickness = size / 2;
+                }
+
+                else if (((PointElement)element).Style == System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Triangle)
+                    shape = MarkerType.Triangle;
+
+                else if (((PointElement)element).Style == System.Windows.Forms.DataVisualization.Charting.MarkerStyle.None)
+                    shape = MarkerType.None;
+
+                else
+                {
+                    shape = MarkerType.Star;
+                    stroke_thickness = size / 4;
+                }
+
+                PointAnnotation point = new PointAnnotation()
+                {
+                    X = DateTimeAxis.ToDouble(((PointElement)element).TimePoint),
+                    Y = (double)((PointElement)element).Y,
+                    Layer = AnnotationLayer.AboveSeries,
+                    Fill = OxyColor.FromArgb(((PointElement)element).Color.A, ((PointElement)element).Color.R, ((PointElement)element).Color.G, ((PointElement)element).Color.B),
+                    Shape = shape,
+                    Size = size,
+                    StrokeThickness = stroke_thickness,
+                    Stroke = OxyColor.FromArgb(((PointElement)element).Color.A, ((PointElement)element).Color.R, ((PointElement)element).Color.G, ((PointElement)element).Color.B),
+                };
+
+
+                OxyArea area;
+
+                if (indicators_list.Exists(x => (string)x.Tag == element.Area))
+                {
+                    area = indicators_list.Find(x => (string)x.Tag == element.Area);
+
+                    area.plot_model.Annotations.Add(point);
+                }
+
+                if (element.Area == "Prime")
+                {
+                    prime_chart.plot_model.Annotations.Add(point);
+                }
             }
         }
 
@@ -481,62 +574,6 @@ namespace OsEngine.Charts.CandleChart.Entities
             indicators_list = new List<IndicatorArea>();
 
             scroll_bar = null;
-        }
-
-        public void ProcessElem(IChartElement element)
-        {
-            if (element is LineHorisontal)
-            {
-                var indi_area = indicators_list.Find(x => (string)x.Tag == element.Area);
-
-                if (indi_area.lines_series_list.Exists(x => (string)x.Tag == element.UniqName + "HorLine"))
-                    indi_area.lines_series_list.Remove(indi_area.lines_series_list.Find(x => (string)x.Tag == element.UniqName + "HorLine"));
-
-                var line = new LineSeries()
-                {
-                    Color = OxyColor.FromArgb(((LineHorisontal)element).Color.A, ((LineHorisontal)element).Color.R, ((LineHorisontal)element).Color.G, ((LineHorisontal)element).Color.B),
-                    MarkerStrokeThickness = 1,
-                    StrokeThickness = 1,
-                    MarkerStroke = OxyColor.FromArgb(((LineHorisontal)element).Color.A, ((LineHorisontal)element).Color.R, ((LineHorisontal)element).Color.G, ((LineHorisontal)element).Color.B),
-                    Tag = (object)(element.UniqName + "HorLine"),
-                };
-
-                line.Points.AddRange(new List<DataPoint>() {
-                    new DataPoint(DateTimeAxis.ToDouble(((LineHorisontal)element).TimeStart), (double)((LineHorisontal)element).Value),
-                    new DataPoint(DateTimeAxis.ToDouble(((LineHorisontal)element).TimeEnd), (double)((LineHorisontal)element).Value)
-                });
-
-                indi_area.lines_series_list.Add(line);
-            }
-
-            if (element is PointElement)
-            {
-                //OxyArea area;
-
-                //if (indicators_list.Exists(x => (string)x.Tag == element.Area))
-                //{
-                //    area = indicators_list.Find(x => (string)x.Tag == element.Area);
-
-                //    if (((IndicatorArea)area).scatter_series_list.Exists(x => (string)x.Tag == element.UniqName))
-                //    {
-                //        ((IndicatorArea)area).scatter_series_list.Remove(((IndicatorArea)area).scatter_series_list.Find(x => (string)x.Tag == element.UniqName));
-                //    }
-
-
-                //}
-
-                //if (element.Area == "Prime")
-                //{
-                //    area = prime_chart;
-                //}
-
-                //if (area.)
-                //lines_series_list.Remove(indi_area.lines_series_list.Find(x => (string)x.Tag == element.UniqName));
-                
-
-                //if (indi_area.lines_series_list.Exists(x => (string)x.Tag == element.UniqName))
-                    
-            }
         }
     }
 }
