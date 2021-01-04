@@ -24,10 +24,11 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
         public double top_value = 0;
         public double bottom_value = 0;
 
-        bool moveStartPoint = false;
-        bool moveEndPoint = false;
-
         DataPoint last_point = DataPoint.Undefined;
+
+        public static List<Candle> candles_copy = new List<Candle>();
+
+
 
         public LineSeries line_seria = new LineSeries();
 
@@ -86,7 +87,7 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
                 bottom_value = plot_model.Axes[1].ActualMinimum;
 
                 List<DataPoint> new_points = new List<DataPoint>()
-                { 
+                {
                         new DataPoint(screen_viewer_polygon.Points[0].X + dx, top_value),
                         new DataPoint(screen_viewer_polygon.Points[1].X + dx, top_value),
                         new DataPoint(screen_viewer_polygon.Points[2].X + dx, bottom_value),
@@ -100,12 +101,6 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
                 last_point = thisPoint;
 
                 owner.mediator.RedrawScroll(false);
-
-
-                owner.mediator.ZoomIndicators(screen_viewer_polygon.Points[0].X, screen_viewer_polygon.Points[1].X);
-
-                owner.mediator.ZoomPrime(screen_viewer_polygon.Points[0].X, screen_viewer_polygon.Points[1].X);
-
             };
 
             plot_view.Dispatcher.Invoke(screen_rect_move);
@@ -132,6 +127,11 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
         {
             scroll_mouse_down_value_X = 0;
             scroll_chart_left_mouse_is_down = false;
+
+            owner.mediator.ZoomIndicators(screen_viewer_polygon.Points[0].X, screen_viewer_polygon.Points[1].X);
+
+            owner.mediator.ZoomPrime(screen_viewer_polygon.Points[0].X, screen_viewer_polygon.Points[1].X);
+
 
             e.Handled = true;
         }
@@ -191,60 +191,49 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
                     plot_view.Dispatcher.Invoke(action);
             }
 
+            if (scroll_chart_left_mouse_is_down)
+            {
+                return;
+            }
+
             Action action_scroll = () =>
             {
                 if (my_candles == null || my_candles.Count == 0)
                     return;
 
-                
+                candles_copy.Clear();
+                candles_copy.AddRange(my_candles);
+
+                lock (series_locker)
+                {
                     var main_area = ((CandleStickArea)all_areas.Find(x => x is CandleStickArea));
 
-                var area_series_parallel = new LineSeries()
-                {
-                    Color = OxyColor.FromArgb(150, 255, 85, 0),
-                    EdgeRenderingMode = EdgeRenderingMode.PreferSharpness
-                };
+                    var items = candles_copy.Select(x => new DataPoint(DateTimeAxis.ToDouble(x.TimeStart), (double)x.Close));
 
-                var items = my_candles.Select(x => new DataPoint(DateTimeAxis.ToDouble(x.TimeStart), (double)x.Close));
+                    line_seria = new LineSeries()
+                    {
+                        Color = OxyColor.Parse("#FF5500"),
+                        MarkerStrokeThickness = 1,
+                        StrokeThickness = 1,
+                    };
 
-                line_seria = new LineSeries()
-                {
-                    Color = OxyColor.Parse("#FF5500"),
-                     MarkerStrokeThickness = 1,
-                      StrokeThickness = 1,
-                };
+                    try
+                    {
+                        line_seria.Points.Clear();
+                        line_seria.Points.AddRange(items);
+                    }
+                    catch { return; }
 
-                try
-                {
-                    line_seria.Points.Clear();
-                    line_seria.Points.AddRange(items);
-                }
-                catch { return; }
-
-                    var X_start = DateTimeAxis.ToDouble(my_candles.First().TimeStart);
-                    var X_end = DateTimeAxis.ToDouble(my_candles.Last().TimeStart);
+                    var X_start = DateTimeAxis.ToDouble(candles_copy.First().TimeStart);
+                    var X_end = DateTimeAxis.ToDouble(candles_copy.Last().TimeStart);
 
                     date_time_axis_X.Zoom(X_start, X_end);
 
                     if (plot_model == null)
                         return;
 
-                    if (plot_model.Series.ToList().Exists(x => x.SeriesGroupName == "ScrollPoints"))
-                        plot_model.Series.Remove(plot_model.Series.First(x => x.SeriesGroupName == "ScrollPoints"));
-
-                try
-                {
-                    area_series_parallel.Points.AddRange(items);
-                    area_series_parallel.SeriesGroupName = "ScrollPoints";
-                }
-                catch { return; }
-
-                plot_model.Series.Add(area_series_parallel);
-
-
                     if (plot_model.Annotations.ToList().Exists(x => x.Tag == (object)"screen_viewer_polygon"))
                         plot_model.Annotations.Remove(plot_model.Annotations.First(x => (object)x.Tag == "screen_viewer_polygon"));
-
 
 
                     if (!owner.mediator.prime_chart.isFreeze)
@@ -289,13 +278,11 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
                     }
 
                     plot_model.Annotations.Add(screen_viewer_polygon);
-                
+                }
+
             };
 
-            lock (series_locker)
-            {
-                plot_view.Dispatcher.Invoke(action_scroll);
-            }
+            plot_view.Dispatcher.Invoke(action_scroll);
         }
 
         public override void Redraw()
@@ -319,6 +306,7 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
         public override void Dispose()
         {
             line_seria = new LineSeries();
+            candles_copy = new List<Candle>();
             my_candles = new List<Candle>();
             items_oxy_candles = new List<HighLowItem>();
         }  

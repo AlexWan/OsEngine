@@ -3,6 +3,7 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using OsEngine.Market;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -955,10 +956,38 @@ namespace OsEngine.Entity
                     Lots = 1;
                 }
 
-                decimal profit = (ProfitOperationPunkt / PriceStep) * PriceStepCost * MaxVolume * Lots - CommissionTotal();
-
-                return profit; //  Lots;
+                if (IsLotServer())
+                {
+                    return (ProfitOperationPunkt / PriceStep) * PriceStepCost * MaxVolume * Lots - CommissionTotal();
+                }
+                else
+                {
+                    return (ProfitOperationPunkt / PriceStep) * PriceStepCost * MaxVolume - CommissionTotal();
+                }
             }
+        }
+        private bool IsLotServer()
+        {
+            List<ServerType> LotServers = new List<ServerType>();
+            LotServers.Add(ServerType.Plaza);
+            LotServers.Add(ServerType.QuikDde);
+            LotServers.Add(ServerType.QuikLua);
+            LotServers.Add(ServerType.SmartCom);
+            LotServers.Add(ServerType.Tinkoff);
+            LotServers.Add(ServerType.Transaq);
+
+            if (OpenOrders != null && OpenOrders.Count > 0)
+            {
+                if (LotServers.Find(x => x == OpenOrders[0].ServerType) == null)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            return true;
         }
 
         /// <summary>

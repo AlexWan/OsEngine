@@ -1,4 +1,5 @@
-﻿using OsEngine.Charts.CandleChart.Entities;
+﻿using CustomAnnotations;
+using OsEngine.Charts.CandleChart.Entities;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OxyPlot;
@@ -24,6 +25,7 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
         public List<LineSeries> lines_series_list = new List<LineSeries>();
         public List<LinearBarSeries> linear_bar_series_list = new List<LinearBarSeries>();
 
+
         public IndicatorArea(OxyAreaSettings settings, List<OxyArea> all_areas, object tag, OxyChartPainter owner) : base(settings, owner)
         {
             area_settings = settings;
@@ -35,8 +37,8 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
 
             linear_axis_Y.IsAxisVisible = area_settings.Y_Axies_is_visible;
             linear_axis_Y.IsPanEnabled = false;
-           
 
+           
             plot_model.Updated += Plot_model_Updated;
         }
 
@@ -59,6 +61,13 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
 
             Action redraw_action = () =>
             {
+                
+
+                if (!plot_model.Annotations.Contains(drawed_name))
+                    plot_model.Annotations.Add(drawed_name);
+
+                drawed_name.TextPosition = new ScreenPoint(15, 20);
+
                 var main_chart = ((CandleStickArea)all_areas.Find(x => x is CandleStickArea));
 
                 double plot_margin = main_chart.plot_model.ActualPlotMargins.Right;
@@ -98,7 +107,7 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
 
             lock (series_locker)
             {
-                if (main_chart != null && (main_chart.axis_Y_type == "linear" || (string)Tag != "Prime"))
+                if (main_chart != null && (string)Tag != "Prime")
                 {
                     if (indi_seria.IndicatorType == IndicatorChartPaintType.Column)
                     {
@@ -393,6 +402,9 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
 
         public override void Dispose()
         {
+            base.Dispose();
+
+
             List<ScatterSeries> new_scatter_series_list = new List<ScatterSeries>();
 
             for (int i = 0; i < scatter_series_list.Count; i++)

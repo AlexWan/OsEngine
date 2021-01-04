@@ -20,7 +20,6 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
         public CustomTextAnnotation plus_button;
         public CustomTextAnnotation speed_state_lable;
 
-        public CustomTextAnnotation percent_button;
         public CustomTextAnnotation menu_button;
 
         public ScreenPoint pos_persent;
@@ -30,19 +29,6 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
 
             area_settings = settings;
             this.all_areas = all_areas;
-
-            percent_button = new CustomTextAnnotation()
-            {
-                Background = OxyColors.Transparent,
-                Stroke = OxyColor.Parse("#FF5500"),
-                StrokeThickness = 1,
-                Text = "%",
-                TextVerticalAlignment = VerticalAlignment.Bottom,
-                TextHorizontalAlignment = HorizontalAlignment.Left,
-                Layer = AnnotationLayer.AboveSeries,
-                Padding = new OxyThickness(3, 0, 3, 1),
-
-            };
 
             menu_button = new CustomTextAnnotation()
             {
@@ -113,7 +99,6 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
                 };
             }
 
-            plot_model.Annotations.Add(percent_button);
             plot_model.Annotations.Add(menu_button);
 
 
@@ -131,7 +116,6 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
                 plus_button.MouseUp += Plus_button_MouseUp;
             }
 
-            percent_button.MouseDown += Percent_button_MouseDown;
             menu_button.MouseDown += Menu_button_MouseDown;
             menu_button.MouseUp += Menu_button_MouseUp;
 
@@ -141,7 +125,7 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
 
         private void Plot_model_MouseDown(object sender, OxyMouseDownEventArgs e)
         {
-            owner.mediator.RedrawControlPanel( false);
+            owner.mediator.RedrawControlPanel(false);
 
             e.Handled = true;
         }
@@ -153,7 +137,7 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
                 menu_button.Background = OxyColors.Transparent;
                 owner.MainChartMouseButtonClick(ChartClickType.RightButton);
 
-                owner.mediator.RedrawControlPanel( false);
+                owner.mediator.RedrawControlPanel(false);
             }
 
             e.Handled = true;
@@ -197,43 +181,6 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
             e.Handled = true;
         }
 
-        private void Percent_button_MouseDown(object sender, OxyMouseDownEventArgs e)
-        {
-            if (sender != null)
-            {
-                var main_chart = (CandleStickArea)all_areas.Find(x => (string)x.Tag == "Prime");
-
-                if (main_chart.axis_Y_type == "linear")
-                {
-                    percent_button.Background = OxyColor.Parse("#FF5500");
-                    main_chart.axis_Y_type = "percent";
-
-                    if (!main_chart.isFreeze)
-                        main_chart.Dispose();
-                    else
-                    {
-                        ((CandleStickArea)main_chart).scatter_series_list = new List<ScatterSeries>();
-                        ((CandleStickArea)main_chart).lines_series_list = new List<LineSeries>();
-                        ((CandleStickArea)main_chart).linear_bar_series_list = new List<LinearBarSeries>();
-                    }
-                }
-
-                else if (main_chart.axis_Y_type == "percent")
-                {
-                    percent_button.Background = OxyColors.Transparent;
-                    main_chart.axis_Y_type = "linear";
-
-                    if (!main_chart.isFreeze)
-                        main_chart.Dispose();
-                    else
-                    {
-                        main_chart.Dispose();
-                    }
-                }
-            }
-            owner.mediator.RedrawControlPanel(false);
-            e.Handled = true;
-        }
 
         private void Plus_button_MouseDown(object sender, OxyMouseDownEventArgs e)
         {
@@ -269,7 +216,7 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
 
                 speed_state_lable.Text = "x" + owner.mediator.factor_array[owner.mediator.factor_selector].ToString();
             }
-            owner.mediator.RedrawControlPanel( false);
+            owner.mediator.RedrawControlPanel(false);
             e.Handled = true;
         }
 
@@ -278,7 +225,7 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
 
             if (owner.start_program == StartProgram.IsTester)
             {
-                if (speed_lable == null || minus_button == null || plus_button == null || speed_state_lable == null || percent_button == null || menu_button == null)
+                if (speed_lable == null || minus_button == null || plus_button == null || speed_state_lable == null || menu_button == null)
                     return;
 
                 speed_lable.TextPosition = new ScreenPoint(20, plot_view.ActualHeight - 20);
@@ -286,17 +233,15 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
                 plus_button.TextPosition = new ScreenPoint(80, plot_view.ActualHeight - 20);
                 speed_state_lable.TextPosition = new ScreenPoint(100, plot_view.ActualHeight - 20);
 
-                percent_button.TextPosition = new ScreenPoint(plot_view.ActualWidth - 25, plot_view.ActualHeight - 20);
-                menu_button.TextPosition = new ScreenPoint(plot_view.ActualWidth - 80, plot_view.ActualHeight - 20);
+                menu_button.TextPosition = new ScreenPoint(plot_view.ActualWidth - 55, plot_view.ActualHeight - 20);
             }
 
             if (owner.start_program == StartProgram.IsOsTrader)
             {
-                if (percent_button == null || menu_button == null)
+                if (menu_button == null)
                     return;
 
-                percent_button.TextPosition = new ScreenPoint(plot_view.ActualWidth - 25, plot_view.ActualHeight - 20);
-                menu_button.TextPosition = new ScreenPoint(plot_view.ActualWidth - 80, plot_view.ActualHeight - 20);
+                menu_button.TextPosition = new ScreenPoint(plot_view.ActualWidth - 55, plot_view.ActualHeight - 20);
             }
         }
 
