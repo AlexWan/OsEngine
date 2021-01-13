@@ -772,7 +772,10 @@
     <Compile Include="Robots\MoiRoboti\Frankbol.cs" />
     <Compile Include="Robots\MoiRoboti\Frank_2.cs" />
     <Compile Include="Robots\MoiRoboti\Frank.cs" />
-    <Compile Include="Robots\MoiRoboti\HFT_1.cs" />
+    <Compile Include="Robots\MoiRoboti\Hftone.cs" />
+    <Compile Include="Robots\MoiRoboti\HftoneUi.xaml.cs">
+      <DependentUpon>HftoneUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Robots\MoiRoboti\MyBlanks.cs" />
     <Compile Include="Robots\MoiRoboti\Storog.cs" />
     <Compile Include="Robots\MoiRoboti\Ver_01.cs" />
@@ -1263,6 +1266,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Robots\MarketMaker\PairTraderSimpleUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Robots\MoiRoboti\HftoneUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

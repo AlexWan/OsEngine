@@ -344,26 +344,18 @@ namespace OsEngine.Robots.MoiRoboti
                     _tab.CloseAllAtMarket();
                     Console.WriteLine(" АВАРийные объемы продаж были  " + ask_vol_tr);
                     Console.WriteLine(" Закрыли сделку! товара было на  " + percent_tovara + " %");
-                    block_in = true; // включаем блокировку усреднения и старта 
                     Thread.Sleep(1500);
                     Payment_profit();
                     Console.WriteLine(" АВАРИЯ! закрылись с убытком " + temp_profit);
+                    vkl_Robota.ValueBool = false; // выключаем работу
                 }
                 if (ask_vol_tr > _tmpArarm) // если объемы продаж выше аварийных 
                 {
                     block_in = true; // включаем блокировку усреднения и старта 
                     Console.WriteLine("АВАРийный объем продаж!!!! " + ask_vol_tr + " БЛОКИРОВАЛИ усреднение и старт робота ");
+                    vkl_Robota.ValueBool = false; // выключаем работу
                 }
-                if (percent_tovara > alarn_persent.ValueInt && // если товара куплено больше % alarn_persent.ValueInt
-                   ask_vol_tr > _tmpArarm) // если объемы продаж выше аварийных 
-                {
-                    _tab.CloseAllAtMarket(); // закрываемся с убытком 
-                    Payment_profit();
-                    Console.WriteLine("Закрылись с убытком!!! " + temp_profit);
-                    Console.WriteLine("АВАРийный объем продаж " + ask_vol_tr + " выше " + _tmpArarm);
-                    Console.WriteLine(" товара было на  " + percent_tovara + " %");
-                    Thread.Sleep(1500);
-                }
+ 
                 int ups = _tab.PositionsLast.MyTrades.Count;
                 if (ups <= 1)
                 {
