@@ -16,11 +16,11 @@
         <TextBox x:Name="TextBoxVolum" HorizontalAlignment="Left" Margin="205,240,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
         <Label x:Name="LabelVolum" Content="Объем" HorizontalAlignment="Left" Margin="100,240,0,0" VerticalAlignment="Top"/>
         <Label x:Name="LabelSecurites" Content="Бумага" HorizontalAlignment="Left" Margin="100,155,0,0" VerticalAlignment="Top"/>
-        <ComboBox Name="CoboBoxSecurites" HorizontalAlignment="Left" Margin="205,155,0,0" VerticalAlignment="Top" Width="120"/>
+        <ComboBox Name="ComboBoxSecurites" HorizontalAlignment="Left" Margin="205,155,0,0" VerticalAlignment="Top" Width="120"/>
         <Label x:Name="LabelPortfolio" Content="Портфель" HorizontalAlignment="Left" Margin="100,110,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="CoboBoxPortfolio" HorizontalAlignment="Left" Margin="205,110,0,0" VerticalAlignment="Top" Width="120"/>
+        <ComboBox x:Name="ComboBoxPortfolio" HorizontalAlignment="Left" Margin="205,110,0,0" VerticalAlignment="Top" Width="120"/>
         <Label x:Name="LabelServer" Content="Сервер" HorizontalAlignment="Left" Margin="100,65,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="CoboBoxServer" HorizontalAlignment="Left" Margin="205,65,0,0" VerticalAlignment="Top" Width="120"/>
+        <ComboBox x:Name="ComboBoxServer" HorizontalAlignment="Left" Margin="205,65,0,0" VerticalAlignment="Top" Width="120"/>
 
     </Grid>
 </Window>

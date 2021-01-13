@@ -17,7 +17,6 @@ namespace OsEngine.Robots.MoiRoboti
         public Hftone(string name, StartProgram startProgram) : base(name, startProgram) // конструктор 
         {
             ServerMaster.ServerCreateEvent += ServerMaster_ServerCreateEvent;
-
         }
 
         private void ServerMaster_ServerCreateEvent(IServer newServer)
@@ -26,6 +25,7 @@ namespace OsEngine.Robots.MoiRoboti
             newServer.PortfoliosChangeEvent += _server_PortfoliosChangeEvent;
             newServer.SecuritiesChangeEvent += _server_SecuritiesChangeEvent;
         }
+
         public void ChangeServer(ServerType serverType)
         {
             IServer newServer =null;
@@ -60,7 +60,7 @@ namespace OsEngine.Robots.MoiRoboti
 
         public List<Security> Securities;
 
-        public List<IServer> Servers;
+        public List<IServer> Servers = new List<IServer>();
 
         public override string GetNameStrategyType()
         {
@@ -69,7 +69,34 @@ namespace OsEngine.Robots.MoiRoboti
 
         public override void ShowIndividualSettingsDialog()
         {
-            
+            HftoneUi ui = new HftoneUi(this);
+            ui.Show();
+        }
+
+        public void SendOrder(ServerType server, string security, string portfolio, decimal price, decimal volume, Side orderSide )
+        {
+            IServer myServer = null;
+            for (int i = 0; i < Servers.Count; i++)
+            {
+                if (Servers[i].ServerType == server)
+                {
+                    myServer = Servers[i];
+                    break;
+                }
+            }
+            if (myServer == null)
+            {
+                return;
+            }
+            Order order = new Order();
+            order.SecurityNameCode = security;
+            order.PortfolioNumber = portfolio;
+            order.Price = price;
+            order.Volume = volume;
+            order.Side = orderSide;
+            order.NumberUser = NumberGen.GetNumberOrder(this.StartProgram);
+
+            myServer.ExecuteOrder(order);
         }
     }
 }

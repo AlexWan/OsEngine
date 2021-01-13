@@ -42,6 +42,7 @@ namespace OsEngine.Robots
             result.Add("Depozit");
             result.Add("Ver_01");
             result.Add("Storog");
+            result.Add("Hftone");
 
             result.Add("Fisher");
             result.Add("Engine");
@@ -119,6 +120,10 @@ namespace OsEngine.Robots
             {
                 bot = CreateScriptStrategyByName(nameClass, name, startProgram);
                 return bot;
+            }
+            if (nameClass == "Hftone")
+            {
+                bot = new Hftone(name, startProgram);
             }
             if (nameClass == "Frank_2")
             {
