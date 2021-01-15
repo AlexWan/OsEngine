@@ -68,5 +68,9 @@ namespace OsEngine.Language
         public string LblAdminPanel => OsLocalization.ConvertToLocString(
             "Eng:Start admin panel API automatically_" +
             "Ru:Запускать API автоматически_");
+
+        public string LabelOxyPlotCharting => OsLocalization.ConvertToLocString(
+            "Eng:Use OxyPlot chart_" +
+            "Ru:Использовать OxyPlot_");
     }
 }

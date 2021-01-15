@@ -44,12 +44,15 @@ namespace OsEngine.PrimeSettings
             TextBoxIp.Text = PrimeSettingsMaster.Ip;
             TextBoxPort.Text = PrimeSettingsMaster.Port;
             AutoStartChb.IsChecked = PrimeSettingsMaster.AutoStartApi;
+            CheckBoxOxyPlotCharting.IsChecked = PrimeSettingsMaster.UseOxyPlotChart;
 
             CheckBoxExtraLogWindow.Click += CheckBoxExtraLogWindow_Click;
             CheckBoxExtraLogSound.Click += CheckBoxExtraLogSound_Click;
             CheckBoxTransactionSound.Click += CheckBoxTransactionSound_Click;
             CheckBoxServerTestingIsActive.Click += CheckBoxServerTestingIsActive_Click;
             AutoStartChb.Click += AutoStartChb_Click;
+            CheckBoxOxyPlotCharting.Click += CheckBoxOxyPlotCharting_Click;
+
 
             ChangeText();
             OsLocalization.LocalizationTypeChangeEvent += ChangeText;
@@ -67,6 +70,7 @@ namespace OsEngine.PrimeSettings
             LabelServerTestingIsActive.ToolTip = OsLocalization.PrimeSettings.LabelServerTestingToopTip;
             CheckBoxServerTestingIsActive.ToolTip = OsLocalization.PrimeSettings.LabelServerTestingToopTip;
             AdminItem.Header = OsLocalization.PrimeSettings.Title2;
+            LabelOxyPlotCharting.Content = OsLocalization.PrimeSettings.LabelOxyPlotCharting;
 
             LabelState.Content = OsLocalization.PrimeSettings.LblState;
             LabelToken.Content = OsLocalization.PrimeSettings.LblToken;
@@ -121,6 +125,12 @@ namespace OsEngine.PrimeSettings
         private void TextBoxPort_OnTextChanged(object sender, TextChangedEventArgs e)
         {
             PrimeSettingsMaster.Port = TextBoxPort.Text;
+        }
+
+        private void CheckBoxOxyPlotCharting_Click(object sender, RoutedEventArgs e)
+        {
+            if (CheckBoxOxyPlotCharting.IsChecked != null)
+                PrimeSettingsMaster.UseOxyPlotChart = CheckBoxOxyPlotCharting.IsChecked.Value;
         }
     }
 }

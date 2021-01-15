@@ -2273,6 +2273,20 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// place a stop order for a position / 
+        /// выставить стоп-ордер для позиции
+        /// </summary>
+        /// <param name="position">position to be closed / позиция которую будем закрывать</param>
+        /// <param name="priceActivation">price activation / цена стоп приказа, после достижения которой выставиться ордер</param>
+        /// <param name="priceOrder">order price / цена ордера</param>
+        /// <param name="signalType">close position signal name / название сигнала для выхода. Будет записано в свойство позиции: SignalTypeClose</param>
+        public void CloseAtStop(Position position, decimal priceActivation, decimal priceOrder, string signalType)
+        {
+            position.SignalTypeClose = signalType;
+            CloseAtStop(position, priceActivation, priceOrder);
+        }
+
+        /// <summary>
         /// place a trailing stop order for a position / 
         /// выставить трейлинг стоп-ордер для позиции 
         /// </summary>
@@ -2299,6 +2313,20 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// place a trailing stop order for a position / 
+        /// выставить трейлинг стоп-ордер для позиции 
+        /// </summary>
+        /// <param name="position">position to be closed / позиция которую будем закрывать</param>
+        /// <param name="priceActivation">price activation / цена стоп приказа, после достижения которой выставиться ордер</param>
+        /// <param name="priceOrder">order price / цена ордера</param>
+        /// <param name="signalType">close position signal name / название сигнала для выхода. Будет записано в свойство позиции: SignalTypeClose</param>
+        public void CloseAtTrailingStop(Position position, decimal priceActivation, decimal priceOrder, string signalType)
+        {
+            position.SignalTypeClose = signalType;
+            CloseAtTrailingStop(position, priceActivation, priceOrder);
+        }
+
+        /// <summary>
         /// place profit order for a position / 
         /// выставить профит ордер для позиции 
         /// </summary>
@@ -2308,6 +2336,20 @@ namespace OsEngine.OsTrader.Panels.Tab
         public void CloseAtProfit(Position position, decimal priceActivation, decimal priceOrder)
         {
             TryReloadProfit(position, priceActivation, priceOrder);
+        }
+
+        /// <summary>
+        /// place profit order for a position / 
+        /// выставить профит ордер для позиции 
+        /// </summary>
+        /// <param name="position">position to be closed / позиция которую будем закрывать</param>
+        /// <param name="priceActivation">price activation / цена стоп приказа, после достижения которой выставиться ордер</param>
+        /// <param name="priceOrder">order price / цена ордера</param>
+        /// <param name="signalType">close position signal name / название сигнала для выхода. Будет записано в свойство позиции: SignalTypeClose</param>
+        public void CloseAtProfit(Position position, decimal priceActivation, decimal priceOrder, string signalType)
+        {
+            position.SignalTypeClose = signalType;
+            CloseAtProfit(position, priceActivation, priceOrder);
         }
 
         /// <summary>
