@@ -21,7 +21,7 @@ namespace OsEngine.Market.Servers.Transaq.TransaqEntity
         [XmlAttribute(AttributeName = "remove")]
         public string Remove { get; set; }
     }
-
+    
     [XmlRoot(ElementName = "server_status")]
     public class ServerStatus
     {
@@ -288,9 +288,11 @@ namespace OsEngine.Market.Servers.Transaq.TransaqEntity
     public class Result
     {
         [XmlAttribute(AttributeName = "success")]
-        public string Success { get; set; }
+        public bool Success { get; set; }
         [XmlAttribute(AttributeName = "transactionid")]
-        public string Transactionid { get; set; }
+        public int TransactionId { get; set; }
+        [XmlElement(ElementName = "message")]
+        public string Message { get; set; }
     }
 }
 

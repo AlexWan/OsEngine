@@ -194,16 +194,33 @@ namespace OsEngine.Market.Servers.Transaq.TransaqEntity
     }
 
     [XmlRoot(ElementName = "clientlimits")]
-    public class Clientlimits
+    public class ClientLimits
     {
         [XmlElement(ElementName = "coverage")]
         public string Coverage { get; set; }
+
         [XmlElement(ElementName = "money_current")]
-        public string Money_current { get; set; }
+        public string MoneyCurrent { get; set; }
+
         [XmlElement(ElementName = "money_free")]
-        public string Money_free { get; set; }
+        public string MoneyFree { get; set; }
+
+        [XmlElement(ElementName = "money_reserve")]
+        public string MoneyReserve { get; set; }
+
         [XmlAttribute(AttributeName = "client")]
         public string Client { get; set; }
-    }
 
+        [XmlElement(ElementName = "exchange_fee")]
+        public string ExchangeFee { get; set; }
+
+        [XmlElement(ElementName = "varmargin")]
+        public string VarMargin { get; set; }
+
+        [XmlElement(ElementName = "forts_varmargin")]
+        public string FortsVarMargin { get; set; }
+
+        [XmlElement(ElementName = "profit")]
+        public string Profit { get; set; }
+    }
 }
