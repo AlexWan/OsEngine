@@ -1060,9 +1060,14 @@ namespace OsEngine.Market.Servers
                     curPortfolio.ValueCurrent = portf[i].ValueCurrent;
                     curPortfolio.ValueBlocked = portf[i].ValueBlocked;
 
-                    foreach (var positionOnBoard in portf[i].GetPositionOnBoard())
+                    var positions = portf[i].GetPositionOnBoard();
+
+                    if (positions != null)
                     {
-                        curPortfolio.SetNewPosition(positionOnBoard);
+                        foreach (var positionOnBoard in positions)
+                        {
+                            curPortfolio.SetNewPosition(positionOnBoard);
+                        }
                     }
                 }
 
