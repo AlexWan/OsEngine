@@ -1055,16 +1055,15 @@ namespace OsEngine.Market.Servers
                         }
                     }
 
-                    if (portf[i].ValueCurrent != 0)
-                    {
-
-                    }
-
                     curPortfolio.Profit = portf[i].Profit;
                     curPortfolio.ValueBegin = portf[i].ValueBegin;
                     curPortfolio.ValueCurrent = portf[i].ValueCurrent;
                     curPortfolio.ValueBlocked = portf[i].ValueBlocked;
 
+                    foreach (var positionOnBoard in portf[i].GetPositionOnBoard())
+                    {
+                        curPortfolio.SetNewPosition(positionOnBoard);
+                    }
                 }
 
                 _portfolioToSend.Enqueue(_portfolios);
