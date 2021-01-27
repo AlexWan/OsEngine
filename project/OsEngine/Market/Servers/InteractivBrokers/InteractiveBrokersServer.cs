@@ -220,7 +220,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// security for subscription to server in the IB format
         /// бумаги для подписи у сервера в формате IB
         /// </summary>
-        private List<SecurityIb> _secIB;
+        private List<SecurityIb> _secIB = new List<SecurityIb>();
 
         /// <summary>
         /// names of the instruments on which we have already subscribed
@@ -1106,6 +1106,7 @@ contract =>
             else if (tf == TimeFrame.Day)
             {
                 barSize = "1 day";
+                timeStart = timeEnd.AddHours(3200);
             }
             else
             {

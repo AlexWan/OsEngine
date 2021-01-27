@@ -50,7 +50,7 @@
                         VerticalAlignment="Top" Margin="97,107,0,0" Width="205"
                         TextChanged="TextBoxPort_OnTextChanged"/>
                     <Button x:Name="BtnGenerateToken" HorizontalAlignment="Left"
-                        VerticalAlignment="Top" Margin="316,51,0,0" Width="50"  Height="23"
+                        VerticalAlignment="Top" Margin="325,51,0,0" Width="35"  Height="23"
                         Click="BtnGenerateToken_OnClick">
                         <Button.Background>
                             <ImageBrush ImageSource="/Images/generateButton.png" />
