@@ -13,6 +13,12 @@ using OsEngine.Market.Servers.Entity;
 
 namespace OsEngine.Market.Servers.Binance.Futures
 {
+    public enum FuturesType
+    {
+        USDT,
+        COIN
+    }
+
     public class BinanceServerFutures : AServer
     {
         public BinanceServerFutures()
@@ -22,6 +28,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
+            CreateParameterEnum("Futures Type", "USDT-M", new List<string> { "USDT-M", "COIN-M" });
             CreateParameterBoolean("HedgeMode", false);
         }
 
@@ -41,6 +48,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
         {
             ServerStatus = ServerConnectStatus.Disconnect;
         }
+
+        private FuturesType futures_type;
 
         /// <summary>
         /// server type
@@ -119,7 +128,24 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 _client.MyOrderEvent += _client_MyOrderEvent;
                 _client.LogMessageEvent += SendLogMessage;
             }
-            _client.HedgeMode = ((ServerParameterBool)ServerParameters[2]).Value;
+
+            if (((ServerParameterEnum)ServerParameters[2]).Value == "USDT-M")
+            {
+                this.futures_type = FuturesType.USDT;
+                _client._baseUrl = "https://fapi.binance.com";
+                _client.wss_point = "wss://fstream.binance.com";
+                _client.type_str_selector = "fapi";
+            }
+            else if (((ServerParameterEnum)ServerParameters[2]).Value == "COIN-M")
+            {
+                this.futures_type = FuturesType.COIN;
+                _client._baseUrl = "https://dapi.binance.com";
+                _client.wss_point = "wss://dstream.binance.com";
+                _client.type_str_selector = "dapi";
+            }
+
+            _client.futures_type = this.futures_type;
+            _client.HedgeMode = ((ServerParameterBool)ServerParameters[3]).Value;
             _client.Connect();
         }
 
