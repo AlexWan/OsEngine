@@ -1514,7 +1514,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                                 continue;
                             }
 
-                            else if (mes.Contains("\"e\"" + ":" + "\"outboundAccountInfo\""))
+                            else if (mes.Contains("\"e\"" + ":" + "\"outboundAccountPosition\""))
                             {
                                 var portfolios = JsonConvert.DeserializeAnonymousType(mes, new OutboundAccountInfo());
 
