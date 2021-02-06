@@ -14,8 +14,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
 {
 
     /// <summary>
-    /// MA. Simple Moving Average
-    /// MA. Moving Average. Индикатор скользящая средняя
+    /// Simple VWAP 
+    /// Simple VWAP. Средняя цена, взвешенная по объему
     /// </summary>
     public class SimpleVWAP : IIndicator
     {
