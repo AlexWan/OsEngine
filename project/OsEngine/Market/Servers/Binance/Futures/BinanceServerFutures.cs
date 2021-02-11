@@ -232,6 +232,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 candles.AddRange(newCandles);
 
                 actualTime = candles[candles.Count - 1].TimeStart;
+
+                Thread.Sleep(60);
             }
 
             if (candles.Count == 0)
@@ -277,7 +279,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     SendLogMessage(security.Name + " Binance Futures start loading: " + markerDateTime, LogMessageType.System);
                 }
 
-                Thread.Sleep(10);
+                Thread.Sleep(60);
             }
 
             if (trades.Count == 0)

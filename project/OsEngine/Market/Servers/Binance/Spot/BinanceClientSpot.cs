@@ -6,6 +6,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Language;
@@ -1689,6 +1690,8 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         public List<Trade> GetTickHistoryToSecurity(string security, DateTime startTime, DateTime endTime, long fromId)
         {
+
+
             try
             {
                 string timeStamp = TimeManager.GetUnixTimeStampMilliseconds().ToString();
