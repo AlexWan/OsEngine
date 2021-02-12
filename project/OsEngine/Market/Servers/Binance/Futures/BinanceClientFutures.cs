@@ -332,6 +332,9 @@ namespace OsEngine.Market.Servers.Binance.Futures
             {
                 lock (_candleLocker)
                 {
+                    if (jsonCandles == "[]")
+                        return null;
+
                     string res = jsonCandles.Trim(new char[] { '[', ']' });
                     var res2 = res.Split(new char[] { ']' });
 

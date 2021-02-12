@@ -1690,8 +1690,6 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         public List<Trade> GetTickHistoryToSecurity(string security, DateTime startTime, DateTime endTime, long fromId)
         {
-
-
             try
             {
                 string timeStamp = TimeManager.GetUnixTimeStampMilliseconds().ToString();

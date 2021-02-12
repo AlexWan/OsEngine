@@ -198,42 +198,34 @@ namespace OsEngine.Market.Servers.Binance.Futures
         /// take candle history for period
         /// взять историю свечек за период
         /// </summary>
-        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
-            DateTime startTime, DateTime endTime, DateTime actualTime)
+        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
+            if (endTime > DateTime.Now - new TimeSpan(0, 0, 1, 0))
+                endTime = DateTime.Now - new TimeSpan(0, 0, 1, 0);
+
+            int interval = 500 * (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes ;
+
             List<Candle> candles = new List<Candle>();
 
-            actualTime = startTime;
+            var startTimeStep = startTime;
+            var endTimeStep = startTime;
 
-            while (actualTime < endTime)
+            while (endTime > endTimeStep)
             {
-                List<Candle> newCandles = _client.GetCandlesForTimes(security.Name,
-                    timeFrameBuilder.TimeFrameTimeSpan,
-                    actualTime, endTime);
+                endTimeStep = endTimeStep + new TimeSpan(0, 0, interval, 0);
 
-                if (candles.Count != 0 && newCandles.Count != 0)
-                {
-                    for (int i = 0; i < newCandles.Count; i++)
-                    {
-                        if (candles[candles.Count - 1].TimeStart >= newCandles[i].TimeStart)
-                        {
-                            newCandles.RemoveAt(i);
-                            i--;
-                        }
+                if (endTimeStep > DateTime.Now - new TimeSpan(0, 0, (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes, 0))
+                    endTimeStep = DateTime.Now - new TimeSpan(0, 0, (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes, 0);
 
-                    }
-                }
+                List<Candle> stepCandles = _client.GetCandlesForTimes(security.Name, timeFrameBuilder.TimeFrameTimeSpan, startTimeStep, endTimeStep);
 
-                if (newCandles.Count == 0)
-                {
-                    return candles;
-                }
+                if (stepCandles != null)
+                    candles.AddRange(stepCandles);
 
-                candles.AddRange(newCandles);
 
-                actualTime = candles[candles.Count - 1].TimeStart;
+                startTimeStep = endTimeStep + new TimeSpan(0, 0, (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes, 0);
 
-                Thread.Sleep(60);
+                Thread.Sleep(300);
             }
 
             if (candles.Count == 0)
@@ -243,6 +235,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
             return candles;
         }
+
 
         /// <summary>
         /// take ticks data on instrument for period
@@ -255,6 +248,9 @@ namespace OsEngine.Market.Servers.Binance.Futures
             List<Trade> trades = new List<Trade>();
 
             DateTime startOver = startTime;
+
+            if (endTime > DateTime.Now - new TimeSpan(0, 0, 1, 0))
+                endTime = DateTime.Now - new TimeSpan(0, 0, 1, 0);
 
             while (true)
             {
@@ -279,7 +275,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     SendLogMessage(security.Name + " Binance Futures start loading: " + markerDateTime, LogMessageType.System);
                 }
 
-                Thread.Sleep(60);
+                Thread.Sleep(300);
             }
 
             if (trades.Count == 0)
@@ -293,6 +289,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
             return trades;
         }
+
 
         /// <summary>
         /// request order state
