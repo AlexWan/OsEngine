@@ -1137,7 +1137,17 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (_connector.ServerType == ServerType.InteractivBrokers ||
                 _connector.ServerType == ServerType.Lmax ||
                 _connector.ServerType == ServerType.BitMax ||
-                _connector.ServerType == ServerType.FTX)
+                _connector.ServerType == ServerType.FTX ||
+                _connector.ServerType == ServerType.BinanceFutures)
+            {
+                return true;
+            }
+
+            return false;
+        }
+        private bool IsMarketStopOrderSupport()
+        {
+            if (_connector.ServerType == ServerType.BinanceFutures)
             {
                 return true;
             }
@@ -1489,7 +1499,15 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                 }
 
-                LongUpdate(position, price, volume, ManualPositionSupport.SecondToOpen, false);
+                if (IsMarketOrderSupport())
+                {
+                    LongUpdate(position, price, volume, ManualPositionSupport.SecondToOpen, false, OrderPriceType.Market);
+                }
+                else
+                {
+                    LongUpdate(position, price, volume, ManualPositionSupport.SecondToOpen, false);
+                }
+
             }
             catch (Exception error)
             {
@@ -1950,7 +1968,15 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                 }
 
-                ShortUpdate(position, price, volume, ManualPositionSupport.SecondToOpen, false);
+                if (IsMarketOrderSupport())
+                {
+                    ShortUpdate(position, price, volume, ManualPositionSupport.SecondToOpen, false, OrderPriceType.Market);
+                }
+                else
+                {
+                    ShortUpdate(position, price, volume, ManualPositionSupport.SecondToOpen, false);
+                }
+
             }
             catch (Exception error)
             {
@@ -2498,7 +2524,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="timeLife">life time / время жизни</param>
         /// <param name="isStopOrProfit">whether the order is a result of a stop or a profit / является ли ордер следствием срабатывания стопа или профита</param>
         private void ShortUpdate(Position position, decimal price, decimal volume, TimeSpan timeLife,
-            bool isStopOrProfit)
+            bool isStopOrProfit, OrderPriceType OrderType = OrderPriceType.Limit)
         {
             try
             {
@@ -2535,7 +2561,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
 
-                Order newOrder = _dealCreator.CreateOrder(Side.Sell, price, volume, OrderPriceType.Limit,
+                Order newOrder = _dealCreator.CreateOrder(Side.Sell, price, volume, OrderType,
                     ManualPositionSupport.SecondToOpen, StartProgram, OrderPositionConditionType.Open);
                 newOrder.IsStopOrProfit = isStopOrProfit;
                 newOrder.LifeTime = timeLife;
@@ -2618,7 +2644,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="timeLife">life time / время жизни</param>
         /// <param name="isStopOrProfit">whether the order is a result of a stop or a profit / является ли ордер следствием срабатывания стопа или профита</param>
         private void LongUpdate(Position position, decimal price, decimal volume, TimeSpan timeLife,
-            bool isStopOrProfit)
+            bool isStopOrProfit, OrderPriceType OrderType = OrderPriceType.Limit)
         {
             try
             {
@@ -2654,7 +2680,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                 }
 
-                Order newOrder = _dealCreator.CreateOrder(Side.Buy, price, volume, OrderPriceType.Limit,
+                Order newOrder = _dealCreator.CreateOrder(Side.Buy, price, volume, OrderType,
                     ManualPositionSupport.SecondToOpen, StartProgram, OrderPositionConditionType.Open);
                 newOrder.IsStopOrProfit = isStopOrProfit;
                 newOrder.LifeTime = timeLife;
@@ -3075,8 +3101,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                             position.StopOrderRedLine
                             + " LastMarketPrice: " + lastTrade,
                             LogMessageType.System);
-
-                        CloseDeal(position, OrderPriceType.Limit, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true);
+                        if(IsMarketStopOrderSupport())
+                            CloseDeal(position, OrderPriceType.Market, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true);
+                        else
+                            CloseDeal(position, OrderPriceType.Limit, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true);
                         PositionStopActivateEvent?.Invoke(position);
                         return true;
                     }
@@ -3093,7 +3121,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                             + " LastMarketPrice: " + lastTrade,
                             LogMessageType.System);
 
-                        CloseDeal(position, OrderPriceType.Limit, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true);
+                        if (IsMarketStopOrderSupport())
+                            CloseDeal(position, OrderPriceType.Market, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true);
+                        else
+                            CloseDeal(position, OrderPriceType.Limit, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true);
                         PositionStopActivateEvent?.Invoke(position);
                         return true;
                     }
