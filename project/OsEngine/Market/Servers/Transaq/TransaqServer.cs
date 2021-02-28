@@ -1,4 +1,5 @@
 ﻿using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using OsEngine.Market.Servers.Transaq.TransaqEntity;
@@ -7,13 +8,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Xml;
-using System.Xml.Serialization;
-using OsEngine.Language;
 using Candle = OsEngine.Entity.Candle;
 using Order = OsEngine.Entity.Order;
 using Security = OsEngine.Entity.Security;
@@ -27,7 +25,7 @@ namespace OsEngine.Market.Servers.Transaq
         {
             WorkingTimeSettings = new ServerWorkingTimeSettings()
             {
-                StartSessionTime = new TimeSpan(9, 55, 0),
+                StartSessionTime = new TimeSpan(6, 55, 0),
                 EndSessionTime = new TimeSpan(23, 50, 0),
                 WorkingAtWeekend = false,
                 ServerTimeZone = "Russian Standard Time",
