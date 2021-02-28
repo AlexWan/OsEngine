@@ -6,6 +6,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Language;
@@ -1514,7 +1515,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                                 continue;
                             }
 
-                            else if (mes.Contains("\"e\"" + ":" + "\"outboundAccountInfo\""))
+                            else if (mes.Contains("\"e\"" + ":" + "\"outboundAccountPosition\""))
                             {
                                 var portfolios = JsonConvert.DeserializeAnonymousType(mes, new OutboundAccountInfo());
 

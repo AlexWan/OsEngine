@@ -212,6 +212,8 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 candles.AddRange(newCandles);
 
                 actualTime = candles[candles.Count - 1].TimeStart;
+
+                Thread.Sleep(60);
             }
 
             if (candles.Count == 0)
@@ -252,7 +254,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     {
                         firstTrades = _client.GetTickHistoryToSecurity(security.Name, startOver, startOver.AddSeconds(60), 0);
                         startOver.AddSeconds(60);
-                        Thread.Sleep(10);
+                        Thread.Sleep(60);
                     }
                     while (firstTrades == null || firstTrades.Count == 0);
 

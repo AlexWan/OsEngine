@@ -398,7 +398,9 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             unit = (long)Math.Ceiling(weeks);
 
             if (unit > 52)
-                throw new ArgumentOutOfRangeException("endTime", "Period cannot be bigger than 52 weeks.");
+            {
+                return "2 Y";
+            }
 
             return unit + " W";
         }
@@ -863,6 +865,8 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// </summary>
         private void ListenThreadSpace()
         {
+            int zeroMessagesCount = 0;
+
             int previousMessage;
             int typeMessage = -1;
             while (true)
@@ -985,8 +989,30 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                     {
                         if (SkipUnnecessaryData(typeMessage) == false)
                         {
-                            SendLogMessage("Неучтённое сообщение. Номер: " + typeMessage,
-                                LogMessageType.Error);
+                            if (typeMessage == 0)
+                            {
+                                zeroMessagesCount++;
+
+                                if (zeroMessagesCount % 5 == 0)
+                                {
+                                    SendLogMessage("Неучтённое сообщение НОЛЬ. Возможно потеря связи с сервером. Номер: " + typeMessage,
+                                    LogMessageType.Error);
+                                }
+
+                                if (zeroMessagesCount > 50)
+                                {
+                                    _listenThread = null;
+                                    SendLogMessage("Кол-во сообщений НОЛЬ, превысило 50, переподключаемся", LogMessageType.Error);
+                                    Disconnect();
+                                    return;
+                                }
+                            }
+                            else
+                            {
+                                SendLogMessage("Неучтённое сообщение. Номер: " + typeMessage,
+                                    LogMessageType.Error);
+                            }
+
                         }
                     }
                 }

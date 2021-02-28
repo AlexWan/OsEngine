@@ -109,6 +109,11 @@ namespace OsEngine.OsOptimizer
                     param = new StrategyParameterTimeOfDay(name, 0, 0, 0, 0);
                     param.LoadParamFromString(StrategyParameters[i].Split('$')[1].Split('#'));
                 }
+                else if (type == StrategyParameterType.Button)
+                {
+                    param = new StrategyParameterButton(name);
+                    param.LoadParamFromString(StrategyParameters[i].Split('$')[1].Split('#'));
+                }
 
                 par.Add(param);
             }

@@ -97,12 +97,18 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 _client.NewOrderEvent -= _ibClient_NewOrderEvent;
                 _client.NewTradeEvent -= AddTick;
                 _client.CandlesUpdateEvent -= _client_CandlesUpdateEvent;
+                _client.Disconnect();
             }
 
             _client = null;
             _connectedContracts = new List<string>();
 
             ServerStatus = ServerConnectStatus.Disconnect;
+
+            if (DisconnectEvent != null)
+            {
+                DisconnectEvent();
+            }
         }
 
         /// <summary>
@@ -220,7 +226,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// security for subscription to server in the IB format
         /// бумаги для подписи у сервера в формате IB
         /// </summary>
-        private List<SecurityIb> _secIB;
+        private List<SecurityIb> _secIB = new List<SecurityIb>();
 
         /// <summary>
         /// names of the instruments on which we have already subscribed
@@ -1068,44 +1074,45 @@ contract =>
             }
             else if (tf == TimeFrame.Min1)
             {
-                timeStart = timeEnd.AddHours(5);
+                timeStart = timeEnd.AddHours(15);
                 barSize = "1 min";
             }
             else if (tf == TimeFrame.Min5)
             {
-                timeStart = timeEnd.AddHours(25);
+                timeStart = timeEnd.AddHours(50);
                 barSize = "5 mins";
             }
             else if (tf == TimeFrame.Min15)
             {
-                timeStart = timeEnd.AddHours(75);
+                timeStart = timeEnd.AddHours(150);
                 barSize = "15 mins";
             }
             else if (tf == TimeFrame.Min30)
             {
-                timeStart = timeEnd.AddHours(150);
+                timeStart = timeEnd.AddHours(250);
                 barSize = "30 mins";
             }
             else if (tf == TimeFrame.Hour1)
             {
-                timeStart = timeEnd.AddHours(300);
+                timeStart = timeEnd.AddHours(1300);
                 barSize = "1 hour";
             }
             else if (tf == TimeFrame.Hour2)
             {
-                timeStart = timeEnd.AddHours(600);
+                timeStart = timeEnd.AddHours(2100);
                 barSize = "1 hour";
                 mergeCount = 2;
             }
             else if (tf == TimeFrame.Hour4)
             {
-                timeStart = timeEnd.AddHours(1200);
+                timeStart = timeEnd.AddHours(4200);
                 barSize = "1 hour";
                 mergeCount = 4;
             }
             else if (tf == TimeFrame.Day)
             {
                 barSize = "1 day";
+                timeStart = timeEnd.AddDays(701);
             }
             else
             {
