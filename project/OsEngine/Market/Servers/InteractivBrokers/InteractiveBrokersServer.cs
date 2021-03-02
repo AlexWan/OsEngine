@@ -248,6 +248,10 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 {
                     for (int i = 0; _secIB != null && i < _secIB.Count; i++)
                     {
+                        if(_secIB[i] == null)
+                        {
+                            continue;
+                        }
                         string saveStr = "";
                         //saveStr +=  _secToSubscrible[i].ComboLegs + "@";
                         saveStr += _secIB[i].ComboLegsDescription + "@";
@@ -298,34 +302,41 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                     _secIB = new List<SecurityIb>();
                     while (!reader.EndOfStream)
                     {
-                        SecurityIb security = new SecurityIb();
-
-                        string[] contrStrings = reader.ReadLine().Split('@');
-
-                        security.ComboLegsDescription = contrStrings[0];
-                        security.ConId = Convert.ToInt32(contrStrings[1]);
-                        security.Currency = contrStrings[2];
-                        security.Exchange = contrStrings[3];
-                        security.Expiry = contrStrings[4];
-                        security.IncludeExpired = Convert.ToBoolean(contrStrings[5]);
-                        security.LocalSymbol = contrStrings[6];
-                        security.Multiplier = contrStrings[7];
-                        security.PrimaryExch = contrStrings[8];
-                        security.Right = contrStrings[9];
-                        security.SecId = contrStrings[10];
-                        security.SecIdType = contrStrings[11];
-                        security.SecType = contrStrings[12];
-                        security.Strike = Convert.ToDouble(contrStrings[13]);
-                        security.Symbol = contrStrings[14];
-                        security.TradingClass = contrStrings[15];
-
-                        if (contrStrings.Length > 15 &&
-                            string.IsNullOrEmpty(contrStrings[16]) == false)
+                        try
                         {
-                            security.CreateMarketDepthFromTrades = Convert.ToBoolean(contrStrings[16]);
-                        }
+                            SecurityIb security = new SecurityIb();
 
-                        _secIB.Add(security);
+                            string[] contrStrings = reader.ReadLine().Split('@');
+
+                            security.ComboLegsDescription = contrStrings[0];
+                            security.ConId = Convert.ToInt32(contrStrings[1]);
+                            security.Currency = contrStrings[2];
+                            security.Exchange = contrStrings[3];
+                            security.Expiry = contrStrings[4];
+                            security.IncludeExpired = Convert.ToBoolean(contrStrings[5]);
+                            security.LocalSymbol = contrStrings[6];
+                            security.Multiplier = contrStrings[7];
+                            security.PrimaryExch = contrStrings[8];
+                            security.Right = contrStrings[9];
+                            security.SecId = contrStrings[10];
+                            security.SecIdType = contrStrings[11];
+                            security.SecType = contrStrings[12];
+                            security.Strike = Convert.ToDouble(contrStrings[13]);
+                            security.Symbol = contrStrings[14];
+                            security.TradingClass = contrStrings[15];
+
+                            if (contrStrings.Length > 15 &&
+                                string.IsNullOrEmpty(contrStrings[16]) == false)
+                            {
+                                security.CreateMarketDepthFromTrades = Convert.ToBoolean(contrStrings[16]);
+                            }
+
+                            _secIB.Add(security);
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
                     }
 
                     if (_secIB.Count == 0)

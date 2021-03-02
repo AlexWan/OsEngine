@@ -90,12 +90,12 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             column5.HeaderText = OsLocalization.Market.Label60;
             _grid.Columns.Add(column5);
 
-
             _grid.Rows.Add(null, null);
-            _grid.Click += _grid_Click;
-            _grid.CellValueChanged += _grid_CellValueChanged;
             Host.Child = _grid;
             LoadSecOnTable();
+
+            _grid.Click += _grid_Click;
+            _grid.CellValueChanged += _grid_CellValueChanged;
         }
 
         void _grid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
