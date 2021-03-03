@@ -364,10 +364,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                         trades.data.q.ToDecimal();
                 trade.Side = trades.data.m == true ? Side.Sell : Side.Buy;
 
-                if (NewTradesEvent != null)
-                {
-                    NewTradesEvent(trade);
-                }
+                NewTradesEvent?.Invoke(trade);            
             }
         }
 

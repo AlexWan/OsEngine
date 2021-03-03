@@ -723,10 +723,7 @@ namespace OsEngine.Market.Servers.Kraken
 
                             if (_tradesToSend.TryDequeue(out trades))
                             {
-                                if (NewTradeEvent != null)
-                                {
-                                    NewTradeEvent(trades);
-                                }
+                                NewTradeEvent?.Invoke(trades);
                             }
                         }
                     }

@@ -704,10 +704,7 @@ namespace OsEngine.Market.Servers.Finam
 
                             if (_tradesToSend.TryDequeue(out trades))
                             {
-                                if (NewTradeEvent != null)
-                                {
-                                    NewTradeEvent(trades);
-                                }
+                                NewTradeEvent?.Invoke(trades);
                             }
                         }
                     }

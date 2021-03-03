@@ -630,10 +630,7 @@ namespace OsEngine.Market.Servers.SmartCom
 
                             if (_tradesToSend.TryDequeue(out trades))
                             {
-                                if (NewTradeEvent != null)
-                                {
-                                    NewTradeEvent(trades);
-                                }
+                                NewTradeEvent?.Invoke(trades);
                             }
                         }
                     }
