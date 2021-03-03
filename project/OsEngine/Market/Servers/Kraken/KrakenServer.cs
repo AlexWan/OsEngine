@@ -86,6 +86,12 @@ namespace OsEngine.Market.Servers.Kraken
         }
 
         /// <summary>
+        /// trades sinchronizer
+        /// синхронизатор трейдов
+        /// </summary>
+        public AutoResetEvent reset_event = new AutoResetEvent(true);
+
+        /// <summary>
         /// public access key to Kraken
         /// публичный ключ доступа к Кракену
         /// </summary>
@@ -715,14 +721,14 @@ namespace OsEngine.Market.Servers.Kraken
                     }
                     else if (!_tradesToSend.IsEmpty)
                     {
+                        reset_event.WaitOne(300);
+                        reset_event.Reset();
+
                         List<OsEngine.Entity.Trade> trades;
 
                         if (_tradesToSend.TryDequeue(out trades))
                         {
-                            if (NewTradeEvent != null)
-                            {
-                                NewTradeEvent(trades);
-                            }
+                            NewTradeEvent?.Invoke(trades, reset_event);
                         }
                     }
 
@@ -1351,7 +1357,7 @@ namespace OsEngine.Market.Servers.Kraken
         /// called when new trade appears
         /// вызывается в момет появления новых трейдов по инструменту
         /// </summary>
-        public event Action<List<OsEngine.Entity.Trade>> NewTradeEvent;
+        public event Action<List<OsEngine.Entity.Trade>, AutoResetEvent> NewTradeEvent;
 
 //my trades
 //мои сделки

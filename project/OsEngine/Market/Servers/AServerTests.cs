@@ -147,10 +147,11 @@ namespace OsEngine.Market.Servers
             }
         }
 
-        void server_NewTradeEvent(List<Trade> trades)
+        void server_NewTradeEvent(List<Trade> trades, AutoResetEvent reset_event)
         {
             if (_trades.Count > 100)
             {
+                reset_event.Set();
                 return;
             }
             for (int i = trades.Count-1; 
@@ -159,6 +160,8 @@ namespace OsEngine.Market.Servers
             {
                 _trades.Enqueue(trades[i]);
             }
+
+            reset_event.Set();
         }
 
         void server_NewOrderIncomeEvent(Order order)

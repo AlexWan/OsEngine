@@ -1085,23 +1085,13 @@ namespace OsEngine.Market.Connectors
         /// incoming trades
         /// входящие трейды
         /// </summary>
-        void ConnectorBot_NewTradeEvent(List<Trade> tradesList)
+        void ConnectorBot_NewTradeEvent(List<Trade> tradesList, AutoResetEvent reset_event)
         {
-            try
+            if (NamePaper == null || tradesList == null || tradesList.Count == 0 ||
+                tradesList[tradesList.Count - 1] == null ||
+                tradesList[tradesList.Count - 1].SecurityNameCode != NamePaper)
             {
-                if (NamePaper == null ||
-                    tradesList == null ||
-                    tradesList.Count == 0 ||
-                    tradesList[tradesList.Count - 1] == null ||
-                    tradesList[tradesList.Count - 1].SecurityNameCode != NamePaper)
-                {
-                    return;
-                }
-            }
-            catch
-            {
-                // it's hard to catch the error here. Who will understand what is wrong - well done 
-                // ошибка сдесь трудноуловимая. Кто поймёт что не так - молодец
+                reset_event.Set();
                 return;
             }
 
@@ -1116,6 +1106,8 @@ namespace OsEngine.Market.Connectors
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+
+            reset_event.Set();
         }
 
         /// <summary>

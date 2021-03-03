@@ -207,6 +207,12 @@ namespace OsEngine.Market.Servers
         public List<IServerParameter> ServerParameters = new List<IServerParameter>();
 
         /// <summary>
+        /// trades sinchronizer
+        /// синхронизатор трейдов
+        /// </summary>
+        public AutoResetEvent reset_event = new AutoResetEvent(true);
+
+        /// <summary>
         /// create STRING server parameter
         /// создать строковый параметр сервера
         /// </summary>
@@ -843,14 +849,15 @@ namespace OsEngine.Market.Servers
                     }
                     else if (!_tradesToSend.IsEmpty)
                     {
+                        reset_event.WaitOne(300);
+                        reset_event.Reset();
+
                         List<Trade> trades;
 
                         if (_tradesToSend.TryDequeue(out trades))
                         {
-                            if (NewTradeEvent != null)
-                            {
-                                NewTradeEvent(trades);
-                            }
+                            NewTradeEvent?.Invoke(trades, reset_event);
+                            
                             if (_needToRemoveTradesFromMemory.Value == true && _allTrades != null)
 
                             {
@@ -871,6 +878,8 @@ namespace OsEngine.Market.Servers
                             }
 
                         }
+
+                        reset_event.Set();
                     }
 
                     else if (!_portfolioToSend.IsEmpty)
@@ -1747,13 +1756,6 @@ namespace OsEngine.Market.Servers
                         myList = allTradesNew[allTradesNew.Length - 1];
                         _allTrades = allTradesNew;
                     }
-                    /*
-                    if (_needToRemoveTradesFromMemory.Value == true &&
-                        myList.Count > 100)
-                    {
-                        myList[myList.Count - 100] = null;
-                    }
-                    */
 
                     _tradesToSend.Enqueue(myList);
                 }
@@ -1792,7 +1794,7 @@ namespace OsEngine.Market.Servers
         /// new tick
         /// новый тик
         /// </summary>
-        public event Action<List<Trade>> NewTradeEvent;
+        public event Action<List<Trade>, AutoResetEvent> NewTradeEvent;
 
         // my new trade / новая моя сделка
 

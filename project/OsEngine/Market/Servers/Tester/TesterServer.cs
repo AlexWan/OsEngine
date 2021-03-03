@@ -75,6 +75,12 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+        /// trades sinchronizer
+        /// синхронизатор трейдов
+        /// </summary>
+        public AutoResetEvent reset_event = new AutoResetEvent(true);
+
+        /// <summary>
 		/// server type
         /// тип сервера
         /// </summary>
@@ -3303,7 +3309,7 @@ namespace OsEngine.Market.Servers.Tester
                 {
                     if (tradesNew[0].SecurityNameCode == trades[0].SecurityNameCode)
                     {
-                        NewTradeEvent(trades);
+                        NewTradeEvent?.Invoke(trades, reset_event);
                         break;
                     }
                 }
@@ -3336,7 +3342,7 @@ namespace OsEngine.Market.Servers.Tester
 		/// called when comes new deals on instrument
         /// вызывается когда по инструменту приходят новые сделки
         /// </summary>
-        public event Action<List<Trade>> NewTradeEvent;
+        public event Action<List<Trade>, AutoResetEvent> NewTradeEvent;
 
 // my trades
 // мои сделки

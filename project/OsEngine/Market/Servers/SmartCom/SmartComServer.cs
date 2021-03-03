@@ -88,6 +88,11 @@ namespace OsEngine.Market.Servers.SmartCom
             return false;
         }
 
+        /// <summary>
+        /// trades sinchronizer
+        /// синхронизатор трейдов
+        /// </summary>
+        public AutoResetEvent reset_event = new AutoResetEvent(true);
 
         /// <summary>
         /// взять тип сервера
@@ -622,14 +627,14 @@ namespace OsEngine.Market.Servers.SmartCom
                     }
                     else if (!_tradesToSend.IsEmpty)
                     {
+                        reset_event.WaitOne(300);
+                        reset_event.Reset();
+
                         List<Trade> trades;
 
                         if (_tradesToSend.TryDequeue(out trades))
                         {
-                            if (NewTradeEvent != null)
-                            {
-                                NewTradeEvent(trades);
-                            }
+                            NewTradeEvent(trades, reset_event);
                         }
                     }
 
@@ -1669,7 +1674,7 @@ namespace OsEngine.Market.Servers.SmartCom
         /// <summary>
         /// вызывается в момет появления новых трейдов по инструменту
         /// </summary>
-        public event Action<List<Trade>> NewTradeEvent;
+        public event Action<List<Trade>, AutoResetEvent> NewTradeEvent;
 
         // мои сделки
 

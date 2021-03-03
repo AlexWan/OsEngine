@@ -62,6 +62,12 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+        /// trades sinchronizer
+        /// синхронизатор трейдов
+        /// </summary>
+        public AutoResetEvent reset_event = new AutoResetEvent(true);
+
+        /// <summary>
 		/// server number
         /// номер сервера
         /// </summary>
@@ -1601,12 +1607,11 @@ namespace OsEngine.Market.Servers.Optimizer
 
             if (NewTradeEvent != null)
             {
-
                 foreach (var trades in _allTrades)
                 {
                     if (tradesNew[0].SecurityNameCode == trades[0].SecurityNameCode)
                     {
-                        NewTradeEvent(trades);
+                        NewTradeEvent?.Invoke(trades, reset_event);
                         break;
                     }
                 }
@@ -1645,7 +1650,7 @@ namespace OsEngine.Market.Servers.Optimizer
 		/// called when a new trade comes in the instrument
         /// вызывается когда по инструменту приходят новые сделки
         /// </summary>
-        public event Action<List<Trade>> NewTradeEvent;
+        public event Action<List<Trade>, AutoResetEvent> NewTradeEvent;
 
 // my trades
 // мои сделки

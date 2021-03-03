@@ -32,6 +32,7 @@ using OsEngine.Market.Servers.GateIo.Futures;
 using OsEngine.Market.Servers.FTX;
 using OsEngine.Market.Servers.Bybit;
 using OsEngine.Market.Servers.InteractivBrokers;
+using System.Threading;
 
 namespace OsEngine.Entity
 {
@@ -93,17 +94,19 @@ namespace OsEngine.Entity
         /// в сервере появился новый тик. Входящее событие
         /// </summary>
         /// <param name="trades">новый тик</param>
-        private void server_NewTradeEvent(List<Trade> trades)
+        private void server_NewTradeEvent(List<Trade> trades, AutoResetEvent reset_event)
         {
             if (_server.ServerType == ServerType.Tester &&
                 TypeTesterData == TesterDataType.Candle)
             {
+                reset_event.Set();
                 return;
             }
             try
             {
                 if (_activSeries == null)
                 {
+                    reset_event.Set();
                     return;
                 }
 
@@ -115,6 +118,8 @@ namespace OsEngine.Entity
                         _activSeries[i].SetNewTicks(trades);
                     }
                 }
+
+                reset_event.Set();
             }
             catch (Exception error)
             {

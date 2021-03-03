@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using OsEngine.Entity;
 using OsEngine.Logging;
 
@@ -202,7 +203,7 @@ namespace OsEngine.Market.Servers
         /// new tick
         /// новый тик
         /// </summary>
-        event Action<List<Trade>> NewTradeEvent;
+        event Action<List<Trade>, AutoResetEvent> NewTradeEvent;
 
 // my new trade
 // новая моя сделка

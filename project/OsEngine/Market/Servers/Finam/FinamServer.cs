@@ -77,6 +77,12 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// trades sinchronizer
+        /// синхронизатор трейдов
+        /// </summary>
+        public AutoResetEvent reset_event = new AutoResetEvent(true);
+
+        /// <summary>
         /// take server type
         /// взять тип сервера
         /// </summary>
@@ -696,14 +702,14 @@ namespace OsEngine.Market.Servers.Finam
                 {
                     if (_tradesToSend != null && _tradesToSend.Count != 0)
                     {
+                        reset_event.WaitOne(300);
+                        reset_event.Reset();
+
                         List<Trade> trades;
 
                         if (_tradesToSend.TryDequeue(out trades))
-                        {
-                            if (NewTradeEvent != null)
-                            {
-                                NewTradeEvent(trades);
-                            }
+                        {                 
+                            NewTradeEvent?.Invoke(trades, reset_event);                         
                         }
                     }
                     else if (_securitiesToSend != null && _securitiesToSend.Count != 0)
@@ -1370,8 +1376,7 @@ namespace OsEngine.Market.Servers.Finam
         /// called at the time of appearance of new trades on instrument
         /// вызывается в момет появления новых трейдов по инструменту
         /// </summary>
-        public event Action<List<Trade>> NewTradeEvent;
-
+        public event Action<List<Trade>, AutoResetEvent> NewTradeEvent;
         // log messages
         // обработка лога
 
