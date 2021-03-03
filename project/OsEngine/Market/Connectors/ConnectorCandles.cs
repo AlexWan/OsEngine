@@ -1101,7 +1101,7 @@ namespace OsEngine.Market.Connectors
             catch
             {
                 // it's hard to catch the error here. Who will understand what is wrong - well done 
-                // ошибка сдесь трудноуловимая. Кто поймёт что не так - молодец
+                // ошибка сдесь была трудноуловимая. Karuzzo понял что не так он молодец
                 return;
             }
 
