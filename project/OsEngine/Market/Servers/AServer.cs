@@ -103,6 +103,8 @@ namespace OsEngine.Market.Servers
             get { return _serverRealization; }
         }
 
+        private object trades_locker = new object();
+
         private double _waitTimeAfterFirstStart = 60;
 
         /// <summary>
@@ -843,33 +845,36 @@ namespace OsEngine.Market.Servers
                     }
                     else if (!_tradesToSend.IsEmpty)
                     {
-                        List<Trade> trades;
-
-                        if (_tradesToSend.TryDequeue(out trades))
+                        lock (trades_locker)
                         {
-                            if (NewTradeEvent != null)
-                            {
-                                NewTradeEvent(trades);
-                            }
-                            if (_needToRemoveTradesFromMemory.Value == true && _allTrades != null)
+                            List<Trade> trades;
 
+                            if (_tradesToSend.TryDequeue(out trades))
                             {
-                                foreach (var el in _allTrades)
+                                if (NewTradeEvent != null)
                                 {
-                                    if (el.Count > 100)
+                                    NewTradeEvent(trades);
+                                }
+                                if (_needToRemoveTradesFromMemory.Value == true && _allTrades != null)
+
+                                {
+                                    foreach (var el in _allTrades)
                                     {
-                                        for (int i = el.Count - 100; i > 0; i--)
+                                        if (el.Count > 100)
                                         {
-                                            if (el[i] == null)
+                                            for (int i = el.Count - 100; i > 0; i--)
                                             {
-                                                break;
+                                                if (el[i] == null)
+                                                {
+                                                    break;
+                                                }
+                                                el[i] = null;
                                             }
-                                            el[i] = null;
                                         }
                                     }
                                 }
-                            }
 
+                            }
                         }
                     }
 

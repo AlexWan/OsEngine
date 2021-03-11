@@ -76,6 +76,8 @@ namespace OsEngine.Market.Servers.Finam
             worker.Start();
         }
 
+        private object trades_locker = new object();
+
         /// <summary>
         /// take server type
         /// взять тип сервера
@@ -696,13 +698,13 @@ namespace OsEngine.Market.Servers.Finam
                 {
                     if (_tradesToSend != null && _tradesToSend.Count != 0)
                     {
-                        List<Trade> trades;
-
-                        if (_tradesToSend.TryDequeue(out trades))
+                        lock (trades_locker)
                         {
-                            if (NewTradeEvent != null)
+                            List<Trade> trades;
+
+                            if (_tradesToSend.TryDequeue(out trades))
                             {
-                                NewTradeEvent(trades);
+                                NewTradeEvent?.Invoke(trades);
                             }
                         }
                     }

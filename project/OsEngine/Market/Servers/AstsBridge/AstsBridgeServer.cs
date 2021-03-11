@@ -77,6 +77,8 @@ namespace OsEngine.Market.Servers.AstsBridge
             }
         }
 
+        private object trades_locker = new object();
+
         /// <summary>
         /// take server type
         /// взять тип сервера
@@ -725,13 +727,16 @@ namespace OsEngine.Market.Servers.AstsBridge
                     }
                     else if (!_tradesToSend.IsEmpty)
                     {
-                        List<Trade> trades;
-
-                        if (_tradesToSend.TryDequeue(out trades))
+                        lock (trades_locker)
                         {
-                            if (NewTradeEvent != null)
+                            List<Trade> trades;
+
+                            if (_tradesToSend.TryDequeue(out trades))
                             {
-                                NewTradeEvent(trades);
+                                if (NewTradeEvent != null)
+                                {
+                                    NewTradeEvent(trades);
+                                }
                             }
                         }
                     }
