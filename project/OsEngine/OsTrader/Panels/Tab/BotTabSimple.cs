@@ -1139,7 +1139,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _connector.ServerType == ServerType.Lmax ||
                 _connector.ServerType == ServerType.BitMax ||
                 _connector.ServerType == ServerType.FTX ||
-                _connector.ServerType == ServerType.BinanceFutures)
+                _connector.ServerType == ServerType.BinanceFutures ||
+                _connector.ServerType == ServerType.Transaq)
             {
                 return true;
             }

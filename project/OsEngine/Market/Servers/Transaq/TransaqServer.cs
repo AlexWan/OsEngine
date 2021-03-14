@@ -259,8 +259,7 @@ namespace OsEngine.Market.Servers.Transaq
             {
                 var serverCurrentTime = TimeManager.GetExchangeTime(_workingTimeSettings.ServerTimeZone);
 
-                if (serverCurrentTime.DayOfWeek == DayOfWeek.Saturday ||
-                    serverCurrentTime.DayOfWeek == DayOfWeek.Sunday ||
+                if ((!_workingTimeSettings.WorkingAtWeekend && serverCurrentTime.DayOfWeek == (DayOfWeek.Saturday | DayOfWeek.Sunday)) ||
                     serverCurrentTime.TimeOfDay < _workingTimeSettings.StartSessionTime ||
                     serverCurrentTime.TimeOfDay > _workingTimeSettings.EndSessionTime)
                 {
