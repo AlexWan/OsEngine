@@ -97,12 +97,18 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 _client.NewOrderEvent -= _ibClient_NewOrderEvent;
                 _client.NewTradeEvent -= AddTick;
                 _client.CandlesUpdateEvent -= _client_CandlesUpdateEvent;
+                _client.Disconnect();
             }
 
             _client = null;
             _connectedContracts = new List<string>();
 
             ServerStatus = ServerConnectStatus.Disconnect;
+
+            if (DisconnectEvent != null)
+            {
+                DisconnectEvent();
+            }
         }
 
         /// <summary>
@@ -220,7 +226,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// security for subscription to server in the IB format
         /// бумаги для подписи у сервера в формате IB
         /// </summary>
-        private List<SecurityIb> _secIB;
+        private List<SecurityIb> _secIB = new List<SecurityIb>();
 
         /// <summary>
         /// names of the instruments on which we have already subscribed
@@ -242,10 +248,14 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 {
                     for (int i = 0; _secIB != null && i < _secIB.Count; i++)
                     {
+                        if (_secIB[i] == null)
+                        {
+                            continue;
+                        }
                         string saveStr = "";
                         //saveStr +=  _secToSubscrible[i].ComboLegs + "@";
                         saveStr += _secIB[i].ComboLegsDescription + "@";
-                        saveStr += _secIB[i].ConId + "@";
+                        saveStr += /*_secIB[i].ConId+ */ "@";
                         saveStr += _secIB[i].Currency + "@";
                         saveStr += _secIB[i].Exchange + "@";
                         saveStr += _secIB[i].Expiry + "@";
@@ -254,7 +264,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                         saveStr += _secIB[i].Multiplier + "@";
                         saveStr += _secIB[i].PrimaryExch + "@";
                         saveStr += _secIB[i].Right + "@";
-                        saveStr += _secIB[i].SecId + "@";
+                        saveStr += /*_secIB[i].SecId + */ "@";
                         saveStr += _secIB[i].SecIdType + "@";
                         saveStr += _secIB[i].SecType + "@";
                         saveStr += _secIB[i].Strike + "@";
@@ -292,34 +302,41 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                     _secIB = new List<SecurityIb>();
                     while (!reader.EndOfStream)
                     {
-                        SecurityIb security = new SecurityIb();
-
-                        string[] contrStrings = reader.ReadLine().Split('@');
-
-                        security.ComboLegsDescription = contrStrings[0];
-                        security.ConId = Convert.ToInt32(contrStrings[1]);
-                        security.Currency = contrStrings[2];
-                        security.Exchange = contrStrings[3];
-                        security.Expiry = contrStrings[4];
-                        security.IncludeExpired = Convert.ToBoolean(contrStrings[5]);
-                        security.LocalSymbol = contrStrings[6];
-                        security.Multiplier = contrStrings[7];
-                        security.PrimaryExch = contrStrings[8];
-                        security.Right = contrStrings[9];
-                        security.SecId = contrStrings[10];
-                        security.SecIdType = contrStrings[11];
-                        security.SecType = contrStrings[12];
-                        security.Strike = Convert.ToDouble(contrStrings[13]);
-                        security.Symbol = contrStrings[14];
-                        security.TradingClass = contrStrings[15];
-
-                        if (contrStrings.Length > 15 &&
-                            string.IsNullOrEmpty(contrStrings[16]) == false)
+                        try
                         {
-                            security.CreateMarketDepthFromTrades = Convert.ToBoolean(contrStrings[16]);
-                        }
+                            SecurityIb security = new SecurityIb();
 
-                        _secIB.Add(security);
+                            string[] contrStrings = reader.ReadLine().Split('@');
+
+                            security.ComboLegsDescription = contrStrings[0];
+                            Int32.TryParse(contrStrings[1],out security.ConId);
+                            security.Currency = contrStrings[2];
+                            security.Exchange = contrStrings[3];
+                            security.Expiry = contrStrings[4];
+                            Boolean.TryParse(contrStrings[5],out security.IncludeExpired);
+                            security.LocalSymbol = contrStrings[6];
+                            security.Multiplier = contrStrings[7];
+                            security.PrimaryExch = contrStrings[8];
+                            security.Right = contrStrings[9];
+                            security.SecId = contrStrings[10];
+                            security.SecIdType = contrStrings[11];
+                            security.SecType = contrStrings[12];
+                            Double.TryParse(contrStrings[13], out security.Strike);
+                            security.Symbol = contrStrings[14];
+                            security.TradingClass = contrStrings[15];
+
+                            if (contrStrings.Length > 15 &&
+                                string.IsNullOrEmpty(contrStrings[16]) == false)
+                            {
+                                security.CreateMarketDepthFromTrades = Convert.ToBoolean(contrStrings[16]);
+                            }
+
+                            _secIB.Add(security);
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
                     }
 
                     if (_secIB.Count == 0)
@@ -1068,44 +1085,45 @@ contract =>
             }
             else if (tf == TimeFrame.Min1)
             {
-                timeStart = timeEnd.AddHours(5);
+                timeStart = timeEnd.AddHours(15);
                 barSize = "1 min";
             }
             else if (tf == TimeFrame.Min5)
             {
-                timeStart = timeEnd.AddHours(25);
+                timeStart = timeEnd.AddHours(50);
                 barSize = "5 mins";
             }
             else if (tf == TimeFrame.Min15)
             {
-                timeStart = timeEnd.AddHours(75);
+                timeStart = timeEnd.AddHours(150);
                 barSize = "15 mins";
             }
             else if (tf == TimeFrame.Min30)
             {
-                timeStart = timeEnd.AddHours(150);
+                timeStart = timeEnd.AddHours(250);
                 barSize = "30 mins";
             }
             else if (tf == TimeFrame.Hour1)
             {
-                timeStart = timeEnd.AddHours(300);
+                timeStart = timeEnd.AddHours(1300);
                 barSize = "1 hour";
             }
             else if (tf == TimeFrame.Hour2)
             {
-                timeStart = timeEnd.AddHours(600);
+                timeStart = timeEnd.AddHours(2100);
                 barSize = "1 hour";
                 mergeCount = 2;
             }
             else if (tf == TimeFrame.Hour4)
             {
-                timeStart = timeEnd.AddHours(1200);
+                timeStart = timeEnd.AddHours(4200);
                 barSize = "1 hour";
                 mergeCount = 4;
             }
             else if (tf == TimeFrame.Day)
             {
                 barSize = "1 day";
+                timeStart = timeEnd.AddDays(701);
             }
             else
             {

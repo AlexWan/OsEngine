@@ -99,7 +99,7 @@ namespace OsEngine.Market.Servers.Finam
             {
                 _ui.Activate();
             }
-            
+
         }
 
         /// <summary>
@@ -435,7 +435,7 @@ namespace OsEngine.Market.Servers.Finam
             {
                 _finamSecurities.Add(new FinamSecurity());
 
-                _finamSecurities[i].Code = arrayCodes[i].TrimStart('\'').TrimEnd('\''); 
+                _finamSecurities[i].Code = arrayCodes[i].TrimStart('\'').TrimEnd('\'');
                 _finamSecurities[i].Decp = arrayDecp[i].Split(':')[1];
                 _finamSecurities[i].EmitentChild = arrayEmitentChild[i];
                 _finamSecurities[i].Id = arrayIds[i];
@@ -625,7 +625,7 @@ namespace OsEngine.Market.Servers.Finam
 
             _securitiesToSend.Enqueue(_securities);
 
-            SendLogMessage(OsLocalization.Market.Message52 +  _securities.Count, LogMessageType.System);
+            SendLogMessage(OsLocalization.Market.Message52 + _securities.Count, LogMessageType.System);
         }
 
         private void CreatePortfolio()
@@ -1199,7 +1199,7 @@ namespace OsEngine.Market.Servers.Finam
                     continue;
                 }
 
-               for (int i = 0; _finamDataSeries != null && i < _finamDataSeries.Count; i++)
+                for (int i = 0; _finamDataSeries != null && i < _finamDataSeries.Count; i++)
                 {
                     if (_finamDataSeries[i].NeadToUpdeate == false &&
                         _finamDataSeries[i].LoadedOnce == true)
@@ -1236,7 +1236,7 @@ namespace OsEngine.Market.Servers.Finam
         /// file names downloaded from Finam with trades
         /// имена файлов загруженных из финам с трейдами
         /// </summary>
-        private List<List<string>> _downLoadFilesWhithTrades;  
+        private List<List<string>> _downLoadFilesWhithTrades;
 
         private void finamDataSecies_TradesFilesUpdateEvent(List<string> files)
         {
@@ -1245,7 +1245,7 @@ namespace OsEngine.Market.Servers.Finam
                 _downLoadFilesWhithTrades = new List<List<string>>();
             }
 
-            for(int i =  0;i < files.Count;i++)
+            for (int i = 0; i < files.Count; i++)
             {
                 if (files[i] == null)
                 {
@@ -1461,8 +1461,8 @@ namespace OsEngine.Market.Servers.Finam
                 {
                     return;
                 }
-                _serverTime = value; 
-                
+                _serverTime = value;
+
             }
         }
 
@@ -1648,7 +1648,7 @@ namespace OsEngine.Market.Servers.Finam
                         List<Trade> listTrades = new List<Trade>();
                         Trade newTrade = new Trade();
 
-                        for (int i = 0; trades!= null && i < trades.Count; i++)
+                        for (int i = 0; trades != null && i < trades.Count; i++)
                         {
                             if (trades[i] == null)
                             {
@@ -1672,7 +1672,7 @@ namespace OsEngine.Market.Servers.Finam
                                 }
                                 catch
                                 {
-                                     // ignore
+                                    // ignore
                                 }
 
                             }
@@ -1842,7 +1842,7 @@ namespace OsEngine.Market.Servers.Finam
 
             string urlToSec = SecurityFinam.Name + "_" + timeStartInStrToName + "_" + timeEndInStrToName;
 
-            string url = ServerPrefics + "/" +urlToSec+ ".txt?";
+            string url = ServerPrefics + "/" + urlToSec + ".txt?";
 
             url += "market=" + SecurityFinam.MarketId + "&";
             url += "em=" + SecurityFinam.Id + "&";
@@ -1858,7 +1858,7 @@ namespace OsEngine.Market.Servers.Finam
             url += "to=" + timeTo + "&";
 
             url += "p=" + 1 + "&";
-            url += "f=" + urlToSec+ "&";
+            url += "f=" + urlToSec + "&";
             url += "e=" + ".txt" + "&";
             url += "cn=" + SecurityFinam.Name + "&";
             url += "dtf=" + 1 + "&";
@@ -1869,12 +1869,19 @@ namespace OsEngine.Market.Servers.Finam
             url += "sep=" + "1" + "&";
             url += "sep2=" + "1" + "&";
             url += "datf=" + "12" + "&";
-            url += "at=" + "0" ;
+            url += "at=" + "0";
 
-// if we have already downloaded this trades series, try to get it from the general storage
-// если мы уже эту серию трейдов качали, пробуем достать её из общего хранилища
+            // if we have already downloaded this trades series, try to get it from the general storage
+            // если мы уже эту серию трейдов качали, пробуем достать её из общего хранилища
 
-            string fileName = @"Data\Temp\" + SecurityFinam.Name + "_" + timeStart.ToShortDateString() + ".txt";
+            string secName = SecurityFinam.Name;
+
+            if (secName.Contains("/"))
+            {
+                secName = Extensions.RemoveExcessFromSecurityName(secName);
+            }
+
+            string fileName = @"Data\Temp\" + secName + "_" + timeStart.ToShortDateString() + ".txt";
 
             if (timeStart.Date != DateTime.Now.Date &&
                 File.Exists(fileName))
@@ -1882,8 +1889,8 @@ namespace OsEngine.Market.Servers.Finam
                 return fileName;
             }
 
-// request data
-// запрашиваем данные
+            // request data
+            // запрашиваем данные
 
             WebClient wb = new WebClient();
 
@@ -1929,15 +1936,15 @@ namespace OsEngine.Market.Servers.Finam
                 builder.Append(s[2] + ",");
                 builder.Append(s[3] + ",");
 
-                if(s[5] == "S")
+                if (s[5] == "S")
                 {
-                    builder.Append("Sell" );
+                    builder.Append("Sell");
                 }
                 else
                 {
-                    builder.Append("Buy" );
+                    builder.Append("Buy");
                 }
-          
+
                 list.Append(builder + "\r\n");
             }
 
@@ -1946,7 +1953,7 @@ namespace OsEngine.Market.Servers.Finam
             StreamWriter writer = new StreamWriter(fileName);
             writer.Write(list);
             writer.Close();
-            
+
             return fileName;
         }
 

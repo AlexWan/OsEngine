@@ -1,4 +1,5 @@
 ﻿using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using OsEngine.Market.Servers.Transaq.TransaqEntity;
@@ -7,12 +8,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Xml.Serialization;
-using OsEngine.Language;
+using System.Xml;
 using Candle = OsEngine.Entity.Candle;
 using Order = OsEngine.Entity.Order;
 using Security = OsEngine.Entity.Security;
@@ -26,7 +25,7 @@ namespace OsEngine.Market.Servers.Transaq
         {
             WorkingTimeSettings = new ServerWorkingTimeSettings()
             {
-                StartSessionTime = new TimeSpan(9, 55, 0),
+                StartSessionTime = new TimeSpan(6, 55, 0),
                 EndSessionTime = new TimeSpan(23, 50, 0),
                 WorkingAtWeekend = false,
                 ServerTimeZone = "Russian Standard Time",
@@ -199,7 +198,7 @@ namespace OsEngine.Market.Servers.Transaq
             _client.ClientsInfo += ClientsInfoUpdate;
             _client.UpdatePortfolio += ClientOnUpdatePortfolio;
             _client.UpdatePositions += ClientOnUpdatePositions;
-            _client.UpdateMonoPortfolio += ClientOnUpdateMonoPortfolio;
+            _client.UpdateClientLimits += ClientOnUpdateLimits;
             _client.NewTradesEvent += ClientOnNewTradesEvent;
             _client.UpdateMarketDepth += ClientOnUpdateMarketDepth;
             _client.MyOrderEvent += ClientOnMyOrderEvent;
@@ -298,7 +297,7 @@ namespace OsEngine.Market.Servers.Transaq
                 _client.ClientsInfo -= ClientsInfoUpdate;
                 _client.UpdatePortfolio -= ClientOnUpdatePortfolio;
                 _client.UpdatePositions -= ClientOnUpdatePositions;
-                _client.UpdateMonoPortfolio -= ClientOnUpdateMonoPortfolio;
+                _client.UpdateClientLimits -= ClientOnUpdateLimits;
                 _client.NewTradesEvent -= ClientOnNewTradesEvent;
                 _client.UpdateMarketDepth -= ClientOnUpdateMarketDepth;
                 _client.MyOrderEvent -= ClientOnMyOrderEvent;
@@ -373,29 +372,47 @@ namespace OsEngine.Market.Servers.Transaq
                     continue;
                 }
 
-                string command;
-
                 if (_clients == null || _clients.Count == 0)
                 {
                     continue;
                 }
 
-               foreach (var client in _clients)
+                foreach (var client in _clients)
                 {
-                    if (client.Union != null)
+                    string command;
+                    if (client.Type == "mct")
                     {
-                        command = $"<command id=\"get_united_portfolio\" union=\"{client.Union}\"/>";
+                        command = $"<command id=\"get_portfolio_mct\" client=\"{client.Id}\"/>";
 
                         string res = _client.ConnectorSendCommand(command);
 
                         if (res != "<result success=\"true\"/>")
                         {
                             SendLogMessage(res, LogMessageType.Error);
+                            Thread.Sleep(5000);
                         }
-
-                        Thread.Sleep(10000);
                     }
                     else
+                    {
+                        if (!string.IsNullOrEmpty(client.Union))
+                        {
+                            command = $"<command id=\"get_mc_portfolio\" union=\"{client.Union}\" />";
+                        }
+                        else
+                        {
+                            command = $"<command id=\"get_mc_portfolio\" client=\"{client.Id}\" />";
+                        }
+
+                        string res = _client.ConnectorSendCommand(command);
+
+                        if (res != "<result success=\"true\"/>")
+                        {
+                            SendLogMessage(res, LogMessageType.Error);
+                            Thread.Sleep(5000);
+                        }
+                    }
+
+                    if(string.IsNullOrEmpty(client.Union) && !string.IsNullOrEmpty(client.Forts_acc))
                     {
                         command = $"<command id=\"get_client_limits\" client=\"{client.Id}\"/>";
                         string res = _client.ConnectorSendCommand(command);
@@ -403,17 +420,14 @@ namespace OsEngine.Market.Servers.Transaq
                         if (res != "<result success=\"true\"/>")
                         {
                             SendLogMessage(res, LogMessageType.Error);
+                            Thread.Sleep(5000);
                         }
-
-                        Thread.Sleep(500);
                     }
 
-                    Thread.Sleep(10000);
+                    Thread.Sleep(500);
                 }
             }
         }
-
-        private bool _isMono;
 
         public void GetSecurities()
         {
@@ -425,20 +439,6 @@ namespace OsEngine.Market.Servers.Transaq
         /// </summary>
         public void SendOrder(Order order)
         {
-            var needPortfolio = _portfolios.Find(p => p.Number == order.PortfolioNumber);
-
-            if (needPortfolio == null)
-            {
-                SendLogMessage("Портфель для операций не найден ", LogMessageType.Error);
-                return;
-            }
-
-            if (needPortfolio.ValueCurrent == 0)
-            {
-                SendLogMessage("Ошибка выставления ордера, отсутствуют средства на счете ", LogMessageType.Error);
-                return;
-            }
-
             string side = order.Side == Side.Buy ? "B" : "S";
 
             var needSec = _securities.Find(s => s.Name == order.SecurityNameCode);
@@ -448,7 +448,17 @@ namespace OsEngine.Market.Servers.Transaq
             cmd += "<board>" + needSec.NameClass + "</board>";
             cmd += "<seccode>" + needSec.Name + "</seccode>";
             cmd += "</security>";
-            cmd += _isMono ? "<client>" + order.PortfolioNumber + "</client>" : "<union>" + order.PortfolioNumber + "</union>";
+
+            if (order.PortfolioNumber.StartsWith("United_"))
+            {
+                var union = order.PortfolioNumber.Split('_')[1];
+                cmd += "<union>" + union + "</union>";
+            }
+            else
+            {
+                cmd += "<client>" + order.PortfolioNumber + "</client>";
+            }
+
             cmd += "<price>" + order.Price.ToString().Replace(',', '.') + "</price>";
             cmd += "<quantity>" + order.Volume + "</quantity>";
             cmd += "<buysell>" + side + "</buysell>";
@@ -462,30 +472,25 @@ namespace OsEngine.Market.Servers.Transaq
                     cmd += "<usecredit> true </usecredit>";
                 }
             }
-
-
+            
             cmd += "</command>";
 
             // sending command / отправка команды
             string res = _client.ConnectorSendCommand(cmd);
 
-            Result data;
-            var formatter = new XmlSerializer(typeof(Result));
-            using (StringReader fs = new StringReader(res))
-            {
-                data = (Result)formatter.Deserialize(fs);
-            }
+            var result = _client.Deserialize<Result>(res);
 
-            //<result success="true" transactionid="12445626"/>
-            if (data.Success != "true")
+            if (!result.Success)
             {
                 order.State = OrderStateType.Fail;
+                SendLogMessage("SendOrderFall" + result.Message, LogMessageType.Error);
             }
             else
             {
-                order.NumberUser = int.Parse(data.Transactionid);
+                order.NumberUser = result.TransactionId;
                 order.State = OrderStateType.Pending;
             }
+
             order.TimeCallBack = ServerTime;
 
             MyOrderEvent?.Invoke(order);
@@ -860,124 +865,134 @@ namespace OsEngine.Market.Servers.Transaq
             {
                 _clients = new List<Client>();
             }
-            _clients.Add(clientInfo);
 
-            _isMono = clientInfo.Union == null;
-        }
-
-        /// <summary>
-        /// got portfolio data
-        /// пришли данные по портфелям
-        /// </summary>
-        /// <param name="unitedPortfolio">portfolio in Transaq format / портфель в формате Transaq</param>
-        private void ClientOnUpdatePortfolio(UnitedPortfolio unitedPortfolio)
-        {
-            if (_portfolios == null)
+            if (!string.IsNullOrEmpty(clientInfo.Union))
             {
-                _portfolios = new List<Portfolio>();
-            }
+                var needClient = _clients.Find(c => !string.IsNullOrEmpty(c.Union));
 
-            var needPortfolio = _portfolios.Find(p => p.Number == unitedPortfolio.Union);
-
-            if (needPortfolio == null)
-            {
-                needPortfolio = new Portfolio()
+                if (needClient == null)
                 {
-                    Number = unitedPortfolio.Union,
-                    ValueBegin = Convert.ToDecimal(unitedPortfolio.Open_equity.Replace(".", ",")),
-                    ValueCurrent = Convert.ToDecimal(unitedPortfolio.Equity.Replace(".", ",")),
-                    ValueBlocked = Convert.ToDecimal(unitedPortfolio.Init_req.Replace(".", ",")),
-                };
-                _portfolios.Add(needPortfolio);
+                    _clients.Add(clientInfo);
+                }
             }
             else
             {
-                needPortfolio.ValueBegin = Convert.ToDecimal(unitedPortfolio.Open_equity.Replace(".", ","));
-                needPortfolio.ValueCurrent = Convert.ToDecimal(unitedPortfolio.Equity.Replace(".", ","));
-                needPortfolio.ValueBlocked = Convert.ToDecimal(unitedPortfolio.Init_req.Replace(".", ","));
+                _clients.Add(clientInfo);
             }
-
-            needPortfolio.ClearPositionOnBoard();
-
-            if (unitedPortfolio.Asset != null && unitedPortfolio.Asset.Count != 0)
-            {
-                foreach (var asset in unitedPortfolio.Asset)
-                {
-                    for (int i = 0; i < asset.Security.Count; i++)
-                    {
-                        PositionOnBoard pos = new PositionOnBoard()
-                        {
-                            SecurityNameCode = asset.Security[i].Seccode,
-                            ValueBegin = Convert.ToDecimal(asset.Security[i].Open_balance.Replace(".", ",")),
-                            ValueCurrent = Convert.ToDecimal(asset.Security[i].Balance.Replace(".", ",")),
-                            ValueBlocked = asset.Security[i].Buying == "0" ?
-                                Convert.ToDecimal(asset.Security[i].Selling.Replace(".", ",")) :
-                                Convert.ToDecimal(asset.Security[i].Buying.Replace(".", ",")),
-                            PortfolioName = needPortfolio.Number,
-
-                        };
-                        needPortfolio.SetNewPosition(pos);
-                    }
-                }
-            }
-
-            PortfolioEvent?.Invoke(_portfolios);
         }
 
         /// <summary>
         /// got portfolio data
         /// пришли данные по портфелям
         /// </summary>
-        private void ClientOnUpdateMonoPortfolio(Clientlimits clientLimits)
+        /// <param name="portfolio">portfolio / портфель </param>
+        private void ClientOnUpdatePortfolio(string portfolio)
         {
             if (_portfolios == null)
             {
                 _portfolios = new List<Portfolio>();
+            }
+            
+            var unitedPortfolio = ParsePortfolio(portfolio);
+
+            var needPortfolio = _portfolios.Find(p => p.Number == unitedPortfolio.Number);
+
+            if (needPortfolio != null)
+            {
+                _portfolios.Remove(needPortfolio);
+            }
+            _portfolios.Add(unitedPortfolio);
+            
+            PortfolioEvent?.Invoke(_portfolios);
+        }
+
+        private Portfolio ParsePortfolio(string data)
+        {
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(data);
+
+            XmlElement root = doc.DocumentElement;
+
+            if (root == null)
+            {
+                return null;
+            }
+
+            var union = root.GetAttribute("union");
+            var client = root.GetAttribute("client");
+
+            var openEquity = root.SelectSingleNode("open_equity");
+            var equity = root.SelectSingleNode("equity");
+            var block = root.SelectSingleNode("maint_req");
+
+            var allSecurity = root.GetElementsByTagName("security");
+
+            var portfolio = new Portfolio();
+
+            if (openEquity != null) portfolio.ValueBegin = openEquity.InnerText.ToDecimal();
+            if (equity != null) portfolio.ValueCurrent = equity.InnerText.ToDecimal();
+            if (block != null) portfolio.ValueBlocked = block.InnerText.ToDecimal();
+
+            if (!string.IsNullOrEmpty(union))
+            {
+                portfolio.Number = "United_" + union;
+            }
+            else
+            {
+                portfolio.Number = client;
+            }
+
+            foreach (var security in allSecurity)
+            {
+                var node = (XmlNode) security;
+
+                var pos = new PositionOnBoard();
+
+                pos.SecurityNameCode = node.SelectSingleNode("seccode")?.InnerText;
+                pos.PortfolioName = portfolio.Number;
+
+                var begin = node.SelectSingleNode("open_balance")?.InnerText.ToDecimal();
+                var buy = node.SelectSingleNode("bought")?.InnerText.ToDecimal();
+                var sell = node.SelectSingleNode("sold")?.InnerText.ToDecimal();
+
+                pos.ValueBegin = Convert.ToDecimal(begin);
+                pos.ValueCurrent = pos.ValueBegin + Convert.ToDecimal(buy - sell);
+
+                portfolio.SetNewPosition(pos);
+            }
+
+            return portfolio;
+        }
+
+        /// <summary>
+        /// got portfolio data
+        /// пришли данные по портфелям
+        /// </summary>
+        private void ClientOnUpdateLimits(ClientLimits clientLimits)
+        {
+            if (_portfolios == null)
+            {
+                return;
             }
 
             var needPortfolio = _portfolios.Find(p => p.Number == clientLimits.Client);
 
-            if (needPortfolio == null)
+            if (needPortfolio != null)
             {
-                if (clientLimits.Money_current == null)
-                {
-                    needPortfolio = new Portfolio()
-                    {
-                        Number = clientLimits.Client,
-                        ValueBegin = 0,
-                        ValueCurrent = 0,
-                        ValueBlocked = 0,
-                    };
-                }
-                else
-                {
-                    needPortfolio = new Portfolio()
-                    {
-                        Number = clientLimits.Client,
-                        ValueBegin = Convert.ToDecimal(clientLimits.Money_current.Replace(".", ",")),
-                        ValueCurrent = Convert.ToDecimal(clientLimits.Money_free.Replace(".", ",")),
-                        ValueBlocked = _blocked,
-                    };
-                }
+                InitPortfolio(needPortfolio, clientLimits);
+            }
 
-                _portfolios.Add(needPortfolio);
-            }
-            else
-            {
-                if (clientLimits.Money_current == null)
-                {
-                    needPortfolio.ValueBegin = 0;
-                    needPortfolio.ValueCurrent = 0;
-                    needPortfolio.ValueBlocked = 0;
-                }
-                else
-                {
-                    needPortfolio.ValueBegin = Convert.ToDecimal(clientLimits.Money_current.Replace(".", ","));
-                    needPortfolio.ValueCurrent = Convert.ToDecimal(clientLimits.Money_free.Replace(".", ","));
-                    needPortfolio.ValueBlocked = _blocked;
-                }
-            }
             PortfolioEvent?.Invoke(_portfolios);
+        }
+
+        private Portfolio InitPortfolio(Portfolio portfolio, ClientLimits clientLimits)
+        {
+            portfolio.ValueBegin = clientLimits.MoneyCurrent.ToDecimal();
+            portfolio.ValueCurrent = clientLimits.MoneyFree.ToDecimal();
+            portfolio.ValueBlocked = clientLimits.MoneyReserve.ToDecimal();
+            portfolio.Profit = clientLimits.Profit.ToDecimal();
+
+            return portfolio;
         }
 
         private decimal _blocked = 0;
@@ -988,10 +1003,6 @@ namespace OsEngine.Market.Servers.Transaq
         /// </summary>
         private void ClientOnUpdatePositions(TransaqPositions transaqPositions)
         {
-            if (!_isMono)
-            {
-                return;
-            }
             if (_portfolios == null)
             {
                 _portfolios = new List<Portfolio>();
@@ -1445,7 +1456,7 @@ namespace OsEngine.Market.Servers.Transaq
                     newOrder.Volume = Convert.ToDecimal(order.Quantity);
                     newOrder.Price = Convert.ToDecimal(order.Price.Replace(".", ","));
                     newOrder.ServerType = ServerType.Transaq;
-                    newOrder.PortfolioNumber = _isMono ? order.Client : order.Union;
+                    newOrder.PortfolioNumber = string.IsNullOrEmpty(order.Union) ? order.Client : order.Union;
 
                     if (order.Status == "active")
                     {

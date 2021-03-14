@@ -269,6 +269,10 @@
       <DependentUpon>KalmanFilterUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Charts\CandleChart\Indicators\Line.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\LinearRegressionCurve.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\LinearRegressionCurveUi.xaml.cs">
+      <DependentUpon>LinearRegressionCurveUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Charts\CandleChart\Indicators\MacdHistogram.cs" />
     <Compile Include="Charts\CandleChart\Indicators\MacdHistogramUi.xaml.cs">
       <DependentUpon>MacdHistogramUi.xaml</DependentUpon>
@@ -316,6 +320,10 @@
     <Compile Include="Charts\CandleChart\Indicators\Rvi.cs" />
     <Compile Include="Charts\CandleChart\Indicators\RviUi.xaml.cs">
       <DependentUpon>RviUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\SimpleVWAP.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\SimpleVWAPUi.xaml.cs">
+      <DependentUpon>SimpleVWAPUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Charts\CandleChart\Indicators\StandardDeviation.cs" />
     <Compile Include="Charts\CandleChart\Indicators\StandardDeviationUi.xaml.cs">
@@ -1019,6 +1027,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Charts\CandleChart\Indicators\LinearRegressionCurveUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Charts\CandleChart\Indicators\MacdHistogramUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -1064,6 +1076,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Charts\CandleChart\Indicators\RviUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\SimpleVWAPUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

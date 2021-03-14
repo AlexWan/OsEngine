@@ -530,6 +530,8 @@ namespace OsEngine.Market.Servers.SmartCom
             _getPortfoliosAndSecurities = false;
         }
 
+        private object trades_locker = new object();
+
         /// <summary>
         /// блокиратор многопоточного доступа к серверу СмартКом
         /// </summary>
@@ -622,13 +624,13 @@ namespace OsEngine.Market.Servers.SmartCom
                     }
                     else if (!_tradesToSend.IsEmpty)
                     {
-                        List<Trade> trades;
-
-                        if (_tradesToSend.TryDequeue(out trades))
+                        lock (trades_locker)
                         {
-                            if (NewTradeEvent != null)
+                            List<Trade> trades;
+
+                            if (_tradesToSend.TryDequeue(out trades))
                             {
-                                NewTradeEvent(trades);
+                                NewTradeEvent?.Invoke(trades);
                             }
                         }
                     }

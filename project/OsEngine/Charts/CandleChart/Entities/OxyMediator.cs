@@ -3,6 +3,7 @@ using OsEngine.Charts.CandleChart.OxyAreas;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OxyPlot;
+using OxyPlot.Annotations;
 using OxyPlot.Axes;
 using OxyPlot.Series;
 using System;
@@ -40,6 +41,7 @@ namespace OsEngine.Charts.CandleChart.Entities
         public int factor_selector = 6;
         public double factor = 1;
         public int count_skiper;
+        public bool is_first_start = true;
 
         public object in_progress = new object();
 
@@ -88,16 +90,20 @@ namespace OsEngine.Charts.CandleChart.Entities
                 if (factor > 1)
                     count_skiper = (int)factor;
 
-
-                if (indicators_list.Select(x => x.plot_model.ActualPlotMargins.Right == 0) != null)
+                if (is_first_start == true && indicators_list.Select(x => x.plot_model.ActualPlotMargins.Right == 0) != null)
                 {
-                    Task update_margin = new Task(() =>
-                    {
-                        RedrawIndiAreas(null, false);
-                        Delay(50).Wait();
+                    is_first_start = false;
+
+                    delay = new Task(() =>
+                    {           
+                        Delay(500).Wait(1000);
+
+                        RedrawAll(null);
+
+                        Delay(500).Wait(1000);
                     });
 
-                    update_margin.Start();
+                    delay.Start();
                 }
             }
         }
@@ -282,11 +288,11 @@ namespace OsEngine.Charts.CandleChart.Entities
 
                     delay = new Task(() =>
                     {
-                        Delay(25).Wait(25);
+                        Delay(25).Wait(50);
                     });
 
                     delay.Start();
-                    delay.Wait();
+                    delay.Wait(100);
 
                     can_redraw_all = true;
                 }
@@ -301,11 +307,11 @@ namespace OsEngine.Charts.CandleChart.Entities
 
                         delay = new Task(() =>
                         {
-                            Delay(25).Wait(25);
+                            Delay(25).Wait(50);
                         });
 
                         delay.Start();
-                        delay.Wait();
+                        delay.Wait(100);
 
                         can_redraw_all = true;
                     });
@@ -338,11 +344,11 @@ namespace OsEngine.Charts.CandleChart.Entities
             {
                 delay = new Task(() =>
                 {
-                    Delay(25).Wait(25);
+                    Delay(25).Wait(50);
                 });
 
                 delay.Start();
-                delay.Wait();
+                delay.Wait(100);
             }
 
             can_redraw_prime = true;
@@ -373,13 +379,13 @@ namespace OsEngine.Charts.CandleChart.Entities
 
             if (nead_to_delay)
             {
-                Task delay = new Task(() =>
+                delay = new Task(() =>
                 {
-                    Delay(50).Wait();
+                    Delay(25).Wait(50);
                 });
 
                 delay.Start();
-                delay.Wait();
+                delay.Wait(100);
             }
 
             can_redraw_indicators = true;
@@ -408,11 +414,11 @@ namespace OsEngine.Charts.CandleChart.Entities
             {
                 delay = new Task(() =>
                 {
-                    Delay(25).Wait(25);
+                    Delay(25).Wait(50);
                 });
 
                 delay.Start();
-                delay.Wait();
+                delay.Wait(100);
             }
 
             can_redraw_scroll = true;
@@ -434,37 +440,15 @@ namespace OsEngine.Charts.CandleChart.Entities
             {
                 delay = new Task(() =>
                 {
-                    Delay(25).Wait(25);
+                    Delay(25).Wait(50);
                 });
 
                 delay.Start();
-                delay.Wait();
+                delay.Wait(100);
             }
         }
 
-        public void Dispose()
-        {
-            owner.UpdateCandlesEvent -= Owner_UpdateCandlesEvent;
-            owner.UpdateIndicatorEvent -= Owner_UpdateIndicatorEvent;
-
-            prime_chart.Redrawed -= RedrawDoneEvent;
-            prime_chart.Updated -= UpdateDoneEvent;
-
-            for (int i = 0; i < indicators_list.Count; i++)
-            {
-                indicators_list[i].Redrawed -= RedrawDoneEvent;
-                indicators_list[i].Updated -= UpdateDoneEvent;
-            }
-
-            scroll_bar.Redrawed -= RedrawDoneEvent;
-            scroll_bar.Updated -= UpdateDoneEvent;
-
-            prime_chart = null;
-
-            indicators_list = new List<IndicatorArea>();
-
-            scroll_bar = null;
-        }
+        
 
         public void ProcessElem(IChartElement element)
         {
@@ -494,32 +478,103 @@ namespace OsEngine.Charts.CandleChart.Entities
 
             if (element is PointElement)
             {
-                //OxyArea area;
+                MarkerType shape = MarkerType.None;
 
-                //if (indicators_list.Exists(x => (string)x.Tag == element.Area))
-                //{
-                //    area = indicators_list.Find(x => (string)x.Tag == element.Area);
+                int size = (int)(((PointElement)element).Size / 2);
 
-                //    if (((IndicatorArea)area).scatter_series_list.Exists(x => (string)x.Tag == element.UniqName))
-                //    {
-                //        ((IndicatorArea)area).scatter_series_list.Remove(((IndicatorArea)area).scatter_series_list.Find(x => (string)x.Tag == element.UniqName));
-                //    }
+                double stroke_thickness = 1;
+
+                if (((PointElement)element).Style == System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Circle)
+                    shape = MarkerType.Circle;
+
+                else if (((PointElement)element).Style == System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Diamond)
+                    shape = MarkerType.Diamond;
+
+                else if (((PointElement)element).Style == System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Square)
+                    shape = MarkerType.Square;
+
+                else if (((PointElement)element).Style == System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Cross)
+                {
+                    shape = MarkerType.Cross;
+                    stroke_thickness = size / 2;
+                }
+
+                else if (((PointElement)element).Style == System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Triangle)
+                    shape = MarkerType.Triangle;
+
+                else if (((PointElement)element).Style == System.Windows.Forms.DataVisualization.Charting.MarkerStyle.None)
+                    shape = MarkerType.None;
+
+                else
+                {
+                    shape = MarkerType.Star;
+                    stroke_thickness = size / 4;
+                }
+
+                PointAnnotation point = new PointAnnotation()
+                {
+                    X = DateTimeAxis.ToDouble(((PointElement)element).TimePoint),
+                    Y = (double)((PointElement)element).Y,
+                    Layer = AnnotationLayer.AboveSeries,
+                    Fill = OxyColor.FromArgb(((PointElement)element).Color.A, ((PointElement)element).Color.R, ((PointElement)element).Color.G, ((PointElement)element).Color.B),
+                    Shape = shape,
+                    Size = size,
+                    StrokeThickness = stroke_thickness,
+                    Stroke = OxyColor.FromArgb(((PointElement)element).Color.A, ((PointElement)element).Color.R, ((PointElement)element).Color.G, ((PointElement)element).Color.B),
+                    Tag = "point"
+                };
 
 
-                //}
+                OxyArea area;
 
-                //if (element.Area == "Prime")
-                //{
-                //    area = prime_chart;
-                //}
+                if (indicators_list.Exists(x => (string)x.Tag == element.Area))
+                {
+                    area = indicators_list.Find(x => (string)x.Tag == element.Area);
 
-                //if (area.)
-                //lines_series_list.Remove(indi_area.lines_series_list.Find(x => (string)x.Tag == element.UniqName));
-                
+                    area.plot_model.Annotations.Add(point);
+                }
 
-                //if (indi_area.lines_series_list.Exists(x => (string)x.Tag == element.UniqName))
-                    
+                if (element.Area == "Prime")
+                {
+                    prime_chart.plot_model.Annotations.Add(point);
+                }
             }
+        }
+
+        public void Dispose()
+        {
+            if (owner != null)
+            {
+                owner.UpdateCandlesEvent -= Owner_UpdateCandlesEvent;
+                owner.UpdateIndicatorEvent -= Owner_UpdateIndicatorEvent;
+            }
+
+            if (prime_chart != null)
+            {
+                prime_chart.Redrawed -= RedrawDoneEvent;
+                prime_chart.Updated -= UpdateDoneEvent;
+            }
+
+            for (int i = 0; i < indicators_list.Count; i++)
+            {
+                if (indicators_list[i] != null)
+                {
+                    indicators_list[i].Redrawed -= RedrawDoneEvent;
+                    indicators_list[i].Updated -= UpdateDoneEvent;
+                }
+            }
+
+            if (scroll_bar != null)
+            {
+                scroll_bar.Redrawed -= RedrawDoneEvent;
+                scroll_bar.Updated -= UpdateDoneEvent;
+            }
+
+            prime_chart = null;
+
+            indicators_list = new List<IndicatorArea>();
+
+            scroll_bar = null;
         }
     }
 }

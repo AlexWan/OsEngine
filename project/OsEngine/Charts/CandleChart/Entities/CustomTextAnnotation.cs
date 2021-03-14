@@ -31,9 +31,7 @@ namespace CustomAnnotations
 
         /// <inheritdoc/>
         public override void Render(IRenderContext rc)
-        {  
-
-
+        {
             ScreenPoint position = TextPosition + this.Orientate(this.Offset);
 
             var textSize = rc.MeasureText(this.Text, this.ActualFont, this.ActualFontSize, this.ActualFontWeight);

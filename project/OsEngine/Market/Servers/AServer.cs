@@ -103,6 +103,8 @@ namespace OsEngine.Market.Servers
             get { return _serverRealization; }
         }
 
+        private object trades_locker = new object();
+
         private double _waitTimeAfterFirstStart = 60;
 
         /// <summary>
@@ -843,13 +845,35 @@ namespace OsEngine.Market.Servers
                     }
                     else if (!_tradesToSend.IsEmpty)
                     {
-                        List<Trade> trades;
-
-                        if (_tradesToSend.TryDequeue(out trades))
+                        lock (trades_locker)
                         {
-                            if (NewTradeEvent != null)
+                            List<Trade> trades;
+
+                            if (_tradesToSend.TryDequeue(out trades))
                             {
-                                NewTradeEvent(trades);
+                                if (NewTradeEvent != null)
+                                {
+                                    NewTradeEvent(trades);
+                                }
+                                if (_needToRemoveTradesFromMemory.Value == true && _allTrades != null)
+
+                                {
+                                    foreach (var el in _allTrades)
+                                    {
+                                        if (el.Count > 100)
+                                        {
+                                            for (int i = el.Count - 100; i > 0; i--)
+                                            {
+                                                if (el[i] == null)
+                                                {
+                                                    break;
+                                                }
+                                                el[i] = null;
+                                            }
+                                        }
+                                    }
+                                }
+
                             }
                         }
                     }
@@ -1055,16 +1079,20 @@ namespace OsEngine.Market.Servers
                         }
                     }
 
-                    if (portf[i].ValueCurrent != 0)
-                    {
-
-                    }
-
                     curPortfolio.Profit = portf[i].Profit;
                     curPortfolio.ValueBegin = portf[i].ValueBegin;
                     curPortfolio.ValueCurrent = portf[i].ValueCurrent;
                     curPortfolio.ValueBlocked = portf[i].ValueBlocked;
 
+                    var positions = portf[i].GetPositionOnBoard();
+
+                    if (positions != null)
+                    {
+                        foreach (var positionOnBoard in positions)
+                        {
+                            curPortfolio.SetNewPosition(positionOnBoard);
+                        }
+                    }
                 }
 
                 _portfolioToSend.Enqueue(_portfolios);
@@ -1724,12 +1752,13 @@ namespace OsEngine.Market.Servers
                         myList = allTradesNew[allTradesNew.Length - 1];
                         _allTrades = allTradesNew;
                     }
-
+                    /*
                     if (_needToRemoveTradesFromMemory.Value == true &&
                         myList.Count > 100)
                     {
                         myList[myList.Count - 100] = null;
                     }
+                    */
 
                     _tradesToSend.Enqueue(myList);
                 }

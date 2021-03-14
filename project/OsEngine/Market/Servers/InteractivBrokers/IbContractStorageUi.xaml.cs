@@ -92,10 +92,18 @@ namespace OsEngine.Market.Servers.InteractivBrokers
 
 
             _grid.Rows.Add(null, null);
-            _grid.Click += _grid_Click;
-            _grid.CellValueChanged += _grid_CellValueChanged;
+
             Host.Child = _grid;
             LoadSecOnTable();
+
+            Closing += IbContractStorageUi_Closing;
+            _grid.Click += _grid_Click;
+            _grid.CellValueChanged += _grid_CellValueChanged;
+        }
+
+        private void IbContractStorageUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            SaveInServer();
         }
 
         void _grid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
@@ -224,10 +232,14 @@ namespace OsEngine.Market.Servers.InteractivBrokers
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
+            SaveInServer();
+        }
+
+        private void SaveInServer()
+        {
             SaveSecFromTable();
             _server.GetSecurities();
             _server.SaveIbSecurities();
         }
     }
 }
-

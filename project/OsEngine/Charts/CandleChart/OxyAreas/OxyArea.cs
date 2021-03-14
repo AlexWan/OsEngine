@@ -43,7 +43,9 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
 
         public CustomTextAnnotation annotation_price;
         public CustomTextAnnotation annotation_date_time;
-     
+        public CustomTextAnnotation drawed_name;
+
+
         public ScreenPoint mouse_screen_point = new ScreenPoint();
         public System.Windows.Input.MouseEventArgs mouse_event_args;
         public static List<Candle> my_candles = new List<Candle>();
@@ -95,7 +97,18 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
                 Background = area_settings.Brush_background,
             };
 
-            
+            drawed_name = new CustomTextAnnotation()
+            {
+                Text = (string)Tag,
+                TextColor = OxyColor.FromArgb(255, 98, 103, 113),
+                Background = OxyColors.Transparent,
+                Stroke = OxyColors.Transparent,
+                Tag = "drawed_name",
+                Layer = OxyPlot.Annotations.AnnotationLayer.AboveSeries,
+                TextHorizontalAlignment = HorizontalAlignment.Left,
+                TextVerticalAlignment = VerticalAlignment.Middle,
+                FontSize = 24,
+            };
 
             annotation_price = new CustomTextAnnotation()
             {
@@ -132,6 +145,9 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
             date_time_axis_X = new DateTimeAxis()
             {
                 TicklineColor = area_settings.TicklineColor,
+                AxislineStyle = area_settings.AxislineStyle,
+                AxislineThickness = 1,
+                AxislineColor = area_settings.AxislineColor,
                 MajorGridlineColor = area_settings.MajorGridlineColor,
                 MajorGridlineStyle = area_settings.MajorGridlineStyle,
                 MajorGridlineThickness = area_settings.MajorGridlineThickness,
@@ -148,6 +164,9 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
             linear_axis_Y = new LinearAxis()
             {
                 TicklineColor = area_settings.TicklineColor,
+                AxislineStyle = area_settings.AxislineStyle,
+                AxislineThickness = 1,
+                AxislineColor = area_settings.AxislineColor,
                 MajorGridlineColor = area_settings.MajorGridlineColor,
                 MajorGridlineStyle = area_settings.MajorGridlineStyle,
                 MajorGridlineThickness = area_settings.MajorGridlineThickness,
@@ -170,9 +189,10 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
                     Selectable = false,
                     ClipByYAxis = false,
                     X = double.MinValue,
-                    StrokeThickness = 1,
+                    StrokeThickness = 0.5,
                     Layer = AnnotationLayer.BelowSeries,
                     EdgeRenderingMode = EdgeRenderingMode.Automatic,
+                    LineStyle = LineStyle.LongDash
                      
                 };
             }
@@ -186,9 +206,10 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
                     ClipByXAxis = false,
                     Selectable = false,
                     Y = double.MinValue,
-                    StrokeThickness = 1,
+                    StrokeThickness = 0.5,
                     Layer = AnnotationLayer.BelowSeries,
-                    EdgeRenderingMode = EdgeRenderingMode.PreferSharpness
+                    EdgeRenderingMode = EdgeRenderingMode.Automatic,
+                    LineStyle = LineStyle.LongDash
                 };
             }
 
@@ -227,6 +248,11 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
             
         }
 
+        public virtual void CreateIndicatorLegend()
+        {
+
+        }
+
         public virtual List<double> GetHighLow(bool isPrime, double start, double end)
         {
             return new List<double>() { 0, 0 };
@@ -244,6 +270,16 @@ namespace OsEngine.Charts.CandleChart.OxyAreas
 
         public virtual void Dispose()
         {
+            List<Annotation> point_annotations = new List<Annotation>();
+
+            foreach (var annotation in plot_model.Annotations)
+            {
+                if (annotation.Tag == (object)"point")
+                    point_annotations.Add(annotation);
+            }
+
+            foreach (var ann in point_annotations)
+                plot_model.Annotations.Remove(ann);
 
         }
     }

@@ -10,6 +10,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Serialization;
 using OsEngine.Market.Servers.Entity;
 using Order = OsEngine.Market.Servers.Transaq.TransaqEntity.Order;
@@ -276,11 +277,9 @@ namespace OsEngine.Market.Servers.Transaq
 
                                 NewTradesEvent?.Invoke(allTrades);
                             }
-                            else if (data.StartsWith("<united_portfolio"))
+                            else if (data.StartsWith("<mc_portfolio"))
                             {
-                                UnitedPortfolio unitedPortfolio = Deserialize<UnitedPortfolio>(data);
-
-                                UpdatePortfolio?.Invoke(unitedPortfolio);
+                                UpdatePortfolio?.Invoke(data);
                             }
                             else if (data.StartsWith("<positions"))
                             {
@@ -290,9 +289,9 @@ namespace OsEngine.Market.Servers.Transaq
                             }
                             else if (data.StartsWith("<clientlimits"))
                             {
-                                var limits = Deserialize<Clientlimits>(data);
+                                var limits = Deserialize<ClientLimits>(data);
 
-                                UpdateMonoPortfolio?.Invoke(limits);
+                                UpdateClientLimits?.Invoke(limits);
                             }
                             else if (data.StartsWith("<client"))
                             {
@@ -339,6 +338,10 @@ namespace OsEngine.Market.Servers.Transaq
                                 {
                                     SendLogMessage(status.Text, LogMessageType.Error);
                                 }
+                            }
+                            else if (data.StartsWith("<error>"))
+                            {
+                                SendLogMessage(data, LogMessageType.Error);
                             }
                         }
                     }
@@ -405,13 +408,13 @@ namespace OsEngine.Market.Servers.Transaq
         /// updated portfolios
         /// обновились портфели
         /// </summary>
-        public event Action<UnitedPortfolio> UpdatePortfolio;
+        public event Action<string> UpdatePortfolio;
 
         /// <summary>
         /// updated portfolios
         /// обновились портфели
         /// </summary>
-        public event Action<Clientlimits> UpdateMonoPortfolio;
+        public event Action<ClientLimits> UpdateClientLimits;
 
         /// <summary>
         /// updated positions

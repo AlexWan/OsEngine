@@ -85,6 +85,8 @@ namespace OsEngine.Market.Servers.Kraken
             threadDataSender.Start();
         }
 
+        private object trades_locker = new object();
+
         /// <summary>
         /// public access key to Kraken
         /// публичный ключ доступа к Кракену
@@ -715,13 +717,13 @@ namespace OsEngine.Market.Servers.Kraken
                     }
                     else if (!_tradesToSend.IsEmpty)
                     {
-                        List<OsEngine.Entity.Trade> trades;
-
-                        if (_tradesToSend.TryDequeue(out trades))
+                        lock (trades_locker)
                         {
-                            if (NewTradeEvent != null)
+                            List<OsEngine.Entity.Trade> trades;
+
+                            if (_tradesToSend.TryDequeue(out trades))
                             {
-                                NewTradeEvent(trades);
+                                NewTradeEvent?.Invoke(trades);
                             }
                         }
                     }

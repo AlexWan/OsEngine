@@ -13,6 +13,12 @@ using OsEngine.Market.Servers.Entity;
 
 namespace OsEngine.Market.Servers.Binance.Futures
 {
+    public enum FuturesType
+    {
+        USDT,
+        COIN
+    }
+
     public class BinanceServerFutures : AServer
     {
         public BinanceServerFutures()
@@ -22,6 +28,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
+            CreateParameterEnum("Futures Type", "USDT-M", new List<string> { "USDT-M", "COIN-M" });
             CreateParameterBoolean("HedgeMode", false);
         }
 
@@ -41,6 +48,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
         {
             ServerStatus = ServerConnectStatus.Disconnect;
         }
+
+        private FuturesType futures_type;
 
         /// <summary>
         /// server type
@@ -119,7 +128,24 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 _client.MyOrderEvent += _client_MyOrderEvent;
                 _client.LogMessageEvent += SendLogMessage;
             }
-            _client.HedgeMode = ((ServerParameterBool)ServerParameters[2]).Value;
+
+            if (((ServerParameterEnum)ServerParameters[2]).Value == "USDT-M")
+            {
+                this.futures_type = FuturesType.USDT;
+                _client._baseUrl = "https://fapi.binance.com";
+                _client.wss_point = "wss://fstream.binance.com";
+                _client.type_str_selector = "fapi";
+            }
+            else if (((ServerParameterEnum)ServerParameters[2]).Value == "COIN-M")
+            {
+                this.futures_type = FuturesType.COIN;
+                _client._baseUrl = "https://dapi.binance.com";
+                _client.wss_point = "wss://dstream.binance.com";
+                _client.type_str_selector = "dapi";
+            }
+
+            _client.futures_type = this.futures_type;
+            _client.HedgeMode = ((ServerParameterBool)ServerParameters[3]).Value;
             _client.Connect();
         }
 
@@ -172,40 +198,34 @@ namespace OsEngine.Market.Servers.Binance.Futures
         /// take candle history for period
         /// взять историю свечек за период
         /// </summary>
-        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
-            DateTime startTime, DateTime endTime, DateTime actualTime)
+        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
+            if (endTime > DateTime.Now - new TimeSpan(0, 0, 1, 0))
+                endTime = DateTime.Now - new TimeSpan(0, 0, 1, 0);
+
+            int interval = 500 * (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes ;
+
             List<Candle> candles = new List<Candle>();
 
-            actualTime = startTime;
+            var startTimeStep = startTime;
+            var endTimeStep = startTime;
 
-            while (actualTime < endTime)
+            while (endTime > endTimeStep)
             {
-                List<Candle> newCandles = _client.GetCandlesForTimes(security.Name,
-                    timeFrameBuilder.TimeFrameTimeSpan,
-                    actualTime, endTime);
+                endTimeStep = endTimeStep + new TimeSpan(0, 0, interval, 0);
 
-                if (candles.Count != 0 && newCandles.Count != 0)
-                {
-                    for (int i = 0; i < newCandles.Count; i++)
-                    {
-                        if (candles[candles.Count - 1].TimeStart >= newCandles[i].TimeStart)
-                        {
-                            newCandles.RemoveAt(i);
-                            i--;
-                        }
+                if (endTimeStep > DateTime.Now - new TimeSpan(0, 0, (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes, 0))
+                    endTimeStep = DateTime.Now - new TimeSpan(0, 0, (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes, 0);
 
-                    }
-                }
+                List<Candle> stepCandles = _client.GetCandlesForTimes(security.Name, timeFrameBuilder.TimeFrameTimeSpan, startTimeStep, endTimeStep);
 
-                if (newCandles.Count == 0)
-                {
-                    return candles;
-                }
+                if (stepCandles != null)
+                    candles.AddRange(stepCandles);
 
-                candles.AddRange(newCandles);
 
-                actualTime = candles[candles.Count - 1].TimeStart;
+                startTimeStep = endTimeStep + new TimeSpan(0, 0, (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes, 0);
+
+                Thread.Sleep(300);
             }
 
             if (candles.Count == 0)
@@ -215,6 +235,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
             return candles;
         }
+
 
         /// <summary>
         /// take ticks data on instrument for period
@@ -227,6 +248,9 @@ namespace OsEngine.Market.Servers.Binance.Futures
             List<Trade> trades = new List<Trade>();
 
             DateTime startOver = startTime;
+
+            if (endTime > DateTime.Now - new TimeSpan(0, 0, 1, 0))
+                endTime = DateTime.Now - new TimeSpan(0, 0, 1, 0);
 
             while (true)
             {
@@ -251,7 +275,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     SendLogMessage(security.Name + " Binance Futures start loading: " + markerDateTime, LogMessageType.System);
                 }
 
-                Thread.Sleep(10);
+                Thread.Sleep(300);
             }
 
             if (trades.Count == 0)
@@ -265,6 +289,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
             return trades;
         }
+
 
         /// <summary>
         /// request order state
@@ -339,10 +364,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                         trades.data.q.ToDecimal();
                 trade.Side = trades.data.m == true ? Side.Sell : Side.Buy;
 
-                if (NewTradesEvent != null)
-                {
-                    NewTradesEvent(trade);
-                }
+                NewTradesEvent?.Invoke(trade);            
             }
         }
 
