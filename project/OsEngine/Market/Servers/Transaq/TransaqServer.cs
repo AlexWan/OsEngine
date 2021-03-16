@@ -466,10 +466,7 @@ namespace OsEngine.Market.Servers.Transaq
 
             if (needSec.NameClass == "TQBR")
             {
-                if (side == "S")
-                {
-                    cmd += "<usecredit> true </usecredit>";
-                }
+                cmd += "<usecredit> true </usecredit>";
             }
             
             cmd += "</command>";
