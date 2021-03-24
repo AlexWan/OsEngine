@@ -32,6 +32,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             _server = server;
 
             _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
+            _grid.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = _grid.DefaultCellStyle;
@@ -89,7 +90,6 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             column5.ReadOnly = false;
             column5.HeaderText = OsLocalization.Market.Label60;
             _grid.Columns.Add(column5);
-
 
             _grid.Rows.Add(null, null);
 
@@ -226,7 +226,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             {
                 SecToSubscrible = new List<SecurityIb>();
             }
-            SecToSubscrible.Add(new SecurityIb());
+            SecToSubscrible.Insert(0, new SecurityIb());
             LoadSecOnTable();
         }
 

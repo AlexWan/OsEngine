@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Threading;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
+using OsEngine.Market.Servers.InteractivBrokers;
 using System.IO;
 
 
@@ -67,10 +70,11 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// </summary>
         public DateTime ServerTime { get; set; }
 
-        // requests запросы
+        // requests
+        // запросы
 
         /// <summary>
-        /// client
+        /// binance client
         /// </summary>
         private IbClient _client;
 
@@ -98,8 +102,10 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 _client.NewTradeEvent -= AddTick;
                 _client.CandlesUpdateEvent -= _client_CandlesUpdateEvent;
                 _client.Disconnect();
+
             }
 
+            _namesSubscribleSecurities = new List<string>();
             _client = null;
             _connectedContracts = new List<string>();
 
@@ -150,6 +156,8 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             {
                 ConnectEvent();
             }
+
+            GetSecurities();
         }
 
         /// <summary>
@@ -159,6 +167,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         void _ibClient_ConnectionFail()
         {
             ServerStatus = ServerConnectStatus.Disconnect;
+
             if (DisconnectEvent != null)
             {
                 DisconnectEvent();
@@ -194,7 +203,16 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             }
             for (int i = 0; i < _secIB.Count; i++)
             {
-                string name = _secIB[i].Symbol + "_" + _secIB[i].SecType + "_" + _secIB[i].Exchange + "_" + _secIB[i].Currency + "_" + _secIB[i].LocalSymbol;
+                string name =
+                    _secIB[i].Symbol
+                    + "_" + _secIB[i].SecType
+                    + "_" + _secIB[i].Exchange
+                    + "_" + _secIB[i].Currency
+                    + "_" + _secIB[i].LocalSymbol
+                    + "_" + _secIB[i].TradingClass
+                    + "_" + _secIB[i].PrimaryExch;
+
+
                 if (_namesSubscribleSecurities.Find(s => s == name) != null)
                 {
                     // if we have already subscribed to this instrument / если мы уже подписывались на данные этого инструмента
@@ -216,10 +234,9 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         public void ShowSecuritySubscribleUi()
         {
             IbContractStorageUi ui = new IbContractStorageUi(_secIB, this);
-            ui.ShowDialog();
+            ui.Show();
             _secIB = ui.SecToSubscrible;
             GetSecurities();
-            SaveIbSecurities();
         }
 
         /// <summary>
@@ -268,10 +285,11 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                         saveStr += _secIB[i].SecIdType + "@";
                         saveStr += _secIB[i].SecType + "@";
                         saveStr += _secIB[i].Strike + "@";
-                        saveStr += _secIB[i].Symbol + "@";
-                        saveStr += _secIB[i].TradingClass + "@";
+                        saveStr += /*_secIB[i].Symbol+*/  "@";
+                        saveStr += /*_secIB[i].TradingClass +*/ "@";
                         saveStr += _secIB[i].CreateMarketDepthFromTrades + "@";
                         //saveStr += _secToSubscrible[i].UnderComp + "@";
+
 
                         writer.WriteLine(saveStr);
                     }
@@ -290,7 +308,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// </summary>
         private void LoadIbSecurities()
         {
-            if (!File.Exists(@"Engine\" + @"IbServer.txt"))
+            if (!File.Exists(@"Engine\" + @"IbSecuritiesToWatch.txt"))
             {
                 return;
             }
@@ -309,11 +327,11 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                             string[] contrStrings = reader.ReadLine().Split('@');
 
                             security.ComboLegsDescription = contrStrings[0];
-                            Int32.TryParse(contrStrings[1],out security.ConId);
+                            Int32.TryParse(contrStrings[1], out security.ConId);
                             security.Currency = contrStrings[2];
                             security.Exchange = contrStrings[3];
                             security.Expiry = contrStrings[4];
-                            Boolean.TryParse(contrStrings[5],out security.IncludeExpired);
+                            Boolean.TryParse(contrStrings[5], out security.IncludeExpired);
                             security.LocalSymbol = contrStrings[6];
                             security.Multiplier = contrStrings[7];
                             security.PrimaryExch = contrStrings[8];
@@ -407,6 +425,8 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 securityIb.MinTick = contract.MinTick;
                 securityIb.Symbol = contract.Symbol;
                 securityIb.TradingClass = contract.TradingClass;
+                securityIb.SecType = contract.SecType;
+                securityIb.PrimaryExch = contract.PrimaryExch;
 
                 //_twsServer.reqMktData(securityIb.ConId, securityIb.Symbol, securityIb.SecType, securityIb.Expiry, securityIb.Strike,
                 //    securityIb.Right, securityIb.Multiplier, securityIb.Exchange, securityIb.PrimaryExch, securityIb.Currency,"",true, new TagValueList());
@@ -636,7 +656,12 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                         contract =>
                             contract.ConId == sec.ConId);
 
-                if (contractIb != null && contractIb.CreateMarketDepthFromTrades)
+                if (contractIb == null)
+                {
+                    return;
+                }
+
+                if (contractIb.CreateMarketDepthFromTrades)
                 {
                     SendMdFromTrade(trade);
                 }
@@ -902,8 +927,10 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             {
                 _connectedContracts.Add(security.Name);
 
-                _client.GetMarketDepthToSecurity(contractIb);
-
+                if (contractIb.CreateMarketDepthFromTrades == false)
+                {
+                    _client.GetMarketDepthToSecurity(contractIb);
+                }
             }
         }
 
@@ -1085,22 +1112,22 @@ contract =>
             }
             else if (tf == TimeFrame.Min1)
             {
-                timeStart = timeEnd.AddHours(15);
+                timeStart = timeEnd.AddHours(5);
                 barSize = "1 min";
             }
             else if (tf == TimeFrame.Min5)
             {
-                timeStart = timeEnd.AddHours(50);
+                timeStart = timeEnd.AddHours(25);
                 barSize = "5 mins";
             }
             else if (tf == TimeFrame.Min15)
             {
-                timeStart = timeEnd.AddHours(150);
+                timeStart = timeEnd.AddHours(75);
                 barSize = "15 mins";
             }
             else if (tf == TimeFrame.Min30)
             {
-                timeStart = timeEnd.AddHours(250);
+                timeStart = timeEnd.AddHours(150);
                 barSize = "30 mins";
             }
             else if (tf == TimeFrame.Hour1)
@@ -1140,7 +1167,7 @@ contract =>
             {
                 Thread.Sleep(1000);
 
-                if (startSleep.AddSeconds(15) < DateTime.Now)
+                if (startSleep.AddSeconds(30) < DateTime.Now)
                 {
                     break;
                 }
@@ -1156,10 +1183,12 @@ contract =>
             {
                 if (mergeCount != 0)
                 {
-                    return Merge(CandlesRequestResult.CandlesArray, mergeCount);
+                    List<Candle> newCandles = Merge(CandlesRequestResult.CandlesArray, mergeCount);
+                    CandlesRequestResult.CandlesArray = newCandles;
+                    return StraichCandles(CandlesRequestResult);
                 }
 
-                return CandlesRequestResult.CandlesArray;
+                return StraichCandles(CandlesRequestResult);
             }
 
 
@@ -1171,7 +1200,7 @@ contract =>
             {
                 Thread.Sleep(1000);
 
-                if (startSleep.AddSeconds(15) < DateTime.Now)
+                if (startSleep.AddSeconds(30) < DateTime.Now)
                 {
                     break;
                 }
@@ -1187,13 +1216,48 @@ contract =>
             {
                 if (mergeCount != 0)
                 {
-                    return Merge(CandlesRequestResult.CandlesArray, mergeCount);
+                    List<Candle> newCandles = Merge(CandlesRequestResult.CandlesArray, mergeCount);
+                    CandlesRequestResult.CandlesArray = newCandles;
+                    return StraichCandles(CandlesRequestResult);
                 }
 
-                return CandlesRequestResult.CandlesArray;
+                return StraichCandles(CandlesRequestResult);
             }
 
             return null;
+        }
+
+        public List<Candle> StraichCandles(Candles series)
+        {/*
+            if (series.CandlesArray != null &&
+    series.CandlesArray.Count > 2)
+            {
+                Candle standart = series.CandlesArray[0];
+                TimeSpan timeBetwenCandles =
+                    series.CandlesArray[series.CandlesArray.Count - 2].TimeStart - series.CandlesArray[series.CandlesArray.Count - 1].TimeStart;
+
+                DateTime lastTime = series.CandlesArray[0].TimeStart;
+
+                int indexInsert = 0;
+
+                while (series.CandlesArray.Count < 205)
+                {
+                    lastTime = lastTime.Add(timeBetwenCandles);
+
+                    Candle newCandle = new Candle();
+
+                    newCandle.Volume = standart.Volume;
+                    newCandle.Open = standart.Open;
+                    newCandle.High = standart.High;
+                    newCandle.Low = standart.Low;
+                    newCandle.Close = standart.Close;
+                    newCandle.TimeStart = lastTime;
+
+                    series.CandlesArray.Insert(0, newCandle);
+                }
+            }*/
+
+            return series.CandlesArray;
         }
 
         private void _client_CandlesUpdateEvent(Candles series)
@@ -1269,6 +1333,10 @@ contract =>
 
             }
 
+            Candle candle = mergeCandles[mergeCandles.Count - 1];
+
+            mergeCandles[mergeCandles.Count - 1].State = CandleState.Started;
+
             return mergeCandles;
         }
 
@@ -1307,8 +1375,6 @@ contract =>
         }
 
         #endregion
-
-
 
         /// <summary>
         /// called when order changed
