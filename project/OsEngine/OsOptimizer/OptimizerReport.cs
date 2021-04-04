@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.Journal.Internal;
 using OsEngine.OsTrader.Panels;
+using System.IO;
 
 namespace OsEngine.OsOptimizer
 {
@@ -27,43 +28,51 @@ namespace OsEngine.OsOptimizer
         {
             for (int i = 0; i < paramaters.Count; i++)
             {
-                StrategyParameters.Add(paramaters[i].Type + "$" + paramaters[i].GetStringToSave() + "$"+  paramaters[i].Name);
+                StrategyParameters.Add(paramaters[i].Type + "$" + paramaters[i].GetStringToSave() + "$" + paramaters[i].Name);
             }
         }
 
         public string BotName;
+        public string ParamsToFile;
 
         public List<string> StrategyParameters = new List<string>();
 
         public string GetParamsToDataTable()
         {
             string result = "";
+            ParamsToFile = "";
 
             List<IIStrategyParameter> parameters = GetParameters();
 
             for (int i = 0; i < parameters.Count; i++)
             {
                 result += parameters[i].Name + " = ";
+                ParamsToFile += parameters[i].Name + " = ";
 
                 if (parameters[i].Type == StrategyParameterType.Bool)
                 {
                     result += ((StrategyParameterBool)parameters[i]).ValueBool;
+                    ParamsToFile += ((StrategyParameterBool)parameters[i]).ValueBool;
                 }
                 else if (parameters[i].Type == StrategyParameterType.Decimal)
                 {
                     result += ((StrategyParameterDecimal)parameters[i]).ValueDecimal;
+                    ParamsToFile += ((StrategyParameterDecimal)parameters[i]).ValueDecimal;
                 }
                 else if (parameters[i].Type == StrategyParameterType.Int)
                 {
                     result += ((StrategyParameterInt)parameters[i]).ValueInt;
+                    ParamsToFile += ((StrategyParameterInt)parameters[i]).ValueInt;
                 }
                 else if (parameters[i].Type == StrategyParameterType.String)
                 {
                     result += ((StrategyParameterString)parameters[i]).ValueString;
+                    ParamsToFile += ((StrategyParameterString)parameters[i]).ValueString;
                 }
                 else if (parameters[i].Type == StrategyParameterType.TimeOfDay)
                 {
                     result += ((StrategyParameterTimeOfDay)parameters[i]).Value;
+                    ParamsToFile += ((StrategyParameterTimeOfDay)parameters[i]).Value;
                 }
 
                 result += "\n";
@@ -123,6 +132,32 @@ namespace OsEngine.OsOptimizer
 
         public List<OptimizerReportTab> TabsReports = new List<OptimizerReportTab>();
 
+        //метод записи репорта в файл
+        public void SaveOptimizerLog(string msg, bool NewLine)
+        {
+            string Params;
+            Params =  GetParamsToDataTable().Replace("\n", " ");
+            Params = Params.Replace("=", "");
+            Params = Params.Replace("  ", " ");
+            Params = Params.Replace(" ", ";");
+            Params = Params.Replace(",", ".");
+            Params = Params.Replace(";;", ";");
+
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(@"Engine\OptimizerReport\" +  @"_Optimizer.txt", true))
+                {
+                    writer.WriteLine(Params+ ";" + msg.Replace(",", "."));
+
+                    writer.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+        }
+
         public void LoadState(BotPanel bot)
         {
             BotName = bot.NameStrategyUniq;
@@ -151,8 +186,8 @@ namespace OsEngine.OsOptimizer
                 tab.TotalProfit = PositionStaticticGenerator.GetAllProfitInPunkt(posesArray);
                 tab.MaxDrowDawn = PositionStaticticGenerator.GetMaxDownPersent(posesArray);
 
-                tab.AverageProfit = tab.TotalProfit / (posesArray.Length+1);
-                
+                tab.AverageProfit = tab.TotalProfit / (posesArray.Length + 1);
+
                 tab.AverageProfitPercent = PositionStaticticGenerator.GetMidleProfitInPersent(posesArray);
 
                 tab.ProfitFactor = PositionStaticticGenerator.GetProfitFactor(posesArray);
@@ -161,6 +196,12 @@ namespace OsEngine.OsOptimizer
                 tab.TabType = bot.TabsSimple[i].GetType().Name;
 
                 TabsReports.Add(tab);
+
+                //Добавляю вывод строки отчета в файл
+                SaveOptimizerLog(tab.SecurityName + ";" + tab.PositionsCount.ToString() + ";" + tab.TotalProfit.ToString()
+                    + ";" + tab.MaxDrowDawn.ToString() + ";" + tab.AverageProfit.ToString() + ";" +
+                    tab.AverageProfitPercent.ToString() + ";" + tab.ProfitFactor.ToString() +
+                    ";" + tab.Recovery.ToString() + ";" + tab.PayOffRatio.ToString() + ";" + tab.TabType.ToString(), true);
             }
 
             if (TabsReports.Count == 0)
