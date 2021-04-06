@@ -45,6 +45,7 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>x64</PlatformTarget>
@@ -81,7 +82,7 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\..\Роботы на заказ\82 Михаил Рябиков Кракен\project\OsEngine\bin\Debug\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="OkonkwoOandaV20, Version=1.0.7247.23935, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -396,9 +397,6 @@
     <Compile Include="Entity\ProxyHolderAddUi.xaml.cs">
       <DependentUpon>ProxyHolderAddUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Entity\ProxiesUi.xaml.cs">
-      <DependentUpon>ProxiesUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Entity\SecurityLevelOne.cs" />
     <Compile Include="Entity\StartProgramm.cs" />
     <Compile Include="Entity\StrategyParameter.cs" />
@@ -610,15 +608,73 @@
     <Compile Include="Market\Servers\IServer.cs" />
     <Compile Include="Market\Servers\IServerPermission.cs" />
     <Compile Include="Market\Servers\IServerRealization.cs" />
-    <Compile Include="Market\Servers\Kraken\KrakenEntity\EnumerableExtensions.cs" />
-    <Compile Include="Market\Servers\Kraken\KrakenEntity\KrakenClient.cs" />
-    <Compile Include="Market\Servers\Kraken\KrakenEntity\KrakenOrder.cs" />
     <Compile Include="Market\Servers\Entity\RateGate.cs" />
-    <Compile Include="Market\Servers\Kraken\KrakenServerClient.cs" />
+    <Compile Include="Market\Servers\Kraken\KrakenClient.cs" />
+    <Compile Include="Market\Servers\Kraken\KrakenEntity\EnumerableExtensions.cs" />
+    <Compile Include="Market\Servers\Kraken\KrakenEntity\KrakenOrder.cs" />
+    <Compile Include="Market\Servers\Kraken\KrakenEntity\KrakenRestApi.cs" />
     <Compile Include="Market\Servers\Kraken\KrakenServer.cs" />
-    <Compile Include="Market\Servers\Kraken\KrakenServerUi.xaml.cs">
-      <DependentUpon>KrakenServerUi.xaml</DependentUpon>
-    </Compile>
+    <Compile Include="Market\Servers\Kraken\KrakenServerPermission.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Converters\DecimalToStringConverter.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Converters\OrderTypeConverter.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Converters\SideConverter.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Converters\StatusConverter.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\DefaultWebSocket.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Events\KrakenDataEventArgs.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Events\KrakenMessageEventArgs%27.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Events\KrakenMessageEventArgs.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Events\KrakenPrivateEventArgs.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Events\OhlcEventArgs.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Events\SpreadEventArgs.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Events\TickerEventArgs.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Events\TradeMessageEventArgs.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Extensions\EventHandlerExtensions.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\IKrakenApi.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\IKrakenSocket.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\IWebSocket.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\KrakenApi.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\KrakenApiClient.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\KrakenSocket.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\AddOrderCommand.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\AddOrderStatusEvent.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\BestPriceVolume.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\BookSnapshotMessage.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\BookUpdateMessage.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\CancelOrderCommand.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\CancelOrderStatusEvent.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\ClosePriceVolume.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\Heartbeat.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\IKrakenMessage.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\IKrakenMessageSerializer.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\KrakenDataMessageHelper.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\KrakenMessage.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\KrakenMessageSerializer.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\OhlcMessage.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\OpenOrdersMessage.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\Order.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\OrderDescription.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\OrderType.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\OwnTradesMessage.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\Pair.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\Ping.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\PriceLevel.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\PrivateKrakenMessage.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\Side.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\SpreadMessage.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\Status.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\Subscribe.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\SubscribeOptionNames.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\SubscribeOptions.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\SubscriptionStatus.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\SubscriptionStatusNames.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\SystemStatus.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\TickerMessage.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\TodayAnd24HourValue.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\TradeObject.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\TradesMessage.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\TradeValues.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\Messages\Unsubscribe.cs" />
+    <Compile Include="Market\Servers\Kraken\Sockets\SecureStringExtensions.cs" />
     <Compile Include="Market\Servers\Livecoin\LivecoinClient.cs" />
     <Compile Include="Market\Servers\Livecoin\LivecoinEntity\LivecoinEntity.cs" />
     <Compile Include="Market\Servers\Livecoin\LivecoinEntity\protobuf\ProtoB.cs" />
@@ -1139,10 +1195,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Entity\ProxiesUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Indicators\AIndicatorUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -1176,10 +1228,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Market\Servers\InteractivBrokers\IbContractStorageUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Market\Servers\Kraken\KrakenServerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -11,64 +11,38 @@ using Jayrock.Json.Conversion;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
+using System.Threading;
+using System.Collections.Concurrent;
 
 namespace OsEngine.Market.Servers.Kraken.KrakenEntity
 {
 
-    public class KrakenApi : IDisposable
+    public class KrakenRestApi : IDisposable 
     {
-
         string _url;
         int _version;
         private string _key;
         private string _secret;
         //RateGate is was taken from http://www.jackleitch.net/2010/10/better-rate-limiting-with-dot-net/
-        RateGate _rateGate;
+        RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(50));
 
-        public KrakenApi(string key, string privateKey)
+        public KrakenRestApi(string key, string privateKey)
         {
-            
             _url = "https://api.kraken.com";
             _version = 0;
             _key = key;
             _secret = privateKey;
             _rateGate = new RateGate(1, TimeSpan.FromSeconds(3));
 
+            Thread canselThread = new Thread(DopThreadToCanselOrders);
+            canselThread.Start();
+
         }
 
         public void InsertProxies(List<ProxyHolder> proxies)
         {
-            _proxies = proxies;
 
-            _webProxies = new List<WebProxy>();
-
-            if (proxies == null)
-            {
-                return;
-            }
-
-            for (int i = 0; i < proxies.Count; i++)
-            {
-                WebProxy newProxy = new WebProxy(_proxies[i].Ip, true);
-                newProxy.Credentials = new NetworkCredential(_proxies[i].UserName, _proxies[i].UserPassword);
-                _webProxies.Add(newProxy);
-            }
-
-            int milliseconds = 3000;
-
-            if (proxies.Count != 0)
-            {
-                milliseconds = milliseconds / proxies.Count + 1;
-            }
-
-            _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(milliseconds));
         }
-
-        private List<ProxyHolder> _proxies;
-
-        private List<WebProxy> _webProxies = new List<WebProxy>();
-
-        private int _lastProxyNum = 0;
 
         private object _queryLocker = new object();
 
@@ -89,7 +63,7 @@ namespace OsEngine.Market.Servers.Kraken.KrakenEntity
             _rateGate = null;
         }
 
-        ~KrakenApi()
+        ~KrakenRestApi()
         {
             Dispose(false);
         }
@@ -104,22 +78,6 @@ namespace OsEngine.Market.Servers.Kraken.KrakenEntity
 
             lock (_queryLocker)
             {
-                if (_proxies != null &&
-                    _proxies.Count != 0 &&
-                    _lastProxyNum < _webProxies.Count)
-                {
-                    webRequest.Proxy = _webProxies[_lastProxyNum];
-                    _lastProxyNum++;
-                }
-
-                if (webRequest.Proxy != null &&
-                    webRequest.Proxy.Credentials == null &&
-                    _webProxies != null &&
-                    _lastProxyNum >= _webProxies.Count)
-                {
-                    _lastProxyNum = 0;
-                }
-
                 try
                 {
                     if (props != null)
@@ -194,24 +152,7 @@ namespace OsEngine.Market.Servers.Kraken.KrakenEntity
             webRequest.ContentType = "application/x-www-form-urlencoded";
             webRequest.Method = "POST";
             webRequest.Headers.Add("API-Key", _key);
-
-            if (_proxies != null &&
-                _proxies.Count != 0 &&
-                _lastProxyNum < _webProxies.Count)
-            {
-                webRequest.Proxy = _webProxies[_lastProxyNum];
-                _lastProxyNum++;
-            }
-
-            if (webRequest.Proxy != null && 
-                webRequest.Proxy.Credentials == null &&
-                _webProxies != null &&
-                _lastProxyNum >= _webProxies.Count)
-            {
-                _lastProxyNum = 0;
-            }
-
-
+            
             byte[] base64DecodedSecred = Convert.FromBase64String(_secret);
 
             var np = nonce + Convert.ToChar(0) + props;
@@ -919,19 +860,44 @@ namespace OsEngine.Market.Servers.Kraken.KrakenEntity
                             close: krakenOrder.Close);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="txid">transaction id</param>
-        /// <returns>
-        /// count = number of orders canceled
-        ///pending = if set, order(s) is/are pending cancellation
-        /// </returns>
-        public JsonObject CancelOrder(string txid)
+
+        private ConcurrentQueue<string> _ordersToCansel = new ConcurrentQueue<string>();
+
+        private void DopThreadToCanselOrders()
         {
-            string reqs = string.Format("&txid={0}", txid);
-            return QueryPrivate("CancelOrder", reqs);
+            while(true)
+            {
+                Thread.Sleep(3000);
+
+                if (_ordersToCansel.IsEmpty == false)
+                {
+                    string numOrd = null;
+                    if(_ordersToCansel.TryDequeue(out numOrd))
+                    {
+                        CancelOrder(numOrd,false);
+                    }
+                }
+            }
         }
+
+        private object _cancelLocker = new object();
+
+        public JsonObject CancelOrder(string txid, bool isFirstTime)
+        {
+            lock(_cancelLocker)
+            {
+                string reqs = string.Format("&txid={0}", txid);
+
+                if(isFirstTime == true)
+                {
+                    _ordersToCansel.Enqueue(txid);
+                }
+               
+                return QueryPrivate("CancelOrder", reqs);
+            }
+        }
+
+
 
         #endregion
 

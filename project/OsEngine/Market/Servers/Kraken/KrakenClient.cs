@@ -1,9 +1,4 @@
-﻿/*
- *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
-*/
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -14,59 +9,35 @@ using Newtonsoft.Json.Linq;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
+using OsEngine.Market.Servers.Kraken;
 using OsEngine.Market.Servers.Kraken.KrakenEntity;
+using Trade = OsEngine.Entity.Trade;
 
 namespace OsEngine.Market.Servers.Kraken
 {
-    /// <summary>
-    /// client for connection to Kraken
-    /// клиент для подключения к кракену
-    /// </summary>
-    public class KrakenServerClient
+    public class KrakenClient
     {
-        /// <summary>
-        /// constructor
-        /// конструктор
-        /// </summary>
-        public KrakenServerClient()
+        public KrakenClient(string key, string priv)
         {
-            Thread worker = new Thread(ThreadListenDataArea);
-            worker.IsBackground = true;
-            worker.Name = "KrakenKlientListenThread";
+            publicKey = key;
+            privateKey = priv;
+
+            Thread worker = new Thread(OrdersCheckThread);
             worker.Start();
         }
 
-        public void InsertProxies(List<ProxyHolder> proxies)
-        {
-            _proxies = proxies;
-            if (_kraken != null)
-            {
-                _kraken.InsertProxies(proxies);
-            }
-        }
-
-        private List<ProxyHolder> _proxies;
-
-// connect
-// коннект
-
-        /// <summary>
-        /// API
-        /// апи
-        /// </summary>
-        private KrakenApi _kraken;
-
-        /// <summary>
-        /// is there a connection
-        /// есть ли подключение
-        /// </summary>
+        private string publicKey;
+        private string privateKey;
         private bool _isConnected;
+        private bool _isDisposed;
+
+        private KrakenRestApi _kraken;
 
         /// <summary>
-        /// connect
-        /// установить соединение
+        /// connecto to the exchange
+        /// установить соединение с биржей 
         /// </summary>
-        public void Connect(string publicKey, string privateKey)
+        public void Connect()
         {
             if (_isConnected)
             {
@@ -74,12 +45,8 @@ namespace OsEngine.Market.Servers.Kraken
             }
             try
             {
-                _kraken = new KrakenApi(publicKey, privateKey);
+                _kraken = new KrakenRestApi(publicKey, privateKey);
 
-                if (_proxies != null)
-                {
-                    _kraken.InsertProxies(_proxies);
-                }
 
                 if (_kraken.GetServerTime() == null)
                 {
@@ -89,9 +56,9 @@ namespace OsEngine.Market.Servers.Kraken
 
                 _isConnected = true;
 
-                if (ConnectionSucsess != null)
+                if (Connected != null)
                 {
-                    ConnectionSucsess();
+                    Connected();
                 }
             }
             catch (Exception error)
@@ -101,212 +68,30 @@ namespace OsEngine.Market.Servers.Kraken
         }
 
         /// <summary>
-        /// disconnect
-        /// отключиться
+        /// bring the program to the start. Clear all objects involved in connecting to the server
+        /// привести программу к моменту запуска. Очистить все объекты участвующие в подключении к серверу
         /// </summary>
-        public void Disconnect()
-        {
-            _isConnected = false;
-
-            if (_kraken != null)
-            {
-                lock (_lockerListen)
-                {
-                    _kraken.Dispose();
-
-                    _kraken = null;
-                }
-            }
-
-            if (ConnectionFail != null)
-            {
-                ConnectionFail();
-            }
-        }
-
-// thread work getting data
-// Работа потока запрашивающего данные
-
-        /// <summary>
-        /// type of requested data 
-        /// тип запрашиваемых данных
-        /// </summary>
-        public KrakenDateType DataType;
-
-        /// <summary>
-        /// multi-threaded access locker to API
-        /// объект для блокировки многопоточного доступа к АПИ
-        /// </summary>
-        private object _lockerListen = new object();
-
-        /// <summary>
-        /// work place of thread that download data from API
-        /// место работы потока который скачивает данные из апи
-        /// </summary>
-        private void ThreadListenDataArea()
-        {
-            while (true)
-            {
-                try
-                {
-                    Thread.Sleep(1);
-                    if (MainWindow.ProccesIsWorked == false)
-                    {
-                        return;
-                    }
-
-                    if (_kraken == null ||
-                        _isConnected == false)
-                    {
-                        continue;
-                    }
-
-                    // every ten seconds request a portfolio and its components / раз в десять секунд запрашиваем портфель и его составляющие
-
-                    lock (_lockerListen)
-                    {
-                        // once a second request our orders and my trades / раз в секунду запрашиваем наши ордера и мои трейды
-
-                        if (_lastTimeGetOrders.AddSeconds(2) < DateTime.Now)
-                        {
-                            _lastTimeGetOrders = DateTime.Now;
-                            GetOrders();
-                        }
-
-                        // once in half a second request a spread on the connected securities / раз в пол секунды запрашиваем спред по подключенным бумагам
-
-                        if (DataType == KrakenDateType.OnlyMarketDepth)
-                        {
-                            GetSpreads();
-                        }
-
-                        // request trades without interruption / трейды запрашиваем без перерыва
-
-                        if (DataType == KrakenDateType.OnlyTrades)
-                        {
-                            GetTrades();
-                        }
-
-                        if (DataType == KrakenDateType.AllData)
-                        {
-                            GetSpreads();
-                            GetTrades();
-                        }
-
-                    }
-                }
-                catch (Exception error)
-                {
-                    SendLogMessage(error.ToString(), LogMessageType.Error);
-                }
-            }
-        }
-
-        private DateTime _lastTimeData = DateTime.MinValue;
-
-        private DateTime _lastTimeGetOrders = DateTime.MinValue;
-
-// portfolios
-// Портфели
-
-        /// <summary>
-        /// start listening to data from API
-        /// начать считывание данных из АПИ
-        /// </summary>
-        public void InizialazeListening()
-        {
-            GetPortfolios();
-            GetSecurities();
-        }
-
-        /// <summary>
-        /// take candles by instrument
-        /// взять свечи по инструменту
-        /// </summary>
-        /// <param name="name">instrument name / имя инструмента</param>
-        /// <param name="minuteCount">number of minutes in candle/кол-во минут в свече</param>
-        public List<Candle> GetCandles(string name, int minuteCount)
+        public void Dispose()
         {
             try
             {
-                lock (_lockerListen)
-                {
-                    var candlesArray = _kraken.GetOHLC(name, minuteCount);
-
-                    //var ret = JsonConvert.DeserializeObject<GetOHLCResponse>(candlesArray.ToString());
-                    JObject obj = (JObject) JsonConvert.DeserializeObject(candlesArray.ToString());
-                    JArray err = (JArray) obj["error"];
-
-                    if (err.Count != 0)
-                    {
-                        return null;
-                    }
-
-                    JObject result = obj["result"].Value<JObject>();
-
-                    var ret = new GetOHLCResult();
-                    ret.Pairs = new Dictionary<string, List<OHLC>>();
-
-                    foreach (var o in result)
-                    {
-                        if (o.Key == "last")
-                        {
-                            ret.Last = o.Value.Value<long>();
-                        }
-                        else
-                        {
-                            var ohlc = new List<OHLC>();
-                            foreach (var v in o.Value.ToObject<decimal[][]>())
-                                ohlc.Add(new OHLC()
-                                {
-                                    Time = (int) v[0],
-                                    Open = v[1],
-                                    High = v[2],
-                                    Low = v[3],
-                                    Close = v[4],
-                                    Vwap = v[5],
-                                    Volume = v[6],
-                                    Count = (int) v[7]
-                                });
-                            ret.Pairs.Add(o.Key, ohlc);
-                        }
-                    }
-
-
-                    var candles = ret.Pairs[name];
-
-                    List<Candle> candlesReady = new List<Candle>();
-
-                    for (int i = 0; i < candles.Count; i++)
-                    {
-                        Candle newCandle = new Candle();
-
-                        newCandle.TimeStart = (new DateTime(1970, 1, 1, 0, 0, 0, 0)).AddSeconds(candles[i].Time);
-
-                        newCandle.Open = candles[i].Open;
-                        newCandle.High = candles[i].High;
-                        newCandle.Low = candles[i].Low;
-                        newCandle.Close = candles[i].Close;
-                        newCandle.Volume = candles[i].Volume;
-
-                        candlesReady.Add(newCandle);
-                    }
-
-                    return candlesReady;
-                }
+                _kraken.Dispose();
+                _kraken = null;
             }
-            catch (Exception error)
+            catch
             {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
+                // ignore
             }
-            return null;
+
+            if (Disconnected != null)
+            {
+                Disconnected();
+            }
+
+            _isDisposed = true;
         }
 
-        /// <summary>
-        /// take portfolios
-        /// взять портфели
-        /// </summary>
-        private void GetPortfolios()
+        public void GetBalanceAndPortfolio()
         {
             if (_isConnected == false)
             {
@@ -331,10 +116,14 @@ namespace OsEngine.Market.Servers.Kraken
                 newPortfolio.ValueBegin = ret.Result.TradeBalance;
                 newPortfolio.ValueBlocked = ret.Result.MarginAmount;
 
-                if (NewPortfolio != null)
+                if (NewPortfolioEvent != null)
                 {
-                    NewPortfolio(newPortfolio);
+                    NewPortfolioEvent(newPortfolio);
                 }
+
+                _myPortfolio = newPortfolio;
+                UpdatePositionOnBoard();
+
             }
             catch (Exception error)
             {
@@ -342,11 +131,46 @@ namespace OsEngine.Market.Servers.Kraken
             }
         }
 
+        private Portfolio _myPortfolio;
+
+        public void UpdatePositionOnBoard()
+        {
+            var balances = _kraken.GetBalance();
+
+            // var ret2 = JsonConvert.DeserializeObject<GetTradeBalanceResponse>(tradeBalance.ToString());
+
+            var jProperties = JToken.Parse(balances.ToString()).SelectToken("result");//.Children<JProperty>();
+            var children = jProperties.Children();
+
+            foreach (var portfolio in children)
+            {
+                string res = portfolio.ToString().Replace("{", "").Replace("}", "").Replace("\"", "").Replace(" ", "");
+
+                string[] resArr = res.Split(':');
+
+                PositionOnBoard position = new PositionOnBoard();
+
+                position.PortfolioName = "KrakenTradePortfolio";
+                position.SecurityNameCode = resArr[0];
+                position.ValueCurrent = resArr[1].ToDecimal();
+                position.ValueBegin = resArr[1].ToDecimal();
+
+                _myPortfolio.SetNewPosition(position);
+            }
+
+            if (NewPortfolioEvent != null)
+            {
+                NewPortfolioEvent(_myPortfolio);
+            }
+        }
+
+        public event Action<Portfolio> NewPortfolioEvent;
+
         /// <summary>
         /// take securities
         /// взять бумаги
         /// </summary>
-        private void GetSecurities()
+        public void GetSecurities()
         {
             if (_isConnected == false)
             {
@@ -369,12 +193,28 @@ namespace OsEngine.Market.Servers.Kraken
 
                 for (int i = 0; i < assets.Count; i++)
                 {
+                    if (assets.Keys.ElementAt(i).EndsWith(".d"))
+                    {
+                        continue;
+                    }
+                    // if (assets.Keys.ElementAt(i).StartsWith("X"))
+                    // {
+                    //     continue;
+                    // }
+                    /* if (assets.Keys.ElementAt(i).StartsWith("XZ"))
+                     {
+                         continue;
+                     }*/
+
                     AssetPair pair = assets[assets.Keys.ElementAt(i)];
                     Security sec = new Security();
                     sec.Name = assets.Keys.ElementAt(i);
-                    sec.NameFull = pair.Base;
+                    sec.NameFull = pair.WsName;
                     sec.NameClass = pair.AclassQuote;
                     sec.Decimals = pair.PairDecimals;
+                    sec.NameId = sec.Name;
+                    sec.SecurityType = SecurityType.CurrencyPair;
+                    sec.Lot = 1;
 
                     decimal step = 1;
 
@@ -389,9 +229,12 @@ namespace OsEngine.Market.Servers.Kraken
                     securities.Add(sec);
                 }
 
-                if (NewSecuritiesEvent != null)
+                if (UpdatePairs != null)
                 {
-                    NewSecuritiesEvent(securities);
+                    for (int i = 0; i < securities.Count; i++)
+                    {
+                        UpdatePairs(securities[i]);
+                    }
                 }
             }
             catch (Exception error)
@@ -401,197 +244,29 @@ namespace OsEngine.Market.Servers.Kraken
         }
 
         /// <summary>
-        /// update order data
-        /// обновить данные по ордерам
+        /// take candles
+        /// взять свечи
         /// </summary>
-        private void GetOrders()
+        /// <returns></returns>
+        public List<Candle> GetCandles(string name, TimeSpan tf, int? since = null)
         {
-            for (int i = 0; i < _orders.Count; i++)
+            try
             {
-                Thread.Sleep(1000);
+                var candlesArray = _kraken.GetOHLC(name, (int)tf.TotalMinutes, since);
+                //var ret = JsonConvert.DeserializeObject<GetOHLCResponse>(candlesArray.ToString());
+                JObject obj = (JObject)JsonConvert.DeserializeObject(candlesArray.ToString());
+                JArray err = (JArray)obj["error"];
 
-                KrakenOrder order = _orders[i];
-                
-
-                RefreshOrder(ref order);
-
-                if (order.Status == "closed")
-                {
-                    GenerateTrades(order);
-                    _orders.Remove(order);
-                }
-                else if (order.Status == "canceled" ||
-                         order.Status == "expired" ||
-                         order.Status == null)
-                {
-                    _orders.Remove(order);
-
-                    Order osOrder = _osEngineOrders.Find(o => o.NumberMarket == order.TxId);
-
-                    if (osOrder != null)
-                    {
-                        Order newOrder = new Order();
-                        newOrder.SecurityNameCode = osOrder.SecurityNameCode;
-                        newOrder.NumberUser = osOrder.NumberUser;
-                        newOrder.PortfolioNumber = osOrder.PortfolioNumber;
-                        newOrder.Side = osOrder.Side;
-                        newOrder.State = OrderStateType.Cancel;
-
-                        if (NewOrderEvent != null)
-                        {
-                            NewOrderEvent(newOrder);
-                        }
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// generete my trade from order
-        /// сгенерировать мои трейды из ордера
-        /// </summary>
-        /// <param name="order"></param>
-        private void GenerateTrades(KrakenOrder order)
-        {
-            Order osOrder = _osEngineOrders.Find(ord => ord.NumberMarket == order.TxId);
-
-            MyTrade newTrade = new MyTrade();
-            newTrade.NumberOrderParent = order.TxId;
-            newTrade.NumberTrade = NumberGen.GetNumberOrder(StartProgram.IsOsTrader).ToString();
-
-            newTrade.Side = osOrder.Side;
-            if (order.AveragePrice != null &&
-                order.AveragePrice != 0)
-            {
-                newTrade.Price = Convert.ToDecimal(order.AveragePrice);
-            }
-            else
-            {
-                newTrade.Price = osOrder.Price;
-            }
-
-            newTrade.Volume = order.Volume;
-            newTrade.SecurityNameCode = osOrder.SecurityNameCode;
-
-            if (NewMyTradeEvent != null)
-            {
-                NewMyTradeEvent(newTrade);
-            }
-        }
-
-        /// <summary>
-        /// list of instruments for listening
-        /// список инструментов подключеннных на обновление
-        /// </summary>
-        private List<string> _namesListenSecurities = new List<string>();
-
-        /// <summary>
-        /// take depths from API
-        /// взять стаканы из АПИ
-        /// </summary>
-        private void GetSpreads()
-        {
-            if (_lastTimeData == DateTime.MinValue)
-            {
-                _lastTimeData = DateTime.Now;
-            }
-
-            for (int i = 0; i < _namesListenSecurities.Count; i++)
-            {
-
-                var json = _kraken.GetOrderBook(_namesListenSecurities[i], 6);
-                var obj = JsonConvert.DeserializeObject<GetOrderBookResponse>(json.ToString());
-
-                if (obj.Error.Count != 0)
-                {
-                    SendLogMessage(obj.Error[0], LogMessageType.Error);
-                    return;
-                }
-
-                var trades = obj.Result.ToList();
-
-                for (int i2 = 0; i2 < trades.Count; i2++)
-                {
-                    OrderBook info = trades[i2].Value;
-
-                    MarketDepth newDepth = new MarketDepth();
-                    newDepth.SecurityNameCode = trades[i2].Key;
-
-                    int countElem = info.Bids.GetLength(0);
-                    for (int i3 = 0; i3 < countElem; i3++)
-                    {
-                        newDepth.Bids.Add(new MarketDepthLevel() {Bid = info.Bids[i3][1], Price = info.Bids[i3][0]});
-                        newDepth.Time =
-                            (new DateTime(1970, 1, 1, 0, 0, 0, 0)).AddSeconds(Convert.ToInt32(info.Bids[0][2]));
-                    }
-
-                    int countElemAsk = info.Asks.GetLength(0);
-                    for (int i3 = 0; i3 < countElemAsk; i3++)
-                    {
-                        newDepth.Asks.Add(new MarketDepthLevel() {Ask = info.Asks[i3][1], Price = info.Asks[i3][0]});
-                    }
-
-                    if (newDepth.Asks.Count == 0 ||
-                        newDepth.Bids.Count == 0)
-                    {
-                        return;
-                    }
-
-                    if (NewMarketDepthEvent != null)
-                    {
-                        NewMarketDepthEvent(newDepth);
-                    }
-                }
-            }
-
-        }
-
-        /// <summary>
-        /// objects required for loading of trades from API
-        /// объекты необходимые для загрузки трейдов из АПИ
-        /// </summary>
-        private List<DataSinece> _timeTrades = new List<DataSinece>();
-
-        /// <summary>
-        /// take trades from API
-        /// взять трейды из АПИ
-        /// </summary>
-        private void GetTrades()
-        {
-            for (int i = 0; i < _namesListenSecurities.Count; i++)
-            {
-
-                DataSinece myTimeTrades = _timeTrades.Find(t => t.NameSecurity == _namesListenSecurities[i]);
-
-                if (myTimeTrades == null)
-                {
-                    myTimeTrades = new DataSinece();
-                    myTimeTrades.NameSecurity = _namesListenSecurities[i];
-                    _timeTrades.Add(myTimeTrades);
-                }
-
-                JsonObject message = null;
-
-                if (myTimeTrades.Time == 0)
-                {
-                    message = _kraken.GetRecentTrades(_namesListenSecurities[i]);
-                }
-                else
-                {
-                    message = _kraken.GetRecentTrades(_namesListenSecurities[i], myTimeTrades.Time);
-                }
-
-                JObject obj = (JObject) JsonConvert.DeserializeObject(message.ToString());
-                JArray err = (JArray) obj["error"];
                 if (err.Count != 0)
                 {
-                    SendLogMessage(err[0].ToString(), LogMessageType.Error);
+                    return null;
                 }
 
-                var ret = new GetRecentTradesResult();
-                ret.Trades = new Dictionary<string, List<Trade>>();
-
                 JObject result = obj["result"].Value<JObject>();
+
+                var ret = new GetOHLCResult();
+                ret.Pairs = new Dictionary<string, List<OHLC>>();
+
                 foreach (var o in result)
                 {
                     if (o.Key == "last")
@@ -600,101 +275,105 @@ namespace OsEngine.Market.Servers.Kraken
                     }
                     else
                     {
-                        var trade = new List<Trade>();
-
-                        foreach (var v in (JArray) o.Value)
-                        {
-                            var a = (JArray) v;
-
-                            trade.Add(new Trade()
+                        var ohlc = new List<OHLC>();
+                        foreach (var v in o.Value.ToObject<decimal[][]>())
+                            ohlc.Add(new OHLC()
                             {
-                                Price = a[0].Value<decimal>(),
-                                Volume = a[1].Value<decimal>(),
-                                Time = a[2].Value<int>(),
-                                Side = a[3].Value<string>(),
-                                Type = a[4].Value<string>(),
-                                Misc = a[5].Value<string>()
+                                Time = (int)v[0],
+                                Open = v[1],
+                                High = v[2],
+                                Low = v[3],
+                                Close = v[4],
+                                Vwap = v[5],
+                                Volume = v[6],
+                                Count = (int)v[7]
                             });
-                        }
-
-                        ret.Trades.Add(o.Key, trade);
+                        ret.Pairs.Add(o.Key, ohlc);
                     }
                 }
 
-                var trades = ret;
 
-                for (int i2 = 0; i2 < trades.Trades.Count; i2++)
+                var candles = ret.Pairs[name];
+
+                List<Candle> candlesReady = new List<Candle>();
+
+                for (int i = 0; i < candles.Count; i++)
                 {
-                    List<Trade> info = trades.Trades[trades.Trades.Keys.ElementAt(i2)];
+                    Candle newCandle = new Candle();
 
-                    for (int i3 = 0; i3 < info.Count; i3++)
-                    {
-                        OsEngine.Entity.Trade newTrade = new OsEngine.Entity.Trade();
+                    newCandle.TimeStart = (new DateTime(1970, 1, 1, 0, 0, 0, 0)).AddSeconds(candles[i].Time);
 
-                        newTrade.SecurityNameCode = _namesListenSecurities[i];
-                        newTrade.Price = info[i3].Price;
-                        newTrade.Volume = info[i3].Volume;
+                    newCandle.Open = candles[i].Open;
+                    newCandle.High = candles[i].High;
+                    newCandle.Low = candles[i].Low;
+                    newCandle.Close = candles[i].Close;
+                    newCandle.Volume = candles[i].Volume;
 
-                        newTrade.Time = (new DateTime(1970, 1, 1, 0, 0, 0, 0)).AddSeconds(info[i3].Time);
-
-                        if (info[i3].Side == "s")
-                        {
-                            newTrade.Side = Side.Sell;
-                        }
-                        else
-                        {
-                            newTrade.Side = Side.Buy;
-                        }
-
-                        if (NewTradeEvent != null)
-                        {
-                            NewTradeEvent(newTrade);
-                        }
-
-                        myTimeTrades.Time = trades.Last;
-
-                        if (i3 + 1 == info.Count)
-                        {
-                            MarketDepth newDepth = new MarketDepth();
-                            newDepth.SecurityNameCode = _namesListenSecurities[i];
-                            newDepth.Bids.Add(new MarketDepthLevel() {Bid = 1, Price = newTrade.Price});
-                            newDepth.Asks.Add(new MarketDepthLevel() {Ask = 1, Price = newTrade.Price});
-
-                            newDepth.Time = newTrade.Time;
-
-                            if (NewMarketDepthEvent != null)
-                            {
-                                NewMarketDepthEvent(newDepth);
-                            }
-                        }
-                    }
+                    candlesReady.Add(newCandle);
                 }
-            }
-        }
 
-        /// <summary>
-        /// start listenin to data instrument
-        /// включить инструмент на подгрузку данных
-        /// </summary>
-        public void ListenSecurity(string name)
-        {
-            if (_namesListenSecurities.Find(s => s == name) == null)
+                return candlesReady;
+
+            }
+            catch (Exception error)
             {
-                _namesListenSecurities.Add(name);
+                SendLogMessage(error.ToString(), LogMessageType.Error);
             }
+            return null;
         }
 
-        /// <summary>
-        /// initial orders in OsEngine format
-        /// исходные ордера в формате OsEngine
-        /// </summary>
+        #region work with orders работа с ордерами
+
+        public void ExecuteOrder(Order order, string leverage, DateTime serverTime)
+        {
+
+            string lev = "none";
+
+            if (leverage == "Two")
+            {
+                lev = "2";
+            }
+            if (leverage == "Three")
+            {
+                lev = "3";
+            }
+            if (leverage == "Four")
+            {
+                lev = "4";
+            }
+            if (leverage == "Five")
+            {
+                lev = "5";
+            }
+
+            KrakenOrder orderKraken = new KrakenOrder();
+            orderKraken.Pair = order.SecurityNameCode;
+
+            if (order.Side == Side.Buy)
+            {
+                orderKraken.Type = "buy";
+                orderKraken.Leverage = lev;
+            }
+            else
+            {
+                orderKraken.Type = "sell";
+                orderKraken.Leverage = lev;
+            }
+            orderKraken.Price = order.Price;
+            orderKraken.OrderType = "limit";
+            orderKraken.Volume = order.Volume;
+            orderKraken.Validate = false;
+
+            Execute(orderKraken, order, serverTime);
+        }
+
         private List<Order> _osEngineOrders = new List<Order>();
 
-        /// <summary>
-        /// execute order in the exchange
-        /// исполнить ордер на бирже
-        /// </summary>
-        public void ExecuteOrder(KrakenOrder order, Order osOrder, DateTime time)
+        private List<KrakenOrder> _orders = new List<KrakenOrder>();
+
+        private object _lockerListen = new object();
+
+        private void Execute(KrakenOrder order, Order osOrder, DateTime time)
         {
             if (_isConnected == false)
             {
@@ -728,9 +407,9 @@ namespace OsEngine.Market.Servers.Kraken
                         newOrder.State = OrderStateType.Activ;
                         newOrder.TimeCallBack = time;
 
-                        if (NewOrderEvent != null)
+                        if (MyOrderEvent != null)
                         {
-                            NewOrderEvent(newOrder);
+                            MyOrderEvent(newOrder);
                         }
                     }
                     else
@@ -742,9 +421,9 @@ namespace OsEngine.Market.Servers.Kraken
                         newOrder.Side = osOrder.Side;
                         newOrder.State = OrderStateType.Fail;
 
-                        if (NewOrderEvent != null)
+                        if (MyOrderEvent != null)
                         {
-                            NewOrderEvent(newOrder);
+                            MyOrderEvent(newOrder);
                         }
                     }
                 }
@@ -755,12 +434,6 @@ namespace OsEngine.Market.Servers.Kraken
             }
         }
 
-        /// <summary>
-        /// Submit an order to Kraken. The order passed by reference will be updated with info set by Kraken.
-        /// </summary>
-        /// <param name="order">Order to submit.</param>
-        /// <param name="wait">If set to true, the function will wait until the order is closed or canceled.</param>
-        /// <returns>PlaceOrderResult containing info about eventual success or failure of the request</returns>
         private PlaceOrderResult PlaceOrder(ref KrakenOrder order, bool wait)
         {
             PlaceOrderResult placeOrderResult = new PlaceOrderResult();
@@ -769,7 +442,7 @@ namespace OsEngine.Market.Servers.Kraken
             {
                 JsonObject res = _kraken.AddOrder(order);
 
-                JsonArray error = (JsonArray) res["error"];
+                JsonArray error = (JsonArray)res["error"];
                 if (error.Count() > 0)
                 {
                     placeOrderResult.ResultType = PlaceOrderResultType.error;
@@ -783,9 +456,9 @@ namespace OsEngine.Market.Servers.Kraken
                 }
                 else
                 {
-                    JsonObject result = (JsonObject) res["result"];
-                    JsonObject descr = (JsonObject) result["descr"];
-                    JsonArray txid = (JsonArray) result["txid"];
+                    JsonObject result = (JsonObject)res["result"];
+                    JsonObject descr = (JsonObject)result["descr"];
+                    JsonArray txid = (JsonArray)result["txid"];
 
                     if (txid == null)
                     {
@@ -880,11 +553,6 @@ namespace OsEngine.Market.Servers.Kraken
 
         }
 
-        /// <summary>
-        /// Call Kraken to update info about order execution.
-        /// </summary>
-        /// <param name="order">Order to update</param>
-        /// <returns>RefreshOrderResult containing info about eventual success or failure of the request</returns>
         private RefreshOrderResult RefreshOrder(ref KrakenOrder order)
         {
             RefreshOrderResult refreshOrderResult = new RefreshOrderResult();
@@ -893,7 +561,7 @@ namespace OsEngine.Market.Servers.Kraken
             {
                 JsonObject res = _kraken.QueryOrders(order.TxId);
 
-                JsonArray error = (JsonArray) res["error"];
+                JsonArray error = (JsonArray)res["error"];
                 if (error.Count() > 0)
                 {
                     refreshOrderResult.ResultType = RefreshOrderResultType.error;
@@ -907,8 +575,8 @@ namespace OsEngine.Market.Servers.Kraken
                 }
                 else
                 {
-                    JsonObject result = (JsonObject) res["result"];
-                    JsonObject orderDetails = (JsonObject) result[order.TxId];
+                    JsonObject result = (JsonObject)res["result"];
+                    JsonObject orderDetails = (JsonObject)result[order.TxId];
 
                     if (orderDetails == null)
                     {
@@ -929,7 +597,7 @@ namespace OsEngine.Market.Servers.Kraken
                         string price = (orderDetails["price"] != null) ? orderDetails["price"].ToString() : null;
                         string misc = (orderDetails["misc"] != null) ? orderDetails["misc"].ToString() : null;
                         string oflags = (orderDetails["oflags"] != null) ? orderDetails["oflags"].ToString() : null;
-                        JsonArray tradesArray = (JsonArray) orderDetails["trades"];
+                        JsonArray tradesArray = (JsonArray)orderDetails["trades"];
                         string trades = null;
                         if (tradesArray != null)
                         {
@@ -968,13 +636,13 @@ namespace OsEngine.Market.Servers.Kraken
 
         /// <summary>
         /// cancel order
-        /// отозвать ордер
+        /// отменить ордер
         /// </summary>
         public void CancelOrder(Order order)
         {
             try
             {
-                _kraken.CancelOrder(order.NumberMarket);
+                _kraken.CancelOrder(order.NumberMarket, true);
             }
             catch (Exception error)
             {
@@ -989,71 +657,186 @@ namespace OsEngine.Market.Servers.Kraken
             newOrder.Side = order.Side;
             newOrder.State = OrderStateType.Cancel;
 
-            if (NewOrderEvent != null)
+            if (MyOrderEvent != null)
             {
-                NewOrderEvent(newOrder);
+                MyOrderEvent(newOrder);
+            }
+
+            _closedOrders.Add(newOrder);
+        }
+
+        List<Order> _closedOrders = new List<Order>();
+
+        private void OrdersCheckThread()
+        {
+            while (true)
+            {
+                Thread.Sleep(5000);
+
+                if (_isDisposed == true)
+                {
+                    return;
+                }
+
+                GetOrders();
             }
         }
 
+        public bool GetAllOrders(List<Order> oldOpenOrders)
+        {
+            return true;
+        }
+
+        private void GetOrders()
+        {
+            for (int i = 0; i < _orders.Count; i++)
+            {
+                Thread.Sleep(1000);
+
+                KrakenOrder order = _orders[i];
+
+
+                RefreshOrder(ref order);
+
+                if (order.Status == "closed")
+                {
+                    GenerateTrades(order);
+                    _orders.Remove(order);
+                }
+                else if (order.Status == "canceled" ||
+                         order.Status == "expired" ||
+                         order.Status == null)
+                {
+                    _orders.Remove(order);
+                    GenerateTrades(order);
+
+                    Order osOrder = _osEngineOrders.Find(o => o.NumberMarket == order.TxId);
+
+                    if (osOrder != null)
+                    {
+                        Order newOrder = new Order();
+                        newOrder.SecurityNameCode = osOrder.SecurityNameCode;
+                        newOrder.NumberUser = osOrder.NumberUser;
+                        newOrder.PortfolioNumber = osOrder.PortfolioNumber;
+                        newOrder.Side = osOrder.Side;
+                        newOrder.State = OrderStateType.Cancel;
+
+                        if (MyOrderEvent != null)
+                        {
+                            MyOrderEvent(newOrder);
+                        }
+                    }
+                }
+                else
+                {
+
+
+                }
+            }
+        }
+
+        private void GenerateTrades(KrakenOrder order)
+        {
+            return;
+            Order osOrder = _osEngineOrders.Find(ord => ord.NumberMarket == order.TxId);
+
+            if (order.Status == null)
+            {
+                return;
+            }
+
+            if (order.Status != "closed")
+            {
+                if (osOrder.VolumeExecute == 0)
+                {
+                    return;
+                }
+            }
+
+
+            MyTrade newTrade = new MyTrade();
+            newTrade.NumberOrderParent = order.TxId;
+            newTrade.NumberTrade = NumberGen.GetNumberOrder(StartProgram.IsOsTrader).ToString();
+
+            newTrade.Side = osOrder.Side;
+            if (order.AveragePrice != null &&
+                order.AveragePrice != 0)
+            {
+                newTrade.Price = Convert.ToDecimal(order.AveragePrice);
+            }
+            else
+            {
+                newTrade.Price = osOrder.Price;
+            }
+
+            if (order.VolumeExecuted != null &&
+                order.VolumeExecuted != 0)
+            {
+                newTrade.Volume = order.VolumeExecuted.ToString().ToDecimal();
+            }
+            else
+            {
+                newTrade.Volume = order.Volume.ToString().ToDecimal();
+            }
+
+
+            newTrade.SecurityNameCode = osOrder.SecurityNameCode;
+
+            if (MyTradeEvent != null)
+            {
+                MyTradeEvent(newTrade);
+            }
+        }
+
+        #endregion
+
+        #region outgoing events / исходящие события
+
         /// <summary>
-        /// list of orders
-        /// список ордеров
+        /// my new orders
+        /// новые мои ордера
         /// </summary>
-        private List<KrakenOrder> _orders = new List<KrakenOrder>();
+        public event Action<Order> MyOrderEvent;
 
         /// <summary>
-        /// new position by portfolio
-        /// новая позиция по портфелю
+        /// my new trades
+        /// новые мои сделки
         /// </summary>
-        public event Action<Portfolio> NewPortfolio;
+        public event Action<MyTrade> MyTradeEvent;
 
         /// <summary>
-        /// new trade
-        /// новый трейд
-        /// </summary>
-        public event Action<OsEngine.Entity.Trade> NewTradeEvent;
-
-// outgoin event
-// исходящие события
-
-        /// <summary>
-        /// new order in the system
-        /// новый ордер в системе
-        /// </summary>
-        public event Action<Order> NewOrderEvent;
-
-        /// <summary>
-        /// new securities in the system
+        /// new security in the system
         /// новые бумаги в системе
         /// </summary>
-        public event Action<List<Security>> NewSecuritiesEvent;
+        public event Action<Security> UpdatePairs;
 
         /// <summary>
-        /// new my trade in the system
-        /// новая моя сделка в системе
+        /// depth updated
+        /// обновился стакан
         /// </summary>
-        public event Action<MyTrade> NewMyTradeEvent;
+        public event Action<MarketDepth> UpdateMarketDepth;
 
         /// <summary>
-        /// new depth in the system
-        /// новый стакан в системе
+        /// ticks updated
+        /// обновились тики
         /// </summary>
-        public event Action<MarketDepth> NewMarketDepthEvent;
+        public event Action<OsEngine.Entity.Trade> NewTradesEvent;
 
         /// <summary>
-        /// successfully connected to TWS server
-        /// успешно подключились к серверу TWS
+        /// API connection established
+        /// соединение с API установлено
         /// </summary>
-        public event Action ConnectionSucsess;
+        public event Action Connected;
 
         /// <summary>
-        /// connection with TWS lost
-        /// соединение с TWS разорвано
+        /// API connection lost
+        /// соединение с API разорвано
         /// </summary>
-        public event Action ConnectionFail;
+        public event Action Disconnected;
 
-// logging
-// логирование работы
+        #endregion
+
+        #region log messages / сообщения для лога
 
         /// <summary>
         /// add a new log message
@@ -1068,14 +851,141 @@ namespace OsEngine.Market.Servers.Kraken
         }
 
         /// <summary>
-        /// outgoing log message
-        /// исходящее сообщение для лога
+        /// send exeptions
+        /// отправляет исключения
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
+        #endregion
+
+
+        public static string ConvertToSocketSecName(string nameInRest)
+        {
+            string result = "";
+            //XXBTZEUR = "XBT/EUR"
+
+            if (nameInRest == "XZECXXBT")
+            {
+                return "ZEC/XBT";
+            }
+            if (nameInRest == "XZECZEUR")
+            {
+                return "ZEC/EUR";
+            }
+            if (nameInRest == "XZECZUSD")
+            {
+                return "ZEC/USD";
+            }
+
+            if (nameInRest.StartsWith("XX"))
+            {
+                result = nameInRest.Replace("XX", "X");
+                result = result.Replace("Z", "/");
+                return result;
+            }
+            if (nameInRest.StartsWith("XETH"))
+            {
+                result = nameInRest.Replace("XX", "X");
+                result = result.Replace("Z", "/");
+
+                return result;
+            }
+            if (nameInRest.EndsWith("ETH"))
+            {
+                string pap = nameInRest.Replace("ETH", "");
+
+                if (pap.Length == 3)
+                {
+                    result = pap + "/" + "ETH";
+                }
+                else
+                {
+                    result = pap + "/" + "ETH";
+                }
+
+            }
+            if (nameInRest.EndsWith("EUR"))
+            {
+                string pap = nameInRest.Replace("EUR", "");
+                if (pap.Length == 3)
+                {
+                    result = pap + "/" + "EUR";
+                }
+                else
+                {
+                    result = pap + "/" + "EUR";
+                }
+
+            }
+            if (nameInRest.EndsWith("USD"))
+            {
+                if (nameInRest == "XETHZUSD")
+                {
+
+                }
+                string pap = nameInRest.Replace("USD", "");
+
+                if (pap.StartsWith("X") &&
+                    pap.EndsWith("Z"))
+                {
+                    pap = pap.Replace("Z", "");
+                    pap = pap.Replace("X", "");
+                }
+
+                if (pap.Length == 3)
+                {
+                    result = pap + "/" + "USD";
+                }
+                else
+                {
+                    result = pap + "/" + "USD";
+                }
+            }
+            if (nameInRest.EndsWith("USDT"))
+            {
+                string pap = nameInRest.Replace("USDT", "");
+                if (pap.Length == 3)
+                {
+                    result = pap + "/" + "USDT";
+                }
+                else
+                {
+                    result = pap + "/" + "USDT";
+                }
+
+            }
+            if (nameInRest.EndsWith("USDC"))
+            {
+                string pap = nameInRest.Replace("USDC", "");
+                if (pap.Length == 3)
+                {
+                    result = pap + "/" + "USDC";
+                }
+                else
+                {
+                    result = pap + "/" + "USDC";
+                }
+
+            }
+            if (nameInRest.EndsWith("XBT"))
+            {
+                string pap = nameInRest.Replace("XBT", "");
+                if (pap.Length == 3)
+                {
+                    result = pap + "/" + "XBT";
+                }
+                else
+                {
+                    result = pap + "/" + "XBT";
+                }
+            }
+
+            return result;
+        }
+
+
     }
 
-    // next are the objects needed to convert JSon messages / далее идут объекты необходимые для конвертации JSon сообщений
 
     public class DataSinece
     {
@@ -1153,6 +1063,8 @@ namespace OsEngine.Market.Servers.Kraken
         /// Alternate pair name.
         /// </summary>
         public string Altname;
+
+        [JsonProperty(PropertyName = "wsname")] public string WsName;
 
         /// <summary>
         /// Asset private class of base component.
