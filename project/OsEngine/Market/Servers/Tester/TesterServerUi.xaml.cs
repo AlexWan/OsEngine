@@ -791,6 +791,7 @@ namespace OsEngine.Market.Servers.Tester
                         comboBox.Items.Add(TimeFrame.Min5.ToString());
                         comboBox.Items.Add(TimeFrame.Min3.ToString());
                         comboBox.Items.Add(TimeFrame.Min10.ToString());
+                        comboBox.Items.Add(TimeFrame.Min20.ToString());
                         comboBox.Items.Add(TimeFrame.Min15.ToString());
                         comboBox.Items.Add(TimeFrame.Min30.ToString());
                         comboBox.Items.Add(TimeFrame.Min45.ToString());
