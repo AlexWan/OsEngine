@@ -42,11 +42,7 @@ namespace OsEngine.Charts.CandleChart
             _name = nameBoss + "ChartMaster";
             _startProgram = startProgram;
 
-            if (PrimeSettingsMaster.UseOxyPlotChart == false)
-                ChartCandle = new WinFormsChartPainter(nameBoss, startProgram);
-
-            else if (PrimeSettingsMaster.UseOxyPlotChart == true)
-                ChartCandle = new OxyChartPainter(nameBoss, startProgram);
+            ChartCandle = new WinFormsChartPainter(nameBoss, startProgram);
 
             ChartCandle.ChartClickEvent += ChartCandle_ChartClickEvent;
             ChartCandle.LogMessageEvent += NewLogMessage;
