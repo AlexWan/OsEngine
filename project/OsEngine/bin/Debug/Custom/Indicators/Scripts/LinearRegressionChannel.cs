@@ -4,9 +4,9 @@ using System.Drawing;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 
-namespace CustomIndicators.Scripts
+namespace OsEngine.Robots.Edu
 {
-    public class LinearRegressionChannel : Aindicator
+    public class LRC : Aindicator
     {
         private IndicatorParameterInt _period;
         private IndicatorParameterDecimal _upDeviation;
@@ -22,7 +22,8 @@ namespace CustomIndicators.Scripts
             if (state == IndicatorState.Configure)
             {
                 _period = CreateParameterInt("Lenght", 100);
-                _candlePoint = CreateParameterStringCollection("Candle Point", "Close", Entity.CandlePointsArray);
+                _candlePoint = CreateParameterStringCollection("Candle Point", "Close", new List<string>() { "Close" });
+                _candlePoint.ValueString = "Close";
 
                 _upDeviation = CreateParameterDecimal("Up channel deviation", 2);
                 _downDeviation = CreateParameterDecimal("Down channel deviation", -2);
@@ -53,7 +54,7 @@ namespace CustomIndicators.Scripts
                 return;
             }
 
-            DataClear();
+            DataClear(index);
 
             // variables
             decimal a, b, c,
@@ -130,21 +131,21 @@ namespace CustomIndicators.Scripts
             }
         }
 
-        private void DataClear()
+        private void DataClear(int index)
         {
-            for (int i = 0; i < _seriesCentralLine.Values.Count; i++)
+            for (int i = index - _period.ValueInt + 1; i < _seriesCentralLine.Values.Count; i++)
             {
                 _seriesCentralLine.Values[i] = 0;
 
             }
 
-            for (int i = 0; i < _seriesUpperband.Values.Count; i++)
+            for (int i = index - _period.ValueInt + 1; i < _seriesUpperband.Values.Count; i++)
             {
                 _seriesUpperband.Values[i] = 0;
             }
 
 
-            for (int i = 0; i < _seriesLowerband.Values.Count; i++)
+            for (int i = index - _period.ValueInt + 1; i < _seriesLowerband.Values.Count; i++)
             {
                 _seriesLowerband.Values[i] = 0;
             }
