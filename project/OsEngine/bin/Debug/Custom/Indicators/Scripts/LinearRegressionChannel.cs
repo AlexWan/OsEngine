@@ -4,9 +4,9 @@ using System.Drawing;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 
-namespace OsEngine.Robots.Edu
+namespace CustomIndicators.Scripts
 {
-    public class LRC : Aindicator
+    public class LinearRegressionChannel : Aindicator
     {
         private IndicatorParameterInt _period;
         private IndicatorParameterDecimal _upDeviation;
@@ -22,8 +22,7 @@ namespace OsEngine.Robots.Edu
             if (state == IndicatorState.Configure)
             {
                 _period = CreateParameterInt("Lenght", 100);
-                _candlePoint = CreateParameterStringCollection("Candle Point", "Close", new List<string>() { "Close" });
-                _candlePoint.ValueString = "Close";
+                _candlePoint = CreateParameterStringCollection("Candle Point", "Close", Entity.CandlePointsArray);
 
                 _upDeviation = CreateParameterDecimal("Up channel deviation", 2);
                 _downDeviation = CreateParameterDecimal("Down channel deviation", -2);
