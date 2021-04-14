@@ -248,6 +248,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 File.Delete(@"Engine\" + TabName + @"SpreadSet.txt");
             }
+
+            for(int i = 0; Tabs != null && i < Tabs.Count; i++)
+            {
+                Tabs[i].Delete();
+            }
         }
 
         /// <summary>
