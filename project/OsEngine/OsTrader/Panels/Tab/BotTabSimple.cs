@@ -4001,6 +4001,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         private void _connector_MyTradeEvent(MyTrade trade)
         {
             _journal.SetNewMyTrade(trade);
+            MyTradeEvent(trade);
         }
 
         /// <summary>
@@ -4054,6 +4055,12 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         // исходящие события. Обработчики для стратегии
         // outgoing events. Handlers for strategy
+
+        /// <summary>
+        /// my new trade event /
+        /// событие моей новой сделки
+        /// </summary>
+        public event Action<MyTrade> MyTradeEvent;
 
         /// <summary>
         /// The morning session started. Send the first trades
