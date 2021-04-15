@@ -930,6 +930,47 @@ namespace OsEngine.OsOptimizer
             }
 
 
+            // проверка наличия и состояния параметра Regime 
+            bool onRgimePresent = false;
+            bool onRgimeReady = false;
+
+            for (int i = 0; i < _parameters.Count; i++)
+            {
+                //Console.WriteLine("CheckReadyData " + _parameters[i].Name);
+                if (_parameters[i].Name == "Regime")
+                {
+                    //Console.WriteLine("CheckReadyData " + ((StrategyParameterString)_parameters[i]).ValueString);
+                    onRgimePresent = true;
+                    if (((StrategyParameterString)_parameters[i]).ValueString != "Off")
+                    {
+                        onRgimeReady = true;
+                    }
+                }
+            }
+
+            if (onRgimePresent == false)
+            {
+                MessageBox.Show(OsLocalization.Optimizer.Message41);
+                SendLogMessage(OsLocalization.Optimizer.Message41, LogMessageType.System);
+                if (NeadToMoveUiToEvent != null)
+                {
+                    NeadToMoveUiToEvent(NeadToMoveUiTo.Parametrs);
+                }
+                return false;
+            }
+            else if (onRgimeReady == false)
+            {
+                MessageBox.Show(OsLocalization.Optimizer.Message41);
+                SendLogMessage(OsLocalization.Optimizer.Message41, LogMessageType.System);
+                if (NeadToMoveUiToEvent != null)
+                {
+                    NeadToMoveUiToEvent(NeadToMoveUiTo.RegimeRow);
+                }
+                return false;
+            }
+            // Regime / конец
+
+
             return true;
         }
 
@@ -1222,6 +1263,11 @@ namespace OsEngine.OsOptimizer
         /// Filters
         /// Фильтры
         /// </summary>
-        Filters
+        Filters,
+        /// <summary>
+        /// Robot regime mode
+        /// режим работы робота
+        /// </summary>
+        RegimeRow
     }
 }

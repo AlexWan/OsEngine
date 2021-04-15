@@ -170,8 +170,9 @@ namespace OsEngine.Language
         public string Message40 => OsLocalization.ConvertToLocString(
             "Eng:Chart_" +
             "Ru:График_");
-
-
+        public string Message41 => OsLocalization.ConvertToLocString(
+            "Eng:Cannot start optimization. Parameter 'regime' is Off or not found._" +
+            "Ru:Не возможно запустить оптимизацию. Параметр 'regime' Off или не найден._");
 
 
         public string Label1 => OsLocalization.ConvertToLocString(
