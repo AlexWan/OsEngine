@@ -4001,7 +4001,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         private void _connector_MyTradeEvent(MyTrade trade)
         {
             _journal.SetNewMyTrade(trade);
-            MyTradeEvent(trade);
+
+            if(MyTradeEvent != null)
+            {
+                MyTradeEvent(trade);
+            }
         }
 
         /// <summary>
