@@ -152,8 +152,8 @@ namespace OsEngine.Market.Connectors
 
             if (_emulator != null)
             {
-                _emulator.MyTradeEvent += ConnectorBot_NewMyTradeEvent;
-                _emulator.OrderChangeEvent += ConnectorBot_NewOrderIncomeEvent;
+                _emulator.MyTradeEvent -= ConnectorBot_NewMyTradeEvent;
+                _emulator.OrderChangeEvent -= ConnectorBot_NewOrderIncomeEvent;
             }
 
             if (_myServer != null)

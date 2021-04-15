@@ -37,7 +37,7 @@ namespace OsEngine.Robots.CounterTrend
             LabelRegime.Content = OsLocalization.Trader.Label115;
             LabelVolume.Content = OsLocalization.Trader.Label30;
             LabelSlippage.Content = OsLocalization.Trader.Label92;
-            ButtonAccept.Content = OsLocalization.Trader.Label132;
+            ButtonAccept.Content = OsLocalization.Trader.Label17;
             LabelUp.Content = OsLocalization.Trader.Label155;
             LabelLow.Content = OsLocalization.Trader.Label156;
         }

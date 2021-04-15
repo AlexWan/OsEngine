@@ -243,7 +243,7 @@ namespace OsEngine.Robots.Patterns
                 {
                     _tab.CloseAtLimit(position, _lastClose - Slipage, position.OpenVolume);
 
-                    if (Regime != BotTradeRegime.OnlyLong && Regime != BotTradeRegime.OnlyClosePosition)
+                    if (Regime == BotTradeRegime.On)  // Fix: Открываем реверсивную сделку только если торгуем и в лонг и в шорт
                     {
                         _tab.SellAtLimit(VolumeFix, _lastClose - Slipage);
                     }
@@ -257,7 +257,7 @@ namespace OsEngine.Robots.Patterns
                 {
                     _tab.CloseAtLimit(position, _lastClose + Slipage, position.OpenVolume);
 
-                    if (Regime != BotTradeRegime.OnlyLong && Regime != BotTradeRegime.OnlyClosePosition)
+                    if (Regime == BotTradeRegime.On)  // Fix: Открываем реверсивную сделку только если торгуем и в лонг и в шорт
                     {
                         _tab.BuyAtLimit(VolumeFix, _lastClose + Slipage);
                     }

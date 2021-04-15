@@ -34,7 +34,7 @@ namespace OsEngine.Robots.MarketMaker
             ComboBoxRegime.SelectedItem = _strategy.Regime;
 
             LabelRegime.Content = OsLocalization.Trader.Label115;
-            ButtonAccept.Content = OsLocalization.Trader.Label132;
+            ButtonAccept.Content = OsLocalization.Trader.Label17;
             LabelVolume1.Content = OsLocalization.Trader.Label30 + 1;
             LabelSlippage1.Content = OsLocalization.Trader.Label92 + 1;
             LabelVolume1.Content = OsLocalization.Trader.Label30 + 2;
