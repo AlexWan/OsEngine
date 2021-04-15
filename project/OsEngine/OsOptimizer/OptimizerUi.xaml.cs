@@ -403,7 +403,27 @@ namespace OsEngine.OsOptimizer
             {
                 TabControlPrime.SelectedItem = TabControlPrime.Items[1];
             }
+            // Проверка параметра Regime (наличие/состояние)
+            if (move == NeadToMoveUiTo.RegimeRow)
+            {
+                //_gridParametrs.CurrentCell = _gridParametrs[3, 0];
+
+                for (int i = 0; i < _gridParametrs.Rows.Count; i++)
+                {
+                    for (int j = 0; j < ((DataGridViewCellCollection)_gridParametrs.Rows[i].Cells).Count; j++)
+                    {
+                        if (Convert.ToString(_gridParametrs.Rows[i].Cells[j].Value) == "Regime")
+                        {
+                            _gridParametrs.CurrentCell = _gridParametrs[_gridParametrs.Rows[i].Cells[j].ColumnIndex + 2, i];
+                            break;
+                        }
+                    }
+                }
+                TabControlPrime.SelectedItem = TabControlPrime.Items[1];
+            }
+            // Проверка параметра Regime (наличие/состояние) / конец
         }
+
 
         // processing controls by clicking on them by the user/обработка контролов по нажатию их пользователем
 
