@@ -931,21 +931,20 @@ namespace OsEngine.OsOptimizer
 
 
             // проверка наличия и состояния параметра Regime 
-            bool onRgimeReady = false;
+            bool onRgimeOff = false;
 
             for (int i = 0; i < _parameters.Count; i++)
             {
                 if (_parameters[i].Name == "Regime")
                 {
-//                    onRgimePresent = true;
-                    if (((StrategyParameterString)_parameters[i]).ValueString != "Off")
+                    if (((StrategyParameterString)_parameters[i]).ValueString == "Off")
                     {
-                        onRgimeReady = true;
+                        onRgimeOff = true;
                     }
                 }
             }
 
-            if (onRgimeReady == false)
+            if (onRgimeOff == true)
             {
                 MessageBox.Show(OsLocalization.Optimizer.Message41);
                 SendLogMessage(OsLocalization.Optimizer.Message41, LogMessageType.System);
