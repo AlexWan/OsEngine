@@ -79,22 +79,29 @@ namespace OsEngine.Logging
         {
             while (true)
             {
-                await Task.Delay(2000);
-
-                for (int i = 0; i < Math.Min(LogsToCheck.Count, LogsToCheck.Capacity); i++)// не потокобезопасная работа с LogsToCheck приводит к Capacity<Count
+                try
                 {
-                    if (LogsToCheck[i] == null)
+                    await Task.Delay(2000);
+
+                    for (int i = 0; i < Math.Min(LogsToCheck.Count, LogsToCheck.Capacity); i++)// не потокобезопасная работа с LogsToCheck приводит к Capacity<Count
                     {
-                        continue;
+                        if (LogsToCheck[i] == null)
+                        {
+                            continue;
+                        }
+
+                        LogsToCheck[i].TrySaveLog();
+                        LogsToCheck[i].TryPaintLog();
                     }
 
-                    LogsToCheck[i].TrySaveLog();
-                    LogsToCheck[i].TryPaintLog();
+                    if (!MainWindow.ProccesIsWorked)
+                    {
+                        return;
+                    }
                 }
-
-                if (!MainWindow.ProccesIsWorked)
+                catch
                 {
-                    return;
+                    // ignore
                 }
             }
         }
