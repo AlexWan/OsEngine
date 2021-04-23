@@ -1691,6 +1691,8 @@ namespace OsEngine.Market.Servers
                     return;
                 }
 
+                ServerTime = trade.Time;
+
                 if (_needToLoadBidAskInTrades.Value)
                 {
                     BathTradeMarketDepthData(trade);
@@ -1762,9 +1764,6 @@ namespace OsEngine.Market.Servers
 
                     _tradesToSend.Enqueue(myList);
                 }
-
-                // fill server time by last ticks time / перегружаем последним временем тика время сервера
-                ServerTime = trade.Time;
             }
             catch (Exception error)
             {
