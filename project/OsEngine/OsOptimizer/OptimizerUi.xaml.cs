@@ -406,8 +406,6 @@ namespace OsEngine.OsOptimizer
             // Проверка параметра Regime (наличие/состояние)
             if (move == NeadToMoveUiTo.RegimeRow)
             {
-                //_gridParametrs.CurrentCell = _gridParametrs[3, 0];
-
                 for (int i = 0; i < _gridParametrs.Rows.Count; i++)
                 {
                     for (int j = 0; j < ((DataGridViewCellCollection)_gridParametrs.Rows[i].Cells).Count; j++)

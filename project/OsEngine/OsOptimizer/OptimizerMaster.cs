@@ -931,34 +931,20 @@ namespace OsEngine.OsOptimizer
 
 
             // проверка наличия и состояния параметра Regime 
-            bool onRgimePresent = false;
-            bool onRgimeReady = false;
+            bool onRgimeOff = false;
 
             for (int i = 0; i < _parameters.Count; i++)
             {
-                //Console.WriteLine("CheckReadyData " + _parameters[i].Name);
                 if (_parameters[i].Name == "Regime")
                 {
-                    //Console.WriteLine("CheckReadyData " + ((StrategyParameterString)_parameters[i]).ValueString);
-                    onRgimePresent = true;
-                    if (((StrategyParameterString)_parameters[i]).ValueString != "Off")
+                    if (((StrategyParameterString)_parameters[i]).ValueString == "Off")
                     {
-                        onRgimeReady = true;
+                        onRgimeOff = true;
                     }
                 }
             }
 
-            if (onRgimePresent == false)
-            {
-                MessageBox.Show(OsLocalization.Optimizer.Message41);
-                SendLogMessage(OsLocalization.Optimizer.Message41, LogMessageType.System);
-                if (NeadToMoveUiToEvent != null)
-                {
-                    NeadToMoveUiToEvent(NeadToMoveUiTo.Parametrs);
-                }
-                return false;
-            }
-            else if (onRgimeReady == false)
+            if (onRgimeOff == true)
             {
                 MessageBox.Show(OsLocalization.Optimizer.Message41);
                 SendLogMessage(OsLocalization.Optimizer.Message41, LogMessageType.System);
@@ -969,7 +955,6 @@ namespace OsEngine.OsOptimizer
                 return false;
             }
             // Regime / конец
-
 
             return true;
         }
