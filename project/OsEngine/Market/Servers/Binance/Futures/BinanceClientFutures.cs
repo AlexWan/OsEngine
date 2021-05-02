@@ -1310,15 +1310,15 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                                 var order = ord.o;
 
-                                string orderNumUser = order.c;
+                                Int32 orderNumUser;
 
                                 try
                                 {
-                                    Convert.ToInt32(orderNumUser);
+                                    orderNumUser = Convert.ToInt32(order.c);
                                 }
                                 catch (Exception)
                                 {
-                                    continue;
+                                    orderNumUser = Convert.ToInt32(order.c.GetHashCode());
                                 }
 
                                 if (order.x == "NEW")
@@ -1326,7 +1326,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                                     Order newOrder = new Order();
                                     newOrder.SecurityNameCode = order.s;
                                     newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(ord.T));
-                                    newOrder.NumberUser = Convert.ToInt32(orderNumUser);
+                                    newOrder.NumberUser = orderNumUser;
 
                                     newOrder.NumberMarket = order.i.ToString();
                                     //newOrder.PortfolioNumber = order.PortfolioNumber; добавить в сервере
@@ -1348,7 +1348,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                                     newOrder.SecurityNameCode = order.s;
                                     newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(ord.T));
                                     newOrder.TimeCancel = newOrder.TimeCallBack;
-                                    newOrder.NumberUser = Convert.ToInt32(orderNumUser);
+                                    newOrder.NumberUser = orderNumUser;
                                     newOrder.NumberMarket = order.i.ToString();
                                     newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
                                     newOrder.State = OrderStateType.Cancel;
@@ -1367,7 +1367,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                                     Order newOrder = new Order();
                                     newOrder.SecurityNameCode = order.s;
                                     newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(ord.T));
-                                    newOrder.NumberUser = Convert.ToInt32(orderNumUser);
+                                    newOrder.NumberUser = orderNumUser;
                                     newOrder.NumberMarket = order.i.ToString();
                                     newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
                                     newOrder.State = OrderStateType.Fail;
@@ -1404,7 +1404,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                                     newOrder.SecurityNameCode = order.s;
                                     newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(ord.T));
                                     newOrder.TimeCancel = newOrder.TimeCallBack;
-                                    newOrder.NumberUser = Convert.ToInt32(orderNumUser);
+                                    newOrder.NumberUser = orderNumUser;
                                     newOrder.NumberMarket = order.i.ToString();
                                     newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
                                     newOrder.State = OrderStateType.Cancel;
