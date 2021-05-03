@@ -329,11 +329,6 @@ namespace OsEngine.Journal.Internal
                 return;
             }
 
-            if(_startProgram != StartProgram.IsOsTrader)
-            {
-                return;
-            }
-
             _neadToSave = false;
 
             try

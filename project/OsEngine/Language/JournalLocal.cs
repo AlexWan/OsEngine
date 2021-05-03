@@ -60,7 +60,7 @@ namespace OsEngine.Language
             "Ru:Журнал_");
 
         public string Label1 => OsLocalization.ConvertToLocString(
-            "Eng:Total profitJournal_" +
+            "Eng:Total profit_" +
             "Ru:Общая прибыль_");
 
         public string Label2 => OsLocalization.ConvertToLocString(

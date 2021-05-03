@@ -978,7 +978,7 @@ namespace OsEngine.Entity
 
             if (OpenOrders != null && OpenOrders.Count > 0)
             {
-                if (LotServers.Find(x => x == OpenOrders[0].ServerType) == null)
+                if (LotServers.Find(x => x == OpenOrders[0].ServerType) ==  ServerType.None)
                 {
                     return false;
                 }
