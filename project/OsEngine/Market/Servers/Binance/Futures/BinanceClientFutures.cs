@@ -550,7 +550,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 trade.Volume = Math.Abs(StringToDecimal(jtTrade.Q));
                 trade.SecurityNameCode = secName;
 
-                if (StringToDecimal(jtTrade.Q) >= 0)
+                if (jtTrade.m)
                 {
                     trade.Side = Side.Buy;
                     trade.Ask = 0;
@@ -558,7 +558,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     trade.Bid = trade.Price;
                     trade.BidsVolume = trade.Volume;
                 }
-                else if (StringToDecimal(jtTrade.Q) < 0)
+                else
                 {
                     trade.Side = Side.Sell;
                     trade.Ask = trade.Price;
