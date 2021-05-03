@@ -55,6 +55,7 @@ namespace OsEngine.Charts.CandleChart
                 _chart.Text = name;
                 _chart.AxisScrollBarClicked += _chart_AxisScrollBarClicked; // cursor event/событие передвижения курсора
                 _chart.AxisViewChanged += _chart_AxisViewChanged; // scale event/событие изменения масштаба
+                _chart.MouseWheel += _chart_MouseWheel; // scroll and zoom chart using mouse wheel/прокрутка и зум чарта колесиком мышки
                 _chart.Click += _chart_Click;
 
                 _chart.MouseDown += _chartForCandle_MouseDown;
@@ -5425,6 +5426,67 @@ namespace OsEngine.Charts.CandleChart
                     }
                 }
 
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Scroll and Zoom(with Ctrl key pressed) chart using MouseWheel 
+        /// прокрутка и изменение масштаба(с нажатым Ctrl) чарта с помощью колесика мыши
+        /// </summary>
+        private void _chart_MouseWheel(object sender, MouseEventArgs e)
+        {
+            if (_isPaint == false)
+            {
+                return;
+            }
+
+            if (Control.ModifierKeys == Keys.Control)
+            {
+                if (e.Delta < 0)
+                {
+                    _chart.ChartAreas[0].AxisX.ScaleView.Size = _chart.ChartAreas[0].AxisX.ScaleView.Size + 100 < 2000
+                        ? _chart.ChartAreas[0].AxisX.ScaleView.Size + 100
+                        : 2000;
+                }
+                else
+                {
+                    _chart.ChartAreas[0].AxisX.ScaleView.Size = _chart.ChartAreas[0].AxisX.ScaleView.Size - 100 > 100
+                        ? _chart.ChartAreas[0].AxisX.ScaleView.Size - 100
+                        : 100;
+                }
+            }
+            else
+            {
+                if (e.Delta > 0)
+                {
+                    _chart.ChartAreas[0].AxisX.ScaleView.Position = _chart.ChartAreas[0].AxisX.ScaleView.Position + 500 < _myCandles.Count - (int)_chart.ChartAreas[0].AxisX.ScaleView.Size
+                            ? _chart.ChartAreas[0].AxisX.ScaleView.Position + 500
+                            : _myCandles.Count - (int)_chart.ChartAreas[0].AxisX.ScaleView.Size;
+                }
+                else
+                {
+                    _chart.ChartAreas[0].AxisX.ScaleView.Position = _chart.ChartAreas[0].AxisX.ScaleView.Position - 500 > 0
+                            ? _chart.ChartAreas[0].AxisX.ScaleView.Position - 500
+                            : 0;
+                }
+            }
+
+            try
+            {
+                ResizeYAxisOnArea("Prime");
+                for (int i = 0; i < _chart.ChartAreas.Count; i++)
+                {
+                    if (_chart.ChartAreas[i].Name != "Prime")
+                    {
+                        ResizeYAxisOnArea(_chart.ChartAreas[i].Name);
+                    }
+                }
+                ResizeXAxis();
+                ResizeSeriesLabels();
             }
             catch (Exception error)
             {
