@@ -277,6 +277,30 @@ namespace OsEngine.Market.Servers.Tester
             return pathToSettings;
         }
 
+        private string GetSecuritiesSettingsPath()
+        {
+            string pathToSettings;
+
+            if (SourceDataType == TesterSourceDataType.Set)
+            {
+                if (string.IsNullOrWhiteSpace(_activSet))
+                {
+                    return "";
+                }
+                pathToSettings = _activSet + "\\SecuritiesSettings.txt";
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(_pathToFolder))
+                {
+                    return "";
+                }
+                pathToSettings = _pathToFolder + "\\SecuritiesSettings.txt";
+            }
+
+            return pathToSettings;
+        }
+
         // additional part from standart servers
         // аппендикс от нормальных серверов
 
@@ -1251,9 +1275,9 @@ namespace OsEngine.Market.Servers.Tester
             // check in tester file data on the presence of multipliers and GO for securities
             // проверяем в файле тестера данные о наличии мультипликаторов и ГО для бумаг
 
-            //List<string[]> array = LoadSecurityDopSettings(folderName + "\\SecuritiesSettings.txt");
-            string pathToSecuritySettings = Path.GetDirectoryName(Path.GetDirectoryName(folderName));
-            List<string[]> array = LoadSecurityDopSettings(pathToSecuritySettings + "\\SecuritiesSettings.txt");
+
+            string pathToSecuritySettings = GetSecuritiesSettingsPath();
+            List<string[]> array = LoadSecurityDopSettings(pathToSecuritySettings);
 
             for (int i = 0; array != null && i < array.Count; i++)
             {
@@ -1506,9 +1530,8 @@ namespace OsEngine.Market.Servers.Tester
             // check in the tester file data on the presence of multipliers and GO for securities
             // проверяем в файле тестера данные о наличии мультипликаторов и ГО для бумаг
 
-            //List<string[]> array = LoadSecurityDopSettings(folderName + "\\SecuritiesSettings.txt");
-            string pathToSecuritySettings = Path.GetDirectoryName(Path.GetDirectoryName(folderName));
-            List<string[]> array = LoadSecurityDopSettings(pathToSecuritySettings + "\\SecuritiesSettings.txt");
+            string pathToSecuritySettings = GetSecuritiesSettingsPath();
+            List<string[]> array = LoadSecurityDopSettings(pathToSecuritySettings);
 
             for (int i = 0; array != null && i < array.Count; i++)
             {
@@ -1759,9 +1782,8 @@ namespace OsEngine.Market.Servers.Tester
             // check in the tester file data on the presence of multipliers and GO for securities
             // проверяем в файле тестера данные о наличии мультипликаторов и ГО для бумаг
 
-            //List<string[]> array = LoadSecurityDopSettings(folderName + "\\SecuritiesSettings.txt");
-            string pathToSecuritySettings = Path.GetDirectoryName(Path.GetDirectoryName(folderName));
-            List<string[]> array = LoadSecurityDopSettings(pathToSecuritySettings + "\\SecuritiesSettings.txt");
+            string pathToSecuritySettings = GetSecuritiesSettingsPath();
+            List<string[]> array = LoadSecurityDopSettings(pathToSecuritySettings);
 
             for (int i = 0; array != null && i < array.Count; i++)
             {
@@ -2453,24 +2475,7 @@ namespace OsEngine.Market.Servers.Tester
                 return;
             }
 
-            string pathToSettings = "";
-
-            if (SourceDataType == TesterSourceDataType.Set)
-            {
-                if (string.IsNullOrWhiteSpace(_activSet))
-                {
-                    return;
-                }
-                pathToSettings = _activSet + "\\SecuritiesSettings.txt";
-            }
-            else
-            {
-                if (string.IsNullOrWhiteSpace(_pathToFolder))
-                {
-                    return;
-                }
-                pathToSettings = _pathToFolder + "\\SecuritiesSettings.txt";
-            }
+            string pathToSettings = GetSecuritiesSettingsPath();
 
             List<string[]> saves = LoadSecurityDopSettings(pathToSettings);
 
