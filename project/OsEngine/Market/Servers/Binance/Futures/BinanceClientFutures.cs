@@ -907,6 +907,12 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     param.Add("&quantity=",
                         order.Volume.ToString(CultureInfo.InvariantCulture)
                             .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
+
+                    if (!HedgeMode && order.PositionConditionType == OrderPositionConditionType.Close)
+                    {
+                        param.Add("&reduceOnly=", "true");
+                    }
+
                     if (order.TypeOrder == OrderPriceType.Limit)
                     {
                         param.Add("&timeInForce=", "GTC");
