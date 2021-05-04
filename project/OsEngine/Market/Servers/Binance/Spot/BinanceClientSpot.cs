@@ -1397,15 +1397,21 @@ namespace OsEngine.Market.Servers.Binance.Spot
                             {
                                 var order = JsonConvert.DeserializeAnonymousType(mes, new ExecutionReport());
 
-                                Int32 orderNumUser;
+                                string orderNumUser = order.C;
+
+                                if (string.IsNullOrEmpty(orderNumUser) ||
+                                    orderNumUser == "null")
+                                {
+                                    orderNumUser = order.c;
+                                }
 
                                 try
                                 {
-                                    orderNumUser = Convert.ToInt32(order.c);
+                                    Convert.ToInt32(orderNumUser);
                                 }
                                 catch (Exception)
                                 {
-                                    orderNumUser = Convert.ToInt32(order.c.GetHashCode());
+                                    continue;
                                 }
 
                                 if (order.x == "NEW")
@@ -1413,7 +1419,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                                     Order newOrder = new Order();
                                     newOrder.SecurityNameCode = order.s;
                                     newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.E));
-                                    newOrder.NumberUser = orderNumUser;
+                                    newOrder.NumberUser = Convert.ToInt32(orderNumUser);
 
                                     newOrder.NumberMarket = order.i.ToString();
                                     //newOrder.PortfolioNumber = order.PortfolioNumber; добавить в сервере
@@ -1435,7 +1441,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                                     newOrder.SecurityNameCode = order.s;
                                     newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.E));
                                     newOrder.TimeCancel = newOrder.TimeCallBack;
-                                    newOrder.NumberUser = orderNumUser;
+                                    newOrder.NumberUser = Convert.ToInt32(orderNumUser);
                                     newOrder.NumberMarket = order.i.ToString();
                                     newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
                                     newOrder.State = OrderStateType.Cancel;
@@ -1454,7 +1460,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                                     Order newOrder = new Order();
                                     newOrder.SecurityNameCode = order.s;
                                     newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.E));
-                                    newOrder.NumberUser = orderNumUser;
+                                    newOrder.NumberUser = Convert.ToInt32(orderNumUser);
                                     newOrder.NumberMarket = order.i.ToString();
                                     newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
                                     newOrder.State = OrderStateType.Fail;
@@ -1491,7 +1497,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                                     newOrder.SecurityNameCode = order.s;
                                     newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.E));
                                     newOrder.TimeCancel = newOrder.TimeCallBack;
-                                    newOrder.NumberUser = orderNumUser;
+                                    newOrder.NumberUser = Convert.ToInt32(orderNumUser);
                                     newOrder.NumberMarket = order.i.ToString();
                                     newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
                                     newOrder.State = OrderStateType.Cancel;
