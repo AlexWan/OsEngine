@@ -803,15 +803,14 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                     var response = new RestClient(baseUrl).Execute(request).Content;
 
-                    if (response.Contains("code") && !response.Contains("code\": 200"))
+                    if (response.StartsWith("<!DOCTYPE"))
+                    {
+                        throw new Exception(response);
+                    }
+                    else if (response.Contains("code") && !response.Contains("code\": 200"))
                     {
                         var error = JsonConvert.DeserializeAnonymousType(response, new ErrorMessage());
                         throw new Exception(error.msg);
-                    }
-
-                    if (response == null)
-                    {
-
                     }
 
                     return response;
