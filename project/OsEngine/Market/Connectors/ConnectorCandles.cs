@@ -1089,13 +1089,18 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
-                if (NamePaper == null ||
-                    tradesList == null ||
-                    tradesList.Count == 0 ||
-                    tradesList[tradesList.Count - 1] == null ||
-                    tradesList[tradesList.Count - 1].SecurityNameCode != NamePaper)
+                if (NamePaper == null || tradesList == null || tradesList.Count == 0)
                 {
                     return;
+                }
+                else
+                {
+                    int count = tradesList.Count;
+                    if (tradesList[count - 1] == null ||
+                        tradesList[count - 1].SecurityNameCode != NamePaper)
+                    {
+                        return;
+                    }
                 }
             }
             catch
