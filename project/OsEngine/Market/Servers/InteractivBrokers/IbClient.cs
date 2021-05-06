@@ -1451,19 +1451,22 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             var size = TcpReadInt();
 
             if (msgVersion >= 3)
-                TcpReadInt();
+            {
+                int eligible = TcpReadInt();
 
-            if (tickType != 1 &&
-                tickType != 2 &&
+                if (eligible == 0)
+                {
+                    return;
+                }
+            }
+
+
+            if (
+                tickType != 2 && tickType != 1 &&
                 tickType != 4)
             {
                 return;
             }
-
-            /*if (tickType != 2 && tickType != 4)
-            {
-                return;
-            }*/
 
             SecurityIb security = _serverSecurities.Find(sec => sec.ConId == requestId);
 
@@ -1476,7 +1479,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             trade.Price = price;
             trade.Volume = size;
             trade.Time = DateTime.Now;
-            trade.SecurityNameCode = security.Symbol + "_" + security.SecType + "_" + security.Exchange;
+            trade.SecurityNameCode = security.LocalSymbol + "_" + security.SecType + "_" + security.Exchange;
 
             if (tickType == 1)
             {
