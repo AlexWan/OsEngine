@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 
@@ -14,10 +15,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
 {
 
     /// <summary>
-    /// Indicator ATR. Average True Range
-    /// индикатор ATR. Average True Range
+    /// Indicator DTD. Dynamic Trend Detector by K.Kopyrkin
+    /// индикатор DTD. Динамический трендследящий канал К.Копыркина
     /// </summary>
-    public class Atr : IIndicator
+    public class DynamicTrendDetector : IIndicator
     {
 
         /// <summary>
@@ -26,14 +27,14 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// </summary>
         /// <param name="uniqName">unique name/уникальное имя</param>
         /// <param name="canDelete">whether user can remove indicator from chart manually/можно ли пользователю удалить индикатор с графика вручную</param>
-        public Atr(string uniqName, bool canDelete)
+        public DynamicTrendDetector(string uniqName, bool canDelete)
         {
             Name = uniqName;
             Lenght = 14;
+            CorrectionCoeff = 3;
             TypeIndicator = IndicatorChartPaintType.Line;
             ColorBase = Color.DodgerBlue;
             PaintOn = true;
-            IsWatr = false;
             CanDelete = canDelete;
             Load();
         }
@@ -44,15 +45,15 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// Don't use it from robot creation layer/не используйте его из слоя создания роботов!
         /// </summary>
         /// <param name="canDelete">whether user can remove indicator from chart manually/можно ли пользователю удалить индикатор с графика вручную</param>
-        public Atr(bool canDelete)
+        public DynamicTrendDetector(bool canDelete)
         {
             Name = Guid.NewGuid().ToString();
 
             Lenght = 14;
+            CorrectionCoeff = 3;
             TypeIndicator = IndicatorChartPaintType.Line;
             ColorBase = Color.DodgerBlue;
             PaintOn = true;
-            IsWatr = false;
             CanDelete = canDelete;
         }
 
@@ -131,19 +132,19 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// period length to calculate indicator
         /// длинна периода для рассчёта индикатора
         /// </summary>
-        public int Lenght;
+        public int Lenght { get; set; }
+        
+        /// <summary>
+        /// atr channel multiplier
+        /// множитель для построения канала
+        /// </summary>
+        public decimal CorrectionCoeff { get; set; }
 
         /// <summary>
         /// is indicator tracing enabled
         /// включена ли прорисовка индикатора
         /// </summary>
         public bool PaintOn { get; set; }
-
-        /// <summary>
-        /// is indicator exponentially weighted
-        /// включено ли экспоненциальное взвешивание значения
-        /// </summary>
-        public bool IsWatr { get; set; }
 
         /// <summary>
         /// save settings to file
@@ -162,8 +163,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 {
                     writer.WriteLine(ColorBase.ToArgb());
                     writer.WriteLine(Lenght);
+                    writer.WriteLine(CorrectionCoeff);
                     writer.WriteLine(PaintOn);
-                    writer.WriteLine(IsWatr);
                     writer.Close();
                 }
             }
@@ -191,8 +192,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 {
                     ColorBase = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
                     Lenght = Convert.ToInt32(reader.ReadLine());
+                    CorrectionCoeff = Convert.ToDecimal(reader.ReadLine());
                     PaintOn = Convert.ToBoolean(reader.ReadLine());
-                    IsWatr = Convert.ToBoolean(reader.ReadLine());
+                    reader.ReadLine();
 
                     reader.Close();
                 }
@@ -237,7 +239,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// </summary>
         public void ShowDialog()
         {
-            AtrUi ui = new AtrUi(this);
+            DynamicTrendDetectorUi ui = new DynamicTrendDetectorUi(this);
             ui.ShowDialog();
 
             if (ui.IsChange && _myCandles != null)
@@ -252,10 +254,15 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// </summary>
         public void Reload()
         {
+            if (Values != null && Values.Count > 0)
+                Values.Clear();
+            
             if (_myCandles == null)
             {
                 return;
             }
+            
+
             ProcessAll(_myCandles);
 
             if (NeadToReloadEvent != null)
@@ -311,6 +318,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 return;
             }
+            
             if (Values == null)
             {
                 Values = new List<decimal>();
@@ -332,6 +340,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 return;
             }
+            
             Values = new List<decimal>();
 
             for (int i = 0; i < candles.Count; i++)
@@ -350,8 +359,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 return;
             }
+            
             Values[Values.Count - 1] = GetValue(candles, candles.Count - 1);
         }
+
+        private int Period;
+
+        private Side currentSide = Side.None;
 
         /// <summary>
         /// take indicator value by index
@@ -360,162 +374,92 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <param name="candles">candles/свечи</param>
         /// <param name="index">index/индекс</param>
         /// <returns>index value/значение индикатора по индексу</returns>
-        public decimal GetValue(List<Candle> candles,int index)
+        private decimal GetValue(List<Candle> candles,int index)
         {
-            TrueRangeReload(candles, index);
-            if (!IsWatr)
+            if (index <= 2)
             {
-                _moving = MovingAverageWild(_trueRange, _moving, Lenght, index);
+                Period = 0;
+            }
+            decimal currentCandleClose = candles[index].Close;
+
+            if (Values == null || Values.Count == 0)
+            {
+                return currentCandleClose;
+            }
+            decimal previousTrendClose = Values[Math.Max(0, index - 2)];
+            decimal currentTrendClose = Values[Math.Max(0, index - 1)];
+
+            decimal previousCandleClose = candles[Math.Max(0, index - 1)].Close;
+            
+            if (index >= 1)
+            {
+                if (currentTrendClose < currentCandleClose)
+                {
+                    if (currentSide != Side.Buy)
+                    {
+                        Period = 0;
+                    }
+                    currentSide = Side.Buy;
+                } else if (currentTrendClose >= currentCandleClose)
+                {
+                    if (currentSide != Side.Sell)
+                    {
+                        Period = 0;
+                    }
+                    currentSide = Side.Sell;
+                } else
+                {
+                    currentSide = Side.None;
+                    Period = 0;
+                }
+            }
+
+            List<Candle> subList;
+            List<decimal> highs;
+            List<decimal> lows;
+            int startIdx;
+            int numItems;
+
+            decimal value;
+            decimal highest;
+            decimal lowest;
+            decimal correctionPercent = Decimal.Divide(CorrectionCoeff, 100);
+            decimal coeffUp = 1m - correctionPercent;
+            decimal coeffDown = 1m + correctionPercent;
+            if (Period < Lenght)
+            {
+                if (currentSide != Side.None)
+                {
+                    startIdx = Math.Max(0, index - Period-1);
+                    numItems = Math.Max(1, Period - 1);
+                    subList = candles.GetRange(startIdx, numItems);
+                    highs = subList.Select(o => o.High).ToList();
+                    lows = subList.Select(o => o.Low).ToList();
+                    Period += 1;
+                    if (currentSide == Side.Buy)
+                    {
+                        highest = highs.Max();
+
+                        value = highest * coeffUp;
+                    } else
+                    {
+                        lowest = lows.Min();
+                        value = lowest * coeffDown;
+                    }
+                    return value;
+                } else
+                {
+                    return currentTrendClose;
+                }
             } else
             {
-                _moving = MovingAverageExponentiallyWeighted(_trueRange, _moving, Lenght, index);
+                startIdx = Math.Max(0, index - Lenght -1);
+                numItems = Math.Max(1, Lenght - 1);
+                subList = candles.GetRange(startIdx, numItems);
+                highs = subList.Select(o => o.High).ToList();
+                lows = subList.Select(o => o.Low).ToList();
+                return currentSide == Side.Buy ? highs.Max() * coeffUp : lows.Min() * coeffDown;
             }
-            
-
-            return Math.Round(_moving[_moving.Count-1],7);
-        }
-
-        private List<decimal> _moving;
-
-        /// <summary>
-        /// true range
-        /// истинный диапазон
-        /// </summary>
-        private List<decimal> _trueRange;
-
-        private void TrueRangeReload(List<Candle> candles, int index)
-        {
-            //True Range is the largest of following three:/Истинный диапазон (True Range) есть наибольшая из следующих трех величин:
-            //difference between current maximum and minimum;/разность между текущими максимумом и минимумом;
-            //difference between previous closing price and current maximum;/разность между предыдущей ценой закрытия и текущим максимумом;
-            //difference between previous closing price and current minimum./разность между предыдущей ценой закрытия и текущим минимумом.
-
-            if (index == 0 || _trueRange == null)
-            {
-                _trueRange = new List<decimal>();
-                _trueRange.Add(0);
-                return;
-            }
-
-            if (index > _trueRange.Count - 1)
-            {
-                _trueRange.Add(0);
-            }
-
-            decimal hiToLow = Math.Abs(candles[index].High - candles[index].Low);
-            decimal closeToHigh = Math.Abs(candles[index - 1].Close - candles[index].High);
-            decimal closeToLow = Math.Abs(candles[index - 1].Close - candles[index].Low);
-
-            _trueRange[_trueRange.Count - 1] = Math.Max(Math.Max(hiToLow, closeToHigh), closeToLow);
-        }
-
-        private List<decimal> MovingAverageWild(List<decimal> valuesSeries, List<decimal> moving, int length, int index)
-        {
-            if (moving == null || length > valuesSeries.Count)
-            {
-                moving = new List<decimal>();
-                for (int i = 0; i < index + 1; i++)
-                {
-                    moving.Add(0);
-                }
-            }
-            else if (length == valuesSeries.Count)
-            {
-                // it's first value. Calculate as MA
-                // это первое значение. Рассчитываем как простую машку
-
-                decimal lastMoving = 0;
-
-                for (int i = index; i > -1 && i > valuesSeries.Count - 1 - length; i--)
-                {
-                    lastMoving += valuesSeries[i];
-                }
-                if (lastMoving != 0)
-                {
-                    moving.Add(lastMoving / length);
-                }
-                else
-                {
-                    moving.Add(0);
-                }
-
-            }
-            else
-            {
-
-                decimal lastValueMoving;
-                decimal lastValueSeries = Math.Round(valuesSeries[valuesSeries.Count - 1], 7);
-
-                if (index > moving.Count - 1)
-                {
-                    lastValueMoving = moving[moving.Count - 1];
-                    moving.Add(0);
-                }
-                else
-                {
-                    lastValueMoving = moving[moving.Count - 2];
-                }
-
-                moving[moving.Count - 1] = Math.Round((lastValueMoving * (Lenght - 1) + lastValueSeries) / Lenght, 7);
-
-            }
-
-            return moving;
-        }
-
-        private List<decimal> MovingAverageExponentiallyWeighted(List<decimal> valuesSeries, List<decimal> moving, int length, int index)
-        {
-            decimal lambda = Convert.ToDecimal(2.0 / (Lenght + 1));
-
-            if (moving == null || length > valuesSeries.Count)
-            {
-                moving = new List<decimal>();
-                for (int i = 0; i < index + 1; i++)
-                {
-                    moving.Add(0);
-                }
-            }
-            else if (length == valuesSeries.Count)
-            {
-                // it's first value. Calculate as MA
-                // это первое значение. Рассчитываем как простую машку
-                decimal lastMoving = 0;
-
-                for (int i = index; i > -1 && i > valuesSeries.Count - 1 - length; i--)
-                {
-                    lastMoving += valuesSeries[i];
-                }
-                if (lastMoving != 0)
-                {
-                    moving.Add(lastMoving / length);
-                }
-                else
-                {
-                    moving.Add(0);
-                }
-
-            }
-            else
-            {
-
-                decimal lastValueMoving;
-                decimal lastValueSeries = Math.Round(valuesSeries[valuesSeries.Count - 1], 7);
-
-                if (index > moving.Count - 1)
-                {
-                    lastValueMoving = moving[moving.Count - 1];
-                    moving.Add(0);
-                }
-                else
-                {
-                    lastValueMoving = moving[moving.Count - 2];
-                }
-
-                moving[moving.Count - 1] = Math.Round(lastValueMoving + (lastValueSeries-lastValueMoving) * lambda, 7);
-
-            }
-
-            return moving;
         }
     }
 }

@@ -64,6 +64,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _gridViewIndicators.Rows.Add("Adaptive Look Back");
             _gridViewIndicators.Rows.Add("ADX");
             _gridViewIndicators.Rows.Add("ATR");
+            _gridViewIndicators.Rows.Add("AtrChannel");
             _gridViewIndicators.Rows.Add("Alligator");
             _gridViewIndicators.Rows.Add("AO");
             _gridViewIndicators.Rows.Add("AC");
@@ -74,6 +75,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _gridViewIndicators.Rows.Add("BearsPower");
             _gridViewIndicators.Rows.Add("CMO");
             _gridViewIndicators.Rows.Add("CCI");
+            _gridViewIndicators.Rows.Add("DTD");
             _gridViewIndicators.Rows.Add("DonchianChannel");
             _gridViewIndicators.Rows.Add("Envelops");
             _gridViewIndicators.Rows.Add("Efficiency Ratio");
@@ -943,7 +945,37 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 _chartMaster.CreateIndicator(IndicatorCandle, areaName);
             }
 
+            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "DTD")
+            {
+                string name = "";
 
+                for (int i = 0; i < 30; i++)
+                {
+                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "DTD" + i) == false)
+                    {
+                        name = "DTD" + i;
+                        break;
+                    }
+                }
+                IndicatorCandle = new DynamicTrendDetector(_chartMaster.Name + name, true);
+                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+            }
+
+            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "AtrChannel")
+            {
+                string name = "";
+
+                for (int i = 0; i < 30; i++)
+                {
+                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "AtrChannel" + i) == false)
+                    {
+                        name = "AtrChannel" + i;
+                        break;
+                    }
+                }
+                IndicatorCandle = new AtrChannel(_chartMaster.Name + name, true);
+                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+            }
             Close();
 
             if (IndicatorCandle != null)
