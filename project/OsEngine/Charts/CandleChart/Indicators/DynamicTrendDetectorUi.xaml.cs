@@ -16,13 +16,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
     /// Interaction logic  for AtrUi.xaml
     /// Логика взаимодействия для AtrUi.xaml
     /// </summary>
-    public partial class AtrUi 
+    public partial class DynamicTrendDetectorUi 
     {
         /// <summary>
         /// indicator
         /// индикатор
         /// </summary>
-        private Atr _atr;
+        private DynamicTrendDetector _dtd;
 
         /// <summary>
         /// whether indicator settings have been changed
@@ -34,24 +34,24 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="atr">configuration indicator/индикатор для настроек</param>
-        public AtrUi(Atr atr)
+        /// <param name="dtd">configuration indicator/индикатор для настроек</param>
+        public DynamicTrendDetectorUi(DynamicTrendDetector dtd)
         {
             InitializeComponent();
-            _atr = atr;
+            _dtd = dtd;
 
-            TextBoxLenght.Text = _atr.Lenght.ToString();
+            TextBoxLenght.Text = _dtd.Lenght.ToString();
+            TextBoxCorrectionCoeff.Text = _dtd.CorrectionCoeff.ToString();
 
             HostColorBase.Child = new TextBox();
-            HostColorBase.Child.BackColor = _atr.ColorBase;
-            CheckBoxPaintOnOff.IsChecked = _atr.PaintOn;
-            CheckBoxExponential.IsChecked = _atr.IsWatr;
+            HostColorBase.Child.BackColor = _dtd.ColorBase;
+            CheckBoxPaintOnOff.IsChecked = _dtd.PaintOn;
 
             ButtonColorAdx.Content = OsLocalization.Charts.LabelButtonIndicatorColor;
             CheckBoxPaintOnOff.Content = OsLocalization.Charts.LabelPaintIntdicatorIsVisible;
-            CheckBoxExponential.Content = OsLocalization.Charts.LabelIndicatorExponential;
             ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
             LabelIndicatorPeriod.Content = OsLocalization.Charts.LabelIndicatorPeriod;
+            LabelIndicatorCorrectionCoeff.Content = OsLocalization.Charts.LabelIndicatorCorrectionCoeff;
         }
 
         /// <summary>
@@ -73,11 +73,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 return;
             }
 
-            _atr.ColorBase = HostColorBase.Child.BackColor;
-            _atr.Lenght= Convert.ToInt32(TextBoxLenght.Text);
-            _atr.PaintOn = CheckBoxPaintOnOff.IsChecked.Value;
-            _atr.IsWatr = CheckBoxExponential.IsChecked.Value;
-            _atr.Save();
+            _dtd.ColorBase = HostColorBase.Child.BackColor;
+            _dtd.Lenght= Convert.ToInt32(TextBoxLenght.Text);
+            _dtd.PaintOn = CheckBoxPaintOnOff.IsChecked.Value;
+            _dtd.CorrectionCoeff = Convert.ToDecimal(TextBoxCorrectionCoeff.Text);
+            _dtd.Save();
 
             IsChange = true;
             Close();

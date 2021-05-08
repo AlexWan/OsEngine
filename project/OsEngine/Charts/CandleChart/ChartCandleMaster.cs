@@ -292,6 +292,16 @@ namespace OsEngine.Charts.CandleChart
                         {
                             CreateIndicator(new SimpleVWAP(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
+
+                        if (indicator[0] == "DTD")
+                        {
+                            CreateIndicator(new DynamicTrendDetector(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                        }
+
+                        if (indicator[0] == "AtrChannel")
+                        {
+                            CreateIndicator(new AtrChannel(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                        }
                     }
 
                     reader.Close();
