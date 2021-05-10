@@ -93,8 +93,11 @@ namespace OsEngine.Journal.Internal
 
             CreateTable();
 
-            Load();
-
+            if(_startProgram != StartProgram.IsOsOptimizer)
+            {
+                Load();
+            }
+  
             if (_deals != null &&
                 _deals.Count > 0)
             {
@@ -325,6 +328,11 @@ namespace OsEngine.Journal.Internal
         private void SavePositions()
         {
             if (!_neadToSave)
+            {
+                return;
+            }
+
+            if(_startProgram == StartProgram.IsOsOptimizer)
             {
                 return;
             }

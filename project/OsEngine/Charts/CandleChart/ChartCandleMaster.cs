@@ -49,7 +49,11 @@ namespace OsEngine.Charts.CandleChart
             ChartCandle.ClickToIndexEvent += _chartCandle_ClickToIndexEvent;
             ChartCandle.SizeAxisXChangeEvent += ChartCandle_SizeAxisXChangeEvent;
 
-            Load();
+            if(startProgram != StartProgram.IsOsOptimizer)
+            {
+                Load();
+            }
+           
             _canSave = true;
         }
 
@@ -337,6 +341,12 @@ namespace OsEngine.Charts.CandleChart
             {
                 return;
             }
+
+            if(_startProgram == StartProgram.IsOsOptimizer)
+            {
+                return;
+            }
+
             try
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @".txt", false))
