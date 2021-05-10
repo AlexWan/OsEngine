@@ -41,11 +41,9 @@ namespace OsEngine.Market.Connectors
             _name = name;
             StartProgram = startProgram;
 
-            TimeFrameBuilder = new TimeFrameBuilder(_name);
+            TimeFrameBuilder = new TimeFrameBuilder(_name, startProgram);
             ServerType = ServerType.None;
-            Load();
-            _canSave = true;
-
+            
             if (!string.IsNullOrWhiteSpace(NamePaper))
             {
                 _subscrabler = new Thread(Subscrable);
@@ -57,6 +55,8 @@ namespace OsEngine.Market.Connectors
 
             if (StartProgram != StartProgram.IsOsOptimizer)
             {
+                _canSave = true;
+                Load();
                 _emulator = new OrderExecutionEmulator();
                 _emulator.MyTradeEvent += ConnectorBot_NewMyTradeEvent;
                 _emulator.OrderChangeEvent += ConnectorBot_NewOrderIncomeEvent;

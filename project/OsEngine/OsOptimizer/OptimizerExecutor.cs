@@ -152,6 +152,9 @@ namespace OsEngine.OsOptimizer
 
                     StartOptimazeFazeOutOfSample(report, reportFiltred);
                 }
+
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
             }
 
             TimeSpan time = DateTime.Now - timeStart;
@@ -655,8 +658,6 @@ namespace OsEngine.OsOptimizer
 
         private List<BotPanel> _botsInTest = new List<BotPanel>();
 
-        private List<BotPanel> _botsDeleteFromTest = new List<BotPanel>();
-
         private OptimizerServer CreateNewServer(OptimazerFazeReport report)
         {
             // 1. Create a new server for optimization. And one thread respectively
@@ -904,7 +905,6 @@ namespace OsEngine.OsOptimizer
 
             lock (_serverRemoveLocker)
             {
-                GC.Collect();
                 BotPanel bot = _botsInTest.Find(b => b.TabsSimple[0].Connector.ServerUid == serverNum);
 
                 if (bot != null)
@@ -913,9 +913,8 @@ namespace OsEngine.OsOptimizer
                     ReportsToFazes[ReportsToFazes.Count - 1].Load(bot);
                     // уничтожаем робота
                     bot.Clear();
-                    // bot.Delete();
-                    _botsInTest.Remove(bot);
-                    _botsDeleteFromTest.Add(bot);
+                    bot.Delete();
+                   _botsInTest.Remove(bot);
                 }
 
                 for (int i = 0; i < _servers.Count; i++)
@@ -929,9 +928,6 @@ namespace OsEngine.OsOptimizer
                         break;
                     }
                 }
-
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
             }
         }
 
