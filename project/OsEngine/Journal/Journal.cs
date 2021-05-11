@@ -497,12 +497,6 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
-        ///  the last time you redrawed your profits on a uniform
-        /// время когда последний раз перерисовывали прибыль на форме
-        /// </summary>
-        private DateTime _lastProfitUpdateTime = DateTime.MinValue;
-
-        /// <summary>
         /// upload new price data
         /// прогрузить новые данные по ценам
         /// </summary>
@@ -511,12 +505,6 @@ namespace OsEngine.Journal
             try
             {
                 _positionController.SetBidAsk(bid, ask);
-
-                if (_lastProfitUpdateTime == DateTime.MinValue ||
-                    _lastProfitUpdateTime.AddSeconds(10) < DateTime.Now)
-                {
-                    _lastProfitUpdateTime = DateTime.Now;
-                }
             }
             catch (Exception error)
             {

@@ -1181,7 +1181,6 @@ namespace OsEngine.Charts.CandleChart
 
                 bool canReload = _startProgram != StartProgram.IsOsOptimizer;
 
-
                 _lastCount = candles.Count;
                 _lastPrice = candles[candles.Count - 1].Close;
                 _myCandles = candles;
@@ -1193,7 +1192,6 @@ namespace OsEngine.Charts.CandleChart
                         _lastCandleIncome = DateTime.Now;
                         ChartCandle.ProcessCandles(candles);
                         ChartCandle.ProcessPositions(_myPosition);
-
                     }
 
                     if (_indicators != null)
@@ -1238,6 +1236,11 @@ namespace OsEngine.Charts.CandleChart
         /// <param name="trades">ticks/тики</param>
         public void SetTick(List<Trade> trades)
         {
+            if(_startProgram == StartProgram.IsOsOptimizer)
+            {
+                return;
+            }
+
             try
             {
                 ChartCandle.ProcessTrades(trades);

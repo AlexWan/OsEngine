@@ -454,10 +454,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             get
             {
-                if (ServerMaster.GetServers() == null)
+                if(StartProgram == StartProgram.IsOsOptimizer)
                 {
-                    return ServerConnectStatus.Disconnect;
+                    return ServerConnectStatus.Connect;
                 }
+
                 IServer myServer = _connector.MyServer;
 
                 if (myServer == null)
@@ -3677,7 +3678,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 else if (position.State == PositionStateType.Open)
                 {
-                    SetNewLogMessage(TabName + OsLocalization.Trader.Label73 + position.Number, LogMessageType.Trade);
+                    if (StartProgram != StartProgram.IsOsOptimizer)
+                    {
+                        SetNewLogMessage(TabName + OsLocalization.Trader.Label73 + position.Number, LogMessageType.Trade);
+                    }
+                        
                     if (PositionOpeningSuccesEvent != null)
                     {
                         PositionOpeningSuccesEvent(position);

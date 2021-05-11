@@ -399,8 +399,8 @@ namespace OsEngine.Entity
                     decimal volumeEx = _openOrders[i].VolumeExecute;
                     if (volumeEx != 0)
                     {
-                        volume += _openOrders[i].VolumeExecute;
-                        price += _openOrders[i].VolumeExecute * _openOrders[i].PriceReal;
+                        volume += volumeEx;
+                        price += volumeEx * _openOrders[i].PriceReal;
                     }
                 }
                 if (volume == 0)
@@ -571,21 +571,21 @@ namespace OsEngine.Entity
                 {
                     State = PositionStateType.ClosingSurplus;
                 }
-                
-                if (State == PositionStateType.Done && CloseOrders != null && EntryPrice != 0 && ClosePrice != 0)
-                {
-                    decimal closePrice = ClosePrice;
-                    decimal openPrice = EntryPrice;
 
+                decimal closePrice = ClosePrice;
+                decimal openPrice = EntryPrice;
+
+                if (State == PositionStateType.Done && CloseOrders != null && openPrice != 0 && closePrice != 0)
+                {
                     if (Direction == Side.Buy)
                     {
-                        ProfitOperationPersent = closePrice / EntryPrice * 100 - 100;
-                        ProfitOperationPunkt = closePrice - EntryPrice;
+                        ProfitOperationPersent = closePrice / openPrice * 100 - 100;
+                        ProfitOperationPunkt = closePrice - openPrice;
                     }
                     else
                     {
-                        ProfitOperationPunkt = EntryPrice - closePrice;
-                        ProfitOperationPersent = -(closePrice / EntryPrice * 100 - 100);
+                        ProfitOperationPunkt = openPrice - closePrice;
+                        ProfitOperationPersent = -(closePrice / openPrice * 100 - 100);
                     }
                 }
             }
@@ -679,15 +679,17 @@ namespace OsEngine.Entity
                     return;
                 }
 
+                decimal entryPrice = EntryPrice;
+
                 if (Direction == Side.Buy)
                 {
-                    ProfitOperationPersent = ask / EntryPrice * 100 - 100;
-                    ProfitOperationPunkt = ask - EntryPrice;
+                    ProfitOperationPersent = ask / entryPrice * 100 - 100;
+                    ProfitOperationPunkt = ask - entryPrice;
                 }
                 else
                 {
-                    ProfitOperationPersent = -(bid / EntryPrice * 100 - 100);
-                    ProfitOperationPunkt = EntryPrice - bid;
+                    ProfitOperationPersent = -(bid / entryPrice * 100 - 100);
+                    ProfitOperationPunkt = entryPrice - bid;
                 }
             }
         }

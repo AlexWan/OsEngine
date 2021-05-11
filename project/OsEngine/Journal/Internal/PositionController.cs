@@ -652,11 +652,11 @@ namespace OsEngine.Journal.Internal
             {
                 if (positions[i].State == PositionStateType.Open)
                 {
-                    decimal profitOld = positions[i].ProfitPortfolioPunkt;
+                    decimal profitOld = positions[i].ProfitOperationPunkt;
 
                     positions[i].SetBidAsk(bid, ask);
 
-                    if (profitOld != positions[i].ProfitPortfolioPunkt)
+                    if (profitOld != positions[i].ProfitOperationPunkt)
                     {
                         ProcesPosition(positions[i]);
                     }
