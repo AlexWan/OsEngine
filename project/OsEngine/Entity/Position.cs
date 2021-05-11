@@ -668,7 +668,8 @@ namespace OsEngine.Entity
         {
             if (State == PositionStateType.Open)
             {
-                if (EntryPrice == 0)
+                if (_openOrders == null ||
+                    _openOrders.Count == 0)
                 {
                     return;
                 }
@@ -968,24 +969,20 @@ namespace OsEngine.Entity
         }
         private bool IsLotServer()
         {
-            List<ServerType> LotServers = new List<ServerType>();
-            LotServers.Add(ServerType.Plaza);
-            LotServers.Add(ServerType.QuikDde);
-            LotServers.Add(ServerType.QuikLua);
-            LotServers.Add(ServerType.SmartCom);
-            LotServers.Add(ServerType.Tinkoff);
-            LotServers.Add(ServerType.Transaq);
-
             if (OpenOrders != null && OpenOrders.Count > 0)
             {
-                if (LotServers.Find(x => x == OpenOrders[0].ServerType) ==  ServerType.None)
-                {
-                    return false;
-                }
-                else
+                if(OpenOrders[0].ServerType == ServerType.Plaza ||
+                    OpenOrders[0].ServerType == ServerType.QuikDde ||
+                    OpenOrders[0].ServerType == ServerType.QuikLua ||
+                    OpenOrders[0].ServerType == ServerType.SmartCom ||
+                    OpenOrders[0].ServerType == ServerType.Tinkoff ||
+                    OpenOrders[0].ServerType == ServerType.Transaq)
                 {
                     return true;
                 }
+
+                return false;
+
             }
             return true;
         }
