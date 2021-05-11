@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 
@@ -14,10 +15,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
 {
 
     /// <summary>
-    /// Indicator ATR. Average True Range
-    /// индикатор ATR. Average True Range
+    /// Indicator Atr Channel  by K.Kopyrkin
+    /// индикатор трендового канала на базе ATR, автор К.Копыркин
     /// </summary>
-    public class Atr : IIndicator
+    public class AtrChannel : IIndicator
     {
 
         /// <summary>
@@ -26,14 +27,14 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// </summary>
         /// <param name="uniqName">unique name/уникальное имя</param>
         /// <param name="canDelete">whether user can remove indicator from chart manually/можно ли пользователю удалить индикатор с графика вручную</param>
-        public Atr(string uniqName, bool canDelete)
+        public AtrChannel(string uniqName, bool canDelete)
         {
             Name = uniqName;
             Lenght = 14;
+            Multiplier = 3;
             TypeIndicator = IndicatorChartPaintType.Line;
             ColorBase = Color.DodgerBlue;
             PaintOn = true;
-            IsWatr = false;
             CanDelete = canDelete;
             Load();
         }
@@ -44,15 +45,15 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// Don't use it from robot creation layer/не используйте его из слоя создания роботов!
         /// </summary>
         /// <param name="canDelete">whether user can remove indicator from chart manually/можно ли пользователю удалить индикатор с графика вручную</param>
-        public Atr(bool canDelete)
+        public AtrChannel(bool canDelete)
         {
             Name = Guid.NewGuid().ToString();
 
             Lenght = 14;
+            Multiplier = 3;
             TypeIndicator = IndicatorChartPaintType.Line;
             ColorBase = Color.DodgerBlue;
             PaintOn = true;
-            IsWatr = false;
             CanDelete = canDelete;
         }
 
@@ -131,19 +132,19 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// period length to calculate indicator
         /// длинна периода для рассчёта индикатора
         /// </summary>
-        public int Lenght;
+        public int Lenght { get; set; }
+        
+        /// <summary>
+        /// atr channel multiplier
+        /// множитель для построения канала
+        /// </summary>
+        public decimal Multiplier { get; set; }
 
         /// <summary>
         /// is indicator tracing enabled
         /// включена ли прорисовка индикатора
         /// </summary>
         public bool PaintOn { get; set; }
-
-        /// <summary>
-        /// is indicator exponentially weighted
-        /// включено ли экспоненциальное взвешивание значения
-        /// </summary>
-        public bool IsWatr { get; set; }
 
         /// <summary>
         /// save settings to file
@@ -162,8 +163,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 {
                     writer.WriteLine(ColorBase.ToArgb());
                     writer.WriteLine(Lenght);
+                    writer.WriteLine(Multiplier);
                     writer.WriteLine(PaintOn);
-                    writer.WriteLine(IsWatr);
                     writer.Close();
                 }
             }
@@ -191,8 +192,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 {
                     ColorBase = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
                     Lenght = Convert.ToInt32(reader.ReadLine());
+                    Multiplier = Convert.ToDecimal(reader.ReadLine());
                     PaintOn = Convert.ToBoolean(reader.ReadLine());
-                    IsWatr = Convert.ToBoolean(reader.ReadLine());
+                    reader.ReadLine();
 
                     reader.Close();
                 }
@@ -237,7 +239,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// </summary>
         public void ShowDialog()
         {
-            AtrUi ui = new AtrUi(this);
+            AtrChannelUi ui = new AtrChannelUi(this);
             ui.ShowDialog();
 
             if (ui.IsChange && _myCandles != null)
@@ -252,10 +254,26 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// </summary>
         public void Reload()
         {
+            if (Values != null && Values.Count > 0)
+            {
+                Values.Clear();
+                HPrice = 0;
+                LPrice = 0;
+                currentSide = Side.None;
+            }
+            
+            
             if (_myCandles == null)
             {
                 return;
             }
+            
+            if (atr != null)
+            {
+                atr.Lenght = Lenght;
+                atr.Reload();
+            }
+
             ProcessAll(_myCandles);
 
             if (NeadToReloadEvent != null)
@@ -270,6 +288,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// </summary>
         private List<Candle> _myCandles;
 
+        private Atr atr = null;
+
         /// <summary>
         /// calculate indicator
         /// рассчитать индикатор
@@ -278,6 +298,16 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public void Process(List<Candle> candles)
         {
             _myCandles = candles;
+            if (atr == null)
+            {
+                atr = new Atr(false)
+                {
+                    IsWatr = true,
+                    Lenght = Lenght
+                };
+            }
+
+            atr.Process(candles);
 
             if (Values != null &&
                 Values.Count + 1 == candles.Count)
@@ -311,6 +341,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 return;
             }
+            
             if (Values == null)
             {
                 Values = new List<decimal>();
@@ -332,6 +363,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 return;
             }
+            
             Values = new List<decimal>();
 
             for (int i = 0; i < candles.Count; i++)
@@ -350,8 +382,15 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 return;
             }
+            
             Values[Values.Count - 1] = GetValue(candles, candles.Count - 1);
         }
+
+        private decimal HPrice;
+
+        private decimal LPrice;
+
+        private Side currentSide = Side.None;
 
         /// <summary>
         /// take indicator value by index
@@ -360,162 +399,58 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <param name="candles">candles/свечи</param>
         /// <param name="index">index/индекс</param>
         /// <returns>index value/значение индикатора по индексу</returns>
-        public decimal GetValue(List<Candle> candles,int index)
+        private decimal GetValue(List<Candle> candles,int index)
         {
-            TrueRangeReload(candles, index);
-            if (!IsWatr)
+            decimal currentCandleClose = candles[index].Close;
+
+            if (Values == null || Values.Count < Lenght)
             {
-                _moving = MovingAverageWild(_trueRange, _moving, Lenght, index);
+                HPrice = currentCandleClose;
+                LPrice = currentCandleClose;
+                return currentCandleClose;
+            }
+            decimal previousValue = Values[Math.Max(0, index - 1)];
+
+            decimal wAtr = atr.Values[index-1];
+
+            if (wAtr == 0m)
+            {
+                return currentCandleClose;
+            }
+            decimal reverse;
+            
+            if (currentSide != Side.Buy)
+            {
+                if (currentCandleClose < LPrice)
+                {
+                    LPrice = currentCandleClose;
+                }
+                reverse = LPrice + Multiplier * wAtr;
+                if (currentCandleClose >= reverse)
+                {
+                    currentSide = Side.Buy;
+                    HPrice = currentCandleClose;
+                }
+            } else if (currentSide != Side.Sell)
+            {
+                if (currentCandleClose > HPrice)
+                {
+                    HPrice = currentCandleClose;
+                }
+                reverse = HPrice - Multiplier * wAtr;
+                if (currentCandleClose < reverse)
+                {
+                    currentSide = Side.Sell;
+                    LPrice = currentCandleClose;
+                }
             } else
             {
-                _moving = MovingAverageExponentiallyWeighted(_trueRange, _moving, Lenght, index);
+                currentSide = Side.None;
+                reverse = previousValue;
             }
-            
+           
 
-            return Math.Round(_moving[_moving.Count-1],7);
-        }
-
-        private List<decimal> _moving;
-
-        /// <summary>
-        /// true range
-        /// истинный диапазон
-        /// </summary>
-        private List<decimal> _trueRange;
-
-        private void TrueRangeReload(List<Candle> candles, int index)
-        {
-            //True Range is the largest of following three:/Истинный диапазон (True Range) есть наибольшая из следующих трех величин:
-            //difference between current maximum and minimum;/разность между текущими максимумом и минимумом;
-            //difference between previous closing price and current maximum;/разность между предыдущей ценой закрытия и текущим максимумом;
-            //difference between previous closing price and current minimum./разность между предыдущей ценой закрытия и текущим минимумом.
-
-            if (index == 0 || _trueRange == null)
-            {
-                _trueRange = new List<decimal>();
-                _trueRange.Add(0);
-                return;
-            }
-
-            if (index > _trueRange.Count - 1)
-            {
-                _trueRange.Add(0);
-            }
-
-            decimal hiToLow = Math.Abs(candles[index].High - candles[index].Low);
-            decimal closeToHigh = Math.Abs(candles[index - 1].Close - candles[index].High);
-            decimal closeToLow = Math.Abs(candles[index - 1].Close - candles[index].Low);
-
-            _trueRange[_trueRange.Count - 1] = Math.Max(Math.Max(hiToLow, closeToHigh), closeToLow);
-        }
-
-        private List<decimal> MovingAverageWild(List<decimal> valuesSeries, List<decimal> moving, int length, int index)
-        {
-            if (moving == null || length > valuesSeries.Count)
-            {
-                moving = new List<decimal>();
-                for (int i = 0; i < index + 1; i++)
-                {
-                    moving.Add(0);
-                }
-            }
-            else if (length == valuesSeries.Count)
-            {
-                // it's first value. Calculate as MA
-                // это первое значение. Рассчитываем как простую машку
-
-                decimal lastMoving = 0;
-
-                for (int i = index; i > -1 && i > valuesSeries.Count - 1 - length; i--)
-                {
-                    lastMoving += valuesSeries[i];
-                }
-                if (lastMoving != 0)
-                {
-                    moving.Add(lastMoving / length);
-                }
-                else
-                {
-                    moving.Add(0);
-                }
-
-            }
-            else
-            {
-
-                decimal lastValueMoving;
-                decimal lastValueSeries = Math.Round(valuesSeries[valuesSeries.Count - 1], 7);
-
-                if (index > moving.Count - 1)
-                {
-                    lastValueMoving = moving[moving.Count - 1];
-                    moving.Add(0);
-                }
-                else
-                {
-                    lastValueMoving = moving[moving.Count - 2];
-                }
-
-                moving[moving.Count - 1] = Math.Round((lastValueMoving * (Lenght - 1) + lastValueSeries) / Lenght, 7);
-
-            }
-
-            return moving;
-        }
-
-        private List<decimal> MovingAverageExponentiallyWeighted(List<decimal> valuesSeries, List<decimal> moving, int length, int index)
-        {
-            decimal lambda = Convert.ToDecimal(2.0 / (Lenght + 1));
-
-            if (moving == null || length > valuesSeries.Count)
-            {
-                moving = new List<decimal>();
-                for (int i = 0; i < index + 1; i++)
-                {
-                    moving.Add(0);
-                }
-            }
-            else if (length == valuesSeries.Count)
-            {
-                // it's first value. Calculate as MA
-                // это первое значение. Рассчитываем как простую машку
-                decimal lastMoving = 0;
-
-                for (int i = index; i > -1 && i > valuesSeries.Count - 1 - length; i--)
-                {
-                    lastMoving += valuesSeries[i];
-                }
-                if (lastMoving != 0)
-                {
-                    moving.Add(lastMoving / length);
-                }
-                else
-                {
-                    moving.Add(0);
-                }
-
-            }
-            else
-            {
-
-                decimal lastValueMoving;
-                decimal lastValueSeries = Math.Round(valuesSeries[valuesSeries.Count - 1], 7);
-
-                if (index > moving.Count - 1)
-                {
-                    lastValueMoving = moving[moving.Count - 1];
-                    moving.Add(0);
-                }
-                else
-                {
-                    lastValueMoving = moving[moving.Count - 2];
-                }
-
-                moving[moving.Count - 1] = Math.Round(lastValueMoving + (lastValueSeries-lastValueMoving) * lambda, 7);
-
-            }
-
-            return moving;
+            return reverse;
         }
     }
 }

@@ -9,6 +9,7 @@ using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels;
 using OsEngine.Robots;
+using OsEngine.OsOptimizer.OptimizerEntity;
 
 namespace OsEngine.OsOptimizer
 {
@@ -22,6 +23,8 @@ namespace OsEngine.OsOptimizer
         public OptimizerExecutor(OptimizerMaster master)
         {
             _master = master;
+
+            _asyncBotFactory = new AsyncBotFactory();
         }
 
         /// <summary>
@@ -29,6 +32,8 @@ namespace OsEngine.OsOptimizer
         /// объект предоставляющий данные для настроек
         /// </summary>
         private OptimizerMaster _master;
+
+        private AsyncBotFactory _asyncBotFactory;
 
         /// <summary>
         /// start the optimization process
@@ -107,6 +112,8 @@ namespace OsEngine.OsOptimizer
 
             SendLogMessage(OsLocalization.Optimizer.Message4 + countBots, LogMessageType.System);
 
+            DateTime timeStart = DateTime.Now;
+
             _countAllServersMax = countBots;
 
             for (int i = 0; i < _master.Fazes.Count; i++)
@@ -124,12 +131,14 @@ namespace OsEngine.OsOptimizer
                     report.Faze = _master.Fazes[i];
 
                     ReportsToFazes.Add(report);
+
+                    StartAsuncBotFactoryInSample(countBots, _master.StrategyName, _master.IsScript, "InSample");
                     StartOptimazeFazeInSample(_master.Fazes[i], report, _parameters, _parametersOn);
                 }
                 else
                 {
 
-                    SendLogMessage("ReportsCount" + ReportsToFazes[ReportsToFazes.Count - 1].Reports.Count.ToString(),LogMessageType.System);
+                    SendLogMessage("ReportsCount" + ReportsToFazes[ReportsToFazes.Count - 1].Reports.Count.ToString(), LogMessageType.System);
 
                     OptimazerFazeReport reportFiltred = new OptimazerFazeReport();
                     EndOfFazeFiltration(ReportsToFazes[ReportsToFazes.Count - 1], reportFiltred);
@@ -138,17 +147,56 @@ namespace OsEngine.OsOptimizer
                     report.Faze = _master.Fazes[i];
 
                     ReportsToFazes.Add(report);
+
+                    StartAsuncBotFactoryOutOfSample(reportFiltred, _master.StrategyName, _master.IsScript, "OutOfSample");
+
                     StartOptimazeFazeOutOfSample(report, reportFiltred);
                 }
+
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
             }
 
+            TimeSpan time = DateTime.Now - timeStart;
+
             SendLogMessage(OsLocalization.Optimizer.Message7, LogMessageType.System);
+            SendLogMessage("Total test time = " + time.ToString(), LogMessageType.System);
 
             TestReadyEvent?.Invoke(ReportsToFazes);
             _primeThreadWorker = null;
 
             return;
 
+        }
+
+        private void StartAsuncBotFactoryInSample(int botCount, string botType, bool isScript, string faze)
+        {
+            List<string> botNames = new List<string>();
+            int startServerIndex = _serverNum;
+
+            for (int i = 0; i < botCount; i++)
+            {
+                string botName = (startServerIndex + i) + " " + faze;
+                botNames.Add(botName);
+            }
+
+            _asyncBotFactory.CreateNewBots(botNames, botType, isScript);
+        }
+
+        private void StartAsuncBotFactoryOutOfSample(OptimazerFazeReport reportFiltred, string botType, bool isScript, string faze)
+        {
+            List<string> botNames = new List<string>();
+            int startServerIndex = _serverNum;
+
+            // reportFiltred.Reports[i].BotName.Replace(" InSample", "") + " OutOfSample"
+
+            for (int i = 0; i < reportFiltred.Reports.Count; i++)
+            {
+                string botName = reportFiltred.Reports[i].BotName.Replace(" InSample", "") + " OutOfSample";
+                botNames.Add(botName);
+            }
+
+            _asyncBotFactory.CreateNewBots(botNames, botType, isScript);
         }
 
         /// <summary>
@@ -386,7 +434,7 @@ namespace OsEngine.OsOptimizer
                     return;
                 }
 
-                while(_botsInTest.Count >= _master.ThreadsCount)
+                while (_botsInTest.Count >= _master.ThreadsCount)
                 {
                     Thread.Sleep(50);
                 }
@@ -399,8 +447,8 @@ namespace OsEngine.OsOptimizer
             while (true)
             {
                 Thread.Sleep(50);
-                if (_servers.Count == 0 )
-                 //   || _botsInTest.Count == 0)
+                if (_servers.Count == 0)
+                //   || _botsInTest.Count == 0)
                 {
                     break;
                 }
@@ -443,7 +491,7 @@ namespace OsEngine.OsOptimizer
                 {
                     Thread.Sleep(50);
                 }
-               // SendLogMessage("Bot Out of Sample", LogMessageType.System);
+                // SendLogMessage("Bot Out of Sample", LogMessageType.System);
                 StartNewBot(reportInSample.Reports[i].GetParameters(), new List<IIStrategyParameter>(), report,
                     reportInSample.Reports[i].BotName.Replace(" InSample", "") + " OutOfSample");
             }
@@ -572,22 +620,11 @@ namespace OsEngine.OsOptimizer
         private void StartNewBot(List<IIStrategyParameter> parametrs, List<IIStrategyParameter> paramOptimized,
             OptimazerFazeReport report, string botName)
         {
-            /*if (!MainWindow.GetDispatcher.CheckAccess())
-            {
-                MainWindow.GetDispatcher.Invoke(
-                    new Action
-                        <List<IIStrategyParameter>, List<IIStrategyParameter>,
-                            OptimazerFazeReport, string>(StartNewBot),
-                    parametrs, paramOptimized, report, botName);
-                await Task.Delay(1000);
-                return;
-            }*/
-
             OptimizerServer server = CreateNewServer(report);
 
             try
             {
-               decimal num = Convert.ToDecimal(botName.Substring(0,1));
+                decimal num = Convert.ToDecimal(botName.Substring(0, 1));
             }
             catch
             {
@@ -619,7 +656,7 @@ namespace OsEngine.OsOptimizer
             server.TestingStart();
         }
 
-        private List<BotPanel> _botsInTest = new List<BotPanel>(); 
+        private List<BotPanel> _botsInTest = new List<BotPanel>();
 
         private OptimizerServer CreateNewServer(OptimazerFazeReport report)
         {
@@ -635,7 +672,7 @@ namespace OsEngine.OsOptimizer
             server.TypeTesterData = _master.Storage.TypeTesterData;
             server.TestintProgressChangeEvent += server_TestintProgressChangeEvent;
 
-            for (int i = 0; _master.TabsSimpleNamesAndTimeFrames != null 
+            for (int i = 0; _master.TabsSimpleNamesAndTimeFrames != null
                             && i < _master.TabsSimpleNamesAndTimeFrames.Count; i++)
             {
                 Security secToStart =
@@ -670,7 +707,7 @@ namespace OsEngine.OsOptimizer
             List<IIStrategyParameter> paramOptimized,
             OptimizerServer server, StartProgram regime)
         {
-            BotPanel bot = BotFactory.GetStrategyForName(_master.StrategyName, botName, regime, _master.IsScript);
+            BotPanel bot = _asyncBotFactory.GetBot(_master.StrategyName, botName);
 
             for (int i = 0; i < parametrs.Count; i++)
             {
@@ -762,7 +799,6 @@ namespace OsEngine.OsOptimizer
 
             return bot;
         }
-
 
         /// <summary>
         /// changed the state of progress of optimization
@@ -869,7 +905,6 @@ namespace OsEngine.OsOptimizer
 
             lock (_serverRemoveLocker)
             {
-                GC.Collect();
                 BotPanel bot = _botsInTest.Find(b => b.TabsSimple[0].Connector.ServerUid == serverNum);
 
                 if (bot != null)
@@ -879,7 +914,7 @@ namespace OsEngine.OsOptimizer
                     // уничтожаем робота
                     bot.Clear();
                     bot.Delete();
-                    _botsInTest.Remove(bot);
+                   _botsInTest.Remove(bot);
                 }
 
                 for (int i = 0; i < _servers.Count; i++)
@@ -893,9 +928,6 @@ namespace OsEngine.OsOptimizer
                         break;
                     }
                 }
-
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
             }
         }
 

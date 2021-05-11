@@ -1,0 +1,17 @@
+﻿<Window x:Class="OsEngine.Charts.CandleChart.Indicators.DynamicTrendDetectorUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+       Title="ATR-based Trend Detector" Height="235" Width="298" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico" Topmost="True">
+    <Grid>
+        <Rectangle Margin="5,5,5,37"/>
+        <Button x:Name ="ButtonAccept"  Content="Accept" Height="22" FontSize="14" FontFamily="Calibri" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="118" Click="ButtonAccept_Click"/>
+        <TextBox x:Name ="TextBoxLenght" Height="23" Margin="0,19,15,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="122"/>
+        <Label Name="LabelIndicatorPeriod" Content="Period" HorizontalAlignment="Right" Margin="0,19,156,0" VerticalAlignment="Top" Foreground="#FF7212" FontFamily="Calibri" FontSize="14"/>
+        <CheckBox Name="CheckBoxPaintOnOff" Content="Is visible" HorizontalAlignment="Right" Margin="0,129,11,0" VerticalAlignment="Top" Foreground="#FF7212" FontFamily="Calibri" FontSize="14"/>
+        <Button x:Name="ButtonColorAdx" Content="Color" Height="22" FontSize="14" FontFamily="Calibri" HorizontalAlignment="Left" Margin="25,96,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"  />
+        <WindowsFormsHost x:Name="HostColorBase" Height="22" Margin="0,96,15,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="122"/>
+        <TextBox x:Name ="TextBoxCorrectionCoeff" Height="23" Margin="0,59,15,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="122"/>
+        <Label x:Name="LabelIndicatorCorrectionCoeff" Content="Correction Coefficient" HorizontalAlignment="Right" Margin="0,59,156,0" VerticalAlignment="Top" Foreground="#FF7212" FontFamily="Calibri" FontSize="14"/>
+
+    </Grid>
+</Window>

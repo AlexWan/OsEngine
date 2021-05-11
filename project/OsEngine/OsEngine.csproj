@@ -187,6 +187,10 @@
       <DependentUpon>AlligatorUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Charts\CandleChart\Indicators\Atr.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\AtrChannel.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\AtrChannelUi.xaml.cs">
+      <DependentUpon>AtrChannelUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Charts\CandleChart\Indicators\AtrUi.xaml.cs">
       <DependentUpon>AtrUi.xaml</DependentUpon>
     </Compile>
@@ -222,6 +226,10 @@
     <Compile Include="Charts\CandleChart\Indicators\DonchianChannel.cs" />
     <Compile Include="Charts\CandleChart\Indicators\DonchianChannelUi.xaml.cs">
       <DependentUpon>DonchianChannelUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\DynamicTrendDetector.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\DynamicTrendDetectorUi.xaml.cs">
+      <DependentUpon>DynamicTrendDetectorUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Charts\CandleChart\Indicators\EfficiencyRatio.cs" />
     <Compile Include="Charts\CandleChart\Indicators\EfficiencyRatioUi.xaml.cs">
@@ -786,6 +794,7 @@
     </Compile>
     <Compile Include="OsMiner\Patterns\PatternTime.cs" />
     <Compile Include="OsMiner\Patterns\PatternVolume.cs" />
+    <Compile Include="OsOptimizer\OptEntity\AsyncBotFactory.cs" />
     <Compile Include="OsOptimizer\OptimizerExecutor.cs" />
     <Compile Include="OsOptimizer\OptimizerMaster.cs" />
     <Compile Include="OsOptimizer\OptimizerReport.cs" />
@@ -995,6 +1004,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Charts\CandleChart\Indicators\AtrChannelUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
     <Page Include="Charts\CandleChart\Indicators\AtrUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -1030,6 +1043,10 @@
     <Page Include="Charts\CandleChart\Indicators\DonchianChannelUi.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Charts\CandleChart\Indicators\DynamicTrendDetectorUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
     </Page>
     <Page Include="Charts\CandleChart\Indicators\EfficiencyRatioUi.xaml">
       <SubType>Designer</SubType>

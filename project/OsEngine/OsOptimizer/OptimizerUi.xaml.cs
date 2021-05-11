@@ -161,6 +161,19 @@ namespace OsEngine.OsOptimizer
                 WindowsFormsHostDependences, WindowsFormsHostColumnsResults,
                 WindowsFormsHostPieResults, ComboBoxSortDependencesResults);
             _resultsCharting.LogMessageEvent += _master.SendLogMessage;
+
+            this.Closing += Ui_Closing;
+        }
+
+        void Ui_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Data.Label27);
+            ui.ShowDialog();
+
+            if (ui.UserAcceptActioin == false)
+            {
+                e.Cancel = true;
+            }
         }
 
         private OptimizerReportCharting _resultsCharting;

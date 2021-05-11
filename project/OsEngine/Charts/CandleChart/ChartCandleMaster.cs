@@ -49,7 +49,11 @@ namespace OsEngine.Charts.CandleChart
             ChartCandle.ClickToIndexEvent += _chartCandle_ClickToIndexEvent;
             ChartCandle.SizeAxisXChangeEvent += ChartCandle_SizeAxisXChangeEvent;
 
-            Load();
+            if(startProgram != StartProgram.IsOsOptimizer)
+            {
+                Load();
+            }
+           
             _canSave = true;
         }
 
@@ -292,6 +296,16 @@ namespace OsEngine.Charts.CandleChart
                         {
                             CreateIndicator(new SimpleVWAP(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
+
+                        if (indicator[0] == "DTD")
+                        {
+                            CreateIndicator(new DynamicTrendDetector(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                        }
+
+                        if (indicator[0] == "AtrChannel")
+                        {
+                            CreateIndicator(new AtrChannel(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                        }
                     }
 
                     reader.Close();
@@ -327,6 +341,12 @@ namespace OsEngine.Charts.CandleChart
             {
                 return;
             }
+
+            if(_startProgram == StartProgram.IsOsOptimizer)
+            {
+                return;
+            }
+
             try
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @".txt", false))
