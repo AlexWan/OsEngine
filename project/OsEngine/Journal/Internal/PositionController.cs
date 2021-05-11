@@ -1162,6 +1162,7 @@ namespace OsEngine.Journal.Internal
                             return;
                         }
                     }
+                    return;
                 }
 
                 if (position.State == PositionStateType.Done ||
