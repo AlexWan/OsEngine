@@ -572,20 +572,23 @@ namespace OsEngine.Entity
                     State = PositionStateType.ClosingSurplus;
                 }
 
-                decimal closePrice = ClosePrice;
-                decimal openPrice = EntryPrice;
-
-                if (State == PositionStateType.Done && CloseOrders != null && openPrice != 0 && closePrice != 0)
+                if (State == PositionStateType.Done && CloseOrders != null)
                 {
-                    if (Direction == Side.Buy)
+                    decimal entryPrice = EntryPrice;
+                    decimal closePrice = ClosePrice;
+
+                    if (entryPrice != 0 && closePrice != 0)
                     {
-                        ProfitOperationPersent = closePrice / openPrice * 100 - 100;
-                        ProfitOperationPunkt = closePrice - openPrice;
-                    }
-                    else
-                    {
-                        ProfitOperationPunkt = openPrice - closePrice;
-                        ProfitOperationPersent = -(closePrice / openPrice * 100 - 100);
+                        if (Direction == Side.Buy)
+                        {
+                            ProfitOperationPersent = closePrice / entryPrice * 100 - 100;
+                            ProfitOperationPunkt = closePrice - entryPrice;
+                        }
+                        else
+                        {
+                            ProfitOperationPunkt = entryPrice - closePrice;
+                            ProfitOperationPersent = -(closePrice / entryPrice * 100 - 100);
+                        }
                     }
                 }
             }
@@ -643,19 +646,23 @@ namespace OsEngine.Entity
                 }
             }
 
-
-            if (State == PositionStateType.Done && CloseOrders != null && EntryPrice != 0  && ClosePrice != 0)
+            if (State == PositionStateType.Done && CloseOrders != null)
             {
+                decimal entryPrice = EntryPrice;
+                decimal closePrice = ClosePrice;
 
-                if (Direction == Side.Buy)
+                if(entryPrice != 0 && closePrice != 0)
                 {
-                    ProfitOperationPersent = ClosePrice / EntryPrice * 100 - 100;
-                    ProfitOperationPunkt = ClosePrice - EntryPrice;
-                }
-                else
-                {
-                    ProfitOperationPunkt = EntryPrice - ClosePrice;
-                    ProfitOperationPersent = -(ClosePrice / EntryPrice * 100 - 100);
+                    if (Direction == Side.Buy)
+                    {
+                        ProfitOperationPersent = closePrice / entryPrice * 100 - 100;
+                        ProfitOperationPunkt = closePrice - entryPrice;
+                    }
+                    else
+                    {
+                        ProfitOperationPunkt = entryPrice - closePrice;
+                        ProfitOperationPersent = -(closePrice / entryPrice * 100 - 100);
+                    }
                 }
             }
         }
