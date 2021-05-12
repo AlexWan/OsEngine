@@ -3468,7 +3468,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                             Position pos = LongCreate(_stopsOpener[i].PriceOrder, _stopsOpener[i].Volume, OrderPriceType.Limit,
                                 ManualPositionSupport.SecondToOpen, true);
 
-                            if (pos != null)
+                            if (pos != null 
+                                && !string.IsNullOrEmpty(opener.SignalType))
                             {
                                 pos.SignalTypeOpen = opener.SignalType;
                             }
@@ -3490,7 +3491,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                             Position pos = ShortCreate(_stopsOpener[i].PriceOrder, _stopsOpener[i].Volume, OrderPriceType.Limit,
                                 ManualPositionSupport.SecondToOpen, true);
 
-                            if (pos != null)
+                            if (pos != null
+                                && !string.IsNullOrEmpty(opener.SignalType))
                             {
                                 pos.SignalTypeOpen = opener.SignalType;
                             }
