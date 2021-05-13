@@ -339,6 +339,8 @@ namespace OsEngine.Language
             "Eng:Commission Value_" +
             "Ru:Размер комиссии_");
 
-
+        public string Label42 => OsLocalization.ConvertToLocString(
+          "Eng:Last inSample_" +
+          "Ru:Последний inSample_");
     }
 }

@@ -157,6 +157,7 @@ namespace OsEngine.OsOptimizer
             TabControlResultsSeries.Header = OsLocalization.Optimizer.Label37;
             TabControlResultsOutOfSampleResults.Header = OsLocalization.Optimizer.Label38;
             LabelSortBy.Content = OsLocalization.Optimizer.Label39;
+            CheckBoxLastInSample.Content = OsLocalization.Optimizer.Label42;
 
 
             _resultsCharting = new OptimizerReportCharting(
@@ -979,7 +980,7 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         private void CreateTableOptimizeFazes()
         {
-            _gridFazes = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
+            _gridFazes = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.None);
             _gridFazes.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
@@ -1004,14 +1005,14 @@ namespace OsEngine.OsOptimizer
             DataGridViewColumn column = new DataGridViewColumn();
             column.CellTemplate = cell0;
             column.HeaderText = OsLocalization.Optimizer.Message25;
-            column.ReadOnly = true;
+            column.ReadOnly = false;
             column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridFazes.Columns.Add(column);
 
             DataGridViewColumn column2 = new DataGridViewColumn();
             column2.CellTemplate = cell0;
             column2.HeaderText = OsLocalization.Optimizer.Message26;
-            column2.ReadOnly = true;
+            column2.ReadOnly = false;
             column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridFazes.Columns.Add(column2);
 
@@ -1025,7 +1026,52 @@ namespace OsEngine.OsOptimizer
             _gridFazes.Rows.Add(null, null);
 
             HostStepsOptimize.Child = _gridFazes;
+
+            _gridFazes.CellValueChanged += _gridFazes_CellValueChanged;
         }
+
+        private void _gridFazes_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            // 2 - Start 3 - End
+
+            int indexColumn = e.ColumnIndex;
+
+            if(indexColumn != 2 && indexColumn != 3)
+            {
+                return;
+            }
+
+            int indexRow = e.RowIndex;
+
+            try
+            {
+               DateTime time = Convert.ToDateTime(_gridFazes.Rows[indexRow].Cells[indexColumn].EditedFormattedValue.ToString());
+
+                if (indexColumn == 2)
+                {
+                    _master.Fazes[indexRow].TimeStart = time;
+                }
+                else
+                {
+                    _master.Fazes[indexRow].TimeEnd = time;
+                }
+
+            }
+            catch (Exception exception)
+            {
+                if(indexColumn == 2)
+                {
+                    _gridFazes.Rows[indexRow].Cells[indexColumn].Value = _master.Fazes[indexRow].TimeStart.ToShortDateString(); ;
+                }
+                else
+                {
+                    _gridFazes.Rows[indexRow].Cells[indexColumn].Value = _master.Fazes[indexRow].TimeEnd.ToShortDateString(); ;
+                }
+               
+            }
+            PaintTableOptimizeFazes();
+        }
+
 
         /// <summary>
         /// draw a table with optimization phases

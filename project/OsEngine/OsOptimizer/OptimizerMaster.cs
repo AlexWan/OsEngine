@@ -735,6 +735,7 @@ namespace OsEngine.OsOptimizer
                 OptimizerFaze newFaze = new OptimizerFaze();
                 newFaze.TypeFaze = OptimizerFazeType.InSample;
                 newFaze.TimeStart = time;
+                newFaze.TimeEnd = time.AddDays(daysOnInSample);
                 time = time.AddDays(daysOnForward);
                 newFaze.Days = daysOnInSample;
                 Fazes.Add(newFaze);
@@ -749,6 +750,7 @@ namespace OsEngine.OsOptimizer
                 OptimizerFaze newFazeOut = new OptimizerFaze();
                 newFazeOut.TypeFaze = OptimizerFazeType.OutOfSample;
                 newFazeOut.TimeStart = newFaze.TimeStart.AddDays(daysOnInSample);
+                newFazeOut.TimeEnd = newFazeOut.TimeStart.AddDays(daysOnForward);
                 newFazeOut.Days = daysOnForward;
                 Fazes.Add(newFazeOut);
             }
@@ -1178,7 +1180,16 @@ namespace OsEngine.OsOptimizer
         /// start time
         /// время начала
         /// </summary>
-        public DateTime TimeStart;
+        public DateTime TimeStart
+        {
+            get { return _timeStart; }
+            set
+            {
+                _timeStart = value;
+                Days = Convert.ToInt32((TimeEnd - _timeStart).TotalDays);
+            }
+        }
+        private DateTime _timeStart;
 
         /// <summary>
         /// completion time
@@ -1186,8 +1197,14 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         public DateTime TimeEnd
         {
-            get { return TimeStart.AddDays(Days); }
+            get { return _timeEnd; }
+            set
+            {
+                _timeEnd = value;
+                Days = Convert.ToInt32((value - TimeStart).TotalDays);
+            }
         }
+        private DateTime _timeEnd;
 
         /// <summary>
         /// days per phase
