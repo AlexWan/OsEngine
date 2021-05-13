@@ -5439,44 +5439,85 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         private void _chart_MouseWheel(object sender, MouseEventArgs e)
         {
-            if (_isPaint == false)
-            {
-                return;
-            }
-
-            if (Control.ModifierKeys == Keys.Control)
-            {
-                if (e.Delta < 0)
-                {
-                    _chart.ChartAreas[0].AxisX.ScaleView.Size = _chart.ChartAreas[0].AxisX.ScaleView.Size + 100 < 2000
-                        ? _chart.ChartAreas[0].AxisX.ScaleView.Size + 100
-                        : 2000;
-                }
-                else
-                {
-                    _chart.ChartAreas[0].AxisX.ScaleView.Size = _chart.ChartAreas[0].AxisX.ScaleView.Size - 100 > 100
-                        ? _chart.ChartAreas[0].AxisX.ScaleView.Size - 100
-                        : 100;
-                }
-            }
-            else
-            {
-                if (e.Delta > 0)
-                {
-                    _chart.ChartAreas[0].AxisX.ScaleView.Position = _chart.ChartAreas[0].AxisX.ScaleView.Position + 500 < _myCandles.Count - (int)_chart.ChartAreas[0].AxisX.ScaleView.Size
-                            ? _chart.ChartAreas[0].AxisX.ScaleView.Position + 500
-                            : _myCandles.Count - (int)_chart.ChartAreas[0].AxisX.ScaleView.Size;
-                }
-                else
-                {
-                    _chart.ChartAreas[0].AxisX.ScaleView.Position = _chart.ChartAreas[0].AxisX.ScaleView.Position - 500 > 0
-                            ? _chart.ChartAreas[0].AxisX.ScaleView.Position - 500
-                            : 0;
-                }
-            }
-
             try
             {
+                if (_isPaint == false)
+                {
+                    return;
+                }
+
+                if (_myCandles == null)
+                {
+                    return;
+                }
+
+                if (Control.ModifierKeys == Keys.Control)
+                {
+                    if (e.Delta < 0)
+                    {
+                        double size = _chart.ChartAreas[0].AxisX.ScaleView.Size + 100 < 2000
+                            ? _chart.ChartAreas[0].AxisX.ScaleView.Size + 100
+                            : 2000;
+
+                        if (size > _myCandles.Count)
+                        {
+                            size = _myCandles.Count;
+                        }
+
+                        _chart.ChartAreas[0].AxisX.ScaleView.Size = size;
+
+                        if (_chart.ChartAreas[0].AxisX.ScaleView.Position + size > _myCandles.Count)
+                        {
+                            _chart.ChartAreas[0].AxisX.ScaleView.Position = _chart.ChartAreas[0].AxisX.ScaleView.Position - size;
+                        }
+
+                        if (_chart.ChartAreas[0].AxisX.ScaleView.Position < 0)
+                        {
+                            _chart.ChartAreas[0].AxisX.ScaleView.Position = 0;
+                        }
+                    }
+                    else
+                    {
+                        double size = _chart.ChartAreas[0].AxisX.ScaleView.Size - 100 > 100
+                            ? _chart.ChartAreas[0].AxisX.ScaleView.Size - 100
+                            : 100;
+
+                        _chart.ChartAreas[0].AxisX.ScaleView.Size = size;
+
+                        if (_chart.ChartAreas[0].AxisX.ScaleView.Position + size > _myCandles.Count)
+                        {
+                            _chart.ChartAreas[0].AxisX.ScaleView.Position = _chart.ChartAreas[0].AxisX.ScaleView.Position - size;
+                        }
+                        if (_chart.ChartAreas[0].AxisX.ScaleView.Position < 0)
+                        {
+                            _chart.ChartAreas[0].AxisX.ScaleView.Position = 0;
+                        }
+                    }
+                }
+                else
+                {
+                    if (_chart.ChartAreas[0].AxisX.ScaleView.Size == double.NaN)
+                    {
+                        return;
+                    }
+                    double size = (int)_chart.ChartAreas[0].AxisX.ScaleView.Size / 4;
+
+                    if (e.Delta > 0)
+                    {
+                        _chart.ChartAreas[0].AxisX.ScaleView.Position = _chart.ChartAreas[0].AxisX.ScaleView.Position + size
+                            < _myCandles.Count - (int)_chart.ChartAreas[0].AxisX.ScaleView.Size
+                                ? _chart.ChartAreas[0].AxisX.ScaleView.Position + size
+                                : _myCandles.Count - (int)_chart.ChartAreas[0].AxisX.ScaleView.Size;
+                    }
+                    else
+                    {
+                        _chart.ChartAreas[0].AxisX.ScaleView.Position = _chart.ChartAreas[0].AxisX.ScaleView.Position - size > 0
+                                ? _chart.ChartAreas[0].AxisX.ScaleView.Position - size
+                                : 0;
+                    }
+                }
+
+
                 ResizeYAxisOnArea("Prime");
                 for (int i = 0; i < _chart.ChartAreas.Count; i++)
                 {

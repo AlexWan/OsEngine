@@ -43,15 +43,7 @@ namespace OsEngine.Market.Connectors
 
             TimeFrameBuilder = new TimeFrameBuilder(_name, startProgram);
             ServerType = ServerType.None;
-            
-            if (!string.IsNullOrWhiteSpace(NamePaper))
-            {
-                _subscrabler = new Thread(Subscrable);
-                _subscrabler.CurrentCulture = new CultureInfo("ru-RU");
-                _subscrabler.Name = "ConnectorSubscrableThread_" + UniqName;
-                _subscrabler.IsBackground = true;
-                _subscrabler.Start();
-            }
+           
 
             if (StartProgram != StartProgram.IsOsOptimizer)
             {
@@ -60,6 +52,15 @@ namespace OsEngine.Market.Connectors
                 _emulator = new OrderExecutionEmulator();
                 _emulator.MyTradeEvent += ConnectorBot_NewMyTradeEvent;
                 _emulator.OrderChangeEvent += ConnectorBot_NewOrderIncomeEvent;
+            }
+
+            if (!string.IsNullOrWhiteSpace(NamePaper))
+            {
+                _subscrabler = new Thread(Subscrable);
+                _subscrabler.CurrentCulture = new CultureInfo("ru-RU");
+                _subscrabler.Name = "ConnectorSubscrableThread_" + UniqName;
+                _subscrabler.IsBackground = true;
+                _subscrabler.Start();
             }
         }
 

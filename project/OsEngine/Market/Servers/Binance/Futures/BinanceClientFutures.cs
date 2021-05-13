@@ -256,7 +256,9 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 {
                     // var res = CreateQuery( Method.GET, "/fapi/v1/balance", null, true);
 
-                    var res = CreateQuery(Method.GET, "/" + type_str_selector + "/v1/account", null, true);
+                     var res = CreateQuery(Method.GET, "/" + type_str_selector + "/v2/account", null, true);
+
+                    // var res = CreateQuery(Method.GET, "/fapi/v1/balance", null, true);
 
                     if (res == null)
                     {
@@ -871,11 +873,6 @@ namespace OsEngine.Market.Servers.Binance.Futures
         /// <param name="order"></param>
         public void ExecuteOrder(Order order)
         {
-            ExecuteOrderOnMarginExchange(order);
-        }
-
-        private void ExecuteOrderOnMarginExchange(Order order)
-        {
             lock (_lockOrder)
             {
                 try
@@ -902,7 +899,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     }
                     param.Add("&type=", order.TypeOrder == OrderPriceType.Limit ? "LIMIT" : "MARKET");
                     //param.Add("&timeInForce=", "GTC");
-                    param.Add("&newClientOrderId=", order.NumberUser.ToString());
+                    param.Add("&newClientOrderId=", "x-gnrPHWyE" + order.NumberUser.ToString());
                     param.Add("&quantity=",
                         order.Volume.ToString(CultureInfo.InvariantCulture)
                             .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
@@ -1319,7 +1316,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                                 try
                                 {
-                                    orderNumUser = Convert.ToInt32(order.c);
+                                    orderNumUser = Convert.ToInt32(order.c.ToString().Replace("x-gnrPHWyE", ""));
                                 }
                                 catch (Exception)
                                 {
@@ -1531,7 +1528,21 @@ namespace OsEngine.Market.Servers.Binance.Futures
             }
         }
 
-        public bool HedgeMode;
+        public bool HedgeMode
+        {
+            get { return _hedgeMode; }
+            set 
+            { 
+                if(value == _hedgeMode)
+                {
+                    return;
+                }
+                _hedgeMode = value;
+                SetPositionMode();
+            }
+        }
+        private bool _hedgeMode;
+
         public void SetPositionMode()
         {
             try
