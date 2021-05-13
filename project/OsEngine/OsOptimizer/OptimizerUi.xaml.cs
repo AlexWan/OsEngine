@@ -94,6 +94,8 @@ namespace OsEngine.OsOptimizer
             DatePickerEnd.DisplayDate = _master.TimeEnd;
             TextBoxPercentFiltration.Text = _master.PercentOnFilration.ToString();
 
+            CheckBoxLastInSample.IsChecked = _master.LastInSample;
+            CheckBoxLastInSample.Click += CheckBoxLastInSample_Click;
 
             DatePickerStart.SelectedDateChanged += DatePickerStart_SelectedDateChanged;
             DatePickerEnd.SelectedDateChanged += DatePickerEnd_SelectedDateChanged;
@@ -222,13 +224,19 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         void _master_TestReadyEvent(List<OptimazerFazeReport> reports)
         {
+            _reports = reports;
+            RepaintResults();
+        }
+
+        private List<OptimazerFazeReport> _reports;
+
+        private void RepaintResults()
+        {
             try
             {
-                _reports = reports;
-
-                for (int i = 0; i < reports.Count; i++)
+                for (int i = 0; i < _reports.Count; i++)
                 {
-                    SortResults(reports[i].Reports);
+                    SortResults(_reports[i].Reports);
                 }
 
                 PaintEndOnAllProgressBars();
@@ -236,7 +244,7 @@ namespace OsEngine.OsOptimizer
                 PaintTableResults();
                 StartUserActivity();
 
-                _resultsCharting.ReLoad(reports);
+                _resultsCharting.ReLoad(_reports);
             }
             catch (Exception error)
             {
@@ -244,7 +252,6 @@ namespace OsEngine.OsOptimizer
             }
         }
 
-        private List<OptimazerFazeReport> _reports;
 
         // work on drawing progress bars / работа по рисованию прогресс Баров
 
@@ -604,6 +611,11 @@ namespace OsEngine.OsOptimizer
         private void ButtonServerDialog_Click(object sender, RoutedEventArgs e)
         {
             _master.ShowDataStorageDialog();
+        }
+
+        private void CheckBoxLastInSample_Click(object sender, RoutedEventArgs e)
+        {
+            _master.LastInSample = CheckBoxLastInSample.IsChecked.Value;
         }
 
         // events from the server / события из сервера
@@ -1673,6 +1685,14 @@ namespace OsEngine.OsOptimizer
 
         private void UpdateHeaders()
         {
+
+            _gridResults.Columns[0].HeaderText = "Bot Name";
+
+            if (_sortBotsType == SortBotsType.BotName)
+            {
+                _gridResults.Columns[0].HeaderText += " vvv";
+            }
+
             _gridResults.Columns[2].HeaderText = "Pos Count";
 
             if (_sortBotsType == SortBotsType.PositionCount)
@@ -1869,7 +1889,12 @@ namespace OsEngine.OsOptimizer
 
         private bool FirstLessSecond(OptimizerReport rep1, OptimizerReport rep2, SortBotsType sortType)
         {
-            if (sortType == SortBotsType.TotalProfit &&
+            if (sortType == SortBotsType.BotName &&
+            Convert.ToInt32(rep1.BotName.Split(' ')[0]) > Convert.ToInt32(rep2.BotName.Split(' ')[0]))
+            {
+                return true;
+            }
+            else if (sortType == SortBotsType.TotalProfit &&
                 rep1.TotalProfit < rep2.TotalProfit)
             {
                 return true;
@@ -2017,7 +2042,12 @@ namespace OsEngine.OsOptimizer
             }
             int columnSelect = _gridResults.SelectedCells[0].ColumnIndex;
 
-            if (columnSelect == 2)
+
+            if (columnSelect == 0)
+            {
+                _sortBotsType = SortBotsType.BotName;
+            }
+            else if (columnSelect == 2)
             {
                 _sortBotsType = SortBotsType.PositionCount;
             }
@@ -2054,7 +2084,20 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
-            PaintTableResults();
+            try
+            {
+                for (int i = 0; i < _reports.Count; i++)
+                {
+                    SortResults(_reports[i].Reports);
+                }
+
+                PaintTableResults();
+            }
+            catch (Exception error)
+            {
+                _master.SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+
         }
 
         /// <summary>
@@ -2098,6 +2141,8 @@ namespace OsEngine.OsOptimizer
     public enum SortBotsType
     {
         TotalProfit,
+
+        BotName,
 
         PositionCount,
 

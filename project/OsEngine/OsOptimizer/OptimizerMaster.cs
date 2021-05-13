@@ -91,6 +91,7 @@ namespace OsEngine.OsOptimizer
                     writer.WriteLine(_iterationCount);
                     writer.WriteLine(_commissionType);
                     writer.WriteLine(_commissionValue);
+                    writer.WriteLine(_lastInSample);
 
                     writer.Close();
                 }
@@ -138,6 +139,7 @@ namespace OsEngine.OsOptimizer
                     _commissionType = (ComissionType) Enum.Parse(typeof(ComissionType), 
                         reader.ReadLine() ?? ComissionType.None.ToString());
                     _commissionValue = Convert.ToDecimal(reader.ReadLine());
+                    _lastInSample = Convert.ToBoolean(reader.ReadLine());
 
                     reader.Close();
                 }
@@ -305,7 +307,6 @@ namespace OsEngine.OsOptimizer
             }
         }
         private string _strategyName;
-
 
         public bool IsScript
         {
@@ -647,6 +648,52 @@ namespace OsEngine.OsOptimizer
 
         private int _iterationCount = 1;
 
+        public bool LastInSample
+        {
+            get 
+            { 
+                return _lastInSample; 
+            }
+            set 
+            {
+                _lastInSample = value;
+                Save();
+            }
+        }
+
+        private bool _lastInSample;
+
+
+        private decimal GetInSampleRecurs(decimal curLenghtInSample,int fazeCount, bool lastInSample, int allDays)
+        {
+            // х = Y + Y/P * С;
+            // x - общая длинна в днях. Уже известна
+            // Y - длинна InSample
+            // P - процент OutOfSample от InSample
+            // C - количество отрезков
+
+            decimal outOfSampleLength = curLenghtInSample * (_percentOnFilration / 100);
+
+            int count = fazeCount;
+
+            if(lastInSample)
+            {
+                count--;
+            }
+
+            int allLenght = Convert.ToInt32(curLenghtInSample + outOfSampleLength * count);
+
+            if(allLenght > allDays)
+            {
+                curLenghtInSample--;
+                return GetInSampleRecurs(curLenghtInSample, fazeCount, lastInSample, allDays);
+            }
+            else
+            {
+                return curLenghtInSample;
+            }
+        }
+
         /// <summary>
         /// break the total time into phases
         /// разбить общее время на фазы
@@ -675,12 +722,9 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
-            int daysOnIteration = dayAll / fazeCount;
+            int daysOnInSample = (int)GetInSampleRecurs(dayAll, fazeCount, _lastInSample, dayAll);
 
-            int daysOnForward = Convert.ToInt32(daysOnIteration * (_percentOnFilration / 100));
-
-            int daysOnInSample = (dayAll - daysOnForward) / fazeCount;
-
+            int daysOnForward = Convert.ToInt32(daysOnInSample * (_percentOnFilration / 100));
 
             Fazes = new List<OptimizerFaze>();
 
@@ -691,19 +735,26 @@ namespace OsEngine.OsOptimizer
                 OptimizerFaze newFaze = new OptimizerFaze();
                 newFaze.TypeFaze = OptimizerFazeType.InSample;
                 newFaze.TimeStart = time;
-                time = time.AddDays(daysOnInSample);
+                time = time.AddDays(daysOnForward);
                 newFaze.Days = daysOnInSample;
                 Fazes.Add(newFaze);
 
+                if(_lastInSample 
+                    && i +1 == fazeCount)
+                {
+                    newFaze.Days = daysOnInSample + daysOnForward;
+                    break;
+                }
+
                 OptimizerFaze newFazeOut = new OptimizerFaze();
                 newFazeOut.TypeFaze = OptimizerFazeType.OutOfSample;
-                newFazeOut.TimeStart = time;
+                newFazeOut.TimeStart = newFaze.TimeStart.AddDays(daysOnInSample);
                 newFazeOut.Days = daysOnForward;
                 Fazes.Add(newFazeOut);
             }
 
 
-            while (DaysInFazes(Fazes) != dayAll)
+            /*while (DaysInFazes(Fazes) != dayAll)
             {
                 int daysGone = DaysInFazes(Fazes) - dayAll;
 
@@ -713,23 +764,33 @@ namespace OsEngine.OsOptimizer
                     if (daysGone > 0)
                     {
                         Fazes[i].Days--;
-                        if (Fazes[i].TypeFaze == OptimizerFazeType.InSample)
+                        if (Fazes[i].TypeFaze == OptimizerFazeType.InSample &&
+                            i + 1 != Fazes.Count)
                         {
                             Fazes[i + 1].TimeStart = Fazes[i + 1].TimeStart.AddDays(-1);
+                        }
+                        else
+                        {
+                            Fazes[i].TimeStart = Fazes[i].TimeStart.AddDays(-1);
                         }
                         daysGone--;
                     }
                     else if (daysGone < 0)
                     {
                         Fazes[i].Days++;
-                        if (Fazes[i].TypeFaze == OptimizerFazeType.InSample)
+                        if (Fazes[i].TypeFaze == OptimizerFazeType.InSample && 
+                            i + 1 != Fazes.Count)
                         {
                             Fazes[i + 1].TimeStart = Fazes[i + 1].TimeStart.AddDays(+1);
+                        }
+                        else
+                        {
+                            Fazes[i].TimeStart = Fazes[i].TimeStart.AddDays(+1);
                         }
                         daysGone++;
                     }
                 }
-            }
+            }*/
         }
 
         private int DaysInFazes(List<OptimizerFaze> fazes)
