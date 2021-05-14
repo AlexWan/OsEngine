@@ -12,6 +12,7 @@ using OsEngine.Logging;
 using OsEngine.Robots;
 using MessageBox = System.Windows.MessageBox;
 using ProgressBar = System.Windows.Controls.ProgressBar;
+using OsEngine.OsOptimizer.OptEntity;
 
 namespace OsEngine.OsOptimizer
 {
@@ -966,6 +967,7 @@ namespace OsEngine.OsOptimizer
         {
             _master.ReloadFazes();
             PaintTableOptimizeFazes();
+            WolkForwardPeriodsPainter.PaintForwards(HostWalkForwardPeriods, _master.Fazes);
         }
 
         /// <summary>
@@ -1070,6 +1072,7 @@ namespace OsEngine.OsOptimizer
                
             }
             PaintTableOptimizeFazes();
+            WolkForwardPeriodsPainter.PaintForwards(HostWalkForwardPeriods, _master.Fazes);
         }
 
 

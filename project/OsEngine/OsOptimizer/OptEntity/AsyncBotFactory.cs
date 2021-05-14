@@ -4,6 +4,9 @@ using System.Threading;
 using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.Robots;
+using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace OsEngine.OsOptimizer.OptimizerEntity
 {

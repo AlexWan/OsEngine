@@ -825,12 +825,16 @@ namespace OsEngine.OsOptimizer
                 return null;
             }
 
+            string botName = NumberGen.GetNumberDeal(StartProgram.IsOsOptimizer).ToString();
+
+            List<string> names = new List<string> { botName };
+            _asyncBotFactory.CreateNewBots(names, _master.StrategyName, _master.IsScript);
+
             OptimizerServer server = CreateNewServer(reportFaze);
 
             List<IIStrategyParameter> parametrs = reportToBot.GetParameters();
 
-            BotPanel bot = CreateNewBot(
-                NumberGen.GetNumberDeal(StartProgram.IsOsOptimizer).ToString(),
+            BotPanel bot = CreateNewBot(botName,
                 parametrs, parametrs, server, StartProgram.IsTester);
 
             DateTime timeStartWaiting = DateTime.Now;
