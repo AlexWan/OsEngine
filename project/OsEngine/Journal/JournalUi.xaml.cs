@@ -171,13 +171,6 @@ namespace OsEngine.Journal
                         positionsShort.AddRange(myJournals[i].CloseAllShortPositions);
                 }
 
-
-                positionsAll =
-                    positionsAll.FindAll(
-                        pos => pos.State != PositionStateType.OpeningFail 
-                              // && pos.State != PositionStateType.Opening
-                               );
-
                 positionsLong =
                     positionsLong.FindAll(
                         pos => pos.State != PositionStateType.OpeningFail && pos.State != PositionStateType.Opening);
@@ -277,20 +270,20 @@ namespace OsEngine.Journal
 
                 if (TabControlPrime.SelectedIndex == 0)
                 {
-                    PaintProfitOnChart(positionsAll);
+                    PaintProfitOnChart(positionsAll.FindAll(p => p.State != PositionStateType.OpeningFail));
                 }
                 else if (TabControlPrime.SelectedIndex == 1)
                 {
                     bool neadShowTickState = !(myJournals.Count > 1);
-                    PaintStatTable(positionsAll, positionsLong, positionsShort, neadShowTickState);
+                    PaintStatTable(positionsAll.FindAll(p => p.State != PositionStateType.OpeningFail), positionsLong, positionsShort, neadShowTickState);
                 }
                 else if (TabControlPrime.SelectedIndex == 2)
                 {
-                    PaintDrowDown(positionsAll);
+                    PaintDrowDown(positionsAll.FindAll(p => p.State != PositionStateType.OpeningFail));
                 }
                 else if (TabControlPrime.SelectedIndex == 3)
                 {
-                    PaintVolumeOnChart(positionsAll);
+                    PaintVolumeOnChart(positionsAll.FindAll(p => p.State != PositionStateType.OpeningFail));
                 }
                 else if (TabControlPrime.SelectedIndex == 4)
                 {
@@ -1720,7 +1713,8 @@ namespace OsEngine.Journal
 
             for (int i = 0; i < positionsAll.Count; i++)
             {
-                if (positionsAll[i].State != PositionStateType.Done)
+                if (positionsAll[i].State != PositionStateType.Done &&
+                    positionsAll[i].State != PositionStateType.OpeningFail)
                 {
                     _openPositionGrid.Rows.Insert(0, GetRow(positionsAll[i]));
                 }
@@ -1926,6 +1920,20 @@ namespace OsEngine.Journal
                 {
                     numbers.Add(Convert.ToInt32(_closePositionGrid.Rows[i].Cells[0].Value));
                 }
+                List<Position> poses = new List<Position>();
+
+                for (int i = 0;i < _botsJournals.Count;i++)
+                {
+                    for(int j = 0;j < _botsJournals[i]._Tabs.Count;j++)
+                    {
+                        poses.AddRange(_botsJournals[i]._Tabs[j].Journal.AllPosition.FindAll(p => p.State == PositionStateType.OpeningFail));
+                    }
+                }
+
+                for(int i = 0; i < poses.Count;i++)
+                {
+                    numbers.Add(poses[i].Number);
+                }
 
             }
             catch (Exception)
@@ -1950,7 +1958,8 @@ namespace OsEngine.Journal
 
             for (int i = 0; i < positionsAll.Count; i++)
             {
-                if (positionsAll[i].State == PositionStateType.Done)
+                if (positionsAll[i].State == PositionStateType.Done ||
+                    positionsAll[i].State == PositionStateType.OpeningFail)
                 {
                     _closePositionGrid.Rows.Insert(0, GetRow(positionsAll[i]));
                 }

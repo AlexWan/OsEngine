@@ -1284,11 +1284,9 @@ namespace OsEngine.Charts.CandleChart
         {
             try
             {
-
                 ChartCandle.StartPaintPrimeChart(gridChart, host, rectangle);
-                ChartCandle.ProcessPositions(_myPosition);
-
                 ChartCandle.ProcessCandles(_myCandles);
+                ChartCandle.ProcessPositions(_myPosition);
 
                 for (int i = 0; _indicators != null && i < _indicators.Count; i++)
                 {
