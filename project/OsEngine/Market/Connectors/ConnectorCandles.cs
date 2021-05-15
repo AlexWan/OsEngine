@@ -62,6 +62,11 @@ namespace OsEngine.Market.Connectors
                 _subscrabler.IsBackground = true;
                 _subscrabler.Start();
             }
+
+            if(StartProgram == StartProgram.IsTester)
+            {
+                PortfolioName = "GodMode";
+            }
         }
 
         /// <summary>
