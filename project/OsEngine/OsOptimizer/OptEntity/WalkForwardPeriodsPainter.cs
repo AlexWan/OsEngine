@@ -1,31 +1,10 @@
-﻿using OsEngine.Entity;
-using OsEngine.Language;
-using OsEngine.Market.Servers.Tester;
-using OsEngine.OsTrader.Panels;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Forms;
-using OsEngine.Logging;
-using OsEngine.Robots;
-using System.Collections.Concurrent;
 using System.Drawing;
-using System.Globalization;
-using System.Linq;
 using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Forms.Integration;
-using System.Windows.Media;
-using OsEngine.Alerts;
-using OsEngine.Charts.CandleChart.Indicators;
-using OsEngine.Charts.CandleChart.Elements;
 using OsEngine.Charts.ColorKeeper;
-using OsEngine.Indicators;
-using OsEngine.Market;
 using Color = System.Drawing.Color;
-using Grid = System.Windows.Controls.Grid;
-using Rectangle = System.Windows.Shapes.Rectangle;
 
 namespace OsEngine.OsOptimizer.OptEntity
 {

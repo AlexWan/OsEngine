@@ -1213,6 +1213,34 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         public int Days;
 
+        public string GetSaveString()
+        {
+            string result = "";
+
+            result += TypeFaze.ToString() + "%";
+
+            result += _timeStart.ToString() + "%";
+
+            result += _timeEnd.ToString() + "%";
+
+            result += Days.ToString() + "%";
+
+            return result;
+        }
+
+        public void LoadFromString(string saveStr)
+        {
+            string[] str = saveStr.Split('%');
+
+            Enum.TryParse(str[0], out TypeFaze);
+
+            _timeStart = Convert.ToDateTime(str[1]);
+
+            _timeEnd = Convert.ToDateTime(str[2]);
+
+            Days = Convert.ToInt32(str[3]);
+        }
+
     }
 
     /// <summary>

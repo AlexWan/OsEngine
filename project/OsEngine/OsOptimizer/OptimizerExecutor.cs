@@ -828,7 +828,7 @@ namespace OsEngine.OsOptimizer
             string botName = NumberGen.GetNumberDeal(StartProgram.IsOsOptimizer).ToString();
 
             List<string> names = new List<string> { botName };
-            _asyncBotFactory.CreateNewBots(names, _master.StrategyName, _master.IsScript, StartProgram.IsOsTrader);
+            _asyncBotFactory.CreateNewBots(names, _master.StrategyName, _master.IsScript, StartProgram.IsTester);
 
             OptimizerServer server = CreateNewServer(reportFaze);
 

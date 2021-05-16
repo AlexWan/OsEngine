@@ -414,6 +414,7 @@ namespace OsEngine.Entity
         /// <param name="save"></param>
         public void LoadParamFromString(string[] save)
         {
+            _name = save[0];
             _valueBool = Convert.ToBoolean(save[1]);
         }
 

@@ -228,6 +228,7 @@ namespace OsEngine.OsOptimizer
         {
             _reports = reports;
             RepaintResults();
+            ShowResultDialog();
         }
 
         private List<OptimazerFazeReport> _reports;
@@ -254,6 +255,26 @@ namespace OsEngine.OsOptimizer
             }
         }
 
+        // results window / окно результатов
+
+        private void ButtonResults_Click(object sender, RoutedEventArgs e)
+        {
+            ShowResultDialog();
+        }
+
+        public void ShowResultDialog()
+        {
+            if(_gridFazes.InvokeRequired)
+            {
+                _gridFazes.Invoke(new Action(ShowResultDialog));
+                return;
+            }
+
+            OptimizerReportUi ui = new OptimizerReportUi(_master);
+            ui.Show();
+            ui.Paint(_reports);
+            ui.Activate();
+        }
 
         // work on drawing progress bars / работа по рисованию прогресс Баров
 
@@ -2179,8 +2200,6 @@ namespace OsEngine.OsOptimizer
 
             ReloadStrategy();
         }
-
-
     }
 
     /// <summary>
