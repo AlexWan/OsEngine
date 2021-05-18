@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -269,8 +269,11 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 {
                     newTrades = _client.GetTickHistoryToSecurity(security.Name, new DateTime(), new DateTime(), lastId + 1);
 
-                    lastId = Convert.ToInt64(newTrades[newTrades.Count - 1].Id);
-
+                    try
+                    {
+                        lastId = Convert.ToInt64(newTrades[newTrades.Count - 1].Id);
+                    }
+                    catch { } // Если дата по которую скачиваем свечки превышает сегодняшнюю: Ignore 
                 }
 
                 if (newTrades != null && newTrades.Count != 0)
