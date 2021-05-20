@@ -226,7 +226,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterString)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 6, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 7, newParam);
             }
             else
             {
@@ -249,7 +249,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterInt)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 6, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 7, newParam);
             }
             else
             {
@@ -1348,7 +1348,7 @@ namespace OsEngine.Market.Servers
 
             if (_needToRemoveCandlesFromMemory.Value == true
                 && series.CandlesAll.Count > _neadToSaveCandlesCountParam.Value
-                && _serverTime.Minute % 15 == 0
+                //&& _serverTime.Minute % 15 == 0
                 && _serverTime.Second == 0
             )
             {
