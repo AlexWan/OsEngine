@@ -424,13 +424,13 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// transaction creation wizard / 
         /// мастер создания сделок
         /// </summary>
-        private PositionCreator _dealCreator;
+        public PositionCreator _dealCreator;
 
         /// <summary>
         /// Journal positions / 
         /// журнал
         /// </summary>
-        private Journal.Journal _journal;
+        public Journal.Journal _journal;
 
         /// <summary>
         /// settings maintenance settings / 
@@ -2572,7 +2572,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 newOrder.LifeTime = timeLife;
                 position.AddNewOpenOrder(newOrder);
 
-                SetNewLogMessage(Securiti.Name + "модификация позиции шорт", LogMessageType.Trade);
+                SetNewLogMessage(Securiti.Name + " модификация позиции шорт", LogMessageType.Trade);
 
                 _connector.OrderExecute(newOrder);
             }
