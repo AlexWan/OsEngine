@@ -119,27 +119,43 @@ namespace OsEngine.Market.Servers
             }
 
         }
-
         private List<CandleSeriesSaveInfo> _candleSeriesSaveInfos = new List<CandleSeriesSaveInfo>();
+        private object _lockerSpec = new object();
 
-        private void SaveSeries(CandleSeries series)
+        public CandleSeriesSaveInfo GetSpecInfo(string specification)
         {
-            CandleSeriesSaveInfo mySaveInfo = _candleSeriesSaveInfos.Find(s => s.Specification == series.Specification);
-
-            if (mySaveInfo == null)
+            lock (_lockerSpec)
             {
-                mySaveInfo = TryLoadCandle(series.Specification);
+                CandleSeriesSaveInfo mySaveInfo = _candleSeriesSaveInfos.Find(s => s.Specification == specification);
 
                 if (mySaveInfo == null)
                 {
-                    mySaveInfo = new CandleSeriesSaveInfo();
-                    mySaveInfo.Specification = series.Specification;
-                    mySaveInfo.AllCandlesInFile = series.CandlesAll;
+                    mySaveInfo = TryLoadCandle(specification);
+
+                    if (mySaveInfo == null)
+                    {
+                        mySaveInfo = new CandleSeriesSaveInfo();
+                        mySaveInfo.Specification = specification;
+                    }
+
+                    _candleSeriesSaveInfos.Add(mySaveInfo);
                 }
 
-                _candleSeriesSaveInfos.Add(mySaveInfo);
+                return mySaveInfo;
             }
+        }
 
+        private void SaveSeries(CandleSeries series)
+        {
+            CandleSeriesSaveInfo mySaveInfo = GetSpecInfo(series.Specification);
+
+            if (mySaveInfo.AllCandlesInFile == null)
+            {
+                mySaveInfo.AllCandlesInFile = series.CandlesAll;
+
+                int indexSpec = _candleSeriesSaveInfos.FindIndex(s => s.Specification == series.Specification);
+                _candleSeriesSaveInfos[indexSpec].AllCandlesInFile = series.CandlesAll;
+            }
             if (series.CandlesAll == null ||
                 series.CandlesAll.Count == 0)
             {
@@ -175,20 +191,7 @@ namespace OsEngine.Market.Servers
 
         public List<Candle> GetCandles(string specification, int count)
         {
-            CandleSeriesSaveInfo mySaveInfo = _candleSeriesSaveInfos.Find(s => s.Specification == specification);
-
-            if (mySaveInfo == null)
-            {
-                mySaveInfo = TryLoadCandle(specification);
-
-                if (mySaveInfo == null)
-                {
-                    mySaveInfo = new CandleSeriesSaveInfo();
-                    mySaveInfo.Specification = specification;
-                }
-
-                _candleSeriesSaveInfos.Add(mySaveInfo);
-            }
+            CandleSeriesSaveInfo mySaveInfo = GetSpecInfo(specification);
 
             List<Candle> candles = mySaveInfo.AllCandlesInFile;
 

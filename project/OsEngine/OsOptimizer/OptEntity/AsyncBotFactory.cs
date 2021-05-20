@@ -4,6 +4,9 @@ using System.Threading;
 using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.Robots;
+using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace OsEngine.OsOptimizer.OptimizerEntity
 {
@@ -44,7 +47,7 @@ namespace OsEngine.OsOptimizer.OptimizerEntity
             }
         }
 
-        public void CreateNewBots(List<string> botsName, string botType, bool isScript)
+        public void CreateNewBots(List<string> botsName, string botType, bool isScript, StartProgram startProgramm)
         {
             lock (_lockStr)
             {
@@ -53,6 +56,7 @@ namespace OsEngine.OsOptimizer.OptimizerEntity
                 _botType = botType;
                 _botNames = botsName;
                 _isScript = isScript;
+                _startProgramm = startProgramm;
             }
         }
 
@@ -66,7 +70,10 @@ namespace OsEngine.OsOptimizer.OptimizerEntity
 
         private bool _isScript;
 
+        StartProgram _startProgramm;
+
         private string _lockStr = "someStr";
+
 
         private void WorkerArea()
         {
@@ -94,7 +101,7 @@ namespace OsEngine.OsOptimizer.OptimizerEntity
                             _targetChange = false;
                             break;
                         }
-                        BotPanel bot = BotFactory.GetStrategyForName(_botType, _botNames[i], StartProgram.IsOsOptimizer, _isScript);
+                        BotPanel bot = BotFactory.GetStrategyForName(_botType, _botNames[i], _startProgramm, _isScript);
 
                         lock (_botLocker)
                         {

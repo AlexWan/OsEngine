@@ -180,7 +180,7 @@ namespace OsEngine.OsOptimizer
                 botNames.Add(botName);
             }
 
-            _asyncBotFactory.CreateNewBots(botNames, botType, isScript);
+            _asyncBotFactory.CreateNewBots(botNames, botType, isScript,StartProgram.IsOsOptimizer);
         }
 
         private void StartAsuncBotFactoryOutOfSample(OptimazerFazeReport reportFiltred, string botType, bool isScript, string faze)
@@ -196,7 +196,7 @@ namespace OsEngine.OsOptimizer
                 botNames.Add(botName);
             }
 
-            _asyncBotFactory.CreateNewBots(botNames, botType, isScript);
+            _asyncBotFactory.CreateNewBots(botNames, botType, isScript,StartProgram.IsOsOptimizer);
         }
 
         /// <summary>
@@ -825,12 +825,16 @@ namespace OsEngine.OsOptimizer
                 return null;
             }
 
+            string botName = NumberGen.GetNumberDeal(StartProgram.IsOsOptimizer).ToString();
+
+            List<string> names = new List<string> { botName };
+            _asyncBotFactory.CreateNewBots(names, _master.StrategyName, _master.IsScript, StartProgram.IsTester);
+
             OptimizerServer server = CreateNewServer(reportFaze);
 
             List<IIStrategyParameter> parametrs = reportToBot.GetParameters();
 
-            BotPanel bot = CreateNewBot(
-                NumberGen.GetNumberDeal(StartProgram.IsOsOptimizer).ToString(),
+            BotPanel bot = CreateNewBot(botName,
                 parametrs, parametrs, server, StartProgram.IsTester);
 
             DateTime timeStartWaiting = DateTime.Now;

@@ -93,12 +93,20 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 UserDataMessageHandler(sender, args, BinanceExchangeType.SpotExchange);
             };
 
-            _marginSocketClient = CreateUserDataStream("/sapi/v1/userDataStream", BinanceExchangeType.MarginExchange);
-            _wsStreams.Add("userDataStreamMargine", _marginSocketClient);
-            _marginSocketClient.MessageReceived += delegate (object sender, MessageReceivedEventArgs args)
+            try
             {
-                UserDataMessageHandler(sender, args, BinanceExchangeType.MarginExchange);
-            };
+                _marginSocketClient = CreateUserDataStream("/sapi/v1/userDataStream", BinanceExchangeType.MarginExchange);
+                _wsStreams.Add("userDataStreamMargine", _marginSocketClient);
+                _marginSocketClient.MessageReceived += delegate (object sender, MessageReceivedEventArgs args)
+                {
+                    UserDataMessageHandler(sender, args, BinanceExchangeType.MarginExchange);
+                };
+            }
+            catch
+            {
+                _notMargineAccount = true;
+            }
+
 
             Thread keepalive = new Thread(KeepaliveUserDataStream);
             keepalive.CurrentCulture = new CultureInfo("ru-RU");
@@ -115,6 +123,8 @@ namespace OsEngine.Market.Servers.Binance.Spot
             converterUserData.IsBackground = true;
             converterUserData.Start();
         }
+
+        private bool _notMargineAccount;
 
         /// <summary>
         /// create user data thread
@@ -179,6 +189,15 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 // ignore
             }
 
+            try
+            {
+                CloseUserDataStream();
+            }
+            catch
+            {
+                // ignore
+            }
+
             IsConnected = false;
 
             if (Disconnected != null)
@@ -232,7 +251,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
             }
             if (_marginListenKey != "")
             {
-                CreateQuery(BinanceExchangeType.SpotExchange, Method.DELETE, "sapi/v1/userDataStream", new Dictionary<string, string>() { { "listenKey=", _marginListenKey } }, false);
+                CreateQuery(BinanceExchangeType.MarginExchange, Method.DELETE, "sapi/v1/userDataStream", new Dictionary<string, string>() { { "listenKey=", _marginListenKey } }, false);
             }
         }
 
@@ -264,9 +283,12 @@ namespace OsEngine.Market.Servers.Binance.Spot
                         "api/v1/userDataStream", new Dictionary<string, string>()
                             { { "listenKey=", _spotListenKey } }, false);
 
-                    CreateQuery(BinanceExchangeType.MarginExchange, Method.PUT,
-                        "sapi/v1/userDataStream", new Dictionary<string, string>()
-                            { { "listenKey=", _marginListenKey } }, false);
+                    if(_notMargineAccount == false)
+                    {
+                        CreateQuery(BinanceExchangeType.MarginExchange, Method.PUT,
+                            "sapi/v1/userDataStream", new Dictionary<string, string>()
+                                { { "listenKey=", _marginListenKey } }, false);
+                    }
                 }
             }
         }
@@ -937,7 +959,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     param.Add("&side=", order.Side == Side.Buy ? "BUY" : "SELL");
                     param.Add("&type=", "LIMIT");
                     param.Add("&timeInForce=", "GTC");
-                    param.Add("&newClientOrderId=", order.NumberUser.ToString());
+                    param.Add("&newClientOrderId=", "x-RKXTQ2AK" + order.NumberUser.ToString());
 
                     if (order.PositionConditionType == OrderPositionConditionType.Open)
                     {
@@ -995,7 +1017,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     param.Add("&side=", order.Side == Side.Buy ? "BUY" : "SELL");
                     param.Add("&type=", "LIMIT");
                     param.Add("&timeInForce=", "GTC");
-                    param.Add("&newClientOrderId=", order.NumberUser.ToString());
+                    param.Add("&newClientOrderId=", "x-RKXTQ2AK" + order.NumberUser.ToString());
                     param.Add("&quantity=",
                         order.Volume.ToString(CultureInfo.InvariantCulture)
                             .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
@@ -1397,12 +1419,12 @@ namespace OsEngine.Market.Servers.Binance.Spot
                             {
                                 var order = JsonConvert.DeserializeAnonymousType(mes, new ExecutionReport());
 
-                                string orderNumUser = order.C;
+                                string orderNumUser = order.C.Replace("x-RKXTQ2AK", "");
 
                                 if (string.IsNullOrEmpty(orderNumUser) ||
                                     orderNumUser == "null")
                                 {
-                                    orderNumUser = order.c;
+                                    orderNumUser = order.c.Replace("x-RKXTQ2AK", "");
                                 }
 
                                 try

@@ -43,7 +43,17 @@ namespace OsEngine.Market.Connectors
 
             TimeFrameBuilder = new TimeFrameBuilder(_name, startProgram);
             ServerType = ServerType.None;
-            
+           
+
+            if (StartProgram != StartProgram.IsOsOptimizer)
+            {
+                _canSave = true;
+                Load();
+                _emulator = new OrderExecutionEmulator();
+                _emulator.MyTradeEvent += ConnectorBot_NewMyTradeEvent;
+                _emulator.OrderChangeEvent += ConnectorBot_NewOrderIncomeEvent;
+            }
+
             if (!string.IsNullOrWhiteSpace(NamePaper))
             {
                 _subscrabler = new Thread(Subscrable);
@@ -53,13 +63,9 @@ namespace OsEngine.Market.Connectors
                 _subscrabler.Start();
             }
 
-            if (StartProgram != StartProgram.IsOsOptimizer)
+            if(StartProgram == StartProgram.IsTester)
             {
-                _canSave = true;
-                Load();
-                _emulator = new OrderExecutionEmulator();
-                _emulator.MyTradeEvent += ConnectorBot_NewMyTradeEvent;
-                _emulator.OrderChangeEvent += ConnectorBot_NewOrderIncomeEvent;
+                PortfolioName = "GodMode";
             }
         }
 

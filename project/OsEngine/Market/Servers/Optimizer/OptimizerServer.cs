@@ -1079,14 +1079,8 @@ namespace OsEngine.Market.Servers.Optimizer
             {
                 if (value > _serverTime)
                 {
-                    DateTime lastTime = _serverTime;
                     _serverTime = value;
-
-                    if (_serverTime != lastTime &&
-                        TimeServerChangeEvent != null)
-                    {
-                        TimeServerChangeEvent(_serverTime);
-                    }
+                    TimeServerChangeEvent?.Invoke(_serverTime);
                 }
             }
         }
@@ -1196,7 +1190,17 @@ namespace OsEngine.Market.Servers.Optimizer
                 return null;
             }
 
-            return _securities.Find(security => security.Name == name);
+            for(int i = 0;i < _securities.Count;i++)
+            {
+                if(_securities[i].Name == name)
+                {
+                    return _securities[i];
+                }
+            }
+
+            return null;
+
+            //return _securities.Find(security => security.Name == name);
         }
 
         /// <summary>
