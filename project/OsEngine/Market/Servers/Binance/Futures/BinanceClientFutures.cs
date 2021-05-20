@@ -552,7 +552,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 trade.Volume = Math.Abs(StringToDecimal(jtTrade.Q));
                 trade.SecurityNameCode = secName;
 
-                if (jtTrade.m)
+                if (!jtTrade.m)
                 {
                     trade.Side = Side.Buy;
                     trade.Ask = 0;
