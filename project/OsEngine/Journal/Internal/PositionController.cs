@@ -623,7 +623,6 @@ namespace OsEngine.Journal.Internal
                     }
 
                     ProcesPosition(_deals[i]);
-                    break;
                 }
             }
             _neadToSave = true;
