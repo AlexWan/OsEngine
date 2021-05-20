@@ -506,6 +506,14 @@ namespace OsEngine.Indicators
             {
                 ProcessAll(candles);
             }
+            else if (candles.Count < DataSeries[0].Values.Count)
+            {
+                foreach (var ds in DataSeries)
+                {
+                    ds.Values.Clear();
+                }
+                ProcessAll(candles);
+            }
             else if (_myCandles.Count == candles.Count)
             {
                 ProcessLast(candles);

@@ -60,6 +60,9 @@ namespace OsEngine.Market.Servers
                 CreateParameterBoolean(OsLocalization.Market.ServerParam8, false);
                 _needToRemoveTradesFromMemory = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
 
+                CreateParameterBoolean(OsLocalization.Market.ServerParam9, false);
+                _needToRemoveCandlesFromMemory = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
+
                 _serverRealization.ServerParameters = ServerParameters;
 
                 _tickStorage = new ServerTickStorage(this);
@@ -200,6 +203,8 @@ namespace OsEngine.Market.Servers
 
         private ServerParameterBool _needToRemoveTradesFromMemory;
 
+        private ServerParameterBool _needToRemoveCandlesFromMemory;
+
         public bool NeedToHideParams = false;
 
         /// <summary>
@@ -221,7 +226,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterString)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 6, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 7, newParam);
             }
             else
             {
@@ -244,7 +249,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterInt)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 6, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 7, newParam);
             }
             else
             {
@@ -264,7 +269,7 @@ namespace OsEngine.Market.Servers
 
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 6, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 7, newParam);
             }
             else
             {
@@ -287,7 +292,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterDecimal)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 6, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 7, newParam);
             }
             else
             {
@@ -310,7 +315,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterBool)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 6, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 7, newParam);
             }
             else
             {
@@ -334,7 +339,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterPassword)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 6, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 7, newParam);
             }
             else
             {
@@ -356,7 +361,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterPath)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 6, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 7, newParam);
             }
             else
             {
@@ -378,7 +383,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterButton)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 6, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 7, newParam);
             }
             else
             {
@@ -1339,6 +1344,15 @@ namespace OsEngine.Market.Servers
 
                 List<Candle> candles = _candleStorage.GetCandles(series.Specification, _neadToSaveCandlesCountParam.Value);
                 series.CandlesAll.Merge(candles);
+            }
+
+            if (_needToRemoveCandlesFromMemory.Value == true
+                && series.CandlesAll.Count > _neadToSaveCandlesCountParam.Value
+                && _serverTime.Minute % 15 == 0
+                && _serverTime.Second == 0
+            )
+            {
+                series.CandlesAll.RemoveRange(0, series.CandlesAll.Count - 1 - _neadToSaveCandlesCountParam.Value);
             }
 
             _candleSeriesToSend.Enqueue(series);

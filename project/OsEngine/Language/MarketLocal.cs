@@ -766,6 +766,10 @@ namespace OsEngine.Language
             "Eng:Remove Trades From Memory_" +
             "Ru:Удалять трейды из памяти_");
 
+        public string ServerParam9 => OsLocalization.ConvertToLocString(
+            "Eng:Remove Candles From Memory_" +
+            "Ru:Удалять свечи из памяти_");
+
         public string UseStock => OsLocalization.ConvertToLocString(
             "Eng:Stock_" +
             "Ru:Акции_");
