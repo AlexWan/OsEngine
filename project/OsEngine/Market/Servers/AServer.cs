@@ -1348,7 +1348,7 @@ namespace OsEngine.Market.Servers
 
             if (_needToRemoveCandlesFromMemory.Value == true
                 && series.CandlesAll.Count > _neadToSaveCandlesCountParam.Value
-                //&& _serverTime.Minute % 15 == 0
+                && _serverTime.Minute % 15 == 0
                 && _serverTime.Second == 0
             )
             {
