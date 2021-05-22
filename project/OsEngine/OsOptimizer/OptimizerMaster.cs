@@ -751,6 +751,7 @@ namespace OsEngine.OsOptimizer
                 newFazeOut.TypeFaze = OptimizerFazeType.OutOfSample;
                 newFazeOut.TimeStart = newFaze.TimeStart.AddDays(daysOnInSample);
                 newFazeOut.TimeEnd = newFazeOut.TimeStart.AddDays(daysOnForward);
+                newFazeOut.TimeStart = newFazeOut.TimeStart.AddDays(1);
                 newFazeOut.Days = daysOnForward;
                 Fazes.Add(newFazeOut);
             }

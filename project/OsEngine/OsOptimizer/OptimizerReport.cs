@@ -50,6 +50,7 @@ namespace OsEngine.OsOptimizer
 
 
         }
+
     }
 
     public class OptimizerReport
@@ -185,6 +186,7 @@ namespace OsEngine.OsOptimizer
                 tab.SecurityName = bot.TabsSimple[i].Securiti.Name;
                 tab.PositionsCount = positions.Count;
                 tab.TotalProfit = PositionStaticticGenerator.GetAllProfitInPunkt(posesArray);
+                tab.TotalProfitPersent = PositionStaticticGenerator.GetAllProfitPersent(posesArray);
                 tab.MaxDrowDawn = PositionStaticticGenerator.GetMaxDownPersent(posesArray);
 
                 tab.AverageProfit = tab.TotalProfit / (posesArray.Length+1);
@@ -210,6 +212,7 @@ namespace OsEngine.OsOptimizer
             {
                 PositionsCount = TabsReports[0].PositionsCount;
                 TotalProfit = TabsReports[0].TotalProfit;
+                TotalProfitPersent = TabsReports[0].TotalProfitPersent;
                 MaxDrowDawn = TabsReports[0].MaxDrowDawn;
                 AverageProfit = TabsReports[0].AverageProfit;
                 AverageProfitPercent = TabsReports[0].AverageProfitPercent;
@@ -226,6 +229,7 @@ namespace OsEngine.OsOptimizer
 
                 PositionsCount = allPositionsForAllTabs.Count;
                 TotalProfit = PositionStaticticGenerator.GetAllProfitInPunkt(posesArray);
+                TotalProfitPersent = PositionStaticticGenerator.GetAllProfitPersent(posesArray);
                 MaxDrowDawn = PositionStaticticGenerator.GetMaxDownPersent(posesArray);
                 AverageProfit = PositionStaticticGenerator.GetMidleProfitInPunkt(posesArray);
                 AverageProfitPercent = PositionStaticticGenerator.GetMidleProfitInPersent(posesArray);
@@ -238,6 +242,8 @@ namespace OsEngine.OsOptimizer
         public int PositionsCount;
 
         public decimal TotalProfit;
+
+        public decimal TotalProfitPersent;
 
         public decimal MaxDrowDawn;
 
@@ -265,6 +271,7 @@ namespace OsEngine.OsOptimizer
             result += ProfitFactor + "@";
             result += PayOffRatio + "@";
             result += Recovery + "@";
+            result += TotalProfitPersent + "@";
 
             // сохраняем параметры в строковом представлении
             string param = "";
@@ -302,15 +309,16 @@ namespace OsEngine.OsOptimizer
             ProfitFactor = Convert.ToDecimal(str[6]);
             PayOffRatio = Convert.ToDecimal(str[7]);
             Recovery = Convert.ToDecimal(str[8]);
+            TotalProfitPersent = Convert.ToDecimal(str[9]);
 
-            string [] param = str[9].Split('&');
+            string [] param = str[10].Split('&');
 
             for(int i = 0;i < param.Length-1;i++)
             {
                 StrategyParameters.Add(param[i]);
             }
 
-            string [] reportTabs = str[10].Split('&');
+            string [] reportTabs = str[11].Split('&');
 
             for(int i = 0;i < reportTabs.Length-1;i++)
             {
@@ -318,10 +326,7 @@ namespace OsEngine.OsOptimizer
                 faze.LoadFromSaveString(reportTabs[i]);
                 TabsReports.Add(faze);
             }
-
-
         }
-
     }
 
     public class OptimizerReportTab
@@ -333,6 +338,8 @@ namespace OsEngine.OsOptimizer
         public int PositionsCount;
 
         public decimal TotalProfit;
+
+        public decimal TotalProfitPersent;
 
         public decimal MaxDrowDawn;
 
@@ -360,6 +367,7 @@ namespace OsEngine.OsOptimizer
             result += ProfitFactor + "*";
             result += PayOffRatio + "*";
             result += Recovery + "*";
+            result += TotalProfitPersent + "*";
 
             return result;
         }
@@ -378,6 +386,7 @@ namespace OsEngine.OsOptimizer
             ProfitFactor = save[7].ToDecimal();
             PayOffRatio = save[8].ToDecimal();
             Recovery = save[9].ToDecimal();
+            TotalProfitPersent = save[10].ToDecimal();
         }
     }
 }

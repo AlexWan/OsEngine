@@ -796,7 +796,9 @@
     <Compile Include="OsMiner\Patterns\PatternTime.cs" />
     <Compile Include="OsMiner\Patterns\PatternVolume.cs" />
     <Compile Include="OsOptimizer\OptEntity\AsyncBotFactory.cs" />
+    <Compile Include="OsOptimizer\OptEntity\LineChartPainter.cs" />
     <Compile Include="OsOptimizer\OptEntity\WalkForwardPeriodsPainter.cs" />
+    <Compile Include="OsOptimizer\OptEntity\KlasterizationFactory.cs" />
     <Compile Include="OsOptimizer\OptimizerExecutor.cs" />
     <Compile Include="OsOptimizer\OptimizerMaster.cs" />
     <Compile Include="OsOptimizer\OptimizerReport.cs" />

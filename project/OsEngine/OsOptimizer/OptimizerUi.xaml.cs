@@ -855,8 +855,7 @@ namespace OsEngine.OsOptimizer
             _master.TabsSimpleNamesAndTimeFrames = _tabs;
         }
 
-        // table of papers and time frames for indexes
-        // таблица Бумаг и таймФреймов для индексов
+        // table of papers and time frames for indexes таблица Бумаг и таймФреймов для индексов
 
         /// <summary>
         /// table with tab settings with indexes
@@ -1650,7 +1649,7 @@ namespace OsEngine.OsOptimizer
             PaintTableResults();
         }
 
-        // optimization results table/таблица результатов оптимизации
+        // optimization results table / таблица результатов оптимизации
 
         /// <summary>
         /// table with optimization steps

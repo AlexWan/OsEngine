@@ -38,8 +38,20 @@ namespace OsEngine.OsOptimizer
             WindowsFormsHostDependences, WindowsFormsHostColumnsResults,
             WindowsFormsHostPieResults, ComboBoxSortDependencesResults);
             _resultsCharting.LogMessageEvent += _master.SendLogMessage;
+            ComboBoxSortDependencesResults.SelectionChanged += ComboBoxSortDependencesResults_SelectionChanged;
             CreateTableFazes();
             CreateTableResults();
+
+
+            LabelSortBy.Content = OsLocalization.Optimizer.Label39;
+            LabelOptimSeries.Content = OsLocalization.Optimizer.Label30;
+            LabelTableResults.Content = OsLocalization.Optimizer.Label31;
+            TabControlResultsSeries.Header = OsLocalization.Optimizer.Label37;
+            TabControlResultsOutOfSampleResults.Header = OsLocalization.Optimizer.Label38;
+            TabControl3DMap.Header = OsLocalization.Optimizer.Label44;
+            LabelTotalProfitInOutOfSample.Content = OsLocalization.Optimizer.Label43;
+            ButtonSaveInFile.Content = OsLocalization.Optimizer.Label45;
+            ButtonLoadFromFile.Content = OsLocalization.Optimizer.Label46;
         }
 
         public void Paint(List<OptimazerFazeReport> reports)
@@ -69,6 +81,7 @@ namespace OsEngine.OsOptimizer
 
                 PaintTableFazes();
                 PaintTableResults();
+                PaintOutOfSampleEquityChart();
 
                 _resultsCharting.ReLoad(_reports);
             }
@@ -453,31 +466,31 @@ namespace OsEngine.OsOptimizer
                 row.Cells.Add(cell3);
 
                 DataGridViewTextBoxCell cell4 = new DataGridViewTextBoxCell();
-                cell4.Value = report.TotalProfit;
+                cell4.Value = report.TotalProfit.ToStringWithNoEndZero() + " (" + report.TotalProfitPersent.ToStringWithNoEndZero() + "%)";
                 row.Cells.Add(cell4);
 
                 DataGridViewTextBoxCell cell5 = new DataGridViewTextBoxCell();
-                cell5.Value = report.MaxDrowDawn;
+                cell5.Value = report.MaxDrowDawn.ToStringWithNoEndZero();
                 row.Cells.Add(cell5);
 
                 DataGridViewTextBoxCell cell6 = new DataGridViewTextBoxCell();
-                cell6.Value = report.AverageProfit;
+                cell6.Value = report.AverageProfit.ToStringWithNoEndZero();
                 row.Cells.Add(cell6);
 
                 DataGridViewTextBoxCell cell7 = new DataGridViewTextBoxCell();
-                cell7.Value = report.AverageProfitPercent;
+                cell7.Value = report.AverageProfitPercent.ToStringWithNoEndZero();
                 row.Cells.Add(cell7);
 
                 DataGridViewTextBoxCell cell8 = new DataGridViewTextBoxCell();
-                cell8.Value = report.ProfitFactor;
+                cell8.Value = report.ProfitFactor.ToStringWithNoEndZero();
                 row.Cells.Add(cell8);
 
                 DataGridViewTextBoxCell cell9 = new DataGridViewTextBoxCell();
-                cell9.Value = report.PayOffRatio;
+                cell9.Value = report.PayOffRatio.ToStringWithNoEndZero();
                 row.Cells.Add(cell9);
 
                 DataGridViewTextBoxCell cell10 = new DataGridViewTextBoxCell();
-                cell10.Value = report.Recovery;
+                cell10.Value = report.Recovery.ToStringWithNoEndZero();
                 row.Cells.Add(cell10);
 
 
@@ -584,31 +597,31 @@ namespace OsEngine.OsOptimizer
             row.Cells.Add(cell3);
 
             DataGridViewTextBoxCell cell4 = new DataGridViewTextBoxCell();
-            cell4.Value = report.TotalProfit;
+            cell4.Value = report.TotalProfit.ToStringWithNoEndZero();
             row.Cells.Add(cell4);
 
             DataGridViewTextBoxCell cell5 = new DataGridViewTextBoxCell();
-            cell5.Value = report.MaxDrowDawn;
+            cell5.Value = report.MaxDrowDawn.ToStringWithNoEndZero();
             row.Cells.Add(cell5);
 
             DataGridViewTextBoxCell cell6 = new DataGridViewTextBoxCell();
-            cell6.Value = report.AverageProfit;
+            cell6.Value = report.AverageProfit.ToStringWithNoEndZero();
             row.Cells.Add(cell6);
 
             DataGridViewTextBoxCell cell7 = new DataGridViewTextBoxCell();
-            cell7.Value = report.AverageProfitPercent;
+            cell7.Value = report.AverageProfitPercent.ToStringWithNoEndZero();
             row.Cells.Add(cell7);
 
             DataGridViewTextBoxCell cell8 = new DataGridViewTextBoxCell();
-            cell8.Value = report.ProfitFactor;
+            cell8.Value = report.ProfitFactor.ToStringWithNoEndZero();
             row.Cells.Add(cell8);
 
             DataGridViewTextBoxCell cell9 = new DataGridViewTextBoxCell();
-            cell9.Value = report.PayOffRatio;
+            cell9.Value = report.PayOffRatio.ToStringWithNoEndZero();
             row.Cells.Add(cell9);
 
             DataGridViewTextBoxCell cell10 = new DataGridViewTextBoxCell();
-            cell10.Value = report.Recovery;
+            cell10.Value = report.Recovery.ToStringWithNoEndZero();
             row.Cells.Add(cell10);
 
             row.Cells.Add(null);
@@ -820,6 +833,71 @@ namespace OsEngine.OsOptimizer
             {
                 MessageBox.Show(error.ToString());
             }
+        }
+
+        // кластеризация
+
+        KlasterizationFactory _klasterizator;
+
+        private void ButtonLoad_Click(object sender, RoutedEventArgs e)
+        {
+            int num = Convert.ToInt32(TextBoxFazeNum.Text);
+
+            _klasterizator = new KlasterizationFactory();
+            _klasterizator.RebuildMapByFaze(num, _reports);
+
+            PaintMap();
+        }
+
+        private void PaintMap()
+        {
+
+
+        }
+
+        // эквити OutOfSample общая
+
+        private void ComboBoxSortDependencesResults_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            PaintOutOfSampleEquityChart();
+        }
+
+        private void PaintOutOfSampleEquityChart()
+        {
+            List<decimal> values = new List<decimal>();
+
+
+            for (int i = 0;i < _reports.Count;i+=2)
+            {
+                // берём из ИнСампле таблицу роботов
+                SortResults(_reports[i].Reports);
+                List<OptimizerReport> bots = _reports[i].Reports;
+
+                OptimizerReport bestBot = _reports[i].Reports[0];
+
+                // находим этого робота в аутОфСемпл
+
+                if(i + 1 == _reports.Count)
+                {
+                    break;
+                }
+
+                OptimizerReport bestBotInOutOfSample 
+                    = _reports[i + 1].Reports.Find(b => b.BotName.Replace(" OutOfSample", "") == bestBot.BotName.Replace(" InSample", ""));
+
+                decimal value = bestBotInOutOfSample.TotalProfitPersent;
+
+                if(values.Count == 0)
+                {
+                    values.Add(value);
+                }
+                else
+                {
+                    values.Add(value + values[values.Count - 1]);
+                }
+            }
+
+            LineChartPainter.Paint(WindowsFormsHostOutOfSampleEquity, values, "Out Of Sample Equity");
         }
     }
 }
