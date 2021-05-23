@@ -13,6 +13,7 @@ using OsEngine.Robots;
 using MessageBox = System.Windows.MessageBox;
 using ProgressBar = System.Windows.Controls.ProgressBar;
 using OsEngine.OsOptimizer.OptEntity;
+using System.Threading;
 
 namespace OsEngine.OsOptimizer
 {
@@ -25,6 +26,7 @@ namespace OsEngine.OsOptimizer
         public OptimizerUi()
         {
             InitializeComponent();
+            Thread.Sleep(200);
 
             _master = new OptimizerMaster();
             _master.StartPaintLog(HostLog);

@@ -48,7 +48,6 @@ namespace OsEngine.OsOptimizer
             LabelTableResults.Content = OsLocalization.Optimizer.Label31;
             TabControlResultsSeries.Header = OsLocalization.Optimizer.Label37;
             TabControlResultsOutOfSampleResults.Header = OsLocalization.Optimizer.Label38;
-            TabControl3DMap.Header = OsLocalization.Optimizer.Label44;
             LabelTotalProfitInOutOfSample.Content = OsLocalization.Optimizer.Label43;
             ButtonSaveInFile.Content = OsLocalization.Optimizer.Label45;
             ButtonLoadFromFile.Content = OsLocalization.Optimizer.Label46;
@@ -835,26 +834,6 @@ namespace OsEngine.OsOptimizer
             }
         }
 
-        // кластеризация
-
-        KlasterizationFactory _klasterizator;
-
-        private void ButtonLoad_Click(object sender, RoutedEventArgs e)
-        {
-            int num = Convert.ToInt32(TextBoxFazeNum.Text);
-
-            _klasterizator = new KlasterizationFactory();
-            _klasterizator.RebuildMapByFaze(num, _reports);
-
-            PaintMap();
-        }
-
-        private void PaintMap()
-        {
-
-
-        }
-
         // эквити OutOfSample общая
 
         private void ComboBoxSortDependencesResults_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -897,7 +876,7 @@ namespace OsEngine.OsOptimizer
                 }
             }
 
-            LineChartPainter.Paint(WindowsFormsHostOutOfSampleEquity, values, "Out Of Sample Equity");
+            ChartPainterLine.Paint(WindowsFormsHostOutOfSampleEquity, values);
         }
     }
 }

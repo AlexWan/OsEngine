@@ -24,22 +24,13 @@
                             </TabItem>
                             <TabItem Name="TabControlResultsOutOfSampleResults" Header="Out of sample statistic">
                                 <Grid >
-                                    <WindowsFormsHost x:Name="WindowsFormsHostDependences"  Foreground="Black" Margin="0,37,0,222" HorizontalAlignment="Left" Width="546"/>
+                                    <WindowsFormsHost x:Name="WindowsFormsHostDependences"  Foreground="Black" Margin="0,37,0,222" HorizontalAlignment="Left" Width="600"/>
                                     <ComboBox Name="ComboBoxSortDependencesResults" HorizontalAlignment="Left" Margin="182,10,0,0" VerticalAlignment="Top" Width="214" Height="22"/>
                                     <Label Name="LabelSortBy" Content="Sort by" HorizontalAlignment="Left" Margin="28,10,0,0" VerticalAlignment="Top"/>
                                     <WindowsFormsHost x:Name="WindowsFormsHostColumnsResults"  Foreground="Black" Margin="0,0,588,10" Height="207" VerticalAlignment="Bottom"/>
                                     <WindowsFormsHost x:Name="WindowsFormsHostPieResults"  Foreground="Black" Margin="0,0,0,10" Height="207" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="583"/>
-                                    <WindowsFormsHost x:Name="WindowsFormsHostOutOfSampleEquity"  Foreground="Black" Margin="551,37,0,222"/>
-                                    <Label x:Name="LabelTotalProfitInOutOfSample" Content="Profit In OutOfSample %" HorizontalAlignment="Right" Margin="0,9,246,0" VerticalAlignment="Top"/>
-                                </Grid>
-                            </TabItem>
-                            <TabItem Name="TabControl3DMap" Header="3D map">
-                                <Grid >
-                                    <WindowsFormsHost x:Name="WindowsFormHotPap"  Foreground="Black" Margin="0,10,0,0" HorizontalAlignment="Right" Width="628"/>
-                                    <Label Content="Clusterization" HorizontalAlignment="Left" Margin="10,10,0,0" Height="29"  FontWeight="Bold" VerticalAlignment="Top"/>
-                                    <Button x:Name="ButtonLoad" Content="LoadParams" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top" Width="141" Click="ButtonLoad_Click"/>
-                                    <Label Content="Faze" HorizontalAlignment="Left" Margin="186,12,0,0" VerticalAlignment="Top"/>
-                                    <TextBox Name="TextBoxFazeNum" HorizontalAlignment="Left" Margin="169,38,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Height="25"/>
+                                    <WindowsFormsHost x:Name="WindowsFormsHostOutOfSampleEquity"  Foreground="Black" Margin="605,37,0,222"/>
+                                    <Label x:Name="LabelTotalProfitInOutOfSample" Content="Profit In OutOfSample %" HorizontalAlignment="Right" Margin="0,9,192,0" VerticalAlignment="Top"/>
                                 </Grid>
                             </TabItem>
                         </TabControl>

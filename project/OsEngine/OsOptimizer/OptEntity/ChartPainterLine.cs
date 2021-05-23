@@ -8,13 +8,13 @@ using Color = System.Drawing.Color;
 
 namespace OsEngine.OsOptimizer.OptEntity
 {
-    public class LineChartPainter
+    public class ChartPainterLine
     {
-        public static void Paint(WindowsFormsHost host, List<decimal> line, string label)
+        public static void Paint(WindowsFormsHost host, List<decimal> line)
         {
             // 1 создаём чарт с горизонтальными линиями
 
-            Chart chart = CreateChart(label);
+            Chart chart = CreateChart();
             host.Child = chart;
 
             // 2 в цикле, загоняем туда серии данных
@@ -23,8 +23,9 @@ namespace OsEngine.OsOptimizer.OptEntity
 
         }
 
-        private static Chart CreateChart(string label)
+        private static Chart CreateChart()
         {
+            
             Chart _chart = null;
 
             try

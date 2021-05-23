@@ -210,7 +210,7 @@ namespace OsEngine.OsOptimizer
             column0.CellTemplate = cell0;
             column0.HeaderText = "Period";
             column0.ReadOnly = true;
-            column0.Width = 150;
+            column0.Width = 80;
 
             _gridDep.Columns.Add(column0);
 
@@ -218,7 +218,7 @@ namespace OsEngine.OsOptimizer
             column1.CellTemplate = cell0;
             column1.HeaderText = "Start";
             column1.ReadOnly = false;
-            column1.Width = 150;
+            column1.Width = 80;
             _gridDep.Columns.Add(column1);
 
             DataGridViewColumn column21 = new DataGridViewColumn();
