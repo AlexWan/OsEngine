@@ -36,9 +36,10 @@ namespace OsEngine.OsOptimizer
 
             _resultsCharting = new OptimizerReportCharting(
             WindowsFormsHostDependences, WindowsFormsHostColumnsResults,
-            WindowsFormsHostPieResults, ComboBoxSortDependencesResults);
+            WindowsFormsHostPieResults, ComboBoxSortDependencesResults, 
+            WindowsFormsHostOutOfSampleEquity, LabelTotalProfitInOutOfSample);
+
             _resultsCharting.LogMessageEvent += _master.SendLogMessage;
-            ComboBoxSortDependencesResults.SelectionChanged += ComboBoxSortDependencesResults_SelectionChanged;
             CreateTableFazes();
             CreateTableResults();
 
@@ -80,7 +81,6 @@ namespace OsEngine.OsOptimizer
 
                 PaintTableFazes();
                 PaintTableResults();
-                PaintOutOfSampleEquityChart();
 
                 _resultsCharting.ReLoad(_reports);
             }
@@ -833,50 +833,6 @@ namespace OsEngine.OsOptimizer
                 MessageBox.Show(error.ToString());
             }
         }
-
-        // эквити OutOfSample общая
-
-        private void ComboBoxSortDependencesResults_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            PaintOutOfSampleEquityChart();
-        }
-
-        private void PaintOutOfSampleEquityChart()
-        {
-            List<decimal> values = new List<decimal>();
-
-
-            for (int i = 0;i < _reports.Count;i+=2)
-            {
-                // берём из ИнСампле таблицу роботов
-                SortResults(_reports[i].Reports);
-                List<OptimizerReport> bots = _reports[i].Reports;
-
-                OptimizerReport bestBot = _reports[i].Reports[0];
-
-                // находим этого робота в аутОфСемпл
-
-                if(i + 1 == _reports.Count)
-                {
-                    break;
-                }
-
-                OptimizerReport bestBotInOutOfSample 
-                    = _reports[i + 1].Reports.Find(b => b.BotName.Replace(" OutOfSample", "") == bestBot.BotName.Replace(" InSample", ""));
-
-                decimal value = bestBotInOutOfSample.TotalProfitPersent;
-
-                if(values.Count == 0)
-                {
-                    values.Add(value);
-                }
-                else
-                {
-                    values.Add(value + values[values.Count - 1]);
-                }
-            }
-
-            ChartPainterLine.Paint(WindowsFormsHostOutOfSampleEquity, values);
-        }
+        
     }
 }

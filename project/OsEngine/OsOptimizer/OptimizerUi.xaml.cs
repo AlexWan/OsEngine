@@ -165,7 +165,7 @@ namespace OsEngine.OsOptimizer
 
             _resultsCharting = new OptimizerReportCharting(
                 WindowsFormsHostDependences, WindowsFormsHostColumnsResults,
-                WindowsFormsHostPieResults, ComboBoxSortDependencesResults);
+                WindowsFormsHostPieResults, ComboBoxSortDependencesResults,null,null);
             _resultsCharting.LogMessageEvent += _master.SendLogMessage;
 
             this.Closing += Ui_Closing;
