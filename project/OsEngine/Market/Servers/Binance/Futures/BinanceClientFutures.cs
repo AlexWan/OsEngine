@@ -1228,11 +1228,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
         /// <param name="e"></param>
         private void WsError(object sender, EventArgs e)
         {
-            if (e.ToString().Contains("Unknown order"))
-            {
-                return;
-            }
-            SendLogMessage("Ошибка из ws4net :" + e, LogMessageType.Error);
+            //if (e.ToString().Contains("Unknown order"))
+            //{
+            //    return;
+            //}
+            SendLogMessage("Ошибка из ws4net :" + e.ToString(), LogMessageType.Error);
         }
 
         /// <summary>
@@ -1303,12 +1303,35 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                             if (mes.Contains("code"))
                             {
-                                SendLogMessage(JsonConvert.DeserializeAnonymousType(mes, new ErrorMessage()).msg, LogMessageType.Error);
+                                // если есть code ошибки, то пытаемся распарсить
+                                ErrorMessage _err = new ErrorMessage();
+
+                                try
+                                {
+                                    _err = JsonConvert.DeserializeAnonymousType(mes, new ErrorMessage());
+                                }
+                                catch (Exception e)
+                                {
+                                    // если не смогли распарсить, то просто покажем что пришло
+                                    _err.code = 9999;
+                                    _err.msg = mes;
+                                }
+                                SendLogMessage("code:" + _err.code.ToString() + ",msg:" + _err.msg, LogMessageType.Error);
                             }
 
                             else if (mes.Contains("\"e\"" + ":" + "\"ORDER_TRADE_UPDATE\""))
                             {
-                                var ord = JsonConvert.DeserializeAnonymousType(mes, new OrderUpdResponse());
+                                // если ошибки в ответе ордера
+                                OrderUpdResponse ord = new OrderUpdResponse();
+                                try
+                                {
+                                    ord = JsonConvert.DeserializeAnonymousType(mes, new OrderUpdResponse());
+                                }
+                                catch (Exception)
+                                {
+                                    SendLogMessage("error in order update:" + mes, LogMessageType.Error);
+                                    continue;
+                                }
 
                                 var order = ord.o;
 
