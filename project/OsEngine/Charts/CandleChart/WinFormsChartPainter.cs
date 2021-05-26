@@ -1781,6 +1781,21 @@ namespace OsEngine.Charts.CandleChart
                     buySellSeries.MarkerStyle = MarkerStyle.Triangle;
                 }
 
+                // очищаем временные отметки сделок, если они не совпадают со свечками
+                if (_timePoints != null && _timePoints.Count > 0)
+                {
+                    TimeAxisXPoint firstChartTP = _timePoints.Find(tp => tp.PositionXPoint > 0);
+
+                    if (_myCandles != null && _myCandles.Count > 1 && firstChartTP != null &&
+                        (firstChartTP.PositionXPoint > _myCandles.Count - 1
+                         || firstChartTP.PositionTime < _myCandles[firstChartTP.PositionXPoint].TimeStart
+                         || (_myCandles.Count - 1 > firstChartTP.PositionXPoint &&
+                             firstChartTP.PositionTime > _myCandles[firstChartTP.PositionXPoint + 1].TimeStart)))
+                    {
+                        _timePoints.Clear();
+                    }
+                }
+
                 for (int i = 0; i < deals.Count; i++)
                 {
                     List<MyTrade> trades = deals[i].MyTrades;
