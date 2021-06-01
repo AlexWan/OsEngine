@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Windows.Forms;
 
 namespace OsEngine.Entity
 {
@@ -211,6 +212,23 @@ namespace OsEngine.Entity
             oldCandles.AddRange(newCandles);
 
             return oldCandles;
+        }
+
+        public static string ToFormatString(this DataGridViewRow row)
+        {
+            string result = "";
+
+            for(int i = 0; row.Cells != null && i < row.Cells.Count;i++)
+            {
+                if(row.Cells[i].Value == null)
+                {
+                    result +=  ",";
+                    continue;
+                }
+                result += row.Cells[i].Value.ToString() + ",";
+            }
+
+            return result;
         }
 
     }

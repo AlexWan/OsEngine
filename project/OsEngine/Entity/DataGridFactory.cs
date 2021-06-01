@@ -10,12 +10,13 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using OsEngine.Language;
+using System.IO;
 
 namespace OsEngine.Entity
 {
     public class DataGridFactory
     {
-        public static DataGridView GetDataGridView(DataGridViewSelectionMode selectionMode, DataGridViewAutoSizeRowsMode rowsSizeMode)
+        public static DataGridView GetDataGridView(DataGridViewSelectionMode selectionMode, DataGridViewAutoSizeRowsMode rowsSizeMode, bool createSaveMenu = false)
         {
             DataGridView grid = new DataGridView();
 
@@ -32,7 +33,6 @@ namespace OsEngine.Entity
             grid.BackColor = Color.FromArgb(21, 26, 30);
             grid.BackgroundColor = Color.FromArgb(21, 26, 30);
            
-
             grid.GridColor = Color.FromArgb(17, 18, 23);
             grid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
             grid.BorderStyle = BorderStyle.None;
@@ -43,8 +43,6 @@ namespace OsEngine.Entity
             style.SelectionBackColor = Color.FromArgb(17, 18, 23);
             style.ForeColor = Color.FromArgb(154, 156, 158);
           
-
-
             grid.DefaultCellStyle = style;
             grid.ColumnHeadersDefaultCellStyle = style;
 
@@ -95,7 +93,78 @@ namespace OsEngine.Entity
 
             };
 
+            if(createSaveMenu)
+            {
+                List <MenuItem> items = new List<MenuItem>();
 
+                items.Add(new MenuItem("Save table in file"));
+
+                items[items.Count - 1].Click += delegate (Object sender, EventArgs e)
+                {
+                    if(grid.Rows.Count == 0)
+                    {
+                        return;
+                    }
+
+                    try
+                    {
+                        SaveFileDialog myDialog = new SaveFileDialog();
+                        myDialog.Filter = "*.txt|";
+                        myDialog.ShowDialog();
+
+                        if (string.IsNullOrEmpty(myDialog.FileName))
+                        {
+                            MessageBox.Show(OsLocalization.Journal.Message1);
+                            return;
+                        }
+
+                        string fileName = myDialog.FileName;
+                        if (fileName.Split('.').Length == 1)
+                        {
+                            fileName = fileName + ".txt";
+                        }
+
+                        string saveStr = "";
+
+                        for (int i = 0; i < grid.Columns.Count; i++)
+                        {
+                            saveStr += grid.Columns[i].HeaderText + ",";
+                        }
+
+                        saveStr += "\r\n";
+
+                        for (int i = 0; i < grid.Rows.Count; i++)
+                        {
+                            saveStr += grid.Rows[i].ToFormatString() + "\r\n";
+                        }
+
+
+                        StreamWriter writer = new StreamWriter(fileName);
+                        writer.Write(saveStr);
+                        writer.Close();
+                    }
+                    catch (Exception error)
+                    {
+                        MessageBox.Show(error.ToString());
+                    }
+                };
+
+                ContextMenu menu = new ContextMenu(items.ToArray());
+                grid.ContextMenu = menu;
+
+                grid.Click += delegate(Object sender, EventArgs e)
+                {
+                    MouseEventArgs mouse = (MouseEventArgs)e;
+                    if (mouse.Button != MouseButtons.Right)
+                    {
+                        return;
+                    }
+
+                    grid.ContextMenu = menu;
+                    grid.ContextMenu.Show(grid, new Point(mouse.X, mouse.Y));
+                    
+                };
+            }
 
             return grid;
         }
