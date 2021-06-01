@@ -172,7 +172,8 @@ namespace OsEngine.OsOptimizer
                 OptimizerReportTab tab = new OptimizerReportTab();
                 List<Position> positions =
                     bot.TabsSimple[i].GetJournal().AllPosition.FindAll(
-                        pos => pos.State != PositionStateType.OpeningFail);
+                        pos => pos.State != PositionStateType.OpeningFail &&
+                        pos.State != PositionStateType.Open && pos.State != PositionStateType.ClosingFail);
 
                 if (positions.Count == 0)
                 {
