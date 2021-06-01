@@ -864,7 +864,7 @@ namespace OsEngine.Market.Servers.Transaq
 
             if (!string.IsNullOrEmpty(clientInfo.Union))
             {
-                var needClient = _clients.Find(c => string.IsNullOrEmpty(c.Union));
+                var needClient = _clients.Find(c => string.IsNullOrEmpty(clientInfo.Union));
 
                 if (needClient == null)
                 {
