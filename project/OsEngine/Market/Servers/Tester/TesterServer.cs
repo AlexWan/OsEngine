@@ -1968,14 +1968,14 @@ namespace OsEngine.Market.Servers.Tester
                 {
                     if (minPrice > realPrice)
                     {
-                        realPrice = minPrice;
+                        realPrice = lastCandle.Open;
                     }
                 }
                 if (order.Side == Side.Sell)
                 {
                     if (maxPrice < realPrice)
                     {
-                        realPrice = maxPrice;
+                        realPrice = lastCandle.Open;
                     }
                 }
 
