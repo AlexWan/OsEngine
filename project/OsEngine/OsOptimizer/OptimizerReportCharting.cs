@@ -270,6 +270,13 @@ namespace OsEngine.OsOptimizer
             column6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridDep.Columns.Add(column6);
 
+            DataGridViewColumn column7 = new DataGridViewColumn();
+            column7.CellTemplate = cell0;
+            column7.HeaderText = "Position count";
+            column7.ReadOnly = false;
+            column7.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridDep.Columns.Add(column7);
+
             _gridDep.Rows.Add(null, null);
 
             _hostDataGrid.Child = _gridDep;
@@ -391,6 +398,9 @@ namespace OsEngine.OsOptimizer
                 cell8.Value = Math.Round(reportToPaint.AverageProfitPercent,4).ToStringWithNoEndZero();
                 row.Cells.Add(cell8);
 
+                DataGridViewTextBoxCell cell9 = new DataGridViewTextBoxCell();
+                cell9.Value = reportToPaint.PositionsCount.ToString();
+                row.Cells.Add(cell9);
 
                 _gridDep.Rows.Add(row);
             }

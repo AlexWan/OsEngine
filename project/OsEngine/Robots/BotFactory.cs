@@ -107,8 +107,7 @@ namespace OsEngine.Robots
         {
             BotPanel bot = null;
             // примеры и бесплатные боты
-
-            if (isScript)
+            if (isScript && bot == null)
             {
                 bot = CreateScriptStrategyByName(nameClass, name, startProgram);
                 return bot;
@@ -285,6 +284,7 @@ namespace OsEngine.Robots
         // Scripts
         public static List<string> GetScriptsNamesStrategy()
         {
+
             if (Directory.Exists(@"Custom") == false)
             {
                 Directory.CreateDirectory(@"Custom");

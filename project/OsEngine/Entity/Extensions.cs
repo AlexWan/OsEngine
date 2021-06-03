@@ -225,7 +225,7 @@ namespace OsEngine.Entity
                     result +=  ",";
                     continue;
                 }
-                result += row.Cells[i].Value.ToString() + ",";
+                result += row.Cells[i].Value.ToString().Replace("\n"," ").Replace("\r"," ").Replace(",",".") + ",";
             }
 
             return result;
