@@ -167,6 +167,10 @@ namespace OsEngine.Language
             "Eng:Max drowdown % portfolio_" +
             "Ru:Макс просадка % капитал_");
 
+        public string GridRow16 => OsLocalization.ConvertToLocString(
+            "Eng:Commission amount_" +
+            "Ru:Объём комиссии_");
+
         public string Message1 => OsLocalization.ConvertToLocString(
             "Eng:You must select a file to save!_" +
             "Ru:Необходимо выбрать файл для сохранения!_");

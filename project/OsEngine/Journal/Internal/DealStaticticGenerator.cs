@@ -67,6 +67,7 @@ namespace OsEngine.Journal.Internal
                  Максимум подряд
 
                  Макс просадка %
+                 Размер комиссии
             */
             /*Net Profit/Loss
                 Net Profit/Loss
@@ -94,6 +95,7 @@ namespace OsEngine.Journal.Internal
                 At most in a row.
 
                 Max drawdown %
+                Comission amount
             */
 
 
@@ -130,6 +132,7 @@ namespace OsEngine.Journal.Internal
             report.Add(GetMaxLossSeries(deals).ToString(new CultureInfo("ru-RU")));//maximum series of winning trades/максимальная серия выигрышных сделок
             report.Add("");
             report.Add(Math.Round(GetMaxDownPersent(deals), 6).ToString(new CultureInfo("ru-RU"))); //maximum drawdown in percent/максимальная просадка в процентах
+            report.Add(Math.Round(GetCommissionAmount(deals), 6).ToString(new CultureInfo("ru-RU"))); //maximum drawdown in percent/максимальная просадка в процентах
 
             /*report += Math.Round(GetSharp(), 2).ToString(new CultureInfo("ru-RU"));
             */
@@ -723,6 +726,27 @@ namespace OsEngine.Journal.Internal
             }
 
             return Round(maxDown);
+        }
+
+        /// <summary>
+        /// take maximum drawdown
+        /// взять максимальную просадку
+        /// </summary>
+        public static decimal GetCommissionAmount(Position[] deals)
+        {
+            if (deals.Length == 0)
+            {
+                return 0;
+            }
+
+            decimal commissionTotal = 0;
+
+            for(int i = 0;i < deals.Length;i++)
+            {
+                commissionTotal += deals[i].CommissionTotal();
+            }
+
+            return Round(commissionTotal);
         }
 
         /// <summary>
