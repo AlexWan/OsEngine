@@ -338,7 +338,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                             // ignore
                         }
                     }
-                    if (_startProgram == StartProgram.IsOsTrader)
+                    if (_startProgram == StartProgram.IsOsTrader && Tabs.Count > 0)
                     {
                         var candlesToKeep = ((OsEngine.Market.Servers.AServer)Tabs[0].MyServer)._neadToSaveCandlesCountParam.Value;
                         var needToRemove = ((OsEngine.Market.Servers.AServer)Tabs[0].MyServer)._needToRemoveCandlesFromMemory.Value;
