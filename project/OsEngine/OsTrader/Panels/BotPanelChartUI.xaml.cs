@@ -27,23 +27,25 @@ namespace OsEngine.OsTrader.Panels
         {
             InitializeComponent();
             _panel = panel;
-
-            _panel.StartPaint(GridChart, ChartHostPanel, HostGlass, HostOpenPosition,
-                HostClosePosition, HostBotLog, RectChart,
-                HostAllert, TabControlBotTab, TextBoxPrice, GreedChartPanel);
-
-            LocationChanged += RobotUi_LocationChanged;
-            TabControlBotsName.SizeChanged += TabControlBotsName_SizeChanged;
+            StartPaint();
+            Local();
 
             Closed += delegate (object sender, EventArgs args)
             {
                 _panel.StopPaint();
                 _panel = null;
             };
-
-            Local();
         }
 
+        public void StartPaint()
+        {
+            _panel.StartPaint(GridChart, ChartHostPanel, HostGlass, HostOpenPosition,
+             HostClosePosition, HostBotLog, RectChart,
+             HostAllert, TabControlBotTab, TextBoxPrice, GreedChartPanel);
+
+            LocationChanged += RobotUi_LocationChanged;
+            TabControlBotsName.SizeChanged += TabControlBotsName_SizeChanged;
+        }
 
         private BotPanel _panel;
 
@@ -67,6 +69,12 @@ namespace OsEngine.OsTrader.Panels
 
         private void Local()
         {
+            if (!TabPozition.CheckAccess())
+            {
+                TabPozition.Dispatcher.Invoke(new Action(Local));
+                return;
+            }
+
             TabPozition.Header = OsLocalization.Trader.Label18;
             TabItemClosedPos.Header = OsLocalization.Trader.Label19;
             TabItemLogBot.Header = OsLocalization.Trader.Label23;

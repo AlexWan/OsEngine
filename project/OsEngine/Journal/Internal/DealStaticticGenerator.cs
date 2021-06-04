@@ -729,8 +729,8 @@ namespace OsEngine.Journal.Internal
         }
 
         /// <summary>
-        /// take maximum drawdown
-        /// взять максимальную просадку
+        /// take Commission
+        /// взять комиссию
         /// </summary>
         public static decimal GetCommissionAmount(Position[] deals)
         {

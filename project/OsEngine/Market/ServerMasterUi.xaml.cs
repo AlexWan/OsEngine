@@ -147,6 +147,11 @@ namespace OsEngine.Market
 
             List<IServer> servers = ServerMaster.GetServers();
 
+            if (servers != null)
+            {
+                servers = servers.FindAll(s => s.ServerType != ServerType.Optimizer);
+            }
+
             List<ServerType> serverTypes = ServerMaster.ServersTypes;
 
             for (int i = 0; servers != null && i < servers.Count; i++)
