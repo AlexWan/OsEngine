@@ -197,13 +197,13 @@ namespace OsEngine.Market.Servers
 
         private ServerParameterBool _neadToSaveCandlesParam;
 
-        private ServerParameterInt _neadToSaveCandlesCountParam;
+        public ServerParameterInt _neadToSaveCandlesCountParam;
 
         private ServerParameterBool _needToLoadBidAskInTrades;
 
         private ServerParameterBool _needToRemoveTradesFromMemory;
 
-        private ServerParameterBool _needToRemoveCandlesFromMemory;
+        public ServerParameterBool _needToRemoveCandlesFromMemory;
 
         public bool NeedToHideParams = false;
 

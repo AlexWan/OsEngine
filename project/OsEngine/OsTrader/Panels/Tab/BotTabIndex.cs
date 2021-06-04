@@ -338,6 +338,19 @@ namespace OsEngine.OsTrader.Panels.Tab
                             // ignore
                         }
                     }
+                    if (_startProgram == StartProgram.IsOsTrader && Tabs.Count > 0)
+                    {
+                        var candlesToKeep = ((OsEngine.Market.Servers.AServer)Tabs[0].MyServer)._neadToSaveCandlesCountParam.Value;
+                        var needToRemove = ((OsEngine.Market.Servers.AServer)Tabs[0].MyServer)._needToRemoveCandlesFromMemory.Value;
+
+                        if (needToRemove
+                            && Candles[Candles.Count - 1].TimeStart.Minute % 15 == 0
+                            && Candles[Candles.Count - 1].TimeStart.Second == 0
+                            && Candles.Count > candlesToKeep)
+                        {
+                            Candles.RemoveRange(0, Candles.Count - 1 - candlesToKeep);
+                        }
+                    }
 
                     _chartMaster.SetCandles(Candles);
 
