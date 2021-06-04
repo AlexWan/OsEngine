@@ -66,17 +66,26 @@ namespace OsEngine.Market.Connectors
                     CheckBoxSetForeign.IsEnabled = false;
                     ComboBoxTypeServer.SelectedItem = ServerType.Tester;
                     //ComboBoxClass.SelectedItem = ServerMaster.GetServers()[0].Securities[0].NameClass;
-                    //ComboBoxPortfolio.SelectedItem = ServerMaster.GetServers()[0].Portfolios[0].Number;
+                    ComboBoxPortfolio.Items.Add(ServerMaster.GetServers()[0].Portfolios[0].Number);
+                    ComboBoxPortfolio.SelectedItem = ServerMaster.GetServers()[0].Portfolios[0].Number;
 
                     connectorBot.ServerType = ServerType.Tester;
                     _selectedType = ServerType.Tester;
+
+                    ComboBoxPortfolio.IsEnabled = false;
+                    ComboBoxTypeServer.IsEnabled = false;
+                    
+                }
+                else
+                {
+                    LoadPortfolioOnBox();
                 }
 
                 LoadClassOnBox();
 
                 LoadSecurityOnBox();
 
-                LoadPortfolioOnBox();
+                
 
                 ComboBoxClass.SelectionChanged += ComboBoxClass_SelectionChanged;
 
