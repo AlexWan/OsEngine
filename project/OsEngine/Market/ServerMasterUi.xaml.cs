@@ -78,6 +78,8 @@ namespace OsEngine.Market
 
                     if (serv == null)
                     {
+                        servers.RemoveAt(i);
+                        i--;
                         continue;
                     }
 
@@ -149,7 +151,7 @@ namespace OsEngine.Market
 
             if (servers != null)
             {
-                servers = servers.FindAll(s => s.ServerType != ServerType.Optimizer);
+                servers = servers.FindAll(s => s != null && s.ServerType != ServerType.Optimizer);
             }
 
             List<ServerType> serverTypes = ServerMaster.ServersTypes;

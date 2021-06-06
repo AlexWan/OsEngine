@@ -780,6 +780,12 @@ namespace OsEngine.Market.Connectors
                         {
                             for (int i = 0; i < servers.Count; i++)
                             {
+                                if (servers[i] == null)
+                                {
+                                    servers.RemoveAt(i);
+                                    i--;
+                                    continue;
+                                }
                                 if (servers[i].ServerType == ServerType.Optimizer &&
                                     ((OptimizerServer)servers[i]).NumberServer == this.ServerUid)
                                 {

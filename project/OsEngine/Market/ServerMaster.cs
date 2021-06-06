@@ -383,6 +383,8 @@ namespace OsEngine.Market
 
                     if (ser == null)
                     {
+                        _servers.RemoveAt(i);
+                        i--;
                         continue;
                     }
 
