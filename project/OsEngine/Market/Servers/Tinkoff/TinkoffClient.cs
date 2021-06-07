@@ -731,6 +731,11 @@ namespace OsEngine.Market.Servers.Tinkoff
                                 if (security != null)
                                 {
                                     myTrade.SecurityNameCode = security.Name;
+                                    if (security.Lot != 0) // Правка Коровин Юрий, правка позваляющая открывать сделки в тиньков
+                                    {
+                                        myTrade.Volume = myTrade.Volume / security.Lot;
+                                    }
+                                     
                                 }
 
                                 MyTradeEvent(myTrade);
