@@ -753,6 +753,26 @@ namespace OsEngine.OsOptimizer
             try
             {
                 SaveFileDialog myDialog = new SaveFileDialog();
+
+                string saveFileName = _master.StrategyName;
+                
+                if(_master.TabsSimpleNamesAndTimeFrames != null && _master.TabsSimpleNamesAndTimeFrames.Count != 0)
+                {
+                    saveFileName += "_" + _master.TabsSimpleNamesAndTimeFrames[0].NameSecurity;
+                    saveFileName += "_" + _master.TabsSimpleNamesAndTimeFrames[0].TimeFrame;
+                }
+
+                IIStrategyParameter regime = _master._optimizerExecutor._parameters.Find(p => p.Name == "Regime");
+
+                if(regime != null)
+                {
+
+                    saveFileName += "_" + ((StrategyParameterString)regime).ValueString;
+                }
+                saveFileName = saveFileName.Replace(".txt", "");
+
+                myDialog.FileName = saveFileName;
+
                 myDialog.Filter = "*.txt|";
                 myDialog.ShowDialog();
 

@@ -172,7 +172,8 @@ namespace OsEngine.OsTrader.Panels
                 {
                     _tabBotTab.Dispatcher.Invoke(new Action<Grid,WindowsFormsHost, WindowsFormsHost, WindowsFormsHost,
                     WindowsFormsHost, WindowsFormsHost, Rectangle, WindowsFormsHost, TabControl, TextBox, Grid>
-                    (StartPaint), gridChart, hostChart, glass, hostOpenDeals, hostCloseDeals, boxLog, rectangle, hostAlerts, tabBotTab, textBoxLimitPrice);
+                    (StartPaint), gridChart, hostChart, glass, hostOpenDeals, hostCloseDeals, 
+                    boxLog, rectangle, hostAlerts, tabBotTab, textBoxLimitPrice, gridChartControlPanel);
                     return;
                 }
 
@@ -596,8 +597,18 @@ position => position.State != PositionStateType.OpeningFail
                 MessageBox.Show(OsLocalization.Trader.Label51);
                 return;
             }
-            ParemetrsUi ui = new ParemetrsUi(_parameters);
-            ui.ShowDialog();
+            _paramUi = new ParemetrsUi(_parameters);
+            _paramUi.ShowDialog();
+        }
+
+        private ParemetrsUi _paramUi;
+
+        public void CloseParameterDialog()
+        {
+            if (_paramUi != null)
+            {
+                _paramUi.Close();
+            }
         }
 
         /// <summary>

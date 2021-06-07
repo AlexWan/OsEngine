@@ -77,16 +77,28 @@ namespace OsEngine.Entity
 
             _comboBoxTimeFrame.SelectedItem = TimeFrame;
 
+            if(_comboBoxTimeFrame.SelectedItem == null)
+            {
+                _comboBoxTimeFrame.SelectedItem = TimeFrame.Min5;
+            }
+
+            Enum.TryParse(_comboBoxTimeFrame.SelectedItem.ToString(), out TimeFrame);
+            _timeFrameBuilder = new TimeFrameBuilder();
+
+            _timeFrameBuilder.TimeFrame = TimeFrame;
+            TimeSpan timeSpan = _timeFrameBuilder.TimeFrameTimeSpan;
+            ResultCandleTimeFrame = timeSpan.TotalMinutes;
+
             _comboBoxTimeFrame.SelectionChanged += _comboBoxTimeFrame_SelectionChanged1;
 
             _textBoxSourceFile.Text = _sourceFile;
             _textBoxExitFile.Text = _exitFile;
 
-            _timeFrameBuilder = new TimeFrameBuilder();
 
             Log log = new Log("OsDataMaster", StartProgram.IsOsData);
             log.StartPaint(logFormsHost);
             log.Listen(this);
+
 
 
         }

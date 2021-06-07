@@ -76,7 +76,7 @@ namespace OsEngine.OsOptimizer
         /// strategy parameters
         /// параметры стратегии
         /// </summary>
-        private List<IIStrategyParameter> _parameters;
+        public List<IIStrategyParameter> _parameters;
 
         /// <summary>
         /// stop the optimization process

@@ -884,7 +884,7 @@ namespace OsEngine.OsOptimizer
         /// the object that optimizes
         /// объект который производит оптимизацию
         /// </summary>
-        private OptimizerExecutor _optimizerExecutor;
+        public OptimizerExecutor _optimizerExecutor;
 
         /// <summary>
         /// run optimization
