@@ -13,12 +13,17 @@ namespace OsEngine.Entity
             {
                 return null;
             }
+            
+            // это для того чтобы из названия бумаги удалять кавычки (правка @cibermax).
+            // К примеру ПАО ЛУКОЙЛ, АДР tiker LKOD@GS не получалось создать папку выдавало исключение
+            char x = '"';
 
             value = value
                 .Replace("/", "")
                 .Replace("*", "")
                 .Replace(":", "")
-                .Replace(";", "");
+                .Replace(";", "")
+                .Replace(x.ToString(), "");// это для того чтобы из названия бумаги удалять кавычки (правка @cibermax).;
 
             return value;
 
