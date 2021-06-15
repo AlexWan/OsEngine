@@ -1352,7 +1352,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         /// <param name="volume">volume / объём позиции</param>
         /// <param name="price">order price / цена выставляемой заявки</param>
-        /// /// <param name="orderCount">iceberg orders count / количество ордеров в айсберге</param>
+        /// <param name="orderCount">iceberg orders count / количество ордеров в айсберге</param>
         /// <param name="signalType">open position signal name / название сигнала для входа. Будет записано в свойство позиции: SignalTypeOpen</param>
         public Position BuyAtAceberg(decimal volume, decimal price, int orderCount, string signalType)
         {
@@ -1518,6 +1518,19 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 SetNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        /// <summary>
+        /// add new order to exist position at market / 
+        /// добавить в позицию Лонг новую заявку по маркету 
+        /// </summary>
+        /// <param name="position">position to which the order will be added / позиция к которой будет добавлена заявка</param>
+        /// <param name="volume">volume / объём</param>
+        /// <param name="signalType">open position signal name / название сигнала для входа. Будет записано в свойство позиции: SignalTypeOpen</param>
+        public void BuyAtMarketToPosition(Position position, decimal volume, string signalType)
+        {
+            position.SignalTypeOpen = signalType;
+            BuyAtMarketToPosition(position, volume);
         }
 
         /// <summary>
@@ -2123,6 +2136,31 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// close all positions at market / 
+        /// закрыть все позиции по рынку
+        /// </summary>
+        /// <param name="signalType">close position signal name / название сигнала для выхода. Будет записан в свойство позиции: SignalTypeClose</param>
+        public void CloseAllAtMarket(string signalType)
+        {
+            try
+            {
+                List<Position> positions = _journal.OpenPositions;
+
+                if (positions != null)
+                {
+                    for (int i = 0; i < positions.Count; i++)
+                    {
+                        CloseAtMarket(positions[i], positions[i].OpenVolume, signalType);
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
         /// close a position at any price / 
         /// закрыть позицию по любой цене
         /// </summary>
@@ -2181,7 +2219,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         /// <param name="position">position to be closed / позиция которую будем закрывать</param>
         /// <param name="volume">volume / объём нужный к закрытию</param>
-        /// <param name="signalType">close position signal name / название сигнала для входа. Будет записано в свойство позиции: SignalTypeOpen</param>
+        /// <param name="signalType">close position signal name / название сигнала для выхода. Будет записан в свойство позиции: SignalTypeClose</param>
         public void CloseAtMarket(Position position, decimal volume, string signalType)
         {
             position.SignalTypeClose = signalType;
@@ -2284,7 +2322,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="priceLimit">order price / цена ордера</param>
         /// <param name="volume">volume required to close / объём нужный к закрытию</param>
         /// <param name="orderCount">iceberg orders count / количество ордеров для айсберга</param>
-        /// <param name="signalType">close position signal name / название сигнала для входа. Будет записано в свойство позиции: SignalTypeOpen</param>
+        /// <param name="signalType">close position signal name / название сигнала для выхода. Будет записано в свойство позиции: SignalTypeClose</param>
         public void CloseAtAceberg(Position position, decimal priceLimit, decimal volume, int orderCount, string signalType)
         {
             position.SignalTypeClose = signalType;
@@ -2410,6 +2448,33 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// close all robot open orders from the system / 
+        /// отозвать все открытые роботом ордера из системы
+        /// </summary>
+        /// <param name="signalType">close position signal name / название сигнала для выхода. Будет записано в свойство позиции: SignalTypeClose</param>
+        public void CloseAllOrderInSystem(string signalType)
+        {
+            try
+            {
+                List<Position> positions = _journal.OpenPositions;
+
+                if (positions == null)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < positions.Count; i++)
+                {
+                    CloseAllOrderToPosition(positions[i], signalType);
+                }
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
         /// withdraw all orders from the system associated with this transaction / 
         /// отозвать все ордера из системы, связанные с этой сделкой
         /// </summary>
@@ -2453,6 +2518,17 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 SetNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        /// <summary>
+        /// withdraw all orders from the system associated with this transaction / 
+        /// отозвать все ордера из системы, связанные с этой сделкой
+        /// </summary>
+		/// <param name = "signalType" > close position signal name / название сигнала для выхода. Будет записан в свойство позиции: SignalTypeClose</param>
+        public void CloseAllOrderToPosition(Position position, string signalType)
+        {
+            position.SignalTypeClose = signalType;
+            CloseAllOrderToPosition(position);
         }
 
         /// <summary>
