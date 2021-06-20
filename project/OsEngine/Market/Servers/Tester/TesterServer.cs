@@ -1037,7 +1037,7 @@ namespace OsEngine.Market.Servers.Tester
                     candle2.SetCandleFromString(reader.ReadLine());
 
                     security[security.Count - 1].DataType = SecurityTesterDataType.Candle;
-                    security[security.Count - 1].TimeFrameSpan = candle2.TimeStart - candle.TimeStart;
+                    security[security.Count - 1].TimeFrameSpan = GetTimeSpan(reader);
                     security[security.Count - 1].TimeFrame = GetTimeFrame(security[security.Count - 1].TimeFrameSpan);
                     // step price / шаг цены
 
@@ -1304,6 +1304,56 @@ namespace OsEngine.Market.Servers.Tester
             if (TestingNewSecurityEvent != null)
             {
                 TestingNewSecurityEvent();
+            }
+        }
+
+        // получить истинный TimeFrameSpan
+        // get true TimeFrameSpan
+        private TimeSpan GetTimeSpan(StreamReader reader)
+        {
+
+            Candle lastCandle = null;
+
+            TimeSpan lastTimeSpan = TimeSpan.MaxValue;
+
+            int counter = 0;
+
+            while (true)
+            {
+                if (reader.EndOfStream)
+                {
+                    return TimeSpan.Zero;
+                }
+
+                if (lastCandle == null)
+                {
+                    lastCandle = new Candle();
+                    lastCandle.SetCandleFromString(reader.ReadLine());
+                    continue;
+                }
+
+                var currentCandle = new Candle();
+                currentCandle.SetCandleFromString(reader.ReadLine());
+
+                var currentTimeSpan = currentCandle.TimeStart - lastCandle.TimeStart;
+
+                lastCandle = currentCandle;
+
+                if (currentTimeSpan < lastTimeSpan)
+                {
+                    lastTimeSpan = currentTimeSpan;
+                    continue;
+                }
+
+                if (currentTimeSpan == lastTimeSpan)
+                {
+                    counter++;
+                }
+
+                if (counter >= 100)
+                {
+                    return lastTimeSpan;
+                }
             }
         }
 
