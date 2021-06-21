@@ -153,7 +153,7 @@ namespace OsEngine.Market.Servers.Tester
                 {
                     _activSet = reader.ReadLine();
                     _slipageToSimpleOrder = Convert.ToInt32(reader.ReadLine());
-                    StartPortfolio = Convert.ToDecimal(reader.ReadLine());
+                    StartPortfolio = reader.ReadLine().ToDecimal();
                     Enum.TryParse(reader.ReadLine(), out _typeTesterData);
                     Enum.TryParse(reader.ReadLine(), out _sourceDataType);
                     _pathToFolder = reader.ReadLine();
@@ -1037,7 +1037,7 @@ namespace OsEngine.Market.Servers.Tester
                     candle2.SetCandleFromString(reader.ReadLine());
 
                     security[security.Count - 1].DataType = SecurityTesterDataType.Candle;
-                    security[security.Count - 1].TimeFrameSpan = candle2.TimeStart - candle.TimeStart;
+                    security[security.Count - 1].TimeFrameSpan = GetTimeSpan(reader);
                     security[security.Count - 1].TimeFrame = GetTimeFrame(security[security.Count - 1].TimeFrameSpan);
                     // step price / шаг цены
 
@@ -1285,17 +1285,17 @@ namespace OsEngine.Market.Servers.Tester
 
                 if (secu != null)
                 {
-                    secu.Lot = Convert.ToDecimal(array[i][1]);
-                    secu.Go = Convert.ToDecimal(array[i][2]);
-                    secu.PriceStepCost = Convert.ToDecimal(array[i][3]);
-                    secu.PriceStep = Convert.ToDecimal(array[i][4]);
+                    secu.Lot = array[i][1].ToDecimal();
+                    secu.Go = array[i][2].ToDecimal();
+                    secu.PriceStepCost = array[i][3].ToDecimal();
+                    secu.PriceStep = array[i][4].ToDecimal();
 
-                    if(SecuritiesTester[SecuritiesTester.Count -1].Security.Name == secu.Name)
+                    if (SecuritiesTester[SecuritiesTester.Count -1].Security.Name == secu.Name)
                     {
-                        SecuritiesTester[SecuritiesTester.Count - 1].Security.Lot = Convert.ToDecimal(array[i][1]);
-                        SecuritiesTester[SecuritiesTester.Count - 1].Security.Go = Convert.ToDecimal(array[i][2]);
-                        SecuritiesTester[SecuritiesTester.Count - 1].Security.PriceStepCost = Convert.ToDecimal(array[i][3]);
-                        SecuritiesTester[SecuritiesTester.Count - 1].Security.PriceStep = Convert.ToDecimal(array[i][4]);
+                        SecuritiesTester[SecuritiesTester.Count - 1].Security.Lot = array[i][1].ToDecimal();
+                        SecuritiesTester[SecuritiesTester.Count - 1].Security.Go = array[i][2].ToDecimal();
+                        SecuritiesTester[SecuritiesTester.Count - 1].Security.PriceStepCost = array[i][3].ToDecimal();
+                        SecuritiesTester[SecuritiesTester.Count - 1].Security.PriceStep = array[i][4].ToDecimal();
 
                     }
                 }
@@ -1539,10 +1539,10 @@ namespace OsEngine.Market.Servers.Tester
 
                 if (secu != null)
                 {
-                    secu.Lot = Convert.ToDecimal(array[i][1]);
-                    secu.Go = Convert.ToDecimal(array[i][2]);
-                    secu.PriceStepCost = Convert.ToDecimal(array[i][3]);
-                    secu.PriceStep = Convert.ToDecimal(array[i][4]);
+                    secu.Lot = array[i][1].ToDecimal();
+                    secu.Go = array[i][2].ToDecimal();
+                    secu.PriceStepCost = array[i][3].ToDecimal();
+                    secu.PriceStep = array[i][4].ToDecimal();
                 }
             }
 
@@ -1791,16 +1791,66 @@ namespace OsEngine.Market.Servers.Tester
 
                 if (secu != null)
                 {
-                    secu.Lot = Convert.ToDecimal(array[i][1]);
-                    secu.Go = Convert.ToDecimal(array[i][2]);
-                    secu.PriceStepCost = Convert.ToDecimal(array[i][3]);
-                    secu.PriceStep = Convert.ToDecimal(array[i][4]);
+                    secu.Lot = array[i][1].ToDecimal();
+                    secu.Go = array[i][2].ToDecimal();
+                    secu.PriceStepCost = array[i][3].ToDecimal();
+                    secu.PriceStep = array[i][4].ToDecimal();
                 }
             }
 
             if (TestingNewSecurityEvent != null)
             {
                 TestingNewSecurityEvent();
+            }
+        }
+
+        // получить истинный TimeFrameSpan
+        // get true TimeFrameSpan
+        private TimeSpan GetTimeSpan(StreamReader reader)
+        {
+
+            Candle lastCandle = null;
+
+            TimeSpan lastTimeSpan = TimeSpan.MaxValue;
+
+            int counter = 0;
+
+            while (true)
+            {
+                if (reader.EndOfStream)
+                {
+                    return TimeSpan.Zero;
+                }
+
+                if (lastCandle == null)
+                {
+                    lastCandle = new Candle();
+                    lastCandle.SetCandleFromString(reader.ReadLine());
+                    continue;
+                }
+
+                var currentCandle = new Candle();
+                currentCandle.SetCandleFromString(reader.ReadLine());
+
+                var currentTimeSpan = currentCandle.TimeStart - lastCandle.TimeStart;
+
+                lastCandle = currentCandle;
+
+                if (currentTimeSpan < lastTimeSpan)
+                {
+                    lastTimeSpan = currentTimeSpan;
+                    continue;
+                }
+
+                if (currentTimeSpan == lastTimeSpan)
+                {
+                    counter++;
+                }
+
+                if (counter >= 100)
+                {
+                    return lastTimeSpan;
+                }
             }
         }
 

@@ -312,7 +312,18 @@ namespace OsEngine.Market.Servers.Binance.Futures
         /// </summary>
         public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf)
         {
-            return _client.GetCandles(nameSec, tf);
+            List<Candle> candles = _client.GetCandles(nameSec, tf);
+
+            if (candles != null && candles.Count != 0)
+            {
+                for (int i = 0; i < candles.Count; i++)
+                {
+                    candles[i].State = CandleState.Finished;
+                }
+                candles[candles.Count - 1].State = CandleState.Started;
+            }
+
+            return candles;
         }
 
         //parsing incoming data

@@ -5775,9 +5775,16 @@ namespace OsEngine.Charts.CandleChart
                 {
                     // If a range has already been selected, assign first and last one based on this range
                     // если уже выбран какой-то диапазон, назначаем первую и последнюю исходя из этого диапазона
-                    firstX = Convert.ToInt32(candleArea.AxisX.ScaleView.Position);
-                    lastX = Convert.ToInt32(candleArea.AxisX.ScaleView.Position) +
-                            Convert.ToInt32(candleArea.AxisX.ScaleView.Size) + 1;
+                    try
+                    {
+                        firstX = Convert.ToInt32(candleArea.AxisX.ScaleView.Position);
+                        lastX = Convert.ToInt32(candleArea.AxisX.ScaleView.Position) +
+                                Convert.ToInt32(candleArea.AxisX.ScaleView.Size) + 1;
+                    }
+                    catch
+                    {
+                        return;
+                    }
                 }
 
                 if (firstX < 0)

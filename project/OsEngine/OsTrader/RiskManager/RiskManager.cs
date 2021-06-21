@@ -58,14 +58,31 @@ namespace OsEngine.OsTrader.RiskManager
             {
                 await Task.Delay(2000);
 
-                for (int i = 0; i < RiskManagersToCheck.Count; i++)
+                try
                 {
-                    RiskManagersToCheck[i].CheckJournals();
-                }
+                    for (int i = 0; i < RiskManagersToCheck.Count; i++)
+                    {
+                        if (RiskManagersToCheck[i] == null)
+                        {
+                            RiskManagersToCheck.RemoveAt(i);
+                            i--;
+                            continue;
+                        }
+                    }
 
-                if (!MainWindow.ProccesIsWorked)
+                    for (int i = 0; i < RiskManagersToCheck.Count; i++)
+                    {
+                        RiskManagersToCheck[i].CheckJournals();
+                    }
+
+                    if (!MainWindow.ProccesIsWorked)
+                    {
+                        return;
+                    }
+                }
+                catch
                 {
-                    return;
+                    // ignore
                 }
             }
         }

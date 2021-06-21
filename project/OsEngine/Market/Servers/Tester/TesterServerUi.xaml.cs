@@ -307,7 +307,7 @@ namespace OsEngine.Market.Servers.Tester
         {
             try
             {
-                _server.StartPortfolio = Convert.ToDecimal(TextBoxStartDepozit.Text);
+                _server.StartPortfolio = TextBoxStartDepozit.Text.ToDecimal();
                 _server.Save();
             }
             catch (Exception)
