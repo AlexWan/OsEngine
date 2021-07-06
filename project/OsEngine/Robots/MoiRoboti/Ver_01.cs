@@ -234,7 +234,7 @@ namespace OsEngine.Robots.MoiRoboti
                     if (last_hi_candl < _vkl.MarketDepth.Asks[0].Price) // если цена выше последнего хая 
                     {
                         _mnog = 1; // начальная инициализация  для вычисления количества входов Piramida
-                        dola_depa = old_vol_dv; //при отсутсвие позиции присваивается значение взятое при старте  оса (из файла)
+                        dola_depa = old_vol_dv; //при отсутствие позиции присваивается значение взятое при старте  оса (из файла)
                         ZaprosBalahca();
                         Rac4et_baz_bal();
                         if (tek_bal_potfela / dola_depa > 10.1m)
@@ -336,7 +336,7 @@ namespace OsEngine.Robots.MoiRoboti
         public override void ShowIndividualSettingsDialog() // диалог с индивид настройками робота
         {
              Ver_01_Ui ui = new Ver_01_Ui(this);
-             ui.ShowDialog();
+             ui.Show();
         }
         public void Save() // сохранение настроек робота в файл
         {
