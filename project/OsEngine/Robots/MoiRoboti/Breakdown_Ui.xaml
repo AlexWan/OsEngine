@@ -1,0 +1,15 @@
+﻿<Window x:Class="OsEngine.Robots.MoiRoboti.Breakdown_Ui"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OsEngine.Robots.MoiRoboti"
+        mc:Ignorable="d" FontSize="22"
+        Title="Отображение текущих параметров" Height="200" Width="500">
+   
+        
+    <Grid Width="480">
+        <Label Name="Label_Name_parom" FontSize="22" Content="Лучший бид в стакане" HorizontalAlignment="Left" Margin="30,20,0,0" VerticalAlignment="Top" Height="45" Width="255"/>
+        <TextBlock Name="TextBlock_for_param_1" HorizontalAlignment="Left" FontSize="22" Margin="290,25,0,0" TextWrapping="Wrap" Text="{Binding Price}" VerticalAlignment="Top" Height="40" Width="145"/>
+    </Grid>
+</Window>

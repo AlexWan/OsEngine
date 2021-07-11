@@ -35,6 +35,7 @@ namespace OsEngine.Robots
         {
             List<string> result = new List<string>();
 
+            result.Add("Breakdown");
             result.Add("Frank");
             result.Add("Frank_2");
             result.Add("Frankbol");
@@ -121,8 +122,13 @@ namespace OsEngine.Robots
                 bot = CreateScriptStrategyByName(nameClass, name, startProgram);
                 return bot;
             }
-            if (nameClass == "Hftone")
+            
+            if (nameClass == "Breakdown")
             {
+                bot = new Breakdown(name, startProgram);
+            }
+            if (nameClass == "Hftone")
+            { 
                 bot = new Hftone(name, startProgram);
             }
             if (nameClass == "Frank_2")

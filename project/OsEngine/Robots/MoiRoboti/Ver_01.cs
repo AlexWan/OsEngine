@@ -7,7 +7,6 @@ using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
-using protobuf.ws;
 
 namespace OsEngine.Robots.MoiRoboti
 {

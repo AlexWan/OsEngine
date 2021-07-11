@@ -767,6 +767,10 @@
     <Compile Include="Robots\MarketMaker\PairTraderSimpleUi.xaml.cs">
       <DependentUpon>PairTraderSimpleUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Robots\MoiRoboti\Breakdown.cs" />
+    <Compile Include="Robots\MoiRoboti\Breakdown_Ui.xaml.cs">
+      <DependentUpon>Breakdown_Ui.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Robots\MoiRoboti\Depozit.cs" />
     <Compile Include="Robots\MoiRoboti\Frankbol_for_bnb.cs" />
     <Compile Include="Robots\MoiRoboti\Frankbol.cs" />
@@ -1266,6 +1270,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Robots\MarketMaker\PairTraderSimpleUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Robots\MoiRoboti\Breakdown_Ui.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
