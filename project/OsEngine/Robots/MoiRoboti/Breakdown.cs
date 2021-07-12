@@ -9,32 +9,20 @@ using OsEngine.Market.Servers;
 using System.Threading;
 using System.Threading.Tasks;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace OsEngine.Robots.MoiRoboti
 {
     public class Breakdown : BotPanel, INotifyPropertyChanged  // типа класс модель 
     {
-        public event PropertyChangedEventHandler PropertyChanged;
-
         private BotTabSimple _tab; // поле хранения вкладки робота 
 
-        private decimal _price =0; // поле хранения цены
-
-        public decimal Price 
-        {   
-            get { return _price; }
-            set
-            {
-                _price = value;
-                СallUpdate(nameof(Price));
-            }
-        }
-
-        protected  void СallUpdate(string name)
+        public decimal _price; // поле хранения цены
+        public decimal Price   // свойство цены
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Price)));
+            get => _price;
+            set => Set(ref _price, value);
         }
-
 
         public Breakdown(string name, StartProgram startProgram) : base(name, startProgram) // конструктор
         {
@@ -43,11 +31,9 @@ namespace OsEngine.Robots.MoiRoboti
             _tab.BestBidAskChangeEvent += _tab_BestBidAskChangeEvent;
         }
 
-        public void _tab_BestBidAskChangeEvent(decimal arg1, decimal arg2)
+        public void _tab_BestBidAskChangeEvent(decimal arg1, decimal arg2) // событие обновления лучшей цены
         {
-            _price = _tab.MarketDepth.Bids[0].Price;
-            string a1 = Price.ToString();
-            СallUpdate(a1);
+            Price = _tab.MarketDepth.Bids[0].Price;
         }
 
         public override string GetNameStrategyType()
@@ -59,8 +45,27 @@ namespace OsEngine.Robots.MoiRoboti
         {
             Breakdown_Ui ui = new Breakdown_Ui(this);
             ui.Show();
-            
+        }
+
+ // реализация интерфейса PropertyChanged-событий изменения свойств
+
+        public event PropertyChangedEventHandler PropertyChanged; // событие изменения свойств
+   
+        protected void СallUpdate(string name)  // сигнализирует об изменении свойств
+        {
+               PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+ 
+        protected void Set<T>(ref T field, T value, [CallerMemberName] string name = "") // сверяет значения любых типов данных
+        {
+            if (!field.Equals(value))
+            {
+                field = value;
+                СallUpdate(name);
+            }
         }
 
     }
 }
+        
+ 
