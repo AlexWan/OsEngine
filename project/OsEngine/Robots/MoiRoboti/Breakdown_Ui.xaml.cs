@@ -27,7 +27,6 @@ namespace OsEngine.Robots.MoiRoboti
     /// </summary>
     public partial class Breakdown_Ui : Window
     {
-        
         public Breakdown _bot;
     
         public Breakdown_Ui(Breakdown bot)
@@ -35,13 +34,6 @@ namespace OsEngine.Robots.MoiRoboti
             InitializeComponent();
             _bot = bot;
             DataContext = bot;
-
         }
-
-        public void Button_Click(object sender, RoutedEventArgs e)
-        {
-            
-        }
-   
     }
 }

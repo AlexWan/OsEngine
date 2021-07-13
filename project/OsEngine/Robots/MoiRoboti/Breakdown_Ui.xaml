@@ -10,6 +10,9 @@
         
     <Grid Width="480">
         <Label Name="Label_Name_parom" FontSize="22" Content="Лучший бид в стакане" HorizontalAlignment="Left" Margin="30,20,0,0" VerticalAlignment="Top" Height="45" Width="255"/>
-        <TextBlock Name="TextBlock_for_param_1" HorizontalAlignment="Left" FontSize="22" Margin="290,25,0,0" TextWrapping="Wrap" Text="{Binding Price}" VerticalAlignment="Top" Height="40" Width="145"/>
+        <TextBlock Name="TextBlock_for_param_1" HorizontalAlignment="Left" FontSize="22" Margin="305,25,0,0" TextWrapping="Wrap" Text="{Binding Price}" VerticalAlignment="Top" Height="40" Width="145"/>
+        <Label x:Name="Label_Name_parom_2" FontSize="22" Content="Текущее значение махи" HorizontalAlignment="Left" Margin="30,85,0,0" VerticalAlignment="Top" Height="45" Width="255"/>
+        <TextBlock x:Name="TextBlock_for_param_2" HorizontalAlignment="Left" FontSize="22" Margin="305,90,0,0" TextWrapping="Wrap" Text="{Binding Volum_ma}" VerticalAlignment="Top" Height="40" Width="145"/>
+
     </Grid>
 </Window>
