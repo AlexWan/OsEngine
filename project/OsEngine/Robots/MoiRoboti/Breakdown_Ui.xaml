@@ -5,14 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.Robots.MoiRoboti"
         mc:Ignorable="d" FontSize="22"
-        Title="Отображение текущих параметров" Height="200" Width="500">
+        Title="Отображение текущих параметров" Height="200" Width="574">
    
         
-    <Grid Width="480">
+    <Grid Margin="10,0,2,0">
         <Label Name="Label_Name_parom" FontSize="22" Content="Лучший бид в стакане" HorizontalAlignment="Left" Margin="30,20,0,0" VerticalAlignment="Top" Height="45" Width="255"/>
-        <TextBlock Name="TextBlock_for_param_1" HorizontalAlignment="Left" FontSize="22" Margin="305,25,0,0" TextWrapping="Wrap" Text="{Binding Price}" VerticalAlignment="Top" Height="40" Width="145"/>
-        <Label x:Name="Label_Name_parom_2" FontSize="22" Content="Текущее значение махи" HorizontalAlignment="Left" Margin="30,85,0,0" VerticalAlignment="Top" Height="45" Width="255"/>
-        <TextBlock x:Name="TextBlock_for_param_2" HorizontalAlignment="Left" FontSize="22" Margin="305,90,0,0" TextWrapping="Wrap" Text="{Binding Volum_ma}" VerticalAlignment="Top" Height="40" Width="145"/>
+        <TextBlock Name="TextBlock_for_param_1" HorizontalAlignment="Left" FontSize="22" Margin="391,25,0,0" TextWrapping="Wrap" Text="{Binding Price}" VerticalAlignment="Top" Height="40" Width="145"/>
+        <Label x:Name="Label_Name_parom_2" FontSize="22" Content="Значение индекса Damping" HorizontalAlignment="Left" Margin="30,85,0,0" VerticalAlignment="Top" Height="45" Width="300"/>
+        <TextBlock x:Name="TextBlock_for_param_2" HorizontalAlignment="Left" FontSize="22" Margin="391,90,0,0" TextWrapping="Wrap" Text="{Binding Index}" VerticalAlignment="Top" Height="40" Width="145"/>
 
     </Grid>
 </Window>

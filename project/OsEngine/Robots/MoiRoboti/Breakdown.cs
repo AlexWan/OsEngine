@@ -10,20 +10,25 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using OsEngine.Indicators;
+using System.Drawing;
 
 namespace OsEngine.Robots.MoiRoboti
 {
-    public class Breakdown : BotPanel, INotifyPropertyChanged  // типа класс модель 
+    /// <summary>
+    /// основной класс (модель) с интерфейсом INotifyPropertyChanged
+    /// </summary>
+    public class Breakdown : BotPanel, INotifyPropertyChanged 
     {
-        private MovingAverage _machka; // поле для сохранения машки
-        private decimal _volum_ma; 
-        public decimal Volum_ma // свойство переменной (значение) machki
+        /// <summary>
+        ///  свойства и поля для байдинга данных на форму
+        /// </summary>
+        private decimal index; 
+        public decimal Index // свойство переменной (значение)
         {
-            get => _volum_ma;
-            set => Set(ref _volum_ma, value);
+            get => index;
+            set => Set(ref index, value);
         }
- 
-        private BotTabSimple _tab; // поле хранения вкладки робота 
 
         private decimal _price; // поле хранения цены
         public decimal Price   // свойство цены
@@ -32,22 +37,206 @@ namespace OsEngine.Robots.MoiRoboti
             set => Set(ref _price, value);
         }
 
-        public Breakdown(string name, StartProgram startProgram) : base(name, startProgram) // конструктор
+        /// <summary>
+        /// вкладка робота для торговли
+        /// </summary>
+        private BotTabSimple _tab; // поле хранения вкладки робота 
+
+        /// <summary>
+        ///  конструктор робота
+        /// </summary>
+        public Breakdown(string name, StartProgram startProgram) : base(name, startProgram) 
         {
             TabCreate(BotTabType.Simple);  // создание простой вкладки
             _tab = TabsSimple[0]; // записываем первую вкладку в поле
-            _tab.BestBidAskChangeEvent += _tab_BestBidAskChangeEvent;
 
-            _machka = new MovingAverage("Macha", false);
-            _machka.Lenght = 5;
-            _machka = (MovingAverage)_tab.CreateCandleIndicator(_machka, "Prime");
-            _machka.Save();
+            _tab.BestBidAskChangeEvent += _tab_BestBidAskChangeEvent; // для тестовой логики
+            _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
+
+            // создаем индикатор дампинга и машки для расчета его индекса 
+
+            _dampIndex = new Line(name + "dampIndex", false)
+            {
+                ColorBase = Color.DodgerBlue,
+                PaintOn = true,
+            };
+            _dampIndex = _tab.CreateCandleIndicator(_dampIndex, "dampArea");
+            _dampIndex.Save();
+
+            _smaHighIndex = new MovingAverage(name + "MovingHighIndex", false)
+            {
+                Lenght = 5,
+                ColorBase = Color.DodgerBlue,
+                PaintOn = false,
+                TypePointsToSearch = PriceTypePoints.High
+            };
+            _smaHighIndex = _tab.CreateCandleIndicator(_smaHighIndex, "Prime");
+            _smaHighIndex.Save();
+
+            _smaHigh2Period = new MovingAverage(name + "MovingHigh2Period", false)
+            {
+                Lenght = 2,
+                ColorBase = Color.DodgerBlue,
+                PaintOn = false,
+                TypePointsToSearch = PriceTypePoints.High
+            };
+            _smaHigh2Period = _tab.CreateCandleIndicator(_smaHigh2Period, "Prime");
+            _smaHigh2Period.Save();
+
+            _smaHigh3Period = new MovingAverage(name + "MovingHigh3Period", false)
+            {
+                Lenght = 3,
+                ColorBase = Color.DodgerBlue,
+                PaintOn = false,
+                TypePointsToSearch = PriceTypePoints.High
+            };
+            _smaHigh3Period = _tab.CreateCandleIndicator(_smaHigh3Period, "Prime");
+            _smaHigh3Period.Save();
+
+            _smaHigh4Period = new MovingAverage(name + "MovingHigh4Period", false)
+            {
+                Lenght = 4,
+                ColorBase = Color.DodgerBlue,
+                PaintOn = false,
+                TypePointsToSearch = PriceTypePoints.High
+            };
+            _smaHigh4Period = _tab.CreateCandleIndicator(_smaHigh4Period, "Prime");
+            _smaHigh4Period.Save();
+
+            _smaLowIndex = new MovingAverage(name + "MovingLowIndex", false)
+            {
+                Lenght = 5,
+                ColorBase = Color.DodgerBlue,
+                PaintOn = false,
+                TypePointsToSearch = PriceTypePoints.Low
+            };
+            _smaLowIndex = _tab.CreateCandleIndicator(_smaLowIndex, "Prime");
+            _smaLowIndex.Save();
+
+            _smaLow2Period = new MovingAverage(name + "Moving2LowPeriod", false)
+            {
+                Lenght = 2,
+                ColorBase = Color.DodgerBlue,
+                PaintOn = false,
+                TypePointsToSearch = PriceTypePoints.Low
+            };
+            _smaLow2Period = _tab.CreateCandleIndicator(_smaLow2Period, "Prime");
+            _smaLow2Period.Save();
+
+            _smaLow3Period = new MovingAverage(name + "Moving3LowPeriod", false)
+            {
+                Lenght = 3,
+                ColorBase = Color.DodgerBlue,
+                PaintOn = false,
+                TypePointsToSearch = PriceTypePoints.Low
+            };
+            _smaLow3Period = _tab.CreateCandleIndicator(_smaLow3Period, "Prime");
+            _smaLow3Period.Save();
+
+            _smaLow4Period = new MovingAverage(name + "Moving4LowPeriod", false)
+            {
+                Lenght = 4,
+                ColorBase = Color.DodgerBlue,
+                PaintOn = false,
+                TypePointsToSearch = PriceTypePoints.Low
+            };
+            _smaLow4Period = _tab.CreateCandleIndicator(_smaLow4Period, "Prime");
+            _smaLow4Period.Save();
         }
 
-        public void _tab_BestBidAskChangeEvent(decimal arg1, decimal arg2) // событие обновления лучшей цены
+        private void _tab_CandleFinishedEvent(List<Candle> candles) // тест
         {
-            Price = _tab.MarketDepth.Bids[0].Price;
-            Volum_ma = _machka.Values[_machka.Values.Count - 1];
+            ReloadDampIndex(); // перегрузка 
+        }
+
+        /// <summary>
+        ///  индикаторы для дампинг стратегии
+        /// </summary>
+        private IIndicator _smaHighIndex;
+        private IIndicator _smaLowIndex;
+        private IIndicator _smaHigh2Period;
+        private IIndicator _smaHigh3Period;
+        private IIndicator _smaHigh4Period;
+        private IIndicator _smaLow2Period;
+        private IIndicator _smaLow3Period;
+        private IIndicator _smaLow4Period;
+        private IIndicator _dampIndex;
+
+        // расчёт индикатора DampIndex
+
+        /// <summary>
+        /// damp index
+        /// </summary>
+        private List<decimal> _index;
+
+        /// <summary>
+        /// перезагрузить индикатор дамп индекс
+        /// </summary>
+        private void ReloadDampIndex()
+        {
+            if (_index == null)
+            {
+                _index = new List<decimal>();
+            }
+
+            if (((MovingAverage)_smaHighIndex).Values.Count - 1 == _index.Count)
+            {
+                // обновляем только последнее значение
+                _index.Add(GetDapmIndex(((MovingAverage)_smaHighIndex).Values.Count - 1));
+            }
+            else
+            {
+                _index = new List<decimal>();
+                for (int i = 0; i < ((MovingAverage)_smaHighIndex).Values.Count; i++)
+                {
+                    _index.Add(GetDapmIndex(i));
+                }
+            }
+
+            ((Line)_dampIndex).ProcessDesimals(_index);
+        }
+
+        /// <summary>
+        /// взять дапм индекс по индексу
+        /// </summary>
+        private decimal GetDapmIndex(int index)
+        {
+            decimal result = 0;
+
+            try
+            {
+                if (index - ((MovingAverage)_smaHighIndex).Lenght >= 0 &&
+                    index - ((MovingAverage)_smaLowIndex).Lenght >= 0)
+                {
+                    decimal smaHigh = ((MovingAverage)_smaHighIndex).Values[index];
+                    decimal smaHigh2 = ((MovingAverage)_smaHighIndex).Values[index - ((MovingAverage)_smaHighIndex).Lenght];
+                    decimal smaLow = ((MovingAverage)_smaLowIndex).Values[index];
+                    decimal smaLow2 = ((MovingAverage)_smaLowIndex).Values[index - ((MovingAverage)_smaLowIndex).Lenght];
+
+                    if (smaHigh2 - smaLow2 != 0)
+                    {
+                        result = Math.Round((smaHigh - smaLow) / (smaHigh2 - smaLow2), 4);
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+            return result;
+        }
+
+        /// <summary>
+        ///  событие обновления лучшей цены создано для обновления переменных
+        /// </summary>
+        public void _tab_BestBidAskChangeEvent(decimal arg1, decimal arg2) 
+        {
+            Price = _tab.MarketDepth.Bids[0].Price; // обновляем значение цены
+            if (_index != null)
+            {
+               Index = ((Line)_dampIndex).Values[((Line)_dampIndex).Values.Count - 1]; // обновляем значение в индексе
+               ReloadDampIndex(); // перегрузка  
+            }
         }
 
         public override string GetNameStrategyType()
@@ -61,8 +250,9 @@ namespace OsEngine.Robots.MoiRoboti
             ui.Show();
         }
 
- // реализация интерфейса PropertyChanged-событий изменения свойств
-
+        /// <summary>
+        ///  реализация интерфейса PropertyChanged-событий изменения свойств
+        /// </summary>
         public event PropertyChangedEventHandler PropertyChanged; // событие изменения свойств
    
         protected void СallUpdate(string name)  // сигнализирует об изменении свойств
