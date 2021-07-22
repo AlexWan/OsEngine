@@ -842,5 +842,5 @@ namespace OsEngine.Robots.MoiRoboti
         {
             
         }
-    }
+    }// проба 
 }
