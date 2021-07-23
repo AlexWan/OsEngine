@@ -22,6 +22,8 @@ using OsEngine.Robots.Patterns;
 using OsEngine.Robots.Trend;
 using OsEngine.Robots.OnScriptIndicators;
 using OsEngine.Robots.MoiRoboti;
+using OsEngine.Robots.MoiRoboti.New;
+using OsEngine.OsTrader;
 
 namespace OsEngine.Robots
 {
@@ -35,6 +37,7 @@ namespace OsEngine.Robots
         {
             List<string> result = new List<string>();
 
+            result.Add("NewParabol");
             result.Add("Breakdown");
             result.Add("Frank");
             result.Add("Frank_2");
@@ -122,7 +125,11 @@ namespace OsEngine.Robots
                 bot = CreateScriptStrategyByName(nameClass, name, startProgram);
                 return bot;
             }
-            
+
+            if (nameClass == "NewParabol")
+            {
+                bot = new NewParabol(name, startProgram);
+            }
             if (nameClass == "Breakdown")
             {
                 bot = new Breakdown(name, startProgram);

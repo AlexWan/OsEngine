@@ -786,6 +786,34 @@
     <Compile Include="Robots\MoiRoboti\Ver_01_Ui.xaml.cs">
       <DependentUpon>Ver_01_Ui.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Robots\New\NewParabolUi.xaml.cs">
+      <DependentUpon>NewParabolUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Robots\New\NewParabol.cs" />
+    <Compile Include="Robots\OLd\FreeStylikBearishUi.xaml.cs">
+      <DependentUpon>FreeStylikBearishUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Robots\OLd\FreeStylikBreakoutUi.xaml.cs">
+      <DependentUpon>FreeStylikBreakoutUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Robots\OLd\FreeStylikDampIndexUi.xaml.cs">
+      <DependentUpon>FreeStylikDampIndexUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Robots\OLd\FreeStylikParabolicVmaUi.xaml.cs">
+      <DependentUpon>FreeStylikParabolicVmaUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Robots\OLd\FreeStylikRoncoUi.xaml.cs">
+      <DependentUpon>FreeStylikRoncoUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Robots\OLd\FreeStylikStrategyAdaptiveRsiUi.xaml.cs">
+      <DependentUpon>FreeStylikStrategyAdaptiveRsiUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Robots\OLd\StrategyAdaptiveRsi.cs" />
+    <Compile Include="Robots\OLd\StrategyBearish.cs" />
+    <Compile Include="Robots\OLd\StrategyBreakout.cs" />
+    <Compile Include="Robots\OLd\StrategyDampIndex.cs" />
+    <Compile Include="Robots\OLd\StrategyParabolicVma.cs" />
+    <Compile Include="Robots\OLd\StrategyRonco.cs" />
     <Compile Include="Robots\OnScriptIndicators\BbPowerTrade.cs" />
     <Compile Include="Robots\OnScriptIndicators\BollingerRevers.cs" />
     <Compile Include="Robots\OnScriptIndicators\BollingerTrailing.cs" />
@@ -1285,6 +1313,34 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Robots\New\NewParabolUi.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Robots\OLd\FreeStylikBearishUi.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Robots\OLd\FreeStylikBreakoutUi.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Robots\OLd\FreeStylikDampIndexUi.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Robots\OLd\FreeStylikParabolicVmaUi.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Robots\OLd\FreeStylikRoncoUi.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Robots\OLd\FreeStylikStrategyAdaptiveRsiUi.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Robots\Trend\MomentumMacdUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -1506,7 +1562,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Market\Servers\Huobi\FuturesSwap\Entities\" />
-    <Folder Include="Robots\New\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
