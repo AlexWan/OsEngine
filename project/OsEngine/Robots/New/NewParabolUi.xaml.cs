@@ -5,16 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using OsEngine.OsTrader;
-//using OsEngine.OsTrader;
-using OsEngine.Robots.MoiRoboti.New;
+
 
 namespace OsEngine.Robots.MoiRoboti.New
 {
@@ -58,6 +49,8 @@ namespace OsEngine.Robots.MoiRoboti.New
             CheckBoxEmulatorIsOn.IsChecked = _strategy.EmulatorIsOn;
 
             CheckBoxPaintEmulator.IsChecked = _strategy.NeadToPaintEmu;
+            TextBoxStop.Text = _strategy.lengthStartStop.ToString(culture);
+
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
@@ -76,7 +69,8 @@ namespace OsEngine.Robots.MoiRoboti.New
                     Convert.ToInt32(TextBoxSlipageToAlert.Text) < 0 ||
                     Convert.ToDecimal(TextBoxDay.Text) <= 0 ||
                     Convert.ToInt32(TextBoxSlipageCloseFirst.Text) < 0 ||
-                    Convert.ToInt32(TextBoxSlipageOpenFirst.Text) < 0)
+                    Convert.ToInt32(TextBoxSlipageOpenFirst.Text) < 0 ||
+                    Convert.ToDecimal(TextBoxStop.Text) < 0  )
                 {
                     throw new Exception();
                 }
@@ -125,6 +119,7 @@ namespace OsEngine.Robots.MoiRoboti.New
                 _strategy.NeadToPaintEmu = CheckBoxPaintEmulator.IsChecked.Value;
             }
             _strategy.Day = Convert.ToInt32(TextBoxDay.Text);
+            _strategy.lengthStartStop = Convert.ToDecimal(TextBoxStop.Text);
             _strategy.Save();
             Close();
         }

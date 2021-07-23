@@ -74,8 +74,8 @@ namespace OsEngine.Robots.MoiRoboti.New
             Volume = 1;
             SlipageOpenSecond = 0;
             SlipageCloseSecond = 0;
-            TimeFrom = 10;
-            TimeTo = 22;
+            TimeFrom = 01;
+            TimeTo = 23;
             AlertIsOn = false;
             EmulatorIsOn = false;
 
@@ -88,6 +88,7 @@ namespace OsEngine.Robots.MoiRoboti.New
             DistShortInit = 6;
             ShortAdj = 0.1m;
             SlipageToAlert = 10;
+            lengthStartStop = 0.5m;
 
             Load();
 
@@ -225,6 +226,8 @@ namespace OsEngine.Robots.MoiRoboti.New
         public decimal DistShortInit;
         public decimal ShortAdj;
 
+        public decimal lengthStartStop; // стартовая (начальная) величина отступа для стоп приказа  в процентах от цены открытия позиции
+
         /// <summary>
         /// нужно ли прорисовывать сделки эмулятора
         /// </summary>
@@ -265,6 +268,8 @@ namespace OsEngine.Robots.MoiRoboti.New
                     writer.WriteLine(SlipageCloseFirst);
                     writer.WriteLine(SlipageOpenFirst);
                     writer.WriteLine(NeadToPaintEmu);
+                    writer.WriteLine(lengthStartStop);
+
                     writer.Close();
                 }
             }
@@ -313,6 +318,7 @@ namespace OsEngine.Robots.MoiRoboti.New
                     SlipageOpenFirst = Convert.ToInt32(reader.ReadLine());
 
                     NeadToPaintEmu = Convert.ToBoolean(reader.ReadLine());
+                    lengthStartStop = Convert.ToDecimal(reader.ReadLine());
 
                     reader.Close();
                 }
@@ -769,156 +775,41 @@ namespace OsEngine.Robots.MoiRoboti.New
         }
 
         /// <summary>
+        /// для выставления профита по CloseAtTrailingStop 
+        /// </summary>
+        void Save_profit() 
+        {
+            decimal zn = _tab.PositionsLast.ProfitPortfolioPunkt; // смотрим прибыльность
+            _tab.CloseAtTrailingStop(_tab.PositionsLast, _tab.PriceCenterMarketDepth,
+            _tab.PriceCenterMarketDepth * _tab.Securiti.PriceStep);
+        }
+
+        /// <summary>
         /// взять цену для выхода из позиции
         /// </summary>
         private decimal GetPriceToStopOrder(DateTime positionCreateTime, Side side, List<Candle> candles, int index)
         {
-            if (candles == null ||
-                candles.Count < 2)
+            if (candles == null )
             {
                 return 0;
             }
 
             if (side == Side.Buy)
-            { // рассчитываем цену стопа при Лонге
-                // 1 находим максимум за время от открытия сделки и до текущего
-                decimal maxHigh = 0;
-                int indexIntro = 0;
-                DateTime openPositionTime = positionCreateTime;
 
-                if (openPositionTime == DateTime.MinValue)
-                {
-                    openPositionTime = candles[index - 2].TimeStart;
-                }
-
-                for (int i = index; i > 0; i--)
-                { // смотрим индекс свечи, после которой произошло открытие позы
-                    if (candles[i].TimeStart <= openPositionTime)
-                    {
-                        indexIntro = i;
-                        break;
-                    }
-                }
-
-                for (int i = indexIntro; i < index + 1; i++)
-                { // смотрим максимум после открытия
-
-                    if (candles[i].High > maxHigh)
-                    {
-                        maxHigh = candles[i].High;
-                    }
-                }
-
-                // 2 рассчитываем текущее отклонение для стопа
-
-                decimal distanse = DistLongInit;
-
-                for (int i = indexIntro; i < index + 1; i++)
-                { // смотрим коэффициент
-
-                    DateTime lastTradeTime = candles[i].TimeStart;
-
-                    if (lastTradeTime.Hour < TimeFrom && TimeFrom != 0 ||
-                        lastTradeTime.Hour > TimeTo && TimeTo != 0 ||
-                        lastTradeTime.Hour == 10 && TimeFrom == 10 && lastTradeTime.Minute == 0)
-                    {
-                        continue;
-                    }
-
-                    decimal kauf = ((EfficiencyRatio)_eR).Values[i];
-
-                    if (kauf >= 0.6m)
-                    {
-                        distanse -= 2.0m * LongAdj;
-                    }
-                    if (kauf >= 0.3m)
-                    {
-                        distanse -= 1.0m * LongAdj;
-                    }
-                }
-
-                // 3 рассчитываем цену Стопа
-
-                decimal lastAtr = ((Atr)_atr).Values[index];
-
-                decimal priceStop = maxHigh - lastAtr * distanse;
-
-                return Math.Round(priceStop, _tab.Securiti.Decimals);// 
+            { 
+                decimal priceOpenPos = _tab.PositionsLast.EntryPrice; 
+                return Math.Round(priceOpenPos, _tab.Securiti.Decimals);// 
             }
 
             if (side == Side.Sell)
             {
-                // рассчитываем цену стопа при Шорте
 
-                // 1 находим максимум за время от открытия сделки и до текущего
-                decimal minLow = decimal.MaxValue;
-                int indexIntro = 0;
-                DateTime openPositionTime = positionCreateTime;
-
-                if (openPositionTime == DateTime.MinValue)
-                {
-                    openPositionTime = candles[index - 1].TimeStart;
-                }
-
-                for (int i = index; i > 0; i--)
-                { // смотрим индекс свечи, после которой произошло открытие позы
-                    if (candles[i].TimeStart <= openPositionTime)
-                    {
-                        indexIntro = i;
-                        break;
-                    }
-                }
-
-                for (int i = indexIntro; i < index + 1; i++)
-                { // смотрим Минимальный лой
-
-                    if (candles[i].Low < minLow)
-                    {
-                        minLow = candles[i].Low;
-                    }
-
-                }
-
-                // 2 рассчитываем текущее отклонение для стопа
-
-                decimal distanse = DistShortInit;
-
-                for (int i = indexIntro; i < index + 1; i++)
-                { // смотрим коэффициент
-
-                    DateTime lastTradeTime = candles[i].TimeStart;
-
-                    if (lastTradeTime.Hour < TimeFrom && TimeFrom != 0 ||
-                        lastTradeTime.Hour > TimeTo && TimeTo != 0 ||
-                        lastTradeTime.Hour == 10 && TimeFrom == 10 && lastTradeTime.Minute == 0)
-                    {
-                        continue;
-                    }
-
-                    decimal kauf = ((EfficiencyRatio)_eR).Values[i];
-
-                    if (kauf > 0.6m)
-                    {
-                        distanse -= 2.0m * ShortAdj;
-                    }
-                    if (kauf > 0.3m)
-                    {
-                        distanse -= 1.0m * ShortAdj;
-                    }
-                }
-
-                // 3 рассчитываем цену Стопа
-
-                int pointCount = 0;
-
-                decimal lastAtr = ((Atr)_atr).Values[index];
-
-                decimal priceStop = Math.Round(minLow + lastAtr * distanse, pointCount);
+                decimal priceStop = _tab.PositionsLast.EntryPrice;
 
                 return Math.Round(priceStop, _tab.Securiti.Decimals);
             }
-
             return 0;
+
         }
 
         // отложенное закрытие позиции. Чтобы при выходе по эмулятору дать системе время отозвать ордер

@@ -14,17 +14,20 @@
     mc:Ignorable="d">
     
     <Grid>
+       
         <Rectangle
             x:Name="RectTradeEngine"
             Margin="10,10,10,37"
             RadiusX="6.5"
             RadiusY="6.5"
-            StrokeThickness="0" />
+            StrokeThickness="0"
+            />
         <Label
             Margin="327,61,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Content="Проскальзывание вход 2"
+
          />
         <TextBox
             x:Name="TextBoxSlipageOpenSecond"
@@ -136,7 +139,7 @@
             VerticalAlignment="Top"
             />
         <Label
-            Width="146"
+            Width="156"
             Margin="23,286,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
@@ -146,7 +149,7 @@
             x:Name="TextBoxLagPunctToOpenClose"
             Width="120"
             Height="23"
-            Margin="173,289,0,0"
+            Margin="184,289,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
            />
@@ -192,7 +195,7 @@
             Margin="477,148,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            TextWrapping="Wrap" />
+             />
         <Label
             Margin="327,117,0,0"
             HorizontalAlignment="Left"
@@ -206,7 +209,7 @@
             Margin="477,120,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            TextWrapping="Wrap" />
+             />
         <Label
             Width="129"
             Margin="327,202,0,0"
@@ -301,13 +304,32 @@
             Content="Enter Bars"
            />
         <TextBox
+
             x:Name="TextBoxDay"
             Width="120"
             Height="23"
             Margin="477,233,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            Text="TextBox"
+            
              />
+        <Label
+            Width="113"
+            Margin="327,261,0,0"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Content="Стоп в % через"
+            />
+        <TextBox
+
+            x:Name="TextBoxStop"
+            Width="120"
+            Height="23"
+            Margin="477,261,0,0"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            
+             />
+
     </Grid>
 </Window>
