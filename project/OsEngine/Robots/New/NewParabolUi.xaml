@@ -8,36 +8,29 @@
     Title="Настройки стратегии"
     Width="646.246"
     Height="418.988"
-    ResizeMode="NoResize"
+    ResizeMode="CanResize"
     Topmost="True"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
-    <Window.Background>
-        <LinearGradientBrush MappingMode="RelativeToBoundingBox" StartPoint="0.5,0" EndPoint="0.5,1">
-            <GradientStop Offset="1" Color="#FF323234" />
-            <GradientStop Color="#FFE0E0EA" />
-        </LinearGradientBrush>
-    </Window.Background>
+    
     <Grid>
         <Rectangle
             x:Name="RectTradeEngine"
             Margin="10,10,10,37"
-            Fill="#FF17171B"
             RadiusX="6.5"
             RadiusY="6.5"
-            Stroke="Black"
             StrokeThickness="0" />
         <Label
             Margin="327,61,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Content="Проскальзывание вход 2"
-            Foreground="white" />
+         />
         <TextBox
             x:Name="TextBoxSlipageOpenSecond"
-            Width="120"
+            Width="112"
             Height="23"
-            Margin="477,64,0,0"
+            Margin="497,64,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             TextWrapping="Wrap" />
@@ -60,7 +53,7 @@
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Content="Объём"
-            Foreground="white" />
+             />
         <TextBox
             x:Name="TextBoxVolume"
             Width="120"
@@ -68,27 +61,27 @@
             Margin="173,65,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            TextWrapping="Wrap" />
+        />
         <CheckBox
             Name="CheckBoxIsOn"
             Margin="38,31,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Content="вкл/выкл"
-            Foreground="white" />
+            />
         <CheckBox
             x:Name="CheckBoxAletrIsOn"
             Margin="200,44,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Content="алерты"
-            Foreground="white" />
+             />
         <Label
             Margin="327,89,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Content="Проскальзывание выход 2"
-            Foreground="white" />
+             />
         <TextBox
             x:Name="TextBoxSlipageCloseSecond"
             Width="100"
@@ -96,14 +89,14 @@
             Margin="497,92,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            TextWrapping="Wrap" />
+            />
         <Label
             Width="129"
             Margin="23,202,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Content="Начало торговли"
-            Foreground="white" />
+             />
         <TextBox
             x:Name="TextBoxTimeFrom"
             Width="120"
@@ -111,14 +104,14 @@
             Margin="173,205,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            TextWrapping="Wrap" />
+            />
         <Label
             Width="129"
             Margin="23,230,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Content="Конец торговли"
-            Foreground="white" />
+      />
         <TextBox
             x:Name="TextBoxTimeTo"
             Width="120"
@@ -126,14 +119,14 @@
             Margin="173,233,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            TextWrapping="Wrap" />
+            />
         <Label
             Width="129"
             Margin="23,258,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Content="Секунд на вход"
-            Foreground="white" />
+             />
         <TextBox
             x:Name="TextBoxLagTimeToOpenClose"
             Width="120"
@@ -141,14 +134,14 @@
             Margin="173,261,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            TextWrapping="Wrap" />
+            />
         <Label
             Width="146"
             Margin="23,286,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Content="Отклонение исполнение"
-            Foreground="white" />
+            />
         <TextBox
             x:Name="TextBoxLagPunctToOpenClose"
             Width="120"
@@ -156,13 +149,13 @@
             Margin="173,289,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            TextWrapping="Wrap" />
+           />
         <Label
             Margin="23,146,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Content="Отклонение вход"
-            Foreground="white" />
+             />
         <TextBox
             x:Name="TextBoxSlipageSecondOpen"
             Width="120"
@@ -170,13 +163,13 @@
             Margin="173,149,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            TextWrapping="Wrap" />
+           />
         <Label
             Margin="23,174,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Content="Отклонение выход"
-            Foreground="white" />
+             />
         <TextBox
             x:Name="TextBoxSlipageSecondClose"
             Width="120"
@@ -184,14 +177,14 @@
             Margin="173,177,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            TextWrapping="Wrap" />
+          />
         <Label
             Width="129"
             Margin="327,145,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Content="LongAdj"
-            Foreground="white" />
+           />
         <TextBox
             x:Name="TextBoxLongAdj"
             Width="120"
@@ -205,7 +198,7 @@
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Content="DistLongInit"
-            Foreground="white" />
+            />
         <TextBox
             x:Name="TextBoxDistLongInit"
             Width="120"
@@ -220,7 +213,7 @@
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Content="ShortAdj"
-            Foreground="white" />
+            />
         <TextBox
             x:Name="TextBoxShortAdj"
             Width="120"
@@ -228,13 +221,13 @@
             Margin="477,205,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            TextWrapping="Wrap" />
+          />
         <Label
             Margin="327,174,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Content="DistShortInit"
-            Foreground="white" />
+             />
         <TextBox
             x:Name="TextBoxDistShortInit"
             Width="120"
@@ -242,7 +235,7 @@
             Margin="477,177,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            TextWrapping="Wrap" />
+           />
         <TextBox
             x:Name="TextBoxSlipageToAlert"
             Width="120"
@@ -250,27 +243,27 @@
             Margin="173,317,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            TextWrapping="Wrap" />
+             />
         <Label
             Width="145"
             Margin="23,314,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Content="Отступ Алерта"
-            Foreground="white" />
+           />
         <CheckBox
             x:Name="CheckBoxEmulatorIsOn"
             Margin="200,23,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Content="эмулятор"
-            Foreground="white" />
+         />
         <Label
             Margin="23,90,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Content="Проскальзывание вход"
-            Foreground="white" />
+         />
         <TextBox
             x:Name="TextBoxSlipageOpenFirst"
             Width="120"
@@ -284,7 +277,7 @@
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Content="Проскальзывание выход"
-            Foreground="white" />
+            />
         <TextBox
             x:Name="TextBoxSlipageCloseFirst"
             Width="109"
@@ -292,21 +285,21 @@
             Margin="184,121,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            TextWrapping="Wrap" />
+          />
         <CheckBox
             x:Name="CheckBoxPaintEmulator"
             Margin="299,23,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Content="прорисовывать эмулятор"
-            Foreground="white" />
+             />
         <Label
             Width="66"
             Margin="327,230,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Content="Enter Bars"
-            Foreground="white" />
+           />
         <TextBox
             x:Name="TextBoxDay"
             Width="120"
@@ -315,6 +308,6 @@
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Text="TextBox"
-            TextWrapping="Wrap" />
+             />
     </Grid>
 </Window>

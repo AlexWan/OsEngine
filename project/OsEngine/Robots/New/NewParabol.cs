@@ -122,7 +122,7 @@ namespace OsEngine.Robots.MoiRoboti.New
         public override void ShowIndividualSettingsDialog()
         {
             NewParabolUi ui = new NewParabolUi(this);
-            ui.ShowDialog();
+            ui.Show();
         }
 
         /// <summary>
