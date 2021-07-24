@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,7 +24,7 @@ using OsEngine.Robots.MoiRoboti.New;
 
 namespace OsEngine.Robots.MoiRoboti.New
 {
-    public class NewParabol : BotPanel
+    public class NewParabol : BotPanel, INotifyPropertyChanged
     {
         // сервис
         public NewParabol(string name, StartProgram startProgram) : base(name, startProgram)
@@ -149,6 +151,15 @@ namespace OsEngine.Robots.MoiRoboti.New
         private IIndicator _eR;
 
         // настройки публичные
+        /// <summary>
+        /// цена товара на рынке
+        /// </summary>
+        private decimal _price; // поле хранения цены
+        public decimal Price_market  
+        {
+            get => _price;
+            set => Set(ref _price, value);
+        }
 
         /// <summary>
         /// вкл/выкл
@@ -226,7 +237,10 @@ namespace OsEngine.Robots.MoiRoboti.New
         public decimal DistShortInit;
         public decimal ShortAdj;
 
-        public decimal lengthStartStop; // стартовая (начальная) величина отступа для стоп приказа  в процентах от цены открытия позиции
+        /// <summary>
+        /// стартовая (начальная) величина отступа для стоп приказа  в процентах от цены открытия позиции
+        /// </summary>
+        public decimal lengthStartStop; 
 
         /// <summary>
         /// нужно ли прорисовывать сделки эмулятора
@@ -794,22 +808,20 @@ namespace OsEngine.Robots.MoiRoboti.New
                 return 0;
             }
 
+            decimal indent = lengthStartStop * Price_market / 100;  // отступ для стопа
+            decimal priceOpenPos = _tab.PositionsLast.EntryPrice; // цена открытия позиции
+
             if (side == Side.Buy)
 
             { 
-                decimal priceOpenPos = _tab.PositionsLast.EntryPrice; 
-                return Math.Round(priceOpenPos, _tab.Securiti.Decimals);// 
+                 return Math.Round(priceOpenPos - indent, _tab.Securiti.Decimals);// 
             }
 
             if (side == Side.Sell)
             {
-
-                decimal priceStop = _tab.PositionsLast.EntryPrice;
-
-                return Math.Round(priceStop, _tab.Securiti.Decimals);
+                return Math.Round(priceOpenPos + indent, _tab.Securiti.Decimals);
             }
             return 0;
-
         }
 
         // отложенное закрытие позиции. Чтобы при выходе по эмулятору дать системе время отозвать ордер
@@ -1176,6 +1188,7 @@ namespace OsEngine.Robots.MoiRoboti.New
         /// </summary>
         void _tab_NewTickEvent(Trade trade)
         {
+            Price_market = trade.Price;
             ChekReActivator(trade);
         }
 
@@ -1452,6 +1465,28 @@ namespace OsEngine.Robots.MoiRoboti.New
 
             }
             _points = new List<PointElement>();
+        }
+
+        /// <summary>
+        /// обработчик события изменения свойств
+        /// </summary>
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void СallUpdate(string name)  // сигнализирует об изменении свойств
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+
+        /// <summary>
+        ///  сверяет значения любых типов данных и выдает сигнал об изменении 
+        /// </summary>
+        protected void Set<T>(ref T field, T value, [CallerMemberName] string name = "")
+        {
+            if (!field.Equals(value))
+            {
+                field = value;
+                СallUpdate(name);
+            }
         }
     }
 }
