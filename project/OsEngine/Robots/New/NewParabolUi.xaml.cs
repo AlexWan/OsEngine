@@ -12,14 +12,15 @@ namespace OsEngine.Robots.MoiRoboti.New
     /// <summary>
     /// Interaction logic for NewParabolUi.xaml
     /// </summary>
-    public partial class NewParabolUi
+    public partial class NewParabolUi : Window
     {
-        private NewParabol _strategy;
+        public NewParabol _strategy;
 
         public NewParabolUi(NewParabol strategy)
         {
             InitializeComponent();
             _strategy = strategy;
+            DataContext = strategy;
 
             CultureInfo culture = new CultureInfo("ru-RU");
 
@@ -51,6 +52,7 @@ namespace OsEngine.Robots.MoiRoboti.New
             CheckBoxPaintEmulator.IsChecked = _strategy.NeadToPaintEmu;
             TextBoxStop.Text = _strategy.lengthStartStop.ToString(culture);
 
+ 
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)

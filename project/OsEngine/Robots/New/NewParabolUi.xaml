@@ -45,12 +45,7 @@
             VerticalAlignment="Bottom"
             Click="Button_Click_1"
             Content="Принять" />
-        <Label
-            Margin="23,81,0,0"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
-            Content=""
-            Foreground="white" />
+   
         <Label
             Margin="23,62,0,0"
             HorizontalAlignment="Left"
@@ -330,6 +325,23 @@
             VerticalAlignment="Top"
             
              />
+        <Label
+            Width="113"
+            Margin="327,296,0,0"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Content="прибыль в $"
+            />
+        <TextBox
+
+            x:Name="TextBoxProfit"
+            Width="120"
+            Height="29"
+            Margin="477,296,0,0"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top" 
+            Text="{Binding Profit}"
+            />
 
     </Grid>
 </Window>
