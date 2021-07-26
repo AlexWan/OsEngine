@@ -514,15 +514,81 @@ namespace OsEngine.Robots.MoiRoboti.New
         {
             _tab.BuyAtStopCancel();
             _tab.SellAtStopCancel();
-  
+
+            // выставляем стоп по отступу в обход вызова из метода окончания свечи
+            decimal indent = lengthStartStop * Price_market / 100;  // отступ для стопа
+            decimal priceOpenPos = _tab.PositionsLast.EntryPrice;  // цена открытия позиции
+
+            if (position.Direction == Side.Buy)
+            {
+                decimal lineSell = priceOpenPos - indent;
+
+                decimal priceOrderSell = lineSell - _tab.Securiti.PriceStep * SlipageCloseFirst; // ЗДЕСЬ!!!!!!!!!!!!!!
+                decimal priceRedLineSell = lineSell + _tab.Securiti.PriceStep * SlipageReversClose;
+
+                if (priceRedLineSell - _tab.Securiti.PriceStep * 10 > _tab.PriceBestAsk)
+                {
+                    _tab.CloseAtLimit(position, _tab.PriceBestAsk, position.OpenVolume);
+                    return;
+                }
+
+                if (position.StopOrderPrice == 0 ||
+                    position.StopOrderPrice < priceRedLineSell)
+                {
+                    _tab.CloseAtStop(position, priceRedLineSell, priceOrderSell);
+                }
+
+                if (position.StopOrderIsActiv == false)
+                {
+                    if (position.StopOrderRedLine - _tab.Securiti.PriceStep * 10 > _tab.PriceBestAsk)
+                    {
+                        _tab.CloseAtLimit(position, _tab.PriceBestAsk, position.OpenVolume);
+                        return;
+                    }
+                    position.StopOrderIsActiv = true;
+                }
+            }
+            if (position.Direction == Side.Sell)
+            {
+                decimal lineBuy = priceOpenPos + indent; ;
+
+                if (lineBuy == 0)
+                {
+                    return;
+                }
+
+                decimal priceOrder = lineBuy + _tab.Securiti.PriceStep * SlipageCloseFirst; // ЗДЕСЬ!!!!!!!!!!!!!!
+                decimal priceRedLine = lineBuy - _tab.Securiti.PriceStep * SlipageReversClose;
+
+                if (priceRedLine + _tab.Securiti.PriceStep * 5 < _tab.PriceBestAsk)
+                {
+                    _tab.CloseAtLimit(position, _tab.PriceBestAsk + _tab.Securiti.PriceStep * SlipageCloseFirst, position.OpenVolume);
+                    return;
+                }
+
+                if (position.StopOrderPrice == 0 ||
+                    position.StopOrderPrice > priceRedLine)
+                {
+                    _tab.CloseAtStop(position, priceRedLine, priceOrder);
+                }
+
+                if (position.StopOrderIsActiv == false)
+                {
+                    if (position.StopOrderRedLine + _tab.Securiti.PriceStep * 10 < _tab.PriceBestAsk)
+                    {
+                        _tab.CloseAtLimit(position, _tab.PriceBestAsk, position.OpenVolume);
+                        return;
+                    }
+                    position.StopOrderIsActiv = true;
+                }
+            }
         }
 
         /// <summary>
-        /// основной вход в логику робота. Вызывается когда завершилась свеча
-        /// </summary>
+            /// основной вход в логику робота. Вызывается когда завершилась свеча
+            /// </summary>
         void StrategyAdxVolatility_CandleFinishedEvent(List<Candle> candles)
         {
-
 
             if (candles.Count < 100)
             {
@@ -582,7 +648,7 @@ namespace OsEngine.Robots.MoiRoboti.New
                     return;
                 }
             }
-
+            // БАЙ
             if (lastPrice >= lastSma)
             {
                 decimal lineBuy = GetPriceToOpenPos(Side.Buy, candles, candles.Count - 1);
@@ -729,7 +795,6 @@ namespace OsEngine.Robots.MoiRoboti.New
 
             }
 
-
             // СЕЛЛ
             if (position.Direction == Side.Buy)
             {
@@ -812,13 +877,16 @@ namespace OsEngine.Robots.MoiRoboti.New
         }
 
         /// <summary>
-        /// для выставления профита по CloseAtTrailingStop 
+        /// для выставления стопа
         /// </summary>
         void Save_profit() 
         {
+           
+            /*
             decimal zn = _tab.PositionsLast.ProfitPortfolioPunkt; // смотрим прибыльность
             _tab.CloseAtTrailingStop(_tab.PositionsLast, _tab.PriceCenterMarketDepth,
             _tab.PriceCenterMarketDepth * _tab.Securiti.PriceStep);
+            */
         }
 
         /// <summary>
@@ -832,9 +900,12 @@ namespace OsEngine.Robots.MoiRoboti.New
             }
 
             decimal indent = lengthStartStop * Price_market / 100;  // отступ для стопа
-            decimal priceOpenPos = _tab.PositionsLast.EntryPrice; // цена открытия позиции
-  
-
+            decimal priceOpenPos = 0; // цена открытия позиции
+            if (_tab.PositionsOpenAll.Count != 0)
+            {
+                priceOpenPos = _tab.PositionsLast.EntryPrice;
+            }
+ 
             if (side == Side.Buy)
             { // рассчитываем цену стопа при Лонге
                 // 1 находим максимум за время от открытия сделки и до текущего
