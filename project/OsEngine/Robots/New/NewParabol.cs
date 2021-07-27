@@ -95,7 +95,7 @@ namespace OsEngine.Robots.MoiRoboti.New
             ShortAdj = 0.1m;
             SlipageToAlert = 10;
             lengthStartStop = 0.5m;
-
+      
             Load();
 
             Thread worker = new Thread(TimeWatcherArea);
@@ -182,6 +182,9 @@ namespace OsEngine.Robots.MoiRoboti.New
             get => _price;
             set => Set(ref _price, value);
         }
+        public decimal stopBuy;
+        public decimal stopSell;
+        public decimal indent;
 
         /// <summary>
         /// вкл/выкл
@@ -516,14 +519,15 @@ namespace OsEngine.Robots.MoiRoboti.New
             _tab.SellAtStopCancel();
 
             // выставляем стоп по отступу в обход вызова из метода окончания свечи
-            decimal indent = lengthStartStop * Price_market / 100;  // отступ для стопа
+            indent = lengthStartStop * Price_market / 100;  // отступ для стопа
             decimal priceOpenPos = _tab.PositionsLast.EntryPrice;  // цена открытия позиции
 
             if (position.Direction == Side.Buy)
             {
+                stopBuy = Math.Round(priceOpenPos - indent, _tab.Securiti.Decimals);
                 decimal lineSell = priceOpenPos - indent;
 
-                decimal priceOrderSell = lineSell - _tab.Securiti.PriceStep * SlipageCloseFirst; // ЗДЕСЬ!!!!!!!!!!!!!!
+                decimal priceOrderSell = lineSell - _tab.Securiti.PriceStep * SlipageCloseFirst; 
                 decimal priceRedLineSell = lineSell + _tab.Securiti.PriceStep * SlipageReversClose;
 
                 if (priceRedLineSell - _tab.Securiti.PriceStep * 10 > _tab.PriceBestAsk)
@@ -551,7 +555,7 @@ namespace OsEngine.Robots.MoiRoboti.New
             if (position.Direction == Side.Sell)
             {
                 decimal lineBuy = priceOpenPos + indent; ;
-
+                stopSell = Math.Round(priceOpenPos + indent, _tab.Securiti.Decimals);
                 if (lineBuy == 0)
                 {
                     return;
@@ -612,7 +616,6 @@ namespace OsEngine.Robots.MoiRoboti.New
                     positions[i].StopOrderIsActiv = false;
                     positions[i].ProfitOrderIsActiv = false;
                 }
-
                 return;
             }
 
@@ -629,7 +632,6 @@ namespace OsEngine.Robots.MoiRoboti.New
             {
                 TryOpenPosition(candles);
             }
-
         }
 
         /// <summary>
@@ -728,7 +730,7 @@ namespace OsEngine.Robots.MoiRoboti.New
         /// </summary>
         private void TryClosePosition(Position position, List<Candle> candles)
         {
-            if (EmulatorIsOn)
+             if (EmulatorIsOn)
             {
                 int currentEmuPos = GetCurrentPosition();
 
@@ -744,7 +746,7 @@ namespace OsEngine.Robots.MoiRoboti.New
                     return;
                 }
             }
-
+     
             // БАЙ
             if (position.Direction == Side.Sell)
             {
@@ -760,7 +762,6 @@ namespace OsEngine.Robots.MoiRoboti.New
 
                 if (priceRedLine + _tab.Securiti.PriceStep * 5 < _tab.PriceBestAsk)
                 {
-                    //_tab.SetNewLogMessage("1!!!. " + _tab.TimeServerCurrent, LogMessageType.Error);
                     _tab.CloseAtLimit(position, _tab.PriceBestAsk + _tab.Securiti.PriceStep * SlipageCloseFirst, position.OpenVolume);
                     return;
                 }
@@ -769,8 +770,7 @@ namespace OsEngine.Robots.MoiRoboti.New
                     position.StopOrderPrice > priceRedLine)
                 {
                     _tab.CloseAtStop(position, priceRedLine, priceOrder);
-                    //_tab.SetNewLogMessage("2!!!. " + _tab.TimeServerCurrent, LogMessageType.Error);
-
+ 
                     if (StartProgram != StartProgram.IsTester && AlertIsOn)
                     {
                         _alert.PriceActivation = priceRedLine - SlipageToAlert * _tab.Securiti.PriceStep;
@@ -786,13 +786,11 @@ namespace OsEngine.Robots.MoiRoboti.New
                 {
                     if (position.StopOrderRedLine + _tab.Securiti.PriceStep * 10 < _tab.PriceBestAsk)
                     {
-                        // _tab.SetNewLogMessage("3!!!. " + position.Number, LogMessageType.Error);
                         _tab.CloseAtLimit(position, _tab.PriceBestAsk, position.OpenVolume);
                         return;
                     }
                     position.StopOrderIsActiv = true;
                 }
-
             }
 
             // СЕЛЛ
@@ -877,18 +875,49 @@ namespace OsEngine.Robots.MoiRoboti.New
         }
 
         /// <summary>
-        /// для выставления стопа
+        /// для сдвига стопа  
         /// </summary>
-        void Save_profit() 
+        public void Min_loss()
         {
-           
-            /*
-            decimal zn = _tab.PositionsLast.ProfitPortfolioPunkt; // смотрим прибыльность
-            _tab.CloseAtTrailingStop(_tab.PositionsLast, _tab.PriceCenterMarketDepth,
-            _tab.PriceCenterMarketDepth * _tab.Securiti.PriceStep);
-            */
-        }
+            indent = lengthStartStop * Price_market / 100;  // отступ для стопа
+            decimal priceOpenPos = 0; // цена открытия позиции
 
+            if (_tab.PositionsOpenAll.Count != 0)
+            {
+                priceOpenPos = _tab.PositionsLast.EntryPrice;
+            }
+            if (priceOpenPos == 0)
+            {
+                return;
+            }
+            if (_tab.PositionsLast.Direction == Side.Buy)
+            {
+
+                if (Price_market < priceOpenPos)
+                {
+                    return;
+                }
+
+                if (priceOpenPos + indent * 1.8m < Price_market) // если цена выросла в 2 раза больше допустимого стопа переносим стоп сделки в безубыток
+                {
+                    stopBuy = priceOpenPos + 0.5m * indent;
+                }
+            }
+            if (_tab.PositionsLast.Direction == Side.Sell)
+            {
+                if (Price_market > priceOpenPos)
+                {
+                    return;
+                }
+
+                if (Price_market < priceOpenPos - indent * 1.8m) // если цена снизилась в 2 раза больше допустимого стопа переносим стоп сделки в безубыток
+                {
+                    {
+                        stopSell = priceOpenPos - 0.5m * indent;
+                    }
+                }
+            }
+        }
         /// <summary>
         /// взять цену для выхода из позиции
         /// </summary>
@@ -899,16 +928,9 @@ namespace OsEngine.Robots.MoiRoboti.New
                 return 0;
             }
 
-            decimal indent = lengthStartStop * Price_market / 100;  // отступ для стопа
-            decimal priceOpenPos = 0; // цена открытия позиции
-            if (_tab.PositionsOpenAll.Count != 0)
-            {
-                priceOpenPos = _tab.PositionsLast.EntryPrice;
-            }
- 
             if (side == Side.Buy)
             { // рассчитываем цену стопа при Лонге
-                // 1 находим максимум за время от открытия сделки и до текущего
+              // 1 находим максимум за время от открытия сделки и до текущего
                 decimal maxHigh = 0;
                 int indexIntro = 0;
                 DateTime openPositionTime = positionCreateTime;
@@ -965,18 +987,17 @@ namespace OsEngine.Robots.MoiRoboti.New
                 }
 
                 // 3 рассчитываем цену Стопа
-
+                Min_loss();  // расчет стопа
                 decimal lastAtr = ((Atr)_atr).Values[index];
 
                 decimal stopCandel = maxHigh - lastAtr * distanse; // стоп рассчитываемый по свечам
-                decimal minStop = Math.Round(priceOpenPos - indent, _tab.Securiti.Decimals); // по процентам 
-                if (stopCandel < minStop)
+                if (stopCandel < stopBuy)
                 {
-                    return minStop;
+                    return stopBuy;
                 }
-                if (stopCandel > minStop)
+                if (stopCandel > stopBuy)
                 {
-                    return stopCandel; 
+                    return stopCandel;
                 }
             }
             if (side == Side.Sell)
@@ -1038,23 +1059,24 @@ namespace OsEngine.Robots.MoiRoboti.New
                     }
                 }
 
-                // 3 рассчитываем цену Стопа по свечам
+                // 3 рассчитываем цену Стопа по свечам и от величины минимально стопака 
 
                 decimal lastAtr = ((Atr)_atr).Values[index];
+                Min_loss();
 
                 decimal stopCandle = Math.Round(minLow + lastAtr * distanse, _tab.Securiti.Decimals); // стоп рассчитываемый по свечам
-                decimal minStop = Math.Round(priceOpenPos + indent, _tab.Securiti.Decimals); //стоп рассчитываемый по мин процентам
-                if (stopCandle > minStop)
+                if (stopCandle > stopSell)
                 {
-                    return minStop;
+                    return stopSell;
                 }
-                if (stopCandle < minStop)
+                if (stopCandle < stopSell)
                 {
                     return stopCandle;
                 }
             }
             return 0;
         }
+
 
         // отложенное закрытие позиции. Чтобы при выходе по эмулятору дать системе время отозвать ордер
         private Position _positionToClose;
