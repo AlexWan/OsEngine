@@ -80,12 +80,12 @@ namespace OsEngine.Robots.MoiRoboti.New
             Volume = 1;
             SlipageOpenSecond = 0;
             SlipageCloseSecond = 0;
-            TimeFrom = 01;
-            TimeTo = 23;
+            TimeFrom = 0;
+            TimeTo = 0;
             AlertIsOn = false;
             EmulatorIsOn = false;
 
-            LagTimeToOpenClose = new TimeSpan(0, 0, 0, 15);
+            LagTimeToOpenClose = new TimeSpan(0, 0, 0, 30);
             LagPunctToOpenClose = 20;
 
             DistLongInit = 6;
@@ -898,7 +898,7 @@ namespace OsEngine.Robots.MoiRoboti.New
                     return;
                 }
 
-                if (priceOpenPos + indent * 1.8m < Price_market) // если цена выросла в 2 раза больше допустимого стопа переносим стоп сделки в безубыток
+                if (priceOpenPos + indent  < Price_market) // если цена выросла  больше допустимого стопа переносим стоп сделки в безубыток
                 {
                     stopBuy = priceOpenPos + 0.5m * indent;
                 }
@@ -910,10 +910,10 @@ namespace OsEngine.Robots.MoiRoboti.New
                     return;
                 }
 
-                if (Price_market < priceOpenPos - indent * 1.8m) // если цена снизилась в 2 раза больше допустимого стопа переносим стоп сделки в безубыток
+                if (Price_market < priceOpenPos - indent ) // если цена снизилась  больше допустимого стопа переносим стоп сделки в безубыток
                 {
                     {
-                        stopSell = priceOpenPos - 0.5m * indent;
+                        stopSell = priceOpenPos - 0.3m * indent;
                     }
                 }
             }
