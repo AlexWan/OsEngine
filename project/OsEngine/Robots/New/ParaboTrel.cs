@@ -95,6 +95,8 @@ namespace OsEngine.Robots.MoiRoboti.New
             ShortAdj = 0.1m;
             SlipageToAlert = 10;
             lengthStartStop = 0.5m;
+            toProfit = CreateParameter("Забирать профит от %", 0.5m, 0.5m, 50m, 0.5m);
+            slippage = CreateParameter("Велич. проскаль.у ордеров", 5, 1, 200, 5);
 
             Load();
 
@@ -130,7 +132,6 @@ namespace OsEngine.Robots.MoiRoboti.New
         {
             return "ParaboTrel";
         }
-
         /// <summary>
         /// показать окно настроек робота
         /// </summary>
@@ -163,6 +164,8 @@ namespace OsEngine.Robots.MoiRoboti.New
         private IIndicator _eR;
 
         // настройки публичные
+        private StrategyParameterInt slippage; // величина проскальзывание при установки ордеров 
+        private StrategyParameterDecimal toProfit; // расстояние от цены до трейлинг стопа в %
         /// <summary>
         /// процент прибыли
         /// </summary>
@@ -255,10 +258,8 @@ namespace OsEngine.Robots.MoiRoboti.New
         /// количество свечей после которых мы выходим
         /// </summary>
         public int Day;
-
         public decimal DistLongInit;
         public decimal LongAdj;
-
         public decimal DistShortInit;
         public decimal ShortAdj;
 
@@ -729,7 +730,7 @@ namespace OsEngine.Robots.MoiRoboti.New
         /// проверить условия на выход из позиции
         /// </summary>
         private void TryClosePosition(Position position, List<Candle> candles)
-        {
+        { 
             if (EmulatorIsOn)
             {
                 int currentEmuPos = GetCurrentPosition();
@@ -771,15 +772,6 @@ namespace OsEngine.Robots.MoiRoboti.New
                 {
                     _tab.CloseAtStop(position, priceRedLine, priceOrder);
 
-                    if (StartProgram != StartProgram.IsTester && AlertIsOn)
-                    {
-                        _alert.PriceActivation = priceRedLine - SlipageToAlert * _tab.Securiti.PriceStep;
-                        _alert.TypeActivation = PriceAlertTypeActivation.PriceHigherOrEqual;
-                        _alert.MessageIsOn = true;
-                        _alert.MusicType = AlertMusic.Duck;
-                        _alert.Message = "Приближаемся к точке выхода";
-                        _alert.IsOn = true;
-                    }
                 }
 
                 if (position.StopOrderIsActiv == false)
@@ -816,16 +808,6 @@ namespace OsEngine.Robots.MoiRoboti.New
                     position.StopOrderPrice < priceRedLineSell)
                 {
                     _tab.CloseAtStop(position, priceRedLineSell, priceOrderSell);
-
-                    if (StartProgram != StartProgram.IsTester && AlertIsOn)
-                    {
-                        _alert.PriceActivation = priceRedLineSell + SlipageToAlert * _tab.Securiti.PriceStep;
-                        _alert.TypeActivation = PriceAlertTypeActivation.PriceLowerOrEqual;
-                        _alert.MessageIsOn = true;
-                        _alert.MusicType = AlertMusic.Duck;
-                        _alert.Message = "Приближаемся к точке выхода";
-                        _alert.IsOn = true;
-                    }
                 }
 
                 if (position.StopOrderIsActiv == false)
@@ -918,6 +900,55 @@ namespace OsEngine.Robots.MoiRoboti.New
                 }
             }
         }
+
+        /// <summary>
+        /// для движения трлейлинг стопа  
+        /// </summary>
+        public void To_stop_profit()
+        {
+            decimal priceOpenPos = 0; // цена открытия позиции
+
+            if (_tab.PositionsOpenAll.Count != 0)
+            {
+                priceOpenPos = _tab.PositionsLast.EntryPrice;
+            }
+            if (priceOpenPos == 0)
+            {
+                return;
+            }
+            if (_tab.PositionsLast.Direction == Side.Buy)
+            {
+
+                if (Price_market < priceOpenPos)
+                {
+                    return;
+                }
+
+                if (priceOpenPos + toProfit.ValueDecimal /100 < Price_market) // если цена выше открытия + расстояние до профита
+                {
+                    decimal stopActivacion = Price_market - Price_market * (toProfit.ValueDecimal / 100);
+                    decimal stopOrderPrice = stopActivacion - slippage.ValueInt * _tab.Securiti.PriceStep;
+                    _tab.CloseAtTrailingStop(_tab.PositionsLast, stopActivacion, stopOrderPrice);
+                }
+            }
+            if (_tab.PositionsLast.Direction == Side.Sell)
+            {
+                if (Price_market > priceOpenPos)
+                {
+                    return;
+                }
+
+                if (Price_market < priceOpenPos - toProfit.ValueDecimal /100) // если цена снизилась  больше допустимого стопа переносим стоп сделки в безубыток
+                {
+                    {
+                        decimal stopActivacion = Price_market + Price_market * (toProfit.ValueDecimal / 100);
+                        decimal stopOrderPrice = stopActivacion + slippage.ValueInt * _tab.Securiti.PriceStep;
+                        _tab.CloseAtTrailingStop(_tab.PositionsLast, stopActivacion, stopOrderPrice);
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// взять цену для выхода из позиции
         /// </summary>
@@ -997,7 +1028,8 @@ namespace OsEngine.Robots.MoiRoboti.New
                 }
                 if (stopCandel > stopBuy)
                 {
-                    return stopCandel;
+                    return stopBuy;
+                    //return stopCandel;
                 }
             }
             if (side == Side.Sell)
@@ -1071,12 +1103,12 @@ namespace OsEngine.Robots.MoiRoboti.New
                 }
                 if (stopCandle < stopSell)
                 {
-                    return stopCandle;
+                    return stopSell;
+                    //return stopCandle;
                 }
             }
             return 0;
         }
-
 
         // отложенное закрытие позиции. Чтобы при выходе по эмулятору дать системе время отозвать ордер
         private Position _positionToClose;
@@ -1445,6 +1477,7 @@ namespace OsEngine.Robots.MoiRoboti.New
             if (_tab.PositionsOpenAll.Count != 0)
             {
                 Profit = _tab.PositionsLast.ProfitPortfolioPunkt;
+                To_stop_profit();
             }
         }
 
