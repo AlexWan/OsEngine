@@ -24,13 +24,13 @@ using OsEngine.Robots.MoiRoboti.New;
 
 namespace OsEngine.Robots.MoiRoboti.New
 {
-    public class NewParabol : BotPanel, INotifyPropertyChanged
+    public class ParaboTrel : BotPanel, INotifyPropertyChanged
     {
         // сервис
         /// <summary>
         /// КОНСТРУКТОР 
         /// </summary>
-        public NewParabol(string name, StartProgram startProgram) : base(name, startProgram)
+        public ParaboTrel(string name, StartProgram startProgram) : base(name, startProgram)
         {
 
             TabCreate(BotTabType.Simple);
@@ -95,7 +95,7 @@ namespace OsEngine.Robots.MoiRoboti.New
             ShortAdj = 0.1m;
             SlipageToAlert = 10;
             lengthStartStop = 0.5m;
-      
+
             Load();
 
             Thread worker = new Thread(TimeWatcherArea);
@@ -128,7 +128,7 @@ namespace OsEngine.Robots.MoiRoboti.New
         /// </summary>
         public override string GetNameStrategyType()
         {
-            return "NewParabol";
+            return "ParaboTrel";
         }
 
         /// <summary>
@@ -136,7 +136,7 @@ namespace OsEngine.Robots.MoiRoboti.New
         /// </summary>
         public override void ShowIndividualSettingsDialog()
         {
-            NewParabolUi ui = new NewParabolUi(this);
+            ParaboTrelUi ui = new ParaboTrelUi(this);
             ui.Show();
         }
 
@@ -177,7 +177,7 @@ namespace OsEngine.Robots.MoiRoboti.New
         /// цена товара на рынке
         /// </summary>
         private decimal _price; // поле хранения цены
-        public decimal Price_market  
+        public decimal Price_market
         {
             get => _price;
             set => Set(ref _price, value);
@@ -265,7 +265,7 @@ namespace OsEngine.Robots.MoiRoboti.New
         /// <summary>
         /// стартовая (начальная) величина отступа для стоп приказа  в процентах от цены открытия позиции
         /// </summary>
-        public decimal lengthStartStop; 
+        public decimal lengthStartStop;
 
         /// <summary>
         /// нужно ли прорисовывать сделки эмулятора
@@ -527,7 +527,7 @@ namespace OsEngine.Robots.MoiRoboti.New
                 stopBuy = Math.Round(priceOpenPos - indent, _tab.Securiti.Decimals);
                 decimal lineSell = priceOpenPos - indent;
 
-                decimal priceOrderSell = lineSell - _tab.Securiti.PriceStep * SlipageCloseFirst; 
+                decimal priceOrderSell = lineSell - _tab.Securiti.PriceStep * SlipageCloseFirst;
                 decimal priceRedLineSell = lineSell + _tab.Securiti.PriceStep * SlipageReversClose;
 
                 if (priceRedLineSell - _tab.Securiti.PriceStep * 10 > _tab.PriceBestAsk)
@@ -589,8 +589,8 @@ namespace OsEngine.Robots.MoiRoboti.New
         }
 
         /// <summary>
-            /// основной вход в логику робота. Вызывается когда завершилась свеча
-            /// </summary>
+        /// основной вход в логику робота. Вызывается когда завершилась свеча
+        /// </summary>
         void StrategyAdxVolatility_CandleFinishedEvent(List<Candle> candles)
         {
 
@@ -730,7 +730,7 @@ namespace OsEngine.Robots.MoiRoboti.New
         /// </summary>
         private void TryClosePosition(Position position, List<Candle> candles)
         {
-             if (EmulatorIsOn)
+            if (EmulatorIsOn)
             {
                 int currentEmuPos = GetCurrentPosition();
 
@@ -746,7 +746,7 @@ namespace OsEngine.Robots.MoiRoboti.New
                     return;
                 }
             }
-     
+
             // БАЙ
             if (position.Direction == Side.Sell)
             {
@@ -770,7 +770,7 @@ namespace OsEngine.Robots.MoiRoboti.New
                     position.StopOrderPrice > priceRedLine)
                 {
                     _tab.CloseAtStop(position, priceRedLine, priceOrder);
- 
+
                     if (StartProgram != StartProgram.IsTester && AlertIsOn)
                     {
                         _alert.PriceActivation = priceRedLine - SlipageToAlert * _tab.Securiti.PriceStep;
@@ -898,7 +898,7 @@ namespace OsEngine.Robots.MoiRoboti.New
                     return;
                 }
 
-                if (priceOpenPos + indent  < Price_market) // если цена выросла  больше допустимого стопа переносим стоп сделки в безубыток
+                if (priceOpenPos + indent < Price_market) // если цена выросла  больше допустимого стопа переносим стоп сделки в безубыток
                 {
                     stopBuy = priceOpenPos + 0.5m * indent;
                 }
@@ -910,7 +910,7 @@ namespace OsEngine.Robots.MoiRoboti.New
                     return;
                 }
 
-                if (Price_market < priceOpenPos - indent ) // если цена снизилась  больше допустимого стопа переносим стоп сделки в безубыток
+                if (Price_market < priceOpenPos - indent) // если цена снизилась  больше допустимого стопа переносим стоп сделки в безубыток
                 {
                     {
                         stopSell = priceOpenPos - 0.3m * indent;
@@ -1442,7 +1442,7 @@ namespace OsEngine.Robots.MoiRoboti.New
         {
             Price_market = trade.Price;
             ChekReActivator(trade);
-            if (_tab.PositionsOpenAll.Count !=0)
+            if (_tab.PositionsOpenAll.Count != 0)
             {
                 Profit = _tab.PositionsLast.ProfitPortfolioPunkt;
             }

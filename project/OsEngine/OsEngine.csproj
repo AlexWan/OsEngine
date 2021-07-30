@@ -790,6 +790,10 @@
       <DependentUpon>NewParabolUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Robots\New\NewParabol.cs" />
+    <Compile Include="Robots\New\ParaboTrel.cs" />
+    <Compile Include="Robots\New\ParaboTrelUI.xaml.cs">
+      <DependentUpon>ParaboTrelUI.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Robots\OLd\FreeStylikBearishUi.xaml.cs">
       <DependentUpon>FreeStylikBearishUi.xaml</DependentUpon>
     </Compile>
@@ -1316,6 +1320,10 @@
     <Page Include="Robots\New\NewParabolUi.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Robots\New\ParaboTrelUI.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Robots\OLd\FreeStylikBearishUi.xaml">
       <Generator>MSBuild:Compile</Generator>

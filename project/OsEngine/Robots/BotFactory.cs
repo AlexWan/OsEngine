@@ -37,6 +37,8 @@ namespace OsEngine.Robots
         {
             List<string> result = new List<string>();
 
+
+            result.Add("ParaboTrel");
             result.Add("NewParabol");
             result.Add("Breakdown");
             result.Add("Frank");
@@ -126,6 +128,10 @@ namespace OsEngine.Robots
                 return bot;
             }
 
+            if (nameClass == "ParaboTrel")
+            {
+                bot = new ParaboTrel(name, startProgram);
+            }
             if (nameClass == "NewParabol")
             {
                 bot = new NewParabol(name, startProgram);
