@@ -97,7 +97,8 @@ namespace OsEngine.Robots.MoiRoboti.New
             lengthStartStop = 0.5m;
             toProfit = CreateParameter("Забирать профит от %", 0.5m, 0.5m, 50m, 0.5m);
             slippage = CreateParameter("Велич.проскаль.у ордеров", 5, 1, 200, 5);
-            vklRasCandl = CreateParameter("Считать стоп по свечам?",false); 
+            vklRasCandl = CreateParameter("Считать стоп по свечам?",false);
+            vklRasKauf = CreateParameter("Прибавить к стопу Волатильность?", true);
 
             Load();
 
@@ -168,6 +169,7 @@ namespace OsEngine.Robots.MoiRoboti.New
         private StrategyParameterInt slippage; // величина проскальзывание при установки ордеров 
         private StrategyParameterDecimal toProfit; // расстояние от цены до трейлинг стопа в %
         private StrategyParameterBool vklRasCandl; // включать ли расчет стопа по свечам
+        private StrategyParameterBool vklRasKauf; // прибавлять в расчетах показание индикатора кауфмана - волотильности 
         private decimal _percent; // поле хранения 
         public decimal Profit
         {
@@ -900,12 +902,23 @@ namespace OsEngine.Robots.MoiRoboti.New
             }
         }
 
+        public bool dinamik;
         /// <summary>
         /// для движения трлейлинг стопа  
         /// </summary>
         public void To_stop_profit()
         {
+            
             decimal priceOpenPos = 0; // цена открытия позиции
+            decimal kauf = ((EfficiencyRatio)_eR).Values[((EfficiencyRatio)_eR).Values.Count - 1];
+            if (vklRasKauf.ValueBool == true)
+            {
+                dinamik = true;
+            }
+            else
+            {
+                dinamik = false;
+            }
 
             if (_tab.PositionsOpenAll.Count != 0)
             {
@@ -923,22 +936,42 @@ namespace OsEngine.Robots.MoiRoboti.New
                 {
                     return;
                 }
-  
-                    decimal stopActivacion = Price_market - Price_market * (toProfit.ValueDecimal / 100);
+
+                    decimal stopActivacion = Price_market - Price_market * (lengthStartStop / 100);
                     decimal stopOrderPrice = stopActivacion - slippage.ValueInt * _tab.Securiti.PriceStep;
-                if (stopActivacion <= priceOpenPos + komis)
+                if (stopActivacion < priceOpenPos + komis) // пока стоп ниже безубытка , поднимаем его
                 {
                     stopActivacion = Price_market - Price_market * (lengthStartStop / 100);
                     _tab.CloseAtTrailingStop(_tab.PositionsLast, stopActivacion, stopOrderPrice);
                     stopBuy = stopActivacion;
-                }
 
+                }
+                // когда стоп выше безубытка позиции
                 if (Price_market > priceOpenPos + komis + Price_market * (toProfit.ValueDecimal / 100)) 
                 {
-                     stopActivacion = Price_market - Price_market * (toProfit.ValueDecimal / 100);
-                     stopOrderPrice = stopActivacion - slippage.ValueInt * _tab.Securiti.PriceStep;
-                    _tab.CloseAtTrailingStop(_tab.PositionsLast, stopActivacion, stopOrderPrice);
-                    stopBuy = stopActivacion;
+                    if (kauf > 0.6m)
+                    {
+                        dinamik = true;
+                    }
+                    if (kauf < 0.3m)
+                    {
+                        dinamik = false;
+                    }
+
+                    if (vklRasKauf.ValueBool == true)                // динамика
+                    {
+                        stopActivacion = Price_market - Price_market * ((toProfit.ValueDecimal + kauf) / 100);
+                        stopOrderPrice = stopActivacion - slippage.ValueInt * _tab.Securiti.PriceStep;
+                        _tab.CloseAtTrailingStop(_tab.PositionsLast, stopActivacion, stopOrderPrice);
+                        stopBuy = stopActivacion;
+                    }
+                    else
+                    {
+                        stopActivacion = Price_market - Price_market * (toProfit.ValueDecimal / 100);
+                        stopOrderPrice = stopActivacion - slippage.ValueInt * _tab.Securiti.PriceStep;
+                        _tab.CloseAtTrailingStop(_tab.PositionsLast, stopActivacion, stopOrderPrice);
+                        stopBuy = stopActivacion;
+                    }
                 }
             }
             if (_tab.PositionsLast.Direction == Side.Sell)
@@ -947,7 +980,7 @@ namespace OsEngine.Robots.MoiRoboti.New
                 {
                     return;
                 }
-                decimal stopActivacion = Price_market + Price_market * (toProfit.ValueDecimal / 100);
+                decimal stopActivacion = Price_market + Price_market * (lengthStartStop / 100);
                 decimal stopOrderPrice = stopActivacion + slippage.ValueInt * _tab.Securiti.PriceStep;
 
                 if (stopActivacion >= priceOpenPos- komis) // пока стоп не перекрыл безубыток, держим его на расстоянии lengthStartStop
@@ -955,14 +988,33 @@ namespace OsEngine.Robots.MoiRoboti.New
                     stopActivacion = Price_market + Price_market * (lengthStartStop / 100);
                     _tab.CloseAtTrailingStop(_tab.PositionsLast, stopActivacion, stopOrderPrice);
                     stopSell = stopActivacion;
+               
                 }
 
                 if(stopActivacion < priceOpenPos - komis - Price_market * (toProfit.ValueDecimal / 100))  // когда стоп перекрыл безубыток, держим его на расстоянии toProfit
                 {
+                    if (kauf > 0.6m)
+                    {
+                        dinamik = true;
+                    }
+                    if (kauf < 0.3m)
+                    {
+                        dinamik = false;
+                    }
+                    if (vklRasKauf.ValueBool == true) 
+                    {
+                        stopActivacion = Price_market + Price_market * ((toProfit.ValueDecimal + kauf) / 100);
+                        stopOrderPrice = stopActivacion + slippage.ValueInt * _tab.Securiti.PriceStep;
+                        _tab.CloseAtTrailingStop(_tab.PositionsLast, stopActivacion, stopOrderPrice);
+                        stopSell = stopActivacion;
+                    }
+                    else
+                    {
                         stopActivacion = Price_market + Price_market * (toProfit.ValueDecimal / 100);
                         stopOrderPrice = stopActivacion + slippage.ValueInt * _tab.Securiti.PriceStep;
                         _tab.CloseAtTrailingStop(_tab.PositionsLast, stopActivacion, stopOrderPrice);
                         stopSell = stopActivacion;
+                    }
                 }
             }
         }
@@ -1507,7 +1559,8 @@ namespace OsEngine.Robots.MoiRoboti.New
             ChekReActivator(trade);
             if (_tab.PositionsOpenAll.Count != 0)
             {
-                Profit = _tab.PositionsLast.ProfitPortfolioPunkt;
+                Profit = ((EfficiencyRatio)_eR).Values[((EfficiencyRatio)_eR).Values.Count-1]; // для просмотра значения переменной в окне 
+                //Profit = _tab.PositionsLast.ProfitPortfolioPunkt;
                 To_stop_profit();
             }
         }

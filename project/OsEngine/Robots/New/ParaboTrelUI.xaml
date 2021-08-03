@@ -330,7 +330,7 @@
             Margin="327,296,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            Content="прибыль в $"
+            Content="ВОЛАТИЛЬНОСТЬ"
             />
         <TextBox
 
