@@ -144,9 +144,17 @@ namespace OsEngine.Entity
                     return 0;
                 }
 
+
                 string step = Convert.ToDecimal(Convert.ToDouble(PriceStep)).ToString(new CultureInfo("ru-RU"));
 
-                _decimals = step.Split(',')[1].Length;
+                if (step.Split(',').Length > 1)
+                {
+                    _decimals = step.Split(',')[1].Length;
+                }
+                else if(step.Split('.').Length > 1)
+                {
+                    _decimals = step.Split('.')[1].Length;
+                }
 
                 return _decimals;
 

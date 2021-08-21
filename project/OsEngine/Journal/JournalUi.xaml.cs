@@ -81,6 +81,18 @@ namespace OsEngine.Journal
             TabItem4.Header = OsLocalization.Journal.TabItem4;
             TabItem5.Header = OsLocalization.Journal.TabItem5;
             TabItem6.Header = OsLocalization.Journal.TabItem6;
+
+            Closing += JournalUi_Closing;
+        }
+
+        private void JournalUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            IsErase = true;
+
+            TabBots.SizeChanged -= TabBotsSizeChanged;
+            TabControlPrime.SelectionChanged -= TabControlPrime_SelectionChanged;
+            _botsJournals = null;
+            Closing -= JournalUi_Closing;
         }
 
         /// <summary>
@@ -186,7 +198,7 @@ namespace OsEngine.Journal
                 for (int i = 0; i < positionsAll.Count; i++)
                 {
                     if (newPositionsAll.Count == 0 ||
-                        newPositionsAll[newPositionsAll.Count - 1].TimeCreate < positionsAll[i].TimeCreate)
+                        newPositionsAll[newPositionsAll.Count - 1].TimeCreate <= positionsAll[i].TimeCreate)
                     {
                         newPositionsAll.Add(positionsAll[i]);
                     }
@@ -215,7 +227,7 @@ namespace OsEngine.Journal
                 for (int i = 0; i < positionsLong.Count; i++)
                 {
                     if (newPositionsLong.Count == 0 ||
-                        newPositionsLong[newPositionsLong.Count - 1].TimeCreate < positionsLong[i].TimeCreate)
+                        newPositionsLong[newPositionsLong.Count - 1].TimeCreate <= positionsLong[i].TimeCreate)
                     {
                         newPositionsLong.Add(positionsLong[i]);
                     }
@@ -244,7 +256,7 @@ namespace OsEngine.Journal
                 for (int i = 0; i < positionsShort.Count; i++)
                 {
                     if (newPositionsShort.Count == 0 ||
-                        newPositionsShort[newPositionsShort.Count - 1].TimeCreate < positionsShort[i].TimeCreate)
+                        newPositionsShort[newPositionsShort.Count - 1].TimeCreate <= positionsShort[i].TimeCreate)
                     {
                         newPositionsShort.Add(positionsShort[i]);
                     }

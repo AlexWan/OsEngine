@@ -39,6 +39,7 @@ namespace OsEngine.Robots
             result.Add("Fisher");
             result.Add("Engine");
             result.Add("ClusterEngine");
+            result.Add("SmaTrendSample");
             result.Add("FundBalanceDivergenceBot");
             result.Add("PairTraderSimple");
             result.Add("MomentumMACD");
@@ -114,6 +115,10 @@ namespace OsEngine.Robots
                 return bot;
             }
             
+            if (nameClass == "SmaTrendSample")
+            {
+                bot = new SmaTrendSample(name, startProgram);
+            }
             if (nameClass == "TimeOfDayBot")
             {
                 bot = new TimeOfDayBot(name, startProgram);
