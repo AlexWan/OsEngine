@@ -844,7 +844,7 @@ namespace OsEngine.Entity
             {
                 if (_openOrders != null)
                 {
-                    return _openOrders[_openOrders.Count - 1].GetLastTradeTime();
+                    return _openOrders[0].GetLastTradeTime();
                 }
                 return DateTime.MinValue;
             }
