@@ -26,14 +26,19 @@ namespace OsEngine.Market.Servers.Binance.Futures.Entity
 
     public class PositionFutures
     {
-        public string isolated;
-        public string leverage;
+        public string symbol;
         public string initialMargin;
         public string maintMargin;
-        public string openOrderInitialMargin;
-        public string positionInitialMargin;
-        public string symbol;
         public string unrealizedProfit;
+        public string positionInitialMargin;
+        public string openOrderInitialMargin;
+        public string leverage;
+        public string isolated;
+        public string entryPrice;
+        public string maxNotional;
+        public string positionSide;
+        public string positionAmt;
+        public string updateTime;
     }
 
     public class AssetFutures
