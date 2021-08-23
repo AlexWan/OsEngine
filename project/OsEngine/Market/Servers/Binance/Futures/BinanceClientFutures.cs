@@ -241,6 +241,30 @@ namespace OsEngine.Market.Servers.Binance.Futures
         }
 
         /// <summary>
+        /// get realtime Mark Price and Funding Rate
+        /// получать среднюю цену инструмента (на всех биржах) и ставку фандирования в реальном времени
+        /// </summary>
+        public PremiumIndex GetPremiumIndex(string symbol)
+        {
+            try
+            {
+                var res = CreateQuery(
+                    Method.GET,
+                    "/" + type_str_selector + "/v1/premiumIndex",
+                    new Dictionary<string, string>() { { "symbol=", symbol } },
+                    true);
+
+                PremiumIndex resp = JsonConvert.DeserializeAnonymousType(res, new PremiumIndex());
+                return resp;
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+                return null;
+            }
+        }
+
+        /// <summary>
         /// shows whether connection works
         /// работает ли соединение
         /// </summary>

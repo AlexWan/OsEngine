@@ -306,6 +306,16 @@ namespace OsEngine.Market.Servers.Binance.Futures
         /// </summary>
         public ServerConnectStatus ServerStatus { get; set; }
 
+
+        /// <summary>
+        /// get realtime Mark Price and Funding Rate
+        /// получать среднюю цену инструмента (на всех биржах) и ставку фандирования в реальном времени
+        /// </summary>
+        public PremiumIndex GetPremiumIndex(string symbol)
+        {
+            return _client.GetPremiumIndex(symbol);
+        }
+
         /// <summary>
         /// request instrument history
         /// запрос истории по инструменту
