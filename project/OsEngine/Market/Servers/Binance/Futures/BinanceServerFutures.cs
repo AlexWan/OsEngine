@@ -301,6 +301,15 @@ namespace OsEngine.Market.Servers.Binance.Futures
         }
 
         /// <summary>
+        /// request account info
+        /// запросить статистику по аккаунту пользователя
+        /// </summary>
+        public AccountResponseFutures GetAccountInfo()
+        {
+            return _client.GetAccountInfo();
+        }
+
+        /// <summary>
         /// server status
         /// статус серверов
         /// </summary>

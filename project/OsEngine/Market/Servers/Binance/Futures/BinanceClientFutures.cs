@@ -248,7 +248,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         private object _lock = new object();
 
-        public void GetBalance()
+        /// <summary>
+        /// shows account info
+        /// показывает статистику по аккаунту пользователя
+        /// </summary>
+        public AccountResponseFutures GetAccountInfo()
         {
             lock (_lock)
             {
@@ -256,26 +260,42 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 {
                     // var res = CreateQuery( Method.GET, "/fapi/v1/balance", null, true);
 
-                     var res = CreateQuery(Method.GET, "/" + type_str_selector + "/v2/account", null, true);
-
-                    // var res = CreateQuery(Method.GET, "/fapi/v1/balance", null, true);
+                    var res = CreateQuery(Method.GET, "/" + type_str_selector + "/v2/account", null, true);
 
                     if (res == null)
                     {
-
-                        return;
+                        return null;
                     }
 
                     AccountResponseFutures resp = JsonConvert.DeserializeAnonymousType(res, new AccountResponseFutures());
-                    if (NewPortfolio != null)
-                    {
-                        NewPortfolio(resp);
-                    }
+                    return resp;
                 }
                 catch (Exception ex)
                 {
                     SendLogMessage(ex.ToString(), LogMessageType.Error);
+                    return null;
                 }
+            }
+        }
+
+        /// <summary>
+        /// balance 
+        /// баланс портфеля
+        /// </summary>
+        public void GetBalance()
+        {
+            try
+            {
+                AccountResponseFutures resp = GetAccountInfo();
+                if (NewPortfolio != null && resp != null)
+                {
+                    NewPortfolio(resp);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
