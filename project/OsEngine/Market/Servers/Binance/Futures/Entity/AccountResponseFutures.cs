@@ -92,4 +92,14 @@ namespace OsEngine.Market.Servers.Binance.Futures.Entity
     {
         public bool dualSidePosition;
     }
+
+    public class PremiumIndex
+    {
+        public string symbol;                       //"BTCUSDT",
+        public string markPrice;                    //"11793.63104562",  // mark price
+        public string indexPrice;                   //"11781.80495970", // index price
+        public string lastFundingRate;              //"0.00038246",  // This is the lasted funding rate
+        public string nextFundingTime;              //1597392000000,
+        public string interestRate;                 //0.00010000",
+    }
 }
