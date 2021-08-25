@@ -3558,7 +3558,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                             }
 
                             _stopsOpener.RemoveAt(i);
-                            i--;
+                            i = -1;
                             if (PositionBuyAtStopActivateEvent != null && pos != null)
                             { PositionBuyAtStopActivateEvent(pos); }
                             continue;
@@ -3581,7 +3581,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                             }
 
                             _stopsOpener.RemoveAt(i);
-                            i--;
+                            i = -1;
 
                             if (PositionSellAtStopActivateEvent != null && pos != null)
                             { PositionSellAtStopActivateEvent(pos); }
