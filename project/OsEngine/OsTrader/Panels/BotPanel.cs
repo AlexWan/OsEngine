@@ -828,7 +828,7 @@ position => position.State != PositionStateType.OpeningFail
         /// save parameter values / 
         /// сохранить значения параметров
         /// </summary>
-        private void SaveParametrs()
+        public void SaveParametrs()
         {
             if (_parameters == null ||
                 _parameters.Count == 0)
