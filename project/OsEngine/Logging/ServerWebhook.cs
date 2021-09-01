@@ -91,38 +91,36 @@ namespace OsEngine.Logging
         {
             if (File.Exists(@"Engine\webhookSet.txt"))
             {
-                StreamReader reader = new StreamReader(@"Engine\webhookSet.txt");
-
-                SlackBotToken = reader.ReadLine();
-                MustSendChartScreenshots = Convert.ToBoolean(reader.ReadLine());
-
-                IsReady = false;
-                for (int i = 0; !reader.EndOfStream; i++)
+                using (var reader = new StreamReader(@"Engine\webhookSet.txt"))
                 {
-                    if (Webhooks == null || Webhooks[0] == null)
-                    {
-                        Webhooks = new string[1];
-                        Webhooks[0] = reader.ReadLine();
-                        IsReady = true;
-                    }
-                    else
-                    {
-                        string[] newWebhooks = new string[Webhooks.Length + 1];
+                    SlackBotToken = reader.ReadLine();
+                    MustSendChartScreenshots = Convert.ToBoolean(reader.ReadLine());
 
-                        for (int ii = 0; ii < Webhooks.Length; ii++)
+                    IsReady = false;
+                    for (int i = 0; !reader.EndOfStream; i++)
+                    {
+                        if (Webhooks == null || Webhooks[0] == null)
                         {
-                            newWebhooks[ii] = Webhooks[ii];
+                            Webhooks = new string[1];
+                            Webhooks[0] = reader.ReadLine();
+                            IsReady = true;
+                        }
+                        else
+                        {
+                            string[] newWebhooks = new string[Webhooks.Length + 1];
+
+                            for (int ii = 0; ii < Webhooks.Length; ii++)
+                            {
+                                newWebhooks[ii] = Webhooks[ii];
+                            }
+
+                            newWebhooks[newWebhooks.Length - 1] = reader.ReadLine();
+                            Webhooks = newWebhooks;
+                            IsReady = true;
                         }
 
-                        newWebhooks[newWebhooks.Length - 1] = reader.ReadLine();
-                        Webhooks = newWebhooks;
-                        IsReady = true;
                     }
-
                 }
-
-                reader.Close();
-
             }
             else
             {
@@ -138,19 +136,20 @@ namespace OsEngine.Logging
         /// </summary>
         public void Save()
         {
-            StreamWriter writer = new StreamWriter(@"Engine\webhookSet.txt");
-            writer.WriteLine(SlackBotToken);
-            writer.WriteLine(MustSendChartScreenshots);
-            IsReady = false;
-            if (Webhooks != null && Webhooks[0] != null)
+            using (var writer = new StreamWriter(@"Engine\webhookSet.txt"))
             {
-                for (int i = 0; i < Webhooks.Length; i++)
+                writer.WriteLine(SlackBotToken);
+                writer.WriteLine(MustSendChartScreenshots);
+                IsReady = false;
+                if (Webhooks != null && Webhooks[0] != null)
                 {
-                    IsReady = true;
-                    writer.WriteLine(Webhooks[i]);
+                    for (int i = 0; i < Webhooks.Length; i++)
+                    {
+                        IsReady = true;
+                        writer.WriteLine(Webhooks[i]);
+                    }
                 }
             }
-            writer.Close();
         }
 
         /// <summary>

@@ -85,38 +85,35 @@ namespace OsEngine.Logging
         {
             if (File.Exists(@"Engine\mailSet.txt"))
             {
-                StreamReader reader = new StreamReader(@"Engine\mailSet.txt");
-
-                MyAdress = reader.ReadLine();
-                MyPassword = reader.ReadLine();
-                Smtp = reader.ReadLine();
-                IsReady = false;
-                for (int i = 0; !reader.EndOfStream; i++)
+                using (var reader = new StreamReader(@"Engine\mailSet.txt"))
                 {
-                    if (Adress == null || Adress[0] == null)
+                    MyAdress = reader.ReadLine();
+                    MyPassword = reader.ReadLine();
+                    Smtp = reader.ReadLine();
+                    IsReady = false;
+                    for (int i = 0; !reader.EndOfStream; i++)
                     {
-                        Adress = new string[1];
-                        Adress[0] = reader.ReadLine();
-                        IsReady = true;
-                    }
-                    else
-                    {
-                        string[] newAdress = new string[Adress.Length+1];
-
-                        for (int ii = 0; ii < Adress.Length; ii++)
+                        if (Adress == null || Adress[0] == null)
                         {
-                            newAdress[ii] = Adress[ii];
+                            Adress = new string[1];
+                            Adress[0] = reader.ReadLine();
+                            IsReady = true;
                         }
-                        
-                        newAdress[newAdress.Length -1] = reader.ReadLine();
-                        Adress = newAdress;
-                        IsReady = true;
+                        else
+                        {
+                            string[] newAdress = new string[Adress.Length + 1];
+
+                            for (int ii = 0; ii < Adress.Length; ii++)
+                            {
+                                newAdress[ii] = Adress[ii];
+                            }
+
+                            newAdress[newAdress.Length - 1] = reader.ReadLine();
+                            Adress = newAdress;
+                            IsReady = true;
+                        }
                     }
-
                 }
-
-                reader.Close();
-
             }
             else
             {
@@ -133,20 +130,21 @@ namespace OsEngine.Logging
         /// </summary>
         public void Save()
         {
-            StreamWriter writer = new StreamWriter(@"Engine\mailSet.txt");
-            writer.WriteLine(MyAdress);
-            writer.WriteLine(MyPassword);
-            writer.WriteLine(Smtp);
-            IsReady = false;
-            if (Adress != null && Adress[0] != null)
+            using (var writer = new StreamWriter(@"Engine\mailSet.txt"))
             {
-                for (int i = 0; i < Adress.Length; i++)
+                writer.WriteLine(MyAdress);
+                writer.WriteLine(MyPassword);
+                writer.WriteLine(Smtp);
+                IsReady = false;
+                if (Adress != null && Adress[0] != null)
                 {
-                    IsReady = true;
-                    writer.WriteLine(Adress[i]);
+                    for (int i = 0; i < Adress.Length; i++)
+                    {
+                        IsReady = true;
+                        writer.WriteLine(Adress[i]);
+                    }
                 }
             }
-            writer.Close();
         }
 
         /// <summary>

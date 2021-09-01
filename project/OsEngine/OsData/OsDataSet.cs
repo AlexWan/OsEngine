@@ -1422,13 +1422,13 @@ namespace OsEngine.OsData
 
             string path = "Data\\ServersCandleTempData\\" + series.Specification + ".txt";
 
-            StreamWriter writer = new StreamWriter(path);
-
-            for (int i = 0; i < candles.Count; i++)
+            using (var writer = new StreamWriter(path))
             {
-                writer.WriteLine(candles[i].StringToSave);
+                for (int i = 0; i < candles.Count; i++)
+                {
+                    writer.WriteLine(candles[i].StringToSave);
+                }
             }
-            writer.Close();
         }
 
         // trades/тики
@@ -1633,46 +1633,47 @@ namespace OsEngine.OsData
                     _savedTradeFiles.Add(files[i]);
                 }
 
-                StreamReader reader = new StreamReader(files[i]);
-
-                if ((!reader.EndOfStream))
+                using (var reader = new StreamReader(files[i]))
                 {
-                    try
+                    if ((!reader.EndOfStream))
                     {
-                        newTrade.SetTradeFromString(reader.ReadLine());
+                        try
+                        {
+                            newTrade.SetTradeFromString(reader.ReadLine());
+                        }
+                        catch (Exception)
+                        {
+                            continue;
+                        }
+
+                        SaveThisTick(newTrade, path, securityName, null, path + securityName.RemoveExcessFromSecurityName() + ".txt", false);
                     }
-                    catch (Exception)
+                    else if (reader.EndOfStream)
                     {
-                        continue;
+                        SaveThisTick(null, path, securityName, null, path + securityName.RemoveExcessFromSecurityName() + ".txt", true);
                     }
 
-                    SaveThisTick(newTrade, path, securityName, null, path + securityName.RemoveExcessFromSecurityName() + ".txt", false);
+
+                    using (StreamWriter writer = new StreamWriter(path + securityName.RemoveExcessFromSecurityName() + ".txt", true))
+                    {
+                        while (!reader.EndOfStream)
+                        {
+                            newTrade.SetTradeFromString(reader.ReadLine());
+
+                            //if (newTrade.Time.Hour < 10)
+                            //{
+                            //    continue;
+                            //}
+
+                            SaveThisTick(newTrade, path, securityName, writer, path + securityName.RemoveExcessFromSecurityName() + ".txt", false);
+                        }
+
+                        if (reader.EndOfStream)
+                        {
+                            SaveThisTick(null, path, securityName, writer, path + securityName.RemoveExcessFromSecurityName() + ".txt", true);
+                        }
+                    }
                 }
-                else if (reader.EndOfStream)
-                {
-                    SaveThisTick(null, path, securityName, null, path + securityName.RemoveExcessFromSecurityName() + ".txt", true);
-                }
-
-                using ( StreamWriter writer = new StreamWriter(path + securityName.RemoveExcessFromSecurityName() + ".txt", true))
-                {
-                    while (!reader.EndOfStream)
-                    {
-                        newTrade.SetTradeFromString(reader.ReadLine());
-
-                        //if (newTrade.Time.Hour < 10)
-                        //{
-                        //    continue;
-                        //}
-
-                        SaveThisTick(newTrade, path, securityName, writer, path + securityName.RemoveExcessFromSecurityName() + ".txt", false);
-                    }
-
-                    if (reader.EndOfStream)
-                    {
-                        SaveThisTick(null, path, securityName, writer, path + securityName.RemoveExcessFromSecurityName() + ".txt", true);
-                    }
-                }
-                reader.Close();
             }
         }
 

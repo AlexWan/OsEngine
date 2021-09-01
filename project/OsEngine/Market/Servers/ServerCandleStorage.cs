@@ -179,14 +179,13 @@ namespace OsEngine.Market.Servers
                 Directory.CreateDirectory(_pathName);
             }
 
-            StreamWriter writer = new StreamWriter(_pathName + "\\" + series.Specification + ".txt");
-
-            for (int i = 0; i < mySaveInfo.AllCandlesInFile.Count; i++)
+            using (var writer = new StreamWriter(_pathName + "\\" + series.Specification + ".txt"))
             {
-                writer.WriteLine(mySaveInfo.AllCandlesInFile[i].StringToSave);
+                for (int i = 0; i < mySaveInfo.AllCandlesInFile.Count; i++)
+                {
+                    writer.WriteLine(mySaveInfo.AllCandlesInFile[i].StringToSave);
+                }
             }
-
-            writer.Close();
         }
 
         public List<Candle> GetCandles(string specification, int count)

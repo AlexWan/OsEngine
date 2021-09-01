@@ -50,15 +50,13 @@ namespace OsEngine.Logging
         {
             if (File.Exists(@"Engine\smsSet.txt"))
             {
-                StreamReader reader = new StreamReader(@"Engine\smsSet.txt");
-
-                SmscLogin = reader.ReadLine();
-                SmscPassword = reader.ReadLine();
-                Phones = reader.ReadLine();
-
-                reader.Close();
+                using (var reader = new StreamReader(@"Engine\smsSet.txt"))
+                {
+                    SmscLogin = reader.ReadLine();
+                    SmscPassword = reader.ReadLine();
+                    Phones = reader.ReadLine();
+                }
             }
-
         }
 
         /// <summary>
@@ -67,12 +65,12 @@ namespace OsEngine.Logging
         /// </summary>
         public void Save()
         {
-            StreamWriter writer = new StreamWriter(@"Engine\smsSet.txt");
-            writer.WriteLine(SmscLogin);
-            writer.WriteLine(SmscPassword);
-            writer.WriteLine(Phones);
-
-            writer.Close();
+            using (var writer = new StreamWriter(@"Engine\smsSet.txt"))
+            {
+                writer.WriteLine(SmscLogin);
+                writer.WriteLine(SmscPassword);
+                writer.WriteLine(Phones);
+            }
         }
 
         /// <summary>
@@ -154,7 +152,6 @@ namespace OsEngine.Logging
             string ret;
             int i = 0;
             HttpWebRequest request;
-            StreamReader sr;
             HttpWebResponse response;
 
             do
@@ -261,8 +258,10 @@ namespace OsEngine.Logging
                 {
                     response = (HttpWebResponse)request.GetResponse();
 
-                    sr = new StreamReader(response.GetResponseStream());
-                    ret = sr.ReadToEnd();
+                    using (var streamReader = new StreamReader(response.GetResponseStream()))
+                    {
+                        ret = streamReader.ReadToEnd();
+                    }
                 }
                 catch (WebException) {
                     ret = "";
