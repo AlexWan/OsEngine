@@ -58,5 +58,16 @@ namespace OsEngine.OsData
                 e.Cancel = true;
             }
         }
+
+        private void ButtonChangeSrc_Click(object sender, RoutedEventArgs e)
+        {
+            OsDataConnectorList ui = new OsDataConnectorList();
+            ui.ShowDialog();
+
+			// следующее выполненится плсле закрытия диалога 
+			//  MessageBox.Show("AAAA");
+
+			_osDataMaster.RePaintSourceGrid();
+		}
     }
 }

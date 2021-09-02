@@ -246,7 +246,7 @@ namespace OsEngine.OsData
         /// <summary>
         /// redraw the source table/перерисовать таблицу источников
         /// </summary>
-        private void RePaintSourceGrid()
+        public void RePaintSourceGrid()
         {
             if (_gridSources.InvokeRequired)
             {
@@ -264,8 +264,10 @@ namespace OsEngine.OsData
             {
                 serversCreate = new List<IServer>();
             }
+			
+			List<string> usedServers = OsDataConnectorList.UsedServersGet();
 
-            for (int i = 0; i < servers.Count; i++)
+			for (int i = 0; i < servers.Count; i++)
             {
                 DataGridViewRow row1 = new DataGridViewRow();
                 row1.Cells.Add(new DataGridViewTextBoxCell());
@@ -277,6 +279,7 @@ namespace OsEngine.OsData
                 if (server == null)
                 {
                     row1.Cells[1].Value = "Disabled";
+					if(usedServers.Contains(servers[i].ToString()) == false){		continue;		}
                 }
                 else if (server != null && server.ServerStatus == ServerConnectStatus.Connect)
                 {
