@@ -1422,13 +1422,13 @@ namespace OsEngine.OsData
 
             string path = "Data\\ServersCandleTempData\\" + series.Specification + ".txt";
 
-            using (var writer = new StreamWriter(path))
+            StreamWriter writer = new StreamWriter(path);
+
+            for (int i = 0; i < candles.Count; i++)
             {
-                for (int i = 0; i < candles.Count; i++)
-                {
-                    writer.WriteLine(candles[i].StringToSave);
-                }
+                writer.WriteLine(candles[i].StringToSave);
             }
+            writer.Close();
         }
 
         // trades/тики
@@ -1633,47 +1633,46 @@ namespace OsEngine.OsData
                     _savedTradeFiles.Add(files[i]);
                 }
 
-                using (var reader = new StreamReader(files[i]))
+                StreamReader reader = new StreamReader(files[i]);
+
+                if ((!reader.EndOfStream))
                 {
-                    if ((!reader.EndOfStream))
+                    try
                     {
-                        try
-                        {
-                            newTrade.SetTradeFromString(reader.ReadLine());
-                        }
-                        catch (Exception)
-                        {
-                            continue;
-                        }
-
-                        SaveThisTick(newTrade, path, securityName, null, path + securityName.RemoveExcessFromSecurityName() + ".txt", false);
+                        newTrade.SetTradeFromString(reader.ReadLine());
                     }
-                    else if (reader.EndOfStream)
+                    catch (Exception)
                     {
-                        SaveThisTick(null, path, securityName, null, path + securityName.RemoveExcessFromSecurityName() + ".txt", true);
+                        continue;
                     }
 
+                    SaveThisTick(newTrade, path, securityName, null, path + securityName.RemoveExcessFromSecurityName() + ".txt", false);
+                }
+                else if (reader.EndOfStream)
+                {
+                    SaveThisTick(null, path, securityName, null, path + securityName.RemoveExcessFromSecurityName() + ".txt", true);
+                }
 
-                    using (StreamWriter writer = new StreamWriter(path + securityName.RemoveExcessFromSecurityName() + ".txt", true))
+                using ( StreamWriter writer = new StreamWriter(path + securityName.RemoveExcessFromSecurityName() + ".txt", true))
+                {
+                    while (!reader.EndOfStream)
                     {
-                        while (!reader.EndOfStream)
-                        {
-                            newTrade.SetTradeFromString(reader.ReadLine());
+                        newTrade.SetTradeFromString(reader.ReadLine());
 
-                            //if (newTrade.Time.Hour < 10)
-                            //{
-                            //    continue;
-                            //}
+                        //if (newTrade.Time.Hour < 10)
+                        //{
+                        //    continue;
+                        //}
 
-                            SaveThisTick(newTrade, path, securityName, writer, path + securityName.RemoveExcessFromSecurityName() + ".txt", false);
-                        }
+                        SaveThisTick(newTrade, path, securityName, writer, path + securityName.RemoveExcessFromSecurityName() + ".txt", false);
+                    }
 
-                        if (reader.EndOfStream)
-                        {
-                            SaveThisTick(null, path, securityName, writer, path + securityName.RemoveExcessFromSecurityName() + ".txt", true);
-                        }
+                    if (reader.EndOfStream)
+                    {
+                        SaveThisTick(null, path, securityName, writer, path + securityName.RemoveExcessFromSecurityName() + ".txt", true);
                     }
                 }
+                reader.Close();
             }
         }
 

@@ -299,37 +299,40 @@ namespace OsEngine.Market.Servers.MOEX
             }
 
             List<Security> securities = new List<Security>();
-            using (var reader = new StreamReader("Data\\Moex\\Securities.txt"))
-            {
-                while (reader.EndOfStream == false)
-                {
-                    string[] str = reader.ReadLine().Split('$');
-                    Security newSecurity = new Security();
-                    newSecurity.Name = str[0];
-                    newSecurity.NameId = str[1];
-                    newSecurity.NameClass = str[2];
-                    newSecurity.NameFull = str[3];
+            StreamReader reader = new StreamReader("Data\\Moex\\Securities.txt");
 
-                    securities.Add(newSecurity);
-                }
+            while (reader.EndOfStream == false)
+            {
+                string[] str = reader.ReadLine().Split('$');
+                Security newSecurity = new Security();
+                newSecurity.Name = str[0];
+                newSecurity.NameId = str[1];
+                newSecurity.NameClass = str[2];
+                newSecurity.NameFull = str[3];
+
+
+                securities.Add(newSecurity);
             }
+
+            reader.Close();
 
             return securities;
         }
 
         private void SaveSecurities(List<Security> securities)
         {
-            using (var writer = new StreamWriter("Data\\Moex\\Securities.txt"))
+            StreamWriter writer = new StreamWriter("Data\\Moex\\Securities.txt");
+
+            for (int i = 0; i < securities.Count; i++)
             {
-                for (int i = 0; i < securities.Count; i++)
-                {
-                    string saveStr = securities[i].Name + "$";
-                    saveStr += securities[i].NameId + "$";
-                    saveStr += securities[i].NameClass + "$";
-                    saveStr += securities[i].NameFull + "$";
-                    writer.WriteLine(saveStr);
-                }
+                string saveStr = securities[i].Name + "$";
+                saveStr += securities[i].NameId + "$";
+                saveStr += securities[i].NameClass + "$";
+                saveStr += securities[i].NameFull + "$";
+                writer.WriteLine(saveStr);
             }
+
+            writer.Close();
         }
 
         private List<string> GetEngines()

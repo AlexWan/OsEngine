@@ -243,107 +243,112 @@ namespace OsEngine.OsConverter
                 File.Create(_exitFile);
             }
 
-            using (var reader = new StreamReader(_sourceFile))
+            StreamReader reader = new StreamReader(_sourceFile);
+
+            SendNewLogMessage(OsLocalization.Converter.Message4, LogMessageType.System);
+
+            SendNewLogMessage(OsLocalization.Converter.Message5, LogMessageType.System);
+
+            List<Trade> trades = new List<Trade>();
+
+            int currentWeek = 0;
+
+            bool isNotFirstTime = false;
+
+            try
             {
-                SendNewLogMessage(OsLocalization.Converter.Message4, LogMessageType.System);
-
-                SendNewLogMessage(OsLocalization.Converter.Message5, LogMessageType.System);
-
-                List<Trade> trades = new List<Trade>();
-
-                int currentWeek = 0;
-
-                bool isNotFirstTime = false;
-
-                try
+                while (!reader.EndOfStream)
                 {
-                    while (!reader.EndOfStream)
+                    Trade trade = new Trade();
+                    trade.SetTradeFromString(reader.ReadLine());
+
+                    int partMonth = 1;
+
+                    if (trade.Time.Day <= 10)
                     {
-                        Trade trade = new Trade();
-                        trade.SetTradeFromString(reader.ReadLine());
+                        partMonth = 1;
+                    }
+                    else if (trade.Time.Day > 10 &&
+                        trade.Time.Day < 20)
+                    {
+                        partMonth = 2;
+                    }
 
-                        int partMonth = 1;
+                    else if (trade.Time.Day >= 20)
+                    {
+                        partMonth = 3;
+                    }
 
-                        if (trade.Time.Day <= 10)
+                    if (currentWeek == 0)
+                    {
+
+                        SendNewLogMessage(
+                            OsLocalization.Converter.Message6 + partMonth +
+                            OsLocalization.Converter.Message7 + trade.Time.Month, LogMessageType.System);
+                        currentWeek = partMonth;
+                    }
+
+
+                    if (partMonth != currentWeek || reader.EndOfStream)
+                    {
+                        SendNewLogMessage(OsLocalization.Converter.Message6 + currentWeek +
+                                          OsLocalization.Converter.Message7 + trade.Time.Month +
+                                          OsLocalization.Converter.Message8, LogMessageType.System);
+
+                        TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder();
+                        timeFrameBuilder.TimeFrame = TimeFrame;
+
+                        CandleSeries series = new CandleSeries(timeFrameBuilder, new Security() { Name = "Unknown" },StartProgram.IsOsConverter);
+
+                        series.IsStarted = true;
+
+                        series.SetNewTicks(trades);
+
+                        List<Candle> candles = series.CandlesAll;
+
+                        if (candles == null)
                         {
-                            partMonth = 1;
+                            continue;
                         }
-                        else if (trade.Time.Day > 10 &&
-                            trade.Time.Day < 20)
+
+                        StreamWriter writer = new StreamWriter(_exitFile, isNotFirstTime);
+
+                        for (int i = 0; i < candles.Count; i++)
                         {
-                            partMonth = 2;
+                            writer.WriteLine(candles[i].StringToSave);
                         }
 
-                        else if (trade.Time.Day >= 20)
-                        {
-                            partMonth = 3;
-                        }
+                        writer.Close();
 
-                        if (currentWeek == 0)
-                        {
+                        SendNewLogMessage(OsLocalization.Converter.Message9, LogMessageType.System);
 
-                            SendNewLogMessage(
-                                OsLocalization.Converter.Message6 + partMonth +
-                                OsLocalization.Converter.Message7 + trade.Time.Month, LogMessageType.System);
-                            currentWeek = partMonth;
-                        }
+                        isNotFirstTime = true;
 
+                        trades = new List<Trade>();
+                        series.Clear();
 
-                        if (partMonth != currentWeek || reader.EndOfStream)
-                        {
-                            SendNewLogMessage(OsLocalization.Converter.Message6 + currentWeek +
-                                              OsLocalization.Converter.Message7 + trade.Time.Month +
-                                              OsLocalization.Converter.Message8, LogMessageType.System);
+                        currentWeek = partMonth;
 
-                            TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder();
-                            timeFrameBuilder.TimeFrame = TimeFrame;
-
-                            CandleSeries series = new CandleSeries(timeFrameBuilder, new Security() { Name = "Unknown" }, StartProgram.IsOsConverter);
-
-                            series.IsStarted = true;
-
-                            series.SetNewTicks(trades);
-
-                            List<Candle> candles = series.CandlesAll;
-
-                            if (candles == null)
-                            {
-                                continue;
-                            }
-
-                            using (var writer = new StreamWriter(_exitFile, isNotFirstTime))
-                            {
-                                for (int i = 0; i < candles.Count; i++)
-                                {
-                                    writer.WriteLine(candles[i].StringToSave);
-                                }
-                            }
-
-                            SendNewLogMessage(OsLocalization.Converter.Message9, LogMessageType.System);
-
-                            isNotFirstTime = true;
-
-                            trades = new List<Trade>();
-                            series.Clear();
-
-                            currentWeek = partMonth;
-
-                            SendNewLogMessage(OsLocalization.Converter.Message6 + partMonth +
-                                              OsLocalization.Converter.Message7 + trade.Time.Month, LogMessageType.System);
-                        }
-                        else
-                        {
-                            trades.Add(trade);
-                        }
+                        SendNewLogMessage(OsLocalization.Converter.Message6 + partMonth +
+                                          OsLocalization.Converter.Message7 + trade.Time.Month, LogMessageType.System);
+                    }
+                    else
+                    {
+                        trades.Add(trade);
                     }
                 }
-                catch (Exception error)
-                {
-                    SendNewLogMessage(OsLocalization.Converter.Message10, LogMessageType.System);
-                    SendNewLogMessage(error.ToString(), LogMessageType.Error);
-                    return;
-                }
             }
+            catch (Exception error)
+            {
+                SendNewLogMessage(OsLocalization.Converter.Message10, LogMessageType.System);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                reader.Close();
+                return;
+            }
+
+            reader.Close();
+
+
 
             SendNewLogMessage(OsLocalization.Converter.Message9, LogMessageType.System);
         }

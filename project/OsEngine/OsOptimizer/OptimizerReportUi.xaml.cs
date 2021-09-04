@@ -795,7 +795,10 @@ namespace OsEngine.OsOptimizer
                     saveStr += _reports[i].GetSaveString() + "\r\n";
                 }
 
-                File.WriteAllText(fileName, saveStr);
+
+                StreamWriter writer = new StreamWriter(fileName);
+                writer.Write(saveStr);
+                writer.Close();
             }
             catch (Exception error)
             {

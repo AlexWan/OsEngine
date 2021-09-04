@@ -495,56 +495,57 @@ namespace OsEngine.Market.Servers.MFD
             string fileName = @"Data\Temp\tmpData" + ".txt";
 
 
-            if (File.Exists(fileName))
-            {
-                File.Delete(fileName);
-            }
+           if (File.Exists(fileName))
+           {
+               File.Delete(fileName);
+           }
 
-            WebClient wb = new WebClient();
-            bool _tickLoaded = false;
+           WebClient wb = new WebClient();
+           bool _tickLoaded = false;
 
             try
-            {
+           {
+               
+               wb.DownloadFileAsync(new Uri(url, UriKind.Absolute), fileName);
+               wb.DownloadFileCompleted += delegate(object sender, AsyncCompletedEventArgs args)
+               {
+                   _tickLoaded = true;
+               };
+               
+           }
+           catch (Exception)
+           {
+               wb.Dispose();
+               return null;
+           }
 
-                wb.DownloadFileAsync(new Uri(url, UriKind.Absolute), fileName);
-                wb.DownloadFileCompleted += delegate (object sender, AsyncCompletedEventArgs args)
-                {
-                    _tickLoaded = true;
-                };
+           while (true)
+           {
+               Thread.Sleep(1000);
+               if (_tickLoaded)
+               {
+                   break;
+               }
+           }
+           wb.Dispose();
 
-            }
-            catch (Exception)
-            {
-                wb.Dispose();
-                return null;
-            }
+           if (!File.Exists(fileName))
+           { // file is not uploaded / файл не загружен
+               return null;
+           }
 
-            while (true)
-            {
-                Thread.Sleep(1000);
-                if (_tickLoaded)
-                {
-                    break;
-                }
-            }
-            wb.Dispose();
+           StringBuilder builder = new StringBuilder();
 
-            if (!File.Exists(fileName))
-            { // file is not uploaded / файл не загружен
-                return null;
-            }
+            StreamReader reader = new StreamReader(fileName);
 
-            StringBuilder builder = new StringBuilder();
+           while (!reader.EndOfStream)
+           {
+               builder.Append(reader.ReadLine() + "\n");
+           }
 
-            using (var streamReader = new StreamReader(fileName))
-            {
-                while (!streamReader.EndOfStream)
-                {
-                    builder.Append(streamReader.ReadLine() + "\n");
-                }
-            }
+           reader.Close();
 
-            return builder.ToString();
+           return builder.ToString();
         }
 
         public event Action<List<Security>> SecurityEvent;

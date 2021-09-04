@@ -1868,7 +1868,9 @@ namespace OsEngine.Journal
                     fileName = fileName + ".txt";
                 }
 
-                File.WriteAllText(fileName, workSheet.ToString());
+                StreamWriter writer = new StreamWriter(fileName);
+                writer.Write(workSheet);
+                writer.Close();
             }
             catch (Exception error)
             {

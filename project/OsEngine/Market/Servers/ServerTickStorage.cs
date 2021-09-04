@@ -175,25 +175,26 @@ namespace OsEngine.Market.Servers
                         int lastSecond = allTrades[i1][tradeInfo.LastSaveIndex].Time.Second;
                         int lastMillisecond = allTrades[i1][tradeInfo.LastSaveIndex].MicroSeconds;
 
-                        using (var writer = new StreamWriter(_pathName + @"\" + allTrades[i1][0].SecurityNameCode + ".txt", true))
+                        StreamWriter writer =
+                            new StreamWriter(_pathName + @"\" + allTrades[i1][0].SecurityNameCode + ".txt", true);
+                        for (int i = tradeInfo.LastSaveIndex; i < allTrades[i1].Count - 1; i++)
                         {
-                            for (int i = tradeInfo.LastSaveIndex; i < allTrades[i1].Count - 1; i++)
-                            {
-                                if (allTrades[i1][i].MicroSeconds == 0)
-                                { // for some time in microseconds if the connector did not issue them to us / генерим какое-то время микросекунд, если нам коннектор их не выдал
-                                    if (lastSecond != allTrades[i1][i].Time.Second)
-                                    {
-                                        lastMillisecond = 0;
-                                        lastSecond = allTrades[i1][i].Time.Second;
-                                    }
-
-                                    allTrades[i1][i].MicroSeconds = lastMillisecond += 10;
+                            if (allTrades[i1][i].MicroSeconds == 0)
+                            { // for some time in microseconds if the connector did not issue them to us / генерим какое-то время микросекунд, если нам коннектор их не выдал
+                                if (lastSecond != allTrades[i1][i].Time.Second)
+                                {
+                                    lastMillisecond = 0;
+                                    lastSecond = allTrades[i1][i].Time.Second;
                                 }
 
-                                writer.WriteLine(allTrades[i1][i].GetSaveString());
+                                allTrades[i1][i].MicroSeconds = lastMillisecond += 10;
                             }
-                            tradeInfo.LastSaveIndex = allTrades[i1].Count - 1;
+
+                            writer.WriteLine(allTrades[i1][i].GetSaveString());
                         }
+                        tradeInfo.LastSaveIndex = allTrades[i1].Count - 1;
+                        writer.Close();
+
                     }
                 }
             }
@@ -227,98 +228,99 @@ namespace OsEngine.Market.Servers
                 for (int i = 0; i < saves.Length; i++)
                 {
                     // upload / загружаем
-                    using (var reader = new StreamReader(saves[i]))
+                    StreamReader reader = new StreamReader(saves[i]);
+
+                    List<Trade> newList = new List<Trade>();
+
+                    string nameSecurity;
+
+                    try
                     {
-                        List<Trade> newList = new List<Trade>();
+                        string[] array = saves[i].Split('\\');
 
-                        string nameSecurity;
+                        nameSecurity = array[2].Split('.')[0];
+                    }
+                    catch
+                    {
+                        continue;
+                    }
 
-                        try
+                    try
+                    {
+                        DateTime timeStart = DateTime.Now.AddDays(-DaysToLoad - 1);
+
+                        if (timeStart.Month == 1 && timeStart.Day < 10)
                         {
-                            string[] array = saves[i].Split('\\');
-
-                            nameSecurity = array[2].Split('.')[0];
+                            timeStart = timeStart.AddDays(-10);
                         }
-                        catch
+
+                        List<string> tradesInStr = new List<string>();
+
+                        while (!reader.EndOfStream)
                         {
-                            continue;
+                            tradesInStr.Add(reader.ReadLine());
                         }
 
-                        try
+                        for (int i2 = 0; i2 < tradesInStr.Count; i2++)
                         {
-                            DateTime timeStart = DateTime.Now.AddDays(-DaysToLoad - 1);
+                            Trade newTrade = new Trade();
 
-                            if (timeStart.Month == 1 && timeStart.Day < 10)
+                            try
                             {
-                                timeStart = timeStart.AddDays(-10);
+                                newTrade.SetTradeFromString(tradesInStr[i2]);
+                            }
+                            catch
+                            {
+                                continue;
                             }
 
-                            List<string> tradesInStr = new List<string>();
+                            newTrade.SecurityNameCode = nameSecurity;
 
-                            while (!reader.EndOfStream)
+                            if (newTrade.Time.Date < timeStart.Date)
                             {
-                                tradesInStr.Add(reader.ReadLine());
+                                i2 += 100;
+                                continue;
                             }
 
-                            for (int i2 = 0; i2 < tradesInStr.Count; i2++)
-                            {
-                                Trade newTrade = new Trade();
-
-                                try
-                                {
-                                    newTrade.SetTradeFromString(tradesInStr[i2]);
-                                }
-                                catch
-                                {
-                                    continue;
-                                }
-
-                                newTrade.SecurityNameCode = nameSecurity;
-
-                                if (newTrade.Time.Date < timeStart.Date)
-                                {
-                                    i2 += 100;
-                                    continue;
-                                }
-
-                                newList.Add(newTrade);
-                            }
-                        }
-                        catch (Exception)
-                        {
-                            continue;
-                        }
-
-                        // save / сохраняем
-
-                        if (newList.Count == 0)
-                        {
-                            continue;
-                        }
-
-                        if (_tradeSaveInfo.Find(s => s.NameSecurity == newList[0].SecurityNameCode) == null)
-                        {
-                            TradeSaveInfo tradeInfo = new TradeSaveInfo();
-                            tradeInfo.NameSecurity = newList[0].SecurityNameCode;
-                            tradeInfo.LastSaveIndex = newList.Count;
-                            _tradeSaveInfo.Add(tradeInfo);
-                        }
-
-                        if (allTrades == null)
-                        {
-                            allTrades = new[] { newList };
-                        }
-                        else
-                        {
-                            List<Trade>[] newListsArray = new List<Trade>[allTrades.Length + 1];
-                            for (int ii = 0; ii < allTrades.Length; ii++)
-                            {
-                                newListsArray[ii] = allTrades[ii];
-                            }
-                            newListsArray[newListsArray.Length - 1] = newList;
-                            allTrades = newListsArray;
+                            newList.Add(newTrade);
                         }
                     }
+                    catch (Exception)
+                    {
+                        continue;
+                    }
+
+                    // save / сохраняем
+
+                    if (newList.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    if (_tradeSaveInfo.Find(s => s.NameSecurity == newList[0].SecurityNameCode) == null)
+                    {
+                        TradeSaveInfo tradeInfo = new TradeSaveInfo();
+                        tradeInfo.NameSecurity = newList[0].SecurityNameCode;
+                        tradeInfo.LastSaveIndex = newList.Count;
+                        _tradeSaveInfo.Add(tradeInfo);
+                    }
+
+                    if (allTrades == null)
+                    {
+                        allTrades = new[] { newList };
+                    }
+                    else
+                    {
+                        List<Trade>[] newListsArray = new List<Trade>[allTrades.Length + 1];
+                        for (int ii = 0; ii < allTrades.Length; ii++)
+                        {
+                            newListsArray[ii] = allTrades[ii];
+                        }
+                        newListsArray[newListsArray.Length - 1] = newList;
+                        allTrades = newListsArray;
+                    }
+
+                    reader.Close();
                 }
 
                 if (TickLoadedEvent != null)

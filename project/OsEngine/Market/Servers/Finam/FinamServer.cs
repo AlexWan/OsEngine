@@ -1654,29 +1654,29 @@ namespace OsEngine.Market.Servers.Finam
                             {
                                 continue;
                             }
-                            using (var reader = new StreamReader(trades[i]))
+                            StreamReader reader = new StreamReader(trades[i]);
+
+                            while (!reader.EndOfStream)
                             {
-                                while (!reader.EndOfStream)
+                                try
                                 {
-                                    try
-                                    {
-                                        newTrade.SetTradeFromString(reader.ReadLine());
+                                    newTrade.SetTradeFromString(reader.ReadLine());
 
-                                        if (newTrade.Time.Hour < 10)
-                                        {
-                                            continue;
-                                        }
-                                        listTrades.Add(newTrade);
-                                        Series.SetNewTicks(listTrades);
-                                        TimeActual = newTrade.Time;
-                                    }
-                                    catch
+                                    if (newTrade.Time.Hour < 10)
                                     {
-                                        // ignore
+                                        continue;
                                     }
-
+                                    listTrades.Add(newTrade);
+                                    Series.SetNewTicks(listTrades);
+                                    TimeActual = newTrade.Time;
                                 }
+                                catch
+                                {
+                                    // ignore
+                                }
+
                             }
+                            reader.Close();
                         }
                         listTrades.Clear();
                     }
@@ -1923,33 +1923,36 @@ namespace OsEngine.Market.Servers.Finam
 
             StringBuilder list = new StringBuilder();
 
-            using (var reader = new StreamReader(fileName))
+            StreamReader reader = new StreamReader(fileName);
+
+            while (!reader.EndOfStream)
             {
-                while (!reader.EndOfStream)
+                string[] s = reader.ReadLine().Split(',');
+
+                StringBuilder builder = new StringBuilder();
+
+                builder.Append(s[0] + ",");
+                builder.Append(s[1] + ",");
+                builder.Append(s[2] + ",");
+                builder.Append(s[3] + ",");
+
+                if (s[5] == "S")
                 {
-                    string[] s = reader.ReadLine().Split(',');
-
-                    StringBuilder builder = new StringBuilder();
-
-                    builder.Append(s[0] + ",");
-                    builder.Append(s[1] + ",");
-                    builder.Append(s[2] + ",");
-                    builder.Append(s[3] + ",");
-
-                    if (s[5] == "S")
-                    {
-                        builder.Append("Sell");
-                    }
-                    else
-                    {
-                        builder.Append("Buy");
-                    }
-
-                    list.Append(builder + "\r\n");
+                    builder.Append("Sell");
                 }
+                else
+                {
+                    builder.Append("Buy");
+                }
+
+                list.Append(builder + "\r\n");
             }
 
-            File.WriteAllText(fileName, list.ToString());
+            reader.Close();
+
+            StreamWriter writer = new StreamWriter(fileName);
+            writer.Write(list);
+            writer.Close();
 
             return fileName;
         }

@@ -134,7 +134,7 @@ namespace OsEngine.Market.Servers.Livecoin
 
         private string SendQuery(bool isAuth, string endPoint, string publicKey = "", string secretKey = "", string data = "")
         {
-            string responseFromServer = "";
+            string ResponseFromServer = "";
             HttpStatusCode StatusCode;
             string uri;
 
@@ -150,7 +150,7 @@ namespace OsEngine.Market.Servers.Livecoin
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
             request.Method = "GET";
             request.ContentType = "application/x-www-form-urlencoded";
-            
+            Stream dataStream;
             if (isAuth)
             {
                 string param = http_build_query(data);
@@ -160,35 +160,36 @@ namespace OsEngine.Market.Servers.Livecoin
             }
             try
             {
-                using (var webResponse = request.GetResponse())
-                using (var dataStream = webResponse.GetResponseStream())
-                using (var streamReader = new StreamReader(dataStream))
-                {
-                    responseFromServer = streamReader.ReadToEnd();
-                }
-                
+                WebResponse WebResponse = request.GetResponse();
+                dataStream = WebResponse.GetResponseStream();
+                StreamReader StreamReader = new StreamReader(dataStream);
+                ResponseFromServer = StreamReader.ReadToEnd();
+                dataStream.Close();
+                WebResponse.Close();
                 StatusCode = HttpStatusCode.OK;
-                return responseFromServer;
+                return ResponseFromServer;
             }
             catch (WebException ex)
             {
                 if (ex.Response != null)
                 {
+                    dataStream = ex.Response.GetResponseStream();
+                    StreamReader StreamReader = new StreamReader(dataStream);
                     StatusCode = ((HttpWebResponse)ex.Response).StatusCode;
-                    responseFromServer = ex.Message;
+                    ResponseFromServer = ex.Message;
                 }
                 else
                 {
                     StatusCode = HttpStatusCode.ExpectationFailed;
-                    responseFromServer = "Неизвестная ошибка";
+                    ResponseFromServer = "Неизвестная ошибка";
                 }
-                return responseFromServer;
+                return ResponseFromServer;
             }
             catch (Exception ex)
             {
                 StatusCode = HttpStatusCode.ExpectationFailed;
-                responseFromServer = "Неизвестная ошибка";
-                return responseFromServer;
+                ResponseFromServer = "Неизвестная ошибка";
+                return ResponseFromServer;
             }
         }
 
