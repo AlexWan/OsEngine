@@ -21,15 +21,24 @@ namespace OsEngine.OsData
     /// </summary>
     public partial class NewSecurityUi
     {
+        private const string ComboBoxClassNameAll = "All";
+        private const string ComboBoxClassNameMoexTop = "МосБиржа топ";
+
         /// <summary>
         /// papers that are in the server/бумаги которые есть в сервере
         /// </summary>
-        private List<Security> _securities;
+        private readonly List<Security> _securities;
+        private readonly Dictionary<string, List<Security>> _securityGroupsDictionary;
+
+        /// <summary>
+        /// paper table/таблица для бумаг
+        /// </summary>
+        private readonly DataGridView _grid;
 
         /// <summary>
         /// selected paper/выбранная бумага
         /// </summary>
-        public Security SelectedSecurity;
+        public Security SelectedSecurity { get; private set; }
 
         /// <summary>
         /// constructor/конструктор
@@ -39,52 +48,62 @@ namespace OsEngine.OsData
         {
             InitializeComponent();
             _securities = securities;
+            _securityGroupsDictionary = BuildSecurityGroupsDictionary(_securities);
 
-            GetClasses();
-            CreateTable();
+            InitializeClassesComboBox();
+            _grid = CreateTable();
             ReloadSecurityTable();
-            ComboBoxClass.SelectionChanged += ComboBoxClass_SelectionChanged;
 
             Title = OsLocalization.Data.TitleNewSecurity;
             Label1.Content = OsLocalization.Data.Label1;
             ButtonAccept.Content = OsLocalization.Data.ButtonAccept;
-
         }
 
-        /// <summary>
-        /// paper table/таблица для бумаг
-        /// </summary>
-        private DataGridView _grid;
+        private Dictionary<string, List<Security>> BuildSecurityGroupsDictionary(List<Security> securities)
+        {
+            var dictionary = securities
+                .Where(s => !IsSecurityEmpty(s)
+                    && !string.IsNullOrEmpty(s.NameClass))
+                .GroupBy(s => s.NameClass)
+                .ToDictionary(s => s.Key, s => s.ToList());
+
+            dictionary[ComboBoxClassNameAll] = securities;
+
+            return dictionary;
+        }
 
         /// <summary>
         /// create a table for papers/создать таблицу для бумаг
         /// </summary>
-        private void CreateTable()
+        private DataGridView CreateTable()
         {
-            _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
+            var grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
                 DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders);
-            _grid.ScrollBars = ScrollBars.Vertical;
+            grid.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = _grid.DefaultCellStyle;
+            cell0.Style = grid.DefaultCellStyle;
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;
             column0.HeaderText = OsLocalization.Data.Label2;
             column0.ReadOnly = true;
             column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Columns.Add(column0);
+            grid.Columns.Add(column0);
 
             DataGridViewColumn column1 = new DataGridViewColumn();
             column1.CellTemplate = cell0;
             column1.HeaderText = OsLocalization.Data.Label3;
             column1.ReadOnly = true;
             column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Columns.Add(column1);
+            grid.Columns.Add(column1);
 
-            _grid.KeyPress += SearchSecurity;
+            grid.KeyPress += SearchSecurity;
+            FilterTextBox.TextChanged += FilterTextBox_TextChanged;
 
-            HostSecurity.Child = _grid;
+            HostSecurity.Child = grid;
+
+            return grid;
         }
 
         /// <summary>
@@ -145,6 +164,31 @@ namespace OsEngine.OsData
             }
         }
 
+        private DateTime _filterTextBoxChangedDateTime;
+        private static readonly TimeSpan _filterTextBoxSearchDelay = TimeSpan.FromSeconds(1);
+
+        private void FilterTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            _filterTextBoxChangedDateTime = DateTime.Now;
+
+            Task.Run(async () => {
+
+                while (true)
+                {
+                    await Task.Delay(100);
+
+                    if (DateTime.Now >= _filterTextBoxChangedDateTime.Add(_filterTextBoxSearchDelay))
+                    {
+                        FilterTextBox.Dispatcher.Invoke(() =>
+                        {
+                            ReloadSecurityTable();
+                        });
+                        return;
+                    }
+                }
+            });
+        }
+
         /// <summary>
         /// refresh search label/обновить строку поиска
         /// </summary>
@@ -154,9 +198,9 @@ namespace OsEngine.OsData
 
             // clear search label after freshnessTime + 1 (seconds)
             // очистить строку поиска через freshnessTime + 1 (секунд)
-            Task t = new Task(async () => {
+            Task.Run(async () => {
 
-                await Task.Delay((freshnessTime+1)*1000);
+                await Task.Delay((freshnessTime + 1) * 1000);
 
                 if (DateTime.Now.Subtract(_startSearch).Seconds > freshnessTime)
                 {
@@ -166,41 +210,35 @@ namespace OsEngine.OsData
                     });
                 }
             });
-            t.Start();
         }
 
         /// <summary>
         /// unload all available classes in the class selection menu/выгрузить все доступные классы в меню выбора классов
         /// </summary>
-        private void GetClasses()
+        private void InitializeClassesComboBox()
         {
             // order securities by class / упорядочить бумаги по классу
-            List<Security> orderedSecurities = _securities.OrderBy(s => s.NameClass).ToList();
-            List<string> classes = new List<string>();
-            for (int i = 0; i < orderedSecurities.Count; i++)
+            var hasMoexTop = false;
+            foreach (var nameClass in _securityGroupsDictionary.Keys.OrderBy(n => n))
             {
-                if (classes.Find(s => s == orderedSecurities[i].NameClass) == null && 
-                    !IsSecurityEmpty(orderedSecurities[i]))
+                if (nameClass == ComboBoxClassNameMoexTop)
                 {
-                    if (orderedSecurities[i].NameClass == null)
-                    {
-                        continue;
-                    }
-                    classes.Add(orderedSecurities[i].NameClass);
-                    ComboBoxClass.Items.Add(orderedSecurities[i].NameClass);
+                    hasMoexTop = true;
                 }
+
+                ComboBoxClass.Items.Add(nameClass);
             }
 
-            ComboBoxClass.Items.Add("All");
-
-            if (classes.Find(clas => clas == "МосБиржа топ") != null)
+            if (hasMoexTop)
             {
-                ComboBoxClass.SelectedItem = "МосБиржа топ";
+                ComboBoxClass.SelectedItem = ComboBoxClassNameMoexTop;
             }
             else
             {
-                ComboBoxClass.SelectedItem = "All";
+                ComboBoxClass.SelectedItem = ComboBoxClassNameAll;
             }
+
+            ComboBoxClass.SelectionChanged += ComboBoxClass_SelectionChanged;
         }
 
         /// <summary>
@@ -208,14 +246,10 @@ namespace OsEngine.OsData
         /// </summary>
         private bool IsSecurityEmpty(Security security)
         {
-            return string.IsNullOrEmpty(security.Name) || 
-                   string.IsNullOrEmpty(security.NameFull);
+            return security == null ||
+                string.IsNullOrEmpty(security.Name) || 
+                string.IsNullOrEmpty(security.NameFull);
         }
-
-        /// <summary>
-        /// currently displayed papers/отображаемые на текущий момент бумаги
-        /// </summary>
-        private List<Security> _securitiesInBox = new List<Security>();
 
         /// <summary>
         /// reload tool selection menu/перезагрузить меню выбора инструментов
@@ -227,35 +261,38 @@ namespace OsEngine.OsData
                 return;
             }
 
-            _securitiesInBox = new List<Security>();
-            _grid.Rows.Clear();
+            var selectedNameClass = ComboBoxClass.SelectedItem.ToString();
+            var filterText = FilterTextBox.Text.Trim();
+
+            var securityGroup = _securityGroupsDictionary[selectedNameClass];
 
             List<DataGridViewRow> rows = new List<DataGridViewRow>();
-            for (int i = 0; _securities != null && i < _securities.Count; i++)
+            foreach (var security in securityGroup)
             {
-                if (ComboBoxClass.SelectedItem.ToString() != "All" && _securities[i].NameClass != ComboBoxClass.SelectedItem.ToString())
-                {
-                    continue;
-                }
-
-                if (IsSecurityEmpty(_securities[i]))
+                if (!string.IsNullOrEmpty(filterText) && !ContainsText(security, filterText))
                 {
                     continue;
                 }
 
                 DataGridViewRow row = new DataGridViewRow();
                 row.Cells.Add(new DataGridViewTextBoxCell());
-                row.Cells[0].Value = _securities[i].Name;
+                row.Cells[0].Value = security.Name;
 
                 row.Cells.Add(new DataGridViewTextBoxCell());
-                row.Cells[1].Value = _securities[i].NameFull;
+                row.Cells[1].Value = security.NameFull;
+                row.Tag = security;
 
                 rows.Add(row);
-
-                _securitiesInBox.Add(_securities[i]);
             }
 
+            _grid.Rows.Clear();
             _grid.Rows.AddRange(rows.ToArray());
+        }
+
+        private bool ContainsText(Security security, string filterText)
+        {
+            return security.Name.IndexOf(filterText, StringComparison.OrdinalIgnoreCase) >= 0
+                || security.NameFull.IndexOf(filterText, StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         /// <summary>
@@ -271,14 +308,18 @@ namespace OsEngine.OsData
         /// </summary>
         private void ButtonAccept_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            if (_grid.SelectedCells[0] == null ||
-                string.IsNullOrWhiteSpace(_grid.SelectedCells[0].ToString()))
+            if (_grid.SelectedRows.Count <= 0)
             {
                 return;
             }
 
-            SelectedSecurity = _securitiesInBox.Find(
-                security => security.Name == _grid.SelectedCells[0].Value.ToString());
+            SelectedSecurity = _grid.SelectedRows[0].Tag as Security;
+
+            if (SelectedSecurity == null)
+            {
+                return;
+            }
+
             Close();
         }
     }
