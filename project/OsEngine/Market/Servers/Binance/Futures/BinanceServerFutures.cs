@@ -214,7 +214,12 @@ namespace OsEngine.Market.Servers.Binance.Futures
             {
                 endTimeStep = endTimeStep + new TimeSpan(0, 0, interval, 0);
 
-                if (endTimeStep > DateTime.Now - new TimeSpan(0, 0, (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes, 0))
+                while (endTime < endTimeStep)
+                {
+                    //break;
+                }
+
+                    if (endTimeStep > DateTime.Now - new TimeSpan(0, 0, (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes, 0))
                     endTimeStep = DateTime.Now - new TimeSpan(0, 0, (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes, 0);
 
                 List<Candle> stepCandles = _client.GetCandlesForTimes(security.Name, timeFrameBuilder.TimeFrameTimeSpan, startTimeStep, endTimeStep);

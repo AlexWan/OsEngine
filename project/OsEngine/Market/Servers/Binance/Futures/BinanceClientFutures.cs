@@ -282,9 +282,18 @@ namespace OsEngine.Market.Servers.Binance.Futures
             {
                 try
                 {
-                    // var res = CreateQuery( Method.GET, "/fapi/v1/balance", null, true);
+                    string res = null;
 
-                    var res = CreateQuery(Method.GET, "/" + type_str_selector + "/v2/account", null, true);
+                    if (type_str_selector == "dapi")
+                    {
+                        res = CreateQuery(Method.GET, type_str_selector + "/v1/balance", null, true);
+                        return GetAccountInfoFromDFut(res);
+
+                    }
+                    else if (type_str_selector == "fapi")
+                    {
+                        res = CreateQuery(Method.GET, "/" + type_str_selector + "/v2/account", null, true);
+                    }
 
                     if (res == null)
                     {
@@ -300,6 +309,23 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     return null;
                 }
             }
+        }
+
+        public AccountResponseFutures GetAccountInfoFromDFut(string response)
+        {
+            if(response == null)
+            {
+                return null;
+            }
+
+            AccountResponseFutures resp = new AccountResponseFutures();
+
+            List<AssetFutures> assets = JsonConvert.DeserializeAnonymousType(response, new List<AssetFutures>());
+
+            resp.assets = assets;
+            resp.positions = new List<PositionFutures>();
+
+            return resp;
         }
 
         /// <summary>
@@ -378,7 +404,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
             {
                 lock (_candleLocker)
                 {
-                    if (jsonCandles == "[]")
+                    if (jsonCandles == null ||
+                        jsonCandles == "[]")
                         return null;
 
                     string res = jsonCandles.Trim(new char[] { '[', ']' });

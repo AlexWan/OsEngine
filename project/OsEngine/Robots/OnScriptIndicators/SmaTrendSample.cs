@@ -138,12 +138,14 @@ namespace OsEngine.Robots.OnScriptIndicators
             decimal lastCandlePrice = candles[candles.Count - 1].Close;
 
             if (position.Direction == Side.Buy &&
-                smaValue > stopPrice && lastCandlePrice > smaValue)
+                smaValue > stopPrice 
+                && lastCandlePrice > smaValue)
             {
                 stopPrice = smaValue;
             }
             if (position.Direction == Side.Sell &&
-                smaValue < stopPrice && lastCandlePrice < smaValue)
+                smaValue < stopPrice 
+                && lastCandlePrice < smaValue)
             {
                 stopPrice = smaValue;
             }
