@@ -1,0 +1,10 @@
+﻿<Window x:Class="OsEngine.OsData.OsDataConnectorList"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Os.Data.ConnectorLict" Height="825" Width="350" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" 
+		MinWidth="220" MinHeight="360" Icon="/Images/OsLogo.ico" Closing="Window_Closing">
+    <Grid Name="GridPrime">
+        <WindowsFormsHost Name="hSource" Margin="15,16,15,56"/>
+        <Button  x:Name="ButtonSaveClose" Content="Save and Close" Margin="20,16" VerticalAlignment="Bottom" Click="ButtonSaveClose_Click" HorizontalAlignment="Right" Width="106" Height="28" />
+    </Grid>
+</Window>
