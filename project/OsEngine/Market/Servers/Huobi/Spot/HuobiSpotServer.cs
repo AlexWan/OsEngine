@@ -846,7 +846,9 @@ namespace OsEngine.Market.Servers.Huobi.Spot
                 var from = TimeManager.GetTimeStampSecondsToDateTime(startTime);
                 var to = TimeManager.GetTimeStampSecondsToDateTime(endTime);
 
-                _marketDataSource.SendMessage($"{{ \"req\": \"{topic}\",\"id\": \"{clientId}\", \"from\":{from}, \"to\":{to} }}");
+                string request = $"{{ \"req\": \"{topic}\",\"id\": \"{clientId}\", \"from\":{from}, \"to\":{to} }}";
+
+                _marketDataSource.SendMessage(request);
 
                 var startLoadingTime = DateTime.Now;
 

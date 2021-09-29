@@ -4,6 +4,7 @@ using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
 
+
 namespace OsEngine.Robots.OnScriptIndicators
 {
     public class SmaTrendSample : BotPanel
@@ -20,11 +21,20 @@ namespace OsEngine.Robots.OnScriptIndicators
             SmaLength = CreateParameter("Sma length", 30, 0, 20, 1);
             BaseStopPercent = CreateParameter("Base Stop Percent", 0.3m, 1.0m, 50, 4);
 
-
             _sma = IndicatorsFactory.CreateIndicatorByName("Sma", name + "sma", false);
             _sma = (Aindicator)_tab.CreateCandleIndicator(_sma, "Prime");
             _sma.ParametersDigit[0].Value = SmaLength.ValueInt;
             _sma.Save();
+
+            EnvelopLength = CreateParameter("Envelop length", 30, 0, 20, 1);
+
+            EnvelopDeviation = CreateParameter("Envelop Deviation", 1, 1.0m, 50, 4);
+
+            _envelop = IndicatorsFactory.CreateIndicatorByName("Envelops", name + "env", false);
+            _envelop = (Aindicator)_tab.CreateCandleIndicator(_envelop, "Prime");
+            _envelop.ParametersDigit[0].Value = EnvelopLength.ValueInt;
+            _envelop.ParametersDigit[1].Value = EnvelopDeviation.ValueDecimal;
+            _envelop.Save();
 
             ParametrsChangeByUser += SmaTrendSample_ParametrsChangeByUser;
 
@@ -39,6 +49,16 @@ namespace OsEngine.Robots.OnScriptIndicators
                 _sma.Save();
                 _sma.Reload();
             }
+
+            if (EnvelopLength.ValueInt != _envelop.ParametersDigit[0].Value ||
+                EnvelopDeviation.ValueDecimal != _envelop.ParametersDigit[1].Value)
+            {
+                _envelop.ParametersDigit[0].Value = EnvelopLength.ValueInt;
+                _envelop.ParametersDigit[1].Value = EnvelopDeviation.ValueDecimal;
+                _envelop.Save();
+                _envelop.Reload();
+            }
+
         }
 
         public override string GetNameStrategyType()
@@ -61,6 +81,8 @@ namespace OsEngine.Robots.OnScriptIndicators
 
         private Aindicator _sma;
 
+        private Aindicator _envelop;
+
         //settings настройки публичные
 
         public StrategyParameterInt Slippage;
@@ -70,6 +92,10 @@ namespace OsEngine.Robots.OnScriptIndicators
         public StrategyParameterString Regime;
 
         public StrategyParameterInt SmaLength;
+
+        public StrategyParameterInt EnvelopLength;
+
+        public StrategyParameterDecimal EnvelopDeviation;
 
         public StrategyParameterDecimal BaseStopPercent;
 
@@ -108,11 +134,22 @@ namespace OsEngine.Robots.OnScriptIndicators
 
             decimal lastCandlePrice = candles[candles.Count-1].Close;
 
-            if(lastCandlePrice > smaValue)
+            decimal upChannel = _envelop.DataSeries[0].Last;
+            decimal downChannel = _envelop.DataSeries[2].Last;
+
+            if(upChannel == 0 ||
+                downChannel == 0)
+            {
+                return;
+            }
+
+            if (lastCandlePrice > smaValue &&
+                lastCandlePrice > upChannel)
             {
                 _tab.BuyAtLimit(Volume.ValueDecimal, _tab.PriceBestAsk + _tab.Securiti.PriceStep * Slippage.ValueInt);
             }
-            if (lastCandlePrice < smaValue)
+            if (lastCandlePrice < smaValue &&
+                lastCandlePrice < downChannel)
             {
                 _tab.SellAtLimit(Volume.ValueDecimal, _tab.PriceBestBid + _tab.Securiti.PriceStep * Slippage.ValueInt);
             }

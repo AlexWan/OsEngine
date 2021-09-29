@@ -214,21 +214,23 @@ namespace OsEngine.Market.Servers.Binance.Futures
             {
                 endTimeStep = endTimeStep + new TimeSpan(0, 0, interval, 0);
 
-                while (endTime < endTimeStep)
-                {
-                    //break;
-                }
+                DateTime realEndTime = endTimeStep;
 
-                    if (endTimeStep > DateTime.Now - new TimeSpan(0, 0, (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes, 0))
-                    endTimeStep = DateTime.Now - new TimeSpan(0, 0, (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes, 0);
+                if (realEndTime > DateTime.Now - new TimeSpan(0, 0, (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes, 0))
+                    realEndTime = DateTime.Now - new TimeSpan(0, 0, (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes, 0);
 
-                List<Candle> stepCandles = _client.GetCandlesForTimes(security.Name, timeFrameBuilder.TimeFrameTimeSpan, startTimeStep, endTimeStep);
+                List<Candle> stepCandles = _client.GetCandlesForTimes(security.Name, timeFrameBuilder.TimeFrameTimeSpan, startTimeStep, realEndTime);
 
                 if (stepCandles != null)
                     candles.AddRange(stepCandles);
 
 
                 startTimeStep = endTimeStep + new TimeSpan(0, 0, (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes, 0);
+
+                if (endTime < endTimeStep)
+                {
+                    break;
+                }
 
                 Thread.Sleep(300);
             }
