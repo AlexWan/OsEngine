@@ -156,6 +156,102 @@ function qsfunctions.addLabel(msg)
 	return msg
 end
 
+-- Выводит на график метку
+-- Функция возвращает числовой идентификатор метки. В случае неуспешного завершения функция возвращает «nil».
+function qsfunctions.addLabel2(msg)
+	local spl = split2(msg.data, "|");
+	local chartTag, yValue, strDate, strTime, text, imagePath, alignment, hint, r, g, b, transparency, tranBackgrnd, fontName, fontHeight =
+		spl[1], spl[2], spl[3], spl[4], spl[5], spl[6], spl[7], spl[8], spl[9], spl[10], spl[11], spl[12], spl[13], spl[14], spl[15];
+
+	-- значения по умолчанию
+	if text == "" then text = nil else r = 255 end
+	if imagePath == "" then imagePath = nil end
+	if alignment == "" then alignment = nil end
+	if hint == "" then hint = nil end
+	if r == "-1" then r = nil end
+	if g == "-1" then g = nil end
+	if b == "-1" then b = nil end
+	if transparency == "-1" then transparency = nil end
+	if tranBackgrnd == "-1" then tranBackgrnd = nil end
+	if fontName == "" then fontName = nil end
+	if fontHeight == "-1" then fontHeight = nil end
+
+	local labelParams = {
+		YVALUE = yValue:gsub(",", "."),
+		DATE = strDate,
+		TIME = strTime,
+		TEXT = text,
+		IMAGE_PATH = imagePath,
+		ALIGNMENT = alignment,
+		HINT = hint,
+		R = r,
+		G = g,
+		B = b,
+		TRANSPARENCY = transparency,
+		TRANSPARENT_BACKGROUND = tranBackgrnd,
+		FONT_FACE_NAME = fontName,
+		FONT_HEIGHT = fontHeight,
+	}
+
+	local res = AddLabel(chartTag, labelParams);
+
+	msg.data = res;
+	return msg;
+end
+
+-- Функция задает параметры для метки с указанным идентификатором.
+-- В случае успешного завершения функция возвращает «true», иначе – «false».
+function qsfunctions.setLabelParams(msg)
+	local spl = split2(msg.data, "|");
+	local chartTag, labelId, yValue, strDate, strTime, text, imagePath, alignment, hint, r, g, b, transparency, tranBackgrnd, fontName, fontHeight =
+		spl[1], spl[2], spl[3], spl[4], spl[5], spl[6], spl[7], spl[8], spl[9], spl[10], spl[11], spl[12], spl[13], spl[14], spl[15], spl[16];
+
+	-- значения по умолчанию
+	if text == "" then text = nil  else r = 255 end
+	if imagePath == "" then imagePath = nil end
+	if alignment == "" then alignment = nil end
+	if hint == "" then hint = nil end
+	if r == "-1" then r = nil end
+	if g == "-1" then g = nil end
+	if b == "-1" then b = nil end
+	if transparency == "-1" then transparency = nil end
+	if tranBackgrnd == "-1" then tranBackgrnd = nil end
+	if fontName == "" then fontName = nil end
+	if fontHeight == "-1" then fontHeight = nil end
+
+	local labelParams = {
+		YVALUE = yValue,
+		DATE = strDate,
+		TIME = strTime,
+		TEXT = text,
+		IMAGE_PATH = imagePath,
+		ALIGNMENT = alignment,
+		HINT = hint,
+		R = r,
+		G = g,
+		B = b,
+		TRANSPARENCY = transparency,
+		TRANSPARENT_BACKGROUND = tranBackgrnd,
+		FONT_FACE_NAME = fontName,
+		FONT_HEIGHT = fontHeight,
+	}
+
+	local res = SetLabelParams(chartTag, tonumber(labelId), labelParams);
+	msg.data = tostring(res);
+	return msg;
+end
+
+-- позволяет получить параметры метки
+-- Функция возвращает таблицу с параметрами метки. В случае неуспешного завершения функция возвращает «nil».
+function qsfunctions.getLabelParams(msg)
+	local spl = split2(msg.data, "|");
+	local chartTag, labelId = spl[1], spl[2];
+
+	local res = GetLabelParams(chartTag, tonumber(labelId));
+	msg.data = res;
+	return msg;
+end
+
 -- Удаляем выбранную метку
 function qsfunctions.delLabel(msg)
 	local spl = split(msg.data, "|")
@@ -207,7 +303,7 @@ function qsfunctions.getSecurityInfo(msg)
     return msg
 end
 
---- Функция берет на вход список из элементов в формате class_code|sec_code и возвращает список ответов функции getSecurityInfo. 
+--- Функция берет на вход список из элементов в формате class_code|sec_code и возвращает список ответов функции getSecurityInfo.
 -- Если какая-то из бумаг не будет найдена, вместо ее значения придет null
 function qsfunctions.getSecurityInfoBulk(msg)
 	local result = {}
@@ -253,6 +349,27 @@ function qsfunctions.getClientCode(msg)
 			return msg
 		end
     end
+	return msg
+end
+
+--- Функция возвращает все коды клиента
+function qsfunctions.getClientCodes(msg)
+	local client_codes = {}
+	for i=0,getNumberOf("MONEY_LIMITS")-1 do
+		local clientcode = getItem("MONEY_LIMITS",i).client_code
+		if clientcode ~= nil then
+			fnd = false
+			for index, value in ipairs(client_codes) do
+				if value == clientcode then
+					fnd = true
+				end
+			end
+			if fnd == false then
+				table.insert(client_codes, clientcode)
+			end
+		end
+	end
+	msg.data = client_codes
 	return msg
 end
 
@@ -322,7 +439,6 @@ function qsfunctions.GetQuoteLevel2(msg)
         msg.data.class_code		= class_code
         msg.data.sec_code		= sec_code
         msg.data.server_time	= server_time
-        sendCallback(msg)
     else
         OnError(ql2)
     end
@@ -332,6 +448,33 @@ end
 -----------------------
 -- Trading functions --
 -----------------------
+
+--- Функция предназначена для расчета максимально возможного количества лотов в заявке.
+-- При заданном параметре is_market=true, необходимо передать параметр price=0, иначе будет рассчитано максимально возможное количество лотов в заявке по цене price.
+function qsfunctions.calc_buy_sell(msg)
+	local bs = CalcBuySell
+    local spl = split(msg.data, "|")
+    local class_code, sec_code, clientCode, account, price, is_buy, is_market = spl[1], spl[2], spl[3], spl[4], spl[5], spl[6], spl[7]
+	if is_buy == "True" then
+		is_buy = true
+	else
+		is_buy = false
+	end
+	if is_market == "True" then
+		is_market = true
+	else
+		is_market = false
+	end
+    local qty, comiss = bs(class_code, sec_code, clientCode, account, tonumber(price), is_buy, is_market)
+    if qty ~= "" then
+        msg.data				= {}
+        msg.data.qty			= qty
+        msg.data.comission		= comiss
+    else
+		message("Ошибка функции CalcBuySell", 1)
+    end
+    return msg
+end
 
 --- отправляет транзакцию на сервер и возвращает пустое сообщение, которое
 -- будет проигноировано. Вместо него, отправитель будет ждать события
@@ -358,7 +501,7 @@ function qsfunctions.paramRequest(msg)
     return msg
 end
 
---- Функция принимает список строк (JSON Array) в формате class_code|sec_code|param_name, вызывает функцию paramRequest для каждой строки. 
+--- Функция принимает список строк (JSON Array) в формате class_code|sec_code|param_name, вызывает функцию paramRequest для каждой строки.
 -- Возвращает список ответов в том же порядке
 function qsfunctions.paramRequestBulk(msg)
 	local result = {}
@@ -506,6 +649,17 @@ function qsfunctions.getFuturesHolding(msg)
     return msg
 end
 
+-- Функция для получения информации по всем фьючерсным позициям
+function qsfunctions.getFuturesClientHoldings(msg)
+    local holdings = {}
+    for i=0,getNumberOf("futures_client_holding")-1 do
+        local holding = getItem("futures_client_holding",i)
+	    table.insert(holdings, holding)
+    end
+     msg.data = holdings
+    return msg
+end
+
 -- Функция возвращает таблицу заявок (всю или по заданному инструменту)
 function qsfunctions.get_orders(msg)
 	if msg.data ~= "" then
@@ -629,6 +783,24 @@ function qsfunctions.getPortfolioInfoEx(msg)
     local firmId, clientCode, limit_kind = spl[1], spl[2], spl[3]
     msg.data = getPortfolioInfoEx(firmId, clientCode, tonumber(limit_kind))
     return msg
+end
+
+-- Функция предназначена для получения таблицы обезличенных сделок по выбранному инструменту или всю целиком.
+function qsfunctions.get_all_trades(msg)
+	if msg.data ~= "" then
+		local spl = split(msg.data, "|")
+		class_code, sec_code = spl[1], spl[2]
+	end
+
+	local trades = {}
+	for i = 0, getNumberOf("all_trades") - 1 do
+		local trade = getItem("all_trades", i)
+		if msg.data == "" or (trade.class_code == class_code and trade.sec_code == sec_code) then
+			table.insert(trades, trade)
+		end
+	end
+	msg.data = trades
+	return msg
 end
 
 

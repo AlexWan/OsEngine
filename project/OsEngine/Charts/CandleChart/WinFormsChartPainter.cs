@@ -4258,6 +4258,13 @@ namespace OsEngine.Charts.CandleChart
                     string positon = oldlabel.Price;
                     for (int i = 0; i < area.AxisY2.CustomLabels.Count; i++)
                     {
+                        if (area.AxisY2.CustomLabels[i] == null)
+                        {
+                            area.AxisY2.CustomLabels.RemoveAt(i);
+                            i--;
+                            continue;
+                        }
+
                         if (area.AxisY2.CustomLabels[i].Text == positon)
                         {
                             area.AxisY2.CustomLabels[i].FromPosition = min;
