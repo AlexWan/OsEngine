@@ -813,7 +813,7 @@ namespace OsEngine.Market.Servers.Tester
                     }
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[3].Value = securities[i].Security.PriceStep;
+                    nRow.Cells[3].Value = securities[i].Security.PriceStep.ToStringWithNoEndZero();
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
                     nRow.Cells[4].Value = securities[i].TimeStart;
                     nRow.Cells.Add(new DataGridViewTextBoxCell());

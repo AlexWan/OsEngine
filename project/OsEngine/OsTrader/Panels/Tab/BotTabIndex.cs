@@ -1325,8 +1325,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 oldCandle.Low = Math.Min(Math.Min(o, h), Math.Min(l, c));
                 oldCandle.Open = o;
                 oldCandle.Close = c;
-                oldCandle.Open = Math.Round(candleOne.Open + candleTwo.Open, 8);
-                oldCandle.Close = Math.Round(candleOne.Close + candleTwo.Close, 8);
             }
             else if (sign == "-")
             {
@@ -1364,6 +1362,23 @@ namespace OsEngine.OsTrader.Panels.Tab
                 oldCandle.Low = Math.Min(Math.Min(o, h), Math.Min(l, c));
                 oldCandle.Open = o;
                 oldCandle.Close = c;
+            }
+
+            if(oldCandle.Open > oldCandle.High)
+            {
+                oldCandle.Open = oldCandle.High;
+            }
+            if(oldCandle.Open < oldCandle.Low)
+            {
+                oldCandle.Open = oldCandle.Low;
+            }
+            if (oldCandle.Close > oldCandle.High)
+            {
+                oldCandle.Close = oldCandle.High;
+            }
+            if (oldCandle.Close < oldCandle.Low)
+            {
+                oldCandle.Close = oldCandle.Low;
             }
 
             return oldCandle;

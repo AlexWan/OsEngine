@@ -617,8 +617,8 @@ namespace OsEngine.Market.Servers.Finam
                 sec.Name = _finamSecurities[i].Name;
                 sec.NameId = _finamSecurities[i].Id;
                 sec.NameClass = _finamSecurities[i].Market;
-                sec.PriceStep = 1;
-                sec.PriceStepCost = 1;
+                sec.PriceStep = 0;
+                sec.PriceStepCost = 0;
 
                 _securities.Add(sec);
             }

@@ -2171,6 +2171,7 @@ namespace OsEngine.Charts.CandleChart
                         name == "Open" ||
                         name == "Close")
                     {
+                        ClearLabelOnY2(_chart.Series[i].Name + "Label", "Prime", _chart.Series[i].Color);
                         _chart.Series.Remove(_chart.Series[i]);
                         i--;
                     }
@@ -2424,6 +2425,7 @@ namespace OsEngine.Charts.CandleChart
                     if (mySeries != null)
                     {
                         _chart.Series.Remove(mySeries);
+                        ClearLabelOnY2(mySeries.Name + "Label", mySeries.Name, mySeries.Color);
                     }
 
                     Series mySeriesPoint = FindSeriesByNameSafe(element.UniqName + "Point");
@@ -2438,6 +2440,8 @@ namespace OsEngine.Charts.CandleChart
                 {
                     _chartElements.Remove(element);
                 }
+
+
             }
             catch (Exception error)
             {
@@ -2489,12 +2493,24 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
 
-            Series newSeries = new Series(lineElement.UniqName);
-            newSeries.ChartType = SeriesChartType.Line;
-            newSeries.Color = lineElement.Color;
-            newSeries.ChartArea = lineElement.Area;
-            newSeries.YAxisType = AxisType.Secondary;
-            newSeries.XAxisType = AxisType.Primary;
+            if (_chart.InvokeRequired)
+            {
+                _chart.Invoke(new Action<LineHorisontal>(PaintHorisiontalLineOnArea), lineElement);
+                return;
+            }
+
+            Series newSeries = FindSeriesByNameSafe(lineElement.UniqName);
+
+            if(newSeries == null)
+            {
+                newSeries = new Series(lineElement.UniqName);
+                newSeries.ChartType = SeriesChartType.Line;
+                newSeries.Color = lineElement.Color;
+                newSeries.ChartArea = lineElement.Area;
+                newSeries.YAxisType = AxisType.Secondary;
+                newSeries.XAxisType = AxisType.Primary;
+            }
+
 
             if (!string.IsNullOrWhiteSpace(lineElement.Label))
             {
@@ -2535,9 +2551,35 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
 
-            newSeries.Label = lineElement.Label;
-            newSeries.Points.AddXY(firstIndex, lineElement.Value);
-            newSeries.Points.AddXY(secondIndex, lineElement.Value);
+            if(lineElement.Label != null)
+            {
+                newSeries.Label = lineElement.Label;
+            }
+
+            if (newSeries.Points == null || newSeries.Points.Count == 0)
+            {
+                newSeries.Points.AddXY(firstIndex, lineElement.Value);
+                newSeries.Points.AddXY(secondIndex, lineElement.Value);
+            }
+            else
+            {
+                if (newSeries.Points[0].YValues[0] != (double)lineElement.Value ||
+                    newSeries.Points[1].YValues[0] != (double)lineElement.Value)
+                {
+                    ClearLabelOnY2(newSeries.Name + "Label", newSeries.ChartArea, newSeries.Color);
+                    newSeries.Points[0].YValues[0] = (double)lineElement.Value;
+                    newSeries.Points[1].YValues[0] = (double)lineElement.Value;
+                    RePaintRightLebels();
+                }
+
+                if (newSeries.Points[0].XValue != firstIndex ||
+                    newSeries.Points[1].XValue != secondIndex)
+                {
+                    newSeries.Points[0].XValue = firstIndex;
+                    newSeries.Points[1].XValue = secondIndex;
+                }
+            }
+
             PaintSeriesSafe(newSeries);
 
             if (!lineElement.CanResize)
@@ -4227,7 +4269,6 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
 
-
             ChartArea area = GetChartArea(nameArea);
 
             if (area == null)
@@ -4556,24 +4597,11 @@ namespace OsEngine.Charts.CandleChart
                     Series series = mySeries[i2];
 
                     if (series.Points.Count == 0 ||
-                        series.Points.Count < index ||
-                        series.ChartType == SeriesChartType.Point
-                        //|| series.Points.Count +2 < _myCandles.Count
-                    )
+                        series.ChartType == SeriesChartType.Point)
                     {
                         continue;
                     }
 
-                    /* if (series.ChartType == SeriesChartType.Candlestick)
-                     {
-                         PaintLabelOnY2(series.Name + "Label", series.ChartArea,
-                            _myCandles[index].Close.ToString(_culture),
-                                _myCandles[index].Close, _colorKeeper.ColorBackCursor, true);
- 
-                     }
-                     else
-                     {
-                     */
                     int realIndex = index;
 
                     if (index == series.Points.Count)
@@ -4583,6 +4611,11 @@ namespace OsEngine.Charts.CandleChart
                     else
                     {
                         //realIndex = series.Points.Count - (series.Points.Count - 1 - index);
+                    }
+
+                    if(realIndex >= series.Points.Count)
+                    {
+                        realIndex = series.Points.Count - 1;
                     }
 
                     int rounder = 0;

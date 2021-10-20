@@ -10,7 +10,6 @@ using System.Windows.Shapes;
 using OsEngine.Charts.ClusterChart;
 using OsEngine.Entity;
 using OsEngine.Logging;
-using OsEngine.Market;
 using OsEngine.Market.Connectors;
 using Chart = System.Windows.Forms.DataVisualization.Charting.Chart;
 

@@ -490,8 +490,6 @@ namespace OsEngine.Charts.ClusterChart
             }
         }
 
-
-
         // работа потока прорисовывающего чарт
 
         /// <summary>
@@ -698,9 +696,27 @@ namespace OsEngine.Charts.ClusterChart
                 return;
             }
 
+            int clustersCount = 0;
+            int lastClusterNum = -1;
+            int lastClusterInHistory=0;
+
+            for (int i = 0; i < history.Count; i++)
+            {
+                if (i >= index && lastClusterInHistory == 0)
+                {
+                    lastClusterInHistory = lastClusterNum;
+                }
+                if (lastClusterNum != history[i].NumCluster)
+                {
+                    lastClusterNum = history[i].NumCluster;
+                    clustersCount++;
+                }
+
+            }
+
             Series candleSeries = FindSeriesByNameSafe("SeriesCluster");
 
-            for (int i = index; i < history.Count; i++)
+                for (int i = index; i < history.Count; i++)
             {
                 decimal clusterStartY = history[i].NumCluster; // Это точка начала кластера
 
@@ -782,8 +798,34 @@ namespace OsEngine.Charts.ClusterChart
                 ReMoveSeriesSafe(FindSeriesByNameSafe("Cursor"));
             }
 
+            ChartArea candleArea = FindAreaByNameSafe("Prime");
 
-            //ReloadAreaSizes();
+            if(candleArea.AxisY.Maximum > clustersCount)
+            {
+                candleArea.AxisY.Maximum = clustersCount;
+            }
+
+             if (candleArea != null)
+            //если уже выбран какой-то диапазон
+            {
+            // сдвигаем представление вправо
+                  candleArea.AxisY.Maximum = _volume.VolumeClusters.Count + 2;
+                  candleArea.AxisY.Minimum = -1;
+            }
+
+             if(lastClusterInHistory != lastClusterNum
+                && candleArea.AxisY.ScrollBar != null)
+            {
+                if(candleArea.AxisY.ScaleView.Position + candleArea.AxisY.ScaleView.Size < candleArea.AxisY.Maximum)
+                {
+                    candleArea.AxisY.ScaleView.Position += 1;
+                    ResizeXAxis();
+                    ResizeYAxis();
+                }
+            }
+
+
+            ResizeYAxis();
         }
 
         /// <summary>
@@ -1259,7 +1301,8 @@ namespace OsEngine.Charts.ClusterChart
             }
 
             if (firstPos < 0 ||
-                firstPos > _volume.VolumeClusters.Count)
+                firstPos > _volume.VolumeClusters.Count||
+                firstPos + values > _volume.VolumeClusters.Count)
             {
                 return;
             }

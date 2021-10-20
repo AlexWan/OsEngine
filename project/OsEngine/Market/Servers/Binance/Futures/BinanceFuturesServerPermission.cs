@@ -1,42 +1,47 @@
-﻿
-namespace OsEngine.Market.Servers.Finam
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace OsEngine.Market.Servers.Binance.Futures
 {
-    public class FinamServerPermission: IServerPermission
+    public class BinanceFuturesServerPermission : IServerPermission
     {
         public ServerType ServerType
         {
-            get { return ServerType.Finam; }
+            get { return ServerType.BinanceFutures; }
         }
 
         #region DataFeedPermissions
 
         public bool DataFeedTf1SecondCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf2SecondCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf5SecondCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf10SecondCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf15SecondCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf20SecondCanLoad
         {
-            get { return true; }
+            get { return false; ; }
         }
         public bool DataFeedTf30SecondCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf1MinuteCanLoad
         {
@@ -89,7 +94,7 @@ namespace OsEngine.Market.Servers.Finam
 
         public bool IsTradeServer
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion

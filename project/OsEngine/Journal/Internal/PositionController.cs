@@ -1202,11 +1202,20 @@ namespace OsEngine.Journal.Internal
                         if ((int)_gridOpenDeal.Rows[i].Cells[0].Value == position.Number)
                         {
                             _gridOpenDeal.Rows.Remove(_gridOpenDeal.Rows[i]);
-                            _gridOpenDeal.Rows.Insert(i, GetRow(position));
+
+                            if (position.State != PositionStateType.Deleted)
+                            {
+                                _gridOpenDeal.Rows.Insert(i, GetRow(position));
+                                return;
+                            }
                             return;
                         }
                     }
-                    _gridOpenDeal.Rows.Insert(0, GetRow(position));
+
+                    if (position.State != PositionStateType.Deleted)
+                    {
+                        _gridOpenDeal.Rows.Insert(0, GetRow(position));
+                    }
                 }
             }
             catch (Exception error)

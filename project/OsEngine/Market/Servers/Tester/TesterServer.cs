@@ -1051,41 +1051,46 @@ namespace OsEngine.Market.Servers.Tester
                         Candle candleN = new Candle();
                         candleN.SetCandleFromString(reader.ReadLine());
 
-                        decimal open = (decimal) Convert.ToDouble(candleN.Open);
-                        decimal high = (decimal) Convert.ToDouble(candleN.High);
-                        decimal low = (decimal) Convert.ToDouble(candleN.Low);
-                        decimal close = (decimal) Convert.ToDouble(candleN.Close);
+                        decimal openD = (decimal) Convert.ToDouble(candleN.Open);
+                        decimal highD = (decimal) Convert.ToDouble(candleN.High);
+                        decimal lowD = (decimal) Convert.ToDouble(candleN.Low);
+                        decimal closeD = (decimal) Convert.ToDouble(candleN.Close);
 
-                        if (open.ToString(culture).Split(',').Length > 1 ||
-                            high.ToString(culture).Split(',').Length > 1 ||
-                            low.ToString(culture).Split(',').Length > 1 ||
-                            close.ToString(culture).Split(',').Length > 1)
+                        string open = openD.ToString().Replace(".", ",");
+                        string high = highD.ToString().Replace(".", ",");
+                        string low = lowD.ToString().Replace(".", ",");
+                        string close = closeD.ToString().Replace(".", ",");
+
+                        if (open.Split(',').Length > 1 ||
+                            high.Split(',').Length > 1 ||
+                            low.Split(',').Length > 1 ||
+                            close.Split(',').Length > 1)
                         {
                             // if the real part takes place / если имеет место вещественная часть
                             int lenght = 1;
 
-                            if (open.ToString(culture).Split(',').Length > 1 &&
-                                open.ToString(culture).Split(',')[1].Length > lenght)
+                            if (open.Split(',').Length > 1 &&
+                                open.Split(',')[1].Length > lenght)
                             {
-                                lenght = open.ToString(culture).Split(',')[1].Length;
+                                lenght = open.Split(',')[1].Length;
                             }
 
-                            if (high.ToString(culture).Split(',').Length > 1 &&
-                                high.ToString(culture).Split(',')[1].Length > lenght)
+                            if (high.Split(',').Length > 1 &&
+                                high.Split(',')[1].Length > lenght)
                             {
-                                lenght = high.ToString(culture).Split(',')[1].Length;
+                                lenght = high.Split(',')[1].Length;
                             }
 
-                            if (low.ToString(culture).Split(',').Length > 1 &&
-                                low.ToString(culture).Split(',')[1].Length > lenght)
+                            if (low.Split(',').Length > 1 &&
+                                low.Split(',')[1].Length > lenght)
                             {
-                                lenght = low.ToString(culture).Split(',')[1].Length;
+                                lenght = low.Split(',')[1].Length;
                             }
 
-                            if (close.ToString(culture).Split(',').Length > 1 &&
-                                close.ToString(culture).Split(',')[1].Length > lenght)
+                            if (close.Split(',').Length > 1 &&
+                                close.Split(',')[1].Length > lenght)
                             {
-                                lenght = close.ToString(culture).Split(',')[1].Length;
+                                lenght = close.Split(',')[1].Length;
                             }
 
                             if (lenght == 1 && minPriceStep > 0.1m)
@@ -1130,14 +1135,14 @@ namespace OsEngine.Market.Servers.Tester
                             // if the real part doesn't take place / если вещественной части нет
                             int lenght = 1;
 
-                            for (int i3 = open.ToString(culture).Length - 1; open.ToString(culture)[i3] == '0'; i3--)
+                            for (int i3 = open.Length - 1; open.ToString(culture)[i3] == '0'; i3--)
                             {
                                 lenght = lenght*10;
                             }
 
                             int lengthLow = 1;
 
-                            for (int i3 = low.ToString(culture).Length - 1; low.ToString(culture)[i3] == '0'; i3--)
+                            for (int i3 = low.Length - 1; low[i3] == '0'; i3--)
                             {
                                 lengthLow = lengthLow*10;
 
@@ -1149,7 +1154,7 @@ namespace OsEngine.Market.Servers.Tester
 
                             int lengthHigh = 1;
 
-                            for (int i3 = high.ToString(culture).Length - 1; high.ToString(culture)[i3] == '0'; i3--)
+                            for (int i3 = high.Length - 1; high[i3] == '0'; i3--)
                             {
                                 lengthHigh = lengthHigh*10;
 
@@ -1161,7 +1166,7 @@ namespace OsEngine.Market.Servers.Tester
 
                             int lengthClose = 1;
 
-                            for (int i3 = close.ToString(culture).Length - 1; close.ToString(culture)[i3] == '0'; i3--)
+                            for (int i3 = close.Length - 1; close[i3] == '0'; i3--)
                             {
                                 lengthClose = lengthClose*10;
 
@@ -1176,8 +1181,8 @@ namespace OsEngine.Market.Servers.Tester
                             }
 
                             if (minPriceStep == 1 &&
-                                open%5 == 0 && high%5 == 0 &&
-                                close%5 == 0 && low%5 == 0)
+                                openD%5 == 0 && highD%5 == 0 &&
+                                closeD%5 == 0 && lowD%5 == 0)
                             {
                                 countFive++;
                             }
@@ -1290,13 +1295,14 @@ namespace OsEngine.Market.Servers.Tester
                     secu.PriceStepCost = array[i][3].ToDecimal();
                     secu.PriceStep = array[i][4].ToDecimal();
 
-                    if (SecuritiesTester[SecuritiesTester.Count -1].Security.Name == secu.Name)
+                    if (secu.PriceStep != 0 &&
+                        secu.PriceStepCost != 0 &&
+                        SecuritiesTester[SecuritiesTester.Count -1].Security.Name == secu.Name)
                     {
                         SecuritiesTester[SecuritiesTester.Count - 1].Security.Lot = array[i][1].ToDecimal();
                         SecuritiesTester[SecuritiesTester.Count - 1].Security.Go = array[i][2].ToDecimal();
                         SecuritiesTester[SecuritiesTester.Count - 1].Security.PriceStepCost = array[i][3].ToDecimal();
                         SecuritiesTester[SecuritiesTester.Count - 1].Security.PriceStep = array[i][4].ToDecimal();
-
                     }
                 }
             }
@@ -1475,8 +1481,6 @@ namespace OsEngine.Market.Servers.Tester
                 }
 
                 reader.Close();
-
-
             }
 
             // save securities / сохраняем бумаги
@@ -1537,7 +1541,9 @@ namespace OsEngine.Market.Servers.Tester
             {
                 Security secu = GetSecurityForName(array[i][0]);
 
-                if (secu != null)
+                if (secu.PriceStep != 0 &&
+                    secu.PriceStepCost != 0 && 
+                    secu != null)
                 {
                     secu.Lot = array[i][1].ToDecimal();
                     secu.Go = array[i][2].ToDecimal();
@@ -1789,7 +1795,9 @@ namespace OsEngine.Market.Servers.Tester
             {
                 Security secu = GetSecurityForName(array[i][0]);
 
-                if (secu != null)
+                if (secu.PriceStep != 0 &&
+                    secu.PriceStepCost != 0 && 
+                    secu != null)
                 {
                     secu.Lot = array[i][1].ToDecimal();
                     secu.Go = array[i][2].ToDecimal();

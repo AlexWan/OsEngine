@@ -436,6 +436,10 @@ namespace OsEngine.Market.Connectors
             get { return TimeFrameBuilder.RencoIsBuildShadows; }
             set
             {
+                if (TimeFrameBuilder.RencoIsBuildShadows == value)
+                {
+                    return;
+                }
                 TimeFrameBuilder.RencoIsBuildShadows = value;
                 Reconnect();
             }

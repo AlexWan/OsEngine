@@ -805,7 +805,9 @@ namespace OsEngine.Market.Servers.Optimizer
                     secu.PriceStepCost = array[i][3].ToDecimal();
                     secu.PriceStep = array[i][4].ToDecimal();
 
-                    if (SecuritiesTester[SecuritiesTester.Count - 1].Security.Name == secu.Name)
+                    if (secu.PriceStep != 0 &&
+                    secu.PriceStepCost != 0 && 
+                    SecuritiesTester[SecuritiesTester.Count - 1].Security.Name == secu.Name)
                     {
                         SecuritiesTester[SecuritiesTester.Count - 1].Security.Lot = array[i][1].ToDecimal();
                         SecuritiesTester[SecuritiesTester.Count - 1].Security.Go = array[i][2].ToDecimal();
@@ -1050,7 +1052,9 @@ namespace OsEngine.Market.Servers.Optimizer
             {
                 Security secu = Securities.Find(s => s.Name == array[i][0]);
 
-                if (secu != null)
+                if (secu.PriceStep != 0 &&
+                    secu.PriceStepCost != 0 && 
+                    secu != null)
                 {
                     secu.Lot = array[i][1].ToDecimal();
                     secu.Go = array[i][2].ToDecimal();
@@ -1298,7 +1302,9 @@ namespace OsEngine.Market.Servers.Optimizer
             {
                 Security secu = Securities.Find(s => s.Name == array[i][0]);
 
-                if (secu != null)
+                if (secu.PriceStep != 0 &&
+                    secu.PriceStepCost != 0 && 
+                    secu != null)
                 {
                     secu.Lot = array[i][1].ToDecimal();
                     secu.Go = array[i][2].ToDecimal();

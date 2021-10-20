@@ -450,7 +450,30 @@ namespace OsEngine.Market
         {
             IServerPermission serverPermission = null;
 
+            if (type == ServerType.Binance)
+            {
+                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
 
+                if (serverPermission == null)
+                {
+                    serverPermission = new BinanceSpotServerPermission();
+                    _serversPermissions.Add(serverPermission);
+                }
+
+                return serverPermission;
+            }
+            if (type == ServerType.BinanceFutures)
+            {
+                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
+
+                if (serverPermission == null)
+                {
+                    serverPermission = new BinanceFuturesServerPermission();
+                    _serversPermissions.Add(serverPermission);
+                }
+
+                return serverPermission;
+            }
             if (type == ServerType.Bitfinex)
             {
                 serverPermission = _serversPermissions.Find(s => s.ServerType == type);
