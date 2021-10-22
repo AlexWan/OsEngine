@@ -469,6 +469,16 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         private void ReloadContext()
         {
+            ContextMenu menu = GetContextMenu();
+            ChartCandle.ShowContextMenu(menu);
+        }
+
+        /// <summary>
+        /// взять контекстное меню настройки отображения чарта и индикаторов
+        /// </summary>
+        /// <returns></returns>
+        public ContextMenu GetContextMenu()
+        {
             try
             {
                 List<MenuItem> menuRedact = null;
@@ -545,12 +555,13 @@ namespace OsEngine.Charts.CandleChart
 
                 ContextMenu menu = new ContextMenu(items.ToArray());
 
-                ChartCandle.ShowContextMenu(menu);
+                return menu;
             }
             catch (Exception error)
             {
                 SendErrorMessage(error);
             }
+            return null;
         }
 
         /// <summary>
@@ -640,12 +651,19 @@ namespace OsEngine.Charts.CandleChart
                 MenuItem item = (MenuItem)sender;
                 _indicators[item.Index].ShowDialog();
                 _indicators[item.Index].Save();
+
+                if (IndicatorUpdateEvent != null)
+                {
+                    IndicatorUpdateEvent();
+                }
             }
             catch (Exception error)
             {
                 SendErrorMessage(error);
             }
         }
+
+        public event Action IndicatorUpdateEvent;
 
         /// <summary>
         /// user has chosen to delete indicator in context menu
@@ -679,6 +697,11 @@ namespace OsEngine.Charts.CandleChart
             {
                 SendErrorMessage(error);
             }
+
+            if (IndicatorUpdateEvent != null)
+            {
+                IndicatorUpdateEvent();
+            }
         }
 
         /// <summary>
@@ -691,6 +714,11 @@ namespace OsEngine.Charts.CandleChart
             {
                 IndicarotCreateUi ui = new IndicarotCreateUi(this);
                 ui.Show();
+
+                if (IndicatorUpdateEvent != null)
+                {
+                    IndicatorUpdateEvent();
+                }
             }
             catch (Exception error)
             {

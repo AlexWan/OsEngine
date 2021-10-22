@@ -45,7 +45,13 @@ namespace OsEngine.OsTrader.Panels
         /// clusters / 
         /// кластеры
         /// </summary>
-        Cluster
+        Cluster,
+
+        /// <summary>
+        /// screener /
+        /// скринер
+        /// </summary>
+        Screener
 
     }
 
@@ -108,6 +114,19 @@ namespace OsEngine.OsTrader.Panels
                 {
                     journals.Add(((BotTabSimple)_botTabs[i]).GetJournal());
                 }
+                if (_botTabs[i].GetType().Name == "BotTabScreener")
+                {
+                    List<Journal.Journal> journalsOnTab = ((BotTabScreener)_botTabs[i]).GetJournals();
+
+                    if(journalsOnTab == null ||
+                        journalsOnTab.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    journals.AddRange(journalsOnTab);
+                }
+
             }
 
             return journals;
@@ -127,13 +146,19 @@ namespace OsEngine.OsTrader.Panels
             _chartUi.Closed += _chartUi_Closed;
         }
 
-
-        public BotPanelChartUi _chartUi;
+        private BotPanelChartUi _chartUi;
 
         void _chartUi_Closed(object sender, EventArgs e)
         {
             _chartUi = null;
+
+            if (ChartClosedEvent != null)
+            {
+                ChartClosedEvent(this.NameStrategyUniq);
+            }
         }
+
+        public event Action<string> ChartClosedEvent;
 
 
         /// <summary>
@@ -1086,6 +1111,36 @@ position => position.State != PositionStateType.OpeningFail
         }
 
         /// <summary>
+        /// Screener tabs / 
+        /// вкладки со скринерами
+        /// </summary>
+        public List<BotTabScreener> TabsScreener
+        {
+            get
+            {
+                try
+                {
+                    List<BotTabScreener> tabSpreads = new List<BotTabScreener>();
+
+                    for (int i = 0; _botTabs != null && i < _botTabs.Count; i++)
+                    {
+                        if (_botTabs[i].GetType().Name == "BotTabScreener")
+                        {
+                            tabSpreads.Add((BotTabScreener)_botTabs[i]);
+                        }
+                    }
+
+                    return tabSpreads;
+                }
+                catch (Exception error)
+                {
+                    SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                }
+                return null;
+            }
+        }
+
+        /// <summary>
         /// user toggled tabs / 
         /// пользователь переключил вкладки
         /// </summary>
@@ -1147,6 +1202,10 @@ position => position.State != PositionStateType.OpeningFail
                 else if (tabType == BotTabType.Cluster)
                 {
                     newTab = new BotTabCluster(nameTab, StartProgram);
+                }
+                else if (tabType == BotTabType.Screener)
+                {
+                    newTab = new BotTabScreener(nameTab, StartProgram);
                 }
                 else
                 {
@@ -1274,6 +1333,10 @@ position => position.State != PositionStateType.OpeningFail
                 {
                     ((BotTabCluster)ActivTab).StartPaint(_hostChart, _rectangle);
                 }
+                else if (ActivTab.GetType().Name == "BotTabScreener")
+                {
+                    ((BotTabScreener)ActivTab).StartPaint(_hostChart);
+                }
             }
             catch (Exception error)
             {
@@ -1355,6 +1418,10 @@ position => position.State != PositionStateType.OpeningFail
             for (int i = 0; TabsCluster != null && i < TabsCluster.Count; i++)
             {
                 TabsCluster[i].Clear();
+            }
+            for (int i = 0; TabsScreener != null && i < TabsScreener.Count; i++)
+            {
+                TabsScreener[i].Clear();
             }
 
             if (_botTabs != null)

@@ -122,7 +122,7 @@ namespace OsEngine.Language
             "Ru:Сеты_");
 
         public string Label25 => OsLocalization.ConvertToLocString(
-            "Eng:Chart is paining_" +
+            "Eng:Chart is painting_" +
             "Ru:Прорисовка графика_");
 
         public string Label26 => OsLocalization.ConvertToLocString(

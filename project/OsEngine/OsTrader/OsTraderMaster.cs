@@ -1010,6 +1010,11 @@ namespace OsEngine.OsTrader
                 {
                     ((BotTabCluster)_activPanel.ActivTab).ShowDialog();
                 }
+                else if (_activPanel.ActivTab != null &&
+                         _activPanel.ActivTab.GetType().Name == "BotTabScreener")
+                {
+                    ((BotTabScreener)_activPanel.ActivTab).ShowDialog();
+                }
                 else
                 {
                     MessageBox.Show(OsLocalization.Trader.Label11);

@@ -80,7 +80,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
         }
         public bool DataFeedTfMarketDepthCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion

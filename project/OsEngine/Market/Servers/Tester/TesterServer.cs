@@ -707,6 +707,32 @@ namespace OsEngine.Market.Servers.Tester
 
             for (int i = 0; i < bots.Count; i++)
             {
+                List<BotTabScreener> currentTabs = bots[i].TabsScreener;
+
+                for (int i2 = 0; currentTabs != null && i2 < currentTabs.Count; i2++)
+                {
+                    List<string> secs = new List<string>();
+
+                    for (int i3 = 0; i3 < currentTabs[i2].SecuritiesNames.Count; i3++)
+                    {
+                        if (string.IsNullOrEmpty(currentTabs[i2].SecuritiesNames[i3].SecurityName))
+                        {
+                            continue;
+                        }
+                        secs.Add(currentTabs[i2].SecuritiesNames[i3].SecurityName);
+                    }
+
+                    if (secs.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    namesSecurity.AddRange(secs);
+                }
+            }
+
+            for (int i = 0; i < bots.Count; i++)
+            {
                 List<BotTabCluster> currentTabs = bots[i].TabsCluster;
 
                 for (int i2 = 0; currentTabs != null && i2 < currentTabs.Count; i2++)

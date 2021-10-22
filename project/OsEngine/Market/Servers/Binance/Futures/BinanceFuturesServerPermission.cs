@@ -85,7 +85,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
         }
         public bool DataFeedTfMarketDepthCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion

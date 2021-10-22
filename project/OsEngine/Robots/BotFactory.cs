@@ -22,6 +22,7 @@ using OsEngine.Robots.MarketMaker;
 using OsEngine.Robots.Patterns;
 using OsEngine.Robots.Trend;
 using OsEngine.Robots.OnScriptIndicators;
+using OsEngine.Robots.Screeners;
 
 namespace OsEngine.Robots
 {
@@ -36,8 +37,10 @@ namespace OsEngine.Robots
         public static List<string> GetNamesStrategy()
         {
             List<string> result = new List<string>();
+            result.Add("SmaScreener");
             result.Add("Fisher");
             result.Add("Engine");
+            result.Add("ScreenerEngine");
             result.Add("ClusterEngine");
             result.Add("SmaTrendSample");
             result.Add("FundBalanceDivergenceBot");
@@ -115,6 +118,14 @@ namespace OsEngine.Robots
                 return bot;
             }
             
+            if (nameClass == "SmaScreener")
+            {
+                bot = new SmaScreener(name, startProgram);
+            }
+            if (nameClass == "ScreenerEngine")
+            {
+                bot = new ScreenerEngine(name, startProgram);
+            }
             if (nameClass == "SmaTrendSample")
             {
                 bot = new SmaTrendSample(name, startProgram);
@@ -398,6 +409,11 @@ namespace OsEngine.Robots
                     }
                 }
                 
+                if(myPath == "")
+                {
+                    return null;
+                }
+
                 bot = Serialize(myPath, nameClass, name, startProgram);
             }
 

@@ -854,10 +854,15 @@
     <Compile Include="OsTrader\Panels\BotPanelChartUI.xaml.cs">
       <DependentUpon>BotPanelChartUI.xaml</DependentUpon>
     </Compile>
+    <Compile Include="OsTrader\Panels\Tab\BotTabScreener.cs" />
+    <Compile Include="OsTrader\Panels\Tab\BotTabScreenerUi.xaml.cs">
+      <DependentUpon>BotTabScreenerUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Robots\BotFactory.cs" />
     <Compile Include="Robots\CounterTrend\ClusterCountertrend.cs" />
     <Compile Include="Robots\Engines\CandleEngine.cs" />
     <Compile Include="Robots\Engines\ClusterEngine.cs" />
+    <Compile Include="Robots\Engines\ScreenerEngine.cs" />
     <Compile Include="Robots\High Frequency\Fisher.cs" />
     <Compile Include="Robots\High Frequency\HighFrequencyTrader.cs" />
     <Compile Include="Robots\MarketMaker\PairTraderSimple.cs" />
@@ -879,6 +884,7 @@
     <Compile Include="Robots\OnScriptIndicators\RviTrade.cs" />
     <Compile Include="Robots\OnScriptIndicators\SmaTrendSample.cs" />
     <Compile Include="Robots\OnScriptIndicators\TimeOfDayBot.cs" />
+    <Compile Include="Robots\Screeners\SmaScreener.cs" />
     <Compile Include="Robots\Trend\EnvelopTrend.cs" />
     <Compile Include="Robots\Trend\MomentumMacd.cs" />
     <Compile Include="Robots\MarketMaker\PairTraderSpreadSma.cs" />
@@ -1353,6 +1359,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="OsTrader\Panels\BotPanelChartUI.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\Tab\BotTabScreenerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

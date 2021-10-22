@@ -8,10 +8,10 @@ using System.Windows;
 [assembly: AssemblyTitle("OsEngine")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Sib Algo")]
+[assembly: AssemblyCompany("Wang Capital")]
 [assembly: AssemblyProduct("OsEngine")]
-[assembly: AssemblyCopyright("Sib Algo")]
-[assembly: AssemblyTrademark("Os.Engine")]
+[assembly: AssemblyCopyright("Wang Capital")]
+[assembly: AssemblyTrademark("OsEngine")]
 [assembly: AssemblyCulture("")]
 
 // Параметр ComVisible со значением FALSE делает типы в сборке невидимыми 
@@ -49,5 +49,5 @@ using System.Windows;
 // Можно задать все значения или принять номера сборки и редакции по умолчанию 
 // используя "*", как показано ниже:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.7.2.1")]
-[assembly: AssemblyFileVersion("1.7.2.1")]
+[assembly: AssemblyVersion("1.7.2.2")]
+[assembly: AssemblyFileVersion("1.7.2.2")]

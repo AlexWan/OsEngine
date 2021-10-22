@@ -664,5 +664,41 @@ namespace OsEngine.Language
         public string Label163 => OsLocalization.ConvertToLocString(
             "Eng: Failed to update current bot_" +
             "Ru: Не удалось обновить робота_");
+
+        public string Label164 => OsLocalization.ConvertToLocString(
+             "Eng: Selected Securities_" +
+             "Ru: Выбранные бумаги_");
+
+        public string Label165 => OsLocalization.ConvertToLocString(
+             "Eng: Num_" +
+             "Ru: Номер_");
+
+        public string Label166 => OsLocalization.ConvertToLocString(
+             "Eng: Class_" +
+             "Ru: Класс_");
+
+        public string Label167 => OsLocalization.ConvertToLocString(
+             "Eng: Type_" +
+             "Ru: Тип_");
+
+        public string Label168 => OsLocalization.ConvertToLocString(
+             "Eng: Sec code_" +
+             "Ru: Код_");
+
+        public string Label169 => OsLocalization.ConvertToLocString(
+             "Eng: Sec name_" +
+             "Ru: Имя_");
+
+        public string Label170 => OsLocalization.ConvertToLocString(
+              "Eng: Sec full name_" +
+              "Ru: Полное имя_");
+
+        public string Label171 => OsLocalization.ConvertToLocString(
+              "Eng: Is On_" +
+              "Ru: Вкл_");
+
+        public string Label172 => OsLocalization.ConvertToLocString(
+              "Eng: Chart_" +
+              "Ru: Чарт_");
     }
 }

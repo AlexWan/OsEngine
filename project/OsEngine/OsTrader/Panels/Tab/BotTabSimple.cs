@@ -74,6 +74,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _chartMaster.LogMessageEvent += SetNewLogMessage;
                 _chartMaster.SetNewSecurity(_connector.NamePaper, _connector.TimeFrameBuilder, _connector.PortfolioName, _connector.ServerType);
                 _chartMaster.SetPosition(_journal.AllPosition);
+                _chartMaster.IndicatorUpdateEvent += _chartMaster_IndicatorUpdateEvent;
 
                 if (StartProgram != StartProgram.IsOsOptimizer)
                 {
@@ -1130,6 +1131,16 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             _chartMaster.GoChartToTime(time);
         }
+
+        /// <summary>
+        /// взять контекстное меню настройки чарта и индикаторов
+        /// </summary>
+        /// <returns></returns>
+        public System.Windows.Forms.ContextMenu GetContextDialog()
+        {
+            return _chartMaster.GetContextMenu();
+        }
+
 
         // standard public functions for position management
         // стандартные публичные функции для управления позицией
@@ -4142,6 +4153,17 @@ namespace OsEngine.OsTrader.Panels.Tab
             BestBidAskChangeEvent?.Invoke(bestBid, bestAsk);
         }
 
+        /// <summary>
+        /// изменились параметры индикатора
+        /// </summary>
+        private void _chartMaster_IndicatorUpdateEvent()
+        {
+            if (IndicatorUpdateEvent != null)
+            {
+                IndicatorUpdateEvent();
+            }
+        }
+
         // исходящие события. Обработчики для стратегии
         // outgoing events. Handlers for strategy
 
@@ -4259,6 +4281,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public event Action<Order> OrderUpdateEvent;
 
+        /// <summary>
+        /// изменились параметры индикатора
+        /// </summary>
+        public event Action IndicatorUpdateEvent;
     }
 
 
