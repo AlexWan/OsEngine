@@ -37,6 +37,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             LoadIndicators();
             ReloadIndicatorsOnTabs();
+
+            Thread sender = new Thread(SenderTabCreateOnLoadThread);
+            sender.Start();
         }
 
         /// <summary>
@@ -136,9 +139,6 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     reader.Close();
                 }
-
-                Thread sender = new Thread(SenderTabCreateOnLoadThread);
-                sender.Start();
             }
             catch (Exception error)
             {

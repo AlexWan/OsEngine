@@ -8,7 +8,7 @@
             <RowDefinition Height="190"/>
         </Grid.RowDefinitions>
         <Grid x:Name="GreedTraderEngine" Margin="0,0,0,182" HorizontalAlignment="Right" Width="300" Grid.RowSpan="2">
-            <TabControl HorizontalAlignment="Left" Width="300" BorderThickness="0" Margin="0,0,0,0">
+            <TabControl Name="TabControlMd" HorizontalAlignment="Left" Width="300" BorderThickness="0" Margin="0,0,0,0">
                 <TabItem Name="TabItemMarketDepth" Header="Market depth" Width="90 ">
                     <Grid >
                         <Button Name="ButtonBuyFast" Content="   Buy &#xD;&#xA;at market" HorizontalAlignment="Left" Margin="10,0,0,82" VerticalAlignment="Bottom" Width="102" Click="buttonBuyFast_Click_1" Height="31" FontSize="11"  />

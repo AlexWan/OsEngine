@@ -104,6 +104,11 @@ namespace OsEngine.Robots.Screeners
                 return;
             }
 
+            if(candles.Count - 1 - CandlesLookBack.ValueInt - 1 <= 0)
+            {
+                return;
+            }
+
             List<Position> positions = tab.PositionsOpenAll;
 
             if(positions.Count == 0)
@@ -124,6 +129,11 @@ namespace OsEngine.Robots.Screeners
                     {
                         return;
                     }
+                }
+
+                if(candles[candles.Count - 1 - CandlesLookBack.ValueInt - 1].Close > sma.DataSeries[0].Values[candles.Count - 1 - CandlesLookBack.ValueInt - 1])
+                {
+                    return;
                 }
 
                 tab.BuyAtLimit(Volume.ValueDecimal, tab.PriceBestAsk + tab.Securiti.PriceStep * Slippage.ValueInt);

@@ -1052,6 +1052,11 @@ namespace OsEngine.Market.Servers.Optimizer
             {
                 Security secu = Securities.Find(s => s.Name == array[i][0]);
 
+                if (secu == null)
+                {
+                    continue;
+                }
+
                 if (secu.PriceStep != 0 &&
                     secu.PriceStepCost != 0 && 
                     secu != null)
@@ -1301,7 +1306,10 @@ namespace OsEngine.Market.Servers.Optimizer
             for (int i = 0; array != null && i < array.Count; i++)
             {
                 Security secu = Securities.Find(s => s.Name == array[i][0]);
-
+                if (secu == null)
+                {
+                    continue;
+                }
                 if (secu.PriceStep != 0 &&
                     secu.PriceStepCost != 0 && 
                     secu != null)

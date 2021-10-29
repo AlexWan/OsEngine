@@ -1567,6 +1567,11 @@ namespace OsEngine.Market.Servers.Tester
             {
                 Security secu = GetSecurityForName(array[i][0]);
 
+                if (secu == null)
+                {
+                    continue;
+                }
+
                 if (secu.PriceStep != 0 &&
                     secu.PriceStepCost != 0 && 
                     secu != null)
@@ -1820,6 +1825,11 @@ namespace OsEngine.Market.Servers.Tester
             for (int i = 0; array != null && i < array.Count; i++)
             {
                 Security secu = GetSecurityForName(array[i][0]);
+
+                if (secu == null)
+                {
+                    continue;
+                }
 
                 if (secu.PriceStep != 0 &&
                     secu.PriceStepCost != 0 && 
