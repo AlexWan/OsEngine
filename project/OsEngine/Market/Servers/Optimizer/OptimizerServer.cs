@@ -517,9 +517,21 @@ namespace OsEngine.Market.Servers.Optimizer
                 TimeNow = TimeNow.AddMinutes(1);
             }
 
+            bool haveLoadingSec = false;
+
             for (int i = 0; _candleSeriesTesterActivate != null && i < _candleSeriesTesterActivate.Count; i++)
             {
+                if(_candleSeriesTesterActivate[i].TimeEnd < TimeNow)
+                {
+                    continue;
+                }
+                haveLoadingSec = true;
                 _candleSeriesTesterActivate[i].Load(TimeNow);
+            }
+
+            if(haveLoadingSec == false)
+            {
+                
             }
         }
 

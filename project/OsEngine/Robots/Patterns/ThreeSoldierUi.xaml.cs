@@ -37,7 +37,7 @@ namespace OsEngine.Robots.Patterns
             LabelRegime.Content = OsLocalization.Trader.Label115;
             LabelVolume.Content = OsLocalization.Trader.Label30;
             LabelSlippage.Content = OsLocalization.Trader.Label92;
-            ButtonAccept.Content = OsLocalization.Trader.Label132;
+            ButtonAccept.Content = OsLocalization.Trader.Label17;
             LabelPatternHeight.Content = OsLocalization.Trader.Label152;
             LabelCandleHeigth.Content = OsLocalization.Trader.Label153;
             LabelProfit.Content = OsLocalization.Trader.Label87 + " %";
@@ -51,7 +51,7 @@ namespace OsEngine.Robots.Patterns
             {
 
                 if (Convert.ToDecimal(TextBoxVolumeOne.Text) <= 0 ||
-                    Convert.ToDecimal(TextBoxSlipage.Text) <= 0 ||
+                    Convert.ToDecimal(TextBoxSlipage.Text) < 0 ||
                     Convert.ToInt32(TextBoxheightSoldiers.Text) <= 0 ||
                     Convert.ToInt32(TextBoxprocHeightTake.Text) <= 0 ||
                     Convert.ToInt32(TextBoxprocHeightStop.Text) <= 0)

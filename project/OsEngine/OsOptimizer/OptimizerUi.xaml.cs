@@ -1876,14 +1876,14 @@ namespace OsEngine.OsOptimizer
                 DataGridViewRow row = new DataGridViewRow();
                 row.Cells.Add(new DataGridViewTextBoxCell());
 
-                if (report.TabsReports.Count == 1)
-                {
+               //  if (report.TabsReports.Count == 1)
+               //  {
                     row.Cells[0].Value = report.BotName;
-                }
-                else
-                {
-                    row.Cells[0].Value = "Сводные";
-                }
+               // }
+               // else
+               // {
+                //    row.Cells[0].Value = "Сводные";
+                //}
 
                 DataGridViewTextBoxCell cell2 = new DataGridViewTextBoxCell();
                 cell2.Value = report.GetParamsToDataTable();
@@ -1928,13 +1928,13 @@ namespace OsEngine.OsOptimizer
 
                 _gridResults.Rows.Add(row);
 
-                if (report.TabsReports.Count > 1)
+                /*if (report.TabsReports.Count > 1)
                 {
                     for (int i2 = 0; i2 < report.TabsReports.Count; i2++)
                     {
                         _gridResults.Rows.Add(GetRowResult(report.TabsReports[i2]));
                     }
-                }
+                }*/
             }
 
             _gridResults.SelectionChanged += _gridResults_SelectionChanged;
@@ -2052,7 +2052,15 @@ namespace OsEngine.OsOptimizer
             cell10.Value = report.Recovery;
             row.Cells.Add(cell10);
 
-            row.Cells.Add(null);
+            try
+            {
+                row.Cells.Add(null);
+            }
+            catch
+            {
+                // ignore
+            }
+            
 
             return row;
 

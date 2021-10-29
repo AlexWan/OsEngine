@@ -800,20 +800,30 @@ namespace OsEngine.Market.Servers.Optimizer
 
                 if (secu != null)
                 {
-                    secu.Lot = array[i][1].ToDecimal();
-                    secu.Go = array[i][2].ToDecimal();
-                    secu.PriceStepCost = array[i][3].ToDecimal();
-                    secu.PriceStep = array[i][4].ToDecimal();
+                    decimal lot = array[i][1].ToDecimal();
+                    decimal go = array[i][2].ToDecimal();
+                    decimal priceStepCost = array[i][3].ToDecimal();
+                    decimal priceStep = array[i][4].ToDecimal();
 
-                    if (secu.PriceStep != 0 &&
-                    secu.PriceStepCost != 0 && 
-                    SecuritiesTester[SecuritiesTester.Count - 1].Security.Name == secu.Name)
+                    if (lot != 0)
+                        secu.Lot = lot;
+                    if (go != 0)
+                        secu.Go = go;
+                    if (priceStepCost != 0)
+                        secu.PriceStepCost = priceStepCost;
+                    if (priceStep != 0)
+                        secu.PriceStep = priceStep;
+
+                    if (SecuritiesTester[SecuritiesTester.Count - 1].Security.Name == secu.Name)
                     {
-                        SecuritiesTester[SecuritiesTester.Count - 1].Security.Lot = array[i][1].ToDecimal();
-                        SecuritiesTester[SecuritiesTester.Count - 1].Security.Go = array[i][2].ToDecimal();
-                        SecuritiesTester[SecuritiesTester.Count - 1].Security.PriceStepCost = array[i][3].ToDecimal();
-                        SecuritiesTester[SecuritiesTester.Count - 1].Security.PriceStep = array[i][4].ToDecimal();
-
+                        if (lot != 0)
+                            SecuritiesTester[SecuritiesTester.Count - 1].Security.Lot = lot;
+                        if (go != 0)
+                            SecuritiesTester[SecuritiesTester.Count - 1].Security.Go = go;
+                        if (priceStepCost != 0)
+                            SecuritiesTester[SecuritiesTester.Count - 1].Security.PriceStepCost = priceStepCost;
+                        if (priceStep != 0)
+                            SecuritiesTester[SecuritiesTester.Count - 1].Security.PriceStep = priceStep;
                     }
                 }
             }
@@ -1052,19 +1062,33 @@ namespace OsEngine.Market.Servers.Optimizer
             {
                 Security secu = Securities.Find(s => s.Name == array[i][0]);
 
-                if (secu == null)
+                if (secu != null)
                 {
-                    continue;
-                }
+                    decimal lot = array[i][1].ToDecimal();
+                    decimal go = array[i][2].ToDecimal();
+                    decimal priceStepCost = array[i][3].ToDecimal();
+                    decimal priceStep = array[i][4].ToDecimal();
 
-                if (secu.PriceStep != 0 &&
-                    secu.PriceStepCost != 0 && 
-                    secu != null)
-                {
-                    secu.Lot = array[i][1].ToDecimal();
-                    secu.Go = array[i][2].ToDecimal();
-                    secu.PriceStepCost = array[i][3].ToDecimal();
-                    secu.PriceStep = array[i][4].ToDecimal();
+                    if (lot != 0)
+                        secu.Lot = lot;
+                    if (go != 0)
+                        secu.Go = go;
+                    if (priceStepCost != 0)
+                        secu.PriceStepCost = priceStepCost;
+                    if (priceStep != 0)
+                        secu.PriceStep = priceStep;
+
+                    if (SecuritiesTester[SecuritiesTester.Count - 1].Security.Name == secu.Name)
+                    {
+                        if (lot != 0)
+                            SecuritiesTester[SecuritiesTester.Count - 1].Security.Lot = lot;
+                        if (go != 0)
+                            SecuritiesTester[SecuritiesTester.Count - 1].Security.Go = go;
+                        if (priceStepCost != 0)
+                            SecuritiesTester[SecuritiesTester.Count - 1].Security.PriceStepCost = priceStepCost;
+                        if (priceStep != 0)
+                            SecuritiesTester[SecuritiesTester.Count - 1].Security.PriceStep = priceStep;
+                    }
                 }
             }
         }
@@ -1306,18 +1330,34 @@ namespace OsEngine.Market.Servers.Optimizer
             for (int i = 0; array != null && i < array.Count; i++)
             {
                 Security secu = Securities.Find(s => s.Name == array[i][0]);
-                if (secu == null)
+
+                if (secu != null)
                 {
-                    continue;
-                }
-                if (secu.PriceStep != 0 &&
-                    secu.PriceStepCost != 0 && 
-                    secu != null)
-                {
-                    secu.Lot = array[i][1].ToDecimal();
-                    secu.Go = array[i][2].ToDecimal();
-                    secu.PriceStepCost = array[i][3].ToDecimal();
-                    secu.PriceStep = array[i][4].ToDecimal();
+                    decimal lot = array[i][1].ToDecimal();
+                    decimal go = array[i][2].ToDecimal();
+                    decimal priceStepCost = array[i][3].ToDecimal();
+                    decimal priceStep = array[i][4].ToDecimal();
+
+                    if (lot != 0)
+                        secu.Lot = lot;
+                    if (go != 0)
+                        secu.Go = go;
+                    if (priceStepCost != 0)
+                        secu.PriceStepCost = priceStepCost;
+                    if (priceStep != 0)
+                        secu.PriceStep = priceStep;
+
+                    if (SecuritiesTester[SecuritiesTester.Count - 1].Security.Name == secu.Name)
+                    {
+                        if (lot != 0)
+                            SecuritiesTester[SecuritiesTester.Count - 1].Security.Lot = lot;
+                        if (go != 0)
+                            SecuritiesTester[SecuritiesTester.Count - 1].Security.Go = go;
+                        if (priceStepCost != 0)
+                            SecuritiesTester[SecuritiesTester.Count - 1].Security.PriceStepCost = priceStepCost;
+                        if (priceStep != 0)
+                            SecuritiesTester[SecuritiesTester.Count - 1].Security.PriceStep = priceStep;
+                    }
                 }
             }
         }
