@@ -858,7 +858,7 @@ namespace OsEngine.OsOptimizer
             timeStartWaiting = DateTime.Now;
             while (bot.TabsSimple[0].CandlesAll == null
                    ||
-                   bot.TabsSimple[0].TimeServerCurrent.AddDays(1) < reportFaze.Faze.TimeEnd)
+                   bot.TabsSimple[0].TimeServerCurrent.AddHours(1) < reportFaze.Faze.TimeEnd)
             {
                 Thread.Sleep(20);
                 if (timeStartWaiting.AddSeconds(20) < DateTime.Now)
@@ -866,6 +866,8 @@ namespace OsEngine.OsOptimizer
                     break;
                 }
             }
+
+            Thread.Sleep(2000);
 
             return bot;
         }
@@ -919,6 +921,10 @@ namespace OsEngine.OsOptimizer
                     bot.Clear();
                     bot.Delete();
                    _botsInTest.Remove(bot);
+                }
+                else
+                {
+
                 }
 
                 for (int i = 0; i < _servers.Count; i++)

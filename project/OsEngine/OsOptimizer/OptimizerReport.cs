@@ -172,8 +172,9 @@ namespace OsEngine.OsOptimizer
                 OptimizerReportTab tab = new OptimizerReportTab();
                 List<Position> positions =
                     bot.TabsSimple[i].GetJournal().AllPosition.FindAll(
-                        pos => pos.State != PositionStateType.OpeningFail &&
-                        pos.State != PositionStateType.Open && pos.State != PositionStateType.ClosingFail);
+                        pos => pos.State != PositionStateType.OpeningFail && pos.State != PositionStateType.ClosingFail);
+
+                TabsReports.Add(tab);
 
                 if (positions.Count == 0)
                 {
@@ -199,7 +200,7 @@ namespace OsEngine.OsOptimizer
                 tab.PayOffRatio = PositionStaticticGenerator.GetPayOffRatio(posesArray);
                 tab.TabType = bot.TabsSimple[i].GetType().Name;
 
-                TabsReports.Add(tab);
+                
             }
 
             if (TabsReports.Count == 0)

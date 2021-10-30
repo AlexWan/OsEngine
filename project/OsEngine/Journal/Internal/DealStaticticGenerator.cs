@@ -199,11 +199,19 @@ namespace OsEngine.Journal.Internal
             }
 
             decimal profit = 0;
-            
+
+            int divider = deals.Length;
+
             for (int i = 0; i < deals.Length; i++)
             {
                 decimal enter = deals[i].EntryPrice;
                 decimal exit = deals[i].ClosePrice;
+
+                if(exit == 0)
+                {
+                    divider--;
+                    continue;
+                }
 
                 if (enter == 0) continue;
 
@@ -217,7 +225,12 @@ namespace OsEngine.Journal.Internal
                 }
             }
 
-            return Round(profit / deals.Length);
+            if(divider <= 0)
+            {
+                return 0;
+            }
+
+            return Round(profit / divider);
         }
 
         /// <summary>

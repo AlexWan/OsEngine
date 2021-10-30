@@ -1046,7 +1046,6 @@ namespace OsEngine.OsOptimizer
 
         public BotPanel TestBot(OptimazerFazeReport faze, OptimizerReport report)
         {
-           
             return _optimizerExecutor.TestBot(faze, report);
         }
 
