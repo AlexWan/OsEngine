@@ -416,8 +416,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
-            List<SecurityTester> securities = server.SecuritiesTester;
-
             string lastTf = null;
 
             if (ComboBoxTimeFrame.SelectedItem != null)
@@ -426,6 +424,13 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             ComboBoxTimeFrame.Items.Clear();
+
+            List<SecurityTester> securities = server.SecuritiesTester;
+
+            if (securities == null)
+            {
+                return;
+            }
 
             List<string> frames = new List<string>();
 
