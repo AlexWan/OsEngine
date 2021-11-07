@@ -77,6 +77,8 @@ namespace OsEngine.OsTrader.Panels
 
             _log = new Log(name, startProgram);
             _log.Listen(this);
+
+            ParamGuiSettings = new ParamGuiSettings();
         }
 
         /// <summary>
@@ -622,7 +624,8 @@ position => position.State != PositionStateType.OpeningFail
                 MessageBox.Show(OsLocalization.Trader.Label51);
                 return;
             }
-            _paramUi = new ParemetrsUi(_parameters);
+            _paramUi = new ParemetrsUi(_parameters, ParamGuiSettings);
+
             _paramUi.ShowDialog();
         }
 
@@ -637,6 +640,12 @@ position => position.State != PositionStateType.OpeningFail
         }
 
         /// <summary>
+        /// базовые настройки окна параметров 
+        /// Gui Settings
+        /// </summary>
+        public ParamGuiSettings ParamGuiSettings;
+
+        /// <summary>
         /// create a Decimal type parameter / 
         /// создать параметр типа Decimal
         /// </summary>
@@ -645,9 +654,10 @@ position => position.State != PositionStateType.OpeningFail
         /// <param name="start">first value / Первое значение при оптимизации</param>
         /// <param name="stop">last value / Последнее значение при оптимизации</param>
         /// <param name="step">value step / Шаг изменения при оптимизации</param>
-        public StrategyParameterDecimal CreateParameter(string name, decimal value, decimal start, decimal stop, decimal step)
+        /// <param name="tabName">name of the tab in the param window / Название вкладки в окне параметров</param>
+        public StrategyParameterDecimal CreateParameter(string name, decimal value, decimal start, decimal stop, decimal step, string tabControlName = null)
         {
-            StrategyParameterDecimal newParameter = new StrategyParameterDecimal(name, value, start, stop, step);
+            StrategyParameterDecimal newParameter = new StrategyParameterDecimal(name, value, start, stop, step, tabControlName);
 
             if (_parameters.Find(p => p.Name == name) != null)
             {
@@ -666,10 +676,10 @@ position => position.State != PositionStateType.OpeningFail
         /// <param name="start">first value / Первое значение при оптимизации</param>
         /// <param name="stop">last value / Последнее значение при оптимизации</param>
         /// <param name="step">value step / Шаг изменения при оптимизации</param>
-        public StrategyParameterTimeOfDay CreateParameterTimeOfDay(string name, int hour, int minute, int second, int millisecond)
+        public StrategyParameterTimeOfDay CreateParameterTimeOfDay(string name, int hour, int minute, int second, int millisecond, string tabControlName = null)
         {
             StrategyParameterTimeOfDay newParameter =
-                new StrategyParameterTimeOfDay(name, hour, minute, second, millisecond);
+                new StrategyParameterTimeOfDay(name, hour, minute, second, millisecond, tabControlName);
 
             if (_parameters.Find(p => p.Name == name) != null)
             {
@@ -688,9 +698,9 @@ position => position.State != PositionStateType.OpeningFail
         /// <param name="start">first value / Первое значение при оптимизации</param>
         /// <param name="stop">last value / Последнее значение при оптимизации</param>
         /// <param name="step">value step / Шаг изменения при оптимизации</param>
-        public StrategyParameterInt CreateParameter(string name, int value, int start, int stop, int step)
+        public StrategyParameterInt CreateParameter(string name, int value, int start, int stop, int step, string tabControlName = null)
         {
-            StrategyParameterInt newParameter = new StrategyParameterInt(name, value, start, stop, step);
+            StrategyParameterInt newParameter = new StrategyParameterInt(name, value, start, stop, step, tabControlName);
 
             if (_parameters.Find(p => p.Name == name) != null)
             {
@@ -707,9 +717,9 @@ position => position.State != PositionStateType.OpeningFail
         /// <param name="name">param name / Имя параметра</param>
         /// <param name="value">default value / Значение по умолчанию</param>
         /// <param name="collection">values / Возможные значения для параметра</param>
-        public StrategyParameterString CreateParameter(string name, string value, string[] collection)
+        public StrategyParameterString CreateParameter(string name, string value, string[] collection, string tabControlName = null)
         {
-            StrategyParameterString newParameter = new StrategyParameterString(name, value, collection.ToList());
+            StrategyParameterString newParameter = new StrategyParameterString(name, value, collection.ToList(), tabControlName);
 
             if (_parameters.Find(p => p.Name == name) != null)
             {
@@ -725,9 +735,9 @@ position => position.State != PositionStateType.OpeningFail
         /// </summary>
         /// <param name="name">param name / Имя параметра</param>
         /// <param name="value">default value / Значение по умолчанию</param>
-        public StrategyParameterString CreateParameter(string name, string value)
+        public StrategyParameterString CreateParameter(string name, string value, string tabControlName = null)
         {
-            StrategyParameterString newParameter = new StrategyParameterString(name, value);
+            StrategyParameterString newParameter = new StrategyParameterString(name, value, tabControlName);
 
             if (_parameters.Find(p => p.Name == name) != null)
             {
@@ -743,9 +753,9 @@ position => position.State != PositionStateType.OpeningFail
         /// </summary>
         /// <param name="name">param name / Имя параметра</param>
         /// <param name="value">default value / Значение по умолчанию</param>
-        public StrategyParameterBool CreateParameter(string name, bool value)
+        public StrategyParameterBool CreateParameter(string name, bool value, string tabControlName = null)
         {
-            StrategyParameterBool newParameter = new StrategyParameterBool(name, value);
+            StrategyParameterBool newParameter = new StrategyParameterBool(name, value, tabControlName);
 
             if (_parameters.Find(p => p.Name == name) != null)
             {
@@ -759,9 +769,9 @@ position => position.State != PositionStateType.OpeningFail
         /// create button type parameter / 
         /// создать параметр типа Button
         /// </summary>
-        public StrategyParameterButton CreateParameterButton(string buttonLabel)
+        public StrategyParameterButton CreateParameterButton(string buttonLabel, string tabControlName = null)
         {
-            StrategyParameterButton newParameter = new StrategyParameterButton(buttonLabel);
+            StrategyParameterButton newParameter = new StrategyParameterButton(buttonLabel, tabControlName);
 
             if (_parameters.Find(p => p.Name == buttonLabel) != null)
             {
@@ -1497,6 +1507,34 @@ position => position.State != PositionStateType.OpeningFail
         /// событие удаления робота
         /// </summary>
         public event Action DeleteEvent;
+
+    }
+
+    /// <summary>
+    /// базовые настройки окна параметров 
+    /// Gui Settings
+    /// </summary>
+    public class ParamGuiSettings
+    {
+        /// <summary>
+        /// подпись для окна параметров
+        /// </summary>
+        public string Title;
+
+        /// <summary>
+        /// название вкладки по умолчанию
+        /// </summary>
+        public string FirstTabLabel = "Prime";
+
+        /// <summary>
+        /// стартовая высота окна параметров
+        /// </summary>
+        public decimal Height = 370;
+
+        /// <summary>
+        /// стартовая ширина окна параметров
+        /// </summary>
+        public decimal Width = 600;
 
     }
 

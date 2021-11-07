@@ -1074,6 +1074,12 @@ namespace OsEngine.Market.Servers.Tester
 
                     for (int i2 = 0; i2 < 20; i2++)
                     {
+                        if (reader.EndOfStream)
+                        {
+                            reader.Close();
+                            reader = new StreamReader(files[i]);
+                        }
+
                         Candle candleN = new Candle();
                         candleN.SetCandleFromString(reader.ReadLine());
 
@@ -1902,6 +1908,10 @@ namespace OsEngine.Market.Servers.Tester
             {
                 if (reader.EndOfStream)
                 {
+                    if (lastTimeSpan != TimeSpan.MaxValue)
+                    {
+                        return lastTimeSpan;
+                    }
                     return TimeSpan.Zero;
                 }
 

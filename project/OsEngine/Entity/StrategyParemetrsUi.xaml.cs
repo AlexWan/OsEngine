@@ -6,7 +6,10 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using System.Windows.Controls;
+using System.Windows.Forms.Integration;
 using OsEngine.Language;
+using OsEngine.OsTrader.Panels;
 
 namespace OsEngine.Entity
 {
@@ -18,17 +21,119 @@ namespace OsEngine.Entity
     {
         private List<IIStrategyParameter> _parameters;
 
-        public ParemetrsUi(List<IIStrategyParameter> parameters)
+        public ParemetrsUi(List<IIStrategyParameter> parameters, ParamGuiSettings settings)
         {
             InitializeComponent();
+
+            Height = (double)settings.Height;
+            Width = (double)settings.Width;
+
             _parameters = parameters;
+
+            ButtonAccept.Content = OsLocalization.Entity.ButtonAccept;
+
+            if(string.IsNullOrEmpty(settings.Title))
+            {
+                Title = OsLocalization.Entity.TitleParametersUi;
+            }
+            else
+            {
+                Title = settings.Title;
+            }
+            
+
+            List<List<IIStrategyParameter>> sorted = GetParamSortedByTabName();
+
+            for(int i = 0;i < sorted.Count;i++)
+            {
+                if(sorted[i][0].TabName == null)
+                {
+                    CreateTab(sorted[i], settings.FirstTabLabel);
+                }
+                else
+                {
+                    CreateTab(sorted[i], sorted[i][0].TabName);
+                }
+            }
+            
+        }
+
+        List<List<IIStrategyParameter>> GetParamSortedByTabName()
+        {
+            List<List<IIStrategyParameter>> sorted = new List<List<IIStrategyParameter>>();
+
+            for(int i = 0;i < _parameters.Count;i++)
+            {
+                List<IIStrategyParameter> myList = sorted.Find(s => s[0].TabName == _parameters[i].TabName);
+
+                if(myList != null)
+                {
+                    myList.Add(_parameters[i]);
+                }
+                else
+                {
+                    List<IIStrategyParameter> newItem = new List<IIStrategyParameter>();
+                    newItem.Add(_parameters[i]);
+                    sorted.Add(newItem);
+                }
+            }
+
+            for(int i = 0;i < sorted.Count;i++)
+            {// переставляем принудительно параметры без имени вкладки в первый слот вкладок
+                if(sorted[i][0].TabName == null && i != 0)
+                {
+                    List<IIStrategyParameter> par = sorted[i];
+                    sorted.RemoveAt(i);
+                    sorted.Insert(0, par);
+                    break;
+                }
+            }
+
+            return sorted;
+        }
+
+        private void CreateTab(List<IIStrategyParameter> par, string tabName)
+        {
+            ParamTabPainter painter = new ParamTabPainter(par, tabName, TabControlSettings);
+            _tabs.Add(painter);
+        }
+
+        List<ParamTabPainter> _tabs = new List<ParamTabPainter>();
+
+        private void ButtonAccept_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            for (int i = 0; i < _tabs.Count; i++)
+            {
+                _tabs[i].Save();
+            }
+
+            Close();
+        }
+    }
+
+    public class ParamTabPainter
+    {
+        public ParamTabPainter(List<IIStrategyParameter> parameters, string tabName, System.Windows.Controls.TabControl tabControl)
+        {
+            TabItem item = new TabItem();
+            item.Header = tabName;
+            _host = new WindowsFormsHost();
+
+            item.Content = _host;
+
+            tabControl.Items.Add(item);
+            _parameters = parameters;
+            _tabControl = tabControl;
 
             CreateTable();
             PaintTable();
-
-            ButtonAccept.Content = OsLocalization.Entity.ButtonAccept;
-            Title = OsLocalization.Entity.TitleParametersUi;
         }
+
+        List<IIStrategyParameter> _parameters;
+
+        private WindowsFormsHost _host;
+
+        private System.Windows.Controls.TabControl _tabControl;
 
         private DataGridView _grid;
 
@@ -61,7 +166,7 @@ namespace OsEngine.Entity
             _grid.CellValueChanged += _grid_CellValueChanged;
             _grid.CellClick += _grid_Click;
 
-            HostParametrs.Child = _grid;
+            _host.Child = _grid;
         }
 
         private void PaintTable()
@@ -99,7 +204,7 @@ namespace OsEngine.Entity
                         cell.Value = param.ValueString;
                         row.Cells.Add(cell);
                     }
-                    else if(param.ValuesString.Count == 1)
+                    else if (param.ValuesString.Count == 1)
                     {
                         DataGridViewTextBoxCell cell = new DataGridViewTextBoxCell();
                         cell.Value = param.ValueString;
@@ -198,7 +303,7 @@ namespace OsEngine.Entity
             }
         }
 
-        private void ButtonAccept_Click(object sender, System.Windows.RoutedEventArgs e)
+        public void Save()
         {
             for (int i = 0; i < _parameters.Count; i++)
             {
@@ -233,8 +338,6 @@ namespace OsEngine.Entity
                 }
 
             }
-
-            Close();
         }
     }
 }

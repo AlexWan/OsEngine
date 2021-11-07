@@ -219,6 +219,38 @@ namespace OsEngine.Entity
             return oldCandles;
         }
 
+        public static Candle Merge(this Candle oldCandle, Candle candleToMerge)
+        {
+            Candle res = new Candle();
+
+            Candle firstCandle = oldCandle;
+            Candle secondCandle = candleToMerge;
+
+            if (oldCandle.TimeStart < candleToMerge.TimeStart)
+            {
+                res.TimeStart = oldCandle.TimeStart;
+            }
+            else if (oldCandle.TimeStart > candleToMerge.TimeStart)
+            {
+                res.TimeStart = candleToMerge.TimeStart;
+                firstCandle = candleToMerge;
+                secondCandle = oldCandle;
+            }
+            else
+            {
+                res.TimeStart = oldCandle.TimeStart;
+            }
+
+            res.Volume = oldCandle.Volume + candleToMerge.Volume;
+
+            res.Open = firstCandle.Open;
+            res.Close = secondCandle.Close;
+            res.High = Math.Max(firstCandle.High, secondCandle.High);
+            res.Low = Math.Min(firstCandle.Low, secondCandle.Low);
+
+            return res;
+        }
+
         public static string ToFormatString(this DataGridViewRow row)
         {
             string result = "";

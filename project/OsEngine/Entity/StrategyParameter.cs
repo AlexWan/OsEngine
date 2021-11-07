@@ -39,6 +39,12 @@ namespace OsEngine.Entity
         StrategyParameterType Type { get; }
 
         /// <summary>
+        /// name of the tab in the param window / 
+        /// название вкладки в окне параметров
+        /// </summary>
+        string TabName { get; set; }
+
+        /// <summary>
         /// the parameter state has changed
         /// изменилось состояние параметра
         /// </summary>
@@ -60,7 +66,7 @@ namespace OsEngine.Entity
         /// <param name="start">First value in optimization/Первое значение при оптимизации</param>
         /// <param name="stop">Last value during optimization/Последнее значение при оптимизации</param>
         /// <param name="step">Step change in optimization/Шаг изменения при оптимизации</param>
-        public StrategyParameterInt(string name, int value, int start, int stop, int step)
+        public StrategyParameterInt(string name, int value, int start, int stop, int step, string tabName = null)
         {
             if (start > stop)
             {
@@ -73,6 +79,7 @@ namespace OsEngine.Entity
             _valueIntStart = start;
             _valueIntStop = stop;
             _valueIntStep = step;
+            TabName = tabName;
         }
 
         /// <summary>
@@ -93,6 +100,11 @@ namespace OsEngine.Entity
             get { return _name; }
         }
         private string _name;
+
+        public string TabName
+        {
+            get; set;
+        }
 
         /// <summary>
         /// save the line
@@ -224,7 +236,7 @@ namespace OsEngine.Entity
         /// <param name="start">First value in optimization/Первое значение при оптимизации</param>
         /// <param name="stop">last value in optimization/Последнее значение при оптимизации</param>
         /// <param name="step">Step change in optimization/Шаг изменения при оптимизации</param>
-        public StrategyParameterDecimal(string name, decimal value, decimal start, decimal stop, decimal step)
+        public StrategyParameterDecimal(string name, decimal value, decimal start, decimal stop, decimal step, string tabName = null)
         {
             if (start > stop)
             {
@@ -238,6 +250,7 @@ namespace OsEngine.Entity
             _valueDecimalStop = stop;
             _valueDecimalStep = step;
             _type = StrategyParameterType.Decimal;
+            TabName = tabName;
         }
 
         /// <summary>
@@ -280,6 +293,11 @@ namespace OsEngine.Entity
         }
         private string _name;
 
+        public string TabName
+        {
+            get;set;
+        }
+        
         /// <summary>
         /// parameter type
         /// тип параметра
@@ -380,11 +398,12 @@ namespace OsEngine.Entity
     /// </summary>
     public class StrategyParameterBool : IIStrategyParameter
     {
-        public StrategyParameterBool(string name, bool value)
+        public StrategyParameterBool(string name, bool value, string tabName = null)
         {
             _name = name;
             _valueBoolDefolt = value;
             _type = StrategyParameterType.Bool;
+            TabName = tabName;
         }
 
         /// <summary>
@@ -394,6 +413,11 @@ namespace OsEngine.Entity
         private StrategyParameterBool()
         {
 
+        }
+
+        public string TabName
+        {
+            get; set;
         }
 
         /// <summary>
@@ -496,7 +520,7 @@ namespace OsEngine.Entity
         /// <param name="name">Parameter name/Имя параметра</param>
         /// <param name="value">Default value/Значение по умолчанию</param>
         /// <param name="collection">Possible value options/Возможные варианты значений</param>
-        public StrategyParameterString(string name, string value, List<string> collection)
+        public StrategyParameterString(string name, string value, List<string> collection, string tabName = null)
         {
             bool isInArray = false;
 
@@ -523,6 +547,7 @@ namespace OsEngine.Entity
             _valueString = value;
             _setStringValues = collection;
             _type = StrategyParameterType.String;
+            TabName = tabName;
         }
 
         /// <summary>
@@ -531,7 +556,7 @@ namespace OsEngine.Entity
         /// </summary>
         /// <param name="name">Parameter name/Имя параметра</param>
         /// <param name="value">Default value/Значение по умолчанию</param>
-        public StrategyParameterString(string name, string value)
+        public StrategyParameterString(string name, string value, string tabName = null)
         {
             if (value == null)
             {
@@ -542,6 +567,7 @@ namespace OsEngine.Entity
             _valueString = value;
             _setStringValues = new List<string>() { value };
             _type = StrategyParameterType.String;
+            TabName = tabName;
         }
 
         /// <summary>
@@ -584,6 +610,12 @@ namespace OsEngine.Entity
             get { return _name; }
         }
         private string _name;
+
+        public string TabName
+        {
+            get; set;
+        }
+
 
         /// <summary>
         /// parameter type
@@ -642,7 +674,7 @@ namespace OsEngine.Entity
 
     public class StrategyParameterTimeOfDay : IIStrategyParameter
     {
-        public StrategyParameterTimeOfDay(string name, int hour, int minute, int second, int millisecond)
+        public StrategyParameterTimeOfDay(string name, int hour, int minute, int second, int millisecond, string tabName = null)
         {
             _name = name;
             Value = new TimeOfDay();
@@ -651,6 +683,7 @@ namespace OsEngine.Entity
             Value.Second = second;
             Value.Millisecond = millisecond;
             _type = StrategyParameterType.TimeOfDay;
+            TabName = tabName;
         }
 
         public string Name
@@ -659,6 +692,7 @@ namespace OsEngine.Entity
         }
         private string _name;
 
+        public string TabName { get; set; }
 
         public TimeOfDay Value;
 
@@ -807,11 +841,14 @@ namespace OsEngine.Entity
     /// </summary>
     public class StrategyParameterButton : IIStrategyParameter
     {
-        public StrategyParameterButton(string buttonLabel)
+        public StrategyParameterButton(string buttonLabel, string tabName = null)
         {
             _name = buttonLabel;
             _type = StrategyParameterType.Button;
+            TabName = tabName;
         }
+
+        public string TabName { get; set; }
 
         /// <summary>
         /// blank. it is impossible to create a variable of StrategyParameter type with an empty constructor
