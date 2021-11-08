@@ -56,6 +56,7 @@
         <WindowsFormsHost Name="SecuritiesHost" Margin="419,43,15,40"/>
         <Label Name="LabelSelectedSec" Content="Selected Securities" HorizontalAlignment="Left" Margin="419,10,0,0" VerticalAlignment="Top" />
         <Button x:Name="ButtonAccept" Content="Accept" HorizontalAlignment="Right" Margin="0,0,10,5" VerticalAlignment="Bottom" Width="130" Click="ButtonAccept_Click"/>
+        <CheckBox x:Name="CheckBoxSelectAllCheckBox" Content="Select all" HorizontalAlignment="Right" Margin="0,10,15,0" VerticalAlignment="Top"/>
 
     </Grid>
 </Window>

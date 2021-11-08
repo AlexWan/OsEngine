@@ -180,7 +180,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 LabelComissionValue.Content = OsLocalization.Market.LabelComissionValue;
                 CheckBoxSaveTradeArrayInCandle.Content = OsLocalization.Market.Label59;
                 LabelSelectedSec.Content = OsLocalization.Trader.Label164;
-
+                CheckBoxSelectAllCheckBox.Click += CheckBoxSelectAllCheckBox_Click;
             }
             catch (Exception error)
             {
@@ -843,6 +843,16 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         }
 
+        private void CheckBoxSelectAllCheckBox_Click(object sender, RoutedEventArgs e)
+        {
+            bool isCheck = CheckBoxSelectAllCheckBox.IsChecked.Value;
+
+            for (int i = 0; i < _gridSecurities.Rows.Count; i++)
+            {
+                _gridSecurities.Rows[i].Cells[6].Value = isCheck;
+            }
+        }
+
         #endregion
 
         private void LoadTimeFrameBox()
@@ -1238,5 +1248,6 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             return sec;
         }
+
     }
 }
