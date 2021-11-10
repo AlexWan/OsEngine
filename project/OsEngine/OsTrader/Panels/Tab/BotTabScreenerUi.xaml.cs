@@ -181,6 +181,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                 CheckBoxSaveTradeArrayInCandle.Content = OsLocalization.Market.Label59;
                 LabelSelectedSec.Content = OsLocalization.Trader.Label164;
                 CheckBoxSelectAllCheckBox.Click += CheckBoxSelectAllCheckBox_Click;
+                TextBoxSearchSec.Text = OsLocalization.Trader.Label174;
+                CheckBoxSelectAllCheckBox.Content = OsLocalization.Trader.Label173;
+
+                TextBoxSearchSec.TextChanged += TextBoxSearchSec_TextChanged;
             }
             catch (Exception error)
             {
@@ -1247,6 +1251,40 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             return sec;
+        }
+
+        // поиск бумаги
+
+        private void TextBoxSearchSec_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            if(TextBoxSearchSec.Text.Contains(OsLocalization.Trader.Label174))
+            {
+                TextBoxSearchSec.Text = TextBoxSearchSec.Text.Replace(OsLocalization.Trader.Label174, "");
+            }
+
+            string str = TextBoxSearchSec.Text;
+
+            for(int i = 0;i < _gridSecurities.Rows.Count;i++)
+            {
+                DataGridViewRow row = _gridSecurities.Rows[i];
+
+                if(row.Cells.Count < 2 ||
+                    row.Cells[1].Value == null)
+                {
+                    continue;
+                }
+
+                string secName = row.Cells[3].Value.ToString();
+
+                if (secName.StartsWith(str))
+                {
+                    row.Selected = true;
+                    _gridSecurities.FirstDisplayedScrollingRowIndex = i;
+                    break;
+                }
+
+            }
+
         }
 
     }

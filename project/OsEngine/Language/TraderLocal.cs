@@ -700,5 +700,13 @@ namespace OsEngine.Language
         public string Label172 => OsLocalization.ConvertToLocString(
               "Eng: Chart_" +
               "Ru: Чарт_");
+
+        public string Label173 => OsLocalization.ConvertToLocString(
+              "Eng: Select all_" +
+              "Ru: Выбрать все_");
+
+        public string Label174 => OsLocalization.ConvertToLocString(
+              "Eng: Search..._" +
+              "Ru: Искать..._");
     }
 }
