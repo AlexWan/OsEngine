@@ -1561,6 +1561,8 @@ position => position.State != PositionStateType.OpeningFail
 
             newTab = new CustomTabToParametersUi(tabLabel);
 
+            CustomTabs.Add(newTab);
+
             return newTab;
         }
 
