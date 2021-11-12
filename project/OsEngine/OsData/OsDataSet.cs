@@ -428,21 +428,24 @@ namespace OsEngine.OsData
             NewSecurityUi ui = new NewSecurityUi(securities);
             ui.ShowDialog();
 
-            if (ui.SelectedSecurity != null)
+            if (ui.SelectedSecurity != null && ui.SelectedSecurity.Count != 0)
             {
                 if (SecuritiesNames == null)
                 {
                     SecuritiesNames = new List<SecurityToLoad>();
                 }
-
-               SecurityToLoad record = new SecurityToLoad();
-                record.Name = ui.SelectedSecurity.Name;
-                record.Id = ui.SelectedSecurity.NameId;
-
-                if (SecuritiesNames.Find(s => s.Id == record.Id) == null)
+                for (int i = 0; i < ui.SelectedSecurity.Count; i++)
                 {
-                    SecuritiesNames.Add(record);
+                    SecurityToLoad record = new SecurityToLoad();
+                    record.Name = ui.SelectedSecurity[i].Name;
+                    record.Id = ui.SelectedSecurity[i].NameId;
+
+                    if (SecuritiesNames.Find(s => s.Id == record.Id) == null)
+                    {
+                        SecuritiesNames.Add(record);
+                    }
                 }
+
             }
             Save();
             ReBuildComboBox();

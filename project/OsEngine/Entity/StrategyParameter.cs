@@ -720,6 +720,14 @@ namespace OsEngine.Entity
         private StrategyParameterType _type;
 
         public event Action ValueChange;
+
+        public TimeSpan TimeSpan
+        {
+            get
+            {
+                return Value.TimeSpan;
+            }
+        }
     }
 
     public class TimeOfDay
@@ -832,6 +840,16 @@ namespace OsEngine.Entity
             }
 
             return false;
+        }
+
+        public TimeSpan TimeSpan
+        {
+            get
+            {
+                TimeSpan time = new TimeSpan(0, Hour, Minute, Second);
+
+                return time;
+            }
         }
     }
 

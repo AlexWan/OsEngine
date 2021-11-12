@@ -79,6 +79,7 @@ namespace OsEngine.OsTrader.Panels
             _log.Listen(this);
 
             ParamGuiSettings = new ParamGuiSettings();
+            ParamGuiSettings.LogMessageEvent += SendNewLogMessage;
         }
 
         /// <summary>
@@ -1536,7 +1537,88 @@ position => position.State != PositionStateType.OpeningFail
         /// </summary>
         public decimal Width = 600;
 
+        /// <summary>
+        /// пользовательские вкладки 
+        /// </summary>
+        private List<CustomTabToParametersUi> CustomTabs = new List<CustomTabToParametersUi>();
+
+        /// <summary>
+        /// создать вкладку для окна параметров
+        /// </summary>
+        /// <param name="tabLabel">имя вкладки</param>
+        /// <returns></returns>
+        public CustomTabToParametersUi CreateCustomTab(string tabLabel)
+        {
+            CustomTabToParametersUi newTab = CustomTabs.Find(tab => tab.Label == tabLabel);
+
+            if(newTab != null)
+            {
+                SendNewLogMessage
+                    ("An attempt was intercepted to create a second tab of parameters with the same name that is already in the collection.",
+                    LogMessageType.Error);
+                return newTab;
+            }
+
+            newTab = new CustomTabToParametersUi(tabLabel);
+
+            return newTab;
+        }
+
+        /// <summary>
+        /// send new message / 
+        /// выслать новое сообщение на верх
+        /// </summary>
+        protected void SendNewLogMessage(string message, LogMessageType type)
+        {
+            if (LogMessageEvent != null)
+            {
+                LogMessageEvent(message, type);
+            }
+            else if (type == LogMessageType.Error)
+            {
+                System.Windows.MessageBox.Show(message);
+            }
+        }
+
+        /// <summary>
+        /// log message event
+        /// исходящее сообщение для лога
+        /// </summary>
+        public event Action<string, LogMessageType> LogMessageEvent;
     }
+
+    public class CustomTabToParametersUi
+    {
+        public CustomTabToParametersUi(string label)
+        {
+            _label = label;
+            GridToPaint = new System.Windows.Controls.Grid();
+        }
+
+        private CustomTabToParametersUi()
+        {
+
+        }
+
+        /// <summary>
+        /// название вкладки
+        /// </summary>
+        public string Label
+        {
+            get
+            {
+                return _label;
+            }
+        }
+        private string _label;
+
+        /// <summary>
+        /// Элемент который нужно разместить на вкладке
+        /// </summary>
+        public System.Windows.Controls.Grid GridToPaint;
+
+    }
+
 
     /// <summary>
     /// robot trade regime

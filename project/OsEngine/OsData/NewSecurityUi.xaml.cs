@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using OsEngine.Entity;
 using OsEngine.Language;
+using System.Windows;
 
 namespace OsEngine.OsData
 {
@@ -29,7 +30,7 @@ namespace OsEngine.OsData
         /// <summary>
         /// selected paper/выбранная бумага
         /// </summary>
-        public Security SelectedSecurity;
+        public List<Security> SelectedSecurity = new List<Security>();
 
         /// <summary>
         /// constructor/конструктор
@@ -48,7 +49,18 @@ namespace OsEngine.OsData
             Title = OsLocalization.Data.TitleNewSecurity;
             Label1.Content = OsLocalization.Data.Label1;
             ButtonAccept.Content = OsLocalization.Data.ButtonAccept;
+            CheckBoxSelectAllCheckBox.Content = OsLocalization.Trader.Label173;
+            CheckBoxSelectAllCheckBox.Click += CheckBoxSelectAllCheckBox_Click;
+        }
 
+        private void CheckBoxSelectAllCheckBox_Click(object sender, RoutedEventArgs e)
+        {
+            bool isCheck = CheckBoxSelectAllCheckBox.IsChecked.Value;
+
+            for (int i = 0; i < _grid.Rows.Count; i++)
+            {
+                _grid.Rows[i].Cells[2].Value = isCheck;
+            }
         }
 
         /// <summary>
@@ -81,6 +93,13 @@ namespace OsEngine.OsData
             column1.ReadOnly = true;
             column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(column1);
+
+            DataGridViewCheckBoxColumn colum6 = new DataGridViewCheckBoxColumn();
+            //colum6.CellTemplate = cell0;
+            colum6.HeaderText = OsLocalization.Trader.Label171;
+            colum6.ReadOnly = false;
+            colum6.Width = 50;
+            _grid.Columns.Add(colum6);
 
             _grid.KeyPress += SearchSecurity;
 
@@ -156,7 +175,7 @@ namespace OsEngine.OsData
             // очистить строку поиска через freshnessTime + 1 (секунд)
             Task t = new Task(async () => {
 
-                await Task.Delay((freshnessTime+1)*1000);
+                await Task.Delay((freshnessTime + 1) * 1000);
 
                 if (DateTime.Now.Subtract(_startSearch).Seconds > freshnessTime)
                 {
@@ -179,7 +198,7 @@ namespace OsEngine.OsData
             List<string> classes = new List<string>();
             for (int i = 0; i < orderedSecurities.Count; i++)
             {
-                if (classes.Find(s => s == orderedSecurities[i].NameClass) == null && 
+                if (classes.Find(s => s == orderedSecurities[i].NameClass) == null &&
                     !IsSecurityEmpty(orderedSecurities[i]))
                 {
                     if (orderedSecurities[i].NameClass == null)
@@ -208,7 +227,7 @@ namespace OsEngine.OsData
         /// </summary>
         private bool IsSecurityEmpty(Security security)
         {
-            return string.IsNullOrEmpty(security.Name) || 
+            return string.IsNullOrEmpty(security.Name) ||
                    string.IsNullOrEmpty(security.NameFull);
         }
 
@@ -277,8 +296,17 @@ namespace OsEngine.OsData
                 return;
             }
 
-            SelectedSecurity = _securitiesInBox.Find(
-                security => security.Name == _grid.SelectedCells[0].Value.ToString());
+            for (int i = 0; i < _grid.Rows.Count; i++)
+            {
+                if (_grid.Rows[i].Cells[2].Value.ToString() == "True")
+                {
+                    Security Selected = _securitiesInBox.Find(
+                    security => security.Name == _grid.Rows[i].Cells[0].Value.ToString());
+                    SelectedSecurity.Add(Selected);
+                }
+            }
+
+
             Close();
         }
     }
