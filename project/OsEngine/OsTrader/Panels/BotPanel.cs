@@ -1540,7 +1540,7 @@ position => position.State != PositionStateType.OpeningFail
         /// <summary>
         /// пользовательские вкладки 
         /// </summary>
-        private List<CustomTabToParametersUi> CustomTabs = new List<CustomTabToParametersUi>();
+        public List<CustomTabToParametersUi> CustomTabs = new List<CustomTabToParametersUi>();
 
         /// <summary>
         /// создать вкладку для окна параметров

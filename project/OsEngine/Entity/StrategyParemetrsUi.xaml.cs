@@ -56,6 +56,10 @@ namespace OsEngine.Entity
                 }
             }
             
+            for(int i = 0;i < settings.CustomTabs.Count;i++)
+            {
+                CreateCustomTab(settings.CustomTabs[i]);
+            }
         }
 
         List<List<IIStrategyParameter>> GetParamSortedByTabName()
@@ -90,6 +94,15 @@ namespace OsEngine.Entity
             }
 
             return sorted;
+        }
+
+        private void CreateCustomTab(CustomTabToParametersUi tab)
+        {
+            TabItem item = new TabItem();
+            item.Header = tab.Label;
+            item.Content = tab.GridToPaint;
+
+            TabControlSettings.Items.Add(item);
         }
 
         private void CreateTab(List<IIStrategyParameter> par, string tabName)
