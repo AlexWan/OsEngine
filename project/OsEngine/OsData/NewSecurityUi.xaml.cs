@@ -298,7 +298,8 @@ namespace OsEngine.OsData
 
             for (int i = 0; i < _grid.Rows.Count; i++)
             {
-                if (_grid.Rows[i].Cells[2].Value.ToString() == "True")
+                if (_grid.Rows[i].Cells[2].Value != null &&
+                    _grid.Rows[i].Cells[2].Value.ToString() == "True")
                 {
                     Security Selected = _securitiesInBox.Find(
                     security => security.Name == _grid.Rows[i].Cells[0].Value.ToString());
