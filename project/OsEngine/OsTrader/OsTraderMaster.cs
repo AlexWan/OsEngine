@@ -1230,5 +1230,12 @@ namespace OsEngine.OsTrader
 
             return null;
         }
+
+        // облегчённый интерфейс
+
+
+
+
+
     }
 }

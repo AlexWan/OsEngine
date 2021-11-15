@@ -733,8 +733,13 @@ namespace OsEngine.Robots
                     }
                     else
                     {
+                        if(bot.TabsScreener == null ||
+                            bot.TabsScreener.Count == 0)
+                        {
+                            _namesWithParam.Add(names[i]);
+                        }
+
                         // SendLogMessage("With parameters/С параметрами: " + bot.GetNameStrategyType(), LogMessageType.System);
-                        _namesWithParam.Add(names[i]);
                     }
                     if (numThread == 2)
                     {
