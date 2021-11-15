@@ -686,6 +686,18 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     security.Decimals = 0;
                 }
 
+                if (sec.filters.Count > 1 &&
+                   sec.filters[2] != null &&
+                   sec.filters[2].minQty != null)
+                {
+                    decimal minQty = sec.filters[2].minQty.ToDecimal();
+                    string qtyInStr = minQty.ToStringWithNoEndZero().Replace(",", ".");
+                    if(qtyInStr.Split('.').Length > 1)
+                    {
+                        security.DecimalsVolume = qtyInStr.Split('.')[1].Length;
+                    }
+                }
+
                 security.State = SecurityStateType.Activ;
                 _securities.Add(security);
             }

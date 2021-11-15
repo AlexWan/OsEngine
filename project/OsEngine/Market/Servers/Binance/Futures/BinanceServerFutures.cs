@@ -243,7 +243,6 @@ namespace OsEngine.Market.Servers.Binance.Futures
             return candles;
         }
 
-
         /// <summary>
         /// take ticks data on instrument for period
         /// взять тиковые данные по инструменту за период
@@ -297,7 +296,6 @@ namespace OsEngine.Market.Servers.Binance.Futures
             return trades;
         }
 
-
         /// <summary>
         /// request order state
         /// запросить статус ордеров
@@ -321,7 +319,6 @@ namespace OsEngine.Market.Servers.Binance.Futures
         /// статус серверов
         /// </summary>
         public ServerConnectStatus ServerStatus { get; set; }
-
 
         /// <summary>
         /// get realtime Mark Price and Funding Rate
@@ -664,6 +661,18 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 else
                 {
                     security.Decimals = 0;
+                }
+
+                if (sec.filters.Count > 1 &&
+                    sec.filters[2] != null &&
+                    sec.filters[2].minQty != null)
+                {
+                    decimal minQty = sec.filters[2].minQty.ToDecimal();
+                    string qtyInStr = minQty.ToStringWithNoEndZero().Replace(",", ".");
+                    if (qtyInStr.Split('.').Length > 1)
+                    {
+                        security.DecimalsVolume = qtyInStr.Split('.')[1].Length;
+                    }
                 }
 
                 security.State = SecurityStateType.Activ;

@@ -170,6 +170,12 @@ namespace OsEngine.Entity
         private int _decimals = -1;
 
         /// <summary>
+        /// the number of decimal places of the instrument volume
+        /// количество знаков после запятой объёма инструмента
+        /// </summary>
+        public int DecimalsVolume;
+
+        /// <summary>
         /// Lower price limit for bids. If you place an order with a price lower - the system will reject
         /// Нижний лимит цены для заявок. Если выставить ордер с ценой ниже - система отвергнет
         /// </summary>
