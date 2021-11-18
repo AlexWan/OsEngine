@@ -402,6 +402,7 @@ namespace OsEngine.Entity
         {
             _name = name;
             _valueBoolDefolt = value;
+            _valueBool = value;
             _type = StrategyParameterType.Bool;
             TabName = tabName;
         }

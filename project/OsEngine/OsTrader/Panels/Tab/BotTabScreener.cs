@@ -15,6 +15,7 @@ using System.Windows.Forms;
 using System.Threading;
 using OsEngine.Robots.Engines;
 using OsEngine.Language;
+using OsEngine.Alerts;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -726,6 +727,14 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void ShowDialog()
         {
+            if (ServerMaster.GetServers() == null ||
+    ServerMaster.GetServers().Count == 0)
+            {
+                AlertMessageSimpleUi uiMessage = new AlertMessageSimpleUi(OsLocalization.Market.Message1);
+                uiMessage.Show();
+                return;
+            }
+
             BotTabScreenerUi ui = new BotTabScreenerUi(this);
             ui.ShowDialog();
 

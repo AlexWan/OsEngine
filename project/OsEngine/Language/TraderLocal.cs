@@ -708,5 +708,13 @@ namespace OsEngine.Language
         public string Label174 => OsLocalization.ConvertToLocString(
               "Eng: Search..._" +
               "Ru: Искать..._");
+
+        public string Label175 => OsLocalization.ConvertToLocString(
+               "Eng: Bot name_" +
+               "Ru: Имя робота_");
+
+        public string Label176 => OsLocalization.ConvertToLocString(
+               "Eng: First security_" +
+               "Ru: Первая бумага_");
     }
 }

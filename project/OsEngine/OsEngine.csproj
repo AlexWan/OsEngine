@@ -418,6 +418,7 @@
     <Compile Include="Market\Connectors\ConnectorCandlesUi.xaml.cs">
       <DependentUpon>ConnectorCandlesUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\ServerMasterPainter.cs" />
     <Compile Include="Market\Servers\AServer.cs" />
     <Compile Include="Market\Servers\AServerParameterUi.xaml.cs">
       <DependentUpon>AServerParameterUi.xaml</DependentUpon>
@@ -848,6 +849,13 @@
     </Compile>
     <Compile Include="OsData\OsDataUi.xaml.cs">
       <DependentUpon>OsDataUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Gui\BotTabsPainter.cs" />
+    <Compile Include="OsTrader\Gui\RobotUiLight.xaml.cs">
+      <DependentUpon>RobotUiLight.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Gui\TesterUiLight.xaml.cs">
+      <DependentUpon>TesterUiLight.xaml</DependentUpon>
     </Compile>
     <Compile Include="OsTrader\HotUpdateManager.cs" />
     <Compile Include="OsTrader\Panels\Attributes\BotAttribute.cs" />
@@ -1356,6 +1364,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="OsOptimizer\TabIndexOptimizerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Gui\RobotUiLight.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Gui\TesterUiLight.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

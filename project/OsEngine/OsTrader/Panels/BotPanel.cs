@@ -130,6 +130,7 @@ namespace OsEngine.OsTrader.Panels
                     journals.AddRange(journalsOnTab);
                 }
 
+
             }
 
             return journals;
@@ -145,8 +146,12 @@ namespace OsEngine.OsTrader.Panels
             {
                 _chartUi = new BotPanelChartUi(this);
                 _chartUi.Show();
+                _chartUi.Closed += _chartUi_Closed;
             }
-            _chartUi.Closed += _chartUi_Closed;
+            else
+            {
+                _chartUi.Activate();
+            }
         }
 
         private BotPanelChartUi _chartUi;
@@ -162,7 +167,6 @@ namespace OsEngine.OsTrader.Panels
         }
 
         public event Action<string> ChartClosedEvent;
-
 
         /// <summary>
         /// is drawing included / 
@@ -196,6 +200,11 @@ namespace OsEngine.OsTrader.Panels
 
             try
             {
+                if(_tabBotTab == null)
+                {
+                    return;
+                }
+
                 if (!_tabBotTab.Dispatcher.CheckAccess())
                 {
                     _tabBotTab.Dispatcher.Invoke(new Action<Grid,WindowsFormsHost, WindowsFormsHost, WindowsFormsHost,
@@ -592,20 +601,16 @@ position => position.State != PositionStateType.OpeningFail
                     return 0;
                 }
 
-                decimal winPoses = 0;
-
-                decimal allPoses = 0;
-
                 List<Position> pos = new List<Position>();
 
                 for (int i = 0; i < journals.Count; i++)
                 {
-                    if (journals[i].AllPosition == null ||
-                        journals[i].AllPosition.Count == 0)
+                    if (journals[i].OpenPositions == null ||
+                        journals[i].OpenPositions.Count == 0)
                     {
                         continue;
                     }
-                    pos.AddRange(journals[i].AllPosition);
+                    pos.AddRange(journals[i].OpenPositions);
                 }
                 return pos.Count;
             }
@@ -1163,6 +1168,7 @@ position => position.State != PositionStateType.OpeningFail
                 {
                     ChangeActivTab(_tabBotTab.SelectedIndex);
                 }
+                
             }
             catch (Exception error)
             {
@@ -1217,6 +1223,13 @@ position => position.State != PositionStateType.OpeningFail
                 else if (tabType == BotTabType.Screener)
                 {
                     newTab = new BotTabScreener(nameTab, StartProgram);
+                    ((BotTabScreener)newTab).NewTabCreateEvent += (tab) => 
+                    {
+                        if (NewTabCreateEvent != null)
+                        {
+                            NewTabCreateEvent();
+                        }
+                    };
                 }
                 else
                 {
@@ -1231,6 +1244,11 @@ position => position.State != PositionStateType.OpeningFail
                 ChangeActivTab(_botTabs.Count - 1);
 
                 ReloadTab();
+
+                if (NewTabCreateEvent != null)
+                {
+                    NewTabCreateEvent();
+                }
             }
             catch (Exception error)
             {
@@ -1259,6 +1277,11 @@ position => position.State != PositionStateType.OpeningFail
                 }
 
                 ReloadTab();
+
+                if (NewTabCreateEvent != null)
+                {
+                    NewTabCreateEvent();
+                }
             }
             catch (Exception error)
             {
@@ -1293,6 +1316,11 @@ position => position.State != PositionStateType.OpeningFail
                 }
 
                 ReloadTab();
+
+                if (NewTabCreateEvent != null)
+                {
+                    NewTabCreateEvent();
+                }
             }
             catch (Exception error)
             {
@@ -1318,6 +1346,12 @@ position => position.State != PositionStateType.OpeningFail
                     _tabBotTab.Dispatcher.Invoke(new Action<int>(ChangeActivTab), tabNumber);
                     return;
                 }
+
+                if(_tabBotTab.IsVisible == false)
+                {
+
+                }
+
                 if (ActivTab != null)
                 {
                     ActivTab.StopPaint();
@@ -1441,6 +1475,11 @@ position => position.State != PositionStateType.OpeningFail
             }
 
             ActivTab = null;
+
+            if(NewTabCreateEvent != null)
+            {
+                NewTabCreateEvent();
+            }
         }
 
         // call control windows / вызыв окон управления
@@ -1508,6 +1547,12 @@ position => position.State != PositionStateType.OpeningFail
         /// событие удаления робота
         /// </summary>
         public event Action DeleteEvent;
+
+        /// <summary>
+        /// sourse count change
+        /// изменилось кол-во источников
+        /// </summary>
+        public event Action NewTabCreateEvent;
 
     }
 

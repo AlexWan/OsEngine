@@ -118,7 +118,7 @@
             <Grid x:Name="GridChart"/>
             <WindowsFormsHost x:Name="ChartHostPanel" Margin="26,23,0,0"/>
             <TabControl x:Name="TabControlBotTab" HorizontalAlignment="Left" TabStripPlacement="Left" Margin="0,33,0,10" Width="28">
-                <TabItem Header=" 1" Margin="0,0,0,0" >
+                <TabItem Header=" 1" Margin="0,0,0,-5" VerticalAlignment="Top" >
                     <Grid Background="#FFE5E5E5"/>
                 </TabItem>
             </TabControl>

@@ -1,0 +1,73 @@
+﻿<Window x:Class="OsEngine.OsTrader.Gui.RobotUiLight"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OsEngine.OsTrader.Gui"
+        mc:Ignorable="d"
+        Title="Bot Trader Light" Height="600" Width="949" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" MinWidth="700" MinHeight="500" Icon="/Images/OsLogo.ico">
+    <Grid Name="GridPrime">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="466*"/>
+            <RowDefinition Height="190"/>
+        </Grid.RowDefinitions>
+
+        <Grid x:Name="GreedPozitonLogHost" Margin="25,0,10,10" Height="167" VerticalAlignment="Bottom" Grid.Row="1">
+            <TabControl Margin="0,-23,0,0" x:Name="TabControlPrime" BorderThickness="0"   >
+                <TabItem Name="TabItemAllPos" Header="All positions" Width="140"  >
+                    <Grid Margin="-5,-5,-5,-5">
+                        <WindowsFormsHost x:Name="HostAllPosition" Foreground="Black" />
+                    </Grid>
+                </TabItem>
+                <TabItem Name="TextBoxPositionBord" Header="Portfolio" Width="140">
+                    <Grid Margin="-5,-5,-5,-5">
+                        <WindowsFormsHost x:Name="HostPositionOnBoard" Foreground="Black" />
+                    </Grid>
+                </TabItem>
+                <TabItem Name="TextBoxPositionAllOrders" Header="Orders" Width="140">
+                    <Grid Margin="-5,-5,-5,-5">
+                        <WindowsFormsHost x:Name="HostOrdersOnBoard"  Foreground="Black"/>
+                    </Grid>
+                </TabItem>
+                <TabItem x:Name="TabItemLogPrime"  Header="Prime Log" Width="140">
+                    <Grid Margin="-5,-5,-5,-5">
+                        <WindowsFormsHost Name ="HostBotLogPrime" Foreground="Black" />
+                    </Grid>
+                </TabItem>
+                <TabItem Name="TabItemControl" Header="Server" Width="130" >
+                    <Grid Margin="-5,-5,-5,-5">
+                        <WindowsFormsHost Name="HostServers" Margin="5,0,0,25" HorizontalAlignment="Left" Width="355"/>
+                        <WindowsFormsHost Name="HostServerLog" Margin="365,0,0,0"/>
+                        <CheckBox x:Name="CheckBoxServerAutoOpen" Content="Deploy servers automatically" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="5,0,0,0"/>
+                    </Grid>
+
+                </TabItem>
+
+            </TabControl>
+        </Grid>
+        <Rectangle Fill="#FCEE21" Height="174" Stroke="Black" StrokeThickness="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="20" RenderTransformOrigin="0.5,0.5" Margin="1,0,0,0" Grid.Row="1">
+            <Rectangle.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform AngleY="-44"/>
+                    <RotateTransform/>
+                    <TranslateTransform Y="-12.012"/>
+                </TransformGroup>
+            </Rectangle.RenderTransform>
+        </Rectangle>
+        <Label x:Name="LabelOsa" Content="O-S-A.NET" Foreground="Black" Margin="-29,0,0,85" FontWeight="Bold" RenderTransformOrigin="0.5,0.5" FontSize="14" Height="28" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="80" Grid.Row="1">
+            <Label.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform/>
+                    <RotateTransform Angle="-90"/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </Label.RenderTransform>
+        </Label>
+        <Grid Grid.Row="0" x:Name="GreedChartPanel" Margin="0,0,0,10">
+            <WindowsFormsHost x:Name="BotsHost" Margin="0,0,0,0"/>
+        </Grid>
+
+    </Grid>
+</Window>

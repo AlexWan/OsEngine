@@ -41,7 +41,7 @@ namespace OsEngine.OsTrader.Panels
         {
             _panel.StartPaint(GridChart, ChartHostPanel, HostGlass, HostOpenPosition,
              HostClosePosition, HostBotLog, RectChart,
-             HostAllert, TabControlBotTab, TextBoxPrice, GreedChartPanel);
+             HostAllert, TabControlBotTab, TextBoxPrice, GridChartControlPanel);
 
             LocationChanged += RobotUi_LocationChanged;
             TabControlBotsName.SizeChanged += TabControlBotsName_SizeChanged;
@@ -319,5 +319,43 @@ namespace OsEngine.OsTrader.Panels
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
+        private void ButtonRedactTab_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_panel == null)
+                {
+                    MessageBox.Show(OsLocalization.Trader.Label10);
+                    return;
+                }
+                if (_panel.ActivTab.GetType().Name == "BotTabSimple")
+                {
+                    ((BotTabSimple)_panel.ActivTab).ShowConnectorDialog();
+                }
+                else if (_panel.ActivTab != null &&
+                    _panel.ActivTab.GetType().Name == "BotTabIndex")
+                {
+                    ((BotTabIndex)_panel.ActivTab).ShowDialog();
+                }
+                else if (_panel.ActivTab != null &&
+                         _panel.ActivTab.GetType().Name == "BotTabCluster")
+                {
+                    ((BotTabCluster)_panel.ActivTab).ShowDialog();
+                }
+                else if (_panel.ActivTab != null &&
+                        _panel.ActivTab.GetType().Name == "BotTabScreener")
+                {
+                    ((BotTabScreener)_panel.ActivTab).ShowDialog();
+                }
+                else
+                {
+                    MessageBox.Show(OsLocalization.Trader.Label11);
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
     }
 }

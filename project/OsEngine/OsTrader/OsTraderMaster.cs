@@ -88,7 +88,8 @@ namespace OsEngine.OsTrader
 
             _tabBotTab = tabBotTab;
 
-            if (_tabBotTab.Items != null)
+            if (_tabBotTab != null &&
+                _tabBotTab.Items != null)
             {
                 _tabBotTab.Items.Clear();
             }
@@ -106,7 +107,63 @@ namespace OsEngine.OsTrader
             _gridChartControlPanel = gridChartControlPanel;
 
             _tabBotNames = tabPanel;
-            _tabBotNames.Items.Clear();
+
+            if(_tabBotNames != null)
+            {
+                _tabBotNames.Items.Clear();
+            }
+
+            _riskManager = new RiskManager.RiskManager("GlobalRiskManager", _startProgram);
+            _riskManager.RiskManagerAlarmEvent += _riskManager_RiskManagerAlarmEvent;
+            _riskManager.LogMessageEvent += SendNewLogMessage;
+            _globalController = new GlobalPosition(_hostAllDeals, _startProgram);
+            _globalController.LogMessageEvent += SendNewLogMessage;
+
+            _log = new Log("Prime", _startProgram);
+            _log.StartPaint(hostLogPrime);
+            _log.Listen(this);
+            _hostLogPrime = hostLogPrime;
+
+            SendNewLogMessage(OsLocalization.Trader.Label1, LogMessageType.User);
+
+            Load();
+
+            if(_tabBotNames != null)
+            {
+                _tabBotNames.SelectionChanged += _tabBotControl_SelectionChanged;
+            }
+            
+            ReloadRiskJournals();
+            _globalController.StartPaint();
+
+            Master = this;
+
+            if (_startProgram == StartProgram.IsOsTrader && PrimeSettingsMaster.AutoStartApi)
+            {
+                ApiMaster = new AdminApiMaster(Master);
+            }
+        }
+
+        public OsTraderMaster(StartProgram startProgram, WindowsFormsHost hostLogPrime)
+        {
+            NumberGen.GetNumberOrder(startProgram);
+            _startProgram = startProgram;
+
+            if (_startProgram == StartProgram.IsTester)
+            {
+                _typeWorkKeeper = ConnectorWorkType.Tester;
+                ((TesterServer)ServerMaster.GetServers()[0]).TestingStartEvent += StrategyKeeper_TestingStartEvent;
+                ((TesterServer)ServerMaster.GetServers()[0]).TestingFastEvent += StrategyKeeper_TestingFastEvent;
+                ((TesterServer)ServerMaster.GetServers()[0]).TestingEndEvent += StrategyKeeper_TestingEndEvent;
+            }
+
+            if (_startProgram != StartProgram.IsTester)
+            {
+                ServerMaster.ActivateAutoConnection();
+            }
+
+            ServerMaster.LogMessageEvent += SendNewLogMessage;
+
 
             _riskManager = new RiskManager.RiskManager("GlobalRiskManager", _startProgram);
             _riskManager.RiskManagerAlarmEvent += _riskManager_RiskManagerAlarmEvent;
@@ -229,10 +286,25 @@ namespace OsEngine.OsTrader
                     if (bot != null)
                     {
                         PanelsArray.Add(bot);
-                        _tabBotNames.Items.Add(" " + PanelsArray[botIterator].NameStrategyUniq + " ");
-                        SendNewLogMessage(OsLocalization.Trader.Label2 + PanelsArray[botIterator].NameStrategyUniq,
-                            LogMessageType.System);
+
+                        if (BotCreateEvent != null)
+                        {
+                            BotCreateEvent(bot);
+                        }
+
+                        if (_tabBotNames != null)
+                        {
+                            _tabBotNames.Items.Add(" " + PanelsArray[botIterator].NameStrategyUniq + " ");
+                            SendNewLogMessage(OsLocalization.Trader.Label2 + PanelsArray[botIterator].NameStrategyUniq,
+                                LogMessageType.System);
+                        }
+
                         botIterator++;
+
+                        bot.NewTabCreateEvent += () =>
+                        {
+                            ReloadRiskJournals();
+                        };
                     }
 
                 }
@@ -342,12 +414,19 @@ namespace OsEngine.OsTrader
         {
             try
             {
+
+
                 if (_activPanel != null)
                 {
                     _activPanel.StopPaint();
                 }
 
                 _activPanel = newActivBot;
+
+                if (_tabBotNames == null)
+                {
+                    return;
+                }
 
                 _activPanel.StartPaint(_gridChart, _hostChart, _hostGlass, _hostOpenDeals, _hostCloseDeals, _hostboxLog,
                     _rectangleAroundChart, _hostAlerts, _tabBotTab, _textBoxLimitPrice, _gridChartControlPanel);
@@ -708,7 +787,8 @@ namespace OsEngine.OsTrader
         {
             try
             {
-                if (!_tabBotNames.Dispatcher.CheckAccess())
+                if (_tabBotNames != null &&
+                    !_tabBotNames.Dispatcher.CheckAccess())
                 {
                     _tabBotNames.Dispatcher.Invoke(StrategyKeeper_TestingFastEvent);
                     return;
@@ -721,7 +801,11 @@ namespace OsEngine.OsTrader
                 _fastRegimeOn = true;
                 ServerMaster.StopPaint();
                 _globalController.StopPaint();
-                _tabBotNames.IsEnabled = false;
+                if(_tabBotNames != null)
+                {
+                    _tabBotNames.IsEnabled = false;
+                }
+                
                 _log.StopPaint();
 
             }
@@ -800,20 +884,28 @@ namespace OsEngine.OsTrader
 
                 PanelsArray.Remove(_activPanel);
 
+                if (BotDeleteEvent != null)
+                {
+                    BotDeleteEvent(_activPanel);
+                }
+
                 _activPanel = null;
 
                 Save();
 
-                _tabBotNames.Items.Clear();
-
-                if (PanelsArray != null && PanelsArray.Count != 0)
+                if(_tabBotNames != null)
                 {
-                    for (int i = 0; i < PanelsArray.Count; i++)
-                    {
-                        _tabBotNames.Items.Add(" " + PanelsArray[i].NameStrategyUniq + " ");
-                    }
+                    _tabBotNames.Items.Clear();
 
-                    ReloadActivBot(PanelsArray[0]);
+                    if (PanelsArray != null && PanelsArray.Count != 0)
+                    {
+                        for (int i = 0; i < PanelsArray.Count; i++)
+                        {
+                            _tabBotNames.Items.Add(" " + PanelsArray[i].NameStrategyUniq + " ");
+                        }
+
+                        ReloadActivBot(PanelsArray[0]);
+                    }
                 }
 
                 ReloadRiskJournals();
@@ -822,6 +914,18 @@ namespace OsEngine.OsTrader
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        /// <summary>
+        /// Удалить робота по индексу
+        /// </summary>
+        public void DeleteByNum(int index)
+        {
+            BotPanel botToDel = PanelsArray[index];
+
+            ReloadActivBot(botToDel);
+
+            DeleteActiv();
         }
 
         /// <summary>
@@ -897,6 +1001,11 @@ namespace OsEngine.OsTrader
                     PanelsArray = new List<BotPanel>();
                 }
                 PanelsArray.Add(newRobot);
+
+                if(BotCreateEvent != null)
+                {
+                    BotCreateEvent(newRobot);
+                }
 
                 SendNewLogMessage(OsLocalization.Trader.Label9 + newRobot.NameStrategyUniq, LogMessageType.System);
 
@@ -1019,6 +1128,8 @@ namespace OsEngine.OsTrader
                 {
                     MessageBox.Show(OsLocalization.Trader.Label11);
                 }
+
+                ReloadRiskJournals();
             }
             catch (Exception error)
             {
@@ -1233,7 +1344,9 @@ namespace OsEngine.OsTrader
 
         // облегчённый интерфейс
 
+        public event Action<BotPanel> BotCreateEvent;
 
+        public event Action<BotPanel> BotDeleteEvent;
 
 
 
