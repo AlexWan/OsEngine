@@ -823,27 +823,31 @@ namespace OsEngine.OsTrader
         {
             try
             {
-                if (!_tabBotNames.Dispatcher.CheckAccess())
+               if(_tabBotNames != null)
                 {
-                    _tabBotNames.Dispatcher.Invoke(StrategyKeeper_TestingEndEvent);
-                    return;
+                    if (!_tabBotNames.Dispatcher.CheckAccess())
+                    {
+                        _tabBotNames.Dispatcher.Invoke(StrategyKeeper_TestingEndEvent);
+                        return;
+                    }
+                    _tabBotNames.IsEnabled = true;
+
+                    if (_fastRegimeOn)
+                    {
+                        if (_activPanel != null)
+                        {
+                            _activPanel.StartPaint(_gridChart, _hostChart, _hostGlass, _hostOpenDeals, _hostCloseDeals, _hostboxLog,
+                                _rectangleAroundChart, _hostAlerts, _tabBotTab, _textBoxLimitPrice, _gridChartControlPanel);
+                        }
+                    }
                 }
 
-                _tabBotNames.IsEnabled = true;
                 if (_fastRegimeOn)
                 {
                     _globalController.StartPaint();
-
-                    if (_activPanel != null)
-                    {
-                        _activPanel.StartPaint(_gridChart, _hostChart, _hostGlass, _hostOpenDeals, _hostCloseDeals, _hostboxLog,
-                            _rectangleAroundChart, _hostAlerts, _tabBotTab, _textBoxLimitPrice, _gridChartControlPanel);
-                    }
-
                     _fastRegimeOn = false;
                     ServerMaster.StartPaint();
                     _log.StartPaint(_hostLogPrime);
-
                 }
             }
             catch (Exception error)
