@@ -145,7 +145,12 @@ colum07.HeaderText = "Parameters";       6
 colum09.HeaderText = "Action";           7
 */
 
-            int botsCount = _master.PanelsArray.Count;
+            int botsCount = 0;
+
+            if (_master.PanelsArray != null)
+            {
+                botsCount = _master.PanelsArray.Count;
+            }
 
             BotPanel bot = null;
 
@@ -187,7 +192,7 @@ colum09.HeaderText = "Action";           7
         {
             _grid.Rows.Clear();
 
-            for (int i = 0; i < _master.PanelsArray.Count; i++)
+            for (int i = 0; _master.PanelsArray != null && i < _master.PanelsArray.Count; i++)
             {
                 _grid.Rows.Add(GetRow(_master.PanelsArray[i],i+1));
             }
