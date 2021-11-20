@@ -73,6 +73,12 @@ namespace OsEngine.Market
         /// </summary>
         public void StartPaint()
         {
+            if(_positionHost.Dispatcher.CheckAccess() == false)
+            {
+                _positionHost.Dispatcher.Invoke(new Action(StartPaint));
+                return;
+            }
+
             try
             {
                 _positionHost.Child = _gridPosition;

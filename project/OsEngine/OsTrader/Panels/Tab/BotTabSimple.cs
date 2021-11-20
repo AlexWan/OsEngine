@@ -112,6 +112,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="serverType">server type / тип сервера у коннектора</param>
         void _connector_ConnectorStartedReconnectEvent(string securityName, TimeFrame timeFrame, TimeSpan timeFrameSpan, string portfolioName, ServerType serverType)
         {
+            if(_chartMaster == null)
+            {
+                return;
+            }
             _chartMaster.ClearTimePoints();
             if (string.IsNullOrEmpty(securityName))
             {
