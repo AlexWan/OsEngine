@@ -67,14 +67,23 @@ namespace OsEngine.Robots.OnScriptIndicators
 
             // 2 add on custom tab children control
             // customTab.GridToPaint - it`s a control for your children controls
-            customTab.GridToPaint.Children.Add(CreateTable());
+            CreateTable();
+            customTab.AddChildren(_host);
         }
 
         #region work with grid
 
-        private WindowsFormsHost CreateTable()
+        WindowsFormsHost _host;
+
+        private void CreateTable()
         {
-            WindowsFormsHost host = new WindowsFormsHost();
+            if (MainWindow.GetDispatcher.CheckAccess() == false)
+            {
+                MainWindow.GetDispatcher.Invoke(new Action(CreateTable));
+                return;
+            }
+
+            _host = new WindowsFormsHost();
 
             DataGridView newGrid =
                 DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, 
@@ -119,10 +128,8 @@ namespace OsEngine.Robots.OnScriptIndicators
             colum04.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             newGrid.Columns.Add(colum04);
 
-            host.Child = newGrid;
+            _host.Child = newGrid;
             _grid = newGrid;
-
-            return host;
         }
 
         private DataGridView _grid;

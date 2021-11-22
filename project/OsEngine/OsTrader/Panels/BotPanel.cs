@@ -1676,8 +1676,17 @@ position => position.State != PositionStateType.OpeningFail
         /// </summary>
         public System.Windows.Controls.Grid GridToPaint;
 
-    }
+        public void AddChildren(object children)
+        {
+            if(GridToPaint.Dispatcher.CheckAccess() == false)
+            {
+                GridToPaint.Dispatcher.Invoke(new Action<object>(AddChildren), children);
+                return;
+            }
 
+            GridToPaint.Children.Add((UIElement)children);
+        }
+    }
 
     /// <summary>
     /// robot trade regime
