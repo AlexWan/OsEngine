@@ -112,6 +112,13 @@ namespace OsEngine.OsTrader.Gui
             colum09.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             newGrid.Columns.Add(colum09);
 
+            DataGridViewButtonColumn colum10 = new DataGridViewButtonColumn();
+            //colum10.CellTemplate = cell0;
+            //colum10.HeaderText = "Settings";
+            colum10.ReadOnly = true;
+            colum10.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            newGrid.Columns.Add(colum10);
+            
             _grid = newGrid;
             _host.Child = _grid;
 
@@ -143,6 +150,7 @@ colum05.HeaderText = "Position";         4
 colum06.HeaderText = "Chart";            5
 colum07.HeaderText = "Parameters";       6
 colum09.HeaderText = "Action";           7
+colum10.HeaderText = "Data settings";    8
 */
 
             int botsCount = 0;
@@ -186,6 +194,20 @@ colum09.HeaderText = "Action";           7
             { // вызываем добавление нового бота
                 _master.CreateNewBot();
             }
+            else if (coluIndex == 8 &&
+     rowIndex < botsCount)
+            { // вызываем параметры данных
+                /* TabsIndex не описал т.к. там сложности с новыми инструментами
+                   TabsScreener не использовал не знаю*/
+                foreach (var ts in ((BotPanel)_master.PanelsArray[rowIndex]).TabsCluster)
+                {
+                    ts.ShowCandlesDialog();//Правильно?
+                }
+                foreach (var ts in ((BotPanel)_master.PanelsArray[rowIndex]).TabsSimple)
+                {
+                    ts.ShowConnectorDialog();
+                }
+            }
         }
 
         private void RePaintTable()
@@ -214,6 +236,7 @@ colum06.HeaderText = "Chart";
 colum07.HeaderText = "Parameters";
 colum08.HeaderText = "Journal";
 colum09.HeaderText = "Action";
+colum10.HeaderText = "Data settings";
 */
             DataGridViewRow row = new DataGridViewRow();
 
@@ -245,6 +268,9 @@ colum09.HeaderText = "Action";
             row.Cells.Add(new DataGridViewButtonCell());
             row.Cells[7].Value = OsLocalization.Trader.Label39;//"Delete";
 
+            row.Cells.Add(new DataGridViewButtonCell());
+            row.Cells[8].Value = OsLocalization.Trader.Label44;//Data settings
+            
             return row;
         }
 
@@ -252,7 +278,7 @@ colum09.HeaderText = "Action";
         {
             DataGridViewRow row = new DataGridViewRow();
 
-            for(int i = 0;i < 8;i++)
+            for(int i = 0;i < 9;i++)
             {
                 row.Cells.Add(new DataGridViewTextBoxCell());
             }
@@ -274,6 +300,7 @@ colum09.HeaderText = "Action";
             row.Cells[6].Value = OsLocalization.Trader.Label40; //"Journal";
             row.Cells.Add(new DataGridViewButtonCell());
             row.Cells[7].Value = OsLocalization.Trader.Label38; //"Add New...";
+            row.Cells.Add(new DataGridViewTextBoxCell());
 
             return row;
         }
