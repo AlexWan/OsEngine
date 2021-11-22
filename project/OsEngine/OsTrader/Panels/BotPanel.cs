@@ -1639,6 +1639,18 @@ position => position.State != PositionStateType.OpeningFail
         public CustomTabToParametersUi(string label)
         {
             _label = label;
+
+            CreateGrid();
+        }
+
+        public void CreateGrid()
+        {
+            if (MainWindow.GetDispatcher.CheckAccess() == false)
+            {
+                MainWindow.GetDispatcher.Invoke(new Action(CreateGrid));
+                return;
+            }
+
             GridToPaint = new System.Windows.Controls.Grid();
         }
 
