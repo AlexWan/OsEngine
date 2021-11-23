@@ -300,7 +300,7 @@ colum09.HeaderText = "Action";
                 _grid.Invoke(new Action(UpdateTable));
                 return;
             }
-
+            if (_master.PanelsArray == null)return;
             try
             {
                 for (int i = 0; i < _master.PanelsArray.Count; i++)
