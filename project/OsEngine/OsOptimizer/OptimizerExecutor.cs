@@ -108,7 +108,7 @@ namespace OsEngine.OsOptimizer
         {
             ReportsToFazes = new List<OptimazerFazeReport>();
 
-            int countBots = BotCountOneFaze();
+            int countBots = BotCountOneFaze(_parameters,_parametersOn);
 
             SendLogMessage(OsLocalization.Optimizer.Message4 + countBots, LogMessageType.System);
 
@@ -205,11 +205,11 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         private Thread _primeThreadWorker;
 
-        public int BotCountOneFaze()
+        public int BotCountOneFaze(List<IIStrategyParameter> param,List<bool> paramsOn)
         {
-            List<IIStrategyParameter> allParam = _parameters;
+            List<IIStrategyParameter> allParam = param; 
 
-            for (int i = 0; i < _parameters.Count; i++)
+            for (int i = 0; i < allParam.Count; i++)
             {
                 if (allParam[i].Type == StrategyParameterType.Int)
                 {
@@ -221,7 +221,7 @@ namespace OsEngine.OsOptimizer
                 }
             }
 
-            List<bool> allOptimezedParam = _parametersOn;
+            List<bool> allOptimezedParam = paramsOn;
 
 
             // 1 consider how many passes we need to do in the first phase/

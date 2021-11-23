@@ -358,5 +358,9 @@ namespace OsEngine.Language
         public string Label46 => OsLocalization.ConvertToLocString(
           "Eng:Load_" +
           "Ru:Загрузить_");
+
+        public string Label47 => OsLocalization.ConvertToLocString(
+          "Eng:Max count of bots -_" +
+          "Ru:Макс. кол-во ботов-_");
     }
 }

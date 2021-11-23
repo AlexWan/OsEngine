@@ -115,6 +115,8 @@ namespace OsEngine.OsOptimizer
                         return;
                     }
                     _master.IterationCount = Convert.ToInt32(TextBoxIterationCount.Text);
+
+                    Task.Run(PaintCountBotsInOptimization);
                 }
                 catch
                 {
@@ -161,6 +163,7 @@ namespace OsEngine.OsOptimizer
             TabControlResultsOutOfSampleResults.Header = OsLocalization.Optimizer.Label38;
             LabelSortBy.Content = OsLocalization.Optimizer.Label39;
             CheckBoxLastInSample.Content = OsLocalization.Optimizer.Label42;
+            LabelIteartionCount.Content = OsLocalization.Optimizer.Label47;
 
 
             _resultsCharting = new OptimizerReportCharting(
@@ -1526,6 +1529,30 @@ namespace OsEngine.OsOptimizer
         void _gridParametrs_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
             SaveParamsFromTable();
+            Task.Run(new Action(PaintCountBotsInOptimization));
+        }
+
+        private object _locker = new object();
+
+        private void PaintCountBotsInOptimization()
+        {
+            lock(_locker)
+            {
+                int botCount = _master.GetMaxBotsCount();
+                PaintBotsCount(botCount);
+            }
+        }
+
+        private void PaintBotsCount(int value)
+        {
+            if(LabelIteartionCountNumber.Dispatcher.CheckAccess() == false)
+            {
+                LabelIteartionCountNumber.Dispatcher.Invoke(new Action<int>(PaintBotsCount), value);
+                return;
+            }
+
+            LabelIteartionCountNumber.Content = value.ToString();
+
         }
 
         // phase table for switching after testing/таблица фаз для переключения после тестирования

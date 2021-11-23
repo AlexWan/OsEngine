@@ -46,6 +46,8 @@
                     <Grid Name="GridParametrs" >
                         <WindowsFormsHost Name="HostParam"  Foreground="Black" Margin="10,38,10,10"/>
                         <Label Name="Label17" Content="Parameters table" HorizontalAlignment="Left" Margin="10,8,0,0" VerticalAlignment="Top"/>
+                        <Label Name="LabelIteartionCount" Content="Iteration count: " HorizontalAlignment="Right" Margin="0,10,122,0" VerticalAlignment="Top"/>
+                        <Label x:Name="LabelIteartionCountNumber" Content="unknown" HorizontalAlignment="Right" Margin="0,10,56,0" VerticalAlignment="Top"/>
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItemFazes" Header="Fazes" FontSize="14" Width="120">
