@@ -93,8 +93,8 @@ namespace OsEngine.OsTrader.Panels
             ButtonStrategParametr.Content = OsLocalization.Trader.Label45;
             ButtonRiskManager.Content = OsLocalization.Trader.Label46;
             ButtonStrategSettings.Content = OsLocalization.Trader.Label47;
+            ButtonStrategSettingsIndividual.Content = OsLocalization.Trader.Label43;
         }
-
 
         private void buttonBuyFast_Click_1(object sender, RoutedEventArgs e)
         {
@@ -287,6 +287,16 @@ namespace OsEngine.OsTrader.Panels
             _panel.ShowParametrDialog();
         }
 
+        private void ButtonStrategIndividualSettings_Click(object sender, RoutedEventArgs e)
+        {
+            if (_panel == null)
+            {
+                return;
+            }
+
+            _panel.ShowIndividualSettingsDialog();
+        }
+
         private void buttonStrategManualSettings_Click(object sender, RoutedEventArgs e)
         {
             if (_panel.ActivTab.GetType().Name != "BotTabSimple")
@@ -357,5 +367,7 @@ namespace OsEngine.OsTrader.Panels
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
+
     }
 }
