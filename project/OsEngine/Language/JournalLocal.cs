@@ -71,6 +71,10 @@ namespace OsEngine.Language
             "Eng:Short_" +
             "Ru:Шорт_");
 
+        public string Label4 => OsLocalization.ConvertToLocString(
+            "Eng:Volume Assemblage_" +
+            "Ru:Ассемблирование объёма_");
+
         public string TabItem1 => OsLocalization.ConvertToLocString(
             "Eng:Equity_" +
             "Ru:Эквити_");
@@ -178,5 +182,6 @@ namespace OsEngine.Language
         public string Message2 => OsLocalization.ConvertToLocString(
             "Eng:You must select a file to load!_" +
             "Ru:Необходимо выбрать файл для загрузки!_");
+
     }
 }
