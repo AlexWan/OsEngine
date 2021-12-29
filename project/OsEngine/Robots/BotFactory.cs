@@ -49,6 +49,7 @@ namespace OsEngine.Robots
             result.Add("Ver_01");
             result.Add("Storog");
             result.Add("Hftone");
+            result.Add("RobotPriceChannel");
 
             result.Add("Fisher");
             result.Add("Engine");
@@ -127,7 +128,11 @@ namespace OsEngine.Robots
                 bot = CreateScriptStrategyByName(nameClass, name, startProgram);
                 return bot;
             }
-
+            if (nameClass == "RobotPriceChannel")
+            {
+                bot = new RobotPriceChannel(name, startProgram);
+            }
+ 
             if (nameClass == "ParaboTrel")
             {
                 bot = new ParaboTrel(name, startProgram);

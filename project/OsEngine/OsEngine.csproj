@@ -832,7 +832,7 @@
     <Compile Include="Robots\OnScriptIndicators\RsiTrade.cs" />
     <Compile Include="Robots\OnScriptIndicators\RviTrade.cs" />
     <Compile Include="Robots\OnScriptIndicators\TimeOfDayBot.cs" />
-    <Compile Include="Robots\RobotPriceChannel.cs" />
+    <Compile Include="Robots\New\RobotPriceChannel.cs" />
     <Compile Include="Robots\Trend\EnvelopTrend.cs" />
     <Compile Include="Robots\Trend\MomentumMacd.cs" />
     <Compile Include="Robots\MarketMaker\PairTraderSpreadSma.cs" />

@@ -6,9 +6,9 @@ using OsEngine.Charts.CandleChart.Indicators;
 using System;
 using OsEngine.OsTrader.Panels.Attributes;
 
-namespace OsEngine.Robots.RobotPriceChannel
+namespace OsEngine.Robots
 {
-    [Bot("RobotPriceChannel")]
+    //[Bot("RobotPriceChannel")]
     class RobotPriceChannel : BotPanel
     {
         /// Робот на основе индикатора PriceChannel c трейлинг стопом
