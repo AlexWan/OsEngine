@@ -278,7 +278,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
         /// <summary>
         /// profit is enabled /
-        /// включен ли профит
+        /// вклюичен ли профит
         /// </summary>
         public bool ProfitIsOn;
 
