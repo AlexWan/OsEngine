@@ -3,25 +3,17 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms.Integration;
 using System.Windows.Shapes;
-using OsEngine.Alerts;
-using OsEngine.Charts.ColorKeeper;
 using OsEngine.Entity;
 using OsEngine.Logging;
-using OsEngine.Market;
 using OsEngine.OsTrader.Panels.Tab;
 using Chart = System.Windows.Forms.DataVisualization.Charting.Chart;
 
 namespace OsEngine.Charts.ClusterChart
 {
-    public class ChartClusterMaster
+    public class ChartClusterMaster 
     {
         public ChartClusterMaster(string name, StartProgram startProgram, HorizontalVolume volume)
         {

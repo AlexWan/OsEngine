@@ -517,9 +517,21 @@ namespace OsEngine.Market.Servers.Optimizer
                 TimeNow = TimeNow.AddMinutes(1);
             }
 
+            bool haveLoadingSec = false;
+
             for (int i = 0; _candleSeriesTesterActivate != null && i < _candleSeriesTesterActivate.Count; i++)
             {
+                if(_candleSeriesTesterActivate[i].TimeEnd < TimeNow)
+                {
+                    continue;
+                }
+                haveLoadingSec = true;
                 _candleSeriesTesterActivate[i].Load(TimeNow);
+            }
+
+            if(haveLoadingSec == false)
+            {
+                
             }
         }
 
@@ -624,14 +636,14 @@ namespace OsEngine.Market.Servers.Optimizer
                 {
                     if (minPrice > realPrice)
                     {
-                        realPrice = minPrice;
+                        realPrice = lastCandle.Open;
                     }
                 }
                 if (order.Side == Side.Sell)
                 {
                     if (maxPrice < realPrice)
                     {
-                        realPrice = maxPrice;
+                        realPrice = lastCandle.Open;
                     }
                 }
 
@@ -1079,14 +1091,8 @@ namespace OsEngine.Market.Servers.Optimizer
             {
                 if (value > _serverTime)
                 {
-                    DateTime lastTime = _serverTime;
                     _serverTime = value;
-
-                    if (_serverTime != lastTime &&
-                        TimeServerChangeEvent != null)
-                    {
-                        TimeServerChangeEvent(_serverTime);
-                    }
+                    TimeServerChangeEvent?.Invoke(_serverTime);
                 }
             }
         }
@@ -1196,7 +1202,17 @@ namespace OsEngine.Market.Servers.Optimizer
                 return null;
             }
 
-            return _securities.Find(security => security.Name == name);
+            for(int i = 0;i < _securities.Count;i++)
+            {
+                if(_securities[i].Name == name)
+                {
+                    return _securities[i];
+                }
+            }
+
+            return null;
+
+            //return _securities.Find(security => security.Name == name);
         }
 
         /// <summary>

@@ -82,7 +82,7 @@ namespace OsEngine.Charts.ColorKeeper
                     ColorBackChart = Color.FromArgb(17, 18, 23);
                     ColorBackCursor = Color.FromArgb(255, 83, 0);
 
-                    ColorText = Color.FromArgb(51, 51, 62);
+                    ColorText = Color.FromArgb(255, 147, 147, 147);
 
                     _colorScheme = ChartColorScheme.Black;
                 }
@@ -161,8 +161,7 @@ namespace OsEngine.Charts.ColorKeeper
             ColorBackSecond = Color.FromArgb(17, 18, 23);
             ColorBackChart = Color.FromArgb(17, 18, 23);
             ColorBackCursor = Color.FromArgb(255, 83, 0);
-
-            ColorText = Color.FromArgb(149, 159, 176);
+            ColorText = Color.FromArgb(255, 147, 147, 147);
 
             _colorScheme = ChartColorScheme.Black;
 

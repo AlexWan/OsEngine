@@ -1,0 +1,65 @@
+﻿<Window x:Class="OsEngine.OsOptimizer.OptimizerReportUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OsEngine.OsOptimizer"
+        mc:Ignorable="d"
+         Title="Optimizer Report" Height="685.801"  Width="1000" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" MinWidth="400" MinHeight="500" Icon="/Images/OsLogo.ico">
+    <Grid Name="GridPrime">
+        <Grid/>
+        <Grid Grid.Row="1">
+            <TabControl Name="TabControlPrime" Margin="10,0,10,44">
+                <TabItem Name="TabItemResults" Header="Results" FontSize="14"  Width="120">
+
+                    <Grid>
+                        <TabControl  Name="TabControlResults" Margin="0,0,0,0">
+                            <TabItem Name="TabControlResultsSeries"  Header="Series and Results">
+                                <Grid >
+                                    <WindowsFormsHost x:Name="WindowsFormsHostFazeNumOnTubResult"  Foreground="Black" Height="92" Margin="0,34,8,0" VerticalAlignment="Top"/>
+                                    <Label x:Name="LabelOptimSeries" Content="Optimization series" HorizontalAlignment="Left"   Margin="0,6,0,0" VerticalAlignment="Top" Height="22"/>
+                                    <WindowsFormsHost x:Name="WindowsFormsHostResults"  Foreground="Black" Margin="0,154,8,0"/>
+                                    <Label x:Name="LabelTableResults" Content="Result table" HorizontalAlignment="Left" Margin="0,126,0,0" VerticalAlignment="Top" Height="22"/>
+                                </Grid>
+                            </TabItem>
+                            <TabItem Name="TabControlResultsOutOfSampleResults" Header="Out of sample statistic">
+                                <Grid >
+                                    <WindowsFormsHost x:Name="WindowsFormsHostDependences"  Foreground="Black" Margin="0,37,0,222" HorizontalAlignment="Left" Width="600"/>
+                                    <ComboBox Name="ComboBoxSortDependencesResults" HorizontalAlignment="Left" Margin="182,10,0,0" VerticalAlignment="Top" Width="214" Height="22"/>
+                                    <Label Name="LabelSortBy" Content="Sort by" HorizontalAlignment="Left" Margin="28,10,0,0" VerticalAlignment="Top"/>
+                                    <WindowsFormsHost x:Name="WindowsFormsHostColumnsResults"  Foreground="Black" Margin="0,0,588,10" Height="207" VerticalAlignment="Bottom"/>
+                                    <WindowsFormsHost x:Name="WindowsFormsHostPieResults"  Foreground="Black" Margin="0,0,0,10" Height="207" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="583"/>
+                                    <WindowsFormsHost x:Name="WindowsFormsHostOutOfSampleEquity"  Foreground="Black" Margin="605,37,0,222"/>
+                                    <Label x:Name="LabelTotalProfitInOutOfSample" Content="Profit In OutOfSample %" HorizontalAlignment="Right" Margin="0,9,192,0" VerticalAlignment="Top"/>
+                                </Grid>
+                            </TabItem>
+                        </TabControl>
+                    </Grid>
+                </TabItem>
+
+            </TabControl>
+            <Rectangle Fill="#FCEE21" Height="174" Stroke="Black" StrokeThickness="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="20" RenderTransformOrigin="0.5,0.5" Margin="1,0,0,0" Grid.Row="1">
+                <Rectangle.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform AngleY="-44"/>
+                        <RotateTransform/>
+                        <TranslateTransform Y="-12.012"/>
+                    </TransformGroup>
+                </Rectangle.RenderTransform>
+            </Rectangle>
+            <Label x:Name="LabelOsa" Content="O-S-A.NET" Foreground="Black" Margin="-29,0,0,85" FontWeight="Bold" RenderTransformOrigin="0.5,0.5" FontSize="14" Height="28" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="80" Grid.Row="1">
+                <Label.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform/>
+                        <RotateTransform Angle="-90"/>
+                        <TranslateTransform/>
+                    </TransformGroup>
+                </Label.RenderTransform>
+            </Label>
+            <Button Name="ButtonLoadFromFile" Content="Load" Margin="0,0,10,10" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="142" Click="ButtonLoadFromFile_Click"/>
+            <Button Name="ButtonSaveInFile" Content="Save" Margin="0,0,157,10" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="142" Click="ButtonSaveInFile_Click"/>
+        </Grid>
+    </Grid>
+</Window>

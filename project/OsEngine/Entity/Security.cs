@@ -144,9 +144,17 @@ namespace OsEngine.Entity
                     return 0;
                 }
 
+
                 string step = Convert.ToDecimal(Convert.ToDouble(PriceStep)).ToString(new CultureInfo("ru-RU"));
 
-                _decimals = step.Split(',')[1].Length;
+                if (step.Split(',').Length > 1)
+                {
+                    _decimals = step.Split(',')[1].Length;
+                }
+                else if(step.Split('.').Length > 1)
+                {
+                    _decimals = step.Split('.')[1].Length;
+                }
 
                 return _decimals;
 
@@ -160,6 +168,12 @@ namespace OsEngine.Entity
             }
         }
         private int _decimals = -1;
+
+        /// <summary>
+        /// the number of decimal places of the instrument volume
+        /// количество знаков после запятой объёма инструмента
+        /// </summary>
+        public int DecimalsVolume;
 
         /// <summary>
         /// Lower price limit for bids. If you place an order with a price lower - the system will reject

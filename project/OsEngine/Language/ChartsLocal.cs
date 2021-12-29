@@ -17,7 +17,16 @@ namespace OsEngine.Language
         public string LabelPaintIntdicatorIsVisible => OsLocalization.ConvertToLocString(
             "Eng:Is Visible_" +
             "Ru:Прорисовывать_");
+        public string LabelIndicatorExponential => OsLocalization.ConvertToLocString(
+            "Eng:Exponentially weighted_" +
+            "Ru:Экспоненциальное взвешивание_");
+        public string LabelIndicatorCorrectionCoeff => OsLocalization.ConvertToLocString(
+            "Eng:Correction Coefficient_" +
+            "Ru:Коэффциент коррекции_");
 
+        public string LabelIndicatorMultiplier => OsLocalization.ConvertToLocString(
+            "Eng:Multiplier_" +
+            "Ru:Множитель_");
         public string LabelButtonIndicatorColor => OsLocalization.ConvertToLocString(
             "Eng:Color_" +
             "Ru:Цвет_");

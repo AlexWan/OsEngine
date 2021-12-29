@@ -60,7 +60,7 @@ namespace OsEngine.Language
             "Ru:Журнал_");
 
         public string Label1 => OsLocalization.ConvertToLocString(
-            "Eng:Total profitJournal_" +
+            "Eng:Total profit_" +
             "Ru:Общая прибыль_");
 
         public string Label2 => OsLocalization.ConvertToLocString(
@@ -70,6 +70,10 @@ namespace OsEngine.Language
         public string Label3 => OsLocalization.ConvertToLocString(
             "Eng:Short_" +
             "Ru:Шорт_");
+
+        public string Label4 => OsLocalization.ConvertToLocString(
+            "Eng:Volume Assemblage_" +
+            "Ru:Ассемблирование объёма_");
 
         public string TabItem1 => OsLocalization.ConvertToLocString(
             "Eng:Equity_" +
@@ -167,8 +171,17 @@ namespace OsEngine.Language
             "Eng:Max drowdown % portfolio_" +
             "Ru:Макс просадка % капитал_");
 
+        public string GridRow16 => OsLocalization.ConvertToLocString(
+            "Eng:Commission amount_" +
+            "Ru:Объём комиссии_");
+
         public string Message1 => OsLocalization.ConvertToLocString(
             "Eng:You must select a file to save!_" +
             "Ru:Необходимо выбрать файл для сохранения!_");
+
+        public string Message2 => OsLocalization.ConvertToLocString(
+            "Eng:You must select a file to load!_" +
+            "Ru:Необходимо выбрать файл для загрузки!_");
+
     }
 }

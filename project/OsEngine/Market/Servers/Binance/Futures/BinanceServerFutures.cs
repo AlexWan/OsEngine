@@ -13,6 +13,12 @@ using OsEngine.Market.Servers.Entity;
 
 namespace OsEngine.Market.Servers.Binance.Futures
 {
+    public enum FuturesType
+    {
+        USDT,
+        COIN
+    }
+
     public class BinanceServerFutures : AServer
     {
         public BinanceServerFutures()
@@ -22,6 +28,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
+            CreateParameterEnum("Futures Type", "USDT-M", new List<string> { "USDT-M", "COIN-M" });
             CreateParameterBoolean("HedgeMode", false);
         }
 
@@ -41,6 +48,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
         {
             ServerStatus = ServerConnectStatus.Disconnect;
         }
+
+        private FuturesType futures_type;
 
         /// <summary>
         /// server type
@@ -119,7 +128,24 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 _client.MyOrderEvent += _client_MyOrderEvent;
                 _client.LogMessageEvent += SendLogMessage;
             }
-            _client.HedgeMode = ((ServerParameterBool)ServerParameters[2]).Value;
+
+            if (((ServerParameterEnum)ServerParameters[2]).Value == "USDT-M")
+            {
+                this.futures_type = FuturesType.USDT;
+                _client._baseUrl = "https://fapi.binance.com";
+                _client.wss_point = "wss://fstream.binance.com";
+                _client.type_str_selector = "fapi";
+            }
+            else if (((ServerParameterEnum)ServerParameters[2]).Value == "COIN-M")
+            {
+                this.futures_type = FuturesType.COIN;
+                _client._baseUrl = "https://dapi.binance.com";
+                _client.wss_point = "wss://dstream.binance.com";
+                _client.type_str_selector = "dapi";
+            }
+
+            _client.futures_type = this.futures_type;
+            _client.HedgeMode = ((ServerParameterBool)ServerParameters[3]).Value;
             _client.Connect();
         }
 
@@ -172,40 +198,41 @@ namespace OsEngine.Market.Servers.Binance.Futures
         /// take candle history for period
         /// взять историю свечек за период
         /// </summary>
-        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
-            DateTime startTime, DateTime endTime, DateTime actualTime)
+        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
+            if (endTime > DateTime.Now - new TimeSpan(0, 0, 1, 0))
+                endTime = DateTime.Now - new TimeSpan(0, 0, 1, 0);
+
+            int interval = 500 * (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes ;
+
             List<Candle> candles = new List<Candle>();
 
-            actualTime = startTime;
+            var startTimeStep = startTime;
+            var endTimeStep = startTime;
 
-            while (actualTime < endTime)
+            while (endTime > endTimeStep)
             {
-                List<Candle> newCandles = _client.GetCandlesForTimes(security.Name,
-                    timeFrameBuilder.TimeFrameTimeSpan,
-                    actualTime, endTime);
+                endTimeStep = endTimeStep + new TimeSpan(0, 0, interval, 0);
 
-                if (candles.Count != 0 && newCandles.Count != 0)
+                DateTime realEndTime = endTimeStep;
+
+                if (realEndTime > DateTime.Now - new TimeSpan(0, 0, (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes, 0))
+                    realEndTime = DateTime.Now - new TimeSpan(0, 0, (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes, 0);
+
+                List<Candle> stepCandles = _client.GetCandlesForTimes(security.Name, timeFrameBuilder.TimeFrameTimeSpan, startTimeStep, realEndTime);
+
+                if (stepCandles != null)
+                    candles.AddRange(stepCandles);
+
+
+                startTimeStep = endTimeStep + new TimeSpan(0, 0, (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes, 0);
+
+                if (endTime < endTimeStep)
                 {
-                    for (int i = 0; i < newCandles.Count; i++)
-                    {
-                        if (candles[candles.Count - 1].TimeStart >= newCandles[i].TimeStart)
-                        {
-                            newCandles.RemoveAt(i);
-                            i--;
-                        }
-
-                    }
+                    break;
                 }
 
-                if (newCandles.Count == 0)
-                {
-                    return candles;
-                }
-
-                candles.AddRange(newCandles);
-
-                actualTime = candles[candles.Count - 1].TimeStart;
+                Thread.Sleep(300);
             }
 
             if (candles.Count == 0)
@@ -227,6 +254,9 @@ namespace OsEngine.Market.Servers.Binance.Futures
             List<Trade> trades = new List<Trade>();
 
             DateTime startOver = startTime;
+
+            if (endTime > DateTime.Now - new TimeSpan(0, 0, 1, 0))
+                endTime = DateTime.Now - new TimeSpan(0, 0, 1, 0);
 
             while (true)
             {
@@ -251,7 +281,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     SendLogMessage(security.Name + " Binance Futures start loading: " + markerDateTime, LogMessageType.System);
                 }
 
-                Thread.Sleep(10);
+                Thread.Sleep(300);
             }
 
             if (trades.Count == 0)
@@ -276,10 +306,28 @@ namespace OsEngine.Market.Servers.Binance.Futures
         }
 
         /// <summary>
+        /// request account info
+        /// запросить статистику по аккаунту пользователя
+        /// </summary>
+        public AccountResponseFutures GetAccountInfo()
+        {
+            return _client.GetAccountInfo();
+        }
+
+        /// <summary>
         /// server status
         /// статус серверов
         /// </summary>
         public ServerConnectStatus ServerStatus { get; set; }
+
+        /// <summary>
+        /// get realtime Mark Price and Funding Rate
+        /// получать среднюю цену инструмента (на всех биржах) и ставку фандирования в реальном времени
+        /// </summary>
+        public PremiumIndex GetPremiumIndex(string symbol)
+        {
+            return _client.GetPremiumIndex(symbol);
+        }
 
         /// <summary>
         /// request instrument history
@@ -287,7 +335,18 @@ namespace OsEngine.Market.Servers.Binance.Futures
         /// </summary>
         public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf)
         {
-            return _client.GetCandles(nameSec, tf);
+            List<Candle> candles = _client.GetCandles(nameSec, tf);
+
+            if (candles != null && candles.Count != 0)
+            {
+                for (int i = 0; i < candles.Count; i++)
+                {
+                    candles[i].State = CandleState.Finished;
+                }
+                candles[candles.Count - 1].State = CandleState.Started;
+            }
+
+            return candles;
         }
 
         //parsing incoming data
@@ -339,10 +398,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                         trades.data.q.ToDecimal();
                 trade.Side = trades.data.m == true ? Side.Sell : Side.Buy;
 
-                if (NewTradesEvent != null)
-                {
-                    NewTradesEvent(trade);
-                }
+                NewTradesEvent?.Invoke(trade);            
             }
         }
 
@@ -590,8 +646,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 security.NameClass = sec.quoteAsset;
                 security.NameId = sec.symbol + sec.quoteAsset;
                 security.SecurityType = SecurityType.Futures;
-                // sec.filters[1] - минимальный объем равный цена * объем
-                security.Lot = 1;
+                security.Lot = sec.filters[1].minQty.ToDecimal();
                 security.PriceStep = sec.filters[0].tickSize.ToDecimal();
                 security.PriceStepCost = security.PriceStep;
 
@@ -606,6 +661,18 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 else
                 {
                     security.Decimals = 0;
+                }
+
+                if (sec.filters.Count > 1 &&
+                    sec.filters[2] != null &&
+                    sec.filters[2].minQty != null)
+                {
+                    decimal minQty = sec.filters[2].minQty.ToDecimal();
+                    string qtyInStr = minQty.ToStringWithNoEndZero().Replace(",", ".");
+                    if (qtyInStr.Split('.').Length > 1)
+                    {
+                        security.DecimalsVolume = qtyInStr.Split('.')[1].Length;
+                    }
                 }
 
                 security.State = SecurityStateType.Activ;

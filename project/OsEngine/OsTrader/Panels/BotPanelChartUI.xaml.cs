@@ -27,23 +27,25 @@ namespace OsEngine.OsTrader.Panels
         {
             InitializeComponent();
             _panel = panel;
-
-            _panel.StartPaint(GridChart, ChartHostPanel, HostGlass, HostOpenPosition,
-                HostClosePosition, HostBotLog, RectChart,
-                HostAllert, TabControlBotTab, TextBoxPrice, GreedChartPanel);
-
-            LocationChanged += RobotUi_LocationChanged;
-            TabControlBotsName.SizeChanged += TabControlBotsName_SizeChanged;
+            StartPaint();
+            Local();
 
             Closed += delegate (object sender, EventArgs args)
             {
                 _panel.StopPaint();
                 _panel = null;
             };
-
-            Local();
         }
 
+        public void StartPaint()
+        {
+            _panel.StartPaint(GridChart, ChartHostPanel, HostGlass, HostOpenPosition,
+             HostClosePosition, HostBotLog, RectChart,
+             HostAllert, TabControlBotTab, TextBoxPrice, GridChartControlPanel);
+
+            LocationChanged += RobotUi_LocationChanged;
+            TabControlBotsName.SizeChanged += TabControlBotsName_SizeChanged;
+        }
 
         private BotPanel _panel;
 
@@ -67,6 +69,12 @@ namespace OsEngine.OsTrader.Panels
 
         private void Local()
         {
+            if (!TabPozition.CheckAccess())
+            {
+                TabPozition.Dispatcher.Invoke(new Action(Local));
+                return;
+            }
+
             TabPozition.Header = OsLocalization.Trader.Label18;
             TabItemClosedPos.Header = OsLocalization.Trader.Label19;
             TabItemLogBot.Header = OsLocalization.Trader.Label23;
@@ -85,8 +93,8 @@ namespace OsEngine.OsTrader.Panels
             ButtonStrategParametr.Content = OsLocalization.Trader.Label45;
             ButtonRiskManager.Content = OsLocalization.Trader.Label46;
             ButtonStrategSettings.Content = OsLocalization.Trader.Label47;
+            ButtonStrategSettingsIndividual.Content = OsLocalization.Trader.Label43;
         }
-
 
         private void buttonBuyFast_Click_1(object sender, RoutedEventArgs e)
         {
@@ -279,6 +287,16 @@ namespace OsEngine.OsTrader.Panels
             _panel.ShowParametrDialog();
         }
 
+        private void ButtonStrategIndividualSettings_Click(object sender, RoutedEventArgs e)
+        {
+            if (_panel == null)
+            {
+                return;
+            }
+
+            _panel.ShowIndividualSettingsDialog();
+        }
+
         private void buttonStrategManualSettings_Click(object sender, RoutedEventArgs e)
         {
             if (_panel.ActivTab.GetType().Name != "BotTabSimple")
@@ -310,6 +328,46 @@ namespace OsEngine.OsTrader.Panels
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        private void ButtonRedactTab_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_panel == null)
+                {
+                    MessageBox.Show(OsLocalization.Trader.Label10);
+                    return;
+                }
+                if (_panel.ActivTab.GetType().Name == "BotTabSimple")
+                {
+                    ((BotTabSimple)_panel.ActivTab).ShowConnectorDialog();
+                }
+                else if (_panel.ActivTab != null &&
+                    _panel.ActivTab.GetType().Name == "BotTabIndex")
+                {
+                    ((BotTabIndex)_panel.ActivTab).ShowDialog();
+                }
+                else if (_panel.ActivTab != null &&
+                         _panel.ActivTab.GetType().Name == "BotTabCluster")
+                {
+                    ((BotTabCluster)_panel.ActivTab).ShowDialog();
+                }
+                else if (_panel.ActivTab != null &&
+                        _panel.ActivTab.GetType().Name == "BotTabScreener")
+                {
+                    ((BotTabScreener)_panel.ActivTab).ShowDialog();
+                }
+                else
+                {
+                    MessageBox.Show(OsLocalization.Trader.Label11);
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
 
     }
 }

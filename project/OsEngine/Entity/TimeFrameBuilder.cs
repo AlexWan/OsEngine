@@ -17,7 +17,7 @@ namespace OsEngine.Entity
     public class TimeFrameBuilder
     {
         private string _name;
-        public TimeFrameBuilder(string name)
+        public TimeFrameBuilder(string name, StartProgram startProgram)
         {
             _name = name;
 
@@ -29,8 +29,11 @@ namespace OsEngine.Entity
             _rencoPunktsToCloseCandleInRencoType = 100;
             _deltaPeriods = 1000;
 
-            Load();
-            _canSave = true;
+            if(startProgram != StartProgram.IsOsOptimizer)
+            {
+                Load();
+                _canSave = true;
+            }
         }
 
         public TimeFrameBuilder()

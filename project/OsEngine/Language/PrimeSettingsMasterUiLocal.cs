@@ -39,5 +39,38 @@ namespace OsEngine.Language
         public string LabelServerTestingToopTip => OsLocalization.ConvertToLocString(
             "Eng:This will significantly slow down the application, but it may help to find errors in the trade server. Do not turn on during daily trading_" +
             "Ru:Это существенно замедлит работу приложения но возможно поможет найти ошибки в работе сервера. Не включайте во время ежедневной торговли_");
+
+        public string Title2 => OsLocalization.ConvertToLocString(
+            "Eng:Admin panel access_" +
+            "Ru:Настройки админ панели_");
+
+
+        public string LblState => OsLocalization.ConvertToLocString(
+            "Eng:State_" +
+            "Ru:Состояние_");
+
+        public string LblToken => OsLocalization.ConvertToLocString(
+            "Eng:Token_" +
+            "Ru:Токен_");
+
+        public string LblIp => OsLocalization.ConvertToLocString(
+            "Eng:IP_" +
+            "Ru:Ip адрес_");
+
+        public string LblPort => OsLocalization.ConvertToLocString(
+            "Eng:PORT__" +
+            "Ru:Порт_");
+
+        public string LblExitPort => OsLocalization.ConvertToLocString(
+            "Eng:EXIT PORT_" +
+            "Ru:Порт вых._");
+
+        public string LblAdminPanel => OsLocalization.ConvertToLocString(
+            "Eng:Start admin panel API automatically_" +
+            "Ru:Запускать API автоматически_");
+
+        public string LabelOxyPlotCharting => OsLocalization.ConvertToLocString(
+            "Eng:Use OxyPlot chart_" +
+            "Ru:Использовать OxyPlot_");
     }
 }

@@ -137,6 +137,11 @@ namespace OsEngine.Market.Servers.InteractivBrokers
 
             _namesSecuritiesWhoOptOnMarketDepth = new List<string>();
 
+            if (ConnectionFail != null)
+            {
+                ConnectionFail();
+            }
+
             if (_listenThread != null)
             {
                 try
@@ -148,10 +153,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                     // ignore
                 }
             }
-            if (ConnectionFail != null)
-            {
-                ConnectionFail();
-            }
+
 
         }
 
@@ -309,7 +311,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 TcpWrite(null); // Right
                 TcpWrite(""); // Multiplier
                 TcpWrite(contract.Exchange);
-                TcpWrite(""); // PrimaryEx
+                TcpWrite(contract.PrimaryExch); // PrimaryEx
                 TcpWrite(contract.Currency);
                 TcpWrite(contract.LocalSymbol);
                 TcpWrite(null);
@@ -398,7 +400,9 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             unit = (long)Math.Ceiling(weeks);
 
             if (unit > 52)
-                throw new ArgumentOutOfRangeException("endTime", "Period cannot be bigger than 52 weeks.");
+            {
+                return "2 Y";
+            }
 
             return unit + " W";
         }
@@ -492,11 +496,11 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                     _orders.Add(order);
                 }
                 _nextOrderNum++;
-                order.NumberMarket = _nextOrderNum.ToString();
+                order.NumberMarket = order.NumberUser.ToString();
 
                 TcpWrite(3);
                 TcpWrite(43);
-                TcpWrite(_nextOrderNum);
+                TcpWrite(order.NumberUser);
                 TcpWrite(contract.ConId);
                 TcpWrite(contract.Symbol);
                 TcpWrite(contract.SecType);
@@ -863,6 +867,8 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// </summary>
         private void ListenThreadSpace()
         {
+            int zeroMessagesCount = 0;
+
             int previousMessage;
             int typeMessage = -1;
             while (true)
@@ -985,8 +991,30 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                     {
                         if (SkipUnnecessaryData(typeMessage) == false)
                         {
-                            SendLogMessage("Неучтённое сообщение. Номер: " + typeMessage,
-                                LogMessageType.Error);
+                            if (typeMessage == 0)
+                            {
+                                zeroMessagesCount++;
+
+                                if (zeroMessagesCount % 5 == 0)
+                                {
+                                    SendLogMessage("Неучтённое сообщение НОЛЬ. Возможно потеря связи с сервером. Номер: " + typeMessage,
+                                    LogMessageType.Error);
+                                }
+
+                                if (zeroMessagesCount > 50)
+                                {
+                                    _listenThread = null;
+                                    SendLogMessage("Кол-во сообщений НОЛЬ, превысило 50, переподключаемся", LogMessageType.Error);
+                                    Disconnect();
+                                    return;
+                                }
+                            }
+                            else
+                            {
+                                SendLogMessage("Неучтённое сообщение. Номер: " + typeMessage,
+                                    LogMessageType.Error);
+                            }
+
                         }
                     }
                 }
@@ -1036,26 +1064,50 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                     barCount = TcpReadInt();
                 }
 
-                Candle candle = new Candle();
-                candle.TimeStart = DateTime.ParseExact(date, format, CultureInfo.CurrentCulture);
-                candle.Open = Convert.ToDecimal(open);
-                candle.High = Convert.ToDecimal(high);
-                candle.Low = Convert.ToDecimal(low);
-                candle.Close = Convert.ToDecimal(close);
+                try
+                {
+                    Candle candle = new Candle();
+                    if (date.Length == 8)
+                    {
+                        candle.TimeStart = DateTime.ParseExact(date, "yyyyMMdd", CultureInfo.CurrentCulture);
+                    }
+                    else
+                    {
+                        candle.TimeStart = DateTime.ParseExact(date, format, CultureInfo.CurrentCulture);
+                    }
 
-                if (volume > 0)
-                {
-                    candle.Volume = Convert.ToDecimal(volume);
+                    candle.Open = Convert.ToDecimal(open);
+                    candle.High = Convert.ToDecimal(high);
+                    candle.Low = Convert.ToDecimal(low);
+                    candle.Close = Convert.ToDecimal(close);
+                    candle.State = CandleState.Finished;
+
+                    if (volume > 0)
+                    {
+                        candle.Volume = Convert.ToDecimal(volume);
+                    }
+                    else
+                    {
+                        candle.Volume = 1;
+                    }
+                    series.CandlesArray.Add(candle);
                 }
-                else
+                catch
                 {
-                    candle.Volume = 1;
+                    // ignore
                 }
-                series.CandlesArray.Add(candle);
+
             }
 
             if (CandlesUpdateEvent != null)
             {
+                if (series != null &&
+                    series.CandlesArray != null &&
+                    series.CandlesArray.Count > 1)
+                {
+                    series.CandlesArray[series.CandlesArray.Count - 1].State = CandleState.Started;
+                }
+
                 CandlesUpdateEvent(series);
             }
         }
@@ -1187,10 +1239,11 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             }
             else if (typeMessage == 46)
             {
-                TcpReadInt();
-                TcpReadInt();
-                TcpReadInt();
-                TcpReadString();
+                //TickString
+                int val1 = TcpReadInt();
+                int val2 = TcpReadInt();
+                int val3 = TcpReadInt();
+                string str = TcpReadString();
                 return true;
             }
             else if (typeMessage == 47)
@@ -1398,10 +1451,18 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             var size = TcpReadInt();
 
             if (msgVersion >= 3)
-                TcpReadInt();
+            {
+                int eligible = TcpReadInt();
 
-            if (tickType != 1 &&
-                tickType != 2 &&
+                if (eligible == 0)
+                {
+                    return;
+                }
+            }
+
+
+            if (
+                tickType != 2 && tickType != 1 &&
                 tickType != 4)
             {
                 return;
@@ -1418,7 +1479,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             trade.Price = price;
             trade.Volume = size;
             trade.Time = DateTime.Now;
-            trade.SecurityNameCode = security.Symbol + "_" + security.SecType + "_" + security.Exchange;
+            trade.SecurityNameCode = security.LocalSymbol + "_" + security.SecType + "_" + security.Exchange;
 
             if (tickType == 1)
             {
@@ -2028,7 +2089,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// создавать для этой бумаги бид с аском по последнему трейду
         /// и не ждать стакана
         /// </summary>
-        public bool CreateMarketDepthFromTrades;
+        public bool CreateMarketDepthFromTrades = true;
 
         /// <summary>
         /// number

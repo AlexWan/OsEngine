@@ -290,7 +290,7 @@ namespace OsEngine.Market
                 }
                 if (type == ServerType.Kraken)
                 {
-                    newServer = new KrakenServer(neadLoadTicks);
+                    newServer = new KrakenServer();
                 }
                 if (type == ServerType.Oanda)
                 {
@@ -383,6 +383,8 @@ namespace OsEngine.Market
 
                     if (ser == null)
                     {
+                        _servers.RemoveAt(i);
+                        i--;
                         continue;
                     }
 
@@ -448,7 +450,30 @@ namespace OsEngine.Market
         {
             IServerPermission serverPermission = null;
 
+            if (type == ServerType.Binance)
+            {
+                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
 
+                if (serverPermission == null)
+                {
+                    serverPermission = new BinanceSpotServerPermission();
+                    _serversPermissions.Add(serverPermission);
+                }
+
+                return serverPermission;
+            }
+            if (type == ServerType.BinanceFutures)
+            {
+                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
+
+                if (serverPermission == null)
+                {
+                    serverPermission = new BinanceFuturesServerPermission();
+                    _serversPermissions.Add(serverPermission);
+                }
+
+                return serverPermission;
+            }
             if (type == ServerType.Bitfinex)
             {
                 serverPermission = _serversPermissions.Find(s => s.ServerType == type);
@@ -456,6 +481,18 @@ namespace OsEngine.Market
                 if (serverPermission == null)
                 {
                     serverPermission = new BitFinexServerPermission();
+                    _serversPermissions.Add(serverPermission);
+                }
+
+                return serverPermission;
+            }
+            if (type == ServerType.Kraken)
+            {
+                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
+
+                if (serverPermission == null)
+                {
+                    serverPermission = new KrakenServerPermission();
                     _serversPermissions.Add(serverPermission);
                 }
 

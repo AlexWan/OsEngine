@@ -27,12 +27,25 @@ namespace OsEngine.OsConverter
             ButtonSetExitFile.Content = OsLocalization.Converter.Label3;
             Label4.Header = OsLocalization.Converter.Label4;
             ButtonStart.Content = OsLocalization.Converter.Label5;
+
+            ComboBoxTimeFrameInitial.Items.Add(TimeFrame.Min1.ToString());
+            ComboBoxTimeFrameInitial.Items.Add(TimeFrame.Min5.ToString());
+            ComboBoxTimeFrameInitial.SelectedItem = TimeFrame.Min1.ToString();
         }
 
         private void ButtonStart_Click(object sender, RoutedEventArgs e)
         {
+            decimal devider = 1;
+
+            if(ComboBoxTimeFrameInitial.SelectedItem.ToString() == TimeFrame.Min5.ToString())
+            {
+                devider = 5;
+            }
+
             List<Candle> candles = _candleConverter.ReadSourceFile();
-            List<Candle> mergedCandles = _candleConverter.Merge(candles, Convert.ToInt32(_candleConverter.ResultCandleTimeFrame));
+            List<Candle> mergedCandles = _candleConverter.Merge(candles, 
+                Convert.ToInt32(_candleConverter.ResultCandleTimeFrame / (double)devider));
+
             _candleConverter.WriteExitFile(mergedCandles);
         }
 

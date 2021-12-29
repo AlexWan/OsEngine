@@ -6,19 +6,24 @@ using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
 using OsEngine.Logging;
+using OsEngine.OsOptimizer.OptEntity;
 
 namespace OsEngine.OsOptimizer
 {
     public class OptimizerReportCharting
     {
         public OptimizerReportCharting(WindowsFormsHost hostDataGrid, WindowsFormsHost hostColumnsResult,
-            WindowsFormsHost hostPieChartResult, System.Windows.Controls.ComboBox boxTypeSort)
+            WindowsFormsHost hostPieChartResult, System.Windows.Controls.ComboBox boxTypeSort, 
+            WindowsFormsHost hostOutOfSampleEquity, System.Windows.Controls.Label outOfSampleLabel)
         {
             _sortBotsType = SortBotsType.TotalProfit;
 
             _hostDataGrid = hostDataGrid;
             _hostColumnsResult = hostColumnsResult;
             _hostPieChartResult = hostPieChartResult;
+
+            _windowsFormsHostOutOfSampleEquity = hostOutOfSampleEquity;
+            _outOfSampleLabel = outOfSampleLabel;
 
             boxTypeSort.Items.Add(SortBotsType.PositionCount.ToString());
             boxTypeSort.Items.Add(SortBotsType.TotalProfit.ToString());
@@ -37,6 +42,7 @@ namespace OsEngine.OsOptimizer
             CreateGridDep();
             CreateColumns();
             CreatePie();
+            PaintOutOfSampleEquityChart();
         }
 
         private System.Windows.Controls.ComboBox _boxTypeSort;
@@ -113,6 +119,7 @@ namespace OsEngine.OsOptimizer
                 UpdGridDep();
                 UpdateColumns();
                 UpdatePie();
+                PaintOutOfSampleEquityChart();
             }
             catch (Exception e)
             {
@@ -200,7 +207,7 @@ namespace OsEngine.OsOptimizer
 
         private void CreateGridDep()
         {
-            _gridDep = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, DataGridViewAutoSizeRowsMode.None);
+            _gridDep = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, DataGridViewAutoSizeRowsMode.None,true);
             _gridDep.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
@@ -210,7 +217,7 @@ namespace OsEngine.OsOptimizer
             column0.CellTemplate = cell0;
             column0.HeaderText = "Period";
             column0.ReadOnly = true;
-            column0.Width = 150;
+            column0.Width = 80;
 
             _gridDep.Columns.Add(column0);
 
@@ -218,7 +225,7 @@ namespace OsEngine.OsOptimizer
             column1.CellTemplate = cell0;
             column1.HeaderText = "Start";
             column1.ReadOnly = false;
-            column1.Width = 150;
+            column1.Width = 80;
             _gridDep.Columns.Add(column1);
 
             DataGridViewColumn column21 = new DataGridViewColumn();
@@ -255,6 +262,20 @@ namespace OsEngine.OsOptimizer
             column5.ReadOnly = false;
             column5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridDep.Columns.Add(column5);
+
+            DataGridViewColumn column6 = new DataGridViewColumn();
+            column6.CellTemplate = cell0;
+            column6.HeaderText = "Average profit %";
+            column6.ReadOnly = false;
+            column6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridDep.Columns.Add(column6);
+
+            DataGridViewColumn column7 = new DataGridViewColumn();
+            column7.CellTemplate = cell0;
+            column7.HeaderText = "Position count";
+            column7.ReadOnly = false;
+            column7.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridDep.Columns.Add(column7);
 
             _gridDep.Rows.Add(null, null);
 
@@ -370,9 +391,16 @@ namespace OsEngine.OsOptimizer
                 row.Cells.Add(cell6);
 
                 DataGridViewTextBoxCell cell7 = new DataGridViewTextBoxCell();
-                cell7.Value = reportToPaint.TotalProfit;
+                cell7.Value = Math.Round(reportToPaint.TotalProfit, 4).ToStringWithNoEndZero();
                 row.Cells.Add(cell7);
 
+                DataGridViewTextBoxCell cell8 = new DataGridViewTextBoxCell();
+                cell8.Value = Math.Round(reportToPaint.AverageProfitPercent,4).ToStringWithNoEndZero();
+                row.Cells.Add(cell8);
+
+                DataGridViewTextBoxCell cell9 = new DataGridViewTextBoxCell();
+                cell9.Value = reportToPaint.PositionsCount.ToString();
+                row.Cells.Add(cell9);
 
                 _gridDep.Rows.Add(row);
             }
@@ -670,6 +698,69 @@ namespace OsEngine.OsOptimizer
             }
         }
 
+        //
+
+        WindowsFormsHost _windowsFormsHostOutOfSampleEquity;
+        System.Windows.Controls.Label _outOfSampleLabel;
+
+        private void PaintOutOfSampleEquityChart()
+        {
+            if(_reports == null ||
+                _reports.Count == 0)
+            {
+                return;
+            }
+            if (_windowsFormsHostOutOfSampleEquity == null)
+            {
+                return;
+            }
+            List<decimal> values = new List<decimal>();
+
+            decimal averageProfitPercent = 0;
+            
+
+            for (int i = 0; i < _reports.Count; i += 2)
+            {
+                // берём из ИнСампле таблицу роботов
+                SortResults(_reports[i].Reports);
+                List<OptimizerReport> bots = _reports[i].Reports;
+
+                OptimizerReport bestBot = _reports[i].Reports[0];
+
+                // находим этого робота в аутОфСемпл
+
+                if (i + 1 == _reports.Count)
+                {
+                    break;
+                }
+
+                OptimizerReport bestBotInOutOfSample
+                    = _reports[i + 1].Reports.Find(b => b.BotName.Replace(" OutOfSample", "") == bestBot.BotName.Replace(" InSample", ""));
+
+                decimal value = bestBotInOutOfSample.TotalProfitPersent;
+
+                if (values.Count == 0)
+                {
+                    values.Add(value);
+                }
+                else
+                {
+                    values.Add(value + values[values.Count - 1]);
+                }
+
+                averageProfitPercent += bestBotInOutOfSample.AverageProfitPercent;
+            }
+            if(values.Count != 0)
+            {
+                averageProfitPercent = averageProfitPercent / values.Count;
+            }
+            
+
+            ChartPainterLine.Paint(_windowsFormsHostOutOfSampleEquity, values);
+
+            _outOfSampleLabel.Content = _outOfSampleLabel.Content.ToString().Split('(')[0]  + 
+                "( Total: " + Math.Round(values[values.Count-1], 4) + ". Average: " + Math.Round(averageProfitPercent,4) + " )" ;
+        }
 
         // логирование
 

@@ -1010,6 +1010,11 @@ namespace OsEngine.Entity
             {
                 // если пришли данные внутри свечи
 
+                if (CandlesAll[CandlesAll.Count - 1].State == CandleState.Finished)
+                {
+                    CandlesAll[CandlesAll.Count - 1].State = CandleState.Started;
+                }
+
                 CandlesAll[CandlesAll.Count - 1].Volume += volume;
                 CandlesAll[CandlesAll.Count - 1].Close = price;
 

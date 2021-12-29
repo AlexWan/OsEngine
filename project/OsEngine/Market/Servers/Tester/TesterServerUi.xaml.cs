@@ -307,7 +307,7 @@ namespace OsEngine.Market.Servers.Tester
         {
             try
             {
-                _server.StartPortfolio = Convert.ToDecimal(TextBoxStartDepozit.Text);
+                _server.StartPortfolio = TextBoxStartDepozit.Text.ToDecimal();
                 _server.Save();
             }
             catch (Exception)
@@ -791,6 +791,7 @@ namespace OsEngine.Market.Servers.Tester
                         comboBox.Items.Add(TimeFrame.Min5.ToString());
                         comboBox.Items.Add(TimeFrame.Min3.ToString());
                         comboBox.Items.Add(TimeFrame.Min10.ToString());
+                        comboBox.Items.Add(TimeFrame.Min20.ToString());
                         comboBox.Items.Add(TimeFrame.Min15.ToString());
                         comboBox.Items.Add(TimeFrame.Min30.ToString());
                         comboBox.Items.Add(TimeFrame.Min45.ToString());
@@ -812,7 +813,7 @@ namespace OsEngine.Market.Servers.Tester
                     }
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[3].Value = securities[i].Security.PriceStep;
+                    nRow.Cells[3].Value = securities[i].Security.PriceStep.ToStringWithNoEndZero();
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
                     nRow.Cells[4].Value = securities[i].TimeStart;
                     nRow.Cells.Add(new DataGridViewTextBoxCell());

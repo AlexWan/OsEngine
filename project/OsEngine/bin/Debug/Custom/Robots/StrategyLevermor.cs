@@ -4,6 +4,7 @@ using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
+using System;
 
 
 public class StrategyLevermor : BotPanel
@@ -18,7 +19,10 @@ public class StrategyLevermor : BotPanel
         ChannelLength = CreateParameter("ChannelLength", 10, 10, 400, 10);
         SmaLength = CreateParameter("SmaLength", 10, 5, 150, 2);
         MaximumPosition = CreateParameter("MaxPosition", 5, 1, 20, 3);
+
         Volume = CreateParameter("Volume", 3, 1.0m, 50, 4);
+        VolumeType = CreateParameter("Volume type", "Absolute", new[] { "Absolute", "Portfolio %", });
+        VolumeDecimals = CreateParameter("Volume decimals", 0, 0, 30, 1);
         Slippage = CreateParameter("Slipage", 0, 0, 20, 1);
         PersentDopBuy = CreateParameter("PersentDopBuy", 0.5m, 0.1m, 2, 0.1m);
         PersentDopSell = CreateParameter("PersentDopSell", 0.5m, 0.1m, 2, 0.1m);
@@ -26,7 +30,7 @@ public class StrategyLevermor : BotPanel
         TralingStopLength = CreateParameter("TralingStopLength", 3, 3, 8, 0.5m);
         ExitType = CreateParameter("ExitType", "Traling", new[] { "Traling", "Sma" });
 
-        _sma = IndicatorsFactory.CreateIndicatorByName("Sma",name + "MovingLong", false);
+        _sma = IndicatorsFactory.CreateIndicatorByName("Sma", name + "MovingLong", false);
         _sma = (Aindicator)_tab.CreateCandleIndicator(_sma, "Prime");
         _sma.ParametersDigit[0].Value = SmaLength.ValueInt;
 
@@ -78,6 +82,10 @@ public class StrategyLevermor : BotPanel
     public StrategyParameterString Regime;
 
     public StrategyParameterDecimal Volume;
+
+    public StrategyParameterString VolumeType;
+
+    public StrategyParameterInt VolumeDecimals;
 
     public StrategyParameterInt MaximumPosition;
     public StrategyParameterDecimal PersentDopBuy;
@@ -179,14 +187,14 @@ public class StrategyLevermor : BotPanel
                     {
                         return;
                     }
-                    _tab.BuyAtLimit(Volume.ValueDecimal, lastPrice + (Slippage.ValueInt * _tab.Securiti.PriceStep));
+                    _tab.BuyAtLimit(GetVolume(), lastPrice + (Slippage.ValueInt * _tab.Securiti.PriceStep));
                 }
             }
             else if (positions == null || positions.Count == 0)
             {
                 _tab.SellAtStopCancel();
                 _tab.BuyAtStopCancel();
-                _tab.BuyAtStop(Volume.ValueDecimal, maxToCandleSeries + (Slippage.ValueInt * _tab.Securiti.PriceStep), maxToCandleSeries, StopActivateType.HigherOrEqual);
+                _tab.BuyAtStop(GetVolume(), maxToCandleSeries + (Slippage.ValueInt * _tab.Securiti.PriceStep), maxToCandleSeries, StopActivateType.HigherOrEqual);
             }
         }
 
@@ -203,7 +211,7 @@ public class StrategyLevermor : BotPanel
 
                 if (lastIntro - lastIntro * (PersentDopSell.ValueDecimal / 100) > lastPrice)
                 {
-                    _tab.SellAtLimit(Volume.ValueDecimal, lastPrice - (Slippage.ValueInt * _tab.Securiti.PriceStep));
+                    _tab.SellAtLimit(GetVolume(), lastPrice - (Slippage.ValueInt * _tab.Securiti.PriceStep));
                 }
             }
             else if (positions == null || positions.Count == 0)
@@ -215,7 +223,7 @@ public class StrategyLevermor : BotPanel
 
                 _tab.SellAtStopCancel();
                 _tab.BuyAtStopCancel();
-                _tab.SellAtStop(Volume.ValueDecimal, minToCandleSeries - (Slippage.ValueInt * _tab.Securiti.PriceStep), minToCandleSeries, StopActivateType.LowerOrEqyal);
+                _tab.SellAtStop(GetVolume(), minToCandleSeries - (Slippage.ValueInt * _tab.Securiti.PriceStep), minToCandleSeries, StopActivateType.LowerOrEqyal);
             }
         }
     }
@@ -276,5 +284,23 @@ public class StrategyLevermor : BotPanel
                 }
             }
         }
+    }
+
+    private decimal GetVolume()
+    {
+        if (VolumeType.ValueString == "Absolute")
+        {
+            return Volume.ValueDecimal;
+        }
+
+        decimal volume = 0;
+
+        decimal portfolioNow = _tab.Portfolio.ValueCurrent * (Volume.ValueDecimal / 100);
+
+        decimal priceNow = _tab.PriceBestAsk;
+
+        volume = portfolioNow / priceNow;
+
+        return Math.Round(volume, VolumeDecimals.ValueInt);
     }
 }

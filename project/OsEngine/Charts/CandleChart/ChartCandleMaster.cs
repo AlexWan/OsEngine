@@ -19,6 +19,7 @@ using OsEngine.Indicators;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
+using OsEngine.PrimeSettings;
 
 namespace OsEngine.Charts.CandleChart
 {
@@ -42,12 +43,17 @@ namespace OsEngine.Charts.CandleChart
             _startProgram = startProgram;
 
             ChartCandle = new WinFormsChartPainter(nameBoss, startProgram);
+
             ChartCandle.ChartClickEvent += ChartCandle_ChartClickEvent;
             ChartCandle.LogMessageEvent += NewLogMessage;
             ChartCandle.ClickToIndexEvent += _chartCandle_ClickToIndexEvent;
             ChartCandle.SizeAxisXChangeEvent += ChartCandle_SizeAxisXChangeEvent;
 
-            Load();
+            if(startProgram != StartProgram.IsOsOptimizer)
+            {
+                Load();
+            }
+           
             _canSave = true;
         }
 
@@ -282,7 +288,24 @@ namespace OsEngine.Charts.CandleChart
                         {
                             CreateIndicator(new TradeThread(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
+                        if (indicator[0] == "LinearRegressionCurve")
+                        {
+                            CreateIndicator(new LinearRegressionCurve(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                        }
+                        if (indicator[0] == "SimpleVWAP")
+                        {
+                            CreateIndicator(new SimpleVWAP(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                        }
 
+                        if (indicator[0] == "DTD")
+                        {
+                            CreateIndicator(new DynamicTrendDetector(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                        }
+
+                        if (indicator[0] == "AtrChannel")
+                        {
+                            CreateIndicator(new AtrChannel(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                        }
                     }
 
                     reader.Close();
@@ -318,6 +341,12 @@ namespace OsEngine.Charts.CandleChart
             {
                 return;
             }
+
+            if(_startProgram == StartProgram.IsOsOptimizer)
+            {
+                return;
+            }
+
             try
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @".txt", false))
@@ -440,6 +469,16 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         private void ReloadContext()
         {
+            ContextMenu menu = GetContextMenu();
+            ChartCandle.ShowContextMenu(menu);
+        }
+
+        /// <summary>
+        /// взять контекстное меню настройки отображения чарта и индикаторов
+        /// </summary>
+        /// <returns></returns>
+        public ContextMenu GetContextMenu()
+        {
             try
             {
                 List<MenuItem> menuRedact = null;
@@ -516,12 +555,13 @@ namespace OsEngine.Charts.CandleChart
 
                 ContextMenu menu = new ContextMenu(items.ToArray());
 
-                ChartCandle.ShowContextMenu(menu);
+                return menu;
             }
             catch (Exception error)
             {
                 SendErrorMessage(error);
             }
+            return null;
         }
 
         /// <summary>
@@ -611,12 +651,19 @@ namespace OsEngine.Charts.CandleChart
                 MenuItem item = (MenuItem)sender;
                 _indicators[item.Index].ShowDialog();
                 _indicators[item.Index].Save();
+
+                if (IndicatorUpdateEvent != null)
+                {
+                    IndicatorUpdateEvent();
+                }
             }
             catch (Exception error)
             {
                 SendErrorMessage(error);
             }
         }
+
+        public event Action IndicatorUpdateEvent;
 
         /// <summary>
         /// user has chosen to delete indicator in context menu
@@ -650,6 +697,11 @@ namespace OsEngine.Charts.CandleChart
             {
                 SendErrorMessage(error);
             }
+
+            if (IndicatorUpdateEvent != null)
+            {
+                IndicatorUpdateEvent();
+            }
         }
 
         /// <summary>
@@ -662,6 +714,11 @@ namespace OsEngine.Charts.CandleChart
             {
                 IndicarotCreateUi ui = new IndicarotCreateUi(this);
                 ui.Show();
+
+                if (IndicatorUpdateEvent != null)
+                {
+                    IndicatorUpdateEvent();
+                }
             }
             catch (Exception error)
             {
@@ -788,7 +845,7 @@ namespace OsEngine.Charts.CandleChart
                         }
                         else
                         {
-                            string area = ChartCandle.CreateArea(nameArea, 10);
+                            string area = ChartCandle.CreateArea(nameArea, 15);
                             indicator.NameSeries = ChartCandle.CreateSeries(area,
                                 indicator.TypeIndicator, indicator.Name + i);
                         }
@@ -817,7 +874,7 @@ namespace OsEngine.Charts.CandleChart
                         }
                         else
                         {
-                            string area = ChartCandle.CreateArea(nameArea, 10);
+                            string area = ChartCandle.CreateArea(nameArea, 15);
 
                             series[i].NameSeries = ChartCandle.CreateSeries(area,
                                 series[i].ChartPaintType, indicator.Name + i);
@@ -1152,7 +1209,6 @@ namespace OsEngine.Charts.CandleChart
 
                 bool canReload = _startProgram != StartProgram.IsOsOptimizer;
 
-
                 _lastCount = candles.Count;
                 _lastPrice = candles[candles.Count - 1].Close;
                 _myCandles = candles;
@@ -1164,7 +1220,6 @@ namespace OsEngine.Charts.CandleChart
                         _lastCandleIncome = DateTime.Now;
                         ChartCandle.ProcessCandles(candles);
                         ChartCandle.ProcessPositions(_myPosition);
-
                     }
 
                     if (_indicators != null)
@@ -1209,6 +1264,11 @@ namespace OsEngine.Charts.CandleChart
         /// <param name="trades">ticks/тики</param>
         public void SetTick(List<Trade> trades)
         {
+            if(_startProgram == StartProgram.IsOsOptimizer)
+            {
+                return;
+            }
+
             try
             {
                 ChartCandle.ProcessTrades(trades);
@@ -1252,11 +1312,9 @@ namespace OsEngine.Charts.CandleChart
         {
             try
             {
-
                 ChartCandle.StartPaintPrimeChart(gridChart, host, rectangle);
-                ChartCandle.ProcessPositions(_myPosition);
-
                 ChartCandle.ProcessCandles(_myCandles);
+                ChartCandle.ProcessPositions(_myPosition);
 
                 for (int i = 0; _indicators != null && i < _indicators.Count; i++)
                 {

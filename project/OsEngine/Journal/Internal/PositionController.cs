@@ -93,8 +93,11 @@ namespace OsEngine.Journal.Internal
 
             CreateTable();
 
-            Load();
-
+            if(_startProgram != StartProgram.IsOsOptimizer)
+            {
+                Load();
+            }
+  
             if (_deals != null &&
                 _deals.Count > 0)
             {
@@ -325,6 +328,11 @@ namespace OsEngine.Journal.Internal
         private void SavePositions()
         {
             if (!_neadToSave)
+            {
+                return;
+            }
+
+            if(_startProgram == StartProgram.IsOsOptimizer)
             {
                 return;
             }
@@ -639,17 +647,20 @@ namespace OsEngine.Journal.Internal
                 return;
             }
 
-            for (int i = positions.Count - 1; i > -1; i--)
+            if(_startProgram != StartProgram.IsOsOptimizer)
             {
-                if (positions[i].State == PositionStateType.Open)
+                for (int i = positions.Count - 1; i > -1; i--)
                 {
-                    decimal profitOld = positions[i].ProfitPortfolioPunkt;
-
-                    positions[i].SetBidAsk(bid, ask);
-
-                    if (profitOld != positions[i].ProfitPortfolioPunkt)
+                    if (positions[i].State == PositionStateType.Open)
                     {
-                        ProcesPosition(positions[i]);
+                        decimal profitOld = positions[i].ProfitOperationPunkt;
+
+                        positions[i].SetBidAsk(bid, ask);
+
+                        if (profitOld != positions[i].ProfitOperationPunkt)
+                        {
+                            ProcesPosition(positions[i]);
+                        }
                     }
                 }
             }
@@ -1154,6 +1165,7 @@ namespace OsEngine.Journal.Internal
                             return;
                         }
                     }
+                    return;
                 }
 
                 if (position.State == PositionStateType.Done ||
@@ -1190,11 +1202,20 @@ namespace OsEngine.Journal.Internal
                         if ((int)_gridOpenDeal.Rows[i].Cells[0].Value == position.Number)
                         {
                             _gridOpenDeal.Rows.Remove(_gridOpenDeal.Rows[i]);
-                            _gridOpenDeal.Rows.Insert(i, GetRow(position));
+
+                            if (position.State != PositionStateType.Deleted)
+                            {
+                                _gridOpenDeal.Rows.Insert(i, GetRow(position));
+                                return;
+                            }
                             return;
                         }
                     }
-                    _gridOpenDeal.Rows.Insert(0, GetRow(position));
+
+                    if (position.State != PositionStateType.Deleted)
+                    {
+                        _gridOpenDeal.Rows.Insert(0, GetRow(position));
+                    }
                 }
             }
             catch (Exception error)

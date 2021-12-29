@@ -3,6 +3,7 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using OsEngine.Market;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -398,8 +399,8 @@ namespace OsEngine.Entity
                     decimal volumeEx = _openOrders[i].VolumeExecute;
                     if (volumeEx != 0)
                     {
-                        volume += _openOrders[i].VolumeExecute;
-                        price += _openOrders[i].VolumeExecute * _openOrders[i].PriceReal;
+                        volume += volumeEx;
+                        price += volumeEx * _openOrders[i].PriceReal;
                     }
                 }
                 if (volume == 0)
@@ -570,21 +571,24 @@ namespace OsEngine.Entity
                 {
                     State = PositionStateType.ClosingSurplus;
                 }
-                
-                if (State == PositionStateType.Done && CloseOrders != null && EntryPrice != 0 && ClosePrice != 0)
-                {
-                    decimal closePrice = ClosePrice;
-                    decimal openPrice = EntryPrice;
 
-                    if (Direction == Side.Buy)
+                if (State == PositionStateType.Done && CloseOrders != null)
+                {
+                    decimal entryPrice = EntryPrice;
+                    decimal closePrice = ClosePrice;
+
+                    if (entryPrice != 0 && closePrice != 0)
                     {
-                        ProfitOperationPersent = closePrice / EntryPrice * 100 - 100;
-                        ProfitOperationPunkt = closePrice - EntryPrice;
-                    }
-                    else
-                    {
-                        ProfitOperationPunkt = EntryPrice - closePrice;
-                        ProfitOperationPersent = -(closePrice / EntryPrice * 100 - 100);
+                        if (Direction == Side.Buy)
+                        {
+                            ProfitOperationPersent = closePrice / entryPrice * 100 - 100;
+                            ProfitOperationPunkt = closePrice - entryPrice;
+                        }
+                        else
+                        {
+                            ProfitOperationPunkt = entryPrice - closePrice;
+                            ProfitOperationPersent = -(closePrice / entryPrice * 100 - 100);
+                        }
                     }
                 }
             }
@@ -642,19 +646,23 @@ namespace OsEngine.Entity
                 }
             }
 
-
-            if (State == PositionStateType.Done && CloseOrders != null && EntryPrice != 0  && ClosePrice != 0)
+            if (State == PositionStateType.Done && CloseOrders != null)
             {
+                decimal entryPrice = EntryPrice;
+                decimal closePrice = ClosePrice;
 
-                if (Direction == Side.Buy)
+                if(entryPrice != 0 && closePrice != 0)
                 {
-                    ProfitOperationPersent = ClosePrice / EntryPrice * 100 - 100;
-                    ProfitOperationPunkt = ClosePrice - EntryPrice;
-                }
-                else
-                {
-                    ProfitOperationPunkt = EntryPrice - ClosePrice;
-                    ProfitOperationPersent = -(ClosePrice / EntryPrice * 100 - 100);
+                    if (Direction == Side.Buy)
+                    {
+                        ProfitOperationPersent = closePrice / entryPrice * 100 - 100;
+                        ProfitOperationPunkt = closePrice - entryPrice;
+                    }
+                    else
+                    {
+                        ProfitOperationPunkt = entryPrice - closePrice;
+                        ProfitOperationPersent = -(closePrice / entryPrice * 100 - 100);
+                    }
                 }
             }
         }
@@ -667,7 +675,8 @@ namespace OsEngine.Entity
         {
             if (State == PositionStateType.Open)
             {
-                if (EntryPrice == 0)
+                if (_openOrders == null ||
+                    _openOrders.Count == 0)
                 {
                     return;
                 }
@@ -677,15 +686,17 @@ namespace OsEngine.Entity
                     return;
                 }
 
+                decimal entryPrice = EntryPrice;
+
                 if (Direction == Side.Buy)
                 {
-                    ProfitOperationPersent = ask / EntryPrice * 100 - 100;
-                    ProfitOperationPunkt = ask - EntryPrice;
+                    ProfitOperationPersent = ask / entryPrice * 100 - 100;
+                    ProfitOperationPunkt = ask - entryPrice;
                 }
                 else
                 {
-                    ProfitOperationPersent = -(bid / EntryPrice * 100 - 100);
-                    ProfitOperationPunkt = EntryPrice - bid;
+                    ProfitOperationPersent = -(bid / entryPrice * 100 - 100);
+                    ProfitOperationPunkt = entryPrice - bid;
                 }
             }
         }
@@ -833,7 +844,7 @@ namespace OsEngine.Entity
             {
                 if (_openOrders != null)
                 {
-                    return _openOrders[_openOrders.Count - 1].GetLastTradeTime();
+                    return _openOrders[0].GetLastTradeTime();
                 }
                 return DateTime.MinValue;
             }
@@ -955,10 +966,34 @@ namespace OsEngine.Entity
                     Lots = 1;
                 }
 
-                decimal profit = (ProfitOperationPunkt / PriceStep) * PriceStepCost * MaxVolume * Lots - CommissionTotal();
-
-                return profit; //  Lots;
+                if (IsLotServer())
+                {
+                    return (ProfitOperationPunkt / PriceStep) * PriceStepCost * MaxVolume * Lots - CommissionTotal();
+                }
+                else
+                {
+                    return (ProfitOperationPunkt / PriceStep) * PriceStepCost * MaxVolume - CommissionTotal();
+                }
             }
+        }
+        private bool IsLotServer()
+        {
+            if (OpenOrders != null && OpenOrders.Count > 0)
+            {
+                if(OpenOrders[0].ServerType == ServerType.Plaza ||
+                    OpenOrders[0].ServerType == ServerType.QuikDde ||
+                    OpenOrders[0].ServerType == ServerType.QuikLua ||
+                    OpenOrders[0].ServerType == ServerType.SmartCom ||
+                    OpenOrders[0].ServerType == ServerType.Tinkoff ||
+                    OpenOrders[0].ServerType == ServerType.Transaq)
+                {
+                    return true;
+                }
+
+                return false;
+
+            }
+            return true;
         }
 
         /// <summary>

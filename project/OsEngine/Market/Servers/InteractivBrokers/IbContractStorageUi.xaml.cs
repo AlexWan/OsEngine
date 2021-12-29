@@ -32,6 +32,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             _server = server;
 
             _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
+            _grid.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = _grid.DefaultCellStyle;
@@ -90,12 +91,19 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             column5.HeaderText = OsLocalization.Market.Label60;
             _grid.Columns.Add(column5);
 
-
             _grid.Rows.Add(null, null);
-            _grid.Click += _grid_Click;
-            _grid.CellValueChanged += _grid_CellValueChanged;
+
             Host.Child = _grid;
             LoadSecOnTable();
+
+            Closing += IbContractStorageUi_Closing;
+            _grid.Click += _grid_Click;
+            _grid.CellValueChanged += _grid_CellValueChanged;
+        }
+
+        private void IbContractStorageUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            SaveInServer();
         }
 
         void _grid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
@@ -218,11 +226,16 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             {
                 SecToSubscrible = new List<SecurityIb>();
             }
-            SecToSubscrible.Add(new SecurityIb());
+            SecToSubscrible.Insert(0, new SecurityIb());
             LoadSecOnTable();
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            SaveInServer();
+        }
+
+        private void SaveInServer()
         {
             SaveSecFromTable();
             _server.GetSecurities();
@@ -230,4 +243,3 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         }
     }
 }
-

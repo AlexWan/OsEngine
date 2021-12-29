@@ -32,9 +32,12 @@
                     <Grid>
                         <Label Name="LabelGeneralSettings" Content="General settings" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,6,0,0" FontSize="18"/>
                         <Button Name="ButtonStrategSettings" Content="Position support"  HorizontalAlignment="Left" Margin="66,187,0,0" VerticalAlignment="Top" Width="161" Click="buttonStrategManualSettings_Click"/>
-                        <Button Name="ButtonJournalCommunity" Content="Journal" HorizontalAlignment="Left" Margin="66,97,0,0" VerticalAlignment="Top" Width="161" Click="ButtonJournalCommunity_Click"/>
+                        <Button Name="ButtonJournalCommunity" Content="Journal" HorizontalAlignment="Left" Margin="66,68,0,0" VerticalAlignment="Top" Width="161" Click="ButtonJournalCommunity_Click"/>
                         <Button Name="ButtonStrategParametr" Content="Parameters"  HorizontalAlignment="Left" Margin="66,127,0,0" VerticalAlignment="Top" Width="161" Click="ButtonStrategParametr_Click" />
                         <Button Name="ButtonRiskManager" Content="Risk manager" HorizontalAlignment="Left" Margin="66,157,0,0" VerticalAlignment="Top" Width="161" Click="ButtonRiskManager_Click" />
+                        <Button Name="ButtonRedactTab" Content="Data settings"  HorizontalAlignment="Left" Margin="66,217,0,0" VerticalAlignment="Top" Width="161" Click="ButtonRedactTab_Click"   />
+                        <Button Name="ButtonStrategSettingsIndividual" Content="Bot trade settings" HorizontalAlignment="Left" Margin="66,98,0,0" VerticalAlignment="Top" Width="161" Click="ButtonStrategIndividualSettings_Click" Height="24"/>
+
                     </Grid>
                 </TabItem>
             </TabControl>
@@ -91,16 +94,15 @@
         </TabControl>
         <Grid Grid.Row="0" x:Name="GreedChartPanel" Margin="0,26,308,10">
             <Rectangle x:Name="RectChart"/>
+            <Grid x:Name="GridChart"/>
+            <WindowsFormsHost x:Name="ChartHostPanel" Margin="26,23,0,0"/>
             <TabControl x:Name="TabControlBotTab" HorizontalAlignment="Left" TabStripPlacement="Left" Margin="0,33,0,10" Width="28">
-                <TabItem Header=" 1" Margin="0,0,0,0" >
+                <TabItem Header=" 1" Margin="0,0,0,-5" VerticalAlignment="Top" >
                     <Grid Background="#FFE5E5E5"/>
                 </TabItem>
             </TabControl>
             <Grid Name="GridChartControlPanel" Height="23" Margin="26,0,4,0" VerticalAlignment="Top"/>
-
         </Grid>
-        <Grid x:Name="GridChart" Margin="25,26,315,10"/>
-        <WindowsFormsHost x:Name="ChartHostPanel" Margin="25,26,315,10" />
     </Grid>
 </Window>
 

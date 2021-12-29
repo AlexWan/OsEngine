@@ -35,7 +35,7 @@ namespace OsEngine.Robots.CounterTrend
             LabelRegime.Content = OsLocalization.Trader.Label115;
             LabelVolume.Content = OsLocalization.Trader.Label30;
             LabelSlippage.Content = OsLocalization.Trader.Label92;
-            ButtonAccept.Content = OsLocalization.Trader.Label132;
+            ButtonAccept.Content = OsLocalization.Trader.Label17;
             LabelRsiOverbought.Content = OsLocalization.Trader.Label141;
             LabelRsiOversold.Content = OsLocalization.Trader.Label142;
         }

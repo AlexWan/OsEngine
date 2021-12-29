@@ -366,7 +366,7 @@ namespace OsEngine.Entity
                         {
                             KrakenServer kraken = (KrakenServer)_server;
 
-                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple || 
+                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
                                 series.TimeFrameSpan.TotalMinutes < 1)
                             {
                                 List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
@@ -374,8 +374,8 @@ namespace OsEngine.Entity
                             }
                             else
                             {
-                                List<Candle> candles = kraken.GetHistory(series.Security.Name,
-                                    Convert.ToInt32(series.TimeFrameSpan.TotalMinutes));
+                                List<Candle> candles = kraken.GetCandleHistory(series.Security.Name,
+                                    series.TimeFrameSpan);
                                 if (candles != null)
                                 {
                                     series.CandlesAll = candles;

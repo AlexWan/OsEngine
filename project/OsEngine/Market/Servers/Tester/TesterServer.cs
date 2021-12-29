@@ -153,7 +153,7 @@ namespace OsEngine.Market.Servers.Tester
                 {
                     _activSet = reader.ReadLine();
                     _slipageToSimpleOrder = Convert.ToInt32(reader.ReadLine());
-                    StartPortfolio = Convert.ToDecimal(reader.ReadLine());
+                    StartPortfolio = reader.ReadLine().ToDecimal();
                     Enum.TryParse(reader.ReadLine(), out _typeTesterData);
                     Enum.TryParse(reader.ReadLine(), out _sourceDataType);
                     _pathToFolder = reader.ReadLine();
@@ -272,6 +272,30 @@ namespace OsEngine.Market.Servers.Tester
                     return "";
                 }
                 pathToSettings = _pathToFolder + "\\SecurityTestSettings.txt";
+            }
+
+            return pathToSettings;
+        }
+
+        private string GetSecuritiesSettingsPath()
+        {
+            string pathToSettings;
+
+            if (SourceDataType == TesterSourceDataType.Set)
+            {
+                if (string.IsNullOrWhiteSpace(_activSet))
+                {
+                    return "";
+                }
+                pathToSettings = _activSet + "\\SecuritiesSettings.txt";
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(_pathToFolder))
+                {
+                    return "";
+                }
+                pathToSettings = _pathToFolder + "\\SecuritiesSettings.txt";
             }
 
             return pathToSettings;
@@ -683,6 +707,32 @@ namespace OsEngine.Market.Servers.Tester
 
             for (int i = 0; i < bots.Count; i++)
             {
+                List<BotTabScreener> currentTabs = bots[i].TabsScreener;
+
+                for (int i2 = 0; currentTabs != null && i2 < currentTabs.Count; i2++)
+                {
+                    List<string> secs = new List<string>();
+
+                    for (int i3 = 0; i3 < currentTabs[i2].SecuritiesNames.Count; i3++)
+                    {
+                        if (string.IsNullOrEmpty(currentTabs[i2].SecuritiesNames[i3].SecurityName))
+                        {
+                            continue;
+                        }
+                        secs.Add(currentTabs[i2].SecuritiesNames[i3].SecurityName);
+                    }
+
+                    if (secs.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    namesSecurity.AddRange(secs);
+                }
+            }
+
+            for (int i = 0; i < bots.Count; i++)
+            {
                 List<BotTabCluster> currentTabs = bots[i].TabsCluster;
 
                 for (int i2 = 0; currentTabs != null && i2 < currentTabs.Count; i2++)
@@ -1013,7 +1063,7 @@ namespace OsEngine.Market.Servers.Tester
                     candle2.SetCandleFromString(reader.ReadLine());
 
                     security[security.Count - 1].DataType = SecurityTesterDataType.Candle;
-                    security[security.Count - 1].TimeFrameSpan = candle2.TimeStart - candle.TimeStart;
+                    security[security.Count - 1].TimeFrameSpan = GetTimeSpan(reader);
                     security[security.Count - 1].TimeFrame = GetTimeFrame(security[security.Count - 1].TimeFrameSpan);
                     // step price / шаг цены
 
@@ -1024,44 +1074,55 @@ namespace OsEngine.Market.Servers.Tester
 
                     for (int i2 = 0; i2 < 20; i2++)
                     {
+                        if (reader.EndOfStream)
+                        {
+                            reader.Close();
+                            reader = new StreamReader(files[i]);
+                        }
+
                         Candle candleN = new Candle();
                         candleN.SetCandleFromString(reader.ReadLine());
 
-                        decimal open = (decimal) Convert.ToDouble(candleN.Open);
-                        decimal high = (decimal) Convert.ToDouble(candleN.High);
-                        decimal low = (decimal) Convert.ToDouble(candleN.Low);
-                        decimal close = (decimal) Convert.ToDouble(candleN.Close);
+                        decimal openD = (decimal) Convert.ToDouble(candleN.Open);
+                        decimal highD = (decimal) Convert.ToDouble(candleN.High);
+                        decimal lowD = (decimal) Convert.ToDouble(candleN.Low);
+                        decimal closeD = (decimal) Convert.ToDouble(candleN.Close);
 
-                        if (open.ToString(culture).Split(',').Length > 1 ||
-                            high.ToString(culture).Split(',').Length > 1 ||
-                            low.ToString(culture).Split(',').Length > 1 ||
-                            close.ToString(culture).Split(',').Length > 1)
+                        string open = openD.ToString().Replace(".", ",");
+                        string high = highD.ToString().Replace(".", ",");
+                        string low = lowD.ToString().Replace(".", ",");
+                        string close = closeD.ToString().Replace(".", ",");
+
+                        if (open.Split(',').Length > 1 ||
+                            high.Split(',').Length > 1 ||
+                            low.Split(',').Length > 1 ||
+                            close.Split(',').Length > 1)
                         {
                             // if the real part takes place / если имеет место вещественная часть
                             int lenght = 1;
 
-                            if (open.ToString(culture).Split(',').Length > 1 &&
-                                open.ToString(culture).Split(',')[1].Length > lenght)
+                            if (open.Split(',').Length > 1 &&
+                                open.Split(',')[1].Length > lenght)
                             {
-                                lenght = open.ToString(culture).Split(',')[1].Length;
+                                lenght = open.Split(',')[1].Length;
                             }
 
-                            if (high.ToString(culture).Split(',').Length > 1 &&
-                                high.ToString(culture).Split(',')[1].Length > lenght)
+                            if (high.Split(',').Length > 1 &&
+                                high.Split(',')[1].Length > lenght)
                             {
-                                lenght = high.ToString(culture).Split(',')[1].Length;
+                                lenght = high.Split(',')[1].Length;
                             }
 
-                            if (low.ToString(culture).Split(',').Length > 1 &&
-                                low.ToString(culture).Split(',')[1].Length > lenght)
+                            if (low.Split(',').Length > 1 &&
+                                low.Split(',')[1].Length > lenght)
                             {
-                                lenght = low.ToString(culture).Split(',')[1].Length;
+                                lenght = low.Split(',')[1].Length;
                             }
 
-                            if (close.ToString(culture).Split(',').Length > 1 &&
-                                close.ToString(culture).Split(',')[1].Length > lenght)
+                            if (close.Split(',').Length > 1 &&
+                                close.Split(',')[1].Length > lenght)
                             {
-                                lenght = close.ToString(culture).Split(',')[1].Length;
+                                lenght = close.Split(',')[1].Length;
                             }
 
                             if (lenght == 1 && minPriceStep > 0.1m)
@@ -1106,14 +1167,14 @@ namespace OsEngine.Market.Servers.Tester
                             // if the real part doesn't take place / если вещественной части нет
                             int lenght = 1;
 
-                            for (int i3 = open.ToString(culture).Length - 1; open.ToString(culture)[i3] == '0'; i3--)
+                            for (int i3 = open.Length - 1; open.ToString(culture)[i3] == '0'; i3--)
                             {
                                 lenght = lenght*10;
                             }
 
                             int lengthLow = 1;
 
-                            for (int i3 = low.ToString(culture).Length - 1; low.ToString(culture)[i3] == '0'; i3--)
+                            for (int i3 = low.Length - 1; low[i3] == '0'; i3--)
                             {
                                 lengthLow = lengthLow*10;
 
@@ -1125,7 +1186,7 @@ namespace OsEngine.Market.Servers.Tester
 
                             int lengthHigh = 1;
 
-                            for (int i3 = high.ToString(culture).Length - 1; high.ToString(culture)[i3] == '0'; i3--)
+                            for (int i3 = high.Length - 1; high[i3] == '0'; i3--)
                             {
                                 lengthHigh = lengthHigh*10;
 
@@ -1137,7 +1198,7 @@ namespace OsEngine.Market.Servers.Tester
 
                             int lengthClose = 1;
 
-                            for (int i3 = close.ToString(culture).Length - 1; close.ToString(culture)[i3] == '0'; i3--)
+                            for (int i3 = close.Length - 1; close[i3] == '0'; i3--)
                             {
                                 lengthClose = lengthClose*10;
 
@@ -1152,8 +1213,8 @@ namespace OsEngine.Market.Servers.Tester
                             }
 
                             if (minPriceStep == 1 &&
-                                open%5 == 0 && high%5 == 0 &&
-                                close%5 == 0 && low%5 == 0)
+                                openD%5 == 0 && highD%5 == 0 &&
+                                closeD%5 == 0 && lowD%5 == 0)
                             {
                                 countFive++;
                             }
@@ -1251,9 +1312,9 @@ namespace OsEngine.Market.Servers.Tester
             // check in tester file data on the presence of multipliers and GO for securities
             // проверяем в файле тестера данные о наличии мультипликаторов и ГО для бумаг
 
-            //List<string[]> array = LoadSecurityDopSettings(folderName + "\\SecuritiesSettings.txt");
-            string pathToSecuritySettings = Path.GetDirectoryName(Path.GetDirectoryName(folderName));
-            List<string[]> array = LoadSecurityDopSettings(pathToSecuritySettings + "\\SecuritiesSettings.txt");
+
+            string pathToSecuritySettings = GetSecuritiesSettingsPath();
+            List<string[]> array = LoadSecurityDopSettings(pathToSecuritySettings);
 
             for (int i = 0; array != null && i < array.Count; i++)
             {
@@ -1261,18 +1322,30 @@ namespace OsEngine.Market.Servers.Tester
 
                 if (secu != null)
                 {
-                    secu.Lot = Convert.ToDecimal(array[i][1]);
-                    secu.Go = Convert.ToDecimal(array[i][2]);
-                    secu.PriceStepCost = Convert.ToDecimal(array[i][3]);
-                    secu.PriceStep = Convert.ToDecimal(array[i][4]);
+                    decimal lot = array[i][1].ToDecimal();
+                    decimal go = array[i][2].ToDecimal();
+                    decimal priceStepCost = array[i][3].ToDecimal();
+                    decimal priceStep = array[i][4].ToDecimal();
 
-                    if(SecuritiesTester[SecuritiesTester.Count -1].Security.Name == secu.Name)
+                    if (lot != 0)
+                        secu.Lot = lot;
+                    if (go != 0)
+                        secu.Go = go;
+                    if (priceStepCost != 0)
+                        secu.PriceStepCost = priceStepCost;
+                    if (priceStep != 0)
+                        secu.PriceStep = priceStep;
+
+                    if (SecuritiesTester[SecuritiesTester.Count - 1].Security.Name == secu.Name)
                     {
-                        SecuritiesTester[SecuritiesTester.Count - 1].Security.Lot = Convert.ToDecimal(array[i][1]);
-                        SecuritiesTester[SecuritiesTester.Count - 1].Security.Go = Convert.ToDecimal(array[i][2]);
-                        SecuritiesTester[SecuritiesTester.Count - 1].Security.PriceStepCost = Convert.ToDecimal(array[i][3]);
-                        SecuritiesTester[SecuritiesTester.Count - 1].Security.PriceStep = Convert.ToDecimal(array[i][4]);
-
+                        if (lot != 0)
+                            SecuritiesTester[SecuritiesTester.Count - 1].Security.Lot = lot;
+                        if (go != 0)
+                            SecuritiesTester[SecuritiesTester.Count - 1].Security.Go = go;
+                        if (priceStepCost != 0)
+                            SecuritiesTester[SecuritiesTester.Count - 1].Security.PriceStepCost = priceStepCost;
+                        if (priceStep != 0)
+                            SecuritiesTester[SecuritiesTester.Count - 1].Security.PriceStep = priceStep;
                     }
                 }
             }
@@ -1451,8 +1524,6 @@ namespace OsEngine.Market.Servers.Tester
                 }
 
                 reader.Close();
-
-
             }
 
             // save securities / сохраняем бумаги
@@ -1506,9 +1577,8 @@ namespace OsEngine.Market.Servers.Tester
             // check in the tester file data on the presence of multipliers and GO for securities
             // проверяем в файле тестера данные о наличии мультипликаторов и ГО для бумаг
 
-            //List<string[]> array = LoadSecurityDopSettings(folderName + "\\SecuritiesSettings.txt");
-            string pathToSecuritySettings = Path.GetDirectoryName(Path.GetDirectoryName(folderName));
-            List<string[]> array = LoadSecurityDopSettings(pathToSecuritySettings + "\\SecuritiesSettings.txt");
+            string pathToSecuritySettings = GetSecuritiesSettingsPath();
+            List<string[]> array = LoadSecurityDopSettings(pathToSecuritySettings);
 
             for (int i = 0; array != null && i < array.Count; i++)
             {
@@ -1516,10 +1586,31 @@ namespace OsEngine.Market.Servers.Tester
 
                 if (secu != null)
                 {
-                    secu.Lot = Convert.ToDecimal(array[i][1]);
-                    secu.Go = Convert.ToDecimal(array[i][2]);
-                    secu.PriceStepCost = Convert.ToDecimal(array[i][3]);
-                    secu.PriceStep = Convert.ToDecimal(array[i][4]);
+                    decimal lot = array[i][1].ToDecimal();
+                    decimal go = array[i][2].ToDecimal();
+                    decimal priceStepCost = array[i][3].ToDecimal();
+                    decimal priceStep = array[i][4].ToDecimal();
+
+                    if (lot != 0)
+                        secu.Lot = lot;
+                    if (go != 0)
+                        secu.Go = go;
+                    if (priceStepCost != 0)
+                        secu.PriceStepCost = priceStepCost;
+                    if (priceStep != 0)
+                        secu.PriceStep = priceStep;
+
+                    if (SecuritiesTester[SecuritiesTester.Count - 1].Security.Name == secu.Name)
+                    {
+                        if (lot != 0)
+                            SecuritiesTester[SecuritiesTester.Count - 1].Security.Lot = lot;
+                        if (go != 0)
+                            SecuritiesTester[SecuritiesTester.Count - 1].Security.Go = go;
+                        if (priceStepCost != 0)
+                            SecuritiesTester[SecuritiesTester.Count - 1].Security.PriceStepCost = priceStepCost;
+                        if (priceStep != 0)
+                            SecuritiesTester[SecuritiesTester.Count - 1].Security.PriceStep = priceStep;
+                    }
                 }
             }
 
@@ -1759,9 +1850,8 @@ namespace OsEngine.Market.Servers.Tester
             // check in the tester file data on the presence of multipliers and GO for securities
             // проверяем в файле тестера данные о наличии мультипликаторов и ГО для бумаг
 
-            //List<string[]> array = LoadSecurityDopSettings(folderName + "\\SecuritiesSettings.txt");
-            string pathToSecuritySettings = Path.GetDirectoryName(Path.GetDirectoryName(folderName));
-            List<string[]> array = LoadSecurityDopSettings(pathToSecuritySettings + "\\SecuritiesSettings.txt");
+            string pathToSecuritySettings = GetSecuritiesSettingsPath();
+            List<string[]> array = LoadSecurityDopSettings(pathToSecuritySettings);
 
             for (int i = 0; array != null && i < array.Count; i++)
             {
@@ -1769,16 +1859,91 @@ namespace OsEngine.Market.Servers.Tester
 
                 if (secu != null)
                 {
-                    secu.Lot = Convert.ToDecimal(array[i][1]);
-                    secu.Go = Convert.ToDecimal(array[i][2]);
-                    secu.PriceStepCost = Convert.ToDecimal(array[i][3]);
-                    secu.PriceStep = Convert.ToDecimal(array[i][4]);
+                    decimal lot = array[i][1].ToDecimal();
+                    decimal go = array[i][2].ToDecimal();
+                    decimal priceStepCost = array[i][3].ToDecimal();
+                    decimal priceStep = array[i][4].ToDecimal();
+
+                    if (lot != 0)
+                        secu.Lot = lot;
+                    if (go != 0)
+                        secu.Go = go;
+                    if (priceStepCost != 0)
+                        secu.PriceStepCost = priceStepCost;
+                    if (priceStep != 0)
+                        secu.PriceStep = priceStep;
+
+                    if (SecuritiesTester[SecuritiesTester.Count - 1].Security.Name == secu.Name)
+                    {
+                        if (lot != 0)
+                            SecuritiesTester[SecuritiesTester.Count - 1].Security.Lot = lot;
+                        if (go != 0)
+                            SecuritiesTester[SecuritiesTester.Count - 1].Security.Go = go;
+                        if (priceStepCost != 0)
+                            SecuritiesTester[SecuritiesTester.Count - 1].Security.PriceStepCost = priceStepCost;
+                        if (priceStep != 0)
+                            SecuritiesTester[SecuritiesTester.Count - 1].Security.PriceStep = priceStep;
+                    }
                 }
             }
 
             if (TestingNewSecurityEvent != null)
             {
                 TestingNewSecurityEvent();
+            }
+        }
+
+        // получить истинный TimeFrameSpan
+        // get true TimeFrameSpan
+        private TimeSpan GetTimeSpan(StreamReader reader)
+        {
+
+            Candle lastCandle = null;
+
+            TimeSpan lastTimeSpan = TimeSpan.MaxValue;
+
+            int counter = 0;
+
+            while (true)
+            {
+                if (reader.EndOfStream)
+                {
+                    if (lastTimeSpan != TimeSpan.MaxValue)
+                    {
+                        return lastTimeSpan;
+                    }
+                    return TimeSpan.Zero;
+                }
+
+                if (lastCandle == null)
+                {
+                    lastCandle = new Candle();
+                    lastCandle.SetCandleFromString(reader.ReadLine());
+                    continue;
+                }
+
+                var currentCandle = new Candle();
+                currentCandle.SetCandleFromString(reader.ReadLine());
+
+                var currentTimeSpan = currentCandle.TimeStart - lastCandle.TimeStart;
+
+                lastCandle = currentCandle;
+
+                if (currentTimeSpan < lastTimeSpan)
+                {
+                    lastTimeSpan = currentTimeSpan;
+                    continue;
+                }
+
+                if (currentTimeSpan == lastTimeSpan)
+                {
+                    counter++;
+                }
+
+                if (counter >= 100)
+                {
+                    return lastTimeSpan;
+                }
             }
         }
 
@@ -1946,14 +2111,14 @@ namespace OsEngine.Market.Servers.Tester
                 {
                     if (minPrice > realPrice)
                     {
-                        realPrice = minPrice;
+                        realPrice = lastCandle.Open;
                     }
                 }
                 if (order.Side == Side.Sell)
                 {
                     if (maxPrice < realPrice)
                     {
-                        realPrice = maxPrice;
+                        realPrice = lastCandle.Open;
                     }
                 }
 
@@ -2453,24 +2618,7 @@ namespace OsEngine.Market.Servers.Tester
                 return;
             }
 
-            string pathToSettings = "";
-
-            if (SourceDataType == TesterSourceDataType.Set)
-            {
-                if (string.IsNullOrWhiteSpace(_activSet))
-                {
-                    return;
-                }
-                pathToSettings = _activSet + "\\SecuritiesSettings.txt";
-            }
-            else
-            {
-                if (string.IsNullOrWhiteSpace(_pathToFolder))
-                {
-                    return;
-                }
-                pathToSettings = _pathToFolder + "\\SecuritiesSettings.txt";
-            }
+            string pathToSettings = GetSecuritiesSettingsPath();
 
             List<string[]> saves = LoadSecurityDopSettings(pathToSettings);
 

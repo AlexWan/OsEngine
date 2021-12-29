@@ -25,9 +25,9 @@ public class PairRsiTrade : BotPanel
         Volume1 = CreateParameter("Volume 1", 1, 1.0m, 50, 1);
         Volume2 = CreateParameter("Volume 2", 1, 1.0m, 50, 1);
 
-        RsiSpread = CreateParameter("Spread to Rsi", 10, 5.0m, 50, 2);
-        RsiOnePeriod = CreateParameter("Rsi One period", 14, 5, 50, 2);
-        RsiTwoPeriod = CreateParameter("Rsi Two period", 14, 5, 50, 2);
+        RsiSpread = CreateParameter("Spread to Rsi", 10, 5.0m, 50, 2,"Indicators");
+        RsiOnePeriod = CreateParameter("Rsi One period", 14, 5, 50, 2, "Indicators");
+        RsiTwoPeriod = CreateParameter("Rsi Two period", 14, 5, 50, 2, "Indicators");
 
         _rsi1 = IndicatorsFactory.CreateIndicatorByName("RSI",name + "RSI1", false);
         _rsi1.ParametersDigit[0].Value = RsiOnePeriod.ValueInt;
@@ -40,6 +40,10 @@ public class PairRsiTrade : BotPanel
         _rsi2.Save();
 
         ParametrsChangeByUser += Event_ParametrsChangeByUser;
+
+        ParamGuiSettings.Height = 300;
+        ParamGuiSettings.Width = 500;
+        ParamGuiSettings.Title = "Pair Rsi Bot Settings";
     }
 
     void Event_ParametrsChangeByUser()

@@ -29,7 +29,7 @@ namespace OsEngine.Robots.Patterns
             _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
             _tab.PositionOpeningSuccesEvent += Strateg_ClosePosition;
 
-            Slipage = 10;
+            Slipage = 0;
             VolumeFix = 1;
             HeightSoldiers = 1;
             MinHeightSoldier = 1;

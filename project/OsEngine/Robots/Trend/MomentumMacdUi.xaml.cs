@@ -32,7 +32,7 @@ namespace OsEngine.Robots.Trend
             LabelRegime.Content = OsLocalization.Trader.Label115;
             LabelVolume.Content = OsLocalization.Trader.Label30;
             LabelSlippage.Content = OsLocalization.Trader.Label92;
-            ButtonAccept.Content = OsLocalization.Trader.Label132;
+            ButtonAccept.Content = OsLocalization.Trader.Label17;
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)

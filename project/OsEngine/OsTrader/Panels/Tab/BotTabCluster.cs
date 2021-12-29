@@ -10,7 +10,6 @@ using System.Windows.Shapes;
 using OsEngine.Charts.ClusterChart;
 using OsEngine.Entity;
 using OsEngine.Logging;
-using OsEngine.Market;
 using OsEngine.Market.Connectors;
 using Chart = System.Windows.Forms.DataVisualization.Charting.Chart;
 
@@ -246,12 +245,15 @@ namespace OsEngine.OsTrader.Panels.Tab
             _chartMaster.StartPaint(host, rectangle);
         }
 
+        public DateTime LastTimeCandleUpdate { get; set; }
+
         /// <summary>
         /// the last candle has changed / 
         /// изменилась последняя свеча
         /// </summary>
         private void Tab_LastCandlesChangeEvent(List<Candle> candles)
         {
+            LastTimeCandleUpdate = DateTime.Now;
             _horizontalVolume.Process(candles);
             _chartMaster.Process(_horizontalVolume);
         }

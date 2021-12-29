@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -212,6 +212,8 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 candles.AddRange(newCandles);
 
                 actualTime = candles[candles.Count - 1].TimeStart;
+
+                Thread.Sleep(60);
             }
 
             if (candles.Count == 0)
@@ -252,7 +254,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     {
                         firstTrades = _client.GetTickHistoryToSecurity(security.Name, startOver, startOver.AddSeconds(60), 0);
                         startOver.AddSeconds(60);
-                        Thread.Sleep(10);
+                        Thread.Sleep(60);
                     }
                     while (firstTrades == null || firstTrades.Count == 0);
 
@@ -267,8 +269,11 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 {
                     newTrades = _client.GetTickHistoryToSecurity(security.Name, new DateTime(), new DateTime(), lastId + 1);
 
-                    lastId = Convert.ToInt64(newTrades[newTrades.Count - 1].Id);
-
+                    try
+                    {
+                        lastId = Convert.ToInt64(newTrades[newTrades.Count - 1].Id);
+                    }
+                    catch { } // Если дата по которую скачиваем свечки превышает сегодняшнюю: Ignore 
                 }
 
                 if (newTrades != null && newTrades.Count != 0)
@@ -323,7 +328,18 @@ namespace OsEngine.Market.Servers.Binance.Spot
         /// </summary>
         public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf)
         {
-            return _client.GetCandles(nameSec, tf);
+            List<Candle> candles = _client.GetCandles(nameSec, tf);
+
+            if (candles != null && candles.Count != 0)
+            {
+                for (int i = 0; i < candles.Count; i++)
+                {
+                    candles[i].State = CandleState.Finished;
+                }
+                candles[candles.Count - 1].State = CandleState.Started;
+            }
+
+            return candles;
         }
 
         //parsing incoming data
@@ -369,10 +385,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                         trades.data.q.ToDecimal();
                 trade.Side = trades.data.m == true ? Side.Sell : Side.Buy;
 
-                if (NewTradesEvent != null)
-                {
-                    NewTradesEvent(trade);
-                }
+                NewTradesEvent?.Invoke(trade);
             }
         }
 
@@ -671,6 +684,18 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 else
                 {
                     security.Decimals = 0;
+                }
+
+                if (sec.filters.Count > 1 &&
+                   sec.filters[2] != null &&
+                   sec.filters[2].minQty != null)
+                {
+                    decimal minQty = sec.filters[2].minQty.ToDecimal();
+                    string qtyInStr = minQty.ToStringWithNoEndZero().Replace(",", ".");
+                    if(qtyInStr.Split('.').Length > 1)
+                    {
+                        security.DecimalsVolume = qtyInStr.Split('.')[1].Length;
+                    }
                 }
 
                 security.State = SecurityStateType.Activ;

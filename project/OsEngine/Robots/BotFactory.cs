@@ -14,6 +14,7 @@ using System.Threading;
 using Microsoft.CSharp;
 using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.Robots.CounterTrend;
 using OsEngine.Robots.Engines;
 using OsEngine.Robots.High_Frequency;
@@ -21,14 +22,14 @@ using OsEngine.Robots.MarketMaker;
 using OsEngine.Robots.Patterns;
 using OsEngine.Robots.Trend;
 using OsEngine.Robots.OnScriptIndicators;
-using OsEngine.Robots.MoiRoboti;
-using OsEngine.Robots.MoiRoboti.New;
-using OsEngine.OsTrader;
+using OsEngine.Robots.Screeners;
 
 namespace OsEngine.Robots
 {
     public class BotFactory
     {
+        private static readonly Dictionary<string, Type> BotsWithAttribute = GetTypesWithBotAttribute();
+        
         /// <summary>
         /// list robots name / 
         /// список доступных роботов
@@ -36,31 +37,18 @@ namespace OsEngine.Robots
         public static List<string> GetNamesStrategy()
         {
             List<string> result = new List<string>();
-
-
-            result.Add("ParaboTrel");
-            result.Add("NewParabol");
-            result.Add("Breakdown");
-            result.Add("Frank");
-            result.Add("Frank_2");
-            result.Add("Frankbol");
-            result.Add("Frankbol_for_bnb");
-            result.Add("Depozit");
-            result.Add("Ver_01");
-            result.Add("Storog");
-            result.Add("Hftone");
-            result.Add("RobotPriceChannel");
-
+            result.Add("SmaScreener");
             result.Add("Fisher");
             result.Add("Engine");
+            result.Add("ScreenerEngine");
             result.Add("ClusterEngine");
+            result.Add("SmaTrendSample");
             result.Add("FundBalanceDivergenceBot");
             result.Add("PairTraderSimple");
             result.Add("MomentumMACD");
             result.Add("MarketMakerBot");
             result.Add("PatternTrader");
             result.Add("HighFrequencyTrader");
-            result.Add("Bollinger");
             result.Add("EnvelopTrend");
             result.Add("Williams Band");
             result.Add("TwoLegArbitrage");
@@ -87,6 +75,7 @@ namespace OsEngine.Robots
             result.Add("PriceChannelVolatility");
             result.Add("RsiTrade");
             result.Add("RviTrade");
+            result.AddRange(BotsWithAttribute.Keys);
 
             List<string> resultTrue = new List<string>();
 
@@ -121,63 +110,26 @@ namespace OsEngine.Robots
         public static BotPanel GetStrategyForName(string nameClass, string name, StartProgram startProgram, bool isScript)
         {
             BotPanel bot = null;
+                       
             // примеры и бесплатные боты
-
-            if (isScript)
+            if (isScript && bot == null)
             {
                 bot = CreateScriptStrategyByName(nameClass, name, startProgram);
                 return bot;
             }
-            if (nameClass == "RobotPriceChannel")
+            
+            if (nameClass == "SmaScreener")
             {
-                bot = new RobotPriceChannel(name, startProgram);
+                bot = new SmaScreener(name, startProgram);
             }
- 
-            if (nameClass == "ParaboTrel")
+            if (nameClass == "ScreenerEngine")
             {
-                bot = new ParaboTrel(name, startProgram);
+                bot = new ScreenerEngine(name, startProgram);
             }
-            if (nameClass == "NewParabol")
+            if (nameClass == "SmaTrendSample")
             {
-                bot = new NewParabol(name, startProgram);
+                bot = new SmaTrendSample(name, startProgram);
             }
-            if (nameClass == "Breakdown")
-            {
-                bot = new Breakdown(name, startProgram);
-            }
-            if (nameClass == "Hftone")
-            { 
-                bot = new Hftone(name, startProgram);
-            }
-            if (nameClass == "Frank_2")
-            {
-                bot = new Frank_2 (name, startProgram);
-            }
-            if (nameClass == "Frankbol_for_bnb")
-            {
-                bot = new Frankbol_for_bnb (name, startProgram);
-            }
-            if (nameClass == "Frankbol")
-            {
-                bot = new Frankbol(name, startProgram);
-            }
-            if (nameClass == "Frank")
-            {
-                bot = new Frank (name, startProgram);
-            }
-            if (nameClass == "Storog")
-            {
-                bot = new Storog(name, startProgram);
-            }
-            if (nameClass == "Depozit")
-            {
-                bot = new Depozit(name, startProgram);
-            }
-            if (nameClass == "Ver_01")
-            {
-                bot = new Ver_01(name, startProgram);
-            }
- 
             if (nameClass == "TimeOfDayBot")
             {
                 bot = new TimeOfDayBot(name, startProgram);
@@ -285,10 +237,6 @@ namespace OsEngine.Robots
             {
                 bot = new MarketMakerBot(name, startProgram);
             }
-            if (nameClass == "Bollinger")
-            {
-                bot = new StrategyBollinger(name, startProgram);
-            }
             if (nameClass == "ParabolicSarTrade")
             {
                 bot = new ParabolicSarTrade(name, startProgram);
@@ -325,15 +273,35 @@ namespace OsEngine.Robots
             {
                 bot = new PairTraderSpreadSma(name, startProgram);
             }
-
+            if (BotsWithAttribute.ContainsKey(nameClass))
+            {
+                Type botType = BotsWithAttribute[nameClass];
+                bot = (BotPanel) Activator.CreateInstance(botType, name, startProgram);
+            }
 
             return bot;
         }
+        
+        static Dictionary<string, Type> GetTypesWithBotAttribute()
+        {
+            Assembly assembly = Assembly.GetAssembly(typeof(BotPanel));
+            Dictionary<string, Type> bots = new Dictionary<string, Type>();
+            foreach(Type type in assembly.GetTypes())
+            {
+                object[] attributes = type.GetCustomAttributes(typeof(BotAttribute), false);
+                if (attributes.Length > 0)
+                {
+                    bots[((BotAttribute) attributes[0]).Name] = type;
+                }
+            }
+
+            return bots;
+        }
 
         // Scripts
-
         public static List<string> GetScriptsNamesStrategy()
         {
+
             if (Directory.Exists(@"Custom") == false)
             {
                 Directory.CreateDirectory(@"Custom");
@@ -441,6 +409,11 @@ namespace OsEngine.Robots
                     }
                 }
                 
+                if(myPath == "")
+                {
+                    return null;
+                }
+
                 bot = Serialize(myPath, nameClass, name, startProgram);
             }
 
@@ -760,8 +733,13 @@ namespace OsEngine.Robots
                     }
                     else
                     {
+                        if(bot.TabsScreener == null ||
+                            bot.TabsScreener.Count == 0)
+                        {
+                            _namesWithParam.Add(names[i]);
+                        }
+
                         // SendLogMessage("With parameters/С параметрами: " + bot.GetNameStrategyType(), LogMessageType.System);
-                        _namesWithParam.Add(names[i]);
                     }
                     if (numThread == 2)
                     {

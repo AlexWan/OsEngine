@@ -1,0 +1,200 @@
+﻿<UserControl x:Class="AdminPanel.Views.ClientView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:utils="clr-namespace:AdminPanel.Utils"
+             mc:Ignorable="d" 
+             d:DesignHeight="650" d:DesignWidth="900">
+    <UserControl.Resources>
+        <utils:ServerStateLabelColorConverter  x:Key="ServerStateLabelColorConverter"/>
+    </UserControl.Resources>
+    <Grid>
+        <TabControl Margin="5,33,5,5" x:Name="ClientTabs" BorderThickness="1" TabStripPlacement="Bottom" 
+                    SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
+            <TabItem Name="TabMain" Header="{Binding TabMainHeader}" Width="140">
+                <Grid Margin="5">
+                    <Label Name="LabelWindows" HorizontalAlignment="Left" FontSize="19"
+                           VerticalAlignment="Top" Margin="57,38,0,0" Width="100" Content="Windows"/>
+                    <Label Name="LabelIp" HorizontalAlignment="Left"
+                           VerticalAlignment="Top" Margin="108,79,0,0" Width="49" Content="IP"/>
+                    <TextBox HorizontalAlignment="Left" Text="{Binding Ip}"
+                             VerticalAlignment="Top" Margin="191,79,0,0" Width="174"/>
+
+                    <Label Name="LabelComment" HorizontalAlignment="Left"
+                           VerticalAlignment="Top" Margin="108,107,0,0" Width="70" Content="Comment"/>
+                    <TextBox HorizontalAlignment="Left" Text="{Binding Comment}"
+                             VerticalAlignment="Top" Margin="191,107,0,0" Width="236"/>
+                    <Label Name="LabelRam" HorizontalAlignment="Left"
+                           VerticalAlignment="Top" Margin="108,139,0,0" Width="49" Content="RAM"/>
+                    <Label Name="RamAll" HorizontalAlignment="Left"
+                           VerticalAlignment="Top" Margin="191,139,0,0" Width="174" Content="{Binding Ram, Mode=OneWay}"/>
+                    <Label Name="LabelCpu" HorizontalAlignment="Left"
+                           VerticalAlignment="Top" Margin="108,166,0,0" Width="49" Content="CPU"/>
+                    <Label Name="Cpu" HorizontalAlignment="Left"
+                           VerticalAlignment="Top" Margin="191,166,0,0" Width="174" Content="{Binding Cpu, Mode=OneWay}"/>
+                    <Label x:Name="LabelSlave" HorizontalAlignment="Left" FontSize="19"
+                        VerticalAlignment="Top" Margin="485,38,0,0" Width="100" Content="Slave"/>
+                    <Label x:Name="LabelStateSlave" HorizontalAlignment="Left"
+                        VerticalAlignment="Top" Margin="521,79,0,0" Width="50" Content="State"/>
+                    <Label x:Name="StateSlave" HorizontalAlignment="Left"
+                        VerticalAlignment="Top" Margin="604,79,0,0" Width="101" Content="{Binding SlaveState}" 
+                        Foreground="{Binding SlaveState, Converter={StaticResource ServerStateLabelColorConverter}}"/>
+                    <Label x:Name="LabelToken" HorizontalAlignment="Left"
+                        VerticalAlignment="Top" Margin="521,107,0,0" Width="49" Content="Token"/>
+                    <TextBox  HorizontalAlignment="Left" Text="{Binding Token}"
+                        VerticalAlignment="Top" Margin="604,107,0,0" Width="174"/>
+                    <Label x:Name="LabelPort" HorizontalAlignment="Left"
+                        VerticalAlignment="Top" Margin="521,135,0,0" Width="49" Content="Port"/>
+                    <TextBox  HorizontalAlignment="Left" Text="{Binding Port}"
+                        VerticalAlignment="Top" Margin="604,135,0,0" Width="174"/>
+
+                    <Label x:Name="LabelOsEngines" HorizontalAlignment="Left" FontSize="19"
+                           VerticalAlignment="Top" Margin="57,221,0,0" Width="100" Content="Os Engines"/>
+                    <Button Content="{Binding Path=BtnAddContent}" VerticalAlignment="Top"
+                            HorizontalAlignment="Right" Height="20"
+                            MaxWidth="100" Margin="0,221,235,0" Width="117" Click="ButtonAdd_Click" />
+                    <Button Content="{Binding Path=BtnEditContent}" VerticalAlignment="Top"
+                            HorizontalAlignment="Right" Height="20"
+                            MaxWidth="100" Margin="0,221,130,0" Width="117" Click="ButtonEdit_Click" />
+                    <Button Content="{Binding Path=BtnDeleteContent}" VerticalAlignment="Top"
+                            HorizontalAlignment="Right" Height="20"
+                            MaxWidth="100" Margin="0,221,25,0" Width="117" Click="ButtonRemove_Click"/>
+
+                    <DataGrid Name="DataGridEngines" HorizontalAlignment="Left" VerticalAlignment="Stretch" 
+                              Margin="108,258,25,25" MinHeight="100" BorderThickness="1" BorderBrush="WhiteSmoke"
+                              VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" ItemsSource="{Binding Engines}"
+                              HeadersVisibility="Column" GridLinesVisibility="None" SelectedItem="{Binding SelectedEngine}">
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow">
+                                <Setter Property="Control.Background" Value="#111217"/>
+                                <Setter Property="Control.Height" Value="30"/>
+                                <Setter Property="Control.Foreground" Value="White" />
+                                <Setter Property="Control.BorderThickness" Value="10,3,10,3" />
+                                <Setter Property="Control.BorderBrush" Value="#151A1E" />
+                            </Style>
+                        </DataGrid.RowStyle>
+                        <DataGrid.CellStyle>
+                            <Style TargetType="DataGridCell">
+                                <Style.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Background" Value="#FF5500" />
+                                        <Setter Property="Foreground" Value="Black" />
+                                        <Setter Property="BorderThickness" Value="0" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.CellStyle>
+                        <DataGrid.Resources>
+                            <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#FF5500"/>
+                        </DataGrid.Resources>
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style>
+                                <Setter Property="Control.Height" Value="30"/>
+                                <Setter Property="Control.Foreground" Value="White" />
+                                <Setter Property="Control.BorderThickness" Value="10,5,10,5" />
+                                <Setter Property="Control.BorderBrush" Value="#151A1E" />
+                            </Style>
+                        </DataGrid.ColumnHeaderStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Binding="{Binding Path=EngineName}" Width="*">
+                                <DataGridTextColumn.HeaderTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding DataContext.NameHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"/>
+                                    </DataTemplate>
+                                </DataGridTextColumn.HeaderTemplate>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Binding="{Binding Path=State}" Width="*">
+                                <DataGridTextColumn.CellStyle>
+                                    <Style TargetType="DataGridCell">
+                                        <Setter Property="Foreground" Value="{Binding Path=State, Converter={StaticResource ServerStateLabelColorConverter}}"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                        <Style.Triggers>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter Property="Background" Value="#FF5500" />
+                                                <Setter Property="BorderThickness" Value="0" />
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </DataGridTextColumn.CellStyle>
+                                <DataGridTextColumn.HeaderTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding DataContext.StateHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"/>
+                                    </DataTemplate>
+                                </DataGridTextColumn.HeaderTemplate>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Binding="{Binding Path=Token}" MinWidth="250" Width="*">
+                                <DataGridTextColumn.HeaderTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding DataContext.TokenHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"/>
+                                    </DataTemplate>
+                                </DataGridTextColumn.HeaderTemplate>
+                            </DataGridTextColumn>
+
+                            <DataGridTextColumn Binding="{Binding Path=Port}" Width="*">
+                                <DataGridTextColumn.HeaderTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding DataContext.PortHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"/>
+                                    </DataTemplate>
+                                </DataGridTextColumn.HeaderTemplate>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Binding="{Binding Path=Ram}" Width="*">
+                                <DataGridTextColumn.HeaderTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding DataContext.RamHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"/>
+                                    </DataTemplate>
+                                </DataGridTextColumn.HeaderTemplate>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Binding="{Binding Path=RebootRam}" Width="*">
+                                <DataGridTextColumn.HeaderTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding DataContext.RebootRamHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"/>
+                                    </DataTemplate>
+                                </DataGridTextColumn.HeaderTemplate>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Binding="{Binding Path=Cpu}" Width="*">
+                                <DataGridTextColumn.HeaderTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding DataContext.CpuHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"/>
+                                    </DataTemplate>
+                                </DataGridTextColumn.HeaderTemplate>
+                            </DataGridTextColumn>
+                            <DataGridTemplateColumn Width="*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Reboot" Height="20" MaxWidth="100" Click="ButtonReboot_OnClick"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+            <TabItem x:Name="TabEngines" Header="{Binding TabServersHeader}" Width="140">
+                <Grid Margin="5">
+                    <TabControl x:Name="TabServers" TabStripPlacement="Top"/>
+                </Grid>
+            </TabItem>
+            <TabItem x:Name="TabRobots" Header="{Binding TabRobotsHeader}" Width="140">
+                <Grid Margin="5">
+                    <TabControl x:Name="TabEngineRobots" TabStripPlacement="Top"/>
+                </Grid>
+            </TabItem>
+            <TabItem x:Name="TabAllPositions" Header="{Binding TabAllPositionsHeader}" Width="140">
+                <Grid Margin="5">
+                    <TabControl x:Name="TabPositions" TabStripPlacement="Top"/>
+                </Grid>
+            </TabItem>
+            <TabItem x:Name="TabPortfolio" Header="{Binding TabPortfolioHeader}" Width="140">
+                <Grid Margin="5">
+                    <TabControl x:Name="TabPortfolios" TabStripPlacement="Top"/>
+                </Grid>
+            </TabItem>
+            <TabItem x:Name="TabOrders" Header="{Binding TabOrdersHeader}" Width="140">
+                <Grid Margin="5">
+                    <TabControl x:Name="TabEngineOrders" TabStripPlacement="Top"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

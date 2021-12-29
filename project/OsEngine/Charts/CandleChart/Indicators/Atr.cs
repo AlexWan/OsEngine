@@ -33,6 +33,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             TypeIndicator = IndicatorChartPaintType.Line;
             ColorBase = Color.DodgerBlue;
             PaintOn = true;
+            IsWatr = false;
             CanDelete = canDelete;
             Load();
         }
@@ -51,6 +52,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             TypeIndicator = IndicatorChartPaintType.Line;
             ColorBase = Color.DodgerBlue;
             PaintOn = true;
+            IsWatr = false;
             CanDelete = canDelete;
         }
 
@@ -138,6 +140,12 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public bool PaintOn { get; set; }
 
         /// <summary>
+        /// is indicator exponentially weighted
+        /// включено ли экспоненциальное взвешивание значения
+        /// </summary>
+        public bool IsWatr { get; set; }
+
+        /// <summary>
         /// save settings to file
         /// сохранить настройки в файл
         /// </summary>
@@ -155,6 +163,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                     writer.WriteLine(ColorBase.ToArgb());
                     writer.WriteLine(Lenght);
                     writer.WriteLine(PaintOn);
+                    writer.WriteLine(IsWatr);
                     writer.Close();
                 }
             }
@@ -183,7 +192,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                     ColorBase = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
                     Lenght = Convert.ToInt32(reader.ReadLine());
                     PaintOn = Convert.ToBoolean(reader.ReadLine());
-                    reader.ReadLine();
+                    IsWatr = Convert.ToBoolean(reader.ReadLine());
 
                     reader.Close();
                 }
@@ -351,10 +360,17 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <param name="candles">candles/свечи</param>
         /// <param name="index">index/индекс</param>
         /// <returns>index value/значение индикатора по индексу</returns>
-        private decimal GetValue(List<Candle> candles,int index)
+        public decimal GetValue(List<Candle> candles,int index)
         {
             TrueRangeReload(candles, index);
-            _moving = MovingAverageWild(_trueRange, _moving, Lenght, index);
+            if (!IsWatr)
+            {
+                _moving = MovingAverageWild(_trueRange, _moving, Lenght, index);
+            } else
+            {
+                _moving = MovingAverageExponentiallyWeighted(_trueRange, _moving, Lenght, index);
+            }
+            
 
             return Math.Round(_moving[_moving.Count-1],7);
         }
@@ -374,7 +390,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             //difference between previous closing price and current maximum;/разность между предыдущей ценой закрытия и текущим максимумом;
             //difference between previous closing price and current minimum./разность между предыдущей ценой закрытия и текущим минимумом.
 
-            if (index == 0)
+            if (index == 0 || _trueRange == null)
             {
                 _trueRange = new List<decimal>();
                 _trueRange.Add(0);
@@ -441,6 +457,61 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 }
 
                 moving[moving.Count - 1] = Math.Round((lastValueMoving * (Lenght - 1) + lastValueSeries) / Lenght, 7);
+
+            }
+
+            return moving;
+        }
+
+        private List<decimal> MovingAverageExponentiallyWeighted(List<decimal> valuesSeries, List<decimal> moving, int length, int index)
+        {
+            decimal lambda = Convert.ToDecimal(2.0 / (Lenght + 1));
+
+            if (moving == null || length > valuesSeries.Count)
+            {
+                moving = new List<decimal>();
+                for (int i = 0; i < index + 1; i++)
+                {
+                    moving.Add(0);
+                }
+            }
+            else if (length == valuesSeries.Count)
+            {
+                // it's first value. Calculate as MA
+                // это первое значение. Рассчитываем как простую машку
+                decimal lastMoving = 0;
+
+                for (int i = index; i > -1 && i > valuesSeries.Count - 1 - length; i--)
+                {
+                    lastMoving += valuesSeries[i];
+                }
+                if (lastMoving != 0)
+                {
+                    moving.Add(lastMoving / length);
+                }
+                else
+                {
+                    moving.Add(0);
+                }
+
+            }
+            else
+            {
+
+                decimal lastValueMoving;
+                decimal lastValueSeries = Math.Round(valuesSeries[valuesSeries.Count - 1], 7);
+
+                if (index > moving.Count - 1)
+                {
+                    lastValueMoving = moving[moving.Count - 1];
+                    moving.Add(0);
+                }
+                else
+                {
+                    lastValueMoving = moving[moving.Count - 2];
+                }
+
+                moving[moving.Count - 1] = Math.Round(lastValueMoving + (lastValueSeries-lastValueMoving) * lambda, 7);
 
             }
 

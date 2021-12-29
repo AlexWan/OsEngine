@@ -34,6 +34,7 @@ namespace OsEngine.OsTrader.Gui
             Closing += TesterUi_Closing;
 
             Local();
+            TabControlMd.SelectedIndex = 2;
         }
 
         private void Local()

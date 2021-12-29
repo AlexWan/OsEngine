@@ -31,7 +31,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
         public string ApiKey;
         public string SecretKey;
 
-        private string _baseUrl = "https://fapi.binance.com";
+        public FuturesType futures_type;
+
+        public string _baseUrl = "https://fapi.binance.com";
+        public string wss_point = "wss://fstream.binance.com";
+        public string type_str_selector = "fapi";
 
         /// <summary>
         /// connecto to the exchange
@@ -46,7 +50,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             }
 
             // check server availability for HTTP communication with it / проверяем доступность сервера для HTTP общения с ним
-            Uri uri = new Uri(_baseUrl + "/fapi/v1/time");
+            Uri uri = new Uri(_baseUrl + "/" + type_str_selector + "/v1/time");
             try
             {
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
@@ -78,7 +82,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         private void CreateDataStreams()
         {
-            _spotSocketClient = CreateUserDataStream("/fapi/v1/listenKey");
+            _spotSocketClient = CreateUserDataStream("/" + type_str_selector + "/v1/listenKey");
             _wsStreams.Add("userDataStream", _spotSocketClient);
             _spotSocketClient.MessageReceived += delegate (object sender, MessageReceivedEventArgs args)
             {
@@ -114,7 +118,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                 _listenKey = JsonConvert.DeserializeAnonymousType(res, new ListenKey()).listenKey;
 
-                string urlStr = "wss://fstream.binance.com/ws/" + _listenKey;
+                string urlStr = wss_point + "/ws/" + _listenKey;
 
                 WebSocket client = new WebSocket(urlStr); //create a web socket / создаем вебсокет
 
@@ -229,10 +233,34 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     _timeStart = DateTime.Now;
 
                     CreateQuery(Method.PUT,
-                        "/fapi/v1/listenKey", new Dictionary<string, string>()
+                        "/" + type_str_selector + "/v1/listenKey", new Dictionary<string, string>()
                             { { "listenKey=", _listenKey } }, false);
 
                 }
+            }
+        }
+
+        /// <summary>
+        /// get realtime Mark Price and Funding Rate
+        /// получать среднюю цену инструмента (на всех биржах) и ставку фандирования в реальном времени
+        /// </summary>
+        public PremiumIndex GetPremiumIndex(string symbol)
+        {
+            try
+            {
+                var res = CreateQuery(
+                    Method.GET,
+                    "/" + type_str_selector + "/v1/premiumIndex",
+                    new Dictionary<string, string>() { { "symbol=", symbol } },
+                    true);
+
+                PremiumIndex resp = JsonConvert.DeserializeAnonymousType(res, new PremiumIndex());
+                return resp;
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+                return null;
             }
         }
 
@@ -244,32 +272,80 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         private object _lock = new object();
 
-        public void GetBalance()
+        /// <summary>
+        /// shows account info
+        /// показывает статистику по аккаунту пользователя
+        /// </summary>
+        public AccountResponseFutures GetAccountInfo()
         {
             lock (_lock)
             {
                 try
                 {
-                    // var res = CreateQuery( Method.GET, "/fapi/v1/balance", null, true);
+                    string res = null;
 
-                    var res = CreateQuery(Method.GET, "/fapi/v1/account", null, true);
+                    if (type_str_selector == "dapi")
+                    {
+                        res = CreateQuery(Method.GET, type_str_selector + "/v1/balance", null, true);
+                        return GetAccountInfoFromDFut(res);
+
+                    }
+                    else if (type_str_selector == "fapi")
+                    {
+                        res = CreateQuery(Method.GET, "/" + type_str_selector + "/v2/account", null, true);
+                    }
 
                     if (res == null)
                     {
-
-                        return;
+                        return null;
                     }
 
                     AccountResponseFutures resp = JsonConvert.DeserializeAnonymousType(res, new AccountResponseFutures());
-                    if (NewPortfolio != null)
-                    {
-                        NewPortfolio(resp);
-                    }
+                    return resp;
                 }
                 catch (Exception ex)
                 {
                     SendLogMessage(ex.ToString(), LogMessageType.Error);
+                    return null;
                 }
+            }
+        }
+
+        public AccountResponseFutures GetAccountInfoFromDFut(string response)
+        {
+            if(response == null)
+            {
+                return null;
+            }
+
+            AccountResponseFutures resp = new AccountResponseFutures();
+
+            List<AssetFutures> assets = JsonConvert.DeserializeAnonymousType(response, new List<AssetFutures>());
+
+            resp.assets = assets;
+            resp.positions = new List<PositionFutures>();
+
+            return resp;
+        }
+
+        /// <summary>
+        /// balance 
+        /// баланс портфеля
+        /// </summary>
+        public void GetBalance()
+        {
+            try
+            {
+                AccountResponseFutures resp = GetAccountInfo();
+                if (NewPortfolio != null && resp != null)
+                {
+                    NewPortfolio(resp);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -288,7 +364,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     //Get All Margin Pairs (MARKET_DATA)
                     //GET /sapi/v1/margin/allPairs
 
-                    var res = CreateQuery(Method.GET, "/fapi/v1/exchangeInfo", null, false);
+                    var res = CreateQuery(Method.GET, "/" + type_str_selector + "/v1/exchangeInfo", null, false);
 
                     SecurityResponce secResp = JsonConvert.DeserializeAnonymousType(res, new SecurityResponce());
 
@@ -328,6 +404,10 @@ namespace OsEngine.Market.Servers.Binance.Futures
             {
                 lock (_candleLocker)
                 {
+                    if (jsonCandles == null ||
+                        jsonCandles == "[]")
+                        return null;
+
                     string res = jsonCandles.Trim(new char[] { '[', ']' });
                     var res2 = res.Split(new char[] { ']' });
 
@@ -431,7 +511,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     break;
             }
 
-            string endPoint = "fapi/v1/klines";
+            string endPoint = "" + type_str_selector + "/v1/klines";
 
             if (needTf != "2m" && needTf != "10m" && needTf != "20m" && needTf != "45m")
             {
@@ -503,7 +583,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                     param.Add("symbol=" + security, "&limit=1000" + "&startTime=" + from);
 
-                    string endPoint = "fapi/v1/aggTrades";
+                    string endPoint = "" + type_str_selector + "/v1/aggTrades";
 
                     var res2 = CreateQuery(Method.GET, endPoint, param, false);
 
@@ -543,7 +623,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 trade.Volume = Math.Abs(StringToDecimal(jtTrade.Q));
                 trade.SecurityNameCode = secName;
 
-                if (StringToDecimal(jtTrade.Q) >= 0)
+                if (!jtTrade.m)
                 {
                     trade.Side = Side.Buy;
                     trade.Ask = 0;
@@ -551,7 +631,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     trade.Bid = trade.Price;
                     trade.BidsVolume = trade.Volume;
                 }
-                else if (StringToDecimal(jtTrade.Q) < 0)
+                else
                 {
                     trade.Side = Side.Sell;
                     trade.Ask = trade.Price;
@@ -619,7 +699,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     break;
             }
 
-            string endPoint = "/fapi/v1/klines";
+            string endPoint = "/" + type_str_selector + "/v1/klines";
 
             if (needTf != "2m" && needTf != "10m" && needTf != "20m" && needTf != "45m")
             {
@@ -751,8 +831,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
         /// method sends a request and returns a response from the server
         /// метод отправляет запрос и возвращает ответ от сервера
         /// </summary>
-        public string CreateQuery(Method method, string endpoint, Dictionary<string, string> param = null,
-            bool auth = false)
+        public string CreateQuery(Method method, string endpoint, Dictionary<string, string> param = null, bool auth = false)
         {
             try
             {
@@ -795,10 +874,13 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                     string baseUrl = _baseUrl;
 
-
                     var response = new RestClient(baseUrl).Execute(request).Content;
 
-                    if (response.Contains("code") && !response.Contains("code\": 200"))
+                    if (response.StartsWith("<!DOCTYPE"))
+                    {
+                        throw new Exception(response);
+                    }
+                    else if (response.Contains("code") && !response.Contains("code\": 200"))
                     {
                         var error = JsonConvert.DeserializeAnonymousType(response, new ErrorMessage());
                         throw new Exception(error.msg);
@@ -822,7 +904,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         private string GetNonce()
         {
-            var resTime = CreateQuery(Method.GET, "/fapi/v1/time", null, false);
+            var resTime = CreateQuery(Method.GET, "/" + type_str_selector + "/v1/time", null, false);
             var result = JsonConvert.DeserializeAnonymousType(resTime, new BinanceTime());
             return (result.serverTime + 500).ToString();
 
@@ -862,11 +944,6 @@ namespace OsEngine.Market.Servers.Binance.Futures
         /// <param name="order"></param>
         public void ExecuteOrder(Order order)
         {
-            ExecuteOrderOnMarginExchange(order);
-        }
-
-        private void ExecuteOrderOnMarginExchange(Order order)
-        {
             lock (_lockOrder)
             {
                 try
@@ -893,10 +970,16 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     }
                     param.Add("&type=", order.TypeOrder == OrderPriceType.Limit ? "LIMIT" : "MARKET");
                     //param.Add("&timeInForce=", "GTC");
-                    param.Add("&newClientOrderId=", order.NumberUser.ToString());
+                    param.Add("&newClientOrderId=", "x-gnrPHWyE" + order.NumberUser.ToString());
                     param.Add("&quantity=",
                         order.Volume.ToString(CultureInfo.InvariantCulture)
                             .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
+
+                    if (!HedgeMode && order.PositionConditionType == OrderPositionConditionType.Close)
+                    {
+                        param.Add("&reduceOnly=", "true");
+                    }
+
                     if (order.TypeOrder == OrderPriceType.Limit)
                     {
                         param.Add("&timeInForce=", "GTC");
@@ -906,7 +989,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                     }
 
-                    var res = CreateQuery(Method.POST, "/fapi/v1/order", param, true);
+                    var res = CreateQuery(Method.POST, "/" + type_str_selector + "/v1/order", param, true);
 
                     if (res != null && res.Contains("clientOrderId"))
                     {
@@ -966,7 +1049,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     param.Add("symbol=", order.SecurityNameCode.ToUpper());
                     param.Add("&orderId=", order.NumberMarket);
 
-                    CreateQuery(Method.DELETE, "/fapi/v1/order", param, true);
+                    CreateQuery(Method.DELETE, "/" + type_str_selector + "/v1/order", param, true);
 
                 }
                 catch (Exception ex)
@@ -993,7 +1076,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 }
             }
             
-            string endPoint = "/fapi/v1/allOrders";
+            string endPoint = "/" + type_str_selector + "/v1/allOrders";
 
             List<HistoryOrderReport> allOrders = new List<HistoryOrderReport>();
 
@@ -1082,7 +1165,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             List<string> namesSec = new List<string>();
             namesSec.Add(oldOrder.SecurityNameCode);
 
-            string endPoint = "/fapi/v1/allOrder";
+            string endPoint = "/" + type_str_selector + "/v1/allOrder";
 
             List<HistoryOrderReport> allOrders = new List<HistoryOrderReport>();
 
@@ -1216,11 +1299,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
         /// <param name="e"></param>
         private void WsError(object sender, EventArgs e)
         {
-            if (e.ToString().Contains("Unknown order"))
-            {
-                return;
-            }
-            SendLogMessage("Ошибка из ws4net :" + e, LogMessageType.Error);
+            //if (e.ToString().Contains("Unknown order"))
+            //{
+            //    return;
+            //}
+            SendLogMessage("Ошибка из ws4net :" + e.ToString(), LogMessageType.Error);
         }
 
         /// <summary>
@@ -1243,7 +1326,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
         {
             if (!_wsStreams.ContainsKey(security.Name))
             {
-                string urlStr = "wss://fstream.binance.com/stream?streams="
+                string urlStr = wss_point + "/stream?streams="
                                  + security.Name.ToLower() + "@depth20/"
                                  + security.Name.ToLower() + "@trade";
                 _wsClient = new WebSocket(urlStr); // create web-socket / создаем вебсоке
@@ -1255,6 +1338,14 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 _wsClient.Error += new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>(WsError);
 
                 _wsClient.MessageReceived += new EventHandler<MessageReceivedEventArgs>(GetRes);
+
+                
+
+                if (_wsStreams.ContainsKey(security.Name))
+                {
+                    _wsStreams[security.Name].Close();
+                    _wsStreams.Remove(security.Name);
+                }
 
                 _wsClient.Open();
 
@@ -1283,24 +1374,47 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                             if (mes.Contains("code"))
                             {
-                                SendLogMessage(JsonConvert.DeserializeAnonymousType(mes, new ErrorMessage()).msg, LogMessageType.Error);
+                                // если есть code ошибки, то пытаемся распарсить
+                                ErrorMessage _err = new ErrorMessage();
+
+                                try
+                                {
+                                    _err = JsonConvert.DeserializeAnonymousType(mes, new ErrorMessage());
+                                }
+                                catch (Exception e)
+                                {
+                                    // если не смогли распарсить, то просто покажем что пришло
+                                    _err.code = 9999;
+                                    _err.msg = mes;
+                                }
+                                SendLogMessage("code:" + _err.code.ToString() + ",msg:" + _err.msg, LogMessageType.Error);
                             }
 
                             else if (mes.Contains("\"e\"" + ":" + "\"ORDER_TRADE_UPDATE\""))
                             {
-                                var ord = JsonConvert.DeserializeAnonymousType(mes, new OrderUpdResponse());
-
-                                var order = ord.o;
-
-                                string orderNumUser = order.c;
-
+                                // если ошибки в ответе ордера
+                                OrderUpdResponse ord = new OrderUpdResponse();
                                 try
                                 {
-                                    Convert.ToInt32(orderNumUser);
+                                    ord = JsonConvert.DeserializeAnonymousType(mes, new OrderUpdResponse());
                                 }
                                 catch (Exception)
                                 {
+                                    SendLogMessage("error in order update:" + mes, LogMessageType.Error);
                                     continue;
+                                }
+
+                                var order = ord.o;
+
+                                Int32 orderNumUser;
+
+                                try
+                                {
+                                    orderNumUser = Convert.ToInt32(order.c.ToString().Replace("x-gnrPHWyE", ""));
+                                }
+                                catch (Exception)
+                                {
+                                    orderNumUser = Convert.ToInt32(order.c.GetHashCode());
                                 }
 
                                 if (order.x == "NEW")
@@ -1308,7 +1422,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                                     Order newOrder = new Order();
                                     newOrder.SecurityNameCode = order.s;
                                     newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(ord.T));
-                                    newOrder.NumberUser = Convert.ToInt32(orderNumUser);
+                                    newOrder.NumberUser = orderNumUser;
 
                                     newOrder.NumberMarket = order.i.ToString();
                                     //newOrder.PortfolioNumber = order.PortfolioNumber; добавить в сервере
@@ -1330,7 +1444,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                                     newOrder.SecurityNameCode = order.s;
                                     newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(ord.T));
                                     newOrder.TimeCancel = newOrder.TimeCallBack;
-                                    newOrder.NumberUser = Convert.ToInt32(orderNumUser);
+                                    newOrder.NumberUser = orderNumUser;
                                     newOrder.NumberMarket = order.i.ToString();
                                     newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
                                     newOrder.State = OrderStateType.Cancel;
@@ -1349,7 +1463,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                                     Order newOrder = new Order();
                                     newOrder.SecurityNameCode = order.s;
                                     newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(ord.T));
-                                    newOrder.NumberUser = Convert.ToInt32(orderNumUser);
+                                    newOrder.NumberUser = orderNumUser;
                                     newOrder.NumberMarket = order.i.ToString();
                                     newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
                                     newOrder.State = OrderStateType.Fail;
@@ -1386,7 +1500,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                                     newOrder.SecurityNameCode = order.s;
                                     newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(ord.T));
                                     newOrder.TimeCancel = newOrder.TimeCallBack;
-                                    newOrder.NumberUser = Convert.ToInt32(orderNumUser);
+                                    newOrder.NumberUser = orderNumUser;
                                     newOrder.NumberMarket = order.i.ToString();
                                     newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
                                     newOrder.State = OrderStateType.Cancel;
@@ -1508,7 +1622,21 @@ namespace OsEngine.Market.Servers.Binance.Futures
             }
         }
 
-        public bool HedgeMode;
+        public bool HedgeMode
+        {
+            get { return _hedgeMode; }
+            set 
+            { 
+                if(value == _hedgeMode)
+                {
+                    return;
+                }
+                _hedgeMode = value;
+                SetPositionMode();
+            }
+        }
+        private bool _hedgeMode;
+
         public void SetPositionMode()
         {
             try
@@ -1517,7 +1645,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 {
                     return;
                 }
-                var rs = CreateQuery(Method.GET, "/fapi/v1/positionSide/dual", new Dictionary<string, string>(),true);
+                var rs = CreateQuery(Method.GET, "/" + type_str_selector + "/v1/positionSide/dual", new Dictionary<string, string>(),true);
                 if (rs != null)
                 {
                     var modeNow = JsonConvert.DeserializeAnonymousType(rs, new HedgeModeResponse());
@@ -1525,7 +1653,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     {
                         var param = new Dictionary<string, string>();
                         param.Add("dualSidePosition=", HedgeMode.ToString().ToLower());
-                        CreateQuery(Method.POST, "/fapi/v1/positionSide/dual", param, true);
+                        CreateQuery(Method.POST, "/" + type_str_selector + "/v1/positionSide/dual", param, true);
                     }
                 }
             }

@@ -36,7 +36,7 @@ namespace OsEngine.Robots.Trend
             LabelRegime.Content = OsLocalization.Trader.Label115;
             LabelVolume.Content = OsLocalization.Trader.Label30;
             LabelSlippage.Content = OsLocalization.Trader.Label92;
-            ButtonAccept.Content = OsLocalization.Trader.Label132;
+            ButtonAccept.Content = OsLocalization.Trader.Label17;
             LabelStohasticUp.Content = OsLocalization.Trader.Label149;
             LabelStochasticLow.Content = OsLocalization.Trader.Label150;
             LabelStep.Content = OsLocalization.Trader.Label151;

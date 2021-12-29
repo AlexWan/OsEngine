@@ -45,9 +45,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
             HostColorBase.Child = new TextBox();
             HostColorBase.Child.BackColor = _atr.ColorBase;
             CheckBoxPaintOnOff.IsChecked = _atr.PaintOn;
+            CheckBoxExponential.IsChecked = _atr.IsWatr;
 
             ButtonColorAdx.Content = OsLocalization.Charts.LabelButtonIndicatorColor;
             CheckBoxPaintOnOff.Content = OsLocalization.Charts.LabelPaintIntdicatorIsVisible;
+            CheckBoxExponential.Content = OsLocalization.Charts.LabelIndicatorExponential;
             ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
             LabelIndicatorPeriod.Content = OsLocalization.Charts.LabelIndicatorPeriod;
         }
@@ -74,7 +76,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _atr.ColorBase = HostColorBase.Child.BackColor;
             _atr.Lenght= Convert.ToInt32(TextBoxLenght.Text);
             _atr.PaintOn = CheckBoxPaintOnOff.IsChecked.Value;
-
+            _atr.IsWatr = CheckBoxExponential.IsChecked.Value;
             _atr.Save();
 
             IsChange = true;

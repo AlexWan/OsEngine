@@ -109,6 +109,9 @@ namespace OsEngine
 
             ButtonRobot.Content = OsLocalization.MainWindow.OsBotStationName;
             ButtonCandleConverter.Content = OsLocalization.MainWindow.OsCandleConverter;
+
+            ButtonTesterLight.Content = OsLocalization.MainWindow.OsTesterLightName;
+            ButtonRobotLight.Content = OsLocalization.MainWindow.OsBotStationLightName;
         }
 
         /// <summary>
@@ -212,12 +215,48 @@ namespace OsEngine
             Process.GetCurrentProcess().Kill();
         }
 
+        private void ButtonTesterLight_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Hide();
+                TesterUiLight candleOneUi = new TesterUiLight();
+                candleOneUi.ShowDialog();
+                Close();
+                ProccesIsWorked = false;
+                Thread.Sleep(5000);
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.ToString());
+            }
+            Process.GetCurrentProcess().Kill();
+        }
+
         private void ButtonRobotCandleOne_Click(object sender, RoutedEventArgs e)
         {
             try
             {
                 Hide();
                 RobotUi candleOneUi = new RobotUi();
+                candleOneUi.ShowDialog();
+                Close();
+                ProccesIsWorked = false;
+                Thread.Sleep(5000);
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.ToString());
+            }
+            Process.GetCurrentProcess().Kill();
+        }
+
+        private void ButtonRobotLight_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Hide();
+                RobotUiLight candleOneUi = new RobotUiLight();
                 candleOneUi.ShowDialog();
                 Close();
                 ProccesIsWorked = false;

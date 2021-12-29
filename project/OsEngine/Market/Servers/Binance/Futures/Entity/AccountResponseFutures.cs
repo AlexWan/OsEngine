@@ -26,14 +26,19 @@ namespace OsEngine.Market.Servers.Binance.Futures.Entity
 
     public class PositionFutures
     {
-        public string isolated;
-        public string leverage;
+        public string symbol;
         public string initialMargin;
         public string maintMargin;
-        public string openOrderInitialMargin;
-        public string positionInitialMargin;
-        public string symbol;
         public string unrealizedProfit;
+        public string positionInitialMargin;
+        public string openOrderInitialMargin;
+        public string leverage;
+        public string isolated;
+        public string entryPrice;
+        public string maxNotional;
+        public string positionSide;
+        public string positionAmt;
+        public string updateTime;
     }
 
     public class AssetFutures
@@ -86,5 +91,15 @@ namespace OsEngine.Market.Servers.Binance.Futures.Entity
     public class HedgeModeResponse
     {
         public bool dualSidePosition;
+    }
+
+    public class PremiumIndex
+    {
+        public string symbol;                       //"BTCUSDT",
+        public string markPrice;                    //"11793.63104562",  // mark price
+        public string indexPrice;                   //"11781.80495970", // index price
+        public string lastFundingRate;              //"0.00038246",  // This is the lasted funding rate
+        public string nextFundingTime;              //1597392000000,
+        public string interestRate;                 //0.00010000",
     }
 }

@@ -133,14 +133,14 @@ namespace OsEngine.Market.Servers
                 }
                 else if (param[i].Type == ServerParameterType.Button)
                 {
-                    newRow = GetEnumParamRow((ServerParameterButton)param[i]);
+                    newRow = GetButtonParamRow((ServerParameterButton)param[i]);
                 }
 
                 _newGrid.Rows.Add(newRow);
             }
         }
 
-        private DataGridViewRow GetEnumParamRow(ServerParameterButton param)
+        private DataGridViewRow GetButtonParamRow(ServerParameterButton param)
         {
             DataGridViewRow nRow = new DataGridViewRow();
 

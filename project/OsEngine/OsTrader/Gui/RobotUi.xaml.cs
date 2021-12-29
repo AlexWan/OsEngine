@@ -39,6 +39,7 @@ namespace OsEngine.OsTrader.Gui
 
             TabControlBotsName.SizeChanged += TabControlBotsName_SizeChanged;
             Local();
+            TabControlMd.SelectedIndex = 2;
         }
 
         /// <summary>

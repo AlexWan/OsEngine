@@ -12,6 +12,7 @@ using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Finam;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -427,21 +428,24 @@ namespace OsEngine.OsData
             NewSecurityUi ui = new NewSecurityUi(securities);
             ui.ShowDialog();
 
-            if (ui.SelectedSecurity != null)
+            if (ui.SelectedSecurity != null && ui.SelectedSecurity.Count != 0)
             {
                 if (SecuritiesNames == null)
                 {
                     SecuritiesNames = new List<SecurityToLoad>();
                 }
-
-               SecurityToLoad record = new SecurityToLoad();
-                record.Name = ui.SelectedSecurity.Name;
-                record.Id = ui.SelectedSecurity.NameId;
-
-                if (SecuritiesNames.Find(s => s.Id == record.Id) == null)
+                for (int i = 0; i < ui.SelectedSecurity.Count; i++)
                 {
-                    SecuritiesNames.Add(record);
+                    SecurityToLoad record = new SecurityToLoad();
+                    record.Name = ui.SelectedSecurity[i].Name;
+                    record.Id = ui.SelectedSecurity[i].NameId;
+
+                    if (SecuritiesNames.Find(s => s.Id == record.Id) == null)
+                    {
+                        SecuritiesNames.Add(record);
+                    }
                 }
+
             }
             Save();
             ReBuildComboBox();
@@ -980,6 +984,46 @@ namespace OsEngine.OsData
 
             string pathToSet = "Data\\" + SetName + "\\";
 
+            // save security settings / сохраняем информацию о контракте
+            IServer myServer = ServerMaster.GetServers().Find(server => server.ServerType == Source);
+            List<Security> securities = myServer.Securities;
+            List<string[]> saves = new List<string[]>();
+            CultureInfo culture = new CultureInfo("ru-RU");
+            for (int i = 0; i < securities.Count; i++)
+            {
+                saves.Add(new[]
+                {
+                    securities[i].Name,
+                    securities[i].Lot.ToString(culture),
+                    securities[i].Go > 0 ? securities[i].Go.ToString(culture) : "1",
+                    securities[i].PriceStepCost.ToString(culture),
+                    securities[i].PriceStep.ToString(culture)
+                });
+            }
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(pathToSet + "SecuritiesSettings.txt", false))
+                {
+                    // name, lot, GO, price step, cost of price step / Имя, Лот, ГО, Цена шага, стоимость цены шага
+                    for (int i = 0; i < saves.Count; i++)
+                    {
+                        writer.WriteLine(
+                            saves[i][0] + ".txt$" +
+                            saves[i][1] + "$" +
+                            saves[i][2] + "$" +
+                            saves[i][3] + "$" +
+                            saves[i][4]
+                        );
+                    }
+
+                    writer.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // send to the log / отправить в лог
+            }
+
             // candles/свечи
 
             for (int i = 0; i < _mySeries.Count; i++)
@@ -1034,8 +1078,14 @@ namespace OsEngine.OsData
                     else
                     { // Finam/Финам
                         List<string> trades = ((FinamServer)_myServer).GetAllFilesWhithTradeToSecurity(SecuritiesNames[i].Name);
-                        SaveThisTickFromFiles(trades, pathToSet + SecuritiesNames[i].Name.RemoveExcessFromSecurityName() + "\\" + "Tick" + "\\", SecuritiesNames[i].Name.RemoveExcessFromSecurityName());
 
+                        if (trades == null ||
+                            trades.Count == 0)
+                        {
+                            trades = ((FinamServer)_myServer).GetAllFilesWhithTradeToSecurity(SecuritiesNames[i].Name.RemoveExcessFromSecurityName());
+                        }
+
+                        SaveThisTickFromFiles(trades, pathToSet + SecuritiesNames[i].Name.RemoveExcessFromSecurityName() + "\\" + "Tick" + "\\", SecuritiesNames[i].Name.RemoveExcessFromSecurityName());
                     }
                 }
             }

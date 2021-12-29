@@ -880,9 +880,9 @@ namespace OsEngine.Market.Servers.Huobi.Futures
         {
             lock (_locker)
             {
+
                 var needIntervalForQuery =
-                    CandlesCreator.DetermineAppropriateIntervalForRequest(oldInterval, _supportedIntervals,
-                        out var needInterval);
+                    CandlesCreator.DetermineAppropriateIntervalForRequest(oldInterval, _supportedIntervals, out var needInterval);
 
                 var clientId = "";
 
@@ -891,15 +891,17 @@ namespace OsEngine.Market.Servers.Huobi.Futures
                 var from = TimeManager.GetTimeStampSecondsToDateTime(startTime);
                 var to = TimeManager.GetTimeStampSecondsToDateTime(endTime);
 
-                _marketDataSource.SendMessage(
-                    $"{{ \"req\": \"{topic}\",\"id\": \"{clientId}\", \"from\":{from}, \"to\":{to} }}");
+                //https://api.hbdm.com/market/history/kline?period=1min&size=200&symbol=BTC_CQ
+
+                string request = $"{{ \"req\": \"{topic}\",\"id\": \"{clientId}\", \"from\":{from}, \"to\":{to} }}";
+
+                _marketDataSource.SendMessage(request);
 
                 var startLoadingTime = DateTime.Now;
 
                 while (startLoadingTime.AddSeconds(40) > DateTime.Now)
                 {
-                    var candles = _allCandleSeries.Find(s =>
-                        s.security == security && s.GetTimeFrame() == needIntervalForQuery);
+                    var candles = _allCandleSeries.Find(s => s.security == security && s.GetTimeFrame() == needIntervalForQuery);
 
                     if (candles != null)
                     {
@@ -912,13 +914,12 @@ namespace OsEngine.Market.Servers.Huobi.Futures
                             return oldCandles;
                         }
 
-                        var newCandles =
-                            CandlesCreator.CreateCandlesRequiredInterval(needInterval, oldInterval, oldCandles);
+                        var newCandles = CandlesCreator.CreateCandlesRequiredInterval(needInterval, oldInterval, oldCandles);
 
                         return newCandles;
                     }
 
-                    Thread.Sleep(500);
+                    Thread.Sleep(100);
                 }
 
                 SendLogMessage(OsLocalization.Market.Message95 + security, LogMessageType.Error);
