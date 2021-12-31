@@ -499,6 +499,12 @@ namespace OsEngine.Entity
                             {
                                 List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
 
+                                if (allTrades is null)
+                                {
+                                    _server.GetTickDataToSecurity(series.Security.Name, DateTime.MinValue, DateTime.Now, DateTime.Now, false);
+                                    allTrades = _server.GetAllTradesToSecurity(series.Security);
+                                }
+
                                 series.PreLoad(allTrades);
                                 series.UpdateAllCandles();
                                 series.IsStarted = true;
