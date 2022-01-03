@@ -101,91 +101,53 @@ namespace OsEngine.OsData
             colum6.Width = 50;
             _grid.Columns.Add(colum6);
 
-            _grid.KeyPress += SearchSecurity;
-
             HostSecurity.Child = _grid;
+
+
+            TextBoxSearchSec.Text = OsLocalization.Trader.Label174;
+            TextBoxSearchSec.TextChanged += TextBoxSearchSec_TextChanged;
         }
 
-        /// <summary>
-        /// search string/строка поиска
-        /// </summary>
-        private string _searchString;
+        // поиск бумаги
 
-        /// <summary>
-        /// when a key was pressed/когда была нажата кнопка
-        /// </summary>
-        private DateTime _startSearch;
-
-        /// <summary>
-        /// search security in table/поиск бумаги в таблице 
-        /// </summary>
-        private void SearchSecurity(object sender, KeyPressEventArgs e)
+        private void TextBoxSearchSec_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            if (e.KeyChar == (char)Keys.Back)
+            if (TextBoxSearchSec.Text.Contains(OsLocalization.Trader.Label174))
             {
-                _startSearch = DateTime.Now;
-                _searchString = "";
-                LabelSearchString.Content = "";
-                return;
+                TextBoxSearchSec.Text = TextBoxSearchSec.Text.Replace(OsLocalization.Trader.Label174, "");
             }
 
-            if (!char.IsLetter(e.KeyChar) && !char.IsDigit(e.KeyChar))
-            {
-                return;
-            }
+            string str = TextBoxSearchSec.Text;
 
-            int freshnessTime = 3; // seconds
-
-            if (_startSearch == null || DateTime.Now.Subtract(_startSearch).Seconds > freshnessTime)
+            for (int i = 0; i < _grid.Rows.Count; i++)
             {
-                _startSearch = DateTime.Now;
-                _searchString = e.KeyChar.ToString();
-                RefreshSearchLabel(freshnessTime);
-            }
-            else
-            {
-                _searchString += e.KeyChar.ToString();
-                RefreshSearchLabel(freshnessTime);
-            }
+                DataGridViewRow row = _grid.Rows[i];
 
-            char[] charsToTrim = { '*', ' ', '\'', '\"', '+', '=', '-', '!', '#', '%', '.', ',' };
-
-            for (int c = 0; c < _grid.Columns.Count; c++)
-            {
-                for (int r = 0; r < _grid.Rows.Count; r++)
+                if (row.Cells.Count < 2 ||
+                    row.Cells[1].Value == null)
                 {
-                    if (_grid.Rows[r].Cells[c].Value.ToString().Trim(charsToTrim)
-                        .StartsWith(_searchString, true, CultureInfo.InvariantCulture))
-                    {
-                        _grid.Rows[r].Cells[c].Selected = true;
-                        return; // stop looping
-                    }
+                    continue;
+                }
+
+                string secName = row.Cells[0].Value.ToString();
+
+                if (secName.StartsWith(str))
+                {
+                    row.Selected = true;
+                    _grid.FirstDisplayedScrollingRowIndex = i;
+                    break;
+                }
+
+                string sec2Name = row.Cells[1].Value.ToString();
+
+                if (sec2Name.StartsWith(str))
+                {
+                    row.Selected = true;
+                    _grid.FirstDisplayedScrollingRowIndex = i;
+                    break;
                 }
             }
-        }
 
-        /// <summary>
-        /// refresh search label/обновить строку поиска
-        /// </summary>
-        private void RefreshSearchLabel(int freshnessTime)
-        {
-            LabelSearchString.Content = "🔍 " + _searchString;
-
-            // clear search label after freshnessTime + 1 (seconds)
-            // очистить строку поиска через freshnessTime + 1 (секунд)
-            Task t = new Task(async () => {
-
-                await Task.Delay((freshnessTime + 1) * 1000);
-
-                if (DateTime.Now.Subtract(_startSearch).Seconds > freshnessTime)
-                {
-                    LabelSearchString.Dispatcher.Invoke(() =>
-                    {
-                        LabelSearchString.Content = "";
-                    });
-                }
-            });
-            t.Start();
         }
 
         /// <summary>

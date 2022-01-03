@@ -181,9 +181,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 CheckBoxSaveTradeArrayInCandle.Content = OsLocalization.Market.Label59;
                 LabelSelectedSec.Content = OsLocalization.Trader.Label164;
                 CheckBoxSelectAllCheckBox.Click += CheckBoxSelectAllCheckBox_Click;
-                TextBoxSearchSec.Text = OsLocalization.Trader.Label174;
                 CheckBoxSelectAllCheckBox.Content = OsLocalization.Trader.Label173;
 
+                TextBoxSearchSec.Text = OsLocalization.Trader.Label174;
                 TextBoxSearchSec.TextChanged += TextBoxSearchSec_TextChanged;
             }
             catch (Exception error)

@@ -1749,7 +1749,7 @@ namespace OsEngine.Market.Servers.Finam
 
             while (timeStart.Date != timeEnd.Date)
             {
-                string tradesOneDay = GetTrades(timeStart.Date, timeStart.Date);
+                string tradesOneDay = GetTrades(timeStart.Date, timeStart.Date,1);
                 timeStart = timeStart.AddDays(1);
 
                 if (tradesOneDay != null)
@@ -1760,7 +1760,7 @@ namespace OsEngine.Market.Servers.Finam
                 GC.WaitForPendingFinalizers();
             }
 
-            string tradesToday = GetTrades(timeStart.Date, timeStart.Date);
+            string tradesToday = GetTrades(timeStart.Date, timeStart.Date,1);
 
             if (tradesToday != null)
             {
@@ -1777,7 +1777,7 @@ namespace OsEngine.Market.Servers.Finam
         /// <param name="timeStart"></param>
         /// <param name="timeEnd"></param>
         /// <returns></returns>
-        private string GetTrades(DateTime timeStart, DateTime timeEnd)
+        private string GetTrades(DateTime timeStart, DateTime timeEnd, int iteration)
         {
             SendLogMessage(OsLocalization.Market.Message56 + SecurityFinam.Name +
                            OsLocalization.Market.Message57 + timeStart.Date, LogMessageType.System);
@@ -1906,12 +1906,54 @@ namespace OsEngine.Market.Servers.Finam
                 return null;
             }
 
+            DateTime timeWhaiting = DateTime.Now;
+
             while (true)
             {
                 Thread.Sleep(1000);
                 if (_tickLoaded)
                 {
                     break;
+                }
+
+                if(timeWhaiting.AddMinutes(10) < DateTime.Now)
+                {
+                    // пытаемся дважды запросить данные рекурсией
+                    // если не выходит, возвращаем null
+                    if(iteration == 1)
+                    {
+                        iteration++;
+                        wb.CancelAsync();
+                        wb.Dispose();
+                        wb.DownloadFileCompleted -= wb_DownloadFileCompleted;
+                        try
+                        {
+                            File.Delete(fileName);
+                        }
+                        catch
+                        {
+
+                        }
+                        
+                        Thread.Sleep(5000);
+                        return GetTrades(timeStart, timeEnd, iteration);
+                    }
+                    else
+                    {
+                        wb.CancelAsync();
+                        wb.DownloadFileCompleted -= wb_DownloadFileCompleted;
+                        wb.Dispose();
+                        try
+                        {
+                            File.Delete(fileName);
+                        }
+                        catch
+                        {
+
+                        }
+                        Thread.Sleep(5000);
+                        return null;
+                    }
                 }
             }
             wb.Dispose();
@@ -1928,6 +1970,11 @@ namespace OsEngine.Market.Servers.Finam
             while (!reader.EndOfStream)
             {
                 string[] s = reader.ReadLine().Split(',');
+
+                if(s.Length < 5)
+                {
+                    continue;
+                }
 
                 StringBuilder builder = new StringBuilder();
 

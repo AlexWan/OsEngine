@@ -2289,6 +2289,19 @@ namespace OsEngine.Market.Servers.Tester
                 return false;
             }
 
+            if (order.IsStopOrProfit)
+            {
+                int slipage = 0;
+                if (_slipageToStopOrder > 0)
+                {
+                    slipage = _slipageToStopOrder;
+                }
+                decimal realPrice = order.Price;
+
+                ExecuteOnBoardOrder(order, realPrice, lastTrade.Time, slipage);
+                return true;
+            }
+
             // check whether the order passed/проверяем, прошёл ли ордер
             if (order.Side == Side.Buy)
             {
