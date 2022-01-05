@@ -288,16 +288,3 @@ __pycache__/
 # Cake - Uncomment if you are using it
 # tools/**
 # !tools/packages.config
-/project/OsEngine/bin/Debug/System.Runtime.CompilerServices.Unsafe.dll
-/project/OsEngine/bin/Debug/SkiaSharp.Views.Desktop.Common.dll
-/project/OsEngine/bin/Debug/SkiaSharp.HarfBuzz.dll
-/project/OsEngine/bin/Debug/SkiaSharp.dll
-/project/OsEngine/bin/Debug/OxyPlot.Wpf.Shared.dll
-/project/OsEngine/bin/Debug/OxyPlot.SkiaSharp.Wpf.dll
-/project/OsEngine/bin/Debug/OxyPlot.SkiaSharp.dll
-/project/OsEngine/bin/Debug/OxyPlot.dll
-/project/OsEngine/bin/Debug/libSkiaSharp.dylib
-/project/OsEngine/bin/Debug/libSkiaSharp.dll
-/project/OsEngine/bin/Debug/libHarfBuzzSharp.dylib
-/project/OsEngine/bin/Debug/libHarfBuzzSharp.dll
-/project/OsEngine/bin/Debug/HarfBuzzSharp.dll
