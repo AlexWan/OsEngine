@@ -277,12 +277,6 @@ namespace OsEngine.Market.Servers.Transaq
 
                                 NewTradesEvent?.Invoke(allTrades);
                             }
-                            else if (data.StartsWith("<ticks>"))
-                            {
-                                var newTicks = _deserializer.Deserialize<List<Tick>>(new RestResponse() { Content = data });
-
-                                NewTicks?.Invoke(newTicks);
-                            }
                             else if (data.StartsWith("<mc_portfolio"))
                             {
                                 UpdatePortfolio?.Invoke(data);
@@ -457,13 +451,6 @@ namespace OsEngine.Market.Servers.Transaq
         /// пришли свечи
         /// </summary>
         public event Action<Candles> NewCandles;
-
-        /// <summary>
-        /// got ticks
-        /// пришли тики
-        /// </summary>
-        public event Action<List<Tick>> NewTicks;
-
 
         /// <summary>
         /// need to change password

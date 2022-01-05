@@ -8,7 +8,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -207,7 +206,6 @@ namespace OsEngine.Market.Servers.Transaq
             _client.NewCandles += ClientOnNewCandles;
             _client.NeedChangePassword += NeedChangePassword;
             _client.UpdateSecurity += ClientOnUpdateSecurityInfo;
-            _client.NewTicks += _client_NewTicks;
 
             _client.Connect(useSecUpdates);
 
@@ -216,11 +214,6 @@ namespace OsEngine.Market.Servers.Transaq
             _cancellationToken = _cancellationTokenSource.Token;
 
             Task.Run(new Action(SessionTimeHandler), _cancellationToken);
-        }
-
-        private void _client_NewTicks(List<Tick> ticks)
-        {
-            _allTicks.AddRange(ticks);
         }
 
         /// <summary>
@@ -551,83 +544,7 @@ namespace OsEngine.Market.Servers.Transaq
 
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-            List<Trade> trades = new List<Trade>();
-
-            string cmd = "<command id=\"subscribe_ticks\">";
-            cmd += "<security>";
-            cmd += "<board>" + security.NameClass + "</board>";
-            cmd += "<seccode>" + security.Name + "</seccode>";
-            cmd += "<tradeno>1</tradeno>";
-            cmd += "</security>";
-            cmd += "<filter>true</filter>";
-            cmd += "</command>";
-
-            // sending command / Ð¾Ñ‚Ð¿Ñ€Ð°Ð²ÐºÐ° ÐºÐ¾Ð¼Ð°Ð½Ð´Ñ‹
-            string res = _client.ConnectorSendCommand(cmd);
-
-            if (res != "<result success=\"true\"/>")
-            {
-                SendLogMessage(res, LogMessageType.Error);
-                return null;
-            }
-
-            DateTime lastTickTime = DateTime.MinValue;
-            List<Tick> ticks = new List<Tick>();
-
-            while (true)
-            {
-
-                try
-                {
-                    ticks = _allTicks.Where(x => x.Seccode == security.Name).ToList();
-                    if (ticks.Count > 0)
-                    {
-                        lastTickTime = DateTime.Parse(ticks.Last().Tradetime);
-                    }
-                }
-                catch
-                {
-
-                }
-
-                if (lastTickTime >= actualTime)
-                {
-                    foreach (var tick in ticks)
-                    {
-                        trades.Add(new Trade()
-                        {
-                            SecurityNameCode = tick.Seccode,
-                            Id = tick.Tradeno,
-                            Price = Convert.ToDecimal(tick.Price.Replace(".", ",")),
-                            Side = tick.Buysell == "B" ? Side.Buy : Side.Sell,
-                            Volume = Convert.ToDecimal(tick.Quantity.Replace(".", ",")),
-                            Time = DateTime.Parse(tick.Tradetime),
-                        });
-                    }
-
-                    //Ð¾Ñ‚Ð¿Ð¸ÑÑ‹Ð²Ð°ÐµÐ¼ÑÑ
-                    string cmd_uns = "<command id=\"subscribe_ticks\">";
-                    cmd_uns += "<filter>true</filter>";
-                    cmd_uns += "</command>";
-
-                    string res2 = _client.ConnectorSendCommand(cmd_uns);
-
-                    //Ð—Ð°Ñ‡Ð¸ÑÑ‚Ð¸Ð¼
-                    _allTicks.RemoveAll(x => x.Seccode == security.Name);
-
-                    if (res2 != "<result success=\"true\"/>")
-                    {
-                        SendLogMessage(res2, LogMessageType.Error);
-                    }
-
-                    break;
-                }
-
-                Thread.Sleep(300);
-            }
-
-            return trades;
-
+            return null;
         }
 
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime,
@@ -1602,8 +1519,6 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         private List<Candles> _allCandleSeries = new List<Candles>();
-
-        private List<Tick> _allTicks = new List<Tick>();
 
         private void ClientOnNewCandles(Candles candles)
         {
