@@ -56,12 +56,12 @@ namespace OsEngine.OsOptimizer
             ProgressBarStatuses = new List<ProgressBarStatus>();
             PrimeProgressBarStatus = new ProgressBarStatus();
         }
-        
+
         public int GetMaxBotsCount()
         {
-            return _optimizerExecutor.BotCountOneFaze(_parameters,_paramOn);
+            return _optimizerExecutor.BotCountOneFaze(_parameters, _paramOn) * IterationCount * 2;
         }
-        
+
         /// <summary>
         /// save settings
         /// сохранить настройки

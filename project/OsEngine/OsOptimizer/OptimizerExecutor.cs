@@ -110,11 +110,11 @@ namespace OsEngine.OsOptimizer
 
             int countBots = BotCountOneFaze(_parameters,_parametersOn);
 
-            SendLogMessage(OsLocalization.Optimizer.Message4 + countBots, LogMessageType.System);
+            _countAllServersMax = countBots * (_master.IterationCount * 2);
+
+            SendLogMessage(OsLocalization.Optimizer.Message4 + _countAllServersMax, LogMessageType.System);
 
             DateTime timeStart = DateTime.Now;
-
-            _countAllServersMax = countBots;
 
             for (int i = 0; i < _master.Fazes.Count; i++)
             {
@@ -316,7 +316,7 @@ namespace OsEngine.OsOptimizer
                 }
             }
 
-            return countBots * (_master.IterationCount * 2);
+            return countBots;
         }
 
         public List<OptimazerFazeReport> ReportsToFazes = new List<OptimazerFazeReport>();

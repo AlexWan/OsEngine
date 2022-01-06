@@ -14,7 +14,7 @@ namespace OsEngine.Indicators
     {
         public static List<string> GetIndicatorsNames()
         {
-            
+
             if (Directory.Exists(@"Custom") == false)
             {
                 Directory.CreateDirectory(@"Custom");
@@ -95,10 +95,10 @@ namespace OsEngine.Indicators
         {
             Aindicator Indicator = null;
 
-           /* if (nameClass == "FBD")
-            {
-                Indicator = new FBD();
-            }*/
+            /* if (nameClass == "FBD")
+             {
+                 Indicator = new FBD();
+             }*/
 
             try
             {
@@ -147,8 +147,26 @@ namespace OsEngine.Indicators
 
         private static string[] linksToDll;
 
+        private static List<Aindicator> _serializedInd = new List<Aindicator>();
+
         private static Aindicator Serialize(string path, string nameClass, string name, bool canDelete)
         {
+            // 1 пробуем клонировать из ранее сериализованных объектов. Это быстрее чем подымать из файла
+
+            for (int i = 0; i < _serializedInd.Count; i++)
+            {
+                if (_serializedInd[i].GetType().Name == nameClass)
+                {
+                    object[] param = new object[] { name };
+                    Aindicator newPanel = (Aindicator)Activator.CreateInstance(_serializedInd[i].GetType());
+                    newPanel.Init(name);
+                    newPanel.CanDelete = canDelete;
+                    return newPanel;
+                }
+            }
+
+            // сериализуем из файла
+
             try
             {
                 if (linksToDll == null)
@@ -278,6 +296,22 @@ namespace OsEngine.Indicators
                 result = (Aindicator)results.CompiledAssembly.CreateInstance(results.CompiledAssembly.DefinedTypes.ElementAt(0).FullName);
 
                 cp.TempFiles.Delete();
+
+                bool isInArray = false;
+
+                for (int i = 0; i < _serializedInd.Count; i++)
+                {
+                    if (_serializedInd[i].GetType().Name == nameClass)
+                    {
+                        isInArray = true;
+                        break;
+                    }
+                }
+
+                if (isInArray == false)
+                {
+                    _serializedInd.Add(result);
+                }
 
                 return result;
             }

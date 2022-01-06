@@ -52,7 +52,6 @@
                     </Grid>
                 </TabItem>
             </TabControl>
-            <Button Name="ButtonVolumeAssemblage" Content="Volume Assemblage" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="174" Click="ButtonVolumeAssemblage_Click"/>
         </Grid>
 
 

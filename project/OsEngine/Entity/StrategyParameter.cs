@@ -51,6 +51,43 @@ namespace OsEngine.Entity
         event Action ValueChange;
     }
 
+    public class StrategyParameterLabel : IIStrategyParameter
+    {
+        public StrategyParameterLabel(string name, string label, int rowHeight, int textHeight, System.Drawing.Color color, string tabName = null)
+        {
+            _name = name;
+            Label = label;
+            TabName = tabName;
+            RowHeight = rowHeight;
+            TextHeight = textHeight;
+            Color = color;
+        }
+
+        public string Label;
+        public int RowHeight;
+        public int TextHeight;
+        public System.Drawing.Color Color;
+
+        public string Name { get { return _name; } }
+        private string _name;
+
+        public StrategyParameterType Type { get { return StrategyParameterType.Label; } }
+
+        public string TabName { get; set; }
+
+        public event Action ValueChange;
+
+        public string GetStringToSave()
+        {
+            return "";
+        }
+
+        public void LoadParamFromString(string[] save)
+        {
+            
+        }
+    }
+
     /// <summary>
     /// Parameter for an Int strategy
     /// параметр для стратегии типа Int
@@ -966,7 +1003,12 @@ namespace OsEngine.Entity
         /// <summary>
         /// нажатие на кнопку
         /// </summary>
-        Button
+        Button,
+
+        /// <summary>
+        /// надпись в окне параметров 
+        /// </summary>
+        Label
     }
 
 }

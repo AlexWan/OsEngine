@@ -390,10 +390,6 @@
     <Compile Include="Indicators\IndicatorParameter.cs" />
     <Compile Include="Indicators\IndicatorsFactory.cs" />
     <Compile Include="Indicators\ScriptSpells.cs" />
-    <Compile Include="Journal\Assemblage\AssemblageBotsMaster.cs" />
-    <Compile Include="Journal\Assemblage\AssemblageBotsUi.xaml.cs">
-      <DependentUpon>AssemblageBotsUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Journal\Internal\PositionController.cs" />
     <Compile Include="Journal\JournalUi.xaml.cs">
       <DependentUpon>JournalUi.xaml</DependentUpon>
@@ -1212,10 +1208,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Indicators\AIndicatorUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Journal\Assemblage\AssemblageBotsUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

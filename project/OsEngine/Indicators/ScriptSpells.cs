@@ -35,34 +35,6 @@ namespace OsEngine.Indicators
             return result;
         }
 
-        public static decimal GetPoint(this Candle candle, string type)
-        {
-            if (type == "Close")
-            {
-                return candle.Close;
-            }
-            else if (type == "High")
-            {
-                return candle.High;
-            }
-            else if (type == "Low")
-            {
-                return candle.Low;
-            }
-            else if (type == "Open")
-            {
-                return candle.Open;
-            }
-            else if (type == "Median")
-            {
-                return (candle.High + candle.Low) / 2;
-            }
-            else //if (type == Entity.CandlePointType.Typical)
-            {
-                return (candle.High + candle.Low + candle.Close) / 3;
-            }
-        }
-
         public static List<decimal> ByName(this List<IndicatorDataSeries> values, string name)
         {
             for (int i = 0; i < values.Count; i++)

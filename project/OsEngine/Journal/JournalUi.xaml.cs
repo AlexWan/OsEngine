@@ -27,7 +27,6 @@ using ChartArea = System.Windows.Forms.DataVisualization.Charting.ChartArea;
 using ContextMenu = System.Windows.Forms.ContextMenu;
 using MenuItem = System.Windows.Forms.MenuItem;
 using Series = System.Windows.Forms.DataVisualization.Charting.Series;
-using OsEngine.Journal.Assemblage;
 
 namespace OsEngine.Journal
 {
@@ -75,7 +74,6 @@ namespace OsEngine.Journal
             Label1.Content = OsLocalization.Journal.Label1;
             Label2.Content = OsLocalization.Journal.Label2;
             Label3.Content = OsLocalization.Journal.Label3;
-            ButtonVolumeAssemblage.Content = OsLocalization.Journal.Label4;
 
             TabItem1.Header = OsLocalization.Journal.TabItem1;
             TabItem2.Header = OsLocalization.Journal.TabItem2;
@@ -87,10 +85,6 @@ namespace OsEngine.Journal
  
             Closing += JournalUi_Closing;
 
-            //if(startProgram != StartProgram.IsTester)
-            //{
-                ButtonVolumeAssemblage.Visibility = Visibility.Hidden;
-            // }
         }
 
         private void JournalUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -101,11 +95,6 @@ namespace OsEngine.Journal
             TabControlPrime.SelectionChanged -= TabControlPrime_SelectionChanged;
             _botsJournals = null;
             Closing -= JournalUi_Closing;
-
-            if(_assemblageBotsMaster != null)
-            {
-                _assemblageBotsMaster.Clear();
-            }
         }
 
         /// <summary>
@@ -2011,18 +2000,6 @@ namespace OsEngine.Journal
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
-
-        AssemblageBotsMaster _assemblageBotsMaster;
-
-        private void ButtonVolumeAssemblage_Click(object sender, RoutedEventArgs e)
-        {
-            if(_assemblageBotsMaster == null)
-            {
-                _assemblageBotsMaster = new AssemblageBotsMaster(_botsJournals);
-            }
-
-            _assemblageBotsMaster.Show();
-        }
     }
 
     /// <summary>

@@ -260,6 +260,23 @@ namespace OsEngine.Entity
 
                     row.Cells.Add(cell);
                 }
+                else if (_parameters[i].Type == StrategyParameterType.Label)
+                {
+                    DataGridViewTextBoxCell cell = new DataGridViewTextBoxCell();
+                    StrategyParameterLabel param = (StrategyParameterLabel)_parameters[i];
+
+                    if (param.RowHeight == 0)
+                    {
+                        param.RowHeight = 25;
+                    }
+
+                    row.Cells[0].Value = param.Label;
+                    row.Height = param.RowHeight;
+                    
+                    row.Cells[0].Style.Font = new System.Drawing.Font("Areal", param.TextHeight);
+                    row.Cells[0].Style.ForeColor = param.Color;
+                    row.Cells.Add(cell);
+                }
 
                 _grid.Rows.Add(row);
             }

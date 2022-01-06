@@ -29,7 +29,7 @@ namespace OsEngine.Robots
     public class BotFactory
     {
         private static readonly Dictionary<string, Type> BotsWithAttribute = GetTypesWithBotAttribute();
-        
+
         /// <summary>
         /// list robots name / 
         /// список доступных роботов
@@ -110,14 +110,14 @@ namespace OsEngine.Robots
         public static BotPanel GetStrategyForName(string nameClass, string name, StartProgram startProgram, bool isScript)
         {
             BotPanel bot = null;
-                       
+
             // примеры и бесплатные боты
             if (isScript && bot == null)
             {
                 bot = CreateScriptStrategyByName(nameClass, name, startProgram);
                 return bot;
             }
-            
+
             if (nameClass == "SmaScreener")
             {
                 bot = new SmaScreener(name, startProgram);
@@ -276,22 +276,22 @@ namespace OsEngine.Robots
             if (BotsWithAttribute.ContainsKey(nameClass))
             {
                 Type botType = BotsWithAttribute[nameClass];
-                bot = (BotPanel) Activator.CreateInstance(botType, name, startProgram);
+                bot = (BotPanel)Activator.CreateInstance(botType, name, startProgram);
             }
 
             return bot;
         }
-        
+
         static Dictionary<string, Type> GetTypesWithBotAttribute()
         {
             Assembly assembly = Assembly.GetAssembly(typeof(BotPanel));
             Dictionary<string, Type> bots = new Dictionary<string, Type>();
-            foreach(Type type in assembly.GetTypes())
+            foreach (Type type in assembly.GetTypes())
             {
                 object[] attributes = type.GetCustomAttributes(typeof(BotAttribute), false);
                 if (attributes.Length > 0)
                 {
-                    bots[((BotAttribute) attributes[0]).Name] = type;
+                    bots[((BotAttribute)attributes[0]).Name] = type;
                 }
             }
 
@@ -398,7 +398,7 @@ namespace OsEngine.Robots
 
                 for (int i = 0; i < fullPaths.Count; i++)
                 {
-                    string nameInFile = 
+                    string nameInFile =
                         fullPaths[i].Split('\\')[fullPaths[i].Split('\\').Length - 1];
 
                     if (nameInFile == longNameClass ||
@@ -408,8 +408,8 @@ namespace OsEngine.Robots
                         break;
                     }
                 }
-                
-                if(myPath == "")
+
+                if (myPath == "")
                 {
                     return null;
                 }
@@ -427,8 +427,23 @@ namespace OsEngine.Robots
 
         private static string[] linksToDll;
 
+        private static List<BotPanel> _serializedPanels = new List<BotPanel>();
+
         private static BotPanel Serialize(string path, string nameClass, string name, StartProgram startProgram)
         {
+            // 1 пробуем клонировать из ранее сериализованных объектов. Это быстрее чем подымать из файла
+
+            for (int i = 0; i < _serializedPanels.Count; i++)
+            {
+                if (_serializedPanels[i].GetType().Name == nameClass)
+                {
+                    object[] param = new object[] { name, startProgram };
+                    BotPanel newPanel = (BotPanel)Activator.CreateInstance(_serializedPanels[i].GetType(), param);
+                    return newPanel;
+                }
+            }
+
+            // сериализуем из файла
             try
             {
                 if (linksToDll == null)
@@ -585,6 +600,22 @@ namespace OsEngine.Robots
                     throw new Exception(errorString);
                 }
 
+                bool isInArray = false;
+
+                for (int i = 0; i < _serializedPanels.Count; i++)
+                {
+                    if (_serializedPanels[i].GetType().Name == nameClass)
+                    {
+                        isInArray = true;
+                        break;
+                    }
+                }
+
+                if (isInArray == false)
+                {
+                    _serializedPanels.Add(result);
+                }
+
                 return result;
             }
             catch (Exception e)
@@ -733,7 +764,7 @@ namespace OsEngine.Robots
                     }
                     else
                     {
-                        if(bot.TabsScreener == null ||
+                        if (bot.TabsScreener == null ||
                             bot.TabsScreener.Count == 0)
                         {
                             _namesWithParam.Add(names[i]);

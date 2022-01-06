@@ -60,6 +60,38 @@ namespace OsEngine.Entity
         public decimal Volume;
 
         /// <summary>
+        /// определённая точка на свечке
+        /// </summary>
+        /// <param name="type"> "Close","High","Low","Open","Median","Typical"</param>
+        public decimal GetPoint(string type)
+        {
+            if (type == "Close")
+            {
+                return Close;
+            }
+            else if (type == "High")
+            {
+                return High;
+            }
+            else if (type == "Low")
+            {
+                return Low;
+            }
+            else if (type == "Open")
+            {
+                return Open;
+            }
+            else if (type == "Median")
+            {
+                return (High + Low) / 2;
+            }
+            else //if (type == Entity.CandlePointType.Typical)
+            {
+                return (High + Low + Close) / 3;
+            }
+        }
+
+        /// <summary>
         /// candles completion status
         /// статус завершённости свечи
         /// </summary>

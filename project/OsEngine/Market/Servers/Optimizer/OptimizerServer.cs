@@ -474,11 +474,7 @@ namespace OsEngine.Market.Servers.Optimizer
         /// </summary>
         private void LoadNextData()
         {
-            if (_testerRegime == TesterRegime.Pause)
-            {
-                return;
-            }
-            if (_storages[0].TimeStart > _storages[0].TimeEnd || TimeNow > _storages[0].TimeEnd)
+            if (TimeNow > _storages[0].TimeEnd)
             {
                 _testerRegime = TesterRegime.Pause;
 
@@ -504,17 +500,17 @@ namespace OsEngine.Market.Servers.Optimizer
                 return;
             }
 
-            if (_timeAddType == TimeAddInTestType.MilliSecond)
+            if (_timeAddType == TimeAddInTestType.Minute)
+            {
+                TimeNow = TimeNow.AddMinutes(1);
+            }
+            else if (_timeAddType == TimeAddInTestType.MilliSecond)
             {
                 TimeNow = TimeNow.AddMilliseconds(1);
             }
             else if (_timeAddType == TimeAddInTestType.Second)
             {
                 TimeNow = TimeNow.AddSeconds(1);
-            }
-            else if (_timeAddType == TimeAddInTestType.Minute)
-            {
-                TimeNow = TimeNow.AddMinutes(1);
             }
 
             bool haveLoadingSec = false;

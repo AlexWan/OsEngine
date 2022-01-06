@@ -787,6 +787,18 @@ position => position.State != PositionStateType.OpeningFail
             return (StrategyParameterButton)LoadParameterValues(newParameter);
         }
 
+        public StrategyParameterLabel CreateParameterLabel(string name, string label, int rowHeight,  int textHeight, System.Drawing.Color color, string tabControlName = null)
+        {
+            StrategyParameterLabel newParameter = new StrategyParameterLabel(name, label, rowHeight, textHeight, color, tabControlName);
+
+            if (_parameters.Find(p => p.Name == name) != null)
+            {
+                throw new Exception(OsLocalization.Trader.Label52);
+            }
+
+            return (StrategyParameterLabel)LoadParameterValues(newParameter);
+        }
+
         /// <summary>
         /// load parameter settings / 
         /// загрузить настройки параметра
