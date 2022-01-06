@@ -294,6 +294,39 @@ namespace OsEngine.Market.Servers.Transaq.TransaqEntity
         [XmlElement(ElementName = "message")]
         public string Message { get; set; }
     }
+
+    [XmlRoot(ElementName = "ticks")]
+    public class Ticks
+    {
+        [XmlElement(ElementName = "tick")]
+        public List<Tick> Tick { get; set; }
+    }
+
+    [XmlRoot(ElementName = "tick")]
+    public class Tick
+    {
+        [XmlAttribute(AttributeName = "secid")]
+        public string Secid { get; set; }
+        [XmlAttribute(AttributeName = "tradeno")]
+        public string Tradeno { get; set; }
+        [XmlAttribute(AttributeName = "tradetime")]
+        public string Tradetime { get; set; }
+        [XmlAttribute(AttributeName = "price")]
+        public string Price { get; set; }
+        [XmlAttribute(AttributeName = "quantity")]
+        public string Quantity { get; set; }
+        [XmlAttribute(AttributeName = "period")]
+        public string Period { get; set; }
+        [XmlAttribute(AttributeName = "buysell")]
+        public string Buysell { get; set; }
+        [XmlAttribute(AttributeName = "openinterest")]
+        public string Openinterest { get; set; }
+        [XmlAttribute(AttributeName = "board")]
+        public string Board { get; set; }
+        [XmlAttribute(AttributeName = "seccode")]
+        public string Seccode { get; set; }
+    }
+
 }
 
 
