@@ -65,23 +65,24 @@ namespace OsEngine.Entity
         /// <param name="type"> "Close","High","Low","Open","Median","Typical"</param>
         public decimal GetPoint(string type)
         {
-            if (type == "Close")
+            char first = type[0];
+            if (first == 'C')
             {
                 return Close;
             }
-            else if (type == "High")
+            else if (first == 'H')
             {
                 return High;
             }
-            else if (type == "Low")
+            else if (first == 'L')
             {
                 return Low;
             }
-            else if (type == "Open")
+            else if (first == 'O')
             {
                 return Open;
             }
-            else if (type == "Median")
+            else if (first == 'M')
             {
                 return (High + Low) / 2;
             }

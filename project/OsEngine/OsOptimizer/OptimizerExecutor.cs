@@ -186,9 +186,6 @@ namespace OsEngine.OsOptimizer
         private void StartAsuncBotFactoryOutOfSample(OptimazerFazeReport reportFiltred, string botType, bool isScript, string faze)
         {
             List<string> botNames = new List<string>();
-            int startServerIndex = _serverNum;
-
-            // reportFiltred.Reports[i].BotName.Replace(" InSample", "") + " OutOfSample"
 
             for (int i = 0; i < reportFiltred.Reports.Count; i++)
             {
@@ -640,7 +637,7 @@ namespace OsEngine.OsOptimizer
 
             while (bot.IsConnected == false)
             {
-                Thread.Sleep(20);
+                Thread.Sleep(1);
 
                 if (timeStartWaiting.AddSeconds(2000) < DateTime.Now)
                 {
@@ -911,7 +908,12 @@ namespace OsEngine.OsOptimizer
 
             lock (_serverRemoveLocker)
             {
-                BotPanel bot = _botsInTest.Find(b => b.TabsSimple[0].Connector.ServerUid == serverNum);
+                BotPanel bot = _botsInTest.Find(
+                b =>
+                b != null &&
+                b.TabsSimple[0] != null &&
+                b.TabsSimple[0].Connector != null &&
+                b.TabsSimple[0].Connector.ServerUid == serverNum);
 
                 if (bot != null)
                 {

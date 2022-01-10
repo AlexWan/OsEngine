@@ -748,7 +748,7 @@ namespace OsEngine.OsOptimizer
                 if(_lastInSample 
                     && i +1 == fazeCount)
                 {
-                    newFaze.Days = daysOnInSample + daysOnForward;
+                    newFaze.Days = daysOnInSample;
                     break;
                 }
 

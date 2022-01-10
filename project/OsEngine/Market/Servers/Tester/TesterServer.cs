@@ -4393,6 +4393,11 @@ namespace OsEngine.Market.Servers.Tester
     public enum TimeAddInTestType
     {
         /// <summary>
+        /// 5 minute
+        /// 5 минут
+        /// </summary>
+        FiveMinute,
+        /// <summary>
 		/// minute
         /// минута
         /// </summary>

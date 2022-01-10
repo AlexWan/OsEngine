@@ -1056,27 +1056,11 @@ position => position.State != PositionStateType.OpeningFail
         {
             get
             {
-                try
-                {
-                    List<BotTabSimple> tabSimples = new List<BotTabSimple>();
-
-                    for (int i = 0; _botTabs != null && i < _botTabs.Count; i++)
-                    {
-                        if (_botTabs[i].GetType().Name == "BotTabSimple")
-                        {
-                            tabSimples.Add((BotTabSimple)_botTabs[i]);
-                        }
-                    }
-
-                    return tabSimples;
-                }
-                catch (Exception error)
-                {
-                    SendNewLogMessage(error.ToString(), LogMessageType.Error);
-                }
-                return null;
+                return _tabSimple;
             }
         }
+
+        private List<BotTabSimple> _tabSimple = new List<BotTabSimple>();
 
         /// <summary>
         /// index tabs
@@ -1086,27 +1070,10 @@ position => position.State != PositionStateType.OpeningFail
         {
             get
             {
-                try
-                {
-                    List<BotTabIndex> tabSpreads = new List<BotTabIndex>();
-
-                    for (int i = 0; _botTabs != null && i < _botTabs.Count; i++)
-                    {
-                        if (_botTabs[i].GetType().Name == "BotTabIndex")
-                        {
-                            tabSpreads.Add((BotTabIndex)_botTabs[i]);
-                        }
-                    }
-
-                    return tabSpreads;
-                }
-                catch (Exception error)
-                {
-                    SendNewLogMessage(error.ToString(), LogMessageType.Error);
-                }
-                return null;
+                return _tabIndex;
             }
         }
+        private List<BotTabIndex> _tabIndex = new List<BotTabIndex>();
 
         /// <summary>
         /// clustered tabs / 
@@ -1116,27 +1083,11 @@ position => position.State != PositionStateType.OpeningFail
         {
             get
             {
-                try
-                {
-                    List<BotTabCluster> tabSpreads = new List<BotTabCluster>();
-
-                    for (int i = 0; _botTabs != null && i < _botTabs.Count; i++)
-                    {
-                        if (_botTabs[i].GetType().Name == "BotTabCluster")
-                        {
-                            tabSpreads.Add((BotTabCluster)_botTabs[i]);
-                        }
-                    }
-
-                    return tabSpreads;
-                }
-                catch (Exception error)
-                {
-                    SendNewLogMessage(error.ToString(), LogMessageType.Error);
-                }
-                return null;
+                return _tabCluster;
             }
         }
+
+        private List<BotTabCluster> _tabCluster = new List<BotTabCluster>();
 
         /// <summary>
         /// Screener tabs / 
@@ -1146,27 +1097,11 @@ position => position.State != PositionStateType.OpeningFail
         {
             get
             {
-                try
-                {
-                    List<BotTabScreener> tabSpreads = new List<BotTabScreener>();
-
-                    for (int i = 0; _botTabs != null && i < _botTabs.Count; i++)
-                    {
-                        if (_botTabs[i].GetType().Name == "BotTabScreener")
-                        {
-                            tabSpreads.Add((BotTabScreener)_botTabs[i]);
-                        }
-                    }
-
-                    return tabSpreads;
-                }
-                catch (Exception error)
-                {
-                    SendNewLogMessage(error.ToString(), LogMessageType.Error);
-                }
-                return null;
+                return _tabScreener;
             }
         }
+
+        private List<BotTabScreener> _tabScreener = new List<BotTabScreener>();
 
         /// <summary>
         /// user toggled tabs / 
@@ -1223,19 +1158,24 @@ position => position.State != PositionStateType.OpeningFail
                 if (tabType == BotTabType.Simple)
                 {
                     newTab = new BotTabSimple(nameTab, StartProgram);
+                    _tabSimple.Add((BotTabSimple)newTab);
                 }
                 else if (tabType == BotTabType.Index)
                 {
                     newTab = new BotTabIndex(nameTab, StartProgram);
+                    _tabIndex.Add((BotTabIndex)newTab);
                 }
                 else if (tabType == BotTabType.Cluster)
                 {
                     newTab = new BotTabCluster(nameTab, StartProgram);
+                    _tabCluster.Add((BotTabCluster)newTab);
                 }
                 else if (tabType == BotTabType.Screener)
                 {
                     newTab = new BotTabScreener(nameTab, StartProgram);
-                    ((BotTabScreener)newTab).NewTabCreateEvent += (tab) => 
+                    _tabScreener.Add((BotTabScreener)newTab);
+
+                    ((BotTabScreener)newTab).NewTabCreateEvent += (tab) =>
                     {
                         if (NewTabCreateEvent != null)
                         {

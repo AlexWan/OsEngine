@@ -15,6 +15,7 @@ using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Tester;
+using System.Threading.Tasks;
 
 namespace OsEngine.Market.Connectors
 {
@@ -43,7 +44,7 @@ namespace OsEngine.Market.Connectors
 
             TimeFrameBuilder = new TimeFrameBuilder(_name, startProgram);
             ServerType = ServerType.None;
-           
+
 
             if (StartProgram != StartProgram.IsOsOptimizer)
             {
@@ -56,14 +57,15 @@ namespace OsEngine.Market.Connectors
 
             if (!string.IsNullOrWhiteSpace(NamePaper))
             {
-                _subscrabler = new Thread(Subscrable);
-                _subscrabler.CurrentCulture = new CultureInfo("ru-RU");
-                _subscrabler.Name = "ConnectorSubscrableThread_" + UniqName;
-                _subscrabler.IsBackground = true;
-                _subscrabler.Start();
+                _taskIsDead = false;
+                Task.Run(Subscrable);
+            }
+            else
+            {
+                _taskIsDead = true;
             }
 
-            if(StartProgram == StartProgram.IsTester)
+            if (StartProgram == StartProgram.IsTester)
             {
                 PortfolioName = "GodMode";
             }
@@ -701,21 +703,10 @@ namespace OsEngine.Market.Connectors
                     ConnectorStartedReconnectEvent(NamePaper, TimeFrame, TimeFrameTimeSpan, PortfolioName, ServerType);
                 }
 
-                if (_subscrabler == null)
+                if (_taskIsDead == true)
                 {
-                    try
-                    {
-                        _subscrabler = new Thread(Subscrable);
-                        _subscrabler.CurrentCulture = new CultureInfo("ru-RU");
-                        _subscrabler.IsBackground = true;
-                        _subscrabler.Name = "ConnectorSubscrableThread_" + UniqName;
-                        _subscrabler.Start();
-                    }
-                    catch
-                    {
-
-                    }
-
+                    _taskIsDead = false;
+                    Task.Run(Subscrable);
 
                     if (NewCandlesChangeEvent != null)
                     {
@@ -733,13 +724,7 @@ namespace OsEngine.Market.Connectors
         /// thread for candle subscription
         /// поток занимающийся подпиской на свечи
         /// </summary>
-        private Thread _subscrabler;
-
-        /// <summary>
-        /// locker that blocks multi-threaded access to method Subscrable
-        /// локер запрещающий многопоточный доступ к Subscrable
-        /// </summary>
-        private object _subscrableLocker = new object();
+        private bool _taskIsDead;
 
         private bool _neadToStopThread;
 
@@ -753,7 +738,7 @@ namespace OsEngine.Market.Connectors
             {
                 while (true)
                 {
-                    Thread.Sleep(50);
+                    Thread.Sleep(1);
 
                     if (_neadToStopThread)
                     {
@@ -828,53 +813,50 @@ namespace OsEngine.Market.Connectors
                         }
                     }
 
-                    Thread.Sleep(50);
-
                     ServerConnectStatus stat = _myServer.ServerStatus;
 
                     if (stat != ServerConnectStatus.Connect)
                     {
                         continue;
                     }
-                    lock (_subscrableLocker)
+
+                    if (_mySeries == null)
                     {
-                        if (_mySeries == null)
+                        while (_mySeries == null)
                         {
-                            while (_mySeries == null)
+                            if (_neadToStopThread)
                             {
-                                if (_neadToStopThread)
-                                {
-                                    return;
-                                }
+                                return;
+                            }
 
-                                Thread.Sleep(100);
-                                _mySeries = _myServer.StartThisSecurity(_namePaper, TimeFrameBuilder);
+                            Thread.Sleep(1);
+                            _mySeries = _myServer.StartThisSecurity(_namePaper, TimeFrameBuilder);
 
-                                if (_mySeries == null &&
-                                    _myServer.ServerType == ServerType.Optimizer &&
-                                    ((OptimizerServer)_myServer).NumberServer != ServerUid)
+                            if (_mySeries == null &&
+                                _myServer.ServerType == ServerType.Optimizer &&
+                                ((OptimizerServer)_myServer).NumberServer != ServerUid)
+                            {
+                                for (int i = 0; i < servers.Count; i++)
                                 {
-                                    for (int i = 0; i < servers.Count; i++)
+                                    if (servers[i].ServerType == ServerType.Optimizer &&
+                                        ((OptimizerServer)servers[i]).NumberServer == this.ServerUid)
                                     {
-                                        if (servers[i].ServerType == ServerType.Optimizer &&
-                                            ((OptimizerServer)servers[i]).NumberServer == this.ServerUid)
-                                        {
-                                            UnSubscribleOnServer(_myServer);
-                                            _myServer = servers[i];
-                                            SubscribleOnServer(_myServer);
-                                            break;
-                                        }
+                                        UnSubscribleOnServer(_myServer);
+                                        _myServer = servers[i];
+                                        SubscribleOnServer(_myServer);
+                                        break;
                                     }
                                 }
                             }
-
-                            _mySeries.СandleUpdeteEvent += MySeries_СandleUpdeteEvent;
-                            _mySeries.СandleFinishedEvent += MySeries_СandleFinishedEvent;
-                            _subscrabler = null;
                         }
+
+                        _mySeries.СandleUpdeteEvent += MySeries_СandleUpdeteEvent;
+                        _mySeries.СandleFinishedEvent += MySeries_СandleFinishedEvent;
+                        _taskIsDead = true;
                     }
 
-                    _subscrabler = null;
+
+                    _taskIsDead = true;
 
                     if (SecuritySubscribeEvent != null)
                     {

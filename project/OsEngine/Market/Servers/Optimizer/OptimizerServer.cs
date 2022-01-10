@@ -11,6 +11,7 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Tester;
+using System.Threading.Tasks;
 
 namespace OsEngine.Market.Servers.Optimizer
 {
@@ -42,14 +43,7 @@ namespace OsEngine.Market.Servers.Optimizer
             CreatePortfolio(portfolioStratValue);
             NumberServer = num;
 
-            if (_worker == null)
-            {
-                _worker = new Thread(WorkThreadArea);
-                _worker.CurrentCulture = new CultureInfo("ru-RU");
-                _worker.Name = "OptimizerThread " + num;
-                _worker.IsBackground = true;
-                _worker.Start();
-            }
+            Task.Run(WorkThreadArea);
 
             _candleManager = new CandleManager(this);
             _candleManager.CandleUpdateEvent += _candleManager_CandleUpdateEvent;
@@ -221,7 +215,12 @@ namespace OsEngine.Market.Servers.Optimizer
             else if (TypeTesterData == TesterDataType.Candle)
             {
 
-                if (_candleSeriesTesterActivate.Find(name => name.TimeFrameSpan < new TimeSpan(0, 0, 1, 0)) == null)
+                if (_candleSeriesTesterActivate.Count != 0 &&
+                    _candleSeriesTesterActivate[0].TimeFrameSpan.TotalMinutes % 5 == 0)
+                {
+                    _timeAddType = TimeAddInTestType.FiveMinute;
+                }
+                else if (_candleSeriesTesterActivate.Find(name => name.TimeFrameSpan < new TimeSpan(0, 0, 1, 0)) == null)
                 {
                     _timeAddType = TimeAddInTestType.Minute;
                 }
@@ -303,18 +302,11 @@ namespace OsEngine.Market.Servers.Optimizer
         private TesterRegime _testerRegime;
 
         /// <summary>
-		/// main thread for loading all data
-        /// основной поток, которые занимается прогрузкой всех данных
-        /// </summary>
-        private Thread _worker;
-
-        /// <summary>
 		/// work place of main thread
         /// место работы основного потока
         /// </summary>
         private void WorkThreadArea()
         {
-            Thread.Sleep(100);
             while (true)
             {
                 try
@@ -346,7 +338,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                     if (_testerRegime == TesterRegime.Pause)
                     {
-                        Thread.Sleep(20);
+                        Thread.Sleep(1);
                         continue;
                     }
 
@@ -395,7 +387,6 @@ namespace OsEngine.Market.Servers.Optimizer
 
             if (newStorage == null)
             {
-                Thread.Sleep(200);
                 newStorage = _storagePrime.GetStorageToSecurity(security, timeFrame, timeStart, timeEnd);
 
                 if (newStorage == null)
@@ -500,6 +491,10 @@ namespace OsEngine.Market.Servers.Optimizer
                 return;
             }
 
+            if (_timeAddType == TimeAddInTestType.FiveMinute)
+            {
+                TimeNow = TimeNow.AddMinutes(5);
+            }
             if (_timeAddType == TimeAddInTestType.Minute)
             {
                 TimeNow = TimeNow.AddMinutes(1);

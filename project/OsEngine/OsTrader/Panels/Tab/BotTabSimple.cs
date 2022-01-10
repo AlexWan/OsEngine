@@ -2997,7 +2997,16 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 position.StopOrderIsActiv = false;
-                position.StopOrderPrice = priceOrder;
+
+                if (StartProgram == StartProgram.IsOsOptimizer ||
+                    StartProgram == StartProgram.IsTester)
+                {
+                    position.StopOrderPrice = priceActivate;
+                }
+                else
+                {
+                    position.StopOrderPrice = priceOrder;
+                }
                 position.StopOrderRedLine = priceActivate;
                 position.StopOrderIsActiv = true;
 
@@ -3050,7 +3059,17 @@ namespace OsEngine.OsTrader.Panels.Tab
 
 
                 position.ProfitOrderIsActiv = false;
-                position.ProfitOrderPrice = priceOrder;
+
+                if (StartProgram == StartProgram.IsOsOptimizer ||
+                    StartProgram == StartProgram.IsTester)
+                {
+                    position.ProfitOrderPrice = priceActivate;
+                }
+                else
+                {
+                    position.ProfitOrderPrice = priceOrder;
+                }
+
                 position.ProfitOrderRedLine = priceActivate;
                 position.ProfitOrderIsActiv = true;
 
