@@ -1,4 +1,9 @@
-﻿using OsEngine.Entity;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels;
@@ -168,7 +173,7 @@ namespace OsEngine.OsOptimizer
 
             _resultsCharting = new OptimizerReportCharting(
                 WindowsFormsHostDependences, WindowsFormsHostColumnsResults,
-                WindowsFormsHostPieResults, ComboBoxSortDependencesResults,null,null);
+                WindowsFormsHostPieResults, ComboBoxSortDependencesResults, null, null);
             _resultsCharting.LogMessageEvent += _master.SendLogMessage;
 
             this.Closing += Ui_Closing;
@@ -269,7 +274,7 @@ namespace OsEngine.OsOptimizer
 
         public void ShowResultDialog()
         {
-            if(_gridFazes.InvokeRequired)
+            if (_gridFazes.InvokeRequired)
             {
                 _gridFazes.Invoke(new Action(ShowResultDialog));
                 return;
@@ -608,13 +613,13 @@ namespace OsEngine.OsOptimizer
 
             _master.StartDepozit = Convert.ToInt32(TextBoxStartPortfolio.Text);
         }
-        
+
         private void CommissionValueTextBoxOnTextChanged(object sender, TextChangedEventArgs e)
         {
             decimal commissionValue;
             try
             {
-                var isParsed = decimal.TryParse(CommissionValueTextBox.Text,  out commissionValue);
+                var isParsed = decimal.TryParse(CommissionValueTextBox.Text, out commissionValue);
                 if (!isParsed || commissionValue < 0)
                 {
                     throw new Exception();
@@ -631,8 +636,8 @@ namespace OsEngine.OsOptimizer
 
         private void CommissionTypeComboBoxOnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            ComissionType commissionType = (ComissionType) Enum.Parse(typeof(ComissionType),
-                (string) CommissionTypeComboBox.SelectedItem);
+            ComissionType commissionType = (ComissionType)Enum.Parse(typeof(ComissionType),
+                (string)CommissionTypeComboBox.SelectedItem);
             _master.CommissionType = commissionType;
         }
 
@@ -1063,7 +1068,7 @@ namespace OsEngine.OsOptimizer
 
             int indexColumn = e.ColumnIndex;
 
-            if(indexColumn != 2 && indexColumn != 3)
+            if (indexColumn != 2 && indexColumn != 3)
             {
                 return;
             }
@@ -1072,7 +1077,7 @@ namespace OsEngine.OsOptimizer
 
             try
             {
-               DateTime time = Convert.ToDateTime(_gridFazes.Rows[indexRow].Cells[indexColumn].EditedFormattedValue.ToString());
+                DateTime time = Convert.ToDateTime(_gridFazes.Rows[indexRow].Cells[indexColumn].EditedFormattedValue.ToString());
 
                 if (indexColumn == 2)
                 {
@@ -1086,7 +1091,7 @@ namespace OsEngine.OsOptimizer
             }
             catch (Exception exception)
             {
-                if(indexColumn == 2)
+                if (indexColumn == 2)
                 {
                     _gridFazes.Rows[indexRow].Cells[indexColumn].Value = _master.Fazes[indexRow].TimeStart.ToShortDateString(); ;
                 }
@@ -1094,7 +1099,7 @@ namespace OsEngine.OsOptimizer
                 {
                     _gridFazes.Rows[indexRow].Cells[indexColumn].Value = _master.Fazes[indexRow].TimeEnd.ToShortDateString(); ;
                 }
-               
+
             }
             PaintTableOptimizeFazes();
             WolkForwardPeriodsPainter.PaintForwards(HostWalkForwardPeriods, _master.Fazes);
@@ -1536,7 +1541,7 @@ namespace OsEngine.OsOptimizer
 
         private void PaintCountBotsInOptimization()
         {
-            lock(_locker)
+            lock (_locker)
             {
                 int botCount = _master.GetMaxBotsCount();
                 PaintBotsCount(botCount);
@@ -1545,7 +1550,7 @@ namespace OsEngine.OsOptimizer
 
         private void PaintBotsCount(int value)
         {
-            if(LabelIteartionCountNumber.Dispatcher.CheckAccess() == false)
+            if (LabelIteartionCountNumber.Dispatcher.CheckAccess() == false)
             {
                 LabelIteartionCountNumber.Dispatcher.Invoke(new Action<int>(PaintBotsCount), value);
                 return;
@@ -1776,6 +1781,13 @@ namespace OsEngine.OsOptimizer
             column11.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridResults.Columns.Add(column11);
 
+            DataGridViewButtonColumn column12 = new DataGridViewButtonColumn();
+            column12.CellTemplate = new DataGridViewButtonCell();
+            column12.HeaderText = OsLocalization.Optimizer.Message42;
+            column12.ReadOnly = true;
+            column12.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridResults.Columns.Add(column12);
+
             _gridResults.Rows.Add(null, null);
 
             WindowsFormsHostResults.Child = _gridResults;
@@ -1903,12 +1915,12 @@ namespace OsEngine.OsOptimizer
                 DataGridViewRow row = new DataGridViewRow();
                 row.Cells.Add(new DataGridViewTextBoxCell());
 
-               //  if (report.TabsReports.Count == 1)
-               //  {
-                    row.Cells[0].Value = report.BotName;
-               // }
-               // else
-               // {
+                //  if (report.TabsReports.Count == 1)
+                //  {
+                row.Cells[0].Value = report.BotName;
+                // }
+                // else
+                // {
                 //    row.Cells[0].Value = "Сводные";
                 //}
 
@@ -1953,15 +1965,12 @@ namespace OsEngine.OsOptimizer
                 cell11.Value = OsLocalization.Optimizer.Message40;
                 row.Cells.Add(cell11);
 
+                DataGridViewButtonCell cell12 = new DataGridViewButtonCell();
+                cell12.Value = OsLocalization.Optimizer.Message42;
+                row.Cells.Add(cell12);
+
                 _gridResults.Rows.Add(row);
 
-                /*if (report.TabsReports.Count > 1)
-                {
-                    for (int i2 = 0; i2 < report.TabsReports.Count; i2++)
-                    {
-                        _gridResults.Rows.Add(GetRowResult(report.TabsReports[i2]));
-                    }
-                }*/
             }
 
             _gridResults.SelectionChanged += _gridResults_SelectionChanged;
@@ -2087,7 +2096,7 @@ namespace OsEngine.OsOptimizer
             {
                 // ignore
             }
-            
+
 
             return row;
 
@@ -2104,11 +2113,19 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
-            if (e.ColumnIndex != 10)
+            if (e.ColumnIndex == 10)
             {
-                return;
+                ShowBotChartDialog(e);
             }
 
+            if (e.ColumnIndex == 11)
+            {
+                ShowParamsDialog(e);
+            }
+        }
+
+        private void ShowBotChartDialog(DataGridViewCellMouseEventArgs e)
+        {
             OptimazerFazeReport fazeReport;
 
             if (_gridFazesEnd.CurrentCell == null ||
@@ -2134,6 +2151,34 @@ namespace OsEngine.OsOptimizer
             BotPanel bot = _master.TestBot(fazeReport, fazeReport.Reports[e.RowIndex]);
 
             bot.ShowChartDialog();
+        }
+
+        private void ShowParamsDialog(DataGridViewCellMouseEventArgs e)
+        {
+            OptimazerFazeReport fazeReport;
+
+            if (_gridFazesEnd.CurrentCell == null ||
+              _gridFazesEnd.CurrentCell.RowIndex == 0)
+            {
+                fazeReport = _reports[0];
+            }
+            else
+            {
+                if (_gridFazesEnd.CurrentCell.RowIndex > _reports.Count)
+                {
+                    return;
+                }
+
+                fazeReport = _reports[_gridFazesEnd.CurrentCell.RowIndex];
+            }
+
+            if (e.RowIndex >= fazeReport.Reports.Count)
+            {
+                return;
+            }
+
+            OptimizerBotParametersSimpleUi ui = new OptimizerBotParametersSimpleUi(fazeReport.Reports[e.RowIndex], fazeReport, _master.StrategyName);
+            ui.Show();
         }
 
         /// <summary>
