@@ -79,12 +79,30 @@ namespace OsEngine.Entity
 
         public string GetStringToSave()
         {
-            return "";
+            string save = _name + "#";
+
+            save += Label + "#";
+            save += RowHeight + "#";
+            save += TextHeight + "#";
+            save += Color.ToArgb() + "#";
+
+            return save;
+
         }
 
         public void LoadParamFromString(string[] save)
         {
-            
+            try
+            {
+                Label = save[1];
+                RowHeight = Convert.ToInt32(save[2]);
+                TextHeight = Convert.ToInt32(save[3]);
+                Color = System.Drawing.Color.FromArgb(Convert.ToInt32(save[4]));
+            }
+            catch
+            {
+                // ignore 
+            }
         }
     }
 
@@ -151,7 +169,12 @@ namespace OsEngine.Entity
         {
             string save = _name + "#";
 
-            save += ValueInt + "#";
+            save += _valueInt + "#";
+            save += _valueIntDefolt + "#";
+            save += _valueIntStart + "#";
+            save += _valueIntStop + "#";
+            save += _valueIntStep + "#";
+
             return save;
         }
 
@@ -162,6 +185,19 @@ namespace OsEngine.Entity
         public void LoadParamFromString(string[] save)
         {
             _valueInt = Convert.ToInt32(save[1]);
+
+            try
+            {
+                _valueIntDefolt = Convert.ToInt32(save[2]);
+                _valueIntStart = Convert.ToInt32(save[3]);
+                _valueIntStop = Convert.ToInt32(save[4]);
+                _valueIntStep = Convert.ToInt32(save[5]);
+            }
+            catch
+            {
+                // ignore 
+            }
+
         }
 
         /// <summary>
@@ -306,7 +342,12 @@ namespace OsEngine.Entity
         public string GetStringToSave()
         {
             string save = _name + "#";
-            save += ValueDecimal + "#";
+            save += _valueDecimal + "#";
+            save += _valueDecimalDefolt + "#";
+            save += _valueDecimalStart + "#";
+            save += _valueDecimalStop + "#";
+            save += _valueDecimalStep + "#";
+
             return save;
         }
 
@@ -317,7 +358,19 @@ namespace OsEngine.Entity
         /// <param name="save"></param>
         public void LoadParamFromString(string[] save)
         {
-            _valueDecimal = Convert.ToDecimal(save[1]);
+            _valueDecimal = save[1].ToDecimal();
+
+            try
+            {
+                _valueDecimalDefolt = save[2].ToDecimal();
+                _valueDecimalStart = save[3].ToDecimal();
+                _valueDecimalStop = save[4].ToDecimal();
+                _valueDecimalStep = save[5].ToDecimal();
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         /// <summary>
@@ -465,7 +518,9 @@ namespace OsEngine.Entity
         public string GetStringToSave()
         {
             string save = _name + "#";
-            save += ValueBool + "#";
+            save += _valueBool + "#";
+            save += _valueBoolDefolt + "#";
+
             return save;
         }
 
@@ -478,6 +533,15 @@ namespace OsEngine.Entity
         {
             _name = save[0];
             _valueBool = Convert.ToBoolean(save[1]);
+
+            try
+            {
+                _valueBool = Convert.ToBoolean(save[2]);
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         /// <summary>
@@ -624,7 +688,12 @@ namespace OsEngine.Entity
         public string GetStringToSave()
         {
             string save = _name + "#";
-            save += ValueString + "#";
+            save += _valueString + "#";
+
+            for(int i = 0;i < _setStringValues.Count;i++)
+            {
+                save += _setStringValues[i] + "#";
+            }
 
             return save;
         }
@@ -637,6 +706,18 @@ namespace OsEngine.Entity
         public void LoadParamFromString(string[] save)
         {
             _valueString = save[1];
+
+            _setStringValues = new List<string>();
+
+            for (int i = 2; i < save.Length; i++)
+            {
+                if(string.IsNullOrEmpty(save[i]))
+                {
+                    continue;
+                }
+
+                _setStringValues.Add(save[i]);
+            }
         }
 
         /// <summary>

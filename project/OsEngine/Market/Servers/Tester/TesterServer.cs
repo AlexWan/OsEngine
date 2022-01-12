@@ -339,10 +339,6 @@ namespace OsEngine.Market.Servers.Tester
 
             SendLogMessage(OsLocalization.Market.Message35, LogMessageType.System);
 
-            if (TestingStartEvent != null)
-            {
-                TestingStartEvent();
-            }
 
             if (_candleSeriesTesterActivate != null)
             {
@@ -400,6 +396,11 @@ namespace OsEngine.Market.Servers.Tester
             _dataIsActive = false;
 
             TesterRegime = TesterRegime.Play;
+
+            if (TestingStartEvent != null)
+            {
+                TestingStartEvent();
+            }
         }
 
         /// <summary>
@@ -412,11 +413,13 @@ namespace OsEngine.Market.Servers.Tester
             {
                 return;
             }
+
+            TesterRegime = TesterRegime.Play;
+
             if (TestingFastEvent != null)
             {
                 TestingFastEvent();
             }
-            TesterRegime = TesterRegime.Play;
         }
 
         /// <summary>

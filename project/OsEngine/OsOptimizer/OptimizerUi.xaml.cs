@@ -1540,6 +1540,7 @@ namespace OsEngine.OsOptimizer
                         }
                     }
                 }
+                _master.SaveStandartParameters();
             }
             catch (Exception)
             {

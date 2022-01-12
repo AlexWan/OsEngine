@@ -71,6 +71,7 @@ namespace OsEngine.Market.Servers.Tester
             _server.TestingStartEvent += _server_TestingStartEvent;
             _server.SecuritiesChangeEvent += _server_SecuritiesChangeEvent;
             _server.TestRegimeChangeEvent += _server_TestRegimeChangeEvent;
+            _server.TestingFastEvent += _server_TestingFastEvent;
 
             CreateGrid();
             PaintGrid();
@@ -199,14 +200,6 @@ namespace OsEngine.Market.Servers.Tester
             CheckBoxExecutionOrderTuch.Content = OsLocalization.Market.Label37;
             CheckBoxOnOffMarketPortfolio.Content = OsLocalization.Market.Label39;
             Label40.Content = OsLocalization.Market.Label40;
-
-        }
-
-        private void _server_TestRegimeChangeEvent(TesterRegime regime)
-        {
-            
-
-
 
         }
 
@@ -340,7 +333,7 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-// server/сервер
+        // server/сервер
 
         /// <summary>
         /// test server
@@ -380,6 +373,7 @@ namespace OsEngine.Market.Servers.Tester
             _chartActive = true;
             CreateChart();
             PaintGrid();
+            PaintPausePlayButtonByActualServerState();
         }
 
         /// <summary>
@@ -389,6 +383,16 @@ namespace OsEngine.Market.Servers.Tester
         void server_TestingNewSecurityEvent()
         {
             PaintGrid();
+        }
+
+        private void _server_TestRegimeChangeEvent(TesterRegime regime)
+        {
+            PaintPausePlayButtonByActualServerState();
+        }
+
+        private void _server_TestingFastEvent()
+        {
+            PaintPausePlayButtonByActualServerState();
         }
 
         // button handlers / обработчики кнопок
@@ -401,14 +405,26 @@ namespace OsEngine.Market.Servers.Tester
         private void buttonPausePlay_Click(object sender, RoutedEventArgs e)
         {
             _server.TestingPausePlay();
+        }
 
-            if (ButtonPausePlay.Content.ToString() == "| |")
+        private void PaintPausePlayButtonByActualServerState()
+        {
+            if(ButtonPausePlay.Dispatcher.CheckAccess() == false)
             {
-                ButtonPausePlay.Content = ">";
+                ButtonPausePlay.Dispatcher.Invoke(PaintPausePlayButtonByActualServerState);
+                return;
             }
-            else
+
+            TesterRegime regime = _server.TesterRegime;
+
+            if (regime == TesterRegime.Play ||
+                regime == TesterRegime.PlusOne)
             {
                 ButtonPausePlay.Content = "| |";
+            }
+            else if(regime == TesterRegime.Pause)
+            {
+                ButtonPausePlay.Content = ">";
             }
         }
 

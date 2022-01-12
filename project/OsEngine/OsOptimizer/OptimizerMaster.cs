@@ -676,7 +676,6 @@ namespace OsEngine.OsOptimizer
 
         private bool _lastInSample;
 
-
         private decimal GetInSampleRecurs(decimal curLenghtInSample,int fazeCount, bool lastInSample, int allDays)
         {
             // х = Y + Y/P * С;
@@ -864,10 +863,72 @@ namespace OsEngine.OsOptimizer
                 _parameters = bot.Parameters;
                 bot.Delete();
 
-                return bot.Parameters;
+                for(int i = 0;i < _parameters.Count;i++)
+                {
+                    GetValueParameterSaveByUser(_parameters[i]);
+                }
+
+                return _parameters;
             }
         }
         private List<IIStrategyParameter> _parameters;
+
+        private void GetValueParameterSaveByUser(IIStrategyParameter parameter)
+        {
+            if (!File.Exists(@"Engine\" + _strategyName + @"_StandartOptimizerParameters.txt"))
+            {
+                return;
+            }
+            try
+            {
+                using (StreamReader reader = new StreamReader(@"Engine\" + _strategyName + @"_StandartOptimizerParameters.txt"))
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        string[] save = reader.ReadLine().Split('#');
+
+                        if (save[0] == parameter.Name)
+                        {
+                            parameter.LoadParamFromString(save);
+                        }
+                    }
+                    reader.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+        }
+
+        public void SaveStandartParameters()
+        {
+            if (_parameters == null ||
+                _parameters.Count == 0)
+            {
+                return;
+            }
+
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + _strategyName + @"_StandartOptimizerParameters.txt", false)
+                    )
+                {
+                    for(int i = 0;i < _parameters.Count;i++)
+                    {
+                        writer.WriteLine(_parameters[i].GetStringToSave());
+                    }
+
+                    writer.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+
+            SaveParamsOnOffByStrategy();
+        }
 
         /// <summary>
         /// list of parameters that are included in the optimization
@@ -884,11 +945,73 @@ namespace OsEngine.OsOptimizer
                     _paramOn.Add(false);
                 }
 
+                List<bool> paramsOnSaveBefore = GetParamsOnOffByStrategy();
+
+                if(paramsOnSaveBefore != null && 
+                    paramsOnSaveBefore.Count == _paramOn.Count)
+                {
+                    _paramOn = paramsOnSaveBefore;
+                }
 
                 return _paramOn;
             }
         }
         private List<bool> _paramOn;
+
+        private List<bool> GetParamsOnOffByStrategy()
+        {
+            List<bool> result = new List<bool>();
+
+            if (!File.Exists(@"Engine\" + _strategyName + @"_StandartOptimizerParametersOnOff.txt"))
+            {
+                return result;
+            }
+            try
+            {
+                using (StreamReader reader = new StreamReader(@"Engine\" + _strategyName + @"_StandartOptimizerParametersOnOff.txt"))
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        result.Add(Convert.ToBoolean(reader.ReadLine()));
+                    }
+                    reader.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+
+            return result;
+        }
+
+        private void SaveParamsOnOffByStrategy()
+        {
+            if (_paramOn == null ||
+               _paramOn.Count == 0)
+            {
+                return;
+            }
+
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + _strategyName + @"_StandartOptimizerParametersOnOff.txt", false)
+                    )
+                {
+                    for (int i = 0; i < _paramOn.Count; i++)
+                    {
+                        writer.WriteLine(_paramOn[i].ToString());
+                    }
+
+                    writer.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+
+        }
 
 
         // job startup optimization algorithm/работа запуска алгоритма оптимизации
