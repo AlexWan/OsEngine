@@ -21,6 +21,19 @@ namespace OsEngine.Robots
         {
             InitializeComponent();
 
+            for(int i = 0;i < botsIncluded.Count;i++)
+            {
+                for(int i2 = 0;i2 < botsFromScript.Count;i2++)
+                {
+                    if(botsIncluded[i].Equals(botsFromScript[i2]))
+                    {
+                        botsIncluded.RemoveAt(i);
+                        i--;
+                        break;
+                    }
+                }
+            }
+
             _botsIncluded = botsIncluded;
             _botsFromScript = botsFromScript;
 

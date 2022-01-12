@@ -1332,6 +1332,11 @@ namespace OsEngine.OsOptimizer
                     DataGridViewComboBoxCell cell = new DataGridViewComboBoxCell();
                     row.Cells.Add(cell);
                 }
+                else if (_parameters[i].Type == StrategyParameterType.TimeOfDay)
+                {
+                    DataGridViewComboBoxCell cell = new DataGridViewComboBoxCell();
+                    row.Cells.Add(cell);
+                }
 
                 // starting value. For bool and String, the only one is manual! field
                 // стартовое значение. Для Булл и Стринг единственное настрамое вручную! поле
@@ -1361,6 +1366,13 @@ namespace OsEngine.OsOptimizer
                     StrategyParameterDecimal param = (StrategyParameterDecimal)_parameters[i];
                     cell.Value = param.ValueDecimalStart.ToString();
                     param.ValueDecimal = param.ValueDecimalStart;
+                    row.Cells.Add(cell);
+                }
+                else if (_parameters[i].Type == StrategyParameterType.TimeOfDay)
+                {
+                    DataGridViewTextBoxCell cell = new DataGridViewTextBoxCell();
+                    StrategyParameterTimeOfDay param = (StrategyParameterTimeOfDay)_parameters[i];
+                    cell.Value = param.Value.ToString();
                     row.Cells.Add(cell);
                 }
 
@@ -1449,6 +1461,14 @@ namespace OsEngine.OsOptimizer
                     else if (_parameters[i].Type == StrategyParameterType.Bool)
                     {
                         ((StrategyParameterBool)_parameters[i]).ValueBool = Convert.ToBoolean(_gridParametrs.Rows[i].Cells[3].Value.ToString());
+                        _parametrsActiv[i] = false;
+                    }
+                    else if (_parameters[i].Type == StrategyParameterType.TimeOfDay)
+                    {
+                        TimeOfDay tD = new TimeOfDay();
+                        tD.LoadFromString(_gridParametrs.Rows[i].Cells[4].Value.ToString());
+
+                        ((StrategyParameterTimeOfDay)_parameters[i]).Value = tD;
                         _parametrsActiv[i] = false;
                     }
                     else if (_parameters[i].Type == StrategyParameterType.Int)

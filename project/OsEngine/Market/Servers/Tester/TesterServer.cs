@@ -41,7 +41,7 @@ namespace OsEngine.Market.Servers.Tester
             _logMaster.Listen(this);
             _serverConnectStatus = ServerConnectStatus.Disconnect;
             ServerStatus = ServerConnectStatus.Disconnect;
-            _testerRegime = TesterRegime.Pause;
+            TesterRegime = TesterRegime.Pause;
             _slipageToSimpleOrder = 0;
             _slipageToStopOrder = 0;
             StartPortfolio = 1000000;
@@ -331,7 +331,7 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         public void TestingStart()
         {
-            _testerRegime = TesterRegime.Pause;
+            TesterRegime = TesterRegime.Pause;
             Thread.Sleep(2000);
             _serverTime = DateTime.MinValue;
 
@@ -399,7 +399,7 @@ namespace OsEngine.Market.Servers.Tester
 
             _dataIsActive = false;
 
-            _testerRegime = TesterRegime.Play;
+            TesterRegime = TesterRegime.Play;
         }
 
         /// <summary>
@@ -416,7 +416,7 @@ namespace OsEngine.Market.Servers.Tester
             {
                 TestingFastEvent();
             }
-            _testerRegime = TesterRegime.Play;
+            TesterRegime = TesterRegime.Play;
         }
 
         /// <summary>
@@ -425,13 +425,13 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         public void TestingPausePlay()
         {
-            if (_testerRegime == TesterRegime.Play)
+            if (TesterRegime == TesterRegime.Play)
             {
-                _testerRegime = TesterRegime.Pause;
+                TesterRegime = TesterRegime.Pause;
             }
             else
             {
-                _testerRegime = TesterRegime.Play;
+                TesterRegime = TesterRegime.Play;
             }
         }
 
@@ -441,7 +441,7 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         public void TestingPlusOne()
         {
-            _testerRegime = TesterRegime.PlusOne;
+            TesterRegime = TesterRegime.PlusOne;
         }
 
         /// <summary>
@@ -566,7 +566,7 @@ namespace OsEngine.Market.Servers.Tester
         public void ReloadSecurities()
         {
             // clear all data and disconnect / чистим все данные, отключаемся
-            _testerRegime = TesterRegime.Pause;
+            TesterRegime = TesterRegime.Pause;
             _dataIsReady = false;
             ServerStatus = ServerConnectStatus.Disconnect;
             _securities = null;
@@ -601,7 +601,7 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         public void ShowPathSenderDialog()
         {
-            _testerRegime = TesterRegime.Pause;
+            TesterRegime = TesterRegime.Pause;
 
             System.Windows.Forms.FolderBrowserDialog myDialog = new System.Windows.Forms.FolderBrowserDialog();
 
@@ -827,7 +827,26 @@ namespace OsEngine.Market.Servers.Tester
 		/// test mode
         /// режим тестирования
         /// </summary>
+        public TesterRegime TesterRegime
+        {
+            get { return _testerRegime; }
+            set
+            {
+                if(_testerRegime == value)
+                {
+                    return;
+                }
+                _testerRegime = value;
+
+                if(TestRegimeChangeEvent != null)
+                {
+                    TestRegimeChangeEvent(_testerRegime);
+                }
+            }
+        }
         private TesterRegime _testerRegime;
+
+        public event Action<TesterRegime> TestRegimeChangeEvent;
 
         /// <summary>
 		/// main thread that downloads all data
@@ -857,7 +876,7 @@ namespace OsEngine.Market.Servers.Tester
                     if (_needToReloadSecurities)
                     {
                         _needToReloadSecurities = false;
-                        _testerRegime = TesterRegime.Pause;
+                        TesterRegime = TesterRegime.Pause;
                         LoadSecurities();
                     }
                     if (_portfolios.Count == 0)
@@ -865,7 +884,7 @@ namespace OsEngine.Market.Servers.Tester
                         CreatePortfolio();
                     }
 
-                    if (_testerRegime == TesterRegime.Pause)
+                    if (TesterRegime == TesterRegime.Pause)
                     {
                         Thread.Sleep(2000);
                         continue;
@@ -875,21 +894,21 @@ namespace OsEngine.Market.Servers.Tester
                     {
                         
                         SendLogMessage(OsLocalization.Market.Message48, LogMessageType.System);
-                        _testerRegime = TesterRegime.Pause;
+                        TesterRegime = TesterRegime.Pause;
                         continue;
                     }
 
 
-                    if (_testerRegime == TesterRegime.PlusOne)
+                    if (TesterRegime == TesterRegime.PlusOne)
                     {
-                        if (_testerRegime != TesterRegime.Pause)
+                        if (TesterRegime != TesterRegime.Pause)
                         {
                             LoadNextData();
                         }
                         CheckOrders();
                         continue;
                     }
-                    if (_testerRegime == TesterRegime.Play)
+                    if (TesterRegime == TesterRegime.Play)
                     {
                         LoadNextData();
                         CheckOrders();
@@ -1953,13 +1972,13 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         private void LoadNextData()
         {
-            if (_testerRegime == TesterRegime.Pause)
+            if (TesterRegime == TesterRegime.Pause)
             {
                 return;
             }
             if (TimeStart > TimeEnd || TimeNow > TimeEnd)
             {
-                _testerRegime = TesterRegime.Pause;
+                TesterRegime = TesterRegime.Pause;
 
                 SendLogMessage(OsLocalization.Market.Message37, LogMessageType.System);
                 if (TestingEndEvent != null)
@@ -1972,7 +1991,7 @@ namespace OsEngine.Market.Servers.Tester
             if (_candleSeriesTesterActivate == null ||
                 _candleSeriesTesterActivate.Count == 0)
             {
-                _testerRegime = TesterRegime.Pause;
+                TesterRegime = TesterRegime.Pause;
 
                 SendLogMessage(OsLocalization.Market.Message38,
                     LogMessageType.System);
@@ -2961,9 +2980,9 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         void _candleManager_CandleUpdateEvent(CandleSeries series)
         {
-            if (_testerRegime == TesterRegime.PlusOne)
+            if (TesterRegime == TesterRegime.PlusOne)
             {
-                _testerRegime = TesterRegime.Pause;
+                TesterRegime = TesterRegime.Pause;
             }
 
             // write last tick time in server time / перегружаем последним временем тика время сервера

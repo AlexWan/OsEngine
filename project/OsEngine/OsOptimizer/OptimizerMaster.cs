@@ -199,8 +199,16 @@ namespace OsEngine.OsOptimizer
         /// <param name="numServer">server number/номер сервера</param>
         void _optimizerExecutor_TestingProgressChangeEvent(int curVal, int maxVal, int numServer)
         {
-            ProgressBarStatus status = ProgressBarStatuses.Find(st => st.Num == numServer);
-
+            ProgressBarStatus status;
+            try
+            {
+                status = ProgressBarStatuses.Find(st => st.Num == numServer);
+            }
+            catch
+            {
+                return;
+            }
+             
             if (status == null)
             {
                 status = new ProgressBarStatus();

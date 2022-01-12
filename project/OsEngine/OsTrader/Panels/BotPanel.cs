@@ -154,7 +154,7 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
-        private BotPanelChartUi _chartUi;
+        public BotPanelChartUi _chartUi;
 
         void _chartUi_Closed(object sender, EventArgs e)
         {

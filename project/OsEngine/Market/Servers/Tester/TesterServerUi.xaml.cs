@@ -70,6 +70,7 @@ namespace OsEngine.Market.Servers.Tester
 
             _server.TestingStartEvent += _server_TestingStartEvent;
             _server.SecuritiesChangeEvent += _server_SecuritiesChangeEvent;
+            _server.TestRegimeChangeEvent += _server_TestRegimeChangeEvent;
 
             CreateGrid();
             PaintGrid();
@@ -198,6 +199,14 @@ namespace OsEngine.Market.Servers.Tester
             CheckBoxExecutionOrderTuch.Content = OsLocalization.Market.Label37;
             CheckBoxOnOffMarketPortfolio.Content = OsLocalization.Market.Label39;
             Label40.Content = OsLocalization.Market.Label40;
+
+        }
+
+        private void _server_TestRegimeChangeEvent(TesterRegime regime)
+        {
+            
+
+
 
         }
 
@@ -844,7 +853,6 @@ namespace OsEngine.Market.Servers.Tester
             SliderFrom.ValueChanged += SliderFrom_ValueChanged;
             SliderTo.ValueChanged += SliderTo_ValueChanged;
         }
-
 
         private void _myGridView_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {

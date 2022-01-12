@@ -4917,15 +4917,17 @@ namespace OsEngine.Charts.CandleChart
 
             ChartAreaPosition pos = _areaPositions[0];
 
+            double mult = pos.DownPoint / 250000;
+
             if ((pos.LeftPoint < e.X &&
                  pos.RightPoint > e.X &&
-                 pos.DownPoint - 30 < e.Y &&
-                 pos.DownPoint - 10 > e.Y)
+                 e.Y > pos.DownPoint - pos.DownPoint * 0.04 &&
+                 e.Y < pos.DownPoint - pos.DownPoint * (0.002 + mult))
                 ||
                 (mouse.Button == MouseButtons.Left && _chart.Cursor == Cursors.SizeWE && pos.LeftPoint < e.X &&
                  pos.RightPoint > e.X &&
-                 pos.DownPoint - 200 < e.Y &&
-                 pos.DownPoint + 100 > e.Y))
+                 pos.DownPoint - 50 < e.Y &&
+                 pos.DownPoint + 50 > e.Y))
             {
                 myPosition = pos;
                 _chart.Cursor = Cursors.SizeWE;
