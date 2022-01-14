@@ -66,7 +66,7 @@ namespace OsEngine.Market.Servers.Tester
             ComboBoxDataType.Visibility = Visibility.Hidden;
             ComboBoxSets.Visibility = Visibility.Hidden;
             Height = 130;
-            Width = 570;
+            Width = 670;
 
             _server.TestingStartEvent += _server_TestingStartEvent;
             _server.SecuritiesChangeEvent += _server_SecuritiesChangeEvent;
@@ -200,6 +200,9 @@ namespace OsEngine.Market.Servers.Tester
             CheckBoxExecutionOrderTuch.Content = OsLocalization.Market.Label37;
             CheckBoxOnOffMarketPortfolio.Content = OsLocalization.Market.Label39;
             Label40.Content = OsLocalization.Market.Label40;
+
+            ButtonNextPos.Content = OsLocalization.Market.Label62;
+            ButtonGoTo.Content = OsLocalization.Market.Label63;
 
         }
 
@@ -399,7 +402,7 @@ namespace OsEngine.Market.Servers.Tester
 
         private void buttonFast_Click(object sender, RoutedEventArgs e)
         {
-            _server.TestingFast();
+            _server.TestingFastOnOff();
         }
 
         private void buttonPausePlay_Click(object sender, RoutedEventArgs e)
@@ -433,6 +436,38 @@ namespace OsEngine.Market.Servers.Tester
             _server.TestingPlusOne();
         }
 
+        private void ButtonNextPos_Click(object sender, RoutedEventArgs e)
+        {
+            _server.ToNextPositionActionTestingFast();
+        }
+
+        private GoToUi _goToUi;
+
+        private void ButtonGoTo_Click(object sender, RoutedEventArgs e)
+        {
+           
+            if(_goToUi == null)
+            {
+                _goToUi = new GoToUi(_server.TimeStart, _server.TimeEnd, _server.TimeNow);
+                _goToUi.Show();
+                _goToUi.SetLocation(this.Left + this.Width, this.Top);
+
+                _goToUi.Closing += (a,b) =>
+                {
+                    if(_goToUi.IsChange)
+                    {
+                        _server.ToDateTimeTestingFast(_goToUi.TimeGoTo);
+                    }
+                    
+                    _goToUi = null;
+                };
+            }
+            else
+            {
+                _goToUi.Activate();
+            }
+        }
+
         private void buttonStartTest_Click(object sender, RoutedEventArgs e)
         {
             Thread worker = new Thread(_server.TestingStart);
@@ -448,8 +483,7 @@ namespace OsEngine.Market.Servers.Tester
             {
                 // if need to expand the form/ если нужно раскрывать форму
                 Height = 600;
-                Width = 835;
-                MinWidth = 835;
+                Width = 815;
                 HostSecurities.Visibility = Visibility.Visible;
                 Host.Visibility = Visibility.Visible;
                 SliderFrom.Visibility = Visibility.Visible;
@@ -479,8 +513,7 @@ namespace OsEngine.Market.Servers.Tester
                 ComboBoxDataType.Visibility = Visibility.Hidden;
                 ComboBoxSets.Visibility = Visibility.Hidden;
                 Height = 130;
-                Width = 570;
-                MinWidth = 570;
+                Width = 670;
             }
         }
 

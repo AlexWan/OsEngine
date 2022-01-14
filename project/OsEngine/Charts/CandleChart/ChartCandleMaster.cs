@@ -1378,6 +1378,14 @@ namespace OsEngine.Charts.CandleChart
             ChartCandle.ClearDataPointsAndSizeValue();
         }
 
+        /// <summary>
+        /// сдвинуть представление чарта вправо до конца
+        /// </summary>
+        public void MoveChartToTheRight()
+        {
+            ChartCandle.MoveChartToTheRight();
+        }
+
         public int GetSelectCandleNumber()
         {
             return ChartCandle.GetCursorSelectCandleNumber();

@@ -392,6 +392,14 @@ namespace OsEngine.OsTrader.Panels.Tab
             return _chartMaster.GetChartLabel();
         }
 
+        /// <summary>
+        /// сдвинуть представление чарта вправо до конца
+        /// </summary>
+        public void MoveChartToTheRight()
+        {
+            _chartMaster.MoveChartToTheRight();
+        }
+
         // closed components / закрытые составные части
 
         /// <summary>

@@ -413,6 +413,22 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
+        /// <summary>
+        /// сдвинуть представление чарта вправо до конца. Нужно для тестера. Сдвигается если выбрана вкладка BotTabSimple
+        /// </summary>
+        public void MoveChartToTheRight()
+        {
+            if(ActivTab == null)
+            {
+                return;
+            }
+
+            if(ActivTab.GetType().Name == "BotTabSimple")
+            {
+                ((BotTabSimple)ActivTab).MoveChartToTheRight();
+            }
+        }
+
         // robot trading figures / показатели торговли робота
 
         /// <summary>

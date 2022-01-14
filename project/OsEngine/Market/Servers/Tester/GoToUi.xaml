@@ -1,0 +1,18 @@
+﻿<Window x:Class="OsEngine.Market.Servers.Tester.GoToUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OsEngine.Market.Servers.Tester"
+        mc:Ignorable="d"
+         Title="Быстрый переход" Height="130" Width="322" WindowStartupLocation="CenterScreen"  Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico" Topmost="True"  Tag="АВП" >
+    <Grid>
+        <Rectangle Margin="5,5,5,40"/>
+        <Button x:Name ="ButtonAccept"  Content="Accept" Margin="41,0,42,10" Click="ButtonAccept_Click" VerticalAlignment="Bottom"/>
+        <DatePicker x:Name="CalendarSelectData" HorizontalAlignment="Left" Margin="159,10,0,0" VerticalAlignment="Top" Width="151" CalendarOpened="CalendarSelectData_CalendarOpened" SelectedDateChanged="CalendarSelectData_SelectedDateChanged"/>
+        <Slider x:Name="DateSlider" HorizontalAlignment="Left" Margin="10,35,0,0" VerticalAlignment="Top" Width="300" ValueChanged="DateSlider_ValueChanged"/>
+        <Label x:Name="LabelGoTo" Content="Перейти на" HorizontalAlignment="Right" Margin="0,10,202,0" VerticalAlignment="Top" Width="108"/>
+
+    </Grid>
+</Window>
+

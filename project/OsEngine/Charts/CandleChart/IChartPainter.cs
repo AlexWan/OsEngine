@@ -43,6 +43,12 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         void ClearDataPointsAndSizeValue();
 
+        /// <summary>
+        /// move chart areas to the right
+        /// сдвинуть представление чарта вправо до конца
+        /// </summary>
+        public void MoveChartToTheRight();
+
         void ClearSeries();
 
         /// <summary>

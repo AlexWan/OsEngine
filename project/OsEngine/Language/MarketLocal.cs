@@ -709,6 +709,14 @@ namespace OsEngine.Language
             "Eng:Currency_" +
             "Ru:Валюта_");
 
+        public string Label62 => OsLocalization.ConvertToLocString(
+            "Eng:>>next pos_" +
+            "Ru:>>к сделке_");
+
+        public string Label63 => OsLocalization.ConvertToLocString(
+            "Eng:>>go to_" +
+            "Ru:>>переход к_");
+
         public string ServerParam1 => OsLocalization.ConvertToLocString(
             "Eng:Keep trade history_" +
             "Ru:Сохранять историю трейдов_");

@@ -41,7 +41,7 @@ namespace OsEngine.Market.Servers.Tester
             _logMaster.Listen(this);
             _serverConnectStatus = ServerConnectStatus.Disconnect;
             ServerStatus = ServerConnectStatus.Disconnect;
-            TesterRegime = TesterRegime.Pause;
+            TesterRegime = TesterRegime.NotActive;
             _slipageToSimpleOrder = 0;
             _slipageToStopOrder = 0;
             StartPortfolio = 1000000;
@@ -403,12 +403,18 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
+        public bool IsAlreadyStarted;
+
         /// <summary>
 		/// speed testing by hiding areas
         /// ускорить тестирование, спрятав области
         /// </summary>
-        public void TestingFast()
+        public void TestingFastOnOff()
         {
+            if(TesterRegime == TesterRegime.NotActive)
+            {
+                return;
+            }
             if (_dataIsActive == false)
             {
                 return;
@@ -416,11 +422,22 @@ namespace OsEngine.Market.Servers.Tester
 
             TesterRegime = TesterRegime.Play;
 
+            if(TestingFastIsActivate == false)
+            {
+                TestingFastIsActivate = true;
+            }
+            else
+            {
+                TestingFastIsActivate = false;
+            }
+
             if (TestingFastEvent != null)
             {
                 TestingFastEvent();
             }
         }
+
+        public bool TestingFastIsActivate;
 
         /// <summary>
 		/// stops testing, or starts
@@ -428,6 +445,10 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         public void TestingPausePlay()
         {
+            if (TesterRegime == TesterRegime.NotActive)
+            {
+                return;
+            }
             if (TesterRegime == TesterRegime.Play)
             {
                 TesterRegime = TesterRegime.Pause;
@@ -444,8 +465,88 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         public void TestingPlusOne()
         {
+            if (TesterRegime == TesterRegime.NotActive)
+            {
+                return;
+            }
             TesterRegime = TesterRegime.PlusOne;
         }
+
+        /// <summary>
+        /// speed testing by hiding areas by Position Action
+        /// ускорить тестирование, спрятав области, до следующего события связанного со сделками
+        /// </summary>
+        public void ToNextPositionActionTestingFast()
+        {
+            if (TesterRegime == TesterRegime.NotActive)
+            {
+                return;
+            }
+            _waitSomeActionInPosition = true;
+
+            if (TestingFastIsActivate == false)
+            {
+                TestingFastOnOff();
+            }
+        }
+
+        private void  CheckWaitOrdersRegime()
+        {
+            if (_waitSomeActionInPosition == true)
+            {
+                _waitSomeActionInPosition = false;
+
+                if (TestingFastIsActivate == true)
+                {
+                    TestingFastOnOff();
+                    
+                }
+                TesterRegime = TesterRegime.Pause;
+            }
+        }
+
+        /// <summary>
+        /// speed testing by hiding areas by Time
+        /// ускорить тестирование, спрятав области, до определённого времени
+        /// </summary>
+        public void ToDateTimeTestingFast(DateTime timeToGo)
+        {
+            if (TesterRegime == TesterRegime.NotActive)
+            {
+                return;
+            }
+            if (timeToGo < TimeNow)
+            {
+                return;
+            }
+
+            _timeWeWhaitToStopFastRegime = timeToGo;
+
+            if (TestingFastIsActivate == false)
+            {
+                TestingFastOnOff();
+            }
+        }
+
+        private void CheckGoTo()
+        {
+            if (_timeWeWhaitToStopFastRegime != DateTime.MinValue &&
+               _timeWeWhaitToStopFastRegime < TimeNow)
+            {
+                _timeWeWhaitToStopFastRegime = DateTime.MinValue;
+                
+                if (TestingFastIsActivate)
+                {
+                    TestingFastOnOff();
+                }
+
+                TesterRegime = TesterRegime.Pause;
+            }
+        }
+           
+        private DateTime _timeWeWhaitToStopFastRegime;
+
+        private bool _waitSomeActionInPosition;
 
         /// <summary>
 		/// Testing started
@@ -569,7 +670,7 @@ namespace OsEngine.Market.Servers.Tester
         public void ReloadSecurities()
         {
             // clear all data and disconnect / чистим все данные, отключаемся
-            TesterRegime = TesterRegime.Pause;
+            TesterRegime = TesterRegime.NotActive;
             _dataIsReady = false;
             ServerStatus = ServerConnectStatus.Disconnect;
             _securities = null;
@@ -604,7 +705,10 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         public void ShowPathSenderDialog()
         {
-            TesterRegime = TesterRegime.Pause;
+            if(TesterRegime == TesterRegime.Play)
+            {
+                TesterRegime = TesterRegime.Pause;
+            }
 
             System.Windows.Forms.FolderBrowserDialog myDialog = new System.Windows.Forms.FolderBrowserDialog();
 
@@ -879,7 +983,7 @@ namespace OsEngine.Market.Servers.Tester
                     if (_needToReloadSecurities)
                     {
                         _needToReloadSecurities = false;
-                        TesterRegime = TesterRegime.Pause;
+                        TesterRegime = TesterRegime.NotActive;
                         LoadSecurities();
                     }
                     if (_portfolios.Count == 0)
@@ -887,9 +991,10 @@ namespace OsEngine.Market.Servers.Tester
                         CreatePortfolio();
                     }
 
-                    if (TesterRegime == TesterRegime.Pause)
+                    if (TesterRegime == TesterRegime.Pause ||
+                        TesterRegime == TesterRegime.NotActive)
                     {
-                        Thread.Sleep(2000);
+                        Thread.Sleep(500);
                         continue;
                     }
 
@@ -897,7 +1002,7 @@ namespace OsEngine.Market.Servers.Tester
                     {
                         
                         SendLogMessage(OsLocalization.Market.Message48, LogMessageType.System);
-                        TesterRegime = TesterRegime.Pause;
+                        TesterRegime = TesterRegime.NotActive;
                         continue;
                     }
 
@@ -1975,11 +2080,7 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         private void LoadNextData()
         {
-            if (TesterRegime == TesterRegime.Pause)
-            {
-                return;
-            }
-            if (TimeStart > TimeEnd || TimeNow > TimeEnd)
+            if (TimeNow > TimeEnd)
             {
                 TesterRegime = TesterRegime.Pause;
 
@@ -2021,6 +2122,11 @@ namespace OsEngine.Market.Servers.Tester
             {
                 TimeNow = TimeNow.AddMinutes(1);
             }
+
+            CheckGoTo();
+
+            //_waitSomeActionInPosition;
+
 
     for (int i = 0;_candleSeriesTesterActivate != null && i < _candleSeriesTesterActivate.Count; i++)
             {
@@ -3849,6 +3955,8 @@ namespace OsEngine.Market.Servers.Tester
             }
 
             ChangePosition(order);
+
+            CheckWaitOrdersRegime();
         }
 
 // logging
@@ -4321,8 +4429,10 @@ namespace OsEngine.Market.Servers.Tester
     /// </summary>
     public enum TesterRegime
     {
+        NotActive,
+
         /// <summary>
-		/// pause
+        /// pause
         /// пауза
         /// </summary>
         Pause,
@@ -4337,7 +4447,7 @@ namespace OsEngine.Market.Servers.Tester
 		/// load the next data and pause
         /// надо прогрузить следующие данные и поставить на паузу
         /// </summary>
-        PlusOne
+        PlusOne,
     }
 
     /// <summary>

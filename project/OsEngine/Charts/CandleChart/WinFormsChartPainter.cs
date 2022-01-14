@@ -124,6 +124,11 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         private Chart _chart;
 
+        public Chart GetChart()
+        {
+            return _chart;
+        }
+
         /// <summary>
         /// candles
         /// свечки
@@ -6356,6 +6361,46 @@ namespace OsEngine.Charts.CandleChart
             {
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        public void MoveChartToTheRight()
+        {
+            if (_chart.InvokeRequired)
+            {
+                _chart.Invoke(new Action(MoveChartToTheRight));
+
+                return;
+            }
+
+            if (_myCandles == null ||
+                _myCandles.Count == 0)
+            {
+                return;
+            }
+            if(_chart.ChartAreas[0].AxisX.ScrollBar == null)
+            {
+                return;
+            }
+
+            double values = 0;
+
+            if (double.IsNaN(_chart.ChartAreas[0].AxisX.ScaleView.Size))
+            {
+                values = _myCandles.Count;
+            }
+            else
+            {
+                values = (int)_chart.ChartAreas[0].AxisX.ScaleView.Size;
+            }
+
+            if(values == _myCandles.Count)
+            {
+                return;
+            }
+
+            _chart.ChartAreas[0].AxisX.ScaleView.Position = _myCandles.Count - values;
+            
+
         }
 
         /// <summary>

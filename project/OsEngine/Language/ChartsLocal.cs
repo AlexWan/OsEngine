@@ -204,5 +204,13 @@ namespace OsEngine.Language
         public string Label7 => OsLocalization.ConvertToLocString(
             "Eng: Scripts _" +
             "Ru:Скрипты_");
+
+        public string Label8 => OsLocalization.ConvertToLocString(
+            "Eng: Rewind to time _" +
+            "Ru:Перемотка до времени_");
+
+        public string Label9 => OsLocalization.ConvertToLocString(
+            "Eng: Go to_" +
+            "Ru:Перейти к_");
     }
 }

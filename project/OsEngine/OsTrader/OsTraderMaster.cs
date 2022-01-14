@@ -730,6 +730,7 @@ namespace OsEngine.OsTrader
             else
             {
                 StartPaint();
+                _activPanel.MoveChartToTheRight();
             }
         }
 
