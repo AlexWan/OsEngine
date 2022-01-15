@@ -554,7 +554,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                 if (security == null)
                 {
-                    return;
+                    continue;
                 }
 
                 if (security.DataType == SecurityTesterDataType.Tick)

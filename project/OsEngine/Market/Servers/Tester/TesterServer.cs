@@ -395,6 +395,8 @@ namespace OsEngine.Market.Servers.Tester
 
             _dataIsActive = false;
 
+            OrdersActiv.Clear();
+
             TesterRegime = TesterRegime.Play;
 
             if (TestingStartEvent != null)
