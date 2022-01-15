@@ -4804,8 +4804,8 @@ namespace OsEngine.Charts.CandleChart
 
                     (pos.LeftPoint < e.X &&
                      pos.RightPoint > e.X &&
-                     pos.UpPoint + pos.UpPoint*0.04 > e.Y &&
-                     pos.UpPoint - pos.UpPoint*0.04 < e.Y))
+                     pos.UpPoint + pos.UpPoint*0.02 > e.Y &&
+                     pos.UpPoint - pos.UpPoint*0.02 < e.Y))
                 {
                     positionBeforeUs = _areaPositions[i - 1];
                     myPosition = pos;
@@ -4926,7 +4926,7 @@ namespace OsEngine.Charts.CandleChart
 
             if ((pos.LeftPoint < e.X &&
                  pos.RightPoint > e.X &&
-                 e.Y > pos.DownPoint - pos.DownPoint * 0.04 &&
+                 e.Y > pos.DownPoint - pos.DownPoint * 0.05 &&
                  e.Y < pos.DownPoint - pos.DownPoint * (0.002 + mult))
                 ||
                 (mouse.Button == MouseButtons.Left && _chart.Cursor == Cursors.SizeWE && pos.LeftPoint < e.X &&

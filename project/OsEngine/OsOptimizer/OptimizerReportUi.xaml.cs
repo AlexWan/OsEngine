@@ -45,6 +45,15 @@ namespace OsEngine.OsOptimizer
             LabelTotalProfitInOutOfSample.Content = OsLocalization.Optimizer.Label43;
             ButtonSaveInFile.Content = OsLocalization.Optimizer.Label45;
             ButtonLoadFromFile.Content = OsLocalization.Optimizer.Label46;
+
+            Title += "   " + master.StrategyName;
+            
+            if(master.TabsSimpleNamesAndTimeFrames != null &&
+                master.TabsSimpleNamesAndTimeFrames.Count == 1)
+            {
+                Title += "  " + master.TabsSimpleNamesAndTimeFrames[0].NameSecurity + "  " + master.TabsSimpleNamesAndTimeFrames[0].TimeFrame;
+            }
+            
         }
 
         public void Paint(List<OptimazerFazeReport> reports)
@@ -849,6 +858,8 @@ namespace OsEngine.OsOptimizer
 
         private void ButtonLoadFromFile_Click(object sender, RoutedEventArgs e)
         {
+            Title = "Optimizer Report";
+
             try
             {
                 OpenFileDialog myDialog = new OpenFileDialog();
