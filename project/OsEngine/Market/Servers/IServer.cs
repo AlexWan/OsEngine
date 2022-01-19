@@ -131,7 +131,7 @@ namespace OsEngine.Market.Servers
         /// <param name="namePaper"> security name / название инструмента </param>
         /// <param name="timeFrameBuilder"> needed for series timeframe / объект несущий в себе данные о ТаймФрейме нужном для серии </param>
         /// <returns> if everything is successfully completed, returns candle generated object / в случае успешного запуска возвращает CandleSeries, объект генерирующий свечи</returns>
-        CandleSeries StartThisSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder);
+        CandleSeries StartThisSecurity(string securityName, TimeFrameBuilder timeFrameBuilder, string securityClass);
 
         /// <summary>
         /// stop candle downloading
@@ -153,14 +153,14 @@ namespace OsEngine.Market.Servers
         /// start data downloading on the instrument
         /// Начать выгрузку данных по инструменту
         /// </summary>
-        CandleSeries GetCandleDataToSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder,
+        CandleSeries GetCandleDataToSecurity(string securityName, string securityClass, TimeFrameBuilder timeFrameBuilder,
             DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdate);
 
         /// <summary>
         /// take ticks instrument data for a certain period
         /// взять тиковые данные по инструменту за определённый период
         /// </summary>
-        bool GetTickDataToSecurity(string namePaper, DateTime startTime, DateTime endTime, DateTime actualTime,
+        bool GetTickDataToSecurity(string securityName, string securityClass, DateTime startTime, DateTime endTime, DateTime actualTime,
             bool neadToUpdete);
 
 // candles

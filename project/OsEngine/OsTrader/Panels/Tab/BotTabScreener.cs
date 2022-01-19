@@ -505,13 +505,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
-            if (curTabs.Find(tab => tab.Connector.NamePaper == sec.SecurityName) != null)
+            if (curTabs.Find(tab => tab.Connector.SecurityName == sec.SecurityName) != null)
             {
                 return;
             }
 
             BotTabSimple newTab = new BotTabSimple(curTabs.Count + " " + TabName, _startProgram);
-            newTab.Connector.NamePaper = sec.SecurityName;
+            newTab.Connector.SecurityName = sec.SecurityName;
             newTab.TimeFrameBuilder.TimeFrame = frame;
             curTabs.Add(newTab);
 
@@ -528,7 +528,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private bool TabIsAlive(List<ActivatedSecurity> securities, TimeFrame frame, BotTabSimple tab)
         {
-            ActivatedSecurity sec = securities.Find(s => s.SecurityName == tab.Connector.NamePaper);
+            ActivatedSecurity sec = securities.Find(s => s.SecurityName == tab.Connector.SecurityName);
 
             if (sec == null)
             {
@@ -693,7 +693,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     string secName = row.Cells[2].Value.ToString();
 
-                    if (tab.Connector.NamePaper != secName)
+                    if (tab.Connector.SecurityName != secName)
                     {
                         continue;
                     }
@@ -955,7 +955,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             nRow.Cells[1].Value = this.SecuritiesClass;
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[2].Value = tab.Connector.NamePaper;
+            nRow.Cells[2].Value = tab.Connector.SecurityName;
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
 

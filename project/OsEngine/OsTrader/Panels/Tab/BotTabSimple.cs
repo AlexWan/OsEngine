@@ -72,7 +72,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _chartMaster = new ChartCandleMaster(TabName, StartProgram);
                 _chartMaster.LogMessageEvent += SetNewLogMessage;
-                _chartMaster.SetNewSecurity(_connector.NamePaper, _connector.TimeFrameBuilder, _connector.PortfolioName, _connector.ServerType);
+                _chartMaster.SetNewSecurity(_connector.SecurityName, _connector.TimeFrameBuilder, _connector.PortfolioName, _connector.ServerType);
                 _chartMaster.SetPosition(_journal.AllPosition);
                 _chartMaster.IndicatorUpdateEvent += _chartMaster_IndicatorUpdateEvent;
 
@@ -499,7 +499,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             get
             {
                 if (_security == null ||
-                    _security.Name != _connector.NamePaper)
+                    _security.Name != _connector.SecurityName)
                 {
                     _security = _connector.Security;
                 }

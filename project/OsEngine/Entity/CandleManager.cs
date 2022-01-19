@@ -501,7 +501,7 @@ namespace OsEngine.Entity
 
                                 if (allTrades is null)
                                 {
-                                    _server.GetTickDataToSecurity(series.Security.Name, DateTime.MinValue, DateTime.Now, DateTime.Now, false);
+                                    _server.GetTickDataToSecurity(series.Security.Name, series.Security.NameClass, DateTime.MinValue, DateTime.Now, DateTime.Now, false);
                                     allTrades = _server.GetAllTradesToSecurity(series.Security);
                                 }
 

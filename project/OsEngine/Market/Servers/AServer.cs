@@ -1234,19 +1234,20 @@ namespace OsEngine.Market.Servers
         private object _lockerStarter = new object();
 
         /// <summary>
-        /// start downloading of this instrument
-        /// начать выкачивать данный иснтрументн
+        /// start uploading data on instrument
+        /// Начать выгрузку данных по инструменту. 
         /// </summary>
-        /// <param name="namePaper"> security name / название инструмента </param>
-        /// <param name="timeFrameBuilder"> object that has data about needed for series timeframe / объект несущий в себе данные о ТаймФрейме нужном для серии </param>
-        /// <returns> if everything is going well, CandleSeries returns generated candle object / в случае успешного запуска возвращает CandleSeries, объект генерирующий свечи </returns>
-        public CandleSeries StartThisSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder)
+        /// <param name="securityName"> security name for running / имя бумаги которую будем запускать</param>
+        /// <param name="timeFrameBuilder"> object that has data about timeframe / объект несущий в себе данные о таймФрейме</param>
+        /// <param name="securityClass"> security class for running / класс бумаги которую будем запускать</param>
+        /// <returns> returns CandleSeries if successful else null / В случае удачи возвращает CandleSeries в случае неудачи null</returns>
+        public CandleSeries StartThisSecurity(string securityName, TimeFrameBuilder timeFrameBuilder, string securityClass)
         {
             try
             {
                 lock (_lockerStarter)
                 {
-                    if (namePaper == "")
+                    if (securityName == "")
                     {
                         return null;
                     }
@@ -1280,7 +1281,8 @@ namespace OsEngine.Market.Servers
                         {
                             continue;
                         }
-                        if (_securities[i].Name == namePaper)
+                        if (_securities[i].Name == securityName &&
+                            _securities[i].NameClass == securityClass)
                         {
                             security = _securities[i];
                             break;
@@ -1368,8 +1370,8 @@ namespace OsEngine.Market.Servers
         /// take the candle history for a period
         /// взять историю свечей за период
         /// </summary>
-        public CandleSeries GetCandleDataToSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder, DateTime startTime,
-            DateTime endTime, DateTime actualTime, bool neadToUpdate)
+        public CandleSeries GetCandleDataToSecurity(string securityName, string securityClass, TimeFrameBuilder timeFrameBuilder,
+            DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdate)
         {
             if (Portfolios == null || Securities == null)
             {
@@ -1396,11 +1398,24 @@ namespace OsEngine.Market.Servers
 
             for (int i = 0; _securities != null && i < _securities.Count; i++)
             {
-                if (_securities[i].Name == namePaper ||
-                    _securities[i].NameId == namePaper)
+                if(_securities[i].Name == securityName &&
+                    _securities[i].NameClass == securityClass)
                 {
                     security = _securities[i];
                     break;
+                }
+            }
+
+            if (security == null)
+            {
+                for (int i = 0; _securities != null && i < _securities.Count; i++)
+                {
+                    if (string.IsNullOrEmpty(_securities[i].NameId) == false &&
+                        _securities[i].NameId == securityName)
+                    {
+                        security = _securities[i];
+                        break;
+                    }
                 }
             }
 
@@ -1445,7 +1460,7 @@ namespace OsEngine.Market.Servers
         /// take ticks data for a period
         /// взять тиковые данные за период
         /// </summary>
-        public bool GetTickDataToSecurity(string namePaper, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdete)
+        public bool GetTickDataToSecurity(string securityName, string securityClass, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdete)
         {
             if (Portfolios == null || Securities == null)
             {
@@ -1477,7 +1492,8 @@ namespace OsEngine.Market.Servers
 
             for (int i = 0; _securities != null && i < _securities.Count; i++)
             {
-                if (_securities[i].Name == namePaper)
+                if (_securities[i].Name == securityName &&
+                    _securities[i].NameClass == securityClass)
                 {
                     security = _securities[i];
                     break;
@@ -1488,7 +1504,8 @@ namespace OsEngine.Market.Servers
             {
                 for (int i = 0; _securities != null && i < _securities.Count; i++)
                 {
-                    if (_securities[i].NameId == namePaper)
+                    if (string.IsNullOrEmpty(_securities[i].NameId) == false &&
+                        _securities[i].NameId == securityName)
                     {
                         security = _securities[i];
                         break;

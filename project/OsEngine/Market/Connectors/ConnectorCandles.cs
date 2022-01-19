@@ -55,7 +55,7 @@ namespace OsEngine.Market.Connectors
                 _emulator.OrderChangeEvent += ConnectorBot_NewOrderIncomeEvent;
             }
 
-            if (!string.IsNullOrWhiteSpace(NamePaper))
+            if (!string.IsNullOrWhiteSpace(SecurityName))
             {
                 _taskIsDead = false;
                 Task.Run(Subscrable);
@@ -88,8 +88,9 @@ namespace OsEngine.Market.Connectors
 
                     PortfolioName = reader.ReadLine();
                     EmulatorIsOn = Convert.ToBoolean(reader.ReadLine());
-                    _namePaper = reader.ReadLine();
+                    _securityName = reader.ReadLine();
                     Enum.TryParse(reader.ReadLine(), true, out ServerType);
+                    SecurityClass = reader.ReadLine();
 
                     reader.Close();
                 }
@@ -128,8 +129,9 @@ namespace OsEngine.Market.Connectors
                 {
                     writer.WriteLine(PortfolioName);
                     writer.WriteLine(EmulatorIsOn);
-                    writer.WriteLine(NamePaper);
+                    writer.WriteLine(SecurityName);
                     writer.WriteLine(ServerType);
+                    writer.WriteLine(SecurityClass);
 
                     writer.Close();
                 }
@@ -279,20 +281,39 @@ namespace OsEngine.Market.Connectors
         /// connector's security name
         /// Название бумаги к которой подключен коннектор
         /// </summary>
-        public string NamePaper
+        public string SecurityName
         {
-            get { return _namePaper; }
+            get { return _securityName; }
             set
             {
-                if (value != _namePaper)
+                if (value != _securityName)
                 {
-                    _namePaper = value;
+                    _securityName = value;
                     Save();
                     Reconnect();
                 }
             }
         }
-        private string _namePaper;
+        private string _securityName;
+
+        /// <summary>
+        /// connector's security class name
+        /// класс бумаги к которой подключен коннектор
+        /// </summary>
+        public string SecurityClass
+        {
+            get { return _securityClass; }
+            set
+            {
+                if (value != _securityClass)
+                {
+                    _securityClass = value;
+                    Save();
+                    Reconnect();
+                }
+            }
+        }
+        private string _securityClass;
 
         /// <summary>
         /// connector's security
@@ -306,7 +327,7 @@ namespace OsEngine.Market.Connectors
                 {
                     if (_myServer != null)
                     {
-                        return _myServer.GetSecurityForName(_namePaper);
+                        return _myServer.GetSecurityForName(_securityName);
                     }
                 }
                 catch (Exception error)
@@ -680,7 +701,7 @@ namespace OsEngine.Market.Connectors
                     {
                         if (ConnectorStartedReconnectEvent != null)
                         {
-                            ConnectorStartedReconnectEvent(NamePaper, TimeFrame, TimeFrameTimeSpan, PortfolioName, ServerType);
+                            ConnectorStartedReconnectEvent(SecurityName, TimeFrame, TimeFrameTimeSpan, PortfolioName, ServerType);
                         }
                         return;
                     }
@@ -700,7 +721,7 @@ namespace OsEngine.Market.Connectors
 
                 if (ConnectorStartedReconnectEvent != null)
                 {
-                    ConnectorStartedReconnectEvent(NamePaper, TimeFrame, TimeFrameTimeSpan, PortfolioName, ServerType);
+                    ConnectorStartedReconnectEvent(SecurityName, TimeFrame, TimeFrameTimeSpan, PortfolioName, ServerType);
                 }
 
                 if (_taskIsDead == true)
@@ -746,7 +767,7 @@ namespace OsEngine.Market.Connectors
                     }
 
                     if (ServerType == ServerType.None ||
-                        string.IsNullOrWhiteSpace(NamePaper))
+                        string.IsNullOrWhiteSpace(SecurityName))
                     {
                         continue;
                     }
@@ -830,7 +851,7 @@ namespace OsEngine.Market.Connectors
                             }
 
                             Thread.Sleep(1);
-                            _mySeries = _myServer.StartThisSecurity(_namePaper, TimeFrameBuilder);
+                            _mySeries = _myServer.StartThisSecurity(_securityName, TimeFrameBuilder,_securityClass);
 
                             if (_mySeries == null &&
                                 _myServer.ServerType == ServerType.Optimizer &&
@@ -1017,7 +1038,7 @@ namespace OsEngine.Market.Connectors
             try
             {
                 if (namePaper == null ||
-                    namePaper.Name != NamePaper)
+                    namePaper.Name != SecurityName)
                 {
                     return;
                 }
@@ -1049,7 +1070,7 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
-                if (NamePaper != glass.SecurityNameCode)
+                if (SecurityName != glass.SecurityNameCode)
                 {
                     return;
                 }
@@ -1087,7 +1108,7 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
-                if (NamePaper == null || tradesList == null || tradesList.Count == 0)
+                if (SecurityName == null || tradesList == null || tradesList.Count == 0)
                 {
                     return;
                 }
@@ -1095,7 +1116,7 @@ namespace OsEngine.Market.Connectors
                 {
                     int count = tradesList.Count;
                     if (tradesList[count - 1] == null ||
-                        tradesList[count - 1].SecurityNameCode != NamePaper)
+                        tradesList[count - 1].SecurityNameCode != SecurityName)
                     {
                         return;
                     }
@@ -1171,7 +1192,7 @@ namespace OsEngine.Market.Connectors
                 {
                     if (_myServer != null)
                     {
-                        return _myServer.GetAllTradesToSecurity(_myServer.GetSecurityForName(NamePaper));
+                        return _myServer.GetAllTradesToSecurity(_myServer.GetSecurityForName(SecurityName));
                     }
                 }
                 catch (Exception error)
@@ -1285,7 +1306,7 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
 
-                order.SecurityNameCode = NamePaper;
+                order.SecurityNameCode = SecurityName;
                 order.PortfolioNumber = PortfolioName;
                 order.ServerType = ServerType;
                 order.TimeCreate = MarketTime;
@@ -1319,7 +1340,7 @@ namespace OsEngine.Market.Connectors
                 {
                     return;
                 }
-                order.SecurityNameCode = NamePaper;
+                order.SecurityNameCode = SecurityName;
                 order.PortfolioNumber = PortfolioName;
 
                 if (EmulatorIsOn || _myServer.ServerType == ServerType.Finam)

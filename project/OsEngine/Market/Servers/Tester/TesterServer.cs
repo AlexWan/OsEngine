@@ -846,7 +846,7 @@ namespace OsEngine.Market.Servers.Tester
 
                 for (int i2 = 0; currentTabs != null && i2 < currentTabs.Count; i2++)
                 {
-                    namesSecurity.Add(currentTabs[i2].CandleConnector.NamePaper);
+                    namesSecurity.Add(currentTabs[i2].CandleConnector.SecurityName);
                 }
             }
 
@@ -862,9 +862,9 @@ namespace OsEngine.Market.Servers.Tester
                     {
                         ConnectorCandles currentConnector = index.Tabs[i3];
 
-                        if (!string.IsNullOrWhiteSpace(currentConnector.NamePaper))
+                        if (!string.IsNullOrWhiteSpace(currentConnector.SecurityName))
                         {
-                            namesSecurity.Add(currentConnector.NamePaper);
+                            namesSecurity.Add(currentConnector.SecurityName);
                         }
                     }
 
@@ -3139,18 +3139,18 @@ namespace OsEngine.Market.Servers.Tester
         private object _starterLocker = new object();
 
         /// <summary>
-		/// start downloading data by instrument
+        /// start uploading data on instrument
         /// Начать выгрузку данных по инструменту. 
         /// </summary>
-        /// <param name="namePaper">security name for testing / имя бумаги которую будем запускать</param>
-        /// <param name="timeFrameBuilder">object with timeframe / объект несущий в себе данные о таймФрейме</param>
-        /// <returns>In case of success returns CandleSeries / В случае удачи возвращает CandleSeries
-        /// in case of failure null / в случае неудачи null</returns>
-        public CandleSeries StartThisSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder)
+        /// <param name="securityName"> security name for running / имя бумаги которую будем запускать</param>
+        /// <param name="timeFrameBuilder"> object that has data about timeframe / объект несущий в себе данные о таймФрейме</param>
+        /// <param name="securityClass"> security class for running / класс бумаги которую будем запускать</param>
+        /// <returns> returns CandleSeries if successful else null / В случае удачи возвращает CandleSeries в случае неудачи null</returns>
+        public CandleSeries StartThisSecurity(string securityName, TimeFrameBuilder timeFrameBuilder, string securityClass)
         {
             lock (_starterLocker)
             {
-                if (namePaper == "")
+                if (securityName == "")
                 {
                     return null;
                 }
@@ -3169,7 +3169,7 @@ namespace OsEngine.Market.Servers.Tester
 
                 for (int i = 0; i < _securities.Count; i++)
                 {
-                    if (_securities[i].Name == namePaper)
+                    if (_securities[i].Name == securityName)
                     {
                         security = _securities[i];
                         break;
@@ -3202,14 +3202,14 @@ namespace OsEngine.Market.Servers.Tester
                 if (TypeTesterData != TesterDataType.Candle &&
                     timeFrameBuilder.CandleMarketDataType == CandleMarketDataType.Tick)
                 {
-                    if (_candleSeriesTesterActivate.Find(tester => tester.Security.Name == namePaper &&
+                    if (_candleSeriesTesterActivate.Find(tester => tester.Security.Name == securityName &&
                                                                    tester.DataType == SecurityTesterDataType.Tick) == null)
                     {
-                        if (SecuritiesTester.Find(tester => tester.Security.Name == namePaper &&
+                        if (SecuritiesTester.Find(tester => tester.Security.Name == securityName &&
                                                             tester.DataType == SecurityTesterDataType.Tick) != null)
                         {
                             _candleSeriesTesterActivate.Add(
-                                    SecuritiesTester.Find(tester => tester.Security.Name == namePaper &&
+                                    SecuritiesTester.Find(tester => tester.Security.Name == securityName &&
                                            tester.DataType == SecurityTesterDataType.Tick));
                         }
                         else
@@ -3222,14 +3222,14 @@ namespace OsEngine.Market.Servers.Tester
                 else if (TypeTesterData != TesterDataType.Candle &&
                          timeFrameBuilder.CandleMarketDataType == CandleMarketDataType.MarketDepth)
                 {
-                    if (_candleSeriesTesterActivate.Find(tester => tester.Security.Name == namePaper &&
+                    if (_candleSeriesTesterActivate.Find(tester => tester.Security.Name == securityName &&
                                                                    tester.DataType == SecurityTesterDataType.MarketDepth) == null)
                     {
-                        if (SecuritiesTester.Find(tester => tester.Security.Name == namePaper &&
+                        if (SecuritiesTester.Find(tester => tester.Security.Name == securityName &&
                                                             tester.DataType == SecurityTesterDataType.MarketDepth) != null)
                         {
                             _candleSeriesTesterActivate.Add(
-                                    SecuritiesTester.Find(tester => tester.Security.Name == namePaper &&
+                                    SecuritiesTester.Find(tester => tester.Security.Name == securityName &&
                                            tester.DataType == SecurityTesterDataType.MarketDepth));
                         }
                         else
@@ -3241,11 +3241,11 @@ namespace OsEngine.Market.Servers.Tester
                 else if (TypeTesterData == TesterDataType.Candle)
                 {
                     TimeSpan time = GetTimeFremeInSpan(timeFrameBuilder.TimeFrame);
-                    if (_candleSeriesTesterActivate.Find(tester => tester.Security.Name == namePaper &&
+                    if (_candleSeriesTesterActivate.Find(tester => tester.Security.Name == securityName &&
                                                                    tester.DataType == SecurityTesterDataType.Candle &&
                                                                    tester.TimeFrameSpan == time) == null)
                     {
-                        if (SecuritiesTester.Find(tester => tester.Security.Name == namePaper &&
+                        if (SecuritiesTester.Find(tester => tester.Security.Name == securityName &&
                                                             tester.DataType == SecurityTesterDataType.Candle &&
                                                             tester.TimeFrameSpan == time) == null)
                         {
@@ -3253,7 +3253,7 @@ namespace OsEngine.Market.Servers.Tester
                         }
 
                         _candleSeriesTesterActivate.Add(
-                            SecuritiesTester.Find(tester => tester.Security.Name == namePaper &&
+                            SecuritiesTester.Find(tester => tester.Security.Name == securityName &&
                                                             tester.DataType == SecurityTesterDataType.Candle &&
                                                             tester.TimeFrameSpan == time));
                     }
@@ -3273,18 +3273,17 @@ namespace OsEngine.Market.Servers.Tester
 		/// start data downloading on instrument 
         /// Начать выгрузку данных по инструменту
         /// </summary>
-        public CandleSeries GetCandleDataToSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder, DateTime startTime,
-            DateTime endTime, DateTime actualTime, bool neadToUpdate)
+        public CandleSeries GetCandleDataToSecurity(string securityName, string securityClass, TimeFrameBuilder timeFrameBuilder,
+            DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdate)
         {
-            return StartThisSecurity(namePaper, timeFrameBuilder);
+            return StartThisSecurity(securityName, timeFrameBuilder,securityClass);
         }
 
         /// <summary>
 		/// take ticks data on instrument for period
         /// взять тиковые данные по инструменту за определённый период
         /// </summary>
-        public bool GetTickDataToSecurity(string namePaper, DateTime startTime, DateTime endTime, DateTime actualTime,
-            bool neadToUpdete)
+        public bool GetTickDataToSecurity(string securityName, string securityClass, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdete)
         {
             return true;
         }

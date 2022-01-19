@@ -93,7 +93,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
 
                 row.Cells.Add(new DataGridViewTextBoxCell());
-                if (string.IsNullOrWhiteSpace(_spread.Tabs[i].NamePaper))
+                if (string.IsNullOrWhiteSpace(_spread.Tabs[i].SecurityName))
                 {
                     row.Cells[1].Value = OsLocalization.Trader.Label84;
 
@@ -101,7 +101,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 else
                 {
 
-                    row.Cells[1].Value = _spread.Tabs[i].NamePaper;
+                    row.Cells[1].Value = _spread.Tabs[i].SecurityName;
 
                 }
                 _grid1.Rows.Add(row);

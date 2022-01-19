@@ -789,7 +789,7 @@ namespace OsEngine.Market.Connectors
                 // download already running instruments
                 // грузим уже запущенные инструменты
 
-                string paper = _connectorBot.NamePaper;
+                string paper = _connectorBot.SecurityName;
 
                 if (paper != null)
                 {
@@ -797,8 +797,8 @@ namespace OsEngine.Market.Connectors
                     ComboBoxSecurities.SelectedItem = paper;
                     if (ComboBoxSecurities.Text == null)
                     {
-                        ComboBoxSecurities.Items.Add(_connectorBot.NamePaper);
-                        ComboBoxSecurities.Text = _connectorBot.NamePaper;
+                        ComboBoxSecurities.Items.Add(_connectorBot.SecurityName);
+                        ComboBoxSecurities.Text = _connectorBot.SecurityName;
                     }
                 }
             }
@@ -922,9 +922,12 @@ namespace OsEngine.Market.Connectors
                 TimeFrame timeFrame;
                 Enum.TryParse(ComboBoxTimeFrame.Text, out timeFrame);
 
-                _connectorBot.TimeFrame = timeFrame;
-                _connectorBot.NamePaper = ComboBoxSecurities.Text;
                 Enum.TryParse(ComboBoxTypeServer.Text, true, out _connectorBot.ServerType);
+
+                _connectorBot.TimeFrame = timeFrame;
+                _connectorBot.SecurityName = ComboBoxSecurities.Text;
+
+                _connectorBot.SecurityClass = ComboBoxClass.Text;
 
                 CandleMarketDataType createType;
                 Enum.TryParse(ComboBoxCandleMarketDataType.Text, true, out createType);

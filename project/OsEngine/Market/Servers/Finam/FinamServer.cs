@@ -875,14 +875,14 @@ namespace OsEngine.Market.Servers.Finam
         private object _lockerStarter = new object();
 
         /// <summary>
-        /// start downloading data on instrument
+        /// start uploading data on instrument
         /// Начать выгрузку данных по инструменту. 
         /// </summary>
-        /// <param name="namePaper">security name for running / имя бумаги которую будем запускать</param>
-        /// <param name="timeFrameBuilder">object with timeframe / объект несущий в себе таймфрейм</param>
-        /// <returns>In case of luck, returns CandleSeries / В случае удачи возвращает CandleSeries
-        /// in case of failure null / в случае неудачи null</returns>
-        public CandleSeries StartThisSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder)
+        /// <param name="securityName"> security name for running / имя бумаги которую будем запускать</param>
+        /// <param name="timeFrameBuilder"> object that has data about timeframe / объект несущий в себе данные о таймФрейме</param>
+        /// <param name="securityClass"> security class for running / класс бумаги которую будем запускать</param>
+        /// <returns> returns CandleSeries if successful else null / В случае удачи возвращает CandleSeries в случае неудачи null</returns>
+        public CandleSeries StartThisSecurity(string securityName, TimeFrameBuilder timeFrameBuilder, string securityClass)
         {
             return null;
         }
@@ -950,7 +950,8 @@ namespace OsEngine.Market.Servers.Finam
         /// <param name="neadToUpdate">whether to automatically update / нужно ли автоматически обновлять</param>
         /// <returns>In case of luck, returns CandleSeries / В случае удачи возвращает CandleSeries
         /// in case of failure null / в случае неудачи null</returns>
-        public CandleSeries GetCandleDataToSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdate)
+        public CandleSeries GetCandleDataToSecurity(string securityName, string securityClass, TimeFrameBuilder timeFrameBuilder,
+            DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdate)
         {
             try
             {
@@ -962,7 +963,7 @@ namespace OsEngine.Market.Servers.Finam
                 // one by one / дальше по одному
                 lock (_lockerStarter)
                 {
-                    if (namePaper == null)
+                    if (securityName == null)
                     {
                         return null;
                     }
@@ -988,7 +989,7 @@ namespace OsEngine.Market.Servers.Finam
 
                     for (int i = 0; _securities != null && i < _securities.Count; i++)
                     {
-                        if (_securities[i].NameId == namePaper)
+                        if (_securities[i].NameId == securityName)
                         {
                             security = _securities[i];
                             break;
@@ -1051,7 +1052,7 @@ namespace OsEngine.Market.Servers.Finam
         /// взять тиковые данные по инструменту за определённый период
         /// </summary>
         /// <returns></returns>
-        public bool GetTickDataToSecurity(string namePaper, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdete)
+        public bool GetTickDataToSecurity(string securityName, string securityClass, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdete)
         {
             try
             {
@@ -1063,7 +1064,7 @@ namespace OsEngine.Market.Servers.Finam
                 // one by one / дальше по одному
                 lock (_lockerStarter)
                 {
-                    if (namePaper == null)
+                    if (securityName == null)
                     {
                         return false;
                     }
@@ -1090,7 +1091,7 @@ namespace OsEngine.Market.Servers.Finam
 
                     for (int i = 0; _securities != null && i < _securities.Count; i++)
                     {
-                        if (_securities[i].NameId == namePaper)
+                        if (_securities[i].NameId == securityName)
                         {
                             security = _securities[i];
                             break;

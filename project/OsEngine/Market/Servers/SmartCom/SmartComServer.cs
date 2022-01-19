@@ -76,14 +76,14 @@ namespace OsEngine.Market.Servers.SmartCom
             orderStatusCheckThread.Start();
         }
 
-        public CandleSeries GetCandleDataToSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder, DateTime startTime,
-            DateTime endTime, DateTime actualTime, bool neadToUpdate)
+        public CandleSeries GetCandleDataToSecurity(string securityName, string securityClass, TimeFrameBuilder timeFrameBuilder,
+            DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdate)
         {
             return null;
         }
 
-        public bool GetTickDataToSecurity(string namePaper, DateTime startTime, DateTime endTime, DateTime actualTime,
-            bool neadToUpdete)
+        public bool GetTickDataToSecurity(string securityName, string securityClass, DateTime startTime, 
+            DateTime endTime, DateTime actualTime, bool neadToUpdete)
         {
             return false;
         }
@@ -1185,13 +1185,14 @@ namespace OsEngine.Market.Servers.SmartCom
         private List<string> _startedSecurities = new List<string>();
 
         /// <summary>
+        /// start uploading data on instrument
         /// Начать выгрузку данных по инструменту. 
         /// </summary>
-        /// <param name="namePaper">имя бумаги которую будем запускать</param>
-        /// <param name="timeFrameBuilder">объект несущий в себе данные о таймФрейме</param>
-        /// <returns>В случае удачи возвращает CandleSeries
-        /// в случае неудачи null</returns>
-        public CandleSeries StartThisSecurity(string namePaper, TimeFrameBuilder timeFrameBuilder)
+        /// <param name="securityName"> security name for running / имя бумаги которую будем запускать</param>
+        /// <param name="timeFrameBuilder"> object that has data about timeframe / объект несущий в себе данные о таймФрейме</param>
+        /// <param name="securityClass"> security class for running / класс бумаги которую будем запускать</param>
+        /// <returns> returns CandleSeries if successful else null / В случае удачи возвращает CandleSeries в случае неудачи null</returns>
+        public CandleSeries StartThisSecurity(string securityName, TimeFrameBuilder timeFrameBuilder, string securityClass)
         {
             try
             {
@@ -1208,7 +1209,7 @@ namespace OsEngine.Market.Servers.SmartCom
                 // дальше по одному
                 lock (_lockerStarter)
                 {
-                    if (namePaper == "")
+                    if (securityName == "")
                     {
                         return null;
                     }
@@ -1235,7 +1236,8 @@ namespace OsEngine.Market.Servers.SmartCom
 
                     for (int i = 0; _securities != null && i < _securities.Count; i++)
                     {
-                        if (_securities[i].Name == namePaper)
+                        if (_securities[i].Name == securityName &&
+                            _securities[i].NameClass == securityClass)
                         {
                             security = _securities[i];
                             break;
@@ -1259,7 +1261,7 @@ namespace OsEngine.Market.Servers.SmartCom
                         bool isStarted = false;
                         for (int i = 0; i < _startedSecurities.Count; i++)
                         {
-                            if (_startedSecurities[i] == namePaper)
+                            if (_startedSecurities[i] == securityName)
                             {
                                 isStarted = true;
                             }
@@ -1267,10 +1269,10 @@ namespace OsEngine.Market.Servers.SmartCom
 
                         if (isStarted == false)
                         {
-                            SmartServer.ListenBidAsks(namePaper);
-                            SmartServer.ListenQuotes(namePaper);
-                            SmartServer.ListenTicks(namePaper);
-                            _startedSecurities.Add(namePaper);
+                            SmartServer.ListenBidAsks(securityName);
+                            SmartServer.ListenQuotes(securityName);
+                            SmartServer.ListenTicks(securityName);
+                            _startedSecurities.Add(securityName);
                         }
                     }
 
