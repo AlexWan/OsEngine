@@ -941,7 +941,7 @@ namespace OsEngine.Market.Servers.Tester
 
             string str = row.Cells[1].Value.ToString();
 
-            Security security = _server.GetSecurityForName(str);
+            Security security = _server.GetSecurityForName(str,"");
 
             if (security == null)
             {

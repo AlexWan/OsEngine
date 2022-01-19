@@ -113,7 +113,7 @@ namespace OsEngine.Market.Servers
         /// take the security by the short name
         /// взять инструмент по короткому имени инструмента
         /// </summary>
-        Security GetSecurityForName(string name);
+        Security GetSecurityForName(string securityName,string securityClass);
 
         /// <summary>
         /// securities changed

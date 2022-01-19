@@ -327,7 +327,7 @@ namespace OsEngine.Market.Connectors
                 {
                     if (_myServer != null)
                     {
-                        return _myServer.GetSecurityForName(_securityName);
+                        return _myServer.GetSecurityForName(_securityName,_securityClass);
                     }
                 }
                 catch (Exception error)
@@ -1192,7 +1192,7 @@ namespace OsEngine.Market.Connectors
                 {
                     if (_myServer != null)
                     {
-                        return _myServer.GetAllTradesToSecurity(_myServer.GetSecurityForName(SecurityName));
+                        return _myServer.GetAllTradesToSecurity(_myServer.GetSecurityForName(_securityName,_securityClass));
                     }
                 }
                 catch (Exception error)

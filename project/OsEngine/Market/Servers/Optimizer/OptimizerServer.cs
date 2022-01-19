@@ -1186,7 +1186,7 @@ namespace OsEngine.Market.Servers.Optimizer
 		/// take security as Security class by name
         /// взять бумагу в виде класса Security по названию
         /// </summary>
-        public Security GetSecurityForName(string name)
+        public Security GetSecurityForName(string securityName, string securityClass)
         {
             if (_securities == null)
             {
@@ -1195,7 +1195,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
             for(int i = 0;i < _securities.Count;i++)
             {
-                if(_securities[i].Name == name)
+                if(_securities[i].Name == securityName)
                 {
                     return _securities[i];
                 }
@@ -1467,7 +1467,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
             if (NewBidAscIncomeEvent != null)
             {
-                NewBidAscIncomeEvent(candle.Close, candle.Close,GetSecurityForName(nameSecurity));
+                NewBidAscIncomeEvent(candle.Close, candle.Close,GetSecurityForName(nameSecurity,""));
             }
 
             _candleManager.SetNewCandleInSeries(candle, nameSecurity, timeFrame);
@@ -1628,7 +1628,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
             if (NewBidAscIncomeEvent != null)
             {
-                NewBidAscIncomeEvent(tradesNew[tradesNew.Count - 1].Price, tradesNew[tradesNew.Count - 1].Price, GetSecurityForName(tradesNew[tradesNew.Count - 1].SecurityNameCode));
+                NewBidAscIncomeEvent(tradesNew[tradesNew.Count - 1].Price, tradesNew[tradesNew.Count - 1].Price, GetSecurityForName(tradesNew[tradesNew.Count - 1].SecurityNameCode,""));
             }
         }
 
@@ -1924,7 +1924,7 @@ namespace OsEngine.Market.Servers.Optimizer
             {
                 if (order.Side == Side.Buy)
                 {
-                    Security mySecurity = GetSecurityForName(order.SecurityNameCode);
+                    Security mySecurity = GetSecurityForName(order.SecurityNameCode,"");
 
                     if (mySecurity != null && mySecurity.PriceStep != 0)
                     {
@@ -1934,7 +1934,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                 if (order.Side == Side.Sell)
                 {
-                    Security mySecurity = GetSecurityForName(order.SecurityNameCode);
+                    Security mySecurity = GetSecurityForName(order.SecurityNameCode,"");
 
                     if (mySecurity != null && mySecurity.PriceStep != 0)
                     {

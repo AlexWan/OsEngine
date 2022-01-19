@@ -1050,7 +1050,7 @@ namespace OsEngine.OsData
                 {
                     if (_myServer.ServerType != ServerType.Finam)
                     {
-                        List<Trade> trades = _myServer.GetAllTradesToSecurity(_myServer.GetSecurityForName(SecuritiesNames[i].Name));
+                        List<Trade> trades = _myServer.GetAllTradesToSecurity(_myServer.GetSecurityForName(SecuritiesNames[i].Name,""));
 
                         if (trades == null ||
                             trades.Count == 0)
@@ -1151,7 +1151,7 @@ namespace OsEngine.OsData
                         continue;
                     }
 
-                    Security sec = _myServer.GetSecurityForName(SecuritiesNames[i].Name);
+                    Security sec = _myServer.GetSecurityForName(SecuritiesNames[i].Name,"");
 
                     string nameSecurityToSave = sec.NameFull.RemoveExcessFromSecurityName();
 

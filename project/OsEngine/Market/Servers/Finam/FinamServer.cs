@@ -796,7 +796,7 @@ namespace OsEngine.Market.Servers.Finam
         /// take the instrument as a Security class by the name of the tool
         /// взять инструмент в виде класса Security, по имени инструмента 
         /// </summary>
-        public Security GetSecurityForName(string name)
+        public Security GetSecurityForName(string name, string securityClass)
         {
             if (_securities == null)
             {

@@ -1014,13 +1014,31 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// take instruments as class Security by name
         /// взять инструмент в виде класса Security, по имени инструмента 
         /// </summary>
-        public Security GetSecurityForName(string name)
+        public Security GetSecurityForName(string securityName, string securityClass)
         {
             if (_securities == null)
             {
                 return null;
             }
-            return _securities.Find(securiti => securiti.Name == name);
+
+            for (int i = 0; i < _securities.Count; i++)
+            {
+                if (_securities[i].Name == securityName &&
+                    _securities[i].NameClass == securityClass)
+                {
+                    return _securities[i];
+                }
+            }
+
+            for (int i = 0; i < _securities.Count; i++)
+            {
+                if (_securities[i].Name == securityName)
+                {
+                    return _securities[i];
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -1240,7 +1258,7 @@ namespace OsEngine.Market.Servers.AstsBridge
             {
                 Bid = myDepth.Asks[0].Price,
                 Ask = myDepth.Bids[0].Price,
-                Security = GetSecurityForName(myDepth.SecurityNameCode)
+                Security = GetSecurityForName(myDepth.SecurityNameCode,"")
             });
         }
 

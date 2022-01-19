@@ -1130,13 +1130,31 @@ namespace OsEngine.Market.Servers
         /// take the instrument as a Security by name of instrument
         /// взять инструмент в виде класса Security, по имени инструмента 
         /// </summary>
-        public Security GetSecurityForName(string name)
+        public Security GetSecurityForName(string securityName, string securityClass)
         {
             if (_securities == null)
             {
                 return null;
             }
-            return _securities.Find(securiti => securiti.Name == name);
+
+            for (int i = 0; i < _securities.Count; i++)
+            {
+                if(_securities[i].Name == securityName &&
+                    _securities[i].NameClass == securityClass)
+                {
+                    return _securities[i];
+                }
+            }
+
+            for (int i = 0; i < _securities.Count; i++)
+            {
+                if (_securities[i].Name == securityName)
+                {
+                    return _securities[i];
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -1603,7 +1621,7 @@ namespace OsEngine.Market.Servers
 
                         if (_currentBestBid != besBid || _currentBestAsk != bestAsk)
                         {
-                            Security sec = GetSecurityForName(myDepth.SecurityNameCode);
+                            Security sec = GetSecurityForName(myDepth.SecurityNameCode,"");
                             if (sec != null)
                             {
                                 _currentBestBid = besBid;
