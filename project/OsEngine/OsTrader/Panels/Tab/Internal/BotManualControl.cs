@@ -121,7 +121,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             _botTab = botTab;
 
-            if (_startProgram != StartProgram.IsTester)
+            if (_startProgram == StartProgram.IsOsTrader)
             {
                 if (Watcher == null)
                 {
