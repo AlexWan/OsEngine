@@ -63,7 +63,7 @@
     <ApplicationIcon>Images\OsLogo.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="cgate_net64, Version=5.2.1.21764, Culture=neutral, processorArchitecture=AMD64">
+    <Reference Include="cgate_net64, Version=5.10.0.36987, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\Debug\cgate_net64.dll</HintPath>
     </Reference>

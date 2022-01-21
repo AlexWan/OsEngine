@@ -69,7 +69,7 @@ namespace OsEngine.Market.Servers.Plaza.Internal
 		/// initialization line of the Listner responsible for receiving information about the instruments
         /// строка инициализации Листнера отвечающего за приём информации об инструментах
         /// </summary>
-        private const string ListenInfoString = "p2repl://FORTS_FUTINFO_REPL;scheme=|FILE|Plaza/Schemas/fut_info.ini|CustReplScheme";
+        private const string ListenInfoString = "p2repl://FORTS_REFDATA_REPL;scheme=|FILE|Plaza/Schemas/fut_info.ini|CustReplScheme";
 
         /// <summary>
 		/// initialization string of the Listner responsible for receiving position
@@ -93,13 +93,13 @@ namespace OsEngine.Market.Servers.Plaza.Internal
 		/// initialization string of the Listner responsible for receiving my trades and my orders
         /// строка инициализации листнера отвечающего за приём Моих сделок и моих ордеров
         /// </summary>
-        private const string ListenOrderAndMyTradesString = "p2repl://FORTS_FUTTRADE_REPL;scheme=|FILE|Plaza/Schemas/fut_trades.ini|CustReplScheme";
+        private const string ListenOrderAndMyTradesString = "p2repl://FORTS_TRADE_REPL;scheme=|FILE|Plaza/Schemas/fut_trades.ini|CustReplScheme";
 
         /// <summary>
 		/// initialization string of the Listner responsible for receiving depth
         /// строка инициализации для листнера отвечающего за приём среза стакана
         /// </summary>
-        private const string ListenMarketDepth = "p2repl://FORTS_FUTAGGR20_REPL;scheme=|FILE|Plaza/Schemas/orders_aggr.ini|CustReplScheme";
+        private const string ListenMarketDepth = "p2repl://FORTS_AGGR20_REPL;scheme=|FILE|Plaza/Schemas/orders_aggr.ini|CustReplScheme";
 
         /// <summary>
 		/// initialization string for order publisher
@@ -768,6 +768,11 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                                     {
                                         UpdateSecurity(security);
                                     }
+
+                                    if(_securities.Find(s => s.NameId.Equals(security.NameId)) == null)
+                                    {
+                                        _securities.Add(security);
+                                    }
                                 }
 
                                 catch (Exception error)
@@ -796,6 +801,8 @@ namespace OsEngine.Market.Servers.Plaza.Internal
                 return (int)e.ErrCode;
             }
         }
+
+        private List<Security> _securities = new List<Security>();
 
         /// <summary>
 		/// called when a new instrument appears
@@ -1666,12 +1673,12 @@ Connection conn, Listener listener, Message msg)
                                 {
                                     Order order = new Order();
 
-                                    order.NumberMarket = replmsg["id_ord"].asLong().ToString();
+                                    order.NumberMarket = replmsg["public_order_id"].asLong().ToString();
                                     order.NumberUser = replmsg["ext_id"].asInt();
 
-                                    order.Volume = replmsg["xamount"].asInt();
+                                    order.Volume = replmsg["public_amount"].asInt();
                                     //order.VolumeExecute = 0;
-                                    order.VolumeExecute = replmsg["xamount_rest"].asInt(); // это у нас оставшееся в заявке
+                                    order.VolumeExecute = replmsg["public_amount_rest"].asInt(); // это у нас оставшееся в заявке
 
                                     order.Price = Convert.ToDecimal(replmsg["price"].asDecimal());
                                     order.PortfolioNumber = replmsg["client_code"].asString();
@@ -1679,7 +1686,7 @@ Connection conn, Listener listener, Message msg)
                                     order.TimeCallBack = replmsg["moment"].asDateTime();
                                     order.ServerType = ServerType.Plaza;
 
-                                    int action = replmsg["action"].asInt();
+                                    int action = replmsg["private_action"].asInt();
 
                                     if (action == 0)
                                     {
@@ -2112,7 +2119,7 @@ Connection conn, Listener listener, Message msg)
 
                         lock (_plazaThreadLocker)
                         {
-                            Message sendMessage = _publisher.NewMessage(MessageKeyType.KeyName, "FutAddOrder");
+                            Message sendMessage = _publisher.NewMessage(MessageKeyType.KeyName, "AddOrder");
 
                             int dir = 0;
 
@@ -2134,7 +2141,15 @@ Connection conn, Listener listener, Message msg)
                             DataMessage smsg = (DataMessage)sendMessage;
                             smsg.UserId = (uint)order.NumberUser;
                             smsg["broker_code"].set(brockerCode);
-                            smsg["isin"].set(order.SecurityNameCode);
+
+                            int isinId = GetIsinId(order.SecurityNameCode);
+
+                            if(isinId == -1)
+                            {
+                                continue;
+                            }
+
+                            smsg["isin_id"].set(isinId);
                             smsg["client_code"].set(clientCode);
                             smsg["type"].set(1);
                             smsg["dir"].set(dir);
@@ -2200,6 +2215,21 @@ Connection conn, Listener listener, Message msg)
                     Thread.Sleep(1);
                 }
             }
+        }
+
+        private int GetIsinId(string isin)
+        {
+
+            for (int i = 0; i < _securities.Count; i++)
+            {
+                if(_securities[i].Name.Equals(isin))
+                {
+                    return Convert.ToInt32(_securities[i].NameId);
+
+                }
+            }
+
+            return -1;
         }
 
         /// <summary>
