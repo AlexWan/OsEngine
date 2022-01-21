@@ -1289,8 +1289,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                 for (int i = 0; i < _securities.Count; i++)
                 {
-                    if (_securities[i].Name == securityName &&
-                        _securities[i].NameClass == securityClass)
+                    if (_securities[i].Name == securityName)
                     {
                         security = _securities[i];
                         break;

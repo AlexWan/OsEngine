@@ -2188,7 +2188,7 @@ Connection conn, Listener listener, Message msg)
                         Order order = _ordersToCansel.Dequeue();
                         lock (_plazaThreadLocker)
                         {
-                            Message sendMessage = _publisher.NewMessage(MessageKeyType.KeyName, "FutDelOrder");
+                            Message sendMessage = _publisher.NewMessage(MessageKeyType.KeyName, "DelOrder");
 
                             string code = order.PortfolioNumber;
 
