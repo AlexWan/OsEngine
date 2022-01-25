@@ -96,6 +96,10 @@ namespace OsEngine.OsOptimizer.OptEntity
             {
                 nRow.Cells[1].Value = ((StrategyParameterString)parameter).ValueString;
             }
+            if (parameter.Type == StrategyParameterType.TimeOfDay)
+            {
+                nRow.Cells[1].Value = ((StrategyParameterTimeOfDay)parameter).Value.ToString();
+            }
 
             return nRow;
         }
