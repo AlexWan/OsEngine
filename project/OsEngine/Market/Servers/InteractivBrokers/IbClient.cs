@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading;
 using OsEngine.Entity;
 using OsEngine.Logging;
+using OsEngine.Market.Servers.Entity;
 
 namespace OsEngine.Market.Servers.InteractivBrokers
 {
@@ -729,12 +730,15 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             }
         }
 
+        RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(100));
+
         /// <summary>
         /// send a previously collected message to TCP server of TWS
         /// выслать ранее собранное сообщение TCP серверу TWS
         /// </summary>
         private void TcpSendMessage()
         {
+            _rateGate.WaitToProceed();
             _tcpWriter.Write(_message.ToArray());
             _message = new List<byte>();
         }
