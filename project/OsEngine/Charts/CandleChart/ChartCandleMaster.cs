@@ -216,10 +216,6 @@ namespace OsEngine.Charts.CandleChart
                         {
                             CreateIndicator(new Alligator(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "Trades")
-                        {
-                            ChartCandle.CreateTickArea();
-                        }
                         if (indicator[0] == "PriceChannel")
                         {
                             CreateIndicator(new PriceChannel(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
@@ -790,16 +786,6 @@ namespace OsEngine.Charts.CandleChart
         private List<IIndicator> _indicators;
 
         /// <summary>
-        /// to create an area for drawing ticks on chart
-        /// создать на чарте область для прорисовки тиков
-        /// </summary>
-        public void CreateTickChart()
-        {
-            ChartCandle.CreateTickArea();
-            Save();
-        }
-
-        /// <summary>
         /// to create a new indicator. If there is already one with this name, the existing one returned
         /// создать новый индикатор. Если уже есть с таким именем, возвращается имеющийся
         /// </summary>
@@ -825,79 +811,8 @@ namespace OsEngine.Charts.CandleChart
                     }
                 }
 
-                bool inNewArea = true;
+                LoadIndicatorOnChart(indicator);
 
-                if (ChartCandle.AreaIsCreate(nameArea))
-                {
-                    inNewArea = false;
-                }
-
-                List<List<decimal>> values = indicator.ValuesToChart;
-
-                if (values != null)
-                { // прогружаем классические индикаторы
-                    for (int i = 0; i < values.Count; i++)
-                    {
-                        if (inNewArea == false)
-                        {
-                            indicator.NameSeries = ChartCandle.CreateSeries(nameArea,
-                                indicator.TypeIndicator, indicator.Name + i);
-                        }
-                        else
-                        {
-                            string area = ChartCandle.CreateArea(nameArea, 15);
-                            indicator.NameSeries = ChartCandle.CreateSeries(area,
-                                indicator.TypeIndicator, indicator.Name + i);
-                        }
-                    }
-                }
-                else
-                {
-                    Aindicator ind = (Aindicator)indicator;
-
-                    List<IndicatorDataSeries> series = ind.DataSeries;
-
-                    if (series == null ||
-                        series.Count == 0)
-                    {
-                        NewLogMessage("Indicator " + ind.Name + " don`t have a value series.", LogMessageType.Error);
-                        return null;
-                    }
-
-                    for (int i = 0; i < series.Count; i++)
-                    {
-
-                        if (inNewArea == false)
-                        {
-                            series[i].NameSeries = ChartCandle.CreateSeries(nameArea,
-                                series[i].ChartPaintType, indicator.Name + i);
-                        }
-                        else
-                        {
-                            string area = ChartCandle.CreateArea(nameArea, 15);
-
-                            series[i].NameSeries = ChartCandle.CreateSeries(area,
-                                series[i].ChartPaintType, indicator.Name + i);
-                        }
-                    }
-                }
-
-
-
-                if (_indicators == null)
-                {
-                    _indicators = new List<IIndicator>();
-                    _indicators.Add(indicator);
-                }
-                else
-                {
-                    _indicators.Add(indicator);
-                }
-
-                Save();
-                ReloadContext();
-                indicator.NeadToReloadEvent += indicator_NeadToReloadEvent;
-                indicator_NeadToReloadEvent(indicator);
                 return indicator;
             }
             catch (Exception error)
@@ -905,6 +820,84 @@ namespace OsEngine.Charts.CandleChart
                 SendErrorMessage(error);
                 return null;
             }
+        }
+
+        private void LoadIndicatorOnChart(IIndicator indicator)
+        {
+            bool inNewArea = true;
+            string nameArea = indicator.NameArea;
+
+            if (ChartCandle.AreaIsCreate(nameArea))
+            {
+                inNewArea = false;
+            }
+
+            List<List<decimal>> values = indicator.ValuesToChart;
+
+            if (values != null)
+            { // прогружаем классические индикаторы
+                for (int i = 0; i < values.Count; i++)
+                {
+                    if (inNewArea == false)
+                    {
+                        indicator.NameSeries = ChartCandle.CreateSeries(nameArea,
+                            indicator.TypeIndicator, indicator.Name + i);
+                    }
+                    else
+                    {
+                        string area = ChartCandle.CreateArea(nameArea, 15);
+                        indicator.NameSeries = ChartCandle.CreateSeries(area,
+                            indicator.TypeIndicator, indicator.Name + i);
+                    }
+                }
+            }
+            else
+            {
+                Aindicator ind = (Aindicator)indicator;
+
+                List<IndicatorDataSeries> series = ind.DataSeries;
+
+                if (series == null ||
+                    series.Count == 0)
+                {
+                    NewLogMessage("Indicator " + ind.Name + " don`t have a value series.", LogMessageType.Error);
+                    return;
+                }
+
+                for (int i = 0; i < series.Count; i++)
+                {
+
+                    if (inNewArea == false)
+                    {
+                        series[i].NameSeries = ChartCandle.CreateSeries(nameArea,
+                            series[i].ChartPaintType, indicator.Name + i);
+                    }
+                    else
+                    {
+                        string area = ChartCandle.CreateArea(nameArea, 15);
+
+                        series[i].NameSeries = ChartCandle.CreateSeries(area,
+                            series[i].ChartPaintType, indicator.Name + i);
+                    }
+                }
+            }
+
+
+
+            if (_indicators == null)
+            {
+                _indicators = new List<IIndicator>();
+                _indicators.Add(indicator);
+            }
+            else
+            {
+                _indicators.Add(indicator);
+            }
+
+            Save();
+            ReloadContext();
+            indicator.NeadToReloadEvent += indicator_NeadToReloadEvent;
+            indicator_NeadToReloadEvent(indicator);
         }
 
         /// <summary>

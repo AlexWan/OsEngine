@@ -190,10 +190,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
                     }
                 }
             }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Trades")
-            {
-                _chartMaster.CreateTickChart();
-            }
 
             if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "TickVolume")
             {

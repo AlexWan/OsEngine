@@ -649,12 +649,8 @@ namespace OsEngine.Market.Servers
                             Portfolios.Clear();
                         }
 
-                        if (_candleManager != null)
-                        {
-                            _candleManager.Dispose();
-                            _candleManager = null;
-                        }
-
+                        DeleteCandleManager();
+ 
                         ServerRealization.Connect();
                         LastStartServerTime = DateTime.Now;
 
@@ -668,11 +664,7 @@ namespace OsEngine.Market.Servers
                         SendLogMessage(OsLocalization.Market.Message9, LogMessageType.System);
                         ServerRealization.Dispose();
 
-                        if (_candleManager != null)
-                        {
-                            _candleManager.Dispose();
-                            _candleManager = null;
-                        }
+                        DeleteCandleManager();
 
                         continue;
                     }
@@ -705,7 +697,8 @@ namespace OsEngine.Market.Servers
                     SendLogMessage(error.ToString(), LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
                     ServerRealization.Dispose();
-                    _candleManager = null;
+
+                    DeleteCandleManager();
 
                     Thread.Sleep(5000);
                     // reconnect / переподключаемся
@@ -755,6 +748,17 @@ namespace OsEngine.Market.Servers
                 _candleManager = new CandleManager(this);
                 _candleManager.CandleUpdateEvent += _candleManager_CandleUpdateEvent;
                 _candleManager.LogMessageEvent += SendLogMessage;
+            }
+        }
+
+        private void DeleteCandleManager()
+        {
+            if (_candleManager != null)
+            {
+                _candleManager.CandleUpdateEvent -= _candleManager_CandleUpdateEvent;
+                _candleManager.LogMessageEvent -= SendLogMessage;
+                _candleManager.Dispose();
+                _candleManager = null;
             }
         }
 

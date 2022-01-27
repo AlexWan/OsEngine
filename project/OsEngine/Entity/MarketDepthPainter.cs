@@ -356,6 +356,10 @@ namespace OsEngine.Entity
         {
             try
             {
+                if (_glassBox == null)
+                {
+                    return;
+                }
                 if (_glassBox != null && _glassBox.InvokeRequired)
                 {
                     _glassBox.Invoke(new Action(StopPaint));
@@ -372,6 +376,12 @@ namespace OsEngine.Entity
                 {
                     _hostGlass.Child = null;
                     _hostGlass = null;
+                }
+
+                if(_glassBox != null)
+                {
+                    _glassBox.Rows.Clear();
+                    _glassBox = null;
                 }
             }
             catch (Exception error)

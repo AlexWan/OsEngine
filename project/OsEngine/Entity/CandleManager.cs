@@ -158,6 +158,34 @@ namespace OsEngine.Entity
         }
 
 
+        public CandleSeries GetSeries(TimeFrameBuilder timeFrameBuilder, Security security)
+        {
+            if(_activSeries == null)
+            {
+                return null;
+            }
+
+            for(int i = 0;i < _activSeries.Count;i++)
+            {
+                CandleSeries curSeries = _activSeries[i];
+
+                if(curSeries.Security.Name != security.Name ||
+                    curSeries.Security.NameClass != security.NameClass)
+                {
+                    continue;
+                }
+
+                if(curSeries.TimeFrameBuilder.Specification.Equals(timeFrameBuilder.Specification) == false)
+                {
+                    continue;
+                }
+
+                return _activSeries[i];
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// start creating candles in a new series of candles
         /// начать создавать свечи в новой серии свечек
@@ -805,11 +833,17 @@ namespace OsEngine.Entity
                 }
 
                 _activSeries = null;
+
             }
             catch
             {
                 // ignore
             }
+
+            _server.NewTradeEvent -= server_NewTradeEvent;
+            _server.TimeServerChangeEvent -= _server_TimeServerChangeEvent;
+            _server.NewMarketDepthEvent -= _server_NewMarketDepthEvent;
+            _server = null;
         }
 
         private bool _isDisposed;

@@ -31,7 +31,7 @@ namespace OsEngine.Entity
         /// <param name="startProgram">the program that created the object/программа создавшая объект</param>
         public CandleSeries(TimeFrameBuilder timeFrameBuilder, Security security, StartProgram startProgram)
         {
-            _timeFrameBuilder = timeFrameBuilder;
+            TimeFrameBuilder = timeFrameBuilder;
             Security = security;
             _startProgram = startProgram;
         }
@@ -55,7 +55,7 @@ namespace OsEngine.Entity
         /// </summary>
         public CandleMarketDataType CandleMarketDataType
         {
-            get { return _timeFrameBuilder.CandleMarketDataType; }
+            get { return TimeFrameBuilder.CandleMarketDataType; }
         }
 
         /// <summary>
@@ -63,10 +63,10 @@ namespace OsEngine.Entity
         /// </summary>
         public CandleCreateMethodType CandleCreateMethodType
         {
-            get { return _timeFrameBuilder.CandleCreateMethodType; }
+            get { return TimeFrameBuilder.CandleCreateMethodType; }
         }
 
-        private readonly TimeFrameBuilder _timeFrameBuilder;
+        public TimeFrameBuilder TimeFrameBuilder;
 
         public string Specification
         {
@@ -78,7 +78,7 @@ namespace OsEngine.Entity
 
                 result.Append(Security.NameFull + "_");
                 //result.Append(Security.NameClass + "_");
-                result.Append(_timeFrameBuilder.Specification);
+                result.Append(TimeFrameBuilder.Specification);
 
                 _specification = result.ToString();
 
@@ -109,7 +109,7 @@ namespace OsEngine.Entity
         /// </summary>
         public TimeSpan TimeFrameSpan
         {
-            get { return _timeFrameBuilder.TimeFrameTimeSpan; }
+            get { return TimeFrameBuilder.TimeFrameTimeSpan; }
         }
 
         /// <summary>
@@ -117,10 +117,10 @@ namespace OsEngine.Entity
         /// </summary>
         public TimeFrame TimeFrame
         {
-            get { return _timeFrameBuilder.TimeFrame; }
+            get { return TimeFrameBuilder.TimeFrame; }
             set
             {
-                _timeFrameBuilder.TimeFrame = value;
+                TimeFrameBuilder.TimeFrame = value;
             }
         }
 
@@ -191,6 +191,8 @@ namespace OsEngine.Entity
                 CandlesAll[i].Trades = null;
             }
 
+            CandlesAll.Clear();
+
             CandlesAll = null;
         }
 
@@ -217,7 +219,7 @@ namespace OsEngine.Entity
                 return;
             }
 
-            if (_timeFrameBuilder.CandleCreateMethodType != CandleCreateMethodType.Simple)
+            if (TimeFrameBuilder.CandleCreateMethodType != CandleCreateMethodType.Simple)
             {
                 return;
             }
@@ -256,7 +258,7 @@ namespace OsEngine.Entity
             {
                 return;
             }
-            if (_timeFrameBuilder.CandleMarketDataType == CandleMarketDataType.MarketDepth)
+            if (TimeFrameBuilder.CandleMarketDataType == CandleMarketDataType.MarketDepth)
             {
                 return;
             }
@@ -302,7 +304,7 @@ namespace OsEngine.Entity
                     continue;
                 }
 
-                if (_timeFrameBuilder.SaveTradesInCandles)
+                if (TimeFrameBuilder.SaveTradesInCandles)
                 {
                     List<Trade> tradesInCandle = CandlesAll[CandlesAll.Count - 1].Trades;
                     tradesInCandle.Add(trade);
@@ -319,7 +321,7 @@ namespace OsEngine.Entity
         /// <param name="trades">тики</param>
         public void PreLoad(List<Trade> trades)
         {
-            if (_timeFrameBuilder.CandleMarketDataType == CandleMarketDataType.MarketDepth)
+            if (TimeFrameBuilder.CandleMarketDataType == CandleMarketDataType.MarketDepth)
             {
                 return;
             }
@@ -358,35 +360,35 @@ namespace OsEngine.Entity
         /// <param name="side">сторона в которую прошла последняя сделка</param>
         private void UpDateCandle(DateTime time, decimal price, decimal volume, bool canPushUp, Side side)
         {
-            if (_timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Simple)
+            if (TimeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Simple)
             {
                 UpDateSimpleTimeFrame(time, price, volume, canPushUp);
             }
-            else if (_timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Delta)
+            else if (TimeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Delta)
             {
                 UpDateDeltaTimeFrame(time, price, volume, canPushUp, side);
             }
-            else if (_timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Ticks)
+            else if (TimeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Ticks)
             {
                 UpDateTickTimeFrame(time, price, volume, canPushUp);
             }
-            else if (_timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Volume)
+            else if (TimeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Volume)
             {
                 UpDateVolumeTimeFrame(time, price, volume, canPushUp);
             }
-            else if (_timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Renko)
+            else if (TimeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Renko)
             {
                 UpDateRencoTimeFrame(time, price, volume, canPushUp);
             }
-            else if (_timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.HeikenAshi)
+            else if (TimeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.HeikenAshi)
             {
                 UpDateHeikenAshiCandle(time, price, volume, canPushUp);
             }
-            else if (_timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Range)
+            else if (TimeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Range)
             {
                 UpDateRangeCandles(time, price, volume, canPushUp);
             }
-            else if (_timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Rеvers)
+            else if (TimeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Rеvers)
             {
                 UpDateReversCandles(time, price, volume, canPushUp);
             }
@@ -445,7 +447,7 @@ namespace OsEngine.Entity
 
 
             if (CandlesAll != null &&
-                CandlesAll[CandlesAll.Count - 1].High - CandlesAll[CandlesAll.Count - 1].Low >= _timeFrameBuilder.RangeCandlesPunkts)
+                CandlesAll[CandlesAll.Count - 1].High - CandlesAll[CandlesAll.Count - 1].Low >= TimeFrameBuilder.RangeCandlesPunkts)
             {
                 // если пришли данные из новой свечки
 
@@ -492,7 +494,7 @@ namespace OsEngine.Entity
             }
 
             if (CandlesAll != null &&
-                CandlesAll[CandlesAll.Count - 1].High - CandlesAll[CandlesAll.Count - 1].Low < _timeFrameBuilder.RangeCandlesPunkts)
+                CandlesAll[CandlesAll.Count - 1].High - CandlesAll[CandlesAll.Count - 1].Low < TimeFrameBuilder.RangeCandlesPunkts)
             {
                 // если пришли данные внутри свечи
 
@@ -570,14 +572,14 @@ namespace OsEngine.Entity
 
             Candle lastCandle = CandlesAll[CandlesAll.Count - 1];
 
-            if (lastCandle.High - lastCandle.Open >= _timeFrameBuilder.ReversCandlesPunktsMinMove && //движение нужное есть
-                lastCandle.High - lastCandle.Close >= _timeFrameBuilder.ReversCandlesPunktsBackMove) // откат имеется
+            if (lastCandle.High - lastCandle.Open >= TimeFrameBuilder.ReversCandlesPunktsMinMove && //движение нужное есть
+                lastCandle.High - lastCandle.Close >= TimeFrameBuilder.ReversCandlesPunktsBackMove) // откат имеется
             { // есть откат от хая
                 candleReady = true;
             }
 
-            if (lastCandle.Open - lastCandle.Low >= _timeFrameBuilder.ReversCandlesPunktsMinMove && //движение нужное есть
-                lastCandle.Close - lastCandle.Low >= _timeFrameBuilder.ReversCandlesPunktsBackMove) // откат имеется
+            if (lastCandle.Open - lastCandle.Low >= TimeFrameBuilder.ReversCandlesPunktsMinMove && //движение нужное есть
+                lastCandle.Close - lastCandle.Low >= TimeFrameBuilder.ReversCandlesPunktsBackMove) // откат имеется
             { // есть откат от лоя
                 candleReady = true;
             }
@@ -725,7 +727,7 @@ namespace OsEngine.Entity
             }
 
             if (CandlesAll[CandlesAll.Count - 1].TimeStart.Add(TimeFrameSpan + TimeFrameSpan) <= time &&
-                _timeFrameBuilder.SetForeign)
+                TimeFrameBuilder.SetForeign)
             {
                 // произошёл пропуск данных в результате клиринга или перерыва в торгах
                 SetForeign(time);
@@ -918,7 +920,7 @@ namespace OsEngine.Entity
             }
 
             if (CandlesAll[CandlesAll.Count - 1].TimeStart.Add(TimeFrameSpan + TimeFrameSpan) <= time &&
-                _timeFrameBuilder.SetForeign)
+                TimeFrameBuilder.SetForeign)
             {
                 // произошёл пропуск данных в результате клиринга или перерыва в торгах
                 SetForeign(time);
@@ -1101,7 +1103,7 @@ namespace OsEngine.Entity
 
 
             if (CandlesAll != null &&
-                Math.Abs(_currentDelta) >= _timeFrameBuilder.DeltaPeriods)
+                Math.Abs(_currentDelta) >= TimeFrameBuilder.DeltaPeriods)
             {
                 // если пришли данные из новой свечки
 
@@ -1231,7 +1233,7 @@ namespace OsEngine.Entity
             }
 
             if (CandlesAll != null &&
-                _lastCandleTickCount >= _timeFrameBuilder.TradeCount)
+                _lastCandleTickCount >= TimeFrameBuilder.TradeCount)
             {
                 // если пришли данные из новой свечки
 
@@ -1277,7 +1279,7 @@ namespace OsEngine.Entity
             }
 
             if (CandlesAll != null &&
-                 _lastCandleTickCount < _timeFrameBuilder.TradeCount)
+                 _lastCandleTickCount < TimeFrameBuilder.TradeCount)
             {
                 // если пришли данные внутри свечи
                 _lastCandleTickCount++;
@@ -1347,7 +1349,7 @@ namespace OsEngine.Entity
             }
 
             if (CandlesAll != null &&
-                CandlesAll[CandlesAll.Count - 1].Volume >= _timeFrameBuilder.VolumeToCloseCandleInVolumeType)
+                CandlesAll[CandlesAll.Count - 1].Volume >= TimeFrameBuilder.VolumeToCloseCandleInVolumeType)
             {
                 // если пришли данные из новой свечки
 
@@ -1464,7 +1466,7 @@ namespace OsEngine.Entity
                 return;
             }
 
-            decimal renDist = _timeFrameBuilder.RencoPunktsToCloseCandleInRencoType;
+            decimal renDist = TimeFrameBuilder.RencoPunktsToCloseCandleInRencoType;
 
             if (
                 (_rencoLastSide == Side.None && Math.Abs(_rencoStartPrice - price) >= renDist)
@@ -1523,7 +1525,7 @@ namespace OsEngine.Entity
 
                 lastCandle.Close = _rencoStartPrice;
 
-                if (_timeFrameBuilder.RencoIsBuildShadows == false)
+                if (TimeFrameBuilder.RencoIsBuildShadows == false)
                 {
                     if (lastCandle.IsUp)
                     {
@@ -1681,7 +1683,7 @@ namespace OsEngine.Entity
         /// <param name="candle"></param>
         public void SetNewCandleInArray(Candle candle)
         {
-            if (_timeFrameBuilder.CandleMarketDataType == CandleMarketDataType.MarketDepth)
+            if (TimeFrameBuilder.CandleMarketDataType == CandleMarketDataType.MarketDepth)
             {
                 return;
             }
@@ -1740,7 +1742,7 @@ namespace OsEngine.Entity
                 return;
             }
 
-            if (_timeFrameBuilder.CandleMarketDataType != CandleMarketDataType.MarketDepth)
+            if (TimeFrameBuilder.CandleMarketDataType != CandleMarketDataType.MarketDepth)
             {
                 return;
             }
