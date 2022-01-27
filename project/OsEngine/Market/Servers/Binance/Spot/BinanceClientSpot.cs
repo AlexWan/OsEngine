@@ -274,6 +274,10 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     continue;
                 }
 
+                if(_isDisposed == true)
+                {
+                    return;
+                }
 
                 if (_timeStart.AddMinutes(25) < DateTime.Now)
                 {

@@ -228,6 +228,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     return;
                 }
 
+                if (_isDisposed == true)
+                {
+                    return;
+                }
+
                 if (_timeStart.AddMinutes(25) < DateTime.Now)
                 {
                     _timeStart = DateTime.Now;

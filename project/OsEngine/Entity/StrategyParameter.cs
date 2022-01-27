@@ -536,7 +536,7 @@ namespace OsEngine.Entity
 
             try
             {
-                _valueBool = Convert.ToBoolean(save[2]);
+                _valueBoolDefolt = Convert.ToBoolean(save[2]);
             }
             catch
             {

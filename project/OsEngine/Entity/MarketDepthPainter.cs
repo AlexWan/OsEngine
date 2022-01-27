@@ -86,7 +86,6 @@ namespace OsEngine.Entity
         /// </summary>
         public MarketDepthPainter(string botName)
         {
-            CreateGlass();
             Activate();
 
             MarketDepthsToCheck.Add(this);
@@ -104,6 +103,8 @@ namespace OsEngine.Entity
                 if (MarketDepthsToCheck[i] == null ||
                     MarketDepthsToCheck[i]._name == _name)
                 {
+                    _glassBox = null;
+                    _hostGlass = null;
                     MarketDepthsToCheck.RemoveAt(i);
                     return;
                 }
@@ -317,16 +318,18 @@ namespace OsEngine.Entity
         {
             try
             {
-                if (_glassBox == null)
+                if (glass.Dispatcher.CheckAccess() == false)
                 {
-                    return;
-                }
-                if (_glassBox.InvokeRequired)
-                {
-                    _glassBox.Invoke(new Action<WindowsFormsHost, System.Windows.Controls.TextBox>(StartPaint), glass, textBoxLimitPrice);
+                    glass.Dispatcher.Invoke(new Action<WindowsFormsHost, System.Windows.Controls.TextBox>(StartPaint), glass, textBoxLimitPrice);
                     return;
                 }
 
+                if(_glassBox == null)
+                {
+                    CreateGlass();
+                    TryPaintMarketDepth();
+                }
+                
                 _textBoxLimitPrice = textBoxLimitPrice;
                 _textBoxLimitPrice.TextChanged += _textBoxLimitPrice_TextChanged;
                 _hostGlass = glass;
@@ -386,6 +389,11 @@ namespace OsEngine.Entity
         private void TryPaintMarketDepth()
         {
             if (_hostGlass == null)
+            {
+                return;
+            }
+
+            if(_glassBox == null)
             {
                 return;
             }

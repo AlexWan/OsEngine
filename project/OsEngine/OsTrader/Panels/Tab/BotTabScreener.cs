@@ -341,7 +341,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// таймфрейм
         /// </summary>
-        public TimeFrame TimeFrame;
+        public TimeFrame TimeFrame = TimeFrame.Min30;
 
         /// <summary>
         /// тип сервера
@@ -512,6 +512,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             BotTabSimple newTab = new BotTabSimple(curTabs.Count + " " + TabName, _startProgram);
             newTab.Connector.SecurityName = sec.SecurityName;
+            newTab.Connector.SecurityClass = sec.SecurityClass;
             newTab.TimeFrameBuilder.TimeFrame = frame;
             curTabs.Add(newTab);
 
