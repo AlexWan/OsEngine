@@ -191,9 +191,11 @@ namespace OsEngine.Entity
                 CandlesAll[i].Trades = null;
             }
 
-            CandlesAll.Clear();
-
-            CandlesAll = null;
+            if(CandlesAll != null)
+            {
+                CandlesAll.Clear();
+                CandlesAll = null;
+            }
         }
 
         // приём изменившегося времени
