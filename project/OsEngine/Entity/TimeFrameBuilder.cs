@@ -74,13 +74,13 @@ namespace OsEngine.Entity
                     _tradeCount = Convert.ToInt32(reader.ReadLine());
 
                     Enum.TryParse(reader.ReadLine(), out _seriesCreateMethodType);
-                    _volumeToCloseCandleInVolumeType = Convert.ToDecimal(reader.ReadLine());
-                    _rencoPunktsToCloseCandleInRencoType = Convert.ToDecimal(reader.ReadLine());
-                    _deltaPeriods = Convert.ToDecimal(reader.ReadLine());
+                    _volumeToCloseCandleInVolumeType = reader.ReadLine().ToDecimal();
+                    _rencoPunktsToCloseCandleInRencoType = reader.ReadLine().ToDecimal();
+                    _deltaPeriods = reader.ReadLine().ToDecimal();
                     _rencoIsBuildShadows = Convert.ToBoolean(reader.ReadLine());
-                    _reversCandlesPunktsMinMove = Convert.ToDecimal(reader.ReadLine());
-                    _reversCandlesPunktsBackMove = Convert.ToDecimal(reader.ReadLine());
-                    _rangeCandlesPunkts = Convert.ToDecimal(reader.ReadLine());
+                    _reversCandlesPunktsMinMove = reader.ReadLine().ToDecimal();
+                    _reversCandlesPunktsBackMove = reader.ReadLine().ToDecimal();
+                    _rangeCandlesPunkts = reader.ReadLine().ToDecimal();
                     _saveTradesInCandles = Convert.ToBoolean(reader.ReadLine());
 
                     reader.Close();

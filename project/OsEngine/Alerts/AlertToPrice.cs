@@ -137,6 +137,10 @@ namespace OsEngine.Alerts
                 {
                     return new AlertSignal { SignalType = SignalType, Volume = VolumeReaction, NumberClosingPosition = NumberClosePosition, PriceType = OrderPriceType, Slipage = Slippage };
                 }
+                if (SignalType == SignalType.None)
+                {
+                    return new AlertSignal();
+                }
             }
 
             return null;

@@ -158,17 +158,6 @@ namespace OsEngine.OsTrader.RiskManager
         {
             try
             {
-                if (_journals != null)
-                {
-                    for (int i = 0; i < _journals.Count; i++)
-                    {
-                        if (_journals[i].Name == newJournal.Name)
-                        {
-                            return;
-                        }
-                    }
-                }
-
                 if (_journals == null)
                 {
                     _journals = new List<Journal.Journal>();

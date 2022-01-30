@@ -91,8 +91,6 @@ namespace OsEngine.Journal.Internal
 
             ControllersToCheck.Add(this);
 
-            CreateTable();
-
             if(_startProgram != StartProgram.IsOsOptimizer)
             {
                 Load();
@@ -983,6 +981,13 @@ namespace OsEngine.Journal.Internal
                     return;
                 }
 
+                if(_gridOpenDeal == null ||
+                    _gridCloseDeal == null)
+                {
+                    return;
+                }
+
+
                 try
                 {
                     while (_positionsToPaint.Count != 0)
@@ -1051,14 +1056,24 @@ namespace OsEngine.Journal.Internal
         /// </summary>
         private void ClearPositionsGrid()
         {
+            if(_gridOpenDeal == null)
+            {
+                return;
+            }
             if (_gridOpenDeal.InvokeRequired)
             {
                 _gridOpenDeal.Invoke(new Action(ClearPositionsGrid));
                 return;
             }
 
-            _gridOpenDeal.Rows.Clear();
-            _gridCloseDeal.Rows.Clear();
+            if(_gridOpenDeal != null)
+            {
+                _gridOpenDeal.Rows.Clear();
+            }
+            else if(_gridCloseDeal != null)
+            {
+                _gridCloseDeal.Rows.Clear();
+            }
         }
 
         /// <summary>
@@ -1097,6 +1112,8 @@ namespace OsEngine.Journal.Internal
                 _hostCloseDeal.Dispatcher.Invoke(new Action<WindowsFormsHost, WindowsFormsHost>(StartPaint), dataGridOpenDeal, dataGridCloseDeal);
                 return;
             }
+
+            CreateTable();
 
             _hostOpenDeal = dataGridOpenDeal;
             _hostCloseDeal = dataGridCloseDeal;
@@ -1137,6 +1154,11 @@ namespace OsEngine.Journal.Internal
         {
             try
             {
+                if(_gridOpenDeal == null)
+                {
+                    return;
+                }
+
                 if (_gridOpenDeal.InvokeRequired)
                 {
                     _gridOpenDeal.Invoke(new Action<Position>(PaintPosition), position);

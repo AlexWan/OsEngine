@@ -392,6 +392,7 @@ namespace OsEngine.Alerts
 
             if (isAlarm)
             {
+                IsOn = false;
                 return new AlertSignal { SignalType = SignalType, Volume = VolumeReaction,NumberClosingPosition =  NumberClosePosition,PriceType = OrderPriceType,Slipage =  Slippage};
             }
 

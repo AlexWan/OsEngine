@@ -21,6 +21,124 @@ namespace OsEngine.OsTrader.Panels.Tab
 {
     public class BotTabScreener : IIBotTab
     {
+        #region staticPart
+
+        /// <summary>
+        /// активировать прорисовку гридов
+        /// </summary>
+        private static void StaticThreadActivation()
+        {
+            lock (_staticThreadLocker)
+            {
+                if (_staticThread != null)
+                {
+                    return;
+                }
+
+                _staticThread = new Thread(StaticThreadArea);
+                _staticThread.Start();
+            }
+        }
+
+        /// <summary>
+        /// вкладки со скринерами
+        /// </summary>
+        private static List<BotTabScreener> _screeners = new List<BotTabScreener>();
+
+        /// <summary>
+        /// блокиратор многопоточного доступа к активации прорисовки скринеров
+        /// </summary>
+        private static object _staticThreadLocker = new object();
+
+        /// <summary>
+        /// поток прорисовывающий скринеры
+        /// </summary>
+        private static Thread _staticThread;
+
+        /// <summary>
+        /// место работы потока прорисовывающего скринеры
+        /// </summary>
+        private static void StaticThreadArea()
+        {
+            Thread.Sleep(3000);
+
+            while (true)
+            {
+                if (MainWindow.ProccesIsWorked == false)
+                {
+                    return;
+                }
+                Thread.Sleep(500);
+
+                for (int i = 0; i < _screeners.Count; i++)
+                {
+                    for (int i2 = 0; i2 < _screeners[i].Tabs.Count; i2++)
+                    {
+                        PaintLastBidAsk(_screeners[i].Tabs[i2], _screeners[i].SecuritiesDataGrid);
+                    }
+
+                    _screeners[i].TryLoadTabs();
+                    _screeners[i].TryReLoadTabs();
+                }
+            }
+        }
+
+        /// <summary>
+        /// прорисовать последние аск, бид и ласт
+        /// </summary>
+        private static void PaintLastBidAsk(BotTabSimple tab, DataGridView securitiesDataGrid)
+        {
+
+            if (securitiesDataGrid.InvokeRequired)
+            {
+                securitiesDataGrid.Invoke(new Action<BotTabSimple, DataGridView>(PaintLastBidAsk), tab, securitiesDataGrid);
+                return;
+            }
+
+            try
+            {
+                for (int i = 0; i < securitiesDataGrid.Rows.Count; i++)
+                {
+                    DataGridViewRow row = securitiesDataGrid.Rows[i];
+
+                    if (row.Cells == null || row.Cells.Count == 0 || row.Cells.Count < 4 || row.Cells[2].Value == null)
+                    {
+                        continue;
+                    }
+
+                    string secName = row.Cells[2].Value.ToString();
+
+                    if (tab.Connector.SecurityName != secName)
+                    {
+                        continue;
+                    }
+
+                    decimal ask = tab.PriceBestAsk;
+                    decimal bid = tab.PriceBestBid;
+
+                    decimal last = 0;
+
+                    if (tab.CandlesAll != null && tab.CandlesAll.Count != 0)
+                    {
+                        last = tab.CandlesAll[tab.CandlesAll.Count - 1].Close;
+                    }
+
+
+                    row.Cells[3].Value = last.ToString();
+                    row.Cells[4].Value = bid.ToString();
+                    row.Cells[5].Value = ask.ToString();
+                }
+            }
+            catch (Exception error)
+            {
+                tab.SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+
+        }
+
+        #endregion
+
+
         #region сервис
 
         public BotTabScreener(string name, StartProgram startProgram)
@@ -30,17 +148,14 @@ namespace OsEngine.OsTrader.Panels.Tab
             Tabs = new List<BotTabSimple>();
 
             LoadSettings();
-            LoadTabs();
             CreateSecuritiesGrid();
 
-            GridPainterActivation();
-            _screeners.Add(this);
+            StaticThreadActivation();
 
             LoadIndicators();
             ReloadIndicatorsOnTabs();
 
-            Thread sender = new Thread(SenderTabCreateOnLoadThread);
-            sender.Start();
+            _screeners.Add(this);
         }
 
         /// <summary>
@@ -86,7 +201,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// save / 
         /// сохранить настройки в файл
         /// </summary>
-        public void SaveTabs()
+        private void SaveTabs()
         {
             try
             {
@@ -108,12 +223,18 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        private bool _tabIsLoad;
+
         /// <summary>
         /// load / 
         /// загрузить настройки из файла
         /// </summary>
-        public void LoadTabs()
+        public void TryLoadTabs()
         {
+            if(_tabIsLoad == true)
+            {
+                return;
+            }
             if (!File.Exists(@"Engine\" + TabName + @"ScreenerTabSet.txt"))
             {
                 return;
@@ -129,8 +250,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                         newTab.Connector.SaveTradesInCandles = false;
 
                         Tabs.Add(newTab);
-
                         SubscribleOnTab(newTab);
+                        UpdateTabSettings(Tabs[Tabs.Count - 1]);
+                        PaintNewRow();
 
                         if (Tabs.Count == 1)
                         {
@@ -145,29 +267,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-        }
-
-        /// <summary>
-        /// Отложенный запуск оповещения робота о том что вкладки загружены
-        /// </summary>
-        private void SenderTabCreateOnLoadThread()
-        {
-            try
-            {
-                Thread.Sleep(3000);
-
-                for (int i = 0; i < Tabs.Count; i++)
-                {
-                    if (NewTabCreateEvent != null)
-                    {
-                        NewTabCreateEvent(Tabs[i]);
-                    }
-                }
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
+            _tabIsLoad = true;
         }
 
         /// <summary>
@@ -423,17 +523,27 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public bool SaveTradesInCandles;
 
+        public bool NeadToReloadTabs = false;
+
         /// <summary>
         /// перезагрузить вкладки
         /// </summary>
-        public void ReLoadTabs()
+        private void TryReLoadTabs()
         {
+            if(NeadToReloadTabs == false)
+            {
+                return;
+            }
+
             if (TabsReadyToLoad() == false)
             {
                 return;
             }
 
             // 1 удаляем не нужные вкладки
+
+            bool deleteSomeTabs = false;
+
             for (int i = 0; i < Tabs.Count; i++)
             {
                 if (TabIsAlive(SecuritiesNames, TimeFrame, Tabs[i]) == false)
@@ -442,25 +552,36 @@ namespace OsEngine.OsTrader.Panels.Tab
                     Tabs[i].Delete();
                     Tabs.RemoveAt(i);
                     i--;
+                    deleteSomeTabs = true;
                 }
             }
 
-            // 2 создаём не достающие вкладки
-
-            for (int i = 0; i < SecuritiesNames.Count; i++)
+            if(deleteSomeTabs)
             {
-                TryCreateTab(SecuritiesNames[i], TimeFrame, Tabs);
+                RePaintSecuritiesGrid();
             }
 
-
-            // 3 обновляем во вкладках данные
+            // 2 обновляем во вкладках данные
 
             for (int i = 0; i < Tabs.Count; i++)
             {
                 UpdateTabSettings(Tabs[i]);
             }
 
-            RePaintSecuritiesGrid();
+            // 3 создаём не достающие вкладки
+
+            for (int i = 0; i < SecuritiesNames.Count; i++)
+            {
+                int tabCount = Tabs.Count;
+
+                TryCreateTab(SecuritiesNames[i], TimeFrame, Tabs);
+
+                if(tabCount != Tabs.Count)
+                {
+                    UpdateTabSettings(Tabs[Tabs.Count-1]);
+                    PaintNewRow();
+                }
+            }
 
             ReloadIndicatorsOnTabs();
 
@@ -469,6 +590,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                 Tabs[0].IndicatorUpdateEvent -= BotTabScreener_IndicatorUpdateEvent;
                 Tabs[0].IndicatorUpdateEvent += BotTabScreener_IndicatorUpdateEvent;
             }
+
+            SaveTabs();
+
+            NeadToReloadTabs = false;
         }
 
         /// <summary>
@@ -612,115 +737,6 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #region прорисовка и работа с ГУИ
 
-        /// <summary>
-        /// активировать прорисовку гридов
-        /// </summary>
-        private static void GridPainterActivation()
-        {
-            lock (_painterStarterLocker)
-            {
-                if (_painter != null)
-                {
-                    return;
-                }
-
-                _painter = new Thread(PainterThreadArea);
-                _painter.Start();
-            }
-        }
-
-        /// <summary>
-        /// вкладки со скринерами
-        /// </summary>
-        private static List<BotTabScreener> _screeners = new List<BotTabScreener>();
-
-        /// <summary>
-        /// блокиратор многопоточного доступа к активации прорисовки скринеров
-        /// </summary>
-        private static object _painterStarterLocker = new object();
-
-        /// <summary>
-        /// поток прорисовывающий скринеры
-        /// </summary>
-        private static Thread _painter;
-
-        /// <summary>
-        /// место работы потока прорисовывающего скринеры
-        /// </summary>
-        private static void PainterThreadArea()
-        {
-            Thread.Sleep(10000);
-
-            while (true)
-            {
-                if (MainWindow.ProccesIsWorked == false)
-                {
-                    return;
-                }
-                Thread.Sleep(500);
-
-                for (int i = 0; i < _screeners.Count; i++)
-                {
-                    for (int i2 = 0; i2 < _screeners[i].Tabs.Count; i2++)
-                    {
-                        PaintLastBidAsk(_screeners[i].Tabs[i2], _screeners[i].SecuritiesDataGrid);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// прорисовать последние аск, бид и ласт
-        /// </summary>
-        private static void PaintLastBidAsk(BotTabSimple tab, DataGridView securitiesDataGrid)
-        {
-
-            if (securitiesDataGrid.InvokeRequired)
-            {
-                securitiesDataGrid.Invoke(new Action<BotTabSimple, DataGridView>(PaintLastBidAsk), tab, securitiesDataGrid);
-                return;
-            }
-
-            try
-            {
-                for (int i = 0; i < securitiesDataGrid.Rows.Count; i++)
-                {
-                    DataGridViewRow row = securitiesDataGrid.Rows[i];
-
-                    if (row.Cells == null || row.Cells.Count == 0 || row.Cells.Count < 4 || row.Cells[2].Value == null)
-                    {
-                        continue;
-                    }
-
-                    string secName = row.Cells[2].Value.ToString();
-
-                    if (tab.Connector.SecurityName != secName)
-                    {
-                        continue;
-                    }
-
-                    decimal ask = tab.PriceBestAsk;
-                    decimal bid = tab.PriceBestBid;
-
-                    decimal last = 0;
-
-                    if (tab.CandlesAll != null && tab.CandlesAll.Count != 0)
-                    {
-                        last = tab.CandlesAll[tab.CandlesAll.Count - 1].Close;
-                    }
-
-
-                    row.Cells[3].Value = last.ToString();
-                    row.Cells[4].Value = bid.ToString();
-                    row.Cells[5].Value = ask.ToString();
-                }
-            }
-            catch (Exception error)
-            {
-                tab.SetNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-
-        }
 
         /// <summary>
         /// show GUI
@@ -927,6 +943,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
+            if(_host.Dispatcher.CheckAccess() == false)
+            {
+                _host.Dispatcher.Invoke(new Action(RePaintSecuritiesGrid));
+                return;
+            }
+
             SecuritiesDataGrid.Rows.Clear();
 
             for (int i = 0; i < Tabs.Count; i++)
@@ -938,6 +960,23 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 _host.Child = SecuritiesDataGrid;
             }
+        }
+
+        private void PaintNewRow()
+        {
+            if (_host == null)
+            {
+                return;
+            }
+
+            if (_host.Dispatcher.CheckAccess() == false)
+            {
+                _host.Dispatcher.Invoke(new Action(PaintNewRow));
+                return;
+            }
+
+            SecuritiesDataGrid.Rows.Add(GetRowFromTab(Tabs[Tabs.Count-1], Tabs.Count - 1));
+            
         }
 
         /// <summary>

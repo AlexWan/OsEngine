@@ -63,8 +63,15 @@ namespace OsEngine.Indicators
             return resultTrue;
         }
 
+        private static List<string> _indicatorsInFolder = new List<string>();
+
         public static List<string> GetFullNamesFromFolder(string directory)
         {
+            if(_indicatorsInFolder.Count != 0)
+            {
+                return _indicatorsInFolder;
+            }
+
             List<string> results = new List<string>();
 
             string[] subDirectories = Directory.GetDirectories(directory);
@@ -88,7 +95,9 @@ namespace OsEngine.Indicators
                 }
             }
 
-            return results;
+            _indicatorsInFolder = results;
+
+            return _indicatorsInFolder;
         }
 
         public static Aindicator CreateIndicatorByName(string nameClass, string name, bool canDelete)

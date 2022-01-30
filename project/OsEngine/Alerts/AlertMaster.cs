@@ -41,19 +41,40 @@ namespace OsEngine.Alerts
             _chartMaster = chartMaster;
             chartMaster.ChartClickEvent += ChartMaster_ChartClickEvent;
             Load();
+        }
 
-            CreateGrid();
-            PaintGridBox();
-
-            OsLocalization.LocalizationTypeChangeEvent += delegate 
+        private void DeleteGrid()
+        {
+            if (HostAllert == null)
             {
-                CreateGrid();
-                PaintGridBox();
-            };
+                return;
+            }
+
+            if (!HostAllert.Dispatcher.CheckAccess())
+            {
+                HostAllert.Dispatcher.Invoke(new Action(DeleteGrid));
+                return;
+            }
+
+            GridViewBox.Click -= GridViewBox_Click;
+            GridViewBox.DoubleClick -= GridViewBox_DoubleClick;
+            GridViewBox.Rows.Clear();
+            GridViewBox = null;
         }
 
         private void CreateGrid()
         {
+            if(HostAllert == null)
+            {
+                return;
+            }
+
+            if (!HostAllert.Dispatcher.CheckAccess())
+            {
+                HostAllert.Dispatcher.Invoke(new Action(CreateGrid));
+                return;
+            }
+
             GridViewBox = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCells);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
@@ -123,7 +144,7 @@ namespace OsEngine.Alerts
         /// alert table
         /// таблица алертов
         /// </summary>
-        public DataGridView GridViewBox;
+        private DataGridView GridViewBox;
 
         /// <summary>
         /// load settings from file
@@ -517,6 +538,7 @@ namespace OsEngine.Alerts
 
                     if (signal != null)
                     {
+                        Paint();
                         return signal;
                     }
                 }
@@ -582,6 +604,11 @@ namespace OsEngine.Alerts
         /// </summary>
         void AlertDelete_Click(object sender, EventArgs e)
         {
+            if(GridViewBox == null)
+            {
+                return;
+            }    
+
             if (GridViewBox.CurrentCell == null ||
                 GridViewBox.CurrentCell.RowIndex <= -1)
             {
@@ -596,12 +623,15 @@ namespace OsEngine.Alerts
         /// </summary>
         void AlertRedact_Click(object sender, EventArgs e)
         {
+            if (GridViewBox == null)
+            {
+                return;
+            }
             if (GridViewBox.CurrentCell == null ||
                 GridViewBox.CurrentCell.RowIndex == -1)
             {
                 return;
             }
-
 
             ShowAlertRedactDialog(GridViewBox.CurrentCell.RowIndex);
         }
@@ -676,19 +706,20 @@ namespace OsEngine.Alerts
         /// start drawing alerts
         /// начать прорисовку Алертов
         /// </summary>
-        public void StartPaint(WindowsFormsHost alertDataGrid) 
+        public void StartPaint(WindowsFormsHost alertHost) 
         {
             try
             {
-                HostAllert = alertDataGrid;
+                HostAllert = alertHost;
 
                 if (!HostAllert.Dispatcher.CheckAccess())
                 {
-                    HostAllert.Dispatcher.Invoke(new Action<WindowsFormsHost>(StartPaint),alertDataGrid);
+                    HostAllert.Dispatcher.Invoke(new Action<WindowsFormsHost>(StartPaint),alertHost);
                     return;
                 }
 
-                HostAllert = alertDataGrid;
+                CreateGrid();
+                
                 HostAllert.Child = GridViewBox;
                 _isPaint = true;
                 Paint();
@@ -719,6 +750,7 @@ namespace OsEngine.Alerts
                     return;
                 }
 
+                DeleteGrid();
                 _isPaint = false;
 
                 if (HostAllert != null)
@@ -776,6 +808,11 @@ namespace OsEngine.Alerts
             try
             {
                 if (_isPaint == false)
+                {
+                    return;
+                }
+
+                if(GridViewBox == null)
                 {
                     return;
                 }

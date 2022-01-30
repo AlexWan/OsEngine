@@ -90,7 +90,7 @@ namespace OsEngine.Market.Connectors
                     EmulatorIsOn = Convert.ToBoolean(reader.ReadLine());
                     _securityName = reader.ReadLine();
                     Enum.TryParse(reader.ReadLine(), true, out ServerType);
-                    SecurityClass = reader.ReadLine();
+                    _securityClass = reader.ReadLine();
 
                     reader.Close();
                 }

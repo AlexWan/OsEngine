@@ -1226,10 +1226,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 _screener.SecuritiesNames = securities;
-
                 _screener.SaveSettings();
-                _screener.ReLoadTabs();
-                _screener.SaveTabs();
+
+                _screener.NeadToReloadTabs = true;
 
                 Close();
             }

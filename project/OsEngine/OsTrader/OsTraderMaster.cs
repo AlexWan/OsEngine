@@ -514,6 +514,10 @@ namespace OsEngine.OsTrader
         /// </summary>
         private void ReloadRiskJournals()
         {
+            if(_startProgram == StartProgram.IsOsOptimizer)
+            {
+                return;
+            }
             try
             {
                 _riskManager.ClearJournals();

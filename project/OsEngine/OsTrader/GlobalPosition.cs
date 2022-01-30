@@ -57,18 +57,16 @@ namespace OsEngine.OsTrader
                     _journals = new List<Journal.Journal>();
                 }
 
-                if (_journals.Find(journal1 => journal1.Name == journal.Name) == null)
+                _journals.Add(journal);
+                journal.PositionStateChangeEvent += journal_PositionChangeEvent;
+
+                List<Position> openPositions = journal.OpenPositions;
+
+                for (int i = 0; openPositions != null && i < openPositions.Count; i++)
                 {
-                    _journals.Add(journal);
-                    journal.PositionStateChangeEvent += journal_PositionChangeEvent;
-
-                    List<Position> openPositions = journal.OpenPositions;
-
-                    for (int i = 0; openPositions != null && i < openPositions.Count; i++)
-                    {
-                        journal_PositionChangeEvent(openPositions[i]);
-                    }
+                    journal_PositionChangeEvent(openPositions[i]);
                 }
+
             }
             catch (Exception error)
             {
