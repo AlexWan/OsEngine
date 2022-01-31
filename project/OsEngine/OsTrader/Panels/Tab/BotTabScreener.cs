@@ -235,6 +235,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 return;
             }
+            _tabIsLoad = true;
             if (!File.Exists(@"Engine\" + TabName + @"ScreenerTabSet.txt"))
             {
                 return;
@@ -267,7 +268,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-            _tabIsLoad = true;
+           
         }
 
         /// <summary>
