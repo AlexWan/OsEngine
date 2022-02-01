@@ -536,6 +536,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
                         onePortf.wb.ToDecimal();
                 }
 
+                bool allPosesIsNull = true;
+
                 foreach (var onePortf in portfs.a.P)
                 {
                     if (onePortf == null ||
@@ -544,6 +546,13 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     {
                         continue;
                     }
+
+                    if(onePortf.ep.ToDecimal() == 0)
+                    {
+                        continue;
+                    }
+
+                    allPosesIsNull = false;
 
                     PositionOnBoard neeedPortf =
                         portfolio.GetPositionOnBoard().Find(p => p.SecurityNameCode == onePortf.s);
@@ -561,6 +570,36 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                     neeedPortf.ValueCurrent =
                         onePortf.pa.ToDecimal();
+                }
+
+                if(allPosesIsNull == true)
+                {
+                    foreach (var onePortf in portfs.a.P)
+                    {
+                        if (onePortf == null ||
+                            onePortf.s == null ||
+                            onePortf.pa == null)
+                        {
+                            continue;
+                        }
+
+                        PositionOnBoard neeedPortf =
+                            portfolio.GetPositionOnBoard().Find(p => p.SecurityNameCode == onePortf.s);
+
+                        if (neeedPortf == null)
+                        {
+                            PositionOnBoard newPositionOnBoard = new PositionOnBoard();
+                            newPositionOnBoard.SecurityNameCode = onePortf.s;
+                            newPositionOnBoard.PortfolioName = portfolio.Number;
+                            newPositionOnBoard.ValueBegin = 0;
+                            portfolio.SetNewPosition(newPositionOnBoard);
+                            neeedPortf = newPositionOnBoard;
+                        }
+
+                        neeedPortf.ValueCurrent = 0;
+                        break;
+                    }
+
                 }
 
                 if (PortfolioEvent != null)

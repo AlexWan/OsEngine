@@ -61,7 +61,7 @@ public class StrategyLevermor : BotPanel
 
     public override string GetNameStrategyType()
     {
-        return "Levermor";
+        return "StrategyLevermor";
     }
 
     public override void ShowIndividualSettingsDialog()

@@ -40,6 +40,9 @@ namespace OsEngine.OsOptimizer.OptimizerEntity
                     {
                         continue;
                     }
+
+                    string starategy = _bots[i].GetNameStrategyType();
+
                     if (_bots[i].NameStrategyUniq == botName &&
                         _bots[i].GetNameStrategyType() == botType)
                     {

@@ -79,7 +79,6 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         private WebSocket _spotSocketClient;
 
-
         private void CreateDataStreams()
         {
             _spotSocketClient = CreateUserDataStream("/" + type_str_selector + "/v1/listenKey");
@@ -1532,6 +1531,10 @@ namespace OsEngine.Market.Servers.Binance.Futures
                                     UpdatePortfolio(portfolios);
                                 }
                                 continue;
+                            }
+                            else
+                            {
+
                             }
 
                             //ORDER_TRADE_UPDATE

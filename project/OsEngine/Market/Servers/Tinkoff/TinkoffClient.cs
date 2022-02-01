@@ -33,7 +33,9 @@ namespace OsEngine.Market.Servers.Tinkoff
 
         public string _token;
 
-        private string _url = "https://api-invest.tinkoff.ru/openapi/";
+        private string _url = "https://invest-public-api.tinkoff.ru/"; 
+        
+        //https://api-invest.tinkoff.ru/openapi/;
 
        // private string _urlWebSocket = "wss://api-invest.tinkoff.ru/openapi/md/v1/md-openapi/ws";
 
@@ -325,7 +327,9 @@ namespace OsEngine.Market.Servers.Tinkoff
         {
             List<Security> securities = new List<Security>();
 
-            securities.AddRange(GetSecurities(_url + "market/stocks", SecurityType.Stock));
+            List<Security> stocks = GetSecurities(_url + "market/stocks", SecurityType.Stock);
+
+            securities.AddRange(stocks);
             securities.AddRange(GetSecurities(_url + "market/bonds", SecurityType.Bond));
             securities.AddRange(GetSecurities(_url + "market/etfs", SecurityType.Stock));
             securities.AddRange(GetSecurities(_url + "market/currencies", SecurityType.CurrencyPair));
