@@ -730,7 +730,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             }
         }
 
-        RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(100));
+        RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(1000));
 
         /// <summary>
         /// send a previously collected message to TCP server of TWS

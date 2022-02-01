@@ -28,9 +28,6 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 {
                     realization.ShowSecuritySubscribleUi();
                 };
-
-            
-
         }
 
         /// <summary>
@@ -433,8 +430,6 @@ namespace OsEngine.Market.Servers.InteractivBrokers
                 //_twsServer.reqMktData(securityIb.ConId, securityIb.Symbol, securityIb.SecType, securityIb.Expiry, securityIb.Strike,
                 //    securityIb.Right, securityIb.Multiplier, securityIb.Exchange, securityIb.PrimaryExch, securityIb.Currency,"",true, new TagValueList());
                 //_twsServer.reqMktData2(securityIb.ConId, securityIb.LocalSymbol, securityIb.SecType, securityIb.Exchange, securityIb.PrimaryExch, securityIb.Currency, "", false, new TagValueList());
-                _client.GetMarketDataToSecurity(securityIb);
-
 
                 string name = securityIb.Symbol + "_" + securityIb.SecType + "_" + securityIb.Exchange;
 
@@ -929,6 +924,8 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             {
                 _connectedContracts.Add(security.Name);
 
+                _client.GetMarketDataToSecurity(contractIb);
+
                 if (contractIb.CreateMarketDepthFromTrades == false)
                 {
                     _client.GetMarketDepthToSecurity(contractIb);
@@ -944,50 +941,6 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             return null;
-            /*  List<Candle> candles = new List<Candle>();
-
-              actualTime = startTime;
-
-              while (actualTime < endTime)
-              {
-                  List<Candle> newCandles = _client.GetCandlesForTimes(security.Name,
-                      timeFrameBuilder.TimeFrameTimeSpan,
-                      actualTime, endTime);
-
-                  if (candles.Count != 0 && newCandles.Count != 0)
-                  {
-                      for (int i = 0; i < newCandles.Count; i++)
-                      {
-                          if (candles[candles.Count - 1].TimeStart >= newCandles[i].TimeStart)
-                          {
-                              newCandles.RemoveAt(i);
-                              i--;
-                          }
-
-                      }
-                  }
-
-                  if (newCandles == null)
-                  {
-                      continue;
-                  }
-
-                  if (newCandles.Count == 0)
-                  {
-                      return candles;
-                  }
-
-                  candles.AddRange(newCandles);
-
-                  actualTime = candles[candles.Count - 1].TimeStart;
-              }
-
-              if (candles.Count == 0)
-              {
-                  return null;
-              }
-
-              return candles;*/
         }
 
         /// <summary>
@@ -997,76 +950,6 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime lastDate)
         {
             return null;
-            /*  string markerDateTime = "";
-
-              List<Trade> trades = new List<Trade>();
-
-              DateTime startOver = startTime;
-              long lastId = 0;
-
-              while (true)
-              {
-                  if (startOver >= endTime)
-                  {
-                      break;
-                  }
-
-                  List<Trade> newTrades = new List<Trade>();
-
-                  if (lastId == 0)
-                  {
-                      List<Trade> firstTrades = new List<Trade>();
-
-                      do
-                      {
-                          firstTrades = _client.GetTickHistoryToSecurity(security.Name, startOver, startOver.AddSeconds(60), 0);
-                          startOver.AddSeconds(60);
-                          Thread.Sleep(10);
-                      }
-                      while (firstTrades == null || firstTrades.Count == 0);
-
-
-                      Trade firstTrade = firstTrades.First();
-
-                      lastId = Convert.ToInt64(firstTrade.Id);
-
-                      newTrades.Add(firstTrade);
-                  }
-                  else
-                  {
-                      newTrades = _client.GetTickHistoryToSecurity(security.Name, new DateTime(), new DateTime(), lastId + 1);
-
-                      lastId = Convert.ToInt64(newTrades[newTrades.Count - 1].Id);
-
-                  }
-
-                  if (newTrades != null && newTrades.Count != 0)
-                      trades.AddRange(newTrades);
-                  else
-                      break;
-
-                  startOver = trades[trades.Count - 1].Time.AddMilliseconds(1);
-
-
-                  if (markerDateTime != startOver.ToShortDateString())
-                  {
-                      markerDateTime = startOver.ToShortDateString();
-                      SendLogMessage(security.Name + " Binance Spot start loading: " + markerDateTime, LogMessageType.System);
-                  }
-
-                  Thread.Sleep(10);
-              }
-
-              if (trades.Count == 0)
-              {
-                  return null;
-              }
-
-              while (trades.Last().Time >= endTime)
-                  trades.Remove(trades.Last());
-
-
-              return trades;*/
         }
 
         #region Candles request
