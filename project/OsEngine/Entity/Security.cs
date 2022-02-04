@@ -176,6 +176,11 @@ namespace OsEngine.Entity
         public int DecimalsVolume;
 
         /// <summary>
+        /// минимальный объём торгов по активу
+        /// </summary>
+        public decimal MinTradeAmount = 1;
+
+        /// <summary>
         /// Lower price limit for bids. If you place an order with a price lower - the system will reject
         /// Нижний лимит цены для заявок. Если выставить ордер с ценой ниже - система отвергнет
         /// </summary>

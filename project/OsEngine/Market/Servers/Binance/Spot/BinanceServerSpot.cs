@@ -675,6 +675,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
                 security.PriceLimitLow = sec.filters[0].minPrice.ToDecimal();
                 security.PriceLimitHigh = sec.filters[0].maxPrice.ToDecimal();
+                
 
                 if (security.PriceStep < 1)
                 {
@@ -691,6 +692,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                    sec.filters[2].minQty != null)
                 {
                     decimal minQty = sec.filters[2].minQty.ToDecimal();
+                    security.MinTradeAmount = minQty;
                     string qtyInStr = minQty.ToStringWithNoEndZero().Replace(",", ".");
                     if(qtyInStr.Split('.').Length > 1)
                     {

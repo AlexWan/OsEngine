@@ -100,6 +100,9 @@ namespace OsEngine.Market.Servers
                 Task task3 = new Task(MyTradesBeepThread);
                 task3.Start();
 
+                //Task task4 = new Task(SaveLoadOrdersThreadArea);
+                // task4.Start();
+
                 _serverIsStart = true;
 
             }
@@ -544,7 +547,7 @@ namespace OsEngine.Market.Servers
                 return;
             }
 
-            LastStartServerTime = DateTime.Now.AddMinutes(-5);
+            LastStartServerTime = DateTime.Now.AddSeconds(-300);
 
             _serverStatusNead = ServerConnectStatus.Connect;
         }
@@ -638,7 +641,7 @@ namespace OsEngine.Market.Servers
 
                     if ((ServerRealization.ServerStatus != ServerConnectStatus.Connect)
                         && _serverStatusNead == ServerConnectStatus.Connect &&
-                       LastStartServerTime.AddSeconds(300) < DateTime.Now)
+                       LastStartServerTime.AddSeconds(100) < DateTime.Now)
                     {
                         SendLogMessage(OsLocalization.Market.Message8, LogMessageType.System);
                         ServerRealization.Dispose();
@@ -2024,6 +2027,8 @@ namespace OsEngine.Market.Servers
 
             _ordersToExecute.Enqueue(ord);
 
+            _myExecureOrders.Add(order);
+
             SendLogMessage(OsLocalization.Market.Message19 + order.Price +
                            OsLocalization.Market.Message20 + order.Side +
                            OsLocalization.Market.Message21 + order.Volume +
@@ -2048,6 +2053,7 @@ namespace OsEngine.Market.Servers
             ord.OrderSendType = OrderSendType.Cancel;
 
             _ordersToExecute.Enqueue(ord);
+            _myCanselOrders.Add(order);
 
             SendLogMessage(OsLocalization.Market.Message24 + order.NumberUser, LogMessageType.System);
         }
@@ -2057,6 +2063,176 @@ namespace OsEngine.Market.Servers
         /// изменился ордер
         /// </summary>
         public event Action<Order> NewOrderIncomeEvent;
+
+        // хранение ордеров и запросы их статуса у сервера
+
+        private List<Order> _myExecureOrders = new List<Order>();
+
+        private List<Order> _myCanselOrders = new List<Order>();
+
+        private DateTime _lastTimeCheckOrders = DateTime.MinValue;
+
+        private void SaveLoadOrdersThreadArea()
+        {
+            LoadOrders();
+
+            int myExecureOrdersCount = _myExecureOrders.Count;
+            int myCanselOrdersCount = _myCanselOrders.Count;
+
+            while (true)
+            {
+                Thread.Sleep(1000);
+
+                if(ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    continue;
+                }
+                
+                if(LastStartServerTime.AddSeconds(30) >= DateTime.Now)
+                {
+                    continue;
+                }
+
+                if (LastStartServerTime.AddSeconds(30) < DateTime.Now 
+                    && LastStartServerTime.AddSeconds(120) > DateTime.Now)
+                {
+                    if(_lastTimeCheckOrders == DateTime.MinValue)
+                    {
+                        _lastTimeCheckOrders = DateTime.Now;
+                        CheckOrderState();
+                    }
+
+                    continue;
+                }
+
+                if (_myExecureOrders.Count != myExecureOrdersCount ||
+                    _myCanselOrders.Count != myCanselOrdersCount)
+                {
+                    SaveOrders();
+                    myExecureOrdersCount = _myExecureOrders.Count;
+                    myCanselOrdersCount = _myCanselOrders.Count;
+                }
+            }
+        }
+
+        private void SaveOrders()
+        {
+            SaveOpenOrders();
+            SaveCanselOrders();
+        }
+
+        private void LoadOrders()
+        {
+            LoadOpenOrders();
+            LoadCanselOrders();
+        }
+
+        private void LoadOpenOrders()
+        {
+            if (!File.Exists(@"Engine\" + ServerType + @" OpenOrders.txt"))
+            {
+                return;
+            }
+            try
+            {
+                using (StreamReader reader = new StreamReader(@"Engine\" + ServerType + @" OpenOrders.txt"))
+                {
+                    while(reader.EndOfStream == false)
+                    {
+                        string str = reader.ReadLine();
+                        Order ord = new Order();
+                        ord.SetOrderFromString(str);
+                        _myExecureOrders.Add(ord);
+                    }
+                    reader.Close();
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void SaveOpenOrders()
+        {
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + ServerType + @" OpenOrders.txt", false))
+                {
+                    for (int i = _myExecureOrders.Count - 1; i > 0 && i > _myExecureOrders.Count - 100; i--)
+                    {
+                        string saveStr = _myExecureOrders[i].GetStringForSave().ToString();
+                        writer.WriteLine(saveStr);
+                    }
+                   
+                    writer.Close();
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void LoadCanselOrders()
+        {
+            if (!File.Exists(@"Engine\" + ServerType + @" CanselOrders.txt"))
+            {
+                return;
+            }
+            try
+            {
+                using (StreamReader reader = new StreamReader(@"Engine\" + ServerType + @" CanselOrders.txt"))
+                {
+                    while (reader.EndOfStream == false)
+                    {
+                        string str = reader.ReadLine();
+                        Order ord = new Order();
+                        ord.SetOrderFromString(str);
+                        _myCanselOrders.Add(ord);
+                    }
+
+                    reader.Close();
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void SaveCanselOrders()
+        {
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + ServerType + @" CanselOrders.txt", false))
+                {
+                    for (int i = _myCanselOrders.Count - 1; i > 0 && i > _myCanselOrders.Count - 100; i--)
+                    {
+                        string saveStr = _myCanselOrders[i].GetStringForSave().ToString();
+                        writer.WriteLine(saveStr);
+                    }
+                    writer.Close();
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void CheckOrderState()
+        {
+            if(_myExecureOrders.Count != 0)
+            {
+                _serverRealization.GetOrdersState(_myExecureOrders);
+            }
+            if(_myCanselOrders.Count != 0)
+            {
+                _serverRealization.GetOrdersState(_myCanselOrders);
+            }
+        }
+
 
         // log messages / сообщения для лога
 
