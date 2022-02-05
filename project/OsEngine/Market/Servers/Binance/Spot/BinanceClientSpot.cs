@@ -1152,6 +1152,10 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
             for (int i = 0; i < oldOpenOrders.Count; i++)
             {
+                if(oldOpenOrders[i].Volume == oldOpenOrders[i].VolumeExecute)
+                {
+                    continue;
+                }
                 HistoryOrderReport myOrder = allOrders.Find(ord => ord.orderId == oldOpenOrders[i].NumberMarket);
 
                 if (myOrder == null)
@@ -1163,10 +1167,19 @@ namespace OsEngine.Market.Servers.Binance.Spot
                             continue;
                         }
 
-                        if(Convert.ToInt32(allOrders[i2].clientOrderId) == oldOpenOrders[i].NumberUser)
+                        string id = allOrders[i2].clientOrderId.Replace("x-RKXTQ2AK", "");
+
+                        try
                         {
-                            myOrder = allOrders[i2];
-                            break;
+                            if (Convert.ToInt32(id) == oldOpenOrders[i].NumberUser)
+                            {
+                                myOrder = allOrders[i2];
+                                break;
+                            }
+                        }
+                        catch
+                        {
+                            // ignore
                         }
                     }
                 }
@@ -1185,13 +1198,26 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     myOrder.status == "PARTIALLY_FILLED")
                 { // order executed / ордер исполнен
 
+                    try
+                    {
+                        if (Convert.ToDecimal(myOrder.executedQty) - oldOpenOrders[i].VolumeExecute <= 0)
+                        {
+                            continue;
+                        }
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+
+
                     MyTrade trade = new MyTrade();
-                    trade.NumberOrderParent = oldOpenOrders[i].NumberMarket;
+                    trade.NumberOrderParent = myOrder.orderId;
                     trade.NumberTrade = NumberGen.GetNumberOrder(StartProgram.IsOsTrader).ToString();
                     trade.SecurityNameCode = oldOpenOrders[i].SecurityNameCode;
                     trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(myOrder.updateTime));
                     trade.Side = oldOpenOrders[i].Side;
-
+                    trade.Volume = Convert.ToDecimal(myOrder.executedQty) - oldOpenOrders[i].VolumeExecute;
                     if (MyTradeEvent != null)
                     {
                         MyTradeEvent(trade);
@@ -1200,7 +1226,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 else
                 {
                     Order newOrder = new Order();
-                    newOrder.NumberMarket = oldOpenOrders[i].NumberMarket;
+                    newOrder.NumberMarket = myOrder.orderId;
                     newOrder.NumberUser = oldOpenOrders[i].NumberUser;
                     newOrder.SecurityNameCode = oldOpenOrders[i].SecurityNameCode;
                     newOrder.State = OrderStateType.Cancel;
@@ -1257,7 +1283,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
             }
 
             HistoryOrderReport orderOnBoard =
-                allOrders.Find(ord => ord.clientOrderId == oldOrder.NumberUser.ToString());
+                allOrders.Find(ord => ord.clientOrderId.Replace("x-RKXTQ2AK", "") == oldOrder.NumberUser.ToString());
 
             if (orderOnBoard == null)
             {

@@ -100,8 +100,8 @@ namespace OsEngine.Market.Servers
                 Task task3 = new Task(MyTradesBeepThread);
                 task3.Start();
 
-                //Task task4 = new Task(SaveLoadOrdersThreadArea);
-                //task4.Start();
+                Task task4 = new Task(SaveLoadOrdersThreadArea);
+                task4.Start();
 
                 _serverIsStart = true;
 
@@ -2090,35 +2090,44 @@ namespace OsEngine.Market.Servers
             {
                 Thread.Sleep(1000);
 
-                if(ServerStatus == ServerConnectStatus.Disconnect)
+                try
                 {
-                    continue;
-                }
-                
-                if(LastStartServerTime.AddSeconds(30) >= DateTime.Now)
-                {
-                    continue;
-                }
-
-                if (LastStartServerTime.AddSeconds(30) < DateTime.Now 
-                    && LastStartServerTime.AddSeconds(120) > DateTime.Now)
-                {
-                    if(_lastTimeCheckOrders == DateTime.MinValue)
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
-                        _lastTimeCheckOrders = DateTime.Now;
-                        CheckOrderState();
+                        continue;
                     }
 
-                    continue;
-                }
+                    if (LastStartServerTime.AddSeconds(30) >= DateTime.Now)
+                    {
+                        continue;
+                    }
 
-                if (_myExecureOrders.Count != myExecureOrdersCount ||
-                    _myCanselOrders.Count != myCanselOrdersCount)
-                {
-                    SaveOrders();
-                    myExecureOrdersCount = _myExecureOrders.Count;
-                    myCanselOrdersCount = _myCanselOrders.Count;
+                    if (LastStartServerTime.AddSeconds(30) < DateTime.Now
+                        && LastStartServerTime.AddSeconds(120) > DateTime.Now)
+                    {
+                        if (_lastTimeCheckOrders == DateTime.MinValue)
+                        {
+                            _lastTimeCheckOrders = DateTime.Now;
+                            CheckOrderState();
+                        }
+
+                        continue;
+                    }
+
+                    if (_myExecureOrders.Count != myExecureOrdersCount ||
+                        _myCanselOrders.Count != myCanselOrdersCount)
+                    {
+                        SaveOrders();
+                        myExecureOrdersCount = _myExecureOrders.Count;
+                        myCanselOrdersCount = _myCanselOrders.Count;
+                    }
                 }
+                catch(Exception error)
+                {
+                    SendLogMessage(error.ToString(), LogMessageType.Error);
+                    Thread.Sleep(10000);
+                }
+               
             }
         }
 
@@ -2166,7 +2175,7 @@ namespace OsEngine.Market.Servers
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + ServerType + @" OpenOrders.txt", false))
                 {
-                    for (int i = _myExecureOrders.Count - 1; i > 0 && i > _myExecureOrders.Count - 100; i--)
+                    for (int i = _myExecureOrders.Count - 1; i >= 0 && i > _myExecureOrders.Count - 100; i--)
                     {
                         string saveStr = _myExecureOrders[i].GetStringForSave().ToString();
                         writer.WriteLine(saveStr);
@@ -2214,7 +2223,7 @@ namespace OsEngine.Market.Servers
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + ServerType + @" CanselOrders.txt", false))
                 {
-                    for (int i = _myCanselOrders.Count - 1; i > 0 && i > _myCanselOrders.Count - 100; i--)
+                    for (int i = _myCanselOrders.Count - 1; i >= 0 && i > _myCanselOrders.Count - 100; i--)
                     {
                         string saveStr = _myCanselOrders[i].GetStringForSave().ToString();
                         writer.WriteLine(saveStr);
