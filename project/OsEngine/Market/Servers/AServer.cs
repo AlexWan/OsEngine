@@ -101,7 +101,7 @@ namespace OsEngine.Market.Servers
                 task3.Start();
 
                 //Task task4 = new Task(SaveLoadOrdersThreadArea);
-                // task4.Start();
+                //task4.Start();
 
                 _serverIsStart = true;
 
@@ -1989,6 +1989,9 @@ namespace OsEngine.Market.Servers
 
             _ordersToSend.Enqueue(myOrder);
 
+            myExecureOrdersCount = 0;
+            myCanselOrdersCount = 0;
+
             for (int i = 0; i < _myTrades.Count; i++)
             {
                 if (_myTrades[i].NumberOrderParent == myOrder.NumberMarket)
@@ -2072,12 +2075,16 @@ namespace OsEngine.Market.Servers
 
         private DateTime _lastTimeCheckOrders = DateTime.MinValue;
 
+        int myExecureOrdersCount;
+
+        int myCanselOrdersCount;
+
         private void SaveLoadOrdersThreadArea()
         {
             LoadOrders();
 
-            int myExecureOrdersCount = _myExecureOrders.Count;
-            int myCanselOrdersCount = _myCanselOrders.Count;
+            myExecureOrdersCount = _myExecureOrders.Count;
+            myCanselOrdersCount = _myCanselOrders.Count;
 
             while (true)
             {
@@ -2232,7 +2239,6 @@ namespace OsEngine.Market.Servers
                 _serverRealization.GetOrdersState(_myCanselOrders);
             }
         }
-
 
         // log messages / сообщения для лога
 

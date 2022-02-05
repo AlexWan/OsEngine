@@ -1203,10 +1203,17 @@ namespace OsEngine.Market.Servers.Tester
 
                     for (int i2 = 0; i2 < 20; i2++)
                     {
-                        if (reader.EndOfStream)
+                        if (reader.EndOfStream == true)
                         {
                             reader.Close();
                             reader = new StreamReader(files[i]);
+
+                            if (reader.EndOfStream == true)
+                            {
+                                break;
+                            }
+
+                            continue;
                         }
 
                         Candle candleN = new Candle();

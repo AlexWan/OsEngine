@@ -560,6 +560,18 @@ namespace OsEngine.Market.Servers.Optimizer
 
                     for (int i2 = 0; i2 < 20; i2++)
                     {
+                        if (reader.EndOfStream == true)
+                        {
+                            reader.Close();
+                            reader = new StreamReader(files[i]);
+                            if (reader.EndOfStream == true)
+                            {
+                                break;
+                            }
+
+                            continue;
+                        }
+
                         Candle candleN = new Candle();
                         candleN.SetCandleFromString(reader.ReadLine());
 
@@ -1461,6 +1473,10 @@ namespace OsEngine.Market.Servers.Optimizer
             {
                 if (reader.EndOfStream)
                 {
+                    if (lastTimeSpan != TimeSpan.MaxValue)
+                    {
+                        return lastTimeSpan;
+                    }
                     return TimeSpan.Zero;
                 }
 

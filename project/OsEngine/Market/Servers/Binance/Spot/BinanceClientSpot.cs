@@ -1122,7 +1122,6 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 }
             }
 
-
             string endPoint = "/api/v3/allOrders";
 
             List<HistoryOrderReport> allOrders = new List<HistoryOrderReport>();
@@ -1154,6 +1153,23 @@ namespace OsEngine.Market.Servers.Binance.Spot
             for (int i = 0; i < oldOpenOrders.Count; i++)
             {
                 HistoryOrderReport myOrder = allOrders.Find(ord => ord.orderId == oldOpenOrders[i].NumberMarket);
+
+                if (myOrder == null)
+                {
+                    for(int i2 = 0;i2 < allOrders.Count;i2++)
+                    {
+                        if(string.IsNullOrEmpty(allOrders[i2].clientOrderId))
+                        {
+                            continue;
+                        }
+
+                        if(Convert.ToInt32(allOrders[i2].clientOrderId) == oldOpenOrders[i].NumberUser)
+                        {
+                            myOrder = allOrders[i2];
+                            break;
+                        }
+                    }
+                }
 
                 if (myOrder == null)
                 {
