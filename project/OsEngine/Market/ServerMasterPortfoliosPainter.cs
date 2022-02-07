@@ -271,7 +271,7 @@ namespace OsEngine.Market
                     // ignore
                 }
 
-                while (_portfolios.Count > 250)
+                while (_portfolios != null && _portfolios.Count > 250)
                 {
                     _portfolios.RemoveAt(500);
                 }

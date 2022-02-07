@@ -211,6 +211,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     for (int i = 0; i < Tabs.Count; i++)
                     {
                         save += Tabs[i].TabName + "#";
+                        Tabs[i].Connector.Save();
+                        Tabs[i].TimeFrameBuilder.Save();
+                        Tabs[i].ManualPositionSupport.Save();
                     }
                     writer.WriteLine(save);
 
@@ -636,7 +639,17 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
-            BotTabSimple newTab = new BotTabSimple(curTabs.Count + " " + TabName, _startProgram);
+            string nameStart = curTabs.Count + " " + TabName;
+
+            int numerator = 1;
+
+            while(Tabs.Find(t => t.TabName == nameStart) != null)
+            {
+                nameStart = numerator + " " + TabName;
+                numerator++;
+            }
+
+            BotTabSimple newTab = new BotTabSimple(nameStart, _startProgram);
             newTab.Connector.SecurityName = sec.SecurityName;
             newTab.Connector.SecurityClass = sec.SecurityClass;
             newTab.TimeFrameBuilder.TimeFrame = frame;
