@@ -271,6 +271,23 @@ namespace OsEngine.Market
                     // ignore
                 }
 
+                while (_portfolios.Count > 250)
+                {
+                    _portfolios.RemoveAt(500);
+                }
+
+                for(int i = 0;i < _portfolios.Count;i++)
+                {
+                    List<PositionOnBoard> poses = _portfolios[i].GetPositionOnBoard();
+                    
+                    while (poses != null &&
+                        poses.Count > 500)
+                    {
+                        poses.RemoveAt(500);
+                    }
+                }
+
+
                 if (!_positionHost.CheckAccess())
                 {
                     _positionHost.Dispatcher.Invoke(RePaintPortfolio);

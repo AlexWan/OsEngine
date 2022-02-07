@@ -271,11 +271,18 @@ namespace OsEngine.Entity
                     }
 
                     row.Cells[0].Value = param.Label;
+                    
                     row.Height = param.RowHeight;
                     
                     row.Cells[0].Style.Font = new System.Drawing.Font("Areal", param.TextHeight);
                     row.Cells[0].Style.ForeColor = param.Color;
+
                     row.Cells.Add(cell);
+                    row.Cells[1].Value = param.Value;
+                    row.Cells[1].Style.Font = new System.Drawing.Font("Areal", param.TextHeight);
+                    row.Cells[1].Style.ForeColor = param.Color;
+
+                    
                 }
 
                 _grid.Rows.Add(row);

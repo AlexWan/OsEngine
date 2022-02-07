@@ -53,10 +53,11 @@ namespace OsEngine.Entity
 
     public class StrategyParameterLabel : IIStrategyParameter
     {
-        public StrategyParameterLabel(string name, string label, int rowHeight, int textHeight, System.Drawing.Color color, string tabName = null)
+        public StrategyParameterLabel(string name, string label, string value, int rowHeight, int textHeight, System.Drawing.Color color, string tabName = null)
         {
             _name = name;
             Label = label;
+            Value = value;
             TabName = tabName;
             RowHeight = rowHeight;
             TextHeight = textHeight;
@@ -64,6 +65,7 @@ namespace OsEngine.Entity
         }
 
         public string Label;
+        public string Value;
         public int RowHeight;
         public int TextHeight;
         public System.Drawing.Color Color;
@@ -82,6 +84,7 @@ namespace OsEngine.Entity
             string save = _name + "#";
 
             save += Label + "#";
+            save += Value + "#";
             save += RowHeight + "#";
             save += TextHeight + "#";
             save += Color.ToArgb() + "#";
@@ -95,9 +98,10 @@ namespace OsEngine.Entity
             try
             {
                 Label = save[1];
-                RowHeight = Convert.ToInt32(save[2]);
-                TextHeight = Convert.ToInt32(save[3]);
-                Color = System.Drawing.Color.FromArgb(Convert.ToInt32(save[4]));
+                Value = save[2];
+                RowHeight = Convert.ToInt32(save[3]);
+                TextHeight = Convert.ToInt32(save[4]);
+                Color = System.Drawing.Color.FromArgb(Convert.ToInt32(save[5]));
             }
             catch
             {

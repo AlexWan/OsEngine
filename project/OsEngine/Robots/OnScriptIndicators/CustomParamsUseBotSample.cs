@@ -24,7 +24,7 @@ namespace OsEngine.Robots.OnScriptIndicators
             Regime = CreateParameter("Regime", "Off", new string[] { "Off", "On" }, "Base");
 
             //делаем простотую надпись, которая будет разделять параметры в таблице
-            CreateParameterLabel("labelSample", "Base Params", 30, 15, System.Drawing.Color.White, "Base");
+            CreateParameterLabel("labelSample", "Base", "Params", 30, 15, System.Drawing.Color.White, "Base");
 
             AtrCountToInter = CreateParameter("Atr count", 4m, 1, 10, 1, "Base");
 
