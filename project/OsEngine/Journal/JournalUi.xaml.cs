@@ -1971,13 +1971,45 @@ namespace OsEngine.Journal
         {
             _closePositionGrid.Rows.Clear();
 
-            for (int i = 0; i < positionsAll.Count; i++)
+            if(positionsAll.Count == 0)
+            {
+                return;
+            }
+
+            List<Position> closePositions = new List<Position>();
+
+            for(int i = 0;i < positionsAll.Count;i++)
             {
                 if (positionsAll[i].State == PositionStateType.Done ||
                     positionsAll[i].State == PositionStateType.OpeningFail)
                 {
-                    _closePositionGrid.Rows.Insert(0, GetRow(positionsAll[i]));
+                    closePositions.Add(positionsAll[i]);
                 }
+            }
+
+            if(closePositions.Count == 0)
+            {
+                return;
+            }
+
+            for (int i = 0; i < closePositions.Count; i++)
+            {
+                for (int i2 = i; i2 < closePositions.Count; i2++)
+                {
+                    if(closePositions[i].TimeClose > closePositions[i2].TimeClose)
+                    {
+                        Position pos = closePositions[i2];
+                        closePositions[i2] = closePositions[i];
+                        closePositions[i] = pos;
+                    }
+                }
+            }
+
+           
+
+            for (int i = 0; i < closePositions.Count; i++)
+            {
+                 _closePositionGrid.Rows.Insert(0, GetRow(closePositions[i]));
             }
         }
         // messages to the log
