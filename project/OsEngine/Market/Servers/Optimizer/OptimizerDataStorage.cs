@@ -796,49 +796,10 @@ namespace OsEngine.Market.Servers.Optimizer
                 }
             }
 
-			// check in tester file data on presence of multipliers and GO for securities
+            // check in tester file data on presence of multipliers and GO for securities
             // проверяем в файле тестера данные о наличии мультипликаторов и ГО для бумаг
 
-            List<string[]> array = LoadSecurityDopSettings(folderName + "\\SecuritiesSettings.txt");
-
-            if (array == null)
-            {
-                array = LoadSecurityDopSettings(_activSet + "\\SecuritiesSettings.txt");
-            }
-
-            for (int i = 0; array != null && i < array.Count; i++)
-            {
-                Security secu = Securities.Find(s => s.Name == array[i][0]);
-
-                if (secu != null)
-                {
-                    decimal lot = array[i][1].ToDecimal();
-                    decimal go = array[i][2].ToDecimal();
-                    decimal priceStepCost = array[i][3].ToDecimal();
-                    decimal priceStep = array[i][4].ToDecimal();
-
-                    if (lot != 0)
-                        secu.Lot = lot;
-                    if (go != 0)
-                        secu.Go = go;
-                    if (priceStepCost != 0)
-                        secu.PriceStepCost = priceStepCost;
-                    if (priceStep != 0)
-                        secu.PriceStep = priceStep;
-
-                    if (SecuritiesTester[SecuritiesTester.Count - 1].Security.Name == secu.Name)
-                    {
-                        if (lot != 0)
-                            SecuritiesTester[SecuritiesTester.Count - 1].Security.Lot = lot;
-                        if (go != 0)
-                            SecuritiesTester[SecuritiesTester.Count - 1].Security.Go = go;
-                        if (priceStepCost != 0)
-                            SecuritiesTester[SecuritiesTester.Count - 1].Security.PriceStepCost = priceStepCost;
-                        if (priceStep != 0)
-                            SecuritiesTester[SecuritiesTester.Count - 1].Security.PriceStep = priceStep;
-                    }
-                }
-            }
+            SetToSecuritiesDopSettings(folderName);
         }
 
         /// <summary>
@@ -1065,44 +1026,10 @@ namespace OsEngine.Market.Servers.Optimizer
                 }
             }
 
-			// check in the tester file data on the presence of multipliers and GO for securities
+            // check in the tester file data on the presence of multipliers and GO for securities
             // проверяем в файле тестера данные о наличии мультипликаторов и ГО для бумаг
 
-            List<string[]> array = LoadSecurityDopSettings(folderName + "\\SecuritiesSettings.txt");
-
-            for (int i = 0; array != null && i < array.Count; i++)
-            {
-                Security secu = Securities.Find(s => s.Name == array[i][0]);
-
-                if (secu != null)
-                {
-                    decimal lot = array[i][1].ToDecimal();
-                    decimal go = array[i][2].ToDecimal();
-                    decimal priceStepCost = array[i][3].ToDecimal();
-                    decimal priceStep = array[i][4].ToDecimal();
-
-                    if (lot != 0)
-                        secu.Lot = lot;
-                    if (go != 0)
-                        secu.Go = go;
-                    if (priceStepCost != 0)
-                        secu.PriceStepCost = priceStepCost;
-                    if (priceStep != 0)
-                        secu.PriceStep = priceStep;
-
-                    if (SecuritiesTester[SecuritiesTester.Count - 1].Security.Name == secu.Name)
-                    {
-                        if (lot != 0)
-                            SecuritiesTester[SecuritiesTester.Count - 1].Security.Lot = lot;
-                        if (go != 0)
-                            SecuritiesTester[SecuritiesTester.Count - 1].Security.Go = go;
-                        if (priceStepCost != 0)
-                            SecuritiesTester[SecuritiesTester.Count - 1].Security.PriceStepCost = priceStepCost;
-                        if (priceStep != 0)
-                            SecuritiesTester[SecuritiesTester.Count - 1].Security.PriceStep = priceStep;
-                    }
-                }
-            }
+            SetToSecuritiesDopSettings(folderName);
         }
 
         /// <summary>
@@ -1334,44 +1261,11 @@ namespace OsEngine.Market.Servers.Optimizer
                 }
             }
 
-			// check in the tester file data on the presence of multipliers and GO for securities
+            // check in the tester file data on the presence of multipliers and GO for securities
             // проверяем в файле тестера данные о наличии мультипликаторов и ГО для бумаг
 
-            List<string[]> array = LoadSecurityDopSettings(folderName + "\\SecuritiesSettings.txt");
+            SetToSecuritiesDopSettings(folderName);
 
-            for (int i = 0; array != null && i < array.Count; i++)
-            {
-                Security secu = Securities.Find(s => s.Name == array[i][0]);
-
-                if (secu != null)
-                {
-                    decimal lot = array[i][1].ToDecimal();
-                    decimal go = array[i][2].ToDecimal();
-                    decimal priceStepCost = array[i][3].ToDecimal();
-                    decimal priceStep = array[i][4].ToDecimal();
-
-                    if (lot != 0)
-                        secu.Lot = lot;
-                    if (go != 0)
-                        secu.Go = go;
-                    if (priceStepCost != 0)
-                        secu.PriceStepCost = priceStepCost;
-                    if (priceStep != 0)
-                        secu.PriceStep = priceStep;
-
-                    if (SecuritiesTester[SecuritiesTester.Count - 1].Security.Name == secu.Name)
-                    {
-                        if (lot != 0)
-                            SecuritiesTester[SecuritiesTester.Count - 1].Security.Lot = lot;
-                        if (go != 0)
-                            SecuritiesTester[SecuritiesTester.Count - 1].Security.Go = go;
-                        if (priceStepCost != 0)
-                            SecuritiesTester[SecuritiesTester.Count - 1].Security.PriceStepCost = priceStepCost;
-                        if (priceStep != 0)
-                            SecuritiesTester[SecuritiesTester.Count - 1].Security.PriceStep = priceStep;
-                    }
-                }
-            }
         }
 
         /// <summary>
@@ -1515,6 +1409,51 @@ namespace OsEngine.Market.Servers.Optimizer
         // storage of additional data about securities: GO, multipliers, Lots
         // хранение дополнительных данных о бумагах: ГО, Мультипликаторы, Лоты
 
+        private void SetToSecuritiesDopSettings(string folderName)
+        {
+            List<string[]> array = LoadSecurityDopSettings(folderName + "\\SecuritiesSettings.txt");
+
+            if (array == null)
+            {
+                array = LoadSecurityDopSettings(_activSet + "\\SecuritiesSettings.txt");
+            }
+
+            for (int i = 0; array != null && i < array.Count; i++)
+            {
+                List<Security> secuAll = Securities.FindAll(s => s.Name == array[i][0]);
+
+                if (secuAll != null && secuAll.Count != 0)
+                {
+                    for(int i2 = 0;i2 < secuAll.Count;i2++)
+                    {
+                        Security secu = secuAll[i2];
+
+                        decimal lot = array[i][1].ToDecimal();
+                        decimal go = array[i][2].ToDecimal();
+                        decimal priceStepCost = array[i][3].ToDecimal();
+                        decimal priceStep = array[i][4].ToDecimal();
+
+                        int volDecimals = 0;
+
+                        if (array[i].Length > 5)
+                        {
+                            volDecimals = Convert.ToInt32(array[i][5]);
+                        }
+
+                        if (lot != 0)
+                            secu.Lot = lot;
+                        if (go != 0)
+                            secu.Go = go;
+                        if (priceStepCost != 0)
+                            secu.PriceStepCost = priceStepCost;
+                        if (priceStep != 0)
+                            secu.PriceStep = priceStep;
+                        secu.DecimalsVolume = volDecimals;
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// download security specification
         /// загрузить спецификацию по бумагам
@@ -1591,7 +1530,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 saves = new List<string[]>();
             }
 
-            CultureInfo culture = new CultureInfo("ru-RU");
+            CultureInfo culture = CultureInfo.InvariantCulture;
 
             for (int i = 0; i < saves.Count; i++)
             { // delete the same / удаляем совпадающие
@@ -1599,11 +1538,12 @@ namespace OsEngine.Market.Servers.Optimizer
                 if (saves[i][0] == securityToSave.Name)
                 {
                     saves.Remove(saves[i]);
-                    saves.Add(new[] { securityToSave.Name, 
-                    securityToSave.Lot.ToString(culture), 
-                    securityToSave.Go.ToString(culture), 
+                    saves.Add(new[] { securityToSave.Name,
+                    securityToSave.Lot.ToString(culture),
+                    securityToSave.Go.ToString(culture),
                     securityToSave.PriceStepCost.ToString(culture),
-                    securityToSave.PriceStep.ToString(culture)
+                    securityToSave.PriceStep.ToString(culture),
+                    securityToSave.DecimalsVolume.ToString(culture)
                     });
                 }
             }
@@ -1616,7 +1556,8 @@ namespace OsEngine.Market.Servers.Optimizer
                     securityToSave.Lot.ToString(culture),
                     securityToSave.Go.ToString(culture),
                     securityToSave.PriceStepCost.ToString(culture),
-                    securityToSave.PriceStep.ToString(culture)
+                    securityToSave.PriceStep.ToString(culture),
+                    securityToSave.DecimalsVolume.ToString(culture)
                 });
             }
 
@@ -1638,7 +1579,8 @@ namespace OsEngine.Market.Servers.Optimizer
                     securityToSave.Lot.ToString(culture),
                     securityToSave.Go.ToString(culture),
                     securityToSave.PriceStepCost.ToString(culture),
-                    securityToSave.PriceStep.ToString(culture)
+                    securityToSave.PriceStep.ToString(culture),
+                    securityToSave.DecimalsVolume.ToString(culture)
                 });
             }
 
@@ -1646,7 +1588,7 @@ namespace OsEngine.Market.Servers.Optimizer
             {
                 using (StreamWriter writer = new StreamWriter(pathToSettings, false))
                 {
-                    // Name, Lot, GO, price step, step cost value / Имя, Лот, ГО, Цена шага, стоимость цены шага
+                    // name, lot, GO, price step, cost of price step / Имя, Лот, ГО, Цена шага, стоимость цены шага
                     for (int i = 0; i < saves.Count; i++)
                     {
                         writer.WriteLine(
@@ -1654,7 +1596,8 @@ namespace OsEngine.Market.Servers.Optimizer
                             saves[i][1] + "$" +
                             saves[i][2] + "$" +
                             saves[i][3] + "$" +
-                            saves[i][4]
+                            saves[i][4] + "$" +
+                            saves[i][5]
                             );
                     }
 
@@ -1663,7 +1606,7 @@ namespace OsEngine.Market.Servers.Optimizer
             }
             catch (Exception)
             {
-                // send to log / отправить в лог
+                // send to the log / отправить в лог
             }
         }
 

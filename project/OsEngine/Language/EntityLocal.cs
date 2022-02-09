@@ -48,12 +48,12 @@ namespace OsEngine.Language
             "Ru:Пароль_");
 
         public string PositionLabel1 => OsLocalization.ConvertToLocString(
-            "Eng:Opening_" +
-            "Ru:Открытие_");
+            "Eng:Open orders_" +
+            "Ru:Открывающие ордера_");
 
         public string PositionLabel2 => OsLocalization.ConvertToLocString(
-            "Eng:Closing_" +
-            "Ru:Закрытие_");
+            "Eng:Close orders_" +
+            "Ru:Закрывающие ордера_");
 
         public string PositionLabel3 => OsLocalization.ConvertToLocString(
             "Eng:Trades_" +
@@ -238,6 +238,10 @@ namespace OsEngine.Language
         public string SecuritiesColumn6 => OsLocalization.ConvertToLocString(
             "Eng:Price lot_" +
             "Ru:ГО_");
+
+        public string SecuritiesColumn7 => OsLocalization.ConvertToLocString(
+            "Eng:Volume decimals_" +
+            "Ru:Точность объёма_");
 
         public string TitleSecurityUi => OsLocalization.ConvertToLocString(
             "Eng:Security settings_" +

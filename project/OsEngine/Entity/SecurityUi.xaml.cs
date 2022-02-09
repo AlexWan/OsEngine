@@ -39,12 +39,14 @@ namespace OsEngine.Entity
             TextBoxLot.Text = security.Lot.ToString(culture);
             TextBoxStep.Text = security.PriceStep.ToString(culture);
             TextBoxStepCost.Text = security.PriceStepCost.ToString(culture);
+            TextBoxVolumeDecimals.Text = security.DecimalsVolume.ToString(culture);
 
             Title = OsLocalization.Entity.TitleSecurityUi;
             SecuritiesColumn3.Content = OsLocalization.Entity.SecuritiesColumn3;
             SecuritiesColumn4.Content = OsLocalization.Entity.SecuritiesColumn4;
             SecuritiesColumn5.Content = OsLocalization.Entity.SecuritiesColumn5;
             SecuritiesColumn6.Content = OsLocalization.Entity.SecuritiesColumn6;
+            SecuritiesVolumeDecimals.Content = OsLocalization.Entity.SecuritiesColumn7;
             ButtonAccept.Content = OsLocalization.Entity.ButtonAccept;
 
         }
@@ -59,6 +61,7 @@ namespace OsEngine.Entity
             decimal lot;
             decimal step;
             decimal stepCost;
+            int volDecimals;
 
             try
             {
@@ -66,7 +69,7 @@ namespace OsEngine.Entity
                 lot = TextBoxLot.Text.ToDecimal();
                 step = TextBoxStep.Text.ToDecimal();
                 stepCost = TextBoxStepCost.Text.ToDecimal();
-
+                volDecimals = Convert.ToInt32(TextBoxVolumeDecimals.Text);
             }
             catch (Exception)
             {
@@ -84,6 +87,7 @@ namespace OsEngine.Entity
             _security.Lot = lot;
             _security.PriceStep = step;
             _security.PriceStepCost = stepCost;
+            _security.DecimalsVolume = volDecimals;
             IsChanged = true;
             Close();
         }
