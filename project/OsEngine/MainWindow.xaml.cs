@@ -93,6 +93,8 @@ namespace OsEngine
             OsLocalization.LocalizationTypeChangeEvent += ChangeText;
             
             CommandLineInterfaceProcess();
+
+            Task.Run(ClearOptimizerWorkResults);
         }
 
         private void ChangeText()
@@ -421,6 +423,39 @@ namespace OsEngine
             else if (Array.Exists(args, a => a.Equals("-tester")))
             {
                 ButtonTesterCandleOne_Click(this, default);
+            }
+        }
+
+        private void ClearOptimizerWorkResults()
+        {
+            try
+            {
+                if (Directory.Exists("Engine") == false)
+                {
+                    return;
+                }
+
+                string[] files = Directory.GetFiles("Engine");
+
+                for (int i = 0; i < files.Length; i++)
+                {
+                    try
+                    {
+                        if (files[i].Contains(" OpT "))
+                        {
+                            File.Delete(files[i]);
+                        }
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+
+                }
+            }
+            catch
+            {
+                // ignore
             }
         }
     }

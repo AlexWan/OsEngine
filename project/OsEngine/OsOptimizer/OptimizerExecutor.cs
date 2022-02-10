@@ -181,7 +181,7 @@ namespace OsEngine.OsOptimizer
 
             for (int i = 0; i < botCount; i++)
             {
-                string botName = (startServerIndex + i) + " " + faze;
+                string botName = (startServerIndex + i) + " OpT " + faze;
                 botNames.Add(botName);
             }
 
@@ -442,8 +442,8 @@ namespace OsEngine.OsOptimizer
                 }
 
                 //SendLogMessage("BotInSample" ,LogMessageType.System);
-
-                StartNewBot(_parameters, optimizeParamCurrent, report, " InSample");
+                // (startServerIndex + i) + " OpT " + faze;
+                StartNewBot(_parameters, optimizeParamCurrent, report, " OpT InSample");
             }
 
             while (true)

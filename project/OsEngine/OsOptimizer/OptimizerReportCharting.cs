@@ -336,7 +336,7 @@ namespace OsEngine.OsOptimizer
                 }
                 else // if(curReport.Faze.TypeFaze == OptimizerFazeType.OutOfSample)
                 {
-                    string botName = inSampleReport.BotName.Replace(" InSample", "");
+                    string botName = inSampleReport.BotName.Replace(" InSample", "").Replace("OpT", "");
                     reportToPaint = curReport.Reports.Find(rep => rep.BotName.StartsWith(botName));
                 }
 
@@ -362,7 +362,7 @@ namespace OsEngine.OsOptimizer
 
                 if (curReport.Faze.TypeFaze == OptimizerFazeType.InSample)
                 {
-                    cell4.Value = inSampleReport.BotName.Replace(" InSample", "");
+                    cell4.Value = inSampleReport.BotName.Replace(" InSample", "").Replace("OpT", "");
                 }
                 row.Cells.Add(cell4);
 
