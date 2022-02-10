@@ -2900,6 +2900,12 @@ namespace OsEngine.Market.Servers.Tester
             {
                 NewCurrentValue(_portfolios[0].ValueCurrent);
             }
+
+            if (PortfoliosChangeEvent != null)
+            {
+                PortfoliosChangeEvent(_portfolios);
+            }
+
         }
 
         public event Action<decimal> NewCurrentValue; 
@@ -2911,7 +2917,31 @@ namespace OsEngine.Market.Servers.Tester
 		/// initial portfolio value when testing
         /// начальное значение портфеля при тестировании
         /// </summary>
-        public decimal StartPortfolio;
+        public decimal StartPortfolio
+        {
+            set
+            {
+                if(_startPortfolio == value)
+                {
+                    return;
+                }
+                _startPortfolio = value;
+
+                if (_portfolios != null && _portfolios.Count != 0)
+                {
+                    _portfolios[0].ValueCurrent = StartPortfolio;
+                    _portfolios[0].ValueBegin = StartPortfolio;
+                    _portfolios[0].ValueBlocked = 0;
+
+                    if(PortfoliosChangeEvent != null)
+                    {
+                        PortfoliosChangeEvent(_portfolios);
+                    }
+                }
+            }
+            get { return _startPortfolio; }
+        }
+        private decimal _startPortfolio;
 
         private List<Portfolio> _portfolios;
 
