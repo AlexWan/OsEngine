@@ -39,8 +39,6 @@ namespace OsEngine.OsOptimizer
             _master.DateTimeStartEndChange += _master_DateTimeStartEndChange;
             _master.TestReadyEvent += _master_TestReadyEvent;
 
-            Task.Run(new Action(StrategyLoader));
-
             CreateTableTabsSimple();
             CreateTableTabsIndex();
             CreateTableResults();
@@ -177,6 +175,8 @@ namespace OsEngine.OsOptimizer
             _resultsCharting.LogMessageEvent += _master.SendLogMessage;
 
             this.Closing += Ui_Closing;
+
+            Task.Run(new Action(StrategyLoader));
         }
 
         void Ui_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -594,6 +594,7 @@ namespace OsEngine.OsOptimizer
             PaintTableTabsSimple();
             PaintTableParametrs();
             PaintTableTabsIndex();
+            PaintCountBotsInOptimization();
         }
 
         void TextBoxStartPortfolio_TextChanged(object sender, TextChangedEventArgs e)
@@ -1251,9 +1252,10 @@ namespace OsEngine.OsOptimizer
         {
             if (_gridParametrs.InvokeRequired)
             {
-                _gridParametrs.Invoke(new Action(PaintTableOptimizeFazes));
+                _gridParametrs.Invoke(new Action(PaintTableParametrs));
                 return;
             }
+
             _gridParametrs.Rows.Clear();
 
             _gridParametrs.CellValueChanged -= _gridParametrs_CellValueChanged;
@@ -2299,7 +2301,6 @@ namespace OsEngine.OsOptimizer
             {
                 return;
             }
-
             ReloadStrategy();
         }
     }
