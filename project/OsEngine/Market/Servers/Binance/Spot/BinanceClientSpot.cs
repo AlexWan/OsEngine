@@ -1200,7 +1200,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
                     try
                     {
-                        if (Convert.ToDecimal(myOrder.executedQty) - oldOpenOrders[i].VolumeExecute <= 0)
+                        if (myOrder.executedQty.ToDecimal() - oldOpenOrders[i].VolumeExecute <= 0)
                         {
                             continue;
                         }
@@ -1217,7 +1217,11 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     trade.SecurityNameCode = oldOpenOrders[i].SecurityNameCode;
                     trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(myOrder.updateTime));
                     trade.Side = oldOpenOrders[i].Side;
-                    trade.Volume = Convert.ToDecimal(myOrder.executedQty) - oldOpenOrders[i].VolumeExecute;
+                    trade.Price = myOrder.price.ToDecimal();
+                    trade.Volume = myOrder.executedQty.ToDecimal() - oldOpenOrders[i].VolumeExecute;
+
+                    oldOpenOrders[i].SetTrade(trade);
+
                     if (MyTradeEvent != null)
                     {
                         MyTradeEvent(trade);

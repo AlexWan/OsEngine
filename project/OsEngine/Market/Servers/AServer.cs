@@ -1881,6 +1881,8 @@ namespace OsEngine.Market.Servers
             _myTradesToSend.Enqueue(trade);
             _myTrades.Add(trade);
             _neadToBeepOnTrade = true;
+
+            UpDateMyTrade(trade);
         }
 
         /// <summary>
@@ -1989,9 +1991,6 @@ namespace OsEngine.Market.Servers
 
             _ordersToSend.Enqueue(myOrder);
 
-            myExecureOrdersCount = 0;
-            myCanselOrdersCount = 0;
-
             for (int i = 0; i < _myTrades.Count; i++)
             {
                 if (_myTrades[i].NumberOrderParent == myOrder.NumberMarket)
@@ -1999,6 +1998,8 @@ namespace OsEngine.Market.Servers
                     _myTradesToSend.Enqueue(_myTrades[i]);
                 }
             }
+
+            UpDateOrder(myOrder);
         }
 
         /// <summary>
@@ -2030,7 +2031,7 @@ namespace OsEngine.Market.Servers
 
             _ordersToExecute.Enqueue(ord);
 
-            _myExecureOrders.Add(order);
+            _myExecuteOrders.Add(order);
 
             SendLogMessage(OsLocalization.Market.Message19 + order.Price +
                            OsLocalization.Market.Message20 + order.Side +
@@ -2069,7 +2070,59 @@ namespace OsEngine.Market.Servers
 
         // хранение ордеров и запросы их статуса у сервера
 
-        private List<Order> _myExecureOrders = new List<Order>();
+        private void UpDateOrder(Order order)
+        {
+            for(int i = 0;i < _myExecuteOrders.Count;i++)
+            {
+               if(_myExecuteOrders[i].NumberUser == order.NumberUser)
+                {
+                    CopySettings(order, _myExecuteOrders[i]);
+                    _needToSaveOrders = true;
+                    break;
+                }
+            }
+            for (int i = 0; i < _myCanselOrders.Count; i++)
+            {
+                if (_myCanselOrders[i].NumberUser == order.NumberUser)
+                {
+                    CopySettings(order, _myCanselOrders[i]);
+                    _needToSaveOrders = true;
+                    break;
+                }
+            }
+        }
+
+        private void CopySettings(Order orderToCopy, Order order)
+        {
+            order.NumberMarket = orderToCopy.NumberMarket;
+            order.State = orderToCopy.State;
+            order.VolumeExecute = orderToCopy.VolumeExecute;
+        }
+
+        private void UpDateMyTrade(MyTrade trade)
+        {
+            for (int i = 0; i < _myExecuteOrders.Count; i++)
+            {
+                if (_myExecuteOrders[i].NumberMarket == trade.NumberOrderParent)
+                {
+                    _myExecuteOrders[i].SetTrade(trade);
+                    _needToSaveOrders = true;
+                    return;
+                }
+            }
+
+            for (int i = 0; i < _myCanselOrders.Count; i++)
+            {
+                if (_myCanselOrders[i].NumberMarket == trade.NumberOrderParent)
+                {
+                    _myCanselOrders[i].SetTrade(trade);
+                    _needToSaveOrders = true;
+                    return;
+                }
+            }
+        }
+
+        private List<Order> _myExecuteOrders = new List<Order>();
 
         private List<Order> _myCanselOrders = new List<Order>();
 
@@ -2079,19 +2132,22 @@ namespace OsEngine.Market.Servers
 
         int myCanselOrdersCount;
 
+        bool _needToSaveOrders;
+
         private void SaveLoadOrdersThreadArea()
         {
             LoadOrders();
 
-            myExecureOrdersCount = _myExecureOrders.Count;
+            myExecureOrdersCount = _myExecuteOrders.Count;
             myCanselOrdersCount = _myCanselOrders.Count;
 
             while (true)
             {
-                Thread.Sleep(1000);
+                Thread.Sleep(500);
 
                 try
                 {
+                    
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
                         continue;
@@ -2109,16 +2165,18 @@ namespace OsEngine.Market.Servers
                         {
                             _lastTimeCheckOrders = DateTime.Now;
                             CheckOrderState();
+                            SaveOrders();
                         }
 
                         continue;
                     }
 
-                    if (_myExecureOrders.Count != myExecureOrdersCount ||
-                        _myCanselOrders.Count != myCanselOrdersCount)
+                    if (_myExecuteOrders.Count != myExecureOrdersCount ||
+                        _myCanselOrders.Count != myCanselOrdersCount ||
+                        _needToSaveOrders == true)
                     {
                         SaveOrders();
-                        myExecureOrdersCount = _myExecureOrders.Count;
+                        myExecureOrdersCount = _myExecuteOrders.Count;
                         myCanselOrdersCount = _myCanselOrders.Count;
                     }
                 }
@@ -2158,7 +2216,7 @@ namespace OsEngine.Market.Servers
                         string str = reader.ReadLine();
                         Order ord = new Order();
                         ord.SetOrderFromString(str);
-                        _myExecureOrders.Add(ord);
+                        _myExecuteOrders.Add(ord);
                     }
                     reader.Close();
                 }
@@ -2175,9 +2233,9 @@ namespace OsEngine.Market.Servers
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + ServerType + @" OpenOrders.txt", false))
                 {
-                    for (int i = _myExecureOrders.Count - 1; i >= 0 && i > _myExecureOrders.Count - 100; i--)
+                    for (int i = _myExecuteOrders.Count - 1; i >= 0 && i > _myExecuteOrders.Count - 100; i--)
                     {
-                        string saveStr = _myExecureOrders[i].GetStringForSave().ToString();
+                        string saveStr = _myExecuteOrders[i].GetStringForSave().ToString();
                         writer.WriteLine(saveStr);
                     }
                    
@@ -2239,9 +2297,9 @@ namespace OsEngine.Market.Servers
 
         private void CheckOrderState()
         {
-            if(_myExecureOrders.Count != 0)
+            if(_myExecuteOrders.Count != 0)
             {
-                _serverRealization.GetOrdersState(_myExecureOrders);
+                _serverRealization.GetOrdersState(_myExecuteOrders);
             }
             if(_myCanselOrders.Count != 0)
             {
