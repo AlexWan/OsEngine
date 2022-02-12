@@ -65,7 +65,7 @@
   <PropertyGroup>
     <!--
     Uncomment next line to enable SmartCom
-    <DefineConstants>SmartComEnabled</DefineConstants>
+    <DefineConstants>SMART_COM</DefineConstants>
     -->
   </PropertyGroup>
   <ItemGroup>
@@ -152,7 +152,7 @@
     <Reference Include="PresentationFramework" />
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
-  <ItemGroup Condition="$(DefineConstants.Contains(SmartComEnabled))">
+  <ItemGroup Condition="$(DefineConstants.Contains(SMART_COM))">
     <Compile Include="Market\Servers\SmartCom\SmartComServer.cs" />
     <Compile Include="Market\Servers\SmartCom\SmartComServerUi.xaml.cs">
       <DependentUpon>SmartComServerUi.xaml</DependentUpon>
@@ -1582,7 +1582,7 @@
     <None Include="Resources\Duck.wav" />
     <None Include="Resources\Bird.wav" />
   </ItemGroup>
-  <ItemGroup Condition="$(DefineConstants.Contains(SmartComEnabled))">
+  <ItemGroup Condition="$(DefineConstants.Contains(SMART_COM))">
     <COMReference Include="SmartCOM4Lib">
       <Guid>{D12929CB-4569-46B7-99CE-FFF546E41866}</Guid>
       <VersionMajor>1</VersionMajor>

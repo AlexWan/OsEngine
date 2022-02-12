@@ -20,7 +20,7 @@ using OsEngine.Market.Servers.BitMex;
 using OsEngine.Market.Servers.GateIo;
 using OsEngine.Market.Servers.Kraken;
 using OsEngine.Market.Servers.QuikLua;
-#if SmartComEnabled
+#if SMART_COM
 using OsEngine.Market.Servers.SmartCom;
 #endif
 using OsEngine.Market.Servers.Tester;
@@ -289,7 +289,7 @@ namespace OsEngine.Entity
                         }
                         else if (serverType == ServerType.SmartCom)
                         {
-#if SmartComEnabled
+#if SMART_COM
                             SmartComServer smart = (SmartComServer) _server;
 
                             if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
@@ -313,7 +313,7 @@ namespace OsEngine.Entity
                             series.IsStarted = true;
 #else
                             Trace.Fail("SmartCom is disabled", 
-                                "To enable SmartCom uncomment constant 'SmartComEnabled' in OsEngine.csproj file"); 
+                                "To enable SmartCom uncomment constant 'SMART_COM' in OsEngine.csproj file"); 
 #endif
                         }
                         else if (serverType == ServerType.Tinkoff)

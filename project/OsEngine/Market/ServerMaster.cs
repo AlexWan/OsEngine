@@ -33,7 +33,7 @@ using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Plaza;
 using OsEngine.Market.Servers.Quik;
 using OsEngine.Market.Servers.QuikLua;
-#if SmartComEnabled
+#if SMART_COM
 using OsEngine.Market.Servers.SmartCom;
 #endif
 using OsEngine.Market.Servers.Tester;
@@ -317,11 +317,11 @@ namespace OsEngine.Market
                 }
                 else if (type == ServerType.SmartCom)
                 {
-#if SmartComEnabled
+#if SMART_COM
                     newServer = new SmartComServer();   
 #else
                     Trace.Fail("SmartCom is disabled", 
-                        "To enable SmartCom uncomment constant 'SmartComEnabled' in OsEngine.csproj file");                    
+                        "To enable SmartCom uncomment constant 'SMART_COM' in OsEngine.csproj file");                    
 #endif
                 }
                 else if (type == ServerType.Plaza)
