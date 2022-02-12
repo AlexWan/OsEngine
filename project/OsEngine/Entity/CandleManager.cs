@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
 using OsEngine.Logging;
@@ -19,7 +20,9 @@ using OsEngine.Market.Servers.BitMex;
 using OsEngine.Market.Servers.GateIo;
 using OsEngine.Market.Servers.Kraken;
 using OsEngine.Market.Servers.QuikLua;
+#if SmartComEnabled
 using OsEngine.Market.Servers.SmartCom;
+#endif
 using OsEngine.Market.Servers.Tester;
 using OsEngine.Market.Servers.Transaq;
 using OsEngine.Market.Servers.ZB;
@@ -286,6 +289,7 @@ namespace OsEngine.Entity
                         }
                         else if (serverType == ServerType.SmartCom)
                         {
+#if SmartComEnabled
                             SmartComServer smart = (SmartComServer) _server;
 
                             if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
@@ -307,6 +311,10 @@ namespace OsEngine.Entity
                             }
                             series.UpdateAllCandles();
                             series.IsStarted = true;
+#else
+                            Trace.Fail("SmartCom is disabled", 
+                                "To enable SmartCom uncomment constant 'SmartComEnabled' in OsEngine.csproj file"); 
+#endif
                         }
                         else if (serverType == ServerType.Tinkoff)
                         {

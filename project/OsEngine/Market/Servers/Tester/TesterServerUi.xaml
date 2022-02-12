@@ -60,8 +60,8 @@
                     <CheckBox Name="CheckBoxSlipageStopOn" Content="In steps" HorizontalAlignment="Left" Margin="306,159,0,0" VerticalAlignment="Top" Checked="CheckBoxSlipageStopOn_Checked"/>
                     <Label Name="Label34" Content="Order execution" HorizontalAlignment="Right" Margin="0,84,79,0" VerticalAlignment="Top" FontSize="16" />
                     <CheckBox Name="CheckBoxExecutionOrderIntersection" Content="Price crossing" HorizontalAlignment="Left" Margin="566,125,0,0" VerticalAlignment="Top" Checked="CheckBoxExecutionOrderIntersection_Checked"/>
-                    <CheckBox Name="CheckBoxExecutionOrderTuch" Content="Price touch" HorizontalAlignment="Left" Margin="566,159,0,0" VerticalAlignment="Top" Cursor="" Checked="CheckBoxExecutionOrderTuch_Checked"/>
-                    <CheckBox Name="CheckBoxExecutionOrderFiftyFifty" Content="50 / 50" HorizontalAlignment="Left" Margin="566,195,0,0" VerticalAlignment="Top" Cursor="" Checked="CheckBoxExecutionOrderFiftyFifty_Checked"/>
+                    <CheckBox Name="CheckBoxExecutionOrderTuch" Content="Price touch" HorizontalAlignment="Left" Margin="566,159,0,0" VerticalAlignment="Top" Cursor="None" Checked="CheckBoxExecutionOrderTuch_Checked"/>
+                    <CheckBox Name="CheckBoxExecutionOrderFiftyFifty" Content="50 / 50" HorizontalAlignment="Left" Margin="566,195,0,0" VerticalAlignment="Top" Cursor="None" Checked="CheckBoxExecutionOrderFiftyFifty_Checked"/>
                 </Grid>
             </TabItem>
             <TabItem Name="Label31" Header=" Portfolio " FontSize="14">

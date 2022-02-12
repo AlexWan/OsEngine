@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms.Integration;
@@ -32,7 +33,9 @@ using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Plaza;
 using OsEngine.Market.Servers.Quik;
 using OsEngine.Market.Servers.QuikLua;
+#if SmartComEnabled
 using OsEngine.Market.Servers.SmartCom;
+#endif
 using OsEngine.Market.Servers.Tester;
 using OsEngine.Market.Servers.Transaq;
 using OsEngine.Market.Servers.ZB;
@@ -314,7 +317,12 @@ namespace OsEngine.Market
                 }
                 else if (type == ServerType.SmartCom)
                 {
-                    newServer = new SmartComServer();
+#if SmartComEnabled
+                    newServer = new SmartComServer();   
+#else
+                    Trace.Fail("SmartCom is disabled", 
+                        "To enable SmartCom uncomment constant 'SmartComEnabled' in OsEngine.csproj file");                    
+#endif
                 }
                 else if (type == ServerType.Plaza)
                 {
