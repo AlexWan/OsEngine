@@ -258,6 +258,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                         UpdateTabSettings(Tabs[Tabs.Count - 1]);
                         PaintNewRow();
 
+                        if (NewTabCreateEvent != null)
+                        {
+                            NewTabCreateEvent(newTab);
+                        }
+
                         if (Tabs.Count == 1)
                         {
                             Tabs[0].IndicatorUpdateEvent += BotTabScreener_IndicatorUpdateEvent;
