@@ -718,11 +718,88 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 _securities.Add(security);
             }
 
+            List<Security> secNonPerp = new List<Security>();
+
+            for(int i = 0;i < _securities.Count;i++)
+            {
+                string[] str = _securities[i].Name.Split('_');
+
+                if (str.Length > 1 &&
+                    str[1] != "PERP")
+                {
+                    secNonPerp.Add(_securities[i]);
+                }
+
+            }
+
+            List<Security> securitiesHistorical = CreateHistoricalSecurities(secNonPerp);
+
+            _securities.AddRange(securitiesHistorical);
+
             if (SecurityEvent != null)
             {
                 SecurityEvent(_securities);
             }
         }
+
+        private List<Security> CreateHistoricalSecurities(List<Security> securities)
+        {
+            List<Security> secHistorical = new List<Security>();
+
+            for(int i = 0;i < securities.Count;i++)
+            {
+                if(secHistorical.Find(s => s.Name.Split('_')[0] == securities[i].Name.Split('_')[0]) != null)
+                {
+                    continue;
+                }
+
+                secHistorical.AddRange(GetHistoricalSecBySec(securities[i]));
+            }
+
+            return secHistorical;
+        }
+
+        private List<Security> GetHistoricalSecBySec(Security sec)
+        {
+            List<Security> secHistorical = new List<Security>();
+
+            string name = sec.Name.Split('_')[0];
+
+            secHistorical.Add(GetHistoryOneSecurity(name + "_201225", sec));
+            secHistorical.Add(GetHistoryOneSecurity(name + "_210326", sec));
+            secHistorical.Add(GetHistoryOneSecurity(name + "_210625", sec));
+            secHistorical.Add(GetHistoryOneSecurity(name + "_210924", sec));
+            secHistorical.Add(GetHistoryOneSecurity(name + "_211231", sec));
+            secHistorical.Add(GetHistoryOneSecurity(name + "_220325", sec));
+            secHistorical.Add(GetHistoryOneSecurity(name + "_220624", sec));
+
+            return secHistorical;
+        }
+
+        private Security GetHistoryOneSecurity(string secName, Security sec)
+        {
+            Security security = new Security();
+            security.Name = secName;
+            security.NameFull = secName;
+            security.NameClass = "FutHistory";
+            security.NameId = secName;
+            security.SecurityType = SecurityType.Futures;
+            security.Lot = sec.Lot;
+            security.PriceStep = sec.PriceStep;
+            security.PriceStepCost = sec.PriceStepCost;
+
+            security.PriceLimitLow = sec.PriceLimitLow;
+            security.PriceLimitHigh = sec.PriceLimitHigh;
+
+            security.Decimals = sec.Decimals;
+            security.DecimalsVolume = sec.DecimalsVolume;
+               
+            security.State = SecurityStateType.Activ;
+
+            return security;
+        }
+
+
 
         void _client_Connected()
         {

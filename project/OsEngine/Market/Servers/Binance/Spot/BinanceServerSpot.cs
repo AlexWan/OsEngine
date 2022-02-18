@@ -305,8 +305,6 @@ namespace OsEngine.Market.Servers.Binance.Spot
             return trades;
         }
 
-
-
         /// <summary>
         /// request order state
         /// запросить статус ордеров
