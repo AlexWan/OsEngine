@@ -646,9 +646,20 @@ position => position.State != PositionStateType.OpeningFail
                 MessageBox.Show(OsLocalization.Trader.Label51);
                 return;
             }
-            _paramUi = new ParemetrsUi(_parameters, ParamGuiSettings);
 
-            _paramUi.ShowDialog();
+            if (_paramUi == null)
+            {
+                _paramUi = new ParemetrsUi(_parameters, ParamGuiSettings);
+                _paramUi.Show();
+                _paramUi.Closing += (a, b) =>
+                {
+                    _paramUi = null;
+                };
+            }
+            else
+            {
+                _paramUi.Activate();
+            }
         }
 
         private ParemetrsUi _paramUi;
