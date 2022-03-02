@@ -30,7 +30,7 @@ namespace OsEngine.OsData
             Label24.Content = OsLocalization.Data.Label24;
             CheckBoxPaintOnOff.Content = OsLocalization.Data.Label25;
             Label26.Header = OsLocalization.Data.Label26;
-
+            NewDataSetButton.Content = OsLocalization.Data.Label30;
         }
 
         void CheckBoxPaintOnOff_Click(object sender, RoutedEventArgs e)
@@ -57,6 +57,11 @@ namespace OsEngine.OsData
             {
                 e.Cancel = true;
             }
+        }
+
+        private void NewDataSetButton_Click(object sender, RoutedEventArgs e)
+        {
+            _osDataMaster.CreateNewSet();
         }
     }
 }

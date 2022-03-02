@@ -127,7 +127,7 @@ namespace OsEngine.Language
 
         public string Label26 => OsLocalization.ConvertToLocString(
             "Eng:Log_" +
-            "Ru:Лог_");
+            "Ru:Лог_");        
 
         public string Label27 => OsLocalization.ConvertToLocString(
             "Eng:You want to close the program. Are you sure?_" +
@@ -140,5 +140,9 @@ namespace OsEngine.Language
         public string Label29 => OsLocalization.ConvertToLocString(
             "Eng:Trades successfully loaded. Security _" +
             "Ru:Трейды успешно загружены. Бумага _");
+
+        public string Label30 => OsLocalization.ConvertToLocString(
+            "Eng:Add new data set_" +
+            "Ru:Создать сет данных_");
     }
 }
