@@ -753,7 +753,14 @@ namespace OsEngine.Journal
             profitBar.YAxisType = AxisType.Secondary;
             profitBar.ChartArea = "ChartAreaProfitBar";
             profitBar.ShadowOffset = 2;
-           
+
+            Series nullLine = new Series("SeriesNullLine");
+            nullLine.ChartType = SeriesChartType.Line;
+            nullLine.YAxisType = AxisType.Secondary;
+            nullLine.ChartArea = "ChartAreaProfit";
+            nullLine.ShadowOffset = 0;
+
+
 
             try
             {
@@ -834,7 +841,13 @@ namespace OsEngine.Journal
                 _chartEquity.Series.Add(profitShort);
                 _chartEquity.Series.Add(profitBar);
 
-                if(minYval != decimal.MaxValue &&
+                nullLine.Points.AddXY(0, 0);
+                nullLine.Points.AddXY(positionsAll.Count, 0);
+
+                _chartEquity.Series.Add(nullLine);
+
+
+                if (minYval != decimal.MaxValue &&
                     maxYVal != 0)
                 {
                     _chartEquity.ChartAreas[0].AxisY2.Maximum = (double)maxYVal;
