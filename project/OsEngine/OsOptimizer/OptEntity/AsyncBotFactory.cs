@@ -62,7 +62,7 @@ namespace OsEngine.OsOptimizer.OptimizerEntity
         public void CreateNewBots(List<string> botsName, string botType, bool isScript, StartProgram startProgramm)
         {
             _botType = botType;
-
+            _isActivate = false;
             for (int i = 0; i < _botsToStart.Count; i++)
             {
                 List<string> names = _botsToStart[i];
@@ -75,7 +75,10 @@ namespace OsEngine.OsOptimizer.OptimizerEntity
 
             _isScript = isScript;
             _startProgramm = startProgramm;
+            _isActivate = true;
         }
+
+        bool _isActivate;
 
         List<List<string>> _botsToStart = new List<List<string>>();
 
@@ -99,6 +102,11 @@ namespace OsEngine.OsOptimizer.OptimizerEntity
                     return;
                 }
 
+                if (_isActivate == false)
+                {
+                    continue;
+                }
+
                 if (_botsToStart[num].Count != 0)
                 {
                     Load(_botsToStart[num]);
@@ -108,8 +116,9 @@ namespace OsEngine.OsOptimizer.OptimizerEntity
 
         private void Load(List<string> names)
         {
-            for (int i = 0; i < names.Count;)
+            while (names.Count != 0)
             {
+
                 BotPanel bot = BotFactory.GetStrategyForName(_botType, names[0], _startProgramm, _isScript);
                 names.RemoveAt(0);
                 lock (_botLocker)
