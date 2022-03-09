@@ -244,6 +244,10 @@ namespace OsEngine.Market.Servers.FTX
                     actualTime = candles[candles.Count - 1].TimeStart.AddSeconds(needInterval);
                     midTime = actualTime + step;
                 }
+                else
+                {
+                    actualTime = actualTime.AddHours(10);
+                }
                 Thread.Sleep(1000);
             }
 
