@@ -811,7 +811,7 @@ namespace OsEngine.Market.Servers.Huobi.Futures
 
             int oldInterval = Convert.ToInt32(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes);
 
-            var step = new TimeSpan(0, (int)(oldInterval * 2000), 0);
+            var step = new TimeSpan(0, (int)(oldInterval * 1000), 0);
 
             actualTime = startTime;
 

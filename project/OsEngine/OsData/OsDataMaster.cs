@@ -397,6 +397,9 @@ namespace OsEngine.OsData
                     _gridset.Invoke(new Action(RePaintSetGrid));
                     return;
                 }
+
+                SortSets();
+
                 _gridset.Rows.Clear();
 
                 for (int i = 0; _sets != null && i < _sets.Count; i++)
@@ -582,6 +585,34 @@ namespace OsEngine.OsData
             {
                 currentSet.StartPaint(_hostChart, _rectangle, _greedChartPanel);
             }
+        }
+
+        private void SortSets()
+        {
+            if(_sets == null ||
+                _sets.Count == 0)
+            {
+                return;
+            }
+
+            List<OsDataSet> sortSets = new List<OsDataSet>();
+            
+            for(int i = 0;i < _sets.Count;i++)
+            {
+                if(_sets[i].Regime == DataSetState.On)
+                {
+                    sortSets.Add(_sets[i]);
+                }
+            }
+
+            for (int i = 0; i < _sets.Count; i++)
+            {
+                if (_sets[i].Regime == DataSetState.Off)
+                {
+                    sortSets.Add(_sets[i]);
+                }
+            }
+            _sets = sortSets;
         }
 
         // management/управление        
