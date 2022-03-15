@@ -4345,7 +4345,7 @@ namespace OsEngine.Market.Servers.Tester
                 LastMarketDepth.SetMarketDepthFromString(_lastString);
             }
 
-            if (LastMarketDepth.Time > now)
+            if (LastMarketDepth.Time.AddSeconds(-1) > now)
             {
                 return;
             }

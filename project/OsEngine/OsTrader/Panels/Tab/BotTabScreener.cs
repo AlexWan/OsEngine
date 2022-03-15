@@ -1204,7 +1204,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// синхронизировать первую вкладку с остальными
         /// </summary>
-        private void SuncFirstTab()
+        public void SuncFirstTab()
         {
             if (Tabs.Count <= 1)
             {

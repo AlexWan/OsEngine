@@ -845,7 +845,7 @@ namespace OsEngine.Market.Connectors
                     ComboBoxTimeFrame.Items.Add(TimeFrame.Sec1);
 
                     ComboBoxCandleMarketDataType.SelectedItem = CandleMarketDataType.Tick;
-                    ComboBoxCandleMarketDataType.IsEnabled = false;
+                    ComboBoxCandleMarketDataType.IsEnabled = true;
                 }
                 else
                 {

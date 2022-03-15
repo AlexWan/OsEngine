@@ -36,6 +36,10 @@ namespace CustomIndicators.Scripts
         }
         public override void OnProcess(List<Candle> candles, int index)
         {
+            if(index >= _series.Values.Count)
+            {
+                return;
+            }
             _series.Values[index] = GetValueStandart(candles, index);
         }
 

@@ -5082,7 +5082,8 @@ namespace OsEngine.Charts.CandleChart
                 _areaPositions = new List<ChartAreaPosition>();
             }
 
-            for (int i = 0; i < _chart.ChartAreas.Count; i++)
+            for (int i = 0; _chart != null &&
+                i < _chart.ChartAreas.Count; i++)
             {
                 GetAreaPosition(_chart.ChartAreas[i]);
             }
