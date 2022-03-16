@@ -372,6 +372,12 @@ namespace OsEngine.Indicators
         {
             try
             {
+                if (_gridIndicators.SelectedCells == null ||
+                    _gridIndicators.SelectedCells.Count == 0)
+                {
+                    return;
+                }
+
                 int rowIndex = _gridIndicators.SelectedCells[0].RowIndex;
                 int cellIndex = _gridIndicators.SelectedCells[0].ColumnIndex;
 
