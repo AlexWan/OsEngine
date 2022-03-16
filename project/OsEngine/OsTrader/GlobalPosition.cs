@@ -202,6 +202,10 @@ namespace OsEngine.OsTrader
 
             try
             {
+                if(_grid == null)
+                {
+                    return;
+                }
                 if (_grid.InvokeRequired)
                 {
                     _grid.Invoke(new Action<Position>(journal_PositionChangeEvent), position);
