@@ -589,6 +589,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     UpdateTabSettings(Tabs[Tabs.Count-1]);
                     PaintNewRow();
+
+                    if (NewTabCreateEvent != null)
+                    {
+                        NewTabCreateEvent(Tabs[Tabs.Count - 1]);
+                    }
                 }
             }
 
@@ -659,11 +664,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             newTab.Connector.SecurityClass = sec.SecurityClass;
             newTab.TimeFrameBuilder.TimeFrame = frame;
             curTabs.Add(newTab);
-
-            if(NewTabCreateEvent != null)
-            {
-                NewTabCreateEvent(newTab);
-            }
 
             SubscribleOnTab(newTab);
         }
