@@ -102,7 +102,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                 _typeTesterData = value;
                 Save();
-                ReloadSecurities();
+                ReloadSecurities(false);
             }
         }
         private TesterDataType _typeTesterData;
@@ -174,7 +174,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 }
 
                 _sourceDataType = value;
-                ReloadSecurities();
+                ReloadSecurities(false);
             }
         }
         private TesterSourceDataType _sourceDataType;
@@ -250,7 +250,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
             if (_sourceDataType == TesterSourceDataType.Set)
             {
-                ReloadSecurities();
+                ReloadSecurities(false);
             }
             Save();
         }
@@ -259,12 +259,20 @@ namespace OsEngine.Market.Servers.Optimizer
 		/// reload securities
         /// перезагрузить бумаги
         /// </summary>
-        public void ReloadSecurities()
+        public void ReloadSecurities(bool thisThread)
         {
             // чистим все данные, отключаемся
             SecuritiesTester = null;
-            _needToReloadSecurities = true;
-            Save();
+
+            if (thisThread == false)
+            {
+                _needToReloadSecurities = true;
+                Save();
+            }
+            else
+            {
+                LoadSecurities();
+            }
         }
 
         /// <summary>
@@ -319,7 +327,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 _pathToFolder = myDialog.SelectedPath;
                 if (_sourceDataType == TesterSourceDataType.Folder)
                 {
-                    ReloadSecurities();
+                    ReloadSecurities(false);
                 }
             }
         }

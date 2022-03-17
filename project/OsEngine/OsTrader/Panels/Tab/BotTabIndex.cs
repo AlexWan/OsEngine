@@ -226,7 +226,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                         Tabs.Add(newConnector);
                         Tabs[Tabs.Count - 1].NewCandlesChangeEvent += BotTabIndex_NewCandlesChangeEvent;
                     }
-                    UserFormula = reader.ReadLine();
+
+                    _userFormula = reader.ReadLine();
 
                     reader.Close();
                 }
