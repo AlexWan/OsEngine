@@ -3916,7 +3916,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                LastTimeCandleUpdate = DateTime.Now;
+                LastTimeCandleUpdate = Connector.MarketTime;
 
                 AlertControlPosition();
 

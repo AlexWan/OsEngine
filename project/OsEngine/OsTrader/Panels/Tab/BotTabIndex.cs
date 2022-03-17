@@ -287,7 +287,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void BotTabIndex_NewCandlesChangeEvent(List<Candle> candles)
         {
-            LastTimeCandleUpdate = DateTime.Now;
+            LastTimeCandleUpdate = Tabs[0].MarketTime;
 
             for (int i = 0; i < Tabs.Count; i++)
             {

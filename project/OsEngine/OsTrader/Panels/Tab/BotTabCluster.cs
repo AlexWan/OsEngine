@@ -253,7 +253,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void Tab_LastCandlesChangeEvent(List<Candle> candles)
         {
-            LastTimeCandleUpdate = DateTime.Now;
+            LastTimeCandleUpdate = CandleConnector.MarketTime;
             _horizontalVolume.Process(candles);
             _chartMaster.Process(_horizontalVolume);
         }
