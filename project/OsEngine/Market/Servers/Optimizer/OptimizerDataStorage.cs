@@ -1740,8 +1740,8 @@ namespace OsEngine.Market.Servers.Optimizer
                 }
                 catch
                 {
-                    SendLogMessage(OsLocalization.Market.Message31 + sec.FileAdress, LogMessageType.Error);
-                    break;
+                    //SendLogMessage(OsLocalization.Market.Message31 + sec.FileAdress, LogMessageType.Error);
+                    continue;
                 }
                 if (candle.TimeStart < timeStart)
                 {
