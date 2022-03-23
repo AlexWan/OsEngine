@@ -183,6 +183,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if(_isLoaded)
+                {
+                    return;
+                }
+
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + TabName + @"SpreadSet.txt", false))
                 {
                     string save = "";
@@ -203,14 +208,19 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        bool _isLoaded = false;
+
         /// <summary>
         /// load / 
         /// загрузить настройки из файла
         /// </summary>
         public void Load()
         {
+            _isLoaded = true;
+
             if (!File.Exists(@"Engine\" + TabName + @"SpreadSet.txt"))
             {
+                _isLoaded = false;
                 return;
             }
             try
@@ -227,15 +237,17 @@ namespace OsEngine.OsTrader.Panels.Tab
                         Tabs[Tabs.Count - 1].NewCandlesChangeEvent += BotTabIndex_NewCandlesChangeEvent;
                     }
 
-                    _userFormula = reader.ReadLine();
+                    UserFormula = reader.ReadLine();
 
                     reader.Close();
                 }
             }
             catch (Exception)
             {
+                _isLoaded = false;
                 // ignore
             }
+            _isLoaded = false;
         }
 
         /// <summary>
