@@ -2057,6 +2057,7 @@ namespace OsEngine.Market.Servers
             ord.OrderSendType = OrderSendType.Cancel;
 
             _ordersToExecute.Enqueue(ord);
+            _ordersToExecute.Enqueue(ord);
             _myCanselOrders.Add(order);
 
             SendLogMessage(OsLocalization.Market.Message24 + order.NumberUser, LogMessageType.System);

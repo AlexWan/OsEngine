@@ -1018,6 +1018,32 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         private object _lockOrder = new object();
 
+        List<Order> _canselOrders = new List<Order>();
+
+        private bool CanCanselOrder(Order order)
+        {
+            bool isInArray = false;
+
+            for(int i = 0;i < _canselOrders.Count;i++)
+            {
+                if(_canselOrders[i].NumberUser == order.NumberUser)
+                {
+                    isInArray = true;
+                    break;
+                }
+            }
+
+            if(isInArray == true)
+            {
+                return false;
+            }
+            else
+            {
+                _canselOrders.Add(order);
+                return true;
+            }
+        }
+
         /// <summary>
         /// cancel order
         /// отменить ордер
@@ -1028,13 +1054,40 @@ namespace OsEngine.Market.Servers.Binance.Futures
             {
                 try
                 {
+                    if(CanCanselOrder(order) == false)
+                    {
+                        Order onBoard = GetOrderState(order);
+
+                        if(onBoard == null)
+                        {
+                            order.State = OrderStateType.Cancel;
+
+                            if (MyOrderEvent != null)
+                            {
+                                MyOrderEvent(order);
+                            }
+
+                            return;
+                        }
+
+                        order.State = onBoard.State;
+                        order.NumberMarket = onBoard.NumberMarket;
+
+                        if (MyOrderEvent != null)
+                        {
+                            MyOrderEvent(order);
+                        }
+
+                        return;
+                    }
+
                     if (string.IsNullOrEmpty(order.NumberMarket))
                     {
                         Order onBoard = GetOrderState(order);
 
                         if (onBoard == null)
                         {
-                            order.State = OrderStateType.Fail;
+                            order.State = OrderStateType.Cancel;
                             SendLogMessage("При отзыве ордера не нашли такого на бирже. считаем что он уже отозван",
                                 LogMessageType.Error);
                             if (MyOrderEvent != null)
@@ -1125,7 +1178,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                             continue;
                         }
 
-                        string id = allOrders[i2].clientOrderId.Replace("x-RKXTQ2AK", "");
+                        string id = allOrders[i2].clientOrderId.Replace("x-gnrPHWyE", "");
 
                         try
                         {
@@ -1216,7 +1269,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             List<string> namesSec = new List<string>();
             namesSec.Add(oldOrder.SecurityNameCode);
 
-            string endPoint = "/" + type_str_selector + "/v1/allOrder";
+            string endPoint = "/" + type_str_selector + "/v1/allOrders";
 
             List<HistoryOrderReport> allOrders = new List<HistoryOrderReport>();
 
@@ -1245,7 +1298,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             }
 
             HistoryOrderReport orderOnBoard =
-                allOrders.Find(ord => ord.clientOrderId.Replace("x-RKXTQ2AK", "") == oldOrder.NumberUser.ToString());
+                allOrders.Find(ord => ord.clientOrderId.Replace("x-gnrPHWyE", "") == oldOrder.NumberUser.ToString());
 
             if (orderOnBoard == null)
             {
