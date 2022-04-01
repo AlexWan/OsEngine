@@ -1097,6 +1097,11 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     {
                         CreateQuery(BinanceExchangeType.SpotExchange, Method.DELETE, "/sapi/v1/margin/order", param, true);
                     }
+                    else
+                    {
+                        CreateQuery(BinanceExchangeType.SpotExchange, Method.DELETE, "api/v3/order", param, true);
+                        CreateQuery(BinanceExchangeType.SpotExchange, Method.DELETE, "/sapi/v1/margin/order", param, true);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -1176,6 +1181,12 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
                     newOrder.SecurityNameCode = allOrders[i2].symbol;
                     newOrder.State = OrderStateType.Activ;
+
+                    if(allOrders[i].type == "")
+                    {
+
+                    }
+
                     try
                     {
                         newOrder.Volume = allOrders[i2].origQty.ToDecimal();
