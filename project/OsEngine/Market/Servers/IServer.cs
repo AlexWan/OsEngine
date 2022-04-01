@@ -237,6 +237,12 @@ namespace OsEngine.Market.Servers
         void CancelOrder(Order order);
 
         /// <summary>
+        /// cancel all orders from trading system
+        /// отозвать все ордера из торговой системы
+        /// </summary>
+        void CancelAllOrders();
+
+        /// <summary>
         /// order changed
         /// изменился ордер
         /// </summary>

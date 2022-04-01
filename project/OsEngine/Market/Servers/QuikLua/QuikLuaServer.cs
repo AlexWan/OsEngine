@@ -725,6 +725,15 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
+        /// <summary>
+        /// cancel all orders from trading system
+        /// отозвать все ордера из торговой системы
+        /// </summary>
+        public void CancelAllOrders()
+        {
+
+        }
+
         private List<string> subscribedBook = new List<string>();
 
         public void Subscrible(Security security)

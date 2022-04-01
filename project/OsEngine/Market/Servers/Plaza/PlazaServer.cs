@@ -86,6 +86,15 @@ namespace OsEngine.Market.Servers.Plaza
             _plazaController.CancelOrder(order);
         }
 
+        /// <summary>
+        /// cancel all orders from trading system
+        /// отозвать все ордера из торговой системы
+        /// </summary>
+        public void CancelAllOrders()
+        {
+
+        }
+
         public void Subscrible(Security security)
         {
             _plazaController.StartMarketDepth(security);

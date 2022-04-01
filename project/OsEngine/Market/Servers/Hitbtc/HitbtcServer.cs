@@ -230,6 +230,15 @@ namespace OsEngine.Market.Servers.Hitbtc
             }
         }
 
+        /// <summary>
+        /// cancel all orders from trading system
+        /// отозвать все ордера из торговой системы
+        /// </summary>
+        public void CancelAllOrders()
+        {
+
+        }
+
         #endregion
 
         #region parsing incoming data / разбор входящих данных

@@ -86,6 +86,15 @@ namespace OsEngine.Market.Servers
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// cancel all orders from trading system
+        /// отозвать все ордера из торговой системы
+        /// </summary>
+        public void CancelAllOrders()
+        {
+            throw new NotImplementedException();
+        }
+
         public virtual void Subscrible(Security security)
         {
             throw new NotImplementedException();

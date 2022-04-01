@@ -3797,6 +3797,15 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
+        /// cancel all orders from trading system
+        /// отозвать все ордера из торговой системы
+        /// </summary>
+        public void CancelAllOrders()
+        {
+
+        }
+
+        /// <summary>
 		/// updated order on the exchange
         /// обновился ордер на бирже
         /// </summary>

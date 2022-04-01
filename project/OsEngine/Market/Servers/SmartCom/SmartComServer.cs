@@ -1976,6 +1976,15 @@ namespace OsEngine.Market.Servers.SmartCom
             _ordersToCansel.Enqueue(order);
         }
 
+        /// <summary>
+        /// cancel all orders from trading system
+        /// отозвать все ордера из торговой системы
+        /// </summary>
+        public void CancelAllOrders()
+        {
+
+        }
+
         private List<Order> _ordersWhithId = new List<Order>();
 
         private List<Order> _orderWhithMarketId = new List<Order>();

@@ -172,6 +172,15 @@ namespace OsEngine.Market.Servers.Lmax
         }
 
         /// <summary>
+        /// cancel all orders from trading system
+        /// отозвать все ордера из торговой системы
+        /// </summary>
+        public void CancelAllOrders()
+        {
+
+        }
+
+        /// <summary>
 		/// subscribe to get instrument data
         /// подписаться на получение данных по инструменту
         /// </summary>

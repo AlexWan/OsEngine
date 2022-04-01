@@ -665,6 +665,15 @@ namespace OsEngine.Market.Servers.Quik
         }
 
         /// <summary>
+        /// cancel all orders from trading system
+        /// отозвать все ордера из торговой системы
+        /// </summary>
+        public void CancelAllOrders()
+        {
+
+        }
+
+        /// <summary>
         /// take order status
         /// взять статус ордеров
         /// </summary>

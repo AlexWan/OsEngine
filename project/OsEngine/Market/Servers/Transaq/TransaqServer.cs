@@ -519,6 +519,15 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         /// <summary>
+        /// cancel all orders from trading system
+        /// отозвать все ордера из торговой системы
+        /// </summary>
+        public void CancelAllOrders()
+        {
+
+        }
+
+        /// <summary>
         /// subscribe to get ticks and depth by instrument
         /// подписаться на получение тиков и стаканов по инструменту
         /// </summary>

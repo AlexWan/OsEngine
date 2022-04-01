@@ -169,6 +169,15 @@ namespace OsEngine.Market.Servers.Oanda
             _client.CancelOrder(order);
         }
 
+        /// <summary>
+        /// cancel all orders from trading system
+        /// отозвать все ордера из торговой системы
+        /// </summary>
+        public void CancelAllOrders()
+        {
+
+        }
+
         public void Subscrible(Security security)
         {
             _client.StartStreamThreads(security);

@@ -165,6 +165,15 @@ namespace OsEngine.Market.Servers.Livecoin
             _client.CancelLimitOrder(order);
         }
 
+        /// <summary>
+        /// cancel all orders from trading system
+        /// отозвать все ордера из торговой системы
+        /// </summary>
+        public void CancelAllOrders()
+        {
+
+        }
+
         public void Subscrible(Security security)
         {
             _client.Subscribe(security.Name.Replace('_','/'));

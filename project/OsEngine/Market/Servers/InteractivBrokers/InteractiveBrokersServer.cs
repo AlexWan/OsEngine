@@ -889,6 +889,15 @@ namespace OsEngine.Market.Servers.InteractivBrokers
             _client.CancelOrder(order);
         }
 
+        /// <summary>
+        /// cancel all orders from trading system
+        /// отозвать все ордера из торговой системы
+        /// </summary>
+        public void CancelAllOrders()
+        {
+
+        }
+
         void _ibClient_NewOrderEvent(Order order)
         {
             if (MyOrderEvent != null)

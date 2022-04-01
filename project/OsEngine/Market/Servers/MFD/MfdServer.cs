@@ -86,6 +86,15 @@ namespace OsEngine.Market.Servers.MFD
 
         }
 
+        /// <summary>
+        /// cancel all orders from trading system
+        /// отозвать все ордера из торговой системы
+        /// </summary>
+        public void CancelAllOrders()
+        {
+
+        }
+
         public void Subscrible(Security security)
         {
 

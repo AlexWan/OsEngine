@@ -2064,6 +2064,15 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// cancel all orders from trading system
+        /// отозвать все ордера из торговой системы
+        /// </summary>
+        public void CancelAllOrders()
+        {
+            ServerRealization.CancelAllOrders();
+        }
+
+        /// <summary>
         /// order changed
         /// изменился ордер
         /// </summary>

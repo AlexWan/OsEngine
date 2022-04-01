@@ -331,6 +331,15 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         /// <summary>
+        /// cancel all orders from trading system
+        /// отозвать все ордера из торговой системы
+        /// </summary>
+        public void CancelAllOrders()
+        {
+
+        }
+
+        /// <summary>
         /// subscribe
         /// подписаться 
         /// </summary>

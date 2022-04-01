@@ -1442,6 +1442,15 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         /// <summary>
+        /// cancel all orders from trading system
+        /// отозвать все ордера из торговой системы
+        /// </summary>
+        public void CancelAllOrders()
+        {
+
+        }
+
+        /// <summary>
         /// called when new order appear in the system
         /// вызывается когда в системе появляется новый ордер
         /// </summary>

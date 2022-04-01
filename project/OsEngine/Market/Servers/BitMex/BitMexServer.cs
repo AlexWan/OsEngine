@@ -2020,6 +2020,15 @@ namespace OsEngine.Market.Servers.BitMex
             _ordersCanseled.Add(order);
         }
 
+        /// <summary>
+        /// cancel all orders from trading system
+        /// отозвать все ордера из торговой системы
+        /// </summary>
+        public void CancelAllOrders()
+        {
+
+        }
+
         // outgoing events
         // исходящие события
 

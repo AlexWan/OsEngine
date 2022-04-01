@@ -161,6 +161,15 @@ namespace OsEngine.Market.Servers.Binance.Spot
         }
 
         /// <summary>
+        /// cancel all orders from trading system
+        /// отозвать все ордера из торговой системы
+        /// </summary>
+        public void CancelAllOrders()
+        {
+            _client.CancelAllOrders();
+        }
+
+        /// <summary>
         /// subscribe
         /// подписаться 
         /// </summary>

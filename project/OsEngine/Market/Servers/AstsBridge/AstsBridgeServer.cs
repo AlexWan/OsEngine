@@ -1491,6 +1491,15 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         /// <summary>
+        /// cancel all orders from trading system
+        /// отозвать все ордера из торговой системы
+        /// </summary>
+        public void CancelAllOrders()
+        {
+            
+        }
+
+        /// <summary>
         /// incoming from system order
         /// входящий из системы ордер
         /// </summary>
