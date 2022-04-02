@@ -888,6 +888,11 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     IsConnected = false;
                     Disconnected?.Invoke();
                 }
+                if (ex.ToString().Contains("Unknown order sent"))
+                {
+                    SendLogMessage(ex.ToString(), LogMessageType.System);
+                    return null;
+                }
 
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
                 return null;
@@ -1499,7 +1504,19 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 return;
             }
 
-            SendLogMessage("Ошибка из ws4net :" + e, LogMessageType.Error);
+            SendLogMessage("Binance Socket error :" + e, LogMessageType.Error);
+
+            if (IsConnected)
+            {
+                IsConnected = false;
+
+                _wsStreams.Clear();
+
+                if (Disconnected != null)
+                {
+                    Disconnected();
+                }
+            }
         }
 
         /// <summary>

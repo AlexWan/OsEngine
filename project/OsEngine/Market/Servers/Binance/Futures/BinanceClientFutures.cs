@@ -900,6 +900,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     IsConnected = false;
                     Disconnected?.Invoke();
                 }
+                if (ex.ToString().Contains("Unknown order sent"))
+                {
+                    SendLogMessage(ex.ToString(), LogMessageType.System);
+                    return null;
+                }
 
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
                 return null;
