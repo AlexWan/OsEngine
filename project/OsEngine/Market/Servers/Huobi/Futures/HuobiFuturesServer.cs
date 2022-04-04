@@ -518,15 +518,17 @@ namespace OsEngine.Market.Servers.Huobi.Futures
 
         #region Запросы
 
+        List<Security> _securities = new List<Security>();
+
         public override void GetSecurities()
         {
             string url = _urlBuilder.Build("/api/v1/contract_contract_info");
-
             var httpClient = new HttpClient();
-
             string response = httpClient.GetStringAsync(url).Result;
 
-            OnSecurityEvent(CreateSecurities(response));
+            _securities = CreateSecurities(response);
+
+            OnSecurityEvent(_securities);
         }
 
         private List<Security> CreateSecurities(string data)
@@ -541,10 +543,10 @@ namespace OsEngine.Market.Servers.Huobi.Futures
                 {
                     var security = new Security();
 
-                    security.Name = JoinSecurityName(symbol.Symbol, symbol.ContractType);
+                    security.Name = symbol.ContractCode;
                     security.NameFull = symbol.Symbol;
                     security.NameClass = symbol.ContractType;
-                    security.NameId = symbol.ContractCode;
+                    security.NameId = JoinSecurityName(symbol.Symbol, symbol.ContractType);
                     security.SecurityType = SecurityType.Futures;
                     security.Decimals = symbol.PriceTick.ToString(CultureInfo.CurrentCulture).DecimalsCount();
                     security.PriceStep = symbol.PriceTick;
@@ -674,7 +676,18 @@ namespace OsEngine.Market.Servers.Huobi.Futures
 
             JsonObject jsonContent = new JsonObject();
 
-            var contractData = order.SecurityNameCode.Split('_');
+            Security mySec = null;
+
+            for(int i = 0;i < _securities.Count;i++)
+            {
+                if (_securities[i].Name == order.SecurityNameCode)
+                {
+                    mySec = _securities[i];
+                    break;
+                }
+            }
+
+            string[] contractData = mySec.NameId.Split('_');
 
             var contractType = "quarter";
 
@@ -773,13 +786,13 @@ namespace OsEngine.Market.Servers.Huobi.Futures
 
         public override void Subscrible(Security security)
         {
-            string topic = $"market.{security.Name}.trade.detail";
+            string topic = $"market.{security.NameId}.trade.detail";
 
             string clientId = "";
 
             _marketDataSource.SendMessage($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
 
-            topic = $"market.{security.Name}.depth.step0";
+            topic = $"market.{security.NameId}.depth.step0";
 
             _marketDataSource.SendMessage($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
 
@@ -824,7 +837,17 @@ namespace OsEngine.Market.Servers.Huobi.Futures
                     break;
                 }
 
-                List<Candle> newCandles = GetCandles(oldInterval, security.Name, actualTime, midTime);
+                string name = security.NameId;
+
+                if(security.NameId.Contains("CW") ||
+                        security.NameId.Contains("NW") ||
+                        security.NameId.Contains("CQ") ||
+                        security.NameId.Contains("NQ"))
+                {
+                    name =  security.Name;
+                }
+
+                List<Candle> newCandles = GetCandlesByRest(oldInterval, name, actualTime, midTime);
 
                 if (candles.Count != 0 && newCandles != null && newCandles.Count != 0)
                 {
@@ -838,21 +861,18 @@ namespace OsEngine.Market.Servers.Huobi.Futures
                     }
                 }
 
-                if (newCandles == null)
+                if (newCandles == null ||
+                    newCandles.Count == 0)
                 {
+                    actualTime = actualTime.AddDays(5);
+                    midTime = actualTime + step;
                     continue;
-                }
-
-                if (newCandles.Count == 0)
-                {
-                    return candles;
                 }
 
                 candles.AddRange(newCandles);
 
                 actualTime = candles[candles.Count - 1].TimeStart;
                 midTime = actualTime + step;
-                Thread.Sleep(1000);
             }
 
             if (candles.Count == 0)
@@ -875,6 +895,43 @@ namespace OsEngine.Market.Servers.Huobi.Futures
         }
 
         private object _locker = new object();
+
+        //
+
+        private List<Candle> GetCandlesByRest(int oldInterval, string security, DateTime startTime, DateTime endTime)
+        {
+            //https://api.hbdm.com/market/history/kline?period=1min&size=200&symbol=BTC_CQ
+
+            string url = "https://api.hbdm.com/market/history/kline?";
+
+            string needIntervalForQuery =
+            CandlesCreator.DetermineAppropriateIntervalForRequest(oldInterval, _supportedIntervals, out var needInterval);
+
+            url += "period=" + needIntervalForQuery + "&";
+            url += "size=1000&";
+
+            var from = TimeManager.GetTimeStampSecondsToDateTime(startTime);
+            var to = TimeManager.GetTimeStampSecondsToDateTime(endTime);
+
+            url += "from=" + from + "&";
+            //url += "to=" + to + "&";
+            url += "symbol=" + security;
+
+            var httpClient = new HttpClient();
+
+            string resp = httpClient.GetStringAsync(url).Result;
+
+            var response = JsonConvert.DeserializeObject<GetCandlestickResponse>(resp);
+
+            if(response.status == "error")
+            {
+                return null;
+            }
+
+            var candles = CreateCandlesFromJson(response);
+
+            return candles;
+        }
 
         private List<Candle> GetCandles(int oldInterval, string security, DateTime startTime, DateTime endTime)
         {

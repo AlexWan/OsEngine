@@ -351,11 +351,16 @@ namespace OsEngine.Entity
         /// </summary>
         public StringBuilder GetStringForSave()
         {
+            if (_saveString != null)
+            {
+                return _saveString;
+            }
+
             StringBuilder result = new StringBuilder();
 
             result.Append(NumberUser + "@");
 
-            result.Append( ServerType + "@");
+            result.Append(ServerType + "@");
 
             result.Append(NumberMarket.ToString(new CultureInfo("ru-RU")) + "@");
             result.Append(Side + "@");
@@ -368,12 +373,12 @@ namespace OsEngine.Entity
             result.Append(TimeCallBack.ToString(new CultureInfo("ru-RU")) + "@");
 
             result.Append(SecurityNameCode + "@");
-            result.Append(PortfolioNumber.Replace('@', '%') +"@");
+            result.Append(PortfolioNumber.Replace('@', '%') + "@");
 
             result.Append(TimeCreate.ToString(new CultureInfo("ru-RU")) + "@");
             result.Append(TimeCancel.ToString(new CultureInfo("ru-RU")) + "@");
             result.Append(TimeCallBack.ToString(new CultureInfo("ru-RU")) + "@");
-            
+
             result.Append(LifeTime + "@");
             // deals with which the order was opened and the order execution price was calculated
             // сделки, которыми открывался ордер и рассчёт цены исполнения ордера
@@ -395,8 +400,16 @@ namespace OsEngine.Entity
 
             result.Append(TimeDone.ToString(new CultureInfo("ru-RU")) + "@");
 
+            if (State == OrderStateType.Done && Volume == VolumeExecute &&
+                _trades != null && _trades.Count > 0)
+            {
+                _saveString = result;
+            }
+
             return result;
         }
+
+        private StringBuilder _saveString;
 
         /// <summary>
         /// load order from incoming line
