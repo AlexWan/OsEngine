@@ -57,6 +57,15 @@ namespace OsEngine.Market.Servers.FTX.FtxApi
             return ParseResponce(result);
         }
 
+        public async Task<JToken> GetExpiredFuturesAsync()
+        {
+            var resultString = $"api/expired_futures";
+
+            var result = await CallAsync(HttpMethod.Get, resultString);
+
+            return ParseResponce(result);
+        }
+
         public async Task<JToken> GetFutureAsync(string future)
         {
             var resultString = $"api/futures/{future}";

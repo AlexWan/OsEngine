@@ -26,7 +26,17 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
                     bool isFuture = jProperty.SelectToken(TypePath).ToString() == "future";
                     var name = jProperty.SelectToken(NamePath).ToString();
                     security.NameId = name;
-                    security.NameFull = name;
+
+                    if(jProperty.SelectToken("expiry") != null)
+                    {
+                        string expirity = jProperty.SelectToken("expiry").ToString().Split(' ')[0];
+                        security.NameFull = name + " " + expirity;
+                    }
+                    else
+                    {
+                        security.NameFull = name;
+                    }
+                    
                     security.Name = name;
                     security.NameClass = name.Split(isFuture ? '-' : '/')[0];
                     security.SecurityType = isFuture ? SecurityType.Futures : SecurityType.CurrencyPair;

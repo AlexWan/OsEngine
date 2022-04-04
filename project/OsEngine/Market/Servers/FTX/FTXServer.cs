@@ -246,7 +246,7 @@ namespace OsEngine.Market.Servers.FTX
                 }
                 else
                 {
-                    actualTime = actualTime.AddDays(2);
+                    actualTime = actualTime.AddDays(5);
                     midTime = actualTime + step;
                 }
                 Thread.Sleep(200);
@@ -693,6 +693,25 @@ namespace OsEngine.Market.Servers.FTX
         {
             var marketsResponse = await _ftxRestApi.GetMarketsAsync();
             OnSecurityEvent(_securitiesCreator.Create(marketsResponse.SelectToken("result")));
+
+
+            var marketsResponse2 = await _ftxRestApi.GetExpiredFuturesAsync();
+
+            List<Security> allFuts = _securitiesCreator.Create(marketsResponse2.SelectToken("result"));
+
+            for(int i = 0;i < allFuts.Count;i++)
+            {
+                if(allFuts[i].Name.Contains("PERP"))
+                {
+                    allFuts.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+                allFuts[i].NameClass = "HistoricalFutures";
+            }
+
+            OnSecurityEvent(allFuts);
+
         }
 
         public async override void SendOrder(Order order)
