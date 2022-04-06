@@ -720,6 +720,11 @@ namespace OsEngine.OsOptimizer
                     par = parametrs[i];
                 }
 
+                if(par == null)
+                {
+                    continue;
+                }
+
                 if (par.Type == StrategyParameterType.Bool)
                 {
                     ((StrategyParameterBool)bot.Parameters[i]).ValueBool = ((StrategyParameterBool)par).ValueBool;

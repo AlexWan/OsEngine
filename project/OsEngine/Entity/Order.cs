@@ -99,6 +99,10 @@ namespace OsEngine.Entity
                 }
                 else
                 {
+                    if (_volumeExecute == 0 && State == OrderStateType.Done)
+                    {
+                        return Volume;
+                    }
                     return _volumeExecute;
                 }
 

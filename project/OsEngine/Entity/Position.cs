@@ -405,7 +405,7 @@ namespace OsEngine.Entity
                 }
                 if (volume == 0)
                 {
-                    return 0;
+                    return _openOrders[0].Price;
                 }
 
                 return price/volume;
