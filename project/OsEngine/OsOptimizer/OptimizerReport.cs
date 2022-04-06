@@ -151,6 +151,11 @@ namespace OsEngine.OsOptimizer
                     param = new StrategyParameterButton(name);
                     param.LoadParamFromString(StrategyParameters[i].Split('$')[1].Split('#'));
                 }
+                else if (type == StrategyParameterType.Label)
+                {
+                    param = new StrategyParameterLabel(name,"","",0,0,System.Drawing.Color.White);
+                    param.LoadParamFromString(StrategyParameters[i].Split('$')[1].Split('#'));
+                }
 
                 par.Add(param);
             }
