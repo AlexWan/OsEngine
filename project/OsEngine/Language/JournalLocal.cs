@@ -183,5 +183,12 @@ namespace OsEngine.Language
             "Eng:You must select a file to load!_" +
             "Ru:Необходимо выбрать файл для загрузки!_");
 
+        public string Message3 => OsLocalization.ConvertToLocString(
+             "Eng:Are you sure you want to delete the position?_" +
+             "Ru:Вы уверены что хотите удалить позицию?_");
+
+        public string Message4 => OsLocalization.ConvertToLocString(
+             "Eng:Are you sure you want to delete positions?_" +
+             "Ru:Вы уверены что хотите очистить журнал? Данные будет не восстановить!_");
     }
 }

@@ -1699,6 +1699,14 @@ namespace OsEngine.Journal
                 return;
             }
 
+            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Journal.Message3);
+            ui.ShowDialog();
+
+            if (ui.UserAcceptActioin == false)
+            {
+                return;
+            }
+
             DeletePosition(number);
 
             RePaint();
@@ -1720,6 +1728,14 @@ namespace OsEngine.Journal
                 
             }
             catch (Exception)
+            {
+                return;
+            }
+
+            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Journal.Message4);
+            ui.ShowDialog();
+
+            if (ui.UserAcceptActioin == false)
             {
                 return;
             }
@@ -1930,6 +1946,14 @@ namespace OsEngine.Journal
                 return;
             }
 
+            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Journal.Message3);
+            ui.ShowDialog();
+
+            if (ui.UserAcceptActioin == false)
+            {
+                return;
+            }
+
             DeletePosition(number);
 
             RePaint();
@@ -1965,6 +1989,14 @@ namespace OsEngine.Journal
 
             }
             catch (Exception)
+            {
+                return;
+            }
+
+            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Journal.Message4);
+            ui.ShowDialog();
+
+            if (ui.UserAcceptActioin == false)
             {
                 return;
             }
