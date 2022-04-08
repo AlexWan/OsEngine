@@ -55,6 +55,10 @@ namespace OsEngine.Language
             "Eng:Find on chart_" +
             "Ru:Найти на графике_");
 
+        public string PositionMenuItem13 => OsLocalization.ConvertToLocString(
+            "Eng:Create position_" +
+            "Ru:Создать позицию_");
+
         public string TitleJournalUi => OsLocalization.ConvertToLocString(
             "Eng:Journal_" +
             "Ru:Журнал_");

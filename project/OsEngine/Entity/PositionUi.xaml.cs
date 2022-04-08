@@ -6,6 +6,11 @@
 using System.Drawing;
 using System.Windows.Forms;
 using OsEngine.Language;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Text;
+
 
 namespace OsEngine.Entity
 {
@@ -35,11 +40,11 @@ namespace OsEngine.Entity
             PaintOrderTable();
             PaintTradeTable();
 
-            Title = OsLocalization.Entity.TitlePositionUi;
+            Title = OsLocalization.Entity.TitlePositionUi + "  " + _position.Number;
             PositionLabel1.Content = OsLocalization.Entity.PositionLabel1;
             PositionLabel2.Content = OsLocalization.Entity.PositionLabel2;
             PositionLabel3.Content = OsLocalization.Entity.PositionLabel3;
-
+            SaveChangesButton.Content = OsLocalization.Entity.PositionLabel4;
         }
         // main table
         // главная таблица
@@ -51,12 +56,18 @@ namespace OsEngine.Entity
         /// <returns>table for drawing positions on it/таблица для прорисовки на ней позиций</returns>
         private void CreateMainTable()
         {
-            DataGridView newGrid = DataGridFactory.GetDataGridPosition();
+            DataGridView newGrid = DataGridFactory.GetDataGridPosition(false);
+
+            newGrid.ScrollBars = ScrollBars.Vertical;
 
             newGrid.Rows.Add(GetRow(_position));
 
             FormsHostMainGrid.Child = newGrid;
+
+            _mainPosGrid = newGrid;
         }
+
+        DataGridView _mainPosGrid;
 
         /// <summary>
         /// take a row for the table representing the position
@@ -70,20 +81,6 @@ namespace OsEngine.Entity
             if (position == null)
             {
                 return null;
-            }
-
-
-            DataGridViewCellStyle styleSide = new DataGridViewCellStyle();
-
-            if (position.Direction == Side.Buy)
-            {
-                styleSide.BackColor = Color.DodgerBlue;
-                styleSide.SelectionBackColor = Color.DodgerBlue;
-            }
-            else
-            {
-                styleSide.BackColor = Color.DarkOrange;
-                styleSide.SelectionBackColor = Color.DarkOrange;
             }
 
             DataGridViewRow nRow = new DataGridViewRow();
@@ -103,12 +100,29 @@ namespace OsEngine.Entity
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[4].Value = position.SecurityName;
 
-            nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[5].Value = position.Direction;
-            nRow.Cells[5].Style = styleSide;
+            DataGridViewComboBoxCell dirCell = new DataGridViewComboBoxCell();
 
-            nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[6].Value = position.State;
+            dirCell.Items.Add(Side.Buy.ToString());
+            dirCell.Items.Add(Side.Sell.ToString());
+            dirCell.Items.Add(Side.None.ToString());
+
+            nRow.Cells.Add(dirCell);
+            nRow.Cells[5].Value = position.Direction.ToString();
+
+            DataGridViewComboBoxCell stateCell = new DataGridViewComboBoxCell();
+
+            stateCell.Items.Add(PositionStateType.None.ToString());
+            stateCell.Items.Add(PositionStateType.Open.ToString());
+            stateCell.Items.Add(PositionStateType.Done.ToString());
+            stateCell.Items.Add(PositionStateType.Closing.ToString());
+            stateCell.Items.Add(PositionStateType.ClosingFail.ToString());
+            stateCell.Items.Add(PositionStateType.ClosingSurplus.ToString());
+            stateCell.Items.Add(PositionStateType.Opening.ToString());
+            stateCell.Items.Add(PositionStateType.OpeningFail.ToString());
+            stateCell.Items.Add(PositionStateType.Deleted.ToString());
+
+            nRow.Cells.Add(stateCell);
+            nRow.Cells[6].Value = position.State.ToString();
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[7].Value = position.MaxVolume;
@@ -318,5 +332,51 @@ namespace OsEngine.Entity
             return nRow;
         }
 
-    }
+        // сохранение результатов изменений
+
+        private void SaveChangesButton_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            SavePositionTab();
+
+
+            Close();
+        }
+
+        public bool PositionChanged;
+
+        private void SavePositionTab()
+        {
+            Position position = _position;
+
+            DataGridViewRow nRow = _mainPosGrid.Rows[0];
+
+            position.SecurityName = nRow.Cells[4].Value.ToString();
+
+            Enum.TryParse(nRow.Cells[5].Value.ToString(), out position.Direction);
+
+            PositionStateType newState;
+
+            if(Enum.TryParse(nRow.Cells[6].Value.ToString(), out newState))
+            {
+                position.State = newState;
+            }
+
+            try
+            {
+                position.StopOrderRedLine = nRow.Cells[13].Value.ToString().ToDecimal();
+                position.StopOrderPrice = nRow.Cells[14].Value.ToString().ToDecimal();
+                position.ProfitOrderRedLine = nRow.Cells[15].Value.ToString().ToDecimal();
+                position.ProfitOrderPrice = nRow.Cells[16].Value.ToString().ToDecimal();
+            }
+            catch
+            {
+                // ignore
+            }
+
+            position.SignalTypeOpen = nRow.Cells[17].Value.ToString().RemoveExcessFromSecurityName();
+            position.SignalTypeClose = nRow.Cells[18].Value.ToString().RemoveExcessFromSecurityName();
+
+            PositionChanged = true;
+        }
+}
 }

@@ -1,7 +1,7 @@
 ﻿<Window x:Class="OsEngine.Entity.PositionUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Position detail" Height="500" Width="1030" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
+        Title="Position detail" Height="538.11" Width="1400" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
     <Grid>
         <Rectangle Margin="0,104,5,5" HorizontalAlignment="Right" Width="362"/>
         <Label Name="PositionLabel3" Content="Trades" HorizontalAlignment="Right" Margin="0,104,314,0" VerticalAlignment="Top" FontWeight="Bold" />
@@ -11,9 +11,10 @@
         <Label Name="PositionLabel2" Content="Closing" HorizontalAlignment="Left" Margin="10,289,0,0" VerticalAlignment="Top" FontWeight="Bold" />
         <Rectangle Margin="5,5,5,0" Height="94" VerticalAlignment="Top"/>
         <WindowsFormsHost Name="FormsHostMainGrid" Height="89" Margin="10,10,9,0" VerticalAlignment="Top"/>
-        <WindowsFormsHost Name="FormsHostTreid" HorizontalAlignment="Right" Margin="0,127,10,4" Width="352"/>
+        <WindowsFormsHost Name="FormsHostTreid" HorizontalAlignment="Right" Margin="0,127,10,35" Width="352"/>
         <WindowsFormsHost Name="FormsHostOpenDealGrid" Height="157" Margin="10,127,377,0" VerticalAlignment="Top"/>
         <WindowsFormsHost Name="FormsHostCloseDealGrid" Margin="10,312,377,5"/>
+        <Button Name="SaveChangesButton" Content="Save changes" HorizontalAlignment="Right" Margin="0,0,10,5" VerticalAlignment="Bottom" Width="352" Click="SaveChangesButton_Click"/>
 
     </Grid>
 </Window>

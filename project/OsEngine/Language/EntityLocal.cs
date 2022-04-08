@@ -59,6 +59,10 @@ namespace OsEngine.Language
             "Eng:Trades_" +
             "Ru:Трейды_");
 
+        public string PositionLabel4 => OsLocalization.ConvertToLocString(
+            "Eng:Save changes_" +
+            "Ru:Сохранить изменения_");
+
         public string PositionColumn1 => OsLocalization.ConvertToLocString(
             "Eng:Number_" +
             "Ru:Номер_");

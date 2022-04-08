@@ -227,10 +227,6 @@ namespace OsEngine.Entity
             set
             {
                 _state = value;
-                if (value == PositionStateType.ClosingFail)
-                {
-                    
-                }
             }
         }
 
@@ -252,9 +248,18 @@ namespace OsEngine.Entity
                 {
                     return _openOrders[0].SecurityNameCode;
                 }
-                return "";
+                return _securityName;
+            }
+            set 
+            {
+                if (_openOrders != null && _openOrders.Count != 0)
+                {
+                    return;
+                }
+                _securityName = value; 
             }
         }
+        private string _securityName;
 
         /// <summary>
         /// name of the bot who owns the deal
@@ -763,6 +768,8 @@ namespace OsEngine.Entity
                 }
             }
 
+            result.Append("#" + SecurityName);
+            
             return result;
         }
 
@@ -823,11 +830,20 @@ namespace OsEngine.Entity
             {
                 if (arraySave.Length > 22 + i)
                 {
+                    string saveOrd = arraySave[22 + i];
+
+                    if(saveOrd.Split('@').Length < 3)
+                    {
+                        continue;
+                    }
+
                     Order newOrder = new Order();
-                    newOrder.SetOrderFromString(arraySave[22 + i]);
+                    newOrder.SetOrderFromString(saveOrd);
                     AddNewCloseOrder(newOrder);
                 }
             }
+
+            SecurityName = arraySave[arraySave.Length - 1];
 
             PositionStateType state;
             Enum.TryParse(arraySave[1], true, out state);
@@ -949,7 +965,7 @@ namespace OsEngine.Entity
             {
                 decimal volume = 0;
 
-                for (int i = 0; i < _openOrders.Count; i++)
+                for (int i = 0; _openOrders != null && i < _openOrders.Count; i++)
                 {
                     volume += _openOrders[i].VolumeExecute;
                 }

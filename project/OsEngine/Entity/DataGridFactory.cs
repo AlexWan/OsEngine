@@ -169,7 +169,7 @@ namespace OsEngine.Entity
             return grid;
         }
 
-        public static DataGridView GetDataGridPosition()
+        public static DataGridView GetDataGridPosition(bool readOnly = true)
         {
             DataGridView newGrid = GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
                 DataGridViewAutoSizeRowsMode.AllCells);
@@ -203,7 +203,7 @@ namespace OsEngine.Entity
             DataGridViewColumn colu = new DataGridViewColumn();
             colu.CellTemplate = cell0;
             colu.HeaderText = OsLocalization.Entity.PositionColumn4;
-            colu.ReadOnly = true;
+            colu.ReadOnly = readOnly;
             colu.Width = 70;
 
             newGrid.Columns.Add(colu);
@@ -211,26 +211,49 @@ namespace OsEngine.Entity
             DataGridViewColumn colum1 = new DataGridViewColumn();
             colum1.CellTemplate = cell0;
             colum1.HeaderText = OsLocalization.Entity.PositionColumn5;
-            colum1.ReadOnly = true;
+            colum1.ReadOnly = readOnly;
             colum1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
             newGrid.Columns.Add(colum1);
 
-            DataGridViewColumn colum2 = new DataGridViewColumn();
-            colum2.CellTemplate = cell0;
-            colum2.HeaderText = OsLocalization.Entity.PositionColumn6;
-            colum2.ReadOnly = true;
-            colum2.Width = 40;
+            // position SIDE
+            if(readOnly == true)
+            {
+                
+                DataGridViewColumn colum2 = new DataGridViewColumn();
+                colum2.CellTemplate = cell0;
+                colum2.HeaderText = OsLocalization.Entity.PositionColumn6;
+                colum2.ReadOnly = readOnly;
+                colum2.Width = 60;
+                newGrid.Columns.Add(colum2);
+            }
+            else
+            {
+                DataGridViewComboBoxColumn dirColumn = new DataGridViewComboBoxColumn();
+                dirColumn.HeaderText = OsLocalization.Entity.PositionColumn6;
+                dirColumn.ReadOnly = readOnly;
+                dirColumn.Width = 60;
+                newGrid.Columns.Add(dirColumn);
+            }
 
-            newGrid.Columns.Add(colum2);
-
-            DataGridViewColumn colum3 = new DataGridViewColumn();
-            colum3.CellTemplate = cell0;
-            colum3.HeaderText = OsLocalization.Entity.PositionColumn7;
-            colum3.ReadOnly = true;
-            colum3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-            newGrid.Columns.Add(colum3);
+            // position STATE
+            if (readOnly == true)
+            {
+                DataGridViewColumn colum3 = new DataGridViewColumn();
+                colum3.CellTemplate = cell0;
+                colum3.HeaderText = OsLocalization.Entity.PositionColumn7;
+                colum3.ReadOnly = readOnly;
+                colum3.Width = 100;
+                newGrid.Columns.Add(colum3);
+            }
+            else
+            {
+                DataGridViewComboBoxColumn stateColumn = new DataGridViewComboBoxColumn();
+                stateColumn.HeaderText = OsLocalization.Entity.PositionColumn7;
+                stateColumn.ReadOnly = readOnly;
+                stateColumn.Width = 100;
+                newGrid.Columns.Add(stateColumn);
+            }
 
             DataGridViewColumn colum4 = new DataGridViewColumn();
             colum4.CellTemplate = cell0;
@@ -283,7 +306,7 @@ namespace OsEngine.Entity
             DataGridViewColumn colum9 = new DataGridViewColumn();
             colum9.CellTemplate = cell0;
             colum9.HeaderText = OsLocalization.Entity.PositionColumn14;
-            colum9.ReadOnly = true;
+            colum9.ReadOnly = readOnly;
             colum9.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
             newGrid.Columns.Add(colum9);
@@ -291,7 +314,7 @@ namespace OsEngine.Entity
             DataGridViewColumn colum10 = new DataGridViewColumn();
             colum10.CellTemplate = cell0;
             colum10.HeaderText = OsLocalization.Entity.PositionColumn15;
-            colum10.ReadOnly = true;
+            colum10.ReadOnly = readOnly;
             colum10.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
             newGrid.Columns.Add(colum10);
@@ -299,7 +322,7 @@ namespace OsEngine.Entity
             DataGridViewColumn colum11 = new DataGridViewColumn();
             colum11.CellTemplate = cell0;
             colum11.HeaderText = OsLocalization.Entity.PositionColumn16;
-            colum11.ReadOnly = true;
+            colum11.ReadOnly = readOnly;
             colum11.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
             newGrid.Columns.Add(colum11);
@@ -307,7 +330,7 @@ namespace OsEngine.Entity
             DataGridViewColumn colum12 = new DataGridViewColumn();
             colum12.CellTemplate = cell0;
             colum12.HeaderText = OsLocalization.Entity.PositionColumn17;
-            colum12.ReadOnly = true;
+            colum12.ReadOnly = readOnly;
             colum12.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
             newGrid.Columns.Add(colum12);
@@ -315,7 +338,7 @@ namespace OsEngine.Entity
             DataGridViewColumn colum13 = new DataGridViewColumn();
             colum13.CellTemplate = cell0;
             colum13.HeaderText = OsLocalization.Entity.PositionColumn18;
-            colum13.ReadOnly = true;
+            colum13.ReadOnly = readOnly;
             colum13.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
             newGrid.Columns.Add(colum13);
@@ -323,7 +346,7 @@ namespace OsEngine.Entity
             DataGridViewColumn colum14 = new DataGridViewColumn();
             colum14.CellTemplate = cell0;
             colum14.HeaderText = OsLocalization.Entity.PositionColumn19;
-            colum14.ReadOnly = true;
+            colum14.ReadOnly = readOnly;
             colum14.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
             newGrid.Columns.Add(colum14);

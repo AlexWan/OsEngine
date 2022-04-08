@@ -355,6 +355,12 @@ namespace OsEngine.Journal
                     {
                         PositionUi ui = new PositionUi(pos);
                         ui.ShowDialog();
+
+                        if(ui.PositionChanged)
+                        {
+                            _botsJournals[i]._Tabs[i2].Journal.Save();
+                            RePaint();
+                        }
                         return;
                     }
                 }
@@ -1637,18 +1643,31 @@ namespace OsEngine.Journal
 
             try
             {
-                MenuItem[] items = new MenuItem[3];
+                List<MenuItem> items = new List<MenuItem>();
 
-                items[0] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem8 };
+                items.Add(new MenuItem { Text = OsLocalization.Journal.PositionMenuItem8 });
                 items[0].Click += OpenDealMoreInfo_Click;
 
-                items[1] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem9 };
+                items.Add(new MenuItem { Text = OsLocalization.Journal.PositionMenuItem9 });
                 items[1].Click += OpenDealDelete_Click;
 
-                items[2] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem10 };
+                items.Add(new MenuItem { Text = OsLocalization.Journal.PositionMenuItem10 });
                 items[2].Click += OpenDealClearAll_Click;
 
-                ContextMenu menu = new ContextMenu(items);
+                if(_botsJournals.Count != 0)
+                {
+                    List<MenuItem> itemsBots = new List<MenuItem>();
+
+                    for(int i = 0;i < _botsJournals.Count;i++)
+                    {
+                        itemsBots.Add(new MenuItem { Text = _botsJournals[i].BotName });
+                        itemsBots[i].Click += OpenDealCreatePosition_Click;
+                    }
+
+                    items.Add(new MenuItem(OsLocalization.Journal.PositionMenuItem13, itemsBots.ToArray()));
+                }
+
+                ContextMenu menu = new ContextMenu(items.ToArray());
 
                 _openPositionGrid.ContextMenu = menu;
                 _openPositionGrid.ContextMenu.Show(_openPositionGrid, new System.Drawing.Point(mouse.X, mouse.Y));
@@ -1744,6 +1763,30 @@ namespace OsEngine.Journal
             {
                 DeletePosition(numbers[i]);
             }
+            RePaint();
+        }
+
+        /// <summary>
+        /// создать новую позицию
+        /// </summary>
+        void OpenDealCreatePosition_Click(object sender, EventArgs e)
+        {
+            if(_botsJournals == null ||
+                _botsJournals.Count == 0)
+            {
+                return;
+            }
+
+            int number = ((MenuItem)sender).Index;
+
+            string botName = _botsJournals[number].BotName;
+
+            Position newPos = new Position();
+
+            newPos.Number = NumberGen.GetNumberDeal(_startProgram);
+            newPos.NameBot = botName;
+            _botsJournals[number]._Tabs[0].Journal.SetNewDeal(newPos);
+
             RePaint();
         }
 
