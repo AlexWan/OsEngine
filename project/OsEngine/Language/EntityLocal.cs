@@ -7,6 +7,14 @@ namespace OsEngine.Language
 {
     public class EntityLocal
     {
+        public string MessageAcceptDeleteAction => OsLocalization.ConvertToLocString(
+           "Eng:Are you sure you want to delete part your position?_" +
+           "Ru:Вы уверены что хотите удалить данные?_");
+
+        public string MessageAcceptSaveAction => OsLocalization.ConvertToLocString(
+           "Eng:Are you sure you want to update the position information?_" +
+           "Ru:Вы уверены что хотите обновить информацию по позиции?_");
+
         public string TitlePositionUi => OsLocalization.ConvertToLocString(
             "Eng:Position detail_" +
             "Ru:Данные по позиции_");
@@ -186,6 +194,26 @@ namespace OsEngine.Language
         public string OrderColumn12 => OsLocalization.ConvertToLocString(
             "Eng:RoundTrip_" +
             "Ru:RoundTrip_");
+
+        public string OrderContextMenuItem1 => OsLocalization.ConvertToLocString(
+            "Eng:Add new Order_" +
+            "Ru:Добавить ордер_");
+
+        public string OrderContextMenuItem2 => OsLocalization.ConvertToLocString(
+            "Eng:Delete Order_" +
+            "Ru:Удалить ордер_");
+
+        public string OrderContextMenuItem3 => OsLocalization.ConvertToLocString(
+            "Eng:Add open trade_" +
+            "Ru:Добавить сделку на открытие_");
+
+        public string OrderContextMenuItem4 => OsLocalization.ConvertToLocString(
+             "Eng:Add close trade_" +
+             "Ru:Добавить сделку на закрытие_");
+
+        public string OrderContextMenuItem5 => OsLocalization.ConvertToLocString(
+             "Eng:Delete trade_" +
+             "Ru:Удалить сделку_");
 
         public string TradeColumn1 => OsLocalization.ConvertToLocString(
             "Eng:ID_" +

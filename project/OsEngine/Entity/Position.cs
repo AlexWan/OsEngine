@@ -579,22 +579,27 @@ namespace OsEngine.Entity
 
                 if (State == PositionStateType.Done && CloseOrders != null)
                 {
-                    decimal entryPrice = EntryPrice;
-                    decimal closePrice = ClosePrice;
+                    CalculateProfitToPosition();
+                }
+            }
+        }
 
-                    if (entryPrice != 0 && closePrice != 0)
-                    {
-                        if (Direction == Side.Buy)
-                        {
-                            ProfitOperationPersent = closePrice / entryPrice * 100 - 100;
-                            ProfitOperationPunkt = closePrice - entryPrice;
-                        }
-                        else
-                        {
-                            ProfitOperationPunkt = entryPrice - closePrice;
-                            ProfitOperationPersent = -(closePrice / entryPrice * 100 - 100);
-                        }
-                    }
+        private void CalculateProfitToPosition()
+        {
+            decimal entryPrice = EntryPrice;
+            decimal closePrice = ClosePrice;
+
+            if (entryPrice != 0 && closePrice != 0)
+            {
+                if (Direction == Side.Buy)
+                {
+                    ProfitOperationPersent = closePrice / entryPrice * 100 - 100;
+                    ProfitOperationPunkt = closePrice - entryPrice;
+                }
+                else
+                {
+                    ProfitOperationPunkt = entryPrice - closePrice;
+                    ProfitOperationPersent = -(closePrice / entryPrice * 100 - 100);
                 }
             }
         }
@@ -789,6 +794,11 @@ namespace OsEngine.Entity
 
             ProfitOperationPunkt = arraySave[4].ToDecimal();
 
+            if(arraySave[5] == null)
+            {
+                return;
+            }
+
             if (arraySave[5] != "null")
             {
                 string[] ordersOpen = arraySave[5].Split('^');
@@ -970,6 +980,11 @@ namespace OsEngine.Entity
                     volume += _openOrders[i].VolumeExecute;
                 }
 
+                if(PriceStepCost == 0)
+                {
+                    PriceStepCost = 1;
+                }
+
                 if (volume == 0 ||
                     PriceStepCost == 0 ||
                     MaxVolume == 0)
@@ -982,13 +997,22 @@ namespace OsEngine.Entity
                     Lots = 1;
                 }
 
+                if(ProfitOperationPunkt == 0)
+                {
+                    CalculateProfitToPosition();
+                }
+
                 if (IsLotServer())
                 {
                     return (ProfitOperationPunkt / PriceStep) * PriceStepCost * MaxVolume * Lots - CommissionTotal();
                 }
-                else
+                else if(PriceStep != 0)
                 {
                     return (ProfitOperationPunkt / PriceStep) * PriceStepCost * MaxVolume - CommissionTotal();
+                }
+                else
+                {
+                    return (ProfitOperationPunkt) * PriceStepCost * MaxVolume - CommissionTotal();
                 }
             }
         }

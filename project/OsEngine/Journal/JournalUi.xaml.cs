@@ -353,7 +353,7 @@ namespace OsEngine.Journal
 
                     if (pos != null)
                     {
-                        PositionUi ui = new PositionUi(pos);
+                        PositionUi ui = new PositionUi(pos,_startProgram);
                         ui.ShowDialog();
 
                         if(ui.PositionChanged)
@@ -1497,6 +1497,7 @@ namespace OsEngine.Journal
             try
             {
                 DataGridView newGrid = DataGridFactory.GetDataGridPosition();
+                newGrid.ScrollBars = ScrollBars.Vertical;
 
                 return newGrid;
             }

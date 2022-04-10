@@ -370,6 +370,9 @@
     </Compile>
     <Compile Include="Entity\CandleConverter.cs" />
     <Compile Include="Entity\DataGridFactory.cs" />
+    <Compile Include="Entity\DateTimeSelectionDialog.xaml.cs">
+      <DependentUpon>DateTimeSelectionDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Entity\Extensions.cs" />
     <Compile Include="Entity\HorizontalVolume.cs" />
     <Compile Include="Entity\MarketDepthPainter.cs" />
@@ -1206,6 +1209,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Entity\AcceptDialogUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Entity\DateTimeSelectionDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -348,13 +348,13 @@ namespace OsEngine.Entity
             colum14.HeaderText = OsLocalization.Entity.PositionColumn19;
             colum14.ReadOnly = readOnly;
             colum14.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
+            colum14.Width = 60;
             newGrid.Columns.Add(colum14);
 
             return newGrid;
         }
 
-        public static DataGridView GetDataGridOrder()
+        public static DataGridView GetDataGridOrder(bool readOnly = true)
         {
             DataGridView newGrid = GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
                 DataGridViewAutoSizeRowsMode.AllCells);
@@ -363,6 +363,7 @@ namespace OsEngine.Entity
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = newGrid.DefaultCellStyle;
 
+            // User ID
             DataGridViewColumn colum0 = new DataGridViewColumn();
             colum0.CellTemplate = cell0;
             colum0.HeaderText = OsLocalization.Entity.OrderColumn1;
@@ -370,20 +371,35 @@ namespace OsEngine.Entity
             colum0.Width = 50;
             newGrid.Columns.Add(colum0);
 
+            // Market ID
+
             DataGridViewColumn colum01 = new DataGridViewColumn();
             colum01.CellTemplate = cell0;
             colum01.HeaderText = OsLocalization.Entity.OrderColumn2;
-            colum01.ReadOnly = true;
+            colum01.ReadOnly = readOnly;
             colum01.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             newGrid.Columns.Add(colum01);
 
-            DataGridViewColumn colum02 = new DataGridViewColumn();
-            colum02.CellTemplate = cell0;
-            colum02.HeaderText = OsLocalization.Entity.OrderColumn3;
-            colum02.ReadOnly = true;
-            colum02.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            newGrid.Columns.Add(colum02);
+            // Time Create
+            if(readOnly)
+            {
+                DataGridViewColumn colum02 = new DataGridViewColumn();
+                colum02.CellTemplate = cell0;
+                colum02.HeaderText = OsLocalization.Entity.OrderColumn3;
+                colum02.ReadOnly = true;
+                colum02.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                newGrid.Columns.Add(colum02);
+            }
+            else
+            {
+                DataGridViewButtonColumn colum02 = new DataGridViewButtonColumn();
+                colum02.HeaderText = OsLocalization.Entity.OrderColumn3;
+                colum02.ReadOnly = true;
+                colum02.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                newGrid.Columns.Add(colum02);
+            }
 
+            // Security
             DataGridViewColumn colu = new DataGridViewColumn();
             colu.CellTemplate = cell0;
             colu.HeaderText = OsLocalization.Entity.OrderColumn4;
@@ -391,34 +407,61 @@ namespace OsEngine.Entity
             colu.Width = 60;
             newGrid.Columns.Add(colu);
 
+            // Portfolio
             DataGridViewColumn colum1 = new DataGridViewColumn();
             colum1.CellTemplate = cell0;
             colum1.HeaderText = OsLocalization.Entity.OrderColumn5;
-            colum1.ReadOnly = true;
+            colum1.ReadOnly = readOnly;
             colum1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             newGrid.Columns.Add(colum1);
 
-            DataGridViewColumn colum2 = new DataGridViewColumn();
-            colum2.CellTemplate = cell0;
-            colum2.HeaderText = OsLocalization.Entity.OrderColumn6;
-            colum2.ReadOnly = true;
-            colum2.Width = 40;
-            newGrid.Columns.Add(colum2);
+            // Direction
+            if(readOnly)
+            {
+                DataGridViewColumn colum2 = new DataGridViewColumn();
+                colum2.CellTemplate = cell0;
+                colum2.HeaderText = OsLocalization.Entity.OrderColumn6;
+                colum2.ReadOnly = true;
+                colum2.Width = 40;
+                newGrid.Columns.Add(colum2);
+            }
+            else
+            {
+                DataGridViewComboBoxColumn dirColumn = new DataGridViewComboBoxColumn();
+                dirColumn.HeaderText = OsLocalization.Entity.OrderColumn6;
+                dirColumn.ReadOnly = readOnly;
+                dirColumn.Width = 60;
+                newGrid.Columns.Add(dirColumn);
+            }
 
-            DataGridViewColumn colum3 = new DataGridViewColumn();
-            colum3.CellTemplate = cell0;
-            colum3.HeaderText = OsLocalization.Entity.OrderColumn7;
-            colum3.ReadOnly = true;
-            colum3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            newGrid.Columns.Add(colum3);
+            // State
+            if (readOnly)
+            {
+                DataGridViewColumn colum3 = new DataGridViewColumn();
+                colum3.CellTemplate = cell0;
+                colum3.HeaderText = OsLocalization.Entity.OrderColumn7;
+                colum3.ReadOnly = true;
+                colum3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                newGrid.Columns.Add(colum3);
+            }
+            else
+            {
+                DataGridViewComboBoxColumn stateColumn = new DataGridViewComboBoxColumn();
+                stateColumn.HeaderText = OsLocalization.Entity.OrderColumn7;
+                stateColumn.ReadOnly = readOnly;
+                stateColumn.Width = 100;
+                newGrid.Columns.Add(stateColumn);
+            }
 
+            // Price
             DataGridViewColumn colum4 = new DataGridViewColumn();
             colum4.CellTemplate = cell0;
             colum4.HeaderText = OsLocalization.Entity.OrderColumn8;
-            colum4.ReadOnly = true;
+            colum4.ReadOnly = readOnly;
             colum4.Width = 60;
             newGrid.Columns.Add(colum4);
 
+            // Execution price
             DataGridViewColumn colum45 = new DataGridViewColumn();
             colum45.CellTemplate = cell0;
             colum45.HeaderText = OsLocalization.Entity.OrderColumn9;
@@ -426,20 +469,34 @@ namespace OsEngine.Entity
             colum45.Width = 60;
             newGrid.Columns.Add(colum45);
 
+            // Volume
             DataGridViewColumn colum5 = new DataGridViewColumn();
             colum5.CellTemplate = cell0;
             colum5.HeaderText = OsLocalization.Entity.OrderColumn10;
-            colum5.ReadOnly = true;
+            colum5.ReadOnly = readOnly;
             colum5.Width = 60;
             newGrid.Columns.Add(colum5);
 
-            DataGridViewColumn colum6 = new DataGridViewColumn();
-            colum6.CellTemplate = cell0;
-            colum6.HeaderText = OsLocalization.Entity.OrderColumn11;
-            colum6.ReadOnly = true;
-            colum6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            newGrid.Columns.Add(colum6);
+            // Type
+            if(readOnly)
+            {
+                DataGridViewColumn colum6 = new DataGridViewColumn();
+                colum6.CellTemplate = cell0;
+                colum6.HeaderText = OsLocalization.Entity.OrderColumn11;
+                colum6.ReadOnly = true;
+                colum6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                newGrid.Columns.Add(colum6);
+            }
+            else
+            {
+                DataGridViewComboBoxColumn typeColumn = new DataGridViewComboBoxColumn();
+                typeColumn.HeaderText = OsLocalization.Entity.OrderColumn11;
+                typeColumn.ReadOnly = readOnly;
+                typeColumn.Width = 70;
+                newGrid.Columns.Add(typeColumn);
+            }
 
+            // RoundTrip
             DataGridViewColumn colum7 = new DataGridViewColumn();
             colum7.CellTemplate = cell0;
             colum7.HeaderText = OsLocalization.Entity.OrderColumn12;
@@ -450,13 +507,15 @@ namespace OsEngine.Entity
             return newGrid;
         }
 
-        public static DataGridView GetDataGridMyTrade()
+        public static DataGridView GetDataGridMyTrade(bool readOnly = true)
         {
             DataGridView newGrid = GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
                 DataGridViewAutoSizeRowsMode.AllCells);
             newGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = newGrid.DefaultCellStyle;
+
+            // 0 Id
 
             DataGridViewColumn colum0 = new DataGridViewColumn();
             colum0.CellTemplate = cell0;
@@ -465,12 +524,16 @@ namespace OsEngine.Entity
             colum0.Width = 50;
             newGrid.Columns.Add(colum0);
 
+            // 1 Order Id
+
             DataGridViewColumn colum03 = new DataGridViewColumn();
             colum03.CellTemplate = cell0;
             colum03.HeaderText = OsLocalization.Entity.TradeColumn2;
             colum03.ReadOnly = true;
             colum03.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             newGrid.Columns.Add(colum03);
+
+            // 2 Security
 
             DataGridViewColumn colum01 = new DataGridViewColumn();
             colum01.CellTemplate = cell0;
@@ -479,33 +542,62 @@ namespace OsEngine.Entity
             colum01.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             newGrid.Columns.Add(colum01);
 
-            DataGridViewColumn colum02 = new DataGridViewColumn();
-            colum02.CellTemplate = cell0;
-            colum02.HeaderText = OsLocalization.Entity.TradeColumn4;
-            colum02.ReadOnly = true;
-            colum02.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            newGrid.Columns.Add(colum02);
+            // 3 Time
+            if (readOnly)
+            {
+                DataGridViewColumn colum02 = new DataGridViewColumn();
+                colum02.CellTemplate = cell0;
+                colum02.HeaderText = OsLocalization.Entity.TradeColumn4;
+                colum02.ReadOnly = true;
+                colum02.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                newGrid.Columns.Add(colum02);
+            }
+            else
+            {
+                DataGridViewButtonColumn colum02 = new DataGridViewButtonColumn();
+                colum02.HeaderText = OsLocalization.Entity.TradeColumn4;
+                colum02.ReadOnly = true;
+                colum02.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                newGrid.Columns.Add(colum02);
+            }
+
+            // 4 Price
 
             DataGridViewColumn colu = new DataGridViewColumn();
             colu.CellTemplate = cell0;
             colu.HeaderText = OsLocalization.Entity.TradeColumn5;
-            colu.ReadOnly = true;
+            colu.ReadOnly = readOnly;
             colu.Width = 60;
             newGrid.Columns.Add(colu);
+
+            // 5 Volume
 
             DataGridViewColumn colum1 = new DataGridViewColumn();
             colum1.CellTemplate = cell0;
             colum1.HeaderText = OsLocalization.Entity.TradeColumn6;
-            colum1.ReadOnly = true;
+            colum1.ReadOnly = readOnly;
             colum1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             newGrid.Columns.Add(colum1);
 
-            DataGridViewColumn colum2 = new DataGridViewColumn();
-            colum2.CellTemplate = cell0;
-            colum2.HeaderText = OsLocalization.Entity.TradeColumn7;
-            colum2.ReadOnly = true;
-            colum2.Width = 40;
-            newGrid.Columns.Add(colum2);
+            // 6 Direction
+
+            if (readOnly)
+            {
+                DataGridViewColumn colum2 = new DataGridViewColumn();
+                colum2.CellTemplate = cell0;
+                colum2.HeaderText = OsLocalization.Entity.TradeColumn7;
+                colum2.ReadOnly = true;
+                colum2.Width = 40;
+                newGrid.Columns.Add(colum2);
+            }
+            else
+            {
+                DataGridViewComboBoxColumn dirColumn = new DataGridViewComboBoxColumn();
+                dirColumn.HeaderText = OsLocalization.Entity.TradeColumn7;
+                dirColumn.ReadOnly = readOnly;
+                dirColumn.Width = 60;
+                newGrid.Columns.Add(dirColumn);
+            }
 
             return newGrid;
         }

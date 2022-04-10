@@ -14,14 +14,12 @@ using System.Text;
 
 namespace OsEngine.Entity
 {
-
     /// <summary>
-    /// View additional information about the transaction in the window
-    /// Окно просмотра дополнительной информации по сделке
+    /// View additional information about the positiong in the window
+    /// Окно просмотра дополнительной информации по позиции
     /// </summary>
     public partial class PositionUi
     {
-
         /// <summary>
         /// position
         /// позиция
@@ -32,13 +30,16 @@ namespace OsEngine.Entity
         /// constructor
         /// конструктор
         /// </summary>
-        public PositionUi(Position position)
+        public PositionUi(Position position, StartProgram startProgram)
         {
+            _startProgramm = startProgram;
             _position = position;
             InitializeComponent();
             CreateMainTable();
-            PaintOrderTable();
-            PaintTradeTable();
+            CreateOrdersTable();
+            CreateTradeTable();
+
+            RePaint();
 
             Title = OsLocalization.Entity.TitlePositionUi + "  " + _position.Number;
             PositionLabel1.Content = OsLocalization.Entity.PositionLabel1;
@@ -46,37 +47,35 @@ namespace OsEngine.Entity
             PositionLabel3.Content = OsLocalization.Entity.PositionLabel3;
             SaveChangesButton.Content = OsLocalization.Entity.PositionLabel4;
         }
-        // main table
-        // главная таблица
 
-        /// <summary>
-        /// create a table
-        /// создать таблицу 
-        /// </summary>
-        /// <returns>table for drawing positions on it/таблица для прорисовки на ней позиций</returns>
-        private void CreateMainTable()
+        StartProgram _startProgramm;
+
+        private void RePaint()
         {
-            DataGridView newGrid = DataGridFactory.GetDataGridPosition(false);
-
-            newGrid.ScrollBars = ScrollBars.Vertical;
-
-            newGrid.Rows.Add(GetRow(_position));
-
-            FormsHostMainGrid.Child = newGrid;
-
-            _mainPosGrid = newGrid;
+            PaintPosTable();
+            PaintOrderTable();
+            PaintTradeTable();
         }
+
+        // main table
 
         DataGridView _mainPosGrid;
 
-        /// <summary>
-        /// take a row for the table representing the position
+        private void CreateMainTable()
+        {
+            DataGridView newGrid = DataGridFactory.GetDataGridPosition(false);
+            newGrid.ScrollBars = ScrollBars.Vertical;
+            FormsHostMainGrid.Child = newGrid;
+            _mainPosGrid = newGrid;
+        }
 
-        /// взять строку для таблицы представляющую позицию
-        /// </summary>
-        /// <param name="position">position/позиция</param>
-        /// <returns>table row/строка для таблицы</returns>
-        private DataGridViewRow GetRow(Position position)
+        private void PaintPosTable()
+        {
+            _mainPosGrid.Rows.Clear();
+            _mainPosGrid.Rows.Add(GetPositionRow(_position));
+        }
+
+        private DataGridViewRow GetPositionRow(Position position)
         {
             if (position == null)
             {
@@ -162,48 +161,35 @@ namespace OsEngine.Entity
 
             return nRow;
         }
-        // Orders
-        // ордера
 
-        /// <summary>
-        /// draw order tables
-        /// прорисовать таблицы ордеров
-        /// </summary>
-        private void PaintOrderTable()
+        // orders
+
+        DataGridView _openOrdersGrid;
+
+        DataGridView _closeOrdersGrid;
+
+        private void CreateOrdersTable()
         {
             DataGridView openOrdersGrid = CreateOrderTable();
-
-            for (int i = 0; _position.OpenOrders != null && i < _position.OpenOrders.Count; i++)
-            {
-                openOrdersGrid.Rows.Add(CreateOrderRow(_position.OpenOrders[i]));
-            }
+            openOrdersGrid.Click += OpenOrdersGrid_Click;
+            _openOrdersGrid = openOrdersGrid;
             FormsHostOpenDealGrid.Child = openOrdersGrid;
 
             DataGridView closeOrdersGrid = CreateOrderTable();
-
-            for (int i = 0; _position.CloseOrders != null && i < _position.CloseOrders.Count; i++)
-            {
-                closeOrdersGrid.Rows.Add(CreateOrderRow(_position.CloseOrders[i]));
-            }
+            closeOrdersGrid.Click += CloseOrdersGrid_Click;
+            _closeOrdersGrid = closeOrdersGrid;
             FormsHostCloseDealGrid.Child = closeOrdersGrid;
         }
 
-        /// <summary>
-        /// create a table of orders
-           /// создать таблицу ордеров
-        /// </summary>
         private DataGridView CreateOrderTable()
         {
-            DataGridView newGrid = DataGridFactory.GetDataGridOrder();
-
+            DataGridView newGrid = DataGridFactory.GetDataGridOrder(false);
+            newGrid.ScrollBars = ScrollBars.Vertical;
+            newGrid.SelectionMode = DataGridViewSelectionMode.CellSelect;
             newGrid.AutoResizeColumnHeadersHeight();
             return newGrid;
         }
 
-        /// <summary>
-        /// create a row for the table from the order
-        /// создать строку для таблицы из ордера
-        /// </summary>
         private DataGridViewRow CreateOrderRow(Order order)
         {
             if (order == null)
@@ -213,14 +199,14 @@ namespace OsEngine.Entity
 
             DataGridViewRow nRow = new DataGridViewRow();
 
-
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[0].Value = order.NumberUser;
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[1].Value = order.NumberMarket;
 
-            nRow.Cells.Add(new DataGridViewTextBoxCell());
+            DataGridViewButtonCell timeButton = new DataGridViewButtonCell();
+            nRow.Cells.Add(timeButton);
             nRow.Cells[2].Value = order.TimeCallBack;
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
@@ -229,11 +215,24 @@ namespace OsEngine.Entity
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[4].Value = order.PortfolioNumber;
 
-            nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[5].Value = order.Side;
+            DataGridViewComboBoxCell dirCell = new DataGridViewComboBoxCell();
+            dirCell.Items.Add(Side.Buy.ToString());
+            dirCell.Items.Add(Side.Sell.ToString());
+            dirCell.Items.Add(Side.None.ToString());
+            nRow.Cells.Add(dirCell);
+            nRow.Cells[5].Value = order.Side.ToString();
 
-            nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[6].Value = order.State;
+            DataGridViewComboBoxCell stateCell = new DataGridViewComboBoxCell();
+
+            stateCell.Items.Add(OrderStateType.None.ToString());
+            stateCell.Items.Add(OrderStateType.Activ.ToString());
+            stateCell.Items.Add(OrderStateType.Cancel.ToString());
+            stateCell.Items.Add(OrderStateType.Done.ToString());
+            stateCell.Items.Add(OrderStateType.Fail.ToString());
+            stateCell.Items.Add(OrderStateType.Patrial.ToString());
+            stateCell.Items.Add(OrderStateType.Pending.ToString());
+            nRow.Cells.Add(stateCell);
+            nRow.Cells[6].Value = order.State.ToString();
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[7].Value = order.Price.ToStringWithNoEndZero();
@@ -244,30 +243,269 @@ namespace OsEngine.Entity
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[9].Value = order.Volume;
 
-            nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[10].Value = order.TypeOrder;
+            DataGridViewComboBoxCell typeCell = new DataGridViewComboBoxCell();
+            typeCell.Items.Add(OrderPriceType.Limit.ToString());
+            typeCell.Items.Add(OrderPriceType.Market.ToString());
+            typeCell.Items.Add(OrderPriceType.Iceberg.ToString());
+            nRow.Cells.Add(typeCell);
+            nRow.Cells[10].Value = order.TypeOrder.ToString();
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[11].Value = order.TimeRoundTrip.TotalMilliseconds;
 
             return nRow;
         }
-        //trades
-        // трейды
 
-        /// <summary>
-        /// draw the table of trades
-        /// прорисовать таблицу трейдов
-        /// </summary>
+        private void PaintOrderTable()
+        {
+            _openOrdersGrid.Rows.Clear();
+
+            for (int i = 0; _position.OpenOrders != null && i < _position.OpenOrders.Count; i++)
+            {
+                _openOrdersGrid.Rows.Add(CreateOrderRow(_position.OpenOrders[i]));
+            }
+
+            _closeOrdersGrid.Rows.Clear();
+
+            for (int i = 0; _position.CloseOrders != null && i < _position.CloseOrders.Count; i++)
+            {
+                _closeOrdersGrid.Rows.Add(CreateOrderRow(_position.CloseOrders[i]));
+            }
+        }
+
+        private void CloseOrdersGrid_Click(object sender, EventArgs e)
+        {
+            MouseEventArgs mouse = (MouseEventArgs)e;
+            if (mouse.Button != MouseButtons.Right)
+            {
+                CheckOpenOrdersTimeButtonClick(_position.CloseOrders, _closeOrdersGrid);
+                return;
+            }
+
+            try
+            {
+                List<MenuItem> items = new List<MenuItem>();
+
+                items.Add(new MenuItem { Text = OsLocalization.Entity.OrderContextMenuItem1 });
+                items[0].Click += CloseOrdersAddOrder_Click;
+
+                items.Add(new MenuItem { Text = OsLocalization.Entity.OrderContextMenuItem2 });
+                items[1].Click += CloseOrdersDeleteOrder_Click;
+
+                ContextMenu menu = new ContextMenu(items.ToArray());
+
+                _closeOrdersGrid.ContextMenu = menu;
+                _closeOrdersGrid.ContextMenu.Show(_closeOrdersGrid, new System.Drawing.Point(mouse.X, mouse.Y));
+            }
+            catch (Exception error)
+            {
+
+            }
+        }
+
+        void CloseOrdersAddOrder_Click(object sender, EventArgs e)
+        {
+            Order newOrder = new Order();
+            newOrder.NumberUser = NumberGen.GetNumberOrder(_startProgramm);
+
+            if (_position.Direction == Side.Buy)
+            {
+                newOrder.Side = Side.Sell;
+            }
+            else
+            {
+                newOrder.Side = Side.Buy;
+            }
+
+            newOrder.NumberMarket = NumberGen.GetNumberOrder(_startProgramm).ToString();
+            newOrder.TypeOrder = OrderPriceType.Limit;
+            newOrder.PortfolioNumber = GetPortfolioName();
+            newOrder.PositionConditionType = OrderPositionConditionType.Close;
+
+            _position.AddNewCloseOrder(newOrder);
+
+            SyncPositionWithOrdersAndMyTrades();
+            PaintOrderTable();
+        }
+
+        void CloseOrdersDeleteOrder_Click(object sender, EventArgs e)
+        {
+            if (_position.CloseOrders == null)
+            {
+                return;
+            }
+            if (_closeOrdersGrid.Rows.Count == 0)
+            {
+                return;
+            }
+
+            int number;
+            try
+            {
+                number = _closeOrdersGrid.CurrentCell.RowIndex;
+            }
+            catch (Exception)
+            {
+                return;
+            }
+
+            if (number >= _position.CloseOrders.Count)
+            {
+                return;
+            }
+
+            if(ActionDeleteIsAccepted() == false)
+            {
+                return;
+            }
+
+            _position.CloseOrders.RemoveAt(number);
+            RePaint();
+        }
+
+        private void OpenOrdersGrid_Click(object sender, EventArgs e)
+        {
+            MouseEventArgs mouse = (MouseEventArgs)e;
+            if (mouse.Button != MouseButtons.Right)
+            {
+                CheckOpenOrdersTimeButtonClick(_position.OpenOrders, _openOrdersGrid);
+                return;
+            }
+
+            try
+            {
+                List<MenuItem> items = new List<MenuItem>();
+
+                items.Add(new MenuItem { Text = OsLocalization.Entity.OrderContextMenuItem1 });
+                items[0].Click += OpenOrdersAddOrder_Click;
+
+                items.Add(new MenuItem { Text = OsLocalization.Entity.OrderContextMenuItem2 });
+                items[1].Click += OpenOrdersDeleteOrder_Click;
+
+                ContextMenu menu = new ContextMenu(items.ToArray());
+
+                _openOrdersGrid.ContextMenu = menu;
+                _openOrdersGrid.ContextMenu.Show(_openOrdersGrid, new System.Drawing.Point(mouse.X, mouse.Y));
+            }
+            catch (Exception error)
+            {
+
+            }
+        }
+
+        private void CheckOpenOrdersTimeButtonClick(List<Order> orders, DataGridView grid)
+        {
+            if(orders == null ||
+                orders.Count == 0)
+            {
+                return;
+            }
+            if (grid.SelectedCells == null ||
+                grid.SelectedCells.Count == 0)
+            {
+                return;
+            }
+            int tabRow = grid.SelectedCells[0].RowIndex;
+            int tabColumn = grid.SelectedCells[0].ColumnIndex;
+
+            if (tabColumn == 2)
+            {
+                if(tabRow >= orders.Count)
+                {
+                    return;
+                }
+                Order myOrder = orders[tabRow];
+
+                DateTime time = myOrder.TimeCallBack;
+
+                if (myOrder.TimeCallBack == DateTime.MinValue)
+                {
+                    time = DateTime.Now;
+                }
+                else
+                {
+                    time = myOrder.TimeCallBack;
+                }
+
+                DateTimeSelectionDialog dialog = new DateTimeSelectionDialog(time);
+                dialog.ShowDialog();
+
+                if(dialog.IsSaved)
+                {
+                    myOrder.TimeCallBack = dialog.Time;
+                    myOrder.TimeCreate = dialog.Time;
+                    RePaint();
+                }
+            }
+        }
+
+        void OpenOrdersAddOrder_Click(object sender, EventArgs e)
+        {
+            Order newOrder = new Order();
+            newOrder.NumberUser = NumberGen.GetNumberOrder(_startProgramm);
+            newOrder.Side = _position.Direction;
+            newOrder.NumberMarket = NumberGen.GetNumberOrder(_startProgramm).ToString();
+            newOrder.TypeOrder = OrderPriceType.Limit;
+            newOrder.PortfolioNumber = GetPortfolioName();
+            newOrder.PositionConditionType = OrderPositionConditionType.Open;
+
+            _position.AddNewOpenOrder(newOrder);
+
+            SyncPositionWithOrdersAndMyTrades();
+            PaintOrderTable();
+        }
+
+        void OpenOrdersDeleteOrder_Click(object sender, EventArgs e)
+        {
+            if (_position.OpenOrders == null)
+            {
+                return;
+            }
+            if (_openOrdersGrid.Rows.Count == 0)
+            {
+                return;
+            }
+
+            int number;
+            try
+            {
+                number = _openOrdersGrid.CurrentCell.RowIndex;
+            }
+            catch (Exception)
+            {
+                return;
+            }
+
+            if (number >= _position.OpenOrders.Count)
+            {
+                return;
+            }
+
+            _position.OpenOrders.RemoveAt(number);
+            RePaint();
+        }
+
+        // trades
+
+        DataGridView _tradesGrid;
+
+        private void CreateTradeTable()
+        {
+            DataGridView newGrid = DataGridFactory.GetDataGridMyTrade(false);
+            _tradesGrid = newGrid;
+            _tradesGrid.SelectionMode = DataGridViewSelectionMode.CellSelect;
+            FormsHostTreid.Child = _tradesGrid;
+            _tradesGrid.Click += _tradesGrid_Click;
+        }
+
         private void PaintTradeTable()
         {
-            DataGridView tradesGrid = CreateTradeTable();
-
+            _tradesGrid.Rows.Clear();
             for (int i = 0; _position.OpenOrders != null && i < _position.OpenOrders.Count; i++)
             {
                 for (int i2 = 0; _position.OpenOrders[i].MyTrades != null && i2 < _position.OpenOrders[i].MyTrades.Count; i2++)
                 {
-                    tradesGrid.Rows.Add(CreateTradeRow(_position.OpenOrders[i].MyTrades[i2]));
+                    _tradesGrid.Rows.Add(CreateTradeRow(_position.OpenOrders[i].MyTrades[i2]));
                 }
             }
 
@@ -275,30 +513,11 @@ namespace OsEngine.Entity
             {
                 for (int i2 = 0; _position.CloseOrders[i].MyTrades != null && i2 < _position.CloseOrders[i].MyTrades.Count; i2++)
                 {
-                    tradesGrid.Rows.Add(CreateTradeRow(_position.CloseOrders[i].MyTrades[i2]));
+                    _tradesGrid.Rows.Add(CreateTradeRow(_position.CloseOrders[i].MyTrades[i2]));
                 }
             }
-
-
-            FormsHostTreid.Child = tradesGrid;
-
         }
 
-        /// <summary>
-        /// create a table for trades
-        /// создать таблицу для трейдов
-        /// </summary>
-        private DataGridView CreateTradeTable()
-        {
-            DataGridView newGrid = DataGridFactory.GetDataGridMyTrade();
-
-            return newGrid;
-        }
-
-        /// <summary>
-        /// create row for table from trade
-        /// создать строку для таблицы из трейда
-        /// </summary>
         private DataGridViewRow CreateTradeRow(MyTrade trade)
         {
             if (trade == null)
@@ -317,7 +536,8 @@ namespace OsEngine.Entity
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[2].Value = trade.SecurityNameCode;
 
-            nRow.Cells.Add(new DataGridViewTextBoxCell());
+            DataGridViewButtonCell timeButton = new DataGridViewButtonCell();
+            nRow.Cells.Add(timeButton);
             nRow.Cells[3].Value = trade.Time;
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
@@ -326,37 +546,439 @@ namespace OsEngine.Entity
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[5].Value = trade.Volume;
 
-            nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[6].Value = trade.Side;
+            DataGridViewComboBoxCell dirCell = new DataGridViewComboBoxCell();
+            dirCell.Items.Add(Side.Buy.ToString());
+            dirCell.Items.Add(Side.Sell.ToString());
+            dirCell.Items.Add(Side.None.ToString());
+            nRow.Cells.Add(dirCell);
+            nRow.Cells[6].Value = trade.Side.ToString();
 
             return nRow;
         }
 
-        // сохранение результатов изменений
+        private void CheckMyTradeTimeButtonClick(List<MyTrade> trades, DataGridView grid)
+        {
+            if (grid.SelectedCells == null ||
+                grid.SelectedCells.Count == 0)
+            {
+                return;
+            }
+
+            if(trades == null ||
+                trades.Count == 0)
+            {
+                return;
+            }
+
+            int tabRow = grid.SelectedCells[0].RowIndex;
+            int tabColumn = grid.SelectedCells[0].ColumnIndex;
+
+            if (tabColumn == 3)
+            {
+                if (tabRow >= trades.Count)
+                {
+                    return;
+                }
+                MyTrade myOrder = trades[tabRow];
+
+                DateTime time = myOrder.Time;
+
+                if (myOrder.Time == DateTime.MinValue)
+                {
+                    time = DateTime.Now;
+                }
+                else
+                {
+                    time = myOrder.Time;
+                }
+
+                DateTimeSelectionDialog dialog = new DateTimeSelectionDialog(time);
+                dialog.ShowDialog();
+
+                if (dialog.IsSaved)
+                {
+                    myOrder.Time = dialog.Time;
+                    RePaint();
+                }
+            }
+        }
+
+        private List<MyTrade> GetMyTrades()
+        {
+            List<MyTrade> trades = new List<MyTrade>();
+
+            List<Order> ordersOpen = _position.OpenOrders;
+            List<Order> ordersClose = _position.CloseOrders;
+
+            if (ordersOpen != null && ordersOpen.Count != 0)
+            {
+                for (int i = 0; i < ordersOpen.Count; i++)
+                {
+                    if(ordersOpen[i].MyTrades == null ||
+                        ordersOpen[i].MyTrades.Count == 0)
+                    {
+                        continue;
+                    }
+                    trades.AddRange(ordersOpen[i].MyTrades);
+                }
+            }
+
+            if (ordersClose != null && ordersClose.Count != 0)
+            {
+                for (int i = 0; i < ordersClose.Count; i++)
+                {
+                    if (ordersClose[i].MyTrades == null ||
+                        ordersClose[i].MyTrades.Count == 0)
+                    {
+                        continue;
+                    }
+                    trades.AddRange(ordersClose[i].MyTrades);
+                }
+            }
+
+            return trades;
+        }
+
+        private void _tradesGrid_Click(object sender, EventArgs e)
+        {
+            MouseEventArgs mouse = (MouseEventArgs)e;
+            if (mouse.Button != MouseButtons.Right)
+            {
+                CheckMyTradeTimeButtonClick(GetMyTrades(), _tradesGrid);
+                return;
+            }
+
+            try
+            {
+                List<MenuItem> items = new List<MenuItem>();
+
+                List<Order> ordersOpen = _position.OpenOrders;
+                List<Order> ordersClose = _position.CloseOrders;
+
+                if(ordersOpen != null && ordersOpen.Count != 0)
+                {
+                    List<MenuItem> itemsOrdersOpen = new List<MenuItem>();
+                    for(int i = 0;i < ordersOpen.Count;i++)
+                    {
+                        itemsOrdersOpen.Add(new MenuItem { Text = "Num " +  ordersOpen[i].NumberUser});
+                        itemsOrdersOpen[itemsOrdersOpen.Count-1].Click += MyTradeAddInOpenOrders_Click;
+                    }
+
+                    items.Add(new MenuItem(OsLocalization.Entity.OrderContextMenuItem3,
+                        itemsOrdersOpen.ToArray()));
+                }
+
+                if (ordersClose != null && ordersClose.Count != 0)
+                {
+                    List<MenuItem> itemsOrdersClose = new List<MenuItem>();
+                    for (int i = 0; i < ordersClose.Count; i++)
+                    {
+                        itemsOrdersClose.Add(new MenuItem { Text = "Num " + ordersClose[i].NumberUser });
+                        itemsOrdersClose[itemsOrdersClose.Count - 1].Click += MyTradeAddInCloseOrders_Click;
+                    }
+
+                    items.Add(new MenuItem(OsLocalization.Entity.OrderContextMenuItem4,
+                        itemsOrdersClose.ToArray()));
+                }
+
+                items.Add(new MenuItem { Text = OsLocalization.Entity.OrderContextMenuItem5 });
+                items[items.Count-1].Click += MyTradeDelete_Click;
+
+                ContextMenu menu = new ContextMenu(items.ToArray());
+
+                _tradesGrid.ContextMenu = menu;
+                _tradesGrid.ContextMenu.Show(_tradesGrid, new System.Drawing.Point(mouse.X, mouse.Y));
+            }
+            catch (Exception error)
+            {
+
+            }
+        }
+
+        void MyTradeAddInOpenOrders_Click(object sender, EventArgs e)
+        {
+            string str = ((MenuItem)sender).Text.ToString().Split(' ')[1];
+            int ordNum = Convert.ToInt32(str);
+            Order myOrd = _position.OpenOrders.Find(o => o.NumberUser == ordNum);
+
+            if (myOrd == null)
+            {
+                return;
+            }
+
+            MyTrade trade = new MyTrade();
+            trade.SecurityNameCode = myOrd.SecurityNameCode;
+            trade.Side = myOrd.Side;
+            trade.NumberOrderParent = myOrd.NumberMarket.ToString();
+            trade.NumberPosition = _position.Number.ToString();
+            trade.NumberTrade = NumberGen.GetNumberOrder(_startProgramm).ToString();
+
+            myOrd.SetTrade(trade);
+
+            SyncPositionWithOrdersAndMyTrades();
+            RePaint();
+        }
+
+        void MyTradeAddInCloseOrders_Click(object sender, EventArgs e)
+        {
+            if(_position.CloseOrders == null ||
+                _position.CloseOrders.Count == 0)
+            {
+                return;
+            }
+
+            string str = ((MenuItem)sender).Text.ToString().Split(' ')[1];
+            int ordNum = Convert.ToInt32(str);
+            Order myOrd = _position.CloseOrders.Find(o => o.NumberUser == ordNum);
+
+            if(myOrd == null)
+            {
+                return;
+            }
+
+            MyTrade trade = new MyTrade();
+            trade.SecurityNameCode = myOrd.SecurityNameCode;
+            trade.Side = myOrd.Side;
+            trade.NumberOrderParent = myOrd.NumberMarket.ToString();
+            trade.NumberPosition = _position.Number.ToString();
+            trade.NumberTrade = NumberGen.GetNumberOrder(_startProgramm).ToString();
+
+            myOrd.SetTrade(trade);
+
+            SyncPositionWithOrdersAndMyTrades();
+            RePaint();
+        }
+
+        void MyTradeDelete_Click(object sender, EventArgs e)
+        {
+            if (_position.OpenOrders == null)
+            {
+                return;
+            }
+            if (_openOrdersGrid.Rows.Count == 0)
+            {
+                return;
+            }
+
+            int number;
+            try
+            {
+                number = _openOrdersGrid.CurrentCell.RowIndex;
+            }
+            catch (Exception)
+            {
+                return;
+            }
+
+            if (ActionDeleteIsAccepted() == false)
+            {
+                return;
+            }
+
+            string strNum = _tradesGrid.Rows[number].Cells[0].Value.ToString();
+
+            List<Order> openOrders = _position.OpenOrders;
+            List<Order> closeOrders = _position.CloseOrders;
+
+            bool isInArray = false;
+
+            for(int i = 0; openOrders != null && i < openOrders.Count;i++)
+            {
+                if(isInArray == true)
+                {
+                    break;
+                }
+
+                Order curOrd = openOrders[i];
+
+                for (int i2 = 0; i2 < curOrd.MyTrades.Count; i2++)
+                {
+                    MyTrade curTrade = curOrd.MyTrades[i2];
+
+                    if(curTrade.NumberTrade == strNum)
+                    {
+                        curOrd.MyTrades.RemoveAt(i2);
+                        isInArray = true;
+                        break;
+                    }
+                }
+            }
+
+            for (int i = 0; closeOrders != null && i < closeOrders.Count; i++)
+            {
+                if (isInArray == true)
+                {
+                    break;
+                }
+
+                Order curOrd = closeOrders[i];
+
+                for (int i2 = 0; i2 < curOrd.MyTrades.Count; i2++)
+                {
+                    MyTrade curTrade = curOrd.MyTrades[i2];
+
+                    if (curTrade.NumberTrade == strNum)
+                    {
+                        curOrd.MyTrades.RemoveAt(i2);
+                        isInArray = true;
+                        break;
+                    }
+                }
+            }
+
+            RePaint();
+        }
+
+        // accept ui
+
+        private bool ActionDeleteIsAccepted()
+        {
+            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Entity.MessageAcceptDeleteAction);
+            ui.ShowDialog();
+
+            if (ui.UserAcceptActioin == false)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool ActionSaveIsAccepted()
+        {
+            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Entity.MessageAcceptSaveAction);
+            ui.ShowDialog();
+
+            if (ui.UserAcceptActioin == false)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+
+        // save changes
+
+        private string GetPortfolioName()
+        {
+            string result = "";
+
+            for (int i = 0; _position.OpenOrders != null && i < _position.OpenOrders.Count; i++)
+            {
+                if (string.IsNullOrEmpty(_position.OpenOrders[i].PortfolioNumber) == false)
+                {
+                    result = _position.OpenOrders[i].PortfolioNumber;
+                }
+            }
+
+            return result;
+        }
+
+        private void SyncPositionWithOrdersAndMyTrades()
+        {
+            List<Order> openOrders = _position.OpenOrders;
+            List<Order> closeOrders = _position.CloseOrders;
+
+            if(_mainPosGrid.Rows[0].Cells[4].Value == null)
+            {
+                return;
+            }
+
+            string securityName = _mainPosGrid.Rows[0].Cells[4].Value.ToString();
+
+            for (int i = 0; openOrders != null && i < openOrders.Count; i++)
+            {
+                Order curOrd = openOrders[i];
+                curOrd.SecurityNameCode = securityName;
+
+                List<MyTrade> trades = openOrders[i].MyTrades;
+
+                for(int i2 =0;trades != null && i2 < trades.Count;i2++)
+                {
+                    trades[i2].SecurityNameCode = securityName;
+                }
+            }
+
+            for (int i = 0; closeOrders != null && i < closeOrders.Count; i++)
+            {
+                Order curOrd = closeOrders[i];
+                curOrd.SecurityNameCode = securityName;
+
+                List<MyTrade> trades = closeOrders[i].MyTrades;
+
+                for (int i2 = 0; trades != null && i2 < trades.Count; i2++)
+                {
+                    trades[i2].SecurityNameCode = securityName;
+                }
+            }
+        }
 
         private void SaveChangesButton_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            SavePositionTab();
+            if(ActionSaveIsAccepted() == false)
+            {
+                return;
+            }
 
+            SyncPositionWithOrdersAndMyTrades();
+            SavePosition();
+            SaveOrders(_position.OpenOrders, _openOrdersGrid.Rows);
+            SaveOrders(_position.CloseOrders, _closeOrdersGrid.Rows);
+            SaveMyTrades();
 
+            PositionChanged = true;
             Close();
         }
 
         public bool PositionChanged;
 
-        private void SavePositionTab()
+        private void SaveOrders(List<Order> orders, DataGridViewRowCollection rows)
+        {
+            if (orders == null || orders.Count == 0)
+            {
+                return;
+            }
+
+            for (int i = 0; i < rows.Count; i++)
+            {
+                Order order = orders[i];
+                DataGridViewRow row = rows[i];
+
+                order.PortfolioNumber = row.Cells[4].Value.ToString();
+
+                Enum.TryParse(row.Cells[5].Value.ToString(), out order.Side);
+
+                OrderStateType state;
+
+                if (Enum.TryParse(row.Cells[6].Value.ToString(), out state))
+                {
+                    order.State = state;
+                }
+
+                order.Price = row.Cells[7].Value.ToString().ToDecimal();
+                order.Volume = row.Cells[9].Value.ToString().ToDecimal();
+
+                Enum.TryParse(row.Cells[10].Value.ToString(), out order.TypeOrder);
+            }
+        }
+
+        private void SavePosition()
         {
             Position position = _position;
 
             DataGridViewRow nRow = _mainPosGrid.Rows[0];
 
-            position.SecurityName = nRow.Cells[4].Value.ToString();
-
+            if(nRow.Cells[4].Value != null)
+            {
+                position.SecurityName = nRow.Cells[4].Value.ToString();
+            }
+            
             Enum.TryParse(nRow.Cells[5].Value.ToString(), out position.Direction);
 
             PositionStateType newState;
 
-            if(Enum.TryParse(nRow.Cells[6].Value.ToString(), out newState))
+            if (Enum.TryParse(nRow.Cells[6].Value.ToString(), out newState))
             {
                 position.State = newState;
             }
@@ -375,8 +997,57 @@ namespace OsEngine.Entity
 
             position.SignalTypeOpen = nRow.Cells[17].Value.ToString().RemoveExcessFromSecurityName();
             position.SignalTypeClose = nRow.Cells[18].Value.ToString().RemoveExcessFromSecurityName();
-
-            PositionChanged = true;
         }
-}
+
+        private void SaveMyTrades()
+        {
+            List<MyTrade> allTrades = new List<MyTrade>();
+
+            for(int i = 0; _position.OpenOrders != null && i < _position.OpenOrders.Count;i++)
+            {
+                List<MyTrade> trades = _position.OpenOrders[i].MyTrades;
+
+                if(trades == null || trades.Count == 0)
+                {
+                    continue;
+                }
+
+                allTrades.AddRange(trades);
+            }
+
+            for (int i = 0; _position.CloseOrders != null && i < _position.CloseOrders.Count; i++)
+            {
+                List<MyTrade> trades = _position.CloseOrders[i].MyTrades;
+
+                if (trades == null || trades.Count == 0)
+                {
+                    continue;
+                }
+
+                allTrades.AddRange(trades);
+            }
+
+            for(int i = 0;i < allTrades.Count;i++)
+            {
+                SaveMyTradeState(allTrades[i]);
+            }
+        }
+
+        private void SaveMyTradeState(MyTrade trade)
+        {
+            DataGridViewRowCollection rows = _tradesGrid.Rows;
+
+            for(int i = 0;i < rows.Count;i++)
+            {
+                string num = rows[i].Cells[0].Value.ToString();
+
+                if(trade.NumberTrade == num)
+                {
+                    trade.Price = rows[i].Cells[4].Value.ToString().ToDecimal();
+                    trade.Volume = rows[i].Cells[5].Value.ToString().ToDecimal();
+                    Enum.TryParse(rows[i].Cells[6].Value.ToString(), out trade.Side);
+                }
+            }
+        }
+    }
 }
