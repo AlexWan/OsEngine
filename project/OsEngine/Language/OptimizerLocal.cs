@@ -225,7 +225,7 @@ namespace OsEngine.Language
 
         public string Label12 => OsLocalization.ConvertToLocString(
             "Eng:Optimization strategy_" +
-            "Ru:Стратегия для оптимизации_");
+            "Ru:Робот в оптимизацию_");
 
         public string Label13 => OsLocalization.ConvertToLocString(
             "Eng:Initial funds_" +
@@ -365,6 +365,14 @@ namespace OsEngine.Language
 
         public string Label47 => OsLocalization.ConvertToLocString(
           "Eng:Max count of bots -_" +
-          "Ru:Макс. кол-во ботов-_");
+          "Ru:Макс кол-во ботов -_");
+
+        public string Label48 => OsLocalization.ConvertToLocString(
+          "Eng:Reload_" +
+          "Ru:Перезагрузить_");
+
+        public string Label49 => OsLocalization.ConvertToLocString(
+          "Eng:Results_" +
+          "Ru:Результаты_");
     }
 }

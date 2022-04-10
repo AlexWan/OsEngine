@@ -167,7 +167,8 @@ namespace OsEngine.OsOptimizer
             LabelSortBy.Content = OsLocalization.Optimizer.Label39;
             CheckBoxLastInSample.Content = OsLocalization.Optimizer.Label42;
             LabelIteartionCount.Content = OsLocalization.Optimizer.Label47;
-
+            ButtonStrategyReload.Content = OsLocalization.Optimizer.Label48;
+            ButtonResults.Content = OsLocalization.Optimizer.Label49;
 
             _resultsCharting = new OptimizerReportCharting(
                 WindowsFormsHostDependences, WindowsFormsHostColumnsResults,

@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+using OsEngine.Language;
 
 namespace OsEngine.Entity
 {
@@ -29,7 +24,13 @@ namespace OsEngine.Entity
             TextBoxMinute.Text = initTime.Minute.ToString();
             TextBoxSecond.Text = initTime.Second.ToString();
 
-        }
+            Title = OsLocalization.Entity.TimeChangeDialogLabel1;
+            ButtonSave.Content = OsLocalization.Entity.TimeChangeDialogLabel2;
+            LabelHour.Content = OsLocalization.Entity.TimeChangeDialogLabel3;
+            LabelMinute.Content = OsLocalization.Entity.TimeChangeDialogLabel4;
+            LabelSecond.Content = OsLocalization.Entity.TimeChangeDialogLabel5;
+
+         }
 
         public DateTime Time;
 

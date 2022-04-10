@@ -10,7 +10,6 @@ using OsEngine.Alerts;
 using OsEngine.Entity;
 using OsEngine.Journal.Internal;
 using OsEngine.Logging;
-using OsEngine.Market;
 
 namespace OsEngine.Journal
 {

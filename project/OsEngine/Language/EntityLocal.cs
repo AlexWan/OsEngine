@@ -394,5 +394,25 @@ namespace OsEngine.Language
         public string ColumnMarketDepth3 => OsLocalization.ConvertToLocString(
             "Eng:Volume_" +
             "Ru:Объём_");
+
+        public string TimeChangeDialogLabel1 => OsLocalization.ConvertToLocString(
+            "Eng:Time selection_" +
+            "Ru:Выбор времени_");
+
+        public string TimeChangeDialogLabel2 => OsLocalization.ConvertToLocString(
+            "Eng:Save time_" +
+            "Ru:Сохранить_");
+
+        public string TimeChangeDialogLabel3 => OsLocalization.ConvertToLocString(
+            "Eng:Hour_" +
+            "Ru:Час_");
+
+        public string TimeChangeDialogLabel4 => OsLocalization.ConvertToLocString(
+            "Eng:Minute_" +
+            "Ru:Минута_");
+
+        public string TimeChangeDialogLabel5 => OsLocalization.ConvertToLocString(
+            "Eng:Second_" +
+            "Ru:Секунда_");
     }
 }
