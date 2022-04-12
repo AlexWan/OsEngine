@@ -856,6 +856,10 @@ namespace OsEngine.Journal
                 if (minYval != decimal.MaxValue &&
                     maxYVal != 0)
                 {
+                    decimal chartHeigh = maxYVal - minYval;
+
+                    maxYVal = maxYVal + chartHeigh * 0.05m;
+                    minYval = minYval - chartHeigh * 0.05m;
                     _chartEquity.ChartAreas[0].AxisY2.Maximum = (double)maxYVal;
                     _chartEquity.ChartAreas[0].AxisY2.Minimum = (double)minYval;
                 }
