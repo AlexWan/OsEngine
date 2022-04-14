@@ -737,6 +737,11 @@ namespace OsEngine.OsOptimizer
                 OptimizerReport bestBotInOutOfSample
                     = _reports[i + 1].Reports.Find(b => b.BotName.Replace(" OutOfSample", "") == bestBot.BotName.Replace(" InSample", ""));
 
+                if(bestBotInOutOfSample == null)
+                {
+                    continue;
+                }
+
                 decimal value = bestBotInOutOfSample.AverageProfitPercent;
 
                 if (values.Count == 0)
