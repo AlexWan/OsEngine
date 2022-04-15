@@ -413,6 +413,12 @@ namespace OsEngine.Market.Servers.Binance.Futures
                         return null;
 
                     string res = jsonCandles.Trim(new char[] { '[', ']' });
+
+                    if (string.IsNullOrEmpty(res) == true)
+                    {
+                        return null;
+                    }
+
                     var res2 = res.Split(new char[] { ']' });
 
                     _candles = new List<Candle>();

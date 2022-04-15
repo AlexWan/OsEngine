@@ -195,7 +195,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     timeFrameBuilder.TimeFrameTimeSpan,
                     actualTime, endTime);
 
-                if (candles.Count != 0 && newCandles.Count != 0)
+                if (newCandles != null && candles.Count != 0 && newCandles.Count != 0)
                 {
                     for (int i = 0; i < newCandles.Count; i++)
                     {
@@ -210,6 +210,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
                 if (newCandles == null)
                 {
+                    actualTime = actualTime.AddDays(5);
                     continue;
                 }
 
