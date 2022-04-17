@@ -424,6 +424,10 @@ namespace OsEngine
             {
                 ButtonTesterCandleOne_Click(this, default);
             }
+            else if (Array.Exists(args, a => a.Equals("-robotslight")))
+            {
+                ButtonRobotLight_Click(this, default);
+            }
         }
 
         private void ClearOptimizerWorkResults()
