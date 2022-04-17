@@ -28,9 +28,8 @@ namespace OsEngine.Journal.Internal
                 return null;
             }
 
-            List<Position> positionsNew = positions.FindAll((
-                position => position.State != PositionStateType.OpeningFail 
-                            && position.EntryPrice != 0 && position.ClosePrice != 0));
+            List<Position> positionsNew = positions.FindAll(
+                position => position.State != PositionStateType.OpeningFail);
 
             if (positionsNew.Count == 0)
             {
