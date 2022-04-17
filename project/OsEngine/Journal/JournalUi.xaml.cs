@@ -289,7 +289,12 @@ namespace OsEngine.Journal
                 else if (TabControlPrime.SelectedIndex == 1)
                 {
                     bool neadShowTickState = !(myJournals.Count > 1);
-                    PaintStatTable(positionsAll.FindAll(p => p.State != PositionStateType.OpeningFail), positionsLong, positionsShort, neadShowTickState);
+
+                    List<Position> allPoses = positionsAll.FindAll(p => p.State != PositionStateType.OpeningFail);
+                    List<Position> longPos = allPoses.FindAll(p => p.Direction == Side.Buy);
+                    List<Position> shortPos = allPoses.FindAll(p => p.Direction == Side.Sell);
+
+                    PaintStatTable(allPoses, longPos, shortPos, neadShowTickState);
                 }
                 else if (TabControlPrime.SelectedIndex == 2)
                 {
