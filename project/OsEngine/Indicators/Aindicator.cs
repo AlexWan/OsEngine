@@ -547,6 +547,10 @@ namespace OsEngine.Indicators
 
         private void ProcessLast(List<Candle> candles)
         {
+            if(candles.Count <= 0)
+            {
+                return;
+            }
             for (int i = 0; i < IncludeIndicators.Count; i++)
             {
                 IncludeIndicators[i].Process(candles);
@@ -565,6 +569,11 @@ namespace OsEngine.Indicators
 
         private void ProcessNew(List<Candle> candles, int index)
         {
+            if (candles.Count <= 0 ||
+                index < 0)
+            {
+                return;
+            }
             for (int i = 0; i < IncludeIndicators.Count; i++)
             {
                 IncludeIndicators[i].Process(candles);
@@ -625,6 +634,10 @@ namespace OsEngine.Indicators
 
         private void ProcessLast(List<decimal> values)
         {
+            if (values.Count <= 0)
+            {
+                return;
+            }
             for (int i = 0; i < IncludeIndicators.Count; i++)
             {
                 IncludeIndicators[i].Process(values);
@@ -653,6 +666,12 @@ namespace OsEngine.Indicators
 
         private void ProcessNew(List<decimal> values, int index)
         {
+            if (values.Count <= 0 ||
+                index <= 0)
+            {
+                return;
+            }
+
             for (int i = 0; i < IncludeIndicators.Count; i++)
             {
                 IncludeIndicators[i].Process(values);
