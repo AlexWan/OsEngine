@@ -103,11 +103,8 @@ namespace OsEngine.Market.Servers.Bybit.Entities
                             try
                             {
                                 string security_name = jt_item.SelectToken("symbol").Value<string>();
-
                                 var price_to_del = jt_item.SelectToken("price").Value<decimal>();
-
                                 all_depths.Find(x => x.SecurityNameCode == security_name).Asks.Remove(all_depths.Find(x => x.SecurityNameCode == security_name).Asks.Find(x => x.Price == price_to_del));
-
                             }
                             catch (Exception ex)
                             {
@@ -124,7 +121,6 @@ namespace OsEngine.Market.Servers.Bybit.Entities
                                 var price_to_del = jt_item.SelectToken("price").Value<decimal>();
 
                                 all_depths.Find(x => x.SecurityNameCode == security_name).Bids.Remove(all_depths.Find(x => x.SecurityNameCode == security_name).Bids.Find(x => x.Price == price_to_del));
-
                             }
                             catch (Exception ex)
                             {
@@ -152,7 +148,7 @@ namespace OsEngine.Market.Servers.Bybit.Entities
                                 };
 
                                 all_depths.Find(x => x.SecurityNameCode == security_name).Asks.Find(x => x.Price == new_ask_level.Price).Ask = new_ask_level.Ask;
-
+                            
                             }
                             catch (Exception ex)
                             {
@@ -174,7 +170,6 @@ namespace OsEngine.Market.Servers.Bybit.Entities
                                 };
 
                                 all_depths.Find(x => x.SecurityNameCode == security_name).Bids.Find(x => x.Price == new_bid_level.Price).Bid = new_bid_level.Bid;
-
                             }
                             catch (Exception ex)
                             {
@@ -202,7 +197,6 @@ namespace OsEngine.Market.Servers.Bybit.Entities
                                 };
 
                                 InsertLevel(new_ask_level.Price, new_ask_level.Ask, Side.Sell, all_depths.Find(x => x.SecurityNameCode == security_name));
-
                             }
                             catch (Exception ex)
                             {
@@ -224,7 +218,6 @@ namespace OsEngine.Market.Servers.Bybit.Entities
                                 };
 
                                 InsertLevel(new_bid_level.Price, new_bid_level.Bid, Side.Buy, all_depths.Find(x => x.SecurityNameCode == security_name));
-
                             }
                             catch (Exception ex)
                             {

@@ -97,9 +97,9 @@ namespace OsEngine.Market.Servers.Bybit.Utilities
             return JToken.Parse(response_msg);
         }
 
-        public static JToken CreatePrivatePostQuery(Client client, string end_point, Dictionary<string, string> parameters)
+        public static JToken CreatePrivatePostQuery(Client client, string end_point, Dictionary<string, string> parameters,DateTime serverTime)
         {
-            parameters.Add("timestamp", (Utils.GetMillisecondsFromEpochStart()).ToString());
+            parameters.Add("timestamp", (Utils.GetMillisecondsFromEpochStart(serverTime.ToUniversalTime())).ToString());
 
             Dictionary<string, string> sorted_params = parameters.OrderBy(pair => pair.Key).ToDictionary(pair => pair.Key, pair => pair.Value);
 

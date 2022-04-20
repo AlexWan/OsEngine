@@ -40,6 +40,36 @@ namespace OsEngine.Market.Servers.Bybit.EntityCreators
                     }
                 }
 
+                string status = data_item.SelectToken("order_status").Value<string>();
+
+                //Created - order has been accepted by the system but not yet put through the matching engine
+                //Rejected - order has been triggered but failed to be placed(e.g.due to insufficient margin)
+                //New - order has been placed successfully
+                //PartiallyFilled
+                //Filled
+                //Cancelled
+                //PendingCancel - matching engine has received the cancelation request but it may not be canceled successfully
+
+                if(status == "New" ||
+                    status == "PartiallyFilled" ||
+                    status == "Created")
+                {
+                    order.State = OrderStateType.Activ;
+                }
+                else if (status == "Filled")
+                {
+                    order.State = OrderStateType.Done;
+                }
+                else if (status == "Rejected")
+                {
+                    order.State = OrderStateType.Fail;
+                }
+                else if (status == "Cancelled" ||
+                    status == "PendingCancel")
+                {
+                    order.State = OrderStateType.Cancel;
+                }
+
                 order.TimeCreate = time;
                 order.SecurityNameCode = data_item.SelectToken("symbol").Value<string>();
                 order.Price = data_item.SelectToken("price").Value<decimal>();

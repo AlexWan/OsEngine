@@ -384,13 +384,16 @@ namespace OsEngine.Market.Servers.Bybit
             parameters.Add("price", order.Price.ToString().Replace(",", "."));
             parameters.Add("reduce_only", reduce);
             parameters.Add("close_on_trigger", "false");
+            parameters.Add("recv_window", "90000000");
 
             JToken place_order_response;
 
+            DateTime time = GetServerTime();
+
             if (client.FuturesMode == "Inverse")
-                place_order_response =  BybitRestRequestBuilder.CreatePrivatePostQuery(client, "/v2/private/order/create", parameters);
+                place_order_response =  BybitRestRequestBuilder.CreatePrivatePostQuery(client, "/v2/private/order/create", parameters, time);
             else 
-                place_order_response = BybitRestRequestBuilder.CreatePrivatePostQuery(client, "/private/linear/order/create", parameters);
+                place_order_response = BybitRestRequestBuilder.CreatePrivatePostQuery(client, "/private/linear/order/create", parameters, time);
 
             var isSuccessful = place_order_response.SelectToken("ret_msg").Value<string>();
 
@@ -417,18 +420,22 @@ namespace OsEngine.Market.Servers.Bybit
             parameters.Add("api_key", client.ApiKey);
             parameters.Add("symbol", order.SecurityNameCode);
             parameters.Add("order_id", order.NumberMarket);
+            parameters.Add("recv_window", "90000000");
+
+            DateTime time = GetServerTime();
 
             JToken cancel_order_response;
             if (futures_type == "Inverse Perpetual")
-                cancel_order_response = BybitRestRequestBuilder.CreatePrivatePostQuery(client, "/v2/private/order/cancel", parameters); ///private/linear/order/cancel
+                cancel_order_response = BybitRestRequestBuilder.CreatePrivatePostQuery(client, "/v2/private/order/cancel", parameters, time); ///private/linear/order/cancel
             else
-                cancel_order_response = BybitRestRequestBuilder.CreatePrivatePostQuery(client, "/private/linear/order/cancel", parameters); 
+                cancel_order_response = BybitRestRequestBuilder.CreatePrivatePostQuery(client, "/private/linear/order/cancel", parameters, time); 
             
             var isSuccessful = cancel_order_response.SelectToken("ret_msg").Value<string>();
 
             if (isSuccessful == "OK")
             {
-
+                order.State = OrderStateType.Cancel;
+                OnOrderEvent(order);
             }
             else
             {
@@ -456,6 +463,16 @@ namespace OsEngine.Market.Servers.Bybit
 
                 if (isSuccessfull == "OK")
                 {
+                    if(account_response.SelectToken("result") == null)
+                    {
+                        continue;
+                    }
+
+                    if (account_response.SelectToken("result").SelectToken("order_status") == null)
+                    {
+                        continue;
+                    }
+
                     string state = account_response.SelectToken("result").SelectToken("order_status").Value<string>();
 
                     switch (state)
@@ -488,6 +505,18 @@ namespace OsEngine.Market.Servers.Bybit
                 }
             }
         } // both
+
+        private DateTime GetServerTime()
+        {
+            DateTime time = DateTime.MinValue;
+            JToken t = BybitRestRequestBuilder.CreatePublicGetQuery(client, "/v2/public/time");
+            JToken tt = t.Root.SelectToken("time_now");
+
+            string timeString = tt.ToString();
+            time = Utils.LongToDateTime(Convert.ToInt64(timeString.ToDecimal()));
+            return time;
+
+        }
 
         #endregion
 
