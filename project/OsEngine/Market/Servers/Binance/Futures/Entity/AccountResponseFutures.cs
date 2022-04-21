@@ -54,6 +54,11 @@ namespace OsEngine.Market.Servers.Binance.Futures.Entity
         public string walletBalance;
     }
 
+    public class AssetFuturesCoinM
+    {
+        public string asset;
+        public string balance;
+    }
 
     public class AccountResponseFuturesFromWebSocket
     {

@@ -290,9 +290,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                     if (type_str_selector == "dapi")
                     {
-                        res = CreateQuery(Method.GET, type_str_selector + "/v1/balance", null, true);
-                        return GetAccountInfoFromDFut(res);
-
+                        res = CreateQuery(Method.GET, "/" + type_str_selector + "/v1/account", null, true);
                     }
                     else if (type_str_selector == "fapi")
                     {
@@ -324,7 +322,17 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
             AccountResponseFutures resp = new AccountResponseFutures();
 
-            List<AssetFutures> assets = JsonConvert.DeserializeAnonymousType(response, new List<AssetFutures>());
+            List<AssetFuturesCoinM> assetsCoinM = JsonConvert.DeserializeAnonymousType(response, new List<AssetFuturesCoinM>());
+
+            List<AssetFutures> assets = new List<AssetFutures>();
+
+            for(int i = 0;i < assetsCoinM.Count;i++)
+            {
+                AssetFutures futAss = new AssetFutures();
+                futAss.asset = assetsCoinM[i].asset;
+                futAss.marginBalance= assetsCoinM[i].balance;
+                assets.Add(futAss);
+            }
 
             resp.assets = assets;
             resp.positions = new List<PositionFutures>();
@@ -345,7 +353,6 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 {
                     NewPortfolio(resp);
                 }
-
             }
             catch (Exception ex)
             {
