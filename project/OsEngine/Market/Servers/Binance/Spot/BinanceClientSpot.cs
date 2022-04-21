@@ -268,7 +268,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 Thread.Sleep(30000);
 
 
-                if (_spotListenKey == "" ||
+                if (_spotListenKey == "" &&
                     _marginListenKey == "")
                 {
                     continue;
@@ -279,7 +279,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     return;
                 }
 
-                if (_timeStart.AddMinutes(25) < DateTime.Now)
+                if (_timeStart.AddMinutes(5) < DateTime.Now)
                 {
                     _timeStart = DateTime.Now;
 
