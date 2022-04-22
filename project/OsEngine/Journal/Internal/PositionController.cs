@@ -380,6 +380,27 @@ namespace OsEngine.Journal.Internal
             _neadToSave = true;
         }
 
+        public void NeadToUpdateStatePositions()
+        {
+            for(int i = 0;i < _deals.Count;i++)
+            {
+                if(_deals[i] == null)
+                {
+                    _deals.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+
+                UpdeteOpenPositionArray(_deals[i]);
+            }
+           
+            _openLongChanged = true;
+            _openShortChanged = true;
+            _closePositionChanged = true;
+            _closeShortChanged = true;
+            _closeLongChanged = true;
+        }
+
         // working with a position
         // работа с позицией
 

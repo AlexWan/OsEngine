@@ -119,6 +119,11 @@ namespace OsEngine.Journal
         /// </summary>
         private PositionController _positionController;
 
+        public void NeadToUpdateStatePositions()
+        {
+            _positionController.NeadToUpdateStatePositions();
+        }
+
         /// <summary>
         /// take out open deals
         /// взять открытые сделки
