@@ -100,8 +100,16 @@ namespace OsEngine.Entity
             {
                 return;
             }
+
             try
             {
+                if (trades == null ||
+                    trades.Count == 0 ||
+                    trades[0] == null)
+                {
+                    return;
+                }
+
                 if (_activSeries == null)
                 {
                     return;
@@ -109,6 +117,11 @@ namespace OsEngine.Entity
 
                 for (int i = 0; i < _activSeries.Count; i++)
                 {
+                    if(_activSeries[i] == null ||
+                        _activSeries[i].Security == null)
+                    {
+                        continue;
+                    }
                     if (_activSeries[i].CandleMarketDataType == CandleMarketDataType.Tick &&
                         _activSeries[i].Security.Name == trades[0].SecurityNameCode)
                     {
@@ -156,7 +169,6 @@ namespace OsEngine.Entity
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-
 
         public CandleSeries GetSeries(TimeFrameBuilder timeFrameBuilder, Security security)
         {
