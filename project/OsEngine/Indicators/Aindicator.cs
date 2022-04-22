@@ -469,7 +469,10 @@ namespace OsEngine.Indicators
                 return;
             }
 
-            ProcessAll(_myCandles);
+            lock(_indicatorUpdateLocker)
+            {
+                ProcessAll(_myCandles);
+            }
 
             if (NeadToReloadEvent != null)
             {
@@ -477,17 +480,21 @@ namespace OsEngine.Indicators
             }
         }
 
+        private string _indicatorUpdateLocker = "indLocker";
+
         public event Action<IIndicator> NeadToReloadEvent;
 
         public void Clear()
         {
             _myCandles = new List<Candle>();
 
-            for (int i = 0; i < DataSeries.Count; i++)
+            lock(_indicatorUpdateLocker)
             {
-                DataSeries[i].Values.Clear();
+                for (int i = 0; i < DataSeries.Count; i++)
+                {
+                    DataSeries[i].Values.Clear();
+                }
             }
-
         }
 
         private List<Candle> _myCandles = new List<Candle>();
@@ -496,34 +503,37 @@ namespace OsEngine.Indicators
 
         public void Process(List<Candle> candles)
         {
-            if (candles.Count == 0)
+            lock(_indicatorUpdateLocker)
             {
-                return;
-            }
-            if (_myCandles == null ||
+                if (candles.Count == 0)
+                {
+                    return;
+                }
+                if (_myCandles == null ||
                 candles.Count < _myCandles.Count ||
                 candles.Count > _myCandles.Count + 1)
-            {
-                ProcessAll(candles);
-            }
-            else if (candles.Count < DataSeries[0].Values.Count)
-            {
-                foreach (var ds in DataSeries)
                 {
-                    ds.Values.Clear();
+                    ProcessAll(candles);
                 }
-                ProcessAll(candles);
-            }
-            else if (_myCandles.Count == candles.Count)
-            {
-                ProcessLast(candles);
-            }
-            else if (_myCandles.Count + 1 == candles.Count)
-            {
-                ProcessNew(candles, candles.Count-1);
-            }
+                else if (candles.Count < DataSeries[0].Values.Count)
+                {
+                    foreach (var ds in DataSeries)
+                    {
+                        ds.Values.Clear();
+                    }
+                    ProcessAll(candles);
+                }
+                else if (_myCandles.Count == candles.Count)
+                {
+                    ProcessLast(candles);
+                }
+                else if (_myCandles.Count + 1 == candles.Count)
+                {
+                    ProcessNew(candles, candles.Count - 1);
+                }
 
-            _myCandles = candles;
+                _myCandles = candles;
+            }
         }
 
         private void ProcessAll(List<Candle> candles)
@@ -593,23 +603,26 @@ namespace OsEngine.Indicators
 
         public void Process(List<decimal> values)
         {
-            if (values.Count == 0)
+            lock(_indicatorUpdateLocker)
             {
-                return;
-            }
-            if (_myCandles == null ||
-                values.Count < _myCandles.Count ||
-                values.Count > _myCandles.Count + 1)
-            {
-                ProcessAll(values);
-            }
-            else if (_myCandles.Count == values.Count)
-            {
-                ProcessLast(values);
-            }
-            else if (_myCandles.Count + 1 == values.Count)
-            {
-                ProcessNew(values, values.Count);
+                if (values.Count == 0)
+                {
+                    return;
+                }
+                if (_myCandles == null ||
+                    values.Count < _myCandles.Count ||
+                    values.Count > _myCandles.Count + 1)
+                {
+                    ProcessAll(values);
+                }
+                else if (_myCandles.Count == values.Count)
+                {
+                    ProcessLast(values);
+                }
+                else if (_myCandles.Count + 1 == values.Count)
+                {
+                    ProcessNew(values, values.Count);
+                }
             }
         }
 

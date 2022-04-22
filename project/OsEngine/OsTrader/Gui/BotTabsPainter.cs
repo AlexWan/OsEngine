@@ -60,7 +60,7 @@ namespace OsEngine.OsTrader.Gui
             colum0.CellTemplate = cell0;
             colum0.HeaderText = OsLocalization.Trader.Label165; //"Num";
             colum0.ReadOnly = true;
-            colum0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colum0.Width = 70;
             newGrid.Columns.Add(colum0);
 
             DataGridViewColumn colum01 = new DataGridViewColumn();
@@ -88,7 +88,7 @@ namespace OsEngine.OsTrader.Gui
             colum05.CellTemplate = cell0;
             colum05.HeaderText = OsLocalization.Trader.Label20;//"Position";
             colum05.ReadOnly = true;
-            colum05.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colum05.Width = 120;
             newGrid.Columns.Add(colum05);
 
             DataGridViewButtonColumn colum06 = new DataGridViewButtonColumn();
@@ -244,6 +244,14 @@ colum09.HeaderText = "Action";
 
             row.Cells.Add(new DataGridViewButtonCell());
             row.Cells[7].Value = OsLocalization.Trader.Label39;//"Delete";
+
+            if (num % 2 == 0)
+            {
+                for (int i = 0; i < row.Cells.Count; i++)
+                {
+                    row.Cells[i].Style.BackColor = System.Drawing.Color.FromArgb(9, 11, 13);
+                }
+            }
 
             return row;
         }
