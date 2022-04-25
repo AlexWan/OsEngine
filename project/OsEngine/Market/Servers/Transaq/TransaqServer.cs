@@ -336,7 +336,7 @@ namespace OsEngine.Market.Servers.Transaq
 
         public void GetOrdersState(List<Order> orders)
         {
-            throw new NotSupportedException("The operation of receiving the status of orders is not supported in the current connector");
+          
         }
 
         private List<Portfolio> _portfolios;
