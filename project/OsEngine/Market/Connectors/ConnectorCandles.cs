@@ -1307,6 +1307,7 @@ namespace OsEngine.Market.Connectors
                 }
 
                 order.SecurityNameCode = SecurityName;
+                order.SecurityClassCode = SecurityClass;
                 order.PortfolioNumber = PortfolioName;
                 order.ServerType = ServerType;
                 order.TimeCreate = MarketTime;

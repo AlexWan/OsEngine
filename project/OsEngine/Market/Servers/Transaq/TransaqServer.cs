@@ -447,7 +447,15 @@ namespace OsEngine.Market.Servers.Transaq
         {
             string side = order.Side == Side.Buy ? "B" : "S";
 
-            var needSec = _securities.Find(s => s.Name == order.SecurityNameCode);
+            Security needSec = _securities.Find(
+                s => s.Name == order.SecurityNameCode &&
+                s.NameClass == order.SecurityClassCode);
+
+            if(needSec == null)
+            {
+                needSec = _securities.Find(
+                s => s.Name == order.SecurityNameCode);
+            }
 
             string cmd = "<command id=\"neworder\">";
             cmd += "<security>";
@@ -491,7 +499,7 @@ namespace OsEngine.Market.Servers.Transaq
             else
             {
                 order.NumberUser = result.TransactionId;
-                order.State = OrderStateType.Pending;
+                order.State = OrderStateType.Activ;
             }
 
             order.TimeCallBack = ServerTime;

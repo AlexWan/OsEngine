@@ -47,6 +47,9 @@ namespace OsEngine.Entity
         /// </summary>
         public string SecurityNameCode;
 
+
+        public string SecurityClassCode;
+
         /// <summary>
         /// account number to which the order belongs
         /// номер счёта которому принадлежит ордер
