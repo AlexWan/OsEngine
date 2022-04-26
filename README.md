@@ -30,7 +30,7 @@ The layer for creating robots is similar to the Wealth-Lab script and Ninja Scri
 *Available international connections*
 
 1) LMAX
-2) Interactiv Brokers
+2) Interactive Brokers
 3) Ninja trader
 
 *Available connections for MOEX*
@@ -108,7 +108,7 @@ Forum http://o-s-a.net/eng/forum
 *Доступные международные подключения*
 
 1) LMAX
-2) Interactiv Brokers
+2) Interactive Brokers
 3) Ninja trader
 
 *Доступные подключения для MOEX*

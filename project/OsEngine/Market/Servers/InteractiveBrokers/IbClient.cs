@@ -14,7 +14,7 @@ using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 
-namespace OsEngine.Market.Servers.InteractivBrokers
+namespace OsEngine.Market.Servers.InteractiveBrokers
 {
     /// <summary>
     /// class implements the client for TCP server TWS

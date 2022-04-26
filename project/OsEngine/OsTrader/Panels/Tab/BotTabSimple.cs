@@ -1166,7 +1166,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private bool IsMarketOrderSupport()
         {
-            if (_connector.ServerType == ServerType.InteractivBrokers ||
+            if (_connector.ServerType == ServerType.InteractiveBrokers ||
                 _connector.ServerType == ServerType.Lmax ||
                 _connector.ServerType == ServerType.BitMax ||
                 _connector.ServerType == ServerType.FTX ||

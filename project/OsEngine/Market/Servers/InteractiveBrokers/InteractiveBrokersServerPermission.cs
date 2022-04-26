@@ -4,13 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OsEngine.Market.Servers.InteractivBrokers
+namespace OsEngine.Market.Servers.InteractiveBrokers
 {
     class InteractiveBrokersServerPermission : IServerPermission
     {
         public ServerType ServerType
         {
-            get { return ServerType.InteractivBrokers; }
+            get { return ServerType.InteractiveBrokers; }
         }
 
         #region DataFeedPermissions

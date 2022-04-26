@@ -13,7 +13,7 @@ using ContextMenu = System.Windows.Forms.ContextMenu;
 using MenuItem = System.Windows.Forms.MenuItem;
 using MouseEventArgs = System.Windows.Forms.MouseEventArgs;
 
-namespace OsEngine.Market.Servers.InteractivBrokers
+namespace OsEngine.Market.Servers.InteractiveBrokers
 {
     /// <summary>
     /// Interaction logic for IbContractStorageUi.xaml
