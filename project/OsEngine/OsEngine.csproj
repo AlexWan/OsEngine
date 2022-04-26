@@ -585,12 +585,12 @@
     <Compile Include="Market\Servers\Huobi\Response\WebSocketResponseBase.cs" />
     <Compile Include="Market\Servers\Huobi\Spot\HuobiSpotSecurityCreator.cs" />
     <Compile Include="Market\Servers\Huobi\Spot\HuobiSpotServer.cs" />
-    <Compile Include="Market\Servers\InteractivBrokers\IbClient.cs" />
-    <Compile Include="Market\Servers\InteractivBrokers\IbContractStorageUi.xaml.cs">
+    <Compile Include="Market\Servers\InteractiveBrokers\IbClient.cs" />
+    <Compile Include="Market\Servers\InteractiveBrokers\IbContractStorageUi.xaml.cs">
       <DependentUpon>IbContractStorageUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Market\Servers\InteractivBrokers\InteractiveBrokersServer.cs" />
-    <Compile Include="Market\Servers\InteractivBrokers\InteractiveBrokersServerPermission.cs" />
+    <Compile Include="Market\Servers\InteractiveBrokers\InteractiveBrokersServer.cs" />
+    <Compile Include="Market\Servers\InteractiveBrokers\InteractiveBrokersServerPermission.cs" />
     <Compile Include="Market\Servers\IServer.cs" />
     <Compile Include="Market\Servers\IServerPermission.cs" />
     <Compile Include="Market\Servers\IServerRealization.cs" />
@@ -1252,7 +1252,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Market\Servers\InteractivBrokers\IbContractStorageUi.xaml">
+    <Page Include="Market\Servers\InteractiveBrokers\IbContractStorageUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

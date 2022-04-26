@@ -7,11 +7,11 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
-using OsEngine.Market.Servers.InteractivBrokers;
+using OsEngine.Market.Servers.InteractiveBrokers;
 using System.IO;
 
 
-namespace OsEngine.Market.Servers.InteractivBrokers
+namespace OsEngine.Market.Servers.InteractiveBrokers
 {
     public class InteractiveBrokersServer : AServer
     {
@@ -54,7 +54,7 @@ namespace OsEngine.Market.Servers.InteractivBrokers
         /// </summary>
         public ServerType ServerType
         {
-            get { return ServerType.InteractivBrokers; }
+            get { return ServerType.InteractiveBrokers; }
         }
 
         /// <summary>

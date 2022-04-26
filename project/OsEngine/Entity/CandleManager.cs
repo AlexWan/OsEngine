@@ -31,7 +31,7 @@ using OsEngine.Market.Servers.Tinkoff;
 using OsEngine.Market.Servers.GateIo.Futures;
 using OsEngine.Market.Servers.FTX;
 using OsEngine.Market.Servers.Bybit;
-using OsEngine.Market.Servers.InteractivBrokers;
+using OsEngine.Market.Servers.InteractiveBrokers;
 
 namespace OsEngine.Entity
 {
@@ -445,7 +445,7 @@ namespace OsEngine.Entity
                             series.UpdateAllCandles();
                             series.IsStarted = true;
                         }
-                        else if (serverType == ServerType.InteractivBrokers)
+                        else if (serverType == ServerType.InteractiveBrokers)
                         {
                             InteractiveBrokersServer server = (InteractiveBrokersServer)_server;
                             if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
@@ -795,8 +795,8 @@ namespace OsEngine.Entity
         // Для ТЕСТЕРА
 
         /// <summary>
-        /// /// for the tester and Interactiv Brokers. Loading a new candle in the series
-        /// для тестера и Interactiv Brokers. Подгрузка новой свечи в серии
+        /// /// for the tester and Interactive Brokers. Loading a new candle in the series
+        /// для тестера и Interactive Brokers. Подгрузка новой свечи в серии
         /// </summary>
         public void SetNewCandleInSeries(Candle candle, string nameSecurity, TimeSpan timeFrame)
         {

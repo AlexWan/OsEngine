@@ -22,7 +22,7 @@ using OsEngine.Market.Servers.BitStamp;
 using OsEngine.Market.Servers.ExMo;
 using OsEngine.Market.Servers.Finam;
 using OsEngine.Market.Servers.GateIo;
-using OsEngine.Market.Servers.InteractivBrokers;
+using OsEngine.Market.Servers.InteractiveBrokers;
 using OsEngine.Market.Servers.Kraken;
 using OsEngine.Market.Servers.Livecoin;
 using OsEngine.Market.Servers.Lmax;
@@ -105,7 +105,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.FTX);
                 serverTypes.Add(ServerType.Bybit);
 
-                serverTypes.Add(ServerType.InteractivBrokers);
+                serverTypes.Add(ServerType.InteractiveBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
                 serverTypes.Add(ServerType.Lmax);
                 serverTypes.Add(ServerType.Oanda);
@@ -308,7 +308,7 @@ namespace OsEngine.Market
                 {
                     newServer = new QuikServer();
                 }
-                if (type == ServerType.InteractivBrokers)
+                if (type == ServerType.InteractiveBrokers)
                 {
                     newServer = new InteractiveBrokersServer();
                 }
@@ -607,7 +607,7 @@ namespace OsEngine.Market
 
                 return serverPermission;
             }
-            if (type == ServerType.InteractivBrokers)
+            if (type == ServerType.InteractiveBrokers)
             {
                 serverPermission = _serversPermissions.Find(s => s.ServerType == type);
 
@@ -1068,7 +1068,7 @@ namespace OsEngine.Market
         /// <summary>
         /// IB
         /// </summary>
-        InteractivBrokers,
+        InteractiveBrokers,
 
         /// <summary>
         /// Finam

@@ -1124,9 +1124,9 @@ namespace OsEngine.OsData
                 {
                     Directory.CreateDirectory("Data\\SmartComServerTrades");
                 }
-                if (!Directory.Exists("Data\\InteractivBrokersServerTrades"))
+                if (!Directory.Exists("Data\\InteractiveBrokersServerTrades"))
                 {
-                    Directory.CreateDirectory("Data\\InteractivBrokersServerTrades");
+                    Directory.CreateDirectory("Data\\InteractiveBrokersServerTrades");
                 }
                 if (!Directory.Exists("Data\\AstsBridgeServerTrades"))
                 {
@@ -1172,7 +1172,7 @@ namespace OsEngine.OsData
 
                     File.Delete("Data\\QuikServerTrades\\" + nameSecurityToSave.RemoveExcessFromSecurityName() + ".txt");
                     File.Delete("Data\\SmartComServerTrades\\" + nameSecurityToSave.RemoveExcessFromSecurityName() + ".txt");
-                    File.Delete("Data\\InteractivBrokersServerTrades\\" + nameSecurityToSave.RemoveExcessFromSecurityName() + ".txt");
+                    File.Delete("Data\\InteractiveBrokersServerTrades\\" + nameSecurityToSave.RemoveExcessFromSecurityName() + ".txt");
                     File.Delete("Data\\AstsBridgeServerTrades\\" + nameSecurityToSave.RemoveExcessFromSecurityName() + ".txt");
                     File.Delete("Data\\PlazaServerTrades\\" + nameSecurityToSave.RemoveExcessFromSecurityName() + ".txt");
 
@@ -1181,7 +1181,7 @@ namespace OsEngine.OsData
                     File.Copy(pathToSet + SecuritiesNames[i].Name.RemoveExcessFromSecurityName() + "\\" + "Tick" + "\\" + SecuritiesNames[i].Name.RemoveExcessFromSecurityName() + ".txt",
                         "Data\\SmartComServerTrades\\" + nameSecurityToSave + ".txt");
                     File.Copy(pathToSet + SecuritiesNames[i].Name.RemoveExcessFromSecurityName() + "\\" + "Tick" + "\\" + SecuritiesNames[i].Name.RemoveExcessFromSecurityName() + ".txt",
-                        "Data\\InteractivBrokersServerTrades\\" + nameSecurityToSave + ".txt");
+                        "Data\\InteractiveBrokersServerTrades\\" + nameSecurityToSave + ".txt");
                     File.Copy(pathToSet + SecuritiesNames[i].Name.RemoveExcessFromSecurityName() + "\\" + "Tick" + "\\" + SecuritiesNames[i].Name.RemoveExcessFromSecurityName() + ".txt",
                         "Data\\AstsBridgeServerTrades\\" + nameSecurityToSave + ".txt");
                     File.Copy(pathToSet + SecuritiesNames[i].Name.RemoveExcessFromSecurityName() + "\\" + "Tick" + "\\" + SecuritiesNames[i].Name.RemoveExcessFromSecurityName() + ".txt",
