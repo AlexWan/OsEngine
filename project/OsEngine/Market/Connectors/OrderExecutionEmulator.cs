@@ -164,6 +164,11 @@ namespace OsEngine.Market.Connectors
                 {
                     decimal price = _bestSell;
 
+                    if(price == 0)
+                    {
+                        price = order.Price;
+                    }
+
                     ExecuteSimple(order, price);
                     ordersOnBoard.Remove(order);
                     return true;
@@ -171,7 +176,12 @@ namespace OsEngine.Market.Connectors
                 else if (order.Side == Side.Sell )
                 {
                     decimal price = _bestBuy;
-                    
+
+                    if (price == 0)
+                    {
+                        price = order.Price;
+                    }
+
                     ExecuteSimple(order, price);
                     ordersOnBoard.Remove(order);
                     return true;
@@ -180,7 +190,7 @@ namespace OsEngine.Market.Connectors
             else //if (order.TypeOrder == OrderPriceType.Limit)
             {
                 if (order.Side == Side.Buy &&
-              order.Price >= _bestSell)
+              order.Price >= _bestSell && _bestSell != 0)
                 {
                     decimal price;
 
@@ -198,7 +208,7 @@ namespace OsEngine.Market.Connectors
                     return true;
                 }
                 else if (order.Side == Side.Sell &&
-                         order.Price <= _bestBuy)
+                         order.Price <= _bestBuy && _bestBuy != 0)
                 {
                     decimal price;
 
@@ -308,6 +318,11 @@ namespace OsEngine.Market.Connectors
         /// <param name="time"> time / время </param>
         public void ProcessBidAsc(decimal sell, decimal buy, DateTime time)
         {
+            if(sell == 0 || buy == 0)
+            {
+                return;
+            }
+
             if (buy > sell)
             {
                 _bestBuy = sell;
