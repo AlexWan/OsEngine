@@ -336,7 +336,11 @@ namespace OsEngine.Market.Servers.GateIo
             headers.Add("Sign", SingRestData(_secretKey, ""));
 
             var result = _restChannel.SendPostQuery(PrivateRestUri, "fundingbalances", new byte[0], headers);
-
+            if( result.Contains("code\":5"))
+                {
+                SendLogMessage("Gate io connect error: " + JToken.Parse(result)["message"].Value<string>(), LogMessageType.Error);
+                return;
+                }
             OnPortfolioEvent(_portfolioCreator.CreatePortfolio(result));
         }
 
