@@ -28,7 +28,7 @@
                         <WindowsFormsHost  x:Name="HostAllert"  Foreground="Black"/>
                     </Grid>
                 </TabItem>
-                <TabItem Name="TabItemControl" Header="Control" Width="90" >
+                <TabItem Name="TabItemControl" Header="Control" Width="90"  IsSelected="True">
                     <Grid>
                         <Label Name="LabelGeneralSettings" Content="General settings" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,6,0,0" FontSize="18"/>
                         <Button Name="ButtonServer" Content="Connection Servers" HorizontalAlignment="Left" Margin="66,43,0,0" VerticalAlignment="Top" Width="161" Click="ButtonServer_Click"/>
