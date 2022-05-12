@@ -486,6 +486,19 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
 
+            // так хорошо A0 / (0.033 * A1 + 0.013 * A2 + 0.021 * A3)
+            // так плохо (A0) / (0.033 * A1 + 0.013 * A2 + 0.021 * A3)
+            // Удалить такую конструкцию (A0)
+            for (int i = 3; i < formula.Length; i++)
+            {
+                if(formula[i - 3] == '(' && formula[i] == ')')
+                {
+                    formula = formula.Remove(i, 1);
+                    formula = formula.Remove(i - 3, 1);
+                }
+            }
+
+
             return formula;
         }
 
