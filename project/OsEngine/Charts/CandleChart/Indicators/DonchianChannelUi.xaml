@@ -11,7 +11,7 @@
         <WindowsFormsHost x:Name="HostColorUp" Height="22" Margin="152,48,20,0" VerticalAlignment="Top"/>
         <Button x:Name="ButtonColorDown" Content="Цвет нижней" Height="22" FontSize="14" FontFamily="Calibri" HorizontalAlignment="Left" Margin="20,102,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorDown_Click" />
         <WindowsFormsHost x:Name="HostColorDown" Height="22" Margin="152,102,20,0" VerticalAlignment="Top"/>
-        <Button x:Name="ButtonColorAvg" Content="Цвет средней" Height="22" FontSize="14" FontFamily="Calibri" HorizontalAlignment="Left" Margin="20,75,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorDown_Click" />
+        <Button x:Name="ButtonColorAvg" Content="Цвет средней" Height="22" FontSize="14" FontFamily="Calibri" HorizontalAlignment="Left" Margin="20,75,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorAvg_Click" />
         <WindowsFormsHost x:Name="HostColorAvg" Height="22" Margin="152,75,20,0" VerticalAlignment="Top"/>
         <CheckBox Name="CheckBoxPaintOnOff" Content="Прорисовывать" HorizontalAlignment="Left" Margin="153,133,0,0" VerticalAlignment="Top" Foreground="#FF7212" FontFamily="Calibri" FontSize="14"/>
 
