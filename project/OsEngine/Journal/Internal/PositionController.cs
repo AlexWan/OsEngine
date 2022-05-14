@@ -1136,6 +1136,8 @@ namespace OsEngine.Journal.Internal
 
             CreateTable();
 
+            _positionsToPaint = AllPositions;
+
             _hostOpenDeal = dataGridOpenDeal;
             _hostCloseDeal = dataGridCloseDeal;
 
@@ -1158,6 +1160,7 @@ namespace OsEngine.Journal.Internal
                 _hostCloseDeal.Dispatcher.Invoke(StopPaint);
                 return;
             }
+
             if (_hostCloseDeal != null)
             {
                 _hostCloseDeal.Child = null;
@@ -1165,6 +1168,8 @@ namespace OsEngine.Journal.Internal
                 _hostOpenDeal = null;
                 _hostCloseDeal = null;
             }
+
+            _positionsToPaint.Clear();
         }
 
         /// <summary>
