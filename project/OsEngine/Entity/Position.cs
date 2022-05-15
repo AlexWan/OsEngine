@@ -480,7 +480,10 @@ namespace OsEngine.Entity
 
             if (openOrder != null)
             {
-                openOrder.State = newOrder.State;
+               if (openOrder.State != OrderStateType.Done || openOrder.Volume != openOrder.VolumeExecute)    //AVP 
+                {
+                    openOrder.State = newOrder.State;     //AVP 
+                }
                 openOrder.NumberMarket = newOrder.NumberMarket;
 
                 if (openOrder.TimeCallBack == DateTime.MinValue)
