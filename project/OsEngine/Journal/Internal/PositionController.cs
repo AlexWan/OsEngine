@@ -250,7 +250,7 @@ namespace OsEngine.Journal.Internal
             {
                 List<Position> deals = _deals;
 
-                _deals = null;
+                _deals = new List<Position>();
 
                 for (int i = 0; deals != null && i < deals.Count; i++)
                 {
@@ -1136,7 +1136,15 @@ namespace OsEngine.Journal.Internal
 
             CreateTable();
 
-            _positionsToPaint = AllPositions;
+            if(_positionsToPaint == null)
+            {
+                _positionsToPaint = new List<Position>();
+            }
+
+            for(int i = 0;i < AllPositions.Count;i++)
+            {
+                _positionsToPaint.Add(AllPositions[i]);
+            }
 
             _hostOpenDeal = dataGridOpenDeal;
             _hostCloseDeal = dataGridCloseDeal;
@@ -1168,8 +1176,7 @@ namespace OsEngine.Journal.Internal
                 _hostOpenDeal = null;
                 _hostCloseDeal = null;
             }
-
-            _positionsToPaint.Clear();
+            _positionsToPaint = null;
         }
 
         /// <summary>
