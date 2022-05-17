@@ -1289,6 +1289,12 @@ namespace OsEngine.Journal.Internal
             {
                 return;
             }
+
+            if(_positionsToPaint == null)
+            {
+                return;
+            }
+
             try
             {
                 for (int i = 0; i < _positionsToPaint.Count; i++)
