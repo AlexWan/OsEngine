@@ -340,7 +340,8 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (_trades == null || _trades.Count == 0)
+                if (_trades == null 
+                    || _trades.Count == 0)
                 {
                     return false;
                 }

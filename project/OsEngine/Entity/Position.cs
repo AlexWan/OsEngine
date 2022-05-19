@@ -45,8 +45,23 @@ namespace OsEngine.Entity
             if (_openOrders == null)
             {
                 _openOrders = new List<Order>();
+                _openOrders.Add(openOrder);
             }
-            _openOrders.Add(openOrder);
+            else
+            {
+                if(string.IsNullOrEmpty(SecurityName) == false)
+                {
+                    if(SecurityName == openOrder.SecurityNameCode)
+                    {
+                        _openOrders.Add(openOrder);
+                    }
+                }
+                else
+                {
+                    _openOrders.Add(openOrder);
+                }
+
+            }
             
             State = PositionStateType.Opening;
         }
@@ -116,8 +131,22 @@ namespace OsEngine.Entity
             if (CloseOrders == null)
             {
                 _closeOrders = new List<Order>();
+                _closeOrders.Add(closeOrder);
             }
-            _closeOrders.Add(closeOrder);
+            else
+            {
+                if (string.IsNullOrEmpty(SecurityName) == false)
+                {
+                    if(SecurityName == closeOrder.SecurityNameCode)
+                    {
+                        _closeOrders.Add(closeOrder);
+                    }
+                }
+                else
+                {
+                    _closeOrders.Add(closeOrder);
+                }
+            }
 
             State = PositionStateType.Closing;
         }
@@ -480,7 +509,8 @@ namespace OsEngine.Entity
 
             if (openOrder != null)
             {
-               if (openOrder.State != OrderStateType.Done || openOrder.Volume != openOrder.VolumeExecute)    //AVP 
+               if (openOrder.State != OrderStateType.Done 
+                    || openOrder.Volume != openOrder.VolumeExecute)    //AVP 
                 {
                     openOrder.State = newOrder.State;     //AVP 
                 }
@@ -494,27 +524,33 @@ namespace OsEngine.Entity
                 openOrder.TimeCancel = newOrder.TimeCancel;
                 openOrder.VolumeExecute = newOrder.VolumeExecute;
 
-                if (openOrder.State == OrderStateType.Done && openOrder.TradesIsComing &&
-                    OpenVolume != 0 && !CloseActiv)
+                if (openOrder.State == OrderStateType.Done 
+                    && openOrder.TradesIsComing 
+                    && OpenVolume != 0 && !CloseActiv)
                 {
                     State = PositionStateType.Open;
                 }
-                else if (newOrder.State == OrderStateType.Fail && newOrder.VolumeExecute == 0 && 
-                    OpenVolume == 0)
+                else if (newOrder.State == OrderStateType.Fail 
+                    && newOrder.VolumeExecute == 0 
+                    && OpenVolume == 0)
                 {
                     State = PositionStateType.OpeningFail;
                 }
-                else if (newOrder.State == OrderStateType.Cancel && newOrder.VolumeExecute == 0 &&
-                    OpenVolume == 0)
+                else if (newOrder.State == OrderStateType.Cancel
+                    && newOrder.VolumeExecute == 0 
+                    && OpenVolume == 0)
                 {
                     State = PositionStateType.OpeningFail;
                 }
-                else if (newOrder.State == OrderStateType.Cancel && OpenVolume != 0)
+                else if (newOrder.State == OrderStateType.Cancel
+                    && OpenVolume != 0)
                 {
                     State = PositionStateType.Open;
                 }
-                else if (newOrder.State == OrderStateType.Done && OpenVolume == 0 
-                    && CloseOrders != null && CloseOrders.Count > 0)
+                else if (newOrder.State == OrderStateType.Done 
+                    && OpenVolume == 0 
+                    && CloseOrders != null 
+                    && CloseOrders.Count > 0)
                 {
                     State = PositionStateType.Done;
                 }
@@ -619,8 +655,9 @@ namespace OsEngine.Entity
 
                 for (int i = 0; i < _openOrders.Count; i++)
                 {
-                    if (_openOrders[i].NumberMarket == trade.NumberOrderParent||
-                        _openOrders[i].NumberUser.ToString() == trade.NumberOrderParent)
+                    if ((_openOrders[i].NumberMarket == trade.NumberOrderParent
+                        ||_openOrders[i].NumberUser.ToString() == trade.NumberOrderParent)
+                        && _openOrders[i].SecurityNameCode == trade.SecurityNameCode)
                     {
                         trade.NumberPosition = Number.ToString();
                         _openOrders[i].SetTrade(trade);
@@ -641,8 +678,9 @@ namespace OsEngine.Entity
             {
                 for (int i = 0; i < CloseOrders.Count; i++)
                 {
-                    if (CloseOrders[i].NumberMarket == trade.NumberOrderParent ||
-                        CloseOrders[i].NumberUser.ToString() == trade.NumberOrderParent)
+                    if ((CloseOrders[i].NumberMarket == trade.NumberOrderParent 
+                        || CloseOrders[i].NumberUser.ToString() == trade.NumberOrderParent)
+                        && CloseOrders[i].SecurityNameCode == trade.SecurityNameCode)
                     {
                         trade.NumberPosition = Number.ToString();
                         CloseOrders[i].SetTrade(trade);
