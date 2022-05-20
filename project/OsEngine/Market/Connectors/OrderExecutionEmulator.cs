@@ -69,7 +69,15 @@ namespace OsEngine.Market.Connectors
         /// </summary>
         public void OrderExecute(Order order) 
         {
-            order.SecurityNameCode = "TestPaper";
+            if(order.SecurityNameCode != null)
+            {
+                order.SecurityNameCode = order.SecurityNameCode + " TestPaper";
+            }
+            else
+            {
+                order.SecurityNameCode = "TestPaper";
+            }
+            
             order.PortfolioNumber = "TestPortfolio";
   
             ActivateSimple(order);

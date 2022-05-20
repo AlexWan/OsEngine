@@ -49,7 +49,8 @@ namespace OsEngine.Entity
             }
             else
             {
-                if(string.IsNullOrEmpty(SecurityName) == false)
+                if(string.IsNullOrEmpty(SecurityName) == false 
+                    && SecurityName.EndsWith("TestPaper") == false)
                 {
                     if(SecurityName == openOrder.SecurityNameCode)
                     {
@@ -135,7 +136,8 @@ namespace OsEngine.Entity
             }
             else
             {
-                if (string.IsNullOrEmpty(SecurityName) == false)
+                if (string.IsNullOrEmpty(SecurityName) == false
+                    && SecurityName.EndsWith("TestPaper") == false)
                 {
                     if(SecurityName == closeOrder.SecurityNameCode)
                     {

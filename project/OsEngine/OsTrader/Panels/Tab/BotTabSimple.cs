@@ -2796,6 +2796,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     ManualPositionSupport.SecondToOpen, StartProgram, OrderPositionConditionType.Open);
                 newOrder.IsStopOrProfit = isStopOrProfit;
                 newOrder.LifeTime = timeLife;
+                newOrder.SecurityNameCode = Securiti.Name;
+                newOrder.SecurityClassCode = Securiti.NameClass;
+
                 position.AddNewOpenOrder(newOrder);
 
                 _connector.OrderExecute(newOrder);
