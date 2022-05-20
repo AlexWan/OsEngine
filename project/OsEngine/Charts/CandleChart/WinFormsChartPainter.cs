@@ -3261,6 +3261,13 @@ namespace OsEngine.Charts.CandleChart
             {
                 return;
             }
+
+            if (_chart.InvokeRequired)
+            {
+                _chart.Invoke(new Action<IIndicator>(RePaintIndicator), indicatorCandle);
+                return;
+            }
+
             try
             {
                 if (_myCandles == null)
