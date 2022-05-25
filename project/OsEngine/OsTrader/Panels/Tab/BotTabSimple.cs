@@ -2869,6 +2869,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 Order closeOrder = _dealCreator.CreateCloseOrderForDeal(position, price, priceType, lifeTime, StartProgram);
 
+                closeOrder.SecurityNameCode = Securiti.Name;
+                closeOrder.SecurityClassCode = Securiti.NameClass;
+
                 if (closeOrder == null)
                 {
                     if (position.OpenVolume == 0)
