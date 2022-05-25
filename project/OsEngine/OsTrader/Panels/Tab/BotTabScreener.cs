@@ -226,7 +226,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        private bool _tabIsLoad;
+        private bool _tabIsLoad = false;
 
         /// <summary>
         /// load / 
@@ -234,11 +234,22 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void TryLoadTabs()
         {
-            if(_tabIsLoad == true)
+            if (ServerMaster.ActiveServersTypes.Count == 0)
+            {
+                return;
+            }
+
+            if (ServerMaster.GetServers().Find(x => x.ServerType == ServerType.BinanceFutures).ServerStatus == Market.Servers.ServerConnectStatus.Disconnect)
+            {
+                return;
+            }
+
+            if (_tabIsLoad == true)
             {
                 return;
             }
             _tabIsLoad = true;
+
             if (!File.Exists(@"Engine\" + TabName + @"ScreenerTabSet.txt"))
             {
                 return;
@@ -540,6 +551,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         private void TryReLoadTabs()
         {
             if(NeadToReloadTabs == false)
+            {
+                return;
+            }
+
+            if (_tabIsLoad == false)
             {
                 return;
             }

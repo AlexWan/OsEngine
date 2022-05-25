@@ -171,8 +171,9 @@ namespace OsEngine.Journal.Internal
                         positions[i].SetDealFromString(deal);
                         UpdeteOpenPositionArray(positions[i]);
                     }
-                    catch (Exception)
+                    catch (Exception error)
                     {
+                        SendNewLogMessage("ERROR on loading position " + error.ToString(), LogMessageType.Error);
                         positions.Remove(positions[i]);
                         i--;
                     }
