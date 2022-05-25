@@ -45,6 +45,7 @@ namespace OsEngine.Market.Servers.Bybit.EntityCreators
 
             parameters.Add("symbol", security);
             parameters.Add("limit", limit.ToString());
+            parameters.Add("recv_window", "90000000");
 
             if (from_id != -1)
             {

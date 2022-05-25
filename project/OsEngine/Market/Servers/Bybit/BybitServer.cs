@@ -316,6 +316,7 @@ namespace OsEngine.Market.Servers.Bybit
             Dictionary<string, string> parameters = new Dictionary<string, string>();
 
             parameters.Add("api_key", client.ApiKey);
+            parameters.Add("recv_window", "90000000");
 
             JToken account_response = BybitRestRequestBuilder.CreatePrivateGetQuery(client, "/v2/private/wallet/balance", parameters );
 
@@ -328,6 +329,8 @@ namespace OsEngine.Market.Servers.Bybit
             else
             {
                 SendLogMessage($"Can not get portfolios info.", LogMessageType.Error);
+                SendLogMessage($"You should set the time on the PC as UTC time.", LogMessageType.Error);
+
                 portfolios.Add(BybitPortfolioCreator.Create("undefined"));
             }
 
@@ -452,6 +455,7 @@ namespace OsEngine.Market.Servers.Bybit
                 parameters.Add("api_key", client.ApiKey);
                 parameters.Add("symbol", order.SecurityNameCode);
                 parameters.Add("order_id", order.NumberMarket);
+                parameters.Add("recv_window", "90000000");
 
                 JToken account_response;
                 if(futures_type == "Inverse Perpetual")

@@ -45,6 +45,7 @@ namespace OsEngine.Market.Servers.Bybit.EntityCreators
             parameters.Add("interval", need_interval_for_query);
             parameters.Add("limit", "200");
             parameters.Add("from", from.ToString());
+            parameters.Add("recv_window", "90000000");
 
             object account_response = new object();
 

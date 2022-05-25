@@ -11,9 +11,14 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
+using RestSharp;
+using System.IO;
+using OsEngine.Market.Servers.Tinkoff.TinkoffJsonSchema;
+
 
 namespace OsEngine.Market.Servers.Tinkoff
 {
@@ -33,11 +38,9 @@ namespace OsEngine.Market.Servers.Tinkoff
 
         public string _token;
 
-        private string _url = "https://invest-public-api.tinkoff.ru/"; 
-        
-        //https://api-invest.tinkoff.ru/openapi/;
+        private string _url = "https://invest-public-api.tinkoff.ru/rest/tinkoff.public.invest.api.contract.v1.";
 
-       // private string _urlWebSocket = "wss://api-invest.tinkoff.ru/openapi/md/v1/md-openapi/ws";
+        //https://invest-public-api.tinkoff.ru/rest/;
 
         /// <summary>
         /// connecto to the exchange
@@ -85,80 +88,67 @@ namespace OsEngine.Market.Servers.Tinkoff
 
         private object _queryLocker = new object();
 
-        public string ApiQuery(string url, string type, IDictionary<string, string> req)
+        public string CreatePrivatePostQuery(string end_point, Dictionary<string, string> parameters)
         {
-            try
+            if(parameters == null)
             {
-                lock (_queryLocker)
+                parameters = new Dictionary<string, string>();
+            }
+
+            StringBuilder sb = new StringBuilder();
+
+            int i = 0;
+            foreach (var param in parameters)
+            {
+                sb.Append(param.Key + ": \"" + param.Value + "\"");
+                i++;
+                if (i < parameters.Count)
                 {
-                    _rateGate.WaitToProceed();
-
-                    using (var wb = new WebClient())
-                    {
-                        wb.Headers.Add("Authorization", "Bearer " + _token);
-
-                        byte[] response;
-
-                        if (type == "POST" && req.Count != 0)
-                        {
-                            string str = "{";
-                            bool isFirst = true;
-
-                            foreach (var r in req)
-                            {
-                                if (isFirst == false)
-                                {
-                                    str += ",";
-                                }
-
-                                isFirst = false;
-
-                                str += "\"" + r.Key + "\":";
-
-                                try
-                                {
-                                    r.Value.ToDecimal();
-                                    str += r.Value.Replace(",", ".");
-                                }
-                                catch
-                                {
-                                    str += "\"" + r.Value + "\"";
-                                }
-                            }
-                            str += "}";
-
-                            byte[] postData = Encoding.UTF8.GetBytes(str);
-
-                            //MessageBox.Show(str);
-                            response = wb.UploadData(url, type, postData);
-                        }
-                        else // if(type == "GET")
-                        {
-                            response = wb.DownloadData(url);
-                        }
-
-                        return Encoding.UTF8.GetString(response);
-                    }
+                    sb.Append(",");
                 }
             }
-            catch (Exception error)
+
+
+            string url = end_point;
+
+            string str_data = "{" + sb.ToString() + "}";
+
+            byte[] data = Encoding.UTF8.GetBytes(str_data);
+
+            Uri uri = new Uri(url);
+
+            var web_request = (HttpWebRequest)WebRequest.Create(uri);
+
+            web_request.Accept = "application/json";
+            web_request.Method = "POST";
+            web_request.ContentType = "application/json";
+            web_request.ContentLength = data.Length;
+            web_request.Headers.Add("Authorization", "Bearer " + _token);
+
+            using (Stream req_tream = web_request.GetRequestStream())
             {
-                // MessageBox.Show(error.ToString());
-                return null;
+                req_tream.Write(data, 0, data.Length);
             }
+
+            var resp = web_request.GetResponse();
+
+            HttpWebResponse httpWebResponse = (HttpWebResponse)resp;
+
+            string response_msg;
+
+            using (var stream = httpWebResponse.GetResponseStream())
+            {
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    response_msg = reader.ReadToEnd();
+                }
+            }
+
+            httpWebResponse.Close();
+
+            return response_msg;
         }
 
-        public static string ByteToString(byte[] buff)
-        {
-            string sbinary = "";
-
-            for (int i = 0; i < buff.Length; i++)
-            {
-                sbinary += buff[i].ToString("X2"); // hex format
-            }
-
-            return (sbinary).ToLowerInvariant();
-        }
 
         #region Подписка на дату
 
@@ -182,7 +172,7 @@ namespace OsEngine.Market.Servers.Tinkoff
                 try
                 {
                     await Task.Delay(5000);
-
+                    
                     if (_isDisposed)
                     {
                         return;
@@ -197,7 +187,7 @@ namespace OsEngine.Market.Servers.Tinkoff
                         _lastBalanceUpdTime.AddSeconds(10) < DateTime.Now)
                     {
                         UpdBalance();
-                        UpdPositions();
+                        continue;
                         UpdateMyTrades();
                         _lastBalanceUpdTime = DateTime.Now;
                     }
@@ -221,44 +211,53 @@ namespace OsEngine.Market.Servers.Tinkoff
 
         private List<Portfolio> _portfolios = new List<Portfolio>();
 
+        private AccountsResponse _accountsResponse;
+
         public void UpdBalance()
         {
             try
             {
-                string url = _url + "/portfolio/currencies";
-
-                var jsonCurrency = ApiQuery(url, "GET", new Dictionary<string, string>());
-
-                if (jsonCurrency == null)
+                if (_accountsResponse == null)
                 {
-                    return;
+                    string url = _url + "UsersService/GetAccounts";
+
+                    var res = CreatePrivatePostQuery(url, new Dictionary<string, string>());
+
+                    if (res == null)
+                    {
+                        return;
+                    }
+
+                    _accountsResponse = JsonConvert.DeserializeAnonymousType(res, new AccountsResponse());
                 }
 
-                var jProperties = JToken.Parse(jsonCurrency).SelectToken("payload");//.Children<JProperty>();
-                var children = jProperties.Children().Children().Children();
-
-                foreach (var portfolio in children)
+                for (int i = 0; i < _accountsResponse.accounts.Count; i++)
                 {
-                    Portfolio newPortfolio = new Portfolio();
+                    Account account = _accountsResponse.accounts[i];
 
-                    newPortfolio.Number = portfolio.SelectToken("currency").ToString();
-
-                    newPortfolio.ValueBegin = portfolio.SelectToken("balance").ToString().ToDecimal();
-                    newPortfolio.ValueCurrent = newPortfolio.ValueBegin;
-
-                    Portfolio oldPortfolio =
-                        _portfolios.Find(p => p.Number == newPortfolio.Number);
-                    if (oldPortfolio == null)
+                    if (string.IsNullOrEmpty(account.id))
                     {
-                        _portfolios.Add(newPortfolio);
+                        continue;
                     }
-                    else
-                    {
 
-                        oldPortfolio.ValueCurrent = newPortfolio.ValueCurrent;
+                    string portUrl = _url + "OperationsService/GetPortfolio";
+
+                    Dictionary<string, string> param = new Dictionary<string, string>();
+
+                    param.Add("accountId", account.id);
+
+                    var resPort = CreatePrivatePostQuery(portUrl, param);
+
+                    if (resPort == null)
+                    {
+                        continue;
                     }
+
+                    PortfoliosResponse portfoliosResponse = JsonConvert.DeserializeAnonymousType(resPort, new PortfoliosResponse());
+
+                    UpdatePortfolioFromJson(portfoliosResponse, account.id);
+                    UpdatePositionsInPortfolio(portfoliosResponse, portfoliosResponse.positions, account.id);
                 }
-
 
                 if (UpdatePortfolio != null)
                 {
@@ -274,72 +273,129 @@ namespace OsEngine.Market.Servers.Tinkoff
             }
         }
 
-        public void UpdPositions()
+        public void UpdatePortfolioFromJson(PortfoliosResponse portfolio, string porfolioId)
         {
-            string url = _url + "portfolio";
+            Portfolio myPortfolio = _portfolios.Find(p => p.Number == porfolioId);
 
-            var jsonCurrency = ApiQuery(url, "GET", new Dictionary<string, string>());
+            if(myPortfolio == null)
+            {
+                myPortfolio = new Portfolio();
+                myPortfolio.Number = porfolioId;
+                myPortfolio.ValueCurrent = 1;
+                _portfolios.Add(myPortfolio);
+            }
 
-            if (jsonCurrency == null)
+            List<PositionOnBoard> sectionByPower = new List<PositionOnBoard>();
+
+            PositionOnBoard totalAmountBonds = ConverToPosOnBoard(portfolio.totalAmountBonds, porfolioId, "BondsBuyPower");
+            sectionByPower.Add(totalAmountBonds);
+
+            PositionOnBoard totalAmountFutures = ConverToPosOnBoard(portfolio.totalAmountFutures, porfolioId, "FutBuyPower");
+            sectionByPower.Add(totalAmountFutures);
+
+            PositionOnBoard totalAmountCurrencies = ConverToPosOnBoard(portfolio.totalAmountCurrencies, porfolioId, "CurBuyPower");
+            sectionByPower.Add(totalAmountCurrencies);
+
+            PositionOnBoard totalAmountShares = ConverToPosOnBoard(portfolio.totalAmountShares, porfolioId, "SharesBuyPower");
+            sectionByPower.Add(totalAmountShares);
+
+            PositionOnBoard totalAmountEtf = ConverToPosOnBoard(portfolio.totalAmountEtf, porfolioId, "EtfBuyPower");
+            sectionByPower.Add(totalAmountEtf);
+
+            for(int i  =0; i < sectionByPower.Count;i++)
+            {
+                myPortfolio.SetNewPosition(sectionByPower[i]);
+            }
+        }
+
+        private PositionOnBoard ConverToPosOnBoard(CurrencyQuotation currency,string portfolioId, string sectionName)
+        {
+            PositionOnBoard totalAmount = new PositionOnBoard();
+            totalAmount.PortfolioName = portfolioId;
+            totalAmount.SecurityNameCode = sectionName + "_" + currency.currency;
+            totalAmount.ValueBegin = currency.GetValue();
+            totalAmount.ValueCurrent = totalAmount.ValueBegin;
+
+            return totalAmount;
+        }
+
+        public void UpdatePositionsInPortfolio(PortfoliosResponse portfolio, List<TinkoffApiPosition> positions, string porfolioName)
+        {
+            if(positions == null 
+                || positions.Count == 0
+                || _allSecurities == null 
+                || _allSecurities.Count == 0)
             {
                 return;
             }
-            var jProperties = JToken.Parse(jsonCurrency).SelectToken("payload");//.Children<JProperty>();
-            var children = jProperties.Children().Children().Children();
 
-            string res = children.ToString();
+            Portfolio myPortfolio = _portfolios.Find(p => p.Number == porfolioName);
 
-            if (res == "")
+            if (myPortfolio == null)
             {
                 return;
             }
 
-            foreach (var position in children)
+            List<PositionOnBoard> sectionByPower = new List<PositionOnBoard>();
+
+            for(int i = 0;i < positions.Count;i++)
             {
-                PositionOnBoard pos = new PositionOnBoard();
+                Security mySec = GetSecurityByFigi(positions[i].figi);
 
-                pos.SecurityNameCode = position.SelectToken("ticker").ToString();
-                pos.ValueCurrent = position.SelectToken("balance").ToString().ToDecimal();
-                pos.PortfolioName = position.SelectToken("expectedYield").SelectToken("currency").ToString();
-
-                Portfolio myPortfolio =
-                    _portfolios.Find(p => p.Number == pos.PortfolioName);
-
-                if (myPortfolio == null)
+                if(mySec == null)
                 {
                     continue;
                 }
 
-                myPortfolio.SetNewPosition(pos);
+                PositionOnBoard pos = new PositionOnBoard();
+                pos.PortfolioName = porfolioName;
+                pos.ValueCurrent = positions[i].quantity.GetValue();
+                pos.ValueBegin = positions[i].quantity.GetValue();
+                pos.SecurityNameCode = mySec.Name;
+
+                sectionByPower.Add(pos);
             }
 
-
-            if (UpdatePortfolio != null)
+            for (int i = 0; i < sectionByPower.Count; i++)
             {
-                for (int i = 0; i < _portfolios.Count; i++)
-                {
-                    UpdatePortfolio(_portfolios[i]);
-                }
+                myPortfolio.SetNewPosition(sectionByPower[i]);
             }
+
+
+
         }
 
         public void GetSecurities()
         {
             List<Security> securities = new List<Security>();
 
-            List<Security> stocks = GetSecurities(_url + "market/stocks", SecurityType.Stock);
+            List<Security> currencies = GetSecurities(_url + "InstrumentsService/Currencies", SecurityType.CurrencyPair);
+            securities.AddRange(currencies);
 
+            List<Security> stocks = GetSecurities(_url + "InstrumentsService/Shares", SecurityType.Stock);
             securities.AddRange(stocks);
-            securities.AddRange(GetSecurities(_url + "market/bonds", SecurityType.Bond));
-            securities.AddRange(GetSecurities(_url + "market/etfs", SecurityType.Stock));
-            securities.AddRange(GetSecurities(_url + "market/currencies", SecurityType.CurrencyPair));
+
+            List<Security> futures = GetSecurities(_url + "InstrumentsService/Futures", SecurityType.Futures);
+            securities.AddRange(stocks);
+
+            List<Security> etfs = GetSecurities(_url + "InstrumentsService/Etfs", SecurityType.Stock);
+            securities.AddRange(etfs);
+
+            List<Security> bonds = GetSecurities(_url + "InstrumentsService/Bonds", SecurityType.Bond);
+            securities.AddRange(bonds);
+
+            _allSecurities = securities;
 
             if (UpdatePairs != null)
             {
                 UpdatePairs(securities);
             }
+        }
 
-            _allSecurities = securities;
+        private Security GetSecurityByFigi(string figi)
+        {
+            Security mySec = _allSecurities.Find(s => s.NameId == figi);
+            return mySec;
         }
 
         private List<Security> _allSecurities = new List<Security>();
@@ -348,52 +404,55 @@ namespace OsEngine.Market.Servers.Tinkoff
         {
             string secClass = type.ToString();
 
-            var jsonCurrency = ApiQuery(url, "GET", new Dictionary<string, string>());
+            Dictionary<string, string> param = new Dictionary<string, string>();
 
-            if (jsonCurrency == null)
+            param.Add("instrumentStatus", "INSTRUMENT_STATUS_UNSPECIFIED");
+
+            var res = CreatePrivatePostQuery(url, param);
+
+            if (res == null)
             {
                 return null;
             }
-
-            var jProperties = JToken.Parse(jsonCurrency).SelectToken("payload").Children().Children().Children();
+            
+            InstrumentsResponse securitiesResp = JsonConvert.DeserializeAnonymousType(res, new InstrumentsResponse());
 
             List<Security> securities = new List<Security>();
 
-            foreach (var jtSecurity in jProperties)
+            for (int i = 0; i < securitiesResp.instruments.Count; i++)
             {
+                Instrument jtSecurity = securitiesResp.instruments[i];
+
                 Security newSecurity = new Security();
 
-                try
-                {
-                    newSecurity.Name = jtSecurity.SelectToken("ticker").ToString();
-                    newSecurity.NameId = jtSecurity.SelectToken("figi").ToString();
-                    newSecurity.NameFull = jtSecurity.SelectToken("name").ToString();
-                    string str = jtSecurity.ToString();
+                newSecurity.Name = jtSecurity.ticker;
+                newSecurity.NameId = jtSecurity.figi;
+                newSecurity.NameFull = jtSecurity.name;
 
-                    if (str.Contains("minPriceIncrement"))
-                    {
-                        newSecurity.PriceStep = jtSecurity.SelectToken("minPriceIncrement").ToString().ToDecimal();
-                    }
-                    else
-                    {
-                        newSecurity.PriceStep = 1;
-                    }
-
-                    newSecurity.PriceStepCost = newSecurity.PriceStep;
-                }
-                catch
+                if(jtSecurity.minPriceIncrement != null)
                 {
-                    continue;
+                    newSecurity.PriceStep = jtSecurity.minPriceIncrement.GetValue() / 100;
                 }
+                else
+                {
+                    newSecurity.PriceStep = 1;
+                }
+
+                if(newSecurity.PriceStep == 0)
+                {
+                    newSecurity.PriceStep = 1;
+                }
+
+                newSecurity.PriceStepCost = newSecurity.PriceStep;
 
                 if (secClass == "Stock" &&
-                    jtSecurity.SelectToken("currency").ToString() == "RUB")
+                    jtSecurity.currency == "rub")
                 {
                     newSecurity.NameClass = secClass + " Ru";
                 }
                 else if (secClass == "Stock" &&
-                         (jtSecurity.SelectToken("currency").ToString() == "EUR" ||
-                          jtSecurity.SelectToken("currency").ToString() == "USD"))
+                         (jtSecurity.currency == "EUR" ||
+                          jtSecurity.currency == "USD"))
                 {
                     newSecurity.NameClass = secClass + " US";
                 }
@@ -403,7 +462,7 @@ namespace OsEngine.Market.Servers.Tinkoff
                 }
 
                 newSecurity.SecurityType = type;
-                newSecurity.Lot = jtSecurity.SelectToken("lot").ToString().ToDecimal();
+                newSecurity.Lot = jtSecurity.lot.ToDecimal();
 
                 securities.Add(newSecurity);
             }
@@ -432,7 +491,7 @@ namespace OsEngine.Market.Servers.Tinkoff
                 new DateTime(time.Year, time.Month, time.Day, 23, 55, 0),
                 tf);
 
-            var jsonCurrency = ApiQuery(url, "GET", new Dictionary<string, string>());
+            var jsonCurrency = CreatePrivatePostQuery(url, new Dictionary<string, string>());
 
 
             if (jsonCurrency == null)
@@ -596,7 +655,7 @@ namespace OsEngine.Market.Servers.Tinkoff
             url += "figi=" + security.NameId;
             url += "&depth=7";
 
-            var jsonCurrency = ApiQuery(url, "GET", new Dictionary<string, string>());
+            var jsonCurrency = CreatePrivatePostQuery(url, new Dictionary<string, string>());
 
 
             if (jsonCurrency == null)
@@ -678,7 +737,7 @@ namespace OsEngine.Market.Servers.Tinkoff
                 url += "to=" + ToIso8601(to) + "&";
 
 
-                var jsonCurrency = ApiQuery(url, "GET", new Dictionary<string, string>());
+                var jsonCurrency = CreatePrivatePostQuery(url, new Dictionary<string, string>());
 
                 if (jsonCurrency == null)
                 {
@@ -801,7 +860,7 @@ namespace OsEngine.Market.Servers.Tinkoff
 
                     string url = _url + "orders/limit-order?figi=" + security.NameId;
 
-                    var jsonCurrency = ApiQuery(url, "POST", param);
+                    var jsonCurrency = CreatePrivatePostQuery(url, param);
 
 
                     if (jsonCurrency == null)
@@ -866,7 +925,7 @@ namespace OsEngine.Market.Servers.Tinkoff
 
                     string url = _url + "orders/cancel?orderId=" + order.NumberMarket;
 
-                    string result = ApiQuery(url, "POST", param);
+                    string result = CreatePrivatePostQuery(url, param);
 
                     order.State = OrderStateType.Cancel;
 
