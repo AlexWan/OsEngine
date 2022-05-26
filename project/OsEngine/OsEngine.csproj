@@ -758,6 +758,10 @@
     <Compile Include="Market\Servers\Miner\OsMinerServer.cs" />
     <Compile Include="Market\Servers\Tinkoff\TinkoffClient.cs" />
     <Compile Include="Market\Servers\Tinkoff\TinkoffJsonSchema\Account.cs" />
+    <Compile Include="Market\Servers\Tinkoff\TinkoffJsonSchema\CandleTinkoff.cs" />
+    <Compile Include="Market\Servers\Tinkoff\TinkoffJsonSchema\LastPrices.cs" />
+    <Compile Include="Market\Servers\Tinkoff\TinkoffJsonSchema\MarketDepthTinkoff.cs" />
+    <Compile Include="Market\Servers\Tinkoff\TinkoffJsonSchema\OrdersTInkoff.cs" />
     <Compile Include="Market\Servers\Tinkoff\TinkoffJsonSchema\Portfolios.cs" />
     <Compile Include="Market\Servers\Tinkoff\TinkoffJsonSchema\Securities.cs" />
     <Compile Include="Market\Servers\Tinkoff\TinkoffServer.cs" />

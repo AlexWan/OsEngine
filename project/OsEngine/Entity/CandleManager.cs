@@ -322,14 +322,10 @@ namespace OsEngine.Entity
                         }
                         else if (serverType == ServerType.Tinkoff)
                         {
-                            TinkoffServer smart = (TinkoffServer)_server;
+                            TinkoffServer tinkoff = (TinkoffServer)_server;
 
                             if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
-                                series.TimeFrameSpan.TotalMinutes < 1 ||
-                                series.TimeFrame == TimeFrame.Hour2 ||
-                                series.TimeFrame == TimeFrame.Hour4 ||
-                                series.TimeFrame == TimeFrame.Min20 ||
-                                series.TimeFrame == TimeFrame.Min45)
+                                series.TimeFrameSpan.TotalMinutes < 1)
                             {
                                 List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
 
@@ -337,7 +333,7 @@ namespace OsEngine.Entity
                             }
                             else
                             {
-                                List<Candle> candles = smart.GetCandleHistory(series.Security.NameId,
+                                List<Candle> candles = tinkoff.GetCandleHistory(series.Security.NameId,
                                     series.TimeFrame);
 
                                 if (candles != null)

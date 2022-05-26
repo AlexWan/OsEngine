@@ -137,28 +137,39 @@ namespace OsEngine.Market.Servers.Tinkoff
 
         public List<Candle> GetCandleHistory(string nameSec, TimeFrame tf)
         {
+
             DateTime to = DateTime.Now;
             DateTime from = DateTime.Now.AddDays(-2);
 
             if (tf == TimeFrame.Min3 || tf == TimeFrame.Min5)
             {
-                from = DateTime.Now.AddDays(-3);
+                from = DateTime.Now.AddDays(-6);
             }
             if (tf == TimeFrame.Min10 || tf == TimeFrame.Min15)
             {
-                from = DateTime.Now.AddDays(-5);
+                from = DateTime.Now.AddDays(-10);
             }
-            if (tf == TimeFrame.Min20 || tf == TimeFrame.Min30)
+            if (tf == TimeFrame.Min20 
+                || tf == TimeFrame.Min30
+                || tf == TimeFrame.Min45)
             {
-                from = DateTime.Now.AddDays(-8);
+                from = DateTime.Now.AddDays(-16);
             }
             if (tf == TimeFrame.Hour1)
             {
-                from = DateTime.Now.AddDays(-15);
+                from = DateTime.Now.AddDays(-30);
+            }
+            if (tf == TimeFrame.Hour2)
+            {
+                from = DateTime.Now.AddDays(-40);
+            }
+            if (tf == TimeFrame.Hour4)
+            {
+                from = DateTime.Now.AddDays(-50);
             }
             if (tf == TimeFrame.Day)
             {
-                from = DateTime.Now.AddDays(-50);
+                from = DateTime.Now.AddDays(-70);
             }
 
             return _client.GetCandleHistory(nameSec, tf, from, to);
@@ -197,7 +208,7 @@ namespace OsEngine.Market.Servers.Tinkoff
         /// </summary>
         public void Subscrible(Security security)
         {
-            _client.SubscribleDepths(security);
+            _client.SubscribleDepthsAndTrades(security);
         }
 
         /// <summary>
