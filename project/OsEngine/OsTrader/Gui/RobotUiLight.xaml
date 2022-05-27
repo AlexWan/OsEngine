@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.OsTrader.Gui"
         mc:Ignorable="d"
-        Title="Bot Trader Light" Height="600" Width="949" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" MinWidth="700" MinHeight="500" Icon="/Images/OsLogo.ico">
+        Title="Bot Trader Light" Height="700" Width="1200" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" MinWidth="700" MinHeight="500" Icon="/Images/OsLogo.ico">
     <Grid Name="GridPrime">
         <Grid.RowDefinitions>
             <RowDefinition Height="466*"/>

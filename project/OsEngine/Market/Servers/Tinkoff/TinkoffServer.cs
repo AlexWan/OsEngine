@@ -131,8 +131,7 @@ namespace OsEngine.Market.Servers.Tinkoff
         /// </summary>
         public void GetPortfolios()
         {
-            // _client.UpdBalance();
-            // _client.UpdPositions();
+            // Этот сервер берёт их автоматически, раз в N секунд
         }
 
         public List<Candle> GetCandleHistory(string nameSec, TimeFrame tf)

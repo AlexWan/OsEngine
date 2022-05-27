@@ -577,7 +577,7 @@ namespace OsEngine.Market.Servers.Tinkoff
 
         #endregion
 
-        #region Имитация потоковых сервисов которые Тинькофф программисты не могут сделать в следствии импотенции уже пять лет
+        #region Имитация потоковых сервисов
 
         private async void WorkerPlace()
         {
@@ -603,7 +603,7 @@ namespace OsEngine.Market.Servers.Tinkoff
                         _lastBalanceUpdTime.AddSeconds(10) < DateTime.Now)
                     {
                         UpdBalance();
-                        //UpdateMyTradesAndOrders();
+                        UpdateMyTradesAndOrders();
                         _lastBalanceUpdTime = DateTime.Now;
                     }
 
@@ -705,6 +705,57 @@ namespace OsEngine.Market.Servers.Tinkoff
                 NewTradesEvent(newFakeTrades);
             }
 
+            if (_securitiesSubscrible.Count >= 3)
+            {
+                CreateFakeMd(newFakeTrades);
+            }
+        }
+
+        private void CreateFakeMd(List<Trade> trades)
+        {
+            for(int i = 0;i < trades.Count;i++)
+            {
+                CreateFakeMdByTrade(trades[i]);
+            }
+        }
+
+        private void CreateFakeMdByTrade(Trade trade)
+        {
+            List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
+
+            MarketDepthLevel newBid = new MarketDepthLevel();
+            newBid.Bid = trade.Volume;
+            newBid.Price = trade.Price;
+            bids.Add(newBid);
+            
+
+            MarketDepth depth = new MarketDepth();
+
+            depth.SecurityNameCode = trade.SecurityNameCode;
+            depth.Time = MaxTimeOnServer;
+            depth.Bids = bids;
+
+            List<MarketDepthLevel> asks = new List<MarketDepthLevel>();
+
+            MarketDepthLevel newAsk = new MarketDepthLevel();
+            newAsk.Ask = trade.Volume;
+            newAsk.Price = trade.Price;
+            asks.Add(newAsk);
+            
+            depth.Asks = asks;
+
+            if (depth.Asks == null ||
+                depth.Asks.Count == 0 ||
+                depth.Bids == null ||
+                depth.Bids.Count == 0)
+            {
+                return;
+            }
+
+            if (UpdateMarketDepth != null)
+            {
+                UpdateMarketDepth(depth);
+            }
         }
 
         private DateTime MaxTimeOnServer
@@ -728,7 +779,8 @@ namespace OsEngine.Market.Servers.Tinkoff
 
         public void GetMarketDepth(Security security)
         {
-            if (_securitiesSubscrible.Count == 0)
+            if (_securitiesSubscrible.Count == 0 ||
+                _securitiesSubscrible.Count >= 3)
             {
                 return;
             }
@@ -1014,7 +1066,20 @@ namespace OsEngine.Market.Servers.Tinkoff
                     }
                     catch(Exception error)
                     {
-                        SendLogMessage("Error on order Execution \n" + error.Message.ToString(), LogMessageType.Error);
+                        if(error.GetType().Name == "WebException")
+                        {
+                            WebException wExp = (WebException)error;
+
+                            SendLogMessage("Error on order Execution \n" + wExp.Message.ToString(), LogMessageType.Error);
+
+                            SendLogMessage(wExp.Response.ToString() + "\n" 
+                                + wExp.Response.Headers.ToString() + "\n"
+                                , LogMessageType.Error);
+                        }
+                        else
+                        {
+                            SendLogMessage("Error on order Execution \n" + error.Message.ToString(), LogMessageType.Error);
+                        }
 
                         order.State = OrderStateType.Fail;
                         if (MyOrderEvent != null)
@@ -1055,6 +1120,11 @@ namespace OsEngine.Market.Servers.Tinkoff
                     else
                     {
                         order.State = OrderStateType.Activ;
+                        order.NumberMarket = orderResponse.orderId;
+                        lock (_openOrdersArrayLocker)
+                        {
+                            _openedOrders.Add(order);
+                        }
                     }
 
                     if (MyOrderEvent != null)
@@ -1074,21 +1144,27 @@ namespace OsEngine.Market.Servers.Tinkoff
         {
             string valueInStr = value.ToStringWithNoEndZero().Replace(",", ".");
 
-            //{"nano": 6,"units": "units"}
-            //{"nano": 113,"units": "89"}
-            string nano = valueInStr.Split('.')[0];
-            string res = "{\"nano\": ";
+            string units = valueInStr.Split('.')[0];
+            string nano = "0";
 
-            res += nano + ",\"units\": ";
-
-            string units = "0";
-
-            if(valueInStr.Split('.').Length > 1)
+            if (valueInStr.Split('.').Length > 1)
             {
-                units = valueInStr.Split('.')[1];
+                nano = valueInStr.Split('.')[1];
+            }
+            //650000000
+            while (nano.Length < 9)
+            {
+                nano += "0";
             }
 
-            res +=  units + "}";
+            //{"nano": 6,"units": "units"}
+            //{"nano": 113,"units": "89"}
+
+            string res = "{\"nano\": ";
+
+            res +=  nano + ",\"units\": ";
+
+            res += "\"" + units + "\"" + "}";
 
             return res;
         }
@@ -1103,38 +1179,73 @@ namespace OsEngine.Market.Servers.Tinkoff
         {
             lock (_lockOrder)
             {
+
+                string url = _url + "OrdersService/CancelOrder";
+
+                Security security = _allSecurities.Find(sec => sec.Name == order.SecurityNameCode);
+
+                if (security == null)
+                {
+                    return;
+                }
+
+                Dictionary<string, string> param = new Dictionary<string, string>();
+
+                param.Add("accountId", order.PortfolioNumber);
+
+                param.Add("orderId", order.NumberMarket.ToString());
+
+                string json = null;
                 try
                 {
-                    if (IsConnected == false)
-                    {
-                        SendLogMessage("Cansel order fail. Exchange isnt work", LogMessageType.Error);
-                        return;
-                    }
-
-                    //curl -X POST "https://api-invest.tinkoff.ru/openapi/orders/cancel?orderId=18846767867" -H "accept: application/json"
-                    //-H "Authorization: Bearer t.ZmEaoirPe5unR6Cw0o7YSq-Hl4lCkGES-0XgZmOg9XGl_Ds6OeAzdS9P-x1lRmQjzu7Ol6cMTgN-QUv9ISvyGQ"
-                    //-H "Content-Type: application/json"
-
-                    Dictionary<string, string> param = new Dictionary<string, string>();
-
-                    param.Add("trackingId", "string");
-
-                    string url = _url + "orders/cancel?orderId=" + order.NumberMarket;
-
-                    string result = CreatePrivatePostQuery(url, param);
-
-                    order.State = OrderStateType.Cancel;
-
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(order);
-                    }
-
+                    json = CreatePrivatePostQuery(url, param);
                 }
-                catch (Exception ex)
+                catch (Exception error)
                 {
-                    SendLogMessage(ex.ToString(), LogMessageType.Error);
+                    if (error.GetType().Name == "WebException")
+                    {
+                        WebException wExp = (WebException)error;
 
+                        SendLogMessage("Error on order Cansel \n" + wExp.Message.ToString(), LogMessageType.Error);
+
+                        SendLogMessage(wExp.Response.ToString() + "\n"
+                            + wExp.Response.Headers.ToString() + "\n"
+                            , LogMessageType.Error);
+                    }
+                    else
+                    {
+                        SendLogMessage("Error on order Cansel \n" + error.Message.ToString(), LogMessageType.Error);
+                    }
+
+                    return;
+                }
+
+                if (json == null)
+                {
+                    return;
+                }
+
+
+                OrderCancelResponce orderResponse = JsonConvert.DeserializeAnonymousType(json, new OrderCancelResponce());
+
+                Order canceledOrder = new Order();
+                canceledOrder.NumberUser = order.NumberUser;
+                canceledOrder.NumberMarket = order.NumberMarket;
+                canceledOrder.SecurityNameCode = order.SecurityNameCode;
+                canceledOrder.PortfolioNumber = order.PortfolioNumber;
+                canceledOrder.Side = order.Side;
+                canceledOrder.Price = order.Price;
+                canceledOrder.TypeOrder = order.TypeOrder;
+                canceledOrder.Volume = order.Volume;
+                canceledOrder.IsStopOrProfit = order.IsStopOrProfit;
+                canceledOrder.LifeTime = order.LifeTime;
+                canceledOrder.SecurityClassCode = order.SecurityClassCode;
+                canceledOrder.State = OrderStateType.Cancel;
+                canceledOrder.TimeCancel = _timeOnServer;
+
+                if (MyOrderEvent != null)
+                {
+                    MyOrderEvent(canceledOrder);
                 }
             }
         }
@@ -1145,26 +1256,218 @@ namespace OsEngine.Market.Servers.Tinkoff
         /// </summary>
         public bool GetAllOrders(List<Order> oldOpenOrders)
         {
+            for(int i = 0;i < oldOpenOrders.Count;i++)
+            {
+                if(oldOpenOrders[i].ServerType != ServerType.Tinkoff)
+                {
+                    continue;
+                }
+                _openedOrders.Add(oldOpenOrders[i]);
+            }
 
             return false;
         }
 
-        private List<MyTrade> _myTrades = new List<MyTrade>();
-
-        private List<Order> _canselOrders = new List<Order>();
-
         private List<Order> _openedOrders = new List<Order>();
+
+        private string _openOrdersArrayLocker = "ordersLocker";
 
         public void UpdateMyTradesAndOrders()
         {
             try
             {
+                lock(_openOrdersArrayLocker)
+                {
+                    for (int i = 0; i < _openedOrders.Count; i++)
+                    {
+                        Order orderFromArray = _openedOrders[i];
 
+                        if(string.IsNullOrEmpty(orderFromArray.NumberMarket))
+                        {
+                            continue;
+                        }
+
+                        Order curOrder = GetOldOrderState(orderFromArray.PortfolioNumber, orderFromArray.NumberMarket, _openedOrders[i]);
+
+                        if(curOrder == null)
+                        {
+                            continue;
+                        }
+
+                        if (curOrder.State == OrderStateType.Done ||
+                            curOrder.State == OrderStateType.Fail ||
+                            curOrder.State == OrderStateType.Cancel)
+                        {
+                            _openedOrders.RemoveAt(i);
+                            i--;
+                        }
+                    }
+                }
             }
             catch (Exception e)
             {
                 SendLogMessage(e.ToString(), LogMessageType.Error);
             }
+        }
+
+        private Order GetOldOrderState(string portfolioId, string orderId, Order oldOrder)
+        {
+            if(IsConnected == false)
+            {
+                return null;
+            }
+
+            OrderStateResponce orderResp = GetHistorycalOrderResponce(portfolioId, orderId);
+
+            if(orderResp == null)
+            {
+                return null;
+            }
+
+            Order order = GenerateOrder(orderResp, oldOrder);
+
+            if (orderResp.stages != null && 
+                orderResp.stages.Count != 0)
+            {
+                List<MyTrade> myTrades = GenerateMyTrades(orderResp, oldOrder);
+
+                if(MyTradeEvent != null)
+                {
+                    for(int i = 0;i < myTrades.Count;i++)
+                    {
+                        MyTradeEvent(myTrades[i]);
+                    }
+                }
+            }
+
+            if(MyOrderEvent != null)
+            {
+                MyOrderEvent(order);
+            }
+
+            return order;
+        }
+
+        private Order GenerateOrder(OrderStateResponce orderResp, Order oldOrder)
+        {
+            Order order = new Order();
+
+            order.NumberUser = oldOrder.NumberUser;
+            order.NumberMarket = oldOrder.NumberMarket;
+            order.SecurityNameCode = oldOrder.SecurityNameCode;
+            order.PortfolioNumber = oldOrder.PortfolioNumber;
+            order.Side = oldOrder.Side;
+            order.TypeOrder = oldOrder.TypeOrder;
+            order.Volume = oldOrder.Volume;
+            order.IsStopOrProfit = oldOrder.IsStopOrProfit;
+            order.LifeTime = oldOrder.LifeTime;
+            order.SecurityClassCode = oldOrder.SecurityClassCode;
+
+            order.Price = oldOrder.Price;
+            order.TimeCreate = oldOrder.TimeCreate;
+            order.TimeCallBack = FromIso8601(orderResp.orderDate);
+
+            /// <summary>
+            /// EXECUTION_REPORT_STATUS_UNSPECIFIED, 
+            /// EXECUTION_REPORT_STATUS_FILL, 
+            /// EXECUTION_REPORT_STATUS_REJECTED, 
+            /// EXECUTION_REPORT_STATUS_CANCELLED, 
+            /// EXECUTION_REPORT_STATUS_NEW, 
+            /// EXECUTION_REPORT_STATUS_PARTIALLYFILL
+            /// </summary>
+
+            if (orderResp.executionReportStatus == "EXECUTION_REPORT_STATUS_UNSPECIFIED")
+            {
+                order.State = OrderStateType.None;
+            }
+            else if (orderResp.executionReportStatus == "EXECUTION_REPORT_STATUS_FILL")
+            {
+                order.State = OrderStateType.Done;
+            }
+            else if (orderResp.executionReportStatus == "EXECUTION_REPORT_STATUS_REJECTED")
+            {
+                order.State = OrderStateType.Fail;
+            }
+            else if (orderResp.executionReportStatus == "EXECUTION_REPORT_STATUS_CANCELLED")
+            {
+                order.State = OrderStateType.Cancel;
+            }
+            else if (orderResp.executionReportStatus == "EXECUTION_REPORT_STATUS_NEW")
+            {
+                order.State = OrderStateType.Activ;
+            }
+            else if (orderResp.executionReportStatus == "EXECUTION_REPORT_STATUS_PARTIALLYFILL")
+            {
+                order.State = OrderStateType.Patrial;
+            }
+
+            return order;
+        }
+
+        private List<MyTrade> GenerateMyTrades(OrderStateResponce orderResp, Order oldOrder)
+        {
+            List<MyTrade> trades = new List<MyTrade>();
+
+            for(int i = 0;i < orderResp.stages.Count;i++)
+            {
+                MyTrade trade = new MyTrade();
+                trade.SecurityNameCode = oldOrder.SecurityNameCode;
+                trade.Side = oldOrder.Side;
+
+                trade.Volume = orderResp.stages[i].quantity.ToDecimal();
+                trade.Price = orderResp.stages[i].price.GetValue().ToStringWithNoEndZero().ToDecimal();
+                trade.NumberTrade = orderResp.stages[i].tradeId;
+                trade.Time = FromIso8601(orderResp.orderDate);
+                trades.Add(trade);
+            }
+
+            return trades;
+        }
+
+        private OrderStateResponce GetHistorycalOrderResponce(string portfolioId, string orderId)
+        {
+            string url = _url + "OrdersService/GetOrderState";
+
+            Dictionary<string, string> param = new Dictionary<string, string>();
+
+            param.Add("accountId", portfolioId);
+
+            param.Add("orderId", orderId);
+
+            string json = null;
+            try
+            {
+                json = CreatePrivatePostQuery(url, param);
+            }
+            catch (Exception error)
+            {
+                if (error.GetType().Name == "WebException")
+                {
+                    WebException wExp = (WebException)error;
+
+                    SendLogMessage("Get order State Exception \n" + wExp.Message.ToString(), LogMessageType.Error);
+
+                    SendLogMessage(wExp.Response.ToString() + "\n"
+                        + wExp.Response.Headers.ToString() + "\n"
+                        , LogMessageType.Error);
+                }
+                else
+                {
+                    SendLogMessage("Get order State Exception \n" + error.Message.ToString(), LogMessageType.Error);
+                }
+
+                return null;
+            }
+
+            if (json == null)
+            {
+                return null;
+            }
+
+
+            OrderStateResponce orderResponse = JsonConvert.DeserializeAnonymousType(json, new OrderStateResponce());
+
+            return orderResponse;
         }
 
         #endregion
@@ -1242,27 +1545,5 @@ namespace OsEngine.Market.Servers.Tinkoff
         public event Action<string, LogMessageType> LogMessageEvent;
 
         #endregion
-    }
-
-    public static class Helpers
-    {
-        public static NameValueCollection ToNameValueCollection<TKey, TValue>(this IDictionary<TKey, TValue> dict)
-        {
-            var nameValueCollection = new NameValueCollection();
-
-            foreach (var kvp in dict)
-            {
-                string value = string.Empty;
-                if (kvp.Value != null)
-                    value = kvp.Value.ToString();
-
-                nameValueCollection.Add(kvp.Key.ToString(), value);
-            }
-
-            return nameValueCollection;
-        }
-
-
-
     }
 }
