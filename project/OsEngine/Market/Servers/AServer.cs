@@ -1128,6 +1128,8 @@ namespace OsEngine.Market.Servers
         }
         private List<Security> _securities;
 
+        private List<Security> _frequentlyUsedSecurities = new List<Security>();
+
         /// <summary>
         /// take the instrument as a Security by name of instrument
         /// взять инструмент в виде класса Security, по имени инструмента 
@@ -1139,11 +1141,21 @@ namespace OsEngine.Market.Servers
                 return null;
             }
 
+            for (int i = 0; i < _frequentlyUsedSecurities.Count; i++)
+            {
+                if (_frequentlyUsedSecurities[i].Name == securityName &&
+                    _frequentlyUsedSecurities[i].NameClass == securityClass)
+                {
+                    return _frequentlyUsedSecurities[i];
+                }
+            }
+
             for (int i = 0; i < _securities.Count; i++)
             {
                 if(_securities[i].Name == securityName &&
                     _securities[i].NameClass == securityClass)
                 {
+                    _frequentlyUsedSecurities.Add(_securities[i]);
                     return _securities[i];
                 }
             }
@@ -2181,6 +2193,7 @@ namespace OsEngine.Market.Servers
                         _needToSaveOrders == true)
                     {
                         SaveOrders();
+                        _needToSaveOrders = false;
                         myExecureOrdersCount = _myExecuteOrders.Count;
                         myCanselOrdersCount = _myCanselOrders.Count;
                     }
