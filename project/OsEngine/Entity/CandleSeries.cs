@@ -247,6 +247,8 @@ namespace OsEngine.Entity
         /// </summary>
         private int _lastTradeIndex;
 
+        private DateTime _lastTradeTime;
+
         /// <summary>
         /// добавить в серию новые тики
         /// </summary>
@@ -270,7 +272,7 @@ namespace OsEngine.Entity
                 return;
             }
 
-            if (_lastTradeIndex >= trades.Count)
+            if (_lastTradeTime >= trades[trades.Count - 1].Time)
             {
                 return;
             }
@@ -280,10 +282,24 @@ namespace OsEngine.Entity
 
             }
 
-            // обновилось неизвесное кол-во тиков
-            for (int i = _lastTradeIndex; i < trades.Count; i++)
+            List<Trade> trad = new List<Trade>();
+
+            for (int i = 0; i < trades.Count; i++)
             {
-                Trade trade = trades[i];
+                if (_lastTradeTime != DateTime.MinValue &&
+                    trades[i].Time >= _lastTradeTime)
+                {
+                    continue;
+                }
+                trad.Add(trades[i]);
+            }
+
+            _lastTradeTime = trades[trades.Count - 1].Time;
+
+            // обновилось неизвесное кол-во тиков
+            for (int i = 0; i < trad.Count; i++)
+            {
+                Trade trade = trad[i];
 
                 if (trade == null)
                 {

@@ -870,22 +870,17 @@ namespace OsEngine.Market.Servers
                                 if (_needToRemoveTradesFromMemory.Value == true && _allTrades != null)
 
                                 {
-                                    foreach (var el in _allTrades)
+                                    for (int i = 0; i < _allTrades.Length; i++)
                                     {
-                                        if (el.Count > 100)
+                                        List<Trade> curTrades = _allTrades[i];
+
+                                        if (curTrades.Count > 100)
                                         {
-                                            for (int i = el.Count - 100; i > 0; i--)
-                                            {
-                                                if (el[i] == null)
-                                                {
-                                                    break;
-                                                }
-                                                el[i] = null;
-                                            }
+                                            curTrades = curTrades.GetRange(curTrades.Count - 101, 100);
+                                            _allTrades[i] = curTrades;
                                         }
                                     }
                                 }
-
                             }
                         }
                     }

@@ -1547,6 +1547,13 @@ namespace OsEngine.Charts.CandleChart
         /// <param name="trades">ticks/тики</param>
         public void ProcessTrades(List<Trade> trades)
         {
+            ChartArea tickArea = FindAreaByNameSafe("TradeArea");
+
+            if (tickArea == null)
+            {
+                return;
+            }
+
             if (_startProgram == StartProgram.IsTester &&
                 _host != null)
             {
