@@ -41,20 +41,34 @@ namespace OsEngine.Charts.CandleChart
         {
             _name = nameBoss + "ChartMaster";
             _startProgram = startProgram;
+            UpDateChartPainter();
 
-            ChartCandle = new WinFormsChartPainter(nameBoss, startProgram);
-
-            ChartCandle.ChartClickEvent += ChartCandle_ChartClickEvent;
-            ChartCandle.LogMessageEvent += NewLogMessage;
-            ChartCandle.ClickToIndexEvent += _chartCandle_ClickToIndexEvent;
-            ChartCandle.SizeAxisXChangeEvent += ChartCandle_SizeAxisXChangeEvent;
-
-            if(startProgram != StartProgram.IsOsOptimizer)
+            if (startProgram != StartProgram.IsOsOptimizer)
             {
                 Load();
             }
            
             _canSave = true;
+           
+        }
+
+        private void UpDateChartPainter()
+        {
+            if(ChartCandle != null)
+            {
+                ChartCandle.Delete();
+                ChartCandle.ChartClickEvent -= ChartCandle_ChartClickEvent;
+                ChartCandle.LogMessageEvent -= NewLogMessage;
+                ChartCandle.ClickToIndexEvent -= _chartCandle_ClickToIndexEvent;
+                ChartCandle.SizeAxisXChangeEvent -= ChartCandle_SizeAxisXChangeEvent;
+            }
+
+            ChartCandle = new WinFormsChartPainter(_name, _startProgram);
+
+            ChartCandle.ChartClickEvent += ChartCandle_ChartClickEvent;
+            ChartCandle.LogMessageEvent += NewLogMessage;
+            ChartCandle.ClickToIndexEvent += _chartCandle_ClickToIndexEvent;
+            ChartCandle.SizeAxisXChangeEvent += ChartCandle_SizeAxisXChangeEvent;
         }
 
         /// <summary>
@@ -1348,6 +1362,8 @@ namespace OsEngine.Charts.CandleChart
                 _grid.Children.Clear();
                 _grid = null;
             }
+
+            UpDateChartPainter();
         }
 
         /// <summary>

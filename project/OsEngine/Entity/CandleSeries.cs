@@ -272,14 +272,16 @@ namespace OsEngine.Entity
                 return;
             }
 
-            if (_lastTradeTime >= trades[trades.Count - 1].Time)
+            try
+            {
+                if (_lastTradeTime >= trades[trades.Count - 1].Time)
+                {
+                    return;
+                }
+            }
+            catch
             {
                 return;
-            }
-
-            if (_lastTradeIndex == 0)
-            {
-
             }
 
             List<Trade> trad = new List<Trade>();

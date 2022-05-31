@@ -946,6 +946,10 @@ namespace OsEngine.Charts.CandleChart
                     _colorKeeper = null;
                     _labelSeries = null;
                     _timePoints = null;
+                    _candlesToPaint = null;
+                    _indicatorsToPaint = null;
+                    _positions = null;
+                    _tradesToPaint = null;
 
                     return;
                 }
@@ -1283,9 +1287,10 @@ namespace OsEngine.Charts.CandleChart
             }
             else
             {
-                if (_candlesToPaint.IsEmpty == false 
+                if (_candlesToPaint != null &&
+                    _candlesToPaint.IsEmpty == false 
                     &&
-                    _candlesToPaint.Count > 5)
+                    _candlesToPaint.Count > 0)
                 {
                     List<Candle> res;
 
@@ -1561,9 +1566,10 @@ namespace OsEngine.Charts.CandleChart
             }
             else
             {
-                if (_tradesToPaint.IsEmpty == false
+                if (_tradesToPaint != null &&
+                    _tradesToPaint.IsEmpty == false
                     &&
-                    _tradesToPaint.Count > 5)
+                    _tradesToPaint.Count > 0)
                 {
                     List<Trade> res;
 
@@ -2127,9 +2133,10 @@ namespace OsEngine.Charts.CandleChart
             }
             else
             {
-                if (_positions.IsEmpty == false
+                if (_positions != null &&_positions.IsEmpty == false
+
                     &&
-                    _positions.Count > 5)
+                    _positions.Count > 0)
                 {
                     List<Position> res;
 
