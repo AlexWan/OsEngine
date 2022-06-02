@@ -102,7 +102,7 @@ namespace OsEngine.Entity
             Volume = arraySave[0].ToDecimal();
             Price = arraySave[1].ToDecimal();
             NumberOrderParent = arraySave[2];
-            Time = Convert.ToDateTime(arraySave[3]);
+            Time = Convert.ToDateTime(arraySave[3], CultureInfo);
             NumberTrade = arraySave[4];
             Enum.TryParse(arraySave[5], out Side);
             SecurityNameCode = arraySave[6];

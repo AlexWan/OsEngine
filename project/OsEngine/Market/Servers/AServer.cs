@@ -57,7 +57,7 @@ namespace OsEngine.Market.Servers
                 CreateParameterBoolean(OsLocalization.Market.ServerParam7, false);
                 _needToLoadBidAskInTrades = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
 
-                CreateParameterBoolean(OsLocalization.Market.ServerParam8, false);
+                CreateParameterBoolean(OsLocalization.Market.ServerParam8, true);
                 _needToRemoveTradesFromMemory = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
 
                 CreateParameterBoolean(OsLocalization.Market.ServerParam9, false);

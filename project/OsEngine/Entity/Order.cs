@@ -439,15 +439,15 @@ namespace OsEngine.Entity
 
             Enum.TryParse(saveArray[8], true, out _state);
             Enum.TryParse(saveArray[9], true, out TypeOrder);
-            TimeCallBack = Convert.ToDateTime(saveArray[10]);
+            TimeCallBack = Convert.ToDateTime(saveArray[10], new CultureInfo("ru-RU"));
 
             SecurityNameCode = saveArray[11];
             PortfolioNumber = saveArray[12].Replace('%', '@');
 
 
-            TimeCreate = Convert.ToDateTime(saveArray[13]);
-            TimeCancel = Convert.ToDateTime(saveArray[14]);
-            TimeCallBack = Convert.ToDateTime(saveArray[15]);
+            TimeCreate = Convert.ToDateTime(saveArray[13], new CultureInfo("ru-RU"));
+            TimeCancel = Convert.ToDateTime(saveArray[14], new CultureInfo("ru-RU"));
+            TimeCallBack = Convert.ToDateTime(saveArray[15], new CultureInfo("ru-RU"));
 
             TimeSpan.TryParse(saveArray[16], out LifeTime);
             // deals with which the order was opened and the order execution price was calculated
@@ -470,7 +470,7 @@ namespace OsEngine.Entity
                 }
             }
             Comment = saveArray[18];
-            TimeDone = Convert.ToDateTime(saveArray[19]);
+            TimeDone = Convert.ToDateTime(saveArray[19], new CultureInfo("ru-RU"));
         }
     }
 
