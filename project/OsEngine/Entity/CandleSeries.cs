@@ -284,11 +284,11 @@ namespace OsEngine.Entity
                 return;
             }
 
-            List<Trade> trad = new List<Trade>();
+            List<Trade> newTrades = new List<Trade>();
 
             if(_lastTradeTime == DateTime.MinValue)
             {
-                trad = trades;
+                newTrades = trades;
             }
             else
             {
@@ -300,7 +300,7 @@ namespace OsEngine.Entity
                         {
                             continue;
                         }
-                        trad.Add(trades[i]);
+                        newTrades.Add(trades[i]);
                     }
                     catch
                     {
@@ -309,17 +309,17 @@ namespace OsEngine.Entity
                 }
             }
 
-            if(trad.Count == 0)
+            if(newTrades.Count == 0)
             {
                 return;
             }
 
-            _lastTradeTime = trad[trad.Count - 1].Time;
+            _lastTradeTime = newTrades[newTrades.Count - 1].Time;
 
             // обновилось неизвесное кол-во тиков
-            for (int i = 0; i < trad.Count; i++)
+            for (int i = 0; i < newTrades.Count; i++)
             {
-                Trade trade = trad[i];
+                Trade trade = newTrades[i];
 
                 if (trade == null)
                 {

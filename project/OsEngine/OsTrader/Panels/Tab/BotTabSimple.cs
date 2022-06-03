@@ -87,8 +87,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 ManualPositionSupport.LogMessageEvent += SetNewLogMessage;
                 ManualPositionSupport.DontOpenOrderDetectedEvent += _dealOpeningWatcher_DontOpenOrderDetectedEvent;
 
-                _lastTickIndex = 0;
-
                 _stopsOpener = new List<PositionOpenerToStop>();
 
                 _acebergMaker = new AcebergMaker();
@@ -4038,11 +4036,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private bool _firstTickToDaySend;
 
-        /// <summary>
-        /// last tick index / 
-        /// последний индекс тика
-        /// </summary>
-        private int _lastTickIndex;
+        private DateTime _lastTradeTime;
 
         /// <summary>
         /// new tiki came / 
@@ -4075,18 +4069,36 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
 
-            if (_lastTickIndex == 0)
+            List<Trade> newTrades = new List<Trade>();
+
+            if (_lastTradeTime == DateTime.MinValue)
             {
-                _lastTickIndex = trades.Count - 1;
+                newTrades = trades;
+            }
+            else
+            {
+                for (int i = 0; i < trades.Count; i++)
+                {
+                    try
+                    {
+                        if (trades[i].Time <= _lastTradeTime)
+                        {
+                            continue;
+                        }
+                        newTrades.Add(trades[i]);
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+                }
+            }
+
+            if (newTrades.Count == 0)
+            {
                 return;
             }
 
-            int curCount = trades.Count;
-
-            if (curCount == _lastTickIndex)
-            {
-                return;
-            }
 
             List<Position> openPositions = _journal.OpenPositions;
 
@@ -4094,9 +4106,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 for (int i = 0; i < openPositions.Count; i++)
                 {
-                    for (int i2 = _lastTickIndex; i < openPositions.Count && i2 < curCount && trades[i2] != null; i2++)
+                    for (int i2 = 0; i < openPositions.Count && i2 < newTrades.Count; i2++)
                     {
-                        if (CheckStop(openPositions[i], trades[i2].Price))
+                        if (CheckStop(openPositions[i], newTrades[i2].Price))
                         {
                             if (StartProgram != StartProgram.IsOsTrader)
                             {
@@ -4108,20 +4120,20 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
 
-            for (int i2 = _lastTickIndex; i2 < curCount && trades[i2] != null; i2++)
+            for (int i2 = 0; i2 < newTrades.Count; i2++)
             {
-                if (trades[i2] == null)
+                if (newTrades[i2] == null)
                 {
-                    trades.RemoveAt(i2);
+                    newTrades.RemoveAt(i2);
                     return;
                 }
-                CheckStopOpener(trades[i2].Price);
+                CheckStopOpener(newTrades[i2].Price);
 
                 if (NewTickEvent != null)
                 {
                     try
                     {
-                        NewTickEvent(trades[i2]);
+                        NewTickEvent(newTrades[i2]);
                     }
                     catch (Exception error)
                     {
@@ -4131,7 +4143,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
 
-            _lastTickIndex = curCount;
+            _lastTradeTime = newTrades[newTrades.Count - 1].Time;
 
             if (StartProgram == StartProgram.IsOsTrader)
             {
