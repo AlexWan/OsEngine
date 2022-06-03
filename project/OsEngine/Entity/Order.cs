@@ -353,6 +353,8 @@ namespace OsEngine.Entity
             }
         }
 
+        private static readonly CultureInfo CultureInfo = new CultureInfo("ru-RU");
+
         /// <summary>
         /// take the string to save
         /// взять строку для сохранения
@@ -370,22 +372,22 @@ namespace OsEngine.Entity
 
             result.Append(ServerType + "@");
 
-            result.Append(NumberMarket.ToString(new CultureInfo("ru-RU")) + "@");
+            result.Append(NumberMarket.ToString(CultureInfo) + "@");
             result.Append(Side + "@");
-            result.Append(Price.ToString(new CultureInfo("ru-RU")) + "@");
-            result.Append(PriceReal.ToString(new CultureInfo("ru-RU")) + "@");
-            result.Append(Volume.ToString(new CultureInfo("ru-RU")) + "@");
-            result.Append(VolumeExecute.ToString(new CultureInfo("ru-RU")) + "@");
+            result.Append(Price.ToString(CultureInfo) + "@");
+            result.Append(PriceReal.ToString(CultureInfo) + "@");
+            result.Append(Volume.ToString(CultureInfo) + "@");
+            result.Append(VolumeExecute.ToString(CultureInfo) + "@");
             result.Append(State + "@");
             result.Append(TypeOrder + "@");
-            result.Append(TimeCallBack.ToString(new CultureInfo("ru-RU")) + "@");
+            result.Append(TimeCallBack.ToString(CultureInfo) + "@");
 
             result.Append(SecurityNameCode + "@");
             result.Append(PortfolioNumber.Replace('@', '%') + "@");
 
-            result.Append(TimeCreate.ToString(new CultureInfo("ru-RU")) + "@");
-            result.Append(TimeCancel.ToString(new CultureInfo("ru-RU")) + "@");
-            result.Append(TimeCallBack.ToString(new CultureInfo("ru-RU")) + "@");
+            result.Append(TimeCreate.ToString(CultureInfo) + "@");
+            result.Append(TimeCancel.ToString(CultureInfo) + "@");
+            result.Append(TimeCallBack.ToString(CultureInfo) + "@");
 
             result.Append(LifeTime + "@");
             // deals with which the order was opened and the order execution price was calculated
@@ -406,7 +408,7 @@ namespace OsEngine.Entity
 
             result.Append(Comment + "@");
 
-            result.Append(TimeDone.ToString(new CultureInfo("ru-RU")) + "@");
+            result.Append(TimeDone.ToString(CultureInfo) + "@");
 
             if (State == OrderStateType.Done && Volume == VolumeExecute &&
                 _trades != null && _trades.Count > 0)
@@ -439,15 +441,15 @@ namespace OsEngine.Entity
 
             Enum.TryParse(saveArray[8], true, out _state);
             Enum.TryParse(saveArray[9], true, out TypeOrder);
-            TimeCallBack = Convert.ToDateTime(saveArray[10], new CultureInfo("ru-RU"));
+            TimeCallBack = Convert.ToDateTime(saveArray[10], CultureInfo);
 
             SecurityNameCode = saveArray[11];
             PortfolioNumber = saveArray[12].Replace('%', '@');
 
 
-            TimeCreate = Convert.ToDateTime(saveArray[13], new CultureInfo("ru-RU"));
-            TimeCancel = Convert.ToDateTime(saveArray[14], new CultureInfo("ru-RU"));
-            TimeCallBack = Convert.ToDateTime(saveArray[15], new CultureInfo("ru-RU"));
+            TimeCreate = Convert.ToDateTime(saveArray[13], CultureInfo);
+            TimeCancel = Convert.ToDateTime(saveArray[14], CultureInfo);
+            TimeCallBack = Convert.ToDateTime(saveArray[15], CultureInfo);
 
             TimeSpan.TryParse(saveArray[16], out LifeTime);
             // deals with which the order was opened and the order execution price was calculated
@@ -470,7 +472,7 @@ namespace OsEngine.Entity
                 }
             }
             Comment = saveArray[18];
-            TimeDone = Convert.ToDateTime(saveArray[19], new CultureInfo("ru-RU"));
+            TimeDone = Convert.ToDateTime(saveArray[19], CultureInfo);
         }
     }
 
