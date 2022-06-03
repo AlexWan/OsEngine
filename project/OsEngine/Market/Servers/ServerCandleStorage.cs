@@ -325,12 +325,15 @@ namespace OsEngine.Market.Servers
     {
         public void InsertCandles(List<Candle> candles)
         {
-            if (AllCandlesInFile == null)
-            {
-                AllCandlesInFile = new List<Candle>();
+            if (AllCandlesInFile == null
+                || AllCandlesInFile.Count == 0)
+            { 
+                AllCandlesInFile = candles;
             }
-
-            AllCandlesInFile.Merge(candles);
+            else
+            {
+                AllCandlesInFile.Merge(candles);
+            }
 
             if (AllCandlesInFile.Count == 0)
             {

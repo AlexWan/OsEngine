@@ -3990,23 +3990,6 @@ namespace OsEngine.Market.Servers.Tester
     /// </summary>
     public class SecurityTester
     {
-        public SecurityTester()
-        {
-            if (ServerMaster.GetServers() != null &&
-                ServerMaster.GetServers()[0] != null)
-            {
-                ServerMaster.GetServers()[0].NewCandleIncomeEvent += SecurityTester_NewCandleIncomeEvent;
-            }
-        }
-
-        void SecurityTester_NewCandleIncomeEvent(CandleSeries series)
-        {
-            if (series.Security.Name == Security.Name && DataType != SecurityTesterDataType.Candle ||
-                series.Security.Name == Security.Name && series.TimeFrame == TimeFrame)
-            {
-                LastCandle = series.CandlesAll[series.CandlesAll.Count - 1];
-            }
-        }
 
         /// <summary>
 		/// security

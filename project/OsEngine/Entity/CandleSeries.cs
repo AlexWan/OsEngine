@@ -288,15 +288,22 @@ namespace OsEngine.Entity
 
             for (int i = 0; i < trades.Count; i++)
             {
-                if (_lastTradeTime != DateTime.MinValue &&
-                    trades[i].Time >= _lastTradeTime)
+                try
+                {
+                    if (_lastTradeTime != DateTime.MinValue &&
+                        trades[i].Time >= _lastTradeTime)
+                    {
+                        continue;
+                    }
+                    trad.Add(trades[i]);
+                }
+                catch
                 {
                     continue;
                 }
-                trad.Add(trades[i]);
             }
 
-            _lastTradeTime = trades[trades.Count - 1].Time;
+            _lastTradeTime = trad[trad.Count - 1].Time;
 
             // обновилось неизвесное кол-во тиков
             for (int i = 0; i < trad.Count; i++)
