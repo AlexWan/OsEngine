@@ -4038,6 +4038,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private DateTime _lastTradeTime;
 
+        private int _lastTradeIndex;
+
         /// <summary>
         /// new tiki came / 
         /// пришли новые тики
@@ -4069,28 +4071,44 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             List<Trade> newTrades = new List<Trade>();
 
-            if (_lastTradeTime == DateTime.MinValue)
-            {
-                newTrades = trades;
+            if(trades.Count > 1000)
+            { // если удаление трейдов из системы выключено
+
+                int newTradesCount = trades.Count - _lastTradeIndex;
+
+                if(newTradesCount <= 0)
+                {
+                    return;
+                }
+
+                newTrades = trades.GetRange(_lastTradeIndex, newTradesCount);
             }
             else
             {
-                for (int i = 0; i < trades.Count; i++)
+                if (_lastTradeTime == DateTime.MinValue)
                 {
-                    try
+                    newTrades = trades;
+                }
+                else
+                {
+                    for (int i = 0; i < trades.Count; i++)
                     {
-                        if (trades[i].Time <= _lastTradeTime)
+                        try
+                        {
+                            if (trades[i].Time <= _lastTradeTime)
+                            {
+                                continue;
+                            }
+                            newTrades.Add(trades[i]);
+                        }
+                        catch
                         {
                             continue;
                         }
-                        newTrades.Add(trades[i]);
-                    }
-                    catch
-                    {
-                        continue;
                     }
                 }
             }
+            
 
             if (newTrades.Count == 0)
             {
@@ -4140,6 +4158,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 }
             }
+
+            _lastTradeIndex = trades.Count;
 
             _lastTradeTime = newTrades[newTrades.Count - 1].Time;
 
