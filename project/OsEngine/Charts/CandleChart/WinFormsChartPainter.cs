@@ -949,7 +949,6 @@ namespace OsEngine.Charts.CandleChart
                     _candlesToPaint = null;
                     _indicatorsToPaint = null;
                     _positions = null;
-                    _tradesToPaint = null;
 
                     return;
                 }
@@ -1005,23 +1004,7 @@ namespace OsEngine.Charts.CandleChart
                         PaintPositions(positions);
                     }
                 }
-                // checking to see if the ticks are here.
-                // проверяем, пришли ли тики
 
-                if (!_tradesToPaint.IsEmpty)
-                {
-                    List<Trade> trades = new List<Trade>();
-
-                    while (!_tradesToPaint.IsEmpty)
-                    {
-                        _tradesToPaint.TryDequeue(out trades);
-                    }
-
-                    if (trades != null)
-                    {
-                        PaintTrades(trades);
-                    }
-                }
                 // see if there are any new elements to draw on chart
                 // проверяем, есть ли новые элементы для прорисовки на чарте
 
@@ -1142,12 +1125,6 @@ namespace OsEngine.Charts.CandleChart
         /// очередь со свечками, которые нужно прорисовать
         /// </summary>
         private ConcurrentQueue<List<Candle>> _candlesToPaint = new ConcurrentQueue<List<Candle>>();
-
-        /// <summary>
-        /// line of trades to draw
-        /// очеедь с трейдами, котоыре нужно прорисовать
-        /// </summary>
-        private ConcurrentQueue<List<Trade>> _tradesToPaint = new ConcurrentQueue<List<Trade>>();
 
         /// <summary>
         /// line of positions to draw
@@ -1501,229 +1478,6 @@ namespace OsEngine.Charts.CandleChart
             PaintSeriesSafe(candleSeries);
            
             ReloadAreaSizes();
-        }
-
-        // ticks /  тики
-
-        /// <summary>
-        /// draw ticks
-        /// прорисовать тики
-        /// </summary>
-        /// <param name="trades">ticks/тики</param>
-        private void PaintTrades(List<Trade> trades)
-        {
-            if (_startProgram == StartProgram.IsOsOptimizer)
-            {
-                return;
-            }
-
-            if (_mouseDown == true)
-            {
-                return;
-            }
-            try
-            {
-                ChartArea tickArea = FindAreaByNameSafe("TradeArea");
-
-                if (tickArea == null)
-                {
-                    return;
-                }
-
-                if (_lastTickTime != DateTime.MinValue &&
-                    _lastTickTime == trades[trades.Count - 1].Time)
-                {
-                    return;
-                }
-
-                _lastTickTime = trades[trades.Count - 1].Time;
-
-                PaintLast300(trades);
-                ResizeTickArea();
-            }
-            catch (Exception error)
-            {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        /// <summary>
-        /// add ticks to the drawing
-        /// добавить тики в прорисовку
-        /// </summary>
-        /// <param name="trades">ticks/тики</param>
-        public void ProcessTrades(List<Trade> trades)
-        {
-            ChartArea tickArea = FindAreaByNameSafe("TradeArea");
-
-            if (tickArea == null)
-            {
-                return;
-            }
-
-            if (_startProgram == StartProgram.IsTester &&
-                _host != null)
-            {
-                PaintTrades(trades);
-            }
-            else
-            {
-                if (_tradesToPaint != null &&
-                    _tradesToPaint.IsEmpty == false
-                    &&
-                    _tradesToPaint.Count > 0)
-                {
-                    List<Trade> res;
-
-                    while (_tradesToPaint.IsEmpty == false)
-                        _tradesToPaint.TryDequeue(out res);
-                }
-
-                if(_tradesToPaint != null)
-                {
-                    _tradesToPaint.Enqueue(trades);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Create a tick data area
-        /// создать область для тиковых данных
-        /// </summary>
-        public void CreateTickArea()
-        {
-            try
-            {
-                ChartArea tickArea = FindAreaByNameSafe("TradeArea");
-
-                if (tickArea != null)
-                {
-                    return;
-                }
-
-                CreateArea("TradeArea", 25);
-                tickArea = FindAreaByNameSafe("TradeArea");
-                tickArea.AlignWithChartArea = "";
-            }
-            catch (Exception error)
-            {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        /// <summary>
-        /// Delete tick data area
-        /// удалить область для тиковых данных
-        /// </summary>
-        public void DeleteTickArea()
-        {
-            try
-            {
-                ChartArea tickArea = FindAreaByNameSafe("TradeArea");
-
-                if (tickArea != null)
-                {
-                    _chart.ChartAreas.Remove(tickArea);
-                    ShowAreaOnChart();
-                }
-            }
-            catch (Exception error)
-            {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        /// <summary>
-        /// last tick time
-        /// время прихода последних тиков
-        /// </summary>
-        private DateTime _lastTickTime = DateTime.MinValue;
-
-        /// <summary>
-        /// to draw last 300 ticks
-        /// прорисовать последние 300 тиков
-        /// </summary>
-        /// <param name="history">ticks/тики</param>
-        private void PaintLast300(List<Trade> history)
-        {
-            Series tradeSeries = new Series("trade");
-            tradeSeries.ChartType = SeriesChartType.Point;
-            tradeSeries.MarkerStyle = MarkerStyle.Circle;
-            tradeSeries.YAxisType = AxisType.Secondary;
-            tradeSeries.ChartArea = "TradeArea";
-
-            decimal max = 0;
-
-            for (int i = history.Count - 200; i < history.Count; i++)
-            {
-                if (i < 0)
-                {
-                    i = 0;
-                }
-                if (history[i].Volume > max)
-                {
-                    max = history[i].Volume;
-                }
-            }
-
-
-            for (int index = 0, i = history.Count - 200; i < history.Count; i++,index++)
-            {
-                if (i < 0)
-                {
-                    i = 0;
-                }
-
-                tradeSeries.Points.AddXY(index, history[i].Price);
-
-                if (history[i].Side == Side.Buy)
-                {
-                    tradeSeries.Points[tradeSeries.Points.Count - 1].Color = _colorKeeper.ColorUpBodyCandle;
-
-                    tradeSeries.Points[tradeSeries.Points.Count - 1].MarkerSize = 1;
-                }
-                else
-                {
-                    tradeSeries.Points[tradeSeries.Points.Count - 1].Color = _colorKeeper.ColorDownBorderCandle;
-                    tradeSeries.Points[tradeSeries.Points.Count - 1].MarkerSize = 1;
-                }
-                if(max == 0)
-                {
-                    return;
-                }
-                decimal categori = history[i].Volume/max;
-                
-                if(categori< 0.02m)
-                {
-                    tradeSeries.Points[tradeSeries.Points.Count - 1].MarkerSize = 1;
-                }
-                else if (categori < 0.05m)
-                {
-                    tradeSeries.Points[tradeSeries.Points.Count - 1].MarkerSize = 2;
-                }
-                else if (categori < 0.1m)
-                {
-                    tradeSeries.Points[tradeSeries.Points.Count - 1].MarkerSize = 3;
-                }
-                else if (categori < 0.3m)
-                {
-                    tradeSeries.Points[tradeSeries.Points.Count - 1].MarkerSize = 4;
-                }
-                else if (categori < 0.5m)
-                {
-                    tradeSeries.Points[tradeSeries.Points.Count - 1].MarkerSize = 5;
-                }
-                else if (categori < 0.7m)
-                {
-                    tradeSeries.Points[tradeSeries.Points.Count - 1].MarkerSize = 6;
-                }
-                else 
-                {
-                    tradeSeries.Points[tradeSeries.Points.Count - 1].MarkerSize = 8;
-                }
-            }
-
-            PaintSeriesSafe(tradeSeries);
         }
 
         // Deals / сделки

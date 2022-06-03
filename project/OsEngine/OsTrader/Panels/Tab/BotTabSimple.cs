@@ -4055,8 +4055,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
-            _chartMaster.SetTick(trades);
-
             Trade trade = trades[trades.Count - 1];
 
             if (_firstTickToDaySend == false && FirstTickToDayEvent != null)

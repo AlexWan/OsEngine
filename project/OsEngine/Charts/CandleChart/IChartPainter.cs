@@ -141,25 +141,6 @@ namespace OsEngine.Charts.CandleChart
         /// <param name="history">candles/свечи</param>
         void ProcessCandles(List<Candle> history);
 
-        /// <summary>
-        /// add ticks to the drawing
-        /// добавить тики в прорисовку
-        /// </summary>
-        /// <param name="trades">ticks/тики</param>
-        void ProcessTrades(List<Trade> trades);
-
-        /// <summary>
-        /// Create a tick data area
-        /// создать область для тиковых данных
-        /// </summary>
-        void CreateTickArea();
-
-        /// <summary>
-        /// Delete tick data area
-        /// удалить область для тиковых данных
-        /// </summary>
-        void DeleteTickArea();
-
         // Deals / сделки
 
         /// <summary>

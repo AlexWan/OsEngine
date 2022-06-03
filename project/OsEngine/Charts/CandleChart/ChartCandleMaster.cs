@@ -683,12 +683,6 @@ namespace OsEngine.Charts.CandleChart
         {
             try
             {
-                if (((MenuItem)sender).Text == @"Trades")
-                {
-                    ChartCandle.DeleteTickArea();
-                    Save();
-                    return;
-                }
                 int number = ((MenuItem)sender).Index;
 
                 if ((_indicators == null || _indicators.Count <= number))
@@ -1255,30 +1249,6 @@ namespace OsEngine.Charts.CandleChart
                     }
                 }
 
-            }
-            catch (Exception error)
-            {
-                SendErrorMessage(error);
-            }
-        }
-
-        // drawing ticks прорисовка тиков
-
-        /// <summary>
-        /// ticks in connector have been updated
-        /// в коннекторе обновились тики
-        /// </summary>
-        /// <param name="trades">ticks/тики</param>
-        public void SetTick(List<Trade> trades)
-        {
-            if(_startProgram == StartProgram.IsOsOptimizer)
-            {
-                return;
-            }
-
-            try
-            {
-                ChartCandle.ProcessTrades(trades);
             }
             catch (Exception error)
             {
