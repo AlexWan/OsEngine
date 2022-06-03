@@ -286,21 +286,32 @@ namespace OsEngine.Entity
 
             List<Trade> trad = new List<Trade>();
 
-            for (int i = 0; i < trades.Count; i++)
+            if(_lastTradeTime == DateTime.MinValue)
             {
-                try
+                trad = trades;
+            }
+            else
+            {
+                for (int i = 0; i < trades.Count; i++)
                 {
-                    if (_lastTradeTime != DateTime.MinValue &&
-                        trades[i].Time >= _lastTradeTime)
+                    try
+                    {
+                        if (trades[i].Time <= _lastTradeTime)
+                        {
+                            continue;
+                        }
+                        trad.Add(trades[i]);
+                    }
+                    catch
                     {
                         continue;
                     }
-                    trad.Add(trades[i]);
                 }
-                catch
-                {
-                    continue;
-                }
+            }
+
+            if(trad.Count == 0)
+            {
+                return;
             }
 
             _lastTradeTime = trad[trad.Count - 1].Time;
