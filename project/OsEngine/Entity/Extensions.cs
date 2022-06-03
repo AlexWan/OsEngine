@@ -131,7 +131,7 @@ namespace OsEngine.Entity
         public static List<Candle> Merge(this List<Candle> oldCandles, List<Candle> candlesToMerge)
         {
             if (candlesToMerge == null ||
-    candlesToMerge.Count == 0)
+                candlesToMerge.Count == 0)
             {
                 return oldCandles;
             }
@@ -217,56 +217,6 @@ namespace OsEngine.Entity
             oldCandles.AddRange(newCandles);
 
             return oldCandles;
-
-            /* if (candlesToMerge == null ||
-                 candlesToMerge.Count == 0)
-             {
-                 return oldCandles;
-             }
-
-             if (oldCandles.Count == 0)
-             {
-                 oldCandles.AddRange(candlesToMerge);
-                 return oldCandles;
-             }
-
-             if (candlesToMerge[0].TimeStart < oldCandles[0].TimeStart &&
-                 candlesToMerge[candlesToMerge.Count - 1].TimeStart >= oldCandles[oldCandles.Count - 1].TimeStart)
-             {
-                 // начало массива в новых свечках раньше. Конец позже. Перезаписываем полностью 
-                 oldCandles.Clear();
-                 oldCandles.AddRange(candlesToMerge);
-                 return oldCandles;
-             }
-
-             List<Candle> newCandles = new List<Candle>();
-
-             newCandles.AddRange(oldCandles);
-
-             // вставляем новые свечи в конец объединённого массива
-
-             for (int i = 0; i < candlesToMerge.Count; i++)
-             {
-                 Candle candle = candlesToMerge[i];
-
-                 if (candle.TimeStart > newCandles[newCandles.Count - 1].TimeStart)
-                 {
-                     newCandles.Add(candle);
-                 }
-                 else if (candle.TimeStart == newCandles[newCandles.Count - 1].TimeStart)
-                 {
-                     newCandles[newCandles.Count - 1] = candle;
-                 }
-                 else if (candle.TimeStart < newCandles[newCandles.Count - 1].TimeStart)
-                 {
-                     newCandles.Insert(i, candle);
-                 }
-             }
-
-             oldCandles.Clear();
-             oldCandles.AddRange(newCandles);
-
-             return oldCandles;*/
         }
 
         public static Candle Merge(this Candle oldCandle, Candle candleToMerge)
