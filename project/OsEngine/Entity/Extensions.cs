@@ -131,7 +131,7 @@ namespace OsEngine.Entity
         public static List<Candle> Merge(this List<Candle> oldCandles, List<Candle> candlesToMerge)
         {
             if (candlesToMerge == null ||
-                candlesToMerge.Count == 0)
+    candlesToMerge.Count == 0)
             {
                 return oldCandles;
             }
@@ -151,9 +151,55 @@ namespace OsEngine.Entity
                 return oldCandles;
             }
 
+            // смотрим более ранние свечи в новой серии
+
             List<Candle> newCandles = new List<Candle>();
 
+            int indexLastInsertCandle = 0;
+
+            for (int i = 0; i < candlesToMerge.Count; i++)
+            {
+                if (candlesToMerge[i].TimeStart < oldCandles[0].TimeStart)
+                {
+                    newCandles.Add(candlesToMerge[i]);
+                }
+                else
+                {
+                    indexLastInsertCandle = i;
+                    break;
+                }
+            }
+
             newCandles.AddRange(oldCandles);
+
+            // обновляем последнюю свечку в старых данных
+
+            if (newCandles.Count != 0)
+            {
+                Candle lastCandle = candlesToMerge.Find(c => c.TimeStart == newCandles[newCandles.Count - 1].TimeStart);
+
+                if (lastCandle != null)
+                {
+                    newCandles[newCandles.Count - 1] = lastCandle;
+                }
+            }
+
+            // вставляем новые свечи в середину объединённого массива
+
+            for (int i = indexLastInsertCandle; i < candlesToMerge.Count; i++)
+            {
+                Candle candle = candlesToMerge[i];
+
+                for (int i2 = 1; i2 < newCandles.Count - 1; i2++)
+                {
+                    if (candle.TimeStart > newCandles[i2].TimeStart &&
+                        candle.TimeStart < newCandles[i2 - 1].TimeStart)
+                    {
+                        newCandles.Insert(i2 + 1, candle);
+                        break;
+                    }
+                }
+            }
 
             // вставляем новые свечи в конец объединённого массива
 
@@ -165,20 +211,62 @@ namespace OsEngine.Entity
                 {
                     newCandles.Add(candle);
                 }
-                else if (candle.TimeStart == newCandles[newCandles.Count - 1].TimeStart)
-                {
-                    newCandles[newCandles.Count - 1] = candle;
-                }
-                else if (candle.TimeStart < newCandles[newCandles.Count - 1].TimeStart)
-                {
-                    newCandles.Insert(i, candle);
-                }
             }
 
             oldCandles.Clear();
             oldCandles.AddRange(newCandles);
 
             return oldCandles;
+
+            /* if (candlesToMerge == null ||
+                 candlesToMerge.Count == 0)
+             {
+                 return oldCandles;
+             }
+
+             if (oldCandles.Count == 0)
+             {
+                 oldCandles.AddRange(candlesToMerge);
+                 return oldCandles;
+             }
+
+             if (candlesToMerge[0].TimeStart < oldCandles[0].TimeStart &&
+                 candlesToMerge[candlesToMerge.Count - 1].TimeStart >= oldCandles[oldCandles.Count - 1].TimeStart)
+             {
+                 // начало массива в новых свечках раньше. Конец позже. Перезаписываем полностью 
+                 oldCandles.Clear();
+                 oldCandles.AddRange(candlesToMerge);
+                 return oldCandles;
+             }
+
+             List<Candle> newCandles = new List<Candle>();
+
+             newCandles.AddRange(oldCandles);
+
+             // вставляем новые свечи в конец объединённого массива
+
+             for (int i = 0; i < candlesToMerge.Count; i++)
+             {
+                 Candle candle = candlesToMerge[i];
+
+                 if (candle.TimeStart > newCandles[newCandles.Count - 1].TimeStart)
+                 {
+                     newCandles.Add(candle);
+                 }
+                 else if (candle.TimeStart == newCandles[newCandles.Count - 1].TimeStart)
+                 {
+                     newCandles[newCandles.Count - 1] = candle;
+                 }
+                 else if (candle.TimeStart < newCandles[newCandles.Count - 1].TimeStart)
+                 {
+                     newCandles.Insert(i, candle);
+                 }
+             }
+
+             oldCandles.Clear();
+             oldCandles.AddRange(newCandles);
+
+             return oldCandles;*/
         }
 
         public static Candle Merge(this Candle oldCandle, Candle candleToMerge)
