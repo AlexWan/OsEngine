@@ -1241,8 +1241,8 @@ namespace OsEngine.Journal.Internal
                     {
                         if ((int)_gridCloseDeal.Rows[i].Cells[0].Value == position.Number)
                         {
-                            _gridCloseDeal.Rows.Remove(_gridCloseDeal.Rows[i]);
-                            _gridCloseDeal.Rows.Insert(i, GetRow(position));
+                            RePaintRowPos(position, _gridCloseDeal.Rows[i]);
+
                             return;
                         }
                     }
@@ -1257,13 +1257,13 @@ namespace OsEngine.Journal.Internal
                     {
                         if ((int)_gridOpenDeal.Rows[i].Cells[0].Value == position.Number)
                         {
-                            _gridOpenDeal.Rows.Remove(_gridOpenDeal.Rows[i]);
-
-                            if (position.State != PositionStateType.Deleted)
+                            if (position.State == PositionStateType.Deleted)
                             {
-                                _gridOpenDeal.Rows.Insert(i, GetRow(position));
+                                _gridOpenDeal.Rows.Remove(_gridOpenDeal.Rows[i]);
                                 return;
                             }
+                            RePaintRowPos(position, _gridOpenDeal.Rows[i]);
+
                             return;
                         }
                     }
@@ -1273,6 +1273,77 @@ namespace OsEngine.Journal.Internal
                         _gridOpenDeal.Rows.Insert(0, GetRow(position));
                     }
                 }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void RePaintRowPos(Position position, DataGridViewRow nRow)
+        {
+            try
+            {
+                nRow.Cells[1].Value = position.TimeOpen;
+
+                nRow.Cells[2].Value = position.TimeClose;
+
+                nRow.Cells[3].Value = position.NameBot;
+
+                nRow.Cells[4].Value = position.SecurityName;
+
+                nRow.Cells[5].Value = position.Direction;
+
+                nRow.Cells[6].Value = position.State;
+
+                nRow.Cells[7].Value = position.MaxVolume.ToStringWithNoEndZero();
+
+                nRow.Cells[8].Value = position.OpenVolume.ToStringWithNoEndZero();
+
+                nRow.Cells[9].Value = position.WaitVolume.ToStringWithNoEndZero();
+
+                if (position.EntryPrice != 0)
+                {
+                    nRow.Cells[10].Value = position.EntryPrice.ToStringWithNoEndZero();
+                }
+                else
+                {
+                    if (position.OpenOrders != null &&
+                        position.OpenOrders.Count != 0 &&
+                        position.State != PositionStateType.OpeningFail)
+                    {
+                        nRow.Cells[10].Value = position.OpenOrders[position.OpenOrders.Count - 1].Price.ToStringWithNoEndZero();
+                    }
+                }
+
+                if (position.ClosePrice != 0)
+                {
+                    nRow.Cells[11].Value = position.ClosePrice.ToStringWithNoEndZero();
+                }
+                else
+                {
+                    if (position.CloseOrders != null &&
+                        position.CloseOrders.Count != 0 &&
+                        position.State != PositionStateType.ClosingFail)
+                    {
+                        nRow.Cells[11].Value = position.CloseOrders[position.CloseOrders.Count - 1].Price.ToStringWithNoEndZero();
+                    }
+                }
+
+                nRow.Cells[12].Value = position.ProfitPortfolioPunkt.ToStringWithNoEndZero();
+
+                nRow.Cells[13].Value = position.StopOrderRedLine.ToStringWithNoEndZero();
+
+                nRow.Cells[14].Value = position.StopOrderPrice.ToStringWithNoEndZero();
+
+                nRow.Cells[15].Value = position.ProfitOrderRedLine.ToStringWithNoEndZero();
+
+                nRow.Cells[16].Value = position.ProfitOrderPrice.ToStringWithNoEndZero();
+
+                nRow.Cells[17].Value = position.SignalTypeOpen;
+
+                nRow.Cells[18].Value = position.SignalTypeClose;
+
             }
             catch (Exception error)
             {

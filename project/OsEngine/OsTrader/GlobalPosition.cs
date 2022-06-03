@@ -40,7 +40,7 @@ namespace OsEngine.OsTrader
 
             Task task = new Task(WatcherHome);
             task.Start();
-       
+
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace OsEngine.OsTrader
         /// </summary>
         private StartProgram _startProgram;
 
-//drawing / прорисовка
+        //drawing / прорисовка
 
         /// <summary>
         /// stop drawing elements
@@ -202,7 +202,7 @@ namespace OsEngine.OsTrader
 
             try
             {
-                if(_grid == null)
+                if (_grid == null)
                 {
                     return;
                 }
@@ -225,7 +225,7 @@ namespace OsEngine.OsTrader
                     }
                 }
                 else
-                { 
+                {
                     for (int i = 0; i < _grid.Rows.Count; i++)
                     {
                         if ((int)_grid.Rows[i].Cells[0].Value == position.Number)
@@ -298,38 +298,35 @@ namespace OsEngine.OsTrader
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[9].Value = position.WaitVolume.ToStringWithNoEndZero();
 
-                if (position.EntryPrice != 0)
-                {
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                decimal openPrice = position.EntryPrice;
 
-                    nRow.Cells[10].Value = position.EntryPrice.ToStringWithNoEndZero();
-                }
-                else
+                if (openPrice == 0)
                 {
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    if(position.OpenOrders != null &&
-                       position.OpenOrders.Count != 0 &&
-                       position.State != PositionStateType.OpeningFail)
+                    if (position.OpenOrders != null &&
+                        position.OpenOrders.Count != 0 &&
+                        position.State != PositionStateType.OpeningFail)
                     {
-                        nRow.Cells[10].Value = position.OpenOrders[position.OpenOrders.Count-1].Price.ToStringWithNoEndZero();
+                        openPrice = position.OpenOrders[position.OpenOrders.Count - 1].Price;
                     }
                 }
 
-                if (position.ClosePrice != 0)
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+                nRow.Cells[10].Value = openPrice.ToStringWithNoEndZero();
+
+                decimal closePrice = position.ClosePrice;
+
+                if (closePrice == 0)
                 {
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[11].Value = position.ClosePrice.ToStringWithNoEndZero();
-                }
-                else
-                {
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
                     if (position.CloseOrders != null &&
                         position.CloseOrders.Count != 0 &&
                         position.State != PositionStateType.ClosingFail)
                     {
-                        nRow.Cells[11].Value = position.CloseOrders[position.CloseOrders.Count - 1].Price.ToStringWithNoEndZero();
+                        closePrice = position.CloseOrders[position.CloseOrders.Count - 1].Price;
                     }
                 }
+
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+                nRow.Cells[11].Value = closePrice.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[12].Value = position.ProfitPortfolioPunkt.ToStringWithNoEndZero();
@@ -361,6 +358,109 @@ namespace OsEngine.OsTrader
             return null;
         }
 
+        private void TryRePaint(Position position, DataGridViewRow nRow)
+        {
+            if (nRow.Cells[1].Value == null
+                || nRow.Cells[1].Value.ToString() != position.TimeCreate.ToString() == false)
+            {
+                nRow.Cells[1].Value = position.TimeCreate.ToString();
+            }
+
+            if (nRow.Cells[2].Value == null
+                || nRow.Cells[2].Value.ToString() != position.TimeClose.ToString() == false)
+            {
+                nRow.Cells[2].Value = position.TimeClose.ToString();
+            }
+
+            if (nRow.Cells[6].Value == null
+                || nRow.Cells[6].Value.ToString() != position.State.ToString())
+            {
+                nRow.Cells[6].Value = position.State;
+            }
+
+            if (nRow.Cells[7].Value == null
+                || nRow.Cells[7].Value.ToString() != position.MaxVolume.ToStringWithNoEndZero())
+            {
+                nRow.Cells[7].Value = position.MaxVolume.ToStringWithNoEndZero();
+            }
+
+            if (nRow.Cells[8].Value == null
+                || nRow.Cells[8].Value.ToString() != position.OpenVolume.ToStringWithNoEndZero())
+            {
+                nRow.Cells[8].Value = position.OpenVolume.ToStringWithNoEndZero();
+            }
+
+            if (nRow.Cells[9].Value == null
+                || nRow.Cells[9].Value.ToString() != position.WaitVolume.ToStringWithNoEndZero())
+            {
+                nRow.Cells[9].Value = position.WaitVolume.ToStringWithNoEndZero();
+            }
+
+            decimal openPrice = position.EntryPrice;
+
+            if (openPrice == 0)
+            {
+                if (position.OpenOrders != null &&
+                    position.OpenOrders.Count != 0 &&
+                    position.State != PositionStateType.OpeningFail)
+                {
+                    openPrice = position.OpenOrders[position.OpenOrders.Count - 1].Price;
+                }
+            }
+
+            if (nRow.Cells[10].Value == null
+                || nRow.Cells[10].Value.ToString() != openPrice.ToStringWithNoEndZero())
+            {
+                nRow.Cells[10].Value = openPrice.ToStringWithNoEndZero();
+            }
+
+            decimal closePrice = position.ClosePrice;
+
+            if (closePrice == 0)
+            {
+                if (position.CloseOrders != null &&
+                    position.CloseOrders.Count != 0 &&
+                    position.State != PositionStateType.ClosingFail)
+                {
+                    closePrice = position.CloseOrders[position.CloseOrders.Count - 1].Price;
+                }
+            }
+
+            if (nRow.Cells[11].Value == null
+                || nRow.Cells[11].Value.ToString() != closePrice.ToStringWithNoEndZero())
+            {
+                nRow.Cells[11].Value = closePrice.ToStringWithNoEndZero();
+            }
+
+            if (nRow.Cells[12].Value == null
+                || nRow.Cells[12].Value.ToString() != position.ProfitPortfolioPunkt.ToStringWithNoEndZero())
+            {
+                nRow.Cells[12].Value = position.ProfitPortfolioPunkt.ToStringWithNoEndZero();
+            }
+            if (nRow.Cells[13].Value == null ||
+                nRow.Cells[13].Value.ToString() != position.StopOrderRedLine.ToStringWithNoEndZero())
+            {
+                nRow.Cells[13].Value = position.StopOrderRedLine.ToStringWithNoEndZero();
+            }
+
+            if (nRow.Cells[14].Value == null
+                || nRow.Cells[14].Value.ToString() != position.StopOrderPrice.ToStringWithNoEndZero())
+            {
+                nRow.Cells[14].Value = position.StopOrderPrice.ToStringWithNoEndZero();
+            }
+            if (nRow.Cells[15].Value == null ||
+                 nRow.Cells[15].Value.ToString() != position.ProfitOrderRedLine.ToStringWithNoEndZero())
+            {
+                nRow.Cells[15].Value = position.ProfitOrderRedLine.ToStringWithNoEndZero();
+            }
+            if (nRow.Cells[16].Value != null ||
+                nRow.Cells[16].Value.ToString() != position.ProfitOrderPrice.ToStringWithNoEndZero())
+            {
+                nRow.Cells[16].Value = position.ProfitOrderPrice.ToStringWithNoEndZero();
+            }
+
+        }
+
         /// <summary>
         /// place of work that keeps logs
         /// место работы потока который сохраняет логи
@@ -374,7 +474,7 @@ namespace OsEngine.OsTrader
 
             while (true)
             {
-               await Task.Delay(2000);
+                await Task.Delay(2000);
 
                 CheckPosition();
 
@@ -417,14 +517,9 @@ namespace OsEngine.OsTrader
                     for (int i = 0; i < _grid.Rows.Count; i++)
                     {
                         if (_grid.Rows[i].Cells[0].Value != null &&
-                            (int) _grid.Rows[i].Cells[0].Value == position.Number)
+                            (int)_grid.Rows[i].Cells[0].Value == position.Number)
                         {
-                            _grid.Rows.Remove(_grid.Rows[i]);
-                            DataGridViewRow row1 = GetRow(position);
-                            if (row1 != null)
-                            {
-                                _grid.Rows.Add(row1);
-                            }
+                            TryRePaint(position, _grid.Rows[i]);
                             isIn = true;
                             break;
                         }
@@ -438,7 +533,7 @@ namespace OsEngine.OsTrader
 
                 for (int i = 0; i < _grid.Rows.Count; i++)
                 {
-                    if (openPositions.Find(pos => pos.Number == (int) _grid.Rows[i].Cells[0].Value) == null)
+                    if (openPositions.Find(pos => pos.Number == (int)_grid.Rows[i].Cells[0].Value) == null)
                     {
                         _grid.Rows.Remove(_grid.Rows[i]);
                     }
@@ -451,7 +546,7 @@ namespace OsEngine.OsTrader
             }
         }
 
-// messages in log / сообщения в лог 
+        // messages in log / сообщения в лог 
 
         /// <summary>
         /// send a new message to the top

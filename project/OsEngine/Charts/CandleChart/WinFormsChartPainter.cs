@@ -1579,7 +1579,10 @@ namespace OsEngine.Charts.CandleChart
                         _tradesToPaint.TryDequeue(out res);
                 }
 
-                _tradesToPaint.Enqueue(trades);
+                if(_tradesToPaint != null)
+                {
+                    _tradesToPaint.Enqueue(trades);
+                }
             }
         }
 
@@ -2145,8 +2148,10 @@ namespace OsEngine.Charts.CandleChart
                     while (_positions.IsEmpty == false)
                         _positions.TryDequeue(out res);
                 }
-
-                _positions.Enqueue(deals);
+                if (_positions != null)
+                {
+                    _positions.Enqueue(deals);
+                }    
             }
         }
 
@@ -3250,7 +3255,8 @@ namespace OsEngine.Charts.CandleChart
             }
             else
             {
-                if (_indicatorsToPaint.IsEmpty == false
+                if (_indicatorsToPaint != null &&
+                    _indicatorsToPaint.IsEmpty == false
                     &&
                     _indicatorsToPaint.Count > 25)
                 {
@@ -3262,7 +3268,10 @@ namespace OsEngine.Charts.CandleChart
                         _indicatorsToPaint.TryDequeue(out res);
                 }
 
-                _indicatorsToPaint.Enqueue(indicator);
+                if(_indicatorsToPaint != null)
+                {
+                    _indicatorsToPaint.Enqueue(indicator);
+                }
             }
         }
 
