@@ -1297,8 +1297,10 @@ namespace OsEngine.Charts.CandleChart
                     while (_candlesToPaint.IsEmpty == false)
                         _candlesToPaint.TryDequeue(out res);
                 }
-
-                _candlesToPaint.Enqueue(history); 
+                if (_candlesToPaint != null)
+                {
+                    _candlesToPaint.Enqueue(history);
+                }
             }
         }
 
