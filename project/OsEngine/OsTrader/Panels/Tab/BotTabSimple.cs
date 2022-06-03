@@ -192,6 +192,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 SellAtStopCancel();
                 _journal.Clear();
                 _chartMaster.Clear();
+                _lastTradeTime = DateTime.MinValue;
+                _lastTradeIndex = 0;
             }
             catch (Exception error)
             {
@@ -4055,6 +4057,14 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (_chartMaster == null)
             {
                 return;
+            }
+
+            if ((StartProgram == StartProgram.IsOsOptimizer
+                || StartProgram == StartProgram.IsTester)
+                && trades.Count < 10)
+            {
+                _lastTradeTime = DateTime.MinValue;
+                _lastTradeIndex = 0;
             }
 
             Trade trade = trades[trades.Count - 1];
