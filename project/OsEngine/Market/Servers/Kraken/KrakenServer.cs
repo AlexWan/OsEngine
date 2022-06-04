@@ -273,7 +273,7 @@ namespace OsEngine.Market.Servers.Kraken
 
                 Candle lastCandle = newCandles[newCandles.Count - 1];
 
-                candles.Merge(newCandles);
+                candles = candles.Merge(newCandles);
 
                 if(newCandles.Count == 1)
                 {

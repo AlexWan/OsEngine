@@ -213,10 +213,7 @@ namespace OsEngine.Entity
                 }
             }
 
-            oldCandles.Clear();
-            oldCandles.AddRange(newCandles);
-
-            return oldCandles;
+            return newCandles;
         }
 
         public static Candle Merge(this Candle oldCandle, Candle candleToMerge)

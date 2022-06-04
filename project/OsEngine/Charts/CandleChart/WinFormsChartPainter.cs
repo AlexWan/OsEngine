@@ -250,7 +250,12 @@ namespace OsEngine.Charts.CandleChart
         {
             try
             {
-                if (_chart != null && _chart.InvokeRequired)
+                if (_chart == null)
+                {
+                    return;
+                }
+
+                if (_chart.InvokeRequired)
                 {
                     _chart.Invoke(new Action(ClearDataPointsAndSizeValue));
                     return;
@@ -326,6 +331,10 @@ namespace OsEngine.Charts.CandleChart
 
         public void ClearSeries()
         {
+            if(_chart == null)
+            {
+                return;
+            }
             if (_chart.InvokeRequired)
             {
                 _chart.Invoke(new Action(ClearSeries));
@@ -439,6 +448,10 @@ namespace OsEngine.Charts.CandleChart
         {
             try
             {
+                if (_chart == null)
+                {
+                    return;
+                }
                 if (_chart.InvokeRequired)
                 {
                     _chart.Invoke(new Action(RefreshChartColor));
@@ -1171,6 +1184,11 @@ namespace OsEngine.Charts.CandleChart
             }
             try
             {
+                if(_chart == null)
+                {
+                    return;
+                }
+
                 if (history == null && _myCandles == null)
                 {
                     return;
@@ -1299,7 +1317,10 @@ namespace OsEngine.Charts.CandleChart
                 index = history.Count - 1;
                 //return;
             }
-
+            if (_chart == null)
+            {
+                return;
+            }
             if (_chart.InvokeRequired)
             {
                 _chart.Invoke(new Action<List<Candle>, int>(RePaintToIndex), history, index);
@@ -1919,6 +1940,10 @@ namespace OsEngine.Charts.CandleChart
         {
             try
             {
+                if (_chart == null)
+                {
+                    return;
+                }
                 if (_chart.InvokeRequired)
                 {
                     _chart.Invoke(new Action<Series, Series[]>
@@ -2191,6 +2216,10 @@ namespace OsEngine.Charts.CandleChart
         {
             try
             {
+                if (_chart == null)
+                {
+                    return;
+                }
                 if (_chart.InvokeRequired)
                 {
                     _chart.Invoke(new Action<IChartElement>(ClearElem), element);
@@ -2272,7 +2301,10 @@ namespace OsEngine.Charts.CandleChart
             {
                 return;
             }
-
+            if (_chart == null)
+            {
+                return;
+            }
             if (_chart.InvokeRequired)
             {
                 _chart.Invoke(new Action<LineHorisontal>(PaintHorisiontalLineOnArea), lineElement);
@@ -2702,6 +2734,10 @@ namespace OsEngine.Charts.CandleChart
 
         public void ClearAlerts(List<IIAlert> alertArray)
         {
+            if (_chart == null)
+            {
+                return;
+            }
             if (_chart.InvokeRequired)
             {
                 _chart.Invoke(new Action<List<IIAlert>>(ClearAlerts), alertArray);
@@ -2731,6 +2767,10 @@ namespace OsEngine.Charts.CandleChart
 
         public void PaintAlert(AlertToChart alert)
         {
+            if (_chart == null)
+            {
+                return;
+            }
             if (_chart.InvokeRequired)
             {
                 _chart.Invoke(new Action<AlertToChart>(PaintAlert), alert);
@@ -2896,7 +2936,10 @@ namespace OsEngine.Charts.CandleChart
                 {
                     return;
                 }
-
+                if (_chart == null)
+                {
+                    return;
+                }
                 if (_chart.InvokeRequired)
                 {
                     _chart.Invoke(new Action<IIndicator>(PaintIndicator), indicator);
@@ -3041,6 +3084,11 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
 
+            if (_chart == null)
+            {
+                return;
+            }
+
             if (_chart.InvokeRequired)
             {
                 _chart.Invoke(new Action<IIndicator>(RePaintIndicator), indicatorCandle);
@@ -3080,6 +3128,10 @@ namespace OsEngine.Charts.CandleChart
         {
             try
             {
+                if (_chart == null)
+                {
+                    return;
+                }
                 if (_chart.InvokeRequired)
                 {
                     _chart.Invoke(new Action<Series>(ClearIndicatorSeries), series);
@@ -3497,6 +3549,10 @@ namespace OsEngine.Charts.CandleChart
         {
             try
             {
+                if (_chart == null)
+                {
+                    return;
+                }
                 if (_chart.InvokeRequired)
                 {
                     _chart.Invoke(new Action<Series>(PaintSeriesSafe), series);
@@ -3534,6 +3590,10 @@ namespace OsEngine.Charts.CandleChart
         {
             try
             {
+                if (_chart == null)
+                {
+                    return;
+                }
                 if (_chart.InvokeRequired)
                 {
                     _chart.Invoke(new Action<Series>(ReMoveSeriesSafe), series);
@@ -3627,7 +3687,11 @@ namespace OsEngine.Charts.CandleChart
 
         public void PaintSingleVolumePattern(List<Candle> candles)
         {
-            if (_chart != null && _chart.InvokeRequired)
+            if (_chart == null)
+            {
+                return;
+            }
+            if (_chart.InvokeRequired)
             {
                 _chart.Invoke(new Action<List<Candle>>(PaintSingleVolumePattern), candles);
                 return;
@@ -3660,6 +3724,10 @@ namespace OsEngine.Charts.CandleChart
 
         public void PaintInDifColor(int indexStart, int indexEnd, string seriesName)
         {
+            if (_chart == null)
+            {
+                return;
+            }
             if (_chart.InvokeRequired)
             {
                 _chart.Invoke(new Action<int, int, string> (PaintInDifColor), indexStart, indexEnd, seriesName);
@@ -4054,6 +4122,10 @@ namespace OsEngine.Charts.CandleChart
             {
                 return;
             }
+            if (_chart == null)
+            {
+                return;
+            }
             if (_chart.InvokeRequired)
             {
                 _chart.Invoke(new Action<string, string, string, decimal, Color, bool>(PaintLabelOnY2), name, nameArea, label, positionOnY, color, isPrime);
@@ -4134,6 +4206,10 @@ namespace OsEngine.Charts.CandleChart
             {
                 return;
             }
+            if (_chart == null)
+            {
+                return;
+            }
             if (_chart.InvokeRequired)
             {
                 _chart.Invoke(new Action<string, string, Color>(ClearLabelOnY2), name, nameArea,color);
@@ -4190,6 +4266,10 @@ namespace OsEngine.Charts.CandleChart
         private void RePaintPrimeLines(string areaName)
         {
             if (IsPatternChart)
+            {
+                return;
+            }
+            if (_chart == null)
             {
                 return;
             }
@@ -5578,6 +5658,10 @@ namespace OsEngine.Charts.CandleChart
 
             try
             {
+                if (_chart == null)
+                {
+                    return;
+                }
                 if (_chart.InvokeRequired)
                 {
                     _chart.Invoke(new Action<string>(ResizeYAxisOnArea), areaName);
@@ -5957,6 +6041,10 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         private void ResizeXAxis()
         {
+            if (_chart == null)
+            {
+                return;
+            }
             if (_chart.InvokeRequired)
             {
                 _chart.Invoke(new Action(ResizeXAxis));
@@ -6049,7 +6137,10 @@ namespace OsEngine.Charts.CandleChart
             {
                 return;
             }
-
+            if (_chart == null)
+            {
+                return;
+            }
             if (_chart.InvokeRequired)
             {
                 _chart.Invoke(new Action(ResizeTickArea));
@@ -6133,6 +6224,10 @@ namespace OsEngine.Charts.CandleChart
         {
             try
             {
+                if (_chart == null)
+                {
+                    return;
+                }
                 if (_chart.InvokeRequired)
                 {
                     _chart.Invoke(new Action(ClearZoom));
@@ -6152,6 +6247,10 @@ namespace OsEngine.Charts.CandleChart
 
         public void MoveChartToTheRight()
         {
+            if (_chart == null)
+            {
+                return;
+            }
             if (_chart.InvokeRequired)
             {
                 _chart.Invoke(new Action(MoveChartToTheRight));

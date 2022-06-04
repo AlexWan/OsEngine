@@ -53,6 +53,7 @@ namespace OsEngine.Market.Servers
 
                 CreateParameterInt(OsLocalization.Market.ServerParam6, 300);
                 _neadToSaveCandlesCountParam = (ServerParameterInt)ServerParameters[ServerParameters.Count - 1];
+                _neadToSaveCandlesCountParam.ValueChange += _neadToSaveCandlesCountParam_ValueChange;
 
                 CreateParameterBoolean(OsLocalization.Market.ServerParam7, false);
                 _needToLoadBidAskInTrades = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
@@ -74,6 +75,7 @@ namespace OsEngine.Market.Servers
 
                 _candleStorage = new ServerCandleStorage(this);
                 _candleStorage.NeadToSave = _neadToSaveCandlesParam.Value;
+                _candleStorage.CandlesSaveCount = _neadToSaveCandlesCountParam.Value;
                 _candleStorage.LogMessageEvent += SendLogMessage;
 
                 Task task0 = new Task(ExecutorOrdersThreadArea);
@@ -107,6 +109,11 @@ namespace OsEngine.Market.Servers
 
             }
             get { return _serverRealization; }
+        }
+
+        private void _neadToSaveCandlesCountParam_ValueChange()
+        {
+            _candleStorage.CandlesSaveCount = _neadToSaveCandlesCountParam.Value;
         }
 
         private object trades_locker = new object();
@@ -1377,7 +1384,7 @@ namespace OsEngine.Market.Servers
                 series.IsMergedByCandlesFromFile = true;
 
                 List<Candle> candles = _candleStorage.GetCandles(series.Specification, _neadToSaveCandlesCountParam.Value);
-                series.CandlesAll.Merge(candles);
+                series.CandlesAll = series.CandlesAll.Merge(candles);
             }
 
             if (_needToRemoveCandlesFromMemory.Value == true
