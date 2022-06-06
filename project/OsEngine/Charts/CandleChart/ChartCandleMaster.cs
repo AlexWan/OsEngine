@@ -1333,7 +1333,7 @@ namespace OsEngine.Charts.CandleChart
                 _grid = null;
             }
 
-            UpDateChartPainter();
+            //UpDateChartPainter();
         }
 
         /// <summary>
