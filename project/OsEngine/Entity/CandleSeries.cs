@@ -330,6 +330,16 @@ namespace OsEngine.Entity
                 return;
             }
 
+            for (int i2 = 0; i2 < newTrades.Count; i2++)
+            {
+                if (newTrades[i2] == null)
+                {
+                    newTrades.RemoveAt(i2);
+                    i2--;
+                    continue;
+                }
+            }
+
             _lastTradeTime = newTrades[newTrades.Count - 1].Time;
 
             // обновилось неизвесное кол-во тиков

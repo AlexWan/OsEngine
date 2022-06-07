@@ -4069,7 +4069,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             Trade trade = trades[trades.Count - 1];
 
-            if (_firstTickToDaySend == false && FirstTickToDayEvent != null)
+            if (trade != null && _firstTickToDaySend == false && FirstTickToDayEvent != null)
             {
                 if (trade.Time.Hour == 10
                     && (trade.Time.Minute == 1 || trade.Time.Minute == 0))
@@ -4119,12 +4119,20 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
             
-
             if (newTrades.Count == 0)
             {
                 return;
             }
 
+            for (int i2 = 0; i2 < newTrades.Count; i2++)
+            {
+                if (newTrades[i2] == null)
+                {
+                    newTrades.RemoveAt(i2);
+                    i2--;
+                    continue;
+                }
+            }
 
             List<Position> openPositions = _journal.OpenPositions;
 
@@ -4148,11 +4156,6 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             for (int i2 = 0; i2 < newTrades.Count; i2++)
             {
-                if (newTrades[i2] == null)
-                {
-                    newTrades.RemoveAt(i2);
-                    return;
-                }
                 CheckStopOpener(newTrades[i2].Price);
 
                 if (NewTickEvent != null)
