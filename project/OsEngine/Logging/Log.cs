@@ -129,11 +129,13 @@ namespace OsEngine.Logging
             if(_startProgram != StartProgram.IsOsOptimizer)
             {
                 CreateGrid();
-                _messageSender = new MessageSender(uniqName, _startProgram);
                 AddToLogsToCheck(this);
             }
 
-            
+            if (_startProgram == StartProgram.IsOsTrader)
+            {
+                _messageSender = new MessageSender(uniqName, _startProgram);
+            }
         }
 
         private void CreateGrid()
@@ -544,7 +546,10 @@ namespace OsEngine.Logging
         /// </summary>
         void _grid_DoubleClick(object sender, EventArgs e)
         {
-            _messageSender.ShowDialog();
+            if(_messageSender != null)
+            {
+                _messageSender.ShowDialog();
+            }
         }
 
         // drawing

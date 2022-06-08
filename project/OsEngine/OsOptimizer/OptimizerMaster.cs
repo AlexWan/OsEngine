@@ -24,7 +24,7 @@ namespace OsEngine.OsOptimizer
     {
         public OptimizerMaster()
         {
-            _log = new Log("OptimizerLog", StartProgram.IsOsOptimizer);
+            _log = new Log("OptimizerLog", StartProgram.IsTester);
             _log.Listen(this);
 
             _threadsCount = 1;
