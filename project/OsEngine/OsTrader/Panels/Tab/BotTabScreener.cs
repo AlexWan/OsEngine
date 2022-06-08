@@ -239,11 +239,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
-            if (ServerMaster.GetServers().Find(x => x.ServerType == ServerType.BinanceFutures).ServerStatus == Market.Servers.ServerConnectStatus.Disconnect)
-            {
-                return;
-            }
-
             if (_tabIsLoad == true)
             {
                 return;

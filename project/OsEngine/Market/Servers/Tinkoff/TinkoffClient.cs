@@ -890,8 +890,9 @@ namespace OsEngine.Market.Servers.Tinkoff
 
                     PortfoliosResponse portfoliosResponse = JsonConvert.DeserializeAnonymousType(resPort, new PortfoliosResponse());
 
-                    UpdatePortfolioFromJson(portfoliosResponse, account.id);
-                    UpdatePositionsInPortfolio(portfoliosResponse, portfoliosResponse.positions, account.id);
+                    List<PositionOnBoard> byPower = GetPortfolioByPower(portfoliosResponse, account.id);
+                    
+                    UpdatePositionsInPortfolio(portfoliosResponse, portfoliosResponse.positions, account.id, byPower);
                 }
 
                 if (UpdatePortfolio != null)
@@ -908,7 +909,7 @@ namespace OsEngine.Market.Servers.Tinkoff
             }
         }
 
-        public void UpdatePortfolioFromJson(PortfoliosResponse portfolio, string porfolioId)
+        public List<PositionOnBoard> GetPortfolioByPower(PortfoliosResponse portfolio, string porfolioId)
         {
             Portfolio myPortfolio = _portfolios.Find(p => p.Number == porfolioId);
 
@@ -937,10 +938,7 @@ namespace OsEngine.Market.Servers.Tinkoff
             PositionOnBoard totalAmountEtf = ConverToPosOnBoard(portfolio.totalAmountEtf, porfolioId, "EtfBuyPower");
             sectionByPower.Add(totalAmountEtf);
 
-            for (int i = 0; i < sectionByPower.Count; i++)
-            {
-                myPortfolio.SetNewPosition(sectionByPower[i]);
-            }
+            return sectionByPower;
         }
 
         private PositionOnBoard ConverToPosOnBoard(CurrencyQuotation currency, string portfolioId, string sectionName)
@@ -954,10 +952,9 @@ namespace OsEngine.Market.Servers.Tinkoff
             return totalAmount;
         }
 
-        public void UpdatePositionsInPortfolio(PortfoliosResponse portfolio, List<TinkoffApiPosition> positions, string porfolioName)
+        public void UpdatePositionsInPortfolio(PortfoliosResponse portfolio, List<TinkoffApiPosition> positions, string porfolioName, List<PositionOnBoard> byPower)
         {
             if (positions == null
-                || positions.Count == 0
                 || _allSecurities == null
                 || _allSecurities.Count == 0)
             {
@@ -971,7 +968,7 @@ namespace OsEngine.Market.Servers.Tinkoff
                 return;
             }
 
-            List<PositionOnBoard> sectionByPower = new List<PositionOnBoard>();
+            List<PositionOnBoard> sectionPoses = new List<PositionOnBoard>();
 
             for (int i = 0; i < positions.Count; i++)
             {
@@ -988,15 +985,40 @@ namespace OsEngine.Market.Servers.Tinkoff
                 pos.ValueBegin = positions[i].quantity.GetValue();
                 pos.SecurityNameCode = mySec.Name;
 
-                sectionByPower.Add(pos);
+                sectionPoses.Add(pos);
             }
 
-            for (int i = 0; i < sectionByPower.Count; i++)
+            for (int i = 0; i < sectionPoses.Count; i++)
             {
-                myPortfolio.SetNewPosition(sectionByPower[i]);
+                myPortfolio.SetNewPosition(sectionPoses[i]);
             }
 
+            for(int i = 0;i < byPower.Count;i++)
+            {
+                myPortfolio.SetNewPosition(byPower[i]);
+            }
 
+            // теперь обновляем очищенные позиции
+
+            List<PositionOnBoard> allPoses = myPortfolio.GetPositionOnBoard();
+
+            for (int i = 0; i < allPoses.Count; i++)
+            {
+                string name = allPoses[i].SecurityNameCode;
+
+                if(sectionPoses.Find(s => s.SecurityNameCode == name) != null)
+                {
+                    continue;
+                }
+
+                if (byPower.Find(s => s.SecurityNameCode == name) != null)
+                {
+                    continue;
+                }
+
+                // позиция по бумаге обнулена. Правим
+                allPoses[i].ValueCurrent = 0;
+            }
 
         }
 
@@ -1413,6 +1435,7 @@ namespace OsEngine.Market.Servers.Tinkoff
                 MyTrade trade = new MyTrade();
                 trade.SecurityNameCode = oldOrder.SecurityNameCode;
                 trade.Side = oldOrder.Side;
+                trade.NumberOrderParent = orderResp.orderId;
 
                 trade.Volume = orderResp.stages[i].quantity.ToDecimal();
                 trade.Price = orderResp.stages[i].price.GetValue().ToStringWithNoEndZero().ToDecimal();
