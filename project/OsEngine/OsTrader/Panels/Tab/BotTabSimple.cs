@@ -2996,8 +2996,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 if (position.State == PositionStateType.Done ||
-                    position.State == PositionStateType.OpeningFail ||
-                    position.State == PositionStateType.Closing)
+                    position.State == PositionStateType.OpeningFail)
                 {
                     return;
                 }
@@ -3057,8 +3056,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 if (position.State == PositionStateType.Done ||
-                    position.State == PositionStateType.OpeningFail ||
-                    position.State == PositionStateType.Closing)
+                    position.State == PositionStateType.OpeningFail)
                 {
                     return;
                 }
