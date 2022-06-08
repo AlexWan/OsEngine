@@ -102,6 +102,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 _client.NewTradesEvent -= _client_NewTradesEvent;
                 _client.MyTradeEvent -= _client_MyTradeEvent;
                 _client.MyOrderEvent -= _client_MyOrderEvent;
+                _client.ListenKeyExpiredEvent -= _client_ListenKeyExpiredEvent;
                 _client.LogMessageEvent -= SendLogMessage;
             }
 
@@ -129,6 +130,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 _client.NewTradesEvent += _client_NewTradesEvent;
                 _client.MyTradeEvent += _client_MyTradeEvent;
                 _client.MyOrderEvent += _client_MyOrderEvent;
+                _client.ListenKeyExpiredEvent += _client_ListenKeyExpiredEvent;
                 _client.LogMessageEvent += SendLogMessage;
             }
 
@@ -359,6 +361,18 @@ namespace OsEngine.Market.Servers.Binance.Futures
             }
 
             return candles;
+        }
+
+        /// <summary>
+        /// renewing of the expired listen key
+        /// обновление заэкспарившегося listen key
+        /// </summary>
+        void _client_ListenKeyExpiredEvent(BinanceClientFutures client)
+        {
+            if (client != null)
+            {
+                client.RenewListenKey();
+            }
         }
 
         //parsing incoming data
