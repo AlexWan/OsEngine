@@ -59,9 +59,11 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public void SetSeriesToSave(CandleSeries series)
         {
+            string spec = series.Specification;
+
             for (int i = 0; i < _series.Count; i++)
             {
-                if (_series[i].Specification == series.Specification)
+                if (_series[i].Specification == spec)
                 {
                     _series.RemoveAt(i);
                     break;

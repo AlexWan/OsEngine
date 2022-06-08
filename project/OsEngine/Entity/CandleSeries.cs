@@ -72,15 +72,8 @@ namespace OsEngine.Entity
         {
             get
             {
-                StringBuilder result = new StringBuilder();
-
-                string _specification = "";
-
-                result.Append(Security.NameFull + "_");
-                //result.Append(Security.NameClass + "_");
-                result.Append(TimeFrameBuilder.Specification);
-
-                _specification = result.ToString();
+                string _specification 
+                    = Security.NameFull + "_" + TimeFrameBuilder.Specification;
 
                 _specification =
                     _specification.Replace("(", "")

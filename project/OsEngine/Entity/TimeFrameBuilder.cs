@@ -98,6 +98,8 @@ namespace OsEngine.Entity
         /// </summary>
         public void Save()
         {
+            _neadToRebuildSpecification = true;
+
             if (_canSave == false)
             {
                 return;
@@ -146,14 +148,25 @@ namespace OsEngine.Entity
             }
         }
 
+        private bool _neadToRebuildSpecification;
+
+        private string _lastSpecification;
+
         public string Specification
         {
             get
             {
+                if(_lastSpecification != null &&
+                    _neadToRebuildSpecification == false)
+                {
+                    return _lastSpecification;
+                }
+
+                _neadToRebuildSpecification = false;
+
                 StringBuilder result = new StringBuilder();
 
                 result.Append(_timeFrame + "_");
-
                 result.Append(TimeFrame + "_");
                 result.Append(_candleCreateType + "_");
                 result.Append(_setForeign + "_");
@@ -167,7 +180,9 @@ namespace OsEngine.Entity
                 result.Append(_reversCandlesPunktsBackMove + "_");
                 result.Append(_rangeCandlesPunkts);
 
-                return result.ToString();
+                _lastSpecification = result.ToString();
+
+                return _lastSpecification;
             }
         }
 

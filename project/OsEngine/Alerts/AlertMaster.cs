@@ -516,7 +516,8 @@ namespace OsEngine.Alerts
         {
             try
             {
-                if (_alertArray == null)
+                if (_alertArray == null
+                    || _alertArray.Count == 0)
                 {
                     return null;
                 }

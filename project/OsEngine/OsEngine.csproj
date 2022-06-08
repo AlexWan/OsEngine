@@ -485,6 +485,7 @@
     <Compile Include="Market\Servers\Bybit\BybitServer.cs" />
     <Compile Include="Market\Servers\Bybit\BybitServerPermission.cs" />
     <Compile Include="Market\Servers\Bybit\Entities\Client.cs" />
+    <Compile Include="Market\Servers\Bybit\Entities\Order.cs" />
     <Compile Include="Market\Servers\Bybit\EntityCreators\BybitCandlesCreator.cs" />
     <Compile Include="Market\Servers\Bybit\EntityCreators\BybitMarketDepthCreator.cs" />
     <Compile Include="Market\Servers\Bybit\EntityCreators\BybitOrderCreator.cs" />

@@ -47,6 +47,7 @@ namespace OsEngine.Market.Servers.Bybit
         #endregion
 
         #region Fields
+
         private string public_key;
         private string secret_key;
 
@@ -380,6 +381,7 @@ namespace OsEngine.Market.Servers.Bybit
             parameters.Add("api_key", client.ApiKey);
             parameters.Add("side", side);
             parameters.Add("order_type", type);
+            parameters.Add("referer", "api.OsEngine");
             parameters.Add("qty", order.Volume.ToString().Replace(",", "."));
             parameters.Add("time_in_force", "GoodTillCancel");
             parameters.Add("order_link_id", order.NumberUser.ToString());
@@ -404,6 +406,10 @@ namespace OsEngine.Market.Servers.Bybit
             {
                 SendLogMessage($"Order num {order.NumberUser} on exchange.", LogMessageType.Trade);
                 order.State = OrderStateType.Activ;
+
+                var ordChild = place_order_response.SelectToken("result"); 
+
+                order.NumberMarket = ordChild.SelectToken("order_id").ToString();
 
                 OnOrderEvent(order);
             }
@@ -574,6 +580,7 @@ namespace OsEngine.Market.Servers.Bybit
         #endregion
 
         #region message handlers
+
         private void HandleAuthMessage(JToken response)
         {
             SendLogMessage("Bybit: Successful authorization", LogMessageType.System);
@@ -640,6 +647,7 @@ namespace OsEngine.Market.Servers.Bybit
                 OnMyTradeEvent(trade);
             }
         }
+
         #endregion
 
         #region Работа со свечами
