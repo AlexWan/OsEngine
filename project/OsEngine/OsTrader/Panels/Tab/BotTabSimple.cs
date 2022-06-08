@@ -57,8 +57,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _connector.LogMessageEvent += SetNewLogMessage;
                 _connector.ConnectorStartedReconnectEvent += _connector_ConnectorStartedReconnectEvent;
 
-                _marketDepthPainter = new MarketDepthPainter(TabName);
-                _marketDepthPainter.LogMessageEvent += SetNewLogMessage;
+                if(startProgram != StartProgram.IsOsOptimizer)
+                {
+                    _marketDepthPainter = new MarketDepthPainter(TabName);
+                    _marketDepthPainter.LogMessageEvent += SetNewLogMessage;
+                }
 
                 _journal = new Journal.Journal(TabName, startProgram);
 
@@ -242,7 +245,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                 ManualPositionSupport.Delete();
                 _chartMaster.Delete();
 
-                _marketDepthPainter.Delete();
+                if(_marketDepthPainter != null)
+                {
+                    _marketDepthPainter.Delete();
+                }
 
                 if (File.Exists(@"Engine\" + TabName + @"SettingsBot.txt"))
                 {
@@ -3712,7 +3718,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             MarketDepth = marketDepth;
 
-            _marketDepthPainter.ProcessMarketDepth(marketDepth);
+            if(_marketDepthPainter != null)
+            {
+                _marketDepthPainter.ProcessMarketDepth(marketDepth);
+            }
 
             if (MarketDepthUpdateEvent != null)
             {

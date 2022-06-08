@@ -199,7 +199,6 @@ namespace OsEngine.Entity
                 styleRed.ForeColor = Color.FromArgb(254, 84, 0);
                 styleRed.Font = new Font("Areal", 3);
 
-
                 for (int i = 0; i < 25; i++)
                 {
                     _glassBox.Rows.Add(null, null, null);
@@ -380,6 +379,8 @@ namespace OsEngine.Entity
 
                 if(_glassBox != null)
                 {
+
+                    _glassBox.SelectionChanged -= _glassBox_SelectionChanged;
                     _glassBox.Rows.Clear();
                     _glassBox = null;
                 }

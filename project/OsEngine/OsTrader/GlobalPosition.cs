@@ -512,22 +512,27 @@ namespace OsEngine.OsTrader
                 for (int i1 = 0; i1 < openPositions.Count; i1++)
                 {
                     Position position = openPositions[i1];
-                    DataGridViewRow row = GetRow(position);
+                    
                     bool isIn = false;
                     for (int i = 0; i < _grid.Rows.Count; i++)
                     {
                         if (_grid.Rows[i].Cells[0].Value != null &&
-                            (int)_grid.Rows[i].Cells[0].Value == position.Number)
+                            _grid.Rows[i].Cells[0].Value.ToString() == position.Number.ToString())
                         {
                             TryRePaint(position, _grid.Rows[i]);
                             isIn = true;
                             break;
                         }
                     }
-
-                    if (isIn == false && row != null)
+                    
+                    if (isIn == false)
                     {
-                        _grid.Rows.Add(row);
+                        DataGridViewRow row = GetRow(position);
+
+                        if(row != null)
+                        {
+                            _grid.Rows.Add(row);
+                        }
                     }
                 }
 
