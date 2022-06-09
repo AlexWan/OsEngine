@@ -469,10 +469,10 @@ namespace OsEngine.Indicators
                 return;
             }
 
-            lock(_indicatorUpdateLocker)
-            {
+            //lock(_indicatorUpdateLocker)
+            //{
                 ProcessAll(_myCandles);
-            }
+            //}
 
             if (NeadToReloadEvent != null)
             {
@@ -480,7 +480,7 @@ namespace OsEngine.Indicators
             }
         }
 
-        private string _indicatorUpdateLocker = "indLocker";
+        //private string _indicatorUpdateLocker = "indLocker";
 
         public event Action<IIndicator> NeadToReloadEvent;
 
@@ -488,13 +488,13 @@ namespace OsEngine.Indicators
         {
             _myCandles = new List<Candle>();
 
-            lock(_indicatorUpdateLocker)
-            {
+            //lock(_indicatorUpdateLocker)
+            //{
                 for (int i = 0; i < DataSeries.Count; i++)
                 {
                     DataSeries[i].Values.Clear();
                 }
-            }
+            //}
         }
 
         private List<Candle> _myCandles = new List<Candle>();
@@ -503,8 +503,8 @@ namespace OsEngine.Indicators
 
         public void Process(List<Candle> candles)
         {
-            lock(_indicatorUpdateLocker)
-            {
+            //lock(_indicatorUpdateLocker)
+            //{
                 if (candles.Count == 0)
                 {
                     return;
@@ -533,7 +533,7 @@ namespace OsEngine.Indicators
                 }
 
                 _myCandles = candles;
-            }
+            //}
         }
 
         private void ProcessAll(List<Candle> candles)
@@ -603,8 +603,8 @@ namespace OsEngine.Indicators
 
         public void Process(List<decimal> values)
         {
-            lock(_indicatorUpdateLocker)
-            {
+            //lock(_indicatorUpdateLocker)
+            //{
                 if (values.Count == 0)
                 {
                     return;
@@ -623,7 +623,7 @@ namespace OsEngine.Indicators
                 {
                     ProcessNew(values, values.Count);
                 }
-            }
+           // }
         }
 
         private void ProcessAll(List<decimal> values)
