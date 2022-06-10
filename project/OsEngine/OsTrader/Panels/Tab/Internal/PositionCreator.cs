@@ -28,7 +28,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             newDeal.Direction = direction;
             newDeal.State = PositionStateType.Opening;
 
-            newDeal.AddNewOpenOrder(CreateOrder(direction, priceOrder, volume, priceType, timeLife, startProgram,OrderPositionConditionType.Open));
+            newDeal.AddNewOpenOrder(CreateOrder(security, direction, priceOrder, volume, priceType, timeLife, startProgram,OrderPositionConditionType.Open));
 
             newDeal.NameBot = botName;
             newDeal.Lots = security.Lot;
@@ -43,7 +43,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// create order / 
         /// создать ордер
         /// </summary>
-        public Order CreateOrder(
+        public Order CreateOrder(Security security,
             Side direction, decimal priceOrder, decimal volume, 
             OrderPriceType priceType, TimeSpan timeLife, StartProgram startProgram,
                 OrderPositionConditionType positionConditionType)
@@ -56,6 +56,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             newOrder.TypeOrder = priceType;
             newOrder.LifeTime = timeLife;
             newOrder.PositionConditionType = positionConditionType;
+            newOrder.SecurityNameCode = security.Name;
+            newOrder.SecurityClassCode = security.NameClass;
 
             return newOrder;
         }
@@ -64,7 +66,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// create closing order / 
         /// создать закрывающий ордер
         /// </summary>
-        public Order CreateCloseOrderForDeal(Position deal, decimal price, OrderPriceType priceType, TimeSpan timeLife, StartProgram startProgram)
+        public Order CreateCloseOrderForDeal(Security security, Position deal, decimal price, OrderPriceType priceType, TimeSpan timeLife, StartProgram startProgram)
         {
             Side direction;
 
@@ -93,6 +95,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             newOrder.TypeOrder = priceType;
             newOrder.LifeTime = timeLife;
             newOrder.PositionConditionType = OrderPositionConditionType.Close;
+            newOrder.SecurityNameCode = security.Name;
+            newOrder.SecurityClassCode = security.NameClass;
 
             return newOrder;
         }
