@@ -417,11 +417,27 @@ namespace OsEngine.Charts.CandleChart
                 }
 
                 _myCandles = null;
-                _chartElements = null;
-                _alertArray = null;
-                _indicators = null;
-                _myPosition = null;
+                if (_chartElements != null)
+                {
+                    _chartElements.Clear();
+                    _chartElements = null;
+                }
+                if(_alertArray != null)
+                {
+                    _alertArray.Clear();
+                    _alertArray = null;
+                }
+                if(_indicators != null)
+                {
+                    _indicators.Clear();
+                    _indicators = null;
+                }
                 
+                if(_myPosition != null)
+                {
+                    _myPosition.Clear();
+                    _myPosition = null;
+                }
             }
             catch (Exception error)
             {
@@ -1014,6 +1030,7 @@ namespace OsEngine.Charts.CandleChart
         {
             try
             {
+
                 if (_chartElements == null)
                 {
                     _chartElements = new List<IChartElement>();
@@ -1036,8 +1053,11 @@ namespace OsEngine.Charts.CandleChart
                 myElement.DeleteEvent += myElement_DeleteEvent;
                 // 2 sending it over for a drawing.
                 // 2 отправляем на прорисовку
-
-                ChartCandle.ProcessElem(myElement);
+                
+                if(ChartCandle != null)
+                {
+                    ChartCandle.ProcessElem(myElement);
+                }
             }
             catch (Exception error)
             {
