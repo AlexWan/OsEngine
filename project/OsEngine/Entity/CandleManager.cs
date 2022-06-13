@@ -848,10 +848,13 @@ namespace OsEngine.Entity
                 // ignore
             }
 
-            _server.NewTradeEvent -= server_NewTradeEvent;
-            _server.TimeServerChangeEvent -= _server_TimeServerChangeEvent;
-            _server.NewMarketDepthEvent -= _server_NewMarketDepthEvent;
-            _server = null;
+            if (_server != null)
+            {
+                _server.NewTradeEvent -= server_NewTradeEvent;
+                _server.TimeServerChangeEvent -= _server_TimeServerChangeEvent;
+                _server.NewMarketDepthEvent -= _server_NewMarketDepthEvent;
+                _server = null;
+            }
         }
 
         private bool _isDisposed;
