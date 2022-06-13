@@ -47,6 +47,7 @@ using MessageBox = System.Windows.MessageBox;
 using OsEngine.Market.Servers.GateIo.Futures;
 using OsEngine.Market.Servers.FTX;
 using OsEngine.Market.Servers.Bybit;
+using System.Linq;
 
 namespace OsEngine.Market
 {
@@ -116,18 +117,16 @@ namespace OsEngine.Market
             }
         }
 
+        public static bool HasActiveServers()
+        {
+            return _servers != null && _servers.Count > 0;
+        }
+
         public static List<ServerType> ActiveServersTypes
         {
             get
             {
-                List<ServerType> types = new List<ServerType>();
-
-                for (int i = 0; _servers != null && i < _servers.Count; i++)
-                {
-                    types.Add(_servers[i].ServerType);
-                }
-
-                return types;
+                return _servers == null ? new List<ServerType>() : _servers.Select(s => s.ServerType).ToList();
             }
         }
 
@@ -139,10 +138,10 @@ namespace OsEngine.Market
         {
             try
             {
-                for (int i = 0; _servers != null && i < _servers.Count; i++)
-                {
-                    _servers[i].StopServer();
-                }
+                    if (_servers != null)
+                    {
+                        _servers.ForEach(s => s.StopServer());
+                    }
             }
             catch (Exception error)
             {

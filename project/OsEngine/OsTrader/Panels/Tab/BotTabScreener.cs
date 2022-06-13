@@ -234,7 +234,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void TryLoadTabs()
         {
-            if (ServerMaster.ActiveServersTypes.Count == 0)
+            if (!ServerMaster.HasActiveServers())
             {
                 return;
             }
