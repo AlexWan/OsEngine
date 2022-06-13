@@ -46,127 +46,145 @@ namespace OsEngine.Entity
             grid.DefaultCellStyle = style;
             grid.ColumnHeadersDefaultCellStyle = style;
 
-            grid.MouseHover += delegate(object sender, EventArgs args)
+            grid.MouseHover += GridMouseHoverEvent;
+
+            grid.MouseLeave += GridMouseLeaveEvent;
+
+            grid.MouseWheel += GridMouseWheelEvent;
+
+            if (createSaveMenu)
             {
-                grid.Focus();
-            };
-
-            grid.MouseLeave += delegate(object sender, EventArgs args)
-            {
-                grid.EndEdit();
-            };
-
-            grid.MouseWheel += delegate(object sender, MouseEventArgs args)
-            {
-                if (grid.SelectedCells.Count == 0)
-                {
-                    return;
-                }
-                int rowInd = grid.SelectedCells[0].RowIndex;
-                if (args.Delta < 0)
-                {
-                    rowInd++;
-                }
-                else if (args.Delta > 0)
-                {
-                    rowInd--;
-                }
-
-                if (rowInd < 0)
-                {
-                    rowInd = 0;
-                }
-
-                if (rowInd >= grid.Rows.Count)
-                {
-                    rowInd = grid.Rows.Count - 1;
-                }
-
-                grid.Rows[rowInd].Selected = true;
-                grid.Rows[rowInd].Cells[grid.SelectedCells[0].ColumnIndex].Selected = true;
-
-                if (grid.FirstDisplayedScrollingRowIndex > rowInd)
-                {
-                    grid.FirstDisplayedScrollingRowIndex = rowInd;
-                }
-                
-
-            };
-
-            if(createSaveMenu)
-            {
-                List <MenuItem> items = new List<MenuItem>();
-
-                items.Add(new MenuItem("Save table in file"));
-
-                items[items.Count - 1].Click += delegate (Object sender, EventArgs e)
-                {
-                    if(grid.Rows.Count == 0)
-                    {
-                        return;
-                    }
-
-                    try
-                    {
-                        SaveFileDialog myDialog = new SaveFileDialog();
-                        myDialog.Filter = "*.txt|";
-                        myDialog.ShowDialog();
-
-                        if (string.IsNullOrEmpty(myDialog.FileName))
-                        {
-                            MessageBox.Show(OsLocalization.Journal.Message1);
-                            return;
-                        }
-
-                        string fileName = myDialog.FileName;
-                        if (fileName.Split('.').Length == 1)
-                        {
-                            fileName = fileName + ".txt";
-                        }
-
-                        string saveStr = "";
-
-                        for (int i = 0; i < grid.Columns.Count; i++)
-                        {
-                            saveStr += grid.Columns[i].HeaderText + ",";
-                        }
-
-                        saveStr += "\r\n";
-
-                        for (int i = 0; i < grid.Rows.Count; i++)
-                        {
-                            saveStr += grid.Rows[i].ToFormatString() + "\r\n";
-                        }
-
-
-                        StreamWriter writer = new StreamWriter(fileName);
-                        writer.Write(saveStr);
-                        writer.Close();
-                    }
-                    catch (Exception error)
-                    {
-                        MessageBox.Show(error.ToString());
-                    }
-                };
-
-                ContextMenu menu = new ContextMenu(items.ToArray());
-                grid.ContextMenu = menu;
-
-                grid.Click += delegate(Object sender, EventArgs e)
-                {
-                    MouseEventArgs mouse = (MouseEventArgs)e;
-                    if (mouse.Button != MouseButtons.Right)
-                    {
-                        return;
-                    }
-
-                    grid.ContextMenu = menu;
-                    grid.ContextMenu.Show(grid, new Point(mouse.X, mouse.Y));
-                    
-                };
+                grid.Click += GridClickMenuEvent;
             }
 
             return grid;
+        }
+
+        private static void GridMouseHoverEvent(Object sender, EventArgs e)
+        {
+            DataGridView grid = (DataGridView)sender;
+            grid.Focus();
+        }
+
+        private static void GridMouseWheelEvent(object sender, MouseEventArgs args)
+        {
+            DataGridView grid = (DataGridView)sender;
+
+            if (grid.SelectedCells.Count == 0)
+            {
+                return;
+            }
+            int rowInd = grid.SelectedCells[0].RowIndex;
+            if (args.Delta < 0)
+            {
+                rowInd++;
+            }
+            else if (args.Delta > 0)
+            {
+                rowInd--;
+            }
+
+            if (rowInd < 0)
+            {
+                rowInd = 0;
+            }
+
+            if (rowInd >= grid.Rows.Count)
+            {
+                rowInd = grid.Rows.Count - 1;
+            }
+
+            grid.Rows[rowInd].Selected = true;
+            grid.Rows[rowInd].Cells[grid.SelectedCells[0].ColumnIndex].Selected = true;
+
+            if (grid.FirstDisplayedScrollingRowIndex > rowInd)
+            {
+                grid.FirstDisplayedScrollingRowIndex = rowInd;
+            }
+        }
+
+        private static void GridMouseLeaveEvent(Object sender, EventArgs e)
+        {
+            DataGridView grid = (DataGridView)sender;
+            grid.EndEdit();
+        }
+
+        private static void GridClickMenuEvent(Object sender, EventArgs e)
+        {
+            DataGridView grid = (DataGridView)sender;
+
+            List<MenuItem> items = new List<MenuItem>();
+
+            items.Add(new MenuItem("Save table in file"));
+
+            items[items.Count - 1].Click += delegate (Object sender, EventArgs e)
+            {
+                if (grid.Rows.Count == 0)
+                {
+                    return;
+                }
+
+                try
+                {
+                    SaveFileDialog myDialog = new SaveFileDialog();
+                    myDialog.Filter = "*.txt|";
+                    myDialog.ShowDialog();
+
+                    if (string.IsNullOrEmpty(myDialog.FileName))
+                    {
+                        MessageBox.Show(OsLocalization.Journal.Message1);
+                        return;
+                    }
+
+                    string fileName = myDialog.FileName;
+                    if (fileName.Split('.').Length == 1)
+                    {
+                        fileName = fileName + ".txt";
+                    }
+
+                    string saveStr = "";
+
+                    for (int i = 0; i < grid.Columns.Count; i++)
+                    {
+                        saveStr += grid.Columns[i].HeaderText + ",";
+                    }
+
+                    saveStr += "\r\n";
+
+                    for (int i = 0; i < grid.Rows.Count; i++)
+                    {
+                        saveStr += grid.Rows[i].ToFormatString() + "\r\n";
+                    }
+
+
+                    StreamWriter writer = new StreamWriter(fileName);
+                    writer.Write(saveStr);
+                    writer.Close();
+                }
+                catch (Exception error)
+                {
+                    MessageBox.Show(error.ToString());
+                }
+            };
+
+            ContextMenu menu = new ContextMenu(items.ToArray());
+
+            MouseEventArgs mouse = (MouseEventArgs)e;
+            if (mouse.Button != MouseButtons.Right)
+            {
+                return;
+            }
+
+            grid.ContextMenu = menu;
+            grid.ContextMenu.Show(grid, new Point(mouse.X, mouse.Y));
+        }
+
+        public static void ClearLinq(DataGridView grid)
+        {
+            grid.MouseHover -= GridMouseHoverEvent;
+            grid.MouseLeave -= GridMouseLeaveEvent;
+            grid.MouseWheel -= GridMouseWheelEvent;
+            grid.Click -= GridClickMenuEvent;
         }
 
         public static DataGridView GetDataGridPosition(bool readOnly = true)

@@ -38,7 +38,7 @@ namespace OsEngine.Market.Servers.Optimizer
             _logMaster.Listen(this);
             _serverConnectStatus = ServerConnectStatus.Disconnect;
             ServerStatus = ServerConnectStatus.Disconnect;
-            _testerRegime = TesterRegime.Pause;
+            _testerRegime = TesterRegime.Pause; 
             TypeTesterData = TesterDataType.Candle;
             CreatePortfolio(portfolioStratValue);
             NumberServer = num;

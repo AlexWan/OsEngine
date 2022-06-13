@@ -668,19 +668,21 @@ namespace OsEngine.OsTrader
 
                 _journalUi = new JournalUi(panelsJournal, _startProgram);
                 _journalUi.LogMessageEvent += SendNewLogMessage;
-                _journalUi.Closed += _journalUi_Closed;
                 _journalUi.Show();
+
+                _journalUi.Closed += delegate (object o, EventArgs args)
+                {
+                    _journalUi.LogMessageEvent -= SendNewLogMessage;
+                    _journalUi.IsErase = true;
+                    _journalUi = null;
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                };
             }
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-        }
-
-        void _journalUi_Closed(object sender, EventArgs e)
-        {
-            _journalUi.IsErase = true;
-            _journalUi = null;
         }
 
         // log / логироавние
