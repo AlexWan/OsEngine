@@ -57,7 +57,7 @@ namespace OsEngine.Journal
             _startProgram = startProgram;
             _botsJournals = botsJournals;
             InitializeComponent();
-
+            _currentCulture = CultureInfo.CurrentCulture;
 
             TabBots.SizeChanged += TabBotsSizeChanged;
             TabControlPrime.SelectionChanged += TabControlPrime_SelectionChanged;
@@ -83,6 +83,8 @@ namespace OsEngine.Journal
             Closing += JournalUi_Closing;
 
         }
+
+        private CultureInfo _currentCulture;
 
         private void CreatePositionsLists(List<BotPanelJournal> _botsJournals)
         {
@@ -895,7 +897,7 @@ namespace OsEngine.Journal
 
 
                     profit.Points[profit.Points.Count - 1].AxisLabel =
-                        positionsAll[i].TimeCreate.ToString(new CultureInfo("ru-RU"));
+                        positionsAll[i].TimeCreate.ToString(_currentCulture);
 
                     profitBar.Points.AddXY(i, positionsAll[i].ProfitPortfolioPunkt);
 
@@ -1273,7 +1275,7 @@ namespace OsEngine.Journal
                 }
                 volumeSeries.Points.Add(Convert.ToDouble(volume[i]));
                 volumeSeries.Points[volumeSeries.Points.Count - 1].AxisLabel =
-                times[i].ToString(new CultureInfo("ru-RU"));
+                times[i].ToString(_currentCulture);
             }
 
             _chartVolume.Series.Add(volumeSeries);
@@ -1481,7 +1483,7 @@ namespace OsEngine.Journal
             {
                 drowDownPunct.Points.Add(Convert.ToDouble(ddPunct[i]));
                 drowDownPunct.Points[drowDownPunct.Points.Count - 1].AxisLabel =
-               positionsAll[i].TimeCreate.ToString(new CultureInfo("ru-RU"));
+               positionsAll[i].TimeCreate.ToString(_currentCulture);
             }
 
             _chartDd.Series.Add(drowDownPunct);
@@ -1519,7 +1521,7 @@ namespace OsEngine.Journal
             {
                 drowDownPersent.Points.Add(Convert.ToDouble(ddPepcent[i]));
                 drowDownPersent.Points[drowDownPersent.Points.Count - 1].AxisLabel =
-               positionsAll[i].TimeCreate.ToString(new CultureInfo("ru-RU"));
+               positionsAll[i].TimeCreate.ToString(_currentCulture);
             }
 
             _chartDd.Series.Add(drowDownPersent);

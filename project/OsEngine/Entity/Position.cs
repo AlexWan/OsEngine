@@ -911,13 +911,17 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (_openOrders != null)
+                if (_timeCreate == DateTime.MinValue &&
+                    _openOrders != null)
                 {
-                    return _openOrders[0].GetLastTradeTime();
+                    _timeCreate = _openOrders[0].GetLastTradeTime();
                 }
-                return DateTime.MinValue;
+
+                return _timeCreate;
             }
         }
+
+        private DateTime _timeCreate;
 
         /// <summary>
         /// position closing time
