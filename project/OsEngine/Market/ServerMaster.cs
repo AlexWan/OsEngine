@@ -116,6 +116,11 @@ namespace OsEngine.Market
             }
         }
 
+        public static bool HasActiveServers()
+        {
+            return _servers != null && _servers.Count > 0;
+        }
+
         public static List<ServerType> ActiveServersTypes
         {
             get
