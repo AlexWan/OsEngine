@@ -179,7 +179,7 @@ namespace OsEngine.Entity
             grid.ContextMenu.Show(grid, new Point(mouse.X, mouse.Y));
         }
 
-        public static void ClearLinq(DataGridView grid)
+        public static void ClearLink(DataGridView grid)
         {
             grid.MouseHover -= GridMouseHoverEvent;
             grid.MouseLeave -= GridMouseLeaveEvent;

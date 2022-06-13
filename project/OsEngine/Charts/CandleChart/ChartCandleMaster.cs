@@ -1054,7 +1054,8 @@ namespace OsEngine.Charts.CandleChart
                 // 2 sending it over for a drawing.
                 // 2 отправляем на прорисовку
                 
-                if(ChartCandle != null)
+                if(ChartCandle != null && _startProgram 
+                    != StartProgram.IsOsOptimizer)
                 {
                     ChartCandle.ProcessElem(myElement);
                 }
