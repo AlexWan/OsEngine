@@ -146,12 +146,18 @@ namespace OsEngine.Market.Servers
             {
                 _ui = new AServerParameterUi(this);
                 _ui.Show();
-                _ui.Closing += (sender, args) => { _ui = null; };
+                _ui.Closing += _ui_Closing;
             }
             else
             {
                 _ui.Activate();
             }
+        }
+
+        private void _ui_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            _ui.Closing -= _ui_Closing;
+            _ui = null;
         }
 
         /// <summary>
@@ -1367,7 +1373,7 @@ namespace OsEngine.Market.Servers
         /// <param name="series"> candles series that need to stop / серия свечек которую надо остановить </param>
         public void StopThisSecurity(CandleSeries series)
         {
-            if (series != null)
+            if (series != null && _candleManager != null)
             {
                 _candleManager.StopSeries(series);
             }

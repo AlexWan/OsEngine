@@ -245,7 +245,10 @@ namespace OsEngine.Journal
             IsErase = true;
 
             TabBots.SizeChanged -= TabBotsSizeChanged;
+            TabBots.Items.Clear();
             TabControlPrime.SelectionChanged -= TabControlPrime_SelectionChanged;
+            TabControlPrime.Items.Clear();
+
             Closing -= JournalUi_Closing;
             _botsJournals.Clear();
             _botsJournals = null;
@@ -268,10 +271,10 @@ namespace OsEngine.Journal
                 _shortPositions = null;
             }
 
-            TabControlLeft.Items.Clear();
             TabControlLeft.SelectionChanged -= TabControlLeftSelectionChanged;
+            TabControlLeft.Items.Clear();
 
-            if(_chartEquity != null)
+            if (_chartEquity != null)
             {
                 _chartEquity.Series.Clear();
                 _chartEquity.ChartAreas.Clear();

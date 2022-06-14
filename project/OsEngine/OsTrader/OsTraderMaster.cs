@@ -683,8 +683,6 @@ namespace OsEngine.OsTrader
             _journalUi.Closed -= _journalUi_Closed;
             _journalUi.IsErase = true;
             _journalUi = null;
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
         }
 
         // log / логироавние

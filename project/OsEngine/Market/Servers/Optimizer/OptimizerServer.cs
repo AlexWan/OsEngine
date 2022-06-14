@@ -317,7 +317,11 @@ namespace OsEngine.Market.Servers.Optimizer
                         _storages = null;
                         _storagePrime = null;
                         //_candleManager.Clear();
-                        _candleManager = null;
+
+                        if(_candleManager != null)
+                        {
+                            _candleManager = null;
+                        }
 
                         for (int i = 0; _candleSeriesTesterActivate != null &&
                                         i < _candleSeriesTesterActivate.Count; i++)
@@ -1437,7 +1441,7 @@ namespace OsEngine.Market.Servers.Optimizer
         /// </summary>
         public void StopThisSecurity(CandleSeries series)
         {
-            if (series != null)
+            if (series != null && _candleManager != null)
             {
                 _candleManager.StopSeries(series);
             }
