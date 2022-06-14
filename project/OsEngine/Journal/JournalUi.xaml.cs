@@ -245,6 +245,7 @@ namespace OsEngine.Journal
             IsErase = true;
 
             TabBots.SizeChanged -= TabBotsSizeChanged;
+            TabBots.SelectionChanged -= TabBotsSelectionChanged;
             TabBots.Items.Clear();
             TabControlPrime.SelectionChanged -= TabControlPrime_SelectionChanged;
             TabControlPrime.Items.Clear();
@@ -551,6 +552,13 @@ namespace OsEngine.Journal
             {
                 for (int i = 0; i < _botsJournals.Count; i++)
                 {
+                    if (TabBots == null ||
+                        TabBots.Items == null
+                        || TabBots.Items.Count <= i)
+                    {
+                        continue;
+                    }
+
                     if (((TabItem)TabBots.Items[TabBots.SelectedIndex]).Header.ToString() ==
                         _botsJournals[i].BotName)
                     {

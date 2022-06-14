@@ -60,6 +60,26 @@ namespace OsEngine.Entity
             {
                 CreateCustomTab(settings.CustomTabs[i]);
             }
+
+            this.Closed += ParemetrsUi_Closed;
+        }
+
+        private void ParemetrsUi_Closed(object sender, EventArgs e)
+        {
+            this.Closed -= ParemetrsUi_Closed;
+            _parameters = null;
+
+            if(_tabs != null)
+            {
+                for (int i = 0;i < _tabs.Count; i++)
+                {
+                    _tabs[i].Dispose();
+                }
+                _tabs.Clear();
+                _tabs = null;
+            }
+
+
         }
 
         List<List<IIStrategyParameter>> GetParamSortedByTabName()
@@ -140,6 +160,34 @@ namespace OsEngine.Entity
 
             CreateTable();
             PaintTable();
+        }
+
+        public void Dispose()
+        {
+            if(_grid != null 
+                && _grid.InvokeRequired)
+            {
+                _grid.Invoke(new Action(Dispose));
+                return;
+            }
+
+             _parameters = null;
+
+            if(_host != null)
+            {
+                _host.Child = null;
+                _host = null;
+            }
+
+            if(_grid != null)
+            {
+                _grid.CellValueChanged -= _grid_CellValueChanged;
+                _grid.CellClick -= _grid_Click;
+                _grid.Rows.Clear();
+                DataGridFactory.ClearLink(_grid);
+                _grid = null;
+            }
+
         }
 
         List<IIStrategyParameter> _parameters;

@@ -651,15 +651,18 @@ position => position.State != PositionStateType.OpeningFail
             {
                 _paramUi = new ParemetrsUi(_parameters, ParamGuiSettings);
                 _paramUi.Show();
-                _paramUi.Closing += (a, b) =>
-                {
-                    _paramUi = null;
-                };
+                _paramUi.Closing += _paramUi_Closing;
             }
             else
             {
                 _paramUi.Activate();
             }
+        }
+
+        private void _paramUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            _paramUi.Closing -= _paramUi_Closing;
+            _paramUi = null;
         }
 
         private ParemetrsUi _paramUi;
