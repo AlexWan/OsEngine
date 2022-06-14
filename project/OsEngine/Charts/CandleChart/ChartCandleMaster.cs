@@ -1010,7 +1010,14 @@ namespace OsEngine.Charts.CandleChart
         /// <returns></returns>
         public bool AreaIsCreate(string name)
         {
-            return ChartCandle.AreaIsCreate(name);
+            if(ChartCandle != null)
+            {
+                return ChartCandle.AreaIsCreate(name);
+            }
+            else
+            {
+                return true;
+            }
         }
         // chart element management
         // управление элементами чарта
@@ -1035,6 +1042,12 @@ namespace OsEngine.Charts.CandleChart
                 {
                     _chartElements = new List<IChartElement>();
                 }
+
+                if(_startProgram == StartProgram.IsOsOptimizer)
+                {
+                    return;
+                }
+
                 // 1  If such an element has already been added, replace it
                 // 1 если такой элемент уже добавлен, заменяем его
                 IChartElement myElement = _chartElements.Find(chartElement => chartElement.UniqName == element.UniqName);
@@ -1073,8 +1086,11 @@ namespace OsEngine.Charts.CandleChart
         /// <param name="element">element/элемент</param>
         public void DeleteChartElement(IChartElement element)
         {
-            ChartCandle.ProcessClearElem(element);
-
+            if(ChartCandle != null)
+            {
+                ChartCandle.ProcessClearElem(element);
+            }
+            
             try
             {
                 // if there is such an element in the collection of elements - delete
@@ -1137,7 +1153,10 @@ namespace OsEngine.Charts.CandleChart
             {
                 _chartElements.Add(element);
             }
-            ChartCandle.ProcessElem(element);
+            if(ChartCandle != null)
+            {
+                ChartCandle.ProcessElem(element);
+            }
         }
       
         // Alert management управление Алертов
@@ -1169,7 +1188,10 @@ namespace OsEngine.Charts.CandleChart
                 {
                     if (alertArray[i].TypeAlert == AlertType.ChartAlert)
                     {
-                        ChartCandle.PaintAlert((AlertToChart)alertArray[i]);
+                        if(ChartCandle != null)
+                        {
+                            ChartCandle.PaintAlert((AlertToChart)alertArray[i]);
+                        }
                     }
                 }
             }
@@ -1188,7 +1210,10 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         private void EraseAlertFromChart(List<IIAlert> alertArray)
         {
-            ChartCandle.ClearAlerts(alertArray);
+            if(ChartCandle != null)
+            {
+                ChartCandle.ClearAlerts(alertArray);
+            }
         }
 
         // candle drawing прорисовка свечей
