@@ -186,7 +186,7 @@ namespace OsEngine.Market
         {
             while (true)
             {
-               await Task.Delay(1000);
+               await Task.Delay(5000);
 
                 if (MainWindow.ProccesIsWorked == false)
                 {
@@ -278,6 +278,10 @@ namespace OsEngine.Market
 
                 for(int i = 0;i < _portfolios.Count;i++)
                 {
+                    if(_portfolios[i] == null)
+                    {
+                        continue;
+                    }
                     List<PositionOnBoard> poses = _portfolios[i].GetPositionOnBoard();
                     
                     while (poses != null &&

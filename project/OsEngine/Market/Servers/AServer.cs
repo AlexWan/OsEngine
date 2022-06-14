@@ -1377,6 +1377,11 @@ namespace OsEngine.Market.Servers
             {
                 _candleManager.StopSeries(series);
             }
+
+            if(_candleStorage != null)
+            {
+                _candleStorage.RemoveSeries(series);
+            }
         }
 
         /// <summary>

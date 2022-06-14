@@ -70,7 +70,28 @@ namespace OsEngine.Market.Servers
                 }
             }
 
+            for (int i = 0; i < _series.Count; i++)
+            {
+                if (_series[i].UID == series.UID)
+                {
+                    _series.RemoveAt(i);
+                    break;
+                }
+            }
+
             _series.Add(series);
+        }
+
+        public void RemoveSeries(CandleSeries series)
+        {
+            for (int i = 0; i < _series.Count; i++)
+            {
+                if (_series[i].UID == series.UID)
+                {
+                    _series.RemoveAt(i);
+                    break;
+                }
+            }
         }
 
         // for saving in one file
@@ -336,6 +357,11 @@ namespace OsEngine.Market.Servers
     /// </summary>
     public class CandleSeriesSaveInfo
     {
+
+        private int _lastCandleCount;
+
+        private DateTime _lastCandleTime;
+
         public void InsertCandles(List<Candle> candles, int maxCount)
         {
             if (candles == null)
@@ -345,7 +371,8 @@ namespace OsEngine.Market.Servers
 
             if (AllCandlesInFile == null
                 || AllCandlesInFile.Count == 0)
-            {
+            { 
+                // первая прогрузка свечками
                 AllCandlesInFile = new List<Candle>();
 
                 for (int i = 0; i < candles.Count; i++)
@@ -353,8 +380,22 @@ namespace OsEngine.Market.Servers
                     AllCandlesInFile.Add(candles[i]);
                 }
             }
+            else if(_lastCandleCount == candles.Count &&
+                candles[candles.Count-1].TimeStart == _lastCandleTime)
+            { 
+                // обновилась последняя свеча
+                AllCandlesInFile[AllCandlesInFile.Count - 1] = candles[candles.Count - 1];
+            }
+            else if(candles.Count > 1 
+                && _lastCandleCount + 1 == candles.Count
+                && candles[candles.Count - 2].TimeStart == _lastCandleTime)
+            { 
+                // добавилась одна свечка
+                AllCandlesInFile.Add(candles[candles.Count - 1]);
+            }
             else
-            {
+            { 
+                // добавилось не ясное кол-во свечей
                 AllCandlesInFile = AllCandlesInFile.Merge(candles);
             }
 
@@ -362,6 +403,9 @@ namespace OsEngine.Market.Servers
             {
                 return;
             }
+
+            _lastCandleCount = candles.Count;
+            _lastCandleTime = candles[candles.Count - 1].TimeStart;
 
             LastCandleTime = AllCandlesInFile[AllCandlesInFile.Count - 1].TimeStart;
             StartCandleTime = AllCandlesInFile[0].TimeStart;

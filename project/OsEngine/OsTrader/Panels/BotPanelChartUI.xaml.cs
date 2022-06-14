@@ -30,11 +30,16 @@ namespace OsEngine.OsTrader.Panels
             StartPaint();
             Local();
 
-            Closed += delegate (object sender, EventArgs args)
-            {
-                _panel.StopPaint();
-                _panel = null;
-            };
+            Closed += BotPanelChartUi_Closed;
+        }
+
+        private void BotPanelChartUi_Closed(object sender, EventArgs e)
+        {
+            Closed -= BotPanelChartUi_Closed;
+            _panel.StopPaint();
+            _panel = null;
+            LocationChanged -= RobotUi_LocationChanged;
+            TabControlBotsName.SizeChanged -= TabControlBotsName_SizeChanged;
         }
 
         public void StartPaint()
@@ -261,20 +266,21 @@ namespace OsEngine.OsTrader.Panels
 
                 panelsJournal.Add(botPanel);
 
-
                 _journalUi = new JournalUi(panelsJournal, _panel.StartProgram);
-                _journalUi.Closed += delegate (object o, EventArgs args)
-                {
-                    _journalUi.IsErase = true;
-                    _journalUi = null;
-                };
-
+                _journalUi.Closed += _journalUi_Closed;
                 _journalUi.Show();
             }
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        private void _journalUi_Closed(object sender, EventArgs e)
+        {
+            _journalUi.Closed -= _journalUi_Closed;
+            _journalUi.IsErase = true;
+            _journalUi = null;
         }
 
         private void ButtonRiskManager_Click(object sender, RoutedEventArgs e)
