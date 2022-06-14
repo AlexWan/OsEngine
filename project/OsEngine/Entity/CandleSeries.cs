@@ -19,7 +19,6 @@ namespace OsEngine.Entity
     /// </summary>
     public class CandleSeries
     {
-        // service
         // сервис
 
         /// <summary>
@@ -34,7 +33,11 @@ namespace OsEngine.Entity
             TimeFrameBuilder = timeFrameBuilder;
             Security = security;
             _startProgram = startProgram;
+
+            UID = NumberGen.GetNumberOrder(_startProgram);
         }
+
+        public long UID;
 
         /// <summary>
         /// blocking empty constructor

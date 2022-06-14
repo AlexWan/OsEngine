@@ -774,7 +774,17 @@ namespace OsEngine.Entity
                     return;
                 }
 
-                _activSeries.Remove(series);
+                series.СandleUpdeteEvent -= series_СandleUpdeteEvent;
+                series.СandleFinishedEvent -= series_СandleFinishedEvent;
+
+                for(int i = 0;i < _activSeries.Count;i++)
+                {
+                    if(_activSeries[i].UID == series.UID)
+                    {
+                        _activSeries.RemoveAt(i);
+                        break;
+                    }
+                }
             }
             catch (Exception error)
             {

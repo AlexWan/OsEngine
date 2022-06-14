@@ -158,6 +158,14 @@ namespace OsEngine.Market.Connectors
             {
                 _mySeries.Stop();
                 _mySeries.Clear();
+                _mySeries.СandleUpdeteEvent -= MySeries_СandleUpdeteEvent;
+                _mySeries.СandleFinishedEvent -= MySeries_СandleFinishedEvent;
+
+                if (_myServer != null)
+                {
+                    _myServer.StopThisSecurity(_mySeries);
+                }
+                _mySeries = null;
             }
 
             if (_emulator != null)
@@ -227,6 +235,13 @@ namespace OsEngine.Market.Connectors
             {
                 _mySeries.Stop();
                 _mySeries.Clear();
+                _mySeries.СandleUpdeteEvent -= MySeries_СandleUpdeteEvent;
+                _mySeries.СandleFinishedEvent -= MySeries_СandleFinishedEvent;
+
+                if (_myServer != null)
+                {
+                    _myServer.StopThisSecurity(_mySeries);
+                }
                 _mySeries = null;
             }
 
@@ -708,12 +723,18 @@ namespace OsEngine.Market.Connectors
                     _lastReconnectTime = DateTime.Now;
                 }
 
+
                 if (_mySeries != null)
                 {
+                    _mySeries.Stop();
+                    _mySeries.Clear();
                     _mySeries.СandleUpdeteEvent -= MySeries_СandleUpdeteEvent;
                     _mySeries.СandleFinishedEvent -= MySeries_СandleFinishedEvent;
-                    _mySeries.Stop();
 
+                    if (_myServer != null)
+                    {
+                        _myServer.StopThisSecurity(_mySeries);
+                    }
                     _mySeries = null;
                 }
 
