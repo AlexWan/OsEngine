@@ -3885,6 +3885,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                
+
                 if (candles == null)
                 {
                     return;
@@ -3902,6 +3904,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _chartMaster.SetCandles(candles);
                 }
 
+
                 try
                 {
                     CandleFinishedEvent?.Invoke(candles);
@@ -3910,7 +3913,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     SetNewLogMessage(error.ToString(), LogMessageType.Error);
                 }
-
 
             }
             catch (Exception error)

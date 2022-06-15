@@ -1020,6 +1020,7 @@ namespace OsEngine.Market.Servers.Tester
                     }
                     if (TesterRegime == TesterRegime.Play)
                     {
+                        
                         LoadNextData();
                         CheckOrders();
                     }
@@ -3458,6 +3459,7 @@ namespace OsEngine.Market.Servers.Tester
             }
 
             _candleManager.SetNewCandleInSeries(candle, nameSecurity, timeFrame);
+
         }
 
         /// <summary>
@@ -3564,7 +3566,6 @@ namespace OsEngine.Market.Servers.Tester
 
             if (NewTradeEvent != null)
             {
-
                 foreach (var trades in _allTrades)
                 {
                     if (tradesNew[0].SecurityNameCode == trades[0].SecurityNameCode)
@@ -4239,6 +4240,7 @@ namespace OsEngine.Market.Servers.Tester
                 if (NewCandleEvent != null)
                 {
                     NewCandleEvent(LastCandle,Security.Name, TimeFrameSpan);
+
                 }
                 return;
             }

@@ -220,6 +220,11 @@ namespace OsEngine.Market
 
         private void ServerMasterOnServerCreateEvent(IServer newServer)
         {
+            if(newServer.ServerType == ServerType.Optimizer)
+            {
+                return;
+            }
+
             List<IServer> servers = ServerMaster.GetServers();
 
             for (int i = 0; i < servers.Count; i++)

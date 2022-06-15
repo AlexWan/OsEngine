@@ -10,6 +10,13 @@ using OsEngine.Entity;
 
 namespace OsEngine.Indicators
 {
+    public class NamesFilesFromFolder
+    {
+        public string Folder;
+
+        public List<string> Files;
+    }
+
     public class IndicatorsFactory
     {
         public static List<string> GetIndicatorsNames()
@@ -63,8 +70,18 @@ namespace OsEngine.Indicators
             return resultTrue;
         }
 
+        private static List<NamesFilesFromFolder> _filesInDir = new List<NamesFilesFromFolder>();
+
         public static List<string> GetFullNamesFromFolder(string directory)
         {
+            for(int i = 0;i < _filesInDir.Count;i++)
+            {
+                if(_filesInDir[i].Folder == directory)
+                {
+                    return _filesInDir[i].Files;
+                }
+            }
+
             List<string> results = new List<string>();
 
             string[] subDirectories = Directory.GetDirectories(directory);
@@ -87,6 +104,11 @@ namespace OsEngine.Indicators
                     continue;
                 }
             }
+
+            NamesFilesFromFolder dir = new NamesFilesFromFolder();
+            dir.Folder = directory;
+            dir.Files = results;
+            _filesInDir.Add(dir);
 
             return results;
         }

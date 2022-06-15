@@ -396,6 +396,12 @@ namespace OsEngine.Logging
                 LogMessage messageLog = new LogMessage { Message = message, Time = DateTime.Now, Type = type };
                 _incomingMessages.Enqueue(messageLog);
 
+                if(_incomingMessages.Count > 500)
+                {
+                    LogMessage mes;
+                    _incomingMessages.TryDequeue(out mes);
+                }
+
                 if (_messageSender != null)
                 {
                     _messageSender.AddNewMessage(messageLog);
