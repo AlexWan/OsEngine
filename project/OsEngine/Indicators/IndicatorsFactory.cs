@@ -15,6 +15,18 @@ namespace OsEngine.Indicators
         public string Folder;
 
         public List<string> Files;
+
+        public List<string> GetFilesCopy()
+        {
+            List<string> results = new List<string>();
+
+            for(int i = 0;i < Files.Count;i++)
+            {
+                results.Add(Files[i]);
+            }
+
+            return results;
+        }
     }
 
     public class IndicatorsFactory
@@ -78,7 +90,7 @@ namespace OsEngine.Indicators
             {
                 if(_filesInDir[i].Folder == directory)
                 {
-                    return _filesInDir[i].Files;
+                    return _filesInDir[i].GetFilesCopy();
                 }
             }
 
@@ -110,7 +122,7 @@ namespace OsEngine.Indicators
             dir.Files = results;
             _filesInDir.Add(dir);
 
-            return results;
+            return dir.GetFilesCopy();
         }
 
         public static Aindicator CreateIndicatorByName(string nameClass, string name, bool canDelete)
