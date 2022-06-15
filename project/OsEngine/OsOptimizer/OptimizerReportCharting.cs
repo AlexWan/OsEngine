@@ -763,9 +763,16 @@ namespace OsEngine.OsOptimizer
 
             ChartPainterLine.Paint(_windowsFormsHostOutOfSampleEquity, values);
 
-            _outOfSampleLabel.Content = _outOfSampleLabel.Content.ToString().Split('(')[0]  + 
-                "( Total: " + Math.Round(values[values.Count-1], 4) + ". Average: " + Math.Round(averageProfitPercent,4) + " )" ;
-        }
+            try
+            {
+                _outOfSampleLabel.Content = _outOfSampleLabel.Content.ToString().Split('(')[0] +
+                "( Total: " + Math.Round(values[values.Count - 1], 4) + ". Average: " + Math.Round(averageProfitPercent, 4) + " )";
+            }
+            catch
+            {
+                // ignore
+            }
+}
 
         // логирование
 
