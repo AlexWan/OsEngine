@@ -675,13 +675,13 @@ namespace OsEngine.Market.Servers.BitMex
                     {
                         Thread.Sleep(500);
                         if (i == 0)
-                        {
-                            endTime = DateTime.UtcNow.Add(TimeSpan.FromMinutes(shift));
+                        {//Для часового фрейма добавил очистку от минут.
+                            endTime =shift==60? DateTime.UtcNow.AddMinutes(-DateTime.UtcNow.Minute).Add(TimeSpan.FromMinutes(shift)) : DateTime.UtcNow.Add(TimeSpan.FromMinutes(shift));
                             startTime = endTime.Subtract(TimeSpan.FromMinutes(480));
                         }
                         else
                         {
-                            endTime = startTime.Subtract(TimeSpan.FromMinutes(1));
+                            endTime = startTime.Subtract(TimeSpan.FromMinutes(shift));
                             startTime = startTime.Subtract(TimeSpan.FromMinutes(480));
                         }
 
@@ -760,7 +760,7 @@ namespace OsEngine.Market.Servers.BitMex
             {
                 lock (_getCandlesLocker)
                 {
-                    if (timeSpan.TotalMinutes > 60 ||
+                    if (//timeSpan.TotalMinutes > 60 || Для обработки часов
                         timeSpan.TotalMinutes < 1)
                     {
                         return null;
@@ -774,13 +774,13 @@ namespace OsEngine.Market.Servers.BitMex
                     {
                         return GetCandlesTf(security, "5m", 5);
                     }
-                    if (timeSpan.Minutes == 00)
+                    if (timeSpan.TotalMinutes == 60)
                     {
                         return GetCandlesTf(security, "1h", 60);
                     }
                     else
                     {
-                        return СandlesBuilder(security, timeSpan.Minutes);
+                        return СandlesBuilder(security, (int)timeSpan.TotalMinutes);
                     }
                 }
             }
@@ -802,7 +802,12 @@ namespace OsEngine.Market.Servers.BitMex
         {
             List<Candle> candles1M;
             int a;
-            if (tf >= 10)
+            if (tf>60)
+            {
+                candles1M = GetCandlesTf(security, "1h", 60);
+                a = tf / 60;
+            }
+            else if (tf >= 10)
             {
                 candles1M = GetCandlesTf(security, "5m", 5);
                 a = tf / 5;
