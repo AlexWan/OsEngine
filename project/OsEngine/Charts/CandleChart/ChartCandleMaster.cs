@@ -402,9 +402,17 @@ namespace OsEngine.Charts.CandleChart
         {
             try
             {
-                for (int i = 0; _indicators != null && i < _indicators.Count; i++)
+                if(_indicators != null)
                 {
-                    _indicators[i].Delete();
+                    for (int i = 0; _indicators != null && i < _indicators.Count; i++)
+                    {
+                        _indicators[i].NeadToReloadEvent -= indicator_NeadToReloadEvent;
+                        _indicators[i].Clear();
+                        _indicators[i].Delete();
+                    }
+
+                    _indicators.Clear();
+                    _indicators = null;
                 }
 
                 if (File.Exists(@"Engine\" + Name + @".txt"))
@@ -413,12 +421,25 @@ namespace OsEngine.Charts.CandleChart
                 }
                 if (ChartCandle != null)
                 {
+                    ChartCandle.ChartClickEvent -= ChartCandle_ChartClickEvent;
+                    ChartCandle.ClickToIndexEvent -= _chartCandle_ClickToIndexEvent;
+                    ChartCandle.SizeAxisXChangeEvent -= ChartCandle_SizeAxisXChangeEvent;
+                    ChartCandle.ClearDataPointsAndSizeValue();
                     ChartCandle.Delete();
+                    ChartCandle.LogMessageEvent -= NewLogMessage;
+                    ChartCandle = null;
                 }
 
                 _myCandles = null;
                 if (_chartElements != null)
                 {
+                    for(int i = 0;i < _chartElements.Count;i++)
+                    {
+                        _chartElements[i].UpdeteEvent -= myElement_UpdeteEvent;
+                        _chartElements[i].DeleteEvent -= myElement_DeleteEvent;
+                        _chartElements[i].Delete();
+                    }
+
                     _chartElements.Clear();
                     _chartElements = null;
                 }
@@ -426,11 +447,6 @@ namespace OsEngine.Charts.CandleChart
                 {
                     _alertArray.Clear();
                     _alertArray = null;
-                }
-                if(_indicators != null)
-                {
-                    _indicators.Clear();
-                    _indicators = null;
                 }
                 
                 if(_myPosition != null)

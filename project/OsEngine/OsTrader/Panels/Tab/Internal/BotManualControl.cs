@@ -37,7 +37,9 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// </summary>
         public static List<BotManualControl> TabsToCheck = new List<BotManualControl>();
 
-        private static object _activatorLocker = new object();
+        private static string _tabsAddLocker = "tabsLocker";
+
+        private static string _activatorLocker = "activatorLocker";
 
         /// <summary>
         /// activate stream to view deals
@@ -127,7 +129,12 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 {
                     Activate();
                 }
-                TabsToCheck.Add(this);
+
+                lock(_tabsAddLocker)
+                {
+                    TabsToCheck.Add(this);
+                }
+                
             }
         }
 
@@ -233,12 +240,29 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                     File.Delete(@"Engine\" + _name + @"StrategSettings.txt");
                 }
 
-                TabsToCheck.Remove(this);
+                if(TabsToCheck != null)
+                {
+                    lock (_tabsAddLocker)
+                    {
+                        for (int i = 0; i < TabsToCheck.Count; i++)
+                        {
+                            if (TabsToCheck[i]._name == this._name)
+                            {
+                                TabsToCheck.RemoveAt(i);
+                                break;
+                            }
+                        }
+                    }
+                }
 
+                if(_botTab != null)
+                {
+                    _botTab = null;
+                }
             }
-            catch (Exception)
+            catch (Exception error)
             {
-                // ignore
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 

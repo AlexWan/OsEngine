@@ -406,10 +406,6 @@ namespace OsEngine.Market
                     _servers.Add(serv);
                 }
 
-                if (ServerCreateEvent != null)
-                {
-                    ServerCreateEvent(serv);
-                }
                 return serv;
             }
         }

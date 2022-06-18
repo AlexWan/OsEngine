@@ -103,12 +103,14 @@ namespace OsEngine.Entity
                 if (MarketDepthsToCheck[i] == null ||
                     MarketDepthsToCheck[i]._name == _name)
                 {
-                    _glassBox = null;
-                    _hostGlass = null;
+
                     MarketDepthsToCheck.RemoveAt(i);
                     return;
                 }
             }
+
+            _glassBox = null;
+            _hostGlass = null;
         }
 
         /// <summary>

@@ -146,7 +146,6 @@ namespace OsEngine.Charts.ColorKeeper
             }
         }
 
-
         /// <summary>
         /// загрузить чёрную схему
         /// </summary>

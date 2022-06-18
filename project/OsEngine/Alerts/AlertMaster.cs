@@ -268,7 +268,7 @@ namespace OsEngine.Alerts
         /// purge everything
         /// удалить всё
         /// </summary>
-        public void DeleteAll()
+        public void Delete()
         {
             try
             {
@@ -277,24 +277,61 @@ namespace OsEngine.Alerts
                     File.Delete(@"Engine\" + _name + "AlertKeeper.txt");
                 }
 
-                if (_alertArray == null || _alertArray.Count == 0)
+                if(_alertArray != null)
                 {
-                    return;
+                    for (int i = 0; i < _alertArray.Count; i++)
+                    {
+                        _alertArray[i].Delete();
+                    }
+                    _alertArray.Clear();
+                    _alertArray = null;
                 }
 
-                for (int i = 0; _alertArray != null &&
-                                i < _alertArray.Count; i++)
+                if (_connector != null)
                 {
-                    _alertArray[i].Delete();
+                    _connector = null;
                 }
-                _alertArray = new List<IIAlert>();
 
-                _connector = null;
-                _chartMaster = null;
+                if (_chartMaster != null)
+                {
+                    _chartMaster.ChartClickEvent -= ChartMaster_ChartClickEvent;
+                    _chartMaster = null;
+                }
+
+                DeleteVisual();
             }
             catch (Exception error)
             {
                 SendNewMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void DeleteVisual()
+        {
+            if(HostAllert == null)
+            {
+                return;
+            }
+
+            if (!HostAllert.Dispatcher.CheckAccess())
+            {
+                HostAllert.Dispatcher.Invoke(new Action(DeleteVisual));
+                return;
+            }
+
+            if (GridViewBox != null)
+            {
+                GridViewBox.Rows.Clear();
+                GridViewBox.Click -= GridViewBox_Click;
+                GridViewBox.DoubleClick -= GridViewBox_DoubleClick;
+                DataGridFactory.ClearLink(GridViewBox);
+                GridViewBox = null;
+            }
+
+            if (HostAllert != null)
+            {
+                HostAllert.Child = null;
+                HostAllert = null;
             }
         }
 

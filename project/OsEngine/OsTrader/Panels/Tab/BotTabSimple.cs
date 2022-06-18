@@ -212,42 +212,67 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                _connector.OrderChangeEvent -= _connector_OrderChangeEvent;
-                _connector.MyTradeEvent -= _connector_MyTradeEvent;
-                _connector.BestBidAskChangeEvent -= _connector_BestBidAskChangeEvent;
-                _connector.GlassChangeEvent -= _connector_GlassChangeEvent;
-                _connector.TimeChangeEvent -= StrategOneSecurity_TimeServerChangeEvent;
-                _connector.NewCandlesChangeEvent -= LogicToEndCandle;
-                _connector.LastCandlesChangeEvent -= LogicToUpdateLastCandle;
-                _connector.TickChangeEvent -= _connector_TickChangeEvent;
-                _connector.LogMessageEvent -= SetNewLogMessage;
-                _connector.ConnectorStartedReconnectEvent -= _connector_ConnectorStartedReconnectEvent;
+                if(_connector != null)
+                {
+                    _connector.OrderChangeEvent -= _connector_OrderChangeEvent;
+                    _connector.MyTradeEvent -= _connector_MyTradeEvent;
+                    _connector.BestBidAskChangeEvent -= _connector_BestBidAskChangeEvent;
+                    _connector.GlassChangeEvent -= _connector_GlassChangeEvent;
+                    _connector.TimeChangeEvent -= StrategOneSecurity_TimeServerChangeEvent;
+                    _connector.NewCandlesChangeEvent -= LogicToEndCandle;
+                    _connector.LastCandlesChangeEvent -= LogicToUpdateLastCandle;
+                    _connector.TickChangeEvent -= _connector_TickChangeEvent;
+                    _connector.ConnectorStartedReconnectEvent -= _connector_ConnectorStartedReconnectEvent;
+                    _connector.Delete();
+                    _connector.LogMessageEvent -= SetNewLogMessage;
+                    _connector = null;
+                }
 
-                _journal.PositionStateChangeEvent -= _journal_PositionStateChangeEvent;
-                _journal.PositionNetVolumeChangeEvent -= _journal_PositionNetVolumeChangeEvent;
-                _journal.UserSelectActionEvent -= _journal_UserSelectActionEvent;
-                _journal.LogMessageEvent -= SetNewLogMessage;
-                _chartMaster.LogMessageEvent -= SetNewLogMessage;
+                if(_journal != null)
+                {
+                    _journal.PositionStateChangeEvent -= _journal_PositionStateChangeEvent;
+                    _journal.PositionNetVolumeChangeEvent -= _journal_PositionNetVolumeChangeEvent;
+                    _journal.UserSelectActionEvent -= _journal_UserSelectActionEvent;
+                    _journal.Delete();
+                    _journal.LogMessageEvent -= SetNewLogMessage;
+                    _journal = null;
+                }
 
                 if (_alerts != null)
                 {
+                    _alerts.Delete();
                     _alerts.LogMessageEvent -= SetNewLogMessage;
-                    _alerts.DeleteAll();
+                    _alerts = null;
                 }
 
-                ManualPositionSupport.LogMessageEvent -= SetNewLogMessage;
-                ManualPositionSupport.DontOpenOrderDetectedEvent -= _dealOpeningWatcher_DontOpenOrderDetectedEvent;
-                _acebergMaker.NewOrderNeadToExecute -= _acebergMaker_NewOrderNeadToExecute;
-                _acebergMaker.NewOrderNeadToCansel -= _acebergMaker_NewOrderNeadToCansel;
+                if(_acebergMaker != null)
+                {
+                    _acebergMaker.NewOrderNeadToExecute -= _acebergMaker_NewOrderNeadToExecute;
+                    _acebergMaker.NewOrderNeadToCansel -= _acebergMaker_NewOrderNeadToCansel;
+                    _acebergMaker = null;
+                }
 
-                _journal.Delete();
-                _connector.Delete();
-                ManualPositionSupport.Delete();
-                _chartMaster.Delete();
+                if(ManualPositionSupport != null)
+                {
+                    ManualPositionSupport.DontOpenOrderDetectedEvent -= _dealOpeningWatcher_DontOpenOrderDetectedEvent;
+                    ManualPositionSupport.Delete();
+                    ManualPositionSupport.LogMessageEvent -= SetNewLogMessage;
+                    ManualPositionSupport = null;
+                }
 
-                if(_marketDepthPainter != null)
+                if(_chartMaster!= null)
+                {
+                    _chartMaster.IndicatorUpdateEvent -= _chartMaster_IndicatorUpdateEvent;
+                    _chartMaster.Delete();
+                    _chartMaster.LogMessageEvent -= SetNewLogMessage;
+                    _chartMaster = null;
+                }                
+
+                if (_marketDepthPainter != null)
                 {
                     _marketDepthPainter.Delete();
+                    _marketDepthPainter.LogMessageEvent -= SetNewLogMessage;
+                    _marketDepthPainter = null;
                 }
 
                 if (File.Exists(@"Engine\" + TabName + @"SettingsBot.txt"))
@@ -3446,7 +3471,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void DeleteAllAlerts()
         {
-            _alerts.DeleteAll();
+            _alerts.Delete();
         }
 
         // дозакрытие сделки если на закрытии мы взяли больший объём чем нужно

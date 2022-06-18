@@ -51,24 +51,7 @@ namespace OsEngine.Charts.CandleChart
                 _colorKeeper.NeedToRePaintFormEvent += _colorKeeper_NeedToRePaintFormEvent;
 
                 CreateChart();
-
                 _chart.Text = name;
-                _chart.AxisScrollBarClicked += _chart_AxisScrollBarClicked; // cursor event/событие передвижения курсора
-                _chart.AxisViewChanged += _chart_AxisViewChanged; // scale event/событие изменения масштаба
-                _chart.MouseWheel += _chart_MouseWheel; // scroll and zoom chart using mouse wheel/прокрутка и зум чарта колесиком мышки
-                _chart.Click += _chart_Click;
-
-                _chart.MouseDown += _chartForCandle_MouseDown;
-                _chart.MouseUp += _chartForCandle_MouseUp;
-                _chart.MouseMove += _chartForCandle_MouseMove;
-
-                _chart.MouseMove += _chartForCandle_MouseMove2ChartElement;
-                _chart.MouseDown += _chartForCandle_MouseDown2ChartElement;
-                _chart.MouseUp += _chartForCandle_MouseUp2ChartElement;
-
-                _chart.MouseLeave += _chart_MouseLeave;
-                _chart.Click += _chart_Click1;
-
 
                 Task task = new Task(PainterThreadArea);
                 task.Start();               
@@ -358,8 +341,64 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         public void Delete()
         {
-            _colorKeeper.Delete();
-            _neadToDelete = true;
+            _isDeleted = true;
+        }
+
+        private void ClearDelete()
+        {
+            if (_chart == null)
+            {
+                return;
+            }
+
+            if (_chart.InvokeRequired)
+            {
+                _chart.Invoke(new Action(Delete));
+                return;
+            }
+
+            if (_chart != null)
+            {
+                _chart.AxisScrollBarClicked -= _chart_AxisScrollBarClicked;
+                _chart.AxisViewChanged -= _chart_AxisViewChanged;
+                _chart.Click -= _chart_Click;
+                _chart.MouseDown -= _chartForCandle_MouseDown;
+                _chart.MouseUp -= _chartForCandle_MouseUp;
+                _chart.MouseMove -= _chartForCandle_MouseMove;
+                _chart.MouseMove -= _chartForCandle_MouseMove2ChartElement;
+                _chart.MouseDown -= _chartForCandle_MouseDown2ChartElement;
+                _chart.MouseUp -= _chartForCandle_MouseUp2ChartElement;
+                _chart.MouseLeave -= _chart_MouseLeave;
+                _chart.Click -= _chart_Click1;
+                _chart.MouseMove -= _chart_MouseMove;
+                _chart.MouseMove -= _chart_MouseMove2;
+                _chart.ClientSizeChanged -= _chart_ClientSizeChanged;
+                _chart.AxisViewChanging -= _chart_AxisViewChanging;
+
+                _chart.Series.Clear();
+                _chart.ChartAreas.Clear();
+                _chart = null;
+            }
+
+            if (_colorKeeper != null)
+            {
+                _colorKeeper.LogMessageEvent -= SendLogMessage;
+                _colorKeeper.NeedToRePaintFormEvent -= _colorKeeper_NeedToRePaintFormEvent;
+                _colorKeeper.Delete();
+                _colorKeeper = null;
+            }
+
+
+            _myCandles = null;
+            _areaPositions = null;
+            _areaSizes = null;
+            _chartElements = null;
+
+            _labelSeries = null;
+            _timePoints = null;
+            _candlesToPaint = null;
+            _indicatorsToPaint = null;
+            _positions = null;
         }
 
         /// <summary>
@@ -573,10 +612,23 @@ namespace OsEngine.Charts.CandleChart
                 candleSeries.YValuesPerPoint = 4;
 
                 _chart.Series.Add(candleSeries);
+                _chart.AxisScrollBarClicked += _chart_AxisScrollBarClicked; // cursor event/событие передвижения курсора
+                _chart.AxisViewChanged += _chart_AxisViewChanged; // scale event/событие изменения масштаба
+                _chart.MouseWheel += _chart_MouseWheel; // scroll and zoom chart using mouse wheel/прокрутка и зум чарта колесиком мышки
+                _chart.Click += _chart_Click;
+                _chart.MouseDown += _chartForCandle_MouseDown;
+                _chart.MouseUp += _chartForCandle_MouseUp;
+                _chart.MouseMove += _chartForCandle_MouseMove;
+                _chart.MouseMove += _chartForCandle_MouseMove2ChartElement;
+                _chart.MouseDown += _chartForCandle_MouseDown2ChartElement;
+                _chart.MouseUp += _chartForCandle_MouseUp2ChartElement;
+                _chart.MouseLeave += _chart_MouseLeave;
+                _chart.Click += _chart_Click1;
                 _chart.MouseMove += _chart_MouseMove;
                 _chart.MouseMove += _chart_MouseMove2;
                 _chart.ClientSizeChanged += _chart_ClientSizeChanged;
                 _chart.AxisViewChanging += _chart_AxisViewChanging;
+
             }
             catch (Exception error)
             {
@@ -936,33 +988,9 @@ namespace OsEngine.Charts.CandleChart
             {
                 await Task.Delay(1000);
 
-                if (_neadToDelete)
+                if (_isDeleted)
                 {
-                    _colorKeeper.LogMessageEvent -= SendLogMessage;
-                    _colorKeeper.NeedToRePaintFormEvent -= _colorKeeper_NeedToRePaintFormEvent;
-                    _chart.AxisScrollBarClicked -= _chart_AxisScrollBarClicked;
-                    _chart.AxisViewChanged -= _chart_AxisViewChanged; 
-                    _chart.Click -= _chart_Click;
-                    _chart.MouseDown -= _chartForCandle_MouseDown;
-                    _chart.MouseUp -= _chartForCandle_MouseUp;
-                    _chart.MouseMove -= _chartForCandle_MouseMove;
-                    _chart.MouseMove -= _chartForCandle_MouseMove2ChartElement;
-                    _chart.MouseDown -= _chartForCandle_MouseDown2ChartElement;
-                    _chart.MouseUp -= _chartForCandle_MouseUp2ChartElement;
-                    _chart.MouseLeave -= _chart_MouseLeave;
-
-                    _myCandles = null;
-                    _chart = null;
-                    _areaPositions = null;
-                    _areaSizes = null;
-                    _chartElements = null;
-                    _colorKeeper = null;
-                    _labelSeries = null;
-                    _timePoints = null;
-                    _candlesToPaint = null;
-                    _indicatorsToPaint = null;
-                    _positions = null;
-
+                    ClearDelete();
                     return;
                 }
 
@@ -1131,7 +1159,7 @@ namespace OsEngine.Charts.CandleChart
         /// it's time to stop drawing a chart at all
         /// пора прекращать прорисовывать чарт на совсем
         /// </summary>
-        private bool _neadToDelete;
+        private bool _isDeleted;
 
         /// <summary>
         /// line of candles to draw
@@ -1213,7 +1241,6 @@ namespace OsEngine.Charts.CandleChart
 
                 if (oldcandleSeries == null)
                 {
-                    CreateChart();
                     oldcandleSeries = FindSeriesByNameSafe("SeriesCandle");
                 }
 
