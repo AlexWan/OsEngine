@@ -99,9 +99,9 @@ namespace OsEngine.Logging
                         return;
                     }
                 }
-                catch
+                catch(Exception error)
                 {
-                    // ignore
+                    MessageBox.Show(error.ToString());
                 }
             }
         }
@@ -179,6 +179,7 @@ namespace OsEngine.Logging
         public void Delete()
         {
             DeleteFromLogsToCheck(this);
+
             _isDelete = true;
 
             string date = DateTime.Now.Year + "_" + DateTime.Now.Month + "_" + DateTime.Now.Day;
@@ -188,9 +189,100 @@ namespace OsEngine.Logging
                 File.Delete(@"Engine\Log\" + _uniqName + @"Log_" + date + ".txt");
             }
 
-            _grid = null;
+            if(_grid != null)
+            {
+                _grid.DoubleClick -= _grid_DoubleClick;
+                _grid.Rows.Clear();
+                _grid.Columns.Clear();
+                DataGridFactory.ClearLink(_grid);
+                _grid = null;
+            }
 
-            _messageses = null;
+            while(_messagesesToSaveInFile.IsEmpty == false)
+            {
+                LogMessage s;
+                _messagesesToSaveInFile.TryDequeue(out s);
+            }
+
+            while (_incomingMessages.IsEmpty == false)
+            {
+                LogMessage s;
+                _incomingMessages.TryDequeue(out s);
+            }
+
+            ServerMaster.LogMessageEvent -= ProcessMessage;
+
+            for(int i = 0;i < _candleConverters.Count;i++)
+            {
+                _candleConverters[i].LogMessageEvent -= ProcessMessage;
+            }
+
+            for (int i = 0; i < _osConverterMasters.Count; i++)
+            {
+                _osConverterMasters[i].LogMessageEvent -= ProcessMessage;
+            }
+
+            for (int i = 0; i < _osTraderMasters.Count; i++)
+            {
+                _osTraderMasters[i].LogMessageEvent -= ProcessMessage;
+            }
+
+            for (int i = 0; i < _botPanels.Count; i++)
+            {
+                _botPanels[i].LogMessageEvent -= ProcessMessage;
+            }
+
+            for (int i = 0; i < _optimizerDataStoreges.Count; i++)
+            {
+                _optimizerDataStoreges[i].LogMessageEvent -= ProcessMessage;
+            }
+
+            for (int i = 0; i < _osMinerMasters.Count; i++)
+            {
+                _osMinerMasters[i].LogMessageEvent -= ProcessMessage;
+            }
+
+            for (int i = 0; i < _osDataMasters.Count; i++)
+            {
+                _osDataMasters[i].NewLogMessageEvent -= ProcessMessage;
+            }
+
+            for (int i = 0; i < _optimizers.Count; i++)
+            {
+                _optimizers[i].LogMessageEvent -= ProcessMessage;
+            }
+
+            for (int i = 0; i < _miners.Count; i++)
+            {
+                _miners[i].LogMessageEvent -= ProcessMessage;
+            }
+
+            for (int i = 0; i < _serversToListen.Count; i++)
+            {
+                _serversToListen[i].LogMessageEvent -= ProcessMessage;
+            }
+
+            _candleConverters.Clear();
+            _osConverterMasters.Clear();
+            _osTraderMasters.Clear();
+            _botPanels.Clear();
+            _optimizerDataStoreges.Clear();
+            _osMinerMasters.Clear();
+            _osDataMasters.Clear();
+            _optimizers.Clear();
+            _miners.Clear();
+            _serversToListen.Clear();
+
+            _candleConverters = null;
+            _osConverterMasters = null;
+            _osTraderMasters = null;
+            _botPanels = null;
+            _optimizerDataStoreges = null;
+            _osMinerMasters = null;
+            _osDataMasters = null;
+            _optimizers = null;
+            _miners = null;
+            _serversToListen = null;
         }
 
         private static readonly object LogLocker = new object();
@@ -233,20 +325,27 @@ namespace OsEngine.Logging
 
             try
             {
-                if (_messageses != null)
-                {
-                    _messageses.Clear();
-                }
-
-                _incomingMessages = new ConcurrentQueue<LogMessage>();
                 if (_grid != null)
                 {
                     _grid.Rows.Clear();
+                    _grid.Columns.Clear();
+                }
+
+                while (_messagesesToSaveInFile.IsEmpty == false)
+                {
+                    LogMessage s;
+                    _messagesesToSaveInFile.TryDequeue(out s);
+                }
+
+                while (_incomingMessages.IsEmpty == false)
+                {
+                    LogMessage s;
+                    _incomingMessages.TryDequeue(out s);
                 }
             }
-            catch
+            catch (Exception error)
             {
-                // ignore
+                MessageBox.Show(error.ToString());
             }
         }
 
@@ -264,6 +363,17 @@ namespace OsEngine.Logging
 
         private StartProgram _startProgram;
 
+        List<CandleConverter> _candleConverters = new List<CandleConverter>();
+        List<OsConverterMaster> _osConverterMasters = new List<OsConverterMaster>();
+        List<OsTraderMaster> _osTraderMasters = new List<OsTraderMaster>();
+        List<BotPanel> _botPanels = new List<BotPanel>();
+        List<OptimizerDataStorage> _optimizerDataStoreges = new List<OptimizerDataStorage>();
+        List<OsMinerMaster> _osMinerMasters = new List<OsMinerMaster>();
+        List<OsDataMaster> _osDataMasters = new List<OsDataMaster>();
+        List<OptimizerMaster> _optimizers = new List<OptimizerMaster>();
+        List<OsMinerServer> _miners = new List<OsMinerServer>();
+        List<IServer> _serversToListen = new List<IServer>();
+
         /// <summary>
         /// start listening to the server
         /// начать прослушку сервера
@@ -272,15 +382,17 @@ namespace OsEngine.Logging
         public void Listen(IServer server)
         {
             server.LogMessageEvent += ProcessMessage;
+            _serversToListen.Add(server);
         }
 
         /// <summary>
         /// start listening to the Server Miner
         /// начать прослушку сервера майнера
         /// </summary>
-        public void Listen(OsMinerServer server)
+        public void Listen(OsMinerServer miner)
         {
-            server.LogMessageEvent += ProcessMessage;
+            miner.LogMessageEvent += ProcessMessage;
+            _miners.Add(miner);
         }
 
         /// <summary>
@@ -291,6 +403,7 @@ namespace OsEngine.Logging
         public void Listen(OptimizerMaster optimizer)
         {
             optimizer.LogMessageEvent += ProcessMessage;
+            _optimizers.Add(optimizer);
         }
 
         /// <summary>
@@ -301,6 +414,7 @@ namespace OsEngine.Logging
         public void Listen(OsDataMaster master)
         {
             master.NewLogMessageEvent += ProcessMessage;
+            _osDataMasters.Add(master);
         }
 
         /// <summary>
@@ -311,16 +425,17 @@ namespace OsEngine.Logging
         public void Listen(OsMinerMaster master)
         {
             master.LogMessageEvent += ProcessMessage;
+            _osMinerMasters.Add(master);
         }
-
 
         /// <summary>
         /// start listening to the Optimizer storage
         /// начать прослушку хранилища оптимизатора
         /// </summary>
-        public void Listen(OptimizerDataStorage panel)
+        public void Listen(OptimizerDataStorage storage)
         {
-            panel.LogMessageEvent += ProcessMessage;
+            storage.LogMessageEvent += ProcessMessage;
+            _optimizerDataStoreges.Add(storage);
         }
 
         /// <summary>
@@ -330,6 +445,7 @@ namespace OsEngine.Logging
         public void Listen(BotPanel panel)
         {
             panel.LogMessageEvent += ProcessMessage;
+            _botPanels.Add(panel);
         }
 
         /// <summary>
@@ -339,6 +455,7 @@ namespace OsEngine.Logging
         public void Listen(OsTraderMaster master)
         {
             master.LogMessageEvent += ProcessMessage;
+            _osTraderMasters.Add(master);
         }
 
         /// <summary>
@@ -348,12 +465,16 @@ namespace OsEngine.Logging
         public void Listen(OsConverterMaster master)
         {
             master.LogMessageEvent += ProcessMessage;
+            _osConverterMasters.Add(master);
         }
 
         public void Listen(CandleConverter master)
         {
             master.LogMessageEvent += ProcessMessage;
+            _candleConverters.Add(master);
         }
+
+        bool _listenServerMasterAlreadyOn;
 
         /// <summary>
         /// start listening to the router
@@ -361,7 +482,12 @@ namespace OsEngine.Logging
         /// </summary>
         public void ListenServerMaster()
         {
+            if(_listenServerMasterAlreadyOn == true)
+            {
+                return;
+            }
             ServerMaster.LogMessageEvent += ProcessMessage;
+            _listenServerMasterAlreadyOn = true;
         }
 
         /// <summary>
@@ -449,12 +575,7 @@ namespace OsEngine.Logging
                     return;
                 }
 
-                if (_messageses == null)
-                {
-                    _messageses = new List<LogMessage>();
-                }
-
-                _messageses.Add(messageLog);
+                _messagesesToSaveInFile.Enqueue(messageLog);
 
 
                 if(_grid != null)
@@ -471,27 +592,19 @@ namespace OsEngine.Logging
                     _grid.Rows.Insert(0, row);
                 }
             }
-            catch (Exception)
+            catch (Exception error)
             {
-                // ignore
+                MessageBox.Show(error.ToString());
             }
         }
 
-        // saving messages
-        // сохранение сообщений      
+        // saving messages 
 
         /// <summary>
         /// all log messages
         /// все сообщения лога
         /// </summary>
-        private List<LogMessage> _messageses;
-
-        public List<LogMessage> GetLogMessages()
-        {
-            return _messageses;
-        }
-
-        private int _lastAreaCount;
+        private ConcurrentQueue<LogMessage> _messagesesToSaveInFile = new ConcurrentQueue<LogMessage>();
 
         /// <summary>
         /// method for working saving log thread when the application starts closing
@@ -510,35 +623,38 @@ namespace OsEngine.Logging
 
             try
             {
-                if (_messageses == null ||
-                    _lastAreaCount == _messageses.Count)
+                if (_messagesesToSaveInFile == null ||
+                    _messagesesToSaveInFile.IsEmpty)
                 {
                     return;
                 }
 
-                StringBuilder logsString = new StringBuilder();
-                for (int i = _lastAreaCount; _messageses != null && i < _messageses.Count; i++)
-                {
-                    logsString.Append(_messageses[i].GetString()).Append("\r\n");
-                }
-                
                 string date = DateTime.Now.Year + "_" + DateTime.Now.Month + "_" + DateTime.Now.Day;
+                string path = @"Engine\Log\" + _uniqName + @"Log_" + date + ".txt";
+
                 using (StreamWriter writer = new StreamWriter(
-                        @"Engine\Log\" + _uniqName + @"Log_" + date + ".txt", true))
+                        path,true))
                 {
-                    writer.Write(logsString);
+                    while (_messagesesToSaveInFile.IsEmpty == false)
+                    {
+                        LogMessage message;
+
+                        if(_messagesesToSaveInFile.TryDequeue(out message))
+                        {
+                            writer.Write(message.Message);
+                        }
+                    }
                 }
-                _lastAreaCount = _messageses.Count;
+
             }
-            catch (Exception)
+            catch (Exception error)
             {
-                // ignore
+                MessageBox.Show(error.ToString());
             }
 
         }
 
         // distribution
-        // рассылка
 
         /// <summary>
         /// object for distribution massages
@@ -559,7 +675,6 @@ namespace OsEngine.Logging
         }
 
         // drawing
-        // прорисовка
 
         /// <summary>
         /// start drawing the object
@@ -600,7 +715,6 @@ namespace OsEngine.Logging
         }
 
         // general error log 
-        // общий лог для ошибок
 
         /// <summary>
         /// table for drawing error messages

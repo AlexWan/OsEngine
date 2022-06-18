@@ -250,7 +250,7 @@ namespace OsEngine.Entity
                 while (true)
                 {
 
-                   await Task.Delay(50);
+                   await Task.Delay(200);
 
                     if (_isDisposed == true)
                     {
@@ -841,8 +841,9 @@ namespace OsEngine.Entity
         {
             try
             {
-                Clear();
                 _isDisposed = true;
+                Clear();
+                
 
                 for (int i = 0; _activSeries != null && i < _activSeries.Count; i++)
                 {
@@ -853,9 +854,9 @@ namespace OsEngine.Entity
                 _activSeries = null;
 
             }
-            catch
+            catch(Exception error)
             {
-                // ignore
+                MessageBox.Show(error.ToString());
             }
 
             if (_server != null)

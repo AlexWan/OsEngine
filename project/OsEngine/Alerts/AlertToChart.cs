@@ -14,6 +14,7 @@ using System.Windows.Forms.Integration;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Properties;
+using System.Windows.Forms;
 
 namespace OsEngine.Alerts
 {
@@ -92,16 +93,16 @@ namespace OsEngine.Alerts
 
                     Enum.TryParse(reader.ReadLine(), true, out SignalType);
                     VolumeReaction = reader.ReadLine().ToDecimal();
-                    Slippage = Convert.ToDecimal(reader.ReadLine());
+                    Slippage = reader.ReadLine().ToDecimal();
                     NumberClosePosition = Convert.ToInt32(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(),true,out OrderPriceType);
 
                     reader.Close();
                 }
             }
-            catch (Exception)
+            catch (Exception error)
             {
-                // ignore
+                MessageBox.Show(error.ToString());
             }
         }
 
@@ -143,9 +144,9 @@ namespace OsEngine.Alerts
                     writer.Close();
                 }
             }
-            catch (Exception)
+            catch (Exception error)
             {
-                // ignore
+                MessageBox.Show(error.ToString());
             }
         }
 

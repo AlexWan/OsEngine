@@ -48,6 +48,32 @@ namespace OsEngine.Market.Servers.Optimizer
             CheckSet();
         }
 
+        public void ClearDelete()
+        {
+            _isDeleted = true;
+
+            if(_storages != null)
+            {
+                for (int i = 0; i < _storages.Count; i++)
+                {
+                    _storages[i].ClearDelete();
+                }
+
+                _storages.Clear();
+            }
+            if(SecuritiesTester != null)
+            {
+                for(int i = 0;i < SecuritiesTester.Count;i++)
+                {
+                    SecuritiesTester[i].Clear();
+                }
+                SecuritiesTester.Clear();
+                SecuritiesTester = null;
+            }
+        }
+
+        private bool _isDeleted;
+
         /// <summary>
 		/// main thread for downloading all data
         /// основной поток, которые занимается прогрузкой всех данных
@@ -71,6 +97,10 @@ namespace OsEngine.Market.Servers.Optimizer
                 Thread.Sleep(2000);
                 try
                 {
+                    if(_isDeleted == true)
+                    {
+                        return;
+                    }
                     if (_needToReloadSecurities)
                     {
                         _needToReloadSecurities = false;
@@ -274,15 +304,6 @@ namespace OsEngine.Market.Servers.Optimizer
                 LoadSecurities();
             }
         }
-
-        /// <summary>
-        /// очистить данные
-        /// </summary>
-        public void ClearStorages()
-        {
-            _storages.Clear();
-        }
-
 
         /// <summary>
 		/// path to folder with data
@@ -1973,6 +1994,30 @@ DateTime timeEnd)
         /// время завершения скачивания этой серии свечек
         /// </summary>
         public DateTime TimeEnd;
+
+        public void ClearDelete()
+        {
+            Security = null;
+
+            if(Candles != null)
+            {
+                Candles.Clear();
+                Candles = null;
+            }
+
+            if(Trades != null)
+            {
+                Trades.Clear();
+                Trades = null;
+            }
+
+            if (MaketDepths != null)
+            {
+                MaketDepths.Clear();
+                MaketDepths = null;
+            }
+
+        }
     }
 
 }

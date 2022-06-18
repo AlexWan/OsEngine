@@ -689,10 +689,10 @@ namespace OsEngine.Alerts
                     pricePoint = _chartMaster.GetCursorSelectPrice();
                     _chartMaster.RemoveCursor();
                 }
-                catch (Exception)
+                catch (Exception error)
                 {
+                    SendNewMessage(error.ToString(), LogMessageType.Error);
                     return;
-                    // ignore
                 }
 
                 _alertChartUi.SetFormChart(_connector.Candles(false), numberCandle, pricePoint);

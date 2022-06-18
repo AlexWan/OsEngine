@@ -416,19 +416,23 @@ namespace OsEngine.Market
 
         public static void RemoveOptimizerServer(OptimizerServer server)
         {
-            for (int i = 0; _servers != null && i < _servers.Count; i++)
+            server.ClearDelete();
+
+            lock (_optimizerGeneratorLocker)
             {
-                if (_servers[i] == null)
+                for (int i = 0; _servers != null && i < _servers.Count; i++)
                 {
-                    _servers.RemoveAt(i);
-                    i--;
-                }
-                if (_servers[i].ServerType == ServerType.Optimizer &&
-                    ((OptimizerServer)_servers[i]).NumberServer == server.NumberServer)
-                {
-                    ((OptimizerServer)_servers[i]).Clear();
-                    _servers.RemoveAt(i);
-                    break;
+                    if (_servers[i] == null)
+                    {
+                        _servers.RemoveAt(i);
+                        i--;
+                    }
+                    if (_servers[i].ServerType == ServerType.Optimizer &&
+                        ((OptimizerServer)_servers[i]).NumberServer == server.NumberServer)
+                    {
+                        _servers.RemoveAt(i);
+                        break;
+                    }
                 }
             }
         }
@@ -719,9 +723,9 @@ namespace OsEngine.Market
                     }
                 }
             }
-            catch
+            catch(Exception error)
             {
-                // ignore
+                LogMessageEvent(error.ToString(), LogMessageType.Error);
             }
 
             _needServerTypes.Add(type);

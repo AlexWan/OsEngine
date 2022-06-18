@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using OsEngine.Entity;
 using OsEngine.Properties;
+using System.Windows.Forms;
 
 namespace OsEngine.Alerts
 {
@@ -44,9 +45,9 @@ namespace OsEngine.Alerts
                     writer.Close();
                 }
             }
-            catch (Exception)
+            catch (Exception error)
             {
-                // ignore
+                MessageBox.Show(error.ToString());
             }
         }
 
@@ -76,9 +77,9 @@ namespace OsEngine.Alerts
                     reader.Close();
                 }
             }
-            catch (Exception)
+            catch (Exception error)
             {
-                // ignore
+                MessageBox.Show(error.ToString());
             }
         }
 

@@ -271,9 +271,9 @@ namespace OsEngine.OsTrader.Panels
                     {
                         _log.StopPaint();
                     }
-                    catch
+                    catch(Exception error)
                     {
-                        // ignore
+                        LogMessageEvent(error.ToString(), LogMessageType.Error);
                     }
 
                 }
@@ -393,6 +393,8 @@ namespace OsEngine.OsTrader.Panels
                     {
                         _botTabs[i].Delete();
                     }
+                    _botTabs.Clear();
+                    _botTabs = null;
                 }
 
                 if (File.Exists(@"Engine\" + NameStrategyUniq + @"Parametrs.txt"))
@@ -400,7 +402,10 @@ namespace OsEngine.OsTrader.Panels
                     File.Delete(@"Engine\" + NameStrategyUniq + @"Parametrs.txt");
                 }
 
-                _log.Delete();
+                if(_log != null)
+                {
+                    _log.Delete();
+                }
 
                 if (DeleteEvent != null)
                 {
@@ -874,9 +879,9 @@ position => position.State != PositionStateType.OpeningFail
                     reader.Close();
                 }
             }
-            catch (Exception)
+            catch (Exception error)
             {
-                // ignore
+                LogMessageEvent(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -931,9 +936,9 @@ position => position.State != PositionStateType.OpeningFail
                     writer.Close();
                 }
             }
-            catch (Exception)
+            catch (Exception error)
             {
-                // ignore
+                LogMessageEvent(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1060,7 +1065,10 @@ position => position.State != PositionStateType.OpeningFail
             {
                 try
                 {
-                    if (ActivTab == null || _tabBotTab.Items.Count == 0)
+                    if (ActivTab == null 
+                        || _tabBotTab == null 
+                        || _tabBotTab.Items == null 
+                        || _tabBotTab.Items.Count == 0)
                     {
                         return -1;
                     }
@@ -1496,11 +1504,6 @@ position => position.State != PositionStateType.OpeningFail
         // log / сообщения в лог 
 
         private Log _log;
-
-        public List<LogMessage> GetLogMessages()
-        {
-            return _log.GetLogMessages();
-        }
 
         /// <summary>
         /// send new message / 

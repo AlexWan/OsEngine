@@ -945,7 +945,7 @@ namespace OsEngine.OsOptimizer
                     {
                         _servers[i].TestingEndEvent -= server_TestingEndEvent;
                         _servers[i].TestintProgressChangeEvent -= server_TestintProgressChangeEvent;
-                        _servers[i].Clear();
+                        _servers[i].ClearDelete();
                         _servers.RemoveAt(i);
                         break;
                     }

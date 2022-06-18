@@ -193,6 +193,13 @@ namespace OsEngine.Market.Connectors
             {
                 MessageBox.Show(error.ToString());
             }
+
+            Closing += ConnectorCandlesUi_Closing;
+        }
+
+        private void ConnectorCandlesUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            _connectorBot = null;
         }
 
         public void IsCanChangeSaveTradesInCandles(bool canChangeSettingsSaveCandlesIn)
@@ -912,17 +919,22 @@ namespace OsEngine.Market.Connectors
             {
                 if (string.IsNullOrEmpty(ComboBoxSecurities.Text))
                 {
-                    return;
+                    return; 
                 }
+
+                Enum.TryParse(ComboBoxTypeServer.Text, true, out _connectorBot.ServerType);
+
                 _connectorBot.PortfolioName = ComboBoxPortfolio.Text;
+
                 if (CheckBoxIsEmulator.IsChecked != null)
                 {
                     _connectorBot.EmulatorIsOn = CheckBoxIsEmulator.IsChecked.Value;
                 }
+
+                
+
                 TimeFrame timeFrame;
                 Enum.TryParse(ComboBoxTimeFrame.Text, out timeFrame);
-
-                Enum.TryParse(ComboBoxTypeServer.Text, true, out _connectorBot.ServerType);
 
                 _connectorBot.TimeFrame = timeFrame;
                 _connectorBot.SecurityName = ComboBoxSecurities.Text;

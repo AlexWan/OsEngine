@@ -208,6 +208,7 @@ namespace OsEngine.Market.Connectors
                 ui.IsCanChangeSaveTradesInCandles(canChangeSettingsSaveCandlesIn);
                 ui.LogMessageEvent += SendNewLogMessage;
                 ui.ShowDialog();
+                ui.LogMessageEvent -= SendNewLogMessage;
             }
             catch (Exception error)
             {

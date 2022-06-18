@@ -86,6 +86,10 @@ namespace OsEngine.OsTrader.AdminPanelApi
 
         private void ServerMasterOnServerCreateEvent(IServer server)
         {
+            if(server.ServerType == ServerType.Optimizer)
+            {
+                return;
+            }
             ServerModel serverModel = new ServerModel(server, _apiServer);
         }
 
@@ -228,15 +232,7 @@ namespace OsEngine.OsTrader.AdminPanelApi
 
         private void SendBotLog()
         {
-            foreach (var botPanel in _traderMaster.PanelsArray)
-            {
-                var log = botPanel.GetLogMessages();
-                if (log != null && log.Count > 0)
-                {
-                    var message = "botLog_" + GetJBotLog(botPanel.NameStrategyUniq, log).ToString();
-                    _apiServer.Send(message);
-                }
-            }
+
         }
 
         private void SendBot()

@@ -308,6 +308,7 @@ colum09.HeaderText = "Action";
                 _grid.Invoke(new Action(UpdateTable));
                 return;
             }
+
             if (_master.PanelsArray == null)return;
             try
             {
@@ -320,15 +321,27 @@ colum09.HeaderText = "Action";
                     if (bot.TabsSimple.Count != 0 &&
                         bot.TabsSimple[0].Securiti != null)
                     {
-                        row.Cells[3].Value = bot.TabsSimple[0].Securiti.Name;
+                        if(row.Cells[3].Value == null 
+                            ||
+                            (row.Cells[3].Value != null 
+                            && row.Cells[3].Value.ToString() != bot.TabsSimple[0].Securiti.Name))
+                        {
+                            row.Cells[3].Value = bot.TabsSimple[0].Securiti.Name;
+                        }
                     }
 
-                    row.Cells[4].Value = bot.PositionsCount;
+                    if(row.Cells[4].Value == null ||
+                        (row.Cells[4].Value != null 
+                        && row.Cells[4].Value.ToString() != bot.PositionsCount.ToString()))
+                    {
+                        row.Cells[4].Value = bot.PositionsCount;
+                    }
+                    
                 }
             }
-            catch
+            catch (Exception error)
             {
-                // ignore
+                _master.SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
             }
         }
     }

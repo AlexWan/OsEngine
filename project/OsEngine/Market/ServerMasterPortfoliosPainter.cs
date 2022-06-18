@@ -37,6 +37,11 @@ namespace OsEngine.Market
         /// </summary>
         private void ServerMaster_ServerCreateEvent(IServer server)
         {
+            if(server.ServerType == ServerType.Optimizer)
+            {
+                return;
+            }
+
             List<IServer> servers = ServerMaster.GetServers();
 
             for (int i = 0; i < servers.Count; i++)

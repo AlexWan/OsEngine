@@ -992,9 +992,9 @@ namespace OsEngine.Entity
                 position.SignalTypeOpen = nRow.Cells[17].Value.ToString().RemoveExcessFromSecurityName();
                 position.SignalTypeClose = nRow.Cells[18].Value.ToString().RemoveExcessFromSecurityName();
             }
-            catch
+            catch(Exception error)
             {
-                // ignore
+                MessageBox.Show(error.ToString());
             }
         }
 
