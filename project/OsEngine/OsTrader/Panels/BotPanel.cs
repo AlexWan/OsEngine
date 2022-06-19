@@ -285,7 +285,6 @@ namespace OsEngine.OsTrader.Panels
                 }
            
                 _tabBotTab = null;
-                _tabBotTab = null;
                 _hostChart = null;
                 _hostGlass = null;
                 _hostOpenDeals = null;

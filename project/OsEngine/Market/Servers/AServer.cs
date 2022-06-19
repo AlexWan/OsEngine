@@ -1108,9 +1108,9 @@ namespace OsEngine.Market.Servers
 
                     if (positions != null)
                     {
-                        foreach (var positionOnBoard in positions)
+                        for(int i2 = 0;i2 < positions.Count;i2++)
                         {
-                            curPortfolio.SetNewPosition(positionOnBoard);
+                            curPortfolio.SetNewPosition(positions[i]);
                         }
                     }
                 }

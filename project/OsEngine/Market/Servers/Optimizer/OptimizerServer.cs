@@ -1282,6 +1282,11 @@ namespace OsEngine.Market.Servers.Optimizer
         {
             lock (_starterLocker)
             {
+                if(_cleared)
+                {
+                    return null;
+                }
+
                 if (securityName == "")
                 {
                     return null;
@@ -1329,7 +1334,10 @@ namespace OsEngine.Market.Servers.Optimizer
 
                 CandleSeries series = new CandleSeries(timeFrameBuilder, security, StartProgram.IsOsOptimizer);
 
-                _candleManager.StartSeries(series);
+                if(_candleManager != null)
+                {
+                    _candleManager.StartSeries(series);
+                }
 
                 SendLogMessage(OsLocalization.Market.Message14 + series.Security.Name + 
                                OsLocalization.Market.Message15 + series.TimeFrame +
