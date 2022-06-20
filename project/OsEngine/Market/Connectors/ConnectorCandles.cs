@@ -72,6 +72,18 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// program that created the bot which created this connection
+        /// программа создавшая робота который создал это подключение
+        /// </summary>
+        public StartProgram StartProgram;
+
+        /// <summary>
+        /// shows whether it is possible to save settings
+        /// можно ли сохранять настройки
+        /// </summary>
+        private bool _canSave;
+
+        /// <summary>
         /// upload
         /// загрузить
         /// </summary>
@@ -100,18 +112,6 @@ namespace OsEngine.Market.Connectors
                 // ignore
             }
         }
-
-        /// <summary>
-        /// program that created the bot which created this connection
-        /// программа создавшая робота который создал это подключение
-        /// </summary>
-        public StartProgram StartProgram;
-
-        /// <summary>
-        /// shows whether it is possible to save settings
-        /// можно ли сохранять настройки
-        /// </summary>
-        private bool _canSave;
 
         /// <summary>
         /// save object settings in file

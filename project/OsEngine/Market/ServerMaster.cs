@@ -112,6 +112,29 @@ namespace OsEngine.Market
 
                 serverTypes.Add(ServerType.AstsBridge);
 
+
+                // а теперь сортируем в зависимости от предпочтений пользователя
+
+                List<ServerPop> popularity = MostPopularServersWithCount();
+
+                for (int i = 0; i < popularity.Count; i++)
+                {
+                    for(int i2 = 0;i2 < serverTypes.Count;i2++)
+                    {
+                        if(serverTypes[i2] == popularity[i].ServerType)
+                        {
+                            serverTypes.RemoveAt(i2);
+                            i2--;
+                            break;
+                        }
+                    }
+                }
+
+                for (int i = 0;i < popularity.Count;i++)
+                {
+                    serverTypes.Insert(0, popularity[i].ServerType);
+                }
+
                 return serverTypes;
             }
         }
@@ -203,6 +226,8 @@ namespace OsEngine.Market
                 {
                     return;
                 }
+
+                SaveMostPopularServers(type);
 
                 IServer newServer = null;
                 if (type == ServerType.FTX)
@@ -356,6 +381,127 @@ namespace OsEngine.Market
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        private static void SaveMostPopularServers(ServerType type)
+        {
+            List<ServerPop> servers = MostPopularServersWithCount();
+
+            bool isInArray = false;
+
+            for(int i = 0;i < servers.Count;i++)
+            {
+                if(servers[i].ServerType == type)
+                {
+                    servers[i].CountOfCreation += 1;
+                    isInArray = true;
+                    break;
+                }
+            }
+
+            if (isInArray == false)
+            {
+                ServerPop curServ = new ServerPop();
+                curServ.ServerType = type;
+                curServ.CountOfCreation = 1;
+                servers.Add(curServ);
+            }
+
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + @"MostPopularServers.txt", false))
+                {
+                    List<ServerType> alreadySaveServers = new List<ServerType>();
+
+                    for(int i = 0;i < servers.Count;i++)
+                    {
+                        bool isSaved = false;
+                        for(int i2 = 0; i2 < alreadySaveServers.Count;i2++)
+                        {
+                            if(alreadySaveServers[i2] == servers[i].ServerType)
+                            {
+                                isSaved = true;
+                                break;
+                            }
+                        }
+
+                        if(isSaved)
+                        {
+                            continue;
+                        }
+
+                        alreadySaveServers.Add(servers[i].ServerType);
+                        string saveStr = servers[i].ServerType + "&" + servers[i].CountOfCreation;
+                        writer.WriteLine(saveStr);
+                    }
+
+                    writer.Close();
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        public static List<ServerPop> MostPopularServersWithCount()
+        {
+            List<ServerPop> servers = new List<ServerPop>();
+
+            if (!File.Exists(@"Engine\" + @"MostPopularServers.txt"))
+            {
+                return servers;
+            }
+            try
+            {
+                using (StreamReader reader = new StreamReader(@"Engine\" + @"MostPopularServers.txt"))
+                {
+                    while(reader.EndOfStream == false)
+                    {
+                        string res = reader.ReadLine();
+
+                        if(res.Split('&').Length <= 1)
+                        {
+                            continue;
+                        }
+
+                        string[] saveInStr = res.Split('&');
+
+                        ServerPop curServ = new ServerPop();
+
+                        Enum.TryParse(saveInStr[0], out curServ.ServerType);
+                        curServ.CountOfCreation = Convert.ToInt32(saveInStr[1]);
+
+                        servers.Add(curServ);
+                    }
+
+                    reader.Close();
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+
+            if(servers.Count > 1)
+            {
+
+                for(int i = 0;i < servers.Count;i++)
+                {
+                    ServerPop curServ = servers[i];
+
+                    for(int i2 = i;i2 < servers.Count;i2++)
+                    {
+                        if(servers[i2].CountOfCreation < curServ.CountOfCreation)
+                        {
+                            servers[i] = servers[i2];
+                            servers[i2] = curServ;
+                        }
+                    }
+                }
+            }
+
+            return servers;
         }
 
         private static object _optimizerGeneratorLocker = new object();
@@ -901,6 +1047,13 @@ namespace OsEngine.Market
         /// </summary>
         public static event Action<string, LogMessageType> LogMessageEvent;
 
+    }
+
+    public class ServerPop
+    {
+        public ServerType ServerType;
+
+        public int CountOfCreation;
     }
 
     /// <summary>

@@ -61,6 +61,54 @@ namespace OsEngine.Market
                     continue;
                 }
             }
+
+            ServerMaster.Log.StopPaint();
+
+            _servers = null;
+
+            ClearControls();
+        }
+
+        private void ClearControls()
+        {
+            if(_gridSources == null)
+            {
+                return;
+            }
+
+            if (_gridSources.InvokeRequired)
+            {
+                _gridSources.Invoke(new Action(ClearControls));
+                return;
+            }
+
+            if(_boxCreateServerАutomatically != null)
+            {
+                _boxCreateServerАutomatically.Click -= CheckBoxServerAutoOpen_Click;
+                _boxCreateServerАutomatically = null;
+            }
+
+            if(_hostServers != null)
+            {
+                _hostServers.Child = null;
+                _hostServers = null;
+            }
+
+            if(_hostLog != null)
+            {
+                _hostLog.Child = null;
+                _hostLog = null;
+            }
+            
+            if(_gridSources != null)
+            {
+                _gridSources.DoubleClick -= _gridSources_DoubleClick;
+                _gridSources.Rows.Clear();
+                _gridSources.Columns.Clear();
+                DataGridFactory.ClearLink(_gridSources);
+                _gridSources = null;
+            }
+
         }
 
         List<IServer> _servers;
@@ -97,6 +145,10 @@ namespace OsEngine.Market
         /// </summary>
         private void RePaintSourceGrid()
         {
+            if (_gridSources == null)
+            {
+                return;
+            }
             if (_gridSources.InvokeRequired)
             {
                 _gridSources.Invoke(new Action(RePaintSourceGrid));
