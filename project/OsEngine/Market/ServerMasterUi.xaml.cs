@@ -41,6 +41,7 @@ namespace OsEngine.Market
                 
                 servers = ServerMaster.GetServers();
                 servers.Find(s => s.ServerType == ServerType.Tester).ShowDialog();
+                return;
             }
 
             Title = OsLocalization.Market.TitleServerMasterUi;

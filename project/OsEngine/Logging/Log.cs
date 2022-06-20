@@ -328,7 +328,6 @@ namespace OsEngine.Logging
                 if (_grid != null)
                 {
                     _grid.Rows.Clear();
-                    _grid.Columns.Clear();
                 }
 
                 while (_messagesesToSaveInFile.IsEmpty == false)
@@ -568,6 +567,11 @@ namespace OsEngine.Logging
         {
             try
             {
+                if(_isDelete == true)
+                {
+                    return;
+                }
+
                 if (_grid != null 
                     && _grid.InvokeRequired)
                 {
@@ -589,7 +593,11 @@ namespace OsEngine.Logging
 
                     row.Cells.Add(new DataGridViewTextBoxCell());
                     row.Cells[2].Value = messageLog.Message;
-                    _grid.Rows.Insert(0, row);
+
+                    if(_grid.Columns.Count != 0)
+                    {
+                        _grid.Rows.Insert(0, row);
+                    }
                 }
             }
             catch (Exception error)
