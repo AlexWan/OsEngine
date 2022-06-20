@@ -23,6 +23,7 @@ using OsEngine.Robots.Patterns;
 using OsEngine.Robots.Trend;
 using OsEngine.Robots.OnScriptIndicators;
 using OsEngine.Robots.Screeners;
+using OsEngine.Robots.MyBots;
 
 namespace OsEngine.Robots
 {
@@ -37,6 +38,8 @@ namespace OsEngine.Robots
         public static List<string> GetNamesStrategy()
         {
             List<string> result = new List<string>();
+
+            /*
             result.Add("SmaScreener");
             result.Add("Fisher");
             result.Add("Engine");
@@ -75,6 +78,8 @@ namespace OsEngine.Robots
             result.Add("PriceChannelVolatility");
             result.Add("RsiTrade");
             result.Add("RviTrade");
+            */
+
             result.AddRange(BotsWithAttribute.Keys);
 
             List<string> resultTrue = new List<string>();

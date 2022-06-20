@@ -893,6 +893,15 @@
     <Compile Include="Robots\MarketMaker\PairTraderSimpleUi.xaml.cs">
       <DependentUpon>PairTraderSimpleUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Robots\MyBots\IlanMartin\IlanMartin.cs" />
+    <Compile Include="Robots\MyBots\MyRobot\MyRobot.cs" />
+    <Compile Include="Robots\MyBots\MyRobot\WindowMyRobot.xaml.cs">
+      <DependentUpon>WindowMyRobot.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Robots\MyBots\VolumeReversal\VolumeReversal.cs" />
+    <Compile Include="Robots\MyBots\VolumeReversal\WindowVolumeReversal.xaml.cs">
+      <DependentUpon>WindowVolumeReversal.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Robots\OnScriptIndicators\BbPowerTrade.cs" />
     <Compile Include="Robots\OnScriptIndicators\BollingerRevers.cs" />
     <Compile Include="Robots\OnScriptIndicators\BollingerTrailing.cs" />
@@ -1418,6 +1427,14 @@
     <Page Include="Robots\MarketMaker\PairTraderSimpleUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Robots\MyBots\MyRobot\WindowMyRobot.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Robots\MyBots\VolumeReversal\WindowVolumeReversal.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Robots\Trend\MomentumMacdUi.xaml">
       <SubType>Designer</SubType>
