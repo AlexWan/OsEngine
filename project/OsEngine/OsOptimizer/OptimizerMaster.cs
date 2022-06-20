@@ -30,7 +30,7 @@ namespace OsEngine.OsOptimizer
             _threadsCount = 1;
             _startDepozit = 100000;
 
-            Storage = new OptimizerDataStorage("Prime");
+            Storage = new OptimizerDataStorage("Prime",true);
             Storage.SecuritiesChangeEvent += _storage_SecuritiesChangeEvent;
             Storage.TimeChangeEvent += _storage_TimeChangeEvent;
 

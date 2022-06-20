@@ -842,13 +842,11 @@ namespace OsEngine.Entity
             try
             {
                 _isDisposed = true;
-                Clear();
-                
 
                 for (int i = 0; _activSeries != null && i < _activSeries.Count; i++)
                 {
-                    _activSeries[i].Stop();
                     _activSeries[i].Clear();
+                    _activSeries[i].Stop();
                 }
 
                 _activSeries = null;

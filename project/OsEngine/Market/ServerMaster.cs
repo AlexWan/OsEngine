@@ -512,17 +512,18 @@ namespace OsEngine.Market
         /// </summary>
         public static OptimizerServer CreateNextOptimizerServer(OptimizerDataStorage storage, int num, decimal portfolioStartVal)
         {
+
+            OptimizerServer serv = new OptimizerServer(storage, num, portfolioStartVal);
+
+            if (serv == null)
+            {
+                return null;
+            }
+
+            bool isInArray = false;
+
             lock (_optimizerGeneratorLocker)
             {
-                OptimizerServer serv = new OptimizerServer(storage, num, portfolioStartVal);
-
-                if (serv == null)
-                {
-                    return null;
-                }
-
-                bool isInArray = false;
-
                 if (_servers == null)
                 {
                     _servers = new List<IServer>();

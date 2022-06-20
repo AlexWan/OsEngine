@@ -182,13 +182,11 @@ namespace OsEngine.Entity
         {
             _lastTradeIndex = 0;
 
-            for (int i = 0; CandlesAll != null && i < CandlesAll.Count; i++)
+            if(CandlesAll != null)
             {
-                CandlesAll[i].Trades = null;
+                CandlesAll.Clear();
+                CandlesAll = null;
             }
-
-            CandlesAll = null;
-            
         }
 
         // приём изменившегося времени

@@ -412,7 +412,11 @@ namespace OsEngine.Charts.CandleChart
                     {
                         _indicators[i].NeadToReloadEvent -= indicator_NeadToReloadEvent;
                         _indicators[i].Clear();
-                        _indicators[i].Delete();
+
+                        if (_startProgram != StartProgram.IsOsOptimizer)
+                        {
+                            _indicators[i].Delete();
+                        }
                     }
 
                     _indicators.Clear();

@@ -109,6 +109,8 @@ namespace OsEngine.Logging
         // object of log
         // объект лога
 
+        private string _starterLocker = "logStarterLocker";
+
         /// <summary>
         /// constructor
         /// конструктор
@@ -120,10 +122,13 @@ namespace OsEngine.Logging
             _uniqName = uniqName;
             _startProgram = startProgram;
 
-            if (_watcher == null)
+            lock(_starterLocker)
             {
-                CreateErrorLogGreed();
-                Activate();
+                if (_watcher == null)
+                {
+                    CreateErrorLogGreed();
+                    Activate();
+                }
             }
 
             if(_startProgram != StartProgram.IsOsOptimizer)
@@ -177,13 +182,13 @@ namespace OsEngine.Logging
         /// удалить объект и очистить все файлы связанные с ним
         /// </summary>
         public void Delete()
-        {
-            DeleteFromLogsToCheck(this);
-
+        {          
             _isDelete = true;
 
             if(_startProgram != StartProgram.IsOsOptimizer)
             {
+                DeleteFromLogsToCheck(this);
+
                 string date = DateTime.Now.Year + "_" + DateTime.Now.Month + "_" + DateTime.Now.Day;
 
                 if (File.Exists(@"Engine\Log\" + _uniqName + @"Log_" + date + ".txt"))

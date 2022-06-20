@@ -22,7 +22,7 @@ namespace OsEngine.Market.Servers.Optimizer
 		/// constructor
         /// конструктор
         /// </summary>
-        public OptimizerDataStorage(string name)
+        public OptimizerDataStorage(string name, bool neadToCreateThread)
         {
             Name = name;
 
@@ -37,7 +37,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 _needToReloadSecurities = true;
             }
 
-            if (_worker == null)
+            if(neadToCreateThread == true)
             {
                 _worker = new Thread(WorkThreadArea);
                 _worker.CurrentCulture = new CultureInfo("ru-RU");
@@ -53,7 +53,7 @@ namespace OsEngine.Market.Servers.Optimizer
         {
             _isDeleted = true;
 
-            if(_storages != null)
+            if (_storages != null)
             {
                 for (int i = 0; i < _storages.Count; i++)
                 {
@@ -62,9 +62,9 @@ namespace OsEngine.Market.Servers.Optimizer
 
                 _storages.Clear();
             }
-            if(SecuritiesTester != null)
+            if (SecuritiesTester != null)
             {
-                for(int i = 0;i < SecuritiesTester.Count;i++)
+                for (int i = 0; i < SecuritiesTester.Count; i++)
                 {
                     SecuritiesTester[i].Clear();
                 }
@@ -95,7 +95,7 @@ namespace OsEngine.Market.Servers.Optimizer
         {
             while (true)
             {
-                Thread.Sleep(2000);
+                Thread.Sleep(50);
                 try
                 {
                     if(_isDeleted == true)
