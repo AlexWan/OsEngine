@@ -76,6 +76,10 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         private void Load()
         {
+            if(_startProgram == StartProgram.IsOsOptimizer)
+            {
+                return;
+            }
             if (!File.Exists(@"Engine\" + Name + @".txt"))
             {
                 return;
@@ -415,10 +419,14 @@ namespace OsEngine.Charts.CandleChart
                     _indicators = null;
                 }
 
-                if (File.Exists(@"Engine\" + Name + @".txt"))
+                if(_startProgram != StartProgram.IsOsOptimizer)
                 {
-                    File.Delete(@"Engine\" + Name + @".txt");
+                    if (File.Exists(@"Engine\" + Name + @".txt"))
+                    {
+                        File.Delete(@"Engine\" + Name + @".txt");
+                    }
                 }
+
                 if (ChartCandle != null)
                 {
                     ChartCandle.ChartClickEvent -= ChartCandle_ChartClickEvent;
@@ -431,6 +439,7 @@ namespace OsEngine.Charts.CandleChart
                 }
 
                 _myCandles = null;
+
                 if (_chartElements != null)
                 {
                     for(int i = 0;i < _chartElements.Count;i++)

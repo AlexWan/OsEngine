@@ -100,10 +100,11 @@ namespace OsEngine.OsTrader.RiskManager
             _startProgram = startProgram;
             _name = nameBot + "RiskManager";
             MaxDrowDownToDayPersent = 1;
-            Load();
-
+            
             if(_startProgram != StartProgram.IsOsOptimizer)
             {
+                Load();
+
                 if (Watcher == null)
                 {
                     Activate();
@@ -234,15 +235,17 @@ namespace OsEngine.OsTrader.RiskManager
         {
             try
             {
+                if (_startProgram == StartProgram.IsOsOptimizer)
+                {
+                    return;
+                }
+
                 if (File.Exists(@"Engine\" + _name + @".txt"))
                 {
                     File.Delete(@"Engine\" + _name + @".txt");
                 }
 
-                if (_startProgram != StartProgram.IsOsOptimizer)
-                {
-                    RiskManagersToCheck.Remove(this);
-                }
+                RiskManagersToCheck.Remove(this);
 
                 ClearJournals();
             }

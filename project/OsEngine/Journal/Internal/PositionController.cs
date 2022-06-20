@@ -205,6 +205,11 @@ namespace OsEngine.Journal.Internal
         {
             try
             {
+                if(_startProgram == StartProgram.IsOsOptimizer)
+                {
+                    return;
+                }
+
                 _neadToSave = false;
                 string dealControllerPath = @"Engine\" + _name + @"DealController.txt";
                 if (File.Exists(dealControllerPath))

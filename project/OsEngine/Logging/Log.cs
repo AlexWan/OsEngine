@@ -182,11 +182,14 @@ namespace OsEngine.Logging
 
             _isDelete = true;
 
-            string date = DateTime.Now.Year + "_" + DateTime.Now.Month + "_" + DateTime.Now.Day;
-
-            if (File.Exists(@"Engine\Log\" + _uniqName + @"Log_" + date + ".txt"))
+            if(_startProgram != StartProgram.IsOsOptimizer)
             {
-                File.Delete(@"Engine\Log\" + _uniqName + @"Log_" + date + ".txt");
+                string date = DateTime.Now.Year + "_" + DateTime.Now.Month + "_" + DateTime.Now.Day;
+
+                if (File.Exists(@"Engine\Log\" + _uniqName + @"Log_" + date + ".txt"))
+                {
+                    File.Delete(@"Engine\Log\" + _uniqName + @"Log_" + date + ".txt");
+                }
             }
 
             if(_grid != null)

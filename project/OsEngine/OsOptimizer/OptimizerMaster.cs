@@ -860,13 +860,26 @@ namespace OsEngine.OsOptimizer
                 {
                     return null;
                 }
-                _parameters = bot.Parameters;
-                bot.Delete();
 
+                if(_parameters != null)
+                {
+                    _parameters.Clear();
+                    _parameters = null;
+                }
+
+                _parameters = new List<IIStrategyParameter>();
+
+                for(int i = 0;i < bot.Parameters.Count;i++)
+                {
+                    _parameters.Add(bot.Parameters[i]);
+                }
+                
                 for(int i = 0;i < _parameters.Count;i++)
                 {
                     GetValueParameterSaveByUser(_parameters[i]);
                 }
+
+                bot.Delete();
 
                 return _parameters;
             }
@@ -1182,7 +1195,7 @@ namespace OsEngine.OsOptimizer
 
         public BotPanel TestBot(OptimazerFazeReport faze, OptimizerReport report)
         {
-            return _optimizerExecutor.TestBot(faze, report);
+            return _optimizerExecutor.TestBot(faze, report, StartProgram.IsTester);
         }
 
         // logging/логирование

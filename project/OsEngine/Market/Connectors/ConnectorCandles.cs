@@ -148,10 +148,14 @@ namespace OsEngine.Market.Connectors
         /// </summary>
         public void Delete()
         {
-            TimeFrameBuilder.Delete();
-            if (File.Exists(@"Engine\" + _name + @"ConnectorPrime.txt"))
+          if(StartProgram != StartProgram.IsOsOptimizer)
             {
-                File.Delete(@"Engine\" + _name + @"ConnectorPrime.txt");
+                TimeFrameBuilder.Delete();
+
+                if (File.Exists(@"Engine\" + _name + @"ConnectorPrime.txt"))
+                {
+                    File.Delete(@"Engine\" + _name + @"ConnectorPrime.txt");
+                }
             }
 
             if (_mySeries != null)
@@ -183,6 +187,7 @@ namespace OsEngine.Market.Connectors
                 _myServer.NewTradeEvent -= ConnectorBot_NewTradeEvent;
                 _myServer.TimeServerChangeEvent -= myServer_TimeServerChangeEvent;
                 _myServer.NeadToReconnectEvent -= _myServer_NeadToReconnectEvent;
+                _myServer = null;
             }
 
             _neadToStopThread = true;

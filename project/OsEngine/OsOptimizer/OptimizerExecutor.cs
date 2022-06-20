@@ -157,10 +157,10 @@ namespace OsEngine.OsOptimizer
 
                     StartOptimazeFazeOutOfSample(report, reportFiltred);
                 }
-
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
             }
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
 
             TimeSpan time = DateTime.Now - timeStart;
 
@@ -171,7 +171,6 @@ namespace OsEngine.OsOptimizer
             _primeThreadWorker = null;
 
             return;
-
         }
 
         private void StartAsuncBotFactoryInSample(int botCount, string botType, bool isScript, string faze)
@@ -825,7 +824,7 @@ namespace OsEngine.OsOptimizer
 
         // единичный тест
 
-        public BotPanel TestBot(OptimazerFazeReport reportFaze, OptimizerReport reportToBot)
+        public BotPanel TestBot(OptimazerFazeReport reportFaze, OptimizerReport reportToBot, StartProgram startProgram)
         {
             if (_primeThreadWorker != null)
             {
@@ -835,14 +834,14 @@ namespace OsEngine.OsOptimizer
             string botName = NumberGen.GetNumberDeal(StartProgram.IsOsOptimizer).ToString();
 
             List<string> names = new List<string> { botName };
-            _asyncBotFactory.CreateNewBots(names, _master.StrategyName, _master.IsScript, StartProgram.IsTester);
+            _asyncBotFactory.CreateNewBots(names, _master.StrategyName, _master.IsScript, startProgram);
 
             OptimizerServer server = CreateNewServer(reportFaze);
 
             List<IIStrategyParameter> parametrs = reportToBot.GetParameters();
 
             BotPanel bot = CreateNewBot(botName,
-                parametrs, parametrs, server, StartProgram.IsTester);
+                parametrs, parametrs, server, startProgram);
 
             DateTime timeStartWaiting = DateTime.Now;
 
@@ -932,6 +931,7 @@ namespace OsEngine.OsOptimizer
                     // уничтожаем робота
                     bot.Clear();
                     bot.Delete();
+
                    _botsInTest.Remove(bot);
                 }
                 else
