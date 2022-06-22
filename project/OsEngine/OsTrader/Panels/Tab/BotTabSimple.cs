@@ -196,11 +196,6 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 SellAtStopCancel();
 
-                if (_connector != null)
-                {
-                    _connector.ClearDelete();
-                }
-
                 if (_journal != null)
                 {
                     _journal.Clear();
@@ -214,11 +209,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 if (_chartMaster != null)
                 {
                     _chartMaster.Clear();
-                }
-
-                if (_marketDepthPainter != null)
-                {
-                    _marketDepthPainter.Delete();
                 }
 
                 _lastTradeTime = DateTime.MinValue;
@@ -249,7 +239,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _connector.LastCandlesChangeEvent -= LogicToUpdateLastCandle;
                     _connector.TickChangeEvent -= _connector_TickChangeEvent;
                     _connector.ConnectorStartedReconnectEvent -= _connector_ConnectorStartedReconnectEvent;
-                    _connector.ClearDelete();
+                    _connector.Delete();
                     _connector.LogMessageEvent -= SetNewLogMessage;
                     _connector = null;
                 }

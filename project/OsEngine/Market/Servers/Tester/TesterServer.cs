@@ -356,6 +356,7 @@ namespace OsEngine.Market.Servers.Tester
             }
 
             Thread.Sleep(5000);
+
             _candleManager.Clear();
 
             _allTrades = null;
@@ -3429,7 +3430,7 @@ namespace OsEngine.Market.Servers.Tester
         {
             if (series != null)
             {
-                _candleManager.StopSeries(series);
+                //_candleManager.StopSeries(series);
             }
         }
 

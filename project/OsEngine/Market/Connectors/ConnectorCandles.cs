@@ -150,7 +150,7 @@ namespace OsEngine.Market.Connectors
         /// delete object settings
         /// удалить настройки объекта
         /// </summary>
-        public void ClearDelete()
+        public void Delete()
         {
           if(StartProgram != StartProgram.IsOsOptimizer)
             {
