@@ -725,6 +725,11 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         private void PaintTableTabsSimple()
         {
+            if (_gridTableTabsSimple == null)
+            {
+                return;
+            }
+
             if (_gridTableTabsSimple.InvokeRequired)
             {
                 _gridTableTabsIndex.Invoke(new Action(PaintTableTabsSimple));
@@ -737,16 +742,7 @@ namespace OsEngine.OsOptimizer
             {
                 return;
             }
-            if (_gridTableTabsSimple == null)
-            {
-                return;
-            }
 
-            if (_gridTableTabsSimple.InvokeRequired)
-            {
-                _gridTableTabsSimple.Invoke(new Action(PaintTableTabsSimple));
-                return;
-            }
 
             _gridTableTabsSimple.Rows.Clear();
             List<string> names = new List<string>();
@@ -791,8 +787,6 @@ namespace OsEngine.OsOptimizer
                 timeFrame.Add(TimeFrame.Hour4.ToString());
             }
 
-
-            int countTab = 0;
             string nameBot = _master.StrategyName;
 
             BotPanel bot = BotFactory.GetStrategyForName(nameBot, "", StartProgram.IsOsOptimizer, _master.IsScript);
@@ -801,6 +795,20 @@ namespace OsEngine.OsOptimizer
             {
                 return;
             }
+
+            PaintBotParams(bot, names, timeFrame);
+        }
+
+        private void PaintBotParams(BotPanel bot, List<string> names, List<string> timeFrame)
+        {
+            if (_gridTableTabsSimple.InvokeRequired)
+            {
+                _gridTableTabsIndex.Invoke(new Action<BotPanel, List<string>, List<string>>(PaintBotParams),bot,names,timeFrame);
+                return;
+            }
+
+            int countTab = 0;
+
             if (bot.TabsSimple != null)
             {
                 countTab += bot.TabsSimple.Count;
@@ -809,6 +817,8 @@ namespace OsEngine.OsOptimizer
             {
                 return;
             }
+
+            _gridTableTabsSimple.Rows.Clear();
 
             for (int i = 0; i < countTab; i++)
             {
@@ -833,6 +843,7 @@ namespace OsEngine.OsOptimizer
 
                 _gridTableTabsSimple.Rows.Insert(0, row);
             }
+
         }
 
         /// <summary>

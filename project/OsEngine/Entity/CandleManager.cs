@@ -260,7 +260,7 @@ namespace OsEngine.Entity
                 while (true)
                 {
 
-                   await Task.Delay(20);
+                   await Task.Delay(500);
 
                     if (_isDisposed == true)
                     {

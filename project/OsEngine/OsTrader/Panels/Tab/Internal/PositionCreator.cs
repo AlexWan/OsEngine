@@ -24,7 +24,11 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             Security security, Portfolio portfolio, StartProgram startProgram)
         {
             Position newDeal = new Position();
+
             newDeal.Number = NumberGen.GetNumberDeal(startProgram);
+            
+
+           
             newDeal.Direction = direction;
             newDeal.State = PositionStateType.Opening;
 
@@ -39,6 +43,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             return newDeal;
         }
 
+        private int _ordersNumInOptimizer = 1;
+
         /// <summary>
         /// create order / 
         /// создать ордер
@@ -49,7 +55,9 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 OrderPositionConditionType positionConditionType)
         {
             Order newOrder = new Order();
+
             newOrder.NumberUser = NumberGen.GetNumberOrder(startProgram);
+            
             newOrder.Side = direction;
             newOrder.Price = priceOrder;
             newOrder.Volume = volume;

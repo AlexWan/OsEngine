@@ -621,7 +621,7 @@ namespace OsEngine.OsOptimizer
         private void StartNewBot(List<IIStrategyParameter> parametrs, List<IIStrategyParameter> paramOptimized,
             OptimazerFazeReport report, string botName)
         {
-            OptimizerServer server = CreateNewServer(report);
+            OptimizerServer server = CreateNewServer(report,true);
 
             try
             {
@@ -659,7 +659,7 @@ namespace OsEngine.OsOptimizer
 
         private List<BotPanel> _botsInTest = new List<BotPanel>();
 
-        private OptimizerServer CreateNewServer(OptimazerFazeReport report)
+        private OptimizerServer CreateNewServer(OptimazerFazeReport report,bool neadToDelete)
         {
             // 1. Create a new server for optimization. And one thread respectively
             // 1. создаём новый сервер для оптимизации. И один поток соответственно
@@ -669,7 +669,11 @@ namespace OsEngine.OsOptimizer
             _serverNum++;
             _servers.Add(server);
 
-            server.TestingEndEvent += server_TestingEndEvent;
+            if(neadToDelete)
+            {
+                server.TestingEndEvent += server_TestingEndEvent;
+            }
+            
             server.TypeTesterData = _master.Storage.TypeTesterData;
             server.TestintProgressChangeEvent += server_TestintProgressChangeEvent;
 
@@ -836,7 +840,7 @@ namespace OsEngine.OsOptimizer
             List<string> names = new List<string> { botName };
             _asyncBotFactory.CreateNewBots(names, _master.StrategyName, _master.IsScript, startProgram);
 
-            OptimizerServer server = CreateNewServer(reportFaze);
+            OptimizerServer server = CreateNewServer(reportFaze,false);
 
             List<IIStrategyParameter> parametrs = reportToBot.GetParameters();
 
@@ -872,8 +876,6 @@ namespace OsEngine.OsOptimizer
                     break;
                 }
             }
-
-            Thread.Sleep(2000);
 
             return bot;
         }

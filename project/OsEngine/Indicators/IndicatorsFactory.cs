@@ -88,7 +88,12 @@ namespace OsEngine.Indicators
         {
             for(int i = 0;i < _filesInDir.Count;i++)
             {
-                if(_filesInDir[i].Folder == directory)
+                if (_filesInDir[i] == null)
+                {
+                    continue;
+                }
+
+                if (_filesInDir[i].Folder == directory)
                 {
                     return _filesInDir[i].GetFilesCopy();
                 }
