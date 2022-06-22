@@ -49,7 +49,7 @@ namespace OsEngine.Entity
         /// </summary>
         /// <param name="server">the server from which the candlestick data will go/сервер из которго будут идти данные для создания свечек</param>
         /// <param name="startProgram">the program that created the class object/программа которая создала объект класса</param>
-        public CandleManager(IServer server)
+        public CandleManager(IServer server, StartProgram startProgram)
         {
             _server = server;
             _server.NewTradeEvent += server_NewTradeEvent;
@@ -57,11 +57,15 @@ namespace OsEngine.Entity
             _server.NewMarketDepthEvent += _server_NewMarketDepthEvent;
             _candleSeriesNeadToStart = new Queue<CandleSeries>();
 
-            Task task = new Task(CandleStarter);
+            _startProgram = startProgram;
+
+            Task task = new Task(CandleStarterThread);
             task.Start();
 
             TypeTesterData = TesterDataType.Unknown;
         }
+
+        StartProgram _startProgram;
 
         /// <summary>
         /// server time has changed. Inbound event
@@ -224,13 +228,19 @@ namespace OsEngine.Entity
 
                 _activSeries.Add(series);
 
-                _candleSeriesNeadToStart.Enqueue(series);
+               if(_startProgram == StartProgram.IsOsOptimizer)
+                {
+                    series.IsStarted = true;
+                }
+               else
+                {
+                    _candleSeriesNeadToStart.Enqueue(series);
+                }
             }
             catch (Exception error)
             {
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
-           
         }
 
         /// <summary>
@@ -243,17 +253,39 @@ namespace OsEngine.Entity
         /// the method in which the processing queue _candleSeriesNeadToStart is running
         /// метод, в котором работает поток обрабатывающий очередь _candleSeriesNeadToStart
         /// </summary>
-        private async void CandleStarter()
+        private async void CandleStarterThread()
         {
             try
             {
                 while (true)
                 {
 
-                   await Task.Delay(200);
+                   await Task.Delay(20);
 
                     if (_isDisposed == true)
                     {
+                        try
+                        {
+                            for (int i = 0; _activSeries != null && i < _activSeries.Count; i++)
+                            {
+                                _activSeries[i].Clear();
+                                _activSeries[i].Stop();
+                            }
+                            _activSeries = null;
+                        }
+                        catch (Exception error)
+                        {
+                            MessageBox.Show(error.ToString());
+                        }
+
+                        if (_server != null)
+                        {
+                            _server.NewTradeEvent -= server_NewTradeEvent;
+                            _server.TimeServerChangeEvent -= _server_TimeServerChangeEvent;
+                            _server.NewMarketDepthEvent -= _server_NewMarketDepthEvent;
+                            _server = null;
+                        }
+
                         return;
                     }
 
@@ -839,31 +871,7 @@ namespace OsEngine.Entity
 
         public void Dispose()
         {
-            try
-            {
-                _isDisposed = true;
-
-                for (int i = 0; _activSeries != null && i < _activSeries.Count; i++)
-                {
-                    _activSeries[i].Clear();
-                    _activSeries[i].Stop();
-                }
-
-                _activSeries = null;
-
-            }
-            catch(Exception error)
-            {
-                MessageBox.Show(error.ToString());
-            }
-
-            if (_server != null)
-            {
-                _server.NewTradeEvent -= server_NewTradeEvent;
-                _server.TimeServerChangeEvent -= _server_TimeServerChangeEvent;
-                _server.NewMarketDepthEvent -= _server_NewMarketDepthEvent;
-                _server = null;
-            }
+            _isDisposed = true;
         }
 
         private bool _isDisposed;
@@ -910,7 +918,6 @@ namespace OsEngine.Entity
             }
             
         }
-
 
         /// <summary>
         /// active series

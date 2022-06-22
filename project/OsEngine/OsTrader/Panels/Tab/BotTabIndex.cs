@@ -129,7 +129,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
             Tabs[index].NewCandlesChangeEvent -= BotTabIndex_NewCandlesChangeEvent;
-            Tabs[index].Delete();
+            Tabs[index].ClearDelete();
             Tabs.RemoveAt(index);
 
             Save();
@@ -265,7 +265,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             for(int i = 0; Tabs != null && i < Tabs.Count; i++)
             {
-                Tabs[i].Delete();
+                Tabs[i].ClearDelete();
             }
         }
 

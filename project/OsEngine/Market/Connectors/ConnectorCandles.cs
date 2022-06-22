@@ -123,7 +123,11 @@ namespace OsEngine.Market.Connectors
             {
                 return;
             }
-            try
+            if (StartProgram == StartProgram.IsOsOptimizer)
+            {
+                return;
+            }
+                try
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + _name + @"ConnectorPrime.txt", false))
                 {
@@ -146,7 +150,7 @@ namespace OsEngine.Market.Connectors
         /// delete object settings
         /// удалить настройки объекта
         /// </summary>
-        public void Delete()
+        public void ClearDelete()
         {
           if(StartProgram != StartProgram.IsOsOptimizer)
             {

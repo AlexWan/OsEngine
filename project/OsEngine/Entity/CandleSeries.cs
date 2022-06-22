@@ -34,10 +34,10 @@ namespace OsEngine.Entity
             Security = security;
             _startProgram = startProgram;
 
-            UID = NumberGen.GetNumberOrder(_startProgram);
+            UID = Guid.NewGuid();
         }
 
-        public long UID;
+        public Guid UID;
 
         /// <summary>
         /// blocking empty constructor
@@ -268,7 +268,14 @@ namespace OsEngine.Entity
 
             try
             {
-                if (_lastTradeTime >= trades[trades.Count - 1].Time)
+                Trade lastTrade = trades[trades.Count - 1];
+
+                if(lastTrade == null)
+                {
+                    return;
+                }
+
+                if (_lastTradeTime >= lastTrade.Time)
                 {
                     return;
                 }
@@ -305,6 +312,10 @@ namespace OsEngine.Entity
                     {
                         try
                         {
+                            if (trades[i] == null)
+                            {
+                                continue;
+                            }
                             if (trades[i].Time <= _lastTradeTime)
                             {
                                 continue;

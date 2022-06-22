@@ -45,7 +45,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
             Task.Run(WorkThreadArea);
 
-            _candleManager = new CandleManager(this);
+            _candleManager = new CandleManager(this,StartProgram.IsOsOptimizer);
             _candleManager.CandleUpdateEvent += _candleManager_CandleUpdateEvent;
             _candleManager.LogMessageEvent += SendLogMessage;
             _candleManager.TypeTesterData = TypeTesterData;

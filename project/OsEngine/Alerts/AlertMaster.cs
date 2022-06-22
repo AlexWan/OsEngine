@@ -264,6 +264,18 @@ namespace OsEngine.Alerts
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
+        public void Clear()
+        {
+            if (_alertArray != null)
+            {
+                for (int i = 0; i < _alertArray.Count; i++)
+                {
+                    _alertArray[i].Delete();
+                }
+                _alertArray.Clear();
+            }
+        }
+
         /// <summary>
         /// purge everything
         /// удалить всё

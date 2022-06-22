@@ -193,7 +193,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             _chartMaster.Delete();
             _horizontalVolume.Delete();
-            CandleConnector.Delete();
+            CandleConnector.ClearDelete();
         }
 
         /// <summary>

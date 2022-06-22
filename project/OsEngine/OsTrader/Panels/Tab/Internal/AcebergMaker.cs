@@ -111,7 +111,11 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             for (int i = 0; i < toClose.Count; i++)
             {
                 toClose[i].CloseAllOrder();
+                toClose[i].Delete();
+                toClose[i].NewOrderNeadToCansel -= newAceberg_newOrderNeadToCansel;
+                toClose[i].NewOrderNeadToExecute -= newAceberg_newOrderNeadToExecute;
             }
+            _acebergOrders = new List<Aceberg>();
         }
 
         /// <summary>
@@ -255,6 +259,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 orders[i].Price = _price;
                 orders[i].PortfolioNumber = _bot.Portfolio.Number;
                 orders[i].SecurityNameCode = _bot.Securiti.Name;
+                orders[i].SecurityClassCode = _bot.Securiti.NameClass;
                 orders[i].NumberUser = NumberGen.GetNumberOrder(_bot.StartProgram);
   
                 if (i + 1 == orders.Length)
@@ -307,6 +312,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 orders[i].Price = _price;
                 orders[i].PortfolioNumber = _bot.Portfolio.Number;
                 orders[i].SecurityNameCode = _bot.Securiti.Name;
+                orders[i].SecurityClassCode = _bot.Securiti.NameClass;
                 orders[i].NumberUser = NumberGen.GetNumberOrder(_bot.StartProgram);
 
                 if (i + 1 == orders.Length)
@@ -447,6 +453,14 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                     _ordersInSystem = null;
                 }
             }
+        }
+
+        public void Delete()
+        {
+            _bot = null;
+            _ordersInSystem = null;
+            _ordersNeadToCreate = null;
+            _position = null;
         }
 
         /// <summary>

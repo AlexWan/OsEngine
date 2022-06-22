@@ -62,7 +62,7 @@ namespace OsEngine.Market.Servers.Tester
                 _worker.Start();
             }
 
-            _candleManager = new CandleManager(this);
+            _candleManager = new CandleManager(this,StartProgram.IsTester);
             _candleManager.CandleUpdateEvent += _candleManager_CandleUpdateEvent;
             _candleManager.LogMessageEvent += SendLogMessage;
             _candleManager.TypeTesterData = TypeTesterData;

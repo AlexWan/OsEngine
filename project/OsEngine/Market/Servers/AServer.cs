@@ -761,7 +761,7 @@ namespace OsEngine.Market.Servers
         {
             if (_candleManager == null)
             {
-                _candleManager = new CandleManager(this);
+                _candleManager = new CandleManager(this,StartProgram.IsOsTrader);
                 _candleManager.CandleUpdateEvent += _candleManager_CandleUpdateEvent;
                 _candleManager.LogMessageEvent += SendLogMessage;
             }

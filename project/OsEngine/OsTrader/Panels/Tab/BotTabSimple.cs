@@ -131,7 +131,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// start drawing this robot / 
         /// начать прорисовку этого робота
-        /// </summary> 
+        /// </summary>
         public void StartPaint(Grid gridChart, WindowsFormsHost hostChart, WindowsFormsHost hostGlass, WindowsFormsHost hostOpenDeals,
                      WindowsFormsHost hostCloseDeals, Rectangle rectangleChart, WindowsFormsHost hostAlerts, TextBox textBoxLimitPrice, Grid gridChartControlPanel)
         {
@@ -191,10 +191,36 @@ namespace OsEngine.OsTrader.Panels.Tab
             try
             {
                 ClearAceberg();
+
                 BuyAtStopCancel();
+
                 SellAtStopCancel();
-                _journal.Clear();
-                _chartMaster.Clear();
+
+                if (_connector != null)
+                {
+                    _connector.ClearDelete();
+                }
+
+                if (_journal != null)
+                {
+                    _journal.Clear();
+                }
+
+                if (_alerts != null)
+                {
+                    _alerts.Clear();
+                }
+
+                if (_chartMaster != null)
+                {
+                    _chartMaster.Clear();
+                }
+
+                if (_marketDepthPainter != null)
+                {
+                    _marketDepthPainter.Delete();
+                }
+
                 _lastTradeTime = DateTime.MinValue;
                 _lastTradeIndex = 0;
             }
@@ -223,7 +249,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _connector.LastCandlesChangeEvent -= LogicToUpdateLastCandle;
                     _connector.TickChangeEvent -= _connector_TickChangeEvent;
                     _connector.ConnectorStartedReconnectEvent -= _connector_ConnectorStartedReconnectEvent;
-                    _connector.Delete();
+                    _connector.ClearDelete();
                     _connector.LogMessageEvent -= SetNewLogMessage;
                     _connector = null;
                 }
@@ -275,9 +301,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _marketDepthPainter = null;
                 }
 
-                if (File.Exists(@"Engine\" + TabName + @"SettingsBot.txt"))
+                if(StartProgram != StartProgram.IsOsOptimizer)
                 {
-                    File.Delete(@"Engine\" + TabName + @"SettingsBot.txt");
+                    if (File.Exists(@"Engine\" + TabName + @"SettingsBot.txt"))
+                    {
+                        File.Delete(@"Engine\" + TabName + @"SettingsBot.txt");
+                    }
                 }
 
                 if (DeleteBotEvent != null)
