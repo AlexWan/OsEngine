@@ -369,7 +369,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
         /// balance 
         /// баланс портфеля
         /// </summary>
-        public void GetBalance()
+        public AccountResponseFutures GetBalance()
         {
             try
             {
@@ -378,10 +378,12 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 {
                     NewPortfolio(resp);
                 }
+                return resp;
             }
             catch (Exception ex)
             {
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
+                return null;
             }
         }
 

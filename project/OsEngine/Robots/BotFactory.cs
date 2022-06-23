@@ -287,6 +287,13 @@ namespace OsEngine.Robots
             return bot;
         }
 
+        private static Type GetBotTypeByName(string className)
+        {
+            BotPanel botPanel = _serializedPanels != null ?
+                _serializedPanels.FirstOrDefault(p => p.GetType().Name == className) : null;
+            return botPanel != null ? botPanel.GetType() : null;
+        }
+
         static Dictionary<string, Type> GetTypesWithBotAttribute()
         {
             Assembly assembly = Assembly.GetAssembly(typeof(BotPanel));
@@ -797,5 +804,41 @@ namespace OsEngine.Robots
 
         public static event Action<List<string>> LoadNamesWithParamEndEvent;
 
+        public static void UpdateUsdtDepositBalanceForAllMasterBotRobots(decimal deposit)
+        {
+            const string MASTER_BOT_CLASSIC_CLASS_NAME = "MasterBotClassic";
+            const string STATIC_AUTO_UPDATE_PORTFOLIO_BALANCE_PROPERTY_NAME = "StaticAutoUpdatePortfolioBalance";
+            const string STATIC_PORTFOLIO_VALUE_PROPERTY_NAME = "StaticPortfolioValue";
+            const string SAVE_STATIC_PORTFOLIO_METHOD_NAME = "SaveStaticPortfolio";
+
+            try
+            {
+                Type masterBotClassicType = GetBotTypeByName(MASTER_BOT_CLASSIC_CLASS_NAME);
+                if (masterBotClassicType != null)
+                {
+                    PropertyInfo staticAutoUpdatePortfolioBalancePropertyInfo = masterBotClassicType.GetProperty(STATIC_AUTO_UPDATE_PORTFOLIO_BALANCE_PROPERTY_NAME);
+                    bool balanceAutoUpdateEnabled = staticAutoUpdatePortfolioBalancePropertyInfo != null && (bool)staticAutoUpdatePortfolioBalancePropertyInfo.GetValue(null);
+                    if (balanceAutoUpdateEnabled)
+                    {
+                        PropertyInfo staticPortfolioValuePropertyInfo = masterBotClassicType.GetProperty(STATIC_PORTFOLIO_VALUE_PROPERTY_NAME);
+                        if (staticPortfolioValuePropertyInfo != null)
+                        {
+                            staticPortfolioValuePropertyInfo.SetValue(null, deposit);
+                        }
+
+                        MethodInfo saveStaticPortfolioMethodInfo = masterBotClassicType.GetMethod(SAVE_STATIC_PORTFOLIO_METHOD_NAME, BindingFlags.Static | BindingFlags.NonPublic);
+                        if (saveStaticPortfolioMethodInfo != null)
+                        {
+                            saveStaticPortfolioMethodInfo.Invoke(null, null);
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // ignore
+                // TODO : SendLogMessage("ERROR during update of DEPOSIT BALANCE for ALL robots. Details: " + ex.Message, LogMessageType.Error);
+            }
+        }
     }
 }

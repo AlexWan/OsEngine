@@ -10,6 +10,7 @@ using OsEngine.Logging;
 using OsEngine.Market.Servers.Binance.Futures.Entity;
 using OsEngine.Market.Servers.Binance.Spot.BinanceSpotEntity;
 using OsEngine.Market.Servers.Entity;
+using OsEngine.Robots;
 
 namespace OsEngine.Market.Servers.Binance.Futures
 {
@@ -528,7 +529,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     continue;
                 }
 
-                _client.GetBalance();
+                UpdateUsdtDepositBalanceForAllMasterBotRobots(_client.GetBalance());
             }
         }
 
@@ -728,6 +729,36 @@ namespace OsEngine.Market.Servers.Binance.Futures
             catch (Exception error)
             {
                 SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void UpdateUsdtDepositBalanceForAllMasterBotRobots(AccountResponseFutures accountObject)
+        {
+            if (accountObject != null && accountObject.assets != null)
+            {
+                try
+                {
+                    AssetFutures usdtAssetObject = accountObject.assets.FirstOrDefault(assetObject => assetObject.asset.ToUpper() == "USDT");
+                    if (usdtAssetObject != null)
+                    {
+                        string balanceString = usdtAssetObject.crossWalletBalance;
+                        if (!String.IsNullOrWhiteSpace(balanceString))
+                        {
+                            string decimalSeparator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
+                            string symbolToAvoidParsingErrors = decimalSeparator == "." ? "," : ".";
+                            balanceString = balanceString.Replace(symbolToAvoidParsingErrors, decimalSeparator);
+                        }
+                        decimal availableBalanceUSDT = Convert.ToDecimal(balanceString);
+                        BotFactory.UpdateUsdtDepositBalanceForAllMasterBotRobots(availableBalanceUSDT);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (LogMessageEvent != null)
+                    {
+                        LogMessageEvent("ERROR during update of DEPOSIT BALANCE. Details: " + ex.Message, LogMessageType.Error);
+                    }
+                }
             }
         }
 
