@@ -59,8 +59,11 @@ namespace OsEngine.Entity
 
             _startProgram = startProgram;
 
-            Task task = new Task(CandleStarterThread);
-            task.Start();
+            if(startProgram != StartProgram.IsOsOptimizer)
+            {
+                Task task = new Task(CandleStarterThread);
+                task.Start();
+            }
 
             TypeTesterData = TesterDataType.Unknown;
         }
@@ -264,28 +267,6 @@ namespace OsEngine.Entity
 
                     if (_isDisposed == true)
                     {
-                        try
-                        {
-                            for (int i = 0; _activSeries != null && i < _activSeries.Count; i++)
-                            {
-                                _activSeries[i].Clear();
-                                _activSeries[i].Stop();
-                            }
-                            _activSeries = null;
-                        }
-                        catch (Exception error)
-                        {
-                            MessageBox.Show(error.ToString());
-                        }
-
-                        if (_server != null)
-                        {
-                            _server.NewTradeEvent -= server_NewTradeEvent;
-                            _server.TimeServerChangeEvent -= _server_TimeServerChangeEvent;
-                            _server.NewMarketDepthEvent -= _server_NewMarketDepthEvent;
-                            _server = null;
-                        }
-
                         return;
                     }
 
@@ -872,6 +853,28 @@ namespace OsEngine.Entity
         public void Dispose()
         {
             _isDisposed = true;
+
+            try
+            {
+                for (int i = 0; _activSeries != null && i < _activSeries.Count; i++)
+                {
+                    _activSeries[i].Clear();
+                    _activSeries[i].Stop();
+                }
+                _activSeries = null;
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.ToString());
+            }
+
+            if (_server != null)
+            {
+                _server.NewTradeEvent -= server_NewTradeEvent;
+                _server.TimeServerChangeEvent -= _server_TimeServerChangeEvent;
+                _server.NewMarketDepthEvent -= _server_NewMarketDepthEvent;
+                _server = null;
+            }
         }
 
         private bool _isDisposed;

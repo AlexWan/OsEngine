@@ -120,6 +120,7 @@ namespace OsEngine.Market.Servers.Optimizer
         public void ClearDelete()
         {
             _cleared = true;
+            _manualReset.Set();
         }
         private bool _cleared;
 
@@ -209,6 +210,7 @@ namespace OsEngine.Market.Servers.Optimizer
             _dataIsActive = false;
 
             _testerRegime = TesterRegime.Play;
+            _manualReset.Set();
         }
 
         /// <summary>
@@ -256,8 +258,10 @@ namespace OsEngine.Market.Servers.Optimizer
         /// </summary>
         private TesterRegime _testerRegime;
 
+        public AutoResetEvent _manualReset = new AutoResetEvent(true);
+
         /// <summary>
-		/// work place of main thread
+        /// work place of main thread
         /// место работы основного потока
         /// </summary>
         private void WorkThreadArea()
@@ -279,6 +283,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                         if (_candleManager != null)
                         {
+                            _candleManager.Clear();
                             _candleManager.Dispose();
                             _candleManager.CandleUpdateEvent -= _candleManager_CandleUpdateEvent;
                             _candleManager.LogMessageEvent -= SendLogMessage;
@@ -343,7 +348,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                     if (_testerRegime == TesterRegime.Pause)
                     {
-                        Thread.Sleep(5);
+                        _manualReset.WaitOne();
                         continue;
                     }
 

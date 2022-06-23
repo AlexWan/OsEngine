@@ -61,6 +61,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 }
 
                 _storages.Clear();
+                _storages = null;
             }
             if (SecuritiesTester != null)
             {
