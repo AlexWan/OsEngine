@@ -588,14 +588,16 @@ namespace OsEngine.Journal.Internal
 
             for (int i = _deals.Count - 1; i > _deals.Count - 150 && i > -1; i--)
             {
+                Position position = _deals[i];
+
                 bool isCloseOrder = false;
 
-                if (_deals[i].CloseOrders != null)
+                if (position.CloseOrders != null)
                 {
-                    for (int indexCloseOrd = 0; indexCloseOrd < _deals[i].CloseOrders.Count; indexCloseOrd++)
+                    for (int indexCloseOrd = 0; indexCloseOrd < position.CloseOrders.Count; indexCloseOrd++)
                     {
-                        if (_deals[i].CloseOrders[indexCloseOrd].NumberMarket == trade.NumberOrderParent ||
-                            _deals[i].CloseOrders[indexCloseOrd].NumberUser.ToString() == trade.NumberOrderParent)
+                        if (position.CloseOrders[indexCloseOrd].NumberMarket == trade.NumberOrderParent ||
+                            position.CloseOrders[indexCloseOrd].NumberUser.ToString() == trade.NumberOrderParent)
                         {
                             isCloseOrder = true;
                             break;
@@ -605,12 +607,12 @@ namespace OsEngine.Journal.Internal
                 bool isOpenOrder = false;
 
                 if (isCloseOrder == false ||
-                    _deals[i].OpenOrders != null && _deals[i].OpenOrders.Count > 0)
+                    position.OpenOrders != null && position.OpenOrders.Count > 0)
                 {
-                    for (int indOpenOrd = 0; indOpenOrd < _deals[i].OpenOrders.Count; indOpenOrd++)
+                    for (int indOpenOrd = 0; indOpenOrd < position.OpenOrders.Count; indOpenOrd++)
                     {
-                        if (_deals[i].OpenOrders[indOpenOrd].NumberMarket == trade.NumberOrderParent ||
-                            _deals[i].OpenOrders[indOpenOrd].NumberUser.ToString() == trade.NumberOrderParent)
+                        if (position.OpenOrders[indOpenOrd].NumberMarket == trade.NumberOrderParent ||
+                            position.OpenOrders[indOpenOrd].NumberUser.ToString() == trade.NumberOrderParent)
                         {
                             isOpenOrder = true;
                             break;
@@ -620,16 +622,16 @@ namespace OsEngine.Journal.Internal
 
                 if (isOpenOrder || isCloseOrder)
                 {
-                    PositionStateType positionState = _deals[i].State;
+                    PositionStateType positionState = position.State;
 
-                    decimal lastPosVolume = _deals[i].OpenVolume;
+                    decimal lastPosVolume = position.OpenVolume;
 
-                    _deals[i].SetTrade(trade);
+                    position.SetTrade(trade);
 
-                    if (positionState != _deals[i].State ||
-                        lastPosVolume != _deals[i].OpenVolume)
+                    if (positionState != position.State ||
+                        lastPosVolume != position.OpenVolume)
                     {
-                        UpdeteOpenPositionArray(_deals[i]);
+                        UpdeteOpenPositionArray(position);
                         _openLongChanged = true;
                         _openShortChanged = true;
                         _closePositionChanged = true;
@@ -637,17 +639,17 @@ namespace OsEngine.Journal.Internal
                         _closeLongChanged = true;
                     }
 
-                    if (positionState != _deals[i].State && PositionStateChangeEvent != null)
+                    if (positionState != position.State && PositionStateChangeEvent != null)
                     {
-                        PositionStateChangeEvent(_deals[i]);
+                        PositionStateChangeEvent(position);
                     }
 
-                    if (lastPosVolume != _deals[i].OpenVolume && PositionNetVolumeChangeEvent != null)
+                    if (lastPosVolume != position.OpenVolume && PositionNetVolumeChangeEvent != null)
                     {
-                        PositionNetVolumeChangeEvent(_deals[i]);
+                        PositionNetVolumeChangeEvent(position);
                     }
 
-                    ProcesPosition(_deals[i]);
+                    ProcesPosition(position);
                 }
             }
             _neadToSave = true;
