@@ -245,6 +245,14 @@ namespace OsEngine.Entity
         /// </summary>
         public void SetTrade(MyTrade trade)
         {
+            if (_trades != null &&
+                _trades.Count > 0
+                && State == OrderStateType.Done
+                && Volume == VolumeExecute)
+            {
+                return;
+            }
+
             if ((trade.NumberOrderParent != NumberMarket &&
                 ServerType != ServerType.Oanda) ||
                 (ServerType == ServerType.Oanda &&
