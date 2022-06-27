@@ -283,11 +283,13 @@ namespace OsEngine.Market
 
                 for(int i = 0;i < _portfolios.Count;i++)
                 {
-                    if(_portfolios[i] == null)
+                    Portfolio port = _portfolios[i];
+
+                    if (port == null)
                     {
                         continue;
                     }
-                    List<PositionOnBoard> poses = _portfolios[i].GetPositionOnBoard();
+                    List<PositionOnBoard> poses = port.GetPositionOnBoard();
                     
                     while (poses != null &&
                         poses.Count > 500)

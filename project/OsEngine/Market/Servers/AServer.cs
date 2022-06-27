@@ -1110,7 +1110,7 @@ namespace OsEngine.Market.Servers
                     {
                         for(int i2 = 0;i2 < positions.Count;i2++)
                         {
-                            curPortfolio.SetNewPosition(positions[i]);
+                            curPortfolio.SetNewPosition(positions[i2]);
                         }
                     }
                 }
