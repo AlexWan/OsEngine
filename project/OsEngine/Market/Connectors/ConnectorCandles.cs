@@ -790,7 +790,14 @@ namespace OsEngine.Market.Connectors
             {
                 while (true)
                 {
-                    Thread.Sleep(1);
+                    if(ServerType == ServerType.Optimizer)
+                    {
+                        Thread.Sleep(1);
+                    }
+                    else
+                    {
+                        Thread.Sleep(500);
+                    }
 
                     if (_neadToStopThread)
                     {

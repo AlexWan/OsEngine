@@ -69,6 +69,14 @@ namespace OsEngine.Market.Servers.Tinkoff.TinkoffJsonSchema
             string unitsWithNoMin = units.Replace("-", "");
             string nanoWithNoMin = nano.Replace("-", "");
 
+            // 23.11 -> {"units":"23","nano":110000000}"
+            // 23.01 -> {"units":"23","nano":10000000}"
+
+            while(nanoWithNoMin.Length < 9)
+            {
+                nanoWithNoMin = nanoWithNoMin.Insert(0, "0");
+            }
+
             string valInStr = unitsWithNoMin + ",";
 
             for(int i = 0;i < nanoWithNoMin.Length; i++)
@@ -76,13 +84,13 @@ namespace OsEngine.Market.Servers.Tinkoff.TinkoffJsonSchema
                 valInStr += nanoWithNoMin[i].ToString();
             }
 
-            if(unitsWithNoMin.Length != units.Length 
-                || nanoWithNoMin.Length != nano.Length)
-            {
-                valInStr.Insert(0, "-");
-            }
+            //if(unitsWithNoMin.Length != units.Length 
+            //    || nanoWithNoMin.Length != nano.Length)
+            //{
+            //    valInStr.Insert(0, "-");
+            //}
 
-            _value = valInStr.ToDecimal();
+            _value = valInStr.ToDecimal().ToStringWithNoEndZero().ToDecimal();
 
             return _value;
         }

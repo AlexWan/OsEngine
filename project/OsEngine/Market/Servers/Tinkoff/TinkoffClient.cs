@@ -224,7 +224,7 @@ namespace OsEngine.Market.Servers.Tinkoff
 
                 if(jtSecurity.minPriceIncrement != null)
                 {
-                    newSecurity.PriceStep = jtSecurity.minPriceIncrement.GetValue() / 100;
+                    newSecurity.PriceStep = jtSecurity.minPriceIncrement.GetValue();
                 }
                 else
                 {
@@ -1179,6 +1179,14 @@ namespace OsEngine.Market.Servers.Tinkoff
                 nano += "0";
             }
 
+            while (nano[0] == '0')
+            {
+                nano = nano.Substring(1, nano.Length - 1);
+            }
+
+            // 23.11 -> {"units":"23","nano":110000000}"
+            // 23.01 -> {"units":"23","nano":10000000}"
+
             //{"nano": 6,"units": "units"}
             //{"nano": 113,"units": "89"}
 
@@ -1304,7 +1312,16 @@ namespace OsEngine.Market.Servers.Tinkoff
                     {
                         Order orderFromArray = _openedOrders[i];
 
-                        if(string.IsNullOrEmpty(orderFromArray.NumberMarket))
+                        if(orderFromArray.State == OrderStateType.Done ||
+                            orderFromArray.State == OrderStateType.Fail ||
+                            orderFromArray.State == OrderStateType.Cancel)
+                        {
+                            _openedOrders.RemoveAt(i);
+                            i--;
+                            continue;
+                        }
+
+                        if (string.IsNullOrEmpty(orderFromArray.NumberMarket))
                         {
                             continue;
                         }

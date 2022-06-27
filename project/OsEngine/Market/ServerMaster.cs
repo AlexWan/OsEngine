@@ -132,6 +132,10 @@ namespace OsEngine.Market
 
                 for (int i = 0;i < popularity.Count;i++)
                 {
+                    if(popularity[i].ServerType == ServerType.Tester)
+                    {
+                        continue;
+                    }
                     serverTypes.Insert(0, popularity[i].ServerType);
                 }
 

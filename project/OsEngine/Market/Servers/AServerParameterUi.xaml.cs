@@ -72,12 +72,19 @@ namespace OsEngine.Market.Servers
 
         private void Server_ConnectStatusChangeEvent(string s)
         {
-            if (LabelStatus.Dispatcher.CheckAccess() == false)
+            try
             {
-                LabelStatus.Dispatcher.Invoke(new Action<string>(Server_ConnectStatusChangeEvent), s);
-                return;
+                if (LabelStatus.Dispatcher.CheckAccess() == false)
+                {
+                    LabelStatus.Dispatcher.Invoke(new Action<string>(Server_ConnectStatusChangeEvent), s);
+                    return;
+                }
+                LabelStatus.Content = _server.ServerStatus;
             }
-            LabelStatus.Content = _server.ServerStatus;
+            catch
+            {
+                // ignore
+            }
         }
 
         private DataGridView _paramsGrid;
