@@ -253,11 +253,7 @@ namespace OsEngine.Entity
                 return;
             }
 
-            if ((trade.NumberOrderParent != NumberMarket &&
-                ServerType != ServerType.Oanda) ||
-                (ServerType == ServerType.Oanda &&
-                trade.NumberOrderParent != NumberMarket &&
-                trade.NumberOrderParent != NumberUser.ToString()))
+            if (trade.NumberOrderParent != NumberMarket)
             {
                 return;
             }

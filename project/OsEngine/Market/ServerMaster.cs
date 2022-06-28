@@ -27,7 +27,6 @@ using OsEngine.Market.Servers.Kraken;
 using OsEngine.Market.Servers.Livecoin;
 using OsEngine.Market.Servers.Lmax;
 using OsEngine.Market.Servers.NinjaTrader;
-using OsEngine.Market.Servers.Oanda;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Plaza;
 using OsEngine.Market.Servers.Quik;
@@ -108,7 +107,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.InteractiveBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
                 serverTypes.Add(ServerType.Lmax);
-                serverTypes.Add(ServerType.Oanda);
 
                 serverTypes.Add(ServerType.AstsBridge);
 
@@ -325,10 +323,6 @@ namespace OsEngine.Market
                 if (type == ServerType.Kraken)
                 {
                     newServer = new KrakenServer();
-                }
-                if (type == ServerType.Oanda)
-                {
-                    newServer = new OandaServer();
                 }
                 if (type == ServerType.BitMex)
                 {
@@ -1168,12 +1162,6 @@ namespace OsEngine.Market
         /// биржа криптовалют Kraken
         /// </summary>
         Kraken,
-
-        /// <summary>
-        /// forex broker Oanda
-        /// форекс брокер Oanda
-        /// </summary>
-        Oanda,
 
         /// <summary>
         /// cryptocurrency exchange BitMEX

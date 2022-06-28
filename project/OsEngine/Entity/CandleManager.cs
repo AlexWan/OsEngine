@@ -359,7 +359,6 @@ namespace OsEngine.Entity
                         }
                         else if (serverType == ServerType.Tester ||
                                  serverType == ServerType.Optimizer ||
-                                 serverType == ServerType.Oanda||
                                  serverType == ServerType.BitStamp
                             )
                         {
