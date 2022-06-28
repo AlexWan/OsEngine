@@ -1179,11 +1179,6 @@ namespace OsEngine.Market.Servers.Tinkoff
                 nano += "0";
             }
 
-            while (nano[0] == '0')
-            {
-                nano = nano.Substring(1, nano.Length - 1);
-            }
-
             // 23.11 -> {"units":"23","nano":110000000}"
             // 23.01 -> {"units":"23","nano":10000000}"
 

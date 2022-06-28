@@ -786,7 +786,8 @@ namespace OsEngine.Entity
                     return;
                 }
 
-                if(series == null)
+                if(series == null 
+                    || series.UID == null)
                 {
                     return;
                 }
@@ -794,7 +795,7 @@ namespace OsEngine.Entity
                 series.СandleUpdeteEvent -= series_СandleUpdeteEvent;
                 series.СandleFinishedEvent -= series_СandleFinishedEvent;
 
-                for(int i = 0;i < _activSeries.Count;i++)
+                for(int i = 0; _activSeries != null && i < _activSeries.Count;i++)
                 {
                     CandleSeries curSeries = _activSeries[i];
 
@@ -806,14 +807,18 @@ namespace OsEngine.Entity
 
                     if (curSeries.UID == series.UID)
                     {
-                        _activSeries.RemoveAt(i);
+                        if(_activSeries != null)
+                        {
+                            _activSeries.RemoveAt(i);
+                        }
+                        
                         break;
                     }
                 }
             }
             catch (Exception error)
             {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
+                //SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
