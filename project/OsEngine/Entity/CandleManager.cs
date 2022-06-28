@@ -787,12 +787,25 @@ namespace OsEngine.Entity
                     return;
                 }
 
+                if(series == null)
+                {
+                    return;
+                }
+
                 series.СandleUpdeteEvent -= series_СandleUpdeteEvent;
                 series.СandleFinishedEvent -= series_СandleFinishedEvent;
 
                 for(int i = 0;i < _activSeries.Count;i++)
                 {
-                    if(_activSeries[i].UID == series.UID)
+                    CandleSeries curSeries = _activSeries[i];
+
+                    if(curSeries == null ||
+                        curSeries.UID == null)
+                    {
+                        return;
+                    }
+
+                    if (curSeries.UID == series.UID)
                     {
                         _activSeries.RemoveAt(i);
                         break;
