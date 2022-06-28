@@ -60,10 +60,6 @@ The layer for creating robots is similar to the Wealth-Lab script and Ninja Scri
 14) FTX
 
 
-*Available connections for Forex*
-
-1) OANDA
-
 
 *Included with OsEngine is more than 30 built-in robots*
 
@@ -136,10 +132,6 @@ Forum http://o-s-a.net/eng/forum
 12) HitBtc
 13) ByBit
 14) FTX
-
-*Доступные подключения для форекс*
-
-1) OANDA
 
 
 *В комплекте с OsEngine идёт более 30ти встроенных роботов*
