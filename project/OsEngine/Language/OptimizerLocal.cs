@@ -374,5 +374,9 @@ namespace OsEngine.Language
         public string Label49 => OsLocalization.ConvertToLocString(
           "Eng:Results_" +
           "Ru:Результаты_");
+
+        public string Label50 => OsLocalization.ConvertToLocString(
+          "Eng:In one of the optimization stages, less than one day. It is not possible to form an optimization sequence! Change the settings!_" +
+          "Ru:В одном из этапов оптимизации менее одного дня. Сформировать последовательность оптимизации не получается! Измените настройки! _");
     }
 }

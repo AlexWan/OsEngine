@@ -768,6 +768,16 @@ namespace OsEngine.OsOptimizer
                 Fazes.Add(newFazeOut);
             }
 
+            for(int i = 0;i < Fazes.Count;i++)
+            {
+                if(Fazes[i].Days <= 0)
+                {
+                    SendLogMessage(OsLocalization.Optimizer.Label50, LogMessageType.Error);
+                    Fazes = new List<OptimizerFaze>();
+                    return;
+                }
+            }
+
 
             /*while (DaysInFazes(Fazes) != dayAll)
             {
