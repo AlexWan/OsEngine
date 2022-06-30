@@ -99,7 +99,7 @@ namespace OsEngine.Alerts
  
             Enum.TryParse(ComboBoxActivationType.SelectedItem.ToString(), out MyAlert.TypeActivation);
 
-            MyAlert.PriceActivation = Convert.ToDecimal(TextBoxPriceActivation.Text);
+            MyAlert.PriceActivation = TextBoxPriceActivation.Text.ToDecimal();
 
             Enum.TryParse(ComboBoxSignalType.SelectedItem.ToString(), out MyAlert.SignalType);
 
@@ -107,7 +107,7 @@ namespace OsEngine.Alerts
 
             MyAlert.VolumeReaction = TextBoxVolumeReaction.Text.ToDecimal();
 
-            MyAlert.Slippage = Convert.ToDecimal(TextBoxSlippage.Text);
+            MyAlert.Slippage = TextBoxSlippage.Text.ToDecimal();
 
             MyAlert.NumberClosePosition = Convert.ToInt32(TextBoxClosePosition.Text);
 

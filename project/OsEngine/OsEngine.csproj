@@ -518,7 +518,7 @@
     <Compile Include="Market\Servers\FTX\EntityCreators\FTXSecurityCreator.cs" />
     <Compile Include="Market\Servers\FTX\EntityCreators\FTXTradesCreator.cs" />
     <Compile Include="Market\Servers\FTX\FTXApi\Client.cs" />
-    <Compile Include="Market\Servers\FTX\FTXApi\FtxRestApi.cs" />
+    <Compile Include="Market\Servers\FTX\FtxClient.cs" />
     <Compile Include="Market\Servers\FTX\FTXApi\Util\FtxWebSockerRequestGenerator.cs" />
     <Compile Include="Market\Servers\FTX\FTXApi\Util\Util.cs" />
     <Compile Include="Market\Servers\FTX\FTXServer.cs" />

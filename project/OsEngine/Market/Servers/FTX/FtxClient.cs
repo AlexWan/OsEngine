@@ -20,7 +20,7 @@ namespace OsEngine.Market.Servers.FTX.FtxApi
         private readonly HMACSHA256 _hashMaker;
 
         private long _nonce;
-      
+
         public FtxRestApi(Client client)
         {
             _client = client;
@@ -121,7 +121,7 @@ namespace OsEngine.Market.Servers.FTX.FtxApi
 
             return ParseResponce(result);
         }
-        
+
         public async Task<JToken> GetMarketTradesAsync(string marketName, int limit, DateTime start, DateTime end)
         {
             var resultString = $"api/markets/{marketName}/trades?limit={limit}&start_time={Util.Util.GetSecondsFromEpochStart(start)}&end_time={Util.Util.GetSecondsFromEpochStart(end)}";
@@ -167,7 +167,7 @@ namespace OsEngine.Market.Servers.FTX.FtxApi
         public async Task<JToken> ChangeAccountLeverageAsync(int leverage)
         {
             var resultString = $"api/account/leverage";
-         
+
             var body = $"{{\"leverage\": {leverage}}}";
 
             var sign = GenerateSignature(HttpMethod.Post, "/api/account/leverage", body);
@@ -184,7 +184,7 @@ namespace OsEngine.Market.Servers.FTX.FtxApi
         public async Task<JToken> GetCoinAsync()
         {
             var resultString = $"api/wallet/coins";
-           
+
             var sign = GenerateSignature(HttpMethod.Get, "/api/wallet/coins", "");
 
             var result = await CallAsyncSign(HttpMethod.Get, resultString, sign);
@@ -206,7 +206,7 @@ namespace OsEngine.Market.Servers.FTX.FtxApi
         public async Task<JToken> GetDepositAddressAsync(string coin)
         {
             var resultString = $"api/wallet/deposit_address/{coin}";
-            
+
             var sign = GenerateSignature(HttpMethod.Get, $"/api/wallet/deposit_address/{coin}", "");
 
             var result = await CallAsyncSign(HttpMethod.Get, resultString, sign);
@@ -240,12 +240,12 @@ namespace OsEngine.Market.Servers.FTX.FtxApi
         {
             var resultString = $"api/wallet/withdrawals";
 
-            var body = $"{{"+
+            var body = $"{{" +
                 $"\"coin\": \"{coin}\"," +
-                $"\"size\": {size},"+
-                $"\"address\": \"{addr}\","+
-                $"\"tag\": {tag},"+
-                $"\"password\": \"{pass}\","+
+                $"\"size\": {size}," +
+                $"\"address\": \"{addr}\"," +
+                $"\"tag\": {tag}," +
+                $"\"password\": \"{pass}\"," +
                 $"\"code\": {code}" +
                 "}";
 
@@ -337,7 +337,7 @@ namespace OsEngine.Market.Servers.FTX.FtxApi
             var path = $"api/orders?market={instrument}";
 
             var sign = GenerateSignature(HttpMethod.Get, $"/api/orders?market={instrument}", "");
-           
+
             var result = await CallAsyncSign(HttpMethod.Get, path, sign);
 
             return ParseResponce(result);
@@ -394,7 +394,7 @@ namespace OsEngine.Market.Servers.FTX.FtxApi
             var body =
                 $"{{\"market\": \"{instrument}\"}}";
 
-                var sign = GenerateSignature(HttpMethod.Delete, $"/api/orders", body);
+            var sign = GenerateSignature(HttpMethod.Delete, $"/api/orders", body);
 
             var result = await CallAsyncSign(HttpMethod.Delete, resultString, sign, body);
 
@@ -478,7 +478,7 @@ namespace OsEngine.Market.Servers.FTX.FtxApi
         public async Task<JToken> RequestLeveragedTokenCreationAsync(string tokenName, decimal size)
         {
             var resultString = $"api/lt/{tokenName}/create";
-          
+
             var body = $"{{\"size\": {size}}}";
 
             var sign = GenerateSignature(HttpMethod.Post, $"/api/lt/{tokenName}/create", body);
