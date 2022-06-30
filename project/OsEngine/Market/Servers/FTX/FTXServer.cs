@@ -130,7 +130,7 @@ namespace OsEngine.Market.Servers.FTX
                             lock (_locker)
                             {
                                 _responseHandlers[type].Invoke(response);
-                            }                        
+                            }
                         }
                         else
                         {
@@ -161,14 +161,14 @@ namespace OsEngine.Market.Servers.FTX
             while (!token.IsCancellationRequested)
             {
                 await Task.Delay(15000);
-                if(_wsSource != null)
+                if (_wsSource != null)
                 {
                     _wsSource.SendMessage(pingMessage);
                 }
-                
+
                 if (_lastTimeUpdateSocket == DateTime.MinValue)
                 {
-                    if(sourceAliveCheckerStart.AddSeconds(60) < DateTime.Now)
+                    if (sourceAliveCheckerStart.AddSeconds(60) < DateTime.Now)
                     {
                         break;
                     }
@@ -277,7 +277,7 @@ namespace OsEngine.Market.Servers.FTX
         private void HandleErrorMessage(JToken response)
         {
             var errorMessage = response.SelectToken("msg").ToString();
-            if(errorMessage == "Already subscribed")
+            if (errorMessage == "Already subscribed")
             {
                 return;
             }
@@ -298,7 +298,7 @@ namespace OsEngine.Market.Servers.FTX
                     break;
                 default:
                     break;
-            }      
+            }
         }
 
         private void HandleUnsubscribedMessage(JToken response)
@@ -369,7 +369,7 @@ namespace OsEngine.Market.Servers.FTX
                     break;
                 case "trades":
                     var trades = _tradesCreator.Create(data, securityName);
-                    foreach(var trade in trades)
+                    foreach (var trade in trades)
                     {
                         OnTradeEvent(trade);
                     }
@@ -399,7 +399,7 @@ namespace OsEngine.Market.Servers.FTX
 
             var localOrder = _myOrders[order.NumberMarket];
             if (order.State != localOrder.State)
-            {          
+            {
                 if (order.State == OrderStateType.Done)
                 {
                     var currentTime = DateTime.Now;
@@ -414,7 +414,7 @@ namespace OsEngine.Market.Servers.FTX
                     }
                     _myOrders.Remove(localOrder.NumberMarket);
                 }
-                
+
                 localOrder.State = order.State;
 
                 OnOrderEvent(localOrder);
@@ -423,7 +423,7 @@ namespace OsEngine.Market.Servers.FTX
 
         private void HandleUpdateMarketDepthMessage(JToken data, string securityName)
         {
-            if (_securityMarketDepths.TryGetValue(securityName,out var localMarketDepth))
+            if (_securityMarketDepths.TryGetValue(securityName, out var localMarketDepth))
             {
                 var marketDepth = _marketDepthCreator.Create(data);
                 localMarketDepth.Time = marketDepth.Time;
@@ -525,7 +525,7 @@ namespace OsEngine.Market.Servers.FTX
             {
                 string errorMsg = cancelOrderResponse.SelectToken("error").ToString();
 
-                if(errorMsg.Equals("Order already closed"))
+                if (errorMsg.Equals("Order already closed"))
                 {
                     order.State = OrderStateType.Cancel;
                     OnOrderEvent(order);
@@ -556,7 +556,7 @@ namespace OsEngine.Market.Servers.FTX
         {
             try
             {
-                if(_wsSource != null)
+                if (_wsSource != null)
                 {
                     if (_isPortfolioSubscribed)
                     {
@@ -572,7 +572,7 @@ namespace OsEngine.Market.Servers.FTX
 
                     if (_subscribedSecurities.Any())
                     {
-                        foreach(var security in _subscribedSecurities)
+                        foreach (var security in _subscribedSecurities)
                         {
                             var unsubscribeMarket = FtxWebSockerRequestGenerator.GetUnsubscribeRequest("market", security);
                             _wsSource.SendMessage(unsubscribeMarket);
@@ -609,23 +609,23 @@ namespace OsEngine.Market.Servers.FTX
         {
             var trades = new List<Trade>();
 
-            if(startTime > actualTime)
+            if (startTime > actualTime)
             {
                 actualTime = startTime;
             }
 
             var lastTradeTime = endTime;
 
-            while(lastTradeTime > actualTime)
+            while (lastTradeTime > actualTime)
             {
                 var marketTradesResponse = _ftxRestApi.GetMarketTradesAsync(security.Name, TradesDownloadLimit, actualTime, lastTradeTime).Result;
-                
+
                 var newTrades = _tradesCreator.Create(
                     marketTradesResponse.SelectToken("result"),
                     security.Name,
                     isUtcTime: true);
 
-                if(newTrades != null && newTrades.Any())
+                if (newTrades != null && newTrades.Any())
                 {
                     newTrades.Reverse();
                     trades.InsertRange(0, newTrades);
@@ -667,6 +667,7 @@ namespace OsEngine.Market.Servers.FTX
 
                 var isSuccessfull = accountResponse.SelectToken("success").Value<bool>();
                 var portfolios = new List<Portfolio>();
+
                 if (isSuccessfull)
                 {
                     var fillsRequest = FtxWebSockerRequestGenerator.GetSubscribeRequest("fills");
@@ -699,9 +700,9 @@ namespace OsEngine.Market.Servers.FTX
 
             List<Security> allFuts = _securitiesCreator.Create(marketsResponse2.SelectToken("result"));
 
-            for(int i = 0;i < allFuts.Count;i++)
+            for (int i = 0; i < allFuts.Count; i++)
             {
-                if(allFuts[i].Name.Contains("PERP"))
+                if (allFuts[i].Name.Contains("PERP"))
                 {
                     allFuts.RemoveAt(i);
                     i--;
@@ -716,15 +717,15 @@ namespace OsEngine.Market.Servers.FTX
 
         public async override void SendOrder(Order order)
         {
-            if(order.TypeOrder == OrderPriceType.Iceberg)
+            if (order.TypeOrder == OrderPriceType.Iceberg)
             {
                 SendLogMessage("FTX does't support iceberg orders", LogMessageType.Error);
                 return;
             }
 
             var reduceOnly = !IsSpot(order.SecurityNameCode) &&
-                order.PositionConditionType == OrderPositionConditionType.Close ? 
-                    true : 
+                order.PositionConditionType == OrderPositionConditionType.Close ?
+                    true :
                     false;
 
             var placeOrderResponse = await _ftxRestApi.PlaceOrderAsync(
@@ -752,7 +753,7 @@ namespace OsEngine.Market.Servers.FTX
                 createdOrder.Comment = order.Comment;
                 createdOrder.LifeTime = order.LifeTime;
 
-                if(createdOrder.TypeOrder == OrderPriceType.Market)
+                if (createdOrder.TypeOrder == OrderPriceType.Market)
                 {
                     createdOrder.Price = order.Price;
                 }
@@ -772,7 +773,7 @@ namespace OsEngine.Market.Servers.FTX
 
         public override void Subscrible(Security security)
         {
-           if(!_subscribedSecurities.Contains(security.Name))
+            if (!_subscribedSecurities.Contains(security.Name))
             {
                 var subscribeMarket = FtxWebSockerRequestGenerator.GetSubscribeRequest("trades", security.Name);
                 _wsSource.SendMessage(subscribeMarket);

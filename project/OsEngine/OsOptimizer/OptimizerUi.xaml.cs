@@ -240,7 +240,10 @@ namespace OsEngine.OsOptimizer
             _reports = reports;
             RepaintResults();
             ShowResultDialog();
+            _testIsEnd = true;
         }
+
+        private bool _testIsEnd;
 
         private List<OptimazerFazeReport> _reports;
 
@@ -368,6 +371,20 @@ namespace OsEngine.OsOptimizer
             if (!_progressBars[0].Dispatcher.CheckAccess())
             {
                 _progressBars[0].Dispatcher.Invoke(PaintAllProgressBars);
+                return;
+            }
+
+            if(_testIsEnd)
+            {
+                ProgressBarPrime.Maximum = 100;
+                ProgressBarPrime.Value = 100;
+
+                for (int i2 = 0; i2 > -1 && i2 < _progressBars.Count; i2++)
+                {
+                    _progressBars[i2].Maximum = 100;
+                    _progressBars[i2].Value = 100;
+                }
+
                 return;
             }
 
@@ -499,6 +516,8 @@ namespace OsEngine.OsOptimizer
                     return;
                 }
             }
+
+            _testIsEnd = false;
 
             if (ButtonGo.Content.ToString() == OsLocalization.Optimizer.Label9 && _master.Start())
             {
@@ -1010,6 +1029,12 @@ namespace OsEngine.OsOptimizer
         {
             _master.ReloadFazes();
             PaintTableOptimizeFazes();
+
+            if(_master.Fazes.Count == 0)
+            {
+                return;
+            }
+
             WolkForwardPeriodsPainter.PaintForwards(HostWalkForwardPeriods, _master.Fazes);
         }
 
@@ -1112,10 +1137,14 @@ namespace OsEngine.OsOptimizer
                 {
                     _gridFazes.Rows[indexRow].Cells[indexColumn].Value = _master.Fazes[indexRow].TimeEnd.ToShortDateString(); ;
                 }
-
             }
+
             PaintTableOptimizeFazes();
-            WolkForwardPeriodsPainter.PaintForwards(HostWalkForwardPeriods, _master.Fazes);
+
+            if (_master.Fazes.Count != 0)
+            {
+                WolkForwardPeriodsPainter.PaintForwards(HostWalkForwardPeriods, _master.Fazes);
+            }
         }
 
 
