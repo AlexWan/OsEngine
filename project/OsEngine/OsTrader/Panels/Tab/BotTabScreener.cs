@@ -45,6 +45,32 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private static List<BotTabScreener> _screeners = new List<BotTabScreener>();
 
+        private static string _screenersListLocker = "scrLocker";
+
+        private static void AddNewTabToWatch(BotTabScreener tab)
+        {
+            lock(_screenersListLocker)
+            {
+                _screeners.Add(tab);
+            }
+            
+        }
+
+        private static void RemoveTabFromWatch(BotTabScreener tab)
+        {
+            lock (_screenersListLocker)
+            {
+                for (int i = 0; i < _screeners.Count; i++)
+                {
+                    if (_screeners[i].TabName == tab.TabName)
+                    {
+                        _screeners.RemoveAt(i);
+                        return;
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// блокиратор многопоточного доступа к активации прорисовки скринеров
         /// </summary>
@@ -97,6 +123,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             try
             {
+                if (tab.Connector == null
+                || tab.Connector.SecurityName == null)
+                {
+                    return;
+                }
                 for (int i = 0; i < securitiesDataGrid.Rows.Count; i++)
                 {
                     DataGridViewRow row = securitiesDataGrid.Rows[i];
@@ -155,7 +186,13 @@ namespace OsEngine.OsTrader.Panels.Tab
             LoadIndicators();
             ReloadIndicatorsOnTabs();
 
-            _screeners.Add(this);
+            AddNewTabToWatch(this);
+            DeleteEvent += BotTabScreener_DeleteEvent;
+        }
+
+        private void BotTabScreener_DeleteEvent()
+        {
+            RemoveTabFromWatch(this);
         }
 
         /// <summary>
@@ -407,8 +444,14 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 File.Delete(@"Engine\" + TabName + @"ScreenerTabSet.txt");
             }
-
+            
+            if(DeleteEvent != null)
+            {
+                DeleteEvent();
+            }
         }
+
+        public event Action DeleteEvent;
 
         /// <summary>
         /// get journal / 

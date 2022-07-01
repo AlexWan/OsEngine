@@ -6,12 +6,16 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using OsEngine.Entity;
+using OsEngine.Market.Servers.Entity;
+using System.Collections.Generic;
+using System.Net;
+using System.IO;
 
 namespace OsEngine.Market.Servers.FTX.FtxApi
 {
     public class FtxRestApi
     {
-        private const string Url = "https://ftx.com/";
+        private string Url = "https://ftx.com/";
 
         private readonly Client _client;
 
@@ -33,29 +37,7 @@ namespace OsEngine.Market.Servers.FTX.FtxApi
             _hashMaker = new HMACSHA256(Encoding.UTF8.GetBytes(_client.ApiSecret));
         }
 
-        #region Coins
-
-        public async Task<JToken> GetCoinsAsync()
-        {
-            var resultString = $"api/coins";
-
-            var result = await CallAsync(HttpMethod.Get, resultString);
-
-            return ParseResponce(result);
-        }
-
-        #endregion
-
         #region Futures
-
-        public async Task<JToken> GetAllFuturesAsync()
-        {
-            var resultString = $"api/futures";
-
-            var result = await CallAsync(HttpMethod.Get, resultString);
-
-            return ParseResponce(result);
-        }
 
         public async Task<JToken> GetExpiredFuturesAsync()
         {
@@ -66,56 +48,13 @@ namespace OsEngine.Market.Servers.FTX.FtxApi
             return ParseResponce(result);
         }
 
-        public async Task<JToken> GetFutureAsync(string future)
-        {
-            var resultString = $"api/futures/{future}";
-
-            var result = await CallAsync(HttpMethod.Get, resultString);
-
-            return ParseResponce(result);
-        }
-
-        public async Task<JToken> GetFutureStatsAsync(string future)
-        {
-            var resultString = $"api/futures/{future}/stats";
-
-            var result = await CallAsync(HttpMethod.Get, resultString);
-
-            return ParseResponce(result);
-        }
-
-        public async Task<JToken> GetFundingRatesAsync(DateTime start, DateTime end)
-        {
-            var resultString = $"api/funding_rates?start_time={Util.Util.GetSecondsFromEpochStart(start)}&end_time={Util.Util.GetSecondsFromEpochStart(end)}";
-
-            var result = await CallAsync(HttpMethod.Get, resultString);
-
-            return ParseResponce(result);
-        }
         #endregion
 
         #region Markets
+
         public async Task<JToken> GetMarketsAsync()
         {
             var resultString = $"api/markets";
-
-            var result = await CallAsync(HttpMethod.Get, resultString);
-
-            return ParseResponce(result);
-        }
-
-        public async Task<JToken> GetSingleMarketsAsync(string marketName)
-        {
-            var resultString = $"api/markets/{marketName}";
-
-            var result = await CallAsync(HttpMethod.Get, resultString);
-
-            return ParseResponce(result);
-        }
-
-        public async Task<JToken> GetMarketOrderBookAsync(string marketName, int depth = 20)
-        {
-            var resultString = $"api/markets/{marketName}/orderbook?depth={depth}";
 
             var result = await CallAsync(HttpMethod.Get, resultString);
 
@@ -139,6 +78,7 @@ namespace OsEngine.Market.Servers.FTX.FtxApi
 
             return ParseResponce(result);
         }
+
         #endregion
 
         #region Account
@@ -153,105 +93,12 @@ namespace OsEngine.Market.Servers.FTX.FtxApi
             return ParseResponce(result);
         }
 
-
         public async Task<JToken> GetPositionsAsync()
         {
             var resultString = $"api/positions";
             var sign = GenerateSignature(HttpMethod.Get, "/api/positions", "");
 
             var result = await CallAsyncSign(HttpMethod.Get, resultString, sign);
-
-            return ParseResponce(result);
-        }
-
-        public async Task<JToken> ChangeAccountLeverageAsync(int leverage)
-        {
-            var resultString = $"api/account/leverage";
-
-            var body = $"{{\"leverage\": {leverage}}}";
-
-            var sign = GenerateSignature(HttpMethod.Post, "/api/account/leverage", body);
-
-            var result = await CallAsyncSign(HttpMethod.Post, resultString, sign, body);
-
-            return ParseResponce(result);
-        }
-
-        #endregion
-
-        #region Wallet
-
-        public async Task<JToken> GetCoinAsync()
-        {
-            var resultString = $"api/wallet/coins";
-
-            var sign = GenerateSignature(HttpMethod.Get, "/api/wallet/coins", "");
-
-            var result = await CallAsyncSign(HttpMethod.Get, resultString, sign);
-
-            return ParseResponce(result);
-        }
-
-        public async Task<JToken> GetBalancesAsync()
-        {
-            var resultString = $"api/wallet/balances";
-
-            var sign = GenerateSignature(HttpMethod.Get, "/api/wallet/balances", "");
-
-            var result = await CallAsyncSign(HttpMethod.Get, resultString, sign);
-
-            return ParseResponce(result);
-        }
-
-        public async Task<JToken> GetDepositAddressAsync(string coin)
-        {
-            var resultString = $"api/wallet/deposit_address/{coin}";
-
-            var sign = GenerateSignature(HttpMethod.Get, $"/api/wallet/deposit_address/{coin}", "");
-
-            var result = await CallAsyncSign(HttpMethod.Get, resultString, sign);
-
-            return ParseResponce(result);
-        }
-
-        public async Task<JToken> GetDepositHistoryAsync()
-        {
-            var resultString = $"api/wallet/deposits";
-
-            var sign = GenerateSignature(HttpMethod.Get, "/api/wallet/deposits", "");
-
-            var result = await CallAsyncSign(HttpMethod.Get, resultString, sign);
-
-            return ParseResponce(result);
-        }
-
-        public async Task<JToken> GetWithdrawalHistoryAsync()
-        {
-            var resultString = $"api/wallet/withdrawals";
-
-            var sign = GenerateSignature(HttpMethod.Get, "/api/wallet/withdrawals", "");
-
-            var result = await CallAsyncSign(HttpMethod.Get, resultString, sign);
-
-            return ParseResponce(result);
-        }
-
-        public async Task<JToken> RequestWithdrawalAsync(string coin, decimal size, string addr, string tag, string pass, string code)
-        {
-            var resultString = $"api/wallet/withdrawals";
-
-            var body = $"{{" +
-                $"\"coin\": \"{coin}\"," +
-                $"\"size\": {size}," +
-                $"\"address\": \"{addr}\"," +
-                $"\"tag\": {tag}," +
-                $"\"password\": \"{pass}\"," +
-                $"\"code\": {code}" +
-                "}";
-
-            var sign = GenerateSignature(HttpMethod.Post, "/api/wallet/withdrawals", body);
-
-            var result = await CallAsyncSign(HttpMethod.Post, resultString, sign, body);
 
             return ParseResponce(result);
         }
@@ -278,109 +125,11 @@ namespace OsEngine.Market.Servers.FTX.FtxApi
             return ParseResponce(result);
         }
 
-        public async Task<JToken> PlaceStopOrderAsync(string instrument, Side side, decimal triggerPrice, decimal amount, bool reduceOnly = false)
-        {
-            var path = $"api/conditional_orders";
-
-            var body =
-                $"{{\"market\": \"{instrument}\"," +
-                $"\"side\": \"{side.ToString().ToLower()}\"," +
-                $"\"triggerPrice\": {triggerPrice.ToString(CultureInfo.InvariantCulture)}," +
-                $"\"type\": \"stop\"," +
-                $"\"size\": {amount.ToString(CultureInfo.InvariantCulture)}," +
-                $"\"reduceOnly\": {reduceOnly.ToString().ToLower()}}}";
-
-            var sign = GenerateSignature(HttpMethod.Post, "/api/conditional_orders", body);
-            var result = await CallAsyncSign(HttpMethod.Post, path, sign, body);
-
-            return ParseResponce(result);
-        }
-
-        public async Task<JToken> PlaceTrailingStopOrderAsync(string instrument, Side side, decimal trailValue, decimal amount, bool reduceOnly = false)
-        {
-            var path = $"api/conditional_orders";
-
-            var body =
-                $"{{\"market\": \"{instrument}\"," +
-                $"\"side\": \"{side.ToString().ToLower()}\"," +
-                $"\"trailValue\": {trailValue.ToString(CultureInfo.InvariantCulture)}," +
-                $"\"type\": \"trailingStop\"," +
-                $"\"size\": {amount.ToString(CultureInfo.InvariantCulture)}," +
-                $"\"reduceOnly\": {reduceOnly.ToString().ToLower()}}}";
-
-            var sign = GenerateSignature(HttpMethod.Post, "/api/conditional_orders", body);
-            var result = await CallAsyncSign(HttpMethod.Post, path, sign, body);
-
-            return ParseResponce(result);
-        }
-
-        public async Task<JToken> PlaceTakeProfitOrderAsync(string instrument, Side side, decimal triggerPrice, decimal amount, bool reduceOnly = false)
-        {
-            var path = $"api/conditional_orders";
-
-            var body =
-                $"{{\"market\": \"{instrument}\"," +
-                $"\"side\": \"{side.ToString().ToLower()}\"," +
-                $"\"triggerPrice\": {triggerPrice.ToString(CultureInfo.InvariantCulture)}," +
-                $"\"type\": \"takeProfit\"," +
-                $"\"size\": {amount.ToString(CultureInfo.InvariantCulture)}," +
-                $"\"reduceOnly\": {reduceOnly.ToString().ToLower()}}}";
-
-            var sign = GenerateSignature(HttpMethod.Post, "/api/conditional_orders", body);
-            var result = await CallAsyncSign(HttpMethod.Post, path, sign, body);
-
-            return ParseResponce(result);
-        }
-
-        public async Task<JToken> GetOpenOrdersAsync(string instrument)
-        {
-            var path = $"api/orders?market={instrument}";
-
-            var sign = GenerateSignature(HttpMethod.Get, $"/api/orders?market={instrument}", "");
-
-            var result = await CallAsyncSign(HttpMethod.Get, path, sign);
-
-            return ParseResponce(result);
-        }
-
-        public async Task<JToken> GetOrderStatusAsync(string id)
-        {
-            var resultString = $"api/orders/{id}";
-
-            var sign = GenerateSignature(HttpMethod.Get, $"/api/orders/{id}", "");
-
-            var result = await CallAsyncSign(HttpMethod.Get, resultString, sign);
-
-            return ParseResponce(result);
-        }
-
-        public async Task<JToken> GetOrderStatusByClientIdAsync(string clientOrderId)
-        {
-            var resultString = $"api/orders/by_client_id/{clientOrderId}";
-
-            var sign = GenerateSignature(HttpMethod.Get, $"/api/orders/by_client_id/{clientOrderId}", "");
-
-            var result = await CallAsyncSign(HttpMethod.Get, resultString, sign);
-
-            return ParseResponce(result);
-        }
-
         public async Task<JToken> CancelOrderAsync(string id)
         {
             var resultString = $"api/orders/{id}";
 
             var sign = GenerateSignature(HttpMethod.Delete, $"/api/orders/{id}", "");
-
-            var result = await CallAsyncSign(HttpMethod.Delete, resultString, sign);
-
-            return ParseResponce(result);
-        }
-
-        public async Task<JToken> CancelOrderByClientIdAsync(string clientOrderId)
-        {
-            var resultString = $"api/orders/by_client_id/{clientOrderId}";
-
-            var sign = GenerateSignature(HttpMethod.Delete, $"/api/orders/by_client_id/{clientOrderId}", "");
 
             var result = await CallAsyncSign(HttpMethod.Delete, resultString, sign);
 
@@ -403,127 +152,19 @@ namespace OsEngine.Market.Servers.FTX.FtxApi
 
         #endregion
 
-        #region Fills
-
-        public async Task<JToken> GetFillsAsync(string market, int limit, DateTime start, DateTime end)
-        {
-            var resultString = $"api/fills?market={market}&limit={limit}&start_time={Util.Util.GetSecondsFromEpochStart(start)}&end_time={Util.Util.GetSecondsFromEpochStart(end)}";
-
-            var sign = GenerateSignature(HttpMethod.Get, $"/{resultString}", "");
-
-            var result = await CallAsyncSign(HttpMethod.Get, resultString, sign);
-
-            return ParseResponce(result);
-        }
-
-        #endregion
-
-        #region Funding
-
-        public async Task<JToken> GetFundingPaymentAsync(DateTime start, DateTime end)
-        {
-            var resultString = $"api/funding_payments?start_time={Util.Util.GetSecondsFromEpochStart(start)}&end_time={Util.Util.GetSecondsFromEpochStart(end)}";
-
-            var sign = GenerateSignature(HttpMethod.Get, $"/{resultString}", "");
-
-            var result = await CallAsyncSign(HttpMethod.Get, resultString, sign);
-
-            return ParseResponce(result);
-        }
-
-        #endregion
-
-        #region Leveraged Tokens
-
-        public async Task<JToken> GetLeveragedTokensListAsync()
-        {
-            var resultString = $"api/lt/tokens";
-
-            var result = await CallAsync(HttpMethod.Get, resultString);
-
-            return ParseResponce(result);
-        }
-
-        public async Task<JToken> GetTokenInfoAsync(string tokenName)
-        {
-            var resultString = $"api/lt/{tokenName}";
-
-            var result = await CallAsync(HttpMethod.Get, resultString);
-
-            return ParseResponce(result);
-        }
-
-        public async Task<JToken> GetLeveragedTokenBalancesAsync()
-        {
-            var resultString = $"api/lt/balances";
-
-            var sign = GenerateSignature(HttpMethod.Get, $"/api/lt/balances", "");
-
-            var result = await CallAsyncSign(HttpMethod.Get, resultString, sign);
-
-            return ParseResponce(result);
-        }
-
-        public async Task<JToken> GetLeveragedTokenCreationListAsync()
-        {
-            var resultString = $"api/lt/creations";
-
-            var sign = GenerateSignature(HttpMethod.Get, $"/api/lt/creations", "");
-
-            var result = await CallAsyncSign(HttpMethod.Get, resultString, sign);
-
-            return ParseResponce(result);
-        }
-
-        public async Task<JToken> RequestLeveragedTokenCreationAsync(string tokenName, decimal size)
-        {
-            var resultString = $"api/lt/{tokenName}/create";
-
-            var body = $"{{\"size\": {size}}}";
-
-            var sign = GenerateSignature(HttpMethod.Post, $"/api/lt/{tokenName}/create", body);
-
-            var result = await CallAsyncSign(HttpMethod.Post, resultString, sign, body);
-
-            return ParseResponce(result);
-        }
-
-        public async Task<JToken> GetLeveragedTokenRedemptionListAsync()
-        {
-            var resultString = $"api/lt/redemptions";
-
-            var sign = GenerateSignature(HttpMethod.Get, $"/api/lt/redemptions", "");
-
-            var result = await CallAsyncSign(HttpMethod.Get, resultString, sign);
-
-            return ParseResponce(result);
-        }
-
-        public async Task<JToken> RequestLeveragedTokenRedemptionAsync(string tokenName, decimal size)
-        {
-            var resultString = $"api/lt/{tokenName}/redeem";
-
-            var body = $"{{\"size\": {size}}}";
-
-            var sign = GenerateSignature(HttpMethod.Post, $"/api/lt/{tokenName}/redeem", body);
-
-            var result = await CallAsyncSign(HttpMethod.Post, resultString, sign, body);
-
-            return ParseResponce(result);
-        }
-
-        #endregion
-
         #region Util
 
-        private async Task<string> CallAsync(HttpMethod method, string endpoint, string body = null)
-        {
-            var request = new HttpRequestMessage(method, endpoint);
+        private string _queryLocker = "queryLocker";
 
-            if (body != null)
-            {
-                request.Content = new StringContent(body, Encoding.UTF8, "application/json");
-            }
+        RateGate _rateGate = new RateGate(0, new TimeSpan(0, 0, 0, 2));
+
+        private async Task<string> CallAsync(HttpMethod method, string endpoint)
+        {
+            //endpoint = Url + endpoint;
+
+            //return CreatePrivatePostQuery(endpoint, method, new Dictionary<string, string>());
+
+            var request = new HttpRequestMessage(method, endpoint);
 
             var response = await _httpClient.SendAsync(request).ConfigureAwait(false);
 
@@ -531,6 +172,93 @@ namespace OsEngine.Market.Servers.FTX.FtxApi
 
             return result;
         }
+
+        public string CreatePrivatePostQuery(string end_point, HttpMethod method, Dictionary<string, string> parameters)
+        {
+            lock (_queryLocker)
+            {
+                _rateGate.WaitToProceed();
+
+                if (parameters == null)
+                {
+                    parameters = new Dictionary<string, string>();
+                }
+
+                StringBuilder sb = new StringBuilder();
+
+                int i = 0;
+                foreach (var param in parameters)
+                {
+                    if (param.Value.StartsWith("["))
+                    {
+                        sb.Append("\"" + param.Key + "\"" + ": " + param.Value);
+                    }
+                    else if (param.Value.StartsWith("{"))
+                    {
+                        sb.Append("\"" + param.Key + "\"" + ": " + param.Value);
+                    }
+                    else
+                    {
+                        sb.Append("\"" + param.Key + "\"" + ": \"" + param.Value + "\"");
+                    }
+
+                    i++;
+                    if (i < parameters.Count)
+                    {
+                        sb.Append(",");
+                    }
+                }
+
+
+                string url = end_point;
+
+                string str_data = "{" + sb.ToString() + "}";
+
+                byte[] data = Encoding.UTF8.GetBytes(str_data);
+
+                Uri uri = new Uri(url);
+
+                var web_request = (HttpWebRequest)WebRequest.Create(uri);
+
+                web_request.Accept = "application/json";
+
+                if (method == HttpMethod.Get)
+                {
+                    web_request.Method = "GET";
+                }
+                else
+                {
+                    web_request.Method = "POST";
+                }
+               
+                web_request.ContentType = "application/json";
+                web_request.ContentLength = data.Length;
+
+                using (Stream req_tream = web_request.GetRequestStream())
+                {
+                    req_tream.Write(data, 0, data.Length);
+                }
+
+                var resp = web_request.GetResponse();
+
+                HttpWebResponse httpWebResponse = (HttpWebResponse)resp;
+
+                string response_msg;
+
+                using (var stream = httpWebResponse.GetResponseStream())
+                {
+                    using (StreamReader reader = new StreamReader(stream))
+                    {
+                        response_msg = reader.ReadToEnd();
+                    }
+                }
+
+                httpWebResponse.Close();
+
+                return response_msg;
+            }
+        }
+
 
         private async Task<string> CallAsyncSign(HttpMethod method, string endpoint, string sign, string body = null)
         {
@@ -570,7 +298,6 @@ namespace OsEngine.Market.Servers.FTX.FtxApi
         {
             return JToken.Parse(responce);
         }
-
 
         #endregion
     }

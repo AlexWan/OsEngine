@@ -547,9 +547,9 @@ namespace OsEngine.Market.Servers.FTX
 
             StartMessageReader();
 
-            _wsSource = new WsSource(WebSocketEndpointUrl);
-            _wsSource.MessageEvent += WsSourceMessageEvent;
-            _wsSource.Start();
+            //_wsSource = new WsSource(WebSocketEndpointUrl);
+            //_wsSource.MessageEvent += WsSourceMessageEvent;
+            //_wsSource.Start();
         }
 
         public override void Dispose()
@@ -607,6 +607,7 @@ namespace OsEngine.Market.Servers.FTX
 
         public override List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
+            return null;
             var trades = new List<Trade>();
 
             if (startTime > actualTime)
@@ -644,12 +645,14 @@ namespace OsEngine.Market.Servers.FTX
 
         public override List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
+            return null;
             int oldInterval = Convert.ToInt32(timeFrameBuilder.TimeFrameTimeSpan.TotalSeconds);
             return GetCandles(oldInterval, security.Name, startTime, endTime);
         }
 
         public List<Candle> GetCandleHistory(string nameSec, TimeSpan interval)
         {
+            return null;
             int oldInterval = Convert.ToInt32(interval.TotalSeconds);
             var diff = new TimeSpan(0, (int)(interval.TotalMinutes * CandlesDownloadLimit), 0);
             return GetCandles(oldInterval, nameSec, DateTime.Now - diff, DateTime.Now);
@@ -661,6 +664,7 @@ namespace OsEngine.Market.Servers.FTX
 
         public async override void GetPortfolios()
         {
+            return;
             if (!_isPortfolioSubscribed && !_loginFailed)
             {
                 var accountResponse = await _ftxRestApi.GetAccountInfoAsync();
@@ -717,6 +721,7 @@ namespace OsEngine.Market.Servers.FTX
 
         public async override void SendOrder(Order order)
         {
+            return;
             if (order.TypeOrder == OrderPriceType.Iceberg)
             {
                 SendLogMessage("FTX does't support iceberg orders", LogMessageType.Error);
@@ -773,6 +778,7 @@ namespace OsEngine.Market.Servers.FTX
 
         public override void Subscrible(Security security)
         {
+            return;
             if (!_subscribedSecurities.Contains(security.Name))
             {
                 var subscribeMarket = FtxWebSockerRequestGenerator.GetSubscribeRequest("trades", security.Name);

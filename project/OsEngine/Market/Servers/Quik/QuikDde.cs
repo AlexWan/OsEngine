@@ -114,7 +114,7 @@ namespace OsEngine.Market.Servers.Quik
 
         public event Action<DdeServerStatus> StatusChangeEvent;
 
-  // 1) instrument table / Таблица инструментов
+        // 1) instrument table / Таблица инструментов
         private void SecuritiesUpdated(long id, object[,] table)
         {
             int countElem = table.GetLength(0);
@@ -124,74 +124,81 @@ namespace OsEngine.Market.Servers.Quik
                 return;
             }
 
-            Security [] securities = new Security[countElem];
+            Security[] securities = new Security[countElem];
 
             decimal bestBid = 0;
             decimal bestAsk = 0;
 
-                for (int i = 0; i < countElem; i++)
+            for (int i = 0; i < countElem; i++)
+            {
+                try
                 {
+                    securities[i] = new Security();
+                    securities[i].NameFull = table[i, 0].ToString();
+                    securities[i].Name = table[i, 1].ToString();
+                    securities[i].NameClass = table[i, 2].ToString();
+
+                    if (!string.IsNullOrEmpty(table[i, 3].ToString()))
+                    {
+                        string state = table[i, 3].ToString().ToLower();
+
+                        if (state == "торгуется")
+                        {
+                            securities[i].State = SecurityStateType.Activ;
+                        }
+                        else if (state == "заморожена" || state == "приостановлена")
+                        {
+                            securities[i].State = SecurityStateType.Close;
+                        }
+                        else
+                        {
+                            securities[i].State = securities[i].State = SecurityStateType.UnKnown;
+                        }
+                    }
+                    else
+                    {
+                        securities[i].State = SecurityStateType.UnKnown;
+                    }
+
+                    if (!string.IsNullOrEmpty(table[i, 4].ToString()) &&
+                        securities[i].NameClass != "SPBFUT")
+                    {
+                        securities[i].Lot = ToDecimal(table[i, 4]);
+                    }
+                    else
+                    {
+                        securities[i].Lot = 1;
+                    }
+
+                    if (!string.IsNullOrEmpty(table[i, 5].ToString()))
+                    {
+                        securities[i].PriceStep = ToDecimal(table[i, 5]);
+                    }
+
+                    bestAsk = ToDecimal(table[i, 6]);
+                    bestBid = ToDecimal(table[i, 7]);
+
+                    securities[i].PriceStepCost = securities[i].PriceStep;
+
                     try
                     {
-                        securities[i] = new Security();
-                        securities[i].NameFull = table[i, 0].ToString();
-                        securities[i].Name = table[i, 1].ToString();
-                        securities[i].NameClass = table[i, 2].ToString();
-
-                        if (!string.IsNullOrEmpty(table[i, 3].ToString()))
+                        if (!string.IsNullOrEmpty(table[i, 10].ToString()))
                         {
-                            string state = table[i, 3].ToString().ToLower();
+                            DateTime time = Convert.ToDateTime(table[i, 10].ToString());
 
-                            if (state == "торгуется")
+                            if (UpdateTimeSecurity != null)
                             {
-                                securities[i].State = SecurityStateType.Activ;
-                            }
-                            else if (state == "заморожена" || state == "приостановлена")
-                            {
-                                securities[i].State = SecurityStateType.Close;
-                            }
-                            else
-                            {
-                                securities[i].State = securities[i].State = SecurityStateType.UnKnown;
+                                UpdateTimeSecurity(time);
                             }
                         }
-                        else
-                        {
-                            securities[i].State = SecurityStateType.UnKnown;
-                        }
-
-                        if (!string.IsNullOrEmpty(table[i, 4].ToString()) &&
-                            securities[i].NameClass != "SPBFUT")
-                        {
-                            securities[i].Lot = ToDecimal(table[i, 4]);
-                        }
-                        else
-                        {
-                            securities[i].Lot = 1;
-                        }
-
-                        if (!string.IsNullOrEmpty(table[i, 5].ToString()))
-                        {
-                            securities[i].PriceStep = ToDecimal(table[i, 5]);
-                        }
-
-                        bestAsk = ToDecimal(table[i, 6]);
-                        bestBid = ToDecimal(table[i, 7]);
-
-                        if (!string.IsNullOrEmpty(table[i, 9].ToString()))
-                        {
-                            securities[i].PriceStepCost = ToDecimal(table[i, 9]);
-                        }
-                        else
-                        {
-                            securities[i].PriceStepCost = securities[i].PriceStep;
-                        }
-
+                    }
+                    catch
+                    {
                         try
                         {
-                            if (!string.IsNullOrEmpty(table[i, 10].ToString()))
+                            if (!string.IsNullOrEmpty(table[i, 9].ToString()))
                             {
-                                DateTime time = Convert.ToDateTime(table[i, 10].ToString());
+                                DateTime time = Convert.ToDateTime(table[i, 9].ToString());
 
                                 if (UpdateTimeSecurity != null)
                                 {
@@ -203,68 +210,68 @@ namespace OsEngine.Market.Servers.Quik
                         {
                             SendLogMessage(error.ToString(), LogMessageType.Error);
                         }
+                    }
 
-                        try
+                    try
+                    {
+                        if (table.GetLength(1) > 11)
                         {
-                            if (table.GetLength(1) > 11)
+                            if (
+                                !string.IsNullOrEmpty(table[i, 11].ToString()))
                             {
-                                if (
-                                    !string.IsNullOrEmpty(table[i, 11].ToString()))
-                                {
-                                    string type = table[i, 11].ToString();
+                                string type = table[i, 11].ToString();
 
-                                    if (type == "Ценные бумаги")
-                                    {
-                                        securities[i].SecurityType = SecurityType.Stock;
-                                    }
-                                    else if (type == "Фьючерсы")
-                                    {
-                                        securities[i].SecurityType = SecurityType.Futures;
-                                        securities[i].Lot = 1;
-                                    }
-                                    else if (type == "Опционы")
-                                    {
-                                        securities[i].SecurityType = SecurityType.Option;
-                                        securities[i].Lot = 1;
-                                    }
+                                if (type == "Ценные бумаги")
+                                {
+                                    securities[i].SecurityType = SecurityType.Stock;
+                                }
+                                else if (type == "Фьючерсы")
+                                {
+                                    securities[i].SecurityType = SecurityType.Futures;
+                                    securities[i].Lot = 1;
+                                }
+                                else if (type == "Опционы")
+                                {
+                                    securities[i].SecurityType = SecurityType.Option;
+                                    securities[i].Lot = 1;
                                 }
                             }
-                            else
-                            {
-                            securities[i].SecurityType = SecurityType.Stock;
-                                securities[i].Lot = 1;
                         }
-
-                        }
-                        catch (Exception error)
+                        else
                         {
-                            SendLogMessage(error.ToString(), LogMessageType.Error);
+                            securities[i].SecurityType = SecurityType.Stock;
+                            securities[i].Lot = 1;
                         }
                     }
-                    catch (Exception)
+                    catch (Exception error)
+                    {
+                        SendLogMessage(error.ToString(), LogMessageType.Error);
+                    }
+                }
+                catch (Exception)
                 { // here we remove the element by index, and reduce the array / здесь убираем элемент по индексу, и уменьшаем массив, т.к. в строке кака
                     if (securities.Length == 1)
                     { // if the only element of the array is broken / если битым является единственный элемент массива
                         return;
-                        }
-
-                        Security[] newArraySecurities = new Security[securities.Length-1];
-
-                        for (int i2 = 0; i2 < i; i++)
-                        {
-                            newArraySecurities[i2] = securities[i2];
-                        }
-                        securities = newArraySecurities;
                     }
 
-                    securities[i].PriceLimitHigh = 0;
-                    securities[i].PriceLimitLow = 0;
+                    Security[] newArraySecurities = new Security[securities.Length - 1];
 
-                    if (UpdateSecurity != null)
+                    for (int i2 = 0; i2 < i; i++)
                     {
-                        UpdateSecurity(securities[i], bestBid, bestAsk);
+                        newArraySecurities[i2] = securities[i2];
                     }
+                    securities = newArraySecurities;
                 }
+
+                securities[i].PriceLimitHigh = 0;
+                securities[i].PriceLimitLow = 0;
+
+                if (UpdateSecurity != null)
+                {
+                    UpdateSecurity(securities[i], bestBid, bestAsk);
+                }
+            }
         }
 
         public event Action<Security,decimal,decimal> UpdateSecurity;
