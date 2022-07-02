@@ -1,4 +1,4 @@
-﻿namespace OsEngine.Market.Servers.FTX.FtxApi
+﻿namespace OsEngine.Market.Servers.FTX
 {
     public class ClientApiKeys
     {

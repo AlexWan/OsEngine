@@ -49,6 +49,8 @@ namespace OsEngine.Market.Servers.FTX
             _responseHandlers.Add("info", HandleInfoMessage);
             _responseHandlers.Add("partial", HandlePartialMessage);
             _responseHandlers.Add("update", HandleUpdateMessage);
+
+            Task.Run(PortfolioGeterWorkerArea);
         }
 
         private FtxRestClient _ftxClient;
@@ -188,7 +190,7 @@ namespace OsEngine.Market.Servers.FTX
 
             candles = GetCandleToChart(nameSec, interval);
 
-            if(candles == null)
+            if (candles == null)
             {
                 candles = GetCandleToChart(nameSec, interval);
             }
@@ -247,11 +249,55 @@ namespace OsEngine.Market.Servers.FTX
             }
         }
 
+        private void PortfolioGeterWorkerArea()
+        {
+            Thread.Sleep(60000);
+            while (true)
+            {
+                Thread.Sleep(30000);
+
+                UpDatePortfolio();
+
+            }
+        }
+
+        private async void UpDatePortfolio()
+        {
+            try
+            {
+                if (ServerStatus == ServerConnectStatus.Connect)
+                {
+                    var accountResponse = await _ftxClient.GetAccountInfoAsync();
+
+                    if (accountResponse == null)
+                    {
+                        return;
+                    }
+
+                    var isSuccessfull = accountResponse.SelectToken("success").Value<bool>();
+                    var portfolios = new List<Portfolio>();
+
+                    if (isSuccessfull)
+                    {
+                        portfolios.Add(_portfoliosCreator.Create(
+                            accountResponse.SelectToken("result"),
+                            "main"));
+                        OnPortfolioEvent(portfolios);
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+
+        }
+
         public async override void GetSecurities()
         {
             var marketsResponse = await _ftxClient.GetMarketsAsync();
 
-            if(marketsResponse == null)
+            if (marketsResponse == null)
             {
                 return;
             }
@@ -305,7 +351,7 @@ namespace OsEngine.Market.Servers.FTX
                 order.Volume,
                 reduceOnly);
 
-            if(placeOrderResponse == null)
+            if (placeOrderResponse == null)
             {
                 SendLogMessage($"Order exchange error num {order.NumberUser} ", LogMessageType.Error);
                 order.State = OrderStateType.Fail;
@@ -432,15 +478,13 @@ namespace OsEngine.Market.Servers.FTX
         private readonly FTXCandlesCreator _candlesCreator = new FTXCandlesCreator();
         private readonly object _locker = new object();
 
+        #endregion
+
         private WsSource _wsSource;
         private CancellationTokenSource _cancelTokenSource;
         private DateTime _lastTimeUpdateSocket;
         private bool _isPortfolioSubscribed = false;
         private bool _loginFailed = false;
-
-        #endregion
-
-        #region private methods
 
         private void WsSourceMessageEvent(WsMessageType msgType, string message)
         {
@@ -590,7 +634,7 @@ namespace OsEngine.Market.Servers.FTX
 
                 var histaricalPricesResponse = _ftxClient.GetHistoricalPricesAsync(securityName, needInterval, CandlesDownloadLimit, actualTime, midTime).Result;
 
-                if(histaricalPricesResponse == null)
+                if (histaricalPricesResponse == null)
                 {
                     return null;
                 }
@@ -629,6 +673,7 @@ namespace OsEngine.Market.Servers.FTX
         }
 
         #region message handlers
+
         private void HandlePongMessage(JToken response)
         {
             _lastTimeUpdateSocket = DateTime.Now;
@@ -848,7 +893,6 @@ namespace OsEngine.Market.Servers.FTX
         {
             return securityName.Contains("/");
         }
-        #endregion
         #endregion
     }
 }
