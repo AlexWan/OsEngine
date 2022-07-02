@@ -31,16 +31,15 @@ namespace OsEngine.OsTrader.Gui
             Closing += TesterUi_Closing;
             Local();
 
-            BotTabsPainter painter = new BotTabsPainter(_strategyKeeper, BotsHost);
+            _painter = new BotTabsPainter(_strategyKeeper, BotsHost);
 
-            ServerMasterPainter painterServer = new ServerMasterPainter(HostServers, HostServerLog, CheckBoxServerAutoOpen);
+            _painterServer = new ServerMasterPainter(HostServers, HostServerLog, CheckBoxServerAutoOpen);
 
-            Closing += delegate (object sender, CancelEventArgs args)
-            {
-                painterServer.Dispose();
-                painter = null;
-            };
         }
+
+        ServerMasterPainter _painterServer;
+
+        BotTabsPainter _painter;
 
         private void Local()
         {
@@ -60,7 +59,11 @@ namespace OsEngine.OsTrader.Gui
             if (ui.UserAcceptActioin == false)
             {
                 e.Cancel = true;
+                return;
             }
+
+            _painterServer.Dispose();
+            _painter = null;
         }
 
         private OsTraderMaster _strategyKeeper;
