@@ -780,6 +780,34 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void BotTabScreener_IndicatorUpdateEvent()
         {
+            if (Tabs.Count <= 1)
+            {
+                return;
+            }
+
+            List<IIndicator> indicators = Tabs[0].Indicators;
+
+            bool oldIndicatorInArray = false;
+
+            for (int i = 0; Tabs[0].Indicators != null &&i < Tabs[0].Indicators.Count; i++)
+            {
+                try
+                {
+                    Aindicator ind = (Aindicator)Tabs[0].Indicators[i];
+                }
+                catch
+                {
+                    Tabs[0].DeleteCandleIndicator(Tabs[0].Indicators[i]);
+                    i--;
+                    oldIndicatorInArray = true;
+                }
+            }
+
+            if(oldIndicatorInArray)
+            {
+                Tabs[0].SetNewLogMessage(OsLocalization.Trader.Label177, LogMessageType.Error);
+            }
+
             SuncFirstTab();
         }
 
@@ -1279,13 +1307,30 @@ namespace OsEngine.OsTrader.Panels.Tab
         private void SyncTabs(BotTabSimple first, BotTabSimple second)
         {
             List<IIndicator> indicatorsFirst = first.Indicators;
-            List<IIndicator> indicatorsSecond = second.Indicators;
+
+            if (indicatorsFirst == null ||
+                 indicatorsFirst.Count == 0)
+            { // удаляем все индикаторы во второй вкладке
+
+                for(int i = 0;
+                    second.Indicators != null && 
+                    i < second.Indicators.Count;i++)
+                {
+                    second.DeleteCandleIndicator(second.Indicators[i]);
+                    break;
+                }
+            }
 
             // удаляем не нужные индикаторы
 
-            for (int i = 0; i < indicatorsSecond.Count; i++)
+            for (int i = 0;
+                second.Indicators != null 
+                && indicatorsFirst != null 
+                && indicatorsFirst.Count != 0
+                && i < second.Indicators.Count; 
+                i++)
             {
-                if (TryRemoveThisIndicator((Aindicator)indicatorsSecond[i], indicatorsFirst, second))
+                if (TryRemoveThisIndicator((Aindicator)second.Indicators[i], indicatorsFirst, second))
                 {
                     i--;
                 }
@@ -1293,17 +1338,17 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             // проверяем чтобы были нужные индикаторы везде
 
-            for (int i = 0; i < indicatorsFirst.Count; i++)
+            for (int i = 0; indicatorsFirst != null && i < indicatorsFirst.Count; i++)
             {
-                TryCreateThisIndicator((Aindicator)indicatorsFirst[i], indicatorsSecond, second);
+                TryCreateThisIndicator((Aindicator)indicatorsFirst[i], second.Indicators, second);
             }
 
             // синхронизируем настройки для индикаторов
 
-            for (int i = 0; i < indicatorsFirst.Count; i++)
+            for (int i = 0; indicatorsFirst != null && i < indicatorsFirst.Count; i++)
             {
                 Aindicator indFirst = (Aindicator)indicatorsFirst[i];
-                Aindicator indSecond = (Aindicator)indicatorsSecond[i];
+                Aindicator indSecond = (Aindicator)second.Indicators[i];
 
                 if (SuncIndicatorsSettings(indFirst, indSecond))
                 {
@@ -1342,7 +1387,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             string nameIndToCreate = indFirst.Name;
 
-            if (indicatorsSecond.Find(ind => ind.Name.Contains(nameIndToCreate)) != null)
+            if (indicatorsSecond != null &&
+                indicatorsSecond.Find(ind => ind.Name.Contains(nameIndToCreate)) != null)
             {
                 return;
             }
