@@ -576,6 +576,7 @@ namespace OsEngine.Market.Connectors
                 LoadPortfolioOnBox();
                 LoadClassOnBox();
                 LoadSecurityOnBox();
+                LoadTimeFrameBox();
             }
             catch (Exception error)
             {
@@ -872,28 +873,102 @@ namespace OsEngine.Market.Connectors
             }
             else
             {
-                ComboBoxTimeFrame.Items.Add(TimeFrame.Day);
-                ComboBoxTimeFrame.Items.Add(TimeFrame.Hour4);
-                ComboBoxTimeFrame.Items.Add(TimeFrame.Hour2);
-                ComboBoxTimeFrame.Items.Add(TimeFrame.Hour1);
-                ComboBoxTimeFrame.Items.Add(TimeFrame.Min45);
-                ComboBoxTimeFrame.Items.Add(TimeFrame.Min30);
-                ComboBoxTimeFrame.Items.Add(TimeFrame.Min20);
-                ComboBoxTimeFrame.Items.Add(TimeFrame.Min15);
-                ComboBoxTimeFrame.Items.Add(TimeFrame.Min10);
-                ComboBoxTimeFrame.Items.Add(TimeFrame.Min5);
-                ComboBoxTimeFrame.Items.Add(TimeFrame.Min3);
-                ComboBoxTimeFrame.Items.Add(TimeFrame.Min2);
-                ComboBoxTimeFrame.Items.Add(TimeFrame.Min1);
-                ComboBoxTimeFrame.Items.Add(TimeFrame.Sec30);
-                ComboBoxTimeFrame.Items.Add(TimeFrame.Sec20);
-                ComboBoxTimeFrame.Items.Add(TimeFrame.Sec15);
-                ComboBoxTimeFrame.Items.Add(TimeFrame.Sec10);
-                ComboBoxTimeFrame.Items.Add(TimeFrame.Sec5);
-                ComboBoxTimeFrame.Items.Add(TimeFrame.Sec2);
-                ComboBoxTimeFrame.Items.Add(TimeFrame.Sec1);
+                List<IServer> serversAll = ServerMaster.GetServers();
+
+                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedType);
+
+                IServerPermission permission = ServerMaster.GetServerPermission(_selectedType);
+
+                if (server == null
+                    || permission == null)
+                {
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Day);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Hour4);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Hour2);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Hour1);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min45);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min30);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min20);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min15);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min10);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min5);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min3);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min2);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min1);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Sec30);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Sec20);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Sec15);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Sec10);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Sec5);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Sec2);
+                    ComboBoxTimeFrame.Items.Add(TimeFrame.Sec1);
+                }
+                else
+                {
+                    if (permission.TradeTimeFramePermission.TimeFrameDayIsOn)
+                        ComboBoxTimeFrame.Items.Add(TimeFrame.Day);
+
+                    if (permission.TradeTimeFramePermission.TimeFrameHour4IsOn)
+                        ComboBoxTimeFrame.Items.Add(TimeFrame.Hour4);
+                    if (permission.TradeTimeFramePermission.TimeFrameHour2IsOn)
+                        ComboBoxTimeFrame.Items.Add(TimeFrame.Hour2);
+
+                    if (permission.TradeTimeFramePermission.TimeFrameHour1IsOn)
+                        ComboBoxTimeFrame.Items.Add(TimeFrame.Hour1);
+
+                    if (permission.TradeTimeFramePermission.TimeFrameMin45IsOn)
+                        ComboBoxTimeFrame.Items.Add(TimeFrame.Min45);
+
+                    if (permission.TradeTimeFramePermission.TimeFrameMin30IsOn)
+                        ComboBoxTimeFrame.Items.Add(TimeFrame.Min30);
+
+                    if (permission.TradeTimeFramePermission.TimeFrameMin20IsOn)
+                        ComboBoxTimeFrame.Items.Add(TimeFrame.Min20);
+
+                    if (permission.TradeTimeFramePermission.TimeFrameMin15IsOn)
+                        ComboBoxTimeFrame.Items.Add(TimeFrame.Min15);
+
+                    if (permission.TradeTimeFramePermission.TimeFrameMin10IsOn)
+                        ComboBoxTimeFrame.Items.Add(TimeFrame.Min10);
+
+                    if (permission.TradeTimeFramePermission.TimeFrameMin5IsOn)
+                        ComboBoxTimeFrame.Items.Add(TimeFrame.Min5);
+
+                    if (permission.TradeTimeFramePermission.TimeFrameMin3IsOn)
+                        ComboBoxTimeFrame.Items.Add(TimeFrame.Min3);
+
+                    if (permission.TradeTimeFramePermission.TimeFrameMin2IsOn)
+                        ComboBoxTimeFrame.Items.Add(TimeFrame.Min2);
+
+                    if (permission.TradeTimeFramePermission.TimeFrameMin1IsOn)
+                        ComboBoxTimeFrame.Items.Add(TimeFrame.Min1);
+
+                    if (permission.TradeTimeFramePermission.TimeFrameSec30IsOn)
+                        ComboBoxTimeFrame.Items.Add(TimeFrame.Sec30);
+
+                    if (permission.TradeTimeFramePermission.TimeFrameSec20IsOn)
+                        ComboBoxTimeFrame.Items.Add(TimeFrame.Sec20);
+
+                    if (permission.TradeTimeFramePermission.TimeFrameSec15IsOn)
+                        ComboBoxTimeFrame.Items.Add(TimeFrame.Sec15);
+
+                    if (permission.TradeTimeFramePermission.TimeFrameSec10IsOn)
+                        ComboBoxTimeFrame.Items.Add(TimeFrame.Sec10);
+
+                    if (permission.TradeTimeFramePermission.TimeFrameSec5IsOn)
+                        ComboBoxTimeFrame.Items.Add(TimeFrame.Sec5);
+
+                    if (permission.TradeTimeFramePermission.TimeFrameSec2IsOn)
+                        ComboBoxTimeFrame.Items.Add(TimeFrame.Sec2);
+
+                    if (permission.TradeTimeFramePermission.TimeFrameSec1IsOn)
+                        ComboBoxTimeFrame.Items.Add(TimeFrame.Sec1);
+                }
+
+
 
                 CandleMarketDataType createType = CandleMarketDataType.Tick;
+
                 if (ComboBoxCandleMarketDataType.SelectedItem != null)
                 {
                     Enum.TryParse(ComboBoxCandleMarketDataType.SelectedItem.ToString(), true, out createType);
