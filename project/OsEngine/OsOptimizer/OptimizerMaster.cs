@@ -13,6 +13,7 @@ using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels;
 using OsEngine.Robots;
+using OsEngine.OsTrader.Panels.Tab.Internal;
 
 namespace OsEngine.OsOptimizer
 {
@@ -46,6 +47,8 @@ namespace OsEngine.OsOptimizer
             _percentOnFilration = 30;
 
             Load();
+
+            ManualControl = new BotManualControl("OptimizerManualControl", null, StartProgram.IsOsTrader);
 
             _optimizerExecutor = new OptimizerExecutor(this);
             _optimizerExecutor.LogMessageEvent += SendLogMessage;
@@ -231,6 +234,13 @@ namespace OsEngine.OsOptimizer
         /// значение прогресса для главного прогрессБара
         /// </summary>
         public ProgressBarStatus PrimeProgressBarStatus;
+
+        public BotManualControl ManualControl; 
+
+        public void ShowManualControlDialog()
+        {
+            ManualControl.ShowDialog();
+        }
 
         // data store/хранилище данных
 
