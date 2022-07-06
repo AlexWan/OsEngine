@@ -794,6 +794,10 @@ namespace OsEngine.Market.Connectors
                     {
                         Thread.Sleep(1);
                     }
+                    else if(ServerType == ServerType.Tester)
+                    {
+                        Thread.Sleep(10);
+                    }
                     else
                     {
                         Thread.Sleep(500);
