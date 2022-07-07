@@ -658,7 +658,7 @@ namespace OsEngine.Market.Servers.BitMex
         /// <param name="tf"></param>
         /// <param name="shift"></param>
         /// <returns></returns>
-        private List<Candle> GetCandlesTf(string security, string tf, int shift)
+        private List<Candle> GetCandlesTf(string security, string tf, int shift, int a=1)
         {
             try
             {
@@ -671,18 +671,23 @@ namespace OsEngine.Market.Servers.BitMex
 
                     _candles = null;
 
-                    for (int i = 0; i < 10; i++)
+                    int countLoad = ((ServerParameterInt)(ServerParameters.Find(x => x.Name == OsLocalization.Market.ServerParam6))).Value;
+                    int countForLoad = 1;
+                    if (countLoad > (shift == 60 ? 300 : 480) / a)
+                        countForLoad =(int)Math.Ceiling((decimal)(countLoad /(shift == 60 ?(300 / a) : (480/ shift / a))));
+
+                    for (int i = 0; i < countForLoad; i++)
                     {
                         Thread.Sleep(500);
                         if (i == 0)
                         {//Для часового фрейма добавил очистку от минут.
                             endTime =shift==60? DateTime.UtcNow.AddMinutes(-DateTime.UtcNow.Minute).Add(TimeSpan.FromMinutes(shift)) : DateTime.UtcNow.Add(TimeSpan.FromMinutes(shift));
-                            startTime = endTime.Subtract(TimeSpan.FromMinutes(480));
+                            startTime = shift == 60 ? endTime.Subtract(TimeSpan.FromHours(300)) : endTime.Subtract(TimeSpan.FromMinutes(480));
                         }
                         else
                         {
-                            endTime = startTime.Subtract(TimeSpan.FromMinutes(shift));
-                            startTime = startTime.Subtract(TimeSpan.FromMinutes(480));
+                            endTime = shift == 60 ? startTime.Subtract(TimeSpan.FromHours(1)) : startTime.Subtract(TimeSpan.FromMinutes(1));
+                            startTime = shift == 60 ? endTime.Subtract(TimeSpan.FromHours(300)) : endTime.Subtract(TimeSpan.FromMinutes(480));
                         }
 
                         string end = endTime.ToString("yyyy-MM-dd HH:mm");
@@ -802,20 +807,20 @@ namespace OsEngine.Market.Servers.BitMex
         {
             List<Candle> candles1M;
             int a;
-            if (tf>60)
+            if (tf> 60)
             {
-                candles1M = GetCandlesTf(security, "1h", 60);
                 a = tf / 60;
+                candles1M = GetCandlesTf(security, "1h", 60,a);
             }
             else if (tf >= 10)
             {
-                candles1M = GetCandlesTf(security, "5m", 5);
                 a = tf / 5;
+                candles1M = GetCandlesTf(security, "5m", 5, a);
             }
             else
             {
-                candles1M = GetCandlesTf(security, "1m", 1);
                 a = tf / 1;
+                candles1M = GetCandlesTf(security, "1m", 1, a);
             }
 
             int index = candles1M.FindIndex(can => can.TimeStart.Minute % tf == 0);
