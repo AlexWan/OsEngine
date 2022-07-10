@@ -13,14 +13,20 @@ namespace OsEngine.Indicators
 {
     public abstract class Aindicator : IIndicator
     {
-        public void Init(string name)
+        public void Init(string name,StartProgram startProgram)
         {
             Name = name;
             CanDelete = true;
-            Load();
+
+            if(startProgram != StartProgram.IsOsOptimizer)
+            {
+                Load();
+            }
 
             OnStateChange(IndicatorState.Configure);
         }
+
+        public StartProgram StartProgram;
 
         public abstract void OnStateChange(IndicatorState state);
 
@@ -233,6 +239,12 @@ namespace OsEngine.Indicators
             {
                 return;
             }
+
+            if(StartProgram == StartProgram.IsOsOptimizer)
+            {
+                return;
+            }
+
             try
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @"Parametrs.txt", false)
@@ -302,6 +314,11 @@ namespace OsEngine.Indicators
         public void Save()
         {
             if (Name == "")
+            {
+                return;
+            }
+
+            if(StartProgram == StartProgram.IsOsOptimizer)
             {
                 return;
             }
