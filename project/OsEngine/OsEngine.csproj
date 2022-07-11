@@ -397,6 +397,9 @@
     <Compile Include="Journal\JournalUi.xaml.cs">
       <DependentUpon>JournalUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Journal\JournalUi2.xaml.cs">
+      <DependentUpon>JournalUi2.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Language\AlertsLocal.cs" />
     <Compile Include="Language\ChartsLocal.cs" />
     <Compile Include="Language\ConverterLocal.cs" />
@@ -896,7 +899,7 @@
     <Compile Include="Robots\OnScriptIndicators\BollingerRevers.cs" />
     <Compile Include="Robots\OnScriptIndicators\BollingerTrailing.cs" />
     <Compile Include="Robots\OnScriptIndicators\CciTrade.cs" />
-    <Compile Include="Robots\OnScriptIndicators\CustomParamsUseBotSample.cs" />
+    <Compile Include="Robots\TechSapmles\CustomParamsUseBotSample.cs" />
     <Compile Include="Robots\OnScriptIndicators\FundBalanceDivergenceBot.cs" />
     <Compile Include="Robots\OnScriptIndicators\MacdRevers.cs" />
     <Compile Include="Robots\OnScriptIndicators\MacdTrail.cs" />
@@ -909,6 +912,7 @@
     <Compile Include="Robots\OnScriptIndicators\SmaTrendSample.cs" />
     <Compile Include="Robots\OnScriptIndicators\TimeOfDayBot.cs" />
     <Compile Include="Robots\Screeners\SmaScreener.cs" />
+    <Compile Include="Robots\TechSapmles\ElementsOnChartSampleBot.cs" />
     <Compile Include="Robots\Trend\EnvelopTrend.cs" />
     <Compile Include="Robots\Trend\MomentumMacd.cs" />
     <Compile Include="Robots\MarketMaker\PairTraderSpreadSma.cs" />
@@ -1231,6 +1235,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Journal\JournalUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Journal\JournalUi2.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

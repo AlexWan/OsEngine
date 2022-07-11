@@ -11,7 +11,7 @@ using System.Drawing;
 using System;
 
 
-namespace OsEngine.Robots.OnScriptIndicators
+namespace OsEngine.Robots.TechSapmles
 {
     [Bot("CustomParamsUseBotSample")]
     public class CustomParamsUseBotSample : BotPanel
