@@ -114,7 +114,7 @@ namespace OsEngine.Market.Servers.Tinkoff
                 TimeFrameMin1IsOn = false,
                 TimeFrameMin2IsOn = false,
                 TimeFrameMin3IsOn = false,
-                TimeFrameMin5IsOn = false,
+                TimeFrameMin5IsOn = true,
                 TimeFrameMin10IsOn = true,
                 TimeFrameMin15IsOn = true,
                 TimeFrameMin20IsOn = true,

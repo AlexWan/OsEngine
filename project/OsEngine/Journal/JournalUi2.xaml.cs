@@ -2160,5 +2160,17 @@ namespace OsEngine.Journal
             ButtonShowLeftPanel.Visibility = Visibility.Hidden;
             GridTabPrime.Margin = new Thickness(410, 0, -0.333, -0.333);
         }
+
+        // Left Bots Panel
+
+        DataGridView _gridLeftBotsPanel;
+
+        private void CreateBotsGrid()
+        {
+
+
+        }
+
+
     }
 }

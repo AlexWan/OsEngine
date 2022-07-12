@@ -569,6 +569,11 @@ namespace OsEngine.Market.Connectors
             get { return TimeFrameBuilder.TimeFrameTimeSpan; }
         }
 
+        public CandleSeries CandleSeries
+        {
+            get { return _mySeries; }
+        }
+
         /// <summary>
         /// candle series that collects candles  
         /// серия свечек которая собирает для нас свечки
