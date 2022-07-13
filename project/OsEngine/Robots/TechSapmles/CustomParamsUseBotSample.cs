@@ -6,12 +6,10 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
-using System.Windows.Controls;
-using System.Drawing;
 using System;
 
 
-namespace OsEngine.Robots.OnScriptIndicators
+namespace OsEngine.Robots.TechSapmles
 {
     [Bot("CustomParamsUseBotSample")]
     public class CustomParamsUseBotSample : BotPanel

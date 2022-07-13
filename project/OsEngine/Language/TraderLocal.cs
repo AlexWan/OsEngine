@@ -716,5 +716,9 @@ namespace OsEngine.Language
         public string Label176 => OsLocalization.ConvertToLocString(
                "Eng: First security_" +
                "Ru: Первая бумага_");
+
+        public string Label177 => OsLocalization.ConvertToLocString(
+               "Eng:Only indicators from SCRIPTS can be used in screeners_" +
+               "Ru:В скринерах можно применять только индикаторы из СКРИПТОВ!_");
     }
 }

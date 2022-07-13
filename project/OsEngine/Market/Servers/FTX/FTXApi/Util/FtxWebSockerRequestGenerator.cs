@@ -7,7 +7,7 @@ namespace OsEngine.Market.Servers.FTX.FtxApi
 {
     public static class FtxWebSockerRequestGenerator
     {
-        public static string GetAuthRequest(Client client)
+        public static string GetAuthRequest(ClientApiKeys client)
         {
             var nowUTC = TimeManager.GetExchangeTime("UTC");
             var time = Util.Util.GetMillisecondsFromEpochStart(nowUTC);
@@ -22,7 +22,7 @@ namespace OsEngine.Market.Servers.FTX.FtxApi
             return s;
         }
 
-        private static string GenerateSignature(Client client, long time)
+        private static string GenerateSignature(ClientApiKeys client, long time)
         {
             var _hashMaker = new HMACSHA256(Encoding.UTF8.GetBytes(client.ApiSecret));
             var signature = $"{time}websocket_login";

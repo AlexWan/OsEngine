@@ -40,6 +40,7 @@
                         <Button Name="ButtonStrategySelect" Content="Select" HorizontalAlignment="Left" Margin="156,54,0,0" VerticalAlignment="Top" Width="60" Click="ButtonStrategySelect_Click"/>
                         <TextBox Name="TextBoxStrategyName" HorizontalAlignment="Left" IsReadOnly="True" Margin="24,71,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Height="25"/>
                         <Button x:Name="ButtonStrategyReload" Content="Reload" HorizontalAlignment="Left" Margin="156,81,0,0" VerticalAlignment="Top" Width="60" Click="ButtonStrategyReload_Click"/>
+                        <Button x:Name="ButtonPositionSupport" Content="Position support"  HorizontalAlignment="Left" Margin="231,190,0,0" VerticalAlignment="Top" Width="161" Click="ButtonPositionSupport_Click" />
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItemParams" Header="Parameters" FontSize="14" Width="120">

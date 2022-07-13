@@ -46,8 +46,6 @@ namespace OsEngine.Entity
             grid.DefaultCellStyle = style;
             grid.ColumnHeadersDefaultCellStyle = style;
 
-            grid.MouseHover += GridMouseHoverEvent;
-
             grid.MouseLeave += GridMouseLeaveEvent;
 
             grid.MouseWheel += GridMouseWheelEvent;
@@ -58,12 +56,6 @@ namespace OsEngine.Entity
             }
 
             return grid;
-        }
-
-        private static void GridMouseHoverEvent(Object sender, EventArgs e)
-        {
-            DataGridView grid = (DataGridView)sender;
-            grid.Focus();
         }
 
         private static void GridMouseWheelEvent(object sender, MouseEventArgs args)
@@ -181,7 +173,6 @@ namespace OsEngine.Entity
 
         public static void ClearLink(DataGridView grid)
         {
-            grid.MouseHover -= GridMouseHoverEvent;
             grid.MouseLeave -= GridMouseLeaveEvent;
             grid.MouseWheel -= GridMouseWheelEvent;
             grid.Click -= GridClickMenuEvent;

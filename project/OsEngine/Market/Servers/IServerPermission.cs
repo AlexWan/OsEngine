@@ -48,10 +48,54 @@
 
         bool IsTradeServer { get; }
 
-
+        TimeFramePermission TradeTimeFramePermission { get; }
 
         #endregion
 
+
+    }
+
+    public class TimeFramePermission
+    {
+        public bool TimeFrameSec1IsOn = true;
+
+        public bool TimeFrameSec2IsOn = true;
+
+        public bool TimeFrameSec5IsOn = true;
+
+        public bool TimeFrameSec10IsOn = true;
+
+        public bool TimeFrameSec15IsOn = true;
+
+        public bool TimeFrameSec20IsOn = true;
+
+        public bool TimeFrameSec30IsOn = true;
+
+        public bool TimeFrameMin1IsOn = true;
+
+        public bool TimeFrameMin2IsOn = true;
+
+        public bool TimeFrameMin3IsOn = true;
+
+        public bool TimeFrameMin5IsOn = true;
+
+        public bool TimeFrameMin10IsOn = true;
+
+        public bool TimeFrameMin15IsOn = true;
+
+        public bool TimeFrameMin20IsOn = true;
+
+        public bool TimeFrameMin30IsOn = true;
+
+        public bool TimeFrameMin45IsOn = true;
+
+        public bool TimeFrameHour1IsOn = true;
+
+        public bool TimeFrameHour2IsOn = true;
+
+        public bool TimeFrameHour4IsOn = true;
+
+        public bool TimeFrameDayIsOn = true;
 
     }
 }

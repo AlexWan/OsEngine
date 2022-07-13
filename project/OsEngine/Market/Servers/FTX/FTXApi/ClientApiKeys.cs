@@ -1,18 +1,18 @@
-﻿namespace OsEngine.Market.Servers.FTX.FtxApi
+﻿namespace OsEngine.Market.Servers.FTX
 {
-    public class Client
+    public class ClientApiKeys
     {
         public string ApiKey { get; }
 
         public string ApiSecret { get; }
 
-        public Client()
+        public ClientApiKeys()
         {
             ApiKey = "";
             ApiSecret = "";
         }
 
-        public Client(string apiKey, string apiSecret)
+        public ClientApiKeys(string apiKey, string apiSecret)
         {
             ApiKey = apiKey;
             ApiSecret = apiSecret;

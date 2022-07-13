@@ -24,6 +24,7 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
             var positions = data.SelectTokens(PositionsPath).Children();
 
             portfolio.ValueCurrent = data.SelectToken(TotalAccountValuePath).Value<decimal>();
+            portfolio.ValueBegin = portfolio.ValueCurrent;
             portfolio.ValueBlocked = collateral - freeCollateral;
 
 
@@ -33,11 +34,10 @@ namespace OsEngine.Market.Servers.FTX.EntityCreators
 
                 pos.PortfolioName = portfolio.Number;
                 pos.SecurityNameCode = jtPosition.SelectToken(NamePath).ToString();
-                var cost = jtPosition.SelectToken(CostPath).Value<decimal>();
+                var cost = jtPosition.SelectToken("size").Value<decimal>();
                 var realizedPnl = jtPosition.SelectToken(PnlPricePath).Value<decimal>();
                 pos.ValueBegin = cost;
-                pos.ValueCurrent = cost + realizedPnl;
-                pos.ValueBlocked = jtPosition.SelectToken(CollateralUsedPath).Value<decimal>();
+                pos.ValueCurrent = cost;
 
                 if (pos.ValueCurrent > 0 || pos.ValueBlocked > 0)
                 {

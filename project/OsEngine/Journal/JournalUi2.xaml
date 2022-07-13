@@ -1,0 +1,59 @@
+﻿<Window x:Class="OsEngine.Journal.JournalUi2"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OsEngine.Journal"
+        mc:Ignorable="d"
+        Title="Journal" Height="800" Width="1370" MinWidth="1400" MinHeight="500" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
+    <Grid>
+        <Grid Name="GridTabPrime" Margin="410,0,-0.333,-0.333">
+
+            <TabControl Margin="0,0,0,0" BorderThickness="0" x:Name="TabControlPrime" TabStripPlacement="Bottom">
+                <TabItem Name="TabItem1" Header="Equity" Width="140" Margin="41,0,-140,0">
+                    <Grid>
+                        <WindowsFormsHost x:Name="HostEquity" Foreground="Black" Margin="0,0,0,47" />
+                        <Rectangle Fill="White"  HorizontalAlignment="Left" Height="25" Margin="70,0,0,10" Stroke="Black" VerticalAlignment="Bottom" Width="38"/>
+                        <Label Name="Label1" Content="Total profit" HorizontalAlignment="Left" Margin="123,0,0,10" VerticalAlignment="Bottom"/>
+                        <Rectangle Fill="DeepSkyBlue"  HorizontalAlignment="Left" Height="25" Margin="336,0,0,10" Stroke="Black" VerticalAlignment="Bottom" Width="38"/>
+                        <Label Name="Label2" Content="Long" HorizontalAlignment="Left" Margin="389,0,0,10" VerticalAlignment="Bottom"/>
+                        <Rectangle Fill="DarkOrange"  HorizontalAlignment="Left" Height="25" Margin="604,0,0,10" Stroke="Black" VerticalAlignment="Bottom" Width="38"/>
+                        <Label Name="Label3" Content="Short" HorizontalAlignment="Left" Margin="657,0,0,10" VerticalAlignment="Bottom"/>
+                    </Grid>
+                </TabItem>
+                <TabItem Name="TabItem2" Header="Statistics" Width="140" Margin="41,0,-140,0">
+                    <Grid >
+                        <WindowsFormsHost x:Name="HostStatistics" Foreground="Black" Margin="250,10" RenderTransformOrigin="0.5,0.5"/>
+                    </Grid>
+                </TabItem>
+                <TabItem Name="TabItem3" Header="Drawdown" Width="140" Margin="41,0,-140,0">
+                    <Grid >
+                        <WindowsFormsHost x:Name="HostDrawdown" Foreground="Black" Margin="10"/>
+                    </Grid>
+                </TabItem>
+                <TabItem Name="TabItem4" Header="Volume" Width="140" Margin="41,0,-140,0">
+                    <Grid>
+                        <WindowsFormsHost x:Name="HostVolume" Foreground="Black" Margin="10"/>
+                    </Grid>
+                </TabItem>
+                <TabItem Name="TabItem5" Header="Open positions" Width="140" Margin="41,0,-140,0">
+                    <Grid>
+                        <WindowsFormsHost x:Name="HostOpenPosition" Foreground="Black" Margin="10"/>
+                    </Grid>
+                </TabItem>
+                <TabItem Name="TabItem6" Header="Closed positions" Width="140" Margin="41,0,-140,0" >
+                    <Grid>
+                        <WindowsFormsHost x:Name="HostClosePosition" Foreground="Black" Margin="10"/>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+            <Button Name="ButtonShowLeftPanel" Content=">>>>" HorizontalAlignment="Left" Margin="0,0,0,2" Width="92" Height="25" VerticalAlignment="Bottom" Click="ButtonShowLeftPanel_Click"/>
+        </Grid>
+        <Grid Name="GridActivBots" Margin="0,5" HorizontalAlignment="Left" Width="410">
+            <WindowsFormsHost Name="HostBotsSelected" Margin="0,0,0,27"/>
+            <Button Name="ButtonHideLeftPanel" Content="&lt;&lt;&lt;&lt;" HorizontalAlignment="Left" Margin="0,0,0,-0.333" VerticalAlignment="Bottom" Width="140" Click="ButtonHideLeftPanel_Click"/>
+        </Grid>
+
+
+    </Grid>
+</Window>

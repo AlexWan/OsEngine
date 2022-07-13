@@ -397,6 +397,9 @@
     <Compile Include="Journal\JournalUi.xaml.cs">
       <DependentUpon>JournalUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Journal\JournalUi2.xaml.cs">
+      <DependentUpon>JournalUi2.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Language\AlertsLocal.cs" />
     <Compile Include="Language\ChartsLocal.cs" />
     <Compile Include="Language\ConverterLocal.cs" />
@@ -517,8 +520,8 @@
     <Compile Include="Market\Servers\FTX\EntityCreators\FTXOrderCreator.cs" />
     <Compile Include="Market\Servers\FTX\EntityCreators\FTXSecurityCreator.cs" />
     <Compile Include="Market\Servers\FTX\EntityCreators\FTXTradesCreator.cs" />
-    <Compile Include="Market\Servers\FTX\FTXApi\Client.cs" />
-    <Compile Include="Market\Servers\FTX\FtxClient.cs" />
+    <Compile Include="Market\Servers\FTX\FTXApi\ClientApiKeys.cs" />
+    <Compile Include="Market\Servers\FTX\FtxRestClient.cs" />
     <Compile Include="Market\Servers\FTX\FTXApi\Util\FtxWebSockerRequestGenerator.cs" />
     <Compile Include="Market\Servers\FTX\FTXApi\Util\Util.cs" />
     <Compile Include="Market\Servers\FTX\FTXServer.cs" />
@@ -882,6 +885,7 @@
     </Compile>
     <Compile Include="Robots\BotFactory.cs" />
     <Compile Include="Robots\CounterTrend\ClusterCountertrend.cs" />
+    <Compile Include="Robots\OnScriptIndicators\GridSample.cs" />
     <Compile Include="Robots\Engines\CandleEngine.cs" />
     <Compile Include="Robots\Engines\ClusterEngine.cs" />
     <Compile Include="Robots\Engines\ScreenerEngine.cs" />
@@ -895,7 +899,7 @@
     <Compile Include="Robots\OnScriptIndicators\BollingerRevers.cs" />
     <Compile Include="Robots\OnScriptIndicators\BollingerTrailing.cs" />
     <Compile Include="Robots\OnScriptIndicators\CciTrade.cs" />
-    <Compile Include="Robots\OnScriptIndicators\CustomParamsUseBotSample.cs" />
+    <Compile Include="Robots\TechSapmles\CustomParamsUseBotSample.cs" />
     <Compile Include="Robots\OnScriptIndicators\FundBalanceDivergenceBot.cs" />
     <Compile Include="Robots\OnScriptIndicators\MacdRevers.cs" />
     <Compile Include="Robots\OnScriptIndicators\MacdTrail.cs" />
@@ -908,6 +912,8 @@
     <Compile Include="Robots\OnScriptIndicators\SmaTrendSample.cs" />
     <Compile Include="Robots\OnScriptIndicators\TimeOfDayBot.cs" />
     <Compile Include="Robots\Screeners\SmaScreener.cs" />
+    <Compile Include="Robots\TechSapmles\ElementsOnChartSampleBot.cs" />
+    <Compile Include="Robots\TechSapmles\TinkoffGetRealCandlesSample.cs" />
     <Compile Include="Robots\Trend\EnvelopTrend.cs" />
     <Compile Include="Robots\Trend\MomentumMacd.cs" />
     <Compile Include="Robots\MarketMaker\PairTraderSpreadSma.cs" />
@@ -1230,6 +1236,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Journal\JournalUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Journal\JournalUi2.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

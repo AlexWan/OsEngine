@@ -92,6 +92,35 @@ namespace OsEngine.Market.Servers.Binance.Spot
             get { return true; }
         }
 
+        public TimeFramePermission TradeTimeFramePermission
+        {
+            get { return _tradeTimeFramePermission; }
+        }
+        private TimeFramePermission _tradeTimeFramePermission
+            = new TimeFramePermission()
+            {
+                TimeFrameSec1IsOn = true,
+                TimeFrameSec2IsOn = true,
+                TimeFrameSec5IsOn = true,
+                TimeFrameSec10IsOn = true,
+                TimeFrameSec15IsOn = true,
+                TimeFrameSec20IsOn = true,
+                TimeFrameSec30IsOn = true,
+                TimeFrameMin1IsOn = true,
+                TimeFrameMin2IsOn = true,
+                TimeFrameMin3IsOn = true,
+                TimeFrameMin5IsOn = true,
+                TimeFrameMin10IsOn = true,
+                TimeFrameMin15IsOn = true,
+                TimeFrameMin20IsOn = true,
+                TimeFrameMin30IsOn = true,
+                TimeFrameMin45IsOn = true,
+                TimeFrameHour1IsOn = true,
+                TimeFrameHour2IsOn = true,
+                TimeFrameHour4IsOn = true,
+                TimeFrameDayIsOn = true
+            };
+
         #endregion
     }
 }

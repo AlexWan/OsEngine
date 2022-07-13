@@ -569,6 +569,11 @@ namespace OsEngine.Market.Connectors
             get { return TimeFrameBuilder.TimeFrameTimeSpan; }
         }
 
+        public CandleSeries CandleSeries
+        {
+            get { return _mySeries; }
+        }
+
         /// <summary>
         /// candle series that collects candles  
         /// серия свечек которая собирает для нас свечки
@@ -793,6 +798,10 @@ namespace OsEngine.Market.Connectors
                     if(ServerType == ServerType.Optimizer)
                     {
                         Thread.Sleep(1);
+                    }
+                    else if(ServerType == ServerType.Tester)
+                    {
+                        Thread.Sleep(10);
                     }
                     else
                     {

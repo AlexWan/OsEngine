@@ -161,6 +161,7 @@ namespace OsEngine.OsOptimizer
             CheckBoxFilterDealsCount.Content = OsLocalization.Optimizer.Label34;
             ButtonStrategySelect.Content = OsLocalization.Optimizer.Label35;
             Label23.Content = OsLocalization.Optimizer.Label36;
+            ButtonPositionSupport.Content = OsLocalization.Trader.Label47;
 
             TabControlResultsSeries.Header = OsLocalization.Optimizer.Label37;
             TabControlResultsOutOfSampleResults.Header = OsLocalization.Optimizer.Label38;
@@ -2343,6 +2344,11 @@ namespace OsEngine.OsOptimizer
                 return;
             }
             ReloadStrategy();
+        }
+
+        private void ButtonPositionSupport_Click(object sender, RoutedEventArgs e)
+        {
+            _master.ShowManualControlDialog();
         }
     }
 

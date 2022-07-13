@@ -130,7 +130,7 @@ namespace OsEngine.Indicators
             return dir.GetFilesCopy();
         }
 
-        public static Aindicator CreateIndicatorByName(string nameClass, string name, bool canDelete)
+        public static Aindicator CreateIndicatorByName(string nameClass, string name, bool canDelete,StartProgram startProgram = StartProgram.IsOsTrader)
         {
             Aindicator Indicator = null;
 
@@ -171,7 +171,7 @@ namespace OsEngine.Indicators
                     Indicator = Serialize(myPath, nameClass, name, canDelete);
                 }
 
-                Indicator.Init(name);
+                Indicator.Init(name, startProgram);
                 Indicator.CanDelete = canDelete;
             }
             catch (Exception e)
@@ -198,8 +198,6 @@ namespace OsEngine.Indicators
                 {
                     object[] param = new object[] { name };
                     Aindicator newPanel = (Aindicator)Activator.CreateInstance(_serializedInd[i].GetType());
-                    newPanel.Init(name);
-                    newPanel.CanDelete = canDelete;
                     return newPanel;
                 }
             }

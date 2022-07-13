@@ -369,6 +369,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <returns></returns>
         public IIndicator CreateCandleIndicator(IIndicator indicator, string nameArea)
         {
+            Type indType = indicator.GetType();
+
+            if (indType.BaseType.Name == "Aindicator")
+            {
+                ((Aindicator)indicator).StartProgram = StartProgram.IsOsOptimizer;
+            }
             return _chartMaster.CreateIndicator(indicator, nameArea);
         }
 
@@ -1223,7 +1229,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _connector.ServerType == ServerType.BinanceFutures ||
                 _connector.ServerType == ServerType.Transaq ||
                 _connector.ServerType == ServerType.Tester ||
-                _connector.ServerType == ServerType.BitMex
+                _connector.ServerType == ServerType.BitMex ||
+                _connector.ServerType == ServerType.Bybit
                 )
             {
                 return true;
