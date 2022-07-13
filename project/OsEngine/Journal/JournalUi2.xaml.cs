@@ -84,6 +84,9 @@ namespace OsEngine.Journal
             Closing += JournalUi_Closing;
 
             ButtonShowLeftPanel.Visibility = Visibility.Hidden;
+
+            CreateBotsGrid();
+            PaintBotsGrid();
         }
 
         private CultureInfo _currentCulture;
@@ -2166,6 +2169,58 @@ namespace OsEngine.Journal
         DataGridView _gridLeftBotsPanel;
 
         private void CreateBotsGrid()
+        {
+            _gridLeftBotsPanel = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.AllCells, false);
+
+            _gridStatistics.AllowUserToResizeRows = false;
+
+            CustomDataGridViewCell cell0 = new CustomDataGridViewCell();
+            cell0.Style = _gridStatistics.DefaultCellStyle;
+            cell0.AdvancedBorderStyle = new DataGridViewAdvancedBorderStyle
+            {
+                Bottom = DataGridViewAdvancedCellBorderStyle.None,
+                Top = DataGridViewAdvancedCellBorderStyle.None,
+                Left = DataGridViewAdvancedCellBorderStyle.Inset,
+                Right = DataGridViewAdvancedCellBorderStyle.Inset
+            };
+
+            HostStatistics.Child = _gridStatistics;
+            HostStatistics.Child.Show();
+
+            DataGridViewColumn column0 = new DataGridViewColumn();
+            column0.CellTemplate = cell0;
+            column0.HeaderText = @"";
+            column0.ReadOnly = true;
+            column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+            _gridStatistics.Columns.Add(column0);
+
+            DataGridViewColumn column1 = new DataGridViewColumn();
+            column1.CellTemplate = cell0;
+            column1.HeaderText = OsLocalization.Journal.GridColumn1;
+            column1.ReadOnly = true;
+            column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridStatistics.Columns.Add(column1);
+
+
+            DataGridViewColumn column2 = new DataGridViewColumn();
+            column2.CellTemplate = cell0;
+            column2.HeaderText = OsLocalization.Journal.GridColumn2;
+            column2.ReadOnly = true;
+            column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridStatistics.Columns.Add(column2);
+
+            DataGridViewColumn column3 = new DataGridViewColumn();
+            column3.CellTemplate = cell0;
+            column3.HeaderText = OsLocalization.Journal.GridColumn3;
+            column3.ReadOnly = true;
+            column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridStatistics.Columns.Add(column3);
+
+
+        }
+
+        private void PaintBotsGrid()
         {
 
 

@@ -181,7 +181,7 @@ namespace OsEngine.Robots.TechSapmles
                 return;
             }
                                  // второй параметр - имя области на чарте для линии 
-            LineHorisontal line = new LineHorisontal("Some line", "MacdArea", false);
+            LineHorisontal line = new LineHorisontal("Some line on second area", "MacdArea", false);
 
             line.Value = _macd.DataSeries[0].Last;
             line.TimeStart = candles[0].TimeStart;
