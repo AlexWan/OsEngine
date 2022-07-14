@@ -1168,32 +1168,12 @@ namespace OsEngine.Market.Servers.Tinkoff
 
         private string ToQuotation(decimal value)
         {
-            string valueInStr = value.ToStringWithNoEndZero().Replace(",", ".");
-
-            string units = valueInStr.Split('.')[0];
-            string nano = "0";
-
-            if (valueInStr.Split('.').Length > 1)
-            {
-                nano = valueInStr.Split('.')[1];
-            }
-            //650000000
-            while (nano.Length < 9)
-            {
-                nano += "0";
-            }
+            int units = (int)Math.Truncate(value); // целая часть
+            int nano = Convert.ToInt32((value - units) * 1000000000); // дробная часть * 1млрд
 
             // 23.11 -> {"units":"23","nano":110000000}"
             // 23.01 -> {"units":"23","nano":10000000}"
-
-            //{"nano": 6,"units": "units"}
-            //{"nano": 113,"units": "89"}
-
-            string res = "{\"nano\": ";
-
-            res +=  nano + ",\"units\": ";
-
-            res += "\"" + units + "\"" + "}";
+            string res = $"{{\"units\":\"{units}\",\"nano\":{nano}}}";
 
             return res;
         }
