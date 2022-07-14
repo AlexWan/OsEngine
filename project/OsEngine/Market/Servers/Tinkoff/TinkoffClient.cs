@@ -506,6 +506,9 @@ namespace OsEngine.Market.Servers.Tinkoff
 
             string result = "";
 
+            // т.к. обмен по UTC, то приводим от локального времени к UTC
+            time = TimeZoneInfo.ConvertTimeToUtc(time, TimeZoneInfo.Local);
+
             result += time.Year + "-";
 
             if (time.Month < 10)
@@ -567,6 +570,11 @@ namespace OsEngine.Market.Servers.Tinkoff
             int hour = Convert.ToInt32(timeInStr.Substring(11, 2));
             int minute = Convert.ToInt32(timeInStr.Substring(14, 2));
             DateTime time = new DateTime(year, month, day, hour, minute, 0);
+
+            if (str[str.Length - 1] == 'Z') // если это UTC, то приводим к локальному времени
+            {
+                time = TimeZoneInfo.ConvertTimeFromUtc(time, TimeZoneInfo.Local);
+            }
 
             return time;
         }
