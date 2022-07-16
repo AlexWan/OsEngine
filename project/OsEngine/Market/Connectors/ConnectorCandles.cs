@@ -896,12 +896,13 @@ namespace OsEngine.Market.Connectors
                             {
                                 return;
                             }
+                            if (_myServer == null)
+                            {
+                                continue;
+                            }
 
                             Thread.Sleep(1);
-                            if (_myServer != null)
-                            {
-                                _mySeries = _myServer.StartThisSecurity(_securityName, TimeFrameBuilder, _securityClass);
-                            }
+                            _mySeries = _myServer.StartThisSecurity(_securityName, TimeFrameBuilder, _securityClass);
 
                             if (_mySeries == null &&
                                 _myServer.ServerType == ServerType.Optimizer &&
