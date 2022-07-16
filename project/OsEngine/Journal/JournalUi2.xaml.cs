@@ -2172,52 +2172,56 @@ namespace OsEngine.Journal
         {
             _gridLeftBotsPanel = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.AllCells, false);
 
-            _gridStatistics.AllowUserToResizeRows = false;
+            _gridLeftBotsPanel.AllowUserToResizeRows = true;
 
             CustomDataGridViewCell cell0 = new CustomDataGridViewCell();
-            cell0.Style = _gridStatistics.DefaultCellStyle;
-            cell0.AdvancedBorderStyle = new DataGridViewAdvancedBorderStyle
-            {
-                Bottom = DataGridViewAdvancedCellBorderStyle.None,
-                Top = DataGridViewAdvancedCellBorderStyle.None,
-                Left = DataGridViewAdvancedCellBorderStyle.Inset,
-                Right = DataGridViewAdvancedCellBorderStyle.Inset
-            };
-
-            HostStatistics.Child = _gridStatistics;
-            HostStatistics.Child.Show();
+            cell0.Style = _gridLeftBotsPanel.DefaultCellStyle;
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;
-            column0.HeaderText = @"";
+            column0.HeaderText = @"Группа";
             column0.ReadOnly = true;
             column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
-            _gridStatistics.Columns.Add(column0);
+            _gridLeftBotsPanel.Columns.Add(column0);
 
             DataGridViewColumn column1 = new DataGridViewColumn();
             column1.CellTemplate = cell0;
-            column1.HeaderText = OsLocalization.Journal.GridColumn1;
+            column1.HeaderText = @"Номер";
             column1.ReadOnly = true;
             column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _gridStatistics.Columns.Add(column1);
-
+            _gridLeftBotsPanel.Columns.Add(column1);
 
             DataGridViewColumn column2 = new DataGridViewColumn();
             column2.CellTemplate = cell0;
-            column2.HeaderText = OsLocalization.Journal.GridColumn2;
+            column2.HeaderText = @"Имя бота";
             column2.ReadOnly = true;
             column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _gridStatistics.Columns.Add(column2);
+            _gridLeftBotsPanel.Columns.Add(column2);
 
             DataGridViewColumn column3 = new DataGridViewColumn();
             column3.CellTemplate = cell0;
-            column3.HeaderText = OsLocalization.Journal.GridColumn3;
+            column3.HeaderText = @"Класс";
             column3.ReadOnly = true;
             column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _gridStatistics.Columns.Add(column3);
+            _gridLeftBotsPanel.Columns.Add(column3);
 
+            DataGridViewColumn column4 = new DataGridViewColumn();
+            column4.CellTemplate = cell0;
+            column4.HeaderText = @"Вкл/выкл";
+            column4.ReadOnly = true;
+            column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridLeftBotsPanel.Columns.Add(column4);
 
+            DataGridViewColumn column5 = new DataGridViewColumn();
+            column5.CellTemplate = cell0;
+            column5.HeaderText = @"Множитель";
+            column5.ReadOnly = true;
+            column5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridLeftBotsPanel.Columns.Add(column5);
+
+            HostBotsSelected.Child = _gridLeftBotsPanel;
+            HostBotsSelected.Child.Show();
         }
 
         private void PaintBotsGrid()

@@ -50,7 +50,7 @@
             <Button Name="ButtonShowLeftPanel" Content=">>>>" HorizontalAlignment="Left" Margin="0,0,0,2" Width="92" Height="25" VerticalAlignment="Bottom" Click="ButtonShowLeftPanel_Click"/>
         </Grid>
         <Grid Name="GridActivBots" Margin="0,5" HorizontalAlignment="Left" Width="410">
-            <WindowsFormsHost Name="HostBotsSelected" Margin="0,0,0,27"/>
+            <WindowsFormsHost Name="HostBotsSelected" Margin="0,0,0,24"/>
             <Button Name="ButtonHideLeftPanel" Content="&lt;&lt;&lt;&lt;" HorizontalAlignment="Left" Margin="0,0,0,-0.333" VerticalAlignment="Bottom" Width="140" Click="ButtonHideLeftPanel_Click"/>
         </Grid>
 
