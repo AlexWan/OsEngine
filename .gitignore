@@ -14,6 +14,7 @@
 
 # Build results
 [Dd]ebugPublic/
+[Dd]ebug/
 [Rr]elease/
 [Rr]eleases/
 x64/
@@ -288,3 +289,7 @@ __pycache__/
 # Cake - Uncomment if you are using it
 # tools/**
 # !tools/packages.config
+
+*.exe
+*.dll
+req_log/
