@@ -898,7 +898,10 @@ namespace OsEngine.Market.Connectors
                             }
 
                             Thread.Sleep(1);
-                            _mySeries = _myServer.StartThisSecurity(_securityName, TimeFrameBuilder,_securityClass);
+                            if (_myServer != null)
+                            {
+                                _mySeries = _myServer.StartThisSecurity(_securityName, TimeFrameBuilder, _securityClass);
+                            }
 
                             if (_mySeries == null &&
                                 _myServer.ServerType == ServerType.Optimizer &&

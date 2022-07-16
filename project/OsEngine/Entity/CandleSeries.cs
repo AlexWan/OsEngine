@@ -345,7 +345,10 @@ namespace OsEngine.Entity
                 }
             }
 
-            _lastTradeTime = newTrades[newTrades.Count - 1].Time;
+            if (newTrades != null && newTrades.Count > 0)
+            {
+                _lastTradeTime = newTrades[newTrades.Count - 1].Time;
+            }
 
             // обновилось неизвесное кол-во тиков
             for (int i = 0; i < newTrades.Count; i++)
