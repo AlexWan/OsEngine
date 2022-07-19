@@ -2265,42 +2265,7 @@ namespace OsEngine.Journal
         public event Action<string, LogMessageType> LogMessageEvent;
     }
 
-    /// <summary>
-    /// log storage class
-    /// класс хранилище журналов
-    /// </summary>
-    public class BotPanelJournal
-    {
-        public string BotName;
 
-        public List<BotTabJournal> _Tabs;
-
-        public List<Position> AllPositions
-        {
-            get
-            {
-                List<Position> poses = new List<Position>();
-
-                for(int i = 0;i < _Tabs.Count;i++)
-                {
-                    poses.AddRange(_Tabs[i].Journal.AllPosition);
-                }
-
-                return poses;
-            }
-        }
-    }
-
-    /// <summary>
-    /// log storage class
-    /// класс хранилище журналов
-    /// </summary>
-    public class BotTabJournal
-    {
-        public int TabNum;
-
-        public Journal Journal;
-    }
 
     /// <summary>
     /// the class of DataGridView. modification of cells allows working with the thickness of the cell boundary

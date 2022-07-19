@@ -653,6 +653,7 @@ namespace OsEngine.OsTrader
 
                     BotPanelJournal botPanel = new BotPanelJournal();
                     botPanel.BotName = PanelsArray[i].NameStrategyUniq;
+                    botPanel.BotClass = PanelsArray[i].GetNameStrategyType();
                     botPanel._Tabs = new List<BotTabJournal>();
 
                     for (int i2 = 0; journals != null && i2 < journals.Count; i2++)

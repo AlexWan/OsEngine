@@ -400,6 +400,9 @@
     <Compile Include="Journal\JournalUi2.xaml.cs">
       <DependentUpon>JournalUi2.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Journal\NewGroupAddInJournalUi.xaml.cs">
+      <DependentUpon>NewGroupAddInJournalUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Language\AlertsLocal.cs" />
     <Compile Include="Language\ChartsLocal.cs" />
     <Compile Include="Language\ConverterLocal.cs" />
@@ -1240,6 +1243,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Journal\JournalUi2.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Journal\NewGroupAddInJournalUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

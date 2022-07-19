@@ -45,11 +45,7 @@ namespace OsEngine.Journal
         /// является ли окно утилизированным
         /// </summary>
         public bool IsErase;
-
-        private List<Position> _allPositions;
-        private List<Position> _longPositions;
-        private List<Position> _shortPositions;
-        List<BotPanelJournal> _botsJournals;
+        
 
         /// <summary>
         /// constructor
@@ -59,6 +55,8 @@ namespace OsEngine.Journal
         {
             _startProgram = startProgram;
             _botsJournals = botsJournals;
+            LoadGroups();
+
             InitializeComponent();
             _currentCulture = CultureInfo.CurrentCulture;
 
@@ -79,7 +77,7 @@ namespace OsEngine.Journal
             TabItem5.Header = OsLocalization.Journal.TabItem5;
             TabItem6.Header = OsLocalization.Journal.TabItem6;
 
-            CreatePositionsLists(botsJournals);
+            CreatePositionsLists();
 
             Closing += JournalUi_Closing;
 
@@ -87,145 +85,12 @@ namespace OsEngine.Journal
 
             CreateBotsGrid();
             PaintBotsGrid();
+
+            Task task2 = new Task(LeftBotsPanelPainter);
+            task2.Start();
         }
 
         private CultureInfo _currentCulture;
-
-        private List<Journal> GetActiveJournals()
-        {
-
-            return null;
-        }
-
-        private void CreatePositionsLists(List<BotPanelJournal> _botsJournals)
-        {
-            // 1 collecting all journals.
-            // 1 собираем все журналы
-            List<Journal> myJournals = GetActiveJournals();
-
-            if (myJournals == null 
-                || myJournals.Count == 0)
-            {
-                return;
-            }
-            // 2 sorting deals on ALL / Long / Short
-            // 2 сортируем сделки на ВСЕ / Лонг / Шорт
-
-            List<Position> positionsAll = new List<Position>();
-            List<Position> positionsLong = new List<Position>();
-            List<Position> positionsShort = new List<Position>();
-
-            for (int i = 0; i < myJournals.Count; i++)
-            {
-                if (myJournals[i].AllPosition != null) positionsAll.AddRange(myJournals[i].AllPosition);
-                if (myJournals[i].CloseAllLongPositions != null)
-                    positionsLong.AddRange(myJournals[i].CloseAllLongPositions);
-                if (myJournals[i].CloseAllShortPositions != null)
-                    positionsShort.AddRange(myJournals[i].CloseAllShortPositions);
-            }
-
-            positionsLong =
-                positionsLong.FindAll(
-                    pos => pos.State != PositionStateType.OpeningFail && pos.State != PositionStateType.Opening);
-            positionsShort =
-                positionsShort.FindAll(
-                    pos => pos.State != PositionStateType.OpeningFail && pos.State != PositionStateType.Opening);
-            // 3 sort transactions by time (this is better in a separate method)
-            // 3 сортируем сделки по времени(это лучше в отдельном методе)
-
-
-            List<Position> newPositionsAll = new List<Position>();
-
-            for (int i = 0; i < positionsAll.Count; i++)
-            {
-                if (newPositionsAll.Count == 0 ||
-                    newPositionsAll[newPositionsAll.Count - 1].TimeCreate <= positionsAll[i].TimeCreate)
-                {
-                    newPositionsAll.Add(positionsAll[i]);
-                }
-                else if (newPositionsAll[0].TimeCreate >= positionsAll[i].TimeCreate)
-                {
-                    newPositionsAll.Insert(0, positionsAll[i]);
-                }
-                else
-                {
-                    for (int i2 = 0; i2 < newPositionsAll.Count - 1; i2++)
-                    {
-                        if (newPositionsAll[i2].TimeCreate <= positionsAll[i].TimeCreate &&
-                            newPositionsAll[i2 + 1].TimeCreate >= positionsAll[i].TimeCreate)
-                        {
-                            newPositionsAll.Insert(i2 + 1, positionsAll[i]);
-                            break;
-                        }
-                    }
-                }
-            }
-
-            positionsAll = newPositionsAll;
-
-            List<Position> newPositionsLong = new List<Position>();
-
-            for (int i = 0; i < positionsLong.Count; i++)
-            {
-                if (newPositionsLong.Count == 0 ||
-                    newPositionsLong[newPositionsLong.Count - 1].TimeCreate <= positionsLong[i].TimeCreate)
-                {
-                    newPositionsLong.Add(positionsLong[i]);
-                }
-                else if (newPositionsLong[0].TimeCreate > positionsLong[i].TimeCreate)
-                {
-                    newPositionsLong.Insert(0, positionsLong[i]);
-                }
-                else
-                {
-                    for (int i2 = 0; i2 < newPositionsLong.Count - 1; i2++)
-                    {
-                        if (newPositionsLong[i2].TimeCreate <= positionsLong[i].TimeCreate &&
-                            newPositionsLong[i2 + 1].TimeCreate >= positionsLong[i].TimeCreate)
-                        {
-                            newPositionsLong.Insert(i2 + 1, positionsLong[i]);
-                            break;
-                        }
-                    }
-                }
-            }
-
-            positionsLong = newPositionsLong;
-
-            List<Position> newPositionsShort = new List<Position>();
-
-            for (int i = 0; i < positionsShort.Count; i++)
-            {
-                if (newPositionsShort.Count == 0 ||
-                    newPositionsShort[newPositionsShort.Count - 1].TimeCreate <= positionsShort[i].TimeCreate)
-                {
-                    newPositionsShort.Add(positionsShort[i]);
-                }
-                else if (newPositionsShort[0].TimeCreate > positionsShort[i].TimeCreate)
-                {
-                    newPositionsShort.Insert(0, positionsShort[i]);
-                }
-                else
-                {
-                    for (int i2 = 0; i2 < newPositionsShort.Count - 1; i2++)
-                    {
-                        if (newPositionsShort[i2].TimeCreate <= positionsShort[i].TimeCreate &&
-                            newPositionsShort[i2 + 1].TimeCreate >= positionsShort[i].TimeCreate)
-                        {
-                            newPositionsShort.Insert(i2 + 1, positionsShort[i]);
-                            break;
-                        }
-                    }
-                }
-            }
-
-            positionsShort = newPositionsShort;
-
-            _allPositions = positionsAll.FindAll(p => p.State != PositionStateType.OpeningFail);
-            _longPositions = _allPositions.FindAll(p => p.Direction == Side.Buy);
-            _shortPositions = _allPositions.FindAll(p => p.Direction == Side.Sell);
-
-        }
 
         private void JournalUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -976,6 +841,13 @@ namespace OsEngine.Journal
 
             _chartVolume.Series.Clear();
             _chartVolume.ChartAreas.Clear();
+
+            if(positionsAll == null 
+                || positionsAll.Count == 0)
+            {
+                return;
+            }
+
             //  take the number of tools
             // берём кол-во инструментов
             List<VolumeSecurity> volumes = new List<VolumeSecurity>();
@@ -1343,7 +1215,8 @@ namespace OsEngine.Journal
 
             _chartDd.Series.Clear();
 
-            if (positionsAll.Count == 0)
+            if (positionsAll == null 
+                || positionsAll.Count == 0)
             {
                 return;
             }
@@ -1813,6 +1686,12 @@ namespace OsEngine.Journal
             }
             _openPositionGrid.Rows.Clear();
 
+            if(positionsAll == null 
+                || positionsAll.Count == 0)
+            {
+                return;
+            }
+
             for (int i = 0; i < positionsAll.Count; i++)
             {
                 if (positionsAll[i].State != PositionStateType.Done &&
@@ -2087,7 +1966,8 @@ namespace OsEngine.Journal
             }
             _closePositionGrid.Rows.Clear();
 
-            if (positionsAll.Count == 0)
+            if (positionsAll == null 
+                || positionsAll.Count == 0)
             {
                 return;
             }
@@ -2161,10 +2041,38 @@ namespace OsEngine.Journal
         {
             GridActivBots.Visibility = Visibility.Visible;
             ButtonShowLeftPanel.Visibility = Visibility.Hidden;
-            GridTabPrime.Margin = new Thickness(410, 0, -0.333, -0.333);
+            GridTabPrime.Margin = new Thickness(510, 0, -0.333, -0.333);
         }
 
         // Left Bots Panel
+
+        private void LeftBotsPanelPainter()
+        {
+            while(true)
+            {
+                if(IsErase == true)
+                {
+                    return;
+                }
+
+                if(_neadToRapaintBotsGrid)
+                {
+                    _neadToRapaintBotsGrid = false;
+                    PaintBotsGrid();
+                }
+                else
+                {
+                    Task.Delay(50);
+                }
+            }
+        }
+
+        private bool _neadToRapaintBotsGrid;
+
+        private List<Position> _allPositions;
+        private List<Position> _longPositions;
+        private List<Position> _shortPositions;
+        List<BotPanelJournal> _botsJournals;
 
         DataGridView _gridLeftBotsPanel;
 
@@ -2177,59 +2085,581 @@ namespace OsEngine.Journal
             CustomDataGridViewCell cell0 = new CustomDataGridViewCell();
             cell0.Style = _gridLeftBotsPanel.DefaultCellStyle;
 
-            DataGridViewColumn column0 = new DataGridViewColumn();
-            column0.CellTemplate = cell0;
+            DataGridViewComboBoxColumn column0 = new DataGridViewComboBoxColumn();
+            //column0.CellTemplate = cell0;
             column0.HeaderText = @"Группа";
-            column0.ReadOnly = true;
+            column0.ReadOnly = false;
             column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
             _gridLeftBotsPanel.Columns.Add(column0);
 
             DataGridViewColumn column1 = new DataGridViewColumn();
             column1.CellTemplate = cell0;
-            column1.HeaderText = @"Номер";
+            column1.HeaderText = @"#";
             column1.ReadOnly = true;
-            column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            column1.Width = 75;
             _gridLeftBotsPanel.Columns.Add(column1);
 
             DataGridViewColumn column2 = new DataGridViewColumn();
             column2.CellTemplate = cell0;
-            column2.HeaderText = @"Имя бота";
+            column2.HeaderText = @"Имя";
             column2.ReadOnly = true;
             column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridLeftBotsPanel.Columns.Add(column2);
 
-            DataGridViewColumn column3 = new DataGridViewColumn();
-            column3.CellTemplate = cell0;
-            column3.HeaderText = @"Класс";
-            column3.ReadOnly = true;
-            column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _gridLeftBotsPanel.Columns.Add(column3);
+            DataGridViewColumn column22 = new DataGridViewColumn();
+            column22.CellTemplate = cell0;
+            column22.HeaderText = @"Класс";
+            column22.ReadOnly = true;
+            column22.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridLeftBotsPanel.Columns.Add(column22);
 
-            DataGridViewColumn column4 = new DataGridViewColumn();
-            column4.CellTemplate = cell0;
+            DataGridViewComboBoxColumn column4 = new DataGridViewComboBoxColumn();
             column4.HeaderText = @"Вкл/выкл";
-            column4.ReadOnly = true;
+            column4.ReadOnly = false;
             column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridLeftBotsPanel.Columns.Add(column4);
 
             DataGridViewColumn column5 = new DataGridViewColumn();
             column5.CellTemplate = cell0;
             column5.HeaderText = @"Множитель";
-            column5.ReadOnly = true;
+            column5.ReadOnly = false;
             column5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridLeftBotsPanel.Columns.Add(column5);
 
             HostBotsSelected.Child = _gridLeftBotsPanel;
             HostBotsSelected.Child.Show();
+
+            _gridLeftBotsPanel.CellEndEdit += _gridLeftBotsPanel_CellEndEdit;
         }
 
         private void PaintBotsGrid()
         {
+            if (!TabControlPrime.CheckAccess())
+            {
+                TabControlPrime.Dispatcher.Invoke(PaintBotsGrid);
+                return;
+            }
 
+            _gridLeftBotsPanel.CellEndEdit -= _gridLeftBotsPanel_CellEndEdit;
+
+            List<PanelGroups> groups = GetGroups(_botsJournals);
+            List<DataGridViewRow> rows = new List<DataGridViewRow>();
+            List<string> allGroups = GetAllGroups(groups);
+
+
+            for(int i = 0;i < groups.Count;i++)
+            {
+                rows.AddRange(GetGroupRowList(groups[i], allGroups));
+            }
+
+            _gridLeftBotsPanel.Rows.Clear();
+
+            for(int i = 0;i < rows.Count;i++)
+            {
+                _gridLeftBotsPanel.Rows.Add(rows[i]);
+            }
+
+            _gridLeftBotsPanel.CellEndEdit += _gridLeftBotsPanel_CellEndEdit;
+        }
+
+        private List<string> GetAllGroups(List<PanelGroups> groups)
+        {
+            List<string> groupsInStrArray = new List<string>();
+
+            for(int i = 0;i < groups.Count;i++)
+            {
+                groupsInStrArray.Add(groups[i].BotGroup);
+            }
+            return groupsInStrArray;
+        }
+
+        private List<DataGridViewRow> GetGroupRowList(PanelGroups group, List<string> groupsAll)
+        {
+            List<DataGridViewRow> rows = new List<DataGridViewRow>();
+
+            DataGridViewRow row = new DataGridViewRow();
+
+            DataGridViewComboBoxCell groupBox = new DataGridViewComboBoxCell();
+            groupBox.Items.Add(group.BotGroup);
+            groupBox.Value = group.BotGroup;
+            row.Cells.Add(groupBox); // группа
+            groupBox.ReadOnly = true;
+
+            row.Cells.Add(new DataGridViewTextBoxCell()); // номер
+            row.Cells.Add(new DataGridViewTextBoxCell()); // имя
+            row.Cells.Add(new DataGridViewTextBoxCell()); // класс 
+
+            DataGridViewComboBoxCell cell = new DataGridViewComboBoxCell();
+            row.Cells.Add(cell); // вкл / выкл
+
+            row.Cells.Add(new DataGridViewTextBoxCell()); // мультипликатор
+            rows.Add(row);
+
+            for(int i = 0;i < group.Panels.Count;i++)
+            {
+                rows.AddRange(GetPanelRowList(group.Panels[i], groupsAll,i+1));
+            }
+
+            return rows;
+        }
+
+        private List<DataGridViewRow> GetPanelRowList(BotPanelJournal panel, List<string> groupNames, int panelNum)
+        {
+            List<DataGridViewRow> rows = new List<DataGridViewRow>();
+
+            DataGridViewRow row = new DataGridViewRow();
+
+            DataGridViewComboBoxCell groupBox = new DataGridViewComboBoxCell();
+
+            for(int i = 0;i < groupNames.Count;i++)
+            {
+                groupBox.Items.Add(groupNames[i]);
+            }
+            groupBox.Items.Add("new");
+            groupBox.Value = panel.BotGroup;
+
+            row.Cells.Add(groupBox); // группа
+          
+            row.Cells.Add(new DataGridViewTextBoxCell()); // номер
+            row.Cells[row.Cells.Count - 1].Value = panelNum;
+            
+            row.Cells.Add(new DataGridViewTextBoxCell()); // имя
+            row.Cells[row.Cells.Count - 1].Value = panel.BotName;
+
+            row.Cells.Add(new DataGridViewTextBoxCell()); // класс 
+            row.Cells[row.Cells.Count - 1].Value = panel.BotClass;
+
+            DataGridViewComboBoxCell cell = new DataGridViewComboBoxCell();
+            cell.Items.Add("True");
+            cell.Items.Add("False");
+            cell.Value = panel.IsOn.ToString();
+            row.Cells.Add(cell); // вкл / выкл
+
+            row.Cells.Add(new DataGridViewTextBoxCell()); // мультипликатор
+            row.Cells[row.Cells.Count - 1].Value = panel.Mult.ToString();
+
+            rows.Add(row);
+
+            return rows;
+        }
+
+        private List<PanelGroups> GetGroups(List<BotPanelJournal> oldPanels)
+        {
+            List<PanelGroups> groups = new List<PanelGroups>();
+
+            for (int i = 0; i < oldPanels.Count; i++)
+            {
+                PanelGroups myGroup = groups.Find(g => g.BotGroup == oldPanels[i].BotGroup);
+
+                if(myGroup == null)
+                {
+                    myGroup = new PanelGroups();
+                    myGroup.BotGroup = oldPanels[i].BotGroup;
+                    groups.Add(myGroup);
+                }
+
+                myGroup.Panels.Add(oldPanels[i]);
+            }
+
+            return groups;
+        }
+
+        private List<Journal> GetActiveJournals()
+        {
+            List<Journal> journals = new List<Journal>();
+
+            for(int i = 0;i < _botsJournals.Count;i++)
+            {
+                BotPanelJournal panel = _botsJournals[i];
+
+                for(int i2 = 0;i2 < panel._Tabs.Count;i2++)
+                {
+                    if(panel.IsOn)
+                    {
+                        journals.Add(panel._Tabs[i2].Journal);
+                    }
+                }
+            }
+
+            return journals;
+        }
+
+        private void CreatePositionsLists()
+        {
+            // 1 collecting all journals.
+            // 1 собираем все журналы
+            List<Journal> myJournals = GetActiveJournals();
+
+            if (myJournals == null
+                || myJournals.Count == 0)
+            {
+                return;
+            }
+            // 2 sorting deals on ALL / Long / Short
+            // 2 сортируем сделки на ВСЕ / Лонг / Шорт
+
+            List<Position> positionsAll = new List<Position>();
+            List<Position> positionsLong = new List<Position>();
+            List<Position> positionsShort = new List<Position>();
+
+            for (int i = 0; i < myJournals.Count; i++)
+            {
+                if (myJournals[i].AllPosition != null) positionsAll.AddRange(myJournals[i].AllPosition);
+                if (myJournals[i].CloseAllLongPositions != null)
+                    positionsLong.AddRange(myJournals[i].CloseAllLongPositions);
+                if (myJournals[i].CloseAllShortPositions != null)
+                    positionsShort.AddRange(myJournals[i].CloseAllShortPositions);
+            }
+
+            positionsLong =
+                positionsLong.FindAll(
+                    pos => pos.State != PositionStateType.OpeningFail && pos.State != PositionStateType.Opening);
+            positionsShort =
+                positionsShort.FindAll(
+                    pos => pos.State != PositionStateType.OpeningFail && pos.State != PositionStateType.Opening);
+            // 3 sort transactions by time (this is better in a separate method)
+            // 3 сортируем сделки по времени(это лучше в отдельном методе)
+
+
+            List<Position> newPositionsAll = new List<Position>();
+
+            for (int i = 0; i < positionsAll.Count; i++)
+            {
+                if (newPositionsAll.Count == 0 ||
+                    newPositionsAll[newPositionsAll.Count - 1].TimeCreate <= positionsAll[i].TimeCreate)
+                {
+                    newPositionsAll.Add(positionsAll[i]);
+                }
+                else if (newPositionsAll[0].TimeCreate >= positionsAll[i].TimeCreate)
+                {
+                    newPositionsAll.Insert(0, positionsAll[i]);
+                }
+                else
+                {
+                    for (int i2 = 0; i2 < newPositionsAll.Count - 1; i2++)
+                    {
+                        if (newPositionsAll[i2].TimeCreate <= positionsAll[i].TimeCreate &&
+                            newPositionsAll[i2 + 1].TimeCreate >= positionsAll[i].TimeCreate)
+                        {
+                            newPositionsAll.Insert(i2 + 1, positionsAll[i]);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            positionsAll = newPositionsAll;
+
+            List<Position> newPositionsLong = new List<Position>();
+
+            for (int i = 0; i < positionsLong.Count; i++)
+            {
+                if (newPositionsLong.Count == 0 ||
+                    newPositionsLong[newPositionsLong.Count - 1].TimeCreate <= positionsLong[i].TimeCreate)
+                {
+                    newPositionsLong.Add(positionsLong[i]);
+                }
+                else if (newPositionsLong[0].TimeCreate > positionsLong[i].TimeCreate)
+                {
+                    newPositionsLong.Insert(0, positionsLong[i]);
+                }
+                else
+                {
+                    for (int i2 = 0; i2 < newPositionsLong.Count - 1; i2++)
+                    {
+                        if (newPositionsLong[i2].TimeCreate <= positionsLong[i].TimeCreate &&
+                            newPositionsLong[i2 + 1].TimeCreate >= positionsLong[i].TimeCreate)
+                        {
+                            newPositionsLong.Insert(i2 + 1, positionsLong[i]);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            positionsLong = newPositionsLong;
+
+            List<Position> newPositionsShort = new List<Position>();
+
+            for (int i = 0; i < positionsShort.Count; i++)
+            {
+                if (newPositionsShort.Count == 0 ||
+                    newPositionsShort[newPositionsShort.Count - 1].TimeCreate <= positionsShort[i].TimeCreate)
+                {
+                    newPositionsShort.Add(positionsShort[i]);
+                }
+                else if (newPositionsShort[0].TimeCreate > positionsShort[i].TimeCreate)
+                {
+                    newPositionsShort.Insert(0, positionsShort[i]);
+                }
+                else
+                {
+                    for (int i2 = 0; i2 < newPositionsShort.Count - 1; i2++)
+                    {
+                        if (newPositionsShort[i2].TimeCreate <= positionsShort[i].TimeCreate &&
+                            newPositionsShort[i2 + 1].TimeCreate >= positionsShort[i].TimeCreate)
+                        {
+                            newPositionsShort.Insert(i2 + 1, positionsShort[i]);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            positionsShort = newPositionsShort;
+
+            _allPositions = positionsAll.FindAll(p => p.State != PositionStateType.OpeningFail);
+            _longPositions = _allPositions.FindAll(p => p.Direction == Side.Buy);
+            _shortPositions = _allPositions.FindAll(p => p.Direction == Side.Sell);
 
         }
 
+        private void LoadGroups()
+        {
+            string path = @"Engine\" + _startProgram + @"JournalSettings.txt";
+
+            //_botsJournals;
+
+            if (!File.Exists(path))
+            {
+                return;
+            }
+            try
+            {
+                using (StreamReader reader = new StreamReader(path))
+                {
+                    while(reader.EndOfStream == false)
+                    {
+                        string botString = reader.ReadLine();
+
+                        if (string.IsNullOrEmpty(botString))
+                        {
+                            continue;
+                        }
+
+                        string[] saveArray = botString.Split('&');
+
+                        string botName = saveArray[0];
+                        string botGroup = saveArray[1];
+                        decimal mult = saveArray[2].ToDecimal();
+                        bool isOn = Convert.ToBoolean(saveArray[3]);
+
+                        BotPanelJournal journal = _botsJournals.Find(b => b.BotName == botName);
+
+                        if(journal == null)
+                        {
+                            continue;
+                        }
+
+                        journal.BotGroup = botGroup;
+                        journal.Mult = mult;
+                        journal.IsOn = isOn;
+                    }
+
+                    reader.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+        }
+
+        private void SaveGroups()
+        {
+            try
+            {
+                string path = @"Engine\" + _startProgram + @"JournalSettings.txt";
+
+                using (StreamWriter writer = new StreamWriter(path, false)
+                    )
+                {
+                    for(int i = 0;i < _botsJournals.Count;i++)
+                    {
+                        string res = _botsJournals[i].BotName + 
+                            "&" + _botsJournals[i].BotGroup +
+                            "&" + _botsJournals[i].Mult +
+                            "&" + _botsJournals[i].IsOn ;
+
+
+                        writer.WriteLine(res);
+                    }
+
+                    writer.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+        }
+
+        private void _gridLeftBotsPanel_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            if(e.ColumnIndex == 0)
+            {
+                ChangeGroup(e);
+            }
+            else if(e.ColumnIndex == 4)
+            {
+                ChangeOnOff(e);
+            }
+            else if (e.ColumnIndex == 5)
+            {
+                ChangeMult(e);
+            }
+        }
+
+        private void ChangeOnOff(DataGridViewCellEventArgs e)
+        {
+            string textInCell = _gridLeftBotsPanel.Rows[e.RowIndex].Cells[4].Value.ToString();
+
+            BotPanelJournal bot = GetBotByNum(e.RowIndex);
+
+            if (bot == null)
+            {
+                return;
+            }
+
+            bot.IsOn = Convert.ToBoolean(textInCell);
+
+            SaveGroups();
+            _neadToRapaintBotsGrid = true;
+        }
+
+        private void ChangeMult(DataGridViewCellEventArgs e)
+        {
+            string textInCell = _gridLeftBotsPanel.Rows[e.RowIndex].Cells[5].Value.ToString();
+
+            BotPanelJournal bot = GetBotByNum(e.RowIndex);
+
+            if (bot == null)
+            {
+                return;
+            }
+
+            try
+            {
+                bot.Mult = textInCell.ToDecimal();
+            }
+            catch
+            {
+                return;
+            }
+
+            SaveGroups();
+            _neadToRapaintBotsGrid = true;
+        }
+
+        private void ChangeGroup(DataGridViewCellEventArgs e)
+        {
+            string textInCell = _gridLeftBotsPanel.Rows[e.RowIndex].Cells[0].Value.ToString();
+
+            BotPanelJournal bot = GetBotByNum(e.RowIndex);
+
+            if (bot == null)
+            {
+                return;
+            }
+
+            if (textInCell == "new")
+            { // Создаём новую группу
+                List<PanelGroups> groups = GetGroups(_botsJournals);
+                List<string> allGroups = GetAllGroups(groups);
+
+                NewGroupAddInJournalUi ui = new NewGroupAddInJournalUi(allGroups);
+                ui.ShowDialog();
+
+                if (ui.IsAccepted == false)
+                {
+                    return;
+                }
+                bot.BotGroup = ui.NewGroupName;
+            }
+            else
+            { // обновляем группу у бота
+                bot.BotGroup = textInCell;
+            }
+
+            SaveGroups();
+            _neadToRapaintBotsGrid = true;
+        }
+
+        private BotPanelJournal GetBotByNum(int num)
+        {
+            List<PanelGroups> groups = GetGroups(_botsJournals);
+
+            int curBotNum = 1;
+
+            for(int i = 0;i < groups.Count; i++)
+            {
+                for (int i2 = 0;i2< groups[i].Panels.Count;i2++)
+                {
+                    if (num == curBotNum)
+                    {
+                        return groups[i].Panels[i2];
+                    }
+
+                    curBotNum++;
+                }
+                curBotNum++;
+            }
+
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// log storage class
+    /// класс хранилище журналов
+    /// </summary>
+    public class BotTabJournal
+    {
+        public int TabNum;
+
+        public Journal Journal;
+    }
+
+    /// <summary>
+    /// log storage class
+    /// класс хранилище журналов
+    /// </summary>
+    public class BotPanelJournal
+    {
+        public string BotName;
+
+        public string BotGroup = "none";
+
+        public string BotClass;
+
+        public bool IsOn = true;
+
+        public decimal Mult = 1;
+
+        public List<BotTabJournal> _Tabs;
+
+        public List<Position> AllPositions
+        {
+            get
+            {
+                List<Position> poses = new List<Position>();
+
+                for (int i = 0; i < _Tabs.Count; i++)
+                {
+                    poses.AddRange(_Tabs[i].Journal.AllPosition);
+                }
+
+                return poses;
+            }
+        }
+    }
+
+    public class PanelGroups
+    {
+        public string BotGroup = "none";
+
+        public List<BotPanelJournal> Panels = new List<BotPanelJournal>();
 
     }
 }
