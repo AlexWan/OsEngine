@@ -6004,10 +6004,12 @@ namespace OsEngine.Charts.CandleChart
                 {
                     // series of parallel candles,indicator
                     // серия паралельная свечкам, индикатор
-                    if (series.Points[i].YValues.Max() > max &&
-                        series.Points[i].YValues.Max() != 0)
+                    double maxCurValue = series.Points[i].YValues.Max();
+
+                    if (maxCurValue > max &&
+                        maxCurValue != 0)
                     {
-                        max = series.Points[i].YValues.Max();
+                        max = maxCurValue;
                     }
 
                     if (end - start > 500)
@@ -6040,10 +6042,11 @@ namespace OsEngine.Charts.CandleChart
             for (int i = start; series.Points.Count >= candleSeries.Points.Count - 1 && i <= end && i < series.Points.Count; )
             {
                 double minOnPoint = series.Points[i].YValues.Min();
+
                 if (minOnPoint < min &&
-                    series.Points[i].YValues.Min() != 0)
+                    minOnPoint != 0)
                 {
-                    min = series.Points[i].YValues.Min();
+                    min = minOnPoint;
                 }
 
                 if (end - start > 500)

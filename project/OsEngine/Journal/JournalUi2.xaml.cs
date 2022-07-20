@@ -45,7 +45,6 @@ namespace OsEngine.Journal
         /// является ли окно утилизированным
         /// </summary>
         public bool IsErase;
-        
 
         /// <summary>
         /// constructor
@@ -2569,6 +2568,7 @@ namespace OsEngine.Journal
                 List<string> allGroups = GetAllGroups(groups);
 
                 NewGroupAddInJournalUi ui = new NewGroupAddInJournalUi(allGroups);
+                ui.WindowStartupLocation = WindowStartupLocation.CenterScreen;
                 ui.ShowDialog();
 
                 if (ui.IsAccepted == false)
