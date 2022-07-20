@@ -231,6 +231,49 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// candle body (%)
+        /// тело свечи (%)
+        /// </summary>
+        public decimal BodyPercent
+        {
+            get
+            {
+                if (IsUp)
+                {
+                    return (Close - Open) / Open * 100m;
+                }
+                else
+                {
+                    return (Open - Close) / Open * 100m;
+                }
+            }
+        }
+
+        /// <summary>
+        /// candle center
+        /// центр свечи
+        /// </summary>
+        public decimal Center
+        {
+            get
+            {
+                return (High - Low) / 2m + Low;
+            }
+        }
+
+        /// <summary>
+        /// candle volatility (regarding center, %)
+        /// волатильность свечи (от центра, %)
+        /// </summary>
+        public decimal Volatility
+        {
+            get
+            {
+                return (High - Center) / Center * 100m;
+            }
+        }
+
+        /// <summary>
         /// to load the status of the candlestick from the line
         /// загрузить состояние свечи из строки
         /// </summary>
