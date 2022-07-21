@@ -473,7 +473,7 @@ namespace OsEngine.Indicators
 
         public bool PaintOn { get; set; }
 
-        public bool IsOn { get; set; }
+        public bool IsOn { get; set; } = true;
 
         #endregion
 
