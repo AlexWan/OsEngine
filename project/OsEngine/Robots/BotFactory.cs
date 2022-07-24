@@ -37,6 +37,8 @@ namespace OsEngine.Robots
         public static List<string> GetNamesStrategy()
         {
             List<string> result = new List<string>();
+            result.Add("EmaTest");
+            result.Add("BollingerTest");
             result.Add("SmaScreener");
             result.Add("Fisher");
             result.Add("Engine");
@@ -116,6 +118,15 @@ namespace OsEngine.Robots
             {
                 bot = CreateScriptStrategyByName(nameClass, name, startProgram);
                 return bot;
+            }
+
+            if (nameClass == "EmaTest")
+            {
+                bot = new EmaTest(name, startProgram);
+            }
+            if (nameClass == "BollingerTest")
+            {
+                bot = new BollingerTest(name, startProgram);
             }
 
             if (nameClass == "SmaScreener")
